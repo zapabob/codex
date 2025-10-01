@@ -12,6 +12,7 @@ members = [
     "cli",
     "common",
     "core",
+    "deep-research",
     "exec",
     "execpolicy",
     "file-search",
@@ -27,6 +28,7 @@ members = [
     "protocol-ts",
     "rmcp-client",
     "responses-api-proxy",
+    "supervisor",
     "otel",
     "tui",
     "git-apply",
@@ -54,6 +56,7 @@ codex-arg0 = { path = "arg0" }
 codex-chatgpt = { path = "chatgpt" }
 codex-common = { path = "common" }
 codex-core = { path = "core" }
+codex-deep-research = { path = "deep-research" }
 codex-exec = { path = "exec" }
 codex-file-search = { path = "file-search" }
 codex-git-tooling = { path = "git-tooling" }
@@ -68,6 +71,7 @@ codex-protocol = { path = "protocol" }
 codex-protocol-ts = { path = "protocol-ts" }
 codex-responses-api-proxy = { path = "responses-api-proxy" }
 codex-rmcp-client = { path = "rmcp-client" }
+codex-supervisor = { path = "supervisor" }
 codex-tui = { path = "tui" }
 codex-utils-json-to-toml = { path = "utils/json-to-toml" }
 codex-utils-readiness = { path = "utils/readiness" }
