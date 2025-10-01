@@ -44,7 +44,7 @@ mod tests {
         let report = researcher.research("Rust async patterns").await.unwrap();
 
         assert_eq!(report.query, "Rust async patterns");
-        assert!(report.sources.len() > 0);
+        assert!(!report.sources.is_empty());
         assert!(!report.summary.is_empty());
     }
 

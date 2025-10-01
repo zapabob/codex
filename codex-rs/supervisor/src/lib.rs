@@ -101,7 +101,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(result.goal, "Implement secure auth");
-        assert!(result.plan.steps.len() > 0);
+        assert!(!result.plan.steps.is_empty());
         assert_eq!(result.assignments.len(), result.plan.steps.len());
         assert_eq!(
             result.results.individual_results.len(),
@@ -129,7 +129,7 @@ mod tests {
                 .await
                 .unwrap();
 
-            assert!(result.results.individual_results.len() > 0);
+            assert!(!result.results.individual_results.is_empty());
         }
     }
 }

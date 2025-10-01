@@ -17,9 +17,13 @@ pub async fn conduct_research(
     let mut depth = 0;
 
     // Multi-depth exploration
-    let current_query = query.to_string();
+    // Note: In the current mock implementation, we only do one iteration.
+    // A real implementation would analyze results and generate follow-up queries
+    // for deeper exploration across multiple iterations.
+    #[allow(clippy::never_loop)]
     while depth < config.max_depth {
         depth += 1;
+        let current_query = query.to_string();
 
         // Search for sources
         let sources = provider.search(&current_query, config.max_sources).await?;
@@ -85,7 +89,7 @@ mod tests {
 
         assert_eq!(report.query, "Rust async patterns");
         assert!(report.depth_reached > 0);
-        assert!(report.sources.len() > 0);
+        assert!(!report.sources.is_empty());
         assert_eq!(report.findings.len(), report.sources.len());
         assert!(!report.summary.is_empty());
     }
