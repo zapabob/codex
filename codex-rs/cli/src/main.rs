@@ -85,6 +85,12 @@ enum Subcommand {
     /// Resume a previous interactive session (picker by default; use --last to continue the most recent).
     Resume(ResumeCommand),
 
+    /// [EXPERIMENTAL] Coordinate multiple agents to achieve a goal.
+    Supervisor(SupervisorCommand),
+
+    /// [EXPERIMENTAL] Conduct deep research on a topic.
+    DeepResearch(DeepResearchCommand),
+
     /// Internal: generate TypeScript protocol bindings.
     #[clap(hide = true)]
     GenerateTs(GenerateTsCommand),
@@ -181,6 +187,54 @@ struct GenerateTsCommand {
     /// Optional path to the Prettier executable to format generated files
     #[arg(short = 'p', long = "prettier", value_name = "PRETTIER_BIN")]
     prettier: Option<PathBuf>,
+}
+
+#[derive(Debug, Parser)]
+struct SupervisorCommand {
+    /// The goal to achieve with multiple agents
+    goal: String,
+
+    /// Coordination strategy
+    #[arg(long = "strategy", default_value = "hybrid")]
+    strategy: String,
+
+    /// Management style
+    #[arg(long = "style", default_value = "democratic")]
+    style: String,
+
+    /// Comma-separated list of agents to use
+    #[arg(long = "agents")]
+    agents: Option<String>,
+
+    /// Merge strategy for results
+    #[arg(long = "merge-strategy", default_value = "concatenate")]
+    merge_strategy: String,
+
+    /// Output format (text or json)
+    #[arg(long = "format", default_value = "text")]
+    format: String,
+}
+
+#[derive(Debug, Parser)]
+struct DeepResearchCommand {
+    /// The query to research
+    query: String,
+
+    /// Maximum depth of research (1-10)
+    #[arg(long = "levels", default_value = "3")]
+    levels: u8,
+
+    /// Maximum number of sources to collect (1-100)
+    #[arg(long = "sources", default_value = "10")]
+    sources: u8,
+
+    /// Research strategy
+    #[arg(long = "strategy", default_value = "comprehensive")]
+    strategy: String,
+
+    /// Output format (text or json)
+    #[arg(long = "format", default_value = "text")]
+    format: String,
 }
 
 fn format_exit_messages(exit_info: AppExitInfo, color_enabled: bool) -> Vec<String> {
@@ -361,6 +415,12 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
         Some(Subcommand::GenerateTs(gen_cli)) => {
             codex_protocol_ts::generate_ts(&gen_cli.out_dir, gen_cli.prettier.as_deref())?;
         }
+        Some(Subcommand::Supervisor(supervisor_cli)) => {
+            run_supervisor(supervisor_cli).await?;
+        }
+        Some(Subcommand::DeepResearch(deep_research_cli)) => {
+            run_deep_research(deep_research_cli).await?;
+        }
     }
 
     Ok(())
@@ -449,6 +509,159 @@ fn print_completion(cmd: CompletionCommand) {
     let mut app = MultitoolCli::command();
     let name = "codex";
     generate(cmd.shell, &mut app, name, &mut std::io::stdout());
+}
+
+async fn run_supervisor(cmd: SupervisorCommand) -> anyhow::Result<()> {
+    use codex_supervisor::CoordinationStrategy;
+    use codex_supervisor::ManagementStyle;
+    use codex_supervisor::MergeStrategy;
+    use codex_supervisor::Supervisor;
+
+    // Parse strategy
+    let strategy = match cmd.strategy.to_lowercase().as_str() {
+        "sequential" => CoordinationStrategy::Sequential,
+        "parallel" => CoordinationStrategy::Parallel,
+        "hybrid" => CoordinationStrategy::Hybrid,
+        _ => {
+            eprintln!("Invalid strategy. Using default: hybrid");
+            CoordinationStrategy::Hybrid
+        }
+    };
+
+    // Parse style
+    let style = match cmd.style.to_lowercase().as_str() {
+        "autocratic" => ManagementStyle::Autocratic,
+        "democratic" => ManagementStyle::Democratic,
+        "laissez-faire" => ManagementStyle::LaissezFaire,
+        _ => {
+            eprintln!("Invalid style. Using default: democratic");
+            ManagementStyle::Democratic
+        }
+    };
+
+    // Parse merge strategy
+    let merge_strategy = match cmd.merge_strategy.to_lowercase().as_str() {
+        "concatenate" => MergeStrategy::Concatenate,
+        "voting" => MergeStrategy::Voting,
+        "first-success" => MergeStrategy::FirstSuccess,
+        "highest-score" => MergeStrategy::HighestScore,
+        _ => {
+            eprintln!("Invalid merge strategy. Using default: concatenate");
+            MergeStrategy::Concatenate
+        }
+    };
+
+    // Parse agents
+    let agents_hint = cmd.agents.map(|a| {
+        a.split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect()
+    });
+
+    // Create supervisor config
+    let config = codex_supervisor::types::SupervisorConfig {
+        strategy,
+        style,
+        merge_strategy,
+        max_parallel_agents: 5,
+    };
+
+    let supervisor = Supervisor::new(config);
+
+    // Coordinate the goal
+    let result = supervisor.coordinate_goal(&cmd.goal, agents_hint).await?;
+
+    // Output result
+    if cmd.format == "json" {
+        println!("{}", serde_json::to_string_pretty(&result)?);
+    } else {
+        println!("Supervisor Report");
+        println!("=================\n");
+        println!("Goal: {}\n", result.goal);
+        println!("Plan:");
+        for step in &result.plan.steps {
+            println!("  - {}: {}", step.id, step.description);
+            if let Some(ref hint) = step.agent_hint {
+                println!("    Agent hint: {hint}");
+            }
+        }
+        println!("\nAssignments:");
+        for assignment in &result.assignments {
+            println!(
+                "  - {} → {} ({})",
+                assignment.step_id, assignment.agent_name, assignment.description
+            );
+        }
+        println!("\nResults:");
+        println!("{}", result.results.summary);
+    }
+
+    Ok(())
+}
+
+async fn run_deep_research(cmd: DeepResearchCommand) -> anyhow::Result<()> {
+    use codex_deep_research::DeepResearcher;
+    use codex_deep_research::MockProvider;
+    use codex_deep_research::ResearchStrategy;
+    use std::sync::Arc;
+
+    // Validate and parse parameters
+    let levels = cmd.levels.clamp(1, 10);
+    let sources = cmd.sources.clamp(1, 100);
+
+    // Parse strategy
+    let strategy = match cmd.strategy.to_lowercase().as_str() {
+        "comprehensive" => ResearchStrategy::Comprehensive,
+        "focused" => ResearchStrategy::Focused,
+        "exploratory" => ResearchStrategy::Exploratory,
+        _ => {
+            eprintln!("Invalid strategy. Using default: comprehensive");
+            ResearchStrategy::Comprehensive
+        }
+    };
+
+    // Create config
+    let config = codex_deep_research::types::DeepResearcherConfig {
+        max_depth: levels,
+        max_sources: sources,
+        strategy,
+    };
+
+    // For now, use mock provider
+    // In the future, this would use a real search provider
+    let provider = Arc::new(MockProvider);
+    let researcher = DeepResearcher::new(config, provider);
+
+    // Conduct research
+    let report = researcher.research(&cmd.query).await?;
+
+    // Output report
+    if cmd.format == "json" {
+        println!("{}", serde_json::to_string_pretty(&report)?);
+    } else {
+        println!("Deep Research Report");
+        println!("====================\n");
+        println!("Query: {}", report.query);
+        println!("Strategy: {strategy:?}");
+        println!("Depth reached: {}/{levels}", report.depth_reached);
+        println!("Sources found: {}\n", report.sources.len());
+        println!("Sources:");
+        for (i, source) in report.sources.iter().enumerate() {
+            println!(
+                "  {}. {} (score: {:.2})",
+                i + 1,
+                source.title,
+                source.relevance_score
+            );
+            println!("     URL: {}", source.url);
+        }
+        println!("\nFindings: {} total", report.findings.len());
+        println!("\nSummary:");
+        println!("{}", report.summary);
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

@@ -23,6 +23,7 @@ codex-arg0 = { workspace = true }
 codex-chatgpt = { workspace = true }
 codex-common = { workspace = true, features = ["cli"] }
 codex-core = { workspace = true }
+codex-deep-research = { workspace = true }
 codex-exec = { workspace = true }
 codex-login = { workspace = true }
 codex-mcp-server = { workspace = true }
@@ -31,6 +32,7 @@ codex-protocol = { workspace = true }
 codex-app-server-protocol = { workspace = true }
 codex-protocol-ts = { workspace = true }
 codex-responses-api-proxy = { workspace = true }
+codex-supervisor = { workspace = true }
 codex-tui = { workspace = true }
 codex-cloud-tasks = { path = "../cloud-tasks" }
 ctor = { workspace = true }

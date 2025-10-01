@@ -1,0 +1,15 @@
+[package]
+name = "codex-supervisor"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["full"] }
+
+[dev-dependencies]
+pretty_assertions.workspace = true
+tokio-test.workspace = true

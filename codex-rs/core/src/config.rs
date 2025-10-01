@@ -729,6 +729,12 @@ pub struct ConfigToml {
 
     /// OTEL configuration.
     pub otel: Option<crate::config_types::OtelConfigToml>,
+
+    /// Supervisor configuration for multi-agent coordination.
+    pub supervisor: Option<SupervisorConfigToml>,
+
+    /// Deep research configuration.
+    pub deep_research: Option<DeepResearchConfigToml>,
 }
 
 impl From<ConfigToml> for UserSavedConfig {
@@ -1196,6 +1202,32 @@ pub fn log_dir(cfg: &Config) -> std::io::Result<PathBuf> {
     let mut p = cfg.codex_home.clone();
     p.push("log");
     Ok(p)
+}
+
+/// Configuration for the supervisor (multi-agent coordination)
+#[derive(Debug, Clone, Deserialize, Default, PartialEq)]
+#[serde(default)]
+pub struct SupervisorConfigToml {
+    /// Default coordination strategy: sequential, parallel, or hybrid
+    pub default_strategy: Option<String>,
+    /// Default management style: autocratic, democratic, or laissez-faire
+    pub default_style: Option<String>,
+    /// Maximum number of agents to run in parallel
+    pub max_parallel_agents: Option<usize>,
+    /// Default merge strategy for results
+    pub merge_strategy: Option<String>,
+}
+
+/// Configuration for deep research
+#[derive(Debug, Clone, Deserialize, Default, PartialEq)]
+#[serde(default)]
+pub struct DeepResearchConfigToml {
+    /// Maximum depth of research (1-10)
+    pub max_depth: Option<u8>,
+    /// Maximum number of sources to collect
+    pub max_sources: Option<u8>,
+    /// Default research strategy: comprehensive, focused, or exploratory
+    pub default_strategy: Option<String>,
 }
 
 #[cfg(test)]

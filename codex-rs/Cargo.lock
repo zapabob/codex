@@ -770,6 +770,7 @@ dependencies = [
  "codex-cloud-tasks",
  "codex-common",
  "codex-core",
+ "codex-deep-research",
  "codex-exec",
  "codex-login",
  "codex-mcp-server",
@@ -777,6 +778,7 @@ dependencies = [
  "codex-protocol",
  "codex-protocol-ts",
  "codex-responses-api-proxy",
+ "codex-supervisor",
  "codex-tui",
  "ctor 0.5.0",
  "owo-colors",
@@ -904,6 +906,20 @@ dependencies = [
  "which",
  "wildmatch",
  "wiremock",
+]
+
+[[package]]
+name = "codex-deep-research"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "tokio",
+ "tokio-test",
 ]
 
 [[package]]
@@ -1174,6 +1190,19 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "codex-supervisor"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "tokio",
+ "tokio-test",
 ]
 
 [[package]]

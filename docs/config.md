@@ -780,3 +780,39 @@ notifications = [ "agent-turn-complete", "approval-requested" ]
 | `responses_originator_header_internal_override` | string | Override `originator` header value. |
 | `projects.<path>.trust_level` | string | Mark project/worktree as trusted (only `"trusted"` is recognized). |
 | `tools.web_search` | boolean | Enable web search tool (alias: `web_search_request`) (default: false). |
+
+## supervisor
+
+Configuration for multi-agent coordination through the supervisor.
+
+```toml
+[supervisor]
+default_strategy = "hybrid"       # sequential | parallel | hybrid
+default_style = "democratic"      # autocratic | democratic | laissez-faire
+max_parallel_agents = 5
+merge_strategy = "concatenate"    # concatenate | voting | first-success | highest-score
+```
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `supervisor.default_strategy` | `sequential` \| `parallel` \| `hybrid` | Default coordination strategy (default: `hybrid`). |
+| `supervisor.default_style` | `autocratic` \| `democratic` \| `laissez-faire` | Default management style (default: `democratic`). |
+| `supervisor.max_parallel_agents` | number | Maximum number of agents to run in parallel (default: 5). |
+| `supervisor.merge_strategy` | `concatenate` \| `voting` \| `first-success` \| `highest-score` | Strategy for merging results from multiple agents (default: `concatenate`). |
+
+## deep_research
+
+Configuration for the deep research feature.
+
+```toml
+[deep_research]
+max_depth = 3
+max_sources = 10
+default_strategy = "comprehensive"  # comprehensive | focused | exploratory
+```
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `deep_research.max_depth` | number | Maximum depth of research exploration (1-10, default: 3). |
+| `deep_research.max_sources` | number | Maximum number of sources to collect (1-100, default: 10). |
+| `deep_research.default_strategy` | `comprehensive` \| `focused` \| `exploratory` | Default research strategy (default: `comprehensive`). |
