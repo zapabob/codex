@@ -1,0 +1,16 @@
+[package]
+name = "codex-deep-research"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["full"] }
+
+[dev-dependencies]
+pretty_assertions.workspace = true
+tokio-test.workspace = true
