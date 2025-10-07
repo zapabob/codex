@@ -6,6 +6,7 @@ members = [
     "app-server-protocol",
     "apply-patch",
     "arg0",
+    "audit",
     "codex-backend-openapi-models",
     "cloud-tasks",
     "cloud-tasks-client",

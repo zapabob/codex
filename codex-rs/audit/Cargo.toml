@@ -1,5 +1,5 @@
 [package]
-name = "codex-supervisor"
+name = "codex-audit"
 version.workspace = true
 edition.workspace = true
 
@@ -9,12 +9,10 @@ serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+tracing.workspace = true
 
 [dev-dependencies]
 pretty_assertions.workspace = true
-tokio-test.workspace = true
-criterion = { version = "0.5", features = ["async_tokio"] }
+tempfile.workspace = true
 
-[[bench]]
-name = "agent_parallel"
-harness = false

@@ -62,6 +62,7 @@ pub mod project_doc;
 mod rollout;
 pub(crate) mod safety;
 pub mod seatbelt;
+pub mod security_profile;
 pub mod shell;
 pub mod spawn;
 pub mod terminal;
@@ -84,6 +85,7 @@ pub mod util;
 pub use apply_patch::CODEX_APPLY_PATCH_ARG1;
 pub use command_safety::is_safe_command;
 pub use safety::get_platform_sandbox;
+pub use security_profile::SecurityProfile;
 // Re-export the protocol types from the standalone `codex-protocol` crate so existing
 // `codex_core::protocol::...` references continue to work across the workspace.
 pub use codex_protocol::protocol;

@@ -1,0 +1,38 @@
+{
+  "// Codex独自ビルド - SubAgent & DeepResearch統合設定": "",
+  "codex.executablePath": "C:\\Users\\downl\\.cargo\\bin\\codex.exe",
+  "codex.enableDeepResearch": true,
+  "codex.enableSubAgents": true,
+  "codex.supervisorEnabled": true,
+  
+  "// SubAgentエージェント設定": "",
+  "codex.agents.codeExpert": true,
+  "codex.agents.securityExpert": true,
+  "codex.agents.testingExpert": true,
+  "codex.agents.docsExpert": true,
+  "codex.agents.deepResearcher": true,
+  "codex.agents.debugExpert": true,
+  "codex.agents.performanceExpert": true,
+  "codex.agents.general": true,
+  
+  "// DeepResearch設定": "",
+  "codex.deepResearch.maxSources": 20,
+  "codex.deepResearch.maxDepth": 3,
+  "codex.deepResearch.includeAcademic": true,
+  "codex.deepResearch.strategy": "comprehensive",
+  
+  "// パフォーマンス設定": "",
+  "codex.maxConcurrentAgents": 8,
+  "codex.taskQueueSize": 100,
+  "codex.timeout": 300,
+  
+  "// セキュリティ設定": "",
+  "codex.sandbox.enabled": true,
+  "codex.sandbox.mode": "workspace-write",
+  "codex.security.reviewGeneratedCode": true,
+  
+  "// ログ設定": "",
+  "codex.logging.enabled": true,
+  "codex.logging.level": "info"
+}
+
