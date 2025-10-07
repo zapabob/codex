@@ -9,7 +9,7 @@ use codex_app_server_protocol::AuthMode;
 use codex_core::AuthManager;
 use codex_core::BUILT_IN_OSS_MODEL_PROVIDER_ID;
 use codex_core::CodexAuth;
-use codex_core::INTERACTIVE_SESSION_SOURCES;
+// use codex_core::INTERACTIVE_SESSION_SOURCES; // Removed in newer version
 use codex_core::RolloutRecorder;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
@@ -80,7 +80,7 @@ pub mod test_backend;
 mod updates;
 
 use crate::onboarding::TrustDirectorySelection;
-use crate::onboarding::WSL_INSTRUCTIONS;
+// use crate::onboarding::WSL_INSTRUCTIONS; // Removed in newer version
 use crate::onboarding::onboarding_screen::OnboardingScreenArgs;
 use crate::onboarding::onboarding_screen::run_onboarding_app;
 use crate::tui::Tui;
@@ -88,7 +88,7 @@ pub use cli::Cli;
 pub use markdown_render::render_markdown_text;
 pub use public_widgets::composer_input::ComposerAction;
 pub use public_widgets::composer_input::ComposerInput;
-use std::io::Write as _;
+// use std::io::Write as _; // Removed: unused import
 
 // (tests access modules directly within the crate)
 
@@ -364,7 +364,7 @@ async fn run_ratatui_app(
     // Initialize high-fidelity session event logging if enabled.
     session_log::maybe_init(&config);
 
-    let auth_manager = AuthManager::shared(config.codex_home.clone(), false);
+    let auth_manager = AuthManager::shared(config.codex_home.clone());
     let login_status = get_login_status(&config);
     // Note: windows_wsl_setup_acknowledged is not available in this version
     let should_show_windows_wsl_screen = false; // Disabled for now
@@ -377,7 +377,6 @@ async fn run_ratatui_app(
     if should_show_onboarding {
         let onboarding_result = run_onboarding_app(
             OnboardingScreenArgs {
-                show_windows_wsl_screen: should_show_windows_wsl_screen,
                 show_login_screen: should_show_login_screen(login_status, &config),
                 show_trust_screen: should_show_trust_screen,
                 login_status,
@@ -387,25 +386,13 @@ async fn run_ratatui_app(
             &mut tui,
         )
         .await?;
-        if onboarding_result.windows_install_selected {
-            restore();
-            session_log::log_session_end();
-            let _ = tui.terminal.clear();
-            if let Err(err) = writeln!(std::io::stdout(), "{WSL_INSTRUCTIONS}") {
-                tracing::error!("Failed to write WSL instructions: {err}");
+        // Note: Windows WSL features removed in newer version
+        // Windows install selection and directory trust decision handling simplified
+        if let Some(trust_decision) = onboarding_result {
+            if let TrustDirectorySelection::Trust = trust_decision {
+                config.approval_policy = AskForApproval::OnRequest;
+                config.sandbox_policy = SandboxPolicy::new_workspace_write_policy();
             }
-            return Ok(AppExitInfo {
-                token_usage: codex_core::protocol::TokenUsage::default(),
-                conversation_id: None,
-            });
-        }
-        // Note: windows_wsl_setup_acknowledged is not available in this version
-        // if should_show_windows_wsl_screen {
-        //     config.windows_wsl_setup_acknowledged = true;
-        // }
-        if let Some(TrustDirectorySelection::Trust) = onboarding_result.directory_trust_decision {
-            config.approval_policy = AskForApproval::OnRequest;
-            config.sandbox_policy = SandboxPolicy::new_workspace_write_policy();
         }
     }
 
@@ -423,7 +410,6 @@ async fn run_ratatui_app(
             &config.codex_home,
             1,
             None,
-            INTERACTIVE_SESSION_SOURCES,
         )
         .await
         {

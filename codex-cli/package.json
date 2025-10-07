@@ -1,7 +1,18 @@
 {
   "name": "@openai/codex",
-  "version": "0.0.0-dev",
+  "version": "0.1.0",
+  "description": "OpenAI Codex CLI - AI-powered coding assistant with advanced security features",
   "license": "Apache-2.0",
+  "author": "OpenAI",
+  "keywords": [
+    "codex",
+    "ai",
+    "cli",
+    "coding-assistant",
+    "rust",
+    "security",
+    "sandbox"
+  ],
   "bin": {
     "codex": "bin/codex.js"
   },
@@ -9,13 +20,35 @@
   "engines": {
     "node": ">=16"
   },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
   "files": [
     "bin",
-    "vendor"
+    "vendor",
+    "scripts",
+    "README.md",
+    "LICENSE"
   ],
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js",
+    "test": "node scripts/test.js",
+    "build:rust": "node scripts/build-rust.js",
+    "prepublishOnly": "npm run build:rust"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/openai/codex.git",
     "directory": "codex-cli"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/openai/codex/issues"
+  },
+  "homepage": "https://github.com/openai/codex#readme"
 }
