@@ -1,9 +1,11 @@
 // 統合API: supervisorとdeep-researchを組み合わせた高レベルAPI
 use crate::Supervisor;
-use crate::subagent::{AgentType, SubAgentManager};
+use crate::subagent::AgentType;
+use crate::subagent::SubAgentManager;
 use crate::types::SupervisorConfig;
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::future::Future;
 use std::pin::Pin;
 

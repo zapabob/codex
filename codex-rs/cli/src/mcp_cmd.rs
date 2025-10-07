@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+﻿use std::collections::HashMap;
 
 use anyhow::Context;
 use anyhow::Result;
@@ -16,11 +16,11 @@ use codex_core::config_types::McpServerTransportConfig;
 /// [experimental] Launch Codex as an MCP server or manage configured MCP servers.
 ///
 /// Subcommands:
-/// - `serve`  — run the MCP server on stdio
-/// - `list`   — list configured servers (with `--json`)
-/// - `get`    — show a single server (with `--json`)
-/// - `add`    — add a server launcher entry to `~/.codex/config.toml`
-/// - `remove` — delete a server entry
+/// - `serve`  - run the MCP server on stdio
+/// - `list`   - list configured servers (with `--json`)
+/// - `get`    - show a single server (with `--json`)
+/// - `add`    - add a server launcher entry to `~/.codex/config.toml`
+/// - `remove` - delete a server entry
 #[derive(Debug, clap::Parser)]
 pub struct McpCli {
     #[clap(flatten)]
@@ -451,3 +451,4 @@ fn validate_server_name(name: &str) -> Result<()> {
         bail!("invalid server name '{name}' (use letters, numbers, '-', '_')");
     }
 }
+

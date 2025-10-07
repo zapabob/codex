@@ -1,4 +1,4 @@
-use crate::config_profile::ConfigProfile;
+﻿use crate::config_profile::ConfigProfile;
 use crate::config_types::DEFAULT_OTEL_ENVIRONMENT;
 use crate::config_types::History;
 use crate::config_types::McpServerConfig;
@@ -140,6 +140,9 @@ pub struct Config {
 
     /// Maximum number of bytes to include from an AGENTS.md project doc file.
     pub project_doc_max_bytes: usize,
+
+    /// Additional fallback filenames to search for project docs when AGENTS.md is absent.
+    pub project_doc_fallback_filenames: Vec<String>,
 
     /// Directory containing all Codex state (defaults to `~/.codex` but can be
     /// overridden by the `CODEX_HOME` environment variable).
@@ -670,6 +673,9 @@ pub struct ConfigToml {
     /// Maximum number of bytes to include from an AGENTS.md project doc file.
     pub project_doc_max_bytes: Option<usize>,
 
+    /// Additional fallback filenames to check when AGENTS.md is missing.
+    pub project_doc_fallback_filenames: Option<Vec<String>>,
+
     /// Profile to use from the `profiles` map.
     pub profile: Option<String>,
 
@@ -1044,6 +1050,9 @@ impl Config {
             mcp_servers: cfg.mcp_servers,
             model_providers,
             project_doc_max_bytes: cfg.project_doc_max_bytes.unwrap_or(PROJECT_DOC_MAX_BYTES),
+            project_doc_fallback_filenames: cfg
+                .project_doc_fallback_filenames
+                .unwrap_or_default(),
             codex_home,
             history,
             file_opener: cfg.file_opener.unwrap_or(UriBasedFileOpener::VsCode),
@@ -1843,6 +1852,7 @@ model_verbosity = "high"
                 mcp_servers: HashMap::new(),
                 model_providers: fixture.model_provider_map.clone(),
                 project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
+                project_doc_fallback_filenames: Vec::new(),
                 codex_home: fixture.codex_home(),
                 history: History::default(),
                 file_opener: UriBasedFileOpener::VsCode,
@@ -1903,6 +1913,8 @@ model_verbosity = "high"
             mcp_servers: HashMap::new(),
             model_providers: fixture.model_provider_map.clone(),
             project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
+                project_doc_fallback_filenames: Vec::new(),
+            project_doc_fallback_filenames: Vec::new(),
             codex_home: fixture.codex_home(),
             history: History::default(),
             file_opener: UriBasedFileOpener::VsCode,
@@ -1978,6 +1990,7 @@ model_verbosity = "high"
             mcp_servers: HashMap::new(),
             model_providers: fixture.model_provider_map.clone(),
             project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
+                project_doc_fallback_filenames: Vec::new(),
             codex_home: fixture.codex_home(),
             history: History::default(),
             file_opener: UriBasedFileOpener::VsCode,
@@ -2039,6 +2052,7 @@ model_verbosity = "high"
             mcp_servers: HashMap::new(),
             model_providers: fixture.model_provider_map.clone(),
             project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
+                project_doc_fallback_filenames: Vec::new(),
             codex_home: fixture.codex_home(),
             history: History::default(),
             file_opener: UriBasedFileOpener::VsCode,
@@ -2207,3 +2221,4 @@ mod notifications_tests {
         ));
     }
 }
+

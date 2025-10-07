@@ -53,6 +53,7 @@ use codex_core::AuthManager;
 use codex_core::CodexConversation;
 use codex_core::ConversationManager;
 use codex_core::Cursor as RolloutCursor;
+use codex_core::INTERACTIVE_SESSION_SOURCES;
 use codex_core::NewConversation;
 use codex_core::RolloutRecorder;
 use codex_core::SessionMeta;
@@ -652,18 +653,19 @@ impl CodexMessageProcessor {
     }
 
     async fn process_new_conversation(&self, request_id: RequestId, params: NewConversationParams) {
-        let config = match derive_config_from_params(params, self.codex_linux_sandbox_exe.clone()) {
-            Ok(config) => config,
-            Err(err) => {
-                let error = JSONRPCErrorError {
-                    code: INVALID_REQUEST_ERROR_CODE,
-                    message: format!("error deriving config: {err}"),
-                    data: None,
-                };
-                self.outgoing.send_error(request_id, error).await;
-                return;
-            }
-        };
+        let config =
+            match derive_config_from_params(params, self.codex_linux_sandbox_exe.clone()).await {
+                Ok(config) => config,
+                Err(err) => {
+                    let error = JSONRPCErrorError {
+                        code: INVALID_REQUEST_ERROR_CODE,
+                        message: format!("error deriving config: {err}"),
+                        data: None,
+                    };
+                    self.outgoing.send_error(request_id, error).await;
+                    return;
+                }
+            };
 
         match self.conversation_manager.new_conversation(config).await {
             Ok(conversation_id) => {
@@ -708,6 +710,7 @@ impl CodexMessageProcessor {
             &self.config.codex_home,
             page_size,
             cursor_ref,
+            INTERACTIVE_SESSION_SOURCES,
         )
         .await
         {
@@ -750,7 +753,7 @@ impl CodexMessageProcessor {
         // Derive a Config using the same logic as new conversation, honoring overrides if provided.
         let config = match params.overrides {
             Some(overrides) => {
-                derive_config_from_params(overrides, self.codex_linux_sandbox_exe.clone())
+                derive_config_from_params(overrides, self.codex_linux_sandbox_exe.clone()).await
             }
             None => Ok(self.config.as_ref().clone()),
         };
@@ -1318,7 +1321,7 @@ async fn apply_bespoke_event_handling(
     }
 }
 
-fn derive_config_from_params(
+async fn derive_config_from_params(
     params: NewConversationParams,
     codex_linux_sandbox_exe: Option<PathBuf>,
 ) -> std::io::Result<Config> {

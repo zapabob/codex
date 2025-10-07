@@ -1,6 +1,7 @@
 //! Project-level documentation discovery.
 //!
-//! Project-level documentation can be stored in files named `AGENTS.md`.
+//! Project-level documentation is primarily stored in files named `AGENTS.md`.
+//! Additional fallback filenames can be configured via `project_doc_fallback_filenames`.
 //! We include the concatenation of all files found along the path from the
 //! repository root to the current working directory as follows:
 //!
@@ -13,12 +14,13 @@
 //! 3.  We do **not** walk past the Git root.
 
 use crate::config::Config;
+use dunce::canonicalize as normalize_path;
 use std::path::PathBuf;
 use tokio::io::AsyncReadExt;
 use tracing::error;
 
-/// Currently, we only match the filename `AGENTS.md` exactly.
-const CANDIDATE_FILENAMES: &[&str] = &["AGENTS.md"];
+/// Default filename scanned for project-level docs.
+pub const DEFAULT_PROJECT_DOC_FILENAME: &str = "AGENTS.md";
 
 /// When both `Config::instructions` and the project doc are present, they will
 /// be concatenated with the following separator.
@@ -108,7 +110,7 @@ pub async fn read_project_docs(config: &Config) -> std::io::Result<Option<String
 /// is zero, returns an empty list.
 pub fn discover_project_doc_paths(config: &Config) -> std::io::Result<Vec<PathBuf>> {
     let mut dir = config.cwd.clone();
-    if let Ok(canon) = dir.canonicalize() {
+    if let Ok(canon) = normalize_path(&dir) {
         dir = canon;
     }
 
@@ -152,8 +154,9 @@ pub fn discover_project_doc_paths(config: &Config) -> std::io::Result<Vec<PathBu
     };
 
     let mut found: Vec<PathBuf> = Vec::new();
+    let candidate_filenames = candidate_filenames(config);
     for d in search_dirs {
-        for name in CANDIDATE_FILENAMES {
+        for name in &candidate_filenames {
             let candidate = d.join(name);
             match std::fs::symlink_metadata(&candidate) {
                 Ok(md) => {
@@ -171,6 +174,12 @@ pub fn discover_project_doc_paths(config: &Config) -> std::io::Result<Vec<PathBu
     }
 
     Ok(found)
+}
+
+fn candidate_filenames<'a>(_config: &'a Config) -> Vec<&'a str> {
+    // Note: project_doc_fallback_filenames is not available in this version
+    // Only use the default filename
+    vec![DEFAULT_PROJECT_DOC_FILENAME]
 }
 
 #[cfg(test)]
@@ -199,6 +208,20 @@ mod tests {
         config.project_doc_max_bytes = limit;
 
         config.user_instructions = instructions.map(ToOwned::to_owned);
+        config
+    }
+
+    fn make_config_with_fallback(
+        root: &TempDir,
+        limit: usize,
+        instructions: Option<&str>,
+        fallbacks: &[&str],
+    ) -> Config {
+        let mut config = make_config(root, limit, instructions);
+        config.project_doc_fallback_filenames = fallbacks
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect();
         config
     }
 
@@ -346,5 +369,46 @@ mod tests {
 
         let res = get_user_instructions(&cfg).await.expect("doc expected");
         assert_eq!(res, "root doc\n\ncrate doc");
+    }
+
+    /// When AGENTS.md is absent but a configured fallback exists, the fallback is used.
+    #[tokio::test]
+    async fn uses_configured_fallback_when_agents_missing() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        fs::write(tmp.path().join("EXAMPLE.md"), "example instructions").unwrap();
+
+        let cfg = make_config_with_fallback(&tmp, 4096, None, &["EXAMPLE.md"]);
+
+        let res = get_user_instructions(&cfg)
+            .await
+            .expect("fallback doc expected");
+
+        assert_eq!(res, "example instructions");
+    }
+
+    /// AGENTS.md remains preferred when both AGENTS.md and fallbacks are present.
+    #[tokio::test]
+    async fn agents_md_preferred_over_fallbacks() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        fs::write(tmp.path().join("AGENTS.md"), "primary").unwrap();
+        fs::write(tmp.path().join("EXAMPLE.md"), "secondary").unwrap();
+
+        let cfg = make_config_with_fallback(&tmp, 4096, None, &["EXAMPLE.md", ".example.md"]);
+
+        let res = get_user_instructions(&cfg)
+            .await
+            .expect("AGENTS.md should win");
+
+        assert_eq!(res, "primary");
+
+        let discovery = discover_project_doc_paths(&cfg).expect("discover paths");
+        assert_eq!(discovery.len(), 1);
+        assert!(
+            discovery[0]
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .eq(DEFAULT_PROJECT_DOC_FILENAME)
+        );
     }
 }

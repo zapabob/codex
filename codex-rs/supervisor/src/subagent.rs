@@ -1,6 +1,8 @@
 // サブエージェント通信プロトコル（gemini-cli風）
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use tokio::sync::mpsc;
 
