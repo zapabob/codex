@@ -576,12 +576,12 @@ fn apply_hunks_to_files(hunks: &[Hunk]) -> anyhow::Result<AffectedPaths> {
     for hunk in hunks {
         match hunk {
             Hunk::AddFile { path, contents } => {
-                if let Some(parent) = path.parent()
-                    && !parent.as_os_str().is_empty()
-                {
-                    std::fs::create_dir_all(parent).with_context(|| {
-                        format!("Failed to create parent directories for {}", path.display())
-                    })?;
+                if let Some(parent) = path.parent() {
+                    if !parent.as_os_str().is_empty() {
+                        std::fs::create_dir_all(parent).with_context(|| {
+                            format!("Failed to create parent directories for {}", path.display())
+                        })?;
+                    }
                 }
                 std::fs::write(path, contents)
                     .with_context(|| format!("Failed to write file {}", path.display()))?;
@@ -600,12 +600,12 @@ fn apply_hunks_to_files(hunks: &[Hunk]) -> anyhow::Result<AffectedPaths> {
                 let AppliedPatch { new_contents, .. } =
                     derive_new_contents_from_chunks(path, chunks)?;
                 if let Some(dest) = move_path {
-                    if let Some(parent) = dest.parent()
-                        && !parent.as_os_str().is_empty()
-                    {
-                        std::fs::create_dir_all(parent).with_context(|| {
-                            format!("Failed to create parent directories for {}", dest.display())
-                        })?;
+                    if let Some(parent) = dest.parent() {
+                        if !parent.as_os_str().is_empty() {
+                            std::fs::create_dir_all(parent).with_context(|| {
+                                format!("Failed to create parent directories for {}", dest.display())
+                            })?;
+                        }
                     }
                     std::fs::write(dest, new_contents)
                         .with_context(|| format!("Failed to write file {}", dest.display()))?;

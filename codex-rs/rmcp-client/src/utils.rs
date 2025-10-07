@@ -31,11 +31,12 @@ where
 
 pub(crate) fn convert_call_tool_result(result: RmcpCallToolResult) -> Result<CallToolResult> {
     let mut value = serde_json::to_value(result)?;
-    if let Some(obj) = value.as_object_mut()
-        && (obj.get("content").is_none()
-            || obj.get("content").is_some_and(serde_json::Value::is_null))
-    {
-        obj.insert("content".to_string(), Value::Array(Vec::new()));
+    if let Some(obj) = value.as_object_mut() {
+        if obj.get("content").is_none()
+            || obj.get("content").is_some_and(serde_json::Value::is_null)
+        {
+            obj.insert("content".to_string(), Value::Array(Vec::new()));
+        }
     }
     serde_json::from_value(value).context("failed to convert call tool result")
 }

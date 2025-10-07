@@ -52,10 +52,10 @@ impl OtelProvider {
 
                 let mut header_map = HeaderMap::new();
                 for (key, value) in headers {
-                    if let Ok(name) = HeaderName::from_bytes(key.as_bytes())
-                        && let Ok(val) = HeaderValue::from_str(value)
-                    {
-                        header_map.insert(name, val);
+                    if let Ok(name) = HeaderName::from_bytes(key.as_bytes()) {
+                        if let Ok(val) = HeaderValue::from_str(value) {
+                            header_map.insert(name, val);
+                        }
                     }
                 }
 
