@@ -1,7 +1,9 @@
 mod aggregator;
 mod assigner;
 mod executor;
+pub mod integrated;
 mod planner;
+pub mod subagent;
 pub mod types;
 
 use anyhow::Result;
@@ -12,6 +14,9 @@ use types::SupervisorConfig;
 use types::SupervisorResult;
 use types::TaskResult;
 
+pub use subagent::AgentType;
+pub use subagent::SubAgent;
+pub use subagent::SubAgentManager;
 pub use types::CoordinationStrategy;
 pub use types::ManagementStyle;
 pub use types::MergeStrategy;
