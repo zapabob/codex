@@ -244,18 +244,3 @@ codegen-units = 1
 [patch.crates-io]
 # ratatui = { path = "../../ratatui" }
 ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }
-
-# Multi-agent coordination system features
-# Added by zapabob on 2025-10-08 11:38:38 UTC
-[features]
-default = []
-
-# Multi-agent coordination system
-multi-agent = ["codex-supervisor", "codex-deep-research"]
-
-# Individual features
-supervisor = ["codex-supervisor"]
-deep-research = ["codex-deep-research"]
-
-# All extensions
-all-extensions = ["multi-agent"]

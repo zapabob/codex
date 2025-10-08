@@ -3,8 +3,9 @@
 //! This module defines security profiles that combine sandbox policies
 //! with network access restrictions to provide granular security control.
 
-use serde::{Deserialize, Serialize};
 use crate::protocol::SandboxPolicy;
+use serde::Deserialize;
+use serde::Serialize;
 
 /// Comprehensive security profile that defines execution boundaries.
 ///
@@ -96,7 +97,10 @@ impl SecurityProfile {
 
     /// Returns whether filesystem writes are allowed.
     pub fn allows_write(&self) -> bool {
-        matches!(self, Self::WorkspaceWrite | Self::WorkspaceNet | Self::Trusted)
+        matches!(
+            self,
+            Self::WorkspaceWrite | Self::WorkspaceNet | Self::Trusted
+        )
     }
 
     /// Returns whether full filesystem write is allowed.
@@ -220,7 +224,7 @@ mod tests {
             SecurityProfile::Offline.to_sandbox_policy(),
             SandboxPolicy::ReadOnly
         );
-        
+
         assert_eq!(
             SecurityProfile::Trusted.to_sandbox_policy(),
             SandboxPolicy::DangerFullAccess
@@ -249,4 +253,3 @@ mod tests {
         assert_eq!(SecurityProfile::all_profiles().len(), 5);
     }
 }
-

@@ -70,9 +70,7 @@ fn supervisor_json_output() -> Result<()> {
 #[test]
 fn deep_research_basic_execution() -> Result<()> {
     let mut cmd = codex_command()?;
-    cmd.args(["deep-research", "Test query"])
-        .assert()
-        .success();
+    cmd.args(["deep-research", "Test query"]).assert().success();
     Ok(())
 }
 
@@ -95,14 +93,9 @@ fn deep_research_with_params() -> Result<()> {
 #[test]
 fn deep_research_with_strategy() -> Result<()> {
     let mut cmd = codex_command()?;
-    cmd.args([
-        "deep-research",
-        "Test query",
-        "--strategy",
-        "comprehensive",
-    ])
-    .assert()
-    .success();
+    cmd.args(["deep-research", "Test query", "--strategy", "comprehensive"])
+        .assert()
+        .success();
 
     let mut cmd = codex_command()?;
     cmd.args(["deep-research", "Test query", "--strategy", "focused"])

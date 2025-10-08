@@ -6,10 +6,18 @@
 //! - 8 agents parallel < 500ms
 //! - 100 req/min with no spikes
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use codex_supervisor::{
-    AgentManager, AgentState, AgentType, MergeStrategy, SubAgent, TaskExecutionResult, TaskType,
-};
+use codex_supervisor::AgentManager;
+use codex_supervisor::AgentState;
+use codex_supervisor::AgentType;
+use codex_supervisor::MergeStrategy;
+use codex_supervisor::SubAgent;
+use codex_supervisor::TaskExecutionResult;
+use codex_supervisor::TaskType;
+use criterion::black_box;
+use criterion::criterion_group;
+use criterion::criterion_main;
+use criterion::BenchmarkId;
+use criterion::Criterion;
 use std::time::Duration;
 use tokio::runtime::Runtime;
 
@@ -223,4 +231,3 @@ criterion_group! {
 }
 
 criterion_main!(benches);
-

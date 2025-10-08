@@ -1,8 +1,8 @@
 // 統合API: supervisorとdeep-researchを組み合わせた高レベルAPI
-use crate::Supervisor;
 use crate::subagent::AgentType;
 use crate::subagent::SubAgentManager;
 use crate::types::SupervisorConfig;
+use crate::Supervisor;
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;

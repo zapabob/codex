@@ -1,4 +1,4 @@
-﻿use std::collections::HashMap;
+use std::collections::HashMap;
 
 use anyhow::Context;
 use anyhow::Result;
@@ -451,4 +451,3 @@ fn validate_server_name(name: &str) -> Result<()> {
         bail!("invalid server name '{name}' (use letters, numbers, '-', '_')");
     }
 }
-
