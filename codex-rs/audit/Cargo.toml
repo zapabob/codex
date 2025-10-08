@@ -1,6 +1,6 @@
 [package]
 name = "codex-audit"
-version.workspace = true
+version = "0.47.0"
 edition.workspace = true
 
 [dependencies]
