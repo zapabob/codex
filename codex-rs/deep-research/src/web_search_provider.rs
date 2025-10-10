@@ -92,7 +92,8 @@ impl WebSearchProvider {
             .send()
             .await?;
 
-        let json: serde_json::Value = response.json().await?;
+        let text = response.text().await?;
+        let json: serde_json::Value = serde_json::from_str(&text)?;
 
         let mut results = Vec::new();
         if let Some(web_results) = json["web"]["results"].as_array() {
