@@ -22,13 +22,19 @@ use tracing_subscriber::EnvFilter;
 
 mod codex_tool_config;
 mod codex_tool_runner;
+mod custom_command_tool;
+mod custom_command_tool_handler;
 mod deep_research_tool;
 mod deep_research_tool_handler;
 mod error_code;
 mod exec_approval;
+mod hook_tool;
+mod hook_tool_handler;
 pub(crate) mod message_processor;
 mod outgoing_message;
 mod patch_approval;
+mod subagent_tool;
+mod subagent_tool_handler;
 mod supervisor_tool;
 mod supervisor_tool_handler;
 

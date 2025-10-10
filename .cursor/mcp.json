@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "codex": {
+      "command": "codex",
+      "args": ["mcp-server"],
+      "env": {},
+      "description": "Codex MCP Server with SubAgent, CustomCommand, and Hook support",
+      "disabled": false
+    }
+  }
+}
+
