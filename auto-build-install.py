@@ -21,7 +21,7 @@ try:
     from tqdm import tqdm
 except ImportError:
     print("tqdm not found, installing...")
-    subprocess.run(["py", "-3", "-m", "pip", "install", "tqdm"], check=True)
+    subprocess.run(["py", "-3", "-m", "pip", "install", "tqdm"], check=True, encoding='utf-8', errors='replace')
     from tqdm import tqdm
 
 # セッション管理
@@ -125,6 +125,8 @@ def run_command(cmd, cwd=None, timeout=300, use_cache=False, show_realtime=False
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 env=env,
                 shell=True,
                 bufsize=1
@@ -146,6 +148,8 @@ def run_command(cmd, cwd=None, timeout=300, use_cache=False, show_realtime=False
                 cwd=cwd,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 timeout=timeout,
                 env=env,
                 shell=True
@@ -179,7 +183,7 @@ def run_with_retry(cmd, cwd=None, max_retries=3, **kwargs):
 def check_sccache():
     """sccacheインストール確認"""
     try:
-        result = subprocess.run(["sccache", "--version"], capture_output=True)
+        result = subprocess.run(["sccache", "--version"], capture_output=True, encoding='utf-8', errors='replace')
         return result.returncode == 0
     except FileNotFoundError:
         return False
@@ -187,7 +191,7 @@ def check_sccache():
 def get_sccache_stats():
     """sccache統計取得"""
     try:
-        result = subprocess.run(["sccache", "--show-stats"], capture_output=True, text=True)
+        result = subprocess.run(["sccache", "--show-stats"], capture_output=True, text=True, encoding='utf-8', errors='replace')
         if result.returncode == 0:
             return result.stdout
         return None
@@ -221,7 +225,7 @@ def check_disk_space(required_gb=10):
 def check_rust_version():
     """Rustバージョン確認"""
     try:
-        result = subprocess.run(["cargo", "--version"], capture_output=True, text=True)
+        result = subprocess.run(["cargo", "--version"], capture_output=True, text=True, encoding='utf-8', errors='replace')
         if result.returncode == 0:
             version = result.stdout.strip()
             logging.info(f"🦀 Rust: {version}")
