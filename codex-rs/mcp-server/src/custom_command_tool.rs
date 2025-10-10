@@ -22,10 +22,10 @@ pub struct CustomCommandToolParam {
 pub fn create_custom_command_tool() -> Tool {
     Tool {
         name: "codex-custom-command".to_string(),
+        title: Some("Custom Command Tool".to_string()),
         description: Some("Execute custom commands that call specific subagents. Available actions: execute, list, info. Default commands: analyze_code, security_review, generate_tests, deep_research, debug_issue, optimize_performance, generate_docs".to_string()),
         input_schema: ToolInputSchema {
             r#type: "object".to_string(),
-            title: Some("Custom Command Tool Parameters".to_string()),
             properties: Some(json!({
                 "action": {
                     "type": "string",
@@ -43,8 +43,8 @@ pub fn create_custom_command_tool() -> Tool {
                 }
             })),
             required: Some(vec!["action".to_string()]),
-            output_schema: None,
-            annotations: None,
         },
+        output_schema: None,
+        annotations: None,
     }
 }

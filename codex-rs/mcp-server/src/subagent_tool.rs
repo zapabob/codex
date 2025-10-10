@@ -26,10 +26,10 @@ pub struct SubAgentToolParam {
 pub fn create_subagent_tool() -> Tool {
     Tool {
         name: "codex-subagent".to_string(),
+        title: Some("SubAgent Tool".to_string()),
         description: Some("Manage and interact with Codex subagents. Available actions: start_task, check_inbox, get_status, auto_dispatch, get_thinking, get_token_report".to_string()),
         input_schema: ToolInputSchema {
             r#type: "object".to_string(),
-            title: Some("SubAgent Tool Parameters".to_string()),
             properties: Some(json!({
                 "action": {
                     "type": "string",
@@ -51,8 +51,8 @@ pub fn create_subagent_tool() -> Tool {
                 }
             })),
             required: Some(vec!["action".to_string()]),
-            output_schema: None,
-            annotations: None,
         },
+        output_schema: None,
+        annotations: None,
     }
 }
