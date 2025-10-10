@@ -56,7 +56,7 @@ impl SearchBackend {
 }
 
 #[derive(Debug, Default)]
-struct SearchStats {
+pub struct SearchStats {
     total_searches: usize,
     successful_searches: usize,
     failed_searches: usize,

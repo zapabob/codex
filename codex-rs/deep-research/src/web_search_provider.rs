@@ -2,36 +2,33 @@
 // Conforms to OpenAI/codex official web_search implementation
 use crate::provider::ResearchProvider;
 use crate::types::Source;
-use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
 use tracing::debug;
 use tracing::info;
-use tracing::warn;
 
 /// Real web search provider conforming to OpenAI/codex official implementation
 /// Uses the same web_search tool pattern as ToolSpec::WebSearch {}
 pub struct WebSearchProvider {
-    max_retries: u8,
-    timeout_seconds: u64,
+    _max_retries: u8,
+    _timeout_seconds: u64,
 }
 
 impl Default for WebSearchProvider {
     fn default() -> Self {
         Self {
-            max_retries: 3,
-            timeout_seconds: 30,
+            _max_retries: 3,
+            _timeout_seconds: 30,
         }
     }
-}
 
 impl WebSearchProvider {
     pub fn new(max_retries: u8, timeout_seconds: u64) -> Self {
         Self {
-            max_retries,
-            timeout_seconds,
+            _max_retries: max_retries,
+            _timeout_seconds: timeout_seconds,
         }
     }
 
