@@ -1,3 +1,4 @@
+use crate::RolloutRecorder;
 use crate::agents::AgentRuntime;
 use crate::async_subagent_integration::AsyncSubAgentIntegration;
 use crate::exec_command::ExecSessionManager;
@@ -5,7 +6,6 @@ use crate::executor::Executor;
 use crate::mcp_connection_manager::McpConnectionManager;
 use crate::unified_exec::UnifiedExecSessionManager;
 use crate::user_notification::UserNotifier;
-use crate::RolloutRecorder;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

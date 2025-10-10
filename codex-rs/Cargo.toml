@@ -29,7 +29,7 @@ members = [
     "protocol-ts",
     "rmcp-client",
     "responses-api-proxy",
-    "supervisor",
+    # "supervisor",  # DISABLED: 古い実装、codex_core::Codexとの互換性なし
     "otel",
     "tui",
     "git-apply",

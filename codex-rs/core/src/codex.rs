@@ -4,9 +4,11 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::AtomicU64;
 
-use crate::agents::AgentRuntime;
-use crate::async_subagent_integration::{AgentType, AsyncSubAgentIntegration, NotificationType};
 use crate::AuthManager;
+use crate::agents::AgentRuntime;
+use crate::async_subagent_integration::AgentType;
+use crate::async_subagent_integration::AsyncSubAgentIntegration;
+use crate::async_subagent_integration::NotificationType;
 use crate::client_common::REVIEW_PROMPT;
 use crate::event_mapping::map_response_item_to_event_messages;
 use crate::function_tool::FunctionCallError;
@@ -1608,20 +1610,20 @@ async fn submission_loop(
                                 timestamp: notification.timestamp.clone(),
                             },
                         ),
-                        NotificationType::Error => EventMsg::SubAgentError(
-                            codex_protocol::protocol::SubAgentErrorEvent {
+                        NotificationType::Error => {
+                            EventMsg::SubAgentError(codex_protocol::protocol::SubAgentErrorEvent {
                                 agent_type: notification.agent_type.as_str().to_string(),
                                 error: notification.message.clone(),
                                 timestamp: notification.timestamp.clone(),
-                            },
-                        ),
-                        NotificationType::Info => EventMsg::SubAgentInfo(
-                            codex_protocol::protocol::SubAgentInfoEvent {
+                            })
+                        }
+                        NotificationType::Info => {
+                            EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
                                 agent_type: notification.agent_type.as_str().to_string(),
                                 info: notification.message.clone(),
                                 timestamp: notification.timestamp.clone(),
-                            },
-                        ),
+                            })
+                        }
                     };
 
                     sess.send_event(Event {
@@ -1685,7 +1687,7 @@ async fn submission_loop(
                 .await;
             }
             Op::AutoDispatchTask { task } => {
-                // 自律的にタスクをディスパッチ
+                // 自律的にタスクをディスパッチE
                 match async_subagent_integration
                     .auto_dispatch_task(task.as_str())
                     .await
@@ -2303,7 +2305,7 @@ fn parse_review_output_event(text: &str) -> ReviewOutputEvent {
     {
         return ev;
     }
-    // Not JSON – return a structured ReviewOutputEvent that carries
+    // Not JSON  Ereturn a structured ReviewOutputEvent that carries
     // the plain text as the overall explanation.
     ReviewOutputEvent {
         overall_explanation: text.to_string(),
@@ -3581,7 +3583,7 @@ mod tests {
         };
 
         let expected = format!(
-            "approval policy is {policy:?}; reject command — you should not ask for escalated permissions if the approval policy is {policy:?}",
+            "approval policy is {policy:?}; reject command  Eyou should not ask for escalated permissions if the approval policy is {policy:?}",
             policy = turn_context.approval_policy
         );
 

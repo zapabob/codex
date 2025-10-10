@@ -29,7 +29,8 @@ use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
 use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
-use codex_protocol::protocol::InputItem;
+use codex_protocol::models::ContentItem;
+use codex_protocol::models::ResponseItem;
 use futures::StreamExt;
 
 /// サブエージェントランタイム
@@ -262,9 +263,13 @@ impl AgentRuntime {
             self.conversation_id,
         );
 
-        // 4. InputItem構築
-        let input_items = vec![InputItem::Text {
-            text: user_message.clone(),
+        // 4. ResponseItem構築（Promptに渡す）
+        let input_items = vec![ResponseItem::Message {
+            id: None,
+            role: "user".to_string(),
+            content: vec![ContentItem::InputText {
+                text: user_message.clone(),
+            }],
         }];
 
         // 5. Prompt構築（ツールは現時点では空、将来的にツール権限から生成）

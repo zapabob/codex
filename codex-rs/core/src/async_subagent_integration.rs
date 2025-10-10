@@ -144,13 +144,7 @@ impl AsyncSubAgentIntegration {
 
             // Execute agent via runtime
             let result = runtime
-                .delegate(
-                    agent_type.as_str(),
-                    &task_clone,
-                    HashMap::new(),
-                    None,
-                    None,
-                )
+                .delegate(agent_type.as_str(), &task_clone, HashMap::new(), None, None)
                 .await;
 
             match result {
@@ -297,12 +291,10 @@ impl AsyncSubAgentIntegration {
             .entry(agent_id.to_string())
             .or_insert_with(TokenUsageStats::default);
         stats.prompt_tokens = stats.prompt_tokens.saturating_add(prompt_tokens);
-        stats.completion_tokens = stats
-            .completion_tokens
-            .saturating_add(completion_tokens);
-        stats.total_tokens = stats.total_tokens.saturating_add(
-            prompt_tokens.saturating_add(completion_tokens),
-        );
+        stats.completion_tokens = stats.completion_tokens.saturating_add(completion_tokens);
+        stats.total_tokens = stats
+            .total_tokens
+            .saturating_add(prompt_tokens.saturating_add(completion_tokens));
         stats.last_task_id = Some(task_id.to_string());
         stats.last_description = Some(task_description.to_string());
         Ok(())
@@ -396,10 +388,7 @@ impl AsyncSubAgentIntegration {
                     .last_description
                     .as_deref()
                     .unwrap_or("(no description)");
-                report.push_str(&format!(
-                    "    last task {}: {}\n",
-                    task_id, description
-                ));
+                report.push_str(&format!("    last task {}: {}\n", task_id, description));
             }
         }
 

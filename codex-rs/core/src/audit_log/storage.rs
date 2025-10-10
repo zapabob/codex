@@ -1,8 +1,12 @@
 use super::types::AuditEvent;
-use anyhow::{Context, Result};
-use std::path::{Path, PathBuf};
-use tokio::fs::{File, OpenOptions};
-use tokio::io::{AsyncWriteExt, BufWriter};
+use anyhow::Context;
+use anyhow::Result;
+use std::path::Path;
+use std::path::PathBuf;
+use tokio::fs::File;
+use tokio::fs::OpenOptions;
+use tokio::io::AsyncWriteExt;
+use tokio::io::BufWriter;
 use tokio::sync::Mutex;
 
 /// Audit storage trait
@@ -72,7 +76,9 @@ impl FileStorage {
         // Rotate existing backups
         for i in (1..self.max_backups).rev() {
             let old_path = self.log_file_path.with_extension(format!("jsonl.{i}"));
-            let new_path = self.log_file_path.with_extension(format!("jsonl.{}", i + 1));
+            let new_path = self
+                .log_file_path
+                .with_extension(format!("jsonl.{}", i + 1));
 
             if old_path.exists() {
                 tokio::fs::rename(&old_path, &new_path).await?;
@@ -105,8 +111,8 @@ impl FileStorage {
 #[async_trait::async_trait]
 impl AuditStorage for FileStorage {
     async fn write_event(&self, event: &AuditEvent) -> Result<()> {
-        let json = serde_json::to_string(event)
-            .with_context(|| "Failed to serialize audit event")?;
+        let json =
+            serde_json::to_string(event).with_context(|| "Failed to serialize audit event")?;
 
         let mut writer_guard = self.writer.lock().await;
         if let Some(writer) = writer_guard.as_mut() {
@@ -139,7 +145,8 @@ impl AuditStorage for FileStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::audit_log::types::{AuditEventType, TokenUsageEvent};
+    use crate::audit_log::types::AuditEventType;
+    use crate::audit_log::types::TokenUsageEvent;
     use tempfile::TempDir;
 
     #[tokio::test]
@@ -203,4 +210,3 @@ mod tests {
         assert!(backup_path.exists());
     }
 }
-
