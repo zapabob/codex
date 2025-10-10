@@ -4,6 +4,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::AtomicU64;
 
+use crate::agents::AgentRuntime;
+use crate::async_subagent_integration::{AgentType, AsyncSubAgentIntegration, NotificationType};
 use crate::AuthManager;
 use crate::client_common::REVIEW_PROMPT;
 use crate::event_mapping::map_response_item_to_event_messages;
@@ -142,6 +144,7 @@ pub struct CodexSpawnOk {
 
 pub(crate) const INITIAL_SUBMIT_ID: &str = "";
 pub(crate) const SUBMISSION_CHANNEL_CAPACITY: usize = 64;
+const DEFAULT_SUBAGENT_TOKEN_BUDGET: u64 = 200_000;
 
 impl Codex {
     /// Spawn a new [`Codex`] and initialize the session.
@@ -417,6 +420,24 @@ impl Session {
             terminal::user_agent(),
         );
 
+        let total_budget = config
+            .model_context_window
+            .unwrap_or(DEFAULT_SUBAGENT_TOKEN_BUDGET)
+            .min(usize::MAX as u64) as usize;
+
+        let agent_runtime = Arc::new(AgentRuntime::new(
+            config.cwd.clone(),
+            total_budget,
+            Arc::clone(&config),
+            Some(Arc::clone(&auth_manager)),
+            otel_event_manager.clone(),
+            provider.clone(),
+            conversation_id,
+        ));
+
+        let async_subagent_integration =
+            Arc::new(AsyncSubAgentIntegration::new(Arc::clone(&agent_runtime)));
+
         otel_event_manager.conversation_starts(
             config.model_provider.name.as_str(),
             config.model_reasoning_effort,
@@ -448,6 +469,7 @@ impl Session {
                 include_plan_tool: config.include_plan_tool,
                 include_apply_patch_tool: config.include_apply_patch_tool,
                 include_web_search_request: config.tools_web_search_request,
+                include_deep_web_search: config.tools_deep_web_search,
                 use_streamable_shell_tool: config.use_experimental_streamable_shell_tool,
                 include_view_image_tool: config.include_view_image_tool,
                 experimental_unified_exec_tool: config.use_experimental_unified_exec_tool,
@@ -474,6 +496,8 @@ impl Session {
                 turn_context.cwd.clone(),
                 config.codex_linux_sandbox_exe.clone(),
             )),
+            agent_runtime,
+            async_subagent_integration,
         };
 
         let sess = Arc::new(Session {
@@ -1121,16 +1145,34 @@ impl Drop for Session {
     }
 }
 
+fn agent_type_from_label(label: &str) -> AgentType {
+    match label {
+        "CodeExpert" | "code-reviewer" => AgentType::CodeExpert,
+        "SecurityExpert" | "sec-audit" => AgentType::SecurityExpert,
+        "TestingExpert" | "test-gen" => AgentType::TestingExpert,
+        "DocsExpert" | "docs-expert" => AgentType::DocsExpert,
+        "DeepResearcher" | "researcher" => AgentType::DeepResearcher,
+        "DebugExpert" | "debug-expert" => AgentType::DebugExpert,
+        "PerformanceExpert" | "perf-expert" => AgentType::PerformanceExpert,
+        "General" | "general" => AgentType::General,
+        _ => AgentType::General,
+    }
+}
+
 async fn submission_loop(
     sess: Arc<Session>,
     turn_context: TurnContext,
     config: Arc<Config>,
     rx_sub: Receiver<Submission>,
 ) {
-    // TODO: Initialize async subagent integration (requires AgentRuntime)
-    // Temporarily disabled until AgentRuntime is available in this scope
-    // let async_subagent_integration =
-    //     Arc::new(crate::async_subagent_integration::AsyncSubAgentIntegration::new(runtime));
+    let async_subagent_integration = Arc::clone(&sess.services.async_subagent_integration);
+
+    if let Err(e) = async_subagent_integration
+        .start_monitoring_loop(Arc::clone(&sess))
+        .await
+    {
+        warn!("Failed to start subagent monitoring loop: {e}");
+    }
 
     // Initialize hook executor
     let hook_executor = Arc::new(crate::hooks::HookExecutor::new(
@@ -1525,82 +1567,61 @@ async fn submission_loop(
                 .await;
             }
             Op::StartSubAgentTask { agent_type, task } => {
-                // Parse agent type
-                let agent_type_enum = match agent_type.as_str() {
-                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
-                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
-                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
-                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
-                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
-                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
-                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
-                    "General" => codex_supervisor::AgentType::General,
-                    _ => codex_supervisor::AgentType::General,
-                };
+                let agent_type_enum = agent_type_from_label(agent_type.as_str());
 
-                // Start subagent task asynchronously
                 if let Err(e) = async_subagent_integration
-                    .start_subagent_task(agent_type_enum, task)
+                    .start_subagent_task(agent_type_enum, task.as_str())
                     .await
                 {
-                    warn!("Failed to start subagent task: {}", e);
+                    warn!("Failed to start subagent task: {e}");
                 }
             }
             Op::CheckSubAgentInbox => {
-                // Check inbox and send notifications
                 let notifications = async_subagent_integration.check_inbox().await;
                 for notification in notifications {
                     let event_msg = match notification.notification_type {
-                        codex_supervisor::NotificationType::TaskCompleted => {
-                            EventMsg::SubAgentTaskCompleted(
-                                codex_protocol::protocol::SubAgentTaskCompletedEvent {
-                                    agent_type: notification.agent_type.to_string(),
-                                    content: notification.content,
-                                    timestamp: format!("{:?}", notification.timestamp),
-                                },
-                            )
-                        }
-                        codex_supervisor::NotificationType::TaskFailed => {
-                            EventMsg::SubAgentTaskFailed(
-                                codex_protocol::protocol::SubAgentTaskFailedEvent {
-                                    agent_type: notification.agent_type.to_string(),
-                                    error: notification.content,
-                                    timestamp: format!("{:?}", notification.timestamp),
-                                },
-                            )
-                        }
-                        codex_supervisor::NotificationType::ProgressUpdate => {
-                            EventMsg::SubAgentProgressUpdate(
-                                codex_protocol::protocol::SubAgentProgressUpdateEvent {
-                                    agent_type: notification.agent_type.to_string(),
-                                    progress: notification.content,
-                                    timestamp: format!("{:?}", notification.timestamp),
-                                },
-                            )
-                        }
-                        codex_supervisor::NotificationType::AgentMessage => {
-                            EventMsg::SubAgentMessage(
-                                codex_protocol::protocol::SubAgentMessageEvent {
-                                    agent_type: notification.agent_type.to_string(),
-                                    message: notification.content,
-                                    timestamp: format!("{:?}", notification.timestamp),
-                                },
-                            )
-                        }
-                        codex_supervisor::NotificationType::Error => {
-                            EventMsg::SubAgentError(codex_protocol::protocol::SubAgentErrorEvent {
+                        NotificationType::TaskCompleted => EventMsg::SubAgentTaskCompleted(
+                            codex_protocol::protocol::SubAgentTaskCompletedEvent {
                                 agent_type: notification.agent_type.to_string(),
-                                error: notification.content,
-                                timestamp: format!("{:?}", notification.timestamp),
-                            })
-                        }
-                        codex_supervisor::NotificationType::Info => {
-                            EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
+                                content: notification.content.clone(),
+                                timestamp: notification.timestamp.clone(),
+                            },
+                        ),
+                        NotificationType::TaskFailed => EventMsg::SubAgentTaskFailed(
+                            codex_protocol::protocol::SubAgentTaskFailedEvent {
                                 agent_type: notification.agent_type.to_string(),
-                                info: notification.content,
-                                timestamp: format!("{:?}", notification.timestamp),
-                            })
-                        }
+                                error: notification.message.clone(),
+                                timestamp: notification.timestamp.clone(),
+                            },
+                        ),
+                        NotificationType::ProgressUpdate => EventMsg::SubAgentProgressUpdate(
+                            codex_protocol::protocol::SubAgentProgressUpdateEvent {
+                                agent_type: notification.agent_type.to_string(),
+                                progress: notification.message.clone(),
+                                timestamp: notification.timestamp.clone(),
+                            },
+                        ),
+                        NotificationType::AgentMessage => EventMsg::SubAgentMessage(
+                            codex_protocol::protocol::SubAgentMessageEvent {
+                                agent_type: notification.agent_type.to_string(),
+                                message: notification.message.clone(),
+                                timestamp: notification.timestamp.clone(),
+                            },
+                        ),
+                        NotificationType::Error => EventMsg::SubAgentError(
+                            codex_protocol::protocol::SubAgentErrorEvent {
+                                agent_type: notification.agent_type.to_string(),
+                                error: notification.message.clone(),
+                                timestamp: notification.timestamp.clone(),
+                            },
+                        ),
+                        NotificationType::Info => EventMsg::SubAgentInfo(
+                            codex_protocol::protocol::SubAgentInfoEvent {
+                                agent_type: notification.agent_type.to_string(),
+                                info: notification.message.clone(),
+                                timestamp: notification.timestamp.clone(),
+                            },
+                        ),
                     };
 
                     sess.send_event(Event {
@@ -1614,60 +1635,44 @@ async fn submission_loop(
                 agent_type,
                 message,
             } => {
-                let agent_type_enum = match agent_type.as_str() {
-                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
-                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
-                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
-                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
-                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
-                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
-                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
-                    "General" => codex_supervisor::AgentType::General,
-                    _ => codex_supervisor::AgentType::General,
-                };
+                let agent_type_enum = agent_type_from_label(agent_type.as_str());
 
                 if let Err(e) = async_subagent_integration
-                    .start_conversation_with_subagent(agent_type_enum, message)
+                    .start_conversation_with_subagent(agent_type_enum, message.as_str())
                     .await
                 {
-                    warn!("Failed to start conversation with subagent: {}", e);
+                    warn!("Failed to start conversation with subagent: {e}");
                 }
             }
             Op::TerminateSubAgent { agent_type } => {
-                let agent_type_enum = match agent_type.as_str() {
-                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
-                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
-                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
-                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
-                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
-                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
-                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
-                    "General" => codex_supervisor::AgentType::General,
-                    _ => codex_supervisor::AgentType::General,
-                };
+                let agent_type_enum = agent_type_from_label(agent_type.as_str());
 
                 if let Err(e) = async_subagent_integration
                     .terminate_subagent(agent_type_enum)
                     .await
                 {
-                    warn!("Failed to terminate subagent: {}", e);
+                    warn!("Failed to terminate subagent: {e}");
                 }
             }
             Op::GetSubAgentStatus => {
                 let states = async_subagent_integration.get_agent_states().await;
-                let status_message = states
-                    .iter()
-                    .map(|(id, agent_type, status, progress)| {
-                        format!(
-                            "{} ({}): {} - {:.1}%",
-                            agent_type,
-                            id,
-                            status,
-                            progress * 100.0
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join("\n");
+                let status_message = if states.is_empty() {
+                    "No active subagents.".to_string()
+                } else {
+                    states
+                        .iter()
+                        .map(|state| {
+                            format!(
+                                "{} ({}): {} - {:.1}%",
+                                state.agent_type.as_str(),
+                                state.agent_id,
+                                state.status,
+                                state.progress,
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                };
 
                 sess.send_event(Event {
                     id: sub.id.clone(),
@@ -1681,7 +1686,10 @@ async fn submission_loop(
             }
             Op::AutoDispatchTask { task } => {
                 // 自律的にタスクをディスパッチ
-                match async_subagent_integration.auto_dispatch_task(&task).await {
+                match async_subagent_integration
+                    .auto_dispatch_task(task.as_str())
+                    .await
+                {
                     Ok(result) => {
                         sess.send_event(Event {
                             id: sub.id.clone(),
@@ -1696,13 +1704,13 @@ async fn submission_loop(
                         .await;
                     }
                     Err(e) => {
-                        warn!("Failed to auto-dispatch task: {}", e);
+                        warn!("Failed to auto-dispatch task: {e}");
                     }
                 }
             }
             Op::GetThinkingProcessSummary { task_id } => {
                 if let Some(summary) = async_subagent_integration
-                    .get_thinking_summary(&task_id)
+                    .get_thinking_summary(task_id.as_str())
                     .await
                 {
                     sess.send_event(Event {
@@ -1907,6 +1915,7 @@ async fn spawn_review_thread(
         include_plan_tool: false,
         include_apply_patch_tool: config.include_apply_patch_tool,
         include_web_search_request: false,
+        include_deep_web_search: false,
         use_streamable_shell_tool: false,
         include_view_image_tool: false,
         experimental_unified_exec_tool: config.use_experimental_unified_exec_tool,

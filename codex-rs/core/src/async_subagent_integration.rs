@@ -29,9 +29,18 @@ pub struct AsyncSubAgentIntegration {
     /// Notification channel receiver
     notification_rx: Arc<Mutex<mpsc::UnboundedReceiver<AgentNotification>>>,
     /// Token usage tracker
-    token_usage: Arc<Mutex<HashMap<String, usize>>>,
+    token_usage: Arc<Mutex<HashMap<String, TokenUsageStats>>>,
     /// Task results
     task_results: Arc<Mutex<HashMap<String, String>>>,
+}
+
+#[derive(Debug, Clone, Default)]
+struct TokenUsageStats {
+    total_tokens: u64,
+    prompt_tokens: u64,
+    completion_tokens: u64,
+    last_task_id: Option<String>,
+    last_description: Option<String>,
 }
 
 impl AsyncSubAgentIntegration {
@@ -136,25 +145,48 @@ impl AsyncSubAgentIntegration {
 
             // Execute agent via runtime
             let result = runtime
-                .delegate(agent_type.as_str(), &task_clone, HashMap::new())
+                .delegate(
+                    agent_type.as_str(),
+                    &task_clone,
+                    HashMap::new(),
+                    None,
+                    None,
+                )
                 .await;
 
             match result {
-                Ok(artifacts) => {
-                    // Extract result and token usage
-                    let summary = artifacts
-                        .iter()
-                        .map(|a| a.content.clone())
-                        .collect::<Vec<_>>()
-                        .join("\n");
+                Ok(agent_result) => {
+                    let summary = if agent_result.artifacts.is_empty() {
+                        format!(
+                            "Agent {} completed task \"{}\".",
+                            agent_result.agent_name, task_clone
+                        )
+                    } else {
+                        format!(
+                            "Agent {} completed task \"{}\" and produced artifacts:\n{}",
+                            agent_result.agent_name,
+                            task_clone,
+                            agent_result.artifacts.join("\n"),
+                        )
+                    };
 
-                    // Store result
                     task_results
                         .lock()
                         .await
                         .insert(agent_id_clone.clone(), summary.clone());
 
-                    // Send completion notification
+                    {
+                        let mut usage = token_usage.lock().await;
+                        let stats = usage
+                            .entry(agent_id_clone.clone())
+                            .or_insert_with(TokenUsageStats::default);
+                        stats.total_tokens = stats
+                            .total_tokens
+                            .saturating_add(agent_result.tokens_used as u64);
+                        stats.last_task_id = Some(agent_id_clone.clone());
+                        stats.last_description = Some(task_clone.clone());
+                    }
+
                     let _ = notification_tx.send(AgentNotification {
                         agent_id: agent_id_clone.clone(),
                         agent_type,
@@ -238,14 +270,42 @@ impl AsyncSubAgentIntegration {
     }
 
     /// Get all thinking summaries
-    pub async fn get_all_thinking_summaries(&self) -> HashMap<String, String> {
-        self.task_results.lock().await.clone()
+    pub async fn get_all_thinking_summaries(&self) -> String {
+        let results = self.task_results.lock().await;
+        if results.is_empty() {
+            "No thinking processes recorded.".to_string()
+        } else {
+            results
+                .iter()
+                .map(|(task_id, summary)| format!("{}: {}", task_id, summary))
+                .collect::<Vec<_>>()
+                .join("\n")
+        }
     }
 
     /// Record token usage
-    pub async fn record_token_usage(&self, agent_id: &str, tokens: usize) -> Result<()> {
+    #[allow(clippy::too_many_arguments)]
+    pub async fn record_token_usage(
+        &self,
+        agent_id: &str,
+        task_id: &str,
+        task_description: &str,
+        prompt_tokens: u64,
+        completion_tokens: u64,
+    ) -> Result<()> {
         let mut usage = self.token_usage.lock().await;
-        *usage.entry(agent_id.to_string()).or_insert(0) += tokens;
+        let stats = usage
+            .entry(agent_id.to_string())
+            .or_insert_with(TokenUsageStats::default);
+        stats.prompt_tokens = stats.prompt_tokens.saturating_add(prompt_tokens);
+        stats.completion_tokens = stats
+            .completion_tokens
+            .saturating_add(completion_tokens);
+        stats.total_tokens = stats.total_tokens.saturating_add(
+            prompt_tokens.saturating_add(completion_tokens),
+        );
+        stats.last_task_id = Some(task_id.to_string());
+        stats.last_description = Some(task_description.to_string());
         Ok(())
     }
 
@@ -320,11 +380,28 @@ impl AsyncSubAgentIntegration {
     /// Generate token report
     pub async fn generate_token_report(&self) -> String {
         let usage = self.token_usage.lock().await;
-        let total: usize = usage.values().sum();
+        if usage.is_empty() {
+            return "No token usage recorded.".to_string();
+        }
+
+        let total: u64 = usage.values().map(|stats| stats.total_tokens).sum();
 
         let mut report = format!("Total tokens used: {}\n\nPer agent:\n", total);
-        for (agent_id, tokens) in usage.iter() {
-            report.push_str(&format!("  {}: {} tokens\n", agent_id, tokens));
+        for (agent_id, stats) in usage.iter() {
+            report.push_str(&format!(
+                "  {}: {} tokens (prompt: {}, completion: {})\n",
+                agent_id, stats.total_tokens, stats.prompt_tokens, stats.completion_tokens
+            ));
+            if let Some(task_id) = &stats.last_task_id {
+                let description = stats
+                    .last_description
+                    .as_deref()
+                    .unwrap_or("(no description)");
+                report.push_str(&format!(
+                    "    last task {}: {}\n",
+                    task_id, description
+                ));
+            }
         }
 
         report
