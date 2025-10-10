@@ -1582,42 +1582,42 @@ async fn submission_loop(
                     let event_msg = match notification.notification_type {
                         NotificationType::TaskCompleted => EventMsg::SubAgentTaskCompleted(
                             codex_protocol::protocol::SubAgentTaskCompletedEvent {
-                                agent_type: notification.agent_type.to_string(),
+                                agent_type: notification.agent_type.as_str().to_string(),
                                 content: notification.content.clone(),
                                 timestamp: notification.timestamp.clone(),
                             },
                         ),
                         NotificationType::TaskFailed => EventMsg::SubAgentTaskFailed(
                             codex_protocol::protocol::SubAgentTaskFailedEvent {
-                                agent_type: notification.agent_type.to_string(),
+                                agent_type: notification.agent_type.as_str().to_string(),
                                 error: notification.message.clone(),
                                 timestamp: notification.timestamp.clone(),
                             },
                         ),
                         NotificationType::ProgressUpdate => EventMsg::SubAgentProgressUpdate(
                             codex_protocol::protocol::SubAgentProgressUpdateEvent {
-                                agent_type: notification.agent_type.to_string(),
+                                agent_type: notification.agent_type.as_str().to_string(),
                                 progress: notification.message.clone(),
                                 timestamp: notification.timestamp.clone(),
                             },
                         ),
                         NotificationType::AgentMessage => EventMsg::SubAgentMessage(
                             codex_protocol::protocol::SubAgentMessageEvent {
-                                agent_type: notification.agent_type.to_string(),
+                                agent_type: notification.agent_type.as_str().to_string(),
                                 message: notification.message.clone(),
                                 timestamp: notification.timestamp.clone(),
                             },
                         ),
                         NotificationType::Error => EventMsg::SubAgentError(
                             codex_protocol::protocol::SubAgentErrorEvent {
-                                agent_type: notification.agent_type.to_string(),
+                                agent_type: notification.agent_type.as_str().to_string(),
                                 error: notification.message.clone(),
                                 timestamp: notification.timestamp.clone(),
                             },
                         ),
                         NotificationType::Info => EventMsg::SubAgentInfo(
                             codex_protocol::protocol::SubAgentInfoEvent {
-                                agent_type: notification.agent_type.to_string(),
+                                agent_type: notification.agent_type.as_str().to_string(),
                                 info: notification.message.clone(),
                                 timestamp: notification.timestamp.clone(),
                             },
@@ -3114,10 +3114,25 @@ mod tests {
         let config = Arc::new(config);
         let conversation_id = ConversationId::default();
         let otel_event_manager = otel_event_manager(conversation_id, config.as_ref());
+        let total_budget = config
+            .model_context_window
+            .unwrap_or(DEFAULT_SUBAGENT_TOKEN_BUDGET)
+            .min(usize::MAX as u64) as usize;
+        let agent_runtime = Arc::new(AgentRuntime::new(
+            config.cwd.clone(),
+            total_budget,
+            Arc::clone(&config),
+            None,
+            otel_event_manager.clone(),
+            config.model_provider.clone(),
+            conversation_id,
+        ));
+        let async_subagent_integration =
+            Arc::new(AsyncSubAgentIntegration::new(Arc::clone(&agent_runtime)));
         let client = ModelClient::new(
             config.clone(),
             None,
-            otel_event_manager,
+            otel_event_manager.clone(),
             config.model_provider.clone(),
             config.model_reasoning_effort,
             config.model_reasoning_summary,
@@ -3158,6 +3173,8 @@ mod tests {
                 turn_context.cwd.clone(),
                 None,
             )),
+            agent_runtime,
+            async_subagent_integration,
         };
         let session = Session {
             conversation_id,
@@ -3188,10 +3205,25 @@ mod tests {
         let config = Arc::new(config);
         let conversation_id = ConversationId::default();
         let otel_event_manager = otel_event_manager(conversation_id, config.as_ref());
+        let total_budget = config
+            .model_context_window
+            .unwrap_or(DEFAULT_SUBAGENT_TOKEN_BUDGET)
+            .min(usize::MAX as u64) as usize;
+        let agent_runtime = Arc::new(AgentRuntime::new(
+            config.cwd.clone(),
+            total_budget,
+            Arc::clone(&config),
+            None,
+            otel_event_manager.clone(),
+            config.model_provider.clone(),
+            conversation_id,
+        ));
+        let async_subagent_integration =
+            Arc::new(AsyncSubAgentIntegration::new(Arc::clone(&agent_runtime)));
         let client = ModelClient::new(
             config.clone(),
             None,
-            otel_event_manager,
+            otel_event_manager.clone(),
             config.model_provider.clone(),
             config.model_reasoning_effort,
             config.model_reasoning_summary,
@@ -3232,6 +3264,8 @@ mod tests {
                 config.cwd.clone(),
                 None,
             )),
+            agent_runtime,
+            async_subagent_integration,
         };
         let session = Arc::new(Session {
             conversation_id,
