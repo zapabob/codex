@@ -23,6 +23,7 @@ impl Default for WebSearchProvider {
             _timeout_seconds: 30,
         }
     }
+}
 
 impl WebSearchProvider {
     pub fn new(max_retries: u8, timeout_seconds: u64) -> Self {
@@ -101,9 +102,47 @@ impl WebSearchProvider {
     async fn fetch_content(&self, url: &str) -> Result<String> {
         debug!("📥 Fetching content from: {}", url);
 
-        // TODO: Implement actual HTTP request
-        // For now, return structured placeholder content
+        // 実際のHTTP request実装（OpenAI/codex公式パターン）
+        let client = reqwest::Client::builder()
+            .user_agent("Mozilla/5.0 Codex-DeepResearch/0.47.0")
+            .timeout(std::time::Duration::from_secs(30))
+            .build()?;
 
+        let response = client.get(url).send().await?;
+        let content = response.text().await?;
+
+        // HTMLからテキスト抽出（簡易実装）
+        let text = self.extract_text_from_html(&content);
+
+        Ok(text)
+    }
+
+    /// Extract text from HTML (simple implementation)
+    fn extract_text_from_html(&self, html: &str) -> String {
+        // 簡易的なHTMLタグ削除（本番ではscraper/html5everなど使用推奨）
+        let text = html
+            .replace("<script", "\n<script")
+            .replace("<style", "\n<style");
+
+        // <script>と<style>を削除
+        let re_script = regex::Regex::new(r"(?is)<script[^>]*>.*?</script>").unwrap();
+        let re_style = regex::Regex::new(r"(?is)<style[^>]*>.*?</style>").unwrap();
+        let text = re_script.replace_all(&text, "");
+        let text = re_style.replace_all(&text, "");
+
+        // HTMLタグ削除
+        let re_tags = regex::Regex::new(r"<[^>]+>").unwrap();
+        let text = re_tags.replace_all(&text, " ");
+
+        // 空白を正規化
+        let re_spaces = regex::Regex::new(r"\s+").unwrap();
+        let text = re_spaces.replace_all(&text.trim(), " ");
+
+        text.to_string()
+    }
+
+    /// Fallback: 構造化プレースホルダーコンテンツ（API失敗時用）
+    fn get_fallback_content(&self, url: &str) -> String {
         let content = if url.contains("doc.rust-lang.org") {
             format!(
                 "# Rust Official Documentation\n\n\
@@ -163,7 +202,7 @@ impl WebSearchProvider {
             format!("Content from {}\n\nDetailed information and examples.", url)
         };
 
-        Ok(content)
+        content
     }
 }
 
