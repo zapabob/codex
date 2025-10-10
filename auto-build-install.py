@@ -29,7 +29,7 @@ logging.basicConfig(
     ]
 )
 
-def run_command(cmd, cwd=None, timeout=300):
+def run_command(cmd, cwd=None, timeout=300, use_cache=False):
     """コマンド実行（ページャー回避＋並列ビルド最適化）"""
     env = os.environ.copy()
     env['PAGER'] = ''
@@ -39,8 +39,9 @@ def run_command(cmd, cwd=None, timeout=300):
     env['CARGO_BUILD_JOBS'] = '12'  # 並列コンパイル最大化
     env['RUSTFLAGS'] = '-C target-cpu=native'  # CPU最適化
     
-    # sccache有効化（キャッシュ高速化）
-    env['RUSTC_WRAPPER'] = 'sccache'  # コンパイルキャッシュ
+    # sccache有効化（利用可能な場合のみ）
+    if use_cache and check_sccache():
+        env['RUSTC_WRAPPER'] = 'sccache'
     
     try:
         result = subprocess.run(
@@ -64,31 +65,19 @@ def check_sccache():
     except FileNotFoundError:
         return False
 
-def install_sccache():
-    """sccache自動インストール"""
-    logging.info("  Installing sccache for faster builds...")
-    try:
-        subprocess.run(["cargo", "install", "sccache"], check=False, timeout=180)
-        return True
-    except:
-        return False
-
 def main():
     logging.info("=" * 50)
     logging.info("  Codex Automatic Build & Install")
-    logging.info("  GPU-Optimized Build (RTX3080)")
+    logging.info("  Parallel Build Optimized (RTX3080)")
     logging.info("=" * 50)
     print()
     
-    # sccacheチェック＆インストール
-    if not check_sccache():
-        logging.info("sccache not found, attempting install...")
-        if install_sccache():
-            logging.info("  [OK] sccache installed")
-        else:
-            logging.warning("  [WARN] sccache install failed, continuing without cache")
-    else:
+    # sccacheチェック（インストールはスキップ）
+    use_sccache = check_sccache()
+    if use_sccache:
         logging.info("  [OK] sccache available (compile cache enabled)")
+    else:
+        logging.info("  [INFO] sccache not found (building without cache)")
     
     root_dir = Path.cwd()
     codex_rs_dir = root_dir / "codex-rs"
@@ -97,7 +86,7 @@ def main():
     logging.info("Build Settings:")
     logging.info("  - Parallel jobs: 12 (RTX3080 CPU cores)")
     logging.info("  - Target CPU: native")
-    logging.info("  - Cache: sccache")
+    logging.info(f"  - Cache: {'sccache' if use_sccache else 'disabled'}")
     print()
     
     # Progress bar for overall progress
@@ -121,7 +110,8 @@ def main():
         code, out, err = run_command(
             "cargo build --release -p codex-deep-research",
             cwd=codex_rs_dir,
-            timeout=600
+            timeout=600,
+            use_cache=use_sccache
         )
         elapsed = (datetime.now() - start_time).total_seconds()
         
@@ -143,7 +133,8 @@ def main():
             code, out, err = run_command(
                 f"cargo build --release -p {binary}",
                 cwd=codex_rs_dir,
-                timeout=600
+                timeout=600,
+                use_cache=use_sccache
             )
             elapsed = (datetime.now() - start_time).total_seconds()
             
