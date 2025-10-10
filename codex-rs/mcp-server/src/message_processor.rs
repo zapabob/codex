@@ -664,30 +664,9 @@ impl MessageProcessor {
         id: RequestId,
         arguments: Option<serde_json::Value>,
     ) {
-        let result = match arguments {
-            Some(args) => crate::supervisor_tool_handler::handle_supervisor_tool_call(args).await,
-            None => Err(anyhow::anyhow!("No arguments provided")),
-        };
-
-        match result {
-            Ok(call_result) => {
-                self.send_response::<mcp_types::CallToolRequest>(id, call_result)
-                    .await;
-            }
-            Err(e) => {
-                let error_result = CallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!("Error: {}", e),
-                        annotations: None,
-                    })],
-                    is_error: Some(true),
-                    structured_content: None,
-                };
-                self.send_response::<mcp_types::CallToolRequest>(id, error_result)
-                    .await;
-            }
-        }
+        let result = crate::supervisor_tool_handler::handle_supervisor_tool_call(id.clone(), arguments).await;
+        self.send_response::<mcp_types::CallToolRequest>(id, result)
+            .await;
     }
 
     async fn handle_tool_call_deep_research(
@@ -695,32 +674,9 @@ impl MessageProcessor {
         id: RequestId,
         arguments: Option<serde_json::Value>,
     ) {
-        let result = match arguments {
-            Some(args) => {
-                crate::deep_research_tool_handler::handle_deep_research_tool_call(args).await
-            }
-            None => Err(anyhow::anyhow!("No arguments provided")),
-        };
-
-        match result {
-            Ok(call_result) => {
-                self.send_response::<mcp_types::CallToolRequest>(id, call_result)
-                    .await;
-            }
-            Err(e) => {
-                let error_result = CallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!("Error: {}", e),
-                        annotations: None,
-                    })],
-                    is_error: Some(true),
-                    structured_content: None,
-                };
-                self.send_response::<mcp_types::CallToolRequest>(id, error_result)
-                    .await;
-            }
-        }
+        let result = crate::deep_research_tool_handler::handle_deep_research_tool_call(id.clone(), arguments).await;
+        self.send_response::<mcp_types::CallToolRequest>(id, result)
+            .await;
     }
 
     async fn handle_tool_call_subagent(&self, id: RequestId, arguments: Option<serde_json::Value>) {

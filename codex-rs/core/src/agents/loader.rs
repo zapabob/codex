@@ -71,8 +71,8 @@ impl AgentLoader {
         }
 
         // ファイルから読み込み
-        let yaml_path = self.agents_dir.join(format!("{}.yaml", name));
-        let yml_path = self.agents_dir.join(format!("{}.yml", name));
+        let yaml_path = self.agents_dir.join(format!("{name}.yaml"));
+        let yml_path = self.agents_dir.join(format!("{name}.yml"));
 
         let path = if yaml_path.exists() {
             yaml_path
