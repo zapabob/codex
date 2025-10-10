@@ -1,0 +1,49 @@
+# Test Generator Sub-Agent
+name: "Test Generator"
+goal: "差分に対するユニット/回帰テストを自動生成しカバレッジ+10%"
+
+# ツール権限
+tools:
+  mcp:
+    - code_indexer
+  fs:
+    read: true
+    write: true
+  shell:
+    exec:
+      - npm
+      - pytest
+      - go
+      - cargo
+      - jest
+      - vitest
+
+# ポリシー
+policies:
+  net: []  # ネットワークアクセスなし
+  context:
+    max_tokens: 16000
+    retention: "job"
+
+# 成功基準
+success_criteria:
+  - "CI green"
+  - "coverage_delta >= 10%"
+  - "テストファイルの命名規則に準拠"
+  - "既存テストを破壊しない"
+
+# 出力アーティファクト
+artifacts:
+  - "artifacts/test-report.md"
+  - "artifacts/coverage-diff.json"
+
+# テスト生成戦略
+test_strategy:
+  frameworks:
+    - jest
+    - pytest
+    - cargo-test
+    - go-test
+  coverage_target: 80
+  mutation_testing: false
+

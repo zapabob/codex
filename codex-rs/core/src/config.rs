@@ -859,15 +859,8 @@ pub struct ToolsToml {
     pub view_image: Option<bool>,
 }
 
-impl From<ToolsToml> for Tools {
-    fn from(tools_toml: ToolsToml) -> Self {
-        Self {
-            web_search: tools_toml.web_search,
-            deep_web_search: tools_toml.deep_web_search,
-            view_image: tools_toml.view_image,
-        }
-    }
-}
+// Note: Tools struct is imported from codex_app_server_protocol
+// We extend it via the From impl below
 
 impl ConfigToml {
     /// Derive the effective sandbox policy from the configuration.

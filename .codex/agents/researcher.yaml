@@ -1,0 +1,45 @@
+# Deep Researcher Sub-Agent
+name: "Deep Researcher"
+goal: "計画→探索→反証→出典付きレポを生成する"
+
+# ツール権限
+tools:
+  mcp:
+    - search
+    - crawler
+    - pdf_reader
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+  net:
+    allow:
+      - "https://*"
+      - "http://*"
+
+# ポリシー
+policies:
+  shell: []  # シェル実行なし
+  context:
+    max_tokens: 24000
+    retention: "job"  # ジョブ終了時にコンテキスト破棄
+
+# 成功基準
+success_criteria:
+  - "複数ドメインの出典"
+  - "矛盾検知ログが添付"
+  - "要約は結論→根拠→限界の順で簡潔"
+
+# 出力アーティファクト
+artifacts:
+  - "artifacts/report.md"
+  - "artifacts/evidence/*.json"
+
+# リサーチ戦略
+research_strategy:
+  depth: 3  # 最大探索深度
+  breadth: 8  # 並列検索幅
+  citations_required: true
+  lightweight_fallback: true
+  contradiction_check: true
+

@@ -1,7 +1,9 @@
+use crate::contradiction::ContradictionChecker;
 use crate::provider::ResearchProvider;
 use crate::strategies::apply_strategy;
 use crate::strategies::extract_findings;
 use crate::strategies::generate_summary;
+use crate::types::ConfidenceLevel;
 use crate::types::DeepResearcherConfig;
 use crate::types::ResearchReport;
 use anyhow::Result;
@@ -57,6 +59,21 @@ pub async fn conduct_research(
     // Generate summary
     let summary = generate_summary(&findings, query, config.strategy);
 
+    // Check for contradictions
+    let contradiction_report = ContradictionChecker::check_contradictions(&findings);
+
+    // Calculate domain diversity
+    let diversity_score = ContradictionChecker::calculate_diversity_score(&filtered_sources);
+
+    // Determine confidence level
+    let confidence_level = if contradiction_report.contradiction_count > findings.len() / 3 {
+        ConfidenceLevel::Low
+    } else if diversity_score > 0.6 && contradiction_report.contradiction_count < 2 {
+        ConfidenceLevel::High
+    } else {
+        ConfidenceLevel::Medium
+    };
+
     Ok(ResearchReport {
         query: query.to_string(),
         strategy: config.strategy,
@@ -64,6 +81,9 @@ pub async fn conduct_research(
         findings,
         summary,
         depth_reached: depth,
+        contradictions: Some(contradiction_report),
+        diversity_score,
+        confidence_level,
     })
 }
 

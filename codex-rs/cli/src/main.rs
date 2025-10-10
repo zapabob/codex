@@ -94,6 +94,12 @@ enum Subcommand {
     #[clap(name = "cloud", alias = "cloud-tasks")]
     Cloud(CloudTasksCli),
 
+    /// [EXPERIMENTAL] Delegate task to a sub-agent.
+    Delegate(DelegateCommand),
+
+    /// [EXPERIMENTAL] Conduct deep research on a topic.
+    Research(ResearchCommand),
+
     /// Internal: run the responses API proxy.
     #[clap(hide = true)]
     ResponsesApiProxy(ResponsesApiProxyArgs),
@@ -119,6 +125,68 @@ struct ResumeCommand {
 
     #[clap(flatten)]
     config_overrides: TuiCli,
+}
+
+#[derive(Debug, Parser)]
+struct DelegateCommand {
+    /// Agent name to delegate to
+    #[arg(value_name = "AGENT")]
+    agent: String,
+
+    /// Goal or task description
+    #[arg(short, long, value_name = "GOAL")]
+    goal: Option<String>,
+
+    /// Scope path (files or directories)
+    #[arg(long, value_name = "PATH")]
+    scope: Option<PathBuf>,
+
+    /// Token budget for the agent
+    #[arg(long, value_name = "TOKENS")]
+    budget: Option<usize>,
+
+    /// Deadline in minutes
+    #[arg(long, value_name = "MINUTES")]
+    deadline: Option<u64>,
+
+    /// Output file for the result
+    #[arg(short, long, value_name = "FILE")]
+    out: Option<PathBuf>,
+}
+
+#[derive(Debug, Parser)]
+struct ResearchCommand {
+    /// Topic to research
+    #[arg(value_name = "TOPIC")]
+    topic: String,
+
+    /// Research depth (1-5)
+    #[arg(short, long, value_name = "DEPTH", default_value = "3")]
+    depth: u8,
+
+    /// Search breadth (number of sources)
+    #[arg(short, long, value_name = "BREADTH", default_value = "8")]
+    breadth: u8,
+
+    /// Token budget
+    #[arg(long, value_name = "TOKENS", default_value = "60000")]
+    budget: usize,
+
+    /// Require citations
+    #[arg(long, default_value = "true")]
+    citations: bool,
+
+    /// MCP tools to use (comma-separated)
+    #[arg(long, value_name = "TOOLS")]
+    mcp: Option<String>,
+
+    /// Enable lightweight fallback
+    #[arg(long, default_value = "false")]
+    lightweight_fallback: bool,
+
+    /// Output file for the report
+    #[arg(short, long, value_name = "FILE")]
+    out: Option<PathBuf>,
 }
 
 #[derive(Debug, Parser)]
@@ -342,6 +410,30 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 root_config_overrides.clone(),
             );
             codex_cloud_tasks::run_main(cloud_cli, codex_linux_sandbox_exe).await?;
+        }
+        Some(Subcommand::Delegate(delegate_cmd)) => {
+            codex_cli::delegate_cmd::run_delegate_command(
+                delegate_cmd.agent,
+                delegate_cmd.goal,
+                delegate_cmd.scope,
+                delegate_cmd.budget,
+                delegate_cmd.deadline,
+                delegate_cmd.out,
+            )
+            .await?;
+        }
+        Some(Subcommand::Research(research_cmd)) => {
+            codex_cli::research_cmd::run_research_command(
+                research_cmd.topic,
+                research_cmd.depth,
+                research_cmd.breadth,
+                research_cmd.budget,
+                research_cmd.citations,
+                research_cmd.mcp,
+                research_cmd.lightweight_fallback,
+                research_cmd.out,
+            )
+            .await?;
         }
         Some(Subcommand::Sandbox(sandbox_args)) => match sandbox_args.cmd {
             SandboxCommand::Macos(mut seatbelt_cli) => {

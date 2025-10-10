@@ -1,0 +1,62 @@
+# Security Auditor Sub-Agent
+name: "Security Auditor"
+goal: "CVE横断・依存監査・静的解析→脆弱性要約と修正提案PR"
+
+# ツール権限
+tools:
+  mcp:
+    - code_indexer
+    - search
+    - crawler
+    - pdf_reader
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+  shell:
+    exec:
+      - npm
+      - pip
+      - cargo
+      - go
+      - snyk
+      - trivy
+      - safety
+      - bandit
+  net:
+    allow:
+      - "https://nvd.nist.gov"
+      - "https://github.com"
+      - "https://cve.mitre.org"
+      - "https://security.snyk.io"
+      - "https://*"
+
+# ポリシー
+policies:
+  context:
+    max_tokens: 20000
+    retention: "job"
+  secrets:
+    redact: true  # 出力からシークレット除去
+
+# 成功基準
+success_criteria:
+  - "脆弱性一覧とCVSS要約"
+  - "修正PR（最小差分）"
+  - "再発防止チェックリスト"
+  - "影響範囲の明確化"
+
+# 出力アーティファクト
+artifacts:
+  - "artifacts/sec-audit.md"
+  - "artifacts/patches/*.diff"
+  - "artifacts/cve-report.json"
+
+# セキュリティ監査戦略
+audit_strategy:
+  dependency_scan: true
+  static_analysis: true
+  cve_lookup: true
+  severity_threshold: "medium"  # medium以上を報告
+  auto_fix: false  # 自動修正は無効（提案のみ）
+

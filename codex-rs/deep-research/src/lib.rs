@@ -1,4 +1,7 @@
+pub mod contradiction;
+mod mcp_search_provider;
 mod pipeline;
+pub mod planner;
 pub mod provider;
 mod strategies;
 pub mod types;
@@ -10,6 +13,14 @@ use std::sync::Arc;
 use types::DeepResearcherConfig;
 use types::ResearchReport;
 
+pub use contradiction::Contradiction;
+pub use contradiction::ContradictionChecker;
+pub use contradiction::ContradictionReport;
+pub use mcp_search_provider::McpSearchProvider;
+pub use mcp_search_provider::SearchBackend;
+pub use planner::ResearchPlan;
+pub use planner::ResearchPlanner;
+pub use planner::StopConditions;
 pub use provider::MockProvider;
 pub use types::ResearchStrategy;
 pub use web_search_provider::WebSearchProvider;

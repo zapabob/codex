@@ -448,6 +448,7 @@ impl Session {
                 include_plan_tool: config.include_plan_tool,
                 include_apply_patch_tool: config.include_apply_patch_tool,
                 include_web_search_request: config.tools_web_search_request,
+                include_deep_web_search: config.tools_deep_web_search,
                 use_streamable_shell_tool: config.use_experimental_streamable_shell_tool,
                 include_view_image_tool: config.include_view_image_tool,
                 experimental_unified_exec_tool: config.use_experimental_unified_exec_tool,
@@ -1535,15 +1536,21 @@ async fn submission_loop(
             Op::StartSubAgentTask { agent_type, task } => {
                 // Parse agent type
                 let agent_type_enum = match agent_type.as_str() {
-                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
-                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
-                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
-                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
-                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
-                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
-                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
-                    "General" => codex_supervisor::AgentType::General,
-                    _ => codex_supervisor::AgentType::General,
+                    "CodeExpert" => crate::async_subagent_integration::AgentType::CodeExpert,
+                    "SecurityExpert" => {
+                        crate::async_subagent_integration::AgentType::SecurityExpert
+                    }
+                    "TestingExpert" => crate::async_subagent_integration::AgentType::TestingExpert,
+                    "DocsExpert" => crate::async_subagent_integration::AgentType::DocsExpert,
+                    "DeepResearcher" => {
+                        crate::async_subagent_integration::AgentType::DeepResearcher
+                    }
+                    "DebugExpert" => crate::async_subagent_integration::AgentType::DebugExpert,
+                    "PerformanceExpert" => {
+                        crate::async_subagent_integration::AgentType::PerformanceExpert
+                    }
+                    "General" => crate::async_subagent_integration::AgentType::General,
+                    _ => crate::async_subagent_integration::AgentType::General,
                 };
 
                 // Start subagent task asynchronously
@@ -1559,7 +1566,7 @@ async fn submission_loop(
                 let notifications = async_subagent_integration.check_inbox().await;
                 for notification in notifications {
                     let event_msg = match notification.notification_type {
-                        codex_supervisor::NotificationType::TaskCompleted => {
+                        crate::async_subagent_integration::NotificationType::TaskCompleted => {
                             EventMsg::SubAgentTaskCompleted(
                                 codex_protocol::protocol::SubAgentTaskCompletedEvent {
                                     agent_type: notification.agent_type.to_string(),
@@ -1568,7 +1575,7 @@ async fn submission_loop(
                                 },
                             )
                         }
-                        codex_supervisor::NotificationType::TaskFailed => {
+                        crate::async_subagent_integration::NotificationType::TaskFailed => {
                             EventMsg::SubAgentTaskFailed(
                                 codex_protocol::protocol::SubAgentTaskFailedEvent {
                                     agent_type: notification.agent_type.to_string(),
@@ -1577,7 +1584,7 @@ async fn submission_loop(
                                 },
                             )
                         }
-                        codex_supervisor::NotificationType::ProgressUpdate => {
+                        crate::async_subagent_integration::NotificationType::ProgressUpdate => {
                             EventMsg::SubAgentProgressUpdate(
                                 codex_protocol::protocol::SubAgentProgressUpdateEvent {
                                     agent_type: notification.agent_type.to_string(),
@@ -1586,7 +1593,7 @@ async fn submission_loop(
                                 },
                             )
                         }
-                        codex_supervisor::NotificationType::AgentMessage => {
+                        crate::async_subagent_integration::NotificationType::AgentMessage => {
                             EventMsg::SubAgentMessage(
                                 codex_protocol::protocol::SubAgentMessageEvent {
                                     agent_type: notification.agent_type.to_string(),
@@ -1595,14 +1602,14 @@ async fn submission_loop(
                                 },
                             )
                         }
-                        codex_supervisor::NotificationType::Error => {
+                        crate::async_subagent_integration::NotificationType::Error => {
                             EventMsg::SubAgentError(codex_protocol::protocol::SubAgentErrorEvent {
                                 agent_type: notification.agent_type.to_string(),
                                 error: notification.content,
                                 timestamp: format!("{:?}", notification.timestamp),
                             })
                         }
-                        codex_supervisor::NotificationType::Info => {
+                        crate::async_subagent_integration::NotificationType::Info => {
                             EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
                                 agent_type: notification.agent_type.to_string(),
                                 info: notification.content,
@@ -1623,15 +1630,21 @@ async fn submission_loop(
                 message,
             } => {
                 let agent_type_enum = match agent_type.as_str() {
-                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
-                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
-                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
-                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
-                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
-                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
-                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
-                    "General" => codex_supervisor::AgentType::General,
-                    _ => codex_supervisor::AgentType::General,
+                    "CodeExpert" => crate::async_subagent_integration::AgentType::CodeExpert,
+                    "SecurityExpert" => {
+                        crate::async_subagent_integration::AgentType::SecurityExpert
+                    }
+                    "TestingExpert" => crate::async_subagent_integration::AgentType::TestingExpert,
+                    "DocsExpert" => crate::async_subagent_integration::AgentType::DocsExpert,
+                    "DeepResearcher" => {
+                        crate::async_subagent_integration::AgentType::DeepResearcher
+                    }
+                    "DebugExpert" => crate::async_subagent_integration::AgentType::DebugExpert,
+                    "PerformanceExpert" => {
+                        crate::async_subagent_integration::AgentType::PerformanceExpert
+                    }
+                    "General" => crate::async_subagent_integration::AgentType::General,
+                    _ => crate::async_subagent_integration::AgentType::General,
                 };
 
                 if let Err(e) = async_subagent_integration
@@ -1643,15 +1656,21 @@ async fn submission_loop(
             }
             Op::TerminateSubAgent { agent_type } => {
                 let agent_type_enum = match agent_type.as_str() {
-                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
-                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
-                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
-                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
-                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
-                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
-                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
-                    "General" => codex_supervisor::AgentType::General,
-                    _ => codex_supervisor::AgentType::General,
+                    "CodeExpert" => crate::async_subagent_integration::AgentType::CodeExpert,
+                    "SecurityExpert" => {
+                        crate::async_subagent_integration::AgentType::SecurityExpert
+                    }
+                    "TestingExpert" => crate::async_subagent_integration::AgentType::TestingExpert,
+                    "DocsExpert" => crate::async_subagent_integration::AgentType::DocsExpert,
+                    "DeepResearcher" => {
+                        crate::async_subagent_integration::AgentType::DeepResearcher
+                    }
+                    "DebugExpert" => crate::async_subagent_integration::AgentType::DebugExpert,
+                    "PerformanceExpert" => {
+                        crate::async_subagent_integration::AgentType::PerformanceExpert
+                    }
+                    "General" => crate::async_subagent_integration::AgentType::General,
+                    _ => crate::async_subagent_integration::AgentType::General,
                 };
 
                 if let Err(e) = async_subagent_integration
@@ -1665,7 +1684,11 @@ async fn submission_loop(
                 let states = async_subagent_integration.get_agent_states().await;
                 let status_message = states
                     .iter()
-                    .map(|(id, agent_type, status, progress)| {
+                    .map(|state| {
+                        let id = &state.agent_id;
+                        let agent_type = &state.agent_type;
+                        let status = &state.status;
+                        let progress = state.progress;
                         format!(
                             "{} ({}): {} - {:.1}%",
                             agent_type,
@@ -1915,6 +1938,7 @@ async fn spawn_review_thread(
         include_plan_tool: false,
         include_apply_patch_tool: config.include_apply_patch_tool,
         include_web_search_request: false,
+        include_deep_web_search: false,
         use_streamable_shell_tool: false,
         include_view_image_tool: false,
         experimental_unified_exec_tool: config.use_experimental_unified_exec_tool,
