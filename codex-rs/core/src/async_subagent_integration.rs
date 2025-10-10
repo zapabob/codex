@@ -354,7 +354,7 @@ impl AsyncSubAgentIntegration {
         let results = self.task_results.lock().await;
 
         if let Some(state) = states.get(agent_id) {
-            let result = results.get(agent_id).map(|r| r.as_str()).unwrap_or("N/A");
+            let result = results.get(agent_id).map(String::as_str).unwrap_or("N/A");
             format!(
                 "Agent: {}\nType: {}\nStatus: {}\nProgress: {:.1}%\nResult: {}",
                 agent_id,
@@ -364,11 +364,9 @@ impl AsyncSubAgentIntegration {
                 result
             )
         } else {
-            format!("Agent {} not found", agent_id)
+            format!("Agent {agent_id} not found")
         }
     }
-
-    /// Generate token report
     pub async fn generate_token_report(&self) -> String {
         let usage = self.token_usage.lock().await;
         if usage.is_empty() {
@@ -388,7 +386,7 @@ impl AsyncSubAgentIntegration {
                     .last_description
                     .as_deref()
                     .unwrap_or("(no description)");
-                report.push_str(&format!("    last task {}: {}\n", task_id, description));
+                report.push_str(&format!("    last task {task_id}: {description}\n"));
             }
         }
 
