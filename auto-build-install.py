@@ -349,10 +349,12 @@ def main():
             logging.info("[3/6] Building Core Modules (supervisor excluded)...")
             
             # 重要なモジュール（supervisor除外済み）
+            # codex-mcp-serverは一旦スキップ（28エラー対応待ち）
             modules = [
                 ("codex-core", "--lib"),
+                ("codex-deep-research", "--lib"),
                 ("codex-tui", "--lib"),
-                ("codex-mcp-server", "")  # supervisor依存削除済み
+                # ("codex-mcp-server", "")  # TODO: supervisor関連エラー28個修正待ち
             ]
             
             for module_name, flags in tqdm(modules, desc="Building modules", leave=False):
@@ -541,16 +543,15 @@ Status: Production Ready"""
     logging.info("\n" + "=" * 70)
     logging.info("  🎉 Phase 1 Complete - Codex SubAgent System Ready!")
     logging.info("=" * 70)
-    logging.info("\n✅ Implemented Modules:")
-    logging.info("  - AgentRuntime (LLM integration)")
-    logging.info("  - AsyncSubAgentIntegration (parallel execution)")
-    logging.info("  - PermissionChecker (security)")
-    logging.info("  - AuditLogger (monitoring)")
-    logging.info("  - DeepResearch (web search)")
-    logging.info("  - TUI Integration (6 subagent events)")
-    logging.info("\n🚫 Excluded (Phase 2):")
-    logging.info("  - codex-supervisor (old implementation)")
-    logging.info("\n📊 Implementation Progress: 95% 🟢")
+    logging.info("\n✅ Successfully Built Modules:")
+    logging.info("  - codex-core (AgentRuntime, AsyncSubAgent, etc.)")
+    logging.info("  - codex-deep-research (WebSearch, MCP)")
+    logging.info("  - codex-tui (6 subagent event handlers)")
+    logging.info("\n⏳ Pending (Phase 2):")
+    logging.info("  - codex-mcp-server (28 errors - supervisor cleanup needed)")
+    logging.info("  - codex-supervisor (removed - Phase 2 redesign)")
+    logging.info("\n📊 Core Implementation: 90% 🟡")
+    logging.info("     (mcp-server requires additional cleanup)")
     
     print()
     logging.info("🧪 Quick Test:")
