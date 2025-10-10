@@ -1,0 +1,114 @@
+# Code Reviewer Sub-Agent
+name: "Code Reviewer"
+goal: "コードレビュー・品質チェック・ベストプラクティス提案"
+
+# ツール権限
+tools:
+  mcp:
+    - code_indexer
+    - ast_analyzer
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+      - "./review-comments"
+  shell:
+    exec:
+      - git
+      - cargo
+      - npm
+      - eslint
+      - prettier
+      - clippy
+
+# ポリシー
+policies:
+  net:
+    allow:
+      - "https://docs.rs"
+      - "https://github.com"
+      - "https://rust-lang.github.io"
+  context:
+    max_tokens: 20000
+    retention: "job"
+  secrets:
+    redact: true
+
+# 成功基準
+success_criteria:
+  - "コードスタイルガイド準拠"
+  - "パフォーマンス懸念の指摘"
+  - "セキュリティリスクの検出"
+  - "テストカバレッジの確認"
+  - "ドキュメント品質チェック"
+  - "改善提案の具体性"
+
+# 出力アーティファクト
+artifacts:
+  - "artifacts/code-review.md"
+  - "artifacts/review-summary.json"
+  - "review-comments/*.md"
+
+# レビュー戦略
+review_strategy:
+  # チェック項目
+  checks:
+    - style_consistency       # スタイル一貫性
+    - error_handling         # エラーハンドリング
+    - performance           # パフォーマンス
+    - security              # セキュリティ
+    - testing               # テストカバレッジ
+    - documentation         # ドキュメント
+    - maintainability       # 保守性
+    - best_practices        # ベストプラクティス
+  
+  # 重要度フィルター
+  severity_levels:
+    - critical              # 致命的
+    - high                  # 高
+    - medium                # 中
+    - low                   # 低
+    - info                  # 情報
+  
+  # レビュー範囲
+  scope:
+    - changed_files         # 変更ファイルのみ
+    - related_files         # 関連ファイル
+    - test_files            # テストファイル
+  
+  # 出力形式
+  output_format: "markdown"  # markdown, json, inline
+  
+  # 自動修正
+  auto_fix: false           # 自動修正は無効（提案のみ）
+  
+  # コメントスタイル
+  comment_style: "constructive"  # constructive, strict, friendly
+
+# レビュー観点（Rust特化）
+rust_specific:
+  clippy_lints: true
+  rustfmt_check: true
+  unsafe_code_review: true
+  lifetime_analysis: true
+  ownership_patterns: true
+  
+  # Rustイディオム
+  idioms:
+    - prefer_iterators
+    - use_references
+    - avoid_clones
+    - use_result_option
+    - pattern_matching
+
+# PRテンプレート生成
+pr_template:
+  enabled: true
+  sections:
+    - summary
+    - critical_issues
+    - suggestions
+    - test_coverage
+    - performance_notes
+    - security_notes
+

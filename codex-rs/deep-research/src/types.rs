@@ -45,6 +45,25 @@ pub struct ResearchReport {
     pub findings: Vec<Finding>,
     pub summary: String,
     pub depth_reached: u8,
+    /// 矛盾検出レポート
+    #[serde(default)]
+    pub contradictions: Option<crate::contradiction::ContradictionReport>,
+    /// ドメイン多様性スコア
+    #[serde(default)]
+    pub diversity_score: f64,
+    /// 信頼度レベル
+    #[serde(default)]
+    pub confidence_level: ConfidenceLevel,
+}
+
+/// 信頼度レベル
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum ConfidenceLevel {
+    Low,
+    #[default]
+    Medium,
+    High,
 }
 
 /// Configuration for the deep researcher
