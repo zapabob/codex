@@ -174,7 +174,7 @@ impl WebSearchProvider {
 impl ResearchProvider for WebSearchProvider {
     async fn search(&self, query: &str, max_results: u8) -> Result<Vec<Source>> {
         let search_results = self.execute_search(query).await?;
-        
+
         let sources: Vec<Source> = search_results
             .into_iter()
             .take(max_results as usize)
