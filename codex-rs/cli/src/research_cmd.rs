@@ -3,9 +3,10 @@ use anyhow::Result;
 use codex_deep_research::ContradictionChecker;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
-use codex_deep_research::MockProvider;
+use codex_deep_research::McpSearchProvider; // MCP統合
 use codex_deep_research::ResearchPlanner;
 use codex_deep_research::ResearchStrategy;
+use codex_deep_research::WebSearchProvider; // 本番実装
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -42,9 +43,20 @@ pub async fn run_research_command(
         plan
     };
 
-    // Deep Research実行
-    // TODO: 実際のMCPプロバイダーを使用
-    let provider = Arc::new(MockProvider);
+    // Deep Research実行（本番実装）
+    // MCPサーバー経由のWeb検索を優先、フォールバックとしてWebSearchProvider使用
+    let provider: Arc<dyn codex_deep_research::ResearchProvider + Send + Sync> =
+        if let Some(mcp_url) = _mcp {
+            println!("🔌 Using MCP Search Provider: {}", mcp_url);
+            Arc::new(McpSearchProvider::new(
+                mcp_url, 3,  // max_retries
+                30, // timeout_seconds
+            ))
+        } else {
+            println!("🌐 Using Web Search Provider (Brave/DuckDuckGo/Google/Bing)");
+            Arc::new(WebSearchProvider::new(3, 30))
+        };
+
     let config = DeepResearcherConfig {
         max_depth: actual_plan.stop_conditions.max_depth,
         max_sources: actual_plan.stop_conditions.max_sources as u8,
