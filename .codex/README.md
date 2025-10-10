@@ -66,11 +66,24 @@ bash .codex/scripts/run_delegate.sh sec-audit
 - **ツール**: snyk, trivy, safety, bandit
 - **出力**: 脆弱性レポート, 修正パッチ
 
-### 4. Code Reviewer
-- **目的**: コードレビュー・品質チェック・ベストプラクティス提案
-- **ツール**: clippy, eslint, prettier, git
+### 4. Code Reviewer (Multi-Language)
+- **目的**: 多言語対応コードレビュー・品質チェック・ベストプラクティス提案
+- **対応言語**: TypeScript/JavaScript, Python, Rust, C# Unity
+- **ツール**: eslint, pylint, clippy, dotnet-analyzer
 - **出力**: レビューコメント, 改善提案, PRテンプレート
-- **特徴**: Rust特化チェック, 自動修正提案（実行は手動）
+- **特徴**: 言語自動検出, フレームワーク対応, 重要度付きレビュー
+
+#### 4-1. TypeScript Reviewer
+- **特化**: React, Next.js, Express, NestJS
+- **チェック**: 型安全性, async/await, Hooks, パフォーマンス
+
+#### 4-2. Python Reviewer
+- **特化**: Django, FastAPI, Flask, pytest
+- **チェック**: PEP 8, 型ヒント, セキュリティ（SQL injection等）
+
+#### 4-3. Unity Reviewer
+- **特化**: Unity C#, パフォーマンス最適化, VR/AR
+- **チェック**: GC回避, オブジェクトプール, ScriptableObject
 
 ## 📊 成果物（Artifacts）
 
