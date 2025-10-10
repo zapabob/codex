@@ -2,6 +2,8 @@
 
 Deep research pipeline for Codex that conducts multi-level exploration and information gathering on any topic.
 
+**✨ Conforms to OpenAI/codex official `web_search` tool implementation ✨**
+
 ## Features
 
 - **Multi-Depth Exploration**: Configurable research depth (1-10 levels)

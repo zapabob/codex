@@ -2,6 +2,7 @@ mod pipeline;
 pub mod provider;
 mod strategies;
 pub mod types;
+mod web_search_provider;
 
 use anyhow::Result;
 use provider::ResearchProvider;
@@ -11,6 +12,7 @@ use types::ResearchReport;
 
 pub use provider::MockProvider;
 pub use types::ResearchStrategy;
+pub use web_search_provider::WebSearchProvider;
 
 /// Main deep researcher for conducting comprehensive research
 pub struct DeepResearcher {

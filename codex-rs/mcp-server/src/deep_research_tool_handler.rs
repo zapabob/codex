@@ -1,7 +1,7 @@
 //! Handler for deep research tool calls via MCP.
 
 use crate::deep_research_tool::DeepResearchToolParam;
-use codex_deep_research::{DeepResearcher, MockProvider, ResearchStrategy};
+use codex_deep_research::{DeepResearcher, WebSearchProvider, ResearchStrategy};
 use codex_deep_research::types::DeepResearcherConfig;
 use mcp_types::{CallToolResult, ContentBlock, RequestId, TextContent};
 use std::sync::Arc;
@@ -106,7 +106,8 @@ async fn execute_deep_research(params: &DeepResearchToolParam) -> anyhow::Result
         strategy: strategy.clone(),
     };
     
-    let provider = Arc::new(MockProvider);
+    // Use real WebSearchProvider instead of MockProvider
+    let provider = Arc::new(WebSearchProvider::default());
     let researcher = DeepResearcher::new(config, provider);
     
     // Conduct research

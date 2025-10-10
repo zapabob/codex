@@ -76,8 +76,8 @@ impl ToolHandler for DeepWebSearchHandler {
             strategy,
         };
 
-        // MockProviderを使用（実際のプロダクションでは実際のプロバイダーを使用）
-        let provider = Arc::new(codex_deep_research::MockProvider);
+        // Use WebSearchProvider conforming to OpenAI/codex official web_search
+        let provider = Arc::new(codex_deep_research::WebSearchProvider::default());
         let researcher = DeepResearcher::new(config, provider);
 
         // リサーチ実行
