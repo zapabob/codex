@@ -224,6 +224,26 @@ pub enum Op {
         prompt_tokens: u64,
         completion_tokens: u64,
     },
+
+    /// Execute a custom command
+    ExecuteCustomCommand {
+        command_name: String,
+        context: String,
+    },
+
+    /// Execute a hook for a specific event
+    ExecuteHook {
+        event: String,
+        context: Option<String>,
+    },
+
+    /// List available custom commands
+    ListCustomCommands,
+
+    /// Get custom command info
+    GetCustomCommandInfo {
+        command_name: String,
+    },
 }
 
 /// Determines the conditions under which the user is consulted to approve

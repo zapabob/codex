@@ -1130,6 +1130,12 @@ async fn submission_loop(
     // Initialize async subagent integration
     let async_subagent_integration = Arc::new(crate::async_subagent_integration::AsyncSubAgentIntegration::new());
     
+    // Initialize hook executor
+    let hook_executor = Arc::new(crate::hooks::HookExecutor::new(crate::hooks::HookConfig::default()));
+    
+    // Initialize custom command executor
+    let custom_command_executor = Arc::new(crate::custom_commands::CustomCommandExecutor::default());
+    
     // Start monitoring loop for subagent notifications
     let integration_clone = Arc::clone(&async_subagent_integration);
     let session_clone = Arc::clone(&sess);
@@ -1737,6 +1743,110 @@ async fn submission_loop(
                     completion_tokens,
                 ).await {
                     warn!("Failed to record token usage: {}", e);
+                }
+            }
+            Op::ExecuteCustomCommand { command_name, context } => {
+                match custom_command_executor.execute(&command_name, &context).await {
+                    Ok(result) => {
+                        sess.send_event(Event {
+                            id: sub.id.clone(),
+                            msg: EventMsg::SubAgentInfo(
+                                codex_protocol::protocol::SubAgentInfoEvent {
+                                    agent_type: result.subagent_used.unwrap_or_else(|| "CustomCommand".to_string()),
+                                    info: result.output,
+                                    timestamp: chrono::Utc::now().to_rfc3339(),
+                                }
+                            ),
+                        }).await;
+                    }
+                    Err(e) => {
+                        warn!("Failed to execute custom command: {}", e);
+                    }
+                }
+            }
+            Op::ExecuteHook { event, context } => {
+                // Parse hook event
+                let hook_event = match event.as_str() {
+                    "on_task_start" => crate::hooks::HookEvent::OnTaskStart,
+                    "on_task_complete" => crate::hooks::HookEvent::OnTaskComplete,
+                    "on_error" => crate::hooks::HookEvent::OnError,
+                    "on_task_abort" => crate::hooks::HookEvent::OnTaskAbort,
+                    "on_subagent_start" => crate::hooks::HookEvent::OnSubAgentStart,
+                    "on_subagent_complete" => crate::hooks::HookEvent::OnSubAgentComplete,
+                    "on_session_start" => crate::hooks::HookEvent::OnSessionStart,
+                    "on_session_end" => crate::hooks::HookEvent::OnSessionEnd,
+                    "on_patch_apply" => crate::hooks::HookEvent::OnPatchApply,
+                    "on_command_exec" => crate::hooks::HookEvent::OnCommandExec,
+                    _ => {
+                        warn!("Unknown hook event: {}", event);
+                        return;
+                    }
+                };
+
+                let hook_context = crate::hooks::HookContext::new(hook_event);
+
+                match hook_executor.execute(hook_context).await {
+                    Ok(results) => {
+                        let summary = results.iter()
+                            .map(|r| format!("Exit code: {}, Duration: {}ms", r.exit_code, r.duration_ms))
+                            .collect::<Vec<_>>()
+                            .join("\n");
+
+                        sess.send_event(Event {
+                            id: sub.id.clone(),
+                            msg: EventMsg::SubAgentInfo(
+                                codex_protocol::protocol::SubAgentInfoEvent {
+                                    agent_type: "Hook".to_string(),
+                                    info: format!("Executed {} hook(s):\n{}", results.len(), summary),
+                                    timestamp: chrono::Utc::now().to_rfc3339(),
+                                }
+                            ),
+                        }).await;
+                    }
+                    Err(e) => {
+                        warn!("Failed to execute hook: {}", e);
+                    }
+                }
+            }
+            Op::ListCustomCommands => {
+                let commands = custom_command_executor.list_commands();
+                let info = format!("Available custom commands ({}):\n{}", 
+                    commands.len(),
+                    commands.join("\n- "));
+
+                sess.send_event(Event {
+                    id: sub.id.clone(),
+                    msg: EventMsg::SubAgentInfo(
+                        codex_protocol::protocol::SubAgentInfoEvent {
+                            agent_type: "CustomCommand".to_string(),
+                            info,
+                            timestamp: chrono::Utc::now().to_rfc3339(),
+                        }
+                    ),
+                }).await;
+            }
+            Op::GetCustomCommandInfo { command_name } => {
+                if let Some(cmd_info) = custom_command_executor.get_command_info(&command_name) {
+                    let info = format!(
+                        "Command: {}\nDescription: {}\nSubagent: {:?}\nParameters: {:?}\nPre-hooks: {}\nPost-hooks: {}",
+                        cmd_info.name,
+                        cmd_info.description,
+                        cmd_info.subagent,
+                        cmd_info.parameters,
+                        cmd_info.pre_hooks.len(),
+                        cmd_info.post_hooks.len()
+                    );
+
+                    sess.send_event(Event {
+                        id: sub.id.clone(),
+                        msg: EventMsg::SubAgentInfo(
+                            codex_protocol::protocol::SubAgentInfoEvent {
+                                agent_type: "CustomCommand".to_string(),
+                                info,
+                                timestamp: chrono::Utc::now().to_rfc3339(),
+                            }
+                        ),
+                    }).await;
                 }
             }
             _ => {
