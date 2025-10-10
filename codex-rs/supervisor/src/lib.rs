@@ -1,9 +1,13 @@
 mod aggregator;
 mod assigner;
+mod async_subagent;
+mod autonomous_dispatcher;
 mod executor;
 pub mod integrated;
 mod planner;
 pub mod subagent;
+pub mod thinking_process;
+mod token_tracker;
 pub mod types;
 
 use anyhow::Result;
@@ -14,9 +18,13 @@ use types::SupervisorConfig;
 use types::SupervisorResult;
 use types::TaskResult;
 
+pub use async_subagent::{AsyncSubAgent, AsyncSubAgentManager, AsyncSubAgentNotification, Inbox, NotificationType};
+pub use autonomous_dispatcher::{AutonomousDispatcher, AutoCallTrigger, TaskClassification};
 pub use subagent::AgentType;
 pub use subagent::SubAgent;
 pub use subagent::SubAgentManager;
+pub use thinking_process::{ThinkingProcess, ThinkingProcessManager, ThinkingStep, ThinkingStepBuilder, ThinkingStepType};
+pub use token_tracker::{TokenAllocationStrategy, TokenLimit, TokenTracker, TokenUsage};
 pub use types::CoordinationStrategy;
 pub use types::ManagementStyle;
 pub use types::MergeStrategy;

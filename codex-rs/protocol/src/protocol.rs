@@ -176,6 +176,54 @@ pub enum Op {
 
     /// Request to shut down codex instance.
     Shutdown,
+
+    /// Start a subagent task asynchronously
+    StartSubAgentTask {
+        agent_type: String,
+        task: String,
+    },
+
+    /// Check subagent inbox for notifications
+    CheckSubAgentInbox,
+
+    /// Start conversation with a subagent
+    StartSubAgentConversation {
+        agent_type: String,
+        message: String,
+    },
+
+    /// Terminate a subagent
+    TerminateSubAgent {
+        agent_type: String,
+    },
+
+    /// Get subagent status
+    GetSubAgentStatus,
+
+    /// Auto-dispatch task to appropriate subagent
+    AutoDispatchTask {
+        task: String,
+    },
+
+    /// Get thinking process summary
+    GetThinkingProcessSummary {
+        task_id: String,
+    },
+
+    /// Get all thinking processes
+    GetAllThinkingProcesses,
+
+    /// Get token usage report
+    GetTokenReport,
+
+    /// Record token usage for a subagent
+    RecordSubAgentTokenUsage {
+        agent_id: String,
+        task_id: String,
+        task_description: String,
+        prompt_tokens: u64,
+        completion_tokens: u64,
+    },
 }
 
 /// Determines the conditions under which the user is consulted to approve
@@ -522,6 +570,24 @@ pub enum EventMsg {
 
     /// Exited review mode with an optional final result to apply.
     ExitedReviewMode(ExitedReviewModeEvent),
+
+    /// SubAgent task completed notification
+    SubAgentTaskCompleted(SubAgentTaskCompletedEvent),
+
+    /// SubAgent task failed notification
+    SubAgentTaskFailed(SubAgentTaskFailedEvent),
+
+    /// SubAgent progress update notification
+    SubAgentProgressUpdate(SubAgentProgressUpdateEvent),
+
+    /// SubAgent message notification
+    SubAgentMessage(SubAgentMessageEvent),
+
+    /// SubAgent error notification
+    SubAgentError(SubAgentErrorEvent),
+
+    /// SubAgent info notification
+    SubAgentInfo(SubAgentInfoEvent),
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
@@ -1325,6 +1391,49 @@ pub struct Chunk {
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
 pub struct TurnAbortedEvent {
     pub reason: TurnAbortReason,
+}
+
+// SubAgent event structures
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct SubAgentTaskCompletedEvent {
+    pub agent_type: String,
+    pub content: String,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct SubAgentTaskFailedEvent {
+    pub agent_type: String,
+    pub error: String,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct SubAgentProgressUpdateEvent {
+    pub agent_type: String,
+    pub progress: String,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct SubAgentMessageEvent {
+    pub agent_type: String,
+    pub message: String,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct SubAgentErrorEvent {
+    pub agent_type: String,
+    pub error: String,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct SubAgentInfoEvent {
+    pub agent_type: String,
+    pub info: String,
+    pub timestamp: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, TS)]

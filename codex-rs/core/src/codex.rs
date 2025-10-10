@@ -1127,6 +1127,18 @@ async fn submission_loop(
     config: Arc<Config>,
     rx_sub: Receiver<Submission>,
 ) {
+    // Initialize async subagent integration
+    let async_subagent_integration = Arc::new(crate::async_subagent_integration::AsyncSubAgentIntegration::new());
+    
+    // Start monitoring loop for subagent notifications
+    let integration_clone = Arc::clone(&async_subagent_integration);
+    let session_clone = Arc::clone(&sess);
+    tokio::spawn(async move {
+        if let Err(e) = integration_clone.start_monitoring_loop(session_clone).await {
+            eprintln!("Error in subagent monitoring loop: {}", e);
+        }
+    });
+
     // Wrap once to avoid cloning TurnContext for each task.
     let mut turn_context = Arc::new(turn_context);
     // To break out of this loop, send Op::Shutdown.
@@ -1507,6 +1519,223 @@ async fn submission_loop(
                     review_request,
                 )
                 .await;
+            }
+            Op::StartSubAgentTask { agent_type, task } => {
+                // Parse agent type
+                let agent_type_enum = match agent_type.as_str() {
+                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
+                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
+                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
+                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
+                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
+                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
+                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
+                    "General" => codex_supervisor::AgentType::General,
+                    _ => codex_supervisor::AgentType::General,
+                };
+
+                // Start subagent task asynchronously
+                if let Err(e) = async_subagent_integration.start_subagent_task(agent_type_enum, task).await {
+                    warn!("Failed to start subagent task: {}", e);
+                }
+            }
+            Op::CheckSubAgentInbox => {
+                // Check inbox and send notifications
+                let notifications = async_subagent_integration.check_inbox().await;
+                for notification in notifications {
+                    let event_msg = match notification.notification_type {
+                        codex_supervisor::NotificationType::TaskCompleted => {
+                            EventMsg::SubAgentTaskCompleted(
+                                codex_protocol::protocol::SubAgentTaskCompletedEvent {
+                                    agent_type: notification.agent_type.to_string(),
+                                    content: notification.content,
+                                    timestamp: format!("{:?}", notification.timestamp),
+                                }
+                            )
+                        }
+                        codex_supervisor::NotificationType::TaskFailed => {
+                            EventMsg::SubAgentTaskFailed(
+                                codex_protocol::protocol::SubAgentTaskFailedEvent {
+                                    agent_type: notification.agent_type.to_string(),
+                                    error: notification.content,
+                                    timestamp: format!("{:?}", notification.timestamp),
+                                }
+                            )
+                        }
+                        codex_supervisor::NotificationType::ProgressUpdate => {
+                            EventMsg::SubAgentProgressUpdate(
+                                codex_protocol::protocol::SubAgentProgressUpdateEvent {
+                                    agent_type: notification.agent_type.to_string(),
+                                    progress: notification.content,
+                                    timestamp: format!("{:?}", notification.timestamp),
+                                }
+                            )
+                        }
+                        codex_supervisor::NotificationType::AgentMessage => {
+                            EventMsg::SubAgentMessage(
+                                codex_protocol::protocol::SubAgentMessageEvent {
+                                    agent_type: notification.agent_type.to_string(),
+                                    message: notification.content,
+                                    timestamp: format!("{:?}", notification.timestamp),
+                                }
+                            )
+                        }
+                        codex_supervisor::NotificationType::Error => {
+                            EventMsg::SubAgentError(
+                                codex_protocol::protocol::SubAgentErrorEvent {
+                                    agent_type: notification.agent_type.to_string(),
+                                    error: notification.content,
+                                    timestamp: format!("{:?}", notification.timestamp),
+                                }
+                            )
+                        }
+                        codex_supervisor::NotificationType::Info => {
+                            EventMsg::SubAgentInfo(
+                                codex_protocol::protocol::SubAgentInfoEvent {
+                                    agent_type: notification.agent_type.to_string(),
+                                    info: notification.content,
+                                    timestamp: format!("{:?}", notification.timestamp),
+                                }
+                            )
+                        }
+                    };
+
+                    sess.send_event(Event {
+                        id: sub.id.clone(),
+                        msg: event_msg,
+                    }).await;
+                }
+            }
+            Op::StartSubAgentConversation { agent_type, message } => {
+                let agent_type_enum = match agent_type.as_str() {
+                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
+                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
+                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
+                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
+                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
+                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
+                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
+                    "General" => codex_supervisor::AgentType::General,
+                    _ => codex_supervisor::AgentType::General,
+                };
+
+                if let Err(e) = async_subagent_integration.start_conversation_with_subagent(agent_type_enum, message).await {
+                    warn!("Failed to start conversation with subagent: {}", e);
+                }
+            }
+            Op::TerminateSubAgent { agent_type } => {
+                let agent_type_enum = match agent_type.as_str() {
+                    "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
+                    "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
+                    "TestingExpert" => codex_supervisor::AgentType::TestingExpert,
+                    "DocsExpert" => codex_supervisor::AgentType::DocsExpert,
+                    "DeepResearcher" => codex_supervisor::AgentType::DeepResearcher,
+                    "DebugExpert" => codex_supervisor::AgentType::DebugExpert,
+                    "PerformanceExpert" => codex_supervisor::AgentType::PerformanceExpert,
+                    "General" => codex_supervisor::AgentType::General,
+                    _ => codex_supervisor::AgentType::General,
+                };
+
+                if let Err(e) = async_subagent_integration.terminate_subagent(agent_type_enum).await {
+                    warn!("Failed to terminate subagent: {}", e);
+                }
+            }
+            Op::GetSubAgentStatus => {
+                let states = async_subagent_integration.get_agent_states().await;
+                let status_message = states.iter()
+                    .map(|(id, agent_type, status, progress)| {
+                        format!("{} ({}): {} - {:.1}%", agent_type, id, status, progress * 100.0)
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+
+                sess.send_event(Event {
+                    id: sub.id.clone(),
+                    msg: EventMsg::SubAgentInfo(
+                        codex_protocol::protocol::SubAgentInfoEvent {
+                            agent_type: "System".to_string(),
+                            info: format!("SubAgent Status:\n{}", status_message),
+                            timestamp: chrono::Utc::now().to_rfc3339(),
+                        }
+                    ),
+                }).await;
+            }
+            Op::AutoDispatchTask { task } => {
+                // 自律的にタスクをディスパッチ
+                match async_subagent_integration.auto_dispatch_task(&task).await {
+                    Ok(result) => {
+                        sess.send_event(Event {
+                            id: sub.id.clone(),
+                            msg: EventMsg::SubAgentInfo(
+                                codex_protocol::protocol::SubAgentInfoEvent {
+                                    agent_type: "System".to_string(),
+                                    info: result,
+                                    timestamp: chrono::Utc::now().to_rfc3339(),
+                                }
+                            ),
+                        }).await;
+                    }
+                    Err(e) => {
+                        warn!("Failed to auto-dispatch task: {}", e);
+                    }
+                }
+            }
+            Op::GetThinkingProcessSummary { task_id } => {
+                if let Some(summary) = async_subagent_integration.get_thinking_summary(&task_id).await {
+                    sess.send_event(Event {
+                        id: sub.id.clone(),
+                        msg: EventMsg::SubAgentInfo(
+                            codex_protocol::protocol::SubAgentInfoEvent {
+                                agent_type: "ThinkingProcess".to_string(),
+                                info: summary,
+                                timestamp: chrono::Utc::now().to_rfc3339(),
+                            }
+                        ),
+                    }).await;
+                }
+            }
+            Op::GetAllThinkingProcesses => {
+                let summary = async_subagent_integration.get_all_thinking_summaries().await;
+                sess.send_event(Event {
+                    id: sub.id.clone(),
+                    msg: EventMsg::SubAgentInfo(
+                        codex_protocol::protocol::SubAgentInfoEvent {
+                            agent_type: "ThinkingProcess".to_string(),
+                            info: summary,
+                            timestamp: chrono::Utc::now().to_rfc3339(),
+                        }
+                    ),
+                }).await;
+            }
+            Op::GetTokenReport => {
+                let report = async_subagent_integration.generate_token_report().await;
+                sess.send_event(Event {
+                    id: sub.id.clone(),
+                    msg: EventMsg::SubAgentInfo(
+                        codex_protocol::protocol::SubAgentInfoEvent {
+                            agent_type: "TokenTracker".to_string(),
+                            info: report,
+                            timestamp: chrono::Utc::now().to_rfc3339(),
+                        }
+                    ),
+                }).await;
+            }
+            Op::RecordSubAgentTokenUsage {
+                agent_id,
+                task_id,
+                task_description,
+                prompt_tokens,
+                completion_tokens,
+            } => {
+                if let Err(e) = async_subagent_integration.record_token_usage(
+                    &agent_id,
+                    task_id,
+                    task_description,
+                    prompt_tokens,
+                    completion_tokens,
+                ).await {
+                    warn!("Failed to record token usage: {}", e);
+                }
             }
             _ => {
                 // Ignore unknown ops; enum is non_exhaustive to allow extensions.

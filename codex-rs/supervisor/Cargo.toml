@@ -1,20 +1,22 @@
 [package]
+edition.workspace = true
 name = "codex-supervisor"
 version.workspace = true
-edition.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+chrono = { version = "0.4", features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["full"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
 
 [dev-dependencies]
+criterion = { version = "0.5", features = ["async_tokio"] }
 pretty_assertions.workspace = true
 tokio-test.workspace = true
-criterion = { version = "0.5", features = ["async_tokio"] }
 
 [[bench]]
-name = "agent_parallel"
 harness = false
+name = "agent_parallel"
