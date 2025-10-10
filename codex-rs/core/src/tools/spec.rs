@@ -26,6 +26,7 @@ pub(crate) struct ToolsConfig {
     pub plan_tool: bool,
     pub apply_patch_tool_type: Option<ApplyPatchToolType>,
     pub web_search_request: bool,
+    pub deep_web_search: bool,
     pub include_view_image_tool: bool,
     pub experimental_unified_exec_tool: bool,
     pub experimental_supported_tools: Vec<String>,
@@ -36,6 +37,7 @@ pub(crate) struct ToolsConfigParams<'a> {
     pub(crate) include_plan_tool: bool,
     pub(crate) include_apply_patch_tool: bool,
     pub(crate) include_web_search_request: bool,
+    pub(crate) include_deep_web_search: bool,
     pub(crate) use_streamable_shell_tool: bool,
     pub(crate) include_view_image_tool: bool,
     pub(crate) experimental_unified_exec_tool: bool,
@@ -48,6 +50,7 @@ impl ToolsConfig {
             include_plan_tool,
             include_apply_patch_tool,
             include_web_search_request,
+            include_deep_web_search,
             use_streamable_shell_tool,
             include_view_image_tool,
             experimental_unified_exec_tool,
@@ -77,6 +80,7 @@ impl ToolsConfig {
             plan_tool: *include_plan_tool,
             apply_patch_tool_type,
             web_search_request: *include_web_search_request,
+            deep_web_search: *include_deep_web_search,
             include_view_image_tool: *include_view_image_tool,
             experimental_unified_exec_tool: *experimental_unified_exec_tool,
             experimental_supported_tools: model_family.experimental_supported_tools.clone(),
@@ -766,6 +770,15 @@ pub(crate) fn build_specs(
 
     if config.web_search_request {
         builder.push_spec(ToolSpec::WebSearch {});
+    }
+
+    if config.deep_web_search {
+        let deep_web_search_handler = Arc::new(crate::tools::handlers::DeepWebSearchHandler);
+        builder.push_spec_with_parallel_support(
+            ToolSpec::Function(crate::tools::handlers::create_deep_web_search_tool()),
+            false, // Deep research is async and may take time
+        );
+        builder.register_handler("deep_web_search", deep_web_search_handler);
     }
 
     if config.include_view_image_tool {
