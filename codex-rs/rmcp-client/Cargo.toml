@@ -13,8 +13,8 @@ axum = { version = "0.7", default-features = false, features = [
     "tokio",
 ] }
 dirs = { workspace = true }
-futures = { workspace = true, default-features = false, features = ["std"] }
-keyring = { workspace = true, features = [
+futures = { workspace = true, features = ["std"] }
+keyring = { version = "3.0", features = [
     "apple-native",
     "crypto-rust",
     "linux-native-async-persistent",
@@ -27,7 +27,7 @@ reqwest = { version = "0.12", default-features = false, features = [
     "stream",
     "rustls-tls",
 ] }
-rmcp = { workspace = true, default-features = false, features = [
+rmcp = { version = "0.1", default-features = false, features = [
     "auth",
     "base64",
     "client",
