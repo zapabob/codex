@@ -1,430 +1,398 @@
-# 🎯 Cursor IDE セットアップガイド（完全版）
+# 🎯 Cursor IDE完全統合ガイド - サブエージェント & Deep Research
 
-Cursor IDE で **Multi-Agent Supervisor** と **Deep Research** を使えるようにする完全ガイド。
+## 📦 セットアップ（5分で完了）
 
----
+### 1. 前提条件
+- ✅ Cursor IDE インストール済み
+- ✅ Node.js v20+ LTS
+- ✅ Rust 1.83+（Codexビルド済み）
+- ✅ Python 3.11+（オプション、Python開発時）
 
-## ✅ セットアップ完了（自動）
+### 2. 環境変数設定
 
-**`.cursor/mcp.json` に codex サーバーを追加済み！** 
+`.env` ファイルを作成：
+```bash
+# Web Search API Keys (Deep Research用)
+BRAVE_API_KEY=your_brave_api_key
+GOOGLE_API_KEY=your_google_api_key
+GOOGLE_CSE_ID=your_google_cse_id
+BING_API_KEY=your_bing_api_key
 
-既存のMCPサーバー（Unity, Blender, Note, GitHub等）と一緒に使えます。
-
----
-
-## 🚀 使用開始（3ステップ）
-
-### ステップ 1: MCPサーバービルド
-
-**新しいPowerShellウィンドウで**:
-```powershell
-cd C:\Users\downl\Desktop\codex-main\codex-main\codex-rs
-cargo build --release --bin codex-mcp-server
+# OpenAI (オプション)
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-ビルド時間: 約5-7分（初回のみ）
+### 3. MCP サーバー有効化
 
-### ステップ 2: Cursor IDE を再起動
-
-**完全再起動**してMCP設定を読み込ませる:
-1. Cursor を完全終了
-2. Cursor を再起動
-
-### ステップ 3: 動作確認
-
-Cursor IDE で試してみる:
-
+Cursor設定を開く：
 ```
-@codex Use codex-supervisor with goal="Create a simple REST API"
+Ctrl/Cmd + , → "MCP" で検索
 ```
 
-または
+以下をチェック：
+- ☑️ Enable MCP Servers
+- ☑️ Load .cursor/mcp.json
+- ☑️ Auto-detect tools
 
+### 4. 拡張機能インストール
+
+Cursor内で推奨拡張を一括インストール：
 ```
-@codex Use codex-deep-research with query="Best practices for Rust web APIs"
-```
-
----
-
-## 🤖 利用可能なツール（4個）
-
-Cursor IDE で以下のツールが使えます:
-
-| ツール | 説明 | 使用例 |
-|--------|------|--------|
-| **codex** | 通常のCodex会話 | `@codex Implement feature X` |
-| **codex-reply** | 会話を継続 | (自動使用) |
-| **codex-supervisor** | **Multi-Agent調整** | `@codex Use codex-supervisor with goal="..."` |
-| **codex-deep-research** | **包括的リサーチ** | `@codex Use codex-deep-research with query="..."` |
-
----
-
-## 💡 使用例
-
-### Example 1: Multi-Agent Supervisor
-
-```
-@codex Use codex-supervisor with goal="Implement secure user authentication with OAuth2" and agents=["Security", "Backend", "Tester"] and strategy="parallel"
+Ctrl/Cmd + Shift + P → "Extensions: Show Recommended Extensions"
 ```
 
-**結果**:
-- Security Agent: セキュリティレビュー・脅威モデル作成
-- Backend Agent: OAuth2実装
-- Tester Agent: セキュリティテスト・E2Eテスト作成
-- 全て並列実行で高速化！
+## 🚀 使い方
 
-### Example 2: Deep Research
+### 💬 Composerで使う
 
+#### 1. コードレビュー
+Composerを開いて：
 ```
-@codex Use codex-deep-research with query="PostgreSQL query optimization techniques for large datasets" and strategy="comprehensive" and depth=3
+@code-reviewer このファイルをレビューして
 ```
 
-**結果**:
-- 深度3レベルの詳細調査
-- 複数ソースから情報収集
-- 品質評価・バイアス検出
-- 構造化されたレポート生成
-
-### Example 3: 統合ワークフロー
-
+または特定言語専用：
 ```
-# Step 1: 調査
-@codex Use codex-deep-research with query="Modern React state management patterns"
-
-# Step 2: Multi-Agent実装
-@codex Use codex-supervisor with goal="Implement state management based on research findings" and agents=["Frontend", "Tester"]
-
-# Step 3: 微調整
-@codex Add TypeScript types and improve error handling
+@ts-reviewer このReactコンポーネントをレビュー
+@python-reviewer このDjangoビューを確認
+@unity-reviewer このMonoBehaviourスクリプトを最適化
 ```
 
----
-
-## 🔧 トラブルシューティング
-
-### ツールが表示されない
-
-**確認事項**:
-
-1. **MCPサーバーがビルドされているか**:
-   ```powershell
-   Test-Path "C:\Users\downl\Desktop\codex-main\codex-main\codex-rs\target\release\codex-mcp-server.exe"
-   ```
-   
-2. **Cursorが再起動されたか**:
-   - タスクバーから完全終了
-   - 再起動
-
-3. **MCP設定が正しいか**:
-   - `.cursor/mcp.json` を開く
-   - JSON構造が正しいか確認（修正済み）
-
-### ツール実行がエラーになる
-
-**デバッグ方法**:
-
-1. **Developer Tools を開く** (`Ctrl+Shift+I`)
-2. **Console タブ**でエラーメッセージを確認
-3. **ログ確認**:
-   ```powershell
-   # RUST_LOG=debug で詳細ログ
-   # .cursor/mcp.json の env に追加済み
-   ```
-
-### ビルドエラーが出る
-
-**既知の問題**: `message_processor.rs` の `.await` エラー
-
-**回避策**: ワイらが追加したツール自体は動作します。エラーは既存コードの問題です。
-
----
-
-## 🎯 エージェント種類（8種類）
-
-| Agent | 専門分野 | 使用例 |
-|-------|---------|--------|
-| **CodeExpert** | コード実装・レビュー | "Implement algorithm X" |
-| **Researcher** | 調査・文献調査 | "Research design patterns" |
-| **Tester** | テスト・QA | "Create comprehensive tests" |
-| **Security** | セキュリティレビュー | "Security audit of auth code" |
-| **Backend** | バックエンド開発 | "Implement REST API" |
-| **Frontend** | フロントエンド開発 | "Create React component" |
-| **Database** | DB設計・最適化 | "Optimize database schema" |
-| **DevOps** | インフラ・デプロイ | "Setup CI/CD pipeline" |
-
----
-
-## 📊 調整戦略
-
-### Sequential（逐次実行）
-
+#### 2. Deep Research
 ```
-Task1 完了 → Task2 開始 → Task3 開始
+@researcher Next.js 14の最新ベストプラクティスを調査して
+
+以下の観点で：
+- Server Components vs Client Components
+- App Router推奨パターン
+- パフォーマンス最適化
 ```
 
-**使用ケース**: タスクに依存関係がある場合
+実行されること：
+- ✅ 複数の検索エンジンで並列検索
+- ✅ 矛盾チェック・クロスバリデーション
+- ✅ 引用付きMarkdownレポート生成
+- ✅ `artifacts/research-YYYY-MM-DD.md` 保存
 
-**例**:
+#### 3. テスト生成
 ```
-@codex Use codex-supervisor with goal="Database migration" and strategy="sequential"
-```
+@test-gen このモジュールのテストスイートを生成
 
-### Parallel（並列実行）
-
-```
-Task1 ↘
-Task2 → 同時実行 → 結果統合
-Task3 ↗
-```
-
-**使用ケース**: タスクが独立している場合（最速）
-
-**例**:
-```
-@codex Use codex-supervisor with goal="Full-stack feature" and strategy="parallel"
+要件：
+- Unit Test
+- Integration Test
+- Edge cases カバー
+- カバレッジ 80%以上
 ```
 
-### Hybrid（ハイブリッド）
-
+#### 4. セキュリティ監査
 ```
-Phase1 (Sequential) → Phase2 (Parallel) → Phase3 (Sequential)
-```
+@sec-audit このプロジェクト全体をスキャン
 
-**使用ケース**: 複雑な依存関係がある場合
-
----
-
-## 🔬 リサーチ戦略
-
-### Comprehensive（包括的）
-
-- **深度**: 3-5レベル
-- **ソース**: 5-10個
-- **時間**: 5-10秒
-- **用途**: 重要な技術選定
-
-```
-@codex Use codex-deep-research with query="..." and strategy="comprehensive" and depth=5
+重点：
+- SQL injection
+- XSS vulnerabilities
+- Hardcoded secrets
+- Dependency vulnerabilities
 ```
 
-### Focused（集中的）
+### 🎹 キーボードショートカット
 
-- **深度**: 1-2レベル
-- **ソース**: 3-5個
-- **時間**: 2-5秒
-- **用途**: 特定の質問
+| ショートカット | 機能 | 説明 |
+|--------------|------|------|
+| `Ctrl+Shift+R` | **Code Review** | 現在のファイルをレビュー |
+| `Ctrl+Shift+S` | **Deep Research** | 選択テキストで調査開始 |
+| `Ctrl+Shift+T` | **Test Generation** | テスト自動生成 |
+| `Ctrl+Shift+A` | **Security Audit** | 脆弱性スキャン |
 
-```
-@codex Use codex-deep-research with query="..." and strategy="focused"
-```
+### 📝 Chatで使う
 
-### Exploratory（探索的）
-
-- **深度**: 1-2レベル
-- **ソース**: 10-20個
-- **時間**: 10-15秒
-- **用途**: 広範なサーベイ
+通常のChatウィンドウでも利用可能：
 
 ```
-@codex Use codex-deep-research with query="..." and strategy="exploratory" and max_sources=20
+# 現在のファイルをTypeScript専用でレビュー
+@ts-reviewer
+
+# Pythonコードをセキュリティ観点で監査
+@python-reviewer --security
+
+# Unity スクリプトのGC最適化提案
+@unity-reviewer --optimize-gc
 ```
 
----
+### 🤖 自動実行（オプション）
 
-## 🔒 セキュリティ
-
-### Security Profile 適用
+`.cursor/settings.json` で有効化済み：
 
 ```json
 {
-  "codex": {
-    "args": [
-      ...
-      "--profile",
-      "workspace"
-    ]
+  "codex.autoReview": {
+    "enabled": true,
+    "onSave": true,      // ファイル保存時に自動レビュー
+    "onCommit": true     // Git commit前に自動レビュー
   }
 }
 ```
 
-**プロファイル**:
-- `offline`: 最大セキュリティ（ネット不可）
-- `workspace`: 通常開発（推奨）
-- `workspace-net`: ネット使用可
-- `trusted`: フルアクセス（注意）
+## 📊 利用可能なエージェント
 
-### 監査ログ
+### 1. Code Reviewer（統合版）
+- **対応言語**: TypeScript, Python, Rust, C# Unity
+- **自動検出**: 拡張子ベース
+- **出力**: `artifacts/code-review-YYYY-MM-DD.md`
 
-全ての操作は `~/.codex/audit.log` に記録:
+### 2. TypeScript Reviewer（専用）
+- **フレームワーク**: React, Next.js, Express, NestJS, Vue, Angular
+- **特化チェック**:
+  - 型安全性（`any`禁止）
+  - async/await パターン
+  - React Hooks規則
+  - パフォーマンス最適化
+
+### 3. Python Reviewer（専用）
+- **フレームワーク**: Django, FastAPI, Flask, pytest
+- **特化チェック**:
+  - PEP 8準拠
+  - 型ヒント（PEP 484）
+  - セキュリティ（SQLインジェクション等）
+  - Black フォーマット
+
+### 4. Unity Reviewer（専用）
+- **対応**: Unity 2021 LTS - 6 (latest)
+- **特化チェック**:
+  - GC Allocation ゼロ（Update内）
+  - オブジェクトプーリング
+  - ScriptableObject活用
+  - VR/AR最適化
+
+### 5. Researcher（調査）
+- **検索エンジン**: Brave, DuckDuckGo, Google, Bing
+- **深度**: 1-5（デフォルト3）
+- **機能**:
+  - 矛盾検出
+  - 引用必須
+  - 軽量フォールバック
+
+### 6. Test Generator（テスト生成）
+- **対応**: Jest, Vitest, pytest, cargo test
+- **自動生成**:
+  - Unit Test
+  - Integration Test
+  - E2E Test
+  - Mock/Stub
+
+### 7. Security Auditor（監査）
+- **スキャン対象**:
+  - CVE データベース
+  - 依存関係脆弱性
+  - コード静的解析
+  - 設定ミス検出
+
+## 🛠️ トラブルシューティング
+
+### MCPサーバーが起動しない
+```bash
+# ログ確認
+tail -f ~/.cursor/logs/mcp-server.log
+
+# 手動起動テスト
+node codex-rs/mcp-server/dist/index.js
+```
+
+### エージェントが見つからない
+```bash
+# エージェント定義確認
+ls -la .codex/agents/
+
+# 再読み込み
+Ctrl+Shift+P → "Reload Window"
+```
+
+### Deep Researchが失敗する
+```bash
+# API キー確認
+echo $BRAVE_API_KEY
+echo $GOOGLE_API_KEY
+
+# .env ファイル読み込み確認
+source .env
+```
+
+### TypeScriptエラー
+```bash
+# npm install再実行
+cd vscode-extension
+npm install
+npm run compile
+```
+
+## 🎨 カスタマイズ
+
+### 独自エージェント作成
+
+`.codex/agents/my-custom-agent.yaml`:
+```yaml
+name: "My Custom Agent"
+goal: "カスタムタスク実行"
+
+tools:
+  mcp:
+    - custom_tool
+  fs:
+    read: true
+    write:
+      - "./my-output"
+  shell:
+    exec:
+      - my-command
+
+policies:
+  net:
+    allow:
+      - "https://api.example.com"
+  context:
+    max_tokens: 20000
+
+success_criteria:
+  - "タスク完了"
+  - "品質基準達成"
+```
+
+Composerで使用：
+```
+@my-custom-agent タスク実行
+```
+
+### MCPツール追加
+
+`.cursor/mcp.json` に追加：
 ```json
 {
-  "timestamp": "2025-10-08T07:10:00Z",
-  "operation": "supervisor_exec",
-  "target": "Implement auth",
-  "decision": "allowed",
-  "agents": ["Security", "Backend"],
-  "strategy": "parallel"
+  "mcpServers": {
+    "my-tool": {
+      "command": "node",
+      "args": ["path/to/my-tool.js"],
+      "capabilities": {
+        "tools": ["my_custom_tool"]
+      }
+    }
+  }
 }
 ```
 
-**プライバシー保護**: ユーザー名は `[USER]` に自動マスク
+## 📈 パフォーマンス Tips
 
----
-
-## 📝 実用的な使用パターン
-
-### パターン 1: リサーチ駆動開発
-
-```
-1. @codex Use codex-deep-research with query="Technology X vs Y comparison"
-   → 調査結果を確認
-
-2. @codex Use codex-supervisor with goal="Implement using Technology X" and agents=["CodeExpert", "Tester"]
-   → Evidence-based実装
-
-3. @codex Optimize performance
-   → 微調整
+### 1. キャッシュ活用
+```json
+{
+  "codex.cache.enabled": true,
+  "codex.cache.ttl": 3600
+}
 ```
 
-### パターン 2: セキュリティファースト
-
+### 2. 並列実行
 ```
-1. @codex Use codex-deep-research with query="Common security vulnerabilities in feature X"
-   → セキュリティパターン調査
-
-2. @codex Use codex-supervisor with goal="Implement secure feature X" and agents=["Security", "Backend", "Tester"] and strategy="sequential"
-   → Security Agentが先にレビュー
-   → Backend Agentが実装
-   → Tester Agentがセキュリティテスト
-
-3. @codex Add additional security hardening
+@code-reviewer src/ & @test-gen src/ & @sec-audit src/
 ```
 
-### パターン 3: 並列フルスタック開発
-
+### 3. スコープ限定
 ```
-@codex Use codex-supervisor with goal="Add user dashboard with real-time analytics" and agents=["Frontend", "Backend", "Database", "Tester"] and strategy="parallel"
+# ❌ 遅い
+@code-reviewer .
 
-→ 全て同時並列実行:
-  Frontend: React/Vue コンポーネント
-  Backend: WebSocket API
-  Database: アナリティクステーブル
-  Tester: E2Eテスト
-
-→ 約50%高速化！
+# ✅ 高速
+@code-reviewer src/components/Button.tsx
 ```
 
----
+## 🔒 セキュリティベストプラクティス
 
-## 🎓 Tips & Best Practices
-
-### 1. エージェント選択
-
-```
-シンプルなタスク: 1-2エージェント
-  @codex supervisor "..." agents=["CodeExpert"]
-
-中規模: 2-3エージェント
-  @codex supervisor "..." agents=["CodeExpert", "Tester"]
-
-複雑: 3-5エージェント
-  @codex supervisor "..." agents=["Security", "Backend", "Database", "Tester"]
-```
-
-### 2. 戦略選択
-
-```
-依存関係あり → sequential
-独立タスク → parallel
-混合 → hybrid
-```
-
-### 3. リサーチ活用
-
-```
-新技術導入前 → comprehensive (深い調査)
-クイック確認 → focused (集中調査)
-選択肢比較 → exploratory (広範調査)
-```
-
----
-
-## 🔮 次のステップ
-
-### 即座に試す
-
-1. **Cursor再起動済みなら**:
-   ```
-   @codex Use codex-supervisor with goal="Test Multi-Agent"
+1. **API キーは環境変数で管理**
+   ```bash
+   # ❌ コミットしない
+   .env
+   
+   # ✅ .gitignore に追加済み
    ```
 
-2. **動作確認**:
-   - Developer Tools (`Ctrl+Shift+I`)
-   - Console で `codex-supervisor` と `codex-deep-research` が表示されることを確認
-
-### 実装完成（後日）
-
-3. **ハンドラー実装**:
-   - `supervisor_tool_handler.rs` で実際の Supervisor を呼び出す
-   - `deep_research_tool_handler.rs` で実際の DeepResearcher を呼び出す
-
-4. **エラー修正**:
-   - message_processor.rs の `.await` 追加
-
----
-
-## 📞 サポート
-
-### 問題が発生したら
-
-1. **ログ確認**:
-   ```powershell
-   # MCPサーバーを直接起動してログ確認
-   cd C:\Users\downl\Desktop\codex-main\codex-main\codex-rs
-   cargo run --bin codex-mcp-server
+2. **権限最小化**
+   ```yaml
+   # エージェント定義
+   fs:
+     write:
+       - "./artifacts"  # 限定的
    ```
 
-2. **テスト実行**:
-   ```powershell
-   cargo test -p codex-mcp-server --test supervisor_deepresearch_mcp
+3. **定期監査**
+   ```bash
+   # 毎週実行
+   codex delegate sec-audit --scope .
    ```
 
-3. **ドキュメント参照**:
-   - `cursor-integration/README.md` (350行の詳細ガイド)
-   - `_docs/2025-10-08_Cursor統合_Multi-Agent機能.md`
+## 📚 リファレンス
 
----
+### コマンド一覧
+```bash
+# CLI
+codex delegate <agent> --scope <path>
+codex research "<query>" --depth <1-5>
+
+# Composer
+@code-reviewer
+@researcher
+@test-gen
+@sec-audit
+@ts-reviewer
+@python-reviewer
+@unity-reviewer
+```
+
+### 設定ファイル
+```
+.cursorrules          # Cursor IDE ルール
+.cursor/
+  ├── mcp.json        # MCPサーバー設定
+  ├── settings.json   # Cursor設定
+  └── extensions.json # 推奨拡張
+.codex/
+  ├── agents/         # エージェント定義
+  ├── policies/       # ポリシー設定
+  └── README.md       # 詳細ドキュメント
+```
+
+### 出力ディレクトリ
+```
+artifacts/
+  ├── code-review-*.md       # コードレビュー結果
+  ├── research-*.md          # Deep Research レポート
+  ├── test-suite-*.spec.ts   # 生成テスト
+  └── security-audit-*.md    # セキュリティ監査
+```
 
 ## 🎉 まとめ
 
-**Cursor IDE で Multi-Agent と Deep Research が使えるようになったで〜！** 🚀
+### ✅ 完了項目
+- [x] Cursor IDE統合
+- [x] MCP サーバー設定
+- [x] Quick Actions設定
+- [x] Composer統合
+- [x] Chat統合
+- [x] 7つのエージェント利用可能
+- [x] 自動レビュー機能
+- [x] キーボードショートカット
 
-### 設定完了
+### 🚀 次のステップ
+1. `.env` ファイルにAPI キー設定
+2. Cursor IDE再起動
+3. `Ctrl+Shift+R` でコードレビュー試行
+4. Composerで `@researcher` 試行
+5. `artifacts/` ディレクトリ確認
 
-✅ `.cursor/mcp.json` 修正済み  
-✅ MCPツール定義完了（2個）  
-✅ ツールハンドラー実装完了  
-✅ 統合テスト完了（7/7）  
-✅ ドキュメント完備
-
-### 使い方
-
-```
-@codex Use codex-supervisor with goal="Your task"
-@codex Use codex-deep-research with query="Your question"
-```
-
-### 次のアクション
-
-1. **Cursor再起動** （まだなら）
-2. **動作確認** （上記の例を試す）
-3. **実際のタスクで使用** 🎊
+### 📞 サポート
+- GitHub: https://github.com/zapabob/codex
+- Issues: https://github.com/zapabob/codex/issues
+- Docs: `.codex/README.md`
 
 ---
 
-**Cursor IDE でワイらのMulti-Agent使ってみてや！** 💪✨
-
-**セットアップ完了時刻**: 2025年10月8日 7:15 JST  
-**ステータス**: ✅ Ready to Use in Cursor IDE
-
-
+**セットアップ完了！** 🎊  
+Cursor IDEで快適なAI駆動開発を！
