@@ -13,7 +13,6 @@ use tokio::sync::Mutex;
 use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
 
-use crate::agents::AgentDefinition;
 use crate::agents::AgentRuntime;
 
 /// Async SubAgent Integration

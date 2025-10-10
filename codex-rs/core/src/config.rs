@@ -862,6 +862,16 @@ pub struct ToolsToml {
 // Note: Tools struct is imported from codex_app_server_protocol
 // We extend it via the From impl below
 
+impl From<ToolsToml> for Tools {
+    fn from(value: ToolsToml) -> Self {
+        Self {
+            web_search: value.web_search,
+            deep_web_search: value.deep_web_search,
+            view_image: value.view_image,
+        }
+    }
+}
+
 impl ConfigToml {
     /// Derive the effective sandbox policy from the configuration.
     fn derive_sandbox_policy(&self, sandbox_mode_override: Option<SandboxMode>) -> SandboxPolicy {
