@@ -91,7 +91,7 @@ impl AuditLogger {
         artifacts: Vec<String>,
     ) -> Result<()> {
         let now = chrono::Utc::now();
-        let start = chrono::DateTime::parse_from_rfc3339(start_time)?;
+        let start = chrono::DateTime::parse_from_rfc3339(start_time)?.with_timezone(&chrono::Utc);
         let duration_secs = (now - start).num_milliseconds() as f64 / 1000.0;
 
         let event = AuditEvent::new(
@@ -121,7 +121,7 @@ impl AuditLogger {
         error_msg: &str,
     ) -> Result<()> {
         let now = chrono::Utc::now();
-        let start = chrono::DateTime::parse_from_rfc3339(start_time)?;
+        let start = chrono::DateTime::parse_from_rfc3339(start_time)?.with_timezone(&chrono::Utc);
         let duration_secs = (now - start).num_milliseconds() as f64 / 1000.0;
 
         let event = AuditEvent::new(

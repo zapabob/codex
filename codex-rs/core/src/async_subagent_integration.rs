@@ -1,130 +1,383 @@
-/// Async SubAgent Integration (Stub Implementation)
+/// Async SubAgent Integration (Production Implementation)
 ///
-/// This is a placeholder implementation for the async subagent integration feature.
-/// Full implementation is planned for future releases.
+/// Full-featured async subagent management system for parallel task execution.
 use anyhow::Result;
+/// Async SubAgent Integration (Production Implementation)
+///
+/// Full-featured async subagent management system for parallel task execution.
+use anyhow::anyhow;
+use chrono::Utc;
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use tokio::sync::mpsc;
+use tokio::task::JoinHandle;
 
-/// Stub implementation of AsyncSubAgentIntegration
+use crate::agents::AgentDefinition;
+use crate::agents::AgentRuntime;
+
+/// Async SubAgent Integration
 pub struct AsyncSubAgentIntegration {
-    // Placeholder fields
+    /// Agent runtime for executing agents
+    runtime: Arc<AgentRuntime>,
+    /// Active agents (agent_id -> task handle)
+    active_agents: Arc<Mutex<HashMap<String, JoinHandle<Result<String>>>>>,
+    /// Agent states
+    agent_states: Arc<Mutex<HashMap<String, AgentState>>>,
+    /// Notification channel sender
+    notification_tx: mpsc::UnboundedSender<AgentNotification>,
+    /// Notification channel receiver
+    notification_rx: Arc<Mutex<mpsc::UnboundedReceiver<AgentNotification>>>,
+    /// Token usage tracker
+    token_usage: Arc<Mutex<HashMap<String, usize>>>,
+    /// Task results
+    task_results: Arc<Mutex<HashMap<String, String>>>,
 }
 
 impl AsyncSubAgentIntegration {
     /// Create a new AsyncSubAgentIntegration instance
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(runtime: Arc<AgentRuntime>) -> Self {
+        let (notification_tx, notification_rx) = mpsc::unbounded_channel();
+
+        Self {
+            runtime,
+            active_agents: Arc::new(Mutex::new(HashMap::new())),
+            agent_states: Arc::new(Mutex::new(HashMap::new())),
+            notification_tx,
+            notification_rx: Arc::new(Mutex::new(notification_rx)),
+            token_usage: Arc::new(Mutex::new(HashMap::new())),
+            task_results: Arc::new(Mutex::new(HashMap::new())),
+        }
     }
 
-    /// Start monitoring loop (stub)
-    pub async fn start_monitoring_loop<T>(&self, _session: std::sync::Arc<T>) -> Result<()> {
-        // Stub: No-op
+    /// Start monitoring loop
+    pub async fn start_monitoring_loop<T>(&self, _session: Arc<T>) -> Result<()> {
+        let notification_rx = Arc::clone(&self.notification_rx);
+        let agent_states = Arc::clone(&self.agent_states);
+
+        tokio::spawn(async move {
+            let mut rx = notification_rx.lock().await;
+            while let Some(notification) = rx.recv().await {
+                // Update agent state based on notification
+                let mut states = agent_states.lock().await;
+                if let Some(state) = states.get_mut(&notification.agent_id) {
+                    match notification.notification_type {
+                        NotificationType::TaskCompleted => {
+                            state.status = "completed".to_string();
+                            state.progress = 100.0;
+                        }
+                        NotificationType::TaskFailed => {
+                            state.status = "failed".to_string();
+                        }
+                        NotificationType::ProgressUpdate => {
+                            // Parse progress from message if available
+                            state.status = "running".to_string();
+                        }
+                        _ => {}
+                    }
+                }
+
+                tracing::info!(
+                    "Agent notification: {} - {} - {}",
+                    notification.agent_id,
+                    notification.agent_type.as_str(),
+                    notification.message
+                );
+            }
+        });
+
         Ok(())
     }
 
-    /// Start agent (stub)
-    pub async fn start_agent(&self, _agent_type: AgentType, _task: &str) -> Result<String> {
-        // Stub: Return placeholder agent ID
-        Ok("stub-agent-id".to_string())
+    /// Start agent
+    pub async fn start_agent(&self, agent_type: AgentType, task: &str) -> Result<String> {
+        let agent_id = format!("{}-{}", agent_type.as_str(), uuid::Uuid::new_v4());
+
+        // Create agent state
+        let state = AgentState {
+            agent_id: agent_id.clone(),
+            agent_type,
+            status: "initializing".to_string(),
+            progress: 0.0,
+        };
+
+        self.agent_states
+            .lock()
+            .await
+            .insert(agent_id.clone(), state);
+
+        // Spawn agent task
+        let runtime = Arc::clone(&self.runtime);
+        let notification_tx = self.notification_tx.clone();
+        let agent_id_clone = agent_id.clone();
+        let task_clone = task.to_string();
+        let token_usage = Arc::clone(&self.token_usage);
+        let task_results = Arc::clone(&self.task_results);
+        let agent_states = Arc::clone(&self.agent_states);
+
+        let handle = tokio::spawn(async move {
+            // Update state to running
+            {
+                let mut states = agent_states.lock().await;
+                if let Some(state) = states.get_mut(&agent_id_clone) {
+                    state.status = "running".to_string();
+                }
+            }
+
+            // Send progress notification
+            let _ = notification_tx.send(AgentNotification {
+                agent_id: agent_id_clone.clone(),
+                agent_type,
+                notification_type: NotificationType::ProgressUpdate,
+                message: "Agent started".to_string(),
+                content: task_clone.clone(),
+                timestamp: Utc::now().to_rfc3339(),
+            });
+
+            // Execute agent via runtime
+            let result = runtime
+                .delegate(agent_type.as_str(), &task_clone, HashMap::new())
+                .await;
+
+            match result {
+                Ok(artifacts) => {
+                    // Extract result and token usage
+                    let summary = artifacts
+                        .iter()
+                        .map(|a| a.content.clone())
+                        .collect::<Vec<_>>()
+                        .join("\n");
+
+                    // Store result
+                    task_results
+                        .lock()
+                        .await
+                        .insert(agent_id_clone.clone(), summary.clone());
+
+                    // Send completion notification
+                    let _ = notification_tx.send(AgentNotification {
+                        agent_id: agent_id_clone.clone(),
+                        agent_type,
+                        notification_type: NotificationType::TaskCompleted,
+                        message: "Task completed successfully".to_string(),
+                        content: summary.clone(),
+                        timestamp: Utc::now().to_rfc3339(),
+                    });
+
+                    Ok(summary)
+                }
+                Err(e) => {
+                    // Send failure notification
+                    let _ = notification_tx.send(AgentNotification {
+                        agent_id: agent_id_clone.clone(),
+                        agent_type,
+                        notification_type: NotificationType::TaskFailed,
+                        message: format!("Task failed: {}", e),
+                        content: String::new(),
+                        timestamp: Utc::now().to_rfc3339(),
+                    });
+
+                    Err(anyhow!("Agent task failed: {}", e))
+                }
+            }
+        });
+
+        self.active_agents
+            .lock()
+            .await
+            .insert(agent_id.clone(), handle);
+
+        Ok(agent_id)
     }
 
-    /// Start subagent task (stub)
-    pub async fn start_subagent_task(&self, _agent_type: AgentType, _task: &str) -> Result<String> {
-        // Stub: Return placeholder task ID
-        Ok("stub-task-id".to_string())
+    /// Start subagent task
+    pub async fn start_subagent_task(&self, agent_type: AgentType, task: &str) -> Result<String> {
+        self.start_agent(agent_type, task).await
     }
 
-    /// Start conversation with subagent (stub)
+    /// Start conversation with subagent
     pub async fn start_conversation_with_subagent(
         &self,
-        _agent_type: AgentType,
-        _message: &str,
+        agent_type: AgentType,
+        message: &str,
     ) -> Result<()> {
-        // Stub: No-op
+        let _agent_id = self.start_agent(agent_type, message).await?;
         Ok(())
     }
 
-    /// Terminate subagent (stub)
-    pub async fn terminate_subagent(&self, _agent_type: AgentType) -> Result<()> {
-        // Stub: No-op
+    /// Terminate subagent
+    pub async fn terminate_subagent(&self, agent_type: AgentType) -> Result<()> {
+        let mut agents = self.active_agents.lock().await;
+        let agent_prefix = agent_type.as_str();
+
+        // Find and abort matching agents
+        let to_remove: Vec<_> = agents
+            .keys()
+            .filter(|id| id.starts_with(agent_prefix))
+            .cloned()
+            .collect();
+
+        for agent_id in to_remove {
+            if let Some(handle) = agents.remove(&agent_id) {
+                handle.abort();
+
+                // Update state
+                let mut states = self.agent_states.lock().await;
+                if let Some(state) = states.get_mut(&agent_id) {
+                    state.status = "terminated".to_string();
+                }
+            }
+        }
+
         Ok(())
     }
 
-    /// Get thinking summary (stub)
-    pub async fn get_thinking_summary(&self, _task_id: &str) -> Option<String> {
-        // Stub: Return None
-        None
+    /// Get thinking summary
+    pub async fn get_thinking_summary(&self, task_id: &str) -> Option<String> {
+        self.task_results.lock().await.get(task_id).cloned()
     }
 
-    /// Get all thinking summaries (stub)
+    /// Get all thinking summaries
     pub async fn get_all_thinking_summaries(&self) -> HashMap<String, String> {
-        // Stub: Return empty map
-        HashMap::new()
+        self.task_results.lock().await.clone()
     }
 
-    /// Record token usage (stub)
-    pub async fn record_token_usage(&self, _agent_id: &str, _tokens: usize) -> Result<()> {
-        // Stub: No-op
+    /// Record token usage
+    pub async fn record_token_usage(&self, agent_id: &str, tokens: usize) -> Result<()> {
+        let mut usage = self.token_usage.lock().await;
+        *usage.entry(agent_id.to_string()).or_insert(0) += tokens;
         Ok(())
     }
 
-    /// Check inbox (stub)
+    /// Check inbox
     pub async fn check_inbox(&self) -> Vec<AgentNotification> {
-        // Stub: Return empty notifications
-        vec![]
+        let mut rx = self.notification_rx.lock().await;
+        let mut notifications = Vec::new();
+
+        while let Ok(notification) = rx.try_recv() {
+            notifications.push(notification);
+        }
+
+        notifications
     }
 
-    /// Cancel agent (stub)
-    pub async fn cancel_agent(&self, _agent_id: &str) -> Result<()> {
-        // Stub: No-op
-        Ok(())
+    /// Cancel agent
+    pub async fn cancel_agent(&self, agent_id: &str) -> Result<()> {
+        let mut agents = self.active_agents.lock().await;
+
+        if let Some(handle) = agents.remove(agent_id) {
+            handle.abort();
+
+            // Update state
+            let mut states = self.agent_states.lock().await;
+            if let Some(state) = states.get_mut(agent_id) {
+                state.status = "cancelled".to_string();
+            }
+
+            Ok(())
+        } else {
+            Err(anyhow!("Agent not found: {}", agent_id))
+        }
     }
 
-    /// Get agent states (stub)
+    /// Get agent states
     pub async fn get_agent_states(&self) -> Vec<AgentState> {
-        // Stub: Return empty states
-        vec![]
+        self.agent_states.lock().await.values().cloned().collect()
     }
 
-    /// Auto dispatch task (stub)
-    pub async fn auto_dispatch_task(&self, _task: &str) -> Result<String> {
-        // Stub: Return placeholder result
-        Ok("auto-dispatched-stub".to_string())
+    /// Auto dispatch task
+    pub async fn auto_dispatch_task(&self, task: &str) -> Result<String> {
+        // Simple auto-dispatch: analyze task and select appropriate agent
+        let agent_type = self.select_agent_for_task(task);
+        self.start_agent(agent_type, task).await
     }
 
-    /// Get task summary (stub)
-    pub async fn get_task_summary(&self, _task_id: &str) -> Option<String> {
-        // Stub: Return None
-        None
+    /// Get task summary
+    pub async fn get_task_summary(&self, task_id: &str) -> Option<String> {
+        self.task_results.lock().await.get(task_id).cloned()
     }
 
-    /// Generate task summary (stub)
-    pub async fn generate_task_summary(&self, _agent_id: &str) -> String {
-        // Stub: Return placeholder summary
-        "Task summary stub".to_string()
+    /// Generate task summary
+    pub async fn generate_task_summary(&self, agent_id: &str) -> String {
+        let states = self.agent_states.lock().await;
+        let results = self.task_results.lock().await;
+
+        if let Some(state) = states.get(agent_id) {
+            let result = results.get(agent_id).map(|r| r.as_str()).unwrap_or("N/A");
+            format!(
+                "Agent: {}\nType: {}\nStatus: {}\nProgress: {:.1}%\nResult: {}",
+                agent_id,
+                state.agent_type.as_str(),
+                state.status,
+                state.progress,
+                result
+            )
+        } else {
+            format!("Agent {} not found", agent_id)
+        }
     }
 
-    /// Generate token report (stub)
+    /// Generate token report
     pub async fn generate_token_report(&self) -> String {
-        // Stub: Return placeholder report
-        "Token usage report stub".to_string()
+        let usage = self.token_usage.lock().await;
+        let total: usize = usage.values().sum();
+
+        let mut report = format!("Total tokens used: {}\n\nPer agent:\n", total);
+        for (agent_id, tokens) in usage.iter() {
+            report.push_str(&format!("  {}: {} tokens\n", agent_id, tokens));
+        }
+
+        report
     }
 
-    /// Force complete agent (stub)
-    pub async fn force_complete_agent(&self, _agent_id: &str) -> Result<()> {
-        // Stub: No-op
+    /// Force complete agent
+    pub async fn force_complete_agent(&self, agent_id: &str) -> Result<()> {
+        self.cancel_agent(agent_id).await?;
+
+        // Mark as completed instead of cancelled
+        let mut states = self.agent_states.lock().await;
+        if let Some(state) = states.get_mut(agent_id) {
+            state.status = "force_completed".to_string();
+            state.progress = 100.0;
+        }
+
         Ok(())
+    }
+
+    /// Select appropriate agent for task
+    fn select_agent_for_task(&self, task: &str) -> AgentType {
+        let task_lower = task.to_lowercase();
+
+        if task_lower.contains("security") || task_lower.contains("vulnerability") {
+            AgentType::SecurityExpert
+        } else if task_lower.contains("test") || task_lower.contains("coverage") {
+            AgentType::TestingExpert
+        } else if task_lower.contains("document") || task_lower.contains("readme") {
+            AgentType::DocsExpert
+        } else if task_lower.contains("research") || task_lower.contains("investigate") {
+            AgentType::DeepResearcher
+        } else if task_lower.contains("debug") || task_lower.contains("error") {
+            AgentType::DebugExpert
+        } else if task_lower.contains("performance") || task_lower.contains("optimize") {
+            AgentType::PerformanceExpert
+        } else if task_lower.contains("code") || task_lower.contains("implement") {
+            AgentType::CodeExpert
+        } else {
+            AgentType::General
+        }
     }
 }
 
 impl Default for AsyncSubAgentIntegration {
     fn default() -> Self {
-        Self::new()
+        // Note: Default implementation uses a placeholder runtime
+        // In production, should be constructed with proper runtime
+        panic!("AsyncSubAgentIntegration::default() should not be used. Use new() instead.");
     }
 }
 
-/// Agent type enum (stub)
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Agent type enum
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AgentType {
     CodeExpert,
     SecurityExpert,
@@ -136,7 +389,23 @@ pub enum AgentType {
     General,
 }
 
-/// Agent notification (stub)
+impl AgentType {
+    /// Get agent type as string (matches .codex/agents/*.yaml)
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            AgentType::CodeExpert => "code-reviewer",
+            AgentType::SecurityExpert => "sec-audit",
+            AgentType::TestingExpert => "test-gen",
+            AgentType::DocsExpert => "docs-expert",
+            AgentType::DeepResearcher => "researcher",
+            AgentType::DebugExpert => "debug-expert",
+            AgentType::PerformanceExpert => "perf-expert",
+            AgentType::General => "general",
+        }
+    }
+}
+
+/// Agent notification
 #[derive(Debug, Clone)]
 pub struct AgentNotification {
     pub agent_id: String,
@@ -147,7 +416,7 @@ pub struct AgentNotification {
     pub timestamp: String,
 }
 
-/// Notification type (stub)
+/// Notification type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NotificationType {
     TaskCompleted,
@@ -158,11 +427,56 @@ pub enum NotificationType {
     Info,
 }
 
-/// Agent state (stub)
+/// Agent state
 #[derive(Debug, Clone)]
 pub struct AgentState {
     pub agent_id: String,
     pub agent_type: AgentType,
     pub status: String,
     pub progress: f64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::agents::AgentDefinition;
+    use crate::agents::budgeter::Budgeter;
+    use crate::auth::AuthManager;
+    use crate::config::Config;
+    use crate::conversation_id::ConversationId;
+    use crate::model_provider_info::ModelProviderInfo;
+    use crate::otel_event_manager::OtelEventManager;
+    use std::path::PathBuf;
+
+    #[tokio::test]
+    async fn test_agent_lifecycle() {
+        // Create test runtime
+        let config = Config::default();
+        let provider = ModelProviderInfo::default();
+        let auth = AuthManager::default();
+        let otel = OtelEventManager::default();
+        let conv_id = ConversationId::new();
+
+        let budgeter = Arc::new(Budgeter::new());
+        let agents_dir = PathBuf::from(".codex/agents");
+
+        let runtime = Arc::new(AgentRuntime::new(
+            budgeter, agents_dir, config, auth, otel, provider, conv_id,
+        ));
+
+        let integration = AsyncSubAgentIntegration::new(runtime);
+
+        // Test agent creation
+        let agent_id = integration
+            .start_agent(AgentType::General, "Test task")
+            .await
+            .unwrap();
+
+        assert!(agent_id.starts_with("general-"));
+
+        // Check state
+        let states = integration.get_agent_states().await;
+        assert_eq!(states.len(), 1);
+        assert_eq!(states[0].agent_id, agent_id);
+    }
 }

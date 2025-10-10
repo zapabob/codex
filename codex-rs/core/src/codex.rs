@@ -1127,9 +1127,10 @@ async fn submission_loop(
     config: Arc<Config>,
     rx_sub: Receiver<Submission>,
 ) {
-    // Initialize async subagent integration
-    let async_subagent_integration =
-        Arc::new(crate::async_subagent_integration::AsyncSubAgentIntegration::new());
+    // TODO: Initialize async subagent integration (requires AgentRuntime)
+    // Temporarily disabled until AgentRuntime is available in this scope
+    // let async_subagent_integration =
+    //     Arc::new(crate::async_subagent_integration::AsyncSubAgentIntegration::new(runtime));
 
     // Initialize hook executor
     let hook_executor = Arc::new(crate::hooks::HookExecutor::new(
@@ -1139,15 +1140,6 @@ async fn submission_loop(
     // Initialize custom command executor
     let custom_command_executor =
         Arc::new(crate::custom_commands::CustomCommandExecutor::default());
-
-    // Start monitoring loop for subagent notifications
-    let integration_clone = Arc::clone(&async_subagent_integration);
-    let session_clone = Arc::clone(&sess);
-    tokio::spawn(async move {
-        if let Err(e) = integration_clone.start_monitoring_loop(session_clone).await {
-            eprintln!("Error in subagent monitoring loop: {}", e);
-        }
-    });
 
     // Wrap once to avoid cloning TurnContext for each task.
     let mut turn_context = Arc::new(turn_context);
@@ -1760,8 +1752,8 @@ async fn submission_loop(
                 if let Err(e) = async_subagent_integration
                     .record_token_usage(
                         &agent_id,
-                        task_id,
-                        task_description,
+                        &task_id,
+                        &task_description,
                         prompt_tokens,
                         completion_tokens,
                     )

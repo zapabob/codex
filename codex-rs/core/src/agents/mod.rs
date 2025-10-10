@@ -1,10 +1,12 @@
 mod budgeter;
 mod loader;
+mod permission_checker;
 mod runtime;
 mod types;
 
 pub use budgeter::TokenBudgeter;
 pub use loader::AgentLoader;
+pub use permission_checker::PermissionChecker;
 pub use runtime::AgentRuntime;
 pub use types::AgentDefinition;
 pub use types::AgentPolicies;

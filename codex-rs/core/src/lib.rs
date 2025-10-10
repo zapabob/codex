@@ -6,8 +6,9 @@
 #![deny(clippy::print_stdout, clippy::print_stderr)]
 
 pub mod agents;
-pub mod audit_log;
 mod apply_patch;
+pub mod async_subagent_integration;
+pub mod audit_log;
 pub mod auth;
 pub mod bash;
 mod chat_completions;

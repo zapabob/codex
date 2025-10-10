@@ -18,6 +18,7 @@ pub use types::AgentExecutionEvent;
 pub use types::ApiCallEvent;
 pub use types::AuditEvent;
 pub use types::AuditEventType;
+pub use types::ExecutionStatus;
 pub use types::SecurityEvent;
 pub use types::TokenUsageEvent;
 pub use types::ToolCallEvent;
