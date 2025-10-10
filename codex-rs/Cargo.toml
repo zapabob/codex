@@ -21,7 +21,7 @@ members = [
     "linux-sandbox",
     "login",
     "mcp-client",
-    "mcp-server",
+    "mcp-server",                   # ENABLED: supervisor依存削除済み
     "mcp-types",
     "ollama",
     "process-hardening",
@@ -72,7 +72,7 @@ codex-protocol = { path = "protocol" }
 codex-protocol-ts = { path = "protocol-ts" }
 codex-responses-api-proxy = { path = "responses-api-proxy" }
 codex-rmcp-client = { path = "rmcp-client" }
-codex-supervisor = { path = "supervisor" }
+# codex-supervisor = { path = "supervisor" }  # DELETED: 古い実装、完全削除
 codex-tui = { path = "tui" }
 codex-utils-json-to-toml = { path = "utils/json-to-toml" }
 codex-utils-readiness = { path = "utils/readiness" }

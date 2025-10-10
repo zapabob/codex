@@ -270,7 +270,7 @@ impl AsyncSubAgentIntegration {
         } else {
             results
                 .iter()
-                .map(|(task_id, summary)| format!("{}: {}", task_id, summary))
+                .map(|(task_id, summary)| format!("{task_id}: {summary}"))
                 .collect::<Vec<_>>()
                 .join("\n")
         }
@@ -375,11 +375,11 @@ impl AsyncSubAgentIntegration {
 
         let total: u64 = usage.values().map(|stats| stats.total_tokens).sum();
 
-        let mut report = format!("Total tokens used: {}\n\nPer agent:\n", total);
+        let mut report = format!("Total tokens used: {total}\n\nPer agent:\n");
         for (agent_id, stats) in usage.iter() {
             report.push_str(&format!(
-                "  {}: {} tokens (prompt: {}, completion: {})\n",
-                agent_id, stats.total_tokens, stats.prompt_tokens, stats.completion_tokens
+                "  {agent_id}: {} tokens (prompt: {}, completion: {})\n",
+                stats.total_tokens, stats.prompt_tokens, stats.completion_tokens
             ));
             if let Some(task_id) = &stats.last_task_id {
                 let description = stats

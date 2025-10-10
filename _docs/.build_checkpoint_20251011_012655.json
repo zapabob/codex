@@ -1,0 +1,13 @@
+{
+  "session_id": "20251011_012655",
+  "completed_steps": [
+    "clean",
+    "deep-research"
+  ],
+  "current_step": "deep-research",
+  "build_times": {
+    "deep-research": 54.375025
+  },
+  "errors": [],
+  "timestamp": "2025-10-11T01:27:56.749267"
+}
