@@ -1172,7 +1172,11 @@ impl Config {
                 .or(cfg.experimental_use_freeform_apply_patch)
                 .unwrap_or(false),
             tools_web_search_request,
-            tools_deep_web_search: cfg.tools.as_ref().and_then(|t| t.deep_web_search).unwrap_or(false),
+            tools_deep_web_search: cfg
+                .tools
+                .as_ref()
+                .and_then(|t| t.deep_web_search)
+                .unwrap_or(false),
             use_experimental_streamable_shell_tool: cfg
                 .experimental_use_exec_command_tool
                 .unwrap_or(false),

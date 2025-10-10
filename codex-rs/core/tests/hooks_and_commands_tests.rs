@@ -6,24 +6,25 @@ use pretty_assertions::assert_eq;
 #[tokio::test]
 async fn test_hook_system_end_to_end() {
     let mut config = HookConfig::new();
-    
+
     // Register hooks for different events
     config.add_hook(HookEvent::OnTaskStart, "echo 'Starting task'".to_string());
-    config.add_hook(HookEvent::OnTaskComplete, "echo 'Task completed'".to_string());
+    config.add_hook(
+        HookEvent::OnTaskComplete,
+        "echo 'Task completed'".to_string(),
+    );
 
     let executor = HookExecutor::new(config);
 
     // Test OnTaskStart
-    let context = HookContext::new(HookEvent::OnTaskStart)
-        .with_task_id("task-123".to_string());
+    let context = HookContext::new(HookEvent::OnTaskStart).with_task_id("task-123".to_string());
 
     let results = executor.execute(context).await.unwrap();
     assert_eq!(results.len(), 1);
     assert!(results[0].success);
 
     // Test OnTaskComplete
-    let context = HookContext::new(HookEvent::OnTaskComplete)
-        .with_task_id("task-123".to_string());
+    let context = HookContext::new(HookEvent::OnTaskComplete).with_task_id("task-123".to_string());
 
     let results = executor.execute(context).await.unwrap();
     assert_eq!(results.len(), 1);
@@ -33,13 +34,13 @@ async fn test_hook_system_end_to_end() {
 #[tokio::test]
 async fn test_hook_with_environment_variables() {
     let mut config = HookConfig::new();
-    
+
     let command = if cfg!(target_os = "windows") {
         "echo %CODEX_TASK_ID%"
     } else {
         "echo $CODEX_TASK_ID"
     };
-    
+
     config.add_hook(HookEvent::OnTaskStart, command.to_string());
 
     let executor = HookExecutor::new(config);
@@ -145,19 +146,18 @@ async fn test_custom_command_with_hooks() {
 #[tokio::test]
 async fn test_hook_error_handling() {
     let mut config = HookConfig::new();
-    
+
     // 失敗するコマンド
     let command = if cfg!(target_os = "windows") {
         "exit 1"
     } else {
         "exit 1"
     };
-    
+
     config.add_hook(HookEvent::OnError, command.to_string());
 
     let executor = HookExecutor::new(config);
-    let context = HookContext::new(HookEvent::OnError)
-        .with_error("Test error".to_string());
+    let context = HookContext::new(HookEvent::OnError).with_error("Test error".to_string());
 
     let results = executor.execute(context).await.unwrap();
     assert_eq!(results.len(), 1);
@@ -178,7 +178,7 @@ async fn test_multiple_hooks_sequential() {
     let context = HookContext::new(HookEvent::OnTaskComplete);
 
     let results = executor.execute(context).await.unwrap();
-    
+
     assert_eq!(results.len(), 3);
     for (i, result) in results.iter().enumerate() {
         assert!(result.success, "Hook {} failed", i + 1);
@@ -244,10 +244,13 @@ async fn test_all_default_commands_executable() {
 
     for command_name in commands {
         let result = executor.execute(&command_name, "test context").await;
-        assert!(result.is_ok(), "Failed to execute command: {}", command_name);
-        
+        assert!(
+            result.is_ok(),
+            "Failed to execute command: {}",
+            command_name
+        );
+
         let res = result.unwrap();
         assert!(res.success, "Command failed: {}", command_name);
     }
 }
-

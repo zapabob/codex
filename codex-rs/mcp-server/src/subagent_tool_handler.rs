@@ -1,7 +1,10 @@
 // SubAgent Tool Handler
 use anyhow::Result;
-use codex_supervisor::{AgentType, RealSubAgentManager};
-use mcp_types::{CallToolResult, ContentBlock, TextContent};
+use codex_supervisor::AgentType;
+use codex_supervisor::RealSubAgentManager;
+use mcp_types::CallToolResult;
+use mcp_types::ContentBlock;
+use mcp_types::TextContent;
 use once_cell::sync::Lazy;
 use serde_json::Value;
 use std::sync::Arc;
@@ -10,9 +13,8 @@ use tokio::sync::Mutex;
 use crate::subagent_tool::SubAgentToolParam;
 
 // Global RealSubAgentManager instance
-static SUBAGENT_MANAGER: Lazy<Arc<Mutex<RealSubAgentManager>>> = Lazy::new(|| {
-    Arc::new(Mutex::new(RealSubAgentManager::default()))
-});
+static SUBAGENT_MANAGER: Lazy<Arc<Mutex<RealSubAgentManager>>> =
+    Lazy::new(|| Arc::new(Mutex::new(RealSubAgentManager::default())));
 
 pub async fn handle_subagent_tool_call(arguments: Value) -> Result<CallToolResult> {
     let params: SubAgentToolParam = serde_json::from_value(arguments)?;
@@ -140,4 +142,3 @@ fn parse_agent_type(agent_type_str: &str) -> Result<AgentType> {
         _ => Err(anyhow::anyhow!("Unknown agent type: {}", agent_type_str)),
     }
 }
-

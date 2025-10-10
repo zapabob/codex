@@ -329,21 +329,11 @@ impl MessageProcessor {
                 self.handle_tool_call_codex_session_reply(id, arguments)
                     .await
             }
-            "codex-supervisor" => {
-                self.handle_tool_call_supervisor(id, arguments).await
-            }
-            "codex-deep-research" => {
-                self.handle_tool_call_deep_research(id, arguments).await
-            }
-            "codex-subagent" => {
-                self.handle_tool_call_subagent(id, arguments).await
-            }
-            "codex-custom-command" => {
-                self.handle_tool_call_custom_command(id, arguments).await
-            }
-            "codex-hook" => {
-                self.handle_tool_call_hook(id, arguments).await
-            }
+            "codex-supervisor" => self.handle_tool_call_supervisor(id, arguments).await,
+            "codex-deep-research" => self.handle_tool_call_deep_research(id, arguments).await,
+            "codex-subagent" => self.handle_tool_call_subagent(id, arguments).await,
+            "codex-custom-command" => self.handle_tool_call_custom_command(id, arguments).await,
+            "codex-hook" => self.handle_tool_call_hook(id, arguments).await,
             _ => {
                 let result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
@@ -669,7 +659,11 @@ impl MessageProcessor {
         tracing::info!("notifications/message -> params: {:?}", params);
     }
 
-    async fn handle_tool_call_supervisor(&self, id: RequestId, arguments: Option<serde_json::Value>) {
+    async fn handle_tool_call_supervisor(
+        &self,
+        id: RequestId,
+        arguments: Option<serde_json::Value>,
+    ) {
         let result = match arguments {
             Some(args) => crate::supervisor_tool_handler::handle_supervisor_tool_call(args).await,
             None => Err(anyhow::anyhow!("No arguments provided")),
@@ -696,9 +690,15 @@ impl MessageProcessor {
         }
     }
 
-    async fn handle_tool_call_deep_research(&self, id: RequestId, arguments: Option<serde_json::Value>) {
+    async fn handle_tool_call_deep_research(
+        &self,
+        id: RequestId,
+        arguments: Option<serde_json::Value>,
+    ) {
         let result = match arguments {
-            Some(args) => crate::deep_research_tool_handler::handle_deep_research_tool_call(args).await,
+            Some(args) => {
+                crate::deep_research_tool_handler::handle_deep_research_tool_call(args).await
+            }
             None => Err(anyhow::anyhow!("No arguments provided")),
         };
 
@@ -750,9 +750,15 @@ impl MessageProcessor {
         }
     }
 
-    async fn handle_tool_call_custom_command(&self, id: RequestId, arguments: Option<serde_json::Value>) {
+    async fn handle_tool_call_custom_command(
+        &self,
+        id: RequestId,
+        arguments: Option<serde_json::Value>,
+    ) {
         let result = match arguments {
-            Some(args) => crate::custom_command_tool_handler::handle_custom_command_tool_call(args).await,
+            Some(args) => {
+                crate::custom_command_tool_handler::handle_custom_command_tool_call(args).await
+            }
             None => Err(anyhow::anyhow!("No arguments provided")),
         };
 

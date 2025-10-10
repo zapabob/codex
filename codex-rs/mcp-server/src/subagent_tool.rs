@@ -1,21 +1,23 @@
 // SubAgent MCP Tool Definition
-use mcp_types::{Tool, ToolInputSchema};
-use serde::{Deserialize, Serialize};
+use mcp_types::Tool;
+use mcp_types::ToolInputSchema;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::json;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubAgentToolParam {
     /// Action to perform
     pub action: String,
-    
+
     /// Agent type (CodeExpert, SecurityExpert, etc.)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub agent_type: Option<String>,
-    
+
     /// Task description
     #[serde(skip_serializing_if = "Option::is_none")]
     pub task: Option<String>,
-    
+
     /// Task ID (for status check)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub task_id: Option<String>,
@@ -54,4 +56,3 @@ pub fn create_subagent_tool() -> Tool {
         },
     }
 }
-

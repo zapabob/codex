@@ -1,5 +1,4 @@
 pub mod apply_patch;
-mod deep_web_search;
 mod exec_stream;
 mod grep_files;
 mod list_dir;
@@ -14,7 +13,6 @@ mod view_image;
 pub use plan::PLAN_TOOL;
 
 pub use apply_patch::ApplyPatchHandler;
-pub use deep_web_search::{create_deep_web_search_tool, DeepWebSearchHandler};
 pub use exec_stream::ExecStreamHandler;
 pub use grep_files::GrepFilesHandler;
 pub use list_dir::ListDirHandler;

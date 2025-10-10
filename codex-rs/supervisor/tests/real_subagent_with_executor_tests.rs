@@ -1,8 +1,9 @@
 // Comprehensive tests for RealSubAgentWithExecutor
 use anyhow::Result;
-use codex_supervisor::{
-    AgentType, CodexExecutor, RealSubAgentManagerWithExecutor, RealSubAgentWithExecutor,
-};
+use codex_supervisor::AgentType;
+use codex_supervisor::CodexExecutor;
+use codex_supervisor::RealSubAgentManagerWithExecutor;
+use codex_supervisor::RealSubAgentWithExecutor;
 use pretty_assertions::assert_eq;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -10,10 +11,8 @@ use tokio::sync::Mutex;
 #[tokio::test]
 async fn test_real_subagent_with_executor_creation() {
     let executor = CodexExecutor::default();
-    let agent = RealSubAgentWithExecutor::new(
-        AgentType::CodeExpert,
-        Arc::new(Mutex::new(executor)),
-    );
+    let agent =
+        RealSubAgentWithExecutor::new(AgentType::CodeExpert, Arc::new(Mutex::new(executor)));
 
     let state = agent.get_state().await;
     assert_eq!(state.agent_type, AgentType::CodeExpert);
@@ -68,10 +67,8 @@ async fn test_real_subagent_get_agent_state() {
 #[tokio::test]
 async fn test_real_subagent_message_sender() {
     let executor = CodexExecutor::default();
-    let agent = RealSubAgentWithExecutor::new(
-        AgentType::CodeExpert,
-        Arc::new(Mutex::new(executor)),
-    );
+    let agent =
+        RealSubAgentWithExecutor::new(AgentType::CodeExpert, Arc::new(Mutex::new(executor)));
 
     let sender = agent.get_sender();
     let message = codex_supervisor::subagent::AgentMessage {
@@ -112,10 +109,8 @@ mod integration_tests {
     #[tokio::test]
     async fn test_real_subagent_process_task() -> Result<()> {
         let executor = CodexExecutor::default();
-        let agent = RealSubAgentWithExecutor::new(
-            AgentType::General,
-            Arc::new(Mutex::new(executor)),
-        );
+        let agent =
+            RealSubAgentWithExecutor::new(AgentType::General, Arc::new(Mutex::new(executor)));
 
         let result = agent.process_task("Test task".to_string()).await?;
         assert!(!result.is_empty());
@@ -174,6 +169,3 @@ mod integration_tests {
         Ok(())
     }
 }
-
-
-

@@ -1,14 +1,19 @@
 // 非同期サブエージェント管理システム
 use anyhow::Context;
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{mpsc, RwLock};
+use tokio::sync::mpsc;
+use tokio::sync::RwLock;
 use tokio::time::Duration;
 use uuid::Uuid;
 
-use crate::subagent::{AgentType, AgentMessage, AgentState, AgentStatus};
+use crate::subagent::AgentMessage;
+use crate::subagent::AgentState;
+use crate::subagent::AgentStatus;
+use crate::subagent::AgentType;
 
 /// 非同期サブエージェント通知
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,12 +60,12 @@ impl Inbox {
     /// 通知を追加
     pub async fn add_notification(&self, notification: AsyncSubAgentNotification) -> Result<()> {
         let mut notifications = self.notifications.write().await;
-        
+
         // サイズ制限チェック
         if notifications.len() >= self.max_size {
             notifications.remove(0); // 古い通知を削除
         }
-        
+
         notifications.push(notification);
         Ok(())
     }
@@ -108,7 +113,7 @@ impl AsyncSubAgent {
     pub fn new(agent_type: AgentType) -> Self {
         let (notification_tx, notification_rx) = mpsc::unbounded_channel();
         let (task_tx, task_rx) = mpsc::unbounded_channel();
-        
+
         Self {
             id: Uuid::new_v4().to_string(),
             agent_type: agent_type.clone(),
@@ -142,7 +147,8 @@ impl AsyncSubAgent {
             .context("Failed to send task to agent")?;
 
         // 開始通知を送信
-        self.send_notification(NotificationType::Info, "Task started".to_string()).await?;
+        self.send_notification(NotificationType::Info, "Task started".to_string())
+            .await?;
 
         Ok(())
     }
@@ -185,7 +191,8 @@ impl AsyncSubAgent {
         self.send_notification(
             NotificationType::ProgressUpdate,
             format!("Progress: {:.1}%", progress * 100.0),
-        ).await?;
+        )
+        .await?;
 
         Ok(())
     }
@@ -200,10 +207,8 @@ impl AsyncSubAgent {
         }
 
         // 完了通知を送信
-        self.send_notification(
-            NotificationType::TaskCompleted,
-            result,
-        ).await?;
+        self.send_notification(NotificationType::TaskCompleted, result)
+            .await?;
 
         Ok(())
     }
@@ -217,10 +222,8 @@ impl AsyncSubAgent {
         }
 
         // 失敗通知を送信
-        self.send_notification(
-            NotificationType::TaskFailed,
-            error,
-        ).await?;
+        self.send_notification(NotificationType::TaskFailed, error)
+            .await?;
 
         Ok(())
     }
@@ -236,7 +239,9 @@ impl AsyncSubAgent {
     }
 
     /// 通知受信チャンネルを取得
-    pub fn get_notification_receiver(&mut self) -> &mut mpsc::UnboundedReceiver<AsyncSubAgentNotification> {
+    pub fn get_notification_receiver(
+        &mut self,
+    ) -> &mut mpsc::UnboundedReceiver<AsyncSubAgentNotification> {
         &mut self.notification_rx
     }
 
@@ -258,7 +263,7 @@ pub struct AsyncSubAgentManager {
 impl AsyncSubAgentManager {
     pub fn new() -> Self {
         let (notification_tx, notification_rx) = mpsc::unbounded_channel();
-        
+
         Self {
             agents: HashMap::new(),
             global_inbox: Inbox::new(1000), // グローバル受信箱
@@ -277,9 +282,8 @@ impl AsyncSubAgentManager {
 
     /// 非同期でタスクを開始
     pub async fn start_task_async(&self, agent_id: &str, task: String) -> Result<()> {
-        let agent = self.agents.get(agent_id)
-            .context("Agent not found")?;
-        
+        let agent = self.agents.get(agent_id).context("Agent not found")?;
+
         agent.start_task_async(task).await?;
         Ok(())
     }
@@ -313,7 +317,9 @@ impl AsyncSubAgentManager {
     }
 
     /// 通知受信チャンネルを取得
-    pub fn get_notification_receiver(&mut self) -> &mut mpsc::UnboundedReceiver<AsyncSubAgentNotification> {
+    pub fn get_notification_receiver(
+        &mut self,
+    ) -> &mut mpsc::UnboundedReceiver<AsyncSubAgentNotification> {
         &mut self.notification_rx
     }
 
@@ -360,7 +366,7 @@ mod tests {
     async fn test_async_subagent_manager() {
         let mut manager = AsyncSubAgentManager::new();
         let agent_id = manager.register_agent(AgentType::CodeExpert);
-        
+
         assert_eq!(manager.agent_count(), 1);
         assert!(manager.get_agent(&agent_id).is_some());
     }
@@ -393,7 +399,10 @@ mod tests {
         let agent_id = agent.id.clone();
 
         // タスクを開始
-        agent.start_task_async("Test task".to_string()).await.unwrap();
+        agent
+            .start_task_async("Test task".to_string())
+            .await
+            .unwrap();
 
         // 状態を確認
         let state = agent.get_state().await;
@@ -406,7 +415,10 @@ mod tests {
         assert_eq!(state.progress, 0.5);
 
         // タスクを完了
-        agent.complete_task("Task completed".to_string()).await.unwrap();
+        agent
+            .complete_task("Task completed".to_string())
+            .await
+            .unwrap();
         let state = agent.get_state().await;
         assert_eq!(state.status, AgentStatus::Completed);
         assert_eq!(state.progress, 1.0);

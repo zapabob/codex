@@ -1,7 +1,9 @@
 //! MCP tool for Deep Research capabilities.
 
-use mcp_types::{Tool, ToolInputSchema};
-use serde::{Deserialize, Serialize};
+use mcp_types::Tool;
+use mcp_types::ToolInputSchema;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::json;
 
 /// Parameters for the deep research tool call.
@@ -9,19 +11,19 @@ use serde_json::json;
 pub struct DeepResearchToolParam {
     /// The research query.
     pub query: String,
-    
+
     /// Research strategy: "comprehensive", "focused", or "exploratory".
     #[serde(default)]
     pub strategy: Option<String>,
-    
+
     /// Research depth level (1-5).
     #[serde(default)]
     pub depth: Option<u32>,
-    
+
     /// Maximum number of sources to gather.
     #[serde(default)]
     pub max_sources: Option<u32>,
-    
+
     /// Output format: "text" or "json".
     #[serde(default = "default_format")]
     pub format: String,
@@ -90,4 +92,3 @@ pub fn create_deep_research_tool() -> Tool {
         annotations: None,
     }
 }
-

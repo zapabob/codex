@@ -270,4 +270,3 @@ mod tests {
         assert!(prompt.contains("Review security"));
     }
 }
-

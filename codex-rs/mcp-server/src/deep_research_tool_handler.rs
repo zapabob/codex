@@ -1,9 +1,14 @@
 //! Handler for deep research tool calls via MCP.
 
 use crate::deep_research_tool::DeepResearchToolParam;
-use codex_deep_research::{DeepResearcher, WebSearchProvider, ResearchStrategy};
+use codex_deep_research::DeepResearcher;
+use codex_deep_research::ResearchStrategy;
+use codex_deep_research::WebSearchProvider;
 use codex_deep_research::types::DeepResearcherConfig;
-use mcp_types::{CallToolResult, ContentBlock, RequestId, TextContent};
+use mcp_types::CallToolResult;
+use mcp_types::ContentBlock;
+use mcp_types::RequestId;
+use mcp_types::TextContent;
 use std::sync::Arc;
 
 /// Handle a deep research tool call.
@@ -52,7 +57,10 @@ pub async fn handle_deep_research_tool_call(
                      **Depth**: {}\n\n\
                      {}",
                     params.query,
-                    params.strategy.as_ref().unwrap_or(&"comprehensive".to_string()),
+                    params
+                        .strategy
+                        .as_ref()
+                        .unwrap_or(&"comprehensive".to_string()),
                     params.depth.unwrap_or(3),
                     output
                 )
@@ -86,16 +94,18 @@ pub async fn handle_deep_research_tool_call(
 async fn execute_deep_research(params: &DeepResearchToolParam) -> anyhow::Result<String> {
     // Parse strategy from string
     let default_strategy = "comprehensive".to_string();
-    let strategy_str = params.strategy.as_ref()
+    let strategy_str = params
+        .strategy
+        .as_ref()
         .unwrap_or(&default_strategy)
         .as_str();
-    
+
     let strategy = match strategy_str {
         "focused" => ResearchStrategy::Focused,
         "exploratory" => ResearchStrategy::Exploratory,
         _ => ResearchStrategy::Comprehensive,
     };
-    
+
     let depth = params.depth.unwrap_or(3) as u8;
     let max_sources = params.max_sources.unwrap_or(10) as u8;
 
@@ -105,11 +115,11 @@ async fn execute_deep_research(params: &DeepResearchToolParam) -> anyhow::Result
         max_sources,
         strategy: strategy.clone(),
     };
-    
+
     // Use real WebSearchProvider instead of MockProvider
     let provider = Arc::new(WebSearchProvider::default());
     let researcher = DeepResearcher::new(config, provider);
-    
+
     // Conduct research
     let report = researcher.research(&params.query).await?;
 
@@ -163,4 +173,3 @@ async fn execute_deep_research(params: &DeepResearchToolParam) -> anyhow::Result
         Ok(markdown)
     }
 }
-

@@ -1,6 +1,7 @@
 // サブエージェントの思考プロセス明示化システム
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::VecDeque;
 
 use crate::subagent::AgentType;
@@ -274,11 +275,7 @@ mod tests {
 
     #[test]
     fn test_thinking_process() {
-        let mut process = ThinkingProcess::new(
-            AgentType::CodeExpert,
-            "task-1".to_string(),
-            10,
-        );
+        let mut process = ThinkingProcess::new(AgentType::CodeExpert, "task-1".to_string(), 10);
 
         let step1 = ThinkingStepBuilder::new(ThinkingStepType::ProblemAnalysis)
             .content("Step 1".to_string())
@@ -319,11 +316,7 @@ mod tests {
 
     #[test]
     fn test_get_steps_by_type() {
-        let mut process = ThinkingProcess::new(
-            AgentType::CodeExpert,
-            "task-1".to_string(),
-            10,
-        );
+        let mut process = ThinkingProcess::new(AgentType::CodeExpert, "task-1".to_string(), 10);
 
         let step1 = ThinkingStepBuilder::new(ThinkingStepType::ProblemAnalysis)
             .content("Analysis 1".to_string())
@@ -345,4 +338,3 @@ mod tests {
         assert_eq!(analysis_steps.len(), 2);
     }
 }
-

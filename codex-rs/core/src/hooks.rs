@@ -1,9 +1,13 @@
 // Codex Hook System (Claudecode-inspired)
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
-use std::process::Command;
-use tracing::{debug, error, info, warn};
+use std::process::Command as ProcessCommand;
+use tracing::debug;
+use tracing::error;
+use tracing::info;
+use tracing::warn;
 
 /// Hook event types
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -53,15 +57,15 @@ impl std::fmt::Display for HookEvent {
 pub struct HookConfig {
     /// Map of hook events to shell commands
     pub hooks: HashMap<HookEvent, Vec<String>>,
-    
+
     /// Whether to run hooks asynchronously (non-blocking)
     #[serde(default = "default_async_hooks")]
     pub async_execution: bool,
-    
+
     /// Timeout for hook execution (in seconds)
     #[serde(default = "default_hook_timeout")]
     pub timeout_seconds: u64,
-    
+
     /// Environment variables to pass to hooks
     #[serde(default)]
     pub environment: HashMap<String, String>,
@@ -93,7 +97,10 @@ impl HookConfig {
 
     /// Add a hook for an event
     pub fn add_hook(&mut self, event: HookEvent, command: String) {
-        self.hooks.entry(event).or_insert_with(Vec::new).push(command);
+        self.hooks
+            .entry(event)
+            .or_insert_with(Vec::new)
+            .push(command);
     }
 
     /// Remove hooks for an event
@@ -175,7 +182,11 @@ impl HookExecutor {
             }
         };
 
-        info!("Executing {} hook(s) for event: {}", hooks.len(), context.event);
+        info!(
+            "Executing {} hook(s) for event: {}",
+            hooks.len(),
+            context.event
+        );
 
         let mut results = Vec::new();
 
@@ -193,7 +204,10 @@ impl HookExecutor {
                     if hook_result.success {
                         info!("Hook executed successfully: {}", command);
                     } else {
-                        warn!("Hook failed (exit code {}): {}", hook_result.exit_code, command);
+                        warn!(
+                            "Hook failed (exit code {}): {}",
+                            hook_result.exit_code, command
+                        );
                     }
                 }
                 Err(e) => {
@@ -223,7 +237,9 @@ impl HookExecutor {
             execute_command_with_timeout(&command, &context, timeout, env_vars).await
         });
 
-        handle.await.map_err(|e| anyhow::anyhow!("Hook task join error: {}", e))?
+        handle
+            .await
+            .map_err(|e| anyhow::anyhow!("Hook task join error: {}", e))?
     }
 
     /// Run command with environment variables
@@ -247,15 +263,15 @@ async fn execute_command_with_timeout(
 ) -> Result<HookResult> {
     // Add context variables to environment
     env_vars.insert("CODEX_HOOK_EVENT".to_string(), context.event.to_string());
-    
+
     if let Some(task_id) = &context.task_id {
         env_vars.insert("CODEX_TASK_ID".to_string(), task_id.clone());
     }
-    
+
     if let Some(agent_type) = &context.agent_type {
         env_vars.insert("CODEX_AGENT_TYPE".to_string(), agent_type.clone());
     }
-    
+
     if let Some(error) = &context.error_message {
         env_vars.insert("CODEX_ERROR_MESSAGE".to_string(), error.clone());
     }
@@ -315,9 +331,12 @@ mod tests {
     #[test]
     fn test_hook_config() {
         let mut config = HookConfig::new();
-        
+
         config.add_hook(HookEvent::OnTaskStart, "echo 'Task started'".to_string());
-        config.add_hook(HookEvent::OnTaskComplete, "echo 'Task completed'".to_string());
+        config.add_hook(
+            HookEvent::OnTaskComplete,
+            "echo 'Task completed'".to_string(),
+        );
 
         assert_eq!(config.hooks.len(), 2);
         assert!(config.has_hooks(&HookEvent::OnTaskStart));
@@ -340,22 +359,22 @@ mod tests {
     #[tokio::test]
     async fn test_hook_executor_simple() {
         let mut config = HookConfig::new();
-        
+
         // Simple echo command
         let command = if cfg!(target_os = "windows") {
             "echo test"
         } else {
             "echo test"
         };
-        
+
         config.add_hook(HookEvent::OnTaskComplete, command.to_string());
 
         let executor = HookExecutor::new(config);
-        let context = HookContext::new(HookEvent::OnTaskComplete)
-            .with_task_id("test-task".to_string());
+        let context =
+            HookContext::new(HookEvent::OnTaskComplete).with_task_id("test-task".to_string());
 
         let results = executor.execute(context).await.unwrap();
-        
+
         assert_eq!(results.len(), 1);
         assert!(results[0].success);
         assert_eq!(results[0].exit_code, 0);
@@ -364,7 +383,9 @@ mod tests {
     #[tokio::test]
     async fn test_hook_environment_variables() {
         let mut config = HookConfig::new();
-        config.environment.insert("TEST_VAR".to_string(), "test_value".to_string());
+        config
+            .environment
+            .insert("TEST_VAR".to_string(), "test_value".to_string());
 
         let command = if cfg!(target_os = "windows") {
             "echo %CODEX_HOOK_EVENT%"
@@ -378,7 +399,7 @@ mod tests {
         let context = HookContext::new(HookEvent::OnTaskStart);
 
         let results = executor.execute(context).await.unwrap();
-        
+
         assert_eq!(results.len(), 1);
         assert!(results[0].stdout.contains("on_task_start"));
     }
@@ -401,7 +422,7 @@ mod tests {
         let context = HookContext::new(HookEvent::OnTaskStart);
 
         let result = executor.execute(context).await;
-        
+
         // タイムアウトエラーが発生するはず
         assert!(result.is_err());
     }
@@ -418,11 +439,10 @@ mod tests {
         let context = HookContext::new(HookEvent::OnTaskComplete);
 
         let results = executor.execute(context).await.unwrap();
-        
+
         assert_eq!(results.len(), 3);
         for result in results {
             assert!(result.success);
         }
     }
 }
-

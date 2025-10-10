@@ -772,14 +772,15 @@ pub(crate) fn build_specs(
         builder.push_spec(ToolSpec::WebSearch {});
     }
 
-    if config.deep_web_search {
-        let deep_web_search_handler = Arc::new(crate::tools::handlers::DeepWebSearchHandler);
-        builder.push_spec_with_parallel_support(
-            ToolSpec::Function(crate::tools::handlers::create_deep_web_search_tool()),
-            false, // Deep research is async and may take time
-        );
-        builder.register_handler("deep_web_search", deep_web_search_handler);
-    }
+    // Deep web search is now handled by MCP server
+    // if config.deep_web_search {
+    //     let deep_web_search_handler = Arc::new(crate::tools::handlers::DeepWebSearchHandler);
+    //     builder.push_spec_with_parallel_support(
+    //         ToolSpec::Function(crate::tools::handlers::create_deep_web_search_tool()),
+    //         false, // Deep research is async and may take time
+    //     );
+    //     builder.register_handler("deep_web_search", deep_web_search_handler);
+    // }
 
     if config.include_view_image_tool {
         builder.push_spec_with_parallel_support(create_view_image_tool(), true);

@@ -1,7 +1,10 @@
 //! Handler for supervisor tool calls via MCP.
 
 use crate::supervisor_tool::SupervisorToolParam;
-use mcp_types::{CallToolResult, ContentBlock, RequestId, TextContent};
+use mcp_types::CallToolResult;
+use mcp_types::ContentBlock;
+use mcp_types::RequestId;
+use mcp_types::TextContent;
 use serde_json::json;
 
 /// Handle a supervisor tool call.
@@ -85,16 +88,22 @@ pub async fn handle_supervisor_tool_call(
 async fn execute_supervisor(params: &SupervisorToolParam) -> anyhow::Result<String> {
     // TODO: Actual supervisor implementation
     // For now, return a placeholder response
-    
-    let agents = params.agents.as_ref()
+
+    let agents = params
+        .agents
+        .as_ref()
         .map(|a| a.join(", "))
         .unwrap_or_else(|| "Auto-selected".to_string());
-    
-    let strategy = params.strategy.as_ref()
+
+    let strategy = params
+        .strategy
+        .as_ref()
         .unwrap_or(&"parallel".to_string())
         .clone();
-    
-    let merge_strategy = params.merge_strategy.as_ref()
+
+    let merge_strategy = params
+        .merge_strategy
+        .as_ref()
         .unwrap_or(&"concatenate".to_string())
         .clone();
 
@@ -144,11 +153,7 @@ async fn execute_supervisor(params: &SupervisorToolParam) -> anyhow::Result<Stri
              **Result**\n\
              Successfully coordinated task: {}\n\
              Execution time: 1.25s",
-            strategy,
-            agents,
-            merge_strategy,
-            params.goal
+            strategy, agents, merge_strategy, params.goal
         ))
     }
 }
-
