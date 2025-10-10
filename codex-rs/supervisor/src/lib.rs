@@ -1,10 +1,12 @@
 mod aggregator;
+mod agent_prompts;
 mod assigner;
 mod async_subagent;
 mod autonomous_dispatcher;
 mod executor;
 pub mod integrated;
 mod planner;
+mod real_subagent;
 pub mod subagent;
 pub mod thinking_process;
 mod token_tracker;
@@ -20,6 +22,7 @@ use types::TaskResult;
 
 pub use async_subagent::{AsyncSubAgent, AsyncSubAgentManager, AsyncSubAgentNotification, Inbox, NotificationType};
 pub use autonomous_dispatcher::{AutonomousDispatcher, AutoCallTrigger, TaskClassification};
+pub use real_subagent::{RealSubAgent, RealSubAgentManager};
 pub use subagent::AgentType;
 pub use subagent::SubAgent;
 pub use subagent::SubAgentManager;
