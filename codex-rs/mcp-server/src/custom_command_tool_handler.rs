@@ -1,6 +1,8 @@
 // Custom Command Tool Handler
 use anyhow::Result;
-use mcp_types::{CallToolResult, ContentBlock, TextContent};
+use mcp_types::CallToolResult;
+use mcp_types::ContentBlock;
+use mcp_types::TextContent;
 use serde_json::Value;
 
 use crate::custom_command_tool::CustomCommandToolParam;
@@ -10,8 +12,12 @@ pub async fn handle_custom_command_tool_call(arguments: Value) -> Result<CallToo
 
     let response_text = match params.action.as_str() {
         "execute" => {
-            let command_name = params.command_name.ok_or_else(|| anyhow::anyhow!("command_name required for execute"))?;
-            let context = params.context.unwrap_or_else(|| "No context provided".to_string());
+            let command_name = params
+                .command_name
+                .ok_or_else(|| anyhow::anyhow!("command_name required for execute"))?;
+            let context = params
+                .context
+                .unwrap_or_else(|| "No context provided".to_string());
 
             let (subagent, description) = match command_name.as_str() {
                 "analyze_code" => ("CodeExpert", "Analyzing code for bugs and improvements"),
@@ -34,8 +40,7 @@ pub async fn handle_custom_command_tool_call(arguments: Value) -> Result<CallToo
                 command_name, subagent, description, context, subagent
             )
         }
-        "list" => {
-            "Available Custom Commands (7):\n\n\
+        "list" => "Available Custom Commands (7):\n\n\
             1. analyze_code → CodeExpert\n\
                Analyze code for bugs and improvements\n\n\
             2. security_review → SecurityExpert\n\
@@ -50,38 +55,40 @@ pub async fn handle_custom_command_tool_call(arguments: Value) -> Result<CallToo
                Optimize code for better performance\n\n\
             7. generate_docs → DocsExpert\n\
                Generate comprehensive documentation\n\n\
-            Use action='execute' with command_name to run a command.".to_string()
-        }
+            Use action='execute' with command_name to run a command."
+            .to_string(),
         "info" => {
-            let command_name = params.command_name.ok_or_else(|| anyhow::anyhow!("command_name required for info"))?;
+            let command_name = params
+                .command_name
+                .ok_or_else(|| anyhow::anyhow!("command_name required for info"))?;
 
             match command_name.as_str() {
-                "analyze_code" => {
-                    "Command: analyze_code\n\
+                "analyze_code" => "Command: analyze_code\n\
                     Description: Analyze code for bugs and improvements\n\
                     Subagent: CodeExpert\n\
                     Parameters: depth=detailed\n\
                     Pre-hooks: 0\n\
-                    Post-hooks: 0".to_string()
-                }
-                "security_review" => {
-                    "Command: security_review\n\
+                    Post-hooks: 0"
+                    .to_string(),
+                "security_review" => "Command: security_review\n\
                     Description: Perform comprehensive security review\n\
                     Subagent: SecurityExpert\n\
                     Parameters: check_vulnerabilities=true\n\
                     Pre-hooks: 0\n\
-                    Post-hooks: 0".to_string()
-                }
-                "deep_research" => {
-                    "Command: deep_research\n\
+                    Post-hooks: 0"
+                    .to_string(),
+                "deep_research" => "Command: deep_research\n\
                     Description: Conduct deep research on a topic\n\
                     Subagent: DeepResearcher\n\
                     Parameters: depth=5, sources=20\n\
                     Pre-hooks: 0\n\
-                    Post-hooks: 0".to_string()
-                }
+                    Post-hooks: 0"
+                    .to_string(),
                 _ => {
-                    format!("Command: {}\nNo detailed information available.", command_name)
+                    format!(
+                        "Command: {}\nNo detailed information available.",
+                        command_name
+                    )
                 }
             }
         }
@@ -100,4 +107,3 @@ pub async fn handle_custom_command_tool_call(arguments: Value) -> Result<CallToo
         structured_content: None,
     })
 }
-

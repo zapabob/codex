@@ -1128,14 +1128,18 @@ async fn submission_loop(
     rx_sub: Receiver<Submission>,
 ) {
     // Initialize async subagent integration
-    let async_subagent_integration = Arc::new(crate::async_subagent_integration::AsyncSubAgentIntegration::new());
-    
+    let async_subagent_integration =
+        Arc::new(crate::async_subagent_integration::AsyncSubAgentIntegration::new());
+
     // Initialize hook executor
-    let hook_executor = Arc::new(crate::hooks::HookExecutor::new(crate::hooks::HookConfig::default()));
-    
+    let hook_executor = Arc::new(crate::hooks::HookExecutor::new(
+        crate::hooks::HookConfig::default(),
+    ));
+
     // Initialize custom command executor
-    let custom_command_executor = Arc::new(crate::custom_commands::CustomCommandExecutor::default());
-    
+    let custom_command_executor =
+        Arc::new(crate::custom_commands::CustomCommandExecutor::default());
+
     // Start monitoring loop for subagent notifications
     let integration_clone = Arc::clone(&async_subagent_integration);
     let session_clone = Arc::clone(&sess);
@@ -1543,7 +1547,10 @@ async fn submission_loop(
                 };
 
                 // Start subagent task asynchronously
-                if let Err(e) = async_subagent_integration.start_subagent_task(agent_type_enum, task).await {
+                if let Err(e) = async_subagent_integration
+                    .start_subagent_task(agent_type_enum, task)
+                    .await
+                {
                     warn!("Failed to start subagent task: {}", e);
                 }
             }
@@ -1558,7 +1565,7 @@ async fn submission_loop(
                                     agent_type: notification.agent_type.to_string(),
                                     content: notification.content,
                                     timestamp: format!("{:?}", notification.timestamp),
-                                }
+                                },
                             )
                         }
                         codex_supervisor::NotificationType::TaskFailed => {
@@ -1567,7 +1574,7 @@ async fn submission_loop(
                                     agent_type: notification.agent_type.to_string(),
                                     error: notification.content,
                                     timestamp: format!("{:?}", notification.timestamp),
-                                }
+                                },
                             )
                         }
                         codex_supervisor::NotificationType::ProgressUpdate => {
@@ -1576,7 +1583,7 @@ async fn submission_loop(
                                     agent_type: notification.agent_type.to_string(),
                                     progress: notification.content,
                                     timestamp: format!("{:?}", notification.timestamp),
-                                }
+                                },
                             )
                         }
                         codex_supervisor::NotificationType::AgentMessage => {
@@ -1585,36 +1592,36 @@ async fn submission_loop(
                                     agent_type: notification.agent_type.to_string(),
                                     message: notification.content,
                                     timestamp: format!("{:?}", notification.timestamp),
-                                }
+                                },
                             )
                         }
                         codex_supervisor::NotificationType::Error => {
-                            EventMsg::SubAgentError(
-                                codex_protocol::protocol::SubAgentErrorEvent {
-                                    agent_type: notification.agent_type.to_string(),
-                                    error: notification.content,
-                                    timestamp: format!("{:?}", notification.timestamp),
-                                }
-                            )
+                            EventMsg::SubAgentError(codex_protocol::protocol::SubAgentErrorEvent {
+                                agent_type: notification.agent_type.to_string(),
+                                error: notification.content,
+                                timestamp: format!("{:?}", notification.timestamp),
+                            })
                         }
                         codex_supervisor::NotificationType::Info => {
-                            EventMsg::SubAgentInfo(
-                                codex_protocol::protocol::SubAgentInfoEvent {
-                                    agent_type: notification.agent_type.to_string(),
-                                    info: notification.content,
-                                    timestamp: format!("{:?}", notification.timestamp),
-                                }
-                            )
+                            EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
+                                agent_type: notification.agent_type.to_string(),
+                                info: notification.content,
+                                timestamp: format!("{:?}", notification.timestamp),
+                            })
                         }
                     };
 
                     sess.send_event(Event {
                         id: sub.id.clone(),
                         msg: event_msg,
-                    }).await;
+                    })
+                    .await;
                 }
             }
-            Op::StartSubAgentConversation { agent_type, message } => {
+            Op::StartSubAgentConversation {
+                agent_type,
+                message,
+            } => {
                 let agent_type_enum = match agent_type.as_str() {
                     "CodeExpert" => codex_supervisor::AgentType::CodeExpert,
                     "SecurityExpert" => codex_supervisor::AgentType::SecurityExpert,
@@ -1627,7 +1634,10 @@ async fn submission_loop(
                     _ => codex_supervisor::AgentType::General,
                 };
 
-                if let Err(e) = async_subagent_integration.start_conversation_with_subagent(agent_type_enum, message).await {
+                if let Err(e) = async_subagent_integration
+                    .start_conversation_with_subagent(agent_type_enum, message)
+                    .await
+                {
                     warn!("Failed to start conversation with subagent: {}", e);
                 }
             }
@@ -1644,29 +1654,38 @@ async fn submission_loop(
                     _ => codex_supervisor::AgentType::General,
                 };
 
-                if let Err(e) = async_subagent_integration.terminate_subagent(agent_type_enum).await {
+                if let Err(e) = async_subagent_integration
+                    .terminate_subagent(agent_type_enum)
+                    .await
+                {
                     warn!("Failed to terminate subagent: {}", e);
                 }
             }
             Op::GetSubAgentStatus => {
                 let states = async_subagent_integration.get_agent_states().await;
-                let status_message = states.iter()
+                let status_message = states
+                    .iter()
                     .map(|(id, agent_type, status, progress)| {
-                        format!("{} ({}): {} - {:.1}%", agent_type, id, status, progress * 100.0)
+                        format!(
+                            "{} ({}): {} - {:.1}%",
+                            agent_type,
+                            id,
+                            status,
+                            progress * 100.0
+                        )
                     })
                     .collect::<Vec<_>>()
                     .join("\n");
 
                 sess.send_event(Event {
                     id: sub.id.clone(),
-                    msg: EventMsg::SubAgentInfo(
-                        codex_protocol::protocol::SubAgentInfoEvent {
-                            agent_type: "System".to_string(),
-                            info: format!("SubAgent Status:\n{}", status_message),
-                            timestamp: chrono::Utc::now().to_rfc3339(),
-                        }
-                    ),
-                }).await;
+                    msg: EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
+                        agent_type: "System".to_string(),
+                        info: format!("SubAgent Status:\n{}", status_message),
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                    }),
+                })
+                .await;
             }
             Op::AutoDispatchTask { task } => {
                 // 自律的にタスクをディスパッチ
@@ -1679,9 +1698,10 @@ async fn submission_loop(
                                     agent_type: "System".to_string(),
                                     info: result,
                                     timestamp: chrono::Utc::now().to_rfc3339(),
-                                }
+                                },
                             ),
-                        }).await;
+                        })
+                        .await;
                     }
                     Err(e) => {
                         warn!("Failed to auto-dispatch task: {}", e);
@@ -1689,44 +1709,46 @@ async fn submission_loop(
                 }
             }
             Op::GetThinkingProcessSummary { task_id } => {
-                if let Some(summary) = async_subagent_integration.get_thinking_summary(&task_id).await {
+                if let Some(summary) = async_subagent_integration
+                    .get_thinking_summary(&task_id)
+                    .await
+                {
                     sess.send_event(Event {
                         id: sub.id.clone(),
-                        msg: EventMsg::SubAgentInfo(
-                            codex_protocol::protocol::SubAgentInfoEvent {
-                                agent_type: "ThinkingProcess".to_string(),
-                                info: summary,
-                                timestamp: chrono::Utc::now().to_rfc3339(),
-                            }
-                        ),
-                    }).await;
-                }
-            }
-            Op::GetAllThinkingProcesses => {
-                let summary = async_subagent_integration.get_all_thinking_summaries().await;
-                sess.send_event(Event {
-                    id: sub.id.clone(),
-                    msg: EventMsg::SubAgentInfo(
-                        codex_protocol::protocol::SubAgentInfoEvent {
+                        msg: EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
                             agent_type: "ThinkingProcess".to_string(),
                             info: summary,
                             timestamp: chrono::Utc::now().to_rfc3339(),
-                        }
-                    ),
-                }).await;
+                        }),
+                    })
+                    .await;
+                }
+            }
+            Op::GetAllThinkingProcesses => {
+                let summary = async_subagent_integration
+                    .get_all_thinking_summaries()
+                    .await;
+                sess.send_event(Event {
+                    id: sub.id.clone(),
+                    msg: EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
+                        agent_type: "ThinkingProcess".to_string(),
+                        info: summary,
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                    }),
+                })
+                .await;
             }
             Op::GetTokenReport => {
                 let report = async_subagent_integration.generate_token_report().await;
                 sess.send_event(Event {
                     id: sub.id.clone(),
-                    msg: EventMsg::SubAgentInfo(
-                        codex_protocol::protocol::SubAgentInfoEvent {
-                            agent_type: "TokenTracker".to_string(),
-                            info: report,
-                            timestamp: chrono::Utc::now().to_rfc3339(),
-                        }
-                    ),
-                }).await;
+                    msg: EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
+                        agent_type: "TokenTracker".to_string(),
+                        info: report,
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                    }),
+                })
+                .await;
             }
             Op::RecordSubAgentTokenUsage {
                 agent_id,
@@ -1735,29 +1757,41 @@ async fn submission_loop(
                 prompt_tokens,
                 completion_tokens,
             } => {
-                if let Err(e) = async_subagent_integration.record_token_usage(
-                    &agent_id,
-                    task_id,
-                    task_description,
-                    prompt_tokens,
-                    completion_tokens,
-                ).await {
+                if let Err(e) = async_subagent_integration
+                    .record_token_usage(
+                        &agent_id,
+                        task_id,
+                        task_description,
+                        prompt_tokens,
+                        completion_tokens,
+                    )
+                    .await
+                {
                     warn!("Failed to record token usage: {}", e);
                 }
             }
-            Op::ExecuteCustomCommand { command_name, context } => {
-                match custom_command_executor.execute(&command_name, &context).await {
+            Op::ExecuteCustomCommand {
+                command_name,
+                context,
+            } => {
+                match custom_command_executor
+                    .execute(&command_name, &context)
+                    .await
+                {
                     Ok(result) => {
                         sess.send_event(Event {
                             id: sub.id.clone(),
                             msg: EventMsg::SubAgentInfo(
                                 codex_protocol::protocol::SubAgentInfoEvent {
-                                    agent_type: result.subagent_used.unwrap_or_else(|| "CustomCommand".to_string()),
+                                    agent_type: result
+                                        .subagent_used
+                                        .unwrap_or_else(|| "CustomCommand".to_string()),
                                     info: result.output,
                                     timestamp: chrono::Utc::now().to_rfc3339(),
-                                }
+                                },
                             ),
-                        }).await;
+                        })
+                        .await;
                     }
                     Err(e) => {
                         warn!("Failed to execute custom command: {}", e);
@@ -1787,8 +1821,11 @@ async fn submission_loop(
 
                 match hook_executor.execute(hook_context).await {
                     Ok(results) => {
-                        let summary = results.iter()
-                            .map(|r| format!("Exit code: {}, Duration: {}ms", r.exit_code, r.duration_ms))
+                        let summary = results
+                            .iter()
+                            .map(|r| {
+                                format!("Exit code: {}, Duration: {}ms", r.exit_code, r.duration_ms)
+                            })
                             .collect::<Vec<_>>()
                             .join("\n");
 
@@ -1797,11 +1834,16 @@ async fn submission_loop(
                             msg: EventMsg::SubAgentInfo(
                                 codex_protocol::protocol::SubAgentInfoEvent {
                                     agent_type: "Hook".to_string(),
-                                    info: format!("Executed {} hook(s):\n{}", results.len(), summary),
+                                    info: format!(
+                                        "Executed {} hook(s):\n{}",
+                                        results.len(),
+                                        summary
+                                    ),
                                     timestamp: chrono::Utc::now().to_rfc3339(),
-                                }
+                                },
                             ),
-                        }).await;
+                        })
+                        .await;
                     }
                     Err(e) => {
                         warn!("Failed to execute hook: {}", e);
@@ -1810,20 +1852,21 @@ async fn submission_loop(
             }
             Op::ListCustomCommands => {
                 let commands = custom_command_executor.list_commands();
-                let info = format!("Available custom commands ({}):\n{}", 
+                let info = format!(
+                    "Available custom commands ({}):\n{}",
                     commands.len(),
-                    commands.join("\n- "));
+                    commands.join("\n- ")
+                );
 
                 sess.send_event(Event {
                     id: sub.id.clone(),
-                    msg: EventMsg::SubAgentInfo(
-                        codex_protocol::protocol::SubAgentInfoEvent {
-                            agent_type: "CustomCommand".to_string(),
-                            info,
-                            timestamp: chrono::Utc::now().to_rfc3339(),
-                        }
-                    ),
-                }).await;
+                    msg: EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
+                        agent_type: "CustomCommand".to_string(),
+                        info,
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                    }),
+                })
+                .await;
             }
             Op::GetCustomCommandInfo { command_name } => {
                 if let Some(cmd_info) = custom_command_executor.get_command_info(&command_name) {
@@ -1839,14 +1882,13 @@ async fn submission_loop(
 
                     sess.send_event(Event {
                         id: sub.id.clone(),
-                        msg: EventMsg::SubAgentInfo(
-                            codex_protocol::protocol::SubAgentInfoEvent {
-                                agent_type: "CustomCommand".to_string(),
-                                info,
-                                timestamp: chrono::Utc::now().to_rfc3339(),
-                            }
-                        ),
-                    }).await;
+                        msg: EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
+                            agent_type: "CustomCommand".to_string(),
+                            info,
+                            timestamp: chrono::Utc::now().to_rfc3339(),
+                        }),
+                    })
+                    .await;
                 }
             }
             _ => {

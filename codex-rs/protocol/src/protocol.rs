@@ -178,37 +178,25 @@ pub enum Op {
     Shutdown,
 
     /// Start a subagent task asynchronously
-    StartSubAgentTask {
-        agent_type: String,
-        task: String,
-    },
+    StartSubAgentTask { agent_type: String, task: String },
 
     /// Check subagent inbox for notifications
     CheckSubAgentInbox,
 
     /// Start conversation with a subagent
-    StartSubAgentConversation {
-        agent_type: String,
-        message: String,
-    },
+    StartSubAgentConversation { agent_type: String, message: String },
 
     /// Terminate a subagent
-    TerminateSubAgent {
-        agent_type: String,
-    },
+    TerminateSubAgent { agent_type: String },
 
     /// Get subagent status
     GetSubAgentStatus,
 
     /// Auto-dispatch task to appropriate subagent
-    AutoDispatchTask {
-        task: String,
-    },
+    AutoDispatchTask { task: String },
 
     /// Get thinking process summary
-    GetThinkingProcessSummary {
-        task_id: String,
-    },
+    GetThinkingProcessSummary { task_id: String },
 
     /// Get all thinking processes
     GetAllThinkingProcesses,
@@ -241,9 +229,7 @@ pub enum Op {
     ListCustomCommands,
 
     /// Get custom command info
-    GetCustomCommandInfo {
-        command_name: String,
-    },
+    GetCustomCommandInfo { command_name: String },
 }
 
 /// Determines the conditions under which the user is consulted to approve

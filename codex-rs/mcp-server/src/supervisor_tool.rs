@@ -1,7 +1,9 @@
 //! MCP tool for Multi-Agent Supervisor coordination.
 
-use mcp_types::{Tool, ToolInputSchema};
-use serde::{Deserialize, Serialize};
+use mcp_types::Tool;
+use mcp_types::ToolInputSchema;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::json;
 
 /// Parameters for the supervisor tool call.
@@ -9,19 +11,19 @@ use serde_json::json;
 pub struct SupervisorToolParam {
     /// The goal to coordinate across multiple agents.
     pub goal: String,
-    
+
     /// Optional list of agent types to use (e.g., ["CodeExpert", "Security"]).
     #[serde(default)]
     pub agents: Option<Vec<String>>,
-    
+
     /// Coordination strategy: "sequential", "parallel", or "hybrid".
     #[serde(default)]
     pub strategy: Option<String>,
-    
+
     /// Merge strategy: "concatenate", "voting", or "highest_score".
     #[serde(default)]
     pub merge_strategy: Option<String>,
-    
+
     /// Output format: "text" or "json".
     #[serde(default = "default_format")]
     pub format: String,
@@ -86,4 +88,3 @@ pub fn create_supervisor_tool() -> Tool {
         annotations: None,
     }
 }
-

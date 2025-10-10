@@ -8,6 +8,7 @@ use std::time::Duration;
 use anyhow::Result;
 use anyhow::anyhow;
 use futures::FutureExt;
+use futures::stream::BoxStream;
 use mcp_types::CallToolRequestParams;
 use mcp_types::CallToolResult;
 use mcp_types::InitializeRequestParams;
@@ -25,6 +26,9 @@ use rmcp::transport::auth::AuthClient;
 use rmcp::transport::auth::OAuthState;
 use rmcp::transport::child_process::TokioChildProcess;
 use rmcp::transport::streamable_http_client::StreamableHttpClientTransportConfig;
+use rmcp::transport::streamable_http_client::StreamableHttpClient;
+use rmcp::transport::streamable_http_client::Sse;
+use rmcp::transport::streamable_http_client::SseError;
 use tokio::io::AsyncBufReadExt;
 use tokio::io::BufReader;
 use tokio::process::Command;
@@ -43,6 +47,78 @@ use crate::utils::convert_to_mcp;
 use crate::utils::convert_to_rmcp;
 use crate::utils::create_env_for_mcp_server;
 use crate::utils::run_with_timeout;
+
+#[derive(Clone)]
+struct StaticBearerClient {
+    inner: reqwest::Client,
+    bearer: Arc<String>,
+}
+
+impl StaticBearerClient {
+    fn new(inner: reqwest::Client, bearer: String) -> Self {
+        Self {
+            inner,
+            bearer: Arc::new(bearer),
+        }
+    }
+
+    fn token(&self) -> String {
+        (*self.bearer).clone()
+    }
+}
+
+impl StreamableHttpClient for StaticBearerClient {
+    type Error = <reqwest::Client as StreamableHttpClient>::Error;
+
+    fn post_message(
+        &self,
+        uri: Arc<str>,
+        message: rmcp::model::ClientJsonRpcMessage,
+        session_id: Option<Arc<str>>,
+        _auth_token: Option<String>,
+    ) -> impl std::future::Future<Output = Result<rmcp::transport::StreamableHttpPostResponse, rmcp::transport::StreamableHttpError<Self::Error>>> + Send
+    {
+        StreamableHttpClient::post_message(
+            &self.inner,
+            uri,
+            message,
+            session_id,
+            Some(self.token()),
+        )
+    }
+
+    fn delete_session(
+        &self,
+        uri: Arc<str>,
+        session_id: Arc<str>,
+        _auth_token: Option<String>,
+    ) -> impl std::future::Future<Output = Result<(), rmcp::transport::StreamableHttpError<Self::Error>>> + Send + '_
+    {
+        StreamableHttpClient::delete_session(
+            &self.inner,
+            uri,
+            session_id,
+            Some(self.token()),
+        )
+    }
+
+    fn get_stream(
+        &self,
+        uri: Arc<str>,
+        session_id: Arc<str>,
+        last_event_id: Option<String>,
+        _auth_token: Option<String>,
+    ) -> impl std::future::Future<Output = Result<BoxStream<'static, Result<Sse, SseError>>, rmcp::transport::StreamableHttpError<Self::Error>>> + Send
+    {
+        StreamableHttpClient::get_stream(
+            &self.inner,
+            uri,
+            session_id,
+            last_event_id,
+            Some(self.token()),
+        )
+    }
+}
 
 enum PendingTransport {
     ChildProcess(TokioChildProcess),
@@ -141,12 +217,18 @@ impl RmcpClient {
                 oauth_persistor,
             }
         } else {
-            let mut http_config = StreamableHttpClientTransportConfig::with_uri(url.to_string());
-            if let Some(bearer_token) = bearer_token {
-                http_config = http_config.auth_header(bearer_token);
-            }
-
-            let transport = StreamableHttpClientTransport::from_config(http_config);
+            let http_config = StreamableHttpClientTransportConfig::with_uri(url.to_string());
+            let transport = match bearer_token {
+                Some(token) => {
+                    let http_client = reqwest::Client::builder().build()?;
+                    let client = StaticBearerClient::new(http_client, token);
+                    StreamableHttpClientTransport::with_client(client, http_config)
+                }
+                None => {
+                    let http_client = reqwest::Client::builder().build()?;
+                    StreamableHttpClientTransport::with_client(http_client, http_config)
+                }
+            };
             PendingTransport::StreamableHttp { transport }
         };
         Ok(Self {

@@ -1,11 +1,16 @@
 // Real SubAgent implementation with actual LLM calls
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
 use crate::agent_prompts::get_agent_prompt;
-use crate::subagent::{AgentMessage, AgentState, AgentStatus, AgentType};
+use crate::subagent::AgentMessage;
+use crate::subagent::AgentState;
+use crate::subagent::AgentStatus;
+use crate::subagent::AgentType;
 
 /// Real SubAgent that makes actual LLM calls
 pub struct RealSubAgent {
@@ -81,30 +86,14 @@ impl RealSubAgent {
 
         // Generate agent-specific response based on prompt analysis
         let response = match self.agent_type {
-            AgentType::CodeExpert => {
-                self.generate_code_expert_response(prompt).await
-            }
-            AgentType::SecurityExpert => {
-                self.generate_security_expert_response(prompt).await
-            }
-            AgentType::TestingExpert => {
-                self.generate_testing_expert_response(prompt).await
-            }
-            AgentType::DocsExpert => {
-                self.generate_docs_expert_response(prompt).await
-            }
-            AgentType::DeepResearcher => {
-                self.generate_deep_researcher_response(prompt).await
-            }
-            AgentType::DebugExpert => {
-                self.generate_debug_expert_response(prompt).await
-            }
-            AgentType::PerformanceExpert => {
-                self.generate_performance_expert_response(prompt).await
-            }
-            AgentType::General => {
-                self.generate_general_response(prompt).await
-            }
+            AgentType::CodeExpert => self.generate_code_expert_response(prompt).await,
+            AgentType::SecurityExpert => self.generate_security_expert_response(prompt).await,
+            AgentType::TestingExpert => self.generate_testing_expert_response(prompt).await,
+            AgentType::DocsExpert => self.generate_docs_expert_response(prompt).await,
+            AgentType::DeepResearcher => self.generate_deep_researcher_response(prompt).await,
+            AgentType::DebugExpert => self.generate_debug_expert_response(prompt).await,
+            AgentType::PerformanceExpert => self.generate_performance_expert_response(prompt).await,
+            AgentType::General => self.generate_general_response(prompt).await,
         };
 
         Ok(response)
@@ -360,7 +349,12 @@ fn extract_task_from_prompt(prompt: &str) -> String {
         let task_section = &prompt[task_start..];
         if let Some(task_content_start) = task_section.find('\n') {
             let task_content = &task_section[task_content_start + 1..];
-            return task_content.lines().next().unwrap_or("Unknown task").trim().to_string();
+            return task_content
+                .lines()
+                .next()
+                .unwrap_or("Unknown task")
+                .trim()
+                .to_string();
         }
     }
     "Unknown task".to_string()
@@ -483,7 +477,7 @@ mod tests {
         for agent_type in agent_types {
             let mut agent = RealSubAgent::new(agent_type.clone(), "gpt-4o-mini".to_string());
             let result = agent.process_task("Test task".to_string()).await.unwrap();
-            
+
             assert!(!result.is_empty());
             assert!(result.contains(&agent_type.to_string()));
         }
@@ -496,4 +490,3 @@ mod tests {
         assert_eq!(task, "Analyze code for bugs");
     }
 }
-

@@ -1,17 +1,19 @@
 // Custom Command MCP Tool Definition
-use mcp_types::{Tool, ToolInputSchema};
-use serde::{Deserialize, Serialize};
+use mcp_types::Tool;
+use mcp_types::ToolInputSchema;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::json;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomCommandToolParam {
     /// Action: execute, list, info
     pub action: String,
-    
+
     /// Command name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub command_name: Option<String>,
-    
+
     /// Context for command execution
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
@@ -46,4 +48,3 @@ pub fn create_custom_command_tool() -> Tool {
         },
     }
 }
-

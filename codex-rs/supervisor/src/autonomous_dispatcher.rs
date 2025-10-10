@@ -1,6 +1,7 @@
 // メインエージェントによる自律的サブエージェント呼び出しシステム
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 
 use crate::subagent::AgentType;
@@ -157,7 +158,8 @@ impl AutonomousDispatcher {
                 reasoning: "No specific triggers matched, using General agent".to_string(),
                 alternative_agents: vec![],
             };
-            self.classification_cache.insert(task.to_string(), classification.clone());
+            self.classification_cache
+                .insert(task.to_string(), classification.clone());
             return classification;
         }
 
@@ -188,7 +190,8 @@ impl AutonomousDispatcher {
         };
 
         // キャッシュに保存
-        self.classification_cache.insert(task.to_string(), classification.clone());
+        self.classification_cache
+            .insert(task.to_string(), classification.clone());
 
         classification
     }
@@ -340,10 +343,12 @@ mod tests {
 
         // 2回目は同じ結果が返る
         let classification = dispatcher.classify_task(task);
-        assert_eq!(classification.recommended_agent, AgentType::PerformanceExpert);
+        assert_eq!(
+            classification.recommended_agent,
+            AgentType::PerformanceExpert
+        );
 
         dispatcher.clear_cache();
         assert_eq!(dispatcher.classification_cache.len(), 0);
     }
 }
-

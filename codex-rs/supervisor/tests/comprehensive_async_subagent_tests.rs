@@ -16,7 +16,10 @@ async fn test_end_to_end_async_subagent_workflow() {
 
     // 3. 状態確認
     let state = agent.get_state().await;
-    assert_eq!(state.status, codex_supervisor::subagent::AgentStatus::Working);
+    assert_eq!(
+        state.status,
+        codex_supervisor::subagent::AgentStatus::Working
+    );
     assert_eq!(
         state.current_task,
         Some("Implement authentication".to_string())
@@ -34,7 +37,10 @@ async fn test_end_to_end_async_subagent_workflow() {
         .unwrap();
 
     let state = agent.get_state().await;
-    assert_eq!(state.status, codex_supervisor::subagent::AgentStatus::Completed);
+    assert_eq!(
+        state.status,
+        codex_supervisor::subagent::AgentStatus::Completed
+    );
     assert_eq!(state.progress, 1.0);
 
     // 6. 通知確認
@@ -251,7 +257,10 @@ async fn test_multi_agent_coordination() {
 
     // 全てのエージェントがWorkingステータスであることを確認
     for state in states {
-        assert_eq!(state.status, codex_supervisor::subagent::AgentStatus::Working);
+        assert_eq!(
+            state.status,
+            codex_supervisor::subagent::AgentStatus::Working
+        );
     }
 }
 
@@ -267,11 +276,7 @@ async fn test_thinking_process_and_token_tracking_integration() {
 
     // タスク開始
     let task_id = "task-integration-123".to_string();
-    let process = thinking_manager.start_process(
-        AgentType::CodeExpert,
-        task_id.clone(),
-        50,
-    );
+    let process = thinking_manager.start_process(AgentType::CodeExpert, task_id.clone(), 50);
 
     // 思考ステップ1: 問題分析
     let step1 = ThinkingStepBuilder::new(ThinkingStepType::ProblemAnalysis)
@@ -424,10 +429,7 @@ async fn test_token_allocation_strategies() {
     assert_eq!(*allocation_equal.get("agent-2").unwrap(), 500);
 
     // LoadBased strategy
-    let tracker_load = TokenTracker::new(
-        TokenLimit::default(),
-        TokenAllocationStrategy::LoadBased,
-    );
+    let tracker_load = TokenTracker::new(TokenLimit::default(), TokenAllocationStrategy::LoadBased);
     tracker_load
         .register_agent(AgentType::CodeExpert, "agent-1".to_string())
         .await;
@@ -460,7 +462,7 @@ async fn test_token_allocation_strategies() {
         .unwrap();
 
     let allocation_load = tracker_load.calculate_allocation(1000).await;
-    
+
     // agent-2の方が多く割り当てられるべき（使用量が少ないため）
     assert!(allocation_load.get("agent-2").unwrap() > &0);
 }
@@ -528,7 +530,7 @@ async fn test_concurrent_subagent_operations() {
     for (i, agent_id) in agent_ids.iter().enumerate() {
         let agent_id_clone = agent_id.clone();
         let task = format!("Task {}", i);
-        
+
         join_set.spawn(async move {
             // シミュレーション
             tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
@@ -563,7 +565,10 @@ async fn test_error_handling_and_recovery() {
         .unwrap();
 
     let state = agent.get_state().await;
-    assert_eq!(state.status, codex_supervisor::subagent::AgentStatus::Failed);
+    assert_eq!(
+        state.status,
+        codex_supervisor::subagent::AgentStatus::Failed
+    );
 
     // 通知確認
     let notifications = agent.get_inbox().get_unread_notifications().await;
@@ -576,4 +581,3 @@ async fn test_error_handling_and_recovery() {
         .content
         .contains("Unexpected error"));
 }
-

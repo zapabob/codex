@@ -1,13 +1,22 @@
 // Codex Executor for SubAgents - Best Practices Implementation
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use codex_core::config::Config;
-use codex_core::protocol::{Event, EventMsg, InitialHistory, Op, SessionSource};
-use codex_core::{AuthManager, Codex};
+use codex_core::protocol::Event;
+use codex_core::protocol::EventMsg;
+use codex_core::protocol::InitialHistory;
+use codex_core::protocol::Op;
+use codex_core::protocol::SessionSource;
+use codex_core::AuthManager;
+use codex_core::Codex;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::timeout;
-use tracing::{debug, error, info, warn};
+use tracing::debug;
+use tracing::error;
+use tracing::info;
+use tracing::warn;
 
 use crate::agent_prompts::get_agent_prompt;
 use crate::subagent::AgentType;
@@ -47,13 +56,9 @@ impl CodexExecutor {
 
     /// Execute a task with the Codex LLM
     /// Best Practice: 段階的な実装 - シンプルな呼び出しから開始
-    pub async fn execute_task(
-        &mut self,
-        agent_type: &AgentType,
-        task: &str,
-    ) -> Result<String> {
+    pub async fn execute_task(&mut self, agent_type: &AgentType, task: &str) -> Result<String> {
         let start_time = std::time::Instant::now();
-        
+
         info!(
             "🚀 Starting Codex execution for {} agent: {}",
             agent_type,
@@ -62,7 +67,7 @@ impl CodexExecutor {
 
         // Best Practice: 環境認識能力 - 専門プロンプトを使用
         let specialized_prompt = get_agent_prompt(agent_type, task);
-        
+
         debug!("Specialized prompt prepared for {}", agent_type);
 
         // Execute with Codex
@@ -150,7 +155,10 @@ impl CodexExecutor {
                     debug!("Session configured");
                 }
                 EventMsg::Text(text_event) => {
-                    debug!("Received text: {}", text_event.text.chars().take(50).collect::<String>());
+                    debug!(
+                        "Received text: {}",
+                        text_event.text.chars().take(50).collect::<String>()
+                    );
                     response_text.push_str(&text_event.text);
                 }
                 EventMsg::TurnComplete(_) => {
@@ -158,7 +166,10 @@ impl CodexExecutor {
                     turn_completed = true;
                 }
                 EventMsg::AgentMessage(msg) => {
-                    debug!("Agent message: {}", msg.content.chars().take(50).collect::<String>());
+                    debug!(
+                        "Agent message: {}",
+                        msg.content.chars().take(50).collect::<String>()
+                    );
                     response_text.push_str(&msg.content);
                 }
                 EventMsg::Error(err) => {
@@ -264,7 +275,7 @@ mod tests {
     fn test_metrics_update() {
         let mut executor = CodexExecutor::default();
         executor.update_metrics(true, 100);
-        
+
         assert_eq!(executor.metrics.total_calls, 1);
         assert_eq!(executor.metrics.successful_calls, 1);
         assert_eq!(executor.metrics.average_latency_ms, 100);
@@ -283,4 +294,3 @@ mod tests {
         assert!(report.contains("Failed: 1"));
     }
 }
-

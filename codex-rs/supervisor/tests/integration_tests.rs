@@ -1,8 +1,9 @@
 // Integration tests for the complete SubAgent system
 use anyhow::Result;
-use codex_supervisor::{
-    AgentType, AutonomousDispatcher, CodexExecutor, RealSubAgentManagerWithExecutor,
-};
+use codex_supervisor::AgentType;
+use codex_supervisor::AutonomousDispatcher;
+use codex_supervisor::CodexExecutor;
+use codex_supervisor::RealSubAgentManagerWithExecutor;
 use pretty_assertions::assert_eq;
 
 #[tokio::test]
@@ -41,7 +42,10 @@ async fn test_autonomous_dispatcher_classification() {
 
     // Test performance-related task
     let classification = dispatcher.classify_task("Optimize database query performance");
-    assert_eq!(classification.recommended_agent, AgentType::PerformanceExpert);
+    assert_eq!(
+        classification.recommended_agent,
+        AgentType::PerformanceExpert
+    );
 }
 
 #[tokio::test]
@@ -183,5 +187,3 @@ mod full_integration_tests {
         Ok(())
     }
 }
-
-

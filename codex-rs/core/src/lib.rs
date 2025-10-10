@@ -6,7 +6,6 @@
 #![deny(clippy::print_stdout, clippy::print_stderr)]
 
 mod apply_patch;
-mod async_subagent_integration;
 pub mod auth;
 pub mod bash;
 mod chat_completions;

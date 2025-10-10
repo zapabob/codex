@@ -1,6 +1,8 @@
 // Hook Tool Handler
 use anyhow::Result;
-use mcp_types::{CallToolResult, ContentBlock, TextContent};
+use mcp_types::CallToolResult;
+use mcp_types::ContentBlock;
+use mcp_types::TextContent;
 use serde_json::Value;
 
 use crate::hook_tool::HookToolParam;
@@ -43,11 +45,7 @@ pub async fn handle_hook_tool_call(arguments: Value) -> Result<CallToolResult> {
         - echo 'Task completed' >> task.log\n\
         - notify-send 'Codex' 'Task done'\n\
         - curl -X POST $SLACK_WEBHOOK -d '{{\"text\":\"Hook triggered\"}}'",
-        event_description,
-        event_description,
-        context_info,
-        params.event,
-        params.event
+        event_description, event_description, context_info, params.event, params.event
     );
 
     Ok(CallToolResult {
@@ -60,4 +58,3 @@ pub async fn handle_hook_tool_call(arguments: Value) -> Result<CallToolResult> {
         structured_content: None,
     })
 }
-

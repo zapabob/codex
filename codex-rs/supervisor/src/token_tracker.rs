@@ -1,6 +1,7 @@
 // トークン消費追跡と分担管理システム
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -143,10 +144,7 @@ impl TokenTracker {
     /// エージェントを登録
     pub async fn register_agent(&self, agent_type: AgentType, agent_id: String) {
         let mut usages = self.agent_usages.write().await;
-        usages.insert(
-            agent_id.clone(),
-            AgentTokenUsage::new(agent_type, agent_id),
-        );
+        usages.insert(agent_id.clone(), AgentTokenUsage::new(agent_type, agent_id));
     }
 
     /// トークン使用量を記録
@@ -185,8 +183,8 @@ impl TokenTracker {
 
         // エージェント別制限チェック
         if let Some(agent_usage) = usages.get(agent_id) {
-            let usage_ratio =
-                agent_usage.total_usage.total_tokens as f64 / self.limits.max_tokens_per_agent as f64;
+            let usage_ratio = agent_usage.total_usage.total_tokens as f64
+                / self.limits.max_tokens_per_agent as f64;
 
             if usage_ratio >= 1.0 {
                 anyhow::bail!(
@@ -254,7 +252,10 @@ impl TokenTracker {
         let total = self.get_total_usage().await;
         report.push_str(&format!("Total Usage:\n"));
         report.push_str(&format!("  Prompt Tokens: {}\n", total.prompt_tokens));
-        report.push_str(&format!("  Completion Tokens: {}\n", total.completion_tokens));
+        report.push_str(&format!(
+            "  Completion Tokens: {}\n",
+            total.completion_tokens
+        ));
         report.push_str(&format!("  Total Tokens: {}\n", total.total_tokens));
         report.push_str(&format!(
             "  Percentage: {:.1}%\n\n",
@@ -273,17 +274,15 @@ impl TokenTracker {
                 "    Total: {} tokens\n",
                 agent_usage.total_usage.total_tokens
             ));
-            report.push_str(&format!(
-                "    Tasks: {}\n",
-                agent_usage.task_usages.len()
-            ));
+            report.push_str(&format!("    Tasks: {}\n", agent_usage.task_usages.len()));
             report.push_str(&format!(
                 "    Avg per Task: {:.1} tokens\n",
                 agent_usage.get_average_tokens_per_task()
             ));
             report.push_str(&format!(
                 "    Percentage: {:.1}%\n\n",
-                (agent_usage.total_usage.total_tokens as f64 / self.limits.max_tokens_per_agent as f64)
+                (agent_usage.total_usage.total_tokens as f64
+                    / self.limits.max_tokens_per_agent as f64)
                     * 100.0
             ));
         }
@@ -306,10 +305,7 @@ impl TokenTracker {
             }
             TokenAllocationStrategy::LoadBased => {
                 // 負荷ベース分配（使用量が少ないエージェントに多く割り当て）
-                let total_used: u64 = usages
-                    .values()
-                    .map(|u| u.total_usage.total_tokens)
-                    .sum();
+                let total_used: u64 = usages.values().map(|u| u.total_usage.total_tokens).sum();
 
                 for (agent_id, usage) in usages.iter() {
                     let usage_ratio = if total_used > 0 {
@@ -379,7 +375,12 @@ mod tests {
         // 使用量を記録
         let usage = TokenUsage::new(100, 50);
         tracker
-            .record_usage("agent-1", "task-1".to_string(), "Test task".to_string(), usage)
+            .record_usage(
+                "agent-1",
+                "task-1".to_string(),
+                "Test task".to_string(),
+                usage,
+            )
             .await
             .unwrap();
 
@@ -410,24 +411,31 @@ mod tests {
         // 制限以下
         let usage1 = TokenUsage::new(200, 100);
         assert!(tracker
-            .record_usage("agent-1", "task-1".to_string(), "Test 1".to_string(), usage1)
+            .record_usage(
+                "agent-1",
+                "task-1".to_string(),
+                "Test 1".to_string(),
+                usage1
+            )
             .await
             .is_ok());
 
         // 制限超過
         let usage2 = TokenUsage::new(300, 200);
         assert!(tracker
-            .record_usage("agent-1", "task-2".to_string(), "Test 2".to_string(), usage2)
+            .record_usage(
+                "agent-1",
+                "task-2".to_string(),
+                "Test 2".to_string(),
+                usage2
+            )
             .await
             .is_err());
     }
 
     #[tokio::test]
     async fn test_token_allocation() {
-        let tracker = TokenTracker::new(
-            TokenLimit::default(),
-            TokenAllocationStrategy::Equal,
-        );
+        let tracker = TokenTracker::new(TokenLimit::default(), TokenAllocationStrategy::Equal);
 
         tracker
             .register_agent(AgentType::CodeExpert, "agent-1".to_string())
@@ -442,4 +450,3 @@ mod tests {
         assert_eq!(*allocation.get("agent-2").unwrap(), 500);
     }
 }
-

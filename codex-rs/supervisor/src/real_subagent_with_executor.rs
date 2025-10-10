@@ -1,14 +1,22 @@
 // Real SubAgent with CodexExecutor Integration
 // Best Practices Implementation for AI Agent Development
 
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::sync::Arc;
-use tokio::sync::{mpsc, Mutex};
-use tracing::{debug, info, warn};
+use tokio::sync::mpsc;
+use tokio::sync::Mutex;
+use tracing::debug;
+use tracing::info;
+use tracing::warn;
 
 use crate::codex_executor::CodexExecutor;
-use crate::subagent::{AgentMessage, AgentState, AgentStatus, AgentType};
+use crate::subagent::AgentMessage;
+use crate::subagent::AgentState;
+use crate::subagent::AgentStatus;
+use crate::subagent::AgentType;
 
 /// Real SubAgent with full Codex integration
 /// Implements AIエージェントベストプラクティス
@@ -110,10 +118,7 @@ impl RealSubAgentManagerWithExecutor {
     }
 
     pub async fn register_agent(&self, agent_type: AgentType) {
-        let agent = RealSubAgentWithExecutor::new(
-            agent_type.clone(),
-            Arc::clone(&self.executor),
-        );
+        let agent = RealSubAgentWithExecutor::new(agent_type.clone(), Arc::clone(&self.executor));
         self.agents.lock().await.insert(agent_type, agent);
     }
 
@@ -122,7 +127,7 @@ impl RealSubAgentManagerWithExecutor {
         let agent = agents
             .get(&agent_type)
             .context(format!("Agent {:?} not found", agent_type))?;
-        
+
         agent.process_task(task).await
     }
 
@@ -181,10 +186,8 @@ mod tests {
     #[tokio::test]
     async fn test_real_subagent_with_executor_creation() {
         let executor = CodexExecutor::default();
-        let agent = RealSubAgentWithExecutor::new(
-            AgentType::CodeExpert,
-            Arc::new(Mutex::new(executor)),
-        );
+        let agent =
+            RealSubAgentWithExecutor::new(AgentType::CodeExpert, Arc::new(Mutex::new(executor)));
 
         let state = agent.get_state().await;
         assert_eq!(state.agent_type, AgentType::CodeExpert);
@@ -203,4 +206,3 @@ mod tests {
         assert!(report.contains("Codex Executor Metrics"));
     }
 }
-

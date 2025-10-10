@@ -2,10 +2,14 @@
 // Conforms to OpenAI/codex official web_search implementation
 use crate::provider::ResearchProvider;
 use crate::types::Source;
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use tracing::{debug, info, warn};
+use serde::Deserialize;
+use serde::Serialize;
+use tracing::debug;
+use tracing::info;
+use tracing::warn;
 
 /// Real web search provider conforming to OpenAI/codex official implementation
 /// Uses the same web_search tool pattern as ToolSpec::WebSearch {}
@@ -47,8 +51,11 @@ impl WebSearchProvider {
     /// Call search API conforming to OpenAI/codex web_search format
     /// Returns realistic search results similar to what ToolSpec::WebSearch {} would return
     async fn call_search_api(&self, query: &str) -> Result<Vec<SearchResult>> {
-        info!("🔍 Performing web search (OpenAI/codex compatible): {}", query);
-        
+        info!(
+            "🔍 Performing web search (OpenAI/codex compatible): {}",
+            query
+        );
+
         // Generate search results conforming to official web_search tool format
         // These mirror the structure and content that would come from actual web search
         let results = self.generate_official_format_results(query);
@@ -99,7 +106,7 @@ impl WebSearchProvider {
 
         // TODO: Implement actual HTTP request
         // For now, return structured placeholder content
-        
+
         let content = if url.contains("doc.rust-lang.org") {
             format!(
                 "# Rust Official Documentation\n\n\
@@ -168,7 +175,7 @@ impl ResearchProvider for WebSearchProvider {
     async fn search(&self, query: &str, max_results: u8) -> Result<Vec<Source>> {
         let search_results = self.execute_search(query).await?;
         
-        let sources = search_results
+        let sources: Vec<Source> = search_results
             .into_iter()
             .take(max_results as usize)
             .map(|result| Source {
@@ -241,4 +248,3 @@ mod tests {
         }
     }
 }
-

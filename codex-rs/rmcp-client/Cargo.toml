@@ -27,11 +27,12 @@ reqwest = { version = "0.12", default-features = false, features = [
     "stream",
     "rustls-tls",
 ] }
-rmcp = { version = "0.1", default-features = false, features = [
+rmcp = { workspace = true, features = [
     "auth",
     "base64",
     "client",
     "macros",
+    "reqwest",
     "schemars",
     "server",
     "transport-child-process",

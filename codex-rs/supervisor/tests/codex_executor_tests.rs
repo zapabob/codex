@@ -1,13 +1,15 @@
 // Comprehensive tests for CodexExecutor
 use anyhow::Result;
-use codex_supervisor::{AgentType, CodexExecutor, ExecutionMetrics};
+use codex_supervisor::AgentType;
+use codex_supervisor::CodexExecutor;
+use codex_supervisor::ExecutionMetrics;
 use pretty_assertions::assert_eq;
 
 #[test]
 fn test_codex_executor_creation() {
     let executor = CodexExecutor::default();
     let metrics = executor.get_metrics();
-    
+
     assert_eq!(metrics.total_calls, 0);
     assert_eq!(metrics.successful_calls, 0);
     assert_eq!(metrics.failed_calls, 0);
@@ -33,7 +35,7 @@ fn test_codex_executor_with_custom_config() {
 
     let auth_manager = AuthManager::shared(config.codex_home.clone(), false);
     let executor = CodexExecutor::new(config, auth_manager);
-    
+
     let metrics = executor.get_metrics();
     assert_eq!(metrics.total_calls, 0);
 }
@@ -41,7 +43,7 @@ fn test_codex_executor_with_custom_config() {
 #[test]
 fn test_execution_metrics_default() {
     let metrics = ExecutionMetrics::default();
-    
+
     assert_eq!(metrics.total_calls, 0);
     assert_eq!(metrics.successful_calls, 0);
     assert_eq!(metrics.failed_calls, 0);
@@ -53,7 +55,7 @@ fn test_execution_metrics_default() {
 fn test_metrics_report_generation_empty() {
     let executor = CodexExecutor::default();
     let report = executor.generate_metrics_report();
-    
+
     assert!(report.contains("Codex Executor Metrics"));
     assert!(report.contains("Total Calls: 0"));
     assert!(report.contains("Successful: 0"));
@@ -96,34 +98,31 @@ mod integration_tests {
     #[tokio::test]
     async fn test_codex_executor_execute_task() -> Result<()> {
         let mut executor = CodexExecutor::default();
-        
+
         let result = executor
             .execute_task(&AgentType::General, "Hello, test!")
             .await?;
-        
+
         assert!(!result.is_empty());
-        
+
         let metrics = executor.get_metrics();
         assert_eq!(metrics.total_calls, 1);
-        
+
         Ok(())
     }
 
     #[tokio::test]
     async fn test_codex_executor_multiple_calls() -> Result<()> {
         let mut executor = CodexExecutor::default();
-        
+
         for i in 0..3 {
             let task = format!("Test task {}", i);
-            let _result = executor
-                .execute_task(&AgentType::General, &task)
-                .await?;
+            let _result = executor.execute_task(&AgentType::General, &task).await?;
         }
-        
+
         let metrics = executor.get_metrics();
         assert_eq!(metrics.total_calls, 3);
-        
+
         Ok(())
     }
 }
-

@@ -1,6 +1,7 @@
 // Custom Command System for calling subagents and tools
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 
 /// Custom command definition
@@ -8,19 +9,19 @@ use std::collections::HashMap;
 pub struct CustomCommand {
     /// Command name (e.g., "analyze_code", "security_review")
     pub name: String,
-    
+
     /// Description of what the command does
     pub description: String,
-    
+
     /// Target subagent type (if applicable)
     pub subagent: Option<String>,
-    
+
     /// Custom parameters
     pub parameters: HashMap<String, String>,
-    
+
     /// Pre-hook commands to run before execution
     pub pre_hooks: Vec<String>,
-    
+
     /// Post-hook commands to run after execution
     pub post_hooks: Vec<String>,
 }
@@ -214,9 +215,13 @@ impl CustomCommandExecutor {
 
         // Execute pre-hooks (if any)
         for pre_hook in &command.pre_hooks {
-            result.output.push_str(&format!("[Pre-hook] Running: {}\n", pre_hook));
+            result
+                .output
+                .push_str(&format!("[Pre-hook] Running: {}\n", pre_hook));
             // In actual implementation, execute the hook
-            result.pre_hook_results.push(format!("Executed: {}", pre_hook));
+            result
+                .pre_hook_results
+                .push(format!("Executed: {}", pre_hook));
         }
 
         // Execute main command (dispatch to subagent if specified)
@@ -226,15 +231,23 @@ impl CustomCommandExecutor {
                 subagent
             ));
             result.output.push_str(&format!("Context: {}\n", context));
-            result.output.push_str(&format!("Parameters: {:?}\n", command.parameters));
+            result
+                .output
+                .push_str(&format!("Parameters: {:?}\n", command.parameters));
         } else {
-            result.output.push_str("[CustomCommand] No subagent specified, executing directly\n");
+            result
+                .output
+                .push_str("[CustomCommand] No subagent specified, executing directly\n");
         }
 
         // Execute post-hooks (if any)
         for post_hook in &command.post_hooks {
-            result.output.push_str(&format!("[Post-hook] Running: {}\n", post_hook));
-            result.post_hook_results.push(format!("Executed: {}", post_hook));
+            result
+                .output
+                .push_str(&format!("[Post-hook] Running: {}\n", post_hook));
+            result
+                .post_hook_results
+                .push(format!("Executed: {}", post_hook));
         }
 
         Ok(result)
@@ -275,14 +288,11 @@ mod tests {
 
     #[test]
     fn test_custom_command() {
-        let command = CustomCommand::new(
-            "test_cmd".to_string(),
-            "Test command".to_string(),
-        )
-        .with_subagent("CodeExpert".to_string())
-        .with_parameter("key1".to_string(), "value1".to_string())
-        .with_pre_hook("echo pre".to_string())
-        .with_post_hook("echo post".to_string());
+        let command = CustomCommand::new("test_cmd".to_string(), "Test command".to_string())
+            .with_subagent("CodeExpert".to_string())
+            .with_parameter("key1".to_string(), "value1".to_string())
+            .with_pre_hook("echo pre".to_string())
+            .with_post_hook("echo post".to_string());
 
         assert_eq!(command.name, "test_cmd");
         assert_eq!(command.subagent, Some("CodeExpert".to_string()));
@@ -363,4 +373,3 @@ mod tests {
         assert_eq!(cmd.subagent, Some("CodeExpert".to_string()));
     }
 }
-
