@@ -10,7 +10,6 @@ use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::debug;
-use tracing::error;
 use tracing::info;
 use tracing::warn;
 
@@ -104,7 +103,7 @@ impl McpSearchProvider {
         query: &str,
         max_results: usize,
     ) -> Result<Vec<SearchResult>> {
-        let mut last_error = None;
+        let mut _last_error: Option<anyhow::Error> = None;
 
         // Try primary backend
         match self
@@ -117,7 +116,7 @@ impl McpSearchProvider {
             }
             Err(e) => {
                 warn!("Primary backend {} failed: {}", self.backend.name(), e);
-                last_error = Some(e);
+                _last_error = Some(e);
             }
         }
 
@@ -134,13 +133,13 @@ impl McpSearchProvider {
                 }
                 Err(e) => {
                     warn!("Fallback {} failed: {}", fallback.name(), e);
-                    last_error = Some(e);
+                    _last_error = Some(e);
                 }
             }
         }
 
         self.update_stats(false, 0).await;
-        Err(last_error.unwrap_or_else(|| anyhow::anyhow!("All search backends failed")))
+        Err(_last_error.unwrap_or_else(|| anyhow::anyhow!("All search backends failed")))
     }
 
     /// Execute search on specific backend
@@ -161,7 +160,7 @@ impl McpSearchProvider {
 
     /// Brave Search API integration
     async fn search_brave(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
-        let api_key = self
+        let _api_key = self
             .api_key
             .as_ref()
             .context("Brave Search requires API key")?;
@@ -187,7 +186,7 @@ impl McpSearchProvider {
 
     /// Google Custom Search API
     async fn search_google(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
-        let api_key = self
+        let _api_key = self
             .api_key
             .as_ref()
             .context("Google Search requires API key")?;
@@ -200,7 +199,7 @@ impl McpSearchProvider {
 
     /// Bing Search API
     async fn search_bing(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
-        let api_key = self
+        let _api_key = self
             .api_key
             .as_ref()
             .context("Bing Search requires API key")?;

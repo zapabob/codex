@@ -128,7 +128,8 @@ impl WebSearchProvider {
             .timeout(std::time::Duration::from_secs(30))
             .send()
             .await?;
-        let json: serde_json::Value = response.json().await?;
+        let text = response.text().await?;
+        let json: serde_json::Value = serde_json::from_str(&text)?;
 
         let mut results = Vec::new();
         if let Some(items) = json["items"].as_array() {

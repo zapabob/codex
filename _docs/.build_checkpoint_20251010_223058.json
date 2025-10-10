@@ -1,0 +1,13 @@
+{
+  "session_id": "20251010_223058",
+  "completed_steps": [
+    "clean",
+    "deep-research"
+  ],
+  "current_step": "core-binaries",
+  "build_times": {
+    "deep-research": 51.899587
+  },
+  "errors": [],
+  "timestamp": "2025-10-10T22:32:30.276384"
+}
