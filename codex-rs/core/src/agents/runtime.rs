@@ -113,6 +113,23 @@ impl AgentRuntime {
 
         // 実行開始
         let start_time = Instant::now();
+        let start_timestamp = chrono::Utc::now().to_rfc3339();
+
+        // 監査ログ: エージェント開始
+        let _ = log_audit_event(AuditEvent::new(
+            agent_name.to_string(),
+            AuditEventType::AgentExecution(AgentExecutionEvent {
+                agent_name: agent_name.to_string(),
+                status: ExecutionStatus::Started,
+                goal: goal.to_string(),
+                start_time: start_timestamp.clone(),
+                end_time: None,
+                duration_secs: None,
+                tokens_used: 0,
+                artifacts: vec![],
+                error: None,
+            }),
+        )).await;
 
         let result = match self.execute_agent(&agent_def, goal, inputs, deadline).await {
             Ok(artifacts) => {
@@ -123,6 +140,22 @@ impl AgentRuntime {
                     "Agent '{}' completed successfully in {:.2}s, used {} tokens",
                     agent_name, duration_secs, tokens_used
                 );
+
+                // 監査ログ: エージェント完了
+                let _ = log_audit_event(AuditEvent::new(
+                    agent_name.to_string(),
+                    AuditEventType::AgentExecution(AgentExecutionEvent {
+                        agent_name: agent_name.to_string(),
+                        status: ExecutionStatus::Completed,
+                        goal: goal.to_string(),
+                        start_time: start_timestamp.clone(),
+                        end_time: Some(chrono::Utc::now().to_rfc3339()),
+                        duration_secs: Some(duration_secs),
+                        tokens_used,
+                        artifacts: artifacts.clone(),
+                        error: None,
+                    }),
+                )).await;
 
                 AgentResult {
                     agent_name: agent_name.to_string(),
@@ -138,6 +171,22 @@ impl AgentRuntime {
 
                 let duration_secs = start_time.elapsed().as_secs_f64();
                 let tokens_used = self.budgeter.get_agent_usage(agent_name);
+
+                // 監査ログ: エージェント失敗
+                let _ = log_audit_event(AuditEvent::new(
+                    agent_name.to_string(),
+                    AuditEventType::AgentExecution(AgentExecutionEvent {
+                        agent_name: agent_name.to_string(),
+                        status: ExecutionStatus::Failed,
+                        goal: goal.to_string(),
+                        start_time: start_timestamp.clone(),
+                        end_time: Some(chrono::Utc::now().to_rfc3339()),
+                        duration_secs: Some(duration_secs),
+                        tokens_used,
+                        artifacts: vec![],
+                        error: Some(e.to_string()),
+                    }),
+                )).await;
 
                 AgentResult {
                     agent_name: agent_name.to_string(),

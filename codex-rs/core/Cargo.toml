@@ -35,6 +35,7 @@ futures = { workspace = true }
 indexmap = { workspace = true }
 libc = { workspace = true }
 mcp-types = { workspace = true }
+once_cell = { workspace = true }
 os_info = { workspace = true }
 portable-pty = { workspace = true }
 rand = { workspace = true }

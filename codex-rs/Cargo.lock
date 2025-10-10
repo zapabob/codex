@@ -1157,6 +1157,7 @@ dependencies = [
  "libc",
  "maplit",
  "mcp-types",
+ "once_cell",
  "openssl-sys",
  "os_info",
  "portable-pty",
