@@ -9,7 +9,9 @@ use scraper::Selector;
 use serde::Deserialize;
 use serde::Serialize;
 use tracing::debug;
+use tracing::error;
 use tracing::info;
+use tracing::warn;
 
 /// Real web search provider conforming to OpenAI/codex official implementation
 /// Uses the same web_search tool pattern as ToolSpec::WebSearch {}
@@ -96,8 +98,8 @@ impl WebSearchProvider {
                 }
                 Err(e) => {
                     tracing::error!("❌ DuckDuckGo failed: {:?}, using fallback results", e);
-                    eprintln!("⚠️  DuckDuckGo search failed: {}", e);
-                    eprintln!("   Falling back to official format results");
+                    warn!("DuckDuckGo search failed: {e}");
+                    warn!("Falling back to official format results");
                     self.generate_official_format_results(query)
                 }
             }
@@ -219,7 +221,7 @@ impl WebSearchProvider {
         query: &str,
         count: usize,
     ) -> Result<Vec<SearchResult>> {
-        eprintln!("🦆 [DEBUG] Starting DuckDuckGo search for: {}", query);
+        debug!("Starting DuckDuckGo search for: {query}");
 
         // より完全なブラウザヘッダーでクライアント作成
         let client = reqwest::Client::builder()
@@ -228,7 +230,7 @@ impl WebSearchProvider {
             .build()?;
 
         // 戦略1: POSTメソッドを最初から使用（202エラー回避）
-        eprintln!("🦆 [DEBUG] Using POST method to avoid 202 errors");
+        debug!("Using POST method to avoid 202 errors");
         let form_data: Vec<(&str, &str)> =
             vec![("q", query), ("b", ""), ("kl", "wt-wt"), ("df", "")];
 
@@ -253,11 +255,11 @@ impl WebSearchProvider {
             .await?;
 
         let status = response.status();
-        eprintln!("🦆 [DEBUG] Received response, status: {}", status);
+        debug!("DuckDuckGo POST status: {status}");
 
         // 202エラーの場合はGETメソッドでリトライ
         if status == reqwest::StatusCode::ACCEPTED {
-            eprintln!("⚠️  [WARNING] POST returned 202, retrying with GET after delay...");
+            warn!("DuckDuckGo POST returned 202, retrying with GET after delay");
             tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
 
             let url = format!(
@@ -271,10 +273,10 @@ impl WebSearchProvider {
                 .send()
                 .await?;
 
-            eprintln!("🦆 [DEBUG] GET retry status: {}", retry_response.status());
+            debug!("DuckDuckGo GET retry status: {}", retry_response.status());
 
             if retry_response.status() == reqwest::StatusCode::ACCEPTED {
-                eprintln!("⚠️  [WARNING] Still 202, using fallback results");
+                warn!("DuckDuckGo GET retry still 202, using fallback results");
                 return Ok(self.generate_official_format_results(query));
             }
 
@@ -293,15 +295,15 @@ impl WebSearchProvider {
         query: &str,
         count: usize,
     ) -> Result<Vec<SearchResult>> {
-        eprintln!("🦆 [DEBUG] Parsing HTML ({} bytes)", html.len());
+        debug!("Parsing DuckDuckGo HTML ({} bytes)", html.len());
 
         // HTMLを一時ファイルに保存してデバッグ
         const SAVE_HTML_ENV: &str = "CODEX_DEBUG_SAVE_HTML";
         if std::env::var_os(SAVE_HTML_ENV).is_some() {
             if let Err(e) = std::fs::write("_debug_duckduckgo_retry.html", html) {
-                eprintln!("⚠️  Could not save HTML debug file: {}", e);
+                warn!("Could not save DuckDuckGo HTML for debugging: {e}");
             } else {
-                eprintln!("💾 [DEBUG] Saved HTML to _debug_duckduckgo_retry.html");
+                debug!("Saved DuckDuckGo HTML snapshot to _debug_duckduckgo_retry.html");
             }
         }
 
@@ -311,14 +313,14 @@ impl WebSearchProvider {
         let result_selector = match Selector::parse("a.result__a") {
             Ok(sel) => sel,
             Err(e) => {
-                eprintln!("⚠️  [ERROR] Failed to parse selector: {}", e);
+                error!("Failed to parse DuckDuckGo result selector: {e}");
                 return Ok(self.generate_official_format_results(query));
             }
         };
         let snippet_selector = match Selector::parse(".result__snippet") {
             Ok(sel) => sel,
             Err(e) => {
-                eprintln!("⚠️  [ERROR] Failed to parse snippet selector: {}", e);
+                error!("Failed to parse DuckDuckGo snippet selector: {e}");
                 return Ok(self.generate_official_format_results(query));
             }
         };
@@ -354,7 +356,7 @@ impl WebSearchProvider {
                 .find(|text| !text.is_empty())
                 .unwrap_or_else(|| format!("DuckDuckGo result for: {query}"));
 
-            eprintln!(
+            debug!(
                 "🦆 [DEBUG] Parsed result: title='{}', url='{}'",
                 title, url_decoded
             );
@@ -367,24 +369,22 @@ impl WebSearchProvider {
             });
         }
 
-        eprintln!(
+        debug!(
             "🦆 [DEBUG] Found {} search results in HTML with scraper",
             results.len()
         );
-        eprintln!(
+        debug!(
             "✅ [DEBUG] DuckDuckGo parse completed: {} results",
             results.len()
         );
 
         // フォールバック: パースに失敗した場合
         if results.is_empty() {
-            eprintln!(
-                "⚠️  [DEBUG] DuckDuckGo returned 0 results (HTML parse failed), using fallback"
-            );
+            warn!("⚠️  [DEBUG] DuckDuckGo returned 0 results (HTML parse failed), using fallback");
             return Ok(self.generate_official_format_results(query));
         }
 
-        eprintln!(
+        debug!(
             "🦆[DEBUG] DuckDuckGo parse extracted {} results",
             results.len()
         );
