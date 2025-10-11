@@ -1,45 +1,32 @@
-# Deep Researcher Sub-Agent
-name: "Deep Researcher"
-goal: "計画→探索→反証→出典付きレポを生成する"
-
-# ツール権限
+name: "researcher"
+goal: "Deep research with multi-source validation, citation, and comprehensive reporting"
 tools:
   mcp:
-    - search
-    - crawler
-    - pdf_reader
+    - web_search
+    - read_file
+    - grep
   fs:
     read: true
     write:
       - "./artifacts"
+      - "./research-reports"
   net:
     allow:
       - "https://*"
-      - "http://*"
-
-# ポリシー
+  shell: []
 policies:
-  shell: []  # シェル実行なし
   context:
-    max_tokens: 24000
-    retention: "job"  # ジョブ終了時にコンテキスト破棄
-
-# 成功基準
+    max_tokens: 60000
+    retention: "session"
+  secrets:
+    redact: false
 success_criteria:
-  - "複数ドメインの出典"
-  - "矛盾検知ログが添付"
-  - "要約は結論→根拠→限界の順で簡潔"
-
-# 出力アーティファクト
+  - "Gather information from 5+ reliable sources"
+  - "Cross-validate facts and detect contradictions"
+  - "Provide citations for all claims"
+  - "Generate structured research report with sources"
+  - "Include implementation examples where applicable"
 artifacts:
-  - "artifacts/report.md"
-  - "artifacts/evidence/*.json"
-
-# リサーチ戦略
-research_strategy:
-  depth: 3  # 最大探索深度
-  breadth: 8  # 並列検索幅
-  citations_required: true
-  lightweight_fallback: true
-  contradiction_check: true
-
+  - "artifacts/research-report.md"
+  - "research-reports/sources.json"
+  - "research-reports/cross-validation-report.md"

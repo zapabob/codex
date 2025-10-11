@@ -1,215 +1,40 @@
-# Code Reviewer Sub-Agent (Multi-Language Support)
-name: "Code Reviewer"
-goal: "多言語対応コードレビュー・品質チェック・ベストプラクティス提案（TypeScript, Python, Rust, C# Unity対応）"
-
-# ツール権限
+name: "code-reviewer"
+goal: "Comprehensive code review with security, performance, and best practices analysis"
 tools:
   mcp:
-    - code_indexer
-    - ast_analyzer
-    - language_server
+    - grep
+    - read_file
+    - codebase_search
   fs:
     read: true
     write:
       - "./artifacts"
-      - "./review-comments"
-  shell:
-    exec:
-      # TypeScript/JavaScript
-      - npm
-      - npx
-      - eslint
-      - prettier
-      - tsc
-      - jest
-      - vitest
-      # Python
-      - python
-      - python3
-      - pip
-      - pylint
-      - black
-      - mypy
-      - flake8
-      - bandit
-      - pytest
-      # Rust
-      - cargo
-      - clippy
-      - rustfmt
-      - cargo-audit
-      # C# Unity
-      - dotnet
-      - msbuild
-      - csc
-      # General
-      - git
-
-# ポリシー
-policies:
+      - "./code-review-reports"
   net:
     allow:
-      - "https://docs.rs"
-      - "https://github.com"
-      - "https://rust-lang.github.io"
+      - "https://docs.rs/*"
+      - "https://doc.rust-lang.org/*"
+      - "https://docs.python.org/*"
+      - "https://developer.mozilla.org/*"
+  shell:
+    exec:
+      - cargo
+      - npm
+      - python
+      - rustfmt
+      - clippy
+policies:
   context:
-    max_tokens: 20000
+    max_tokens: 40000
     retention: "job"
   secrets:
     redact: true
-
-# 成功基準
 success_criteria:
-  - "コードスタイルガイド準拠"
-  - "パフォーマンス懸念の指摘"
-  - "セキュリティリスクの検出"
-  - "テストカバレッジの確認"
-  - "ドキュメント品質チェック"
-  - "改善提案の具体性"
-
-# 出力アーティファクト
+  - "Identify all type safety issues in TypeScript/Rust code"
+  - "Detect security vulnerabilities (SQL injection, XSS, etc.)"
+  - "Suggest performance optimizations with concrete examples"
+  - "Ensure code follows language-specific best practices"
+  - "Generate detailed code review report with line-specific comments"
 artifacts:
-  - "artifacts/code-review.md"
-  - "artifacts/review-summary.json"
-  - "review-comments/*.md"
-
-# レビュー戦略
-review_strategy:
-  # チェック項目
-  checks:
-    - style_consistency       # スタイル一貫性
-    - error_handling         # エラーハンドリング
-    - performance           # パフォーマンス
-    - security              # セキュリティ
-    - testing               # テストカバレッジ
-    - documentation         # ドキュメント
-    - maintainability       # 保守性
-    - best_practices        # ベストプラクティス
-  
-  # 重要度フィルター
-  severity_levels:
-    - critical              # 致命的
-    - high                  # 高
-    - medium                # 中
-    - low                   # 低
-    - info                  # 情報
-  
-  # レビュー範囲
-  scope:
-    - changed_files         # 変更ファイルのみ
-    - related_files         # 関連ファイル
-    - test_files            # テストファイル
-  
-  # 出力形式
-  output_format: "markdown"  # markdown, json, inline
-  
-  # 自動修正
-  auto_fix: false           # 自動修正は無効（提案のみ）
-  
-  # コメントスタイル
-  comment_style: "constructive"  # constructive, strict, friendly
-
-# 言語別レビュー観点（Multi-Language Support）
-
-# TypeScript/JavaScript特化
-typescript_specific:
-  enabled: true
-  eslint_check: true
-  prettier_check: true
-  type_safety: true
-  async_await_patterns: true
-  
-  idioms:
-    - prefer_async_await      # Promise.then → async/await
-    - use_optional_chaining   # obj?.prop
-    - avoid_any_type          # any → 具体的な型
-    - use_const_over_let      # let → const
-    - functional_patterns     # map/filter/reduce
-  
-  frameworks:
-    - react                   # React hooks, component patterns
-    - next                    # Next.js best practices
-    - express                 # Express.js patterns
-    - nestjs                  # NestJS architecture
-
-# Python特化
-python_specific:
-  enabled: true
-  pylint_check: true
-  black_format_check: true
-  mypy_type_check: true
-  pep8_compliance: true
-  
-  idioms:
-    - prefer_list_comprehensions
-    - use_context_managers    # with statement
-    - avoid_mutable_defaults
-    - use_pathlib             # pathlib over os.path
-    - type_hints              # PEP 484 type hints
-  
-  frameworks:
-    - django                  # Django patterns
-    - flask                   # Flask best practices
-    - fastapi                 # FastAPI async patterns
-    - pytest                  # pytest conventions
-
-# Rust特化
-rust_specific:
-  enabled: true
-  clippy_lints: true
-  rustfmt_check: true
-  unsafe_code_review: true
-  lifetime_analysis: true
-  ownership_patterns: true
-  
-  idioms:
-    - prefer_iterators
-    - use_references
-    - avoid_clones
-    - use_result_option
-    - pattern_matching
-
-# C# Unity特化
-csharp_unity_specific:
-  enabled: true
-  dotnet_analyzer: true
-  unity_best_practices: true
-  serialization_check: true
-  performance_patterns: true
-  
-  idioms:
-    - use_null_conditional     # obj?.Method()
-    - async_patterns           # async/await
-    - linq_over_loops          # LINQ expressions
-    - string_interpolation     # $"{var}"
-    - pattern_matching         # C# 9+ patterns
-  
-  unity_patterns:
-    - component_lifecycle      # Awake, Start, Update
-    - avoid_update_allocations # GC回避
-    - use_object_pooling       # オブジェクトプール
-    - coroutine_patterns       # Coroutineベストプラクティス
-    - scriptable_objects       # ScriptableObject活用
-    - prefab_workflow          # Prefabワークフロー
-
-# 言語検出（自動）
-language_detection:
-  auto_detect: true
-  extensions:
-    typescript: [".ts", ".tsx", ".js", ".jsx"]
-    python: [".py", ".pyi"]
-    rust: [".rs"]
-    csharp: [".cs"]
-    unity: [".unity", ".prefab", ".asset"]
-
-# PRテンプレート生成
-pr_template:
-  enabled: true
-  sections:
-    - summary
-    - critical_issues
-    - suggestions
-    - test_coverage
-    - performance_notes
-    - security_notes
-
+  - "artifacts/code-review-report.md"
+  - "code-review-reports/review-summary.json"
