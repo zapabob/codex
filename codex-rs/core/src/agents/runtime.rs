@@ -783,10 +783,12 @@ impl AgentRuntime {
     /// LLMを呼び出してエージェントの応答を取得
     async fn call_llm_for_agent(&self, conversation: &[(String, String)]) -> Result<String> {
         // プロンプト構築（最新のメッセージのみを使用）
-        let last_message = conversation.last()
+        let last_message = conversation
+            .last()
             .ok_or_else(|| anyhow!("Conversation history is empty"))?;
-        
-        let system_instructions = conversation.first()
+
+        let system_instructions = conversation
+            .first()
             .filter(|(role, _)| role == "system")
             .map(|(_, content)| content.clone());
 
