@@ -5,6 +5,7 @@ use crate::types::Source;
 use crate::url_decoder::decode_duckduckgo_url;
 use anyhow::Result;
 use async_trait::async_trait;
+use scraper::{Html, Selector};
 use serde::Deserialize;
 use serde::Serialize;
 use tracing::debug;
@@ -295,29 +296,37 @@ impl WebSearchProvider {
         eprintln!("🦆 [DEBUG] Parsing HTML ({} bytes)", html.len());
 
         // HTMLを一時ファイルに保存してデバッグ
-        if let Err(e) = std::fs::write("_debug_duckduckgo_retry.html", html) {
-            eprintln!("⚠️  Could not save HTML debug file: {}", e);
-        } else {
-            eprintln!("💾 [DEBUG] Saved HTML to _debug_duckduckgo_retry.html");
+        const SAVE_HTML_ENV: &str = "CODEX_DEBUG_SAVE_HTML";
+        if std::env::var_os(SAVE_HTML_ENV).is_some() {
+            if let Err(e) = std::fs::write("_debug_duckduckgo_retry.html", html) {
+                eprintln!("⚠️  Could not save HTML debug file: {}", e);
+            } else {
+                eprintln!("💾 [DEBUG] Saved HTML to _debug_duckduckgo_retry.html");
+            }
         }
 
         // 本番用: scraperクレートで堅牢にDuckDuckGo結果をパース
         // scraperクレート導入を前提に修正
-        let document = scraper::Html::parse_document(html);
-        let selector = scraper::Selector::parse("a.result__a");
+        let document = Html::parse_document(html);
+        let result_selector = match Selector::parse("a.result__a") {
             Ok(sel) => sel,
             Err(e) => {
                 eprintln!("⚠️  [ERROR] Failed to parse selector: {}", e);
                 return Ok(self.generate_official_format_results(query));
             }
         };
+        let snippet_selector = match Selector::parse(".result__snippet") {
+            Ok(sel) => sel,
+            Err(e) => {
+                eprintln!("⚠️  [ERROR] Failed to parse snippet selector: {}", e);
+                return Ok(self.generate_official_format_results(query));
+            }
+        };
 
 
         let mut results = Vec::new();
-        let mut match_count = 0;
 
-        for element in document.select(&selector).take(count) {
-            match_count += 1;
+        for element in document.select(&result_selector).take(count) {
             let title: String = element
                 .text()
                 .collect::<Vec<&str>>()
@@ -331,6 +340,22 @@ impl WebSearchProvider {
             // DuckDuckGoリダイレクトURLをデコード
             let url_decoded = decode_duckduckgo_url(&url_raw);
 
+            let snippet = element
+                .as_node()
+                .ancestors()
+                .filter_map(ElementRef::wrap)
+                .flat_map(|ancestor| ancestor.select(&snippet_selector))
+                .map(|snippet_ref| {
+                    snippet_ref
+                        .text()
+                        .collect::<Vec<&str>>()
+                        .join(" ")
+                        .trim()
+                        .to_string()
+                })
+                .find(|text| !text.is_empty())
+                .unwrap_or_else(|| format!("DuckDuckGo result for: {query}"));
+
             eprintln!(
                 "🦆 [DEBUG] Parsed result: title='{}', url='{}'",
                 title, url_decoded
@@ -339,7 +364,7 @@ impl WebSearchProvider {
             results.push(SearchResult {
                 title,
                 url: url_decoded,
-                snippet: format!("DuckDuckGo result for: {}", query),
+                snippet,
                 relevance_score: 0.80,
             });
         }
@@ -418,7 +443,7 @@ impl WebSearchProvider {
 
         Ok(text)
     }
-｛
+
     /// Extract text from HTML (simple implementation)
     fn extract_text_from_html(&self, html: &str) -> String {
         // 簡易的なHTMLタグ削除（本番ではscraper/html5everなど使用推奨）

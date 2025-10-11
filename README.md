@@ -69,6 +69,63 @@ Codex CLI supports a rich set of configuration options, with preferences stored 
 
 ---
 
+## 🚀 zapabob/codex Enhanced Features
+
+This fork extends OpenAI/codex with powerful sub-agent capabilities and deep research functionality.
+
+### Sub-Agent System
+
+Codex now supports specialized sub-agents for delegated tasks:
+
+```shell
+# Delegate code review to specialized agent
+codex delegate code-reviewer --scope ./src
+
+# Generate comprehensive tests
+codex delegate test-gen --scope ./src/api
+
+# Run security audit
+codex delegate sec-audit --scope ./backend
+```
+
+**Available Agents**: `code-reviewer`, `ts-reviewer`, `python-reviewer`, `unity-reviewer`, `test-gen`, `sec-audit`, `researcher`
+
+See [AGENTS.md](./AGENTS.md) and [.codex/README.md](./.codex/README.md) for configuration.
+
+### Deep Research
+
+Perform comprehensive research with multi-source validation and citation:
+
+```shell
+# Research with depth and breadth control
+codex research "Rust async programming patterns" --depth 2 --breadth 5
+```
+
+**Features**:
+- ✅ DuckDuckGo integration (no API key required)
+- ✅ Multi-source cross-validation
+- ✅ Contradiction detection
+- ✅ Citation tracking
+- ✅ $0 operation cost
+
+See [QUICKSTART_DEEPRESEARCH.md](./QUICKSTART_DEEPRESEARCH.md) for details.
+
+### For Contributors & AI Sessions
+
+If you're continuing development on this fork, see the comprehensive development guide:
+
+📖 **[.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md](./.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md)**
+
+This meta-prompt contains:
+- Current implementation status
+- Prioritized improvement roadmap
+- Development workflow guidelines
+- Quality standards
+- Testing strategies
+- OpenAI/codex synchronization policy
+
+---
+
 ### Docs & FAQ
 
 - [**Getting started**](./docs/getting-started.md)
