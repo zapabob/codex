@@ -1,161 +1,240 @@
-<p align="center"><code>npm i -g @openai/codex</code><br />or <code>brew install codex</code></p>
+# Codex
 
-<p align="center"><strong>Codex CLI</strong> is a coding agent from OpenAI that runs locally on your computer.
-</br>
-</br>If you want Codex in your code editor (VS Code, Cursor, Windsurf), <a href="https://developers.openai.com/codex/ide">install in your IDE</a>
-</br>If you are looking for the <em>cloud-based agent</em> from OpenAI, <strong>Codex Web</strong>, go to <a href="https://chatgpt.com/codex">chatgpt.com/codex</a></p>
+<div align="center">
 
-<p align="center">
-  <img src="./.github/codex-cli-splash.png" alt="Codex CLI splash" width="80%" />
-  </p>
+**AI-powered coding assistant in your terminal**
 
----
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.47.0--alpha.1-green.svg)](VERSION)
+[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
 
-## Quickstart
+[Installation](#-installation) • [Features](#-features) • [Usage](#-usage) • [Documentation](#-documentation)
 
-### Installing and running Codex CLI
-
-Install globally with your preferred package manager. If you use npm:
-
-```shell
-npm install -g @openai/codex
-```
-
-Alternatively, if you use Homebrew:
-
-```shell
-brew install codex
-```
-
-Then simply run `codex` to get started:
-
-```shell
-codex
-```
-
-<details>
-<summary>You can also go to the <a href="https://github.com/openai/codex/releases/latest">latest GitHub Release</a> and download the appropriate binary for your platform.</summary>
-
-Each GitHub Release contains many executables, but in practice, you likely want one of these:
-
-- macOS
-  - Apple Silicon/arm64: `codex-aarch64-apple-darwin.tar.gz`
-  - x86_64 (older Mac hardware): `codex-x86_64-apple-darwin.tar.gz`
-- Linux
-  - x86_64: `codex-x86_64-unknown-linux-musl.tar.gz`
-  - arm64: `codex-aarch64-unknown-linux-musl.tar.gz`
-
-Each archive contains a single entry with the platform baked into the name (e.g., `codex-x86_64-unknown-linux-musl`), so you likely want to rename it to `codex` after extracting it.
-
-</details>
-
-### Using Codex with your ChatGPT plan
-
-<p align="center">
-  <img src="./.github/codex-cli-login.png" alt="Codex CLI login" width="80%" />
-  </p>
-
-Run `codex` and select **Sign in with ChatGPT**. We recommend signing into your ChatGPT account to use Codex as part of your Plus, Pro, Team, Edu, or Enterprise plan. [Learn more about what's included in your ChatGPT plan](https://help.openai.com/en/articles/11369540-codex-in-chatgpt).
-
-You can also use Codex with an API key, but this requires [additional setup](./docs/authentication.md#usage-based-billing-alternative-use-an-openai-api-key). If you previously used an API key for usage-based billing, see the [migration steps](./docs/authentication.md#migrating-from-usage-based-billing-api-key). If you're having trouble with login, please comment on [this issue](https://github.com/openai/codex/issues/1243).
-
-### Model Context Protocol (MCP)
-
-Codex can access MCP servers. To configure them, refer to the [config docs](./docs/config.md#mcp_servers).
-
-### Configuration
-
-Codex CLI supports a rich set of configuration options, with preferences stored in `~/.codex/config.toml`. For full configuration options, see [Configuration](./docs/config.md).
+</div>
 
 ---
 
 ## 🚀 zapabob/codex Enhanced Features
 
-This fork extends OpenAI/codex with powerful sub-agent capabilities and deep research functionality.
+### 🤖 Sub-Agent System (NEW!)
 
-### Sub-Agent System
+Delegate specialized tasks to AI sub-agents with fine-grained permissions:
 
-Codex now supports specialized sub-agents for delegated tasks:
+```bash
+# Code review
+codex delegate code-reviewer --scope ./src --budget 40000
 
-```shell
-# Delegate code review to specialized agent
-codex delegate code-reviewer --scope ./src
+# Test generation
+codex delegate test-gen --scope ./src/auth --budget 30000
 
-# Generate comprehensive tests
-codex delegate test-gen --scope ./src/api
+# Security audit
+codex delegate sec-audit --budget 50000
 
-# Run security audit
-codex delegate sec-audit --scope ./backend
+# Research
+codex delegate researcher --goal "React Server Components best practices"
 ```
 
-**Available Agents**: `code-reviewer`, `ts-reviewer`, `python-reviewer`, `unity-reviewer`, `test-gen`, `sec-audit`, `researcher`
+#### Available Sub-Agents
 
-See [AGENTS.md](./AGENTS.md) and [.codex/README.md](./.codex/README.md) for configuration.
+| Agent | Purpose | Token Budget |
+|-------|---------|--------------|
+| `code-reviewer` | Security, performance, best practices analysis | 40,000 |
+| `test-gen` | Unit/Integration/E2E test generation (80%+ coverage) | 30,000 |
+| `sec-audit` | CVE scanning, dependency audit, patch recommendations | 50,000 |
+| `researcher` | Deep research with citations and cross-validation | 60,000 |
 
-### Deep Research
+**Quick Start**: See [SUBAGENTS_QUICKSTART.md](SUBAGENTS_QUICKSTART.md)
 
-Perform comprehensive research with multi-source validation and citation:
+---
 
-```shell
-# Research with depth and breadth control
-codex research "Rust async programming patterns" --depth 2 --breadth 5
+### 🔍 Deep Research (Enhanced)
+
+Multi-source research with citation and contradiction detection:
+
+```bash
+codex research "Rust async programming best practices" --depth 3
 ```
 
 **Features**:
-- ✅ DuckDuckGo integration (no API key required)
-- ✅ Multi-source cross-validation
-- ✅ Contradiction detection
-- ✅ Citation tracking
-- ✅ $0 operation cost
-
-See [QUICKSTART_DEEPRESEARCH.md](./QUICKSTART_DEEPRESEARCH.md) for details.
-
-### For Contributors & AI Sessions
-
-If you're continuing development on this fork, see the comprehensive development guide:
-
-📖 **[.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md](./.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md)**
-
-This meta-prompt contains:
-- Current implementation status
-- Prioritized improvement roadmap
-- Development workflow guidelines
-- Quality standards
-- Testing strategies
-- OpenAI/codex synchronization policy
+- DuckDuckGo HTML scraping (no API key required)
+- Smart sub-query generation
+- Cross-source validation
+- Cited reports with confidence scores
 
 ---
 
-### Docs & FAQ
+### 🔧 Codex MCP Integration (In Progress)
 
-- [**Getting started**](./docs/getting-started.md)
-  - [CLI usage](./docs/getting-started.md#cli-usage)
-  - [Running with a prompt as input](./docs/getting-started.md#running-with-a-prompt-as-input)
-  - [Example prompts](./docs/getting-started.md#example-prompts)
-  - [Memory with AGENTS.md](./docs/getting-started.md#memory-with-agentsmd)
-  - [Configuration](./docs/config.md)
-- [**Sandbox & approvals**](./docs/sandbox.md)
-- [**Authentication**](./docs/authentication.md)
-  - [Auth methods](./docs/authentication.md#forcing-a-specific-auth-method-advanced)
-  - [Login on a "Headless" machine](./docs/authentication.md#connecting-on-a-headless-machine)
-- **Automating Codex**
-  - [GitHub Action](https://github.com/openai/codex-action)
-  - [TypeScript SDK](./sdk/typescript/README.md)
-  - [Non-interactive mode (`codex exec`)](./docs/exec.md)
-- [**Advanced**](./docs/advanced.md)
-  - [Tracing / verbose logging](./docs/advanced.md#tracing--verbose-logging)
-  - [Model Context Protocol (MCP)](./docs/advanced.md#model-context-protocol-mcp)
-- [**Zero data retention (ZDR)**](./docs/zdr.md)
-- [**Contributing**](./docs/contributing.md)
-- [**Install & build**](./docs/install.md)
-  - [System Requirements](./docs/install.md#system-requirements)
-  - [DotSlash](./docs/install.md#dotslash)
-  - [Build from source](./docs/install.md#build-from-source)
-- [**FAQ**](./docs/faq.md)
-- [**Open source fund**](./docs/open-source-fund.md)
+**New**: Codex itself as an MCP server for sub-agents!
+
+```yaml
+# .codex/agents/my-agent.yaml
+tools:
+  mcp:
+    - codex_read_file       # Full Codex file reading
+    - codex_grep            # Full Codex grep
+    - codex_codebase_search # Semantic search
+```
+
+**Status**: 🚧 Implementation in progress
+**Design**: [_docs/2025-10-11_CodexMCP化設計書.md](_docs/2025-10-11_CodexMCP化設計書.md)
 
 ---
 
-## License
+### 📋 For Contributors
 
-This repository is licensed under the [Apache-2.0 License](LICENSE).
+This fork maintains **dual compatibility** with:
+- ✅ OpenAI official repository
+- ✅ zapabob enhancements
+
+**Development Guide**: [.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md](.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md)
+
+---
+
+## 🎯 What is Codex?
+
+Codex is an AI-powered coding assistant that runs in your terminal. It helps you write, understand, and improve code through natural conversation.
+
+### ✨ Features
+
+- **Interactive Chat**: Natural language conversations about your code
+- **Code Understanding**: Analyze, explain, and refactor existing code
+- **File Operations**: Read, write, and modify files with AI assistance
+- **Shell Integration**: Execute commands safely with sandboxing
+- **MCP Support**: Extensible via Model Context Protocol
+- **Multi-Model**: Support for GPT-4, Claude, and local models
+
+---
+
+## 📦 Installation
+
+### npm (Recommended)
+
+```bash
+npm install -g @openai/codex
+```
+
+### From Source
+
+```bash
+git clone https://github.com/zapabob/codex.git
+cd codex/codex-rs
+cargo build --release -p codex-cli
+npm install -g ./codex-cli
+```
+
+---
+
+## 🎮 Usage
+
+### Basic Commands
+
+```bash
+# Start interactive session
+codex
+
+# Non-interactive execution
+codex exec "Add error handling to main.rs"
+
+# Deep research
+codex research "Topic to research"
+
+# Delegate to sub-agent
+codex delegate code-reviewer --scope ./src
+
+# Resume previous session
+codex resume
+```
+
+### Configuration
+
+```bash
+# Login
+codex login
+
+# View status
+codex login status
+
+# Configure model
+codex -c model="gpt-4" "Your prompt"
+```
+
+---
+
+## 📚 Documentation
+
+### Official Documentation
+- [Getting Started](docs/getting-started.md)
+- [Installation Guide](docs/install.md)
+- [Configuration](docs/config.md)
+- [Advanced Usage](docs/advanced.md)
+- [FAQ](docs/faq.md)
+
+### Enhanced Features (zapabob)
+- [Sub-Agents Quick Start](SUBAGENTS_QUICKSTART.md)
+- [Requirements Specification](docs/REQUIREMENTS_SPECIFICATION.md)
+- [Implementation Plan](_docs/2025-10-11_要件定義書に基づく実装計画.md)
+- [Codex MCP Design](_docs/2025-10-11_CodexMCP化設計書.md)
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           Codex CLI (Node.js)           │
+│  codex, codex exec, codex delegate      │
+└──────────────────┬──────────────────────┘
+                   │
+┌──────────────────▼──────────────────────┐
+│      Codex Core (Rust)                  │
+│  ┌──────────────┐  ┌─────────────────┐ │
+│  │ AgentRuntime │  │ ModelClient     │ │
+│  │  Sub-Agents  │  │  LLM Interface  │ │
+│  └──────────────┘  └─────────────────┘ │
+│  ┌──────────────┐  ┌─────────────────┐ │
+│  │ Deep Research│  │ MCP Integration │ │
+│  └──────────────┘  └─────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see:
+- [Contributing Guide](docs/contributing.md)
+- [Development Workflow](.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md)
+
+---
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **OpenAI** - Original Codex project
+- **Anthropic** - Claude model support
+- **Contributors** - All contributors to the project
+
+---
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/zapabob/codex/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/zapabob/codex/discussions)
+- **Twitter**: [@zapabob](https://twitter.com/zapabob)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by the Codex community**
+
+**Version**: 0.47.0-alpha.1  
+**Last Updated**: 2025-10-11
+
+</div>

@@ -492,7 +492,7 @@ artifacts:
         fs::write(agents_dir.join("agent1.yaml"), "name: Agent1\ngoal: Goal1\ntools: {}\npolicies: {context: {}}\nsuccess_criteria: []\nartifacts: []").unwrap();
         fs::write(agents_dir.join("agent2.yaml"), "name: Agent2\ngoal: Goal2\ntools: {}\npolicies: {context: {}}\nsuccess_criteria: []\nartifacts: []").unwrap();
 
-     -co-colet config = Arc::new(Config::default_for_family("gpt-4"));
+        let config = Arc::new(Config::default_for_family("gpt-5-codex_medium"));
         let provider = ModelProviderInfo {
             name: "Test Provider".to_string(),
             base_url: Some("https://api.openai.com/v1".to_string()),

@@ -22,6 +22,7 @@ use tracing_subscriber::EnvFilter;
 
 mod codex_tool_config;
 mod codex_tool_runner;
+pub mod codex_tools;
 mod custom_command_tool;
 mod custom_command_tool_handler;
 mod deep_research_tool;
@@ -44,6 +45,7 @@ use crate::outgoing_message::OutgoingMessageSender;
 
 pub use crate::codex_tool_config::CodexToolCallParam;
 pub use crate::codex_tool_config::CodexToolCallReplyParam;
+pub use crate::codex_tools::CodexMcpTool;
 pub use crate::deep_research_tool::DeepResearchToolParam;
 pub use crate::exec_approval::ExecApprovalElicitRequestParams;
 pub use crate::exec_approval::ExecApprovalResponse;
