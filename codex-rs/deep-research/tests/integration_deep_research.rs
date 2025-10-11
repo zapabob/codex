@@ -84,9 +84,10 @@ async fn test_deep_research_contradiction_detection() {
     // MockProviderは矛盾を含む可能性がある
     if let Some(contradiction_report) = &report.contradictions {
         // 矛盾検出レポートが生成されていれば検証
+        // contradiction_count is always >= 0 (unsigned); just check existence
         assert!(
-            contradiction_report.contradiction_count >= 0,
-            "Contradiction report should have count"
+            contradiction_report.contradiction_count > 0 || contradiction_report.diversity_score >= 0.0,
+            "Contradiction report should have count or valid diversity score"
         );
         assert!(
             contradiction_report.diversity_score >= 0.0

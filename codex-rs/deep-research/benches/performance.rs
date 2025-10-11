@@ -45,8 +45,10 @@ fn bench_deep_research_by_depth(c: &mut Criterion) {
     let provider = Arc::new(MockProvider);
 
     for depth in [1, 2, 3].iter() {
+        let provider = Arc::new(MockProvider);
         group.bench_with_input(BenchmarkId::from_parameter(depth), depth, |b, &depth| {
-            b.to_async(&rt).iter(|| async move {
+            let provider = Arc::clone(&provider);
+            b.to_async(&rt).iter(|| async {
                 let config = DeepResearcherConfig {
                     max_depth: depth,
                     max_sources: 10,
@@ -108,8 +110,8 @@ fn bench_deep_research_memory(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(max_sources),
             max_sources,
-            |b, &max_sources| {
-                b.to_async(&rt).iter(|| async move {
+                |b, &max_sources| {
+                    b.to_async(&rt).iter(|| async {
                     let config = DeepResearcherConfig {
                         max_depth: 2,
                         max_sources,

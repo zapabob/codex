@@ -1065,6 +1065,7 @@ dependencies = [
  "owo-colors",
  "predicates",
  "pretty_assertions",
+ "serde",
  "serde_json",
  "supports-color",
  "tempfile",

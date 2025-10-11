@@ -34,6 +34,7 @@ pub fn decode_duckduckgo_url(url: &str) -> String {
 }
 
 /// URLリストを一括デコード
+#[allow(dead_code)]
 pub fn decode_urls(urls: Vec<String>) -> Vec<String> {
     urls.into_iter()
         .map(|url| decode_duckduckgo_url(&url))
