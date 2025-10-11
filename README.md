@@ -89,6 +89,23 @@ This fork maintains **dual compatibility** with:
 
 **Development Guide**: [.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md](.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md)
 
+#### CI/CD Pipeline
+
+- **Continuous Integration**: Automated testing on every PR
+  - 3 platforms (Ubuntu, Windows, macOS)
+  - Clippy lint + Rustfmt check
+  - Agent definition validation
+  - Integration tests (Deep Research + Sub-Agent)
+  - Security audit (cargo-audit)
+
+- **Continuous Delivery**: Automated releases on tag push
+  - Multi-platform binaries (Linux x64, Windows x64, macOS x64/ARM64)
+  - npm package generation
+  - GitHub Release creation
+  - Auto-generated release notes
+
+**CI/CD Guide**: [CI_CD_SETUP_GUIDE.md](CI_CD_SETUP_GUIDE.md)
+
 ---
 
 ## 🎯 What is Codex?
