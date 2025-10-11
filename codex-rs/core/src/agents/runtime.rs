@@ -5,9 +5,12 @@ use super::types::AgentResult;
 use super::types::AgentStatus;
 use anyhow::Context;
 use anyhow::Result;
+use anyhow::anyhow;
 use std::collections::HashMap;
+use std::ffi::OsString;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 use std::time::Instant;
 use tokio::sync::RwLock;
 use tracing::debug;
@@ -25,6 +28,7 @@ use crate::client_common::Prompt;
 use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
+use codex_mcp_client::McpClient;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
 use codex_protocol::config_types::ReasoningEffort;
@@ -32,6 +36,7 @@ use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::ResponseItem;
 use futures::StreamExt;
+use mcp_types::InitializeRequestParams;
 
 /// サブエージェントランタイム
 pub struct AgentRuntime {
@@ -53,6 +58,8 @@ pub struct AgentRuntime {
     provider: ModelProviderInfo,
     /// 会話ID
     conversation_id: ConversationId,
+    /// Codexバイナリパス（MCP統合用）
+    codex_binary_path: Option<PathBuf>,
 }
 
 impl AgentRuntime {
@@ -79,6 +86,7 @@ impl AgentRuntime {
             otel_manager,
             provider,
             conversation_id,
+            codex_binary_path: None,
         }
     }
 
@@ -522,5 +530,284 @@ artifacts:
         let agents = runtime.list_agents().await.unwrap();
 
         assert_eq!(agents, vec!["agent1", "agent2"]);
+    }
+}
+
+// ========== Codex MCP Integration (Phase 2) ==========
+
+impl AgentRuntime {
+    /// Codexバイナリパスを設定
+    pub fn with_codex_binary_path(mut self, path: PathBuf) -> Self {
+        self.codex_binary_path = Some(path);
+        self
+    }
+
+    /// Codex MCP Serverをstdio モードで起動
+    async fn spawn_codex_mcp_server(&self) -> Result<Arc<McpClient>> {
+        let codex_path = self
+            .codex_binary_path
+            .clone()
+            .or_else(|| std::env::current_exe().ok())
+            .ok_or_else(|| anyhow!("Codex binary path not configured"))?;
+
+        info!(
+            "Spawning Codex MCP Server: {} mcp-server",
+            codex_path.display()
+        );
+
+        let client = McpClient::new_stdio_client(
+            codex_path.into_os_string(),
+            vec![OsString::from("mcp-server")],
+            None,
+        )
+        .await
+        .context("Failed to spawn Codex MCP server")?;
+
+        // Initialize MCP session
+        let init_params = InitializeRequestParams {
+            client_info: mcp_types::Implementation {
+                name: "codex-subagent-runtime".to_string(),
+                version: env!("CARGO_PKG_VERSION").to_string(),
+                title: None,
+                user_agent: None,
+            },
+            protocol_version: "0.1.0".to_string(),
+            capabilities: mcp_types::ClientCapabilities {
+                elicitation: None,
+                experimental: None,
+                sampling: None,
+                roots: None,
+            },
+        };
+
+        client
+            .initialize(init_params, Some(Duration::from_secs(10)))
+            .await
+            .context("Failed to initialize Codex MCP server")?;
+
+        info!("Codex MCP Server initialized successfully");
+
+        Ok(Arc::new(client))
+    }
+
+    /// エージェント権限に基づいてCodex MCP toolsをフィルタリング
+    fn filter_codex_mcp_tools(&self, agent_def: &AgentDefinition) -> Vec<String> {
+        agent_def
+            .tools
+            .mcp
+            .iter()
+            .filter(|tool| tool.starts_with("codex_"))
+            .cloned()
+            .collect()
+    }
+
+    /// Codex MCP toolsの説明を生成（プロンプト用）
+    fn build_codex_mcp_tools_description(&self, allowed_tools: &[String]) -> String {
+        let mut desc = String::from("Available Codex MCP Tools:\n\n");
+        
+        for tool in allowed_tools {
+            let tool_desc = match tool.as_str() {
+                "codex_read_file" => {
+                    "- codex_read_file(path: str) -> str\n  \
+                     Read a file from the workspace using Codex.\n  \
+                     Safe, read-only operation."
+                }
+                "codex_grep" => {
+                    "- codex_grep(pattern: str, path: Optional[str]) -> List[str]\n  \
+                     Search for patterns in files using Codex grep.\n  \
+                     Safe, read-only operation."
+                }
+                "codex_codebase_search" => {
+                    "- codex_codebase_search(query: str, target_directories: Optional[List[str]]) -> List[str]\n  \
+                     Semantic code search using Codex.\n  \
+                     Safe, read-only operation."
+                }
+                "codex_apply_patch" => {
+                    "- codex_apply_patch(patch: str) -> str\n  \
+                     Apply a code patch using Codex.\n  \
+                     Requires write permission."
+                }
+                "codex_shell" => {
+                    "- codex_shell(command: str) -> str\n  \
+                     Execute a shell command via Codex (restricted).\n  \
+                     Requires shell permission."
+                }
+                _ => continue,
+            };
+            desc.push_str(tool_desc);
+            desc.push_str("\n\n");
+        }
+
+        desc.push_str(
+            "To use these tools, output a tool call in the following format:\n\
+             TOOL_CALL: tool_name(arg1=\"value1\", arg2=\"value2\")\n\n\
+             The results will be provided to you for further analysis.",
+        );
+
+        desc
+    }
+
+    /// エージェントをCodex MCP経由で実行（未実装: Phase 3で実装予定）
+    #[allow(dead_code)]
+    async fn execute_agent_with_codex_mcp(
+        &self,
+        agent_def: &AgentDefinition,
+        goal: &str,
+        _inputs: HashMap<String, String>,
+        _deadline: Option<u64>,
+    ) -> Result<Vec<String>> {
+        debug!(
+            "Executing agent '{}' with Codex MCP integration",
+            agent_def.name
+        );
+
+        // 1. Codex MCP Serverを起動
+        let _mcp_client = self
+            .spawn_codex_mcp_server()
+            .await
+            .context("Failed to spawn Codex MCP server")?;
+
+        // 2. エージェント権限でツールをフィルタリング
+        let allowed_tools = self.filter_codex_mcp_tools(agent_def);
+
+        info!(
+            "Agent '{}' is allowed to use {} Codex MCP tools: {:?}",
+            agent_def.name,
+            allowed_tools.len(),
+            allowed_tools
+        );
+
+        // 3. TODO: Phase 3で実装
+        // - ModelClient + MCP Toolsでプロンプト構築
+        // - LLM呼び出し
+        // - ツールコール検出
+        // - MCP Client経由でツール実行
+        // - 結果をLLMにフィードバック
+        // - 最終レポート生成
+
+        Ok(vec![format!(
+            "Agent '{}' executed with goal: {}\nAllowed Codex MCP tools: {:?}\n\n\
+             NOTE: Full MCP integration is planned for Phase 3.\n\
+             This is a placeholder result demonstrating the MCP server spawn capability.",
+            agent_def.name, goal, allowed_tools
+        )])
+    }
+}
+
+#[cfg(test)]
+mod mcp_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_filter_codex_mcp_tools() {
+        use crate::agents::types::ContextPolicy;
+        use crate::agents::types::ExecutionPolicy;
+        use crate::agents::types::PermissionPolicy;
+        use crate::agents::types::ToolsPolicy;
+        use crate::model_provider_info::WireApi;
+        use uuid::Uuid;
+
+        let agent_def = AgentDefinition {
+            name: "test-agent".to_string(),
+            goal: "Test".to_string(),
+            tools: ToolsPolicy {
+                mcp: vec![
+                    "codex_read_file".to_string(),
+                    "codex_grep".to_string(),
+                    "some_other_tool".to_string(), // 非Codexツール
+                ],
+                shell: vec![],
+            },
+            policies: ExecutionPolicy {
+                context: ContextPolicy {
+                    max_tokens: 1000,
+                    max_function_calls: 10,
+                },
+                permissions: PermissionPolicy {
+                    filesystem: vec![],
+                    network: vec![],
+                },
+            },
+            success_criteria: vec![],
+            artifacts: vec![],
+        };
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config = Arc::new(Config::default_for_family("gpt-4"));
+        let provider = ModelProviderInfo {
+            name: "Test".to_string(),
+            base_url: Some("https://api.openai.com/v1".to_string()),
+            env_key: Some("OPENAI_API_KEY".to_string()),
+            wire_api: WireApi::Chat,
+            env_key_instructions: None,
+            query_params: None,
+            http_headers: None,
+            env_http_headers: None,
+            request_max_retries: Some(4),
+            stream_max_retries: Some(10),
+            stream_idle_timeout_ms: Some(300_000),
+            requires_openai_auth: false,
+        };
+        let otel_manager = OtelEventManager::new();
+        let conversation_id = ConversationId(Uuid::new_v4());
+
+        let runtime = AgentRuntime::new(
+            temp_dir.path().to_path_buf(),
+            10000,
+            config,
+            None,
+            otel_manager,
+            provider,
+            conversation_id,
+        );
+
+        let filtered = runtime.filter_codex_mcp_tools(&agent_def);
+
+        assert_eq!(filtered.len(), 2);
+        assert!(filtered.contains(&"codex_read_file".to_string()));
+        assert!(filtered.contains(&"codex_grep".to_string()));
+        assert!(!filtered.contains(&"some_other_tool".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_build_codex_mcp_tools_description() {
+        use crate::model_provider_info::WireApi;
+        use uuid::Uuid;
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config = Arc::new(Config::default_for_family("gpt-4"));
+        let provider = ModelProviderInfo {
+            name: "Test".to_string(),
+            base_url: Some("https://api.openai.com/v1".to_string()),
+            env_key: Some("OPENAI_API_KEY".to_string()),
+            wire_api: WireApi::Chat,
+            env_key_instructions: None,
+            query_params: None,
+            http_headers: None,
+            env_http_headers: None,
+            request_max_retries: Some(4),
+            stream_max_retries: Some(10),
+            stream_idle_timeout_ms: Some(300_000),
+            requires_openai_auth: false,
+        };
+        let otel_manager = OtelEventManager::new();
+        let conversation_id = ConversationId(Uuid::new_v4());
+
+        let runtime = AgentRuntime::new(
+            temp_dir.path().to_path_buf(),
+            10000,
+            config,
+            None,
+            otel_manager,
+            provider,
+            conversation_id,
+        );
+
+        let tools = vec!["codex_read_file".to_string(), "codex_grep".to_string()];
+        let desc = runtime.build_codex_mcp_tools_description(&tools);
+
+        assert!(desc.contains("codex_read_file"));
+        assert!(desc.contains("codex_grep"));
+        assert!(desc.contains("Safe, read-only operation"));
     }
 }
