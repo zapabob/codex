@@ -1,32 +1,52 @@
-# test
+# Rust async programming
 
 ## Summary
 
-Research Summary for "test" (comprehensive strategy):
+Research Summary for "Rust async programming" (comprehensive strategy):
 
-Found 1 relevant findings.
+Found 3 relevant findings.
 
 Key findings:
-- Finding from test - Official Documentation: Not Found This old browser is unsupported and will most likely display funky things. Rust 1.92.0-nightly 9725c4baa Not Found Looks like you’ve taken a wrong turn. Some things that might be helpful to you though: § Search From the Standard Library From DuckDuckGo § Reference The Rust official site The Rust reference § Docs The standard library Copyright &copy; 2011 The Rust Project Developers. Licensed under the Apache License, Version 2.0 or the MIT license , at your option. This file may not be copied, modified, or distributed except according to those terms. (confidence: 0.95)
+- Finding from Fundamentals of Asynchronous Programming: Async, Await ... - Learn Rust:  (confidence: 0.80)
+- Finding from Introduction - Async programming in Rust with async-std:  (confidence: 0.80)
+- Finding from Async/Await in Rust: A Beginner&#x27;s Guide | by Leapcell | Medium:  (confidence: 0.80)
 
 ## Metadata
 
 - **Strategy**: Comprehensive
 - **Depth**: 1
-- **Sources**: 1
-- **Diversity Score**: 1.00
-- **Confidence**: High
+- **Sources**: 3
+- **Diversity Score**: 0.00
+- **Confidence**: Medium
 
 ## Findings
 
 ### Finding 1
 
-Finding from test - Official Documentation: Not Found This old browser is unsupported and will most likely display funky things. Rust 1.92.0-nightly 9725c4baa Not Found Looks like you’ve taken a wrong turn. Some things that might be helpful to you though: § Search From the Standard Library From DuckDuckGo § Reference The Rust official site The Rust reference § Docs The standard library Copyright &copy; 2011 The Rust Project Developers. Licensed under the Apache License, Version 2.0 or the MIT license , at your option. This file may not be copied, modified, or distributed except according to those terms.
+Finding from Fundamentals of Asynchronous Programming: Async, Await ... - Learn Rust: 
 
-**Confidence**: 0.95
+**Confidence**: 0.80
+
+### Finding 2
+
+Finding from Introduction - Async programming in Rust with async-std: 
+
+**Confidence**: 0.80
+
+### Finding 3
+
+Finding from Async/Await in Rust: A Beginner&#x27;s Guide | by Leapcell | Medium: 
+
+**Confidence**: 0.80
 
 ## Sources
 
-1. [test - Official Documentation](https://doc.rust-lang.org/search?q=test) - Relevance: 0.95
-   > Official documentation for test. Includes API references, guides, and examples from the Rust team.
+1. [Fundamentals of Asynchronous Programming: Async, Await ... - Learn Rust](//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fbook%2Fch17%2D00%2Dasync%2Dawait.html&amp;rut=9aca0b7dfa5ec8a99898cffce7b279366b0810219a3bce42ea4f6cdaf332483f) - Relevance: 0.80
+   > DuckDuckGo result for: Rust async programming
+
+2. [Introduction - Async programming in Rust with async-std](//duckduckgo.com/l/?uddg=https%3A%2F%2Fbook.async.rs%2F&amp;rut=0a6462cf63dab09bfae37826a611090583e336f13dc41415802b15f6485f8e1c) - Relevance: 0.80
+   > DuckDuckGo result for: Rust async programming
+
+3. [Async/Await in Rust: A Beginner&#x27;s Guide | by Leapcell | Medium](//duckduckgo.com/l/?uddg=https%3A%2F%2Fleapcell.medium.com%2Fasync%2Dawait%2Din%2Drust%2Da%2Dbeginners%2Dguide%2D8752d2c2abbf&amp;rut=bddb68e7f1b401c9331cf45dd2d5318ed89588d6f3ecd3aab1919f6cbd729def) - Relevance: 0.80
+   > DuckDuckGo result for: Rust async programming
 

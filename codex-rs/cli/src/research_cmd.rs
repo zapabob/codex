@@ -2,6 +2,7 @@ use anyhow::Context;
 use anyhow::Result;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
+use codex_deep_research::GeminiSearchProvider; // Gemini CLI統合
 use codex_deep_research::McpSearchProvider; // MCP統合
 use codex_deep_research::ResearchPlanner;
 use codex_deep_research::ResearchStrategy;
@@ -20,6 +21,7 @@ pub async fn run_research_command(
     _mcp: Option<String>,
     lightweight_fallback: bool,
     out: Option<PathBuf>,
+    use_gemini: bool, // 新規: Gemini CLI使用フラグ
 ) -> Result<()> {
     println!("🔍 Starting deep research on: {}", topic);
     println!("   Depth: {}, Breadth: {}", depth, breadth);
@@ -45,8 +47,22 @@ pub async fn run_research_command(
     };
 
     // Deep Research実行（本番実装）
-    // MCPサーバー経由のWeb検索を優先、フォールバックとしてWebSearchProvider使用
-    let provider: Arc<dyn ResearchProvider + Send + Sync> = if let Some(_mcp_url) = _mcp {
+    // 優先順位: Gemini CLI > MCP > WebSearchProvider
+    let provider: Arc<dyn ResearchProvider + Send + Sync> = if use_gemini {
+        // Gemini CLI経由でGoogle検索を使用
+        println!("🤖 Using Gemini CLI with Google Search (Grounding)");
+
+        // 環境変数チェック
+        if std::env::var("GOOGLE_API_KEY").is_ok() {
+            println!("   ✅ GOOGLE_API_KEY detected");
+        } else {
+            eprintln!("   ⚠️  GOOGLE_API_KEY not found. Please set it:");
+            eprintln!("   export GOOGLE_API_KEY=\"your-api-key\"");
+            anyhow::bail!("GOOGLE_API_KEY is required for Gemini CLI");
+        }
+
+        Arc::new(GeminiSearchProvider::default())
+    } else if let Some(_mcp_url) = _mcp {
         println!("🔌 Using MCP Search Provider (DuckDuckGo backend)");
         Arc::new(McpSearchProvider::new(SearchBackend::DuckDuckGo, None))
     } else {

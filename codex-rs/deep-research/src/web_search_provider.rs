@@ -2,6 +2,7 @@
 // Conforms to OpenAI/codex official web_search implementation
 use crate::provider::ResearchProvider;
 use crate::types::Source;
+use crate::url_decoder::decode_duckduckgo_url;
 use anyhow::Result;
 use async_trait::async_trait;
 use serde::Deserialize;
@@ -217,18 +218,63 @@ impl WebSearchProvider {
         query: &str,
         count: usize,
     ) -> Result<Vec<SearchResult>> {
+        eprintln!("🦆 [DEBUG] Starting DuckDuckGo search for: {}", query);
+
         let url = format!(
             "https://html.duckduckgo.com/html/?q={}",
             urlencoding::encode(query)
         );
+        eprintln!("🦆 [DEBUG] DuckDuckGo URL: {}", url);
 
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
             .timeout(std::time::Duration::from_secs(30))
             .build()?;
 
+        eprintln!("🦆 [DEBUG] Sending HTTP request to DuckDuckGo...");
         let response = client.get(&url).send().await?;
+        let status = response.status();
+        eprintln!("🦆 [DEBUG] Received response, status: {}", status);
+
+        // HTTPステータスコード202（Accepted）の場合、DuckDuckGoが処理中
+        // 短いクエリで発生しやすいため、警告を表示してリトライ
+        if status == reqwest::StatusCode::ACCEPTED {
+            eprintln!("⚠️  [WARNING] DuckDuckGo returned 202 (Accepted) - query may be too short");
+            eprintln!("   Retrying with POST method...");
+            // POSTメソッドでリトライ
+            let form_data = [("q", query), ("b", ""), ("kl", "wt-wt")];
+            let retry_response = client
+                .post("https://html.duckduckgo.com/html/")
+                .form(&form_data)
+                .send()
+                .await?;
+            eprintln!(
+                "🦆 [DEBUG] Retry response status: {}",
+                retry_response.status()
+            );
+            let html = retry_response.text().await?;
+            return self.parse_duckduckgo_html(&html, query, count);
+        }
+
         let html = response.text().await?;
+        self.parse_duckduckgo_html(&html, query, count)
+    }
+
+    /// HTMLをパースしてSearchResultsを抽出（ヘルパーメソッド）
+    fn parse_duckduckgo_html(
+        &self,
+        html: &str,
+        query: &str,
+        count: usize,
+    ) -> Result<Vec<SearchResult>> {
+        eprintln!("🦆 [DEBUG] Parsing HTML ({} bytes)", html.len());
+
+        // HTMLを一時ファイルに保存してデバッグ
+        if let Err(e) = std::fs::write("_debug_duckduckgo_retry.html", html) {
+            eprintln!("⚠️  Could not save HTML debug file: {}", e);
+        } else {
+            eprintln!("💾 [DEBUG] Saved HTML to _debug_duckduckgo_retry.html");
+        }
 
         // 簡易的なHTMLパース（本番ではscraper/selectなど使用推奨）
         let re =
@@ -236,17 +282,39 @@ impl WebSearchProvider {
                 .unwrap();
 
         let mut results = Vec::new();
-        for cap in re.captures_iter(&html).take(count) {
+        let captures_count = re.captures_iter(html).count();
+        eprintln!("🦆 [DEBUG] Found {} regex matches in HTML", captures_count);
+
+        for cap in re.captures_iter(html).take(count) {
+            let title = cap.get(2).map_or("", |m| m.as_str()).to_string();
+            let url_raw = cap.get(1).map_or("", |m| m.as_str()).to_string();
+
+            // DuckDuckGoリダイレクトURLをデコード
+            let url_decoded = decode_duckduckgo_url(&url_raw);
+
+            eprintln!(
+                "🦆 [DEBUG] Parsed result: title='{}', url='{}'",
+                title, url_decoded
+            );
+
             results.push(SearchResult {
-                title: cap.get(2).map_or("", |m| m.as_str()).to_string(),
-                url: cap.get(1).map_or("", |m| m.as_str()).to_string(),
+                title,
+                url: url_decoded,
                 snippet: format!("DuckDuckGo result for: {}", query),
                 relevance_score: 0.80,
             });
         }
 
+        eprintln!(
+            "✅ [DEBUG] DuckDuckGo parse completed: {} results",
+            results.len()
+        );
+
         // フォールバック: パースに失敗した場合
         if results.is_empty() {
+            eprintln!(
+                "⚠️  [DEBUG] DuckDuckGo returned 0 results (HTML parse failed), using fallback"
+            );
             results = self.generate_official_format_results(query);
         }
 

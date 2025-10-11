@@ -1,10 +1,12 @@
 pub mod contradiction;
+mod gemini_search_provider;
 mod mcp_search_provider;
 mod pipeline;
 pub mod planner;
 pub mod provider;
 mod strategies;
 pub mod types;
+mod url_decoder;
 mod web_search_provider;
 
 use anyhow::Result;
@@ -15,6 +17,7 @@ use types::ResearchReport;
 pub use contradiction::Contradiction;
 pub use contradiction::ContradictionChecker;
 pub use contradiction::ContradictionReport;
+pub use gemini_search_provider::GeminiSearchProvider;
 pub use mcp_search_provider::McpSearchProvider;
 pub use mcp_search_provider::SearchBackend;
 pub use planner::ResearchPlan;

@@ -114,6 +114,25 @@ codex research "Kubernetes best practices" \
   --out kubernetes-research.md
 ```
 
+### Gemini CLI統合（新機能）
+
+```bash
+# Gemini CLIでGoogle検索を使用（要: gemini CLI + GOOGLE_API_KEY）
+codex research "Rust async best practices" \
+  --gemini \
+  --depth 4
+
+# 環境変数設定
+export GOOGLE_API_KEY="your-google-api-key"
+
+# Gemini CLI経由で高品質検索
+codex research "Latest AI trends 2025" \
+  --gemini \
+  --breadth 15
+```
+
+**詳細**: [Gemini CLI統合ガイド](docs/gemini-cli-integration.md)
+
 ### MCP統合（高度）
 
 ```bash
@@ -243,6 +262,7 @@ codex delegate test-gen \
 | `--budget <N>` | トークン上限 | `--budget 100000` |
 | `--citations` | 引用を含める | `--citations` |
 | `--lightweight-fallback` | 軽量版使用 | `--lightweight-fallback` |
+| `--gemini` | Gemini CLI使用 | `--gemini` |
 | `--mcp <URL>` | MCP統合 | `--mcp "http://localhost:3000"` |
 | `--out <FILE>` | 出力先 | `--out report.md` |
 
@@ -444,8 +464,9 @@ codex research "topic" --out $(pwd)/my-report.md
 ### 学習リソース
 
 1. **詳細ドキュメント**: `codex-rs/deep-research/README.md`
-2. **サブエージェント設定**: `.codex/agents/*.yaml`
-3. **API統合ガイド**: `docs/codex-subagents-deep-research.md`
+2. **Gemini CLI統合**: `docs/gemini-cli-integration.md` 🆕
+3. **サブエージェント設定**: `.codex/agents/*.yaml`
+4. **API統合ガイド**: `docs/codex-subagents-deep-research.md`
 
 ### 高度な使い方
 

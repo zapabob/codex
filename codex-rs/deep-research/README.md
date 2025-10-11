@@ -26,8 +26,9 @@ Codex Deep Researchは、**OpenAI/codexのWeb検索機能**と**DuckDuckGo HTML�
 ### ✨ 主な特徴
 
 - 🔓 **APIキー不要**: DuckDuckGoによりゼロコストで即座に利用可能
+- 🤖 **Gemini CLI統合**: Google Search + Gemini AIによる高品質検索 🆕
 - 🔄 **3段階フォールバック**: 商用API → DuckDuckGo → 公式フォーマット
-- 🌐 **複数バックエンド対応**: Brave, Google, Bing, DuckDuckGo
+- 🌐 **複数バックエンド対応**: Gemini CLI, Brave, Google, Bing, DuckDuckGo
 - 🎯 **計画的調査**: サブクエリ分解 → 多段探索 → 矛盾検出
 - 📊 **引用必須レポート**: Markdown形式で完全な引用付きレポート生成
 
@@ -72,6 +73,11 @@ export BING_API_KEY="your-api-key"
 # 基本的な使い方（APIキー不要）
 codex research "Rust async best practices"
 
+# Gemini CLI統合（新機能）
+codex research "Rust async best practices" \
+  --gemini \
+  --depth 4
+
 # 詳細設定
 codex research "Rust async" \
   --depth 5 \
@@ -80,6 +86,8 @@ codex research "Rust async" \
   --citations \
   --out report.md
 ```
+
+**詳細**: [Gemini CLI統合ガイド](../../docs/gemini-cli-integration.md)
 
 ### 3. サブエージェント委譲
 

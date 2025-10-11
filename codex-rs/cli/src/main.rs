@@ -184,6 +184,10 @@ struct ResearchCommand {
     #[arg(long, default_value = "false")]
     lightweight_fallback: bool,
 
+    /// Use Gemini CLI with Google Search (requires gemini CLI and GOOGLE_API_KEY)
+    #[arg(long, default_value = "false")]
+    gemini: bool,
+
     /// Output file for the report
     #[arg(short, long, value_name = "FILE")]
     out: Option<PathBuf>,
@@ -425,6 +429,7 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 research_cmd.mcp,
                 research_cmd.lightweight_fallback,
                 research_cmd.out,
+                research_cmd.gemini,
             )
             .await?;
         }
