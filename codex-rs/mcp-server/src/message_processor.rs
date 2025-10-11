@@ -664,7 +664,9 @@ impl MessageProcessor {
         id: RequestId,
         arguments: Option<serde_json::Value>,
     ) {
-        let result = crate::supervisor_tool_handler::handle_supervisor_tool_call(id.clone(), arguments).await;
+        let result =
+            crate::supervisor_tool_handler::handle_supervisor_tool_call(id.clone(), arguments)
+                .await;
         self.send_response::<mcp_types::CallToolRequest>(id, result)
             .await;
     }
@@ -674,7 +676,11 @@ impl MessageProcessor {
         id: RequestId,
         arguments: Option<serde_json::Value>,
     ) {
-        let result = crate::deep_research_tool_handler::handle_deep_research_tool_call(id.clone(), arguments).await;
+        let result = crate::deep_research_tool_handler::handle_deep_research_tool_call(
+            id.clone(),
+            arguments,
+        )
+        .await;
         self.send_response::<mcp_types::CallToolRequest>(id, result)
             .await;
     }

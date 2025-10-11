@@ -1,6 +1,8 @@
 // Delegate command - サブエージェント委任機能（簡略化版）
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -50,10 +52,7 @@ pub async fn run_delegate_command(
         std::process::exit(1);
     }
 
-    println!(
-        "\n✅ Agent definition found: {}",
-        agent_path.display()
-    );
+    println!("\n✅ Agent definition found: {}", agent_path.display());
 
     // YAML定義を読み込み
     let yaml_content =
@@ -86,8 +85,7 @@ pub async fn run_delegate_command(
     println!("   [3/4] Executing task...");
 
     // 実際のタスク実行（簡略版）
-    let result =
-        execute_agent_task(&agent, &goal_str, &inputs, total_budget, deadline).await?;
+    let result = execute_agent_task(&agent, &goal_str, &inputs, total_budget, deadline).await?;
 
     println!("   [4/4] Generating artifacts... ✅");
 
@@ -128,10 +126,7 @@ fn list_available_agents(workspace_dir: &PathBuf) -> Result<()> {
     let agents_dir = workspace_dir.join(".codex/agents");
 
     if !agents_dir.exists() {
-        println!(
-            "   (No agents directory found at {})",
-            agents_dir.display()
-        );
+        println!("   (No agents directory found at {})", agents_dir.display());
         return Ok(());
     }
 

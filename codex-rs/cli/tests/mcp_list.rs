@@ -3,8 +3,8 @@ use std::path::Path;
 use anyhow::Result;
 use predicates::str::contains;
 use pretty_assertions::assert_eq;
-use serde_json::Value as JsonValue;
 use serde_json::json;
+use serde_json::Value as JsonValue;
 use tempfile::TempDir;
 
 fn codex_command(codex_home: &Path) -> Result<assert_cmd::Command> {

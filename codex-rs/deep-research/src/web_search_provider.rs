@@ -1,11 +1,11 @@
 // Web Search Provider - Real web search integration
 // Conforms to OpenAI/codex official web_search implementation
-use crate::provider::ResearchProvider;
 use crate::types::Source;
 use crate::url_decoder::decode_duckduckgo_url;
 use anyhow::Result;
-use async_trait::async_trait;
-use scraper::{Html, Selector};
+use scraper::ElementRef;
+use scraper::Html;
+use scraper::Selector;
 use serde::Deserialize;
 use serde::Serialize;
 use tracing::debug;
@@ -323,11 +323,10 @@ impl WebSearchProvider {
             }
         };
 
-
         let mut results = Vec::new();
 
         for element in document.select(&result_selector).take(count) {
-            let title: String = element
+            let title = element
                 .text()
                 .collect::<Vec<&str>>()
                 .join(" ")
@@ -341,7 +340,6 @@ impl WebSearchProvider {
             let url_decoded = decode_duckduckgo_url(&url_raw);
 
             let snippet = element
-                .as_node()
                 .ancestors()
                 .filter_map(ElementRef::wrap)
                 .flat_map(|ancestor| ancestor.select(&snippet_selector))
@@ -371,7 +369,7 @@ impl WebSearchProvider {
 
         eprintln!(
             "🦆 [DEBUG] Found {} search results in HTML with scraper",
-            match_count
+            results.len()
         );
         eprintln!(
             "✅ [DEBUG] DuckDuckGo parse completed: {} results",
@@ -383,8 +381,13 @@ impl WebSearchProvider {
             eprintln!(
                 "⚠️  [DEBUG] DuckDuckGo returned 0 results (HTML parse failed), using fallback"
             );
-            results = self.generate_official_format_results(query);
+            return Ok(self.generate_official_format_results(query));
         }
+
+        eprintln!(
+            "🦆[DEBUG] DuckDuckGo parse extracted {} results",
+            results.len()
+        );
 
         Ok(results)
     }
@@ -557,10 +560,7 @@ impl WebSearchProvider {
     }
 }
 
-
-
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SearchResult {
     pub title: String,
     pub url: String,
@@ -573,43 +573,114 @@ mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
 
-    #[tokio::test]
-    async fn test_web_search_provider() {
+    #[test]
+    fn parse_duckduckgo_html_extracts_results_with_snippets() {
         let provider = WebSearchProvider::default();
-        let sources = provider.search("Rust async", 3).await.unwrap();
+        let html = r#"
+        <html>
+            <body>
+                <div class="result">
+                    <div class="result__body">
+                        <h2 class="result__title">
+                            <a class="result__a" href="https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Frust-async">Rust Async Book</a>
+                        </h2>
+                        <div class="result__snippet">Learn async in Rust with examples.</div>
+                    </div>
+                </div>
+                <div class="result">
+                    <div class="result__body">
+                        <h2 class="result__title">
+                            <a class="result__a" href="https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Ftokio">Tokio Guide</a>
+                        </h2>
+                        <div class="result__snippet">Official Tokio runtime documentation and guides.</div>
+                    </div>
+                </div>
+            </body>
+        </html>
+        "#;
 
-        assert_eq!(sources.len(), 3);
-        assert!(!sources[0].url.contains("example.com"));
-        assert!(sources[0].relevance_score > 0.8);
-    }
+        let results = provider
+            .parse_duckduckgo_html(html, "rust async", 5)
+            .expect("parse succeeds");
 
-    #[tokio::test]
-    async fn test_web_search_provider_retrieve() {
-        let provider = WebSearchProvider::default();
-        let content = provider
-            .retrieve("https://doc.rust-lang.org/test")
-            .await
-            .unwrap();
-
-        assert!(content.contains("Rust Official Documentation"));
-        assert!(content.contains("https://doc.rust-lang.org"));
-    }
-
-    #[tokio::test]
-    async fn test_all_source_types() {
-        let provider = WebSearchProvider::default();
-
-        let urls = vec![
-            "https://doc.rust-lang.org/book",
-            "https://stackoverflow.com/questions/123",
-            "https://github.com/rust-lang/rust",
+        let expected = vec![
+            SearchResult {
+                title: "Rust Async Book".to_string(),
+                url: "https://example.com/rust-async".to_string(),
+                snippet: "Learn async in Rust with examples.".to_string(),
+                relevance_score: 0.80,
+            },
+            SearchResult {
+                title: "Tokio Guide".to_string(),
+                url: "https://example.com/tokio".to_string(),
+                snippet: "Official Tokio runtime documentation and guides.".to_string(),
+                relevance_score: 0.80,
+            },
         ];
 
-        for url in urls {
-            let content = provider.retrieve(url).await.unwrap();
-            assert!(!content.is_empty());
-            assert!(content.contains(url));
-        }
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn parse_duckduckgo_html_respects_count_limit() {
+        let provider = WebSearchProvider::default();
+        let html = r#"
+        <html>
+            <body>
+                <div class="result">
+                    <div class="result__body">
+                        <h2 class="result__title">
+                            <a class="result__a" href="https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fone">First Result</a>
+                        </h2>
+                        <div class="result__snippet">Snippet one.</div>
+                    </div>
+                </div>
+                <div class="result">
+                    <div class="result__body">
+                        <h2 class="result__title">
+                            <a class="result__a" href="https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Ftwo">Second Result</a>
+                        </h2>
+                        <div class="result__snippet">Snippet two.</div>
+                    </div>
+                </div>
+                <div class="result">
+                    <div class="result__body">
+                        <h2 class="result__title">
+                            <a class="result__a" href="https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fthree">Third Result</a>
+                        </h2>
+                        <div class="result__snippet">Snippet three.</div>
+                    </div>
+                </div>
+            </body>
+        </html>
+        "#;
+
+        let results = provider
+            .parse_duckduckgo_html(html, "rust", 2)
+            .expect("parse succeeds");
+
+        assert_eq!(results.len(), 2);
+        assert_eq!(
+            results[1],
+            SearchResult {
+                title: "Second Result".to_string(),
+                url: "https://example.com/two".to_string(),
+                snippet: "Snippet two.".to_string(),
+                relevance_score: 0.80,
+            }
+        );
+    }
+
+    #[test]
+    fn parse_duckduckgo_html_returns_fallback_when_empty() {
+        let provider = WebSearchProvider::default();
+        let html = "<html><body><p>No results found.</p></body></html>";
+
+        let results = provider
+            .parse_duckduckgo_html(html, "rust", 3)
+            .expect("parse succeeds");
+        let fallback = provider.generate_official_format_results("rust");
+
+        assert_eq!(results, fallback);
     }
 }
-

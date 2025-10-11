@@ -1,5 +1,6 @@
 use anyhow::Context;
 use anyhow::Result;
+use codex_deep_research::provider::ResearchProvider;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
 use codex_deep_research::GeminiSearchProvider; // Gemini CLI統合
@@ -8,7 +9,6 @@ use codex_deep_research::ResearchPlanner;
 use codex_deep_research::ResearchStrategy;
 use codex_deep_research::SearchBackend;
 use codex_deep_research::WebSearchProvider; // 本番実装
-use codex_deep_research::provider::ResearchProvider;
 use std::path::PathBuf;
 use std::sync::Arc;
 
