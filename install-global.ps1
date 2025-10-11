@@ -12,12 +12,12 @@ if (-not $isAdmin) {
 
 # 1. Rust バイナリビルド（既にビルド済みの場合はスキップ）
 Write-Host "📦 Checking Rust binaries..." -ForegroundColor Yellow
-$binariesExist = Test-Path "codex-rs\target\release\codex-tui.exe"
+$binariesExist = (Test-Path "codex-rs\target\release\codex-tui.exe") -and (Test-Path "codex-rs\target\release\codex.exe")
 
 if (-not $binariesExist) {
     Write-Host "Building Rust binaries..." -ForegroundColor Yellow
     Set-Location -Path "codex-rs"
-    cargo build --release --bin codex-tui
+    cargo build --release --bin codex --bin codex-tui
     Set-Location -Path ".."
 }
 
@@ -41,6 +41,7 @@ Write-Host ""
 Write-Host "📦 Installing binaries to $installDir..." -ForegroundColor Yellow
 
 $binaries = @(
+    "codex.exe",
     "codex-tui.exe",
     "codex-mcp-server.exe",
     "codex-mcp-client.exe"

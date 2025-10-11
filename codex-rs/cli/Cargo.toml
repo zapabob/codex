@@ -28,6 +28,7 @@ codex-core = { workspace = true }
 codex-deep-research = { workspace = true }
 codex-exec = { workspace = true }
 codex-login = { workspace = true }
+codex-otel = { workspace = true }
 codex-mcp-server = { workspace = true }
 codex-process-hardening = { workspace = true }
 codex-protocol = { workspace = true }

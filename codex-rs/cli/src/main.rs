@@ -129,6 +129,9 @@ struct ResumeCommand {
 
 #[derive(Debug, Parser)]
 struct DelegateCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
     /// Agent name to delegate to
     #[arg(value_name = "AGENT")]
     agent: String,
@@ -415,8 +418,13 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
             );
             codex_cloud_tasks::run_main(cloud_cli, codex_linux_sandbox_exe).await?;
         }
-        Some(Subcommand::Delegate(delegate_cmd)) => {
+        Some(Subcommand::Delegate(mut delegate_cmd)) => {
+            prepend_config_flags(
+                &mut delegate_cmd.config_overrides,
+                root_config_overrides.clone(),
+            );
             codex_cli::delegate_cmd::run_delegate_command(
+                delegate_cmd.config_overrides,
                 delegate_cmd.agent,
                 delegate_cmd.goal,
                 delegate_cmd.scope,

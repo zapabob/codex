@@ -99,34 +99,70 @@ impl GeminiSearchProvider {
         Ok(self.parse_text_response(json_str))
     }
 
-    /// Parse text response as fallback
+    /// Parse text response as fallback (no regex dependencies)
     fn parse_text_response(&self, text: &str) -> Vec<GeminiSearchResult> {
-        // Simple text parsing to extract URLs and titles
         let mut results = Vec::new();
 
-        // Look for patterns like "Title: ...", "URL: ...", or markdown links [title](url)
-        let re_markdown = regex::Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap();
+        // マークダウンリンクをパース: [title](url)
+        let mut current_pos = 0;
+        let text_bytes = text.as_bytes();
 
-        for cap in re_markdown.captures_iter(text) {
-            let title = cap.get(1).map_or("", |m| m.as_str()).to_string();
-            let url = cap.get(2).map_or("", |m| m.as_str()).to_string();
+        while current_pos < text.len() {
+            if text_bytes.get(current_pos) == Some(&b'[') {
+                // [title]を探す
+                if let Some(title_end) = text[current_pos + 1..].find(']') {
+                    let title_start = current_pos + 1;
+                    let title_end_abs = current_pos + 1 + title_end;
 
-            results.push(GeminiSearchResult {
-                title: title.clone(),
-                url: url.clone(),
-                snippet: format!("Result from Gemini search: {}", title),
-            });
+                    // その直後に(url)があるか確認
+                    if text_bytes.get(title_end_abs + 1) == Some(&b'(') {
+                        if let Some(url_end) = text[title_end_abs + 2..].find(')') {
+                            let url_start = title_end_abs + 2;
+                            let url_end_abs = title_end_abs + 2 + url_end;
+
+                            let title = text[title_start..title_end_abs].to_string();
+                            let url = text[url_start..url_end_abs].to_string();
+
+                            results.push(GeminiSearchResult {
+                                title: title.clone(),
+                                url: url.clone(),
+                                snippet: format!("Result from Gemini search: {}", title),
+                            });
+
+                            current_pos = url_end_abs + 1;
+                            continue;
+                        }
+                    }
+                }
+            }
+            current_pos += 1;
         }
 
-        // If no markdown links found, try to extract plain URLs
+        // マークダウンリンクが見つからない場合、プレーンURLを探す
         if results.is_empty() {
-            let re_url = regex::Regex::new(r"https?://[^\s]+").unwrap();
-            for (i, url) in re_url.find_iter(text).enumerate() {
-                results.push(GeminiSearchResult {
-                    title: format!("Search Result {}", i + 1),
-                    url: url.as_str().to_string(),
-                    snippet: "Result from Gemini search".to_string(),
-                });
+            for (i, word) in text.split_whitespace().enumerate() {
+                if word.starts_with("http://") || word.starts_with("https://") {
+                    // URLの終わりを見つける（空白、括弧、クォートなど）
+                    let url = word
+                        .trim_end_matches(|c: char| {
+                            !c.is_alphanumeric()
+                                && c != '/'
+                                && c != ':'
+                                && c != '.'
+                                && c != '-'
+                                && c != '_'
+                                && c != '?'
+                                && c != '='
+                                && c != '&'
+                        })
+                        .to_string();
+
+                    results.push(GeminiSearchResult {
+                        title: format!("Search Result {}", i + 1),
+                        url,
+                        snippet: "Result from Gemini search".to_string(),
+                    });
+                }
             }
         }
 

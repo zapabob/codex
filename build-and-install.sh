@@ -12,6 +12,7 @@ echo "📦 Building Deep Research module..."
 cd codex-rs
 
 cargo build --release -p codex-deep-research
+cargo build --release -p codex-cli
 
 echo "✅ Deep Research build successful!"
 echo ""

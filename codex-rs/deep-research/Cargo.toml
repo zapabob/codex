@@ -6,7 +6,6 @@ version.workspace = true
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-regex = "1.11"
 reqwest.workspace = true
 scraper = "0.18"
 serde = { workspace = true, features = ["derive"] }

@@ -1,8 +1,10 @@
 // Web Search Provider - Real web search integration
 // Conforms to OpenAI/codex official web_search implementation
+use crate::provider::ResearchProvider;
 use crate::types::Source;
 use crate::url_decoder::decode_duckduckgo_url;
 use anyhow::Result;
+use async_trait::async_trait;
 use scraper::ElementRef;
 use scraper::Html;
 use scraper::Selector;
@@ -328,12 +330,7 @@ impl WebSearchProvider {
         let mut results = Vec::new();
 
         for element in document.select(&result_selector).take(count) {
-            let title = element
-                .text()
-                .collect::<Vec<&str>>()
-                .join(" ")
-                .trim()
-                .to_string();
+            let title = Self::normalize_text(element.text());
 
             // href属性の取得
             let url_raw = element.value().attr("href").unwrap_or("").to_string();
@@ -345,14 +342,7 @@ impl WebSearchProvider {
                 .ancestors()
                 .filter_map(ElementRef::wrap)
                 .flat_map(|ancestor| ancestor.select(&snippet_selector))
-                .map(|snippet_ref| {
-                    snippet_ref
-                        .text()
-                        .collect::<Vec<&str>>()
-                        .join(" ")
-                        .trim()
-                        .to_string()
-                })
+                .map(|snippet_ref| Self::normalize_text(snippet_ref.text()))
                 .find(|text| !text.is_empty())
                 .unwrap_or_else(|| format!("DuckDuckGo result for: {query}"));
 
@@ -390,6 +380,16 @@ impl WebSearchProvider {
         );
 
         Ok(results)
+    }
+
+    fn normalize_text<'a, I>(parts: I) -> String
+    where
+        I: Iterator<Item = &'a str>,
+    {
+        parts
+            .flat_map(|part| part.split_whitespace())
+            .collect::<Vec<_>>()
+            .join(" ")
     }
     /// Generate results in official web_search format
     /// Conforms to OpenAI/codex ToolSpec::WebSearch {} output structure
@@ -447,28 +447,42 @@ impl WebSearchProvider {
         Ok(text)
     }
 
-    /// Extract text from HTML (simple implementation)
+    /// Extract text from HTML using scraper (no regex dependencies)
     fn extract_text_from_html(&self, html: &str) -> String {
-        // 簡易的なHTMLタグ削除（本番ではscraper/html5everなど使用推奨）
-        let text = html
-            .replace("<script", "\n<script")
-            .replace("<style", "\n<style");
+        // scraperでHTMLをパース
+        let document = Html::parse_document(html);
 
-        // <script>と<style>を削除
-        let re_script = regex::Regex::new(r"(?is)<script[^>]*>.*?</script>").unwrap();
-        let re_style = regex::Regex::new(r"(?is)<style[^>]*>.*?</style>").unwrap();
-        let text = re_script.replace_all(&text, "");
-        let text = re_style.replace_all(&text, "");
+        // <script>と<style>タグを除外するセレクタ
+        let unwanted_selectors = ["script", "style", "noscript", "iframe"];
 
-        // HTMLタグ削除
-        let re_tags = regex::Regex::new(r"<[^>]+>").unwrap();
-        let text = re_tags.replace_all(&text, " ");
+        // HTMLドキュメント全体からテキストを抽出
+        let mut text_parts = Vec::new();
 
-        // 空白を正規化
-        let re_spaces = regex::Regex::new(r"\s+").unwrap();
-        let text = re_spaces.replace_all(&text.trim(), " ");
+        // ルートからテキストノードを抽出
+        for node in document.root_element().descendants() {
+            // テキストノードのみ処理
+            if let Some(text_node) = node.value().as_text() {
+                // 親要素がscript/styleでないか確認
+                let is_unwanted = node.ancestors().filter_map(ElementRef::wrap).any(|elem| {
+                    unwanted_selectors
+                        .iter()
+                        .any(|tag| elem.value().name() == *tag)
+                });
 
-        text.to_string()
+                if !is_unwanted {
+                    let text = text_node.trim();
+                    if !text.is_empty() {
+                        text_parts.push(text.to_string());
+                    }
+                }
+            }
+        }
+
+        // テキストを結合して空白を正規化
+        let combined = text_parts.join(" ");
+
+        // 連続する空白を1つに正規化
+        combined.split_whitespace().collect::<Vec<&str>>().join(" ")
     }
 
     /// Fallback: 構造化プレースホルダーコンテンツ（API失敗時用）
@@ -566,6 +580,17 @@ pub struct SearchResult {
     pub url: String,
     pub snippet: String,
     pub relevance_score: f64,
+}
+
+#[async_trait]
+impl ResearchProvider for WebSearchProvider {
+    async fn search(&self, query: &str, max_results: u8) -> Result<Vec<Source>> {
+        WebSearchProvider::search(self, query, max_results as u32).await
+    }
+
+    async fn retrieve(&self, url: &str) -> Result<String> {
+        WebSearchProvider::retrieve(self, url).await
+    }
 }
 
 #[cfg(test)]
@@ -682,5 +707,40 @@ mod tests {
         let fallback = provider.generate_official_format_results("rust");
 
         assert_eq!(results, fallback);
+    }
+
+    #[test]
+    fn parse_duckduckgo_html_normalizes_whitespace() {
+        let provider = WebSearchProvider::default();
+        let html = r#"
+        <html>
+            <body>
+                <div class="result">
+                    <div class="result__body">
+                        <h2 class="result__title">
+                            <a class="result__a" href="https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fwhitespace">   Rust   Guide  </a>
+                        </h2>
+                        <div class="result__snippet">
+                            This   snippet
+                            contains    irregular   spacing.
+                        </div>
+                    </div>
+                </div>
+            </body>
+        </html>
+        "#;
+
+        let results = provider
+            .parse_duckduckgo_html(html, "rust", 1)
+            .expect("parse succeeds");
+
+        let expected = SearchResult {
+            title: "Rust Guide".to_string(),
+            url: "https://example.com/whitespace".to_string(),
+            snippet: "This snippet contains irregular spacing.".to_string(),
+            relevance_score: 0.80,
+        };
+
+        assert_eq!(results.first(), Some(&expected));
     }
 }

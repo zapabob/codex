@@ -9,6 +9,7 @@ Write-Host "📦 Building Deep Research module..." -ForegroundColor Yellow
 Set-Location -Path "codex-rs"
 
 cargo build --release -p codex-deep-research
+cargo build --release -p codex-cli
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Deep Research build failed!" -ForegroundColor Red
     exit 1
