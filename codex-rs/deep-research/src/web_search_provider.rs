@@ -54,21 +54,40 @@ impl WebSearchProvider {
             query
         );
 
-        // 実際のWeb検索API呼び出し（環境変数からAPI キー取得）
-        // フォールバック: API未設定時はDuckDuckGo使用
+        // 実際のWeb検索API呼び出し（優先順位: DuckDuckGo > Brave > Google > Bing）
+        // DuckDuckGoはAPIキー不要なのでデフォルトで使用
         let results = if std::env::var("BRAVE_API_KEY").is_ok() {
-            self.brave_search_real(query, 5)
-                .await
-                .unwrap_or_else(|_| self.generate_official_format_results(query))
+            info!("Using Brave Search API");
+            match self.brave_search_real(query, 5).await {
+                Ok(results) => results,
+                Err(e) => {
+                    tracing::warn!("Brave API failed: {}, falling back to DuckDuckGo", e);
+                    self.duckduckgo_search_real(query, 5)
+                        .await
+                        .unwrap_or_else(|_| self.generate_official_format_results(query))
+                }
+            }
         } else if std::env::var("GOOGLE_API_KEY").is_ok() && std::env::var("GOOGLE_CSE_ID").is_ok()
         {
-            self.google_search_real(query, 5)
-                .await
-                .unwrap_or_else(|_| self.generate_official_format_results(query))
+            info!("Using Google Search API");
+            match self.google_search_real(query, 5).await {
+                Ok(results) => results,
+                Err(e) => {
+                    tracing::warn!("Google API failed: {}, falling back to DuckDuckGo", e);
+                    self.duckduckgo_search_real(query, 5)
+                        .await
+                        .unwrap_or_else(|_| self.generate_official_format_results(query))
+                }
+            }
         } else {
-            // API キー未設定 → DuckDuckGoまたはフォールバック
-            info!("No API keys found, using fallback search results");
-            self.generate_official_format_results(query)
+            // APIキー未設定 → DuckDuckGoスクレイピングを使用（APIキー不要！）
+            info!("🔓 No API keys found, using DuckDuckGo (no API key required)");
+            self.duckduckgo_search_real(query, 5)
+                .await
+                .unwrap_or_else(|e| {
+                    tracing::warn!("DuckDuckGo failed: {}, using fallback results", e);
+                    self.generate_official_format_results(query)
+                })
         };
 
         Ok(results)
