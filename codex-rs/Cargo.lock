@@ -1051,6 +1051,7 @@ dependencies = [
  "codex-cloud-tasks",
  "codex-common",
  "codex-core",
+ "codex-deep-research",
  "codex-exec",
  "codex-login",
  "codex-mcp-server",

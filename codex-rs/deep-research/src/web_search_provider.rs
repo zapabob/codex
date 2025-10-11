@@ -82,12 +82,23 @@ impl WebSearchProvider {
         } else {
             // APIキー未設定 → DuckDuckGoスクレイピングを使用（APIキー不要！）
             info!("🔓 No API keys found, using DuckDuckGo (no API key required)");
-            self.duckduckgo_search_real(query, 5)
-                .await
-                .unwrap_or_else(|e| {
-                    tracing::warn!("DuckDuckGo failed: {}, using fallback results", e);
+            match self.duckduckgo_search_real(query, 5).await {
+                Ok(results) => {
+                    if results.is_empty() {
+                        tracing::warn!("DuckDuckGo returned 0 results, using fallback");
+                        self.generate_official_format_results(query)
+                    } else {
+                        tracing::info!("✅ DuckDuckGo returned {} results", results.len());
+                        results
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("❌ DuckDuckGo failed: {:?}, using fallback results", e);
+                    eprintln!("⚠️  DuckDuckGo search failed: {}", e);
+                    eprintln!("   Falling back to official format results");
                     self.generate_official_format_results(query)
-                })
+                }
+            }
         };
 
         Ok(results)

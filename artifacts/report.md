@@ -1,38 +1,32 @@
-# Rust HTTP フレームワーク比較（2025年時点）
+# test
 
-## 結論
-- パフォーマンス最重視の API では Actix Web が依然として最有力だが、学習コストは高めで高度な抽象を使いこなせるチームに向く。[1][2]
-- Axum は Tokio 生態系との親和性と抽象の分かりやすさが評価され、モジュール性・ミドルウェア統合重視のサービスで採用が伸びている。[1][3]
-- Rocket は型安全なリクエスト検証と Responder モデルを武器に、安定版＋async 対応後はプロダクション導入ハードルが下がった。[1][4]
-- Warp はフィルタ合成で軽量なパイプラインを高速に構築でき、小規模マイクロサービスや PoC に向く。[1][5]
+## Summary
 
-## 要点（根拠）
-- **パフォーマンスと型安全性**: Actix Web はアクターモデルを採用し高性能かつ機能豊富で、HTTP/2 やロギングなどを標準搭載する一方、習熟には時間が掛かる。[1][2]
-- **開発体験とミドルウェア**: Axum はマクロ不要のルーティング／宣言的エクストラクタ／Tower ミドルウェア再利用を提供し、HTTP/2・WebSocket・SSR まで含めたモダン要件をカバーする。[1][3]
-- **フルスタックなレスポンス構成**: Rocket はリクエストごとに型検証を行い、Responder トレイトを介して JSON・テンプレート・ストリーミングなどを標準化することでランタイムエラーを抑制する。[4]
-- **軽量合成とスピード**: Warp は Filter が基本単位で、ルーティングやミドルウェアを関数合成する設計により高速な API を短いコードで用意できる。[1][5]
-- **コミュニティ指標**: 2025 年 6 月時点の GitHub スターは Rocket 25K+・Actix 21K+・Axum 19K+・Warp 10K+ と報告されており、Rocket/Axum の伸長が顕著。[1]
+Research Summary for "test" (comprehensive strategy):
 
-## 評価基準
-- **パフォーマンス/スケーラビリティ**（ベンチマーク・非同期実装・HTTP/2 サポート）
-- **開発体験（DX）**（API の分かりやすさ、抽象の表面化、デバッグ容易性）
-- **エコシステム統合**（ミドルウェア、Tower/Tokio 連携、Responder/Filter 拡張）
-- **コミュニティと保守性**（スター数、ドキュメント整備、安定版対応状況）
-- **ユースケース適合度**（マイクロサービス、リアルタイム、プロトタイピングなど）
+Found 1 relevant findings.
 
-## 反証・検証
-- 2020 年頃に議論となった Actix Web の安全性問題について 2024-2025 年の一次情報を確認したが、現行ドキュメントや比較記事では未解決リスクとして扱われていない。[1][2]
-- Rocket が nightly 依存との指摘に対しては、開発者コミュニティが「安定版＋async 対応後は導入しやすくなった」と評価しており、最新状況と整合した。[1]
-- 各フレームワークの性能優位性を裏付ける最新の公開ベンチマーク（TechEmpower 等）は今回取得できず、定量比較は保留とした。
+Key findings:
+- Finding from test - Official Documentation: Not Found This old browser is unsupported and will most likely display funky things. Rust 1.92.0-nightly 9725c4baa Not Found Looks like you’ve taken a wrong turn. Some things that might be helpful to you though: § Search From the Standard Library From DuckDuckGo § Reference The Rust official site The Rust reference § Docs The standard library Copyright &copy; 2011 The Rust Project Developers. Licensed under the Apache License, Version 2.0 or the MIT license , at your option. This file may not be copied, modified, or distributed except according to those terms. (confidence: 0.95)
 
-## 限界・未確定事項
-- 公開ベンチマークの最新ラウンド（2023-2025）を未確認のため、性能差はコミュニティ評価ベースに留まる。
-- エコシステムのプラグイン状況（認証・ORM・テンプレートなど）は一次情報の追加調査が必要。
-- SSR やフルスタック統合の実運用事例（Axum+Leptos 等）の事例数が限られており、長期保守コストは未確定。
+## Metadata
 
-## 参考文献
-1. LogRocket, "Exploring the top Rust web frameworks" (2025-05-28). https://blog.logrocket.com/top-rust-web-frameworks/
-2. Actix Web 公式サイト. https://actix.rs/
-3. Rustdoc: axum crate. https://docs.rs/axum/latest/axum/index.html
-4. Rocket 公式サイト「Overview」. https://rocket.rs/overview/
-5. Rustdoc: warp crate. https://docs.rs/warp/latest/warp/index.html
+- **Strategy**: Comprehensive
+- **Depth**: 1
+- **Sources**: 1
+- **Diversity Score**: 1.00
+- **Confidence**: High
+
+## Findings
+
+### Finding 1
+
+Finding from test - Official Documentation: Not Found This old browser is unsupported and will most likely display funky things. Rust 1.92.0-nightly 9725c4baa Not Found Looks like you’ve taken a wrong turn. Some things that might be helpful to you though: § Search From the Standard Library From DuckDuckGo § Reference The Rust official site The Rust reference § Docs The standard library Copyright &copy; 2011 The Rust Project Developers. Licensed under the Apache License, Version 2.0 or the MIT license , at your option. This file may not be copied, modified, or distributed except according to those terms.
+
+**Confidence**: 0.95
+
+## Sources
+
+1. [test - Official Documentation](https://doc.rust-lang.org/search?q=test) - Relevance: 0.95
+   > Official documentation for test. Includes API references, guides, and examples from the Rust team.
+

@@ -1,12 +1,13 @@
 use anyhow::Context;
 use anyhow::Result;
-use codex_deep_research::ContradictionChecker;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
 use codex_deep_research::McpSearchProvider; // MCP統合
 use codex_deep_research::ResearchPlanner;
 use codex_deep_research::ResearchStrategy;
+use codex_deep_research::SearchBackend;
 use codex_deep_research::WebSearchProvider; // 本番実装
+use codex_deep_research::provider::ResearchProvider;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -45,17 +46,29 @@ pub async fn run_research_command(
 
     // Deep Research実行（本番実装）
     // MCPサーバー経由のWeb検索を優先、フォールバックとしてWebSearchProvider使用
-    let provider: Arc<dyn codex_deep_research::ResearchProvider + Send + Sync> =
-        if let Some(mcp_url) = _mcp {
-            println!("🔌 Using MCP Search Provider: {}", mcp_url);
-            Arc::new(McpSearchProvider::new(
-                mcp_url, 3,  // max_retries
-                30, // timeout_seconds
-            ))
+    let provider: Arc<dyn ResearchProvider + Send + Sync> = if let Some(_mcp_url) = _mcp {
+        println!("🔌 Using MCP Search Provider (DuckDuckGo backend)");
+        Arc::new(McpSearchProvider::new(SearchBackend::DuckDuckGo, None))
+    } else {
+        // OpenAI/codexのWeb検索機能 + DuckDuckGo統合
+        // フォールバックチェーン: Brave > Google > Bing > DuckDuckGo (APIキー不要)
+        println!("🌐 Using Web Search Provider with DuckDuckGo integration");
+        println!("   Priority: Brave > Google > Bing > DuckDuckGo (no API key required)");
+
+        // 環境変数チェック
+        if std::env::var("BRAVE_API_KEY").is_ok() {
+            println!("   ✅ Brave Search API detected");
+        } else if std::env::var("GOOGLE_API_KEY").is_ok() && std::env::var("GOOGLE_CSE_ID").is_ok()
+        {
+            println!("   ✅ Google Custom Search API detected");
+        } else if std::env::var("BING_API_KEY").is_ok() {
+            println!("   ✅ Bing Web Search API detected");
         } else {
-            println!("🌐 Using Web Search Provider (Brave/DuckDuckGo/Google/Bing)");
-            Arc::new(WebSearchProvider::new(3, 30))
-        };
+            println!("   🔓 No API keys found, using DuckDuckGo (free, no API key required)");
+        }
+
+        Arc::new(WebSearchProvider::new(3, 30))
+    };
 
     let config = DeepResearcherConfig {
         max_depth: actual_plan.stop_conditions.max_depth,
