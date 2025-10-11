@@ -604,7 +604,7 @@ impl AgentRuntime {
     /// Codex MCP toolsの説明を生成（プロンプト用）
     fn build_codex_mcp_tools_description(&self, allowed_tools: &[String]) -> String {
         let mut desc = String::from("Available Codex MCP Tools:\n\n");
-        
+
         for tool in allowed_tools {
             let tool_desc = match tool.as_str() {
                 "codex_read_file" => {
@@ -647,13 +647,12 @@ impl AgentRuntime {
         desc
     }
 
-    /// エージェントをCodex MCP経由で実行（未実装: Phase 3で実装予定）
-    #[allow(dead_code)]
-    async fn execute_agent_with_codex_mcp(
+    /// エージェントをCodex MCP経由で実行（Phase 3: 完全実装）
+    pub async fn execute_agent_with_codex_mcp(
         &self,
         agent_def: &AgentDefinition,
         goal: &str,
-        _inputs: HashMap<String, String>,
+        inputs: HashMap<String, String>,
         _deadline: Option<u64>,
     ) -> Result<Vec<String>> {
         debug!(
@@ -662,7 +661,7 @@ impl AgentRuntime {
         );
 
         // 1. Codex MCP Serverを起動
-        let _mcp_client = self
+        let mcp_client = self
             .spawn_codex_mcp_server()
             .await
             .context("Failed to spawn Codex MCP server")?;
@@ -677,20 +676,234 @@ impl AgentRuntime {
             allowed_tools
         );
 
-        // 3. TODO: Phase 3で実装
-        // - ModelClient + MCP Toolsでプロンプト構築
-        // - LLM呼び出し
-        // - ツールコール検出
-        // - MCP Client経由でツール実行
-        // - 結果をLLMにフィードバック
-        // - 最終レポート生成
+        // 3. システムプロンプト構築（ツール説明含む）
+        let tools_description = self.build_codex_mcp_tools_description(&allowed_tools);
 
-        Ok(vec![format!(
-            "Agent '{}' executed with goal: {}\nAllowed Codex MCP tools: {:?}\n\n\
-             NOTE: Full MCP integration is planned for Phase 3.\n\
-             This is a placeholder result demonstrating the MCP server spawn capability.",
-            agent_def.name, goal, allowed_tools
-        )])
+        let system_prompt = format!(
+            "You are a specialized sub-agent with the following role:\n\
+             \n\
+             Agent: {}\n\
+             Goal: {}\n\
+             \n\
+             Success Criteria:\n{}\n\
+             \n\
+             Inputs provided:\n{}\n\
+             \n\
+             {}\n\
+             \n\
+             Please analyze the task and use the available Codex MCP tools to complete it.\
+             When you need to use a tool, output it in the specified format.\
+             After all tool calls are complete, provide a final summary.",
+            agent_def.name,
+            agent_def.goal,
+            agent_def.success_criteria.join("\n- "),
+            inputs
+                .iter()
+                .map(|(k, v)| format!("- {}: {}", k, v))
+                .collect::<Vec<_>>()
+                .join("\n"),
+            tools_description
+        );
+
+        // 4. 初期プロンプト
+        let user_prompt = format!("Task: {}", goal);
+
+        // 5. LLM対話ループ（最大5回のツール呼び出し）
+        let max_iterations = 5;
+        let mut conversation_history = vec![
+            ("system".to_string(), system_prompt),
+            ("user".to_string(), user_prompt.clone()),
+        ];
+        let mut artifacts = Vec::new();
+
+        for iteration in 0..max_iterations {
+            debug!("Agent iteration {}/{}", iteration + 1, max_iterations);
+
+            // LLM呼び出し
+            let llm_response = self
+                .call_llm_for_agent(&conversation_history)
+                .await
+                .context("Failed to call LLM for agent")?;
+
+            conversation_history.push(("assistant".to_string(), llm_response.clone()));
+            artifacts.push(llm_response.clone());
+
+            // ツールコール検出
+            let tool_calls = self.detect_tool_calls(&llm_response);
+
+            if tool_calls.is_empty() {
+                // ツールコールがない場合は終了
+                info!("No more tool calls detected. Agent task completed.");
+                break;
+            }
+
+            // ツール実行
+            let mut tool_results = Vec::new();
+            for (tool_name, tool_args) in tool_calls {
+                if !allowed_tools.contains(&tool_name) {
+                    let error_msg = format!(
+                        "ERROR: Tool '{}' is not permitted for this agent",
+                        tool_name
+                    );
+                    tool_results.push(error_msg);
+                    continue;
+                }
+
+                info!(
+                    "Executing Codex MCP tool: {} with args: {:?}",
+                    tool_name, tool_args
+                );
+
+                match self
+                    .execute_codex_mcp_tool(&mcp_client, &tool_name, tool_args)
+                    .await
+                {
+                    Ok(result) => {
+                        tool_results.push(format!("TOOL_RESULT[{}]: {}", tool_name, result));
+                    }
+                    Err(e) => {
+                        let error_msg = format!("ERROR executing tool '{}': {}", tool_name, e);
+                        error!("{}", error_msg);
+                        tool_results.push(error_msg);
+                    }
+                }
+            }
+
+            // ツール結果をLLMにフィードバック
+            let feedback = tool_results.join("\n\n");
+            conversation_history.push(("user".to_string(), feedback.clone()));
+            artifacts.push(format!("--- Tool Execution Results ---\n{}", feedback));
+        }
+
+        info!("Agent '{}' completed execution", agent_def.name);
+
+        Ok(artifacts)
+    }
+
+    /// LLMを呼び出してエージェントの応答を取得
+    async fn call_llm_for_agent(&self, conversation: &[(String, String)]) -> Result<String> {
+        // プロンプト構築（最新のメッセージのみを使用）
+        let last_message = conversation.last()
+            .ok_or_else(|| anyhow!("Conversation history is empty"))?;
+        
+        let system_instructions = conversation.first()
+            .filter(|(role, _)| role == "system")
+            .map(|(_, content)| content.clone());
+
+        let input_items = vec![ResponseItem::Message {
+            id: None,
+            role: "user".to_string(),
+            content: vec![ContentItem::InputText {
+                text: last_message.1.clone(),
+            }],
+        }];
+
+        let prompt = Prompt {
+            input: input_items,
+            tools: vec![],
+            parallel_tool_calls: false,
+            base_instructions_override: system_instructions,
+            output_schema: None,
+        };
+
+        // ModelClient経由でLLM呼び出し
+        let model_client = ModelClient::new(
+            self.config.clone(),
+            self.auth_manager.clone(),
+            self.otel_manager.clone(),
+            self.provider.clone(),
+            Some(ReasoningEffort::Medium),
+            ReasoningSummary::Concise,
+            self.conversation_id,
+        );
+
+        let mut response_stream = model_client
+            .stream(&prompt)
+            .await
+            .context("Failed to stream LLM response")?;
+
+        // レスポンスを収集
+        let mut full_response = String::new();
+        while let Some(event) = response_stream.next().await {
+            match event? {
+                ResponseEvent::OutputItemDone(item) => {
+                    // ResponseItemからテキストを抽出
+                    if let ResponseItem::Message { content, .. } = item {
+                        for content_item in content {
+                            if let ContentItem::OutputText { text } = content_item {
+                                full_response.push_str(&text);
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        Ok(full_response)
+    }
+
+    /// LLMレスポンスからツールコールを検出
+    fn detect_tool_calls(&self, response: &str) -> Vec<(String, serde_json::Value)> {
+        let mut tool_calls = Vec::new();
+
+        // パターン: TOOL_CALL: tool_name(arg1="value1", arg2="value2")
+        // 簡易実装: JSONフォーマットも検出
+        for line in response.lines() {
+            let line = line.trim();
+
+            // TOOL_CALL: codex_read_file(path="src/auth.rs")
+            if line.starts_with("TOOL_CALL:") {
+                if let Some(call_str) = line.strip_prefix("TOOL_CALL:").map(|s| s.trim()) {
+                    if let Some((tool_name, args_str)) = call_str.split_once('(') {
+                        let tool_name = tool_name.trim().to_string();
+                        let args_str = args_str.trim_end_matches(')').trim();
+
+                        // 簡易パース: key="value" 形式
+                        let mut args = serde_json::Map::new();
+                        for part in args_str.split(',') {
+                            if let Some((key, value)) = part.split_once('=') {
+                                let key = key.trim().to_string();
+                                let value = value.trim().trim_matches('"').to_string();
+                                args.insert(key, serde_json::Value::String(value));
+                            }
+                        }
+
+                        tool_calls.push((tool_name, serde_json::Value::Object(args)));
+                    }
+                }
+            }
+        }
+
+        tool_calls
+    }
+
+    /// Codex MCPツールを実行
+    async fn execute_codex_mcp_tool(
+        &self,
+        mcp_client: &Arc<McpClient>,
+        tool_name: &str,
+        args: serde_json::Value,
+    ) -> Result<String> {
+        debug!(
+            "Executing Codex MCP tool: {} with args: {:?}",
+            tool_name, args
+        );
+
+        let result = mcp_client
+            .call_tool(
+                tool_name.to_string(),
+                Some(args),
+                Some(Duration::from_secs(30)),
+            )
+            .await
+            .context(format!("Failed to call Codex MCP tool '{}'", tool_name))?;
+
+        // 結果をテキスト形式に変換
+        let result_text =
+            serde_json::to_string_pretty(&result).unwrap_or_else(|_| format!("{:?}", result));
+
+        Ok(result_text)
     }
 }
 
