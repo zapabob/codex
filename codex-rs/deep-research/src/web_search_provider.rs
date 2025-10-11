@@ -323,6 +323,7 @@ impl WebSearchProvider {
     }
 
     /// Fallback: 構造化プレースホルダーコンテンツ（API失敗時用）
+    #[allow(dead_code)]
     fn get_fallback_content(&self, url: &str) -> String {
         let content = if url.contains("doc.rust-lang.org") {
             format!(

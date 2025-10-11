@@ -20,8 +20,10 @@ pub struct McpSearchProvider {
     /// API key (if required)
     api_key: Option<String>,
     /// Retry configuration
+    #[allow(dead_code)]
     max_retries: u8,
     /// Timeout in seconds
+    #[allow(dead_code)]
     timeout_seconds: u64,
     /// Fallback chain
     fallbacks: Vec<SearchBackend>,
