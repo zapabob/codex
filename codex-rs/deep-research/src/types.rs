@@ -2,21 +2,16 @@ use serde::Deserialize;
 use serde::Serialize;
 
 /// Strategy for conducting research
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ResearchStrategy {
     /// Thorough exploration across multiple sources
+    #[default]
     Comprehensive,
     /// Targeted search for specific information
     Focused,
     /// Broad exploration for discovery
     Exploratory,
-}
-
-impl Default for ResearchStrategy {
-    fn default() -> Self {
-        Self::Comprehensive
-    }
 }
 
 /// A source of information found during research

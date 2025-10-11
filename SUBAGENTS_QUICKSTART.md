@@ -1,388 +1,352 @@
-# Codex Sub-Agents & Deep Research - クイックスタートガイド 🚀
+# Codex Sub-Agents Quick Start Guide
 
-**Claude Code を超える機能を今すぐ使おう！**
+> 🚀 **zapabob/codex Enhanced Feature**: Specialized AI sub-agents for delegated tasks
+
+## 概要
+
+Codex サブエージェントは、特定のタスクに特化したAIエージェントを呼び出す機能です。コードレビュー、テスト生成、セキュリティ監査、調査タスクなどを自動化できます。
+
+## インストール
+
+```bash
+# グローバルインストール
+npm install -g @openai/codex
+
+# または、Rust バイナリを直接ビルド
+cd codex-rs
+cargo build --release -p codex-cli
+```
+
+## 利用可能なサブエージェント
+
+### 1. Code Reviewer (`code-reviewer`)
+
+**目的**: コードの包括的なレビュー（セキュリティ、パフォーマンス、ベストプラクティス）
+
+**使用例**:
+```bash
+codex delegate code-reviewer \
+  --goal "Review TypeScript components for security issues" \
+  --scope ./src/components \
+  --budget 40000
+```
+
+**チェック項目**:
+- 型安全性（TypeScript/Rust）
+- セキュリティ脆弱性（SQL injection, XSS等）
+- パフォーマンス最適化
+- 言語固有のベストプラクティス
+
+**出力**:
+- `artifacts/code-review-report.md` - 詳細レビューレポート
+- `code-review-reports/review-summary.json` - JSON形式サマリー
 
 ---
 
-## ⚡ 3分で始める
+### 2. Test Generator (`test-gen`)
 
-### 1. エージェント確認
+**目的**: 包括的なテストスイート生成（Unit, Integration, E2E）
 
+**使用例**:
 ```bash
-# 利用可能なエージェントを確認
-ls .codex/agents/
-# → researcher.yaml
-# → test-gen.yaml
-# → sec-audit.yaml
-# → code-reviewer.yaml
+codex delegate test-gen \
+  --goal "Generate unit tests for user authentication module" \
+  --scope ./src/auth \
+  --budget 30000
 ```
 
-### 2. 最初のリサーチ
+**生成内容**:
+- Unit テスト（80%+ カバレッジ目標）
+- Integration テスト
+- エッジケース・エラーハンドリングテスト
+- テストフィクスチャとモック
 
-```bash
-# Deep Research実行
-codex research "Rust WebAssembly 2025" --depth 3
-
-# 結果確認
-cat artifacts/report.md
-```
-
-### 3. エージェント委任
-
-```bash
-# テスト生成を委任
-codex delegate test-gen --scope ./src
-
-# 結果確認
-cat artifacts/test-report.md
-```
-
-**完了！** 🎉
+**出力**:
+- `artifacts/test-generation-report.md`
+- `artifacts/test-coverage-analysis.json`
 
 ---
 
-## 📚 4つのサブエージェント
+### 3. Security Auditor (`sec-audit`)
 
-### 🔍 Deep Researcher
-**用途**: 技術調査・比較分析・トレンド調査
+**目的**: セキュリティ監査（CVEスキャン、依存関係分析、脆弱性パッチ提案）
 
+**使用例**:
 ```bash
-# 基本
-codex research "トピック" --depth 3 --breadth 8
-
-# 軽量版（予算少ない時）
-codex research "トピック" --depth 2 --lightweight-fallback --budget 20000
-
-# 出力
-artifacts/report.md        # レポート
-artifacts/evidence/*.json  # エビデンスデータ
+codex delegate sec-audit \
+  --goal "Audit dependencies for CVEs" \
+  --budget 50000
 ```
 
-**特徴**:
-- ✅ 複数ドメイン出典必須
-- ✅ 矛盾検出（自動）
-- ✅ 信頼度スコア
-- ✅ 5検索バックエンド
+**チェック項目**:
+- 全依存関係のCVEスキャン
+- コード内の潜在的脆弱性
+- パッチ推奨（バージョン番号付き）
+- 優先度別レポート（Critical/High/Medium/Low）
+
+**出力**:
+- `artifacts/security-audit-report.md`
+- `security-reports/vulnerability-summary.json`
+- `security-reports/patch-recommendations.md`
 
 ---
 
-### 🧪 Test Generator
-**用途**: ユニットテスト自動生成・カバレッジ向上
+### 4. Researcher (`researcher`)
 
+**目的**: 複数ソースからの調査・検証・引用付きレポート生成
+
+**使用例**:
 ```bash
-# 基本
-codex delegate test-gen --scope ./src
-
-# 期限指定
-codex delegate test-gen --scope ./src --deadline 2h
-
-# 出力
-artifacts/test-report.md      # テストレポート
-artifacts/coverage-diff.json  # カバレッジ差分
-+ 実際のテストコード（src配下）
+codex delegate researcher \
+  --goal "Research React Server Components best practices" \
+  --budget 60000
 ```
 
-**成功基準**:
-- ✅ CI green
-- ✅ カバレッジ +10%
-- ✅ 既存テスト破壊なし
+**調査内容**:
+- 5+ 信頼できるソースから情報収集
+- ファクトのクロス検証・矛盾検出
+- 全主張に引用を提供
+- 実装例を含む構造化レポート
+
+**出力**:
+- `artifacts/research-report.md`
+- `research-reports/sources.json`
+- `research-reports/cross-validation-report.md`
 
 ---
 
-### 🔒 Security Auditor
-**用途**: CVE監査・脆弱性検出・修正提案
+## コマンドオプション
+
+### `codex delegate` コマンド
 
 ```bash
-# 基本
-codex delegate sec-audit --scope ./src
-
-# 予算増（徹底スキャン）
-codex delegate sec-audit --scope ./src --budget 60000
-
-# 出力
-artifacts/sec-audit.md      # 監査レポート
-artifacts/patches/*.diff    # 修正パッチ
-artifacts/cve-report.json   # CVEレポート
+codex delegate <AGENT> [OPTIONS]
 ```
 
-**チェック内容**:
-- ✅ 依存パッケージスキャン（npm, cargo, pip）
-- ✅ CVE データベース照会
-- ✅ 静的解析（bandit, clippy）
-- ✅ CVSS スコア評価
+**必須引数**:
+- `<AGENT>` - エージェント名（例: `code-reviewer`, `test-gen`, `sec-audit`, `researcher`）
+
+**オプション**:
+- `--goal <GOAL>` - タスクの目標（省略時は scope から自動生成）
+- `--scope <PATH>` - 対象ディレクトリ/ファイル
+- `--budget <TOKENS>` - トークン予算（デフォルトはエージェント定義に従う）
+- `--deadline <MINUTES>` - タイムアウト時間（分）
+- `--out <PATH>` - 結果レポートの出力先JSONファイル
 
 ---
 
-### 📝 Code Reviewer
-**用途**: コードレビュー・品質チェック・ベストプラクティス
+## カスタムエージェントの作成
 
-```bash
-# 基本
-codex delegate code-reviewer --scope ./src
+### エージェント定義ファイル（YAML）
 
-# ファイル指定
-codex delegate code-reviewer --scope ./src/agents/runtime.rs
+エージェントは `.codex/agents/<name>.yaml` に定義します。
 
-# 出力
-artifacts/code-review.md          # レビューレポート
-artifacts/review-summary.json     # サマリー
-review-comments/*.md              # ファイル別コメント
+**例: custom-agent.yaml**
+
+```yaml
+name: "custom-agent"
+goal: "Custom agent for specific tasks"
+tools:
+  mcp:
+    - grep
+    - read_file
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+  net:
+    allow:
+      - "https://docs.rs/*"
+  shell:
+    exec:
+      - cargo
+      - npm
+policies:
+  context:
+    max_tokens: 30000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Criterion 1"
+  - "Criterion 2"
+artifacts:
+  - "artifacts/custom-output.md"
 ```
 
-**レビュー観点**（8項目）:
-1. Style consistency（スタイル一貫性）
-2. Error handling（エラーハンドリング）
-3. Performance（パフォーマンス）
-4. Security（セキュリティ）
-5. Testing（テストカバレッジ）
-6. Documentation（ドキュメント）
-7. Maintainability（保守性）
-8. Best practices（ベストプラクティス）
+### フィールド説明
 
-**Rust特化**:
-- clippy lints
-- rustfmt check
-- unsafe code review
-- lifetime analysis
-- ownership patterns
+| フィールド | 説明 |
+|-----------|------|
+| `name` | エージェント名 |
+| `goal` | エージェントの目的 |
+| `tools.mcp` | 利用可能なMCPツールリスト |
+| `tools.fs.read` | ファイル読み取り許可 |
+| `tools.fs.write` | 書き込み許可パスリスト |
+| `tools.net.allow` | ネットワークアクセス許可パターン |
+| `tools.shell.exec` | 実行可能なシェルコマンドリスト |
+| `policies.context.max_tokens` | 最大トークン数 |
+| `policies.context.retention` | コンテキスト保持期間（`job`, `session`, `permanent`） |
+| `policies.secrets.redact` | シークレット自動除去 |
+| `success_criteria` | 成功基準リスト |
+| `artifacts` | 生成するアーティファクトパス |
 
 ---
 
-## 🎯 実践シナリオ
+## ベストプラクティス
 
-### シナリオA: 新機能開発
+### 1. 適切な予算設定
 
 ```bash
-# 1. 技術調査
-codex research "Feature X technology comparison" --depth 3
+# 小規模タスク（単一ファイルレビュー）
+codex delegate code-reviewer --scope ./src/app.ts --budget 10000
 
-# 2. コード実装（手動 or 別エージェント）
+# 中規模タスク（モジュール単位）
+codex delegate test-gen --scope ./src/auth --budget 30000
 
-# 3. テスト生成
-codex delegate test-gen --scope ./src/feature-x
+# 大規模タスク（プロジェクト全体監査）
+codex delegate sec-audit --budget 50000
+```
 
-# 4. セキュリティチェック
-codex delegate sec-audit --scope ./src/feature-x
+### 2. scope の効果的な使用
 
-# 5. コードレビュー
-codex delegate code-reviewer --scope ./src/feature-x
+```bash
+# 特定ファイル
+codex delegate code-reviewer --scope ./src/components/Button.tsx
 
-# 6. 結果統合
-ls artifacts/
-# - report.md（技術調査）
-# - test-report.md（テスト）
-# - sec-audit.md（セキュリティ）
-# - code-review.md（レビュー）
+# ディレクトリ全体
+codex delegate test-gen --scope ./src/services
 
-# → GitHub PR自動作成
-# → Slack通知
+# プロジェクトルート
+codex delegate sec-audit --scope ./
+```
+
+### 3. 結果の永続化
+
+```bash
+codex delegate code-reviewer \
+  --scope ./src \
+  --out ./reports/code-review-$(date +%Y%m%d).json
+```
+
+### 4. Deep Research との組み合わせ
+
+```bash
+# まず調査
+codex research "Rust async/await best practices" --depth 3
+
+# 調査結果を基にコードレビュー
+codex delegate code-reviewer \
+  --goal "Review Rust code for async/await best practices based on research" \
+  --scope ./src
 ```
 
 ---
 
-### シナリオB: 緊急セキュリティ対応
+## トラブルシューティング
+
+### エージェントが見つからない
 
 ```bash
-# 1. CVEスキャン（最優先）
-codex delegate sec-audit --scope ./src --budget 40000
-
-# 結果即座に確認
-cat artifacts/sec-audit.md
-# → CVE-2024-XXXXX検出（Critical）
-
-# 2. 自動修正パッチ確認
-cat artifacts/patches/fix-cve-2024-xxxxx.diff
-
-# 3. PR自動作成
-# → GitHub: PR #999 [SECURITY] Fix CVE-2024-XXXXX
-# → Slack: 🚨 #security-alerts にアラート
-# → Webhook: PagerDutyインシデント作成
-
-# 4. テスト生成（修正検証）
-codex delegate test-gen --scope ./src/affected
-
-# 5. 緊急デプロイ
+❌ Agent 'code-reviewer' not found
+   Available agents:
+     - code-reviewer
+     - test-gen
 ```
 
-**所要時間**: ~5-10分（従来: 数時間〜数日）
+**解決策**: `.codex/agents/` ディレクトリにYAMLファイルがあるか確認
+
+```bash
+ls -la .codex/agents/
+```
+
+### 予算超過エラー
+
+```bash
+❌ Token budget exceeded for agent 'sec-audit'
+```
+
+**解決策**: `--budget` を増やすか、`--scope` を狭める
+
+```bash
+codex delegate sec-audit --scope ./src/core --budget 80000
+```
+
+### 権限エラー
+
+```bash
+❌ File write permission denied
+```
+
+**解決策**: エージェント定義の `tools.fs.write` を確認
+
+```yaml
+tools:
+  fs:
+    write:
+      - "./artifacts"      # これが必要
+      - "./your-output-dir"
+```
 
 ---
 
-### シナリオC: コードレビューの自動化
+## CI/CD統合
 
-```bash
-# PRごとに自動レビュー（GitHub Actions）
-# .github/workflows/codex-review.yml
+### GitHub Actions
+
+```yaml
+name: Codex Sub-Agent Review
 
 on:
   pull_request:
     types: [opened, synchronize]
 
 jobs:
-  review:
+  code-review:
     runs-on: ubuntu-latest
     steps:
-      - name: Codex Review
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Codex
+        run: npm install -g @openai/codex
+      
+      - name: Run Code Reviewer
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           codex delegate code-reviewer \
             --scope ./src \
-            --out review.md
-          
-          # レビュー結果をPRコメント
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body-file review.md
-```
-
-**メリット**:
-- ✅ 人間レビュー前の自動チェック
-- ✅ 重要度付きで優先度明確
-- ✅ Rustイディオム指摘
-- ✅ レビュー時間50-70%削減
-
----
-
-## 🖥️ VS Code拡張の使い方
-
-### インストール
-
-```bash
-cd vscode-extension
-npm install
-npm run compile
-
-# VSIXパッケージ作成
-npx vsce package
-
-# インストール
-code --install-extension codex-subagents-0.1.0.vsix
-```
-
-### 使い方
-
-1. **Command Palette** (`Ctrl+Shift+P`)
-   - `Codex: Delegate to Sub-Agent`
-   - `Codex: Deep Research`
-   - `Codex: Review Code`
-
-2. **サイドバー**
-   - 「Codex Agents」アイコンクリック
-   - Sub-Agents 一覧表示
-   - 実行中エージェントの状態確認
-
-3. **設定**
-   - File → Preferences → Settings
-   - 「Codex」で検索
-   - Slack/GitHub連携設定
-
----
-
-## ⚙️ 設定ファイル例
-
-### Slack統合（`.codex/slack.yaml`）
-
-```yaml
-webhook_url: ${SLACK_WEBHOOK_URL}
-bot_token: ${SLACK_BOT_TOKEN}
-default_channel: "#codex-agents"
-
-channels:
-  research: "#research-reports"
-  security: "#security-alerts"
-  general: "#engineering"
-
-notifications:
-  agent_started: general
-  agent_completed: general
-  research_completed: research
-  security_audit: security
-```
-
-### Webhook設定（`.codex/webhooks.yaml`）
-
-```yaml
-webhooks:
-  - name: "slack-main"
-    url: "${SLACK_WEBHOOK_URL}"
-    events:
-      - AgentCompleted
-      - ResearchCompleted
-      - PrCreated
-  
-  - name: "github-actions"
-    url: "https://api.github.com/repos/${REPO}/dispatches"
-    events:
-      - TestResults
-      - SecurityAudit
-    auth:
-      type: Bearer
-      token: "${GITHUB_TOKEN}"
-  
-  - name: "pagerduty"
-    url: "https://events.pagerduty.com/v2/enqueue"
-    events:
-      - AgentFailed
-      - SecurityAudit
-    auth:
-      type: Header
-      name: "Authorization"
-      value: "Token ${PAGERDUTY_TOKEN}"
+            --out ./code-review-report.json
+      
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-review-report
+          path: ./code-review-report.json
 ```
 
 ---
 
-## 🔧 トラブルシューティング
+## 詳細ドキュメント
 
-### Q: エージェントが見つからない
-
-```bash
-# エージェント定義を確認
-ls .codex/agents/
-
-# パスが正しいか確認
-codex delegate researcher  # ✅ OK
-codex delegate .codex/agents/researcher  # ❌ NG
-```
-
-### Q: 予算超過エラー
-
-```bash
-# 軽量版モードで実行
-codex research "トピック" --lightweight-fallback
-
-# または予算を増やす
-codex delegate test-gen --budget 60000
-```
-
-### Q: Slack通知が来ない
-
-```bash
-# Webhook URLを確認
-echo $SLACK_WEBHOOK_URL
-
-# 設定ファイル確認
-cat .codex/slack.yaml
-
-# テスト送信
-curl -X POST $SLACK_WEBHOOK_URL \
-  -H 'Content-Type: application/json' \
-  -d '{"text":"Test from Codex"}'
-```
+- [要件定義書](docs/REQUIREMENTS_SPECIFICATION.md) - 機能仕様
+- [実装計画](_docs/2025-10-11_要件定義書に基づく実装計画.md) - 実装ロードマップ
+- [メタプロンプト](.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md) - 開発ガイドライン
 
 ---
 
-## 🌟 まとめ
+## ライセンス
 
-**Codex Sub-Agents & Deep Research で開発を10倍加速！** 🚀
+Apache-2.0
 
-- ✅ 4つの専門エージェント
-- ✅ 自動リサーチ・テスト・レビュー・セキュリティ
-- ✅ GitHub/Slack完全統合
-- ✅ VS Code拡張でGUI対応
-- ✅ Claude Code完全超越
+---
 
-**今すぐ始めよう！** 💪
-
-```bash
-codex research "あなたのトピック" --depth 3
-```
-
+**Project**: zapabob/codex  
+**Version**: 0.47.0-alpha.1  
+**Last Updated**: 2025-10-11

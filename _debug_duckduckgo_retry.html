@@ -1,176 +1,640 @@
-<!-- <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> -->
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!--[if IE 6]><html class="ie6" xmlns="http://www.w3.org/1999/xhtml"><![endif]-->
+<!--[if IE 7]><html class="lt-ie8 lt-ie9" xmlns="http://www.w3.org/1999/xhtml"><![endif]-->
+<!--[if IE 8]><html class="lt-ie9" xmlns="http://www.w3.org/1999/xhtml"><![endif]-->
+<!--[if gt IE 8]><!--><html xmlns="http://www.w3.org/1999/xhtml"><!--<![endif]-->
 <head>
-    <link rel="canonical" href="https://duckduckgo.com/">
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=1">
-    <meta name="referrer" content="origin">
-    <title>
-        DuckDuckGo
-    </title>
-    <link rel="preload" href="/font/ProximaNova-Reg-webfont.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="/font/ProximaNova-Sbold-webfont.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link title="DuckDuckGo (Lite)" type="application/opensearchdescription+xml" rel="search" href="//duckduckgo.com/opensearch_lite_v2.xml">
-    <link rel="icon" href="//duckduckgo.com/favicon.ico" type="image/x-icon"/>
-    <link id="icon60" rel="apple-touch-icon" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_60x60.png?v=2"/>
-    <link id="icon76" rel="apple-touch-icon" sizes="76x76" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_76x76.png?v=2"/>
-    <link id="icon120" rel="apple-touch-icon" sizes="120x120" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_120x120.png?v=2"/>
-    <link id="icon152" rel="apple-touch-icon" sizes="152x152" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_152x152.png?v=2"/>
-    <link rel="image_src" href="//duckduckgo.com/assets/icons/meta/DDG-icon_256x256.png">
-    <link rel="stylesheet" media="handheld, all" href="//duckduckgo.com/dist/l.dedf9a21e97bacda4782.css" type="text/css"/>
-    <link rel="stylesheet" media="handheld, all" href="//duckduckgo.com/dist/lc.ddfa8c0ba43459a9159a.css" type="text/css"/>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=1" />
+  <meta name="referrer" content="origin" />
+  <meta name="HandheldFriendly" content="true" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Rust async programming best practices at DuckDuckGo</title>
+  <link title="DuckDuckGo (HTML)" type="application/opensearchdescription+xml" rel="search" href="//duckduckgo.com/opensearch_html_v2.xml" />
+  <link href="//duckduckgo.com/favicon.ico" rel="shortcut icon" />
+  <link rel="icon" href="//duckduckgo.com/favicon.ico" type="image/x-icon" />
+  <link id="icon60" rel="apple-touch-icon" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_60x60.png?v=2"/>
+  <link id="icon76" rel="apple-touch-icon" sizes="76x76" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_76x76.png?v=2"/>
+  <link id="icon120" rel="apple-touch-icon" sizes="120x120" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_120x120.png?v=2"/>
+  <link id="icon152" rel="apple-touch-icon" sizes="152x152" href="//duckduckgo.com/assets/icons/meta/DDG-iOS-icon_152x152.png?v=2"/>
+  <link rel="image_src" href="//duckduckgo.com/assets/icons/meta/DDG-icon_256x256.png">
+  <link rel="stylesheet" media="handheld, all" href="//duckduckgo.com/dist/h.5cdd129b369a4236564b.css" type="text/css"/>
 </head>
 
-<body>
-    <a name="top"></a>
-    <center id="lite_wrapper">
-        <br>
-        <a class="header-url" href="/html/">
-            <span class="header">DuckDuckGo</span>
-        </a>
-        <br><br>
+<body class="body--html">
+  <a name="top" id="top"></a>
+
+  <form action="/html/" method="post">
+    <input type="text" name="state_hidden" id="state_hidden" />
+  </form>
+
+  <div>
+    <div class="site-wrapper-border"></div>
+
+    <div id="header" class="header cw header--html">
+      <a title="DuckDuckGo" href="/html/" class="header__logo-wrap"></a>
+
+      <form name="x" class="header__form" action="/html/" method="post">
+        <div class="search search--header">
+          <input name="q" autocomplete="off" class="search__input" id="search_form_input_homepage" type="text" value="Rust async programming best practices" />
+          <input name="b" id="search_button_homepage" class="search__button search__button--html" value="" title="Search" alt="Search" type="submit" />
+        </div>
 
         
-        <iframe name="ifr" width="0" height="0" border="0" class="hidden"></iframe>
-        <form id="img-form" action="//duckduckgo.com/anomaly.js?sv=html&cc=botnet&ti=1760171148&gk=d4cd0dabcf4caa22ad92fab40844c786&p=913e055842b04de5b0133ead01fd04b2-46f687ae80f54aa99cf6c2e82e12e2fa-82bb9993846647628996e41963e6c423-d1d323d91b5440a18999ea35cdf08c15-557093d60f754959a5576d694b31b629-bf251f89910240249a5344f45aa32a20-403e16e124b54e24b4e035a12dc9a6ee-2fe5a7d132744f07a41b9f57e29deda5-aa17b53a7eda44a09e46f70612327533&q=Rust async programming tutorial complete guide&o=wCJHOt17W6z7YZGZQlFTVRCXVWbyh86vDLbENYuScEUE9AZKnO3fiYScWPInUVv%2F%0A&r=ase" target="ifr" method="POST"></form>
-        <form id="challenge-form" action="//duckduckgo.com/anomaly.js?sv=html&cc=botnet&st=1760171148&gk=d4cd0dabcf4caa22ad92fab40844c786&p=913e055842b04de5b0133ead01fd04b2-46f687ae80f54aa99cf6c2e82e12e2fa-82bb9993846647628996e41963e6c423-d1d323d91b5440a18999ea35cdf08c15-557093d60f754959a5576d694b31b629-bf251f89910240249a5344f45aa32a20-403e16e124b54e24b4e035a12dc9a6ee-2fe5a7d132744f07a41b9f57e29deda5-aa17b53a7eda44a09e46f70612327533&q=Rust async programming tutorial complete guide&o=wCJHOt17W6z7YZGZQlFTVRCXVWbyh86vDLbENYuScEUE9AZKnO3fiYScWPInUVv%2F%0A&r=ase" method="POST">
-            <div class="anomaly-modal__mask">
-                <div class="anomaly-modal__modal  is-ie" data-testid="anomaly-modal">
-                    <div class="anomaly-modal__title">Unfortunately, bots use DuckDuckGo too.</div>
-                    <div class="anomaly-modal__description">Please complete the following challenge to confirm this search was made by a human.</div>
-                    <div class="anomaly-modal__instructions">Select all squares containing a duck:</div>
-                    <div class="anomaly-modal__puzzle-margins">
-                        <div class="anomaly-modal__puzzle">
-                            
-                                <div class="anomaly-modal__box" data-index="0">
-                                    
-                                    
-                                        <label class="" for="image-check_913e055842b04de5b0133ead01fd04b2" data-testid="anomaly-modal-tile-0">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_913e055842b04de5b0133ead01fd04b2" id="image-check_913e055842b04de5b0133ead01fd04b2">
-                                            <img class="anomaly-modal__image" alt=" " id="image-913e055842b04de5b0133ead01fd04b2" src="../assets/anomaly/images/challenge/913e055842b04de5b0133ead01fd04b2.jpg" data-id="913e055842b04de5b0133ead01fd04b2.jpg" data-testid="anomaly-modal-image-0"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="1">
-                                    
-                                    
-                                        <label class="" for="image-check_46f687ae80f54aa99cf6c2e82e12e2fa" data-testid="anomaly-modal-tile-1">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_46f687ae80f54aa99cf6c2e82e12e2fa" id="image-check_46f687ae80f54aa99cf6c2e82e12e2fa">
-                                            <img class="anomaly-modal__image" alt=" " id="image-46f687ae80f54aa99cf6c2e82e12e2fa" src="../assets/anomaly/images/challenge/46f687ae80f54aa99cf6c2e82e12e2fa.jpg" data-id="46f687ae80f54aa99cf6c2e82e12e2fa.jpg" data-testid="anomaly-modal-image-1"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="2">
-                                    
-                                    
-                                        <label class="" for="image-check_82bb9993846647628996e41963e6c423" data-testid="anomaly-modal-tile-2">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_82bb9993846647628996e41963e6c423" id="image-check_82bb9993846647628996e41963e6c423">
-                                            <img class="anomaly-modal__image" alt=" " id="image-82bb9993846647628996e41963e6c423" src="../assets/anomaly/images/challenge/82bb9993846647628996e41963e6c423.jpg" data-id="82bb9993846647628996e41963e6c423.jpg" data-testid="anomaly-modal-image-2"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="3">
-                                    
-                                    
-                                        <label class="" for="image-check_d1d323d91b5440a18999ea35cdf08c15" data-testid="anomaly-modal-tile-3">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_d1d323d91b5440a18999ea35cdf08c15" id="image-check_d1d323d91b5440a18999ea35cdf08c15">
-                                            <img class="anomaly-modal__image" alt=" " id="image-d1d323d91b5440a18999ea35cdf08c15" src="../assets/anomaly/images/challenge/d1d323d91b5440a18999ea35cdf08c15.jpg" data-id="d1d323d91b5440a18999ea35cdf08c15.jpg" data-testid="anomaly-modal-image-3"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="4">
-                                    
-                                    
-                                        <label class="" for="image-check_557093d60f754959a5576d694b31b629" data-testid="anomaly-modal-tile-4">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_557093d60f754959a5576d694b31b629" id="image-check_557093d60f754959a5576d694b31b629">
-                                            <img class="anomaly-modal__image" alt=" " id="image-557093d60f754959a5576d694b31b629" src="../assets/anomaly/images/challenge/557093d60f754959a5576d694b31b629.jpg" data-id="557093d60f754959a5576d694b31b629.jpg" data-testid="anomaly-modal-image-4"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="5">
-                                    
-                                    
-                                        <label class="" for="image-check_bf251f89910240249a5344f45aa32a20" data-testid="anomaly-modal-tile-5">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_bf251f89910240249a5344f45aa32a20" id="image-check_bf251f89910240249a5344f45aa32a20">
-                                            <img class="anomaly-modal__image" alt=" " id="image-bf251f89910240249a5344f45aa32a20" src="../assets/anomaly/images/challenge/bf251f89910240249a5344f45aa32a20.jpg" data-id="bf251f89910240249a5344f45aa32a20.jpg" data-testid="anomaly-modal-image-5"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="6">
-                                    
-                                    
-                                        <label class="" for="image-check_403e16e124b54e24b4e035a12dc9a6ee" data-testid="anomaly-modal-tile-6">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_403e16e124b54e24b4e035a12dc9a6ee" id="image-check_403e16e124b54e24b4e035a12dc9a6ee">
-                                            <img class="anomaly-modal__image" alt=" " id="image-403e16e124b54e24b4e035a12dc9a6ee" src="../assets/anomaly/images/challenge/403e16e124b54e24b4e035a12dc9a6ee.jpg" data-id="403e16e124b54e24b4e035a12dc9a6ee.jpg" data-testid="anomaly-modal-image-6"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="7">
-                                    
-                                    
-                                        <label class="" for="image-check_2fe5a7d132744f07a41b9f57e29deda5" data-testid="anomaly-modal-tile-7">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_2fe5a7d132744f07a41b9f57e29deda5" id="image-check_2fe5a7d132744f07a41b9f57e29deda5">
-                                            <img class="anomaly-modal__image" alt=" " id="image-2fe5a7d132744f07a41b9f57e29deda5" src="../assets/anomaly/images/challenge/2fe5a7d132744f07a41b9f57e29deda5.jpg" data-id="2fe5a7d132744f07a41b9f57e29deda5.jpg" data-testid="anomaly-modal-image-7"></img>
-                                        </label>
-                                    
-                                </div>
-                            
-                                <div class="anomaly-modal__box" data-index="8">
-                                    
-                                    
-                                        <label class="" for="image-check_aa17b53a7eda44a09e46f70612327533" data-testid="anomaly-modal-tile-8">
-                                            <input type="checkbox" class="anomaly-modal__check" name="image-check_aa17b53a7eda44a09e46f70612327533" id="image-check_aa17b53a7eda44a09e46f70612327533">
-                                            <img class="anomaly-modal__image" alt=" " id="image-aa17b53a7eda44a09e46f70612327533" src="../assets/anomaly/images/challenge/aa17b53a7eda44a09e46f70612327533.jpg" data-id="aa17b53a7eda44a09e46f70612327533.jpg" data-testid="anomaly-modal-image-8"></img>
-                                        </label>
-                                    
-                                </div>
-                            
+        
+        
+        
+
+        <div class="frm__select">
+          <select name="kl">
+            
+              <option value="" >All Regions</option>
+            
+              <option value="ar-es" >Argentina</option>
+            
+              <option value="au-en" >Australia</option>
+            
+              <option value="at-de" >Austria</option>
+            
+              <option value="be-fr" >Belgium (fr)</option>
+            
+              <option value="be-nl" >Belgium (nl)</option>
+            
+              <option value="br-pt" >Brazil</option>
+            
+              <option value="bg-bg" >Bulgaria</option>
+            
+              <option value="ca-en" >Canada (en)</option>
+            
+              <option value="ca-fr" >Canada (fr)</option>
+            
+              <option value="ct-ca" >Catalonia</option>
+            
+              <option value="cl-es" >Chile</option>
+            
+              <option value="cn-zh" >China</option>
+            
+              <option value="co-es" >Colombia</option>
+            
+              <option value="hr-hr" >Croatia</option>
+            
+              <option value="cz-cs" >Czech Republic</option>
+            
+              <option value="dk-da" >Denmark</option>
+            
+              <option value="ee-et" >Estonia</option>
+            
+              <option value="fi-fi" >Finland</option>
+            
+              <option value="fr-fr" >France</option>
+            
+              <option value="de-de" >Germany</option>
+            
+              <option value="gr-el" >Greece</option>
+            
+              <option value="hk-tzh" >Hong Kong</option>
+            
+              <option value="hu-hu" >Hungary</option>
+            
+              <option value="is-is" >Iceland</option>
+            
+              <option value="in-en" >India (en)</option>
+            
+              <option value="id-en" >Indonesia (en)</option>
+            
+              <option value="ie-en" >Ireland</option>
+            
+              <option value="il-en" >Israel (en)</option>
+            
+              <option value="it-it" >Italy</option>
+            
+              <option value="jp-jp" >Japan</option>
+            
+              <option value="kr-kr" >Korea</option>
+            
+              <option value="lv-lv" >Latvia</option>
+            
+              <option value="lt-lt" >Lithuania</option>
+            
+              <option value="my-en" >Malaysia (en)</option>
+            
+              <option value="mx-es" >Mexico</option>
+            
+              <option value="nl-nl" >Netherlands</option>
+            
+              <option value="nz-en" >New Zealand</option>
+            
+              <option value="no-no" >Norway</option>
+            
+              <option value="pk-en" >Pakistan (en)</option>
+            
+              <option value="pe-es" >Peru</option>
+            
+              <option value="ph-en" >Philippines (en)</option>
+            
+              <option value="pl-pl" >Poland</option>
+            
+              <option value="pt-pt" >Portugal</option>
+            
+              <option value="ro-ro" >Romania</option>
+            
+              <option value="ru-ru" >Russia</option>
+            
+              <option value="xa-ar" >Saudi Arabia</option>
+            
+              <option value="sg-en" >Singapore</option>
+            
+              <option value="sk-sk" >Slovakia</option>
+            
+              <option value="sl-sl" >Slovenia</option>
+            
+              <option value="za-en" >South Africa</option>
+            
+              <option value="es-ca" >Spain (ca)</option>
+            
+              <option value="es-es" >Spain (es)</option>
+            
+              <option value="se-sv" >Sweden</option>
+            
+              <option value="ch-de" >Switzerland (de)</option>
+            
+              <option value="ch-fr" >Switzerland (fr)</option>
+            
+              <option value="tw-tzh" >Taiwan</option>
+            
+              <option value="th-en" >Thailand (en)</option>
+            
+              <option value="tr-tr" >Turkey</option>
+            
+              <option value="us-en" >US (English)</option>
+            
+              <option value="us-es" >US (Spanish)</option>
+            
+              <option value="ua-uk" >Ukraine</option>
+            
+              <option value="uk-en" >United Kingdom</option>
+            
+              <option value="vn-en" >Vietnam (en)</option>
+            
+          </select>
+        </div>
+
+        <div class="frm__select frm__select--last">
+          <select class="" name="df">
+            
+              <option value="" selected>Any Time</option>
+            
+              <option value="d" >Past Day</option>
+            
+              <option value="w" >Past Week</option>
+            
+              <option value="m" >Past Month</option>
+            
+              <option value="y" >Past Year</option>
+            
+          </select>
+        </div>
+      </form>
+    </div>
+
+    
+
+    
+      <!-- Web results are present -->
+      <div>
+        <div class="serp__results">
+          <div id="links" class="results">
+            
+
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fbook%2Fch17%2D00%2Dasync%2Dawait.html&amp;rut=9aca0b7dfa5ec8a99898cffce7b279366b0810219a3bce42ea4f6cdaf332483f">Fundamentals of Asynchronous Programming: Async, Await ... - Learn Rust</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fbook%2Fch17%2D00%2Dasync%2Dawait.html&amp;rut=9aca0b7dfa5ec8a99898cffce7b279366b0810219a3bce42ea4f6cdaf332483f">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/doc.rust-lang.org.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fbook%2Fch17%2D00%2Dasync%2Dawait.html&amp;rut=9aca0b7dfa5ec8a99898cffce7b279366b0810219a3bce42ea4f6cdaf332483f">
+                            doc.rust-lang.org/book/ch17-00-async-await.html
+                          </a>
+                          
                         </div>
-                    </div>
-                    <div class="anomaly-modal__controls">
-                        <button name="challenge-submit" class="btn btn--primary anomaly-modal__submit js-anomaly-modal-submit" form="challenge-form" value="d4cd0dabcf4caa22ad92fab40844c786" >Submit</button>
-                        <p></p>
-                        <input class="feedback-toggle" type="checkbox" id="feedback" unchecked />
-                        <label for="feedback" class="feedback-text">Images not loading?</label>
-                        <div class="feedback-content">
-                            <label class="feedback-instructions">Please email the following code to:</label>
-                            <p class="feedback-instructions">error-lite@duckduckgo.com</p>
-                            <p><label class="feedback-instructions">Code: d4cd0dabcf4caa22ad92fab40844c786</label></p>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fbook%2Fch17%2D00%2Dasync%2Dawait.html&amp;rut=9aca0b7dfa5ec8a99898cffce7b279366b0810219a3bce42ea4f6cdaf332483f">This chapter builds on Chapter 16&#x27;s use of threads for parallelism and concurrency by introducing an alternative approach to asynchronous <b>programming</b>: <b>Rust&#x27;s</b> Futures, Streams, the <b>async</b> and await syntax that supports them, and the tools for managing and coordinating between asynchronous operations. Let&#x27;s consider an example.</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fmastering%2Dconcurrency%2Din%2Drust%2Dthreads%2Dasync%2Dawait%2F&amp;rut=209ac9249618341208870dbc489f80e68b5ea8906231dcb41c062b2f24b87cad">Mastering Concurrency in Rust: Complete Tutorial for Threads and Async ...</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fmastering%2Dconcurrency%2Din%2Drust%2Dthreads%2Dasync%2Dawait%2F&amp;rut=209ac9249618341208870dbc489f80e68b5ea8906231dcb41c062b2f24b87cad">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/codezup.com.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fmastering%2Dconcurrency%2Din%2Drust%2Dthreads%2Dasync%2Dawait%2F&amp;rut=209ac9249618341208870dbc489f80e68b5ea8906231dcb41c062b2f24b87cad">
+                            codezup.com/mastering-concurrency-in-rust-threads-async-await/
+                          </a>
+                          
+                            <span>&nbsp; &nbsp; 2025-06-12T00:00:00.0000000</span>
+                          
                         </div>
-                    </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fmastering%2Dconcurrency%2Din%2Drust%2Dthreads%2Dasync%2Dawait%2F&amp;rut=209ac9249618341208870dbc489f80e68b5ea8906231dcb41c062b2f24b87cad">Learn how to master concurrency in <b>Rust</b> with this hands-on guide to threads and <b>async</b>/await <b>programming</b>. Build efficient and scalable concurrent systems.</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fleapcell.medium.com%2Frust%2Dconcurrency%2Dcommon%2Dasync%2Dpitfalls%2Dexplained%2D8f80d90b9a43&amp;rut=561c3e32dcb462651584241bf3ab439545d117ff43d1d7fa1ad033fc816cdbb1">Rust Concurrency: Common Async Pitfalls Explained</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fleapcell.medium.com%2Frust%2Dconcurrency%2Dcommon%2Dasync%2Dpitfalls%2Dexplained%2D8f80d90b9a43&amp;rut=561c3e32dcb462651584241bf3ab439545d117ff43d1d7fa1ad033fc816cdbb1">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/leapcell.medium.com.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fleapcell.medium.com%2Frust%2Dconcurrency%2Dcommon%2Dasync%2Dpitfalls%2Dexplained%2D8f80d90b9a43&amp;rut=561c3e32dcb462651584241bf3ab439545d117ff43d1d7fa1ad033fc816cdbb1">
+                            leapcell.medium.com/rust-concurrency-common-async-pitfalls-explained-8f80d90b9a43
+                          </a>
+                          
+                            <span>&nbsp; &nbsp; 2025-04-17T00:00:00.0000000</span>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fleapcell.medium.com%2Frust%2Dconcurrency%2Dcommon%2Dasync%2Dpitfalls%2Dexplained%2D8f80d90b9a43&amp;rut=561c3e32dcb462651584241bf3ab439545d117ff43d1d7fa1ad033fc816cdbb1"><b>Rust</b> Concurrency: Common <b>Async</b> Pitfalls Explained Learn the top <b>async</b> traps in <b>Rust</b> and <b>best</b> <b>practices</b> to prevent them. Asynchronous <b>programming</b> comes with certain complexities, and it&#x27;s easy to …</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fblog.poespas.me%2Fposts%2F2024%2F06%2F02%2Frust%2Dasync%2Dprogramming%2Dbest%2Dpractices%2F&amp;rut=400c3c5a83212e7c15edbb079254bc5476b734486ff1769eb57daa6f105f7642">Best Practices for Asynchronous Programming in Rust</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fblog.poespas.me%2Fposts%2F2024%2F06%2F02%2Frust%2Dasync%2Dprogramming%2Dbest%2Dpractices%2F&amp;rut=400c3c5a83212e7c15edbb079254bc5476b734486ff1769eb57daa6f105f7642">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/blog.poespas.me.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fblog.poespas.me%2Fposts%2F2024%2F06%2F02%2Frust%2Dasync%2Dprogramming%2Dbest%2Dpractices%2F&amp;rut=400c3c5a83212e7c15edbb079254bc5476b734486ff1769eb57daa6f105f7642">
+                            blog.poespas.me/posts/2024/06/02/rust-async-programming-best-practices/
+                          </a>
+                          
+                            <span>&nbsp; &nbsp; 2024-06-02T00:00:00.0000000</span>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fblog.poespas.me%2Fposts%2F2024%2F06%2F02%2Frust%2Dasync%2Dprogramming%2Dbest%2Dpractices%2F&amp;rut=400c3c5a83212e7c15edbb079254bc5476b734486ff1769eb57daa6f105f7642">By following the <b>best</b> <b>practices</b> outlined above, you can build robust and scalable systems that take advantage of <b>Rust&#x27;s</b> <b>async</b> <b>programming</b> capabilities. Whether you&#x27;re building a web server or a real-time data processing pipeline, mastering <b>async</b> <b>programming</b> will be crucial for your project&#x27;s success.</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fkitemetric.com%2Fblogs%2Funlocking%2Dweb%2Dperformance%2Da%2Ddeep%2Ddive%2Dinto%2Dasynchronous%2Dprogramming%2Din%2Drust&amp;rut=59f3b3ddd69b70d4724fca038a6310778c26e07b297745176fd7dea4d8ae9339">Async Programming in Rust: Boost Web App Performance | Kite Metric</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fkitemetric.com%2Fblogs%2Funlocking%2Dweb%2Dperformance%2Da%2Ddeep%2Ddive%2Dinto%2Dasynchronous%2Dprogramming%2Din%2Drust&amp;rut=59f3b3ddd69b70d4724fca038a6310778c26e07b297745176fd7dea4d8ae9339">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/kitemetric.com.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fkitemetric.com%2Fblogs%2Funlocking%2Dweb%2Dperformance%2Da%2Ddeep%2Ddive%2Dinto%2Dasynchronous%2Dprogramming%2Din%2Drust&amp;rut=59f3b3ddd69b70d4724fca038a6310778c26e07b297745176fd7dea4d8ae9339">
+                            kitemetric.com/blogs/unlocking-web-performance-a-deep-dive-into-asynchronous-programming-in-rust
+                          </a>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fkitemetric.com%2Fblogs%2Funlocking%2Dweb%2Dperformance%2Da%2Ddeep%2Ddive%2Dinto%2Dasynchronous%2Dprogramming%2Din%2Drust&amp;rut=59f3b3ddd69b70d4724fca038a6310778c26e07b297745176fd7dea4d8ae9339">Supercharge your web apps with <b>async</b> <b>Rust</b>! Learn <b>best</b> <b>practices</b> and discover real-world applications for building high-performance systems. Read now!</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fakhil.sh%2Ftutorials%2Frust%2Frust%2Fasync_programming_rust%2F&amp;rut=63910639391f3dd21eb71cc4ee64092246bd816c87ce1b2e0260bbbc05ccc921">Unlocking Asynchronous Programming in Rust | Tutorials</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fakhil.sh%2Ftutorials%2Frust%2Frust%2Fasync_programming_rust%2F&amp;rut=63910639391f3dd21eb71cc4ee64092246bd816c87ce1b2e0260bbbc05ccc921">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/akhil.sh.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fakhil.sh%2Ftutorials%2Frust%2Frust%2Fasync_programming_rust%2F&amp;rut=63910639391f3dd21eb71cc4ee64092246bd816c87ce1b2e0260bbbc05ccc921">
+                            akhil.sh/tutorials/rust/rust/async_programming_rust/
+                          </a>
+                          
+                            <span>&nbsp; &nbsp; 2024-08-17T00:00:00.0000000</span>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fakhil.sh%2Ftutorials%2Frust%2Frust%2Fasync_programming_rust%2F&amp;rut=63910639391f3dd21eb71cc4ee64092246bd816c87ce1b2e0260bbbc05ccc921">Explore the powerful asynchronous <b>programming</b> model in <b>Rust</b> with this in-depth guide on the <b>async</b>/await syntax and <b>best</b> <b>practices</b> for building scalable asynchronous applications. Packed with technical insights, practical coding examples, and advanced techniques, this post is essential for <b>Rust</b> developers looking to enhance the responsiveness and performance of their applications.</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fstable%2Fbook%2Fch17%2D02%2Dconcurrency%2Dwith%2Dasync.html&amp;rut=e3543847046c162d0dcaab999a472e9b14d11a618343a3cc74a53562ee6a366b">Applying Concurrency with Async - The Rust Programming Language</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fstable%2Fbook%2Fch17%2D02%2Dconcurrency%2Dwith%2Dasync.html&amp;rut=e3543847046c162d0dcaab999a472e9b14d11a618343a3cc74a53562ee6a366b">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/doc.rust-lang.org.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fstable%2Fbook%2Fch17%2D02%2Dconcurrency%2Dwith%2Dasync.html&amp;rut=e3543847046c162d0dcaab999a472e9b14d11a618343a3cc74a53562ee6a366b">
+                            doc.rust-lang.org/stable/book/ch17-02-concurrency-with-async.html
+                          </a>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust%2Dlang.org%2Fstable%2Fbook%2Fch17%2D02%2Dconcurrency%2Dwith%2Dasync.html&amp;rut=e3543847046c162d0dcaab999a472e9b14d11a618343a3cc74a53562ee6a366b">With <b>async</b> <b>Rust</b>, the runtime decides which task to check. (In <b>practice</b>, the details get complicated because an <b>async</b> runtime might use operating system threads under the hood as part of how it manages concurrency, so guaranteeing fairness can be more work for a runtime—but it&#x27;s still possible!)</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fmoldstud.com%2Farticles%2Fp%2Dasynchronous%2Dprogramming%2Dmodels%2Din%2Drust%2Dchoosing%2Dthe%2Dright%2Dapproach&amp;rut=c1c88d45697b17d3efb396f03beb1b46473b81b8c4625919d5b569c1b25b1e1c">Choosing Asynchronous Programming Models in Rust | MoldStud</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fmoldstud.com%2Farticles%2Fp%2Dasynchronous%2Dprogramming%2Dmodels%2Din%2Drust%2Dchoosing%2Dthe%2Dright%2Dapproach&amp;rut=c1c88d45697b17d3efb396f03beb1b46473b81b8c4625919d5b569c1b25b1e1c">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/moldstud.com.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fmoldstud.com%2Farticles%2Fp%2Dasynchronous%2Dprogramming%2Dmodels%2Din%2Drust%2Dchoosing%2Dthe%2Dright%2Dapproach&amp;rut=c1c88d45697b17d3efb396f03beb1b46473b81b8c4625919d5b569c1b25b1e1c">
+                            moldstud.com/articles/p-asynchronous-programming-models-in-rust-choosing-the-right-approach
+                          </a>
+                          
+                            <span>&nbsp; &nbsp; 2025-06-14T00:00:00.0000000</span>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fmoldstud.com%2Farticles%2Fp%2Dasynchronous%2Dprogramming%2Dmodels%2Din%2Drust%2Dchoosing%2Dthe%2Dright%2Dapproach&amp;rut=c1c88d45697b17d3efb396f03beb1b46473b81b8c4625919d5b569c1b25b1e1c">Explore various asynchronous <b>programming</b> models in <b>Rust</b>, focusing on how to select the most suitable approach for your projects and enhance your code&#x27;s performance.</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fhands%2Don%2Dwith%2Drust%2Dasync%2Dawait%2Dsimplifying%2Dconcurrent%2Dprogramming%2F&amp;rut=167605357effd4b591aa3327e3599e9ef24a7b551baa1bdc8b9073e6c8586f6b">Hands-On with Rust&#x27;s Async/Await: Simplifying Concurrent Programming</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fhands%2Don%2Dwith%2Drust%2Dasync%2Dawait%2Dsimplifying%2Dconcurrent%2Dprogramming%2F&amp;rut=167605357effd4b591aa3327e3599e9ef24a7b551baa1bdc8b9073e6c8586f6b">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/codezup.com.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fhands%2Don%2Dwith%2Drust%2Dasync%2Dawait%2Dsimplifying%2Dconcurrent%2Dprogramming%2F&amp;rut=167605357effd4b591aa3327e3599e9ef24a7b551baa1bdc8b9073e6c8586f6b">
+                            codezup.com/hands-on-with-rust-async-await-simplifying-concurrent-programming/
+                          </a>
+                          
+                            <span>&nbsp; &nbsp; 2025-07-09T00:00:00.0000000</span>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fcodezup.com%2Fhands%2Don%2Dwith%2Drust%2Dasync%2Dawait%2Dsimplifying%2Dconcurrent%2Dprogramming%2F&amp;rut=167605357effd4b591aa3327e3599e9ef24a7b551baa1bdc8b9073e6c8586f6b">Explore <b>Rust&#x27;s</b> <b>async</b>/await functionality and learn how it simplifies concurrent <b>programming</b> with hands-on examples and practical insights.</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="result results_links results_links_deep web-result ">
+                  <div class="links_main links_deep result__body"> <!-- This is the visible part -->
+                    
+                      <h2 class="result__title">
+                        <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.ruststepbystep.com%2Fmaster%2Dasync%2Dprogramming%2Din%2Drust%2Da%2Dpractical%2Dhands%2Don%2Dguide%2F&amp;rut=24b64c875b2593bee43c19e779d4fad61ceade89d29dbe6504f1cf20a679c302">Master Async Programming in Rust: A Practical, Hands-On Guide</a>
+                      </h2>
+
+                    
+
+                    
+                      <div class="result__extras">
+                        <div class="result__extras__url">
+                          <span class="result__icon">
+                            <a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.ruststepbystep.com%2Fmaster%2Dasync%2Dprogramming%2Din%2Drust%2Da%2Dpractical%2Dhands%2Don%2Dguide%2F&amp;rut=24b64c875b2593bee43c19e779d4fad61ceade89d29dbe6504f1cf20a679c302">
+                              <img class="result__icon__img" width="16" height="16" alt="" src="//external-content.duckduckgo.com/ip3/www.ruststepbystep.com.ico" name="i15" />
+                            </a>
+                          </span>
+                          <a class="result__url" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.ruststepbystep.com%2Fmaster%2Dasync%2Dprogramming%2Din%2Drust%2Da%2Dpractical%2Dhands%2Don%2Dguide%2F&amp;rut=24b64c875b2593bee43c19e779d4fad61ceade89d29dbe6504f1cf20a679c302">
+                            www.ruststepbystep.com/master-async-programming-in-rust-a-practical-hands-on-guide/
+                          </a>
+                          
+                            <span>&nbsp; &nbsp; 2025-02-14T00:00:00.0000000</span>
+                          
+                        </div>
+                      </div>
+                    
+
+                    
+                      
+                        <a class="result__snippet" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.ruststepbystep.com%2Fmaster%2Dasync%2Dprogramming%2Din%2Drust%2Da%2Dpractical%2Dhands%2Don%2Dguide%2F&amp;rut=24b64c875b2593bee43c19e779d4fad61ceade89d29dbe6504f1cf20a679c302">Introduction <b>Rust</b> is known for its safety and performance, but many developers find its approach to asynchronous <b>programming</b> a bit challenging at first. In this article, we&#x27;ll explore how <b>Rust</b> handles <b>async</b> <b>programming</b> with a hands-on approach, using practical examples.</a>
+                      
+                    
+
+                    <div class="clear"></div>
+                  </div>
+                </div>
+              
+            
+
+            
+              
+              
+                <div class="nav-link">
+                  <form action="/html/" method="post">
+                    <input type="submit" class='btn btn--alt' value="Next" />
+                    <input type="hidden" name="q" value="Rust async programming best practices" />
+                    <input type="hidden" name="s" value="10" />
+                    <input type="hidden" name="nextParams" value="" />
+                    <input type="hidden" name="v" value="l" />
+                    <input type="hidden" name="o" value="json" />
+                    <input type="hidden" name="dc" value="11" />
+                    <input type="hidden" name="api" value="d.js" />
+                    <input type="hidden" name="vqd" value="4-140735673915640716060871903994742954140" />
+
+                    
+                    
+                    
+                      <input name="kl" value="wt-wt" type="hidden" />
+                    
+                    
+                    
+                    
+                  </form>
+                </div>
+              
+            
+
+            <div class="feedback-btn">
+              <a rel="nofollow" href="//duckduckgo.com/feedback.html" target="_new">Feedback</a>
             </div>
-        </form>
-        
-
-        
-
-        
-
-        
-
-
-        <br>
-        <p class='html-only'>
-            <!--    This is the Lite version. Get the full-JS version <a href="https://duckduckgo.com/">here</a>. //-->
-        </p>
-    </center>
+            <div class="clear"></div>
+          </div>
+        </div>
+      </div> <!-- links wrapper //-->
     
-        <img src="//duckduckgo.com/t/tqadb?6616500&amp;s=lite&amp;i=-1&amp;sc=1&amp;o=wCJHOt17W6z7YZGZQlFTVRCXVWbyh86vDLbENYuScEUE9AZKnO3fiYScWPInUVv%2F%0A&amp;r=ase&amp;c=dadb&amp;cc=botnet&amp;p=913e055842b04de5b0133ead01fd04b2-46f687ae80f54aa99cf6c2e82e12e2fa-82bb9993846647628996e41963e6c423-d1d323d91b5440a18999ea35cdf08c15-557093d60f754959a5576d694b31b629-bf251f89910240249a5344f45aa32a20-403e16e124b54e24b4e035a12dc9a6ee-2fe5a7d132744f07a41b9f57e29deda5-aa17b53a7eda44a09e46f70612327533&amp;e=0&amp;gk=d4cd0dabcf4caa22ad92fab40844c786&amp;iadb=0"/>
-    
-    
-    
-    
-    
+  </div>
 
+  <div id="bottom_spacing2"></div>
+
+  
+    <img src="//duckduckgo.com/t/sl_h"/>
+  
 </body>
-
 </html>
