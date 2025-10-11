@@ -449,15 +449,15 @@ async fn main() -> anyhow::Result<()> {
         max_sources: 10,
         strategy: ResearchStrategy::Comprehensive,
     };
-    
+
     // 調査実行
     let researcher = DeepResearcher::new(config, provider);
     let report = researcher.research("Rust async patterns").await?;
-    
+
     // 結果表示
     println!("Summary: {}", report.summary);
     println!("Sources: {}", report.sources.len());
-    
+
     Ok(())
 }
 ```

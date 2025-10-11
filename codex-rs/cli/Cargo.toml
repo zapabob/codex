@@ -1,5 +1,5 @@
 [package]
-edition = "2024"
+edition = { workspace = true }
 name = "codex-cli"
 version = { workspace = true }
 
@@ -23,7 +23,7 @@ codex-arg0 = { workspace = true }
 codex-chatgpt = { workspace = true }
 codex-common = { workspace = true, features = ["cli"] }
 codex-core = { workspace = true }
-codex-deep-research = { path = "../deep-research" }
+codex-deep-research = { workspace = true }
 codex-exec = { workspace = true }
 codex-login = { workspace = true }
 codex-mcp-server = { workspace = true }
