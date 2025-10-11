@@ -10,7 +10,6 @@ mod web_search_provider;
 use anyhow::Result;
 use provider::ResearchProvider;
 use std::sync::Arc;
-use types::DeepResearcherConfig;
 use types::ResearchReport;
 
 pub use contradiction::Contradiction;
@@ -22,6 +21,7 @@ pub use planner::ResearchPlan;
 pub use planner::ResearchPlanner;
 pub use planner::StopConditions;
 pub use provider::MockProvider;
+pub use types::DeepResearcherConfig;
 pub use types::ResearchStrategy;
 pub use web_search_provider::WebSearchProvider;
 
