@@ -83,19 +83,29 @@ pub async fn run_main(
             let reader = BufReader::new(stdin);
             let mut lines = reader.lines();
 
-            while let Some(line) = lines.next_line().await.unwrap_or_default() {
-                match serde_json::from_str::<JSONRPCMessage>(&line) {
-                    Ok(msg) => {
-                        if incoming_tx.send(msg).await.is_err() {
-                            // Receiver gone – nothing left to do.
-                            break;
+            loop {
+                match lines.next_line().await {
+                    Ok(Some(line)) => {
+                        match serde_json::from_str::<JSONRPCMessage>(&line) {
+                            Ok(msg) => {
+                                if incoming_tx.send(msg).await.is_err() {
+                                    // Receiver gone – nothing left to do.
+                                    break;
+                                }
+                            }
+                            Err(e) => error!("Failed to deserialize JSONRPCMessage: {e}"),
                         }
                     }
-                    Err(e) => error!("Failed to deserialize JSONRPCMessage: {e}"),
+                    Ok(None) => {
+                        debug!("stdin reader finished (EOF)");
+                        break;
+                    }
+                    Err(e) => {
+                        error!("Failed to read line from stdin: {e}");
+                        break;
+                    }
                 }
             }
-
-            debug!("stdin reader finished (EOF)");
         }
     });
 

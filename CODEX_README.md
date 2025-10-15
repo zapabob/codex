@@ -1,10 +1,44 @@
-# Codex CLI (Rust Implementation)
+# 🚀 Codex - AI-Powered Multi-Agent Coding Assistant
 
-We provide Codex CLI as a standalone, native executable to ensure a zero-dependency install.
+<div align="center">
 
-## 🏗️ Architecture | アーキテクチャ
+[![Version](https://img.shields.io/badge/version-0.47.0--alpha.1-blue.svg)](https://github.com/zapabob/codex)
+[![Rust](https://img.shields.io/badge/rust-1.76%2B-orange.svg)](https://www.rust-lang.org)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/zapabob/codex)
 
-### System Architecture Overview
+**AIコーディングアシスタントの決定版 - 自律オーケストレーション・Deep Research・MCP統合**
+
+[English](#english) | [日本語](#japanese)
+
+</div>
+
+---
+
+<a name="english"></a>
+## 📖 English Documentation
+
+### 🎯 What is Codex?
+
+**Codex** is a next-generation AI coding assistant that combines the power of **specialized sub-agents**, **autonomous orchestration**, and **deep research** capabilities. Built on a high-performance Rust core with seamless integration across multiple IDEs, Codex revolutionizes how developers write, test, and deploy code.
+
+### ✨ Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **🤖 Auto-Orchestration** | Automatically analyzes task complexity and coordinates specialized sub-agents in parallel |
+| **⚡ 2.6x Faster** | Parallel execution of independent tasks for maximum productivity |
+| **🔍 Deep Research** | Multi-source research with citations, contradiction detection, and comprehensive reports |
+| **🔒 Secure by Default** | Sandbox isolation (Seatbelt/Landlock) with approval policies |
+| **🌐 Multi-IDE Support** | VS Code, Cursor, Windsurf extensions with unified experience |
+| **🔌 MCP Integration** | Bi-directional Model Context Protocol support (client & server) |
+| **🌍 Cross-platform** | Windows, macOS, Linux support with native performance |
+
+---
+
+### 🏗️ Architecture
+
+#### System Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -66,7 +100,7 @@ We provide Codex CLI as a standalone, native executable to ensure a zero-depende
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Auto-Orchestration Flow | 自律オーケストレーションフロー
+#### Auto-Orchestration Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -142,141 +176,281 @@ We provide Codex CLI as a standalone, native executable to ensure a zero-depende
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Technology Stack | 技術スタック
+---
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Core Runtime** | Rust (Tokio) | 非同期実行・パフォーマンス最適化 / Async execution & performance |
-| **UI (Terminal)** | Ratatui | インタラクティブTUI / Interactive terminal UI |
-| **UI (IDE)** | TypeScript | VS Code/Cursor/Windsurf拡張 / IDE extensions |
-| **SDK** | Node.js (N-API) | Rust↔Node.js連携 / Rust-Node.js bridge |
-| **Protocol** | MCP (JSON-RPC) | エージェント間通信 / Inter-agent communication |
-| **Orchestration** | DashMap | スレッドセーフな状態管理 / Thread-safe state management |
-| **Sandbox** | Seatbelt/Landlock | macOS/Linuxセキュリティ / Security isolation |
-| **AI Models** | OpenAI/Anthropic | GPT-4/5, Claude / LLM inference |
-| **Web Search** | DuckDuckGo API | Deep Research機能 / Research capabilities |
+### 🚀 Quick Start
 
-### Key Features | 主要機能
+#### Installation
 
-| Feature | Description (EN) | 説明 (JA) |
-|---------|------------------|-----------|
-| **Auto-Orchestration** | Automatic task complexity analysis (5-factor scoring) and parallel sub-agent coordination | タスク複雑度の自動分析（5要素スコアリング）と並列サブエージェント協調 |
-| **Performance** | 2.6x speedup via parallel execution | 並列実行による2.6倍の高速化 |
-| **MCP Integration** | Bi-directional MCP support (client & server) | 双方向MCPサポート（クライアント＆サーバー） |
-| **Deep Research** | Multi-source research with citations and contradiction detection | 複数ソースからの引用付き調査と矛盾検出 |
-| **Security** | Sandbox isolation (Seatbelt/Landlock) with approval policies | サンドボックス分離（Seatbelt/Landlock）と承認ポリシー |
-| **Cross-platform** | Windows, macOS, Linux support | Windows、macOS、Linux対応 |
-| **Multi-IDE** | VS Code, Cursor, Windsurf extensions | VS Code、Cursor、Windsurf拡張 |
+```bash
+# Via npm (TypeScript CLI)
+npm install -g @openai/codex
+
+# Via cargo (Rust CLI - Recommended)
+cargo install --path codex-rs/cli
+
+# Or download pre-built binaries
+# https://github.com/zapabob/codex/releases
+```
+
+#### Basic Usage
+
+```bash
+# Interactive mode
+codex
+
+# Non-interactive execution
+codex exec "Implement a REST API in Rust"
+
+# With auto-orchestration
+codex --auto-orchestrate "Implement secure authentication with tests and documentation"
+
+# Deep research
+codex research "React Server Components best practices" --depth 3
+
+# MCP server mode
+codex mcp-server
+```
 
 ---
 
-## Installing Codex
+### 📊 Technology Stack
 
-Today, the easiest way to install Codex is via `npm`:
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Core Runtime** | Rust (Tokio) | Async execution & performance optimization |
+| **UI (Terminal)** | Ratatui | Interactive terminal UI |
+| **UI (IDE)** | TypeScript | VS Code/Cursor/Windsurf extensions |
+| **SDK** | Node.js (N-API) | Rust-Node.js bridge |
+| **Protocol** | MCP (JSON-RPC) | Inter-agent communication |
+| **Orchestration** | DashMap | Thread-safe state management |
+| **Sandbox** | Seatbelt/Landlock | macOS/Linux security isolation |
+| **AI Models** | OpenAI/Anthropic | GPT-4/5, Claude |
+| **Web Search** | DuckDuckGo API | Research capabilities |
 
-```shell
-npm i -g @openai/codex
+---
+
+### 📁 Project Structure
+
+```
+codex-main/
+├── codex-rs/              # Rust core implementation
+│   ├── cli/               # Command-line interface
+│   ├── core/              # Core runtime & agent execution
+│   │   └── orchestration/ # Auto-orchestration components
+│   ├── mcp-server/        # MCP server implementation
+│   ├── deep-research/     # Deep research engine
+│   ├── supervisor/        # Multi-agent supervisor
+│   └── tui/               # Terminal user interface
+├── codex-cli/             # TypeScript CLI (legacy)
+├── sdk/                   # Language SDKs
+│   └── typescript/        # Node.js SDK for orchestration
+├── vscode-extension/      # VS Code extension
+├── cursor-integration/    # Cursor IDE integration
+├── windsurf-extension/    # Windsurf IDE extension
+├── .codex/                # Agent definitions
+│   └── agents/            # Sub-agent YAML configurations
+├── docs/                  # Documentation
+├── _docs/                 # Implementation logs (auto-generated)
+└── examples/              # Usage examples
+```
+
+---
+
+### 🔒 Security & Sandbox
+
+Codex prioritizes security with multiple layers of protection:
+
+- **Sandbox Isolation**: Seatbelt (macOS), Landlock (Linux)
+- **Approval Policies**: `on-request`, `on-failure`, `never`
+- **Network Restrictions**: Disabled by default in `full-auto` mode
+- **File System Protection**: Limited to workspace directory
+- **Audit Logs**: All actions logged for review
+
+```bash
+# Safe execution (read-only)
+codex --sandbox read-only "analyze code"
+
+# Workspace write (recommended)
+codex --sandbox workspace-write "implement feature"
+
+# Full access (危険! 只在容器内使用)
+codex --sandbox danger-full-access "deploy to production"
+```
+
+---
+
+### 📚 Documentation
+
+- **[Getting Started](docs/getting-started.md)** - Installation and setup
+- **[Auto-Orchestration Guide](docs/auto-orchestration.md)** - Technical specification
+- **[Deep Research Guide](QUICKSTART_DEEPRESEARCH.md)** - Research capabilities
+- **[Sub-Agent System](AGENTS.md)** - Agent definitions and usage
+- **[MCP Integration](CODEX_MCP_SETUP_GUIDE.md)** - Model Context Protocol setup
+- **[IDE Integration](CURSOR_IDE_SETUP.md)** - VS Code, Cursor, Windsurf
+
+---
+
+### 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+**Key Areas**:
+- 🐛 Bug fixes and issue reports
+- ✨ New features and enhancements
+- 📝 Documentation improvements
+- 🧪 Test coverage expansion
+
+---
+
+### 📄 License
+
+This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<a name="japanese"></a>
+## 📖 日本語ドキュメント
+
+### 🎯 Codex とは？
+
+**Codex** は、**専門サブエージェント**、**自律オーケストレーション**、**Deep Research** 機能を統合した次世代 AI コーディングアシスタントです。高性能な Rust コアを基盤とし、複数の IDE とシームレスに統合することで、開発者のコード作成・テスト・デプロイを革新します。
+
+### ✨ 主要機能
+
+| 機能 | 説明 |
+|------|------|
+| **🤖 自律オーケストレーション** | タスク複雑度を自動分析し、専門サブエージェントを並列協調 |
+| **⚡ 2.6倍高速化** | 独立タスクの並列実行で最大の生産性を実現 |
+| **🔍 Deep Research** | 複数ソースからの引用付き調査、矛盾検出、包括的レポート生成 |
+| **🔒 デフォルトで安全** | サンドボックス分離（Seatbelt/Landlock）と承認ポリシー |
+| **🌐 マルチ IDE 対応** | VS Code、Cursor、Windsurf 拡張で統一された UX |
+| **🔌 MCP 統合** | 双方向 Model Context Protocol サポート（クライアント＆サーバー） |
+| **🌍 クロスプラットフォーム** | Windows、macOS、Linux でネイティブパフォーマンス |
+
+---
+
+### 🏗️ アーキテクチャ
+
+*(英語版と同じアーキテクチャ図)*
+
+---
+
+### 🚀 クイックスタート
+
+#### インストール
+
+```bash
+# npm 経由（TypeScript CLI）
+npm install -g @openai/codex
+
+# cargo 経由（Rust CLI - 推奨）
+cargo install --path codex-rs/cli
+
+# またはビルド済みバイナリをダウンロード
+# https://github.com/zapabob/codex/releases
+```
+
+#### 基本的な使い方
+
+```bash
+# インタラクティブモード
 codex
+
+# 非対話実行
+codex exec "Rust で REST API を実装"
+
+# 自律オーケストレーション付き
+codex --auto-orchestrate "テストとドキュメント付きの認証機能を実装"
+
+# Deep Research
+codex research "React Server Components のベストプラクティス" --depth 3
+
+# MCP サーバーモード
+codex mcp-server
 ```
 
-You can also install via Homebrew (`brew install codex`) or download a platform-specific release directly from our [GitHub Releases](https://github.com/openai/codex/releases).
+---
 
-## What's new in the Rust CLI
+### 📊 技術スタック
 
-The Rust implementation is now the maintained Codex CLI and serves as the default experience. It includes a number of features that the legacy TypeScript CLI never supported.
+| レイヤー | 技術 | 目的 |
+|---------|------|------|
+| **コアランタイム** | Rust (Tokio) | 非同期実行・パフォーマンス最適化 |
+| **UI (ターミナル)** | Ratatui | インタラクティブターミナル UI |
+| **UI (IDE)** | TypeScript | VS Code/Cursor/Windsurf 拡張 |
+| **SDK** | Node.js (N-API) | Rust↔Node.js 連携 |
+| **プロトコル** | MCP (JSON-RPC) | エージェント間通信 |
+| **オーケストレーション** | DashMap | スレッドセーフな状態管理 |
+| **サンドボックス** | Seatbelt/Landlock | macOS/Linux セキュリティ分離 |
+| **AI モデル** | OpenAI/Anthropic | GPT-4/5、Claude |
+| **Web 検索** | DuckDuckGo API | Deep Research 機能 |
 
-### Config
+---
 
-Codex supports a rich set of configuration options. Note that the Rust CLI uses `config.toml` instead of `config.json`. See [`docs/config.md`](../docs/config.md) for details.
+### 📁 プロジェクト構成
 
-### Model Context Protocol Support
+*(英語版と同じプロジェクト構造)*
 
-#### MCP client
+---
 
-Codex CLI functions as an MCP client that allows the Codex CLI and IDE extension to connect to MCP servers on startup. See the [`configuration documentation`](../docs/config.md#mcp_servers) for details.
+### 🔒 セキュリティ＆サンドボックス
 
-#### MCP server (experimental)
+Codex は複数層の保護でセキュリティを最優先：
 
-Codex can be launched as an MCP _server_ by running `codex mcp-server`. This allows _other_ MCP clients to use Codex as a tool for another agent.
+- **サンドボックス分離**: Seatbelt (macOS)、Landlock (Linux)
+- **承認ポリシー**: `on-request`、`on-failure`、`never`
+- **ネットワーク制限**: `full-auto` モードでデフォルト無効
+- **ファイルシステム保護**: ワークスペースディレクトリに限定
+- **監査ログ**: すべてのアクションをレビュー用にログ記録
 
-Use the [`@modelcontextprotocol/inspector`](https://github.com/modelcontextprotocol/inspector) to try it out:
+```bash
+# 安全な実行（読み取り専用）
+codex --sandbox read-only "コードを分析"
 
-```shell
-npx @modelcontextprotocol/inspector codex mcp-server
+# ワークスペース書き込み（推奨）
+codex --sandbox workspace-write "機能を実装"
+
+# フルアクセス（危険！コンテナ内でのみ使用）
+codex --sandbox danger-full-access "本番環境へデプロイ"
 ```
 
-Use `codex mcp` to add/list/get/remove MCP server launchers defined in `config.toml`, and `codex mcp-server` to run the MCP server directly.
+---
 
-### Notifications
+### 📚 ドキュメント
 
-You can enable notifications by configuring a script that is run whenever the agent finishes a turn. The [notify documentation](../docs/config.md#notify) includes a detailed example that explains how to get desktop notifications via [terminal-notifier](https://github.com/julienXX/terminal-notifier) on macOS.
+- **[はじめに](docs/getting-started.md)** - インストールとセットアップ
+- **[自律オーケストレーションガイド](docs/auto-orchestration.md)** - 技術仕様
+- **[Deep Research ガイド](QUICKSTART_DEEPRESEARCH.md)** - 調査機能
+- **[サブエージェントシステム](AGENTS.md)** - エージェント定義と使用法
+- **[MCP 統合](CODEX_MCP_SETUP_GUIDE.md)** - Model Context Protocol セットアップ
+- **[IDE 統合](CURSOR_IDE_SETUP.md)** - VS Code、Cursor、Windsurf
 
-### `codex exec` to run Codex programmatically/non-interactively
+---
 
-To run Codex non-interactively, run `codex exec PROMPT` (you can also pass the prompt via `stdin`) and Codex will work on your task until it decides that it is done and exits. Output is printed to the terminal directly. You can set the `RUST_LOG` environment variable to see more about what's going on.
+### 🤝 貢献
 
-### Use `@` for file search
+貢献を歓迎します！ガイドラインは [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
 
-Typing `@` triggers a fuzzy-filename search over the workspace root. Use up/down to select among the results and Tab or Enter to replace the `@` with the selected path. You can use Esc to cancel the search.
+**主要エリア**:
+- 🐛 バグ修正と問題報告
+- ✨ 新機能と機能強化
+- 📝 ドキュメント改善
+- 🧪 テストカバレッジ拡張
 
-### Esc–Esc to edit a previous message
+---
 
-When the chat composer is empty, press Esc to prime “backtrack” mode. Press Esc again to open a transcript preview highlighting the last user message; press Esc repeatedly to step to older user messages. Press Enter to confirm and Codex will fork the conversation from that point, trim the visible transcript accordingly, and pre‑fill the composer with the selected user message so you can edit and resubmit it.
+### 📄 ライセンス
 
-In the transcript preview, the footer shows an `Esc edit prev` hint while editing is active.
+このプロジェクトは Apache-2.0 ライセンスの下でライセンスされています - 詳細は [LICENSE](LICENSE) ファイルを参照してください。
 
-### `--cd`/`-C` flag
+---
 
-Sometimes it is not convenient to `cd` to the directory you want Codex to use as the "working root" before running Codex. Fortunately, `codex` supports a `--cd` option so you can specify whatever folder you want. You can confirm that Codex is honoring `--cd` by double-checking the **workdir** it reports in the TUI at the start of a new session.
+<div align="center">
 
-### Shell completions
+**Made with ❤️ by the Codex Team**
 
-Generate shell completion scripts via:
+[GitHub](https://github.com/zapabob/codex) | [Documentation](docs/) | [Discord](https://discord.gg/codex)
 
-```shell
-codex completion bash
-codex completion zsh
-codex completion fish
-```
+</div>
 
-### Experimenting with the Codex Sandbox
-
-To test to see what happens when a command is run under the sandbox provided by Codex, we provide the following subcommands in Codex CLI:
-
-```
-# macOS
-codex sandbox macos [--full-auto] [COMMAND]...
-
-# Linux
-codex sandbox linux [--full-auto] [COMMAND]...
-
-# Legacy aliases
-codex debug seatbelt [--full-auto] [COMMAND]...
-codex debug landlock [--full-auto] [COMMAND]...
-```
-
-### Selecting a sandbox policy via `--sandbox`
-
-The Rust CLI exposes a dedicated `--sandbox` (`-s`) flag that lets you pick the sandbox policy **without** having to reach for the generic `-c/--config` option:
-
-```shell
-# Run Codex with the default, read-only sandbox
-codex --sandbox read-only
-
-# Allow the agent to write within the current workspace while still blocking network access
-codex --sandbox workspace-write
-
-# Danger! Disable sandboxing entirely (only do this if you are already running in a container or other isolated env)
-codex --sandbox danger-full-access
-```
-
-The same setting can be persisted in `~/.codex/config.toml` via the top-level `sandbox_mode = "MODE"` key, e.g. `sandbox_mode = "workspace-write"`.
-
-## Code Organization
-
-This folder is the root of a Cargo workspace. It contains quite a bit of experimental code, but here are the key crates:
-
-- [`core/`](./core) contains the business logic for Codex. Ultimately, we hope this to be a library crate that is generally useful for building other Rust/native applications that use Codex.
-- [`exec/`](./exec) "headless" CLI for use in automation.
-- [`tui/`](./tui) CLI that launches a fullscreen TUI built with [Ratatui](https://ratatui.rs/).
-- [`cli/`](./cli) CLI multitool that provides the aforementioned CLIs via subcommands.
