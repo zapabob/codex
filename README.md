@@ -343,7 +343,7 @@ codex --version
 `~/.codex/config.toml` を作成:
 
 ```toml
-model = "gpt-4o"
+model = "gpt-5-codex"
 
 [model_providers.openai]
 base_url = "https://api.openai.com/v1"
