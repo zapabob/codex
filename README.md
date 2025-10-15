@@ -24,6 +24,16 @@
 
 **Codex** is a next-generation AI coding assistant that extends the [OpenAI/codex](https://github.com/openai/codex) official repository with autonomous orchestration capabilities, specialized sub-agents, and deep research functionality. This fork, maintained by zapabob, adds powerful enhancements while maintaining compatibility with the upstream project.
 
+### 🏗️ Architecture
+
+<div align="center">
+
+![Codex v0.48.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
+
+*Comprehensive architecture diagram showing orchestration flow, agent coordination, and external integrations*
+
+</div>
+
 ### ✨ Key Features
 
 #### 🆕 **v0.48.0 - ClaudeCode-Surpassing Features**
