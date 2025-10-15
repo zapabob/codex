@@ -16,10 +16,11 @@ rustflags = ["-C", "target-cpu=x86-64"]
 [target.x86_64-apple-darwin]
 rustflags = ["-C", "target-cpu=x86-64"]
 
-# Optional: Increase parallel jobs (uncomment if needed)
-# [build]
-# jobs = 8
+# 🚀 Build Performance Optimization (2025-10-15)
+# Parallel jobs: RTX3080システムで8コア推奨（論理16コア - 8予備）
+jobs = 8
 
-# Optional: Incremental compilation (default: true for debug, false for release)
-# [build]
-# incremental = true
+# Incremental compilation: 開発時の差分ビルド高速化
+# デバッグビルド：デフォルトtrue
+# リリースビルド：デフォルトfalse（フルLTOと競合するため）
+incremental = true

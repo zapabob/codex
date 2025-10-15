@@ -23,7 +23,7 @@ pub async fn handle_deep_research_tool_call(
                 return CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
-                        text: format!("Invalid deep-research parameters: {}", e),
+                        text: format!("Invalid deep-research parameters: {e}"),
                         annotations: None,
                     })],
                     is_error: Some(true),
@@ -70,7 +70,7 @@ pub async fn handle_deep_research_tool_call(
             return CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
-                    text: format!("Deep research failed: {}", e),
+                    text: format!("Deep research failed: {e}"),
                     annotations: None,
                 })],
                 is_error: Some(true),
@@ -113,7 +113,7 @@ async fn execute_deep_research(params: &DeepResearchToolParam) -> anyhow::Result
     let config = DeepResearcherConfig {
         max_depth: depth,
         max_sources,
-        strategy: strategy.clone(),
+        strategy,
     };
 
     // Use real WebSearchProvider instead of MockProvider

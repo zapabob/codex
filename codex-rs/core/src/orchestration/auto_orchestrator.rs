@@ -6,6 +6,8 @@
 use crate::agents::AgentResult;
 use crate::agents::AgentRuntime;
 use crate::orchestration::CollaborationStore;
+use crate::orchestration::ConflictResolver;
+use crate::orchestration::MergeStrategy;
 use crate::orchestration::TaskAnalysis;
 use anyhow::Result;
 use serde::Deserialize;
@@ -75,6 +77,9 @@ pub struct AutoOrchestrator {
     /// Collaboration store for agent communication
     collaboration_store: Arc<CollaborationStore>,
 
+    /// Conflict resolver for file edits
+    conflict_resolver: Arc<ConflictResolver>,
+
     /// Workspace directory
     workspace_dir: std::path::PathBuf,
 }
@@ -86,11 +91,32 @@ impl AutoOrchestrator {
         collaboration_store: Arc<CollaborationStore>,
         workspace_dir: std::path::PathBuf,
     ) -> Self {
-        Self {
+        Self::with_merge_strategy(
             runtime,
             collaboration_store,
             workspace_dir,
+            MergeStrategy::Sequential,
+        )
+    }
+
+    /// Create a new auto-orchestrator with a specific merge strategy.
+    pub fn with_merge_strategy(
+        runtime: Arc<AgentRuntime>,
+        collaboration_store: Arc<CollaborationStore>,
+        workspace_dir: std::path::PathBuf,
+        merge_strategy: MergeStrategy,
+    ) -> Self {
+        Self {
+            runtime,
+            collaboration_store,
+            conflict_resolver: Arc::new(ConflictResolver::new(merge_strategy)),
+            workspace_dir,
         }
+    }
+
+    /// Get a reference to the conflict resolver.
+    pub fn conflict_resolver(&self) -> Arc<ConflictResolver> {
+        self.conflict_resolver.clone()
     }
 
     /// Orchestrate task execution based on analysis.
@@ -147,7 +173,7 @@ impl AutoOrchestrator {
             let description = if idx < analysis.subtasks.len() {
                 analysis.subtasks[idx].clone()
             } else {
-                format!("Execute {} for: {}", agent, original_goal)
+                format!("Execute {agent} for: {original_goal}")
             };
 
             tasks.push(PlannedTask {
@@ -274,18 +300,18 @@ impl AutoOrchestrator {
             if let Some(ref error) = result.error {
                 summary.push_str("**Error**:\n\n");
                 for line in error.lines().take(5) {
-                    summary.push_str(&format!("{}\n", line));
+                    summary.push_str(&format!("{line}\n"));
                 }
-                summary.push_str("\n");
+                summary.push('\n');
             }
 
             // Include artifacts if any
             if !result.artifacts.is_empty() {
                 summary.push_str("**Artifacts**:\n\n");
                 for artifact in &result.artifacts {
-                    summary.push_str(&format!("- {}\n", artifact));
+                    summary.push_str(&format!("- {artifact}\n"));
                 }
-                summary.push_str("\n");
+                summary.push('\n');
             }
 
             summary.push_str("---\n\n");

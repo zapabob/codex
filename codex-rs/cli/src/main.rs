@@ -120,6 +120,9 @@ enum Subcommand {
     /// [EXPERIMENTAL] Quick test generation with test-gen agent
     Test(TestCommand),
 
+    /// [EXPERIMENTAL] Natural language agent invocation (e.g., "codex agent 'Review with security focus'")
+    Agent(AgentCommand),
+
     /// Internal: run the responses API proxy.
     #[clap(hide = true)]
     ResponsesApiProxy(ResponsesApiProxyArgs),
@@ -340,6 +343,28 @@ struct TestCommand {
     config_overrides: CliConfigOverrides,
 
     /// Test generation task description
+    #[arg(value_name = "TASK")]
+    task: String,
+
+    /// Scope path (files or directories)
+    #[arg(long, value_name = "PATH")]
+    scope: Option<PathBuf>,
+
+    /// Token budget
+    #[arg(long, value_name = "TOKENS")]
+    budget: Option<usize>,
+
+    /// Output file for the result
+    #[arg(short, long, value_name = "FILE")]
+    out: Option<PathBuf>,
+}
+
+#[derive(Debug, Parser)]
+struct AgentCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
+    /// Natural language task description
     #[arg(value_name = "TASK")]
     task: String,
 
@@ -703,6 +728,20 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 test_cmd.scope,
                 test_cmd.budget,
                 test_cmd.out,
+            )
+            .await?;
+        }
+        Some(Subcommand::Agent(mut agent_cmd)) => {
+            prepend_config_flags(
+                &mut agent_cmd.config_overrides,
+                root_config_overrides.clone(),
+            );
+            codex_cli::ask_cmd::run_natural_language_agent(
+                agent_cmd.config_overrides,
+                agent_cmd.task,
+                agent_cmd.scope,
+                agent_cmd.budget,
+                agent_cmd.out,
             )
             .await?;
         }

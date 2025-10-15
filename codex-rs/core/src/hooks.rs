@@ -98,7 +98,7 @@ impl HookConfig {
     pub fn add_hook(&mut self, event: HookEvent, command: String) {
         self.hooks
             .entry(event)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(command);
     }
 
@@ -114,7 +114,7 @@ impl HookConfig {
 
     /// Check if any hooks are registered for an event
     pub fn has_hooks(&self, event: &HookEvent) -> bool {
-        self.hooks.get(event).map_or(false, |cmds| !cmds.is_empty())
+        self.hooks.get(event).is_some_and(|cmds| !cmds.is_empty())
     }
 }
 

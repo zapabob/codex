@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+﻿use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::codex_tool_config::CodexToolCallParam;
@@ -704,7 +704,7 @@ impl MessageProcessor {
                 let error_result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
-                        text: format!("Error: {}", e),
+                        text: format!("Error: {e}"),
                         annotations: None,
                     })],
                     is_error: Some(true),
@@ -737,7 +737,7 @@ impl MessageProcessor {
                 let error_result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
-                        text: format!("Error: {}", e),
+                        text: format!("Error: {e}"),
                         annotations: None,
                     })],
                     is_error: Some(true),
@@ -778,7 +778,7 @@ impl MessageProcessor {
                 let error_result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
-                        text: format!("Error: {}", e),
+                        text: format!("Error: {e}"),
                         annotations: None,
                     })],
                     is_error: Some(true),

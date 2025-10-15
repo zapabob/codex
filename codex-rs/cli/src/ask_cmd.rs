@@ -1,6 +1,7 @@
 use anyhow::Context;
 use anyhow::Result;
 use codex_common::CliConfigOverrides;
+use codex_core::agent_interpreter::AgentInterpreter;
 use codex_core::agents::AgentAliases;
 use std::path::PathBuf;
 
@@ -33,6 +34,42 @@ pub async fn run_ask_command(
         config_overrides,
         agent_name,
         Some(task),
+        scope,
+        budget,
+        None, // deadline
+        out,
+    )
+    .await
+}
+
+/// Natural language agent command with AI-powered agent selection
+pub async fn run_natural_language_agent(
+    config_overrides: CliConfigOverrides,
+    prompt: String,
+    scope: Option<PathBuf>,
+    budget: Option<usize>,
+    out: Option<PathBuf>,
+) -> Result<()> {
+    let interpreter = AgentInterpreter::new();
+    let invocation = interpreter
+        .parse(&prompt)
+        .context("Failed to interpret natural language command")?;
+
+    println!("🧠 Interpreted command:");
+    println!("   Agent: {}", invocation.agent_name);
+    println!("   Confidence: {:.0}%", invocation.confidence * 100.0);
+    if !invocation.parameters.is_empty() {
+        println!("   Parameters:");
+        for (key, value) in &invocation.parameters {
+            println!("     {}: {}", key, value);
+        }
+    }
+    println!("   Task: {}\n", invocation.goal);
+
+    crate::delegate_cmd::run_delegate_command(
+        config_overrides,
+        invocation.agent_name,
+        Some(invocation.goal),
         scope,
         budget,
         None, // deadline

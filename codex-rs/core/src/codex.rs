@@ -1691,7 +1691,7 @@ async fn submission_loop(
                     id: sub.id.clone(),
                     msg: EventMsg::SubAgentInfo(codex_protocol::protocol::SubAgentInfoEvent {
                         agent_type: "System".to_string(),
-                        info: format!("SubAgent Status:\n{}", status_message),
+                        info: format!("SubAgent Status:\n{status_message}"),
                         timestamp: chrono::Utc::now().to_rfc3339(),
                     }),
                 })

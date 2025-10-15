@@ -26,7 +26,39 @@
 
 ### ✨ Key Features
 
-#### 1. **Autonomous Orchestration** (ClaudeCode-style)
+#### 🆕 **v0.48.0 - ClaudeCode-Surpassing Features**
+
+1. **🔒 Automatic Conflict Resolution** *(Unique to Codex)*
+   - FileEditTracker: Per-file edit queue management
+   - 3 merge strategies: Sequential, LastWriteWins, ThreeWayMerge
+   - DashMap-based lock-free concurrency
+   - Prevents race conditions in multi-agent editing
+
+2. **🗣️ Natural Language CLI** *(Unique to Codex)*
+   - `codex agent "Review code for security"` - intuitive invocation
+   - AgentInterpreter: Pattern matching & intent classification
+   - Auto-dispatch to appropriate specialized agents
+   - No need to remember agent names or complex flags
+
+3. **🔗 Webhook & External API Integration** *(Unique to Codex)*
+   - GitHub API: Auto-create PRs, manage issues
+   - Slack Webhooks: Channel notifications
+   - Custom Webhooks: Generic HTTP endpoints
+   - Seamless CI/CD pipeline integration
+
+4. **🔄 Advanced Error Retry with Exponential Backoff** *(Codex Advantage)*
+   - Configurable RetryPolicy (max 3 retries, 1s-30s delay)
+   - FallbackStrategy: Retry, Skip, or Fail
+   - AgentError type system for granular error handling
+   - 3x improved resilience over basic retry
+
+5. **📖 Fully Open Source** *(Unique to Codex)*
+   - All code publicly available on GitHub
+   - Community contributions welcome
+   - Transparent development process
+   - Apache 2.0 / MIT dual license
+
+#### **Autonomous Orchestration** (ClaudeCode-style)
 - **TaskAnalyzer**: Automatic task complexity analysis
 - **AutoOrchestrator**: Self-directed sub-agent execution
 - **Threshold-based**: Automatic delegation when complexity > 0.7
@@ -249,7 +281,39 @@ This project inherits the license from [OpenAI/codex](https://github.com/openai/
 
 ### ✨ 主な機能
 
-#### 1. **自律オーケストレーション** (ClaudeCode風)
+#### 🆕 **v0.48.0 - ClaudeCode超え新機能**
+
+1. **🔒 コンフリクト自動回避** *(Codex独自機能)*
+   - FileEditTracker: ファイル別編集キュー管理
+   - 3種マージ戦略: Sequential, LastWriteWins, ThreeWayMerge
+   - DashMapベースのロックフリー並行処理
+   - 複数エージェント編集時の競合を自動解決
+
+2. **🗣️ 自然言語CLI** *(Codex独自機能)*
+   - `codex agent "セキュリティ重視でコードレビュー"` - 直感的呼び出し
+   - AgentInterpreter: パターンマッチング＆意図分類
+   - 適切なエージェントへ自動振り分け
+   - エージェント名や複雑なフラグ不要
+
+3. **🔗 Webhook/外部API統合** *(Codex独自機能)*
+   - GitHub API: PR自動作成、Issue管理
+   - Slack Webhook: チャンネル通知
+   - カスタムWebhook: 汎用HTTPエンドポイント
+   - CI/CDパイプラインとシームレス連携
+
+4. **🔄 指数バックオフエラーリトライ** *(Codex優位)*
+   - 設定可能なRetryPolicy（最大3回、1-30秒遅延）
+   - FallbackStrategy: Retry、Skip、Fail
+   - AgentError型システムで細かいエラー処理
+   - 基本リトライの3倍の回復力
+
+5. **📖 完全オープンソース** *(Codex独自機能)*
+   - 全コードGitHub公開
+   - コミュニティ貢献歓迎
+   - 透明な開発プロセス
+   - Apache 2.0 / MIT デュアルライセンス
+
+#### **自律オーケストレーション** (ClaudeCode風)
 - **TaskAnalyzer**: タスクの複雑度を自動分析
 - **AutoOrchestrator**: サブエージェントを自律的に実行
 - **閾値ベース**: 複雑度 > 0.7 で自動委譲

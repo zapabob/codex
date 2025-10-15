@@ -433,18 +433,16 @@ Only output the JSON, no explanation."#;
         // 共有情報を入力へ取り込む
         let mut inputs = inputs;
         let shared_context_snapshot = self.collaboration_store.get_all_context();
-        if !shared_context_snapshot.is_empty() {
-            if let Ok(serialized) = serde_json::to_string(&shared_context_snapshot) {
+        if !shared_context_snapshot.is_empty()
+            && let Ok(serialized) = serde_json::to_string(&shared_context_snapshot) {
                 inputs.insert("shared_context".to_string(), serialized);
             }
-        }
 
         let prior_results_snapshot = self.collaboration_store.get_all_results();
-        if !prior_results_snapshot.is_empty() {
-            if let Ok(serialized) = serde_json::to_string(&prior_results_snapshot) {
+        if !prior_results_snapshot.is_empty()
+            && let Ok(serialized) = serde_json::to_string(&prior_results_snapshot) {
                 inputs.insert("collaboration_results".to_string(), serialized);
             }
-        }
 
         // 予算を設定
         if let Some(budget) = budget {
@@ -584,14 +582,13 @@ Only output the JSON, no explanation."#;
         } else {
             let mut text = String::from("\n\nProvided inputs:\n");
             for (key, value) in &inputs {
-                text.push_str(&format!("- {}: {}\n", key, value));
+                text.push_str(&format!("- {key}: {value}\n"));
             }
             text
         };
 
         let user_message = format!(
-            "Task: {}{}\n\nPlease analyze the task and provide a detailed response.",
-            goal, inputs_text
+            "Task: {goal}{inputs_text}\n\nPlease analyze the task and provide a detailed response."
         );
 
         // 3. ModelClient作成
@@ -1307,10 +1304,9 @@ impl AgentRuntime {
             let line = line.trim();
 
             // TOOL_CALL: codex_read_file(path="src/auth.rs")
-            if line.starts_with("TOOL_CALL:") {
-                if let Some(call_str) = line.strip_prefix("TOOL_CALL:").and_then(|s| Some(s.trim()))
-                {
-                    if let Some((tool_name, args_str)) = call_str.split_once('(') {
+            if line.starts_with("TOOL_CALL:")
+                && let Some(call_str) = line.strip_prefix("TOOL_CALL:").map(str::trim)
+                    && let Some((tool_name, args_str)) = call_str.split_once('(') {
                         let tool_name = tool_name.trim().to_string();
                         let args_str = args_str.trim_end_matches(')').trim();
 
@@ -1326,8 +1322,6 @@ impl AgentRuntime {
 
                         tool_calls.push((tool_name, serde_json::Value::Object(args)));
                     }
-                }
-            }
         }
 
         tool_calls

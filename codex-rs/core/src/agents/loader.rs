@@ -120,13 +120,11 @@ impl AgentLoader {
             let entry = entry?;
             let path = entry.path();
 
-            if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
-                if ext == "yaml" || ext == "yml" {
-                    if let Some(name) = path.file_stem().and_then(|s| s.to_str()) {
+            if let Some(ext) = path.extension().and_then(|s| s.to_str())
+                && (ext == "yaml" || ext == "yml")
+                    && let Some(name) = path.file_stem().and_then(|s| s.to_str()) {
                         names.push(name.to_string());
                     }
-                }
-            }
         }
 
         names.sort();

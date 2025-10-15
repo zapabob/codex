@@ -22,16 +22,15 @@ pub async fn handle_subagent_tool_call(arguments: Value) -> Result<CallToolResul
 
             format!(
                 "🚧 SubAgent Feature (Under Development)\n\n\
-                **Requested Agent**: {}\n\
-                **Task**: {}\n\n\
+                **Requested Agent**: {agent_type}\n\
+                **Task**: {task}\n\n\
                 ⚠️ **Status**: SubAgent integration is currently in development.\n\
                 Full async subagent execution will be available in the next release.\n\n\
                 **Available Actions**:\n\
                 - `check_inbox`: View message queue\n\
                 - `get_status`: Check agent status\n\
                 - `get_thinking`: View reasoning process\n\
-                - `get_token_report`: View token usage",
-                agent_type, task
+                - `get_token_report`: View token usage"
             )
         }
         "check_inbox" => "📬 Inbox\n\n\
@@ -56,11 +55,10 @@ pub async fn handle_subagent_tool_call(arguments: Value) -> Result<CallToolResul
 
             format!(
                 "🎯 Auto-Dispatch Analysis\n\n\
-                **Recommended Agent**: {}\n\
-                **Task**: {}\n\n\
+                **Recommended Agent**: {agent_type}\n\
+                **Task**: {task}\n\n\
                 ⚠️ **Status**: Auto-dispatch is currently in development.\n\
-                Full task classification and execution will be available in the next release.",
-                agent_type, task
+                Full task classification and execution will be available in the next release."
             )
         }
         "get_thinking" => {
@@ -68,10 +66,9 @@ pub async fn handle_subagent_tool_call(arguments: Value) -> Result<CallToolResul
 
             format!(
                 "💭 Thinking Process\n\n\
-                **Task ID**: {}\n\n\
+                **Task ID**: {task_id}\n\n\
                 ⚠️ Thinking process tracking is currently in development.\n\
-                Chain-of-thought logging will be available in the next release.",
-                task_id
+                Chain-of-thought logging will be available in the next release."
             )
         }
         "get_token_report" => "📊 Token Usage Report\n\n\

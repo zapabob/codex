@@ -19,7 +19,7 @@ pub async fn handle_auto_orchestrator_tool_call(
                 return CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
-                        text: format!("Invalid auto-orchestrator parameters: {}", e),
+                        text: format!("Invalid auto-orchestrator parameters: {e}"),
                         annotations: None,
                     })],
                     is_error: Some(true),
@@ -61,7 +61,7 @@ pub async fn handle_auto_orchestrator_tool_call(
             return CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
-                    text: format!("Auto-orchestration execution failed: {}", e),
+                    text: format!("Auto-orchestration execution failed: {e}"),
                     annotations: None,
                 })],
                 is_error: Some(true),
@@ -83,10 +83,7 @@ pub async fn handle_auto_orchestrator_tool_call(
 
 /// Execute the auto-orchestration logic.
 async fn execute_auto_orchestration(params: &AutoOrchestratorToolParam) -> anyhow::Result<String> {
-    
-    
     use codex_core::orchestration::TaskAnalyzer;
-    
 
     // 1. Create TaskAnalyzer and analyze the goal
     let analyzer = TaskAnalyzer::new(params.auto_threshold);
@@ -178,4 +175,3 @@ async fn execute_auto_orchestration(params: &AutoOrchestratorToolParam) -> anyho
         }
     }
 }
-

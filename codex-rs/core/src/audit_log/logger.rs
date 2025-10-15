@@ -142,6 +142,7 @@ impl AuditLogger {
     }
 
     /// Log API call
+    #[allow(clippy::too_many_arguments)]
     pub async fn log_api_call(
         &self,
         provider: &str,
@@ -179,6 +180,7 @@ impl AuditLogger {
     }
 
     /// Log tool call
+    #[allow(clippy::too_many_arguments)]
     pub async fn log_tool_call(
         &self,
         tool_name: &str,
@@ -202,7 +204,7 @@ impl AuditLogger {
                 output_preview: output_preview.chars().take(200).collect(),
                 error: None,
                 permission_granted,
-                sandbox_policy: sandbox_policy.map(|s| s.to_string()),
+                sandbox_policy: sandbox_policy.map(std::string::ToString::to_string),
             }),
         );
 

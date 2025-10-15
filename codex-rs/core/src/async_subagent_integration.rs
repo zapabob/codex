@@ -197,7 +197,7 @@ impl AsyncSubAgentIntegration {
                         agent_id: agent_id_clone.clone(),
                         agent_type,
                         notification_type: NotificationType::TaskFailed,
-                        message: format!("Task failed: {}", e),
+                        message: format!("Task failed: {e}"),
                         content: String::new(),
                         timestamp: Utc::now().to_rfc3339(),
                     });

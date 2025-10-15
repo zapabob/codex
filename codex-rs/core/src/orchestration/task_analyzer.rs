@@ -44,14 +44,14 @@ impl TaskAnalysis {
 
 /// Task analyzer that evaluates complexity and recommends orchestration strategy.
 pub struct TaskAnalyzer {
-    complexity_threshold: f64,
+    _complexity_threshold: f64, // Prefixed with _ to suppress unused warning
 }
 
 impl TaskAnalyzer {
     /// Create a new task analyzer with the given complexity threshold.
-    pub fn new(complexity_threshold: f64) -> Self {
+    pub fn new(_complexity_threshold: f64) -> Self {
         Self {
-            complexity_threshold,
+            _complexity_threshold,
         }
     }
 
@@ -252,7 +252,7 @@ impl TaskAnalyzer {
         // Split by common separators
         let parts: Vec<&str> = input
             .split(&[',', ';', '\n'])
-            .map(|s| s.trim())
+            .map(str::trim)
             .filter(|s| !s.is_empty())
             .collect();
 

@@ -31,13 +31,12 @@ pub async fn handle_custom_command_tool_call(arguments: Value) -> Result<CallToo
             };
 
             format!(
-                "[CustomCommand] Executing: {}\n\n\
-                Dispatching to subagent: {}\n\
-                Description: {}\n\n\
-                Context:\n{}\n\n\
-                The {} subagent will process this request asynchronously.\n\
-                Use the 'codex-subagent' tool with action 'check_inbox' to see results.",
-                command_name, subagent, description, context, subagent
+                "[CustomCommand] Executing: {command_name}\n\n\
+                Dispatching to subagent: {subagent}\n\
+                Description: {description}\n\n\
+                Context:\n{context}\n\n\
+                The {subagent} subagent will process this request asynchronously.\n\
+                Use the 'codex-subagent' tool with action 'check_inbox' to see results."
             )
         }
         "list" => "Available Custom Commands (7):\n\n\
@@ -86,8 +85,7 @@ pub async fn handle_custom_command_tool_call(arguments: Value) -> Result<CallToo
                     .to_string(),
                 _ => {
                     format!(
-                        "Command: {}\nNo detailed information available.",
-                        command_name
+                        "Command: {command_name}\nNo detailed information available."
                     )
                 }
             }

@@ -217,20 +217,19 @@ impl CustomCommandExecutor {
         for pre_hook in &command.pre_hooks {
             result
                 .output
-                .push_str(&format!("[Pre-hook] Running: {}\n", pre_hook));
+                .push_str(&format!("[Pre-hook] Running: {pre_hook}\n"));
             // In actual implementation, execute the hook
             result
                 .pre_hook_results
-                .push(format!("Executed: {}", pre_hook));
+                .push(format!("Executed: {pre_hook}"));
         }
 
         // Execute main command (dispatch to subagent if specified)
         if let Some(subagent) = &command.subagent {
             result.output.push_str(&format!(
-                "[CustomCommand] Dispatching to subagent: {}\n",
-                subagent
+                "[CustomCommand] Dispatching to subagent: {subagent}\n"
             ));
-            result.output.push_str(&format!("Context: {}\n", context));
+            result.output.push_str(&format!("Context: {context}\n"));
             result
                 .output
                 .push_str(&format!("Parameters: {:?}\n", command.parameters));
@@ -244,10 +243,10 @@ impl CustomCommandExecutor {
         for post_hook in &command.post_hooks {
             result
                 .output
-                .push_str(&format!("[Post-hook] Running: {}\n", post_hook));
+                .push_str(&format!("[Post-hook] Running: {post_hook}\n"));
             result
                 .post_hook_results
-                .push(format!("Executed: {}", post_hook));
+                .push(format!("Executed: {post_hook}"));
         }
 
         Ok(result)

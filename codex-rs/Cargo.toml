@@ -201,6 +201,24 @@ wildmatch = "2.5.0"
 wiremock = "0.6"
 zeroize = "1.8.1"
 
+# 🚀 Build Performance Profiles (2025-10-15)
+# 開発用: LTO無効化で3〜7分に短縮
+[profile.dev]
+codegen-units = 16 # デフォルト値（並列コンパイル有効）
+incremental = true
+lto = false
+opt-level = 0
+
+# デバッグ情報付き開発用（gdb/lldbデバッグ用）
+[profile.dev-debug]
+debug = true
+inherits = "dev"
+
+# 高速テスト用（最適化なし）
+[profile.test]
+lto = false
+opt-level = 0
+
 [workspace.lints]
 rust = {}
 

@@ -19,7 +19,7 @@ pub async fn handle_supervisor_tool_call(
                 return CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
-                        text: format!("Invalid supervisor parameters: {}", e),
+                        text: format!("Invalid supervisor parameters: {e}"),
                         annotations: None,
                     })],
                     is_error: Some(true),
@@ -64,7 +64,7 @@ pub async fn handle_supervisor_tool_call(
             return CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
-                    text: format!("Supervisor execution failed: {}", e),
+                    text: format!("Supervisor execution failed: {e}"),
                     annotations: None,
                 })],
                 is_error: Some(true),
