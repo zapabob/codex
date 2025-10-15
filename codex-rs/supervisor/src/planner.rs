@@ -14,24 +14,28 @@ pub fn analyze_goal(goal: &str) -> Result<Plan> {
                 description: "Design authentication architecture".to_string(),
                 agent_hint: Some("Security".to_string()),
                 dependencies: vec![],
+                collaboration_domain: Some("security-architecture".to_string()),
             },
             Step {
                 id: "step-2".to_string(),
                 description: "Implement backend authentication API".to_string(),
                 agent_hint: Some("Backend".to_string()),
                 dependencies: vec!["step-1".to_string()],
+                collaboration_domain: Some("backend-auth".to_string()),
             },
             Step {
                 id: "step-3".to_string(),
                 description: "Create frontend authentication UI".to_string(),
                 agent_hint: Some("Frontend".to_string()),
                 dependencies: vec!["step-1".to_string()],
+                collaboration_domain: Some("frontend-auth".to_string()),
             },
             Step {
                 id: "step-4".to_string(),
                 description: "Integrate frontend with backend auth".to_string(),
                 agent_hint: Some("Frontend".to_string()),
                 dependencies: vec!["step-2".to_string(), "step-3".to_string()],
+                collaboration_domain: Some("auth-integration".to_string()),
             },
         ]
     } else {
@@ -42,18 +46,21 @@ pub fn analyze_goal(goal: &str) -> Result<Plan> {
                 description: format!("Analyze requirements for: {goal}"),
                 agent_hint: None,
                 dependencies: vec![],
+                collaboration_domain: Some("analysis".to_string()),
             },
             Step {
                 id: "step-2".to_string(),
                 description: format!("Implement solution for: {goal}"),
                 agent_hint: None,
                 dependencies: vec!["step-1".to_string()],
+                collaboration_domain: Some("implementation".to_string()),
             },
             Step {
                 id: "step-3".to_string(),
                 description: format!("Test and validate: {goal}"),
                 agent_hint: None,
                 dependencies: vec!["step-2".to_string()],
+                collaboration_domain: Some("validation".to_string()),
             },
         ]
     };
@@ -79,6 +86,14 @@ mod tests {
         assert_eq!(plan.steps[0].agent_hint.as_deref(), Some("Security"));
         assert_eq!(plan.steps[1].agent_hint.as_deref(), Some("Backend"));
         assert_eq!(plan.steps[2].agent_hint.as_deref(), Some("Frontend"));
+        assert_eq!(
+            plan.steps[0].collaboration_domain.as_deref(),
+            Some("security-architecture")
+        );
+        assert_eq!(
+            plan.steps[3].collaboration_domain.as_deref(),
+            Some("auth-integration")
+        );
     }
 
     #[test]
@@ -89,6 +104,14 @@ mod tests {
         assert_eq!(plan.goal, goal);
         assert_eq!(plan.steps.len(), 3);
         assert!(plan.steps[0].description.contains("Analyze requirements"));
+        assert_eq!(
+            plan.steps[0].collaboration_domain.as_deref(),
+            Some("analysis")
+        );
+        assert_eq!(
+            plan.steps[2].collaboration_domain.as_deref(),
+            Some("validation")
+        );
     }
 
     #[test]

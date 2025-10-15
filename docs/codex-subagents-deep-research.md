@@ -52,6 +52,7 @@
 - **Capability boundaries**: enforce allowlists for file I/O, shell commands, network domains, credentials, and MCP tools. Main Codex evaluates delegation requests against agent policies before launch.[2]
 - **Delegation API**: expose `codex.delegate(agent_id, goal, inputs, budget, deadline)` across SDK, CLI, IDE, Slack, and GitHub bots. Responses surface structured artifacts (diffs, reports, metrics) alongside logs.[8]
 - **Parallel execution**: allow multiple Sub-Agents per workspace, isolate git worktrees or branches, reconcile changes via staging merges, and automatically queue CI before hand-off.[6]
+- **Conflict-aware orchestration**: provide a ClaudeCode-style autonomous coordinator that tracks in-flight agents, emits structured task/event logs, selects fallbacks when priorities collide, and falls back to Supervisor planning when confidence drops.
 
 ### 3.2 Deep Research Engine
 

@@ -28,6 +28,7 @@ use crate::client_common::Prompt;
 use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
+use crate::orchestration::CollaborationStore;
 use codex_mcp_client::McpClient;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
@@ -60,6 +61,8 @@ pub struct AgentRuntime {
     conversation_id: ConversationId,
     /// Codexバイナリパス（MCP統合用）
     codex_binary_path: Option<PathBuf>,
+    /// サブエージェント間の協調ストア
+    collaboration_store: Arc<CollaborationStore>,
 }
 
 impl AgentRuntime {
@@ -87,6 +90,7 @@ impl AgentRuntime {
             provider,
             conversation_id,
             codex_binary_path: None,
+            collaboration_store: Arc::new(CollaborationStore::new()),
         }
     }
 
@@ -383,6 +387,10 @@ Only output the JSON, no explanation."#;
             running.insert(agent_name.to_string(), result.status.clone());
         }
 
+        // コラボレーションストアに結果を保存
+        self.collaboration_store
+            .store_agent_result(agent_name.to_string(), result.clone());
+
         Ok(result)
     }
 
@@ -399,6 +407,7 @@ Only output the JSON, no explanation."#;
             provider: self.provider.clone(),
             conversation_id: self.conversation_id,
             codex_binary_path: self.codex_binary_path.clone(),
+            collaboration_store: self.collaboration_store.clone(),
         }
     }
 
@@ -420,6 +429,22 @@ Only output the JSON, no explanation."#;
                 .load_by_name(agent_name)
                 .with_context(|| format!("Failed to load agent '{agent_name}'"))?
         };
+
+        // 共有情報を入力へ取り込む
+        let mut inputs = inputs;
+        let shared_context_snapshot = self.collaboration_store.get_all_context();
+        if !shared_context_snapshot.is_empty() {
+            if let Ok(serialized) = serde_json::to_string(&shared_context_snapshot) {
+                inputs.insert("shared_context".to_string(), serialized);
+            }
+        }
+
+        let prior_results_snapshot = self.collaboration_store.get_all_results();
+        if !prior_results_snapshot.is_empty() {
+            if let Ok(serialized) = serde_json::to_string(&prior_results_snapshot) {
+                inputs.insert("collaboration_results".to_string(), serialized);
+            }
+        }
 
         // 予算を設定
         if let Some(budget) = budget {
@@ -532,6 +557,10 @@ Only output the JSON, no explanation."#;
             let mut running = self.running_agents.write().await;
             running.insert(agent_name.to_string(), result.status.clone());
         }
+
+        // 実行結果を協調ストアに保存
+        self.collaboration_store
+            .store_agent_result(agent_name.to_string(), result.clone());
 
         Ok(result)
     }
@@ -944,6 +973,11 @@ impl AgentRuntime {
     pub fn with_codex_binary_path(mut self, path: PathBuf) -> Self {
         self.codex_binary_path = Some(path);
         self
+    }
+
+    /// 協調ストアへの参照を取得
+    pub fn collaboration_store(&self) -> Arc<CollaborationStore> {
+        self.collaboration_store.clone()
     }
 
     /// Codex MCP Serverをstdio モードで起動

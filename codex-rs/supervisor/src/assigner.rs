@@ -30,6 +30,8 @@ pub fn assign_tasks(plan: &Plan, agents_hint: Option<Vec<String>>) -> Result<Vec
             step_id: step.id.clone(),
             agent_name,
             description: step.description.clone(),
+            dependencies: step.dependencies.clone(),
+            collaboration_domain: step.collaboration_domain.clone(),
         });
     }
 
@@ -52,12 +54,14 @@ mod tests {
                     description: "Backend work".to_string(),
                     agent_hint: Some("Backend".to_string()),
                     dependencies: vec![],
+                    collaboration_domain: Some("backend".to_string()),
                 },
                 Step {
                     id: "step-2".to_string(),
                     description: "Frontend work".to_string(),
                     agent_hint: Some("Frontend".to_string()),
                     dependencies: vec![],
+                    collaboration_domain: Some("frontend".to_string()),
                 },
             ],
         };
@@ -68,6 +72,15 @@ mod tests {
         assert_eq!(assignments.len(), 2);
         assert_eq!(assignments[0].agent_name, "Backend");
         assert_eq!(assignments[1].agent_name, "Frontend");
+        assert!(assignments.iter().all(|assignment| assignment.dependencies.is_empty()));
+        assert_eq!(
+            assignments[0].collaboration_domain.as_deref(),
+            Some("backend")
+        );
+        assert_eq!(
+            assignments[1].collaboration_domain.as_deref(),
+            Some("frontend")
+        );
     }
 
     #[test]
@@ -79,6 +92,7 @@ mod tests {
                 description: "Some work".to_string(),
                 agent_hint: Some("Security".to_string()),
                 dependencies: vec![],
+                collaboration_domain: Some("security".to_string()),
             }],
         };
 
@@ -86,6 +100,11 @@ mod tests {
 
         assert_eq!(assignments.len(), 1);
         assert_eq!(assignments[0].agent_name, "Security");
+        assert!(assignments[0].dependencies.is_empty());
+        assert_eq!(
+            assignments[0].collaboration_domain.as_deref(),
+            Some("security")
+        );
     }
 
     #[test]
@@ -97,6 +116,7 @@ mod tests {
                 description: "Some work".to_string(),
                 agent_hint: None,
                 dependencies: vec![],
+                collaboration_domain: None,
             }],
         };
 
@@ -105,5 +125,7 @@ mod tests {
 
         assert_eq!(assignments.len(), 1);
         assert_eq!(assignments[0].agent_name, "Agent1");
+        assert!(assignments[0].dependencies.is_empty());
+        assert!(assignments[0].collaboration_domain.is_none());
     }
 }

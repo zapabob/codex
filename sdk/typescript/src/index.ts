@@ -1,34 +1,15 @@
-export type {
-  ThreadEvent,
-  ThreadStartedEvent,
-  TurnStartedEvent,
-  TurnCompletedEvent,
-  TurnFailedEvent,
-  ItemStartedEvent,
-  ItemUpdatedEvent,
-  ItemCompletedEvent,
-  ThreadError,
-  ThreadErrorEvent,
-  Usage,
-} from "./events";
-export type {
-  ThreadItem,
-  AgentMessageItem,
-  ReasoningItem,
-  CommandExecutionItem,
-  FileChangeItem,
-  McpToolCallItem,
-  WebSearchItem,
-  TodoListItem,
-  ErrorItem,
-} from "./items";
+/**
+ * Codex TypeScript SDK - Auto-Orchestration Module
+ * 
+ * Provides ClaudeCode-style autonomous sub-agent orchestration.
+ */
 
-export { Thread } from "./thread";
-export type { RunResult, RunStreamedResult, Input } from "./thread";
-
-export { Codex } from "./codex";
-
-export type { CodexOptions } from "./codexOptions";
-
-export type { ThreadOptions, ApprovalMode, SandboxMode } from "./threadOptions";
-export type { TurnOptions } from "./turnOptions";
+export {
+    CodexOrchestrator,
+    createOrchestrator,
+    OrchestrateOptions,
+    OrchestratedResult,
+    AgentResult,
+    TaskAnalysis,
+    OrchestrationEvent,
+} from './orchestrator';

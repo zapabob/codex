@@ -1,105 +1,203 @@
-# Codex SDK
+# @codex/orchestrator
 
-Embed the Codex agent in your workflows and apps.
+ClaudeCode-style autonomous sub-agent orchestration for Codex.
 
-The TypeScript SDK wraps the bundled `codex` binary. It spawns the CLI and exchanges JSONL events over stdin/stdout.
+## 🚀 Features
 
-## Installation
+- **Automatic Task Analysis**: Analyzes task complexity and determines if orchestration would benefit
+- **Transparent Orchestration**: Automatically delegates to specialized sub-agents when needed
+- **Multiple Strategies**: Sequential, parallel, or hybrid execution
+- **MCP Protocol**: Uses Model Context Protocol for secure Rust ↔ Node.js integration
+- **Streaming Support**: Real-time progress updates via event streams
+
+## 📦 Installation
 
 ```bash
-npm install @openai/codex-sdk
+npm install @codex/orchestrator
 ```
 
-Requires Node.js 18+.
-
-## Quickstart
+## 🎯 Quick Start
 
 ```typescript
-import { Codex } from "@openai/codex-sdk";
+import { CodexOrchestrator } from '@codex/orchestrator';
 
-const codex = new Codex();
-const thread = codex.startThread();
-const turn = await thread.run("Diagnose the test failure and propose a fix");
+const orchestrator = new CodexOrchestrator();
 
-console.log(turn.finalResponse);
-console.log(turn.items);
+// Execute with auto-orchestration
+const result = await orchestrator.execute(
+  "Implement user authentication with JWT, write tests, and security review"
+);
+
+console.log(`Orchestrated: ${result.wasOrchestrated}`);
+console.log(`Agents used: ${result.agentsUsed.join(', ')}`);
+console.log(result.executionSummary);
+
+// Cleanup
+await orchestrator.close();
 ```
 
-Call `run()` repeatedly on the same `Thread` instance to continue that conversation.
+## 📚 API Reference
+
+### `CodexOrchestrator`
+
+Main class for autonomous orchestration.
+
+#### Constructor
 
 ```typescript
-const nextTurn = await thread.run("Implement the fix");
+new CodexOrchestrator(codexCommand?: string)
 ```
 
-### Streaming responses
+- `codexCommand`: Path to codex binary (default: 'codex')
 
-`run()` buffers events until the turn finishes. To react to intermediate progress—tool calls, streaming responses, and file diffs—use `runStreamed()` instead, which returns an async generator of structured events.
+#### Methods
+
+##### `execute(goal, options?)`
+
+Execute a task with automatic orchestration.
 
 ```typescript
-const { events } = await thread.runStreamed("Diagnose the test failure and propose a fix");
+async execute(
+  goal: string,
+  options?: OrchestrateOptions
+): Promise<OrchestratedResult>
+```
 
-for await (const event of events) {
-  switch (event.type) {
-    case "item.completed":
-      console.log("item", event.item);
-      break;
-    case "turn.completed":
-      console.log("usage", event.usage);
-      break;
-  }
+**Parameters**:
+- `goal`: The task goal to execute
+- `options.complexityThreshold`: Threshold for triggering orchestration (0.0-1.0, default: 0.7)
+- `options.strategy`: Execution strategy ('sequential' | 'parallel' | 'hybrid', default: 'hybrid')
+- `options.format`: Output format ('text' | 'json', default: 'json')
+
+**Returns**: `OrchestratedResult` with execution details
+
+##### `executeStream(goal, options?)`
+
+Execute with streaming progress updates.
+
+```typescript
+async *executeStream(
+  goal: string,
+  options?: OrchestrateOptions
+): AsyncIterableIterator<OrchestrationEvent>
+```
+
+**Yields**: `OrchestrationEvent` objects with progress updates
+
+##### `close()`
+
+Close MCP connection and cleanup resources.
+
+```typescript
+async close(): Promise<void>
+```
+
+### Types
+
+#### `OrchestratedResult`
+
+```typescript
+interface OrchestratedResult {
+  wasOrchestrated: boolean;
+  agentsUsed: string[];
+  executionSummary: string;
+  agentResults?: AgentResult[];
+  totalExecutionTimeSecs?: number;
+  taskAnalysis?: TaskAnalysis;
 }
 ```
 
-### Structured output
-
-The Codex agent can produce a JSON response that conforms to a specified schema. The schema can be provided for each turn as a plain JSON object.
+#### `OrchestrateOptions`
 
 ```typescript
-const schema = {
-  type: "object",
-  properties: {
-    summary: { type: "string" },
-    status: { type: "string", enum: ["ok", "action_required"] },
-  },
-  required: ["summary", "status"],
-  additionalProperties: false,
-} as const;
-
-const turn = await thread.run("Summarize repository status", { outputSchema: schema });
-console.log(turn.finalResponse);
+interface OrchestrateOptions {
+  complexityThreshold?: number;  // 0.0-1.0
+  strategy?: 'sequential' | 'parallel' | 'hybrid';
+  format?: 'text' | 'json';
+}
 ```
 
-You can also create a JSON schema from a [Zod schema](https://github.com/colinhacks/zod) using the [`zod-to-json-schema`](https://www.npmjs.com/package/zod-to-json-schema) package and setting the `target` to `"openAi"`.
+## 🎨 Usage Examples
+
+### Basic Usage
 
 ```typescript
-const schema = z.object({
-  summary: z.string(),
-  status: z.enum(["ok", "action_required"]),
-});
+const orchestrator = new CodexOrchestrator();
 
-const turn = await thread.run("Summarize repository status", {
-  outputSchema: zodToJsonSchema(schema, { target: "openAi" }),
-});
-console.log(turn.finalResponse);
+const result = await orchestrator.execute(
+  "Refactor authentication module"
+);
+
+if (result.wasOrchestrated) {
+  console.log('✅ Orchestrated with agents:', result.agentsUsed);
+} else {
+  console.log('ℹ️  Normal execution');
+}
+
+await orchestrator.close();
 ```
 
-### Resuming an existing thread
-
-Threads are persisted in `~/.codex/sessions`. If you lose the in-memory `Thread` object, reconstruct it with `resumeThread()` and keep going.
+### Custom Threshold
 
 ```typescript
-const savedThreadId = process.env.CODEX_THREAD_ID!;
-const thread = codex.resumeThread(savedThreadId);
-await thread.run("Implement the fix");
+// Higher threshold = less likely to orchestrate
+const result = await orchestrator.execute(
+  "Fix typo",
+  { complexityThreshold: 0.9 }
+);
 ```
 
-### Working directory controls
-
-Codex runs in the current working directory by default. To avoid unrecoverable errors, Codex requires the working directory to be a Git repository. You can skip the Git repository check by passing the `skipGitRepoCheck` option when creating a thread. 
+### Sequential Execution
 
 ```typescript
-const thread = codex.startThread({
-  workingDirectory: "/path/to/project",
-  skipGitRepoCheck: true,
-});
+// Execute agents one by one (not in parallel)
+const result = await orchestrator.execute(
+  "Migrate database schema and update API",
+  { strategy: 'sequential' }
+);
 ```
+
+### Streaming Progress
+
+```typescript
+for await (const event of orchestrator.executeStream("Build full-stack app")) {
+  console.log(`[${event.type}] ${event.message}`);
+}
+```
+
+### Error Handling
+
+```typescript
+try {
+  const result = await orchestrator.execute("Complex task");
+  console.log(result.executionSummary);
+} catch (error) {
+  console.error('Orchestration failed:', error);
+} finally {
+  await orchestrator.close();
+}
+```
+
+## 🔧 Requirements
+
+- Node.js >= 22
+- Codex CLI installed and in PATH
+- Codex configured with agent definitions in `.codex/agents/`
+
+## 🧪 Testing
+
+```bash
+npm test
+```
+
+Note: Integration tests require a running Codex instance.
+
+## 📝 License
+
+MIT
+
+## 🔗 Related
+
+- [Codex Documentation](https://github.com/openai/codex)
+- [MCP Protocol](https://modelcontextprotocol.io)
+- [Agent Definitions](./.codex/agents/)

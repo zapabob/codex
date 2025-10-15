@@ -20,6 +20,8 @@ use tracing::error;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
+mod auto_orchestrator_tool;
+mod auto_orchestrator_tool_handler;
 mod codex_tool_config;
 mod codex_tool_runner;
 pub mod codex_tools;
@@ -43,6 +45,7 @@ use crate::message_processor::MessageProcessor;
 use crate::outgoing_message::OutgoingMessage;
 use crate::outgoing_message::OutgoingMessageSender;
 
+pub use crate::auto_orchestrator_tool::AutoOrchestratorToolParam;
 pub use crate::codex_tool_config::CodexToolCallParam;
 pub use crate::codex_tool_config::CodexToolCallReplyParam;
 pub use crate::codex_tools::CodexMcpTool;

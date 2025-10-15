@@ -5,6 +5,7 @@
 - 詳細な要件定義は `docs/codex-subagents-deep-research.md` を参照してください。サブエージェント機構と Deep Research の計画型探索を Codex に中核追加するための背景・目標・アーキテクチャがまとまっています。
 - **サブエージェント機構**：`.codex/agents/*.yaml|md` で権限やトークン上限を宣言し、`codex delegate`/`codex research` などから並列実行・PR 分割を行う設計です。
 - **Deep Research 拡張**：サブクエリ計画→多段探索→引用必須レポート→軽量版フェイルオーバの流れを Codex の公式 Web 検索として統合します。
+- **🆕 自律オーケストレーション**（2025-10-15 追加）：ClaudeCode 風の透過的な UX を実現。TaskAnalyzer がタスク複雑度を自動判定し、閾値（0.7）を超えると AutoOrchestrator がサブエージェントを自律的に並列実行。詳細は `docs/auto-orchestration.md` を参照。
 - **既存動線との両立**：CLI / IDE / Web / GitHub / Slack を壊さずプラガブルに拡張し、`openai/codex` と `zapabob/codex` の双方で維持できる構造を目指します。
 - 実装フェーズ例（M1: サブエージェント MVP → M2: Deep Research v1 → M3: 統合 & ガバナンス → M4: GA）も同ドキュメントに記載されています。
 - **主なユースケース**：巨大リポジトリ刷新の自動分担、未知技術の調査レポート作成、セキュリティ診断とパッチ発行などで、サブエージェントと Deep Research を組み合わせて長時間タスクを回します。

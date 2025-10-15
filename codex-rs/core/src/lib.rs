@@ -44,6 +44,7 @@ mod mcp_connection_manager;
 mod mcp_tool_call;
 mod message_history;
 mod model_provider_info;
+pub mod orchestration;
 pub mod parse_command;
 mod truncate;
 mod unified_exec;

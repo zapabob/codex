@@ -307,6 +307,7 @@ impl MessageProcessor {
                 crate::subagent_tool::create_subagent_tool(),
                 crate::custom_command_tool::create_custom_command_tool(),
                 crate::hook_tool::create_hook_tool(),
+                crate::auto_orchestrator_tool::create_auto_orchestrator_tool(),
             ],
             next_cursor: None,
         };
@@ -334,6 +335,9 @@ impl MessageProcessor {
             "codex-subagent" => self.handle_tool_call_subagent(id, arguments).await,
             "codex-custom-command" => self.handle_tool_call_custom_command(id, arguments).await,
             "codex-hook" => self.handle_tool_call_hook(id, arguments).await,
+            "codex-auto-orchestrate" => {
+                self.handle_tool_call_auto_orchestrator(id, arguments).await
+            }
             _ => {
                 let result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
@@ -743,6 +747,20 @@ impl MessageProcessor {
                     .await;
             }
         }
+    }
+
+    async fn handle_tool_call_auto_orchestrator(
+        &self,
+        id: RequestId,
+        arguments: Option<serde_json::Value>,
+    ) {
+        let result = crate::auto_orchestrator_tool_handler::handle_auto_orchestrator_tool_call(
+            id.clone(),
+            arguments,
+        )
+        .await;
+        self.send_response::<mcp_types::CallToolRequest>(id, result)
+            .await;
     }
 
     async fn handle_tool_call_hook(&self, id: RequestId, arguments: Option<serde_json::Value>) {

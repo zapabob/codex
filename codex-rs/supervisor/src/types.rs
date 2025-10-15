@@ -64,6 +64,8 @@ pub struct Step {
     pub description: String,
     pub agent_hint: Option<String>,
     pub dependencies: Vec<String>,
+    #[serde(default)]
+    pub collaboration_domain: Option<String>,
 }
 
 /// Execution plan generated from a goal
@@ -79,6 +81,10 @@ pub struct Assignment {
     pub step_id: String,
     pub agent_name: String,
     pub description: String,
+    #[serde(default)]
+    pub dependencies: Vec<String>,
+    #[serde(default)]
+    pub collaboration_domain: Option<String>,
 }
 
 /// Result from executing a single task

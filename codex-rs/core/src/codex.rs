@@ -67,6 +67,7 @@ use crate::model_family::find_family_for_model;
 use crate::openai_model_info::get_model_info;
 use crate::openai_tools::ToolsConfig;
 use crate::openai_tools::ToolsConfigParams;
+use crate::orchestration::{AutoOrchestrator, CollaborationStore, TaskAnalyzer};
 use crate::parse_command::parse_command;
 use crate::project_doc::get_user_instructions;
 use crate::protocol::AgentMessageDeltaEvent;
@@ -148,6 +149,7 @@ pub struct CodexSpawnOk {
 pub(crate) const INITIAL_SUBMIT_ID: &str = "";
 pub(crate) const SUBMISSION_CHANNEL_CAPACITY: usize = 64;
 const DEFAULT_SUBAGENT_TOKEN_BUDGET: u64 = 200_000;
+const TASK_ANALYSIS_COMPLEXITY_THRESHOLD: f64 = 0.7;
 
 impl Codex {
     /// Spawn a new [`Codex`] and initialize the session.
@@ -1998,6 +2000,25 @@ async fn spawn_review_thread(
     .await;
 }
 
+fn collect_user_request_text(input: &[InputItem]) -> String {
+    let mut buffer = String::new();
+
+    for segment in input.iter().filter_map(|item| match item {
+        InputItem::Text { text } => Some(text.trim()),
+        _ => None,
+    }) {
+        if segment.is_empty() {
+            continue;
+        }
+        if !buffer.is_empty() {
+            buffer.push('\n');
+        }
+        buffer.push_str(segment);
+    }
+
+    buffer
+}
+
 /// Takes a user message as input and runs a loop where, at each turn, the model
 /// replies with either:
 ///
@@ -2024,6 +2045,27 @@ pub(crate) async fn run_task(
     if input.is_empty() {
         return None;
     }
+
+    // タスク分析を追加
+    let user_request_text = collect_user_request_text(&input);
+    let task_analysis = if user_request_text.trim().is_empty() {
+        None
+    } else {
+        let analyzer = TaskAnalyzer::new(TASK_ANALYSIS_COMPLEXITY_THRESHOLD);
+        let analysis = analyzer.analyze(&user_request_text);
+        let should_orchestrate = analysis.should_orchestrate(TASK_ANALYSIS_COMPLEXITY_THRESHOLD);
+        trace!(
+            target = "codex::task_analysis",
+            complexity = analysis.complexity_score,
+            should_orchestrate,
+            detected_keywords = ?analysis.detected_keywords,
+            recommended_agents = ?analysis.recommended_agents,
+            subtasks = ?analysis.subtasks,
+        );
+        Some(analysis)
+    };
+    let mut auto_orchestration_items: Vec<ResponseItem> = Vec::new();
+
     let event = Event {
         id: sub_id.clone(),
         msg: EventMsg::TaskStarted(TaskStartedEvent {
@@ -2031,6 +2073,45 @@ pub(crate) async fn run_task(
         }),
     };
     sess.send_event(event).await;
+
+    if let Some(analysis) = task_analysis.clone() {
+        let should_orchestrate = analysis.should_orchestrate(TASK_ANALYSIS_COMPLEXITY_THRESHOLD);
+        if should_orchestrate && !turn_context.is_review_mode {
+            let runtime = Arc::clone(&sess.services.agent_runtime);
+            let collaboration_store = Arc::new(CollaborationStore::new());
+            let orchestrator =
+                AutoOrchestrator::new(runtime, collaboration_store, turn_context.cwd.clone());
+            match orchestrator
+                .orchestrate(analysis.clone(), user_request_text.clone())
+                .await
+            {
+                Ok(outcome) => {
+                    trace!(
+                        target = "codex::auto_orchestrator",
+                        was_orchestrated = outcome.was_orchestrated,
+                        agents = ?outcome.agents_used,
+                        total_time = outcome.total_execution_time_secs,
+                        "auto orchestration completed"
+                    );
+                    let summary_text = &outcome.execution_summary;
+                    auto_orchestration_items.push(ResponseItem::Message {
+                        id: None,
+                        role: "system".to_string(),
+                        content: vec![ContentItem::OutputText {
+                            text: summary_text.clone(),
+                        }],
+                    });
+                }
+                Err(err) => {
+                    warn!(
+                        target = "codex::auto_orchestrator",
+                        error = %err,
+                        "auto orchestration failed"
+                    );
+                }
+            }
+        }
+    }
 
     let initial_input_for_turn: ResponseInputItem = ResponseInputItem::from(input);
     // For review threads, keep an isolated in-memory history so the
@@ -2042,9 +2123,16 @@ pub(crate) async fn run_task(
         // Seed review threads with environment context so the model knows the working directory.
         review_thread_history.extend(sess.build_initial_context(turn_context.as_ref()));
         review_thread_history.push(initial_input_for_turn.into());
+        if !auto_orchestration_items.is_empty() {
+            review_thread_history.extend(auto_orchestration_items);
+        }
     } else {
         sess.record_input_and_rollout_usermsg(&initial_input_for_turn)
             .await;
+        if !auto_orchestration_items.is_empty() {
+            sess.record_conversation_items(&auto_orchestration_items)
+                .await;
+        }
     }
 
     let mut last_agent_message: Option<String> = None;

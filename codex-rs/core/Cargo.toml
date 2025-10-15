@@ -27,6 +27,7 @@ codex-mcp-client = { workspace = true }
 codex-otel = { workspace = true, features = ["otel"] }
 codex-protocol = { workspace = true }
 codex-rmcp-client = { workspace = true }
+dashmap = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }
 env-flags = { workspace = true }
