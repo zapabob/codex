@@ -1,5 +1,0 @@
-[33mcf2dc154[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: Add deep_web_search option to Tools and update related configurations
-[33ma5bbeba7[m refactor: Update agent type handling and input item structure in submission loop
-[33mfebe0a13[m feat: Enhance AsyncSubAgentIntegration with token usage tracking and reporting
-[33m143e7554[m feat: サブエージェント機能とDeep Researchの実装状況を更新
-[33md03ae409[m fix: Windowsエンコーディングエラー修正（UTF-8対応）
