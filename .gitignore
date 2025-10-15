@@ -211,14 +211,15 @@ codex-rs/clean-build-install.ps1
 codex-rs/emergency-repair.ps1
 codex-rs/*.log
 
-# VSCode/Windsurf拡張開発（独自）
-vscode-extension/
-windsurf-extension/
+# zapabob独自ディレクトリ（整理済み）
+# zapabob/ 配下にすべての独自拡張を集約
+# zapabob/extensions/ - VSCode/Windsurf拡張
+# zapabob/sdk/ - TypeScript SDK
+# zapabob/scripts/ - ビルド・管理スクリプト
+# zapabob/docs/ - 独自ドキュメント
+# zapabob/reports/ - コードレビューレポート
 
-# SDK（独自開発）
-sdk/
-
-# rmcp バージョンディレクトリ（ローカルビルド用）
+# rmcp バージョンディレクトリ（archive/rmcp-versions/に移動済み）
 rmcp-0.*/
 
 # その他
