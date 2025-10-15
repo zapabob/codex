@@ -92,6 +92,31 @@ command = "npx"
 env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
 env.RUST_LOG = "info"
 
+# Markitdown - 各種ファイル形式をMarkdownに変換
+[mcp_servers.markitdown]
+args = ["markitdown-mcp"]
+command = "uvx"
+
+# arXiv - 学術論文検索・取得（arXiv）
+[mcp_servers.arxiv-mcp-server]
+args = ["arxiv-mcp-server"]
+command = "uvx"
+
+# YouTube - 動画検索・メタデータ・字幕取得
+[mcp_servers.youtube]
+args = ["@anaisbetts/mcp-youtube"]
+command = "npx"
+
+# Gemini CLI - Google Gemini AI統合
+[mcp_servers.gemini-cli]
+args = ["mcp-gemini-cli", "--allow-npx"]
+command = "npx"
+
+# Chrome DevTools - ブラウザデバッグ・自動化（Chrome DevTools Protocol）
+[mcp_servers.chrome-devtools]
+args = ["chrome-devtools-mcp@latest"]
+command = "npx"
+
 # ==================== サブエージェント ====================
 [subagents]
 enabled = true
