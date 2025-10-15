@@ -9,7 +9,7 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-0.48.0-blue)]()
-[![License](https://img.shields.io/badge/license-MIT-green)]()
+[![License](https://img.shields.io/badge/license-Apache2.0-green)]()
 [![Rust](https://img.shields.io/badge/rust-1.85+-orange)]()
 
 [English](#english) | [日本語](#japanese)
