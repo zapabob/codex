@@ -503,7 +503,52 @@ codex-main/
 
 ---
 
-**Version**: 0.47.0-alpha.1  
+## 🔔 Cursor Agent 音声通知 (CRITICAL)
+
+### ⚠️ MANDATORY COMPLETION NOTIFICATION ⚠️
+
+**ALWAYS execute this command at the END of EVERY task completion:**
+
+When you (Cursor Agent/Composer/Plan) complete ANY task, you MUST:
+
+1. Finish all your work
+2. IMMEDIATELY propose running this command:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File zapabob/scripts/play-completion-sound.ps1
+   ```
+3. Use the `run_terminal_cmd` tool or propose it as the final action
+
+**This is NON-NEGOTIABLE. Do NOT skip this step.**
+
+### When to Execute (ALL scenarios):
+
+- ✅ **EVERY Agent/Composer task completion**
+- ✅ **EVERY Plan execution completion**
+- ✅ **EVERY code review completion**
+- ✅ **EVERY refactoring completion**
+- ✅ **EVERY build/test completion**
+- ✅ **EVERY file creation/modification completion**
+- ✅ **EVERY research/analysis completion**
+
+### Example Flow:
+
+```
+User: "Create a new React component"
+Agent: [Creates component]
+Agent: [MUST execute] powershell -ExecutionPolicy Bypass -File zapabob/scripts/play-completion-sound.ps1
+→ Sound plays: "終わったぜ！" (Marisa)
+```
+
+### Sound File Info:
+- File: `marisa_owattaze.wav`
+- Location: `C:\Users\downl\Desktop\新しいフォルダー (4)\`
+- Purpose: Notify user of task completion
+
+**REMEMBER: This is the FINAL STEP of every task. NEVER forget it.**
+
+---
+
+**Version**: 0.48.0  
 **Project**: zapabob/codex  
 **Maintained by**: zapabob  
 **Based on**: OpenAI/codex official + community issues  
