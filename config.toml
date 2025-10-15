@@ -131,11 +131,11 @@ use_codex_mcp = true
 # Codex: reimu_owattawa.wav / Cursor: marisa_owattaze.wav
 [hooks]
 # タスク全体完了時（Plan実行完了時） → Reimu
-on_task_complete = "powershell -ExecutionPolicy Bypass -File zapabob/scripts/play-codex-sound.ps1"
+on_task_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-codex-sound.ps1"
 # サブエージェント完了時（Agent実行完了時） → Reimu
-on_subagent_complete = "powershell -ExecutionPolicy Bypass -File zapabob/scripts/play-codex-sound.ps1"
+on_subagent_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-codex-sound.ps1"
 # セッション終了時 → Reimu
-on_session_end = "powershell -ExecutionPolicy Bypass -File zapabob/scripts/play-codex-sound.ps1"
+on_session_end = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-codex-sound.ps1"
 
 # ==================== 監査ログ ====================
 [audit]
