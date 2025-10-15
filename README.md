@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Codex Logo](https://via.placeholder.com/200x200/4A90E2/FFFFFF?text=Codex)
+<img src=".github/assets/codex-logo.svg" alt="Codex Logo" width="200" height="200">
 
 **An autonomous AI coding assistant with sub-agent orchestration and deep research capabilities**  
 **サブエージェントオーケストレーションとディープリサーチ機能を備えた自律型AIコーディングアシスタント**
