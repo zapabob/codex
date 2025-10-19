@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::path::PathBuf;
 
-use crate::utils_string::take_bytes_at_char_boundary;
+use codex_utils_string::take_bytes_at_char_boundary;
 use async_trait::async_trait;
 use serde::Deserialize;
 

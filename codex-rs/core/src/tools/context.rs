@@ -4,7 +4,7 @@ use crate::tools::TELEMETRY_PREVIEW_MAX_BYTES;
 use crate::tools::TELEMETRY_PREVIEW_MAX_LINES;
 use crate::tools::TELEMETRY_PREVIEW_TRUNCATION_NOTICE;
 use crate::turn_diff_tracker::TurnDiffTracker;
-use crate::utils_string::take_bytes_at_char_boundary;
+use codex_utils_string::take_bytes_at_char_boundary;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::models::FunctionCallOutputPayload;
 use codex_protocol::models::ResponseInputItem;

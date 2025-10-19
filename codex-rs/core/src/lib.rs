@@ -25,6 +25,7 @@ pub mod codex;
 mod codex_conversation;
 pub use codex_conversation::CodexConversation;
 mod command_safety;
+pub use codex_utils_string::{take_bytes_at_char_boundary, take_last_bytes_at_char_boundary};
 pub mod config;
 pub mod config_edit;
 pub mod config_loader;
