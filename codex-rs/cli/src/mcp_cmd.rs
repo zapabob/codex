@@ -264,10 +264,12 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
 
     if let McpServerTransportConfig::StreamableHttp {
         url,
-        bearer_token_env_var: None,
+        bearer_token_env_var,
         http_headers,
         env_http_headers,
     } = transport
+    {
+        if bearer_token_env_var.is_none()
         && matches!(supports_oauth_login(&url).await, Ok(true))
     {
         println!("Detected OAuth support. Starting OAuth flow…");
@@ -280,6 +282,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
         )
         .await?;
         println!("Successfully logged in.");
+    }
     }
 
     Ok(())
