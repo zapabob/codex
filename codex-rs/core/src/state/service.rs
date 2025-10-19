@@ -10,7 +10,6 @@ use crate::mcp_connection_manager::McpConnectionManager;
 use crate::unified_exec::UnifiedExecSessionManager;
 use crate::user_notification::UserNotifier;
 use codex_otel::otel_event_manager::OtelEventManager;
-use std::sync::Arc;
 use tokio::sync::Mutex;
 
 pub(crate) struct SessionServices {
