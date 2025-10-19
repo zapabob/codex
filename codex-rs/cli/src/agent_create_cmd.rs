@@ -70,6 +70,9 @@ pub async fn run_agent_create_command(
         auth_snapshot
             .as_ref()
             .and_then(|auth| auth.get_account_id()),
+        auth_snapshot
+            .as_ref()
+            .and_then(|auth| auth.get_account_email()),
         auth_snapshot.as_ref().map(|auth| auth.mode),
         config.otel.log_user_prompt,
         terminal::user_agent(),
