@@ -59,11 +59,8 @@ codex-arg0 = { path = "arg0" }
 codex-chatgpt = { path = "chatgpt" }
 codex-common = { path = "common" }
 codex-core = { path = "core" }
-<<<<<<< HEAD
-codex-deep-research = { path = "deep-research" }
-=======
 codex-async-utils = { path = "async-utils" }
->>>>>>> upstream/main
+codex-deep-research = { path = "deep-research" }
 codex-exec = { path = "exec" }
 codex-feedback = { path = "feedback" }
 codex-file-search = { path = "file-search" }
@@ -94,11 +91,7 @@ anyhow = "1"
 arboard = "3"
 askama = "0.12"
 assert_cmd = "2"
-<<<<<<< HEAD
-assert_matches = "1.5"
-=======
 assert_matches = "1.5.0"
->>>>>>> upstream/main
 async-channel = "2.3.1"
 async-stream = "0.3.6"
 async-trait = "0.1.89"
