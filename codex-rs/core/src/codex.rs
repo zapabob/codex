@@ -573,7 +573,8 @@ impl Session {
             config.model_provider.clone(),
             conversation_id,
         ));
-        let async_subagent_integration = Arc::new(AsyncSubAgentIntegration::new(agent_runtime.clone()));
+        let async_subagent_integration =
+            Arc::new(AsyncSubAgentIntegration::new(agent_runtime.clone()));
 
         let services = SessionServices {
             mcp_connection_manager,
