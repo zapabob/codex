@@ -5,6 +5,8 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicU64;
 
 use crate::AuthManager;
+use crate::agents::AgentRuntime;
+use crate::async_subagent_integration::AsyncSubAgentIntegration;
 use crate::client_common::REVIEW_PROMPT;
 use crate::event_mapping::map_response_item_to_event_messages;
 use crate::function_tool::FunctionCallError;
