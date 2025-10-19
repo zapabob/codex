@@ -434,15 +434,17 @@ Only output the JSON, no explanation."#;
         let mut inputs = inputs;
         let shared_context_snapshot = self.collaboration_store.get_all_context();
         if !shared_context_snapshot.is_empty()
-            && let Ok(serialized) = serde_json::to_string(&shared_context_snapshot) {
-                inputs.insert("shared_context".to_string(), serialized);
-            }
+            && let Ok(serialized) = serde_json::to_string(&shared_context_snapshot)
+        {
+            inputs.insert("shared_context".to_string(), serialized);
+        }
 
         let prior_results_snapshot = self.collaboration_store.get_all_results();
         if !prior_results_snapshot.is_empty()
-            && let Ok(serialized) = serde_json::to_string(&prior_results_snapshot) {
-                inputs.insert("collaboration_results".to_string(), serialized);
-            }
+            && let Ok(serialized) = serde_json::to_string(&prior_results_snapshot)
+        {
+            inputs.insert("collaboration_results".to_string(), serialized);
+        }
 
         // 予算を設定
         if let Some(budget) = budget {
@@ -1308,22 +1310,23 @@ impl AgentRuntime {
             // TOOL_CALL: codex_read_file(path="src/auth.rs")
             if line.starts_with("TOOL_CALL:")
                 && let Some(call_str) = line.strip_prefix("TOOL_CALL:").map(str::trim)
-                    && let Some((tool_name, args_str)) = call_str.split_once('(') {
-                        let tool_name = tool_name.trim().to_string();
-                        let args_str = args_str.trim_end_matches(')').trim();
+                && let Some((tool_name, args_str)) = call_str.split_once('(')
+            {
+                let tool_name = tool_name.trim().to_string();
+                let args_str = args_str.trim_end_matches(')').trim();
 
-                        // 簡易パース: key="value" 形式
-                        let mut args = serde_json::Map::new();
-                        for part in args_str.split(',') {
-                            if let Some((key, value)) = part.split_once('=') {
-                                let key = key.trim().to_string();
-                                let value = value.trim().trim_matches('"').to_string();
-                                args.insert(key, serde_json::Value::String(value));
-                            }
-                        }
-
-                        tool_calls.push((tool_name, serde_json::Value::Object(args)));
+                // 簡易パース: key="value" 形式
+                let mut args = serde_json::Map::new();
+                for part in args_str.split(',') {
+                    if let Some((key, value)) = part.split_once('=') {
+                        let key = key.trim().to_string();
+                        let value = value.trim().trim_matches('"').to_string();
+                        args.insert(key, serde_json::Value::String(value));
                     }
+                }
+
+                tool_calls.push((tool_name, serde_json::Value::Object(args)));
+            }
         }
 
         tool_calls
