@@ -559,6 +559,22 @@ impl Session {
         // Create the mutable state for the Session.
         let state = SessionState::new(session_configuration.clone());
 
+        // Initialize zapabob agent runtime and sub-agent integration
+        let total_budget = config
+            .model_context_window
+            .unwrap_or(100_000)
+            .min(usize::MAX as u64) as usize;
+        let agent_runtime = Arc::new(AgentRuntime::new(
+            config.cwd.clone(),
+            total_budget,
+            config.clone(),
+            Some(Arc::clone(&auth_manager)),
+            otel_event_manager.clone(),
+            config.model_provider.clone(),
+            conversation_id,
+        ));
+        let async_subagent_integration = Arc::new(AsyncSubAgentIntegration::new(agent_runtime.clone()));
+
         let services = SessionServices {
             mcp_connection_manager,
             session_manager: ExecSessionManager::default(),
@@ -574,6 +590,8 @@ impl Session {
             )),
             auth_manager: Arc::clone(&auth_manager),
             otel_event_manager,
+            agent_runtime,
+            async_subagent_integration,
         };
 
         let sess = Arc::new(Session {

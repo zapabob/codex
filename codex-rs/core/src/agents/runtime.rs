@@ -994,6 +994,8 @@ impl AgentRuntime {
             codex_path.into_os_string(),
             vec![OsString::from("mcp-server")],
             None,
+            &[],  // env_vars
+            None, // cwd
         )
         .await
         .context("Failed to spawn Codex MCP server")?;
