@@ -19,11 +19,11 @@ pub fn decode_duckduckgo_url(url: &str) -> String {
             // URLデコード
             match urlencoding::decode(encoded) {
                 Ok(decoded) => {
-                    eprintln!("🔗 [DEBUG] Decoded URL: {} -> {}", url, decoded);
+                    eprintln!("🔗 [DEBUG] Decoded URL: {url} -> {decoded}");
                     return decoded.to_string();
                 }
                 Err(e) => {
-                    eprintln!("⚠️  [WARNING] Failed to decode URL: {}", e);
+                    eprintln!("⚠️  [WARNING] Failed to decode URL: {e}");
                 }
             }
         }

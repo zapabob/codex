@@ -201,7 +201,7 @@ impl CustomCommandExecutor {
         let command = self
             .registry
             .get(command_name)
-            .ok_or_else(|| anyhow::anyhow!("Custom command not found: {}", command_name))?;
+            .ok_or_else(|| anyhow::anyhow!("Custom command not found: {command_name}"))?;
 
         // Build execution plan
         let mut result = CustomCommandResult {

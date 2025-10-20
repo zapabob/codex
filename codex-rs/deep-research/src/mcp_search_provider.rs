@@ -218,31 +218,30 @@ impl McpSearchProvider {
 
         let results = vec![
             SearchResult {
-                title: format!("{} - Official Documentation", query),
+                title: format!("{query} - Official Documentation"),
                 url: format!("https://docs.example.com/{}", urlencoding::encode(query)),
                 snippet: format!(
-                    "Official documentation for {}. Comprehensive guides and API references.",
-                    query
+                    "Official documentation for {query}. Comprehensive guides and API references."
                 ),
                 relevance_score: 0.95,
                 published_date: Some("2024-01-01".to_string()),
                 domain: "docs.example.com".to_string(),
             },
             SearchResult {
-                title: format!("{} - GitHub Repository", query),
+                title: format!("{query} - GitHub Repository"),
                 url: format!("https://github.com/search?q={}", urlencoding::encode(query)),
-                snippet: format!("Open source projects and examples for {}.", query),
+                snippet: format!("Open source projects and examples for {query}."),
                 relevance_score: 0.90,
                 published_date: Some("2024-06-15".to_string()),
                 domain: "github.com".to_string(),
             },
             SearchResult {
-                title: format!("{} - Stack Overflow", query),
+                title: format!("{query} - Stack Overflow"),
                 url: format!(
                     "https://stackoverflow.com/search?q={}",
                     urlencoding::encode(query)
                 ),
-                snippet: format!("Community Q&A about {}. Real-world solutions.", query),
+                snippet: format!("Community Q&A about {query}. Real-world solutions."),
                 relevance_score: 0.85,
                 published_date: Some("2024-09-20".to_string()),
                 domain: "stackoverflow.com".to_string(),
@@ -294,8 +293,7 @@ impl McpSearchProvider {
         // TODO: Actual HTTP fetch with proper error handling
         // For now, return mock content
         Ok(format!(
-            "Content from {}\n\nDetailed information about the topic...",
-            url
+            "Content from {url}\n\nDetailed information about the topic..."
         ))
     }
 }

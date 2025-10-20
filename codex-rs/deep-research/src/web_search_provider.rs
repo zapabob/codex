@@ -396,33 +396,33 @@ impl WebSearchProvider {
     pub fn generate_official_format_results(&self, query: &str) -> Vec<SearchResult> {
         vec![
             SearchResult {
-                title: format!("{} - Official Documentation", query),
+                title: format!("{query} - Official Documentation"),
                 url: format!("https://doc.rust-lang.org/search?q={}", urlencoding::encode(query)),
-                snippet: format!("Official documentation for {}. Includes API references, guides, and examples from the Rust team.", query),
+                snippet: format!("Official documentation for {query}. Includes API references, guides, and examples from the Rust team."),
                 relevance_score: 0.95,
             },
             SearchResult {
-                title: format!("Best Practices for {}", query),
+                title: format!("Best Practices for {query}"),
                 url: format!("https://rust-lang.github.io/api-guidelines/about.html#{}",urlencoding::encode(query)),
-                snippet: format!("Rust API guidelines and best practices for {}. Community-driven standards and conventions.", query),
+                snippet: format!("Rust API guidelines and best practices for {query}. Community-driven standards and conventions."),
                 relevance_score: 0.92,
             },
             SearchResult {
-                title: format!("{} - Stack Overflow", query),
+                title: format!("{query} - Stack Overflow"),
                 url: format!("https://stackoverflow.com/questions/tagged/rust?q={}", urlencoding::encode(query)),
-                snippet: format!("Community Q&A about {}. Real-world solutions, common pitfalls, and expert answers.", query),
+                snippet: format!("Community Q&A about {query}. Real-world solutions, common pitfalls, and expert answers."),
                 relevance_score: 0.88,
             },
             SearchResult {
-                title: format!("GitHub: {} examples", query),
+                title: format!("GitHub: {query} examples"),
                 url: format!("https://github.com/search?q=language:rust+{}", urlencoding::encode(query)),
-                snippet: format!("Open source Rust projects demonstrating {}. Production code, libraries, and tools.", query),
+                snippet: format!("Open source Rust projects demonstrating {query}. Production code, libraries, and tools."),
                 relevance_score: 0.85,
             },
             SearchResult {
-                title: format!("Rust by Example: {}", query),
+                title: format!("Rust by Example: {query}"),
                 url: format!("https://doc.rust-lang.org/rust-by-example/?search={}", urlencoding::encode(query)),
-                snippet: format!("Hands-on examples and tutorials for {}. Learn through runnable code samples.", query),
+                snippet: format!("Hands-on examples and tutorials for {query}. Learn through runnable code samples."),
                 relevance_score: 0.90,
             },
         ]
@@ -491,7 +491,7 @@ impl WebSearchProvider {
         if url.contains("doc.rust-lang.org") {
             format!(
                 "# Rust Official Documentation\n\n\
-                Source: {}\n\n\
+                Source: {url}\n\n\
                 ## Overview\n\n\
                 This page covers Rust programming concepts with detailed explanations,\n\
                 code examples, and best practices.\n\n\
@@ -506,13 +506,12 @@ impl WebSearchProvider {
                 ```\n\n\
                 ## See Also\n\
                 - Related documentation\n\
-                - API reference",
-                url
+                - API reference"
             )
         } else if url.contains("stackoverflow.com") {
             format!(
                 "# Stack Overflow Discussion\n\n\
-                Source: {}\n\n\
+                Source: {url}\n\n\
                 ## Question\n\n\
                 How to properly handle this in Rust?\n\n\
                 ## Answer (Accepted)\n\n\
@@ -524,13 +523,12 @@ impl WebSearchProvider {
                 ```rust\n\
                 // Community-validated solution\n\
                 ```\n\n\
-                Votes: 125 | Asked: 2024",
-                url
+                Votes: 125 | Asked: 2024"
             )
         } else if url.contains("github.com") {
             format!(
                 "# GitHub Repository\n\n\
-                Source: {}\n\n\
+                Source: {url}\n\n\
                 ## Project Description\n\n\
                 Production-ready implementation with:\n\n\
                 - Comprehensive test coverage\n\
@@ -540,11 +538,10 @@ impl WebSearchProvider {
                 ```rust\n\
                 // Real-world usage\n\
                 ```\n\n\
-                Stars: 5.2k | Forks: 850 | Issues: 32",
-                url
+                Stars: 5.2k | Forks: 850 | Issues: 32"
             )
         } else {
-            format!("Content from {}\n\nDetailed information and examples.", url)
+            format!("Content from {url}\n\nDetailed information and examples.")
         }
     }
 

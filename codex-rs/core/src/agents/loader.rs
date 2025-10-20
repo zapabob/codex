@@ -79,7 +79,7 @@ impl AgentLoader {
         } else if yml_path.exists() {
             yml_path
         } else {
-            anyhow::bail!("Agent definition not found: {}", name);
+            anyhow::bail!("Agent definition not found: {name}");
         };
 
         let agent = self.load_agent(&path)?;

@@ -164,7 +164,7 @@ impl FileEditTracker {
         let queue = edit_queue.read().await;
 
         if queue.is_empty() {
-            anyhow::bail!("No edits to resolve for {:?}", file);
+            anyhow::bail!("No edits to resolve for {file:?}");
         }
 
         // If only one edit, no conflict
@@ -341,14 +341,21 @@ impl FileEditTracker {
                 // Both changed differently - CONFLICT!
                 (Some(_b), Some(o), Some(t)) => {
                     has_conflicts = true;
-                    merged.push_str(&format!(
-                        "<<<<<<< Agent: {ours_name}\n{o}\n=======\n{t}\n>>>>>>> Agent: {theirs_name}\n"
-                    ));
+                    merged.push_str("<<<<<<< Agent: ");
+                    merged.push_str(ours_name);
+                    merged.push('\n');
+                    merged.push_str(o);
+                    merged.push('\n');
+                    merged.push_str("=======\n");
+                    merged.push_str(t);
+                    merged.push('\n');
+                    merged.push_str(">>>>>>> Agent: ");
+                    merged.push_str(theirs_name);
+                    merged.push('\n');
                     base_idx += 1;
                     ours_idx += 1;
                     theirs_idx += 1;
                 }
-                // Ours only (no base, no theirs)
                 (None, Some(o), None) => {
                     merged.push_str(o);
                     merged.push('\n');

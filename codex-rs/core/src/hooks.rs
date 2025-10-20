@@ -238,7 +238,7 @@ impl HookExecutor {
 
         handle
             .await
-            .map_err(|e| anyhow::anyhow!("Hook task join error: {}", e))?
+            .map_err(|e| anyhow::anyhow!("Hook task join error: {e}"))?
     }
 
     /// Run command with environment variables
@@ -298,8 +298,8 @@ async fn execute_command_with_timeout(
             .output(),
     )
     .await
-    .map_err(|_| anyhow::anyhow!("Hook execution timeout after {} seconds", timeout_seconds))?
-    .map_err(|e| anyhow::anyhow!("Hook execution failed: {}", e))?;
+    .map_err(|_| anyhow::anyhow!("Hook execution timeout after {timeout_seconds} seconds"))?
+    .map_err(|e| anyhow::anyhow!("Hook execution failed: {e}"))?;
 
     let duration = start_time.elapsed();
 

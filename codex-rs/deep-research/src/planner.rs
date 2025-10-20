@@ -71,12 +71,12 @@ impl ResearchPlanner {
         let mut queries = Vec::new();
 
         // 基本的なサブクエリパターンを生成
-        queries.push(format!("{} 概要", topic));
-        queries.push(format!("{} 最新動向", topic));
-        queries.push(format!("{} ベストプラクティス", topic));
-        queries.push(format!("{} 課題と問題点", topic));
-        queries.push(format!("{} 事例研究", topic));
-        queries.push(format!("{} 比較分析", topic));
+        queries.push(format!("{topic} 概要"));
+        queries.push(format!("{topic} 最新動向"));
+        queries.push(format!("{topic} ベストプラクティス"));
+        queries.push(format!("{topic} 課題と問題点"));
+        queries.push(format!("{topic} 事例研究"));
+        queries.push(format!("{topic} 比較分析"));
 
         // 指定された数に調整
         queries.truncate(count);

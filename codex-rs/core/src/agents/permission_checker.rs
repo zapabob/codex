@@ -81,9 +81,7 @@ impl PermissionChecker {
                 }
 
                 Err(anyhow!(
-                    "File write to '{}' is not permitted. Allowed paths: {:?}",
-                    path_str,
-                    allowed_paths
+                    "File write to '{path_str}' is not permitted. Allowed paths: {allowed_paths:?}"
                 ))
             }
         }
@@ -136,9 +134,7 @@ impl PermissionChecker {
                 }
 
                 Err(anyhow!(
-                    "Shell command '{}' is not permitted. Allowed commands: {:?}",
-                    command_name,
-                    exec
+                    "Shell command '{command_name}' is not permitted. Allowed commands: {exec:?}"
                 ))
             }
         }

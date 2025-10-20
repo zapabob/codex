@@ -202,7 +202,7 @@ impl AsyncSubAgentIntegration {
                         timestamp: Utc::now().to_rfc3339(),
                     });
 
-                    Err(anyhow!("Agent task failed: {}", e))
+                    Err(anyhow!("Agent task failed: {e}"))
                 }
             }
         });
@@ -327,7 +327,7 @@ impl AsyncSubAgentIntegration {
 
             Ok(())
         } else {
-            Err(anyhow!("Agent not found: {}", agent_id))
+            Err(anyhow!("Agent not found: {agent_id}"))
         }
     }
 

@@ -47,7 +47,7 @@ impl GeminiSearchProvider {
         // Construct Gemini CLI command with grounding (Google Search)
         // Example: gemini "Search for: <query>" --api-key $GOOGLE_API_KEY --model gemini-1.5-pro --grounding
         let output = Command::new("gemini")
-            .arg(format!("Search for: {}", query))
+            .arg(format!("Search for: {query}"))
             .arg("--api-key")
             .arg(&self.api_key)
             .arg("--model")
@@ -59,7 +59,7 @@ impl GeminiSearchProvider {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Gemini CLI failed: {}", stderr);
+            anyhow::bail!("Gemini CLI failed: {stderr}");
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -126,7 +126,7 @@ impl GeminiSearchProvider {
                             results.push(GeminiSearchResult {
                                 title: title.clone(),
                                 url: url.clone(),
-                                snippet: format!("Result from Gemini search: {}", title),
+                                snippet: format!("Result from Gemini search: {title}"),
                             });
 
                             current_pos = url_end_abs + 1;
@@ -228,7 +228,7 @@ impl ResearchProvider for GeminiSearchProvider {
         info!("📥 Retrieving content from {} via Gemini", url);
 
         let output = Command::new("gemini")
-            .arg(format!("Summarize the content from this URL: {}", url))
+            .arg(format!("Summarize the content from this URL: {url}"))
             .arg("--api-key")
             .arg(&self.api_key)
             .arg("--model")
@@ -238,7 +238,7 @@ impl ResearchProvider for GeminiSearchProvider {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Gemini CLI content retrieval failed: {}", stderr);
+            anyhow::bail!("Gemini CLI content retrieval failed: {stderr}");
         }
 
         let content = String::from_utf8_lossy(&output.stdout).to_string();
