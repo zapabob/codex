@@ -395,9 +395,17 @@ impl FileEditTracker {
                 // Conflicting additions
                 (None, Some(o), Some(t)) => {
                     has_conflicts = true;
-                    merged.push_str(&format!(
-                        "<<<<<<< Agent: {ours_name} (added)\n{o}\n=======\n{t}\n>>>>>>> Agent: {theirs_name} (added)\n"
-                    ));
+                    merged.push_str("<<<<<<< Agent: ");
+                    merged.push_str(ours_name);
+                    merged.push_str(" (added)\n");
+                    merged.push_str(o);
+                    merged.push('\n');
+                    merged.push_str("=======\n");
+                    merged.push_str(t);
+                    merged.push('\n');
+                    merged.push_str(">>>>>>> Agent: ");
+                    merged.push_str(theirs_name);
+                    merged.push_str(" (added)\n");
                     ours_idx += 1;
                     theirs_idx += 1;
                 }
