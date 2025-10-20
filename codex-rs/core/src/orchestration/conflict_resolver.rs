@@ -342,8 +342,7 @@ impl FileEditTracker {
                 (Some(_b), Some(o), Some(t)) => {
                     has_conflicts = true;
                     merged.push_str(&format!(
-                        "<<<<<<< Agent: {}\n{}\n=======\n{}\n>>>>>>> Agent: {}\n",
-                        ours_name, o, t, theirs_name
+                        "<<<<<<< Agent: {ours_name}\n{o}\n=======\n{t}\n>>>>>>> Agent: {theirs_name}\n"
                     ));
                     base_idx += 1;
                     ours_idx += 1;
@@ -390,8 +389,7 @@ impl FileEditTracker {
                 (None, Some(o), Some(t)) => {
                     has_conflicts = true;
                     merged.push_str(&format!(
-                        "<<<<<<< Agent: {} (added)\n{}\n=======\n{}\n>>>>>>> Agent: {} (added)\n",
-                        ours_name, o, t, theirs_name
+                        "<<<<<<< Agent: {ours_name} (added)\n{o}\n=======\n{t}\n>>>>>>> Agent: {theirs_name} (added)\n"
                     ));
                     ours_idx += 1;
                     theirs_idx += 1;
