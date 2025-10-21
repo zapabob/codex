@@ -514,17 +514,22 @@ mod tests {
     #[tokio::test]
     async fn test_agent_lifecycle() {
         // Create test runtime
-        let config = Config::default();
+        let workspace_dir = PathBuf::from(".codex/agents");
+        let total_budget = 100_000;
+        let config = Arc::new(Config::default());
+        let auth_manager = Some(Arc::new(AuthManager::default()));
+        let otel_manager = OtelEventManager::default();
         let provider = ModelProviderInfo::default();
-        let auth = AuthManager::default();
-        let otel = OtelEventManager::default();
         let conv_id = ConversationId::new();
 
-        let budgeter = Arc::new(Budgeter::new());
-        let agents_dir = PathBuf::from(".codex/agents");
-
         let runtime = Arc::new(AgentRuntime::new(
-            budgeter, agents_dir, config, auth, otel, provider, conv_id,
+            workspace_dir,
+            total_budget,
+            config,
+            auth_manager,
+            otel_manager,
+            provider,
+            conv_id,
         ));
 
         let integration = AsyncSubAgentIntegration::new(runtime);

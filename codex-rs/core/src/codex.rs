@@ -2846,6 +2846,20 @@ mod tests {
 
         let state = SessionState::new(session_configuration.clone());
 
+        // Initialize test agent runtime
+        let total_budget = 100_000;
+        let agent_runtime = Arc::new(AgentRuntime::new(
+            config.cwd.clone(),
+            total_budget,
+            config.clone(),
+            Some(Arc::clone(&auth_manager)),
+            otel_event_manager.clone(),
+            config.model_provider.clone(),
+            conversation_id,
+        ));
+        let async_subagent_integration =
+            Arc::new(AsyncSubAgentIntegration::new(agent_runtime.clone()));
+
         let services = SessionServices {
             mcp_connection_manager: McpConnectionManager::default(),
             session_manager: ExecSessionManager::default(),
@@ -2861,6 +2875,8 @@ mod tests {
             )),
             auth_manager: Arc::clone(&auth_manager),
             otel_event_manager: otel_event_manager.clone(),
+            agent_runtime,
+            async_subagent_integration,
         };
 
         let session = Session {
@@ -2917,6 +2933,20 @@ mod tests {
 
         let state = SessionState::new(session_configuration.clone());
 
+        // Initialize test agent runtime
+        let total_budget = 100_000;
+        let agent_runtime = Arc::new(AgentRuntime::new(
+            config.cwd.clone(),
+            total_budget,
+            config.clone(),
+            Some(Arc::clone(&auth_manager)),
+            otel_event_manager.clone(),
+            config.model_provider.clone(),
+            conversation_id,
+        ));
+        let async_subagent_integration =
+            Arc::new(AsyncSubAgentIntegration::new(agent_runtime.clone()));
+
         let services = SessionServices {
             mcp_connection_manager: McpConnectionManager::default(),
             session_manager: ExecSessionManager::default(),
@@ -2932,6 +2962,8 @@ mod tests {
             )),
             auth_manager: Arc::clone(&auth_manager),
             otel_event_manager: otel_event_manager.clone(),
+            agent_runtime,
+            async_subagent_integration,
         };
 
         let session = Arc::new(Session {
