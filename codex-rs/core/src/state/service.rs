@@ -25,5 +25,6 @@ pub(crate) struct SessionServices {
     pub(crate) otel_event_manager: OtelEventManager,
     #[allow(dead_code)]
     pub(crate) agent_runtime: Arc<AgentRuntime>,
+    #[allow(dead_code)]
     pub(crate) async_subagent_integration: Arc<AsyncSubAgentIntegration>,
 }
