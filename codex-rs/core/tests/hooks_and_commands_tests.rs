@@ -205,7 +205,7 @@ fn test_hook_event_types() {
     for event in events {
         let s = event.to_string();
         assert!(!s.is_empty());
-        assert!(seen.insert(s), "Duplicate event string: {}", event);
+        assert!(seen.insert(s), "Duplicate event string: {event}");
     }
 }
 
@@ -246,11 +246,10 @@ async fn test_all_default_commands_executable() {
         let result = executor.execute(&command_name, "test context").await;
         assert!(
             result.is_ok(),
-            "Failed to execute command: {}",
-            command_name
+            "Failed to execute command: {command_name}"
         );
 
         let res = result.unwrap();
-        assert!(res.success, "Command failed: {}", command_name);
+        assert!(res.success, "Command failed: {command_name}");
     }
 }
