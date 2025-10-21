@@ -1,14 +1,14 @@
-# Codex - AI Coding Assistant / AI コーディングアシスタント
+# Codex - AI Coding Assistant / AI コーチE��ングアシスタンチE
 
 <div align="center">
 
 <img src=".github/assets/codex-logo.svg" alt="Codex Logo" width="200" height="200">
 
 **An autonomous AI coding assistant with sub-agent orchestration and deep research capabilities**  
-**サブエージェントオーケストレーションとディープリサーチ機能を備えた自律型AIコーディングアシスタント**
+**サブエージェントオーケストレーションとチE��ープリサーチ機�Eを備えた自律型AIコーチE��ングアシスタンチE*
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-0.48.0-blue)]()
+[![Version](https://img.shields.io/badge/version-0.48.0--zapabob.1-blue)-blue)]()
 [![License](https://img.shields.io/badge/license-Apache2.0-green)]()
 [![Rust](https://img.shields.io/badge/rust-1.85+-orange)]()
 
@@ -24,7 +24,7 @@
 
 **Codex** is a next-generation AI coding assistant that extends the [OpenAI/codex](https://github.com/openai/codex) official repository with autonomous orchestration capabilities, specialized sub-agents, and deep research functionality. This fork, maintained by zapabob, adds powerful enhancements while maintaining compatibility with the upstream project.
 
-### 🏗️ Architecture
+### 🏗�E�EArchitecture
 
 <div align="center">
 
@@ -36,7 +36,7 @@
 
 ### ✨ Key Features
 
-#### 🆕 **v0.48.0 - ClaudeCode-Surpassing Features**
+#### �E **v0.48.0 - ClaudeCode-Surpassing Features**
 
 1. **🔒 Automatic Conflict Resolution** *(Unique to Codex)*
    - FileEditTracker: Per-file edit queue management
@@ -44,7 +44,7 @@
    - DashMap-based lock-free concurrency
    - Prevents race conditions in multi-agent editing
 
-2. **🗣️ Natural Language CLI** *(Unique to Codex)*
+2. **🗣�E�ENatural Language CLI** *(Unique to Codex)*
    - `codex agent "Review code for security"` - intuitive invocation
    - AgentInterpreter: Pattern matching & intent classification
    - Auto-dispatch to appropriate specialized agents
@@ -95,47 +95,47 @@
 - **Custom Tools**: Extensible tool ecosystem
 - **Real-time Sync**: Live collaboration capabilities
 
-### 🏗️ Architecture
+### 🏗�E�EArchitecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Codex CLI / TUI                          │
-│                   (User Interface Layer)                         │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
+┌─────────────────────────────────────────────────────────────────━E
+━E                        Codex CLI / TUI                          ━E
+━E                  (User Interface Layer)                         ━E
+└───────────────────────────┬─────────────────────────────────────━E
+                            ━E
                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Codex Core Runtime                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │ TaskAnalyzer │  │ AutoOrchestra│  │    Session   │          │
-│  │              │─▶│     tor      │─▶│   Manager    │          │
-│  └──────────────┘  └──────────────┘  └──────────────┘          │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
-              ┌─────────────┼─────────────┐
+┌─────────────────────────────────────────────────────────────────━E
+━E                   Codex Core Runtime                            ━E
+━E ┌──────────────━E ┌──────────────━E ┌──────────────━E         ━E
+━E ━ETaskAnalyzer ━E ━EAutoOrchestra━E ━E   Session   ━E         ━E
+━E ━E             │─▶━E    tor      │─▶━E  Manager    ━E         ━E
+━E └──────────────━E └──────────────━E └──────────────━E         ━E
+└───────────────────────────┬─────────────────────────────────────━E
+                            ━E
+              ┌─────────────┼─────────────━E
               ▼             ▼             ▼
-    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
-    │ Sub-Agent   │ │ Sub-Agent   │ │ Sub-Agent   │
-    │ Supervisor  │ │ Deep        │ │ Custom      │
-    │             │ │ Research    │ │ Commands    │
-    └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
-           │               │               │
-    ┌──────▼───────────────▼───────────────▼──────┐
-    │         Specialized Sub-Agents               │
-    │  ┌────────┐ ┌────────┐ ┌────────┐          │
-    │  │Code    │ │Security│ │Testing │ ...      │
-    │  │Expert  │ │Expert  │ │Expert  │          │
-    │  └────────┘ └────────┘ └────────┘          │
-    └──────────────────┬───────────────────────────┘
-                       │
+    ┌─────────────━E┌─────────────━E┌─────────────━E
+    ━ESub-Agent   ━E━ESub-Agent   ━E━ESub-Agent   ━E
+    ━ESupervisor  ━E━EDeep        ━E━ECustom      ━E
+    ━E            ━E━EResearch    ━E━ECommands    ━E
+    └──────┬──────━E└──────┬──────━E└──────┬──────━E
+           ━E              ━E              ━E
+    ┌──────▼───────────────▼───────────────▼──────━E
+    ━E        Specialized Sub-Agents               ━E
+    ━E ┌────────━E┌────────━E┌────────━E         ━E
+    ━E ━Eode    ━E│Security━E│Testing ━E...      ━E
+    ━E ━Expert  ━E━Expert  ━E━Expert  ━E         ━E
+    ━E └────────━E└────────━E└────────━E         ━E
+    └──────────────────┬───────────────────────────━E
+                       ━E
                        ▼
-    ┌────────────────────────────────────────────┐
-    │         LLM Providers & Tools              │
-    │  ┌──────────┐ ┌──────────┐ ┌──────────┐  │
-    │  │ OpenAI   │ │ Anthropic│ │   MCP    │  │
-    │  │  API     │ │   API    │ │  Server  │  │
-    │  └──────────┘ └──────────┘ └──────────┘  │
-    └────────────────────────────────────────────┘
+    ┌────────────────────────────────────────────━E
+    ━E        LLM Providers & Tools              ━E
+    ━E ┌──────────━E┌──────────━E┌──────────━E ━E
+    ━E ━EOpenAI   ━E━EAnthropic━E━E  MCP    ━E ━E
+    ━E ━E API     ━E━E  API    ━E━E Server  ━E ━E
+    ━E └──────────━E└──────────━E└──────────━E ━E
+    └────────────────────────────────────────────━E
 ```
 
 ### 🚀 Quick Start
@@ -204,7 +204,7 @@ codex delegate-parallel code-reviewer,test-gen --scopes ./src,./tests
 - [Cursor IDE Integration](docs/cursor-implementation-plan.md)
 - [API Documentation](docs/api/)
 
-### 🛠️ Development
+### 🛠�E�EDevelopment
 
 #### Prerequisites
 
@@ -218,20 +218,20 @@ codex delegate-parallel code-reviewer,test-gen --scopes ./src,./tests
 ```
 codex-main/
 ├── codex-rs/              # Rust core implementation
-│   ├── cli/               # Command-line interface
-│   ├── core/              # Core runtime
-│   ├── tui/               # Terminal UI
-│   ├── mcp-server/        # MCP server (zapabob)
-│   ├── supervisor/        # Sub-agent management (zapabob)
-│   └── deep-research/     # Deep research engine (zapabob)
+━E  ├── cli/               # Command-line interface
+━E  ├── core/              # Core runtime
+━E  ├── tui/               # Terminal UI
+━E  ├── mcp-server/        # MCP server (zapabob)
+━E  ├── supervisor/        # Sub-agent management (zapabob)
+━E  └── deep-research/     # Deep research engine (zapabob)
 ├── codex-cli/             # Node.js CLI
 ├── docs/                  # Documentation
 ├── examples/              # Example code
 ├── zapabob/               # zapabob-specific extensions
-│   ├── docs/              # Additional documentation
-│   ├── scripts/           # Build scripts
-│   ├── extensions/        # IDE extensions
-│   └── sdk/               # TypeScript SDK
+━E  ├── docs/              # Additional documentation
+━E  ├── scripts/           # Build scripts
+━E  ├── extensions/        # IDE extensions
+━E  └── sdk/               # TypeScript SDK
 └── _docs/                 # Implementation logs
 ```
 
@@ -247,7 +247,7 @@ cargo build --release
 cargo install --path cli --force
 ```
 
-### 🤝 Contributing
+### 🤁EContributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](docs/contributing.md) for details.
 
@@ -261,14 +261,14 @@ We welcome contributions! Please see [CONTRIBUTING.md](docs/contributing.md) for
 
 | Feature | Official OpenAI/codex | zapabob/codex |
 |---------|----------------------|---------------|
-| Basic CLI | ✅ | ✅ |
-| TUI Interface | ✅ | ✅ |
-| MCP Server | ✅ | ✅ Enhanced |
-| Sub-Agents | ❌ | ✅ 7 Specialized |
-| Auto Orchestration | ❌ | ✅ ClaudeCode-style |
-| Deep Research | ❌ | ✅ Multi-source |
-| Parallel Execution | ❌ | ✅ Optimized |
-| Cursor Integration | ✅ | ✅ Enhanced |
+| Basic CLI | ✁E| ✁E|
+| TUI Interface | ✁E| ✁E|
+| MCP Server | ✁E| ✁EEnhanced |
+| Sub-Agents | ❁E| ✁E7 Specialized |
+| Auto Orchestration | ❁E| ✁EClaudeCode-style |
+| Deep Research | ❁E| ✁EMulti-source |
+| Parallel Execution | ❁E| ✁EOptimized |
+| Cursor Integration | ✁E| ✁EEnhanced |
 
 ### 📄 License
 
@@ -283,138 +283,138 @@ This project inherits the license from [OpenAI/codex](https://github.com/openai/
 
 ---
 
-## <a name="japanese"></a>🇯🇵 日本語
+## <a name="japanese"></a>�E�E 日本誁E
 
-### 概要
+### 概要E
 
-**Codex**は、[OpenAI/codex](https://github.com/openai/codex)公式リポジトリを拡張した次世代AIコーディングアシスタントです。zapabobが保守するこのフォークは、自律オーケストレーション機能、専門サブエージェント、ディープリサーチ機能を追加しながら、上流プロジェクトとの互換性を維持しています。
+**Codex**は、[OpenAI/codex](https://github.com/openai/codex)公式リポジトリを拡張した次世代AIコーチE��ングアシスタントです、Eapabobが保守するこのフォークは、�E律オーケストレーション機�E、専門サブエージェント、ディープリサーチ機�Eを追加しながら、上流�Eロジェクトとの互換性を維持してぁE��す、E
 
-### ✨ 主な機能
+### ✨ 主な機�E
 
-#### 🆕 **v0.48.0 - ClaudeCode超え新機能**
+#### �E **v0.48.0 - ClaudeCode趁E��新機�E**
 
-1. **🔒 コンフリクト自動回避** *(Codex独自機能)*
-   - FileEditTracker: ファイル別編集キュー管理
-   - 3種マージ戦略: Sequential, LastWriteWins, ThreeWayMerge
-   - DashMapベースのロックフリー並行処理
-   - 複数エージェント編集時の競合を自動解決
+1. **🔒 コンフリクト�E動回避** *(Codex独自機�E)*
+   - FileEditTracker: ファイル別編雁E��ュー管琁E
+   - 3種マ�Eジ戦略: Sequential, LastWriteWins, ThreeWayMerge
+   - DashMapベ�EスのロチE��フリー並行�E琁E
+   - 褁E��エージェント編雁E��の競合を自動解決
 
-2. **🗣️ 自然言語CLI** *(Codex独自機能)*
-   - `codex agent "セキュリティ重視でコードレビュー"` - 直感的呼び出し
-   - AgentInterpreter: パターンマッチング＆意図分類
-   - 適切なエージェントへ自動振り分け
-   - エージェント名や複雑なフラグ不要
+2. **🗣�E�E自然言語CLI** *(Codex独自機�E)*
+   - `codex agent "セキュリチE��重視でコードレビュー"` - 直感的呼び出ぁE
+   - AgentInterpreter: パターンマッチング�E�E��図刁E��E
+   - 適刁E��エージェントへ自動振り�EぁE
+   - エージェント名めE��E��なフラグ不要E
 
-3. **🔗 Webhook/外部API統合** *(Codex独自機能)*
-   - GitHub API: PR自動作成、Issue管理
+3. **🔗 Webhook/外部API統吁E* *(Codex独自機�E)*
+   - GitHub API: PR自動作�E、Issue管琁E
    - Slack Webhook: チャンネル通知
-   - カスタムWebhook: 汎用HTTPエンドポイント
+   - カスタムWebhook: 汎用HTTPエンド�EインチE
    - CI/CDパイプラインとシームレス連携
 
-4. **🔄 指数バックオフエラーリトライ** *(Codex優位)*
-   - 設定可能なRetryPolicy（最大3回、1-30秒遅延）
+4. **🔄 持E��バックオフエラーリトライ** *(Codex優佁E*
+   - 設定可能なRetryPolicy�E�最大3回、E-30秒遅延�E�E
    - FallbackStrategy: Retry、Skip、Fail
-   - AgentError型システムで細かいエラー処理
-   - 基本リトライの3倍の回復力
+   - AgentError型シスチE��で細かいエラー処琁E
+   - 基本リトライの3倍�E回復劁E
 
-5. **📖 完全オープンソース** *(Codex独自機能)*
-   - 全コードGitHub公開
-   - コミュニティ貢献歓迎
-   - 透明な開発プロセス
-   - Apache 2.0 / MIT デュアルライセンス
+5. **📖 完�Eオープンソース** *(Codex独自機�E)*
+   - 全コードGitHub公閁E
+   - コミュニティ貢献歓迁E
+   - 透�Eな開発プロセス
+   - Apache 2.0 / MIT チE��アルライセンス
 
 #### **自律オーケストレーション** (ClaudeCode風)
-- **TaskAnalyzer**: タスクの複雑度を自動分析
-- **AutoOrchestrator**: サブエージェントを自律的に実行
-- **閾値ベース**: 複雑度 > 0.7 で自動委譲
-- **シームレス統合**: バックグラウンドで透過的に動作
+- **TaskAnalyzer**: タスクの褁E��度を�E動�E极E
+- **AutoOrchestrator**: サブエージェントを自律的に実衁E
+- **閾値ベ�Eス**: 褁E��度 > 0.7 で自動委譲
+- **シームレス統吁E*: バックグラウンドで透過皁E��動佁E
 
-#### 2. **専門サブエージェントシステム**
-- **CodeExpert**: コード分析とリファクタリング
-- **SecurityExpert**: セキュリティ監査と脆弱性スキャン
-- **TestingExpert**: 包括的なテスト生成
-- **DeepResearcher**: 引用付き多元調査
-- **DocsExpert**: ドキュメント生成
+#### 2. **専門サブエージェントシスチE��**
+- **CodeExpert**: コード�E析とリファクタリング
+- **SecurityExpert**: セキュリチE��監査と脁E��性スキャン
+- **TestingExpert**: 匁E��皁E��チE��ト生戁E
+- **DeepResearcher**: 引用付き多�E調査
+- **DocsExpert**: ドキュメント生戁E
 - **DebugExpert**: 問題診断と解決
-- **PerformanceExpert**: パフォーマンス最適化
+- **PerformanceExpert**: パフォーマンス最適匁E
 
-#### 3. **ディープリサーチエンジン**
-- **多元ソース**: DuckDuckGo、Brave、Google、Bing統合
-- **引用ベース**: すべての発見にソース帰属
-- **矛盾検出**: 競合する情報を識別
+#### 3. **チE��ープリサーチエンジン**
+- **多�Eソース**: DuckDuckGo、Brave、Google、Bing統吁E
+- **引用ベ�Eス**: すべての発見にソース帰屁E
+- **矛盾検�E**: 競合する情報を識別
 - **深度設定可能**: 1-5レベルの調査深度
-- **信頼性スコア**: 各発見の信頼性メトリクス
+- **信頼性スコア**: 吁E��見�E信頼性メトリクス
 
-#### 4. **MCP (Model Context Protocol) 統合**
-- **Cursor IDE**: MCPサーバー経由のネイティブ統合
-- **カスタムツール**: 拡張可能なツールエコシステム
-- **リアルタイム同期**: ライブコラボレーション機能
+#### 4. **MCP (Model Context Protocol) 統吁E*
+- **Cursor IDE**: MCPサーバ�E経由のネイチE��ブ統吁E
+- **カスタムチE�Eル**: 拡張可能なチE�EルエコシスチE��
+- **リアルタイム同期**: ライブコラボレーション機�E
 
-### 🏗️ アーキテクチャ
+### 🏗�E�EアーキチE��チャ
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Codex CLI / TUI                             │
-│                  (ユーザーインターフェース層)                       │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
+┌─────────────────────────────────────────────────────────────────━E
+━E                     Codex CLI / TUI                             ━E
+━E                 (ユーザーインターフェース層)                       ━E
+└───────────────────────────┬─────────────────────────────────────━E
+                            ━E
                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Codex コアランタイム                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │ Task         │  │ Auto         │  │ セッション   │          │
-│  │ Analyzer     │─▶│ Orchestrator │─▶│ マネージャー │          │
-│  └──────────────┘  └──────────────┘  └──────────────┘          │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
-              ┌─────────────┼─────────────┐
+┌─────────────────────────────────────────────────────────────────━E
+━E                 Codex コアランタイム                             ━E
+━E ┌──────────────━E ┌──────────────━E ┌──────────────━E         ━E
+━E ━ETask         ━E ━EAuto         ━E ━EセチE��ョン   ━E         ━E
+━E ━EAnalyzer     │─▶━EOrchestrator │─▶━Eマネージャー ━E         ━E
+━E └──────────────━E └──────────────━E └──────────────━E         ━E
+└───────────────────────────┬─────────────────────────────────────━E
+                            ━E
+              ┌─────────────┼─────────────━E
               ▼             ▼             ▼
-    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
-    │ サブ        │ │ ディープ    │ │ カスタム    │
-    │ エージェント│ │ リサーチ    │ │ コマンド    │
-    │ 監督者      │ │             │ │             │
-    └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
-           │               │               │
-    ┌──────▼───────────────▼───────────────▼──────┐
-    │         専門サブエージェント                 │
-    │  ┌────────┐ ┌────────┐ ┌────────┐          │
-    │  │コード  │ │セキュリ│ │テスト  │ ...      │
-    │  │専門家  │ │ティ専門│ │専門家  │          │
-    │  └────────┘ └────────┘ └────────┘          │
-    └──────────────────┬───────────────────────────┘
-                       │
+    ┌─────────────━E┌─────────────━E┌─────────────━E
+    ━EサチE       ━E━EチE��ーチE   ━E━Eカスタム    ━E
+    ━Eエージェント│ ━EリサーチE   ━E━EコマンチE   ━E
+    ━E監督老E     ━E━E            ━E━E            ━E
+    └──────┬──────━E└──────┬──────━E└──────┬──────━E
+           ━E              ━E              ━E
+    ┌──────▼───────────────▼───────────────▼──────━E
+    ━E        専門サブエージェンチE                ━E
+    ━E ┌────────━E┌────────━E┌────────━E         ━E
+    ━E │コーチE ━E│セキュリ━E│テスチE ━E...      ━E
+    ━E │専門家  ━E│ティ専門━E│専門家  ━E         ━E
+    ━E └────────━E└────────━E└────────━E         ━E
+    └──────────────────┬───────────────────────────━E
+                       ━E
                        ▼
-    ┌────────────────────────────────────────────┐
-    │         LLMプロバイダー & ツール            │
-    │  ┌──────────┐ ┌──────────┐ ┌──────────┐  │
-    │  │ OpenAI   │ │ Anthropic│ │   MCP    │  │
-    │  │  API     │ │   API    │ │  Server  │  │
-    │  └──────────┘ └──────────┘ └──────────┘  │
-    └────────────────────────────────────────────┘
+    ┌────────────────────────────────────────────━E
+    ━E        LLMプロバイダー & チE�Eル            ━E
+    ━E ┌──────────━E┌──────────━E┌──────────━E ━E
+    ━E ━EOpenAI   ━E━EAnthropic━E━E  MCP    ━E ━E
+    ━E ━E API     ━E━E  API    ━E━E Server  ━E ━E
+    ━E └──────────━E└──────────━E└──────────━E ━E
+    └────────────────────────────────────────────━E
 ```
 
-### 🚀 クイックスタート
+### 🚀 クイチE��スターチE
 
-#### インストール
+#### インスト�Eル
 
 ```bash
 # リポジトリをクローン
 git clone https://github.com/zapabob/codex.git
 cd codex
 
-# Rustコンポーネントをビルド
+# Rustコンポ�EネントをビルチE
 cd codex-rs
 cargo build --release -p codex-cli
 cargo install --path cli --force
 
-# インストール確認
+# インスト�Eル確誁E
 codex --version
 # codex-cli 0.48.0
 ```
 
-#### 設定
+#### 設宁E
 
-`~/.codex/config.toml` を作成:
+`~/.codex/config.toml` を作�E:
 
 ```toml
 model = "gpt-5-codex"
@@ -431,117 +431,117 @@ default_mode = "read-only"
 policy = "on-request"
 ```
 
-#### 基本的な使い方
+#### 基本皁E��使ぁE��
 
 ```bash
-# インタラクティブモード
+# インタラクチE��ブモーチE
 codex
 
-# 初期プロンプトで実行
-codex "JWT認証を実装して"
+# 初期プロンプトで実衁E
+codex "JWT認証を実裁E��て"
 
 # サブエージェント委譲
 codex delegate code-reviewer --scope ./src
 
-# ディープリサーチ
-codex research "React Server Componentsのベストプラクティス" --depth 3
+# チE��ープリサーチE
+codex research "React Server Componentsのベスト�EラクチE��ス" --depth 3
 
-# 並列実行
+# 並列実衁E
 codex delegate-parallel code-reviewer,test-gen --scopes ./src,./tests
 ```
 
-### 📚 ドキュメント
+### 📚 ドキュメンチE
 
 - [はじめに](docs/getting-started.md)
 - [自律オーケストレーションガイド](docs/auto-orchestration.md)
-- [サブエージェントクイックスタート](docs/quickstart-subagents.md)
-- [ディープリサーチガイド](docs/quickstart-deepresearch.md)
-- [Cursor IDE統合](docs/cursor-implementation-plan.md)
-- [APIドキュメント](docs/api/)
+- [サブエージェントクイチE��スターチE(docs/quickstart-subagents.md)
+- [チE��ープリサーチガイド](docs/quickstart-deepresearch.md)
+- [Cursor IDE統吁E(docs/cursor-implementation-plan.md)
+- [APIドキュメンチE(docs/api/)
 
-### 🛠️ 開発
+### 🛠�E�E開発
 
 #### 前提条件
 
-- **Rust**: 1.85以上
-- **Node.js**: 18以上
-- **PNPM**: 9以上
+- **Rust**: 1.85以丁E
+- **Node.js**: 18以丁E
+- **PNPM**: 9以丁E
 - **OS**: Windows 11, macOS, Linux
 
 #### プロジェクト構造
 
 ```
 codex-main/
-├── codex-rs/              # Rustコア実装
-│   ├── cli/               # コマンドラインインターフェース
-│   ├── core/              # コアランタイム
-│   ├── tui/               # ターミナルUI
-│   ├── mcp-server/        # MCPサーバー (zapabob)
-│   ├── supervisor/        # サブエージェント管理 (zapabob)
-│   └── deep-research/     # ディープリサーチエンジン (zapabob)
+├── codex-rs/              # Rustコア実裁E
+━E  ├── cli/               # コマンドラインインターフェース
+━E  ├── core/              # コアランタイム
+━E  ├── tui/               # ターミナルUI
+━E  ├── mcp-server/        # MCPサーバ�E (zapabob)
+━E  ├── supervisor/        # サブエージェント管琁E(zapabob)
+━E  └── deep-research/     # チE��ープリサーチエンジン (zapabob)
 ├── codex-cli/             # Node.js CLI
-├── docs/                  # ドキュメント
-├── examples/              # サンプルコード
+├── docs/                  # ドキュメンチE
+├── examples/              # サンプルコーチE
 ├── zapabob/               # zapabob独自拡張
-│   ├── docs/              # 追加ドキュメント
-│   ├── scripts/           # ビルドスクリプト
-│   ├── extensions/        # IDE拡張
-│   └── sdk/               # TypeScript SDK
-└── _docs/                 # 実装ログ
+━E  ├── docs/              # 追加ドキュメンチE
+━E  ├── scripts/           # ビルドスクリプト
+━E  ├── extensions/        # IDE拡張
+━E  └── sdk/               # TypeScript SDK
+└── _docs/                 # 実裁E��グ
 ```
 
-#### ソースからビルド
+#### ソースからビルチE
 
 ```bash
-# フルビルド
+# フルビルチE
 cd codex-rs
 cargo clean
 cargo build --release
 
-# グローバルインストール
+# グローバルインスト�Eル
 cargo install --path cli --force
 ```
 
-### 🤝 コントリビューション
+### 🤁Eコントリビューション
 
-コントリビューションを歓迎します！詳細は [CONTRIBUTING.md](docs/contributing.md) をご覧ください。
+コントリビューションを歓迎します！詳細は [CONTRIBUTING.md](docs/contributing.md) をご覧ください、E
 
 1. リポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'feat: すごい機能を追加'`)
+2. フィーチャーブランチを作�E (`git checkout -b feature/amazing-feature`)
+3. 変更をコミッチE(`git commit -m 'feat: すごぁE���Eを追加'`)
 4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
 5. プルリクエストを開く
 
-### 📊 公式リポジトリとの比較
+### 📊 公式リポジトリとの比輁E
 
-| 機能 | 公式 OpenAI/codex | zapabob/codex |
+| 機�E | 公弁EOpenAI/codex | zapabob/codex |
 |------|------------------|---------------|
-| 基本CLI | ✅ | ✅ |
-| TUIインターフェース | ✅ | ✅ |
-| MCPサーバー | ✅ | ✅ 強化版 |
-| サブエージェント | ❌ | ✅ 7種の専門家 |
-| 自律オーケストレーション | ❌ | ✅ ClaudeCode風 |
-| ディープリサーチ | ❌ | ✅ 多元ソース |
-| 並列実行 | ❌ | ✅ 最適化済み |
-| Cursor統合 | ✅ | ✅ 強化版 |
+| 基本CLI | ✁E| ✁E|
+| TUIインターフェース | ✁E| ✁E|
+| MCPサーバ�E | ✁E| ✁E強化版 |
+| サブエージェンチE| ❁E| ✁E7種の専門家 |
+| 自律オーケストレーション | ❁E| ✁EClaudeCode風 |
+| チE��ープリサーチE| ❁E| ✁E多�Eソース |
+| 並列実衁E| ❁E| ✁E最適化済み |
+| Cursor統吁E| ✁E| ✁E強化版 |
 
 ### 📄 ライセンス
 
-このプロジェクトは [OpenAI/codex](https://github.com/openai/codex) からライセンスを継承しています。詳細は [LICENSE](LICENSE) を参照してください。
+こ�Eプロジェクト�E [OpenAI/codex](https://github.com/openai/codex) からライセンスを継承してぁE��す。詳細は [LICENSE](LICENSE) を参照してください、E
 
 ### 🔗 リンク
 
 - [OpenAI公式Codex](https://github.com/openai/codex)
 - [zapabobフォーク](https://github.com/zapabob/codex)
-- [ドキュメント](https://codex.zapabob.dev)
+- [ドキュメンチE(https://codex.zapabob.dev)
 - [Discordコミュニティ](https://discord.gg/codex)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by zapabob | Built on OpenAI/codex**
+**Made with ❤�E�Eby zapabob | Built on OpenAI/codex**
 
-**Version**: 0.48.0 | **Last Updated**: 2025-10-15
+**Version](https://img.shields.io/badge/version-0.48.0--zapabob.1-blue) | **Last Updated**: 2025-10-15
 
 </div>
