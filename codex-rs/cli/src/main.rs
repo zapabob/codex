@@ -25,8 +25,10 @@ use std::path::PathBuf;
 use supports_color::Stream;
 
 mod mcp_cmd;
+mod webhook_cmd;
 
 use crate::mcp_cmd::McpCli;
+use crate::webhook_cmd::WebhookCli;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 
@@ -116,6 +118,9 @@ enum Subcommand {
 
     /// [EXPERIMENTAL] Ask a sub-agent with @mention support (e.g., "codex ask '@code-reviewer review this'")
     Ask(AskCommand),
+
+    /// [EXPERIMENTAL] Send webhook notifications to external services (GitHub, Slack, Custom)
+    Webhook(WebhookCli),
 
     /// [EXPERIMENTAL] Quick review with code-reviewer agent
     Review(ReviewCommand),
@@ -769,6 +774,13 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 ask_cmd.out,
             )
             .await?;
+        }
+        Some(Subcommand::Webhook(mut webhook_cli)) => {
+            prepend_config_flags(
+                &mut webhook_cli.config_overrides,
+                root_config_overrides.clone(),
+            );
+            webhook_cmd::run(webhook_cli).await?;
         }
         Some(Subcommand::Review(mut review_cmd)) => {
             prepend_config_flags(
