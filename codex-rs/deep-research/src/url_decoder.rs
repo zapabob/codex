@@ -19,8 +19,10 @@ pub fn decode_duckduckgo_url(url: &str) -> String {
             // URLデコード
             match urlencoding::decode(encoded) {
                 Ok(decoded) => {
-                    eprintln!("🔗 [DEBUG] Decoded URL: {url} -> {decoded}");
-                    return decoded.to_string();
+                    // DuckDuckGo tracking parameter (&rut=) を削除
+                    let clean_url = decoded.split('&').next().unwrap_or(&decoded).to_string();
+                    eprintln!("🔗 [DEBUG] Decoded URL: {url} -> {clean_url}");
+                    return clean_url;
                 }
                 Err(e) => {
                     eprintln!("⚠️  [WARNING] Failed to decode URL: {e}");
@@ -52,6 +54,25 @@ mod tests {
             "//duckduckgo.com/l/?uddg=https%3A%2F%2Fdoc.rust-lang.org%2Fbook&amp;rut=abc123";
         let decoded = decode_duckduckgo_url(redirect_url);
         assert_eq!(decoded, "https://doc.rust-lang.org/book");
+    }
+
+    #[test]
+    fn test_remove_rut_parameter() {
+        // 実際のDuckDuckGo URLパターン（&rut=がプレーンな&で付く場合）
+        let redirect_url =
+            "//duckduckgo.com/l/?uddg=https%3A%2F%2Fmedium.com%2F%40author%2Farticle&rut=99373327ff715cdd";
+        let decoded = decode_duckduckgo_url(redirect_url);
+        assert_eq!(decoded, "https://medium.com/@author/article");
+    }
+
+    #[test]
+    fn test_multiple_parameters() {
+        // 複数のパラメータがある場合
+        let redirect_url =
+            "//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fpage%3Fid%3D123&rut=abc&other=xyz";
+        let decoded = decode_duckduckgo_url(redirect_url);
+        // 最初の&で分割されるので、&rut=以降は全て削除される
+        assert_eq!(decoded, "https://example.com/page?id=123");
     }
 
     #[test]
