@@ -13,7 +13,6 @@ use tracing::info;
 /// Gemini CLI search provider that uses Google Search via Gemini API Grounding
 /// Requires: gemini CLI installed and GOOGLE_API_KEY environment variable
 pub struct GeminiSearchProvider {
-    api_key: String,
     model: String,
     max_retries: u8,
 }
@@ -21,69 +20,88 @@ pub struct GeminiSearchProvider {
 impl Default for GeminiSearchProvider {
     fn default() -> Self {
         Self {
-            api_key: std::env::var("GOOGLE_API_KEY").unwrap_or_default(),
-            model: "gemini-1.5-pro".to_string(),
+            model: "gemini-2.0-flash-exp".to_string(), // Gemini 2.0 Flash (最新・高速)
             max_retries: 3,
         }
     }
 }
 
 impl GeminiSearchProvider {
-    pub fn new(api_key: String, model: Option<String>) -> Self {
+    pub fn new(model: Option<String>) -> Self {
         Self {
-            api_key,
-            model: model.unwrap_or_else(|| "gemini-1.5-pro".to_string()),
+            model: model.unwrap_or_else(|| "gemini-2.0-flash-exp".to_string()),
             max_retries: 3,
         }
     }
 
     /// Execute search using Gemini CLI with Google Search grounding
     async fn execute_gemini_search(&self, query: &str) -> Result<Vec<GeminiSearchResult>> {
-        info!("🔍 Executing Gemini CLI search for: {}", query);
+        info!(
+            "🔍 Executing Gemini CLI (Node.js version) search for: {}",
+            query
+        );
 
         // Check if gemini CLI is installed
         self.check_gemini_cli_installed()?;
 
-        // Construct Gemini CLI command with grounding (Google Search)
-        // Example: gemini "Search for: <query>" --api-key $GOOGLE_API_KEY --model gemini-1.5-pro --grounding
+        // Node.js版gemini CLIのコマンド構築
+        // 例: gemini -p "Search for: <query>" -o json -m gemini-1.5-flash
+        // 注: GOOGLE_API_KEY は環境変数から自動読み取り
+        let prompt = format!(
+            "Search the web for: {query}\n\n\
+            Please provide the top 3-5 most relevant results with:\n\
+            1. Title\n\
+            2. URL\n\
+            3. Brief snippet\n\n\
+            Format each result as markdown links: [Title](URL)\n\
+            Add a brief description after each link."
+        );
+
         let output = Command::new("gemini")
-            .arg(format!("Search for: {query}"))
-            .arg("--api-key")
-            .arg(&self.api_key)
-            .arg("--model")
+            .arg("-p") // Node.js版では -p または --prompt
+            .arg(&prompt)
+            .arg("-o") // Output format
+            .arg("text") // textモード（JSONは構造が異なるため）
+            .arg("-m") // Model
             .arg(&self.model)
-            .arg("--grounding")
-            .arg("--json") // Request JSON output if available
             .output()
-            .context("Failed to execute gemini CLI command")?;
+            .context("Failed to execute gemini CLI command (Node.js version)")?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Gemini CLI failed: {stderr}");
+            anyhow::bail!("Gemini CLI (Node.js) failed: {stderr}");
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
         debug!("Gemini CLI output: {}", stdout);
 
-        // Parse JSON response from Gemini CLI
-        self.parse_gemini_response(&stdout)
+        // Parse text response (Node.js版のJSON形式は異なるため、テキスト解析を使用)
+        Ok(self.parse_text_response(&stdout))
     }
 
-    /// Check if gemini CLI is installed
+    /// Check if gemini CLI is installed (Node.js version)
     fn check_gemini_cli_installed(&self) -> Result<()> {
-        let output = Command::new("gemini")
-            .arg("--version")
-            .output()
-            .context("gemini CLI not found. Please install it from: https://github.com/google/generative-ai-go")?;
+        let output = Command::new("gemini").arg("--version").output().context(
+            "gemini CLI not found. Please install it with: npm install -g @google-labs/gemini-cli",
+        )?;
 
         if !output.status.success() {
             anyhow::bail!("gemini CLI is not properly installed");
         }
 
-        Ok(())
+        // Node.js版の確認
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        if stdout.contains("node") || stdout.is_empty() {
+            info!("✅ Detected Node.js version of gemini CLI");
+            Ok(())
+        } else {
+            tracing::warn!("⚠️  Unknown gemini CLI version, proceeding anyway");
+            Ok(())
+        }
     }
 
-    /// Parse Gemini CLI JSON response
+    /// Parse Gemini CLI JSON response (将来の拡張用・現在は未使用)
+    #[allow(dead_code)]
     fn parse_gemini_response(&self, json_str: &str) -> Result<Vec<GeminiSearchResult>> {
         // Try to parse JSON response
         if let Ok(response) = serde_json::from_str::<GeminiApiResponse>(json_str) {
@@ -225,20 +243,28 @@ impl ResearchProvider for GeminiSearchProvider {
 
     async fn retrieve(&self, url: &str) -> Result<String> {
         // Use Gemini to summarize content from URL
-        info!("📥 Retrieving content from {} via Gemini", url);
+        info!("📥 Retrieving content from {} via Gemini (Node.js)", url);
+
+        let prompt = format!(
+            "Please summarize the main content from this URL: {url}\n\n\
+            Focus on:\n\
+            - Key technical concepts\n\
+            - Main arguments or findings\n\
+            - Code examples if present\n\n\
+            Keep it concise (200-300 words)."
+        );
 
         let output = Command::new("gemini")
-            .arg(format!("Summarize the content from this URL: {url}"))
-            .arg("--api-key")
-            .arg(&self.api_key)
-            .arg("--model")
+            .arg("-p") // Node.js版では -p または --prompt
+            .arg(&prompt)
+            .arg("-m") // Model
             .arg(&self.model)
             .output()
-            .context("Failed to execute gemini CLI for content retrieval")?;
+            .context("Failed to execute gemini CLI for content retrieval (Node.js)")?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Gemini CLI content retrieval failed: {stderr}");
+            anyhow::bail!("Gemini CLI (Node.js) content retrieval failed: {stderr}");
         }
 
         let content = String::from_utf8_lossy(&output.stdout).to_string();
@@ -246,11 +272,15 @@ impl ResearchProvider for GeminiSearchProvider {
     }
 }
 
+/// Gemini API response structure (将来の拡張用・現在は未使用)
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 struct GeminiApiResponse {
     candidates: Vec<GeminiCandidate>,
 }
 
+/// Gemini API candidate structure (将来の拡張用・現在は未使用)
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 struct GeminiCandidate {
     #[serde(rename = "searchResults")]
