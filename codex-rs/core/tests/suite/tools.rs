@@ -6,10 +6,10 @@ use codex_core::features::Feature;
 use codex_core::model_family::find_family_for_model;
 use codex_core::protocol::AskForApproval;
 use codex_core::protocol::EventMsg;
-use codex_core::protocol::InputItem;
 use codex_core::protocol::Op;
 use codex_core::protocol::SandboxPolicy;
 use codex_protocol::config_types::ReasoningSummary;
+use codex_protocol::user_input::UserInput;
 use core_test_support::assert_regex_match;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
@@ -38,7 +38,7 @@ async fn submit_turn(
 
     test.codex
         .submit(Op::UserTurn {
-            items: vec![InputItem::Text {
+            items: vec![UserInput::Text {
                 text: prompt.into(),
             }],
             final_output_json_schema: None,
@@ -320,14 +320,22 @@ async fn unified_exec_spec_toggle_end_to_end() -> Result<()> {
 
     let tools_disabled = collect_tools(false).await?;
     assert!(
-        !tools_disabled.iter().any(|name| name == "unified_exec"),
-        "tools list should not include unified_exec when disabled: {tools_disabled:?}"
+        !tools_disabled.iter().any(|name| name == "exec_command"),
+        "tools list should not include exec_command when disabled: {tools_disabled:?}"
+    );
+    assert!(
+        !tools_disabled.iter().any(|name| name == "write_stdin"),
+        "tools list should not include write_stdin when disabled: {tools_disabled:?}"
     );
 
     let tools_enabled = collect_tools(true).await?;
     assert!(
-        tools_enabled.iter().any(|name| name == "unified_exec"),
-        "tools list should include unified_exec when enabled: {tools_enabled:?}"
+        tools_enabled.iter().any(|name| name == "exec_command"),
+        "tools list should include exec_command when enabled: {tools_enabled:?}"
+    );
+    assert!(
+        tools_enabled.iter().any(|name| name == "write_stdin"),
+        "tools list should include write_stdin when enabled: {tools_enabled:?}"
     );
 
     Ok(())

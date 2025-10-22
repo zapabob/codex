@@ -24,7 +24,6 @@ codex-apply-patch = { workspace = true }
 codex-async-utils = { workspace = true }
 codex-deep-research = { workspace = true }
 codex-file-search = { workspace = true }
-codex-mcp-client = { workspace = true }
 codex-otel = { workspace = true, features = ["otel"] }
 codex-protocol = { workspace = true }
 codex-rmcp-client = { workspace = true }
@@ -40,7 +39,6 @@ libc = { workspace = true }
 mcp-types = { workspace = true }
 once_cell = { workspace = true }
 os_info = { workspace = true }
-portable-pty = { workspace = true }
 rand = { workspace = true }
 regex = { workspace = true }
 regex-lite = { workspace = true }
