@@ -1,204 +1,195 @@
-# 🛠️ 開発支援スクリプト
+# GitHub PR Review 自動設定スクリプト
 
-このディレクトリには、zapabob/codex開発を効率化するスクリプトが含まれています。
+## 📊 概要
 
----
+GitHub PR ReviewをCodex CLIとGemini CLIで自動化するための設定を自動で行うスクリプトです。
 
-## 📝 実装ログ自動生成
+## 🚀 使用方法
 
-新しい実装ログファイルをテンプレートから自動生成します。
-
-### 使い方
+### Windows (PowerShell)
 
 ```powershell
-# Windows PowerShell
-.\scripts\new-implementation-log.ps1 "機能名"
-
-# 例
-.\scripts\new-implementation-log.ps1 "scraperクレート完全統合"
+powershell -ExecutionPolicy Bypass -File scripts/setup-pr-review.ps1
 ```
 
-### 生成されるファイル
-
-```
-_docs/2025-10-11_scraperクレート完全統合.md
-```
-
-### テンプレート内容
-
-- 実装日時（自動）
-- バージョン（VERSIONファイルから自動取得）
-- 実装内容セクション
-- 完了条件チェックリスト
-- テスト結果セクション
-- コミット情報セクション
-- 今後の課題セクション
-
----
-
-## 🔢 バージョン更新
-
-VERSIONファイルをセマンティックバージョニングに従って更新します。
-
-### 使い方
-
-```powershell
-# Patch更新（バグ修正）
-.\scripts\bump-version.ps1 patch
-# 0.47.0-alpha.1 → 0.47.1-alpha.1
-
-# Minor更新（新機能追加）
-.\scripts\bump-version.ps1 minor
-# 0.47.0-alpha.1 → 0.48.0-alpha.1
-
-# Major更新（Breaking Change）
-.\scripts\bump-version.ps1 major
-# 0.47.0-alpha.1 → 1.0.0-alpha.1
-```
-
-### 更新後の作業
-
-スクリプト実行後、以下のファイルも手動で更新してください：
-
-1. **CHANGELOG.md**
-   ```markdown
-   ## [0.48.0-alpha.1] - 2025-10-12
-   
-   ### Added
-   - scraperクレート完全統合
-   ```
-
-2. **codex-rs/Cargo.toml**
-   ```toml
-   [workspace.package]
-   version = "0.48.0-alpha.1"
-   ```
-
-3. **codex-cli/package.json**
-   ```json
-   {
-     "version": "0.48.0-alpha.1"
-   }
-   ```
-
-4. **コミット**
-   ```bash
-   git add VERSION CHANGELOG.md codex-rs/Cargo.toml codex-cli/package.json
-   git commit -m "chore: bump version to 0.48.0-alpha.1"
-   ```
-
----
-
-## 📊 スクリプト一覧
-
-| スクリプト | 用途 | 使用頻度 |
-|-----------|------|---------|
-| **new-implementation-log.ps1** | 実装ログ生成 | 高（実装後毎回） |
-| **bump-version.ps1** | バージョン更新 | 中（リリース時） |
-
----
-
-## 🚀 今後の追加予定
-
-### pre-commit フック（優先度: 🟡 中）
+### macOS / Linux (Bash)
 
 ```bash
-#!/bin/bash
-# .git/hooks/pre-commit
-
-echo "Running pre-commit checks..."
-
-# Format
-cargo fmt --all --check || {
-    echo "❌ Format check failed. Run: cargo fmt --all"
-    exit 1
-}
-
-# Clippy
-cargo clippy --all-targets --all-features -- -D warnings || {
-    echo "❌ Clippy check failed."
-    exit 1
-}
-
-# Tests
-cargo test --all-features || {
-    echo "❌ Tests failed."
-    exit 1
-}
-
-echo "✅ All checks passed!"
+chmod +x scripts/setup-pr-review.sh
+bash scripts/setup-pr-review.sh
 ```
 
-**インストール方法**:
-```bash
-cp scripts/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-```
+## 📋 事前準備
 
----
+### 1. GitHub CLI インストール
 
-## 💡 スクリプト開発ガイドライン
-
-新しいスクリプトを追加する際は、以下を遵守してください：
-
-### 1. ファイル名規約
-
-```
-動詞-対象.ps1   # PowerShell（Windows）
-動詞-対象.sh    # Bash（macOS/Linux）
-
-例:
-- new-implementation-log.ps1
-- bump-version.ps1
-- install-hooks.sh
-```
-
-### 2. 必須要素
-
+#### Windows
 ```powershell
-# 1. ヘッダーコメント
-# 🛠️ スクリプトの説明
-# Usage: .\scripts\スクリプト名.ps1 <引数>
-
-# 2. パラメータ定義
-param(
-    [Parameter(Mandatory=$true)]
-    [string]$RequiredParam
-)
-
-# 3. エラーハンドリング
-try {
-    # 処理
-} catch {
-    Write-Host "❌ Error: $_" -ForegroundColor Red
-    exit 1
-}
-
-# 4. 成功メッセージ
-Write-Host "✅ Success!" -ForegroundColor Green
+winget install --id GitHub.cli
 ```
 
-### 3. ドキュメント
+#### macOS
+```bash
+brew install gh
+```
 
-新しいスクリプトを追加したら、このREADMEを更新してください。
+#### Linux
+```bash
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update
+sudo apt install gh
+```
+
+### 2. GitHub CLI 認証
+
+```bash
+gh auth login
+```
+
+### 3. GitHub App 作成
+
+1. GitHub Organization Settings > Developer settings > GitHub Apps
+2. "New GitHub App" をクリック
+3. 以下の設定:
+
+```
+GitHub App name: Codex PR Reviewer
+Homepage URL: https://github.com/your-org/your-repo
+Webhook URL: (空でOK)
+
+Permissions:
+- Repository permissions:
+  - Contents: Read
+  - Pull requests: Write
+  - Metadata: Read
+
+Subscribe to events:
+- Pull request
+```
+
+4. App ID を確認
+5. "Generate a private key" をクリックして `.pem` ファイルをダウンロード
+
+### 4. API Keys 取得
+
+#### OpenAI API Key
+1. [OpenAI Platform](https://platform.openai.com/api-keys) でAPI Key作成
+2. API Keyをコピー
+
+#### Google AI Studio API Key
+1. [Google AI Studio](https://aistudio.google.com/app/apikey) でAPI Key作成
+2. API Keyをコピー
+
+## 📝 スクリプト実行
+
+スクリプトを実行すると、以下の情報を入力するよう求められます：
+
+1. **GitHub App ID**: GitHub Appの設定ページで確認したApp ID
+2. **GitHub App Private Key**: ダウンロードした `.pem` ファイルのパス
+3. **OpenAI API Key**: OpenAI PlatformのAPI Key
+4. **Gemini API Key**: Google AI StudioのAPI Key
+5. **Gemini Model**: 使用するGeminiモデル（デフォルト: `gemini-2.5-flash`）
+6. **Repository Owner**: GitHubの組織名またはユーザー名
+7. **Repository Name**: リポジトリ名
+
+## ✅ 自動設定内容
+
+スクリプトは以下の設定を自動で行います：
+
+### Repository Secrets
+- `OPENAI_API_KEY`: OpenAI API Key
+- `GEMINI_API_KEY`: Gemini API Key
+- `CODE_REVIEW_APP_PRIVATE_KEY`: GitHub App Private Key
+
+### Repository Variables
+- `CODE_REVIEW_APP_ID`: GitHub App ID
+- `AI_REVIEW_GEMINI_MODEL`: 使用するGeminiモデル
+
+### Workflow ファイル確認
+- `.github/workflows/pr-review.yml` の存在確認
+- `.github/workflows/pr-review-gemini.yml` の存在確認
+
+### Git操作
+- 変更のコミット（オプション）
+- メインブランチへのプッシュ（オプション）
+
+## 🎯 実行後の確認
+
+### 1. GitHub Repository Settings 確認
+
+```
+Settings > Secrets and variables > Actions
+```
+
+以下が設定されていることを確認：
+- Secrets: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `CODE_REVIEW_APP_PRIVATE_KEY`
+- Variables: `CODE_REVIEW_APP_ID`, `AI_REVIEW_GEMINI_MODEL`
+
+### 2. GitHub Actions 確認
+
+```
+Actions タブ
+```
+
+ワークフローが表示されていることを確認：
+- PR Review with Codex
+- PR Review with Gemini CLI
+
+### 3. テストPR作成
+
+1. テスト用のブランチを作成
+2. 小さな変更を加える
+3. PRを作成
+4. GitHub Actionsが自動実行されることを確認
+5. PRにレビューコメントが投稿されることを確認
+
+## 🔧 トラブルシューティング
+
+### GitHub CLI 認証エラー
+
+```bash
+gh auth status
+gh auth login
+```
+
+### Secrets設定エラー
+
+```bash
+# 手動設定
+gh secret set OPENAI_API_KEY --repo owner/repo
+gh secret set GEMINI_API_KEY --repo owner/repo
+gh secret set CODE_REVIEW_APP_PRIVATE_KEY --repo owner/repo
+```
+
+### Variables設定エラー
+
+```bash
+# 手動設定
+gh variable set CODE_REVIEW_APP_ID --body "12345" --repo owner/repo
+gh variable set AI_REVIEW_GEMINI_MODEL --body "gemini-2.5-flash" --repo owner/repo
+```
+
+### Workflow実行エラー
+
+1. GitHub Actions タブでエラーログを確認
+2. Secrets/Variablesが正しく設定されているか確認
+3. GitHub Appの権限を確認
+4. API Keyの有効性を確認
+
+## 📚 参考ドキュメント
+
+- [設定ガイド](../_docs/GitHub_PR_Review_設定ガイド.md)
+- [実装ログ](../_docs/2025-10-23_033517_GitHub_PR_Review_実装.md)
+- [羅針盤技術ブログ - Gemini CLI](https://compasscorp.hatenablog.com/entry/github-pr-review-gemini-cli)
+- [羅針盤技術ブログ - Codex CLI](https://compasscorp.hatenablog.com/entry/github-pr-review-codex-cli)
+
+## 🎉 完了
+
+設定が完了したら、PRを作成してテストしてください！
 
 ---
 
-## 🔗 関連ドキュメント
-
-- [.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md](../.codex/META_PROMPT_CONTINUOUS_IMPROVEMENT.md) - 開発フロー全体
-- [docs/contributing.md](../docs/contributing.md) - コントリビューションガイド
-- [docs/install.md](../docs/install.md) - インストール手順
-
----
-
-## 📝 変更履歴
-
-| 日付 | 変更内容 | 追加者 |
-|------|---------|--------|
-| 2025-10-11 | 初版作成（new-implementation-log.ps1, bump-version.ps1） | AI Assistant |
-
----
-
-**🎉 ええスクリプトを！完璧や！！！ 🎉**
-
+**作成者**: zapabob  
+**バージョン**: 1.0.0  
+**最終更新**: 2025-10-23

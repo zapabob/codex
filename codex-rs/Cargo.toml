@@ -68,7 +68,6 @@ codex-file-search = { path = "file-search" }
 codex-git-tooling = { path = "git-tooling" }
 codex-linux-sandbox = { path = "linux-sandbox" }
 codex-login = { path = "login" }
-codex-mcp-client = { path = "mcp-client" }
 codex-mcp-server = { path = "mcp-server" }
 codex-ollama = { path = "ollama" }
 codex-otel = { path = "otel" }
@@ -80,8 +79,10 @@ codex-rmcp-client = { path = "rmcp-client" }
 # codex-supervisor = { path = "supervisor" }  # DELETED: 古い実装、完全削除
 codex-tui = { path = "tui" }
 codex-utils-json-to-toml = { path = "utils/json-to-toml" }
+codex-utils-pty = { path = "utils/pty" }
 codex-utils-readiness = { path = "utils/readiness" }
 codex-utils-string = { path = "utils/string" }
+codex-utils-tokenizer = { path = "utils/tokenizer" }
 core_test_support = { path = "core/tests/common" }
 mcp-types = { path = "mcp-types" }
 mcp_test_support = { path = "mcp-server/tests/common" }
@@ -145,7 +146,6 @@ os_info = "3.12.0"
 owo-colors = "4.2.0"
 paste = "1.0.15"
 path-absolutize = "3.1.1"
-path-clean = "1.0.1"
 pathdiff = "0.2"
 portable-pty = "0.9.0"
 predicates = "3"
@@ -197,6 +197,7 @@ tree-sitter-highlight = "0.25.0"
 tree-sitter-json = "0.25.0"
 tree-sitter-python = "0.25.0"
 ts-rs = "11"
+uds_windows = "1.1.0"
 unicode-segmentation = "1.12.0"
 unicode-width = "0.2"
 url = "2"
@@ -269,7 +270,7 @@ unwrap_used = "deny"
 # cargo-shear cannot see the platform-specific openssl-sys usage, so we
 # silence the false positive here instead of deleting a real dependency.
 [workspace.metadata.cargo-shear]
-ignored = ["openssl-sys", "codex-utils-readiness"]
+ignored = ["openssl-sys", "codex-utils-readiness", "codex-utils-tokenizer"]
 
 [profile.release]
 lto = "fat"
@@ -279,6 +280,11 @@ strip = "symbols"
 
 # See https://github.com/openai/codex/issues/1411 for details.
 codegen-units = 1
+
+[profile.ci-test]
+debug = 1         # Reduce debug symbol size
+inherits = "test"
+opt-level = 0
 
 [patch.crates-io]
 # ratatui = { path = "../../ratatui" }

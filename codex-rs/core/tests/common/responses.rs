@@ -138,7 +138,7 @@ pub fn ev_response_created(id: &str) -> Value {
     })
 }
 
-pub fn ev_completed_with_tokens(id: &str, total_tokens: u64) -> Value {
+pub fn ev_completed_with_tokens(id: &str, total_tokens: i64) -> Value {
     serde_json::json!({
         "type": "response.completed",
         "response": {
@@ -163,6 +163,56 @@ pub fn ev_assistant_message(id: &str, text: &str) -> Value {
             "role": "assistant",
             "id": id,
             "content": [{"type": "output_text", "text": text}]
+        }
+    })
+}
+
+pub fn ev_reasoning_item(id: &str, summary: &[&str], raw_content: &[&str]) -> Value {
+    let summary_entries: Vec<Value> = summary
+        .iter()
+        .map(|text| serde_json::json!({"type": "summary_text", "text": text}))
+        .collect();
+
+    let mut event = serde_json::json!({
+        "type": "response.output_item.done",
+        "item": {
+            "type": "reasoning",
+            "id": id,
+            "summary": summary_entries,
+        }
+    });
+
+    if !raw_content.is_empty() {
+        let content_entries: Vec<Value> = raw_content
+            .iter()
+            .map(|text| serde_json::json!({"type": "reasoning_text", "text": text}))
+            .collect();
+        event["item"]["content"] = Value::Array(content_entries);
+    }
+
+    event
+}
+
+pub fn ev_web_search_call_added(id: &str, status: &str, query: &str) -> Value {
+    serde_json::json!({
+        "type": "response.output_item.added",
+        "item": {
+            "type": "web_search_call",
+            "id": id,
+            "status": status,
+            "action": {"type": "search", "query": query}
+        }
+    })
+}
+
+pub fn ev_web_search_call_done(id: &str, status: &str, query: &str) -> Value {
+    serde_json::json!({
+        "type": "response.output_item.done",
+        "item": {
+            "type": "web_search_call",
+            "id": id,
+            "status": status,
+            "action": {"type": "search", "query": query}
         }
     })
 }
