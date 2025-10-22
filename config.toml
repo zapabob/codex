@@ -22,6 +22,11 @@ policy = "on-request"
 
 # ==================== MCP サーバー ====================
 # CursorIDE統合済み設定 - v0.48.0 ClaudeCode-surpassing features
+# 
+# 📝 Cursor IDE統合:
+#   - Codex CLI: このconfig.tomlを使用
+#   - Cursor IDE: c:\Users\downl\.cursor\mcp.json を使用
+#   - 両方の設定ファイルを同期して管理
 
 # Codex MCP Server - メインサーバー（コンフリクト回避、自然言語CLI、Webhook統合）
 [mcp_servers.codex]
@@ -107,10 +112,12 @@ command = "uvx"
 args = ["@anaisbetts/mcp-youtube"]
 command = "npx"
 
-# Gemini CLI - Google Gemini AI統合
-[mcp_servers.gemini-cli]
-args = ["mcp-gemini-cli", "--allow-npx"]
-command = "npx"
+# Gemini CLI - Google Gemini AI統合（OAuth 2.0）
+[mcp_servers.codex-gemini-mcp]
+args = []
+command = "codex-gemini-mcp"
+description = "Codex Gemini CLI MCP Server v0.48.0 - Google Gemini AI integration with OAuth 2.0 authentication and Google Search Grounding"
+env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
 
 # Chrome DevTools - ブラウザデバッグ・自動化（Chrome DevTools Protocol）
 [mcp_servers.chrome-devtools]
@@ -128,14 +135,14 @@ use_codex_mcp = true
 
 # ==================== フック機能 ====================
 # タスク完了時の音声通知
-# Codex: reimu_owattawa.wav / Cursor: marisa_owattaze.wav
+# Agent/Plan完了時: marisa_owattaze.wav（終わったぜ！）
 [hooks]
-# タスク全体完了時（Plan実行完了時） → Reimu
-on_task_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-codex-sound.ps1"
-# サブエージェント完了時（Agent実行完了時） → Reimu
-on_subagent_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-codex-sound.ps1"
-# セッション終了時 → Reimu
-on_session_end = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-codex-sound.ps1"
+# タスク全体完了時（Plan実行完了時） → Marisa
+on_task_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-completion-sound.ps1"
+# サブエージェント完了時（Agent実行完了時） → Marisa
+on_subagent_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-completion-sound.ps1"
+# セッション終了時 → Marisa
+on_session_end = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\zapabob\\scripts\\play-completion-sound.ps1"
 
 # ==================== 監査ログ ====================
 [audit]

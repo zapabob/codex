@@ -3,6 +3,7 @@
 use crate::provider::ResearchProvider;
 use crate::types::Source;
 use crate::url_decoder::decode_duckduckgo_url;
+use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
 use scraper::ElementRef;
@@ -60,9 +61,71 @@ impl WebSearchProvider {
             query
         );
 
-        // 実際のWeb検索API呼び出し（優先順位: DuckDuckGo > Brave > Google > Bing）
-        // DuckDuckGoはAPIキー不要なのでデフォルトで使用
-        let results = if std::env::var("BRAVE_API_KEY").is_ok() {
+        // 実際のWeb検索API呼び出し（優先順位: Gemini CLI > Brave > DuckDuckGo）
+        // Gemini CLIは最高品質の検索結果を提供（Google Search Grounding）
+        // Note: Gemini CLIはOAuth 2.0認証を使用（APIキー不要）
+        let gemini_check = self.is_gemini_cli_available();
+        eprintln!("🔍 [DEBUG] Gemini CLI check result: {:?}", gemini_check);
+        
+        let results = if matches!(gemini_check, Ok(true)) {
+            // Gemini CLIを最優先で使用（OAuth 2.0でログイン済みの場合）
+            eprintln!("✅ [DEBUG] Using Gemini CLI!");
+            info!("🤖 Using Gemini CLI with Google Search (Grounding)");
+            info!("   ℹ️  Note: Gemini CLI uses OAuth 2.0 (not API key)");
+            match self.gemini_cli_search(query, 5).await {
+                Ok(results) if !results.is_empty() => {
+                    // Gemini CLI成功 & 結果あり
+                    info!("✅ Gemini CLI returned {} results", results.len());
+                    eprintln!("✅ [DEBUG] Gemini CLI succeeded with {} results", results.len());
+                    results
+                }
+                Ok(_) => {
+                    // Gemini CLI成功だが結果が空 → レートリミットの可能性
+                    eprintln!("⚠️  [DEBUG] Gemini CLI returned empty results, falling back to DuckDuckGo");
+                    tracing::warn!(
+                        "⚠️  Gemini CLI returned no results (likely rate limited), falling back to DuckDuckGo"
+                    );
+                    // DuckDuckGoへフォールバック
+                    match self.duckduckgo_search_real(query, 5).await {
+                        Ok(results) => {
+                            eprintln!("✅ [DEBUG] DuckDuckGo fallback returned {} results", results.len());
+                            results
+                        }
+                        Err(_) => {
+                            eprintln!("⚠️  [DEBUG] DuckDuckGo also failed, using default results");
+                            self.generate_official_format_results(query)
+                        }
+                    }
+                }
+                Err(e) => {
+                    // Gemini CLIエラー
+                    eprintln!("❌ [DEBUG] Gemini CLI error: {}", e);
+                    tracing::warn!(
+                        "⚠️  Gemini CLI failed: {}, falling back to Brave/DuckDuckGo",
+                        e
+                    );
+                    // Gemini失敗時はBrave → DuckDuckGoへフォールバック
+                    if std::env::var("BRAVE_API_KEY").is_ok() {
+                        info!("Falling back to Brave Search API");
+                        match self.brave_search_real(query, 5).await {
+                            Ok(results) => results,
+                            Err(_) => {
+                                tracing::warn!("Brave also failed, using DuckDuckGo");
+                                match self.duckduckgo_search_real(query, 5).await {
+                                    Ok(results) => results,
+                                    Err(_) => self.generate_official_format_results(query),
+                                }
+                            }
+                        }
+                    } else {
+                        match self.duckduckgo_search_real(query, 5).await {
+                            Ok(results) => results,
+                            Err(_) => self.generate_official_format_results(query),
+                        }
+                    }
+                }
+            }
+        } else if std::env::var("BRAVE_API_KEY").is_ok() {
             info!("Using Brave Search API");
             match self.brave_search_real(query, 5).await {
                 Ok(results) => results,
@@ -210,6 +273,217 @@ impl WebSearchProvider {
                     url: item["url"].as_str().unwrap_or("").to_string(),
                     snippet: item["snippet"].as_str().unwrap_or("").to_string(),
                     relevance_score: 0.88,
+                });
+            }
+        }
+
+        Ok(results)
+    }
+
+    /// Create a Command to run gemini CLI (cross-platform)
+    /// Windows: Uses 'cmd /c gemini' because gemini is a .ps1/.cmd script
+    /// Unix: Uses 'gemini' directly
+    fn create_gemini_command() -> std::process::Command {
+        #[cfg(target_os = "windows")]
+        {
+            let mut cmd = std::process::Command::new("cmd");
+            cmd.args(["/c", "gemini"]);
+            cmd
+        }
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            std::process::Command::new("gemini")
+        }
+    }
+
+    /// Check if Gemini CLI is available and authenticated
+    /// Note: Gemini CLI uses OAuth 2.0 authentication (not API key)
+    fn is_gemini_cli_available(&self) -> Result<bool> {
+        // Check if gemini CLI is installed and accessible
+        let mut cmd = Self::create_gemini_command();
+        cmd.arg("--version");
+
+        eprintln!("🔍 [DEBUG] Checking Gemini CLI availability...");
+        
+        match cmd.output() {
+            Ok(output) => {
+                eprintln!("🔍 [DEBUG] Gemini CLI command executed");
+                eprintln!("🔍 [DEBUG] Status: {:?}", output.status);
+                eprintln!("🔍 [DEBUG] Success: {}", output.status.success());
+                eprintln!("🔍 [DEBUG] Stdout: {}", String::from_utf8_lossy(&output.stdout));
+                eprintln!("🔍 [DEBUG] Stderr: {}", String::from_utf8_lossy(&output.stderr));
+                
+                if output.status.success() {
+                    tracing::info!("✅ Gemini CLI is available (OAuth 2.0 authenticated)");
+                    eprintln!("✅ [DEBUG] Returning Ok(true)");
+                    Ok(true)
+                } else {
+                    tracing::warn!(
+                        "⚠️  Gemini CLI found but not authenticated. Run: gemini (to login with OAuth 2.0)"
+                    );
+                    eprintln!("⚠️  [DEBUG] Returning Ok(false)");
+                    Ok(false)
+                }
+            }
+            Err(e) => {
+                eprintln!("❌ [DEBUG] Gemini CLI command failed: {}", e);
+                tracing::debug!(
+                    "ℹ️  Gemini CLI not found. Install: npm install -g @google-labs/gemini-cli"
+                );
+                Err(anyhow::anyhow!("Gemini CLI not found: {}", e))
+            }
+        }
+    }
+
+    /// Gemini CLI Search with Google Search Grounding（最優先・最高品質）
+    /// Note: Requires OAuth 2.0 authentication (run `gemini` command to login)
+    pub async fn gemini_cli_search(&self, query: &str, count: usize) -> Result<Vec<SearchResult>> {
+        // gemini CLIがインストールされているか確認
+        let mut version_cmd = Self::create_gemini_command();
+        version_cmd.arg("--version");
+        let version_output = version_cmd.output().context(
+            "gemini CLI not found. Please install it with: npm install -g @google-labs/gemini-cli",
+        )?;
+
+        if !version_output.status.success() {
+            anyhow::bail!("gemini CLI is not properly installed");
+        }
+
+        // Gemini CLIで検索を実行（Node.js版）
+        let prompt = format!(
+            "Search the web for: {query}\n\n\
+            Please provide the top {} most relevant results with:\n\
+            1. Title\n\
+            2. URL\n\
+            3. Brief snippet\n\n\
+            Format each result as:\n\
+            Title: [title]\n\
+            URL: [url]\n\
+            Snippet: [snippet]\n\
+            ---",
+            count
+        );
+
+        let mut cmd = Self::create_gemini_command();
+        cmd.arg("-p")
+            .arg(&prompt)
+            .arg("-o")
+            .arg("text")
+            .arg("-m")
+            .arg("gemini-2.5-pro"); // デフォルトでgemini-2.5-proを使用
+
+        let output = cmd.output().context("Failed to execute gemini CLI")?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+
+            // レートリミットエラーの検出とフォールバック
+            if stderr.contains("rate limit") || stderr.contains("quota") || stderr.contains("429") {
+                tracing::warn!(
+                    "⚠️  Gemini 2.5 Pro rate limit reached, falling back to Gemini 2.0 Flash"
+                );
+
+                // gemini-2.0-flash-expへフォールバック
+                let mut fallback_cmd = Self::create_gemini_command();
+                fallback_cmd
+                    .arg("-p")
+                    .arg(&prompt)
+                    .arg("-o")
+                    .arg("text")
+                    .arg("-m")
+                    .arg("gemini-2.0-flash-exp");
+
+                let fallback_output = fallback_cmd
+                    .output()
+                    .context("Failed to execute gemini CLI with fallback model")?;
+
+                if fallback_output.status.success() {
+                    let fallback_stdout = String::from_utf8_lossy(&fallback_output.stdout);
+                    return self.parse_gemini_cli_response(&fallback_stdout, count);
+                }
+            }
+
+            anyhow::bail!("Gemini CLI failed: {stderr}");
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        self.parse_gemini_cli_response(&stdout, count)
+    }
+
+    /// Parse Gemini CLI response into SearchResult format
+    fn parse_gemini_cli_response(&self, text: &str, count: usize) -> Result<Vec<SearchResult>> {
+        let mut results = Vec::new();
+        let mut current_title = String::new();
+        let mut current_url = String::new();
+        let mut current_snippet = String::new();
+
+        for line in text.lines() {
+            let line = line.trim();
+            if line.starts_with("Title:") {
+                current_title = line.strip_prefix("Title:").unwrap_or("").trim().to_string();
+            } else if line.starts_with("URL:") {
+                current_url = line.strip_prefix("URL:").unwrap_or("").trim().to_string();
+            } else if line.starts_with("Snippet:") {
+                current_snippet = line
+                    .strip_prefix("Snippet:")
+                    .unwrap_or("")
+                    .trim()
+                    .to_string();
+            } else if line == "---" {
+                if !current_title.is_empty() && !current_url.is_empty() {
+                    results.push(SearchResult {
+                        title: current_title.clone(),
+                        url: current_url.clone(),
+                        snippet: current_snippet.clone(),
+                        relevance_score: 0.95, // Gemini CLIは高品質
+                    });
+                    current_title.clear();
+                    current_url.clear();
+                    current_snippet.clear();
+                }
+                if results.len() >= count {
+                    break;
+                }
+            }
+        }
+
+        // 最後の結果を追加
+        if !current_title.is_empty() && !current_url.is_empty() && results.len() < count {
+            results.push(SearchResult {
+                title: current_title,
+                url: current_url,
+                snippet: current_snippet,
+                relevance_score: 0.95,
+            });
+        }
+
+        if results.is_empty() {
+            // パース失敗時は元のテキストから簡易的に抽出
+            tracing::warn!("Failed to parse Gemini CLI structured output, using fallback parsing");
+            return self.parse_gemini_cli_fallback(text, count);
+        }
+
+        Ok(results)
+    }
+
+    /// Fallback parsing for Gemini CLI (if structured format fails)
+    fn parse_gemini_cli_fallback(&self, text: &str, count: usize) -> Result<Vec<SearchResult>> {
+        let mut results = Vec::new();
+
+        // マークダウンリンク形式を検索: [Title](URL)
+        let re = regex::Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap();
+
+        for cap in re.captures_iter(text).take(count) {
+            let title = cap.get(1).map_or("", |m| m.as_str());
+            let url = cap.get(2).map_or("", |m| m.as_str());
+
+            if !title.is_empty() && !url.is_empty() {
+                results.push(SearchResult {
+                    title: title.to_string(),
+                    url: url.to_string(),
+                    snippet: "".to_string(),
+                    relevance_score: 0.90,
                 });
             }
         }
@@ -397,32 +671,59 @@ impl WebSearchProvider {
         vec![
             SearchResult {
                 title: format!("{query} - Official Documentation"),
-                url: format!("https://doc.rust-lang.org/search?q={}", urlencoding::encode(query)),
-                snippet: format!("Official documentation for {query}. Includes API references, guides, and examples from the Rust team."),
+                url: format!(
+                    "https://doc.rust-lang.org/search?q={}",
+                    urlencoding::encode(query)
+                ),
+                snippet: format!(
+                    "Official documentation for {query}. Includes API references, guides, and examples from the Rust team."
+                ),
                 relevance_score: 0.95,
             },
             SearchResult {
                 title: format!("Best Practices for {query}"),
-                url: format!("https://rust-lang.github.io/api-guidelines/about.html#{}",urlencoding::encode(query)),
-                snippet: format!("Rust API guidelines and best practices for {query}. Community-driven standards and conventions."),
+                url: format!(
+                    "https://rust-lang.github.io/api-guidelines/about.html#{}",
+                    urlencoding::encode(query)
+                ),
+                snippet: format!(
+                    "Rust API guidelines and best practices for {query}. Community-driven standards and conventions."
+                ),
                 relevance_score: 0.92,
             },
+                    
+                
             SearchResult {
                 title: format!("{query} - Stack Overflow"),
-                url: format!("https://stackoverflow.com/questions/tagged/rust?q={}", urlencoding::encode(query)),
-                snippet: format!("Community Q&A about {query}. Real-world solutions, common pitfalls, and expert answers."),
+                url: format!(
+                    "https://stackoverflow.com/questions/tagged/rust?q={}",
+                    urlencoding::encode(query)
+                ),
+                snippet: format!(
+                    "Community Q&A about {query}. Real-world solutions, common pitfalls, and expert answers."
+                ),
                 relevance_score: 0.88,
             },
             SearchResult {
                 title: format!("GitHub: {query} examples"),
-                url: format!("https://github.com/search?q=language:rust+{}", urlencoding::encode(query)),
-                snippet: format!("Open source Rust projects demonstrating {query}. Production code, libraries, and tools."),
+                url: format!(
+                    "https://github.com/search?q=language:rust+{}",
+                    urlencoding::encode(query)
+                ),
+                snippet: format!(
+                    "Open source Rust projects demonstrating {query}. Production code, libraries, and tools."
+                ),
                 relevance_score: 0.85,
             },
             SearchResult {
                 title: format!("Rust by Example: {query}"),
-                url: format!("https://doc.rust-lang.org/rust-by-example/?search={}", urlencoding::encode(query)),
-                snippet: format!("Hands-on examples and tutorials for {query}. Learn through runnable code samples."),
+                url: format!(
+                    "https://doc.rust-lang.org/rust-by-example/?search={}",
+                    urlencoding::encode(query)
+                ),
+                snippet: format!(
+                    "Hands-on examples and tutorials for {query}. Learn through runnable code samples."
+                ),
                 relevance_score: 0.90,
             },
         ]
@@ -434,7 +735,7 @@ impl WebSearchProvider {
 
         // 実際のHTTP request実装（OpenAI/codex公式パターン）
         let client = reqwest::Client::builder()
-            .user_agent("Mozilla/5.0 Codex-DeepResearch/0.47.0")
+            .user_agent("Mozilla/5.0 Codex-DeepResearch/0.48.0.zapabob.1")
             .timeout(std::time::Duration::from_secs(30))
             .build()?;
 

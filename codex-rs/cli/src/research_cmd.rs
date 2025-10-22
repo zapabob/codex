@@ -21,7 +21,8 @@ pub async fn run_research_command(
     _mcp: Option<String>,
     lightweight_fallback: bool,
     out: Option<PathBuf>,
-    use_gemini: bool, // 新規: Gemini CLI使用フラグ
+    use_gemini: bool, // Gemini CLI使用フラグ
+    use_mcp: bool,    // MCP経由フラグ（Codex → MCP → Gemini CLI）
 ) -> Result<()> {
     println!("🔍 Starting deep research on: {}", topic);
     println!("   Depth: {}, Breadth: {}", depth, breadth);
@@ -47,21 +48,20 @@ pub async fn run_research_command(
     };
 
     // Deep Research実行（本番実装）
-    // 優先順位: Gemini CLI > MCP > WebSearchProvider
+    // 優先順位: Gemini CLI (OAuth 2.0) > MCP > WebSearchProvider
     let provider: Arc<dyn ResearchProvider + Send + Sync> = if use_gemini {
-        // Gemini CLI経由でGoogle検索を使用
-        println!("🤖 Using Gemini CLI with Google Search (Grounding)");
-
-        // 環境変数チェック
-        if std::env::var("GOOGLE_API_KEY").is_ok() {
-            println!("   ✅ GOOGLE_API_KEY detected");
+        // Gemini CLI経由でGoogle検索を使用（OAuth 2.0認証）
+        if use_mcp {
+            // MCP経由でGemini CLIを呼び出す（Codex → MCP → Gemini CLI）
+            println!("🔌 Using Gemini CLI via MCP (Codex → MCP → Gemini CLI)");
+            println!("   ℹ️  Note: Using OAuth 2.0 authentication (API key not required)");
+            Arc::new(GeminiSearchProvider::new_with_mcp(None))
         } else {
-            eprintln!("   ⚠️  GOOGLE_API_KEY not found. Please set it:");
-            eprintln!("   export GOOGLE_API_KEY=\"your-api-key\"");
-            anyhow::bail!("GOOGLE_API_KEY is required for Gemini CLI");
+            // 直接Gemini CLIを呼び出す
+            println!("🤖 Using Gemini CLI with Google Search (Grounding)");
+            println!("   ℹ️  Note: Using OAuth 2.0 authentication (API key not required)");
+            Arc::new(GeminiSearchProvider::default())
         }
-
-        Arc::new(GeminiSearchProvider::default())
     } else if let Some(_mcp_url) = _mcp {
         println!("🔌 Using MCP Search Provider (DuckDuckGo backend)");
         Arc::new(McpSearchProvider::new(SearchBackend::DuckDuckGo, None))

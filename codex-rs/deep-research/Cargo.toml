@@ -6,6 +6,9 @@ version.workspace = true
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
+codex-mcp-client = { path = "../mcp-client" }
+mcp-types = { path = "../mcp-types" }
+regex.workspace = true
 reqwest.workspace = true
 scraper = "0.18"
 serde = { workspace = true, features = ["derive"] }

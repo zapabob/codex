@@ -6,22 +6,24 @@ use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
 use serde::Deserialize;
-use std::process::Command;
 use tracing::debug;
 use tracing::info;
 
 /// Gemini CLI search provider that uses Google Search via Gemini API Grounding
-/// Requires: gemini CLI installed and GOOGLE_API_KEY environment variable
+/// Requires: gemini CLI installed (OAuth 2.0 authentication)
+/// Supports both direct CLI calls and MCP-based calls
 pub struct GeminiSearchProvider {
     model: String,
     max_retries: u8,
+    use_mcp: bool, // true = MCP経由で呼び出し, false = 直接CLI呼び出し
 }
 
 impl Default for GeminiSearchProvider {
     fn default() -> Self {
         Self {
-            model: "gemini-2.0-flash-exp".to_string(), // Gemini 2.0 Flash (最新・高速)
+            model: "gemini-2.5-pro".to_string(), // Gemini 2.5 Pro (最高品質・レートリミット注意)
             max_retries: 3,
+            use_mcp: false, // デフォルトは直接CLI呼び出し
         }
     }
 }
@@ -29,8 +31,36 @@ impl Default for GeminiSearchProvider {
 impl GeminiSearchProvider {
     pub fn new(model: Option<String>) -> Self {
         Self {
-            model: model.unwrap_or_else(|| "gemini-2.0-flash-exp".to_string()),
+            model: model.unwrap_or_else(|| "gemini-2.5-pro".to_string()),
             max_retries: 3,
+            use_mcp: false,
+        }
+    }
+
+    /// Create a new GeminiSearchProvider with MCP mode enabled
+    /// This will use Codex → MCP → Gemini CLI chain
+    pub fn new_with_mcp(model: Option<String>) -> Self {
+        Self {
+            model: model.unwrap_or_else(|| "gemini-2.5-pro".to_string()),
+            max_retries: 3,
+            use_mcp: true, // MCP経由で呼び出し
+        }
+    }
+
+    /// Create a Command to run gemini CLI (cross-platform)
+    /// Windows: Uses 'cmd /c gemini' because gemini is a .ps1/.cmd script
+    /// Unix: Uses 'gemini' directly
+    fn create_gemini_command() -> std::process::Command {
+        #[cfg(target_os = "windows")]
+        {
+            let mut cmd = std::process::Command::new("cmd");
+            cmd.args(["/c", "gemini"]);
+            cmd
+        }
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            std::process::Command::new("gemini")
         }
     }
 
@@ -40,48 +70,142 @@ impl GeminiSearchProvider {
             "🔍 Executing Gemini CLI (Node.js version) search for: {}",
             query
         );
+        eprintln!("🔍 [DEBUG] execute_gemini_search called for: {}", query);
+        eprintln!("🔍 [DEBUG] MCP mode: {}", self.use_mcp);
+
+        // MCP経由で呼び出す場合
+        if self.use_mcp {
+            eprintln!("🔌 [DEBUG] Using MCP mode: Codex → MCP → Gemini CLI");
+            return self.execute_gemini_search_via_mcp(query).await;
+        }
+
+        // 直接CLI呼び出し
+        eprintln!("🔧 [DEBUG] Using direct CLI mode");
 
         // Check if gemini CLI is installed
         self.check_gemini_cli_installed()?;
+        eprintln!("✅ [DEBUG] Gemini CLI installed check passed");
 
-        // Node.js版gemini CLIのコマンド構築
-        // 例: gemini -p "Search for: <query>" -o json -m gemini-1.5-flash
-        // 注: GOOGLE_API_KEY は環境変数から自動読み取り
-        let prompt = format!(
-            "Search the web for: {query}\n\n\
-            Please provide the top 3-5 most relevant results with:\n\
-            1. Title\n\
-            2. URL\n\
-            3. Brief snippet\n\n\
-            Format each result as markdown links: [Title](URL)\n\
-            Add a brief description after each link."
-        );
+        // シンプルなプロンプトに変更（長すぎるとエラーの可能性）
+        let prompt = format!("Search the web for: {query}");
+        eprintln!("📝 [DEBUG] Prompt: {}", prompt);
 
-        let output = Command::new("gemini")
-            .arg("-p") // Node.js版では -p または --prompt
+        let mut cmd = Self::create_gemini_command();
+        cmd.arg("-p")
             .arg(&prompt)
-            .arg("-o") // Output format
-            .arg("text") // textモード（JSONは構造が異なるため）
-            .arg("-m") // Model
-            .arg(&self.model)
+            .arg("-o")
+            .arg("text")
+            .arg("-m")
+            .arg(&self.model);
+
+        eprintln!("🔧 [DEBUG] Executing gemini CLI with model: {}", self.model);
+
+        let output = cmd
             .output()
             .context("Failed to execute gemini CLI command (Node.js version)")?;
 
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Gemini CLI (Node.js) failed: {stderr}");
-        }
+        eprintln!("📊 [DEBUG] Gemini CLI executed");
+        eprintln!("📊 [DEBUG] Status: {:?}", output.status);
+        eprintln!("📊 [DEBUG] Success: {}", output.status.success());
 
         let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        eprintln!("📊 [DEBUG] Stdout length: {} bytes", stdout.len());
+        eprintln!("📊 [DEBUG] Stderr length: {} bytes", stderr.len());
+
+        if !stdout.is_empty() {
+            eprintln!(
+                "📊 [DEBUG] Stdout preview (first 500 chars):\n{}",
+                &stdout.chars().take(500).collect::<String>()
+            );
+        }
+
+        if !stderr.is_empty() {
+            eprintln!("⚠️  [DEBUG] Stderr:\n{}", stderr);
+        }
+
+        // エラー検出（status失敗 OR stderr にエラーメッセージ）
+        let has_error = !output.status.success()
+            || stderr.contains("Error when talking to Gemini API")
+            || stderr.contains("rate limit")
+            || stderr.contains("quota")
+            || stderr.contains("429")
+            || stderr.contains("RESOURCE_EXHAUSTED");
+
+        if has_error {
+            eprintln!("⚠️  [DEBUG] Error detected in Gemini CLI response");
+            eprintln!("⚠️  [DEBUG] Status success: {}", output.status.success());
+            eprintln!(
+                "⚠️  [DEBUG] Stderr contains API error: {}",
+                stderr.contains("Error when talking to Gemini API")
+            );
+
+            // レートリミットエラーの検出とフォールバック
+            tracing::warn!(
+                "⚠️  Gemini CLI error (likely rate limit), falling back to gemini-2.5-flash"
+            );
+            eprintln!("⚠️  [DEBUG] Attempting fallback to gemini-2.5-flash");
+
+            // gemini-2.5-flashへフォールバック
+            if self.model != "gemini-2.5-flash" {
+                let mut fallback_cmd = Self::create_gemini_command();
+                let fallback_output = fallback_cmd
+                    .arg("-p")
+                    .arg(&prompt)
+                    .arg("-o")
+                    .arg("text")
+                    .arg("-m")
+                    .arg("gemini-2.5-flash")
+                    .output()
+                    .context("Failed to execute gemini CLI with fallback model")?;
+
+                let fallback_stdout = String::from_utf8_lossy(&fallback_output.stdout);
+                let fallback_stderr = String::from_utf8_lossy(&fallback_output.stderr);
+
+                eprintln!("📊 [DEBUG] Fallback status: {:?}", fallback_output.status);
+                eprintln!(
+                    "📊 [DEBUG] Fallback stdout length: {}",
+                    fallback_stdout.len()
+                );
+
+                // フォールバックも失敗した場合は空の結果を返す（エラーにしない）
+                if fallback_output.status.success()
+                    && !fallback_stderr.contains("Error when talking to Gemini API")
+                {
+                    eprintln!("✅ [DEBUG] Fallback successful");
+                    debug!("Gemini CLI fallback output: {}", fallback_stdout);
+                    let results = self.parse_text_response(&fallback_stdout);
+                    eprintln!("✅ [DEBUG] Fallback parsed {} results", results.len());
+                    return Ok(results);
+                } else {
+                    eprintln!("⚠️  [DEBUG] Fallback also failed, returning empty results");
+                    tracing::warn!(
+                        "Fallback to gemini-2.5-flash also failed, returning empty results"
+                    );
+                    return Ok(Vec::new()); // 空の結果を返す（エラーにしない）
+                }
+            }
+
+            // すでにgemini-2.5-flashを使用中の場合は空の結果を返す
+            eprintln!("⚠️  [DEBUG] Already using gemini-2.5-flash, returning empty results");
+            return Ok(Vec::new());
+        }
+
         debug!("Gemini CLI output: {}", stdout);
+        eprintln!("🔍 [DEBUG] Parsing response...");
 
         // Parse text response (Node.js版のJSON形式は異なるため、テキスト解析を使用)
-        Ok(self.parse_text_response(&stdout))
+        let results = self.parse_text_response(&stdout);
+        eprintln!("✅ [DEBUG] Parsed {} results", results.len());
+
+        Ok(results)
     }
 
     /// Check if gemini CLI is installed (Node.js version)
     fn check_gemini_cli_installed(&self) -> Result<()> {
-        let output = Command::new("gemini").arg("--version").output().context(
+        let mut cmd = Self::create_gemini_command();
+        let output = cmd.arg("--version").output().context(
             "gemini CLI not found. Please install it with: npm install -g @google-labs/gemini-cli",
         )?;
 
@@ -215,6 +339,99 @@ impl GeminiSearchProvider {
 
         Err(last_error.unwrap_or_else(|| anyhow::anyhow!("All retry attempts failed")))
     }
+
+    /// Execute search via MCP (Codex → MCP → Gemini CLI)
+    /// This uses the gemini-cli MCP server defined in config.toml
+    async fn execute_gemini_search_via_mcp(&self, query: &str) -> Result<Vec<GeminiSearchResult>> {
+        use codex_mcp_client::McpClient;
+        use serde_json::json;
+        use std::ffi::OsString;
+
+        info!("🔌 Executing Gemini CLI via MCP server");
+        eprintln!("🔌 [DEBUG] Creating MCP client for gemini-cli");
+
+        // MCPサーバー設定（~/.codex/config.tomlから）
+        let program = OsString::from("codex-gemini-mcp");
+        let args = vec![];
+
+        eprintln!("🔌 [DEBUG] Spawning MCP server: codex-gemini-mcp");
+
+        // MCPクライアント作成
+        let client = McpClient::new_stdio_client(program, args, None, &[], None)
+            .await
+            .context("Failed to spawn codex-gemini-mcp server")?;
+
+        eprintln!("✅ [DEBUG] MCP client created");
+
+        // Initialize MCP session
+        use mcp_types::ClientCapabilities;
+        use mcp_types::Implementation;
+        use mcp_types::InitializeRequestParams;
+        let init_params = InitializeRequestParams {
+            protocol_version: "2024-11-05".to_string(),
+            capabilities: ClientCapabilities {
+                elicitation: None,
+                experimental: None,
+                roots: None,
+                sampling: None,
+            },
+            client_info: Implementation {
+                name: "codex-deep-research".to_string(),
+                title: Some("Codex Deep Research".to_string()),
+                version: "0.48.0".to_string(),
+                user_agent: Some("codex-deep-research/0.48.0".to_string()),
+            },
+        };
+
+        client
+            .initialize(init_params, None)
+            .await
+            .context("Failed to initialize MCP session")?;
+
+        eprintln!("✅ [DEBUG] MCP session initialized");
+
+        // googleSearch ツールを呼び出す
+        let tool_params = json!({
+            "query": query,
+            "model": self.model,
+        });
+
+        eprintln!("🔌 [DEBUG] Calling googleSearch tool via MCP");
+        eprintln!("🔌 [DEBUG] Query: {}", query);
+        eprintln!("🔌 [DEBUG] Model: {}", self.model);
+
+        let result = client
+            .call_tool("googleSearch".to_string(), Some(tool_params), None)
+            .await
+            .context("Failed to call googleSearch via MCP")?;
+
+        eprintln!("✅ [DEBUG] MCP tool call successful");
+        eprintln!("📊 [DEBUG] Result: {:?}", result);
+
+        // 結果をパース
+        // MCP経由の結果は異なる形式の可能性があるため、柔軟にパース
+        use mcp_types::ContentBlock;
+
+        let results = if let Some(content_block) = result.content.first() {
+            match content_block {
+                ContentBlock::TextContent(text_content) => {
+                    eprintln!("🔍 [DEBUG] Parsing MCP response text");
+                    self.parse_text_response(&text_content.text)
+                }
+                _ => {
+                    eprintln!("⚠️  [DEBUG] MCP response is not text content, returning empty");
+                    Vec::new()
+                }
+            }
+        } else {
+            eprintln!("⚠️  [DEBUG] No content in MCP response, returning empty");
+            Vec::new()
+        };
+
+        eprintln!("✅ [DEBUG] Parsed {} results from MCP", results.len());
+
+        Ok(results)
+    }
 }
 
 #[async_trait]
@@ -254,7 +471,8 @@ impl ResearchProvider for GeminiSearchProvider {
             Keep it concise (200-300 words)."
         );
 
-        let output = Command::new("gemini")
+        let mut cmd = Self::create_gemini_command();
+        let output = cmd
             .arg("-p") // Node.js版では -p または --prompt
             .arg(&prompt)
             .arg("-m") // Model

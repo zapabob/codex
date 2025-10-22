@@ -17,6 +17,7 @@ members = [
     "core",
     "deep-research",
     "exec",
+    "gemini-cli-mcp-server",
     "execpolicy",
     "file-search",
     "git-tooling",
