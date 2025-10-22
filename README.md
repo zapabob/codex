@@ -34,6 +34,28 @@
 
 </div>
 
+#### 📊 **Architecture Overview**
+
+The Codex v0.48.0-zapabob.1 architecture consists of **8 major layers** with **70+ components**:
+
+1. **🖥️ User Interface Layer** - CLI, TUI, Cursor IDE, Natural Language CLI
+2. **🧠 Core Orchestration Layer** - Task Analyzer, Auto Orchestrator, Supervisor
+3. **🤖 Specialized Sub-Agents** - 7 specialized agents for different tasks
+4. **🔍 Deep Research Engine** - Multi-source search with citation management
+5. **🔗 MCP Integration Layer** - 14 MCP servers for tool integration
+6. **🌐 External Integrations** - GitHub API, Slack, Audio notifications
+7. **💾 Data & Configuration** - Settings, session management, audit logs
+8. **🤖 LLM Model Providers** - OpenAI, Anthropic, Google Gemini
+
+#### 🎯 **Key Architectural Features**
+
+- **🔒 Automatic Conflict Resolution** - FileEditTracker with 3 merge strategies
+- **🗣️ Natural Language CLI** - AgentInterpreter with pattern matching
+- **🔄 Advanced Error Retry** - Exponential backoff with fallback strategies
+- **📖 Fully Open Source** - Apache 2.0 / MIT dual license
+- **🔌 MCP Protocol Integration** - Standardized tool ecosystem
+- **🔍 Multi-source Research** - DuckDuckGo, Brave, Google, Bing, Gemini CLI
+
 ### ✨ Key Features
 
 #### 🆕 **v0.48.0-zapabob.1 - Latest Updates**
@@ -297,6 +319,38 @@ This project is dual-licensed under Apache 2.0 and MIT licenses. See [LICENSE-AP
 ### 概要
 
 **Codex**は、[OpenAI/codex](https://github.com/openai/codex)公式リポジトリを拡張した次世代AIコーディングアシスタントです。自律的なオーケストレーション機能、専門化されたサブエージェント、ディープリサーチ機能を搭載しています。zapabobがメンテナンスするこのフォークは、上流プロジェクトとの互換性を維持しながら強力な機能拡張を追加しています。
+
+### 🏗️ アーキテクチャ
+
+<div align="center">
+
+![Codex v0.48.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
+
+*オーケストレーションフロー、エージェント協調、外部統合を示す包括的なアーキテクチャ図*
+
+</div>
+
+#### 📊 **アーキテクチャ概要**
+
+Codex v0.48.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と**70+のコンポーネント**で構成されています：
+
+1. **🖥️ ユーザーインターフェース層** - CLI、TUI、Cursor IDE、自然言語CLI
+2. **🧠 コアオーケストレーション層** - タスク分析器、自動オーケストレーター、スーパーバイザー
+3. **🤖 専門サブエージェント** - 7つの専門エージェント
+4. **🔍 ディープリサーチエンジン** - 引用管理付きマルチソース検索
+5. **🔗 MCP統合層** - ツール統合用14個のMCPサーバー
+6. **🌐 外部統合** - GitHub API、Slack、音声通知
+7. **💾 データ・設定** - 設定、セッション管理、監査ログ
+8. **🤖 LLMモデルプロバイダー** - OpenAI、Anthropic、Google Gemini
+
+#### 🎯 **主要アーキテクチャ特徴**
+
+- **🔒 自動コンフリクト解決** - 3つのマージ戦略を持つFileEditTracker
+- **🗣️ 自然言語CLI** - パターンマッチング付きAgentInterpreter
+- **🔄 高度エラーリトライ** - フォールバック戦略付き指数バックオフ
+- **📖 完全オープンソース** - Apache 2.0 / MITデュアルライセンス
+- **🔌 MCPプロトコル統合** - 標準化ツールエコシステム
+- **🔍 マルチソース研究** - DuckDuckGo、Brave、Google、Bing、Gemini CLI
 
 ### ✨ 主要機能
 
