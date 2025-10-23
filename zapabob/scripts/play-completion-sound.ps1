@@ -1,6 +1,13 @@
 ﻿param([Parameter(ValueFromRemainingArguments=$true)][string[]]$args)
-$wavPath = "C:\Users\downl\Desktop\codex-main\codex-main\.codex\marisa_owattaze.wav"
+
+# Get current script directory and resolve to project root
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
+$wavPath = Join-Path $projectRoot ".codex\marisa_owattaze.wav"
+
 Write-Host "🎉 Agent/Plan completion notification (Marisa)" -ForegroundColor Magenta
+Write-Host "Looking for sound file: $wavPath" -ForegroundColor Gray
+
 if (Test-Path $wavPath) {
     try {
         $player = New-Object System.Media.SoundPlayer $wavPath
@@ -12,6 +19,6 @@ if (Test-Path $wavPath) {
     }
 } else {
     Write-Warning "⚠️  Sound file not found: $wavPath"
-    Write-Host "Expected location: C:\Users\downl\Desktop\codex-main\codex-main\.codex\marisa_owattaze.wav"
+    Write-Host "Expected location: $wavPath" -ForegroundColor Yellow
     exit 1
 }

@@ -32,6 +32,7 @@ members = [
     "rmcp-client",
     "responses-api-proxy",
     # "supervisor",  # DISABLED: 古い実装、codex_core::Codexとの互換性なし
+    "stdio-to-uds",
     "otel",
     "tui",
     "git-apply",
@@ -77,6 +78,7 @@ codex-protocol-ts = { path = "protocol-ts" }
 codex-responses-api-proxy = { path = "responses-api-proxy" }
 codex-rmcp-client = { path = "rmcp-client" }
 # codex-supervisor = { path = "supervisor" }  # DELETED: 古い実装、完全削除
+codex-stdio-to-uds = { path = "stdio-to-uds" }
 codex-tui = { path = "tui" }
 codex-utils-json-to-toml = { path = "utils/json-to-toml" }
 codex-utils-pty = { path = "utils/pty" }

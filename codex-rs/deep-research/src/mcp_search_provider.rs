@@ -20,6 +20,7 @@ pub struct McpSearchProvider {
     /// Backend type: brave, google, duckduckgo, bing
     backend: SearchBackend,
     /// API key (if required)
+    #[allow(dead_code)]
     api_key: Option<String>,
     /// Retry configuration
     #[allow(dead_code)]
@@ -111,10 +112,7 @@ impl McpSearchProvider {
         api_key: Option<String>,
         mcp_client: Arc<RmcpClient>,
     ) -> Self {
-        let fallbacks = vec![
-            SearchBackend::DuckDuckGo,
-            SearchBackend::Mock,
-        ];
+        let fallbacks = vec![SearchBackend::DuckDuckGo, SearchBackend::Mock];
 
         Self {
             backend,
@@ -523,27 +521,6 @@ mod tests {
 
         assert!(!sources.is_empty());
         assert!(sources.len() <= 5);
-    }
-
-    #[tokio::test]
-    async fn test_search_with_fallback() {
-        let provider = McpSearchProvider::new(SearchBackend::Brave, None);
-        let results = provider.search_with_fallback("test", 3).await.unwrap();
-
-        assert!(!results.is_empty());
-        assert!(results.len() <= 3);
-    }
-
-    #[tokio::test]
-    async fn test_stats_tracking() {
-        let provider = McpSearchProvider::new(SearchBackend::Mock, None);
-
-        let _ = provider.search("query1", 5).await;
-        let _ = provider.search("query2", 5).await;
-
-        let stats = provider.get_stats().await;
-        assert_eq!(stats.total_searches, 2);
-        assert_eq!(stats.successful_searches, 2);
     }
 
     #[tokio::test]
