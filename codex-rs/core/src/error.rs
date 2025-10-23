@@ -162,26 +162,21 @@ pub enum CodexErr {
 
 /// Converts a cancellation error to TurnAborted.
 ///
-/// Preserves any dangling artifacts from the `CancelErr` if available.
-/// If `CancelErr` contains no artifact information, initializes with an empty vector.
+/// Note: This conversion always initializes `dangling_artifacts` as empty because
+/// `CancelErr` carries artifacts as `serde_json::Value`, but `ProcessedResponseItem`
+/// doesn't implement `Deserialize`. Callers that need to preserve dangling artifacts
+/// should construct `TurnAborted` directly instead of using this `From` implementation.
+///
+/// Future work: Consider refactoring to eliminate the need for dangling artifacts
+/// in error types (see todo comment on `TurnAborted`).
 impl From<CancelErr> for CodexErr {
-    fn from(cancel_err: CancelErr) -> Self {
-        use codex_protocol::models::ProcessedResponseItem;
-
-        let dangling_artifacts = cancel_err
-            .dangling_artifacts
-            .map(|artifacts| {
-                artifacts
-                    .into_iter()
-                    .filter_map(|value| {
-                        // Try to deserialize each Value into ProcessedResponseItem
-                        serde_json::from_value::<ProcessedResponseItem>(value).ok()
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        CodexErr::TurnAborted { dangling_artifacts }
+    fn from(_cancel_err: CancelErr) -> Self {
+        // Note: cancel_err.dangling_artifacts is ignored because ProcessedResponseItem
+        // cannot be deserialized from Value. Callers needing artifacts should use:
+        //   CodexErr::TurnAborted { dangling_artifacts: vec![...] }
+        CodexErr::TurnAborted {
+            dangling_artifacts: Vec::new(),
+        }
     }
 }
 
