@@ -80,126 +80,7 @@ impl GeminiSearchProvider {
         }
 
         // 直接CLI呼び出し
-        eprintln!("🔧 [DEBUG] Using direct CLI mode");
-
-        // Check if gemini CLI is installed
-        self.check_gemini_cli_installed()?;
-        eprintln!("✅ [DEBUG] Gemini CLI installed check passed");
-
-        // シンプルなプロンプトに変更（長すぎるとエラーの可能性）
-        let prompt = format!("Search the web for: {query}");
-        eprintln!("📝 [DEBUG] Prompt: {}", prompt);
-
-        let mut cmd = Self::create_gemini_command();
-        cmd.arg("-p")
-            .arg(&prompt)
-            .arg("-o")
-            .arg("text")
-            .arg("-m")
-            .arg(&self.model);
-
-        eprintln!("🔧 [DEBUG] Executing gemini CLI with model: {}", self.model);
-
-        let output = cmd
-            .output()
-            .context("Failed to execute gemini CLI command (Node.js version)")?;
-
-        eprintln!("📊 [DEBUG] Gemini CLI executed");
-        eprintln!("📊 [DEBUG] Status: {:?}", output.status);
-        eprintln!("📊 [DEBUG] Success: {}", output.status.success());
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-
-        eprintln!("📊 [DEBUG] Stdout length: {} bytes", stdout.len());
-        eprintln!("📊 [DEBUG] Stderr length: {} bytes", stderr.len());
-
-        if !stdout.is_empty() {
-            eprintln!(
-                "📊 [DEBUG] Stdout preview (first 500 chars):\n{}",
-                &stdout.chars().take(500).collect::<String>()
-            );
-        }
-
-        if !stderr.is_empty() {
-            eprintln!("⚠️  [DEBUG] Stderr:\n{}", stderr);
-        }
-
-        // エラー検出（status失敗 OR stderr にエラーメッセージ）
-        let has_error = !output.status.success()
-            || stderr.contains("Error when talking to Gemini API")
-            || stderr.contains("rate limit")
-            || stderr.contains("quota")
-            || stderr.contains("429")
-            || stderr.contains("RESOURCE_EXHAUSTED");
-
-        if has_error {
-            eprintln!("⚠️  [DEBUG] Error detected in Gemini CLI response");
-            eprintln!("⚠️  [DEBUG] Status success: {}", output.status.success());
-            eprintln!(
-                "⚠️  [DEBUG] Stderr contains API error: {}",
-                stderr.contains("Error when talking to Gemini API")
-            );
-
-            // レートリミットエラーの検出とフォールバック
-            tracing::warn!(
-                "⚠️  Gemini CLI error (likely rate limit), falling back to gemini-2.5-flash"
-            );
-            eprintln!("⚠️  [DEBUG] Attempting fallback to gemini-2.5-flash");
-
-            // gemini-2.5-flashへフォールバック
-            if self.model != "gemini-2.5-flash" {
-                let mut fallback_cmd = Self::create_gemini_command();
-                let fallback_output = fallback_cmd
-                    .arg("-p")
-                    .arg(&prompt)
-                    .arg("-o")
-                    .arg("text")
-                    .arg("-m")
-                    .arg("gemini-2.5-flash")
-                    .output()
-                    .context("Failed to execute gemini CLI with fallback model")?;
-
-                let fallback_stdout = String::from_utf8_lossy(&fallback_output.stdout);
-                let fallback_stderr = String::from_utf8_lossy(&fallback_output.stderr);
-
-                eprintln!("📊 [DEBUG] Fallback status: {:?}", fallback_output.status);
-                eprintln!(
-                    "📊 [DEBUG] Fallback stdout length: {}",
-                    fallback_stdout.len()
-                );
-
-                // フォールバックも失敗した場合は空の結果を返す（エラーにしない）
-                if fallback_output.status.success()
-                    && !fallback_stderr.contains("Error when talking to Gemini API")
-                {
-                    eprintln!("✅ [DEBUG] Fallback successful");
-                    debug!("Gemini CLI fallback output: {}", fallback_stdout);
-                    let results = self.parse_text_response(&fallback_stdout);
-                    eprintln!("✅ [DEBUG] Fallback parsed {} results", results.len());
-                    return Ok(results);
-                } else {
-                    eprintln!("⚠️  [DEBUG] Fallback also failed, returning empty results");
-                    tracing::warn!(
-                        "Fallback to gemini-2.5-flash also failed, returning empty results"
-                    );
-                    return Ok(Vec::new()); // 空の結果を返す（エラーにしない）
-                }
-            }
-
-            // すでにgemini-2.5-flashを使用中の場合は空の結果を返す
-            eprintln!("⚠️  [DEBUG] Already using gemini-2.5-flash, returning empty results");
-            return Ok(Vec::new());
-        }
-
-        debug!("Gemini CLI output: {}", stdout);
-        eprintln!("🔍 [DEBUG] Parsing response...");
-
-        // Parse text response (Node.js版のJSON形式は異なるため、テキスト解析を使用)
-        let results = self.parse_text_response(&stdout);
-        eprintln!("✅ [DEBUG] Parsed {} results", results.len());
-
-        Ok(results)
+        self.execute_gemini_search_direct(query).await
     }
 
     /// Check if gemini CLI is installed (Node.js version)
@@ -342,93 +223,57 @@ impl GeminiSearchProvider {
 
     /// Execute search via MCP (Codex → MCP → Gemini CLI)
     /// This uses the gemini-cli MCP server defined in config.toml
+    /// DISABLED: mcp-clientディレクトリが存在しないため無効化
+    #[allow(dead_code)]
     async fn execute_gemini_search_via_mcp(&self, query: &str) -> Result<Vec<GeminiSearchResult>> {
-        use codex_mcp_client::McpClient;
-        use serde_json::json;
-        use std::ffi::OsString;
+        // MCP機能は現在無効化されています
+        // mcp-clientディレクトリが存在しないため、直接CLI呼び出しにフォールバック
+        // 再帰を避けるため、直接CLI実装を呼び出す
+        self.execute_gemini_search_direct(query).await
+    }
 
-        info!("🔌 Executing Gemini CLI via MCP server");
-        eprintln!("🔌 [DEBUG] Creating MCP client for gemini-cli");
+    /// Execute search using Gemini CLI directly (without MCP)
+    async fn execute_gemini_search_direct(&self, query: &str) -> Result<Vec<GeminiSearchResult>> {
+        info!(
+            "🔍 Executing Gemini CLI (Node.js version) search for: {}",
+            query
+        );
+        eprintln!("🔍 [DEBUG] execute_gemini_search_direct called for: {}", query);
 
-        // MCPサーバー設定（~/.codex/config.tomlから）
-        let program = OsString::from("codex-gemini-mcp");
-        let args = vec![];
+        // 直接CLI呼び出し
+        eprintln!("🔧 [DEBUG] Using direct CLI mode");
 
-        eprintln!("🔌 [DEBUG] Spawning MCP server: codex-gemini-mcp");
+        // Gemini CLIがインストールされているかチェック
+        self.check_gemini_cli_installed()?;
 
-        // MCPクライアント作成
-        let client = McpClient::new_stdio_client(program, args, None, &[], None)
-            .await
-            .context("Failed to spawn codex-gemini-mcp server")?;
+        // Gemini CLIコマンドを実行
+        let mut cmd = Self::create_gemini_command();
+        let output = cmd
+            .arg("search")
+            .arg("--grounding")
+            .arg("google")
+            .arg("--model")
+            .arg(&self.model)
+            .arg(query)
+            .output()
+            .context("Failed to execute gemini CLI")?;
 
-        eprintln!("✅ [DEBUG] MCP client created");
+        eprintln!("🔍 [DEBUG] Gemini CLI output status: {:?}", output.status);
+        eprintln!("🔍 [DEBUG] Gemini CLI stdout length: {}", output.stdout.len());
+        eprintln!("🔍 [DEBUG] Gemini CLI stderr length: {}", output.stderr.len());
 
-        // Initialize MCP session
-        use mcp_types::ClientCapabilities;
-        use mcp_types::Implementation;
-        use mcp_types::InitializeRequestParams;
-        let init_params = InitializeRequestParams {
-            protocol_version: "2024-11-05".to_string(),
-            capabilities: ClientCapabilities {
-                elicitation: None,
-                experimental: None,
-                roots: None,
-                sampling: None,
-            },
-            client_info: Implementation {
-                name: "codex-deep-research".to_string(),
-                title: Some("Codex Deep Research".to_string()),
-                version: "0.48.0".to_string(),
-                user_agent: Some("codex-deep-research/0.48.0".to_string()),
-            },
-        };
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            eprintln!("❌ [DEBUG] Gemini CLI error: {}", stderr);
+            anyhow::bail!("Gemini CLI search failed: {stderr}");
+        }
 
-        client
-            .initialize(init_params, None)
-            .await
-            .context("Failed to initialize MCP session")?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        eprintln!("✅ [DEBUG] Gemini CLI stdout: {}", stdout);
 
-        eprintln!("✅ [DEBUG] MCP session initialized");
-
-        // googleSearch ツールを呼び出す
-        let tool_params = json!({
-            "query": query,
-            "model": self.model,
-        });
-
-        eprintln!("🔌 [DEBUG] Calling googleSearch tool via MCP");
-        eprintln!("🔌 [DEBUG] Query: {}", query);
-        eprintln!("🔌 [DEBUG] Model: {}", self.model);
-
-        let result = client
-            .call_tool("googleSearch".to_string(), Some(tool_params), None)
-            .await
-            .context("Failed to call googleSearch via MCP")?;
-
-        eprintln!("✅ [DEBUG] MCP tool call successful");
-        eprintln!("📊 [DEBUG] Result: {:?}", result);
-
-        // 結果をパース
-        // MCP経由の結果は異なる形式の可能性があるため、柔軟にパース
-        use mcp_types::ContentBlock;
-
-        let results = if let Some(content_block) = result.content.first() {
-            match content_block {
-                ContentBlock::TextContent(text_content) => {
-                    eprintln!("🔍 [DEBUG] Parsing MCP response text");
-                    self.parse_text_response(&text_content.text)
-                }
-                _ => {
-                    eprintln!("⚠️  [DEBUG] MCP response is not text content, returning empty");
-                    Vec::new()
-                }
-            }
-        } else {
-            eprintln!("⚠️  [DEBUG] No content in MCP response, returning empty");
-            Vec::new()
-        };
-
-        eprintln!("✅ [DEBUG] Parsed {} results from MCP", results.len());
+        // Parse text response (Node.js版のJSON形式は異なるため、テキスト解析を使用)
+        let results = self.parse_text_response(&stdout);
+        eprintln!("✅ [DEBUG] Parsed {} results", results.len());
 
         Ok(results)
     }

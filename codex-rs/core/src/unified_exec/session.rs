@@ -15,8 +15,8 @@ use crate::exec::SandboxType;
 use crate::exec::StreamOutput;
 use crate::exec::is_likely_sandbox_denied;
 use crate::truncate::truncate_middle;
-use codex_utils_pty::ExecCommandSession;
-use codex_utils_pty::SpawnedPty;
+// use codex_utils_pty::ExecCommandSession;  // DISABLED: パッケージが存在しない
+// use codex_utils_pty::SpawnedPty;  // DISABLED: パッケージが存在しない
 
 use super::UNIFIED_EXEC_OUTPUT_MAX_BYTES;
 use super::UnifiedExecError;

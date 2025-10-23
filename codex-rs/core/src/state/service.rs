@@ -4,8 +4,8 @@ use crate::AuthManager;
 use crate::RolloutRecorder;
 use crate::agents::AgentRuntime;
 use crate::async_subagent_integration::AsyncSubAgentIntegration;
-use crate::exec_command::ExecSessionManager;
-use crate::executor::Executor;
+// use crate::exec_command::ExecSessionManager;  // DISABLED: モジュールが存在しない
+// use crate::executor::Executor;  // DISABLED: モジュールが存在しない
 use crate::mcp_connection_manager::McpConnectionManager;
 use crate::tools::sandboxing::ApprovalStore;
 use crate::unified_exec::UnifiedExecSessionManager;

@@ -29,7 +29,7 @@ use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::orchestration::CollaborationStore;
-use codex_mcp_client::McpClient;
+use codex_rmcp_client::McpClient;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
 use codex_protocol::config_types::ReasoningEffort;
