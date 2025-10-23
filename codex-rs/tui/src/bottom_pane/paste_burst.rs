@@ -197,15 +197,30 @@ impl PasteBurst {
     }
 
     /// Before applying modified/non-char input: flush buffered burst immediately.
+    ///
+    /// Note: `pending_first_char` is only appended if it hasn't been processed yet.
+    /// The `.take()` method ensures it's consumed exactly once, preventing duplicates.
+    /// Possible prior processing:
+    /// - Added to buffer when burst started (line 79, `.take()` called)
+    /// - Returned as `Typed(ch)` on timeout (line 115, `.take()` called)
+    /// - Never processed (still `Some`) → append it here
     pub fn flush_before_modified_input(&mut self) -> Option<String> {
         if !self.is_active() {
             return None;
         }
         self.active = false;
         let mut out = std::mem::take(&mut self.buffer);
+
+        // Append pending_first_char only if it hasn't been consumed yet.
+        // The `.take()` ensures this can only happen once.
         if let Some((ch, _at)) = self.pending_first_char.take() {
-            out.push(ch);
+            // Safety check: verify character isn't already in buffer
+            // (defensive programming, should not happen due to `.take()`)
+            if out.is_empty() || !out.contains(ch) {
+                out.push(ch);
+            }
         }
+
         Some(out)
     }
 
