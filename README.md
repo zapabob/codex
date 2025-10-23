@@ -56,6 +56,134 @@ The Codex v0.48.0-zapabob.1 architecture consists of **8 major layers** with **7
 - **🔌 MCP Protocol Integration** - Standardized tool ecosystem
 - **🔍 Multi-source Research** - DuckDuckGo, Brave, Google, Bing, Gemini CLI
 
+<details>
+<summary>📊 <b>Detailed Architecture Diagram (Mermaid)</b></summary>
+
+```mermaid
+graph TB
+    subgraph UI["🖥️ User Interface Layer"]
+        CLI["CLI<br/>Command Line Interface"]
+        TUI["TUI<br/>Terminal UI"]
+        Cursor["Cursor IDE<br/>Composer Integration"]
+        NaturalCLI["Natural Language CLI<br/>AgentInterpreter"]
+    end
+
+    subgraph Orchestration["🧠 Core Orchestration Layer - rmcp 0.8.3+"]
+        TaskAnalyzer["Task Analyzer<br/>Complexity: 0-1.0<br/>Skills Detection"]
+        AutoOrch["Auto Orchestrator<br/>Dynamic Agent Selection<br/>Strategy: Parallel/Sequential/Hybrid"]
+        Supervisor["Supervisor<br/>Timeout: 5min<br/>Retry: 3x Exponential Backoff"]
+        CollabStore["Collaboration Store<br/>Message Passing<br/>Priority: 0-255"]
+    end
+
+    subgraph Agents["🤖 Specialized Sub-Agents (8 Types)"]
+        Researcher["Researcher<br/>Multi-source Validation"]
+        CodeReviewer["Code Reviewer<br/>Best Practices"]
+        TestGen["Test Generator<br/>Coverage 80%+"]
+        SecAudit["Security Auditor<br/>OWASP Top 10"]
+        PythonRev["Python Reviewer"]
+        TSRev["TypeScript Reviewer"]
+        UnityRev["Unity Reviewer"]
+        CustomAgent["Custom Agent<br/>User-defined"]
+    end
+
+    subgraph DeepResearch["🔍 Deep Research Engine"]
+        SearchProvider["MCP Search Provider<br/>Cache TTL: 1h<br/>45x Faster"]
+        Gemini["Gemini CLI<br/>OAuth 2.0<br/>Google Search Grounding"]
+        DuckDuckGo["DuckDuckGo<br/>API Key Free"]
+        Citation["Citation Manager<br/>Source Tracking"]
+        Contradiction["Contradiction Checker<br/>Cross-validation"]
+    end
+
+    subgraph MCP["🔗 MCP Integration (14 Servers)"]
+        CodexMCP["codex mcp-server<br/>Self-hosted"]
+        GeminiMCP["gemini-cli<br/>Google Search"]
+        SerenaM["serena<br/>Code Intelligence"]
+        ArxivMCP["arxiv-mcp-server"]
+        ChromeMCP["chrome-devtools"]
+    end
+
+    CLI --> TaskAnalyzer
+    TUI --> TaskAnalyzer
+    Cursor --> CodexMCP
+    TaskAnalyzer -->|complexity > 0.7| AutoOrch
+    AutoOrch --> Supervisor
+    Supervisor --> CollabStore
+    CollabStore --> Agents
+    AutoOrch --> Researcher
+    AutoOrch --> CodeReviewer
+    Researcher --> SearchProvider
+    SearchProvider --> Gemini
+    SearchProvider --> DuckDuckGo
+    SearchProvider --> Citation
+    Citation --> Contradiction
+    CodexMCP --> Supervisor
+    GeminiMCP --> Gemini
+
+    classDef uiClass fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef orchClass fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef agentClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef researchClass fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef mcpClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+
+    class CLI,TUI,Cursor,NaturalCLI uiClass
+    class TaskAnalyzer,AutoOrch,Supervisor,CollabStore orchClass
+    class Researcher,CodeReviewer,TestGen,SecAudit,PythonRev,TSRev,UnityRev,CustomAgent agentClass
+    class SearchProvider,Gemini,DuckDuckGo,Citation,Contradiction researchClass
+    class CodexMCP,GeminiMCP,SerenaM,ArxivMCP,ChromeMCP mcpClass
+```
+
+</details>
+
+### 📁 Repository Structure
+
+<details>
+<summary><b>Directory Organization</b></summary>
+
+```mermaid
+graph TB
+    Root["📦 codex/"]
+    
+    Root --> Official["🏢 Official OpenAI/codex"]
+    Root --> Zapabob["⭐ zapabob Extensions"]
+    Root --> Config["⚙️ Configuration"]
+    Root --> Temp["🗑️ Temporary (.gitignore)"]
+    Root --> Archive["📦 Archive"]
+
+    Official --> CodexRS["codex-rs/<br/>Rust Implementation<br/>Core, Agents, Orchestration"]
+    Official --> CodexCLI["codex-cli/<br/>npm Package"]
+    Official --> Docs["docs/<br/>51 Official Docs"]
+    Official --> Scripts["scripts/<br/>9 Official Scripts"]
+
+    Zapabob --> ZDocs["zapabob/docs/<br/>- implementation-logs/ (236)<br/>- guides/<br/>- architecture/"]
+    Zapabob --> ZScripts["zapabob/scripts/<br/>- play-completion-sound.ps1<br/>- build automation"]
+    Zapabob --> ZExt["zapabob/extensions/<br/>- vscode-extension/<br/>- windsurf-extension/"]
+    Zapabob --> ZSDK["zapabob/sdk/<br/>TypeScript SDK"]
+
+    Config --> Cursor[".cursor/<br/>- mcp-config.json<br/>- composer-guide.md"]
+    Config --> CodexC[".codex/<br/>- agents/*.yaml (8)<br/>- marisa_owattaze.wav"]
+
+    Temp --> TBuild["_temp/build-logs/<br/>7 logs"]
+    Temp --> TTest["_temp/test-outputs/<br/>6 test files"]
+    Temp --> TArt["_temp/build-artifacts/<br/>exe/pdb"]
+
+    Archive --> AOld["archive/<br/>Legacy PRs"]
+    Archive --> ABackup["archive/backups/<br/>2 files"]
+
+    classDef officialClass fill:#e3f2fd,stroke:#0d47a1,stroke-width:3px
+    classDef zapaClass fill:#fff9c4,stroke:#f57f17,stroke-width:3px
+    classDef configClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef tempClass fill:#ffebee,stroke:#b71c1c,stroke-width:2px
+    classDef archiveClass fill:#eceff1,stroke:#37474f,stroke-width:2px
+
+    class Official,CodexRS,CodexCLI,Docs,Scripts officialClass
+    class Zapabob,ZDocs,ZScripts,ZExt,ZSDK zapaClass
+    class Config,Cursor,CodexC configClass
+    class Temp,TBuild,TTest,TArt tempClass
+    class Archive,AOld,ABackup archiveClass
+```
+
+</details>
+
 ### ✨ Key Features
 
 #### 🆕 **v0.48.0-zapabob.1 - Latest Updates**
