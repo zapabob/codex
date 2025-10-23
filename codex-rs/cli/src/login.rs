@@ -5,6 +5,7 @@ use codex_core::auth::logout;
 use codex_core::auth::CLIENT_ID;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
+use codex_core::protocol_config_types::ForcedLoginMethod;
 use codex_core::CodexAuth;
 use codex_login::run_device_code_login;
 use codex_login::run_login_server;

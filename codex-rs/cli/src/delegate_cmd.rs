@@ -22,7 +22,9 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-const DEFAULT_SUBAGENT_RUNTIME_BUDGET: u64 = 200_000;
+use crate::resolve_runtime_budget;
+
+const DEFAULT_SUBAGENT_RUNTIME_BUDGET: i64 = 200_000;
 
 pub async fn run_delegate_command(
     config_overrides: CliConfigOverrides,
@@ -93,10 +95,7 @@ pub async fn run_delegate_command(
         terminal::user_agent(),
     );
 
-    let runtime_budget = config
-        .model_context_window
-        .unwrap_or(DEFAULT_SUBAGENT_RUNTIME_BUDGET)
-        .min(usize::MAX as u64) as usize;
+    let runtime_budget = resolve_runtime_budget(&config, DEFAULT_SUBAGENT_RUNTIME_BUDGET);
 
     let runtime = AgentRuntime::new(
         workspace_dir.clone(),

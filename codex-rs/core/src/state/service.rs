@@ -4,8 +4,6 @@ use crate::AuthManager;
 use crate::RolloutRecorder;
 use crate::agents::AgentRuntime;
 use crate::async_subagent_integration::AsyncSubAgentIntegration;
-use crate::exec_command::ExecSessionManager;
-use crate::executor::Executor;
 use crate::mcp_connection_manager::McpConnectionManager;
 use crate::tools::sandboxing::ApprovalStore;
 use crate::unified_exec::UnifiedExecSessionManager;
@@ -26,4 +24,5 @@ pub(crate) struct SessionServices {
     pub(crate) agent_runtime: Arc<AgentRuntime>,
     #[allow(dead_code)]
     pub(crate) async_subagent_integration: Arc<AsyncSubAgentIntegration>,
+    pub(crate) tool_approvals: Arc<Mutex<ApprovalStore>>,
 }

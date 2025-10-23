@@ -23,7 +23,6 @@ members = [
     "git-tooling",
     "linux-sandbox",
     "login",
-    "mcp-client",
     "mcp-server",                   # ENABLED: supervisor依存削除済み
     "mcp-types",
     "ollama",
@@ -58,6 +57,7 @@ codex-app-server-protocol = { path = "app-server-protocol" }
 codex-apply-patch = { path = "apply-patch" }
 codex-arg0 = { path = "arg0" }
 codex-async-utils = { path = "async-utils" }
+codex-backend-client = { path = "backend-client" }
 codex-chatgpt = { path = "chatgpt" }
 codex-common = { path = "common" }
 codex-core = { path = "core" }
@@ -153,6 +153,7 @@ pretty_assertions = "1.4.1"
 pulldown-cmark = "0.10"
 rand = "0.9"
 ratatui = "0.29.0"
+# ratatui-macros = "0.7.0-alpha.4"  # DISABLED: バージョン競合のため
 regex = "1.11"
 regex-lite = "0.1.7"
 reqwest = "0.12"
@@ -199,7 +200,7 @@ tree-sitter-python = "0.25.0"
 ts-rs = "11"
 uds_windows = "1.1.0"
 unicode-segmentation = "1.12.0"
-unicode-width = "0.2"
+unicode-width = "0.2.1"
 url = "2"
 urlencoding = "2.1"
 uuid = "1"

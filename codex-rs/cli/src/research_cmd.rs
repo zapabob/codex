@@ -3,12 +3,12 @@ use anyhow::Result;
 use codex_deep_research::provider::ResearchProvider;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
-use codex_deep_research::GeminiSearchProvider; // Gemini CLI統合
-use codex_deep_research::McpSearchProvider; // MCP統合
+use codex_deep_research::GeminiSearchProvider;
+use codex_deep_research::McpSearchProvider;
 use codex_deep_research::ResearchPlanner;
 use codex_deep_research::ResearchStrategy;
 use codex_deep_research::SearchBackend;
-use codex_deep_research::WebSearchProvider; // 本番実装
+use codex_deep_research::WebSearchProvider;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -18,17 +18,16 @@ pub async fn run_research_command(
     breadth: u8,
     budget: usize,
     _citations: bool,
-    _mcp: Option<String>,
+    mcp_url: Option<String>,
     lightweight_fallback: bool,
     out: Option<PathBuf>,
-    use_gemini: bool, // Gemini CLI使用フラグ
-    use_mcp: bool,    // MCP経由フラグ（Codex → MCP → Gemini CLI）
+    use_gemini: bool,
+    use_mcp: bool,
 ) -> Result<()> {
     println!("🔍 Starting deep research on: {}", topic);
     println!("   Depth: {}, Breadth: {}", depth, breadth);
     println!("   Budget: {} tokens", budget);
 
-    // 研究計画を生成
     let plan = ResearchPlanner::generate_plan(&topic, depth, breadth as usize)
         .context("Failed to generate research plan")?;
 
@@ -39,42 +38,40 @@ pub async fn run_research_command(
         println!("     {}. {}", i + 1, query);
     }
 
-    // 軽量版フォールバックチェック（仮のBudgeterシミュレーション）
-    let actual_plan = if lightweight_fallback && budget < 30000 {
+    let actual_plan = if lightweight_fallback && budget < 30_000 {
         println!("\n⚡ Using lightweight research mode due to budget constraints");
         ResearchPlanner::downgrade_to_lightweight(&plan)
     } else {
         plan
     };
 
-    // Deep Research実行（本番実装）
-    // 優先順位: Gemini CLI (OAuth 2.0) > MCP > WebSearchProvider
+    // Provider selection priority: Gemini CLI -> MCP search -> built-in web search.
     let provider: Arc<dyn ResearchProvider + Send + Sync> = if use_gemini {
-        // Gemini CLI経由でGoogle検索を使用（OAuth 2.0認証）
+        let model =
+            std::env::var("GEMINI_MODEL").unwrap_or_else(|_| "gemini-2.5-flash".to_string());
         if use_mcp {
-            // MCP経由でGemini CLIを呼び出す（Codex → MCP → Gemini CLI）
             println!("🔌 Using Gemini CLI via MCP (Codex → MCP → Gemini CLI)");
-            println!("   ℹ️  Note: Using OAuth 2.0 authentication (API key not required)");
-            Arc::new(GeminiSearchProvider::new_with_mcp(None))
+            if let Some(url) = mcp_url.as_deref() {
+                println!("   ℹ️ Requested MCP server: {url}");
+            }
+            println!("   ℹ️ MCP-backed Gemini integration is not fully configured; falling back to direct CLI execution.");
         } else {
-            // 直接Gemini CLIを呼び出す
             println!("🤖 Using Gemini CLI with Google Search (Grounding)");
-            println!("   ℹ️  Note: Using OAuth 2.0 authentication (API key not required)");
-            Arc::new(GeminiSearchProvider::default())
         }
-    } else if let Some(_mcp_url) = _mcp {
+        println!("   ℹ️ Note: Using OAuth 2.0 authentication (API key not required)");
+        Arc::new(GeminiSearchProvider::new(model))
+    } else if let Some(url) = mcp_url.as_deref() {
         println!("🔌 Using MCP Search Provider (DuckDuckGo backend)");
+        println!("   ℹ️ Server: {url}");
         Arc::new(McpSearchProvider::new(SearchBackend::DuckDuckGo, None))
     } else {
-        // OpenAI/codexのWeb検索機能 + DuckDuckGo統合
-        // フォールバックチェーン: Brave > Google > Bing > DuckDuckGo (APIキー不要)
         println!("🌐 Using Web Search Provider with DuckDuckGo integration");
         println!("   Priority: Brave > Google > Bing > DuckDuckGo (no API key required)");
 
-        // 環境変数チェック
         if std::env::var("BRAVE_API_KEY").is_ok() {
             println!("   ✅ Brave Search API detected");
-        } else if std::env::var("GOOGLE_API_KEY").is_ok() && std::env::var("GOOGLE_CSE_ID").is_ok()
+        } else if std::env::var("GOOGLE_API_KEY").is_ok()
+            && std::env::var("GOOGLE_CSE_ID").is_ok()
         {
             println!("   ✅ Google Custom Search API detected");
         } else if std::env::var("BING_API_KEY").is_ok() {
@@ -98,7 +95,6 @@ pub async fn run_research_command(
         .await
         .context("Failed to conduct research")?;
 
-    // 結果を表示
     println!("\n📊 Research Report:");
     println!("   Query: {}", report.query);
     println!("   Strategy: {:?}", report.strategy);
@@ -109,7 +105,7 @@ pub async fn run_research_command(
 
     if let Some(ref contradictions) = report.contradictions {
         println!(
-            "\n⚠️  Contradictions detected: {}",
+            "\n⚠️ Contradictions detected: {}",
             contradictions.contradiction_count
         );
         for (i, contradiction) in contradictions.contradictions.iter().enumerate().take(3) {
@@ -125,14 +121,11 @@ pub async fn run_research_command(
         println!("   [{}] {} - {}", i + 1, source.title, source.url);
     }
 
-    // レポートをファイルに保存
     let out_path = out.unwrap_or_else(|| PathBuf::from("artifacts/report.md"));
-
     if let Some(parent) = out_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
 
-    // Markdown形式でレポート生成
     let markdown = generate_markdown_report(&report);
     std::fs::write(&out_path, markdown)?;
 

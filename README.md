@@ -9,7 +9,7 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-0.48.0--zapabob.1-blue)]()
-[![License](https://img.shields.io/badge/license-Apache2.0-green)]()
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Rust](https://img.shields.io/badge/rust-1.85+-orange)]()
 
 [English](#english) | [日本語](#japanese)
@@ -304,7 +304,23 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ### 📄 License
 
-This project is dual-licensed under Apache 2.0 and MIT licenses. See [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) for details.
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+
+```
+Copyright 2025 zapabob
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
 
 ### 🙏 Acknowledgments
 
@@ -562,7 +578,23 @@ cargo test --all
 
 ### 📄 ライセンス
 
-このプロジェクトはApache 2.0とMITのデュアルライセンスです。詳細は[LICENSE-APACHE](LICENSE-APACHE)と[LICENSE-MIT](LICENSE-MIT)をご覧ください。
+このプロジェクトはApache License, Version 2.0の下でライセンスされています。詳細については[LICENSE](LICENSE)を参照してください。
+
+```
+Copyright 2025 zapabob
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
 
 ### 🙏 謝辞
 

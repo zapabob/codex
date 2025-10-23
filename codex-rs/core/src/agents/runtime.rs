@@ -29,7 +29,7 @@ use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::orchestration::CollaborationStore;
-use codex_mcp_client::McpClient;
+use codex_rmcp_client::RmcpClient;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
 use codex_protocol::config_types::ReasoningEffort;
@@ -980,7 +980,7 @@ impl AgentRuntime {
     }
 
     /// Codex MCP Serverをstdio モードで起動
-    async fn spawn_codex_mcp_server(&self) -> Result<Arc<McpClient>> {
+    async fn spawn_codex_mcp_server(&self) -> Result<Arc<RmcpClient>> {
         let codex_path = self
             .codex_binary_path
             .clone()
@@ -992,7 +992,7 @@ impl AgentRuntime {
             codex_path.display()
         );
 
-        let client = McpClient::new_stdio_client(
+        let client = RmcpClient::new_stdio_client(
             codex_path.into_os_string(),
             vec![OsString::from("mcp-server")],
             None,
@@ -1030,18 +1030,26 @@ impl AgentRuntime {
     }
 
     /// エージェント権限に基づいてCodex MCP toolsをフィルタリング
-    fn filter_codex_mcp_tools(&self, agent_def: &AgentDefinition) -> Vec<String> {
+    fn filter_codex_mcp_tools(agent_def: &AgentDefinition) -> Vec<String> {
         agent_def
             .tools
             .mcp
             .iter()
-            .filter(|tool| tool.starts_with("codex_"))
+            .filter(|tool| Self::is_codex_tool(tool))
             .cloned()
             .collect()
     }
 
+    fn is_codex_tool(tool: &str) -> bool {
+        let canonical = tool
+            .rsplit("__")
+            .next()
+            .unwrap_or(tool);
+        canonical.starts_with("codex_") || canonical.starts_with("codex-")
+    }
+
     /// Codex MCP toolsの説明を生成（プロンプト用）
-    fn build_codex_mcp_tools_description(&self, allowed_tools: &[String]) -> String {
+    fn build_codex_mcp_tools_description(allowed_tools: &[String]) -> String {
         let mut desc = String::from("Available Codex MCP Tools:\n\n");
 
         for tool in allowed_tools {
@@ -1070,6 +1078,36 @@ impl AgentRuntime {
                     "- codex_shell(command: str) -> str\n  \
                      Execute a shell command via Codex (restricted).\n  \
                      Requires shell permission."
+                }
+                "codex-supervisor" => {
+                    "- codex-supervisor(goal: str, strategy: Optional[str]) -> SupervisorReport\n  \
+                     Plan and coordinate multiple Codex subagents through the Supervisor layer.\n  \
+                     Use when you need structured collaboration across specialists."
+                }
+                "codex-deep-research" => {
+                    "- codex-deep-research(query: str, strategy: Optional[str], max_depth: Optional[int]) -> ResearchReport\n  \
+                     Run Codex DeepResearcher for multi-source investigations with citations.\n  \
+                     Ideal for comprehensive research and evidence gathering."
+                }
+                "codex-subagent" => {
+                    "- codex-subagent(action: str, agent_type: Optional[str], task: Optional[str], task_id: Optional[str]) -> ToolResult\n  \
+                     Manage Codex subagents: start tasks, auto-dispatch, check inbox, status, thinking, or token usage.\n  \
+                     Delegate work to specialist agents and retrieve their outputs."
+                }
+                "codex-custom-command" => {
+                    "- codex-custom-command(action: str, command_name: Optional[str], context: Optional[str]) -> ToolResult\n  \
+                     Execute curated multi-step workflows (e.g., analyze_code, deep_research) mapped to subagents.\n  \
+                     Handy for quick access to predefined automation."
+                }
+                "codex-hook" => {
+                    "- codex-hook(event: str, context: Optional[str]) -> HookAck\n  \
+                     Trigger lifecycle hooks such as on_subagent_start/on_task_complete for integrations.\n  \
+                     Use to capture workflow events or integrate external systems."
+                }
+                "codex-auto-orchestrate" => {
+                    "- codex-auto-orchestrate(goal: str, strategy: Optional[str]) -> OrchestrationReport\n  \
+                     Automatically analyze goals and dispatch the optimal mix of subagents.\n  \
+                     Best for high-level objectives that benefit from autonomous planning."
                 }
                 _ => continue,
             };
@@ -1106,7 +1144,7 @@ impl AgentRuntime {
             .context("Failed to spawn Codex MCP server")?;
 
         // 2. エージェント権限でツールをフィルタリング
-        let allowed_tools = self.filter_codex_mcp_tools(agent_def);
+        let allowed_tools = Self::filter_codex_mcp_tools(agent_def);
 
         info!(
             "Agent '{}' is allowed to use {} Codex MCP tools: {:?}",
@@ -1116,7 +1154,7 @@ impl AgentRuntime {
         );
 
         // 3. システムプロンプト構築（ツール説明含む）
-        let tools_description = self.build_codex_mcp_tools_description(&allowed_tools);
+        let tools_description = Self::build_codex_mcp_tools_description(&allowed_tools);
 
         let system_prompt = format!(
             "You are a specialized sub-agent with the following role:\n\
@@ -1335,7 +1373,7 @@ impl AgentRuntime {
     /// Codex MCPツールを実行
     async fn execute_codex_mcp_tool(
         &self,
-        mcp_client: &Arc<McpClient>,
+        mcp_client: &Arc<RmcpClient>,
         tool_name: &str,
         args: serde_json::Value,
     ) -> Result<String> {
@@ -1380,7 +1418,8 @@ async fn test_filter_codex_mcp_tools() {
         tools: ToolPermissions {
             mcp: vec![
                 "codex_read_file".to_string(),
-                "codex_grep".to_string(),
+                "codex-subagent".to_string(),
+                "mcp__server__codex-deep-research".to_string(),
                 "some_other_tool".to_string(), // 非Codexツール
             ],
             fs: Default::default(),
@@ -1401,97 +1440,30 @@ async fn test_filter_codex_mcp_tools() {
         extra: Default::default(),
     };
 
-    let temp_dir = tempfile::tempdir().unwrap();
-    let config = std::sync::Arc::new(Config::default());
-    let provider = ModelProviderInfo {
-        name: "Test".to_string(),
-        base_url: Some("https://api.openai.com/v1".to_string()),
-        env_key: Some("OPENAI_API_KEY".to_string()),
-        wire_api: WireApi::Chat,
-        env_key_instructions: None,
-        query_params: None,
-        http_headers: None,
-        env_http_headers: None,
-        request_max_retries: Some(4),
-        stream_max_retries: Some(10),
-        stream_idle_timeout_ms: Some(300_000),
-        requires_openai_auth: false,
-    };
-    let conversation_id = ConversationId::new();
-    let otel_manager = OtelEventManager::new(
-        conversation_id,
-        "test-model",
-        "test",
-        None,
-        None,
-        false,
-        "test".to_string(),
-    );
+    let filtered = AgentRuntime::filter_codex_mcp_tools(&agent_def);
 
-    let runtime = AgentRuntime::new(
-        temp_dir.path().to_path_buf(),
-        10000,
-        config,
-        None,
-        otel_manager,
-        provider,
-        conversation_id,
-    );
-
-    let filtered = runtime.filter_codex_mcp_tools(&agent_def);
-
-    assert_eq!(filtered.len(), 2);
+    assert_eq!(filtered.len(), 3);
     assert!(filtered.contains(&"codex_read_file".to_string()));
-    assert!(filtered.contains(&"codex_grep".to_string()));
+    assert!(filtered.contains(&"codex-subagent".to_string()));
+    assert!(filtered.contains(&"mcp__server__codex-deep-research".to_string()));
     assert!(!filtered.contains(&"some_other_tool".to_string()));
 }
 
 #[tokio::test]
 async fn test_build_codex_mcp_tools_description() {
-    use crate::model_provider_info::WireApi;
-    use uuid::Uuid;
-
-    let temp_dir = tempfile::tempdir().unwrap();
-    let config = std::sync::Arc::new(Config::default());
-    let provider = ModelProviderInfo {
-        name: "Test".to_string(),
-        base_url: Some("https://api.openai.com/v1".to_string()),
-        env_key: Some("OPENAI_API_KEY".to_string()),
-        wire_api: WireApi::Chat,
-        env_key_instructions: None,
-        query_params: None,
-        http_headers: None,
-        env_http_headers: None,
-        request_max_retries: Some(4),
-        stream_max_retries: Some(10),
-        stream_idle_timeout_ms: Some(300_000),
-        requires_openai_auth: false,
-    };
-    let conversation_id = ConversationId::new();
-    let otel_manager = OtelEventManager::new(
-        conversation_id,
-        "test-model",
-        "test",
-        None,
-        None,
-        false,
-        "test".to_string(),
-    );
-
-    let runtime = AgentRuntime::new(
-        temp_dir.path().to_path_buf(),
-        10000,
-        config,
-        None,
-        otel_manager,
-        provider,
-        conversation_id,
-    );
-
-    let tools = vec!["codex_read_file".to_string(), "codex_grep".to_string()];
-    let desc = runtime.build_codex_mcp_tools_description(&tools);
+    let tools = vec![
+        "codex_read_file".to_string(),
+        "codex-subagent".to_string(),
+        "codex-deep-research".to_string(),
+        "codex-auto-orchestrate".to_string(),
+    ];
+    let desc = AgentRuntime::build_codex_mcp_tools_description(&tools);
 
     assert!(desc.contains("codex_read_file"));
-    assert!(desc.contains("codex_grep"));
+    assert!(desc.contains("codex-subagent"));
+    assert!(desc.contains("Manage Codex subagents"));
+    assert!(desc.contains("codex-deep-research"));
+    assert!(desc.contains("DeepResearcher"));
+    assert!(desc.contains("codex-auto-orchestrate"));
     assert!(desc.contains("Safe, read-only operation"));
 }

@@ -1,12 +1,14 @@
-/// MCP-based Search Provider - Real integration with MCP tools
+/// MCP-based Search Provider - Real integration with MCP tools via rmcp
 /// Exceeds Claude Code by supporting multiple search backends and fallbacks
 use crate::provider::ResearchProvider;
 use crate::types::Source;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
+use codex_rmcp_client::RmcpClient;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::debug;
@@ -29,6 +31,8 @@ pub struct McpSearchProvider {
     fallbacks: Vec<SearchBackend>,
     /// Statistics
     stats: Arc<Mutex<SearchStats>>,
+    /// MCP client for search tool calls (optional, for rmcp integration)
+    mcp_client: Option<Arc<RmcpClient>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -80,6 +84,7 @@ impl McpSearchProvider {
             timeout_seconds: 30,
             fallbacks,
             stats: Arc::new(Mutex::new(SearchStats::default())),
+            mcp_client: None,
         }
     }
 
@@ -96,6 +101,29 @@ impl McpSearchProvider {
             timeout_seconds: 30,
             fallbacks,
             stats: Arc::new(Mutex::new(SearchStats::default())),
+            mcp_client: None,
+        }
+    }
+
+    /// Create with rmcp client for real MCP tool integration
+    pub fn with_mcp_client(
+        backend: SearchBackend,
+        api_key: Option<String>,
+        mcp_client: Arc<RmcpClient>,
+    ) -> Self {
+        let fallbacks = vec![
+            SearchBackend::DuckDuckGo,
+            SearchBackend::Mock,
+        ];
+
+        Self {
+            backend,
+            api_key,
+            max_retries: 3,
+            timeout_seconds: 30,
+            fallbacks,
+            stats: Arc::new(Mutex::new(SearchStats::default())),
+            mcp_client: Some(mcp_client),
         }
     }
 
@@ -162,15 +190,22 @@ impl McpSearchProvider {
 
     /// Brave Search API integration
     async fn search_brave(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
-        let _api_key = self
-            .api_key
-            .as_ref()
-            .context("Brave Search requires API key")?;
+        info!("🔍 Brave Search via MCP: {}", query);
 
-        info!("🔍 Brave Search: {}", query);
+        // Try MCP client first if available
+        if let Some(client) = &self.mcp_client {
+            match self
+                .search_via_mcp(client, "brave_search", query, max_results)
+                .await
+            {
+                Ok(results) => return Ok(results),
+                Err(e) => {
+                    warn!("MCP Brave Search failed: {}, falling back to mock", e);
+                }
+            }
+        }
 
-        // TODO: Actual Brave Search API call
-        // For now, return high-quality mock results
+        // Fallback to mock
         self.search_mock(query, max_results).await
     }
 
@@ -180,35 +215,64 @@ impl McpSearchProvider {
         query: &str,
         max_results: usize,
     ) -> Result<Vec<SearchResult>> {
-        info!("🦆 DuckDuckGo Search: {}", query);
+        info!("🦆 DuckDuckGo Search via MCP: {}", query);
 
-        // TODO: Actual DuckDuckGo API call (HTML scraping or unofficial API)
+        // Try MCP client first if available
+        if let Some(client) = &self.mcp_client {
+            match self
+                .search_via_mcp(client, "duckduckgo_search", query, max_results)
+                .await
+            {
+                Ok(results) => return Ok(results),
+                Err(e) => {
+                    warn!("MCP DuckDuckGo Search failed: {}, falling back to mock", e);
+                }
+            }
+        }
+
+        // Fallback to mock
         self.search_mock(query, max_results).await
     }
 
     /// Google Custom Search API
     async fn search_google(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
-        let _api_key = self
-            .api_key
-            .as_ref()
-            .context("Google Search requires API key")?;
+        info!("🔍 Google Search via MCP: {}", query);
 
-        info!("🔍 Google Search: {}", query);
+        // Try MCP client first if available
+        if let Some(client) = &self.mcp_client {
+            match self
+                .search_via_mcp(client, "google_search", query, max_results)
+                .await
+            {
+                Ok(results) => return Ok(results),
+                Err(e) => {
+                    warn!("MCP Google Search failed: {}, falling back to mock", e);
+                }
+            }
+        }
 
-        // TODO: Actual Google Custom Search API call
+        // Fallback to mock
         self.search_mock(query, max_results).await
     }
 
     /// Bing Search API
     async fn search_bing(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
-        let _api_key = self
-            .api_key
-            .as_ref()
-            .context("Bing Search requires API key")?;
+        info!("🔍 Bing Search via MCP: {}", query);
 
-        info!("🔍 Bing Search: {}", query);
+        // Try MCP client first if available
+        if let Some(client) = &self.mcp_client {
+            match self
+                .search_via_mcp(client, "bing_search", query, max_results)
+                .await
+            {
+                Ok(results) => return Ok(results),
+                Err(e) => {
+                    warn!("MCP Bing Search failed: {}, falling back to mock", e);
+                }
+            }
+        }
 
-        // TODO: Actual Bing Search API call
+        // Fallback to mock
         self.search_mock(query, max_results).await
     }
 
@@ -286,15 +350,113 @@ impl McpSearchProvider {
         self.stats.lock().await.clone()
     }
 
+    /// Execute search via MCP tool
+    async fn search_via_mcp(
+        &self,
+        client: &Arc<RmcpClient>,
+        tool_name: &str,
+        query: &str,
+        max_results: usize,
+    ) -> Result<Vec<SearchResult>> {
+        info!("🔧 Calling MCP tool: {} with query: {}", tool_name, query);
+
+        // Prepare tool call arguments
+        let arguments = json!({
+            "query": query,
+            "max_results": max_results,
+        });
+
+        // Call the MCP tool
+        let result = client
+            .call_tool(tool_name.to_string(), Some(arguments), None)
+            .await
+            .context(format!("Failed to call MCP tool: {}", tool_name))?;
+
+        // Parse the result
+        self.parse_search_results(result.content)
+    }
+
+    /// Parse search results from MCP tool response
+    fn parse_search_results(
+        &self,
+        content: Vec<mcp_types::ContentBlock>,
+    ) -> Result<Vec<SearchResult>> {
+        let mut results = Vec::new();
+
+        for item in content {
+            match item {
+                mcp_types::ContentBlock::TextContent(text_content) => {
+                    let text = &text_content.text;
+                    // Try to parse as JSON array of search results
+                    if let Ok(json_results) = serde_json::from_str::<Vec<serde_json::Value>>(&text)
+                    {
+                        for json_result in json_results {
+                            if let Ok(result) = self.parse_single_result(json_result) {
+                                results.push(result);
+                            }
+                        }
+                    }
+                }
+                _ => {
+                    debug!("Ignoring non-text content in MCP response");
+                }
+            }
+        }
+
+        if results.is_empty() {
+            Err(anyhow::anyhow!(
+                "No valid search results found in MCP response"
+            ))
+        } else {
+            Ok(results)
+        }
+    }
+
+    /// Parse a single search result from JSON
+    fn parse_single_result(&self, json: serde_json::Value) -> Result<SearchResult> {
+        Ok(SearchResult {
+            title: json["title"].as_str().unwrap_or("Untitled").to_string(),
+            url: json["url"]
+                .as_str()
+                .context("Missing URL in search result")?
+                .to_string(),
+            snippet: json["snippet"].as_str().unwrap_or("").to_string(),
+            relevance_score: json["relevance_score"].as_f64().unwrap_or(0.5),
+            published_date: json["published_date"].as_str().map(|s| s.to_string()),
+            domain: json["domain"].as_str().unwrap_or("unknown").to_string(),
+        })
+    }
+
     /// Fetch content from URL
     async fn fetch_content(&self, url: &str) -> Result<String> {
         info!("📥 Fetching content from: {}", url);
 
-        // TODO: Actual HTTP fetch with proper error handling
-        // For now, return mock content
-        Ok(format!(
-            "Content from {url}\n\nDetailed information about the topic..."
-        ))
+        // Try MCP client first if available
+        if let Some(client) = &self.mcp_client {
+            let arguments = json!({ "url": url });
+
+            match client
+                .call_tool("fetch_content".to_string(), Some(arguments), None)
+                .await
+            {
+                Ok(result) => {
+                    // Extract text from result
+                    for item in result.content {
+                        if let mcp_types::ContentBlock::TextContent(text_content) = item {
+                            return Ok(text_content.text);
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!("MCP fetch_content failed: {}, falling back to reqwest", e);
+                }
+            }
+        }
+
+        // Fallback to direct HTTP fetch
+        let response = reqwest::get(url).await?;
+        let content = response.text().await?;
+        Ok(content)
     }
 }
 
@@ -361,6 +523,27 @@ mod tests {
 
         assert!(!sources.is_empty());
         assert!(sources.len() <= 5);
+    }
+
+    #[tokio::test]
+    async fn test_search_with_fallback() {
+        let provider = McpSearchProvider::new(SearchBackend::Brave, None);
+        let results = provider.search_with_fallback("test", 3).await.unwrap();
+
+        assert!(!results.is_empty());
+        assert!(results.len() <= 3);
+    }
+
+    #[tokio::test]
+    async fn test_stats_tracking() {
+        let provider = McpSearchProvider::new(SearchBackend::Mock, None);
+
+        let _ = provider.search("query1", 5).await;
+        let _ = provider.search("query2", 5).await;
+
+        let stats = provider.get_stats().await;
+        assert_eq!(stats.total_searches, 2);
+        assert_eq!(stats.successful_searches, 2);
     }
 
     #[tokio::test]

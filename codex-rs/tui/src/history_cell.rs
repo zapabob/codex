@@ -285,38 +285,60 @@ impl UpdateAvailableHistoryCell {
 
 impl HistoryCell for UpdateAvailableHistoryCell {
     fn display_lines(&self, width: u16) -> Vec<Line<'static>> {
-        use ratatui_macros::line;
-        use ratatui_macros::text;
         let update_instruction = if let Some(update_action) = self.update_action {
-            line!["Run ", update_action.command_str().cyan(), " to update."]
+            let command = update_action.command_str();
+            Line::from(vec![
+                Span::raw("Run "),
+                Span::styled(command, Style::default().fg(Color::Cyan)),
+                Span::raw(" to update."),
+            ])
         } else {
-            line![
-                "See ",
-                "https://github.com/openai/codex".cyan().underlined(),
-                " for installation options."
-            ]
+            Line::from(vec![
+                Span::raw("See "),
+                Span::styled(
+                    "https://github.com/openai/codex",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::UNDERLINED),
+                ),
+                Span::raw(" for installation options."),
+            ])
         };
 
-        let content = text![
-            line![
-                padded_emoji("✨").bold().cyan(),
-                "Update available!".bold().cyan(),
-                " ",
-                format!("{CODEX_CLI_VERSION} -> {}", self.latest_version).bold(),
-            ],
-            update_instruction,
-            "",
-            "See full release notes:",
-            "https://github.com/openai/codex/releases/latest"
-                .cyan()
-                .underlined(),
-        ];
+        let header_style = Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD);
+        let version_style = Style::default().add_modifier(Modifier::BOLD);
+        let link_style = Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::UNDERLINED);
 
+        let header_line = Line::from(vec![
+            Span::styled(padded_emoji("✨"), header_style),
+            Span::styled("Update available!".to_string(), header_style),
+            Span::raw(" "),
+            Span::styled(
+                format!("{CODEX_CLI_VERSION} -> {}", self.latest_version),
+                version_style,
+            ),
+        ]);
+
+        let mut content_lines = Vec::with_capacity(5);
+        content_lines.push(header_line);
+        content_lines.push(update_instruction);
+        content_lines.push(Line::from(""));
+        content_lines.push(Line::from("See full release notes:"));
+        content_lines.push(Line::from(vec![Span::styled(
+            "https://github.com/openai/codex/releases/latest",
+            link_style,
+        )]));
+
+        let content = Text::from(content_lines.clone());
         let inner_width = content
             .width()
             .min(usize::from(width.saturating_sub(4)))
             .max(1);
-        with_border_with_inner_width(content.lines, inner_width)
+        with_border_with_inner_width(content_lines, inner_width)
     }
 }
 

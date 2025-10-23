@@ -9,6 +9,8 @@ pub mod research_cmd;
 
 use clap::Parser;
 use codex_common::CliConfigOverrides;
+use codex_core::config::Config;
+use std::convert::TryFrom;
 
 #[derive(Debug, Parser)]
 pub struct SeatbeltCommand {
@@ -22,6 +24,23 @@ pub struct SeatbeltCommand {
     /// Full command args to run under seatbelt.
     #[arg(trailing_var_arg = true)]
     pub command: Vec<String>,
+}
+
+/// Resolve the runtime token budget for sub-agent execution.
+///
+/// The budget value in the config is stored as `Option<i64>` to mirror the
+/// server-side representation. We clamp the value to a non-negative range and
+/// downcast safely to `usize` so it can be consumed by the runtime.
+pub fn resolve_runtime_budget(config: &Config, default_budget: i64) -> usize {
+    let raw_budget = config
+        .model_context_window
+        .unwrap_or(default_budget)
+        .max(0);
+
+    let as_u64 = u64::try_from(raw_budget).unwrap_or(u64::MAX);
+    let capped = as_u64.min(usize::MAX as u64);
+
+    usize::try_from(capped).unwrap_or(usize::MAX)
 }
 
 #[derive(Debug, Parser)]

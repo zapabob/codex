@@ -23,8 +23,6 @@ use codex_protocol::ConversationId;
 use codex_protocol::items::TurnItem;
 use codex_protocol::protocol::ConversationPathResponseEvent;
 use codex_protocol::protocol::ExitedReviewModeEvent;
-use codex_protocol::protocol::ItemCompletedEvent;
-use codex_protocol::protocol::ItemStartedEvent;
 use codex_protocol::protocol::ReviewRequest;
 use codex_protocol::protocol::RolloutItem;
 use codex_protocol::protocol::SessionSource;
@@ -547,10 +545,12 @@ impl Session {
         let state = SessionState::new(session_configuration.clone());
 
         // Initialize zapabob agent runtime and sub-agent integration
-        let total_budget = config
-            .model_context_window
-            .unwrap_or(100_000)
-            .min(usize::MAX as u64) as usize;
+        let total_budget = {
+            let raw_budget = config.model_context_window.unwrap_or(100_000).max(0);
+            let max_budget = i64::try_from(usize::MAX).unwrap_or(i64::MAX);
+            let capped_budget = raw_budget.min(max_budget);
+            capped_budget as usize
+        };
         let agent_runtime = Arc::new(AgentRuntime::new(
             config.cwd.clone(),
             total_budget,
@@ -574,6 +574,7 @@ impl Session {
             otel_event_manager,
             agent_runtime,
             async_subagent_integration,
+            tool_approvals: Arc::new(Mutex::new(ApprovalStore::default())),
         };
 
         let sess = Arc::new(Session {
@@ -721,33 +722,12 @@ impl Session {
         }
     }
 
-    async fn emit_turn_item_started(&self, turn_context: &TurnContext, item: &TurnItem) {
-        self.send_event(
-            turn_context,
-            EventMsg::ItemStarted(ItemStartedEvent {
-                thread_id: self.conversation_id,
-                turn_id: turn_context.sub_id.clone(),
-                item: item.clone(),
-            }),
-        )
-        .await;
-    }
-
     async fn emit_turn_item_completed(
         &self,
         turn_context: &TurnContext,
         item: TurnItem,
         emit_raw_agent_reasoning: bool,
     ) {
-        self.send_event(
-            turn_context,
-            EventMsg::ItemCompleted(ItemCompletedEvent {
-                thread_id: self.conversation_id,
-                turn_id: turn_context.sub_id.clone(),
-                item: item.clone(),
-            }),
-        )
-        .await;
         self.emit_turn_item_legacy_events(turn_context, &item, emit_raw_agent_reasoning)
             .await;
     }
@@ -758,7 +738,6 @@ impl Session {
         item: TurnItem,
         emit_raw_agent_reasoning: bool,
     ) {
-        self.emit_turn_item_started(turn_context, &item).await;
         self.emit_turn_item_completed(turn_context, item, emit_raw_agent_reasoning)
             .await;
     }
@@ -2709,6 +2688,7 @@ mod tests {
             otel_event_manager: otel_event_manager.clone(),
             agent_runtime,
             async_subagent_integration,
+            tool_approvals: Arc::new(Mutex::new(ApprovalStore::default())),
         };
 
         let turn_context = Session::make_turn_context(
@@ -2792,6 +2772,7 @@ mod tests {
             otel_event_manager: otel_event_manager.clone(),
             agent_runtime,
             async_subagent_integration,
+            tool_approvals: Arc::new(Mutex::new(ApprovalStore::default())),
         };
 
         let turn_context = Arc::new(Session::make_turn_context(

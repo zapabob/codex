@@ -1392,49 +1392,49 @@ pub struct TurnAbortedEvent {
 }
 
 // SubAgent event structures
-#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, TS, JsonSchema)]
 pub struct SubAgentTaskCompletedEvent {
     pub agent_type: String,
     pub content: String,
     pub timestamp: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, TS, JsonSchema)]
 pub struct SubAgentTaskFailedEvent {
     pub agent_type: String,
     pub error: String,
     pub timestamp: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, TS, JsonSchema)]
 pub struct SubAgentProgressUpdateEvent {
     pub agent_type: String,
     pub progress: String,
     pub timestamp: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, TS, JsonSchema)]
 pub struct SubAgentMessageEvent {
     pub agent_type: String,
     pub message: String,
     pub timestamp: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, TS, JsonSchema)]
 pub struct SubAgentErrorEvent {
     pub agent_type: String,
     pub error: String,
     pub timestamp: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, TS, JsonSchema)]
 pub struct SubAgentInfoEvent {
     pub agent_type: String,
     pub info: String,
     pub timestamp: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, TS, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum TurnAbortReason {
     Interrupted,
