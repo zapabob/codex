@@ -1,4 +1,5 @@
 //! Handler for supervisor tool calls via MCP.
+//! rmcp 0.8.3+ best practices implementation.
 
 use crate::supervisor_tool::SupervisorToolParam;
 use mcp_types::CallToolResult;
@@ -6,16 +7,40 @@ use mcp_types::ContentBlock;
 use mcp_types::RequestId;
 use mcp_types::TextContent;
 use serde_json::json;
+use std::time::Duration;
+use tokio::time::timeout;
+use tracing::debug;
+use tracing::error;
+use tracing::info;
+use tracing::warn;
 
-/// Handle a supervisor tool call.
+/// Timeout for supervisor operations (rmcp best practice: 5 minutes)
+const SUPERVISOR_TIMEOUT: Duration = Duration::from_secs(300);
+
+/// Maximum retry attempts for transient failures
+const MAX_RETRY_ATTEMPTS: u32 = 3;
+
+/// Delay between retry attempts (exponential backoff)
+const BASE_RETRY_DELAY: Duration = Duration::from_secs(1);
+
+/// Handle a supervisor tool call with timeout, retry, and error handling.
 pub async fn handle_supervisor_tool_call(
-    _id: RequestId,
+    id: RequestId,
     arguments: Option<serde_json::Value>,
 ) -> CallToolResult {
+    info!("Supervisor tool call received (request_id: {:?})", id);
+
     let params = match arguments {
         Some(json_val) => match serde_json::from_value::<SupervisorToolParam>(json_val) {
-            Ok(p) => p,
+            Ok(p) => {
+                debug!(
+                    "Parsed supervisor parameters: goal={}, agents={:?}",
+                    p.goal, p.agents
+                );
+                p
+            }
             Err(e) => {
+                error!("Failed to parse supervisor parameters: {}", e);
                 return CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
@@ -28,6 +53,7 @@ pub async fn handle_supervisor_tool_call(
             }
         },
         None => {
+            error!("Missing supervisor parameters");
             return CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
@@ -40,9 +66,10 @@ pub async fn handle_supervisor_tool_call(
         }
     };
 
-    // Execute supervisor coordination
-    let result_text = match execute_supervisor(&params).await {
+    // Execute with retry logic
+    let result_text = match execute_with_retry(&params).await {
         Ok(output) => {
+            info!("Supervisor execution succeeded");
             if params.format == "json" {
                 output
             } else {
@@ -61,6 +88,7 @@ pub async fn handle_supervisor_tool_call(
             }
         }
         Err(e) => {
+            error!("Supervisor execution failed after retries: {}", e);
             return CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
@@ -82,6 +110,59 @@ pub async fn handle_supervisor_tool_call(
         is_error: None,
         structured_content: None,
     }
+}
+
+/// Execute supervisor with retry logic and exponential backoff.
+async fn execute_with_retry(params: &SupervisorToolParam) -> anyhow::Result<String> {
+    let mut last_error = None;
+
+    for attempt in 1..=MAX_RETRY_ATTEMPTS {
+        debug!(
+            "Supervisor execution attempt {}/{}",
+            attempt, MAX_RETRY_ATTEMPTS
+        );
+
+        // Execute with timeout
+        match timeout(SUPERVISOR_TIMEOUT, execute_supervisor(params)).await {
+            Ok(Ok(result)) => {
+                return Ok(result);
+            }
+            Ok(Err(e)) => {
+                warn!("Supervisor execution attempt {} failed: {}", attempt, e);
+                last_error = Some(e);
+
+                // Check if error is retryable
+                if !is_retryable_error(&last_error.as_ref().unwrap()) {
+                    return Err(last_error.unwrap());
+                }
+
+                // Exponential backoff
+                if attempt < MAX_RETRY_ATTEMPTS {
+                    let delay = BASE_RETRY_DELAY * 2_u32.pow(attempt - 1);
+                    debug!("Waiting {:?} before retry", delay);
+                    tokio::time::sleep(delay).await;
+                }
+            }
+            Err(_) => {
+                error!(
+                    "Supervisor execution timed out after {:?}",
+                    SUPERVISOR_TIMEOUT
+                );
+                return Err(anyhow::anyhow!("Supervisor execution timed out"));
+            }
+        }
+    }
+
+    Err(last_error.unwrap_or_else(|| anyhow::anyhow!("Supervisor execution failed")))
+}
+
+/// Check if an error is retryable (network issues, temporary failures).
+fn is_retryable_error(error: &anyhow::Error) -> bool {
+    let error_msg = error.to_string().to_lowercase();
+    error_msg.contains("timeout")
+        || error_msg.contains("connection")
+        || error_msg.contains("temporary")
+        || error_msg.contains("unavailable")
 }
 
 /// Execute the supervisor coordination.
