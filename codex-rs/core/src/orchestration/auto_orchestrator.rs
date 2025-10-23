@@ -450,7 +450,7 @@ impl AutoOrchestrator {
                 let error_msg = result
                     .error
                     .as_ref()
-                    .map(|e| e.to_string())
+                    .map(ToString::to_string)
                     .unwrap_or_else(|| "Unknown error".to_string());
                 warn!("Agent {} failed: {}", result.agent_name, error_msg);
             }
