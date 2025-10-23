@@ -27,8 +27,9 @@ codex-file-search = { workspace = true }
 codex-otel = { workspace = true, features = ["otel"] }
 codex-protocol = { workspace = true }
 codex-rmcp-client = { workspace = true }
-codex-utils-string = { workspace = true }
 codex-utils-pty = { workspace = true }
+codex-utils-string = { workspace = true }
+codex-utils-tokenizer = { workspace = true }
 dashmap = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }
