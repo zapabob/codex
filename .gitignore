@@ -199,6 +199,7 @@ docs/implementation-roadmap*.md
 *.patch
 
 # その他の一時ファイル
+_temp/
 VERSION
 CUsersdownl.codexbin
 tatus
