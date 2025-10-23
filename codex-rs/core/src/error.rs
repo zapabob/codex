@@ -160,11 +160,28 @@ pub enum CodexErr {
     EnvVar(EnvVarError),
 }
 
+/// Converts a cancellation error to TurnAborted.
+///
+/// Preserves any dangling artifacts from the `CancelErr` if available.
+/// If `CancelErr` contains no artifact information, initializes with an empty vector.
 impl From<CancelErr> for CodexErr {
-    fn from(_: CancelErr) -> Self {
-        CodexErr::TurnAborted {
-            dangling_artifacts: Vec::new(),
-        }
+    fn from(cancel_err: CancelErr) -> Self {
+        use codex_protocol::models::ProcessedResponseItem;
+
+        let dangling_artifacts = cancel_err
+            .dangling_artifacts
+            .map(|artifacts| {
+                artifacts
+                    .into_iter()
+                    .filter_map(|value| {
+                        // Try to deserialize each Value into ProcessedResponseItem
+                        serde_json::from_value::<ProcessedResponseItem>(value).ok()
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        CodexErr::TurnAborted { dangling_artifacts }
     }
 }
 
@@ -379,6 +396,14 @@ impl CodexErr {
     /// `anyhow::Error::downcast_ref` but works directly on our concrete enum.
     pub fn downcast_ref<T: std::any::Any>(&self) -> Option<&T> {
         (self as &dyn std::any::Any).downcast_ref::<T>()
+    }
+
+    /// Creates a `TurnAborted` error with the given dangling artifacts.
+    ///
+    /// Use this when you have artifacts that should be preserved across the abort,
+    /// rather than converting from `CancelErr` which always results in empty artifacts.
+    pub fn turn_aborted_with_artifacts(dangling_artifacts: Vec<ProcessedResponseItem>) -> Self {
+        CodexErr::TurnAborted { dangling_artifacts }
     }
 }
 

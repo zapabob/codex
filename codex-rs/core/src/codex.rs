@@ -935,7 +935,7 @@ impl Session {
 
     // todo (aibrahim): get rid of this method. we shouldn't deal with vec[resposne_item] and rather use ConversationHistory.
     pub(crate) async fn history_snapshot(&self) -> Vec<ResponseItem> {
-        let mut state = self.state.lock().await;
+        let state = self.state.lock().await;
         state.history_snapshot()
     }
 

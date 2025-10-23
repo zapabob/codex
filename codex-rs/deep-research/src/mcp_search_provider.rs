@@ -9,11 +9,32 @@ use codex_rmcp_client::RmcpClient;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
+use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
+use std::time::SystemTime;
 use tokio::sync::Mutex;
 use tracing::debug;
 use tracing::info;
 use tracing::warn;
+
+/// Cache entry for search results
+#[derive(Clone, Debug)]
+struct CacheEntry {
+    results: Vec<SearchResult>,
+    timestamp: SystemTime,
+    ttl: Duration,
+}
+
+impl CacheEntry {
+    fn is_expired(&self) -> bool {
+        if let Ok(elapsed) = self.timestamp.elapsed() {
+            elapsed > self.ttl
+        } else {
+            true
+        }
+    }
+}
 
 /// MCP Search Provider - integrates with actual search APIs via MCP
 pub struct McpSearchProvider {
@@ -34,6 +55,10 @@ pub struct McpSearchProvider {
     stats: Arc<Mutex<SearchStats>>,
     /// MCP client for search tool calls (optional, for rmcp integration)
     mcp_client: Option<Arc<RmcpClient>>,
+    /// Search result cache (query -> results)
+    cache: Arc<Mutex<HashMap<String, CacheEntry>>>,
+    /// Cache TTL (default: 1 hour)
+    cache_ttl: Duration,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -86,6 +111,8 @@ impl McpSearchProvider {
             fallbacks,
             stats: Arc::new(Mutex::new(SearchStats::default())),
             mcp_client: None,
+            cache: Arc::new(Mutex::new(HashMap::new())),
+            cache_ttl: Duration::from_secs(3600), // 1 hour default
         }
     }
 
@@ -103,6 +130,8 @@ impl McpSearchProvider {
             fallbacks,
             stats: Arc::new(Mutex::new(SearchStats::default())),
             mcp_client: None,
+            cache: Arc::new(Mutex::new(HashMap::new())),
+            cache_ttl: Duration::from_secs(3600),
         }
     }
 
@@ -122,15 +151,32 @@ impl McpSearchProvider {
             fallbacks,
             stats: Arc::new(Mutex::new(SearchStats::default())),
             mcp_client: Some(mcp_client),
+            cache: Arc::new(Mutex::new(HashMap::new())),
+            cache_ttl: Duration::from_secs(3600),
         }
     }
 
-    /// Execute search with automatic fallback
+    /// Execute search with automatic fallback and caching.
     async fn search_with_fallback(
         &self,
         query: &str,
         max_results: usize,
     ) -> Result<Vec<SearchResult>> {
+        // Check cache first
+        let cache_key = format!("{}:{}", query, max_results);
+        {
+            let cache = self.cache.lock().await;
+            if let Some(entry) = cache.get(&cache_key) {
+                if !entry.is_expired() {
+                    debug!("Cache hit for query: {}", query);
+                    return Ok(entry.results.clone());
+                } else {
+                    debug!("Cache expired for query: {}", query);
+                }
+            }
+        }
+
+        debug!("Cache miss for query: {}", query);
         let mut _last_error: Option<anyhow::Error> = None;
 
         // Try primary backend
@@ -140,6 +186,8 @@ impl McpSearchProvider {
         {
             Ok(results) => {
                 self.update_stats(true, results.len()).await;
+                // Cache the results
+                self.cache_results(&cache_key, &results).await;
                 return Ok(results);
             }
             Err(e) => {
@@ -157,6 +205,8 @@ impl McpSearchProvider {
             {
                 Ok(results) => {
                     self.update_stats_fallback(results.len()).await;
+                    // Cache the results
+                    self.cache_results(&cache_key, &results).await;
                     return Ok(results);
                 }
                 Err(e) => {
@@ -346,6 +396,49 @@ impl McpSearchProvider {
     /// Get current statistics
     pub async fn get_stats(&self) -> SearchStats {
         self.stats.lock().await.clone()
+    }
+
+    /// Cache search results
+    async fn cache_results(&self, cache_key: &str, results: &[SearchResult]) {
+        let entry = CacheEntry {
+            results: results.to_vec(),
+            timestamp: SystemTime::now(),
+            ttl: self.cache_ttl,
+        };
+
+        let mut cache = self.cache.lock().await;
+        cache.insert(cache_key.to_string(), entry);
+        debug!("Cached {} results for key: {}", results.len(), cache_key);
+    }
+
+    /// Clear expired cache entries
+    pub async fn clear_expired_cache(&self) {
+        let mut cache = self.cache.lock().await;
+        let expired_keys: Vec<String> = cache
+            .iter()
+            .filter(|(_, entry)| entry.is_expired())
+            .map(|(key, _)| key.clone())
+            .collect();
+
+        for key in expired_keys {
+            cache.remove(&key);
+        }
+        debug!("Cleared expired cache entries");
+    }
+
+    /// Clear all cache entries
+    pub async fn clear_cache(&self) {
+        let mut cache = self.cache.lock().await;
+        cache.clear();
+        info!("Cleared all cache entries");
+    }
+
+    /// Get cache statistics
+    pub async fn get_cache_stats(&self) -> (usize, usize) {
+        let cache = self.cache.lock().await;
+        let total_entries = cache.len();
+        let expired_entries = cache.values().filter(|entry| entry.is_expired()).count();
+        (total_entries, expired_entries)
     }
 
     /// Execute search via MCP tool

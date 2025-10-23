@@ -15,6 +15,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
+use tracing::debug;
 use tracing::info;
 use tracing::warn;
 
@@ -67,6 +68,17 @@ pub struct PlannedTask {
 
     /// Task status
     pub status: String,
+}
+
+/// Execution strategy for orchestrated tasks.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ExecutionStrategy {
+    /// Execute all tasks in parallel for maximum speed
+    Parallel,
+    /// Execute tasks sequentially for dependencies
+    Sequential,
+    /// Hybrid: parallel where possible, sequential where needed
+    Hybrid,
 }
 
 /// Autonomous orchestrator that coordinates sub-agents transparently.
@@ -318,6 +330,148 @@ impl AutoOrchestrator {
         }
 
         summary
+    }
+
+    /// Select agents dynamically based on task analysis.
+    ///
+    /// Analyzes task requirements and selects the most appropriate agents.
+    /// Uses heuristics based on:
+    /// - Required skills (from task analysis)
+    /// - Task complexity
+    /// - Domain specificity
+    pub fn select_agents_for_task(&self, analysis: &TaskAnalysis) -> Vec<String> {
+        debug!("Selecting agents for task analysis");
+        let mut selected_agents = Vec::new();
+
+        // Use recommended agents from analysis as baseline
+        for agent in &analysis.recommended_agents {
+            selected_agents.push(agent.clone());
+        }
+
+        // Add specialized agents based on detected keywords
+        for keyword in &analysis.detected_keywords {
+            match keyword.as_str() {
+                "testing" | "test" => {
+                    if !selected_agents.contains(&"test-gen".to_string()) {
+                        debug!("Adding test-gen agent for testing keyword");
+                        selected_agents.push("test-gen".to_string());
+                    }
+                }
+                "security" | "audit" => {
+                    if !selected_agents.contains(&"sec-audit".to_string()) {
+                        debug!("Adding sec-audit agent for security keyword");
+                        selected_agents.push("sec-audit".to_string());
+                    }
+                }
+                "research" | "investigation" => {
+                    if !selected_agents.contains(&"researcher".to_string()) {
+                        debug!("Adding researcher agent for research skill");
+                        selected_agents.push("researcher".to_string());
+                    }
+                }
+                "code-review" | "review" => {
+                    if !selected_agents.contains(&"code-reviewer".to_string()) {
+                        debug!("Adding code-reviewer agent for review skill");
+                        selected_agents.push("code-reviewer".to_string());
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // Ensure at least one agent is selected
+        if selected_agents.is_empty() {
+            debug!("No agents selected, defaulting to code-reviewer");
+            selected_agents.push("code-reviewer".to_string());
+        }
+
+        info!(
+            "Selected {} agents for task: {:?}",
+            selected_agents.len(),
+            selected_agents
+        );
+
+        selected_agents
+    }
+
+    /// Determine execution strategy based on task characteristics.
+    ///
+    /// Analyzes task to decide whether parallel, sequential, or hybrid execution is best.
+    pub fn determine_execution_strategy(&self, task: &PlannedTask) -> ExecutionStrategy {
+        debug!(
+            "Determining execution strategy for task: {}",
+            task.description
+        );
+
+        // Check for keywords indicating sequential dependencies
+        let description_lower = task.description.to_lowercase();
+        let has_dependencies = description_lower.contains("after")
+            || description_lower.contains("then")
+            || description_lower.contains("depends on")
+            || description_lower.contains("based on");
+
+        if has_dependencies {
+            debug!("Task has dependencies, using Sequential strategy");
+            return ExecutionStrategy::Sequential;
+        }
+
+        // Check for file editing conflicts
+        let has_file_edits = description_lower.contains("edit")
+            || description_lower.contains("modify")
+            || description_lower.contains("change");
+
+        if has_file_edits {
+            debug!("Task involves file edits, using Hybrid strategy");
+            return ExecutionStrategy::Hybrid;
+        }
+
+        // Default to parallel for independent tasks
+        debug!("Task appears independent, using Parallel strategy");
+        ExecutionStrategy::Parallel
+    }
+
+    /// Aggregate results from multiple agents with conflict resolution.
+    ///
+    /// Combines results while resolving any conflicts in file edits.
+    pub fn aggregate_results(&self, results: Vec<AgentResult>) -> Result<OrchestratedResult> {
+        debug!("Aggregating {} agent results", results.len());
+
+        let start_time = Instant::now();
+        let agents_used: Vec<String> = results.iter().map(|r| r.agent_name.clone()).collect();
+
+        // Merge results using the conflict resolver
+        let execution_summary = self.merge_results(&results);
+
+        // Check for conflicts in file edits
+        let mut _has_conflicts = false;
+        for result in &results {
+            if !matches!(result.status, crate::agents::AgentStatus::Completed) {
+                _has_conflicts = true;
+                let error_msg = result
+                    .error
+                    .as_ref()
+                    .map(|e| e.to_string())
+                    .unwrap_or_else(|| "Unknown error".to_string());
+                warn!("Agent {} failed: {}", result.agent_name, error_msg);
+            }
+        }
+
+        let task_analysis = TaskAnalysis {
+            complexity_score: 0.5,
+            detected_keywords: vec![],
+            recommended_agents: agents_used.clone(),
+            subtasks: vec![],
+            original_input: String::new(),
+        };
+
+        Ok(OrchestratedResult {
+            was_orchestrated: true,
+            agents_used,
+            execution_summary,
+            agent_results: results,
+            total_execution_time_secs: start_time.elapsed().as_secs_f64(),
+            task_analysis,
+        })
     }
 }
 

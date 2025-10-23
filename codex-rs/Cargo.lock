@@ -999,6 +999,7 @@ version = "0.48.0-zapabob.1"
 dependencies = [
  "async-trait",
  "pretty_assertions",
+ "serde_json",
  "tokio",
  "tokio-util",
 ]

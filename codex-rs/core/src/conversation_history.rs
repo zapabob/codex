@@ -58,7 +58,7 @@ impl ConversationHistory {
     }
 
     /// Returns a clone of the contents in the transcript.
-    fn contents(&self) -> Vec<ResponseItem> {
+    pub(crate) fn contents(&self) -> Vec<ResponseItem> {
         self.items.clone()
     }
 

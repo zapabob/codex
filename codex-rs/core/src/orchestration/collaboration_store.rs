@@ -6,8 +6,26 @@
 use crate::agents::AgentResult;
 use crate::agents::AgentStatus;
 use dashmap::DashMap;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::Value;
 use std::sync::Arc;
+use std::time::SystemTime;
+
+/// Message passed between agents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentMessage {
+    /// Sender agent name
+    pub from: String,
+    /// Recipient agent name (or "broadcast" for all)
+    pub to: String,
+    /// Message content
+    pub content: Value,
+    /// Timestamp
+    pub timestamp: SystemTime,
+    /// Message priority (higher = more urgent)
+    pub priority: u8,
+}
 
 /// Shared store for agent collaboration during orchestrated execution.
 #[derive(Clone)]
@@ -20,6 +38,9 @@ pub struct CollaborationStore {
 
     /// Task-level metadata
     task_metadata: Arc<DashMap<String, Value>>,
+
+    /// Message queue for inter-agent communication
+    message_queue: Arc<DashMap<String, Vec<AgentMessage>>>,
 }
 
 impl CollaborationStore {
@@ -29,6 +50,7 @@ impl CollaborationStore {
             shared_context: Arc::new(DashMap::new()),
             agent_results: Arc::new(DashMap::new()),
             task_metadata: Arc::new(DashMap::new()),
+            message_queue: Arc::new(DashMap::new()),
         }
     }
 
@@ -113,6 +135,7 @@ impl CollaborationStore {
         self.shared_context.clear();
         self.agent_results.clear();
         self.task_metadata.clear();
+        self.message_queue.clear();
     }
 
     /// Get the number of completed agents.
@@ -123,6 +146,73 @@ impl CollaborationStore {
     /// Check if a specific agent has completed.
     pub fn has_agent_completed(&self, agent_name: &str) -> bool {
         self.agent_results.contains_key(agent_name)
+    }
+
+    // ==================== Message Passing Methods ====================
+
+    /// Send a message from one agent to another (or broadcast).
+    pub fn send_message(&self, from: String, to: String, content: Value, priority: u8) {
+        let message = AgentMessage {
+            from,
+            to: to.clone(),
+            content,
+            timestamp: SystemTime::now(),
+            priority,
+        };
+
+        self.message_queue
+            .entry(to)
+            .or_insert_with(Vec::new)
+            .push(message);
+    }
+
+    /// Broadcast a message to all agents.
+    pub fn broadcast_message(&self, from: String, content: Value, priority: u8) {
+        self.send_message(from, "broadcast".to_string(), content, priority);
+    }
+
+    /// Get messages for a specific agent, sorted by priority (high to low).
+    pub fn get_messages(&self, agent_name: &str) -> Vec<AgentMessage> {
+        let mut messages = Vec::new();
+
+        // Get direct messages
+        if let Some(entry) = self.message_queue.get(agent_name) {
+            messages.extend(entry.value().clone());
+        }
+
+        // Get broadcast messages
+        if let Some(entry) = self.message_queue.get("broadcast") {
+            messages.extend(entry.value().clone());
+        }
+
+        // Sort by priority (descending) and timestamp
+        messages.sort_by(|a, b| {
+            b.priority
+                .cmp(&a.priority)
+                .then_with(|| a.timestamp.cmp(&b.timestamp))
+        });
+
+        messages
+    }
+
+    /// Clear messages for a specific agent (after reading).
+    pub fn clear_messages(&self, agent_name: &str) {
+        self.message_queue.remove(agent_name);
+    }
+
+    /// Get unread message count for an agent.
+    pub fn unread_message_count(&self, agent_name: &str) -> usize {
+        let mut count = 0;
+
+        if let Some(entry) = self.message_queue.get(agent_name) {
+            count += entry.value().len();
+        }
+
+        if let Some(entry) = self.message_queue.get("broadcast") {
+            count += entry.value().len();
+        }
+
+        count
     }
 }
 
