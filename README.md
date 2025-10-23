@@ -45,7 +45,7 @@ The Codex v0.48.0-zapabob.1 architecture consists of **8 major layers** with **7
 5. **🔗 MCP Integration Layer** - 14 MCP servers for tool integration
 6. **🌐 External Integrations** - GitHub API, Slack, Audio notifications
 7. **💾 Data & Configuration** - Settings, session management, audit logs
-8. **🤖 LLM Model Providers** - OpenAI, Anthropic, Google Gemini
+8. **🤖 LLM Model Providers** - OpenAI, Google Gemini
 
 #### 🎯 **Key Architectural Features**
 
@@ -245,7 +245,7 @@ graph TB
    - All code publicly available on GitHub
    - Community contributions welcome
    - Transparent development process
-   - Apache 2.0 / MIT dual license
+   - Apache 2.0 
 
 #### **Autonomous Orchestration** (ClaudeCode-style)
 - **TaskAnalyzer**: Automatic task complexity analysis
