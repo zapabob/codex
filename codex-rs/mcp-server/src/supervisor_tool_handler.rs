@@ -129,12 +129,13 @@ async fn execute_with_retry(params: &SupervisorToolParam) -> anyhow::Result<Stri
             }
             Ok(Err(e)) => {
                 warn!("Supervisor execution attempt {} failed: {}", attempt, e);
-                last_error = Some(e);
 
                 // Check if error is retryable
-                if !is_retryable_error(&last_error.as_ref().unwrap()) {
-                    return Err(last_error.unwrap());
+                if !is_retryable_error(&e) {
+                    return Err(e);
                 }
+
+                last_error = Some(e);
 
                 // Exponential backoff
                 if attempt < MAX_RETRY_ATTEMPTS {
