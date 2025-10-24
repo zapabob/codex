@@ -873,6 +873,7 @@ artifacts:
             "test",
             None,
             None,
+            None,
             false,
             "test".to_string(),
         );
@@ -944,6 +945,7 @@ artifacts:
             conversation_id,
             "test-model",
             "test",
+            None,
             None,
             None,
             false,
