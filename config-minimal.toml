@@ -6,7 +6,8 @@
 model = "gpt-5-codex"
 
 # 🆕 MCP Client機能を有効化
-experimental_use_rmcp_client = true
+# ⚠️ experimental_use_rmcp_client は現在問題があるため無効化
+experimental_use_rmcp_client = false
 
 # 🔍 Web検索機能を有効化（モデル組み込み検索）
 enable_web_search = true
@@ -43,19 +44,21 @@ policy = "on-request"
 [mcp_servers.codex]
 args = ["mcp-server"]
 command = "codex"
-startup_timeout_sec = 60
 env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 env.SLACK_WEBHOOK_URL = "${SLACK_WEBHOOK_URL}"
+startup_timeout_sec = 60
 
 # Gemini CLI - Google Gemini AI統合（OAuth 2.0、Google Search機能付き）
+# ⚠️ Note: Requires 'gemini' CLI to be installed
 [mcp_servers.codex-gemini-mcp]
 args = []
 command = "codex-gemini-mcp"
 description = "Codex Gemini CLI MCP Server v0.49.0 - Google Gemini AI integration with OAuth 2.0 authentication and Google Search Grounding"
-startup_timeout_sec = 60
 env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
+startup_timeout_sec = 60
+disabled = true
 
 # ==================== サブエージェント ====================
 [subagents]
@@ -69,7 +72,7 @@ use_codex_mcp = true
 # ==================== Deep Research設定 ====================
 [deep_research]
 # Web検索バックエンド（brave, google, duckduckgo, bing）
-default_backend = "google"  # Gemini経由でGoogle Searchを使用
+default_backend = "google" # Gemini経由でGoogle Searchを使用
 # フォールバックチェーン
 fallback_backends = ["duckduckgo"]
 # 最大検索結果数
@@ -116,4 +119,3 @@ log_dir = "~/.codex/audit-logs"
 # 9. codex-gemini-mcp.googleSearch - Google検索（Gemini Grounding）
 #
 # 合計: 9ツール（最小構成）
-
