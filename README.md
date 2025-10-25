@@ -492,7 +492,7 @@ Codex v0.48.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と*
 - **🔒 自動コンフリクト解決** - 3つのマージ戦略を持つFileEditTracker
 - **🗣️ 自然言語CLI** - パターンマッチング付きAgentInterpreter
 - **🔄 高度エラーリトライ** - フォールバック戦略付き指数バックオフ
-- **📖 完全オープンソース** - Apache 2.0 / MITデュアルライセンス
+- **📖 完全オープンソース** - Apache 2.0 
 - **🔌 MCPプロトコル統合** - 標準化ツールエコシステム
 - **🔍 マルチソース研究** - DuckDuckGo、Brave、Google、Bing、Gemini CLI
 
