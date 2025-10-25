@@ -56,6 +56,8 @@ The Codex v0.48.0-zapabob.1 architecture consists of **8 major layers** with **7
 - **🔌 MCP Protocol Integration** - Standardized tool ecosystem
 - **🔍 Multi-source Research** - DuckDuckGo, Brave, Google, Bing, Gemini CLI
 
+If you're running into upgrade issues with Homebrew, see the [FAQ entry on brew upgrade codex](./docs/faq.md#brew-update-codex-isnt-upgrading-me).
+
 <details>
 <summary>📊 <b>Detailed Architecture Diagram (Mermaid)</b></summary>
 

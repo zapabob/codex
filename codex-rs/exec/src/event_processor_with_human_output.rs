@@ -538,6 +538,9 @@ impl EventProcessor for EventProcessorWithHumanOutput {
             EventMsg::SubAgentInfo(_) => {
                 // サブエージェント情報
             }
+            EventMsg::ItemStarted(_) => {}
+            EventMsg::ItemCompleted(_) => {}
+            EventMsg::RawResponseItem(_) => {}
         }
         CodexStatus::Running
     }
