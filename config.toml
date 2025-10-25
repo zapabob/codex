@@ -7,6 +7,16 @@ model = "gpt-5-codex"
 # 🆕 MCP Client機能を有効化
 experimental_use_rmcp_client = true
 
+# 🔍 Web検索機能を有効化（モデル組み込み検索）
+enable_web_search = true
+
+# ==================== 機能フラグ ====================
+[features]
+# Web検索機能（モデル組み込み）
+web_search = true
+# MCP統合
+mcp_integration = true
+
 # OpenAI Provider設定を上書き
 # デフォルトのResponses APIの代わりにChat Completions APIを使用
 [model_providers.openai]
@@ -15,6 +25,9 @@ env_key = "OPENAI_API_KEY"
 name = "OpenAI (Chat Completions API)"
 requires_openai_auth = true
 wire_api = "chat"
+# 🔍 Web検索機能を有効化
+enable_web_search = true
+web_search_grounding = true
 
 # ==================== セキュリティ ====================
 [sandbox]
