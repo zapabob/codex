@@ -56,9 +56,9 @@ startup_timeout_sec = 60
 args = []
 command = "codex-gemini-mcp"
 description = "Codex Gemini CLI MCP Server v0.49.0 - Google Gemini AI integration with OAuth 2.0 authentication and Google Search Grounding"
+disabled = true
 env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
 startup_timeout_sec = 60
-disabled = true
 
 # ==================== サブエージェント ====================
 [subagents]

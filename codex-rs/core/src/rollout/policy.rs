@@ -78,6 +78,8 @@ pub(crate) fn should_persist_event_msg(ev: &EventMsg) -> bool {
         | EventMsg::SubAgentProgressUpdate(_)
         | EventMsg::SubAgentMessage(_)
         | EventMsg::SubAgentError(_)
-        | EventMsg::SubAgentInfo(_) => false,
+        | EventMsg::SubAgentInfo(_)
+        | EventMsg::ItemStarted(_)
+        | EventMsg::ItemCompleted(_) => false,
     }
 }

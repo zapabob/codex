@@ -5,8 +5,8 @@ use anyhow::bail;
 use anyhow::Context;
 use anyhow::Result;
 use clap::ArgGroup;
-use codex_common::CliConfigOverrides;
 use codex_common::format_env_display::format_env_display;
+use codex_common::CliConfigOverrides;
 use codex_core::config::find_codex_home;
 use codex_core::config::load_global_mcp_servers;
 use codex_core::config::write_global_mcp_servers;
@@ -301,7 +301,6 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
                 "MCP server may or may not require login. Run `codex mcp login {name}` to login."
             ),
         }
-    }
     }
 
     Ok(())
