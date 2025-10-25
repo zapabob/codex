@@ -4,6 +4,9 @@
 # モデル設定
 model = "gpt-5-codex"
 
+# 🆕 MCP Client機能を有効化
+experimental_use_rmcp_client = true
+
 # OpenAI Provider設定を上書き
 # デフォルトのResponses APIの代わりにChat Completions APIを使用
 [model_providers.openai]
@@ -74,49 +77,49 @@ args = [
     "--context",
     "codex",
 ]
-command = "uvx"
+command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
 env.RUST_LOG = "info"
 startup_timeout_sec = 30
 
 # Context7 - Upstash コンテキスト管理・ベクター検索
 [mcp_servers.context7]
 args = ["-y", "@upstash/context7-mcp"]
-command = "npx"
+command = "C:\\nvm4w\\nodejs\\npx.cmd"
 env.RUST_LOG = "info"
 
 # Playwright - Web自動化・テスト・スクレイピング
 [mcp_servers.playwright]
 args = ["-y", "@playwright/mcp@latest"]
-command = "npx"
+command = "C:\\nvm4w\\nodejs\\npx.cmd"
 env.RUST_LOG = "info"
 
 # Filesystem - ファイルシステム操作・管理
 [mcp_servers.filesystem]
 args = ["-y", "@modelcontextprotocol/server-filesystem"]
-command = "npx"
+command = "C:\\nvm4w\\nodejs\\npx.cmd"
 env.RUST_LOG = "info"
 
 # GitHub - GitHub API操作・PR/Issue管理
 [mcp_servers.github]
 args = ["-y", "@modelcontextprotocol/server-github"]
-command = "npx"
+command = "C:\\nvm4w\\nodejs\\npx.cmd"
 env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
 env.RUST_LOG = "info"
 
 # Markitdown - 各種ファイル形式をMarkdownに変換
 [mcp_servers.markitdown]
 args = ["markitdown-mcp"]
-command = "uvx"
+command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
 
 # arXiv - 学術論文検索・取得（arXiv）
 [mcp_servers.arxiv-mcp-server]
 args = ["arxiv-mcp-server"]
-command = "uvx"
+command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
 
 # YouTube - 動画検索・メタデータ・字幕取得
 [mcp_servers.youtube]
 args = ["-y", "@anaisbetts/mcp-youtube"]
-command = "npx"
+command = "C:\\nvm4w\\nodejs\\npx.cmd"
 
 # Gemini CLI - Google Gemini AI統合（OAuth 2.0）
 [mcp_servers.codex-gemini-mcp]
