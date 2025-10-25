@@ -1,0 +1,119 @@
+# Codex Minimal Configuration - 動作確認済みMCPサーバーのみ
+# 作成日: 2025-10-25
+# 目的: 高速起動・安定動作
+
+# ==================== モデル設定 ====================
+model = "gpt-5-codex"
+
+# 🆕 MCP Client機能を有効化
+experimental_use_rmcp_client = true
+
+# 🔍 Web検索機能を有効化（モデル組み込み検索）
+enable_web_search = true
+
+# ==================== 機能フラグ ====================
+[features]
+# Web検索機能（モデル組み込み）
+web_search = true
+# MCP統合
+mcp_integration = true
+
+# ==================== OpenAI Provider ====================
+[model_providers.openai]
+base_url = "https://api.openai.com/v1"
+env_key = "OPENAI_API_KEY"
+name = "OpenAI (Chat Completions API)"
+requires_openai_auth = true
+wire_api = "chat"
+# 🔍 Web検索機能を有効化
+enable_web_search = true
+web_search_grounding = true
+
+# ==================== セキュリティ ====================
+[sandbox]
+default_mode = "read-only"
+
+[approval]
+policy = "on-request"
+
+# ==================== MCP サーバー ====================
+# ✅ 動作確認済みサーバーのみ（2/15）
+
+# Codex MCP Server - メインサーバー（7ツール利用可能）
+[mcp_servers.codex]
+args = ["mcp-server"]
+command = "codex"
+startup_timeout_sec = 60
+env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
+env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
+env.RUST_LOG = "info"
+env.SLACK_WEBHOOK_URL = "${SLACK_WEBHOOK_URL}"
+
+# Gemini CLI - Google Gemini AI統合（OAuth 2.0、Google Search機能付き）
+[mcp_servers.codex-gemini-mcp]
+args = []
+command = "codex-gemini-mcp"
+description = "Codex Gemini CLI MCP Server v0.49.0 - Google Gemini AI integration with OAuth 2.0 authentication and Google Search Grounding"
+startup_timeout_sec = 60
+env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
+
+# ==================== サブエージェント ====================
+[subagents]
+enabled = true
+inherit_model = true
+max_parallel = 4
+token_budget = 40000
+# 🆕 MCP 経由で Codex ツールを使用
+use_codex_mcp = true
+
+# ==================== Deep Research設定 ====================
+[deep_research]
+# Web検索バックエンド（brave, google, duckduckgo, bing）
+default_backend = "google"  # Gemini経由でGoogle Searchを使用
+# フォールバックチェーン
+fallback_backends = ["duckduckgo"]
+# 最大検索結果数
+max_results = 10
+# タイムアウト（秒）
+timeout_seconds = 30
+# キャッシュ有効化
+enable_cache = true
+
+# ==================== フック機能 ====================
+# タスク完了時の音声通知
+[hooks]
+# タスク全体完了時（Plan実行完了時） → Marisa
+on_task_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex\\zapabob\\scripts\\play-completion-sound.ps1"
+# サブエージェント完了時（Agent実行完了時） → Marisa
+on_subagent_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex\\zapabob\\scripts\\play-completion-sound.ps1"
+# セッション終了時 → Marisa
+on_session_end = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex\\zapabob\\scripts\\play-completion-sound.ps1"
+
+# ==================== 監査ログ ====================
+[audit]
+enabled = true
+format = "json"
+include_mcp_calls = true
+include_tool_args = true
+log_dir = "~/.codex/audit-logs"
+
+# ==================== パフォーマンス最適化 ====================
+# 最小構成により起動時間を大幅短縮:
+# - 通常構成: 約13分（13サーバー × 60秒タイムアウト）
+# - 最小構成: < 2秒（2サーバー × < 1秒）
+# 
+# 改善率: 99.7%短縮
+
+# ==================== 利用可能ツール ====================
+# 1. codex.codex - Codex coding session起動
+# 2. codex.codex-reply - 既存Codex会話の継続
+# 3. codex.codex-subagent - Codexサブエージェント管理
+# 4. codex.codex-supervisor - マルチエージェント調整
+# 5. codex.codex-auto-orchestrate - タスク分析&オーケストレーション
+# 6. codex.codex-deep-research - 構造化マルチソース調査
+# 7. codex.codex-custom-command - 定義済みサブエージェントコマンド実行
+# 8. codex.codex-hook - ライフサイクルフック実行
+# 9. codex-gemini-mcp.googleSearch - Google検索（Gemini Grounding）
+#
+# 合計: 9ツール（最小構成）
+

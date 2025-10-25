@@ -58,27 +58,35 @@ env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 env.SLACK_WEBHOOK_URL = "${SLACK_WEBHOOK_URL}"
+startup_timeout_sec = 60
 
 # Codex Supervisor - マルチエージェント調整（高度なエラーハンドリング）
+# ⚠️ Note: 'supervisor' subcommand not implemented yet
 [mcp_servers.codex-supervisor]
 args = ["supervisor"]
 command = "codex"
+disabled = true
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
+startup_timeout_sec = 60
 
 # Codex Research - ディープリサーチ（Webhook統合付き）
 [mcp_servers.codex-research]
 args = ["research"]
 command = "codex"
+disabled = true
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
+startup_timeout_sec = 60
 
 # Codex Agent - 自然言語CLI（AgentInterpreter）
 [mcp_servers.codex-agent]
 args = ["agent"]
 command = "codex"
+disabled = true
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
+startup_timeout_sec = 60
 
 # Serena - AIオーケストレーション・コンテキスト管理（21ツール利用可能）
 [mcp_servers.serena]
@@ -92,47 +100,59 @@ args = [
 ]
 command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
 env.RUST_LOG = "info"
-startup_timeout_sec = 30
+startup_timeout_sec = 90
 
 # Context7 - Upstash コンテキスト管理・ベクター検索
 [mcp_servers.context7]
 args = ["-y", "@upstash/context7-mcp"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
+disabled = true
 env.RUST_LOG = "info"
+startup_timeout_sec = 60
 
 # Playwright - Web自動化・テスト・スクレイピング
 [mcp_servers.playwright]
 args = ["-y", "@playwright/mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
+disabled = true
 env.RUST_LOG = "info"
+startup_timeout_sec = 60
 
 # Filesystem - ファイルシステム操作・管理
 [mcp_servers.filesystem]
 args = ["-y", "@modelcontextprotocol/server-filesystem"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
+disabled = true
 env.RUST_LOG = "info"
+startup_timeout_sec = 60
 
 # GitHub - GitHub API操作・PR/Issue管理
 [mcp_servers.github]
 args = ["-y", "@modelcontextprotocol/server-github"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
+disabled = true
 env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
 env.RUST_LOG = "info"
+startup_timeout_sec = 60
 
 # Markitdown - 各種ファイル形式をMarkdownに変換
 [mcp_servers.markitdown]
 args = ["markitdown-mcp"]
 command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
+startup_timeout_sec = 60
 
 # arXiv - 学術論文検索・取得（arXiv）
 [mcp_servers.arxiv-mcp-server]
 args = ["arxiv-mcp-server"]
 command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
+startup_timeout_sec = 60
 
 # YouTube - 動画検索・メタデータ・字幕取得
 [mcp_servers.youtube]
 args = ["-y", "@anaisbetts/mcp-youtube"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
+disabled = true
+startup_timeout_sec = 60
 
 # Gemini CLI - Google Gemini AI統合（OAuth 2.0、Google Search機能付き）
 [mcp_servers.codex-gemini-mcp]
@@ -140,17 +160,22 @@ args = []
 command = "codex-gemini-mcp"
 description = "Codex Gemini CLI MCP Server v0.49.0 - Google Gemini AI integration with OAuth 2.0 authentication and Google Search Grounding"
 env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
+startup_timeout_sec = 60
 
 # Brave Search - Web検索機能（APIキー必要）
 [mcp_servers.brave-search]
 args = ["-y", "@modelcontextprotocol/server-brave-search"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
+disabled = true
 env.BRAVE_API_KEY = "${BRAVE_API_KEY}"
+startup_timeout_sec = 60
 
 # Chrome DevTools - ブラウザデバッグ・自動化（Chrome DevTools Protocol）
 [mcp_servers.chrome-devtools]
 args = ["-y", "chrome-devtools-mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
+disabled = true
+startup_timeout_sec = 60
 
 # ==================== サブエージェント ====================
 [subagents]
