@@ -70,7 +70,7 @@ env.SLACK_WEBHOOK_URL = "${SLACK_WEBHOOK_URL}"
 startup_timeout_sec = 60
 
 # Codex Supervisor - マルチエージェント調整（高度なエラーハンドリング）
-# ⚠️ Note: 'supervisor' subcommand not implemented yet
+# ⚠️ 無効化: 'supervisor' subcommand not implemented (use 'delegate' instead)
 [mcp_servers.codex-supervisor]
 args = ["supervisor"]
 command = "codex"
@@ -80,19 +80,19 @@ env.RUST_LOG = "info"
 startup_timeout_sec = 60
 
 # Codex Research - ディープリサーチ（Webhook統合付き）
+# 🔄 有効化済み（2025-10-28）: 'research' subcommand implemented
 [mcp_servers.codex-research]
 args = ["research"]
 command = "codex"
-disabled = true
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 60
 
 # Codex Agent - 自然言語CLI（AgentInterpreter）
+# 🔄 有効化済み（2025-10-28）: 'agent' subcommand implemented
 [mcp_servers.codex-agent]
 args = ["agent"]
 command = "codex"
-disabled = true
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 60
@@ -168,6 +168,8 @@ env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
 startup_timeout_sec = 60
 
 # Brave Search - Web検索機能（APIキー必要）
+# ⚠️ 無効化: BRAVE_API_KEY環境変数の設定が必要
+# 使用方法: 環境変数BRAVE_API_KEYを設定後、disabled行を削除
 [mcp_servers.brave-search]
 args = ["-y", "@modelcontextprotocol/server-brave-search"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
