@@ -37,18 +37,27 @@ default_mode = "read-only"
 policy = "on-request"
 
 # ==================== MCP サーバー ====================
-# CursorIDE統合済み設定 - v0.48.0-zapabob.1 ClaudeCode-surpassing features
+# 🔄 CursorIDE統合済み設定 - v0.51.0-zapabob.1 (2025-10-28更新)
 # 
 # 📝 Cursor IDE統合:
 #   - Codex CLI: このconfig.tomlを使用
 #   - Cursor IDE: c:\Users\downl\.cursor\mcp.json を使用
-#   - 両方の設定ファイルを同期して管理
+#   - 🔄 両方の設定ファイルを完全同期（2025-10-28）
 #
 # ✅ テスト済み（2025-10-24）:
 #   - 全5サーバー動作確認済み
 #   - codex: 7ツール利用可能
 #   - serena: 21ツール利用可能
 #   - markitdown, arxiv, gemini: 動作確認済み
+#
+# 🆕 追加サーバー（2025-10-28）:
+#   - context7: Upstash コンテキスト管理
+#   - playwright: Web自動化
+#   - filesystem: ファイル操作
+#   - github: GitHub API
+#   - youtube: YouTube統合
+#   - chrome-devtools: ブラウザ自動化
+#   - sequential-thinking: 段階的思考（NEW!）
 
 # Codex MCP Server - メインサーバー（コンフリクト回避、自然言語CLI、Webhook統合）
 [mcp_servers.codex]
@@ -104,35 +113,31 @@ startup_timeout_sec = 90
 
 # Context7 - Upstash コンテキスト管理・ベクター検索
 [mcp_servers.context7]
-args = ["-y", "@upstash/context7-mcp"]
+args = ["-y", "@upstash/context7-mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
-disabled = true
-env.RUST_LOG = "info"
+# 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 60
 
 # Playwright - Web自動化・テスト・スクレイピング
 [mcp_servers.playwright]
 args = ["-y", "@playwright/mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
-disabled = true
-env.RUST_LOG = "info"
+# 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 60
 
 # Filesystem - ファイルシステム操作・管理
 [mcp_servers.filesystem]
-args = ["-y", "@modelcontextprotocol/server-filesystem"]
+args = ["-y", "@modelcontextprotocol/server-filesystem@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
-disabled = true
-env.RUST_LOG = "info"
+# 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 60
 
 # GitHub - GitHub API操作・PR/Issue管理
 [mcp_servers.github]
-args = ["-y", "@modelcontextprotocol/server-github"]
+args = ["-y", "@modelcontextprotocol/server-github@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
-disabled = true
 env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
-env.RUST_LOG = "info"
+# 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 60
 
 # Markitdown - 各種ファイル形式をMarkdownに変換
@@ -149,9 +154,9 @@ startup_timeout_sec = 60
 
 # YouTube - 動画検索・メタデータ・字幕取得
 [mcp_servers.youtube]
-args = ["-y", "@anaisbetts/mcp-youtube"]
+args = ["-y", "@anaisbetts/mcp-youtube@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
-disabled = true
+# 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 60
 
 # Gemini CLI - Google Gemini AI統合（OAuth 2.0、Google Search機能付き）
@@ -174,7 +179,14 @@ startup_timeout_sec = 60
 [mcp_servers.chrome-devtools]
 args = ["-y", "chrome-devtools-mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
-disabled = true
+# 🔄 Cursor IDE (mcp.json) と同期
+startup_timeout_sec = 60
+
+# Sequential Thinking - 段階的思考プロセス実行
+[mcp_servers.sequential-thinking]
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+command = "C:\\nvm4w\\nodejs\\npx.cmd"
+# 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 60
 
 # ==================== サブエージェント ====================
