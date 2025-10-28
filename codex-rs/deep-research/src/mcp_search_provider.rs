@@ -67,6 +67,7 @@ pub enum SearchBackend {
     DuckDuckGo,
     Google,
     Bing,
+    Gemini,  // Google Gemini with Search Grounding
     Mock,
 }
 
@@ -81,6 +82,7 @@ impl SearchBackend {
             Self::DuckDuckGo => "DuckDuckGo",
             Self::Google => "Google",
             Self::Bing => "Bing",
+            Self::Gemini => "Google Gemini (Search Grounding)",
             Self::Mock => "Mock",
         }
     }
@@ -232,6 +234,7 @@ impl McpSearchProvider {
             SearchBackend::DuckDuckGo => self.search_duckduckgo(query, max_results).await,
             SearchBackend::Google => self.search_google(query, max_results).await,
             SearchBackend::Bing => self.search_bing(query, max_results).await,
+            SearchBackend::Gemini => self.search_gemini(query, max_results).await,
             SearchBackend::Mock => self.search_mock(query, max_results).await,
         }
     }
@@ -322,6 +325,36 @@ impl McpSearchProvider {
 
         // Fallback to mock
         self.search_mock(query, max_results).await
+    }
+
+    /// Google Gemini Search Grounding via MCP
+    async fn search_gemini(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
+        info!("✨ Google Gemini Search Grounding: {}", query);
+
+        if let Some(client) = &self.mcp_client {
+            // Call googleSearch tool via codex-gemini-mcp server
+            let arguments = json!({
+                "query": query
+            });
+
+            match client
+                .call_tool("googleSearch".to_string(), Some(arguments), None)
+                .await
+            {
+                Ok(result) => {
+                    let search_results = self.parse_search_results(result.content)?;
+                    info!("✅ Gemini found {} results", search_results.len());
+                    Ok(search_results.into_iter().take(max_results).collect())
+                }
+                Err(e) => {
+                    warn!("Gemini Search failed: {}, falling back", e);
+                    Err(anyhow::anyhow!("Gemini Search failed: {}", e))
+                }
+            }
+        } else {
+            warn!("Gemini Search requires MCP client");
+            Err(anyhow::anyhow!("MCP client not available for Gemini Search"))
+        }
     }
 
     /// Mock search (always works, for testing and fallback)

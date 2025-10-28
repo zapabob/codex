@@ -202,11 +202,12 @@ use_codex_mcp = true
 
 # ==================== Deep Research設定 ====================
 [deep_research]
-# Web検索バックエンド（brave, google, duckduckgo, bing）
-# ⚠️ 修正（2025-10-28）: braveは無効化されているためduckduckgoをデフォルトに変更
-default_backend = "duckduckgo"
+# Web検索バックエンド（brave, google, duckduckgo, bing, gemini）
+# ✨ 更新（2025-10-28）: Gemini Search Groundingをデフォルトに設定
+default_backend = "gemini"
 # フォールバックチェーン（有効なバックエンドのみ）
-fallback_backends = ["google", "bing"]
+# Gemini -> DuckDuckGo -> Google -> Bingの順で試行
+fallback_backends = ["duckduckgo", "google", "bing"]
 # 最大検索結果数
 max_results = 10
 # タイムアウト（秒）
