@@ -3,6 +3,7 @@ mod budgeter;
 mod loader;
 mod permission_checker;
 mod runtime;
+pub mod secure_message;
 mod types;
 
 pub use alias_loader::AgentAliases;
