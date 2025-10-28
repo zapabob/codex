@@ -434,7 +434,7 @@ cargo test --all
 
 ### 📚 Documentation
 
-- **Architecture**: [`zapabob/docs/codex-v0.48.0-architecture.svg`](zapabob/docs/codex-v0.48.0-architecture.svg)
+- **Architecture**: [`zapabob/docs/codex-v0.51.0-architecture.svg`](zapabob/docs/codex-v0.51.0-architecture.svg)
 - **MCP Config Guide**: [`_docs/MCP設定ファイル同期管理ガイド.md`](_docs/MCP設定ファイル同期管理ガイド.md)
 - **Implementation Logs**: [`_docs/`](_docs/)
 - **Audio Notifications**: [`_docs/2025-10-23_音声通知設定更新.md`](_docs/2025-10-23_音声通知設定更新.md)
@@ -715,7 +715,7 @@ cargo test --all
 
 ### 📚 ドキュメント
 
-- **アーキテクチャ**: [`zapabob/docs/codex-v0.48.0-architecture.svg`](zapabob/docs/codex-v0.48.0-architecture.svg)
+- **アーキテクチャ**: [`zapabob/docs/codex-v0.51.0-architecture.svg`](zapabob/docs/codex-v0.51.0-architecture.svg)
 - **MCP設定ガイド**: [`_docs/MCP設定ファイル同期管理ガイド.md`](_docs/MCP設定ファイル同期管理ガイド.md)
 - **実装ログ**: [`_docs/`](_docs/)
 - **音声通知**: [`_docs/2025-10-23_音声通知設定更新.md`](_docs/2025-10-23_音声通知設定更新.md)
