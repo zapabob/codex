@@ -8,9 +8,11 @@
 **サブエージェントオーケストレーションとディープリサーチ機能を備えた自律型AIコーディングアシスタント**
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-0.48.0--zapabob.1-blue)]()
+[![Version](https://img.shields.io/badge/version-0.51.0--zapabob.1-blue)]()
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Rust](https://img.shields.io/badge/rust-1.85+-orange)]()
+[![Rust](https://img.shields.io/badge/rust-1.90+-orange)]()
+[![OpenAI](https://img.shields.io/badge/OpenAI-upstream%20synced-success)]()
+[![MCP](https://img.shields.io/badge/MCP-15%20servers-blueviolet)]()
 
 [English](#english) | [日本語](#japanese)
 
@@ -28,7 +30,7 @@
 
 <div align="center">
 
-![Codex v0.48.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
+![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
 
 *Comprehensive architecture diagram showing orchestration flow, agent coordination, and external integrations*
 
@@ -36,7 +38,7 @@
 
 #### 📊 **Architecture Overview**
 
-The Codex v0.48.0-zapabob.1 architecture consists of **8 major layers** with **70+ components**:
+The Codex v0.51.0-zapabob.1 architecture consists of **8 major layers** with **70+ components**:
 
 1. **🖥️ User Interface Layer** - CLI, TUI, Cursor IDE, Natural Language CLI
 2. **🧠 Core Orchestration Layer** - Task Analyzer, Auto Orchestrator, Supervisor
@@ -53,8 +55,8 @@ The Codex v0.48.0-zapabob.1 architecture consists of **8 major layers** with **7
 - **🗣️ Natural Language CLI** - AgentInterpreter with pattern matching
 - **🔄 Advanced Error Retry** - Exponential backoff with fallback strategies
 - **📖 Fully Open Source** - Apache 2.0 / MIT dual license
-- **🔌 MCP Protocol Integration** - Standardized tool ecosystem
-- **🔍 Multi-source Research** - DuckDuckGo, Brave, Google, Bing, Gemini CLI
+- **🔌 MCP Protocol Integration** - Standardized tool ecosystem (15 servers)
+- **🔍 Multi-source Research** - Gemini Search Grounding, DuckDuckGo, Google, Bing
 
 If you're running into upgrade issues with Homebrew, see the [FAQ entry on brew upgrade codex](./docs/faq.md#brew-update-codex-isnt-upgrading-me).
 
@@ -188,34 +190,41 @@ graph TB
 
 ### ✨ Key Features
 
-#### 🆕 **v0.48.0-zapabob.1 - Latest Updates**
+#### 🆕 **v0.51.0-zapabob.1 - Latest Updates** *(2025-10-28)*
 
-1. **🔌 Gemini CLI MCP Integration** *(NEW)*
+1. **🔄 OpenAI/codex Upstream Integration** *(NEW)*
+   - Merged OpenAI official repository (commit 4a42c4e1)
+   - Resolved 9 merge conflicts manually
+   - Integrated auth system enhancements (Keyring support)
+   - Updated to Rust 2024 edition compatibility
+   - Full semantic versioning alignment
+
+2. **✨ Gemini Search Grounding for Deep Research** *(NEW)*
+   - Default search backend: Google Gemini Search Grounding
+   - High-quality search results via Google Search API
    - OAuth 2.0 authentication (no API key required)
-   - Google Search Grounding integration
-   - Automatic fallback: gemini-2.5-pro → gemini-2.5-flash
-   - MCP (Model Context Protocol) server implementation
-   - Full integration test suite (6/6 passing)
-   - Usage: `codex research "query" --gemini --use-mcp`
+   - Smart fallback chain: Gemini → DuckDuckGo → Google → Bing
+   - Integrated with codex-gemini-mcp server
 
-2. **🔔 Audio Notification System** *(Enhanced)*
+3. **🤖 Enhanced MCP Integration**
+   - 15 MCP servers fully operational (was 14)
+   - Added: codex-research, codex-agent, sequential-thinking
+   - Complete Cursor IDE / VSCode compatibility
+   - config.toml and mcp.json synchronized
+   - Serena (21 tools), Playwright, Chrome DevTools enabled
+
+4. **🎯 Sub-Agent System Improvements**
+   - 8 specialized agents fully tested
+   - Parallel execution (3x faster processing)
+   - Natural language CLI: `codex agent "<task>"`
+   - Improved error handling and retry logic
+
+5. **🔔 Audio Notification System** *(Enhanced)*
    - Task completion: Marisa "終わったぜ！" (Owattaze!)
    - Agent completion notifications
    - Session end notifications
    - PowerShell-based audio playback
    - Location: `.codex/marisa_owattaze.wav`
-
-3. **⚙️ config.toml MCP Unification**
-   - Unified MCP server configuration
-   - Cursor IDE integration via `~/.cursor/mcp.json`
-   - 14 MCP servers configured
-   - Automated sync management
-
-4. **🧪 Comprehensive Integration Tests**
-   - MCP server initialization tests
-   - Tool listing verification
-   - End-to-end flow validation
-   - Performance benchmarks (< 6 seconds)
 
 #### 🔥 **ClaudeCode-Surpassing Features**
 
@@ -265,23 +274,25 @@ graph TB
 - **PerformanceExpert**: Performance optimization
 
 #### **Deep Research Engine**
-- **Multi-source**: DuckDuckGo, Brave, Google, Bing, Gemini CLI integration
+- **Multi-source**: Gemini Search Grounding (default), DuckDuckGo, Google, Bing
 - **Citation-based**: All findings with source attribution
 - **Contradiction Detection**: Identifies conflicting information
 - **Configurable Depth**: 1-5 levels of research depth
 - **Confidence Scoring**: Reliability metrics for each finding
-- **MCP Integration**: Gemini CLI via Model Context Protocol
+- **Smart Fallback**: Automatic backend switching on failure
+- **MCP Integration**: Native integration with 15 MCP servers
 
 #### **MCP (Model Context Protocol) Integration**
 - **Cursor IDE**: Native integration via MCP server
 - **Custom Tools**: Extensible tool ecosystem
 - **Real-time Sync**: Live collaboration capabilities
-- **14 MCP Servers**: Codex, Serena, Context7, Playwright, GitHub, Gemini CLI, and more
+- **15 MCP Servers**: Codex, Serena, Context7, Playwright, GitHub, Gemini, Sequential-Thinking, and more
+- **Config Sync**: Automatic synchronization between config.toml and mcp.json
 
 ### 📦 Installation
 
 #### Prerequisites
-- **Rust** 1.85 or later
+- **Rust** 1.90 or later
 - **OpenAI API Key** (set as `OPENAI_API_KEY`)
 - **Git** for cloning
 - **Node.js** (optional, for Gemini CLI)
@@ -301,7 +312,7 @@ cargo install --path cli --force
 
 # Verify installation
 codex --version
-# Output: codex-cli 0.48.0-zapabob.1
+# Output: codex-cli 0.51.0-zapabob.1
 ```
 
 #### Gemini CLI MCP Setup (Optional)
@@ -470,7 +481,7 @@ limitations under the License.
 
 <div align="center">
 
-![Codex v0.48.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
+![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
 
 *オーケストレーションフロー、エージェント協調、外部統合を示す包括的なアーキテクチャ図*
 
@@ -478,7 +489,7 @@ limitations under the License.
 
 #### 📊 **アーキテクチャ概要**
 
-Codex v0.48.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と**70+のコンポーネント**で構成されています：
+Codex v0.51.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と**70+のコンポーネント**で構成されています：
 
 1. **🖥️ ユーザーインターフェース層** - CLI、TUI、Cursor IDE、自然言語CLI
 2. **🧠 コアオーケストレーション層** - タスク分析器、自動オーケストレーター、スーパーバイザー
@@ -500,34 +511,41 @@ Codex v0.48.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と*
 
 ### ✨ 主要機能
 
-#### 🆕 **v0.48.0-zapabob.1 - 最新アップデート**
+#### 🆕 **v0.51.0-zapabob.1 - 最新アップデート** *(2025-10-28)*
 
-1. **🔌 Gemini CLI MCP統合** *(NEW)*
+1. **🔄 OpenAI/codex公式リポジトリ統合** *(NEW)*
+   - OpenAI公式リポジトリをマージ（コミット 4a42c4e1）
+   - 9ファイルのマージコンフリクトを手動解決
+   - 認証システム強化（Keyring対応）を統合
+   - Rust 2024 edition互換性対応
+   - セマンティックバージョニング完全整合
+
+2. **✨ Deep ResearchへのGemini Search Grounding統合** *(NEW)*
+   - デフォルト検索バックエンド: Google Gemini Search Grounding
+   - Google Search API経由の高品質検索結果
    - OAuth 2.0認証（APIキー不要）
-   - Google Search Grounding統合
-   - 自動フォールバック: gemini-2.5-pro → gemini-2.5-flash
-   - MCP（Model Context Protocol）サーバー実装
-   - 完全な統合テストスイート（6/6合格）
-   - 使用方法: `codex research "クエリ" --gemini --use-mcp`
+   - スマートフォールバックチェーン: Gemini → DuckDuckGo → Google → Bing
+   - codex-gemini-mcpサーバーと統合
 
-2. **🔔 音声通知システム** *(強化)*
+3. **🤖 MCP統合の強化**
+   - 15個のMCPサーバーが完全動作（14個から増加）
+   - 新規追加: codex-research、codex-agent、sequential-thinking
+   - Cursor IDE / VSCode完全互換
+   - config.tomlとmcp.jsonの自動同期
+   - Serena（21ツール）、Playwright、Chrome DevTools有効化
+
+4. **🎯 サブエージェントシステム改善**
+   - 8個の専門エージェントを完全テスト
+   - 並列実行（3倍高速処理）
+   - 自然言語CLI: `codex agent "<タスク>"`
+   - エラーハンドリングとリトライロジック改善
+
+5. **🔔 音声通知システム** *(強化)*
    - タスク完了: Marisa「終わったぜ！」
    - エージェント完了通知
    - セッション終了通知
    - PowerShellベースの音声再生
    - 場所: `.codex/marisa_owattaze.wav`
-
-3. **⚙️ config.toml MCP統合**
-   - 統一されたMCPサーバー設定
-   - Cursor IDE統合（`~/.cursor/mcp.json`経由）
-   - 14個のMCPサーバー設定
-   - 自動同期管理
-
-4. **🧪 包括的な統合テスト**
-   - MCPサーバー初期化テスト
-   - ツールリスト検証
-   - エンドツーエンドフロー検証
-   - パフォーマンスベンチマーク（< 6秒）
 
 #### 🔥 **ClaudeCodeを超える機能**
 
@@ -564,7 +582,7 @@ Codex v0.48.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と*
 ### 📦 インストール
 
 #### 前提条件
-- **Rust** 1.85以降
+- **Rust** 1.90以降
 - **OpenAI APIキー**（`OPENAI_API_KEY`として設定）
 - **Git**（クローン用）
 - **Node.js**（オプション、Gemini CLI用）
@@ -584,7 +602,7 @@ cargo install --path cli --force
 
 # インストール確認
 codex --version
-# 出力: codex-cli 0.48.0-zapabob.1
+# 出力: codex-cli 0.51.0-zapabob.1
 ```
 
 #### Gemini CLI MCPセットアップ（オプション）
