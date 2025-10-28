@@ -203,9 +203,10 @@ use_codex_mcp = true
 # ==================== Deep Research設定 ====================
 [deep_research]
 # Web検索バックエンド（brave, google, duckduckgo, bing）
-default_backend = "brave"
-# フォールバックチェーン
-fallback_backends = ["duckduckgo", "google"]
+# ⚠️ 修正（2025-10-28）: braveは無効化されているためduckduckgoをデフォルトに変更
+default_backend = "duckduckgo"
+# フォールバックチェーン（有効なバックエンドのみ）
+fallback_backends = ["google", "bing"]
 # 最大検索結果数
 max_results = 10
 # タイムアウト（秒）
