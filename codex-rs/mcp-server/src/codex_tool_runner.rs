@@ -287,7 +287,6 @@ async fn run_codex_tool_session_inner(
                     | EventMsg::GetHistoryEntryResponse(_)
                     | EventMsg::PlanUpdate(_)
                     | EventMsg::TurnAborted(_)
-                    | EventMsg::ConversationPath(_)
                     | EventMsg::UserMessage(_)
                     | EventMsg::ShutdownComplete
                     | EventMsg::ViewImageToolCall(_)
@@ -295,7 +294,9 @@ async fn run_codex_tool_session_inner(
                     | EventMsg::EnteredReviewMode(_)
                     | EventMsg::ExitedReviewMode(_)
                     | EventMsg::ItemStarted(_)
-                    | EventMsg::ItemCompleted(_) => {
+                    | EventMsg::ItemCompleted(_)
+                    | EventMsg::UndoStarted(_)
+                    | EventMsg::UndoCompleted(_) => {
                         // For now, we do not do anything extra for these
                         // events. Note that
                         // send(codex_event_to_notification(&event)) above has

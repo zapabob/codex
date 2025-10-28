@@ -930,6 +930,7 @@ dependencies = [
  "codex-backend-client",
  "codex-common",
  "codex-core",
+ "codex-feedback",
  "codex-file-search",
  "codex-login",
  "codex-protocol",
@@ -1169,10 +1170,13 @@ dependencies = [
  "codex-async-utils",
  "codex-deep-research",
  "codex-file-search",
+ "codex-git-tooling",
+ "codex-keyring-store",
  "codex-otel",
  "codex-protocol",
  "codex-rmcp-client",
  "codex-utils-pty",
+ "codex-utils-readiness",
  "codex-utils-string",
  "codex-utils-tokenizer",
  "core-foundation 0.9.4",
@@ -1185,7 +1189,9 @@ dependencies = [
  "eventsource-stream",
  "futures",
  "http",
+ "image",
  "indexmap 2.10.0",
+ "keyring",
  "landlock",
  "libc",
  "maplit",
@@ -1205,6 +1211,7 @@ dependencies = [
  "serde_yaml",
  "serial_test",
  "sha1",
+ "sha2",
  "shlex",
  "similar",
  "strum_macros 0.27.2",
@@ -1358,9 +1365,20 @@ version = "0.49.0-zapabob.1"
 dependencies = [
  "assert_matches",
  "pretty_assertions",
+ "schemars 0.8.22",
+ "serde",
  "tempfile",
  "thiserror 2.0.16",
+ "ts-rs",
  "walkdir",
+]
+
+[[package]]
+name = "codex-keyring-store"
+version = "0.0.0"
+dependencies = [
+ "keyring",
+ "tracing",
 ]
 
 [[package]]
@@ -1480,6 +1498,8 @@ version = "0.49.0-zapabob.1"
 dependencies = [
  "anyhow",
  "base64",
+ "codex-git-tooling",
+ "codex-utils-image",
  "icu_decimal",
  "icu_locale_core",
  "mcp-types",
@@ -1525,10 +1545,11 @@ dependencies = [
 
 [[package]]
 name = "codex-rmcp-client"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
- "axum 0.7.9",
+ "axum",
+ "codex-keyring-store",
  "codex-protocol",
  "dirs",
  "escargot",
@@ -1580,7 +1601,6 @@ dependencies = [
  "codex-core",
  "codex-feedback",
  "codex-file-search",
- "codex-git-tooling",
  "codex-login",
  "codex-ollama",
  "codex-protocol",
@@ -1622,6 +1642,27 @@ dependencies = [
  "unicode-width 0.2.1",
  "url",
  "vt100",
+]
+
+[[package]]
+name = "codex-utils-cache"
+version = "0.0.0"
+dependencies = [
+ "lru",
+ "sha1",
+ "tokio",
+]
+
+[[package]]
+name = "codex-utils-image"
+version = "0.0.0"
+dependencies = [
+ "base64",
+ "codex-utils-cache",
+ "image",
+ "tempfile",
+ "thiserror 2.0.16",
+ "tokio",
 ]
 
 [[package]]
@@ -5917,9 +5958,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.226"
+version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0dca6411025b24b60bfa7ec1fe1f8e710ac09782dca409ee8237ba74b51295fd"
+checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
 dependencies = [
  "serde_core",
  "serde_derive",
@@ -5927,18 +5968,18 @@ dependencies = [
 
 [[package]]
 name = "serde_core"
-version = "1.0.226"
+version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba2ba63999edb9dac981fb34b3e5c0d111a69b0924e253ed29d83f7c99e966a4"
+checksum = "41d385c7d4ca58e59fc732af25c3983b67ac852c1a25000afe1175de458b67ad"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.226"
+version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8db53ae22f34573731bafa1db20f04027b2d25e02d8205921b569171699cdb33"
+checksum = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
 dependencies = [
  "proc-macro2",
  "quote",

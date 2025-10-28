@@ -12,10 +12,11 @@ axum = { version = "0.7", default-features = false, features = [
     "http1",
     "tokio",
 ] }
-codex-protocol = { path = "../protocol" }
+codex-keyring-store = { workspace = true }
+codex-protocol = { workspace = true }
 dirs = { workspace = true }
-futures = { workspace = true, features = ["std"] }
-keyring = { version = "3.0", features = [
+futures = { workspace = true, default-features = false, features = ["std"] }
+keyring = { workspace = true, features = [
     "apple-native",
     "crypto-rust",
     "linux-native-async-persistent",
@@ -28,7 +29,7 @@ reqwest = { version = "0.12", default-features = false, features = [
     "stream",
     "rustls-tls",
 ] }
-rmcp = { workspace = true, features = [
+rmcp = { workspace = true, default-features = false, features = [
     "auth",
     "base64",
     "client",
