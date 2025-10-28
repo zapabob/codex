@@ -50,7 +50,11 @@ pub async fn run_agent_create_command(
     let workspace_dir = config.cwd.clone();
 
     // 認証確認
-    let auth_manager = AuthManager::shared(config.codex_home.clone(), true);
+    let auth_manager = AuthManager::shared(
+        config.codex_home.clone(),
+        true,
+        config.cli_auth_credentials_store_mode,
+    );
     let auth_snapshot = auth_manager.auth();
 
     if config.model_provider.requires_openai_auth

@@ -66,7 +66,11 @@ pub async fn run_delegate_command(
         }
     };
 
-    let auth_manager = AuthManager::shared(config.codex_home.clone(), true);
+    let auth_manager = AuthManager::shared(
+        config.codex_home.clone(),
+        true,
+        config.cli_auth_credentials_store_mode,
+    );
     let auth_snapshot = auth_manager.auth();
 
     if config.model_provider.requires_openai_auth

@@ -600,6 +600,9 @@ pub enum EventMsg {
     /// SubAgent info notification
     SubAgentInfo(SubAgentInfoEvent),
 
+    /// Conversation path notification
+    ConversationPath(ConversationPathResponseEvent),
+
     RawResponseItem(ResponseItem),
 
     ItemStarted(ItemStartedEvent),

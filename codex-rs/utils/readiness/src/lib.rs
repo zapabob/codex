@@ -99,15 +99,15 @@ impl Readiness for ReadinessFlag {
             return true;
         }
 
-        if let Ok(tokens) = self.tokens.try_lock()
-            && tokens.is_empty()
-        {
-            let was_ready = self.ready.swap(true, Ordering::AcqRel);
-            drop(tokens);
-            if !was_ready {
-                let _ = self.tx.send(true);
+        if let Ok(tokens) = self.tokens.try_lock() {
+            if tokens.is_empty() {
+                let was_ready = self.ready.swap(true, Ordering::AcqRel);
+                drop(tokens);
+                if !was_ready {
+                    let _ = self.tx.send(true);
+                }
+                return true;
             }
-            return true;
         }
 
         self.load_ready()

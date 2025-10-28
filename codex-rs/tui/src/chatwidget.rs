@@ -1498,7 +1498,8 @@ impl ChatWidget {
             }
             EventMsg::RawResponseItem(_)
             | EventMsg::ItemStarted(_)
-            | EventMsg::ItemCompleted(_) => {}
+            | EventMsg::ItemCompleted(_)
+            | EventMsg::ConversationPath(_) => {}
         }
     }
 
@@ -1807,15 +1808,17 @@ impl ChatWidget {
             .config
             .forced_auto_mode_downgraded_on_windows
         {
-            use ratatui_macros::line;
+            use ratatui::prelude::*;
 
             let mut header = ColumnRenderable::new();
-            header.push(line![
-                "Codex forced your settings back to Read Only on this Windows machine.".bold()
-            ]);
-            header.push(line![
-                "To re-enable Auto mode, run Codex inside Windows Subsystem for Linux (WSL) or enable Full Access manually.".dim()
-                ]);
+            header.push(Line::from(Span::styled(
+                "Codex forced your settings back to Read Only on this Windows machine.",
+                Style::default().add_modifier(Modifier::BOLD)
+            )));
+            header.push(Line::from(Span::styled(
+                "To re-enable Auto mode, run Codex inside Windows Subsystem for Linux (WSL) or enable Full Access manually.",
+                Style::default().add_modifier(Modifier::DIM)
+            )));
             Box::new(header)
         } else {
             Box::new(())
@@ -1958,14 +1961,15 @@ impl ChatWidget {
 
     #[cfg(target_os = "windows")]
     pub(crate) fn open_windows_auto_mode_instructions(&mut self) {
-        use ratatui_macros::line;
+        use ratatui::prelude::*;
 
         let mut header = ColumnRenderable::new();
-        header.push(line![
-            "Auto mode requires Windows Subsystem for Linux (WSL2).".bold()
-        ]);
-        header.push(line!["Run Codex inside WSL to enable sandboxed commands."]);
-        header.push(line![""]);
+        header.push(Line::from(Span::styled(
+            "Auto mode requires Windows Subsystem for Linux (WSL2).",
+            Style::default().add_modifier(Modifier::BOLD)
+        )));
+        header.push(Line::from("Run Codex inside WSL to enable sandboxed commands."));
+        header.push(Line::from(""));
         header.push(Paragraph::new(WSL_INSTRUCTIONS).wrap(Wrap { trim: false }));
 
         let items = vec![SelectionItem {

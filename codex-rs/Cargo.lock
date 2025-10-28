@@ -185,7 +185,7 @@ checksum = "b0674a1ddeecb70197781e945de4b3b8ffb61fa939a5597bcf48503737663100"
 
 [[package]]
 name = "app_test_support"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -909,7 +909,7 @@ checksum = "e9b18233253483ce2f65329a24072ec414db782531bdbb7d0bbc4bd2ce6b7e21"
 
 [[package]]
 name = "codex-ansi-escape"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "ansi-to-tui",
  "ratatui",
@@ -918,7 +918,7 @@ dependencies = [
 
 [[package]]
 name = "codex-app-server"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "app_test_support",
@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "codex-app-server-protocol"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -970,7 +970,7 @@ dependencies = [
 
 [[package]]
 name = "codex-apply-patch"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -985,7 +985,7 @@ dependencies = [
 
 [[package]]
 name = "codex-arg0"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "codex-apply-patch",
@@ -998,7 +998,7 @@ dependencies = [
 
 [[package]]
 name = "codex-async-utils"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "async-trait",
  "pretty_assertions",
@@ -1009,7 +1009,7 @@ dependencies = [
 
 [[package]]
 name = "codex-audit"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1038,7 +1038,7 @@ dependencies = [
 
 [[package]]
 name = "codex-backend-openapi-models"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -1047,7 +1047,7 @@ dependencies = [
 
 [[package]]
 name = "codex-chatgpt"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1062,7 +1062,7 @@ dependencies = [
 
 [[package]]
 name = "codex-cli"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1101,7 +1101,7 @@ dependencies = [
 
 [[package]]
 name = "codex-cloud-tasks"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1127,7 +1127,7 @@ dependencies = [
 
 [[package]]
 name = "codex-cloud-tasks-client"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1142,7 +1142,7 @@ dependencies = [
 
 [[package]]
 name = "codex-common"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "clap",
  "codex-app-server-protocol",
@@ -1154,7 +1154,7 @@ dependencies = [
 
 [[package]]
 name = "codex-core"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "askama",
@@ -1237,7 +1237,7 @@ dependencies = [
 
 [[package]]
 name = "codex-deep-research"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1261,7 +1261,7 @@ dependencies = [
 
 [[package]]
 name = "codex-exec"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1294,7 +1294,7 @@ dependencies = [
 
 [[package]]
 name = "codex-execpolicy"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "allocative",
  "anyhow",
@@ -1314,7 +1314,7 @@ dependencies = [
 
 [[package]]
 name = "codex-feedback"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "codex-protocol",
@@ -1325,7 +1325,7 @@ dependencies = [
 
 [[package]]
 name = "codex-file-search"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1338,7 +1338,7 @@ dependencies = [
 
 [[package]]
 name = "codex-gemini-cli-mcp-server"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "mcp-types",
@@ -1352,7 +1352,7 @@ dependencies = [
 
 [[package]]
 name = "codex-git-apply"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "once_cell",
  "regex",
@@ -1361,7 +1361,7 @@ dependencies = [
 
 [[package]]
 name = "codex-git-tooling"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "assert_matches",
  "pretty_assertions",
@@ -1375,7 +1375,7 @@ dependencies = [
 
 [[package]]
 name = "codex-keyring-store"
-version = "0.0.0"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "keyring",
  "tracing",
@@ -1383,7 +1383,7 @@ dependencies = [
 
 [[package]]
 name = "codex-linux-sandbox"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "clap",
  "codex-core",
@@ -1396,7 +1396,7 @@ dependencies = [
 
 [[package]]
 name = "codex-login"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "base64",
@@ -1420,7 +1420,7 @@ dependencies = [
 
 [[package]]
 name = "codex-mcp-server"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1450,7 +1450,7 @@ dependencies = [
 
 [[package]]
 name = "codex-ollama"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "assert_matches",
  "async-stream",
@@ -1466,7 +1466,7 @@ dependencies = [
 
 [[package]]
 name = "codex-otel"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "chrono",
  "codex-app-server-protocol",
@@ -1487,14 +1487,14 @@ dependencies = [
 
 [[package]]
 name = "codex-process-hardening"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "libc",
 ]
 
 [[package]]
 name = "codex-protocol"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "base64",
@@ -1519,7 +1519,7 @@ dependencies = [
 
 [[package]]
 name = "codex-protocol-ts"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1529,7 +1529,7 @@ dependencies = [
 
 [[package]]
 name = "codex-responses-api-proxy"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1548,7 +1548,7 @@ name = "codex-rmcp-client"
 version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
- "axum",
+ "axum 0.7.9",
  "codex-keyring-store",
  "codex-protocol",
  "dirs",
@@ -1574,7 +1574,7 @@ dependencies = [
 
 [[package]]
 name = "codex-stdio-to-uds"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1585,7 +1585,7 @@ dependencies = [
 
 [[package]]
 name = "codex-tui"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "arboard",
@@ -1646,7 +1646,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-cache"
-version = "0.0.0"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "lru",
  "sha1",
@@ -1655,7 +1655,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-image"
-version = "0.0.0"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "base64",
  "codex-utils-cache",
@@ -1667,7 +1667,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-json-to-toml"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "pretty_assertions",
  "serde_json",
@@ -1676,7 +1676,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-pty"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "portable-pty",
@@ -1685,7 +1685,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-readiness"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "assert_matches",
  "async-trait",
@@ -1696,11 +1696,11 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-string"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 
 [[package]]
 name = "codex-utils-tokenizer"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "pretty_assertions",
@@ -1823,7 +1823,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core_test_support"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3958,7 +3958,7 @@ checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
 name = "mcp-types"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "schemars 0.8.22",
  "serde",
@@ -3968,7 +3968,7 @@ dependencies = [
 
 [[package]]
 name = "mcp_test_support"
-version = "0.49.0-zapabob.1"
+version = "0.51.0-zapabob.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
