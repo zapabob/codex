@@ -15,6 +15,171 @@ use serde::de::Error as SerdeError;
 
 pub const DEFAULT_OTEL_ENVIRONMENT: &str = "dev";
 
+/// Security configuration for TLS/mTLS and encryption
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
+pub struct SecurityConfig {
+    /// Enable zero trust mode
+    pub zero_trust_mode: bool,
+    
+    /// Enable TLS for MCP connections
+    pub tls_enabled: bool,
+    
+    /// TLS version (e.g., "1.3")
+    pub tls_version: String,
+    
+    /// Enable mutual TLS (client certificate required)
+    pub mtls_enabled: bool,
+    
+    /// Certificate configuration
+    pub certificates: CertificateConfig,
+    
+    /// Signing configuration (Ed25519)
+    pub signing: SigningConfig,
+    
+    /// Encryption configuration (AES-256-GCM)
+    pub encryption: EncryptionConfig,
+    
+    /// Replay attack protection
+    pub replay_protection: ReplayProtectionConfig,
+    
+    /// Rate limiting configuration
+    pub rate_limiting: RateLimitingConfig,
+}
+
+impl Default for SecurityConfig {
+    fn default() -> Self {
+        Self {
+            zero_trust_mode: false,
+            tls_enabled: false,
+            tls_version: "1.3".to_string(),
+            mtls_enabled: false,
+            certificates: CertificateConfig::default(),
+            signing: SigningConfig::default(),
+            encryption: EncryptionConfig::default(),
+            replay_protection: ReplayProtectionConfig::default(),
+            rate_limiting: RateLimitingConfig::default(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
+pub struct CertificateConfig {
+    pub ca_cert: Option<PathBuf>,
+    pub client_cert: Option<PathBuf>,
+    pub client_key: Option<PathBuf>,
+    pub verify_peer: bool,
+}
+
+impl Default for CertificateConfig {
+    fn default() -> Self {
+        Self {
+            ca_cert: None,
+            client_cert: None,
+            client_key: None,
+            verify_peer: true,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
+pub struct SigningConfig {
+    pub algorithm: String,
+    pub signing_key: Option<PathBuf>,
+    pub signing_public_key: Option<PathBuf>,
+}
+
+impl Default for SigningConfig {
+    fn default() -> Self {
+        Self {
+            algorithm: "Ed25519".to_string(),
+            signing_key: None,
+            signing_public_key: None,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
+pub struct EncryptionConfig {
+    pub algorithm: String,
+    pub key_derivation: String,
+    pub key_rotation_days: u32,
+}
+
+impl Default for EncryptionConfig {
+    fn default() -> Self {
+        Self {
+            algorithm: "AES-256-GCM".to_string(),
+            key_derivation: "HKDF-SHA256".to_string(),
+            key_rotation_days: 90,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
+pub struct ReplayProtectionConfig {
+    pub enabled: bool,
+    pub nonce_store: String,
+    pub redis_url: Option<String>,
+    pub timestamp_tolerance_sec: u64,
+}
+
+impl Default for ReplayProtectionConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            nonce_store: "memory".to_string(),
+            redis_url: None,
+            timestamp_tolerance_sec: 300,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
+pub struct RateLimitingConfig {
+    pub enabled: bool,
+    pub max_requests_per_sec: f64,
+    pub burst_size: u32,
+}
+
+impl Default for RateLimitingConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            max_requests_per_sec: 10.0,
+            burst_size: 20,
+        }
+    }
+}
+
+/// Agent security configuration
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
+pub struct AgentSecurityConfig {
+    pub encryption_enabled: bool,
+    pub signing_enabled: bool,
+    pub encryption: EncryptionConfig,
+    pub signing: SigningConfig,
+    pub rate_limiting: RateLimitingConfig,
+}
+
+impl Default for AgentSecurityConfig {
+    fn default() -> Self {
+        Self {
+            encryption_enabled: false,
+            signing_enabled: false,
+            encryption: EncryptionConfig::default(),
+            signing: SigningConfig::default(),
+            rate_limiting: RateLimitingConfig::default(),
+        }
+    }
+}
+
 #[derive(Serialize, Debug, Clone, PartialEq)]
 pub struct McpServerConfig {
     #[serde(flatten)]

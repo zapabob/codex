@@ -270,7 +270,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
 
     if let McpServerTransportConfig::StreamableHttp {
         url,
-        bearer_token_env_var,
+        bearer_token_env_var: _,
         http_headers,
         env_http_headers,
     } = transport
