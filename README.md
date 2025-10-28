@@ -30,9 +30,9 @@
 
 <div align="center">
 
-![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
+![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.51.0-architecture.svg)
 
-*Comprehensive architecture diagram showing orchestration flow, agent coordination, and external integrations*
+*Comprehensive architecture diagram showing orchestration flow, agent coordination, and external integrations (Updated 2025-10-28)*
 
 </div>
 
@@ -481,9 +481,9 @@ limitations under the License.
 
 <div align="center">
 
-![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.48.0-architecture.svg)
+![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.51.0-architecture.svg)
 
-*オーケストレーションフロー、エージェント協調、外部統合を示す包括的なアーキテクチャ図*
+*オーケストレーションフロー、エージェント協調、外部統合を示す包括的なアーキテクチャ図（2025-10-28更新）*
 
 </div>
 
