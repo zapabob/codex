@@ -23,6 +23,6 @@
   },
   "packageManager": "pnpm@10.8.1",
   "dependencies": {
-    "@openai/codex": "file:test-package.tgz"
+    "@openai/codex": "file:codex-cli/openai-codex-0.52.0.tgz"
   }
 }

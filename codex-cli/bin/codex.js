@@ -62,7 +62,15 @@ if (!targetTriple) {
 const vendorRoot = path.join(__dirname, "..", "vendor");
 const archRoot = path.join(vendorRoot, targetTriple);
 const codexBinaryName = process.platform === "win32" ? "codex.exe" : "codex";
-const binaryPath = path.join(archRoot, "codex", codexBinaryName);
+
+// Try platform-specific binary name first, then fallback to default
+let binaryPath = path.join(archRoot, "codex", `codex-${targetTriple}`);
+if (!existsSync(binaryPath)) {
+  binaryPath = path.join(archRoot, "codex", codexBinaryName);
+}
+if (!existsSync(binaryPath)) {
+  throw new Error(`Codex binary not found for platform ${targetTriple} at ${binaryPath}`);
+}
 
 // Use an asynchronous spawn instead of spawnSync so that Node is able to
 // respond to signals (e.g. Ctrl-C / SIGINT) while the native binary is
