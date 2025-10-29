@@ -1,18 +1,18 @@
 use clap::CommandFactory;
 use clap::Parser;
-use clap_complete::generate;
 use clap_complete::Shell;
+use clap_complete::generate;
 use codex_arg0::arg0_dispatch_or_else;
-use codex_chatgpt::apply_command::run_apply_command;
 use codex_chatgpt::apply_command::ApplyCommand;
+use codex_chatgpt::apply_command::run_apply_command;
+use codex_cli::LandlockCommand;
+use codex_cli::SeatbeltCommand;
 use codex_cli::login::read_api_key_from_stdin;
 use codex_cli::login::run_login_status;
 use codex_cli::login::run_login_with_api_key;
 use codex_cli::login::run_login_with_chatgpt;
 use codex_cli::login::run_login_with_device_code;
 use codex_cli::login::run_logout;
-use codex_cli::LandlockCommand;
-use codex_cli::SeatbeltCommand;
 use codex_cloud_tasks::Cli as CloudTasksCli;
 use codex_common::CliConfigOverrides;
 use codex_exec::Cli as ExecCli;
@@ -110,6 +110,10 @@ enum Subcommand {
     /// [EXPERIMENTAL] Delegate tasks to multiple agents in parallel
     #[clap(name = "delegate-parallel")]
     DelegateParallel(DelegateParallelCommand),
+
+    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor
+    #[clap(name = "pair", alias = "pair-program")]
+    PairProgram(PairProgramCommand),
 
     /// [EXPERIMENTAL] Create and run a custom agent from a prompt
     #[clap(name = "agent-create")]
@@ -226,6 +230,40 @@ struct DelegateParallelCommand {
     deadline: Option<u64>,
 
     /// Output file for combined results
+    #[arg(short, long, value_name = "FILE")]
+    out: Option<PathBuf>,
+}
+
+#[derive(Debug, Parser)]
+struct PairProgramCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
+    /// Natural-language goal for the pair programming session
+    #[arg(value_name = "GOAL", required = true)]
+    goal: Vec<String>,
+
+    /// Optional comma-separated list of agent names to start from
+    #[arg(long, value_name = "AGENTS", value_delimiter = ',')]
+    agents: Vec<String>,
+
+    /// Maximum number of evaluation rounds
+    #[arg(long, value_name = "ROUNDS", default_value_t = 3)]
+    rounds: usize,
+
+    /// Number of top agents to keep after each round
+    #[arg(long, value_name = "TOP_K", default_value_t = 2)]
+    top_k: usize,
+
+    /// Override the improvement threshold required to continue iterating
+    #[arg(long, value_name = "THRESHOLD")]
+    improvement_threshold: Option<f64>,
+
+    /// Maximum acceptable risk score (0-1). Lower values prune riskier agents sooner.
+    #[arg(long, value_name = "RISK")]
+    max_risk: Option<f64>,
+
+    /// Persist the evaluation report as JSON
     #[arg(short, long, value_name = "FILE")]
     out: Option<PathBuf>,
 }
@@ -758,6 +796,30 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 parallel_cmd.deadline,
                 parallel_cmd.out,
                 parallel_cmd.config_overrides,
+            )
+            .await?;
+        }
+        Some(Subcommand::PairProgram(mut pair_cmd)) => {
+            prepend_config_flags(
+                &mut pair_cmd.config_overrides,
+                root_config_overrides.clone(),
+            );
+
+            if pair_cmd.goal.is_empty() {
+                anyhow::bail!("pair programming requires a natural-language goal");
+            }
+
+            let goal = pair_cmd.goal.join(" ");
+
+            codex_cli::pair_program_cmd::run_pair_program_command(
+                pair_cmd.config_overrides,
+                goal,
+                pair_cmd.agents,
+                pair_cmd.rounds,
+                pair_cmd.top_k,
+                pair_cmd.improvement_threshold,
+                pair_cmd.max_risk,
+                pair_cmd.out,
             )
             .await?;
         }

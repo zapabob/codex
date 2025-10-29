@@ -21,28 +21,28 @@ pub const DEFAULT_OTEL_ENVIRONMENT: &str = "dev";
 pub struct SecurityConfig {
     /// Enable zero trust mode
     pub zero_trust_mode: bool,
-    
+
     /// Enable TLS for MCP connections
     pub tls_enabled: bool,
-    
+
     /// TLS version (e.g., "1.3")
     pub tls_version: String,
-    
+
     /// Enable mutual TLS (client certificate required)
     pub mtls_enabled: bool,
-    
+
     /// Certificate configuration
     pub certificates: CertificateConfig,
-    
+
     /// Signing configuration (Ed25519)
     pub signing: SigningConfig,
-    
+
     /// Encryption configuration (AES-256-GCM)
     pub encryption: EncryptionConfig,
-    
+
     /// Replay attack protection
     pub replay_protection: ReplayProtectionConfig,
-    
+
     /// Rate limiting configuration
     pub rate_limiting: RateLimitingConfig,
 }

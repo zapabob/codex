@@ -41,9 +41,7 @@ impl ContradictionChecker {
 
                     contradictions.push(Contradiction {
                         finding_indices: vec![i, j],
-                        description: format!(
-                            "矛盾: ファインディング {i} と {j} の間で矛盾を検出"
-                        ),
+                        description: format!("矛盾: ファインディング {i} と {j} の間で矛盾を検出"),
                         confidence_delta,
                     });
                 }

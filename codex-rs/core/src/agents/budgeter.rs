@@ -58,13 +58,14 @@ impl TokenBudgeter {
         // エージェント別予算チェック
         let agent_used = agent_usage.get(agent_name).copied().unwrap_or(0);
         if let Some(&limit) = agent_limits.get(agent_name)
-            && agent_used + tokens > limit {
-                warn!(
-                    "Agent '{}' budget exceeded: {} + {} > {}",
-                    agent_name, agent_used, tokens, limit
-                );
-                return Ok(false);
-            }
+            && agent_used + tokens > limit
+        {
+            warn!(
+                "Agent '{}' budget exceeded: {} + {} > {}",
+                agent_name, agent_used, tokens, limit
+            );
+            return Ok(false);
+        }
 
         // 使用量を更新
         *used += tokens;

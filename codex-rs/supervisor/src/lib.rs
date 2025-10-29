@@ -1,62 +1,28 @@
-mod agent_prompts;
 mod aggregator;
 mod assigner;
-mod autonomous_orchestrator;
-mod async_subagent;
-mod autonomous_dispatcher;
-mod codex_executor;
 mod executor;
-pub mod integrated;
+mod multi_agent_evaluator;
 mod planner;
-mod real_subagent;
-mod real_subagent_with_executor;
-pub mod subagent;
-pub mod thinking_process;
-mod token_tracker;
 pub mod types;
 
 use anyhow::Result;
 use types::AggregatedResult;
 use types::Assignment;
 use types::Plan;
-use types::SupervisorConfig;
 use types::SupervisorResult;
 use types::TaskResult;
 
-pub use async_subagent::AsyncSubAgent;
-pub use async_subagent::AsyncSubAgentManager;
-pub use async_subagent::AsyncSubAgentNotification;
-pub use async_subagent::Inbox;
-pub use async_subagent::NotificationType;
-pub use autonomous_dispatcher::AutoCallTrigger;
-pub use autonomous_dispatcher::AutonomousDispatcher;
-pub use autonomous_dispatcher::TaskClassification;
-pub use autonomous_orchestrator::AutonomousOrchestrationResult;
-pub use autonomous_orchestrator::AutonomousOrchestrator;
-pub use autonomous_orchestrator::TaskLogEntry;
-pub use autonomous_orchestrator::TaskRecord;
-pub use autonomous_orchestrator::TaskStatus;
-pub use codex_executor::CodexExecutor;
-pub use codex_executor::ExecutionMetrics;
-pub use real_subagent::RealSubAgent;
-pub use real_subagent::RealSubAgentManager;
-pub use real_subagent_with_executor::RealSubAgentManagerWithExecutor;
-pub use real_subagent_with_executor::RealSubAgentWithExecutor;
-pub use subagent::AgentType;
-pub use subagent::SubAgent;
-pub use subagent::SubAgentManager;
-pub use thinking_process::ThinkingProcess;
-pub use thinking_process::ThinkingProcessManager;
-pub use thinking_process::ThinkingStep;
-pub use thinking_process::ThinkingStepBuilder;
-pub use thinking_process::ThinkingStepType;
-pub use token_tracker::TokenAllocationStrategy;
-pub use token_tracker::TokenLimit;
-pub use token_tracker::TokenTracker;
-pub use token_tracker::TokenUsage;
+pub use multi_agent_evaluator::EvaluationScore;
+pub use multi_agent_evaluator::EvaluationStrategy;
+pub use multi_agent_evaluator::MultiAgentEvaluationConfig;
+pub use multi_agent_evaluator::MultiAgentEvaluationReport;
+pub use multi_agent_evaluator::MultiAgentEvaluator;
+pub use multi_agent_evaluator::MultiAgentRoundReport;
+pub use multi_agent_evaluator::SimpleEvaluationStrategy;
 pub use types::CoordinationStrategy;
 pub use types::ManagementStyle;
 pub use types::MergeStrategy;
+pub use types::SupervisorConfig;
 
 /// Main supervisor for coordinating multiple agents
 pub struct Supervisor {
@@ -111,7 +77,7 @@ impl Supervisor {
 
     /// Execute a plan with the given assignments
     pub async fn execute_plan(&self, assignments: Vec<Assignment>) -> Result<Vec<TaskResult>> {
-        executor::execute_plan(assignments, self.config.strategy).await
+        executor::execute_plan(assignments, &self.config).await
     }
 
     /// Aggregate results from multiple tasks

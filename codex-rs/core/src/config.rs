@@ -14,8 +14,8 @@ use crate::config_types::OtelConfig;
 use crate::config_types::OtelConfigToml;
 use crate::config_types::OtelExporterKind;
 use crate::config_types::ReasoningSummaryFormat;
-use crate::config_types::SecurityConfig;
 use crate::config_types::SandboxWorkspaceWrite;
+use crate::config_types::SecurityConfig;
 use crate::config_types::ShellEnvironmentPolicy;
 use crate::config_types::ShellEnvironmentPolicyToml;
 use crate::config_types::Tui;
@@ -275,7 +275,7 @@ pub struct Config {
 
     /// OTEL configuration (exporter type, endpoint, headers, etc.).
     pub otel: crate::config_types::OtelConfig,
-    
+
     /// Security configuration (TLS/mTLS, encryption, signing, etc.)
     pub security: SecurityConfig,
 }
@@ -971,7 +971,7 @@ pub struct ConfigToml {
 
     /// OTEL configuration.
     pub otel: Option<crate::config_types::OtelConfigToml>,
-    
+
     /// Security configuration (TLS/mTLS, encryption, signing, etc.)
     #[serde(default)]
     pub security: Option<SecurityConfig>,

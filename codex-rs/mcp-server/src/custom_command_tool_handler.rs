@@ -84,9 +84,7 @@ pub async fn handle_custom_command_tool_call(arguments: Value) -> Result<CallToo
                     Post-hooks: 0"
                     .to_string(),
                 _ => {
-                    format!(
-                        "Command: {command_name}\nNo detailed information available."
-                    )
+                    format!("Command: {command_name}\nNo detailed information available.")
                 }
             }
         }

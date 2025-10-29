@@ -1,8 +1,8 @@
 //! Webhook command for triggering external integrations.
 
-use anyhow::bail;
 use anyhow::Context;
 use anyhow::Result;
+use anyhow::bail;
 use clap::Parser;
 use codex_common::CliConfigOverrides;
 use codex_core::integrations::WebhookClient;

@@ -244,10 +244,7 @@ async fn test_all_default_commands_executable() {
 
     for command_name in commands {
         let result = executor.execute(&command_name, "test context").await;
-        assert!(
-            result.is_ok(),
-            "Failed to execute command: {command_name}"
-        );
+        assert!(result.is_ok(), "Failed to execute command: {command_name}");
 
         let res = result.unwrap();
         assert!(res.success, "Command failed: {command_name}");

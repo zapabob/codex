@@ -6,18 +6,21 @@ use anyhow::Result;
 pub fn assign_tasks(plan: &Plan, agents_hint: Option<Vec<String>>) -> Result<Vec<Assignment>> {
     let mut assignments = Vec::new();
 
-    for step in &plan.steps {
+    for (index, step) in plan.steps.iter().enumerate() {
         let agent_name = if let Some(ref agents) = agents_hint {
-            // If agents are specified, try to match based on step hint
-            if let Some(ref hint) = step.agent_hint {
+            if agents.is_empty() {
+                step.agent_hint
+                    .clone()
+                    .unwrap_or_else(|| "default".to_string())
+            } else if let Some(ref hint) = step.agent_hint {
+                let hint_lower = hint.to_lowercase();
                 agents
                     .iter()
-                    .find(|a| a.to_lowercase().contains(&hint.to_lowercase()))
+                    .find(|agent| agent.to_lowercase().contains(&hint_lower))
                     .cloned()
-                    .unwrap_or_else(|| agents[0].clone())
+                    .unwrap_or_else(|| agents[index % agents.len()].clone())
             } else {
-                // No hint, use first agent
-                agents[0].clone()
+                agents[index % agents.len()].clone()
             }
         } else {
             // No agents specified, use step hint or default
@@ -72,7 +75,11 @@ mod tests {
         assert_eq!(assignments.len(), 2);
         assert_eq!(assignments[0].agent_name, "Backend");
         assert_eq!(assignments[1].agent_name, "Frontend");
-        assert!(assignments.iter().all(|assignment| assignment.dependencies.is_empty()));
+        assert!(
+            assignments
+                .iter()
+                .all(|assignment| assignment.dependencies.is_empty())
+        );
         assert_eq!(
             assignments[0].collaboration_domain.as_deref(),
             Some("backend")
@@ -127,5 +134,43 @@ mod tests {
         assert_eq!(assignments[0].agent_name, "Agent1");
         assert!(assignments[0].dependencies.is_empty());
         assert!(assignments[0].collaboration_domain.is_none());
+    }
+
+    #[test]
+    fn test_assign_tasks_round_robin_without_hints() {
+        let plan = Plan {
+            goal: "Round robin".to_string(),
+            steps: vec![
+                Step {
+                    id: "step-1".to_string(),
+                    description: "Task 1".to_string(),
+                    agent_hint: None,
+                    dependencies: vec![],
+                    collaboration_domain: None,
+                },
+                Step {
+                    id: "step-2".to_string(),
+                    description: "Task 2".to_string(),
+                    agent_hint: None,
+                    dependencies: vec![],
+                    collaboration_domain: None,
+                },
+                Step {
+                    id: "step-3".to_string(),
+                    description: "Task 3".to_string(),
+                    agent_hint: None,
+                    dependencies: vec![],
+                    collaboration_domain: None,
+                },
+            ],
+        };
+
+        let agents = Some(vec!["AgentA".to_string(), "AgentB".to_string()]);
+        let assignments = assign_tasks(&plan, agents).unwrap();
+
+        assert_eq!(assignments.len(), 3);
+        assert_eq!(assignments[0].agent_name, "AgentA");
+        assert_eq!(assignments[1].agent_name, "AgentB");
+        assert_eq!(assignments[2].agent_name, "AgentA");
     }
 }

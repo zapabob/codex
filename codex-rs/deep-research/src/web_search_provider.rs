@@ -66,7 +66,7 @@ impl WebSearchProvider {
         // Note: Gemini CLIはOAuth 2.0認証を使用（APIキー不要）
         let gemini_check = self.is_gemini_cli_available();
         eprintln!("🔍 [DEBUG] Gemini CLI check result: {:?}", gemini_check);
-        
+
         let results = if matches!(gemini_check, Ok(true)) {
             // Gemini CLIを最優先で使用（OAuth 2.0でログイン済みの場合）
             eprintln!("✅ [DEBUG] Using Gemini CLI!");
@@ -76,19 +76,27 @@ impl WebSearchProvider {
                 Ok(results) if !results.is_empty() => {
                     // Gemini CLI成功 & 結果あり
                     info!("✅ Gemini CLI returned {} results", results.len());
-                    eprintln!("✅ [DEBUG] Gemini CLI succeeded with {} results", results.len());
+                    eprintln!(
+                        "✅ [DEBUG] Gemini CLI succeeded with {} results",
+                        results.len()
+                    );
                     results
                 }
                 Ok(_) => {
                     // Gemini CLI成功だが結果が空 → レートリミットの可能性
-                    eprintln!("⚠️  [DEBUG] Gemini CLI returned empty results, falling back to DuckDuckGo");
+                    eprintln!(
+                        "⚠️  [DEBUG] Gemini CLI returned empty results, falling back to DuckDuckGo"
+                    );
                     tracing::warn!(
                         "⚠️  Gemini CLI returned no results (likely rate limited), falling back to DuckDuckGo"
                     );
                     // DuckDuckGoへフォールバック
                     match self.duckduckgo_search_real(query, 5).await {
                         Ok(results) => {
-                            eprintln!("✅ [DEBUG] DuckDuckGo fallback returned {} results", results.len());
+                            eprintln!(
+                                "✅ [DEBUG] DuckDuckGo fallback returned {} results",
+                                results.len()
+                            );
                             results
                         }
                         Err(_) => {
@@ -305,15 +313,21 @@ impl WebSearchProvider {
         cmd.arg("--version");
 
         eprintln!("🔍 [DEBUG] Checking Gemini CLI availability...");
-        
+
         match cmd.output() {
             Ok(output) => {
                 eprintln!("🔍 [DEBUG] Gemini CLI command executed");
                 eprintln!("🔍 [DEBUG] Status: {:?}", output.status);
                 eprintln!("🔍 [DEBUG] Success: {}", output.status.success());
-                eprintln!("🔍 [DEBUG] Stdout: {}", String::from_utf8_lossy(&output.stdout));
-                eprintln!("🔍 [DEBUG] Stderr: {}", String::from_utf8_lossy(&output.stderr));
-                
+                eprintln!(
+                    "🔍 [DEBUG] Stdout: {}",
+                    String::from_utf8_lossy(&output.stdout)
+                );
+                eprintln!(
+                    "🔍 [DEBUG] Stderr: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                );
+
                 if output.status.success() {
                     tracing::info!("✅ Gemini CLI is available (OAuth 2.0 authenticated)");
                     eprintln!("✅ [DEBUG] Returning Ok(true)");

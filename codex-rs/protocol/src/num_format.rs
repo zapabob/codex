@@ -1,4 +1,4 @@
-use std::sync::OnceLock;
+use std::rc::Rc;
 
 use icu_decimal::DecimalFormatter;
 use icu_decimal::input::Decimal;
@@ -11,15 +11,18 @@ fn make_local_formatter() -> Option<DecimalFormatter> {
 }
 
 fn make_en_us_formatter() -> DecimalFormatter {
-    #![allow(clippy::expect_used)]
     let loc: Locale = "en-US".parse().expect("en-US wasn't a valid locale");
     DecimalFormatter::try_new(loc.into(), DecimalFormatterOptions::default())
         .expect("en-US wasn't a valid locale")
 }
 
-fn formatter() -> &'static DecimalFormatter {
-    static FORMATTER: OnceLock<DecimalFormatter> = OnceLock::new();
-    FORMATTER.get_or_init(|| make_local_formatter().unwrap_or_else(make_en_us_formatter))
+fn formatter() -> Rc<DecimalFormatter> {
+    thread_local! {
+        static FORMATTER: Rc<DecimalFormatter> =
+            Rc::new(make_local_formatter().unwrap_or_else(make_en_us_formatter));
+    }
+
+    FORMATTER.with(Rc::clone)
 }
 
 /// Format an i64 with locale-aware digit separators (e.g. "12345" -> "12,345"
@@ -69,7 +72,8 @@ fn format_si_suffix_with_formatter(n: i64, formatter: &DecimalFormatter) -> Stri
 ///   - 1200 -> "1.20K"
 ///   - 123456789 -> "123M"
 pub fn format_si_suffix(n: i64) -> String {
-    format_si_suffix_with_formatter(n, formatter())
+    let fmt = formatter();
+    format_si_suffix_with_formatter(n, fmt.as_ref())
 }
 
 #[cfg(test)]

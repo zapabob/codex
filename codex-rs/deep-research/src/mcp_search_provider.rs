@@ -67,7 +67,7 @@ pub enum SearchBackend {
     DuckDuckGo,
     Google,
     Bing,
-    Gemini,  // Google Gemini with Search Grounding
+    Gemini, // Google Gemini with Search Grounding
     Mock,
 }
 
@@ -353,7 +353,9 @@ impl McpSearchProvider {
             }
         } else {
             warn!("Gemini Search requires MCP client");
-            Err(anyhow::anyhow!("MCP client not available for Gemini Search"))
+            Err(anyhow::anyhow!(
+                "MCP client not available for Gemini Search"
+            ))
         }
     }
 

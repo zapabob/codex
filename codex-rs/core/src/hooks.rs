@@ -96,10 +96,7 @@ impl HookConfig {
 
     /// Add a hook for an event
     pub fn add_hook(&mut self, event: HookEvent, command: String) {
-        self.hooks
-            .entry(event)
-            .or_default()
-            .push(command);
+        self.hooks.entry(event).or_default().push(command);
     }
 
     /// Remove hooks for an event

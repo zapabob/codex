@@ -1813,7 +1813,7 @@ impl ChatWidget {
             let mut header = ColumnRenderable::new();
             header.push(Line::from(Span::styled(
                 "Codex forced your settings back to Read Only on this Windows machine.",
-                Style::default().add_modifier(Modifier::BOLD)
+                Style::default().add_modifier(Modifier::BOLD),
             )));
             header.push(Line::from(Span::styled(
                 "To re-enable Auto mode, run Codex inside Windows Subsystem for Linux (WSL) or enable Full Access manually.",
@@ -1966,9 +1966,11 @@ impl ChatWidget {
         let mut header = ColumnRenderable::new();
         header.push(Line::from(Span::styled(
             "Auto mode requires Windows Subsystem for Linux (WSL2).",
-            Style::default().add_modifier(Modifier::BOLD)
+            Style::default().add_modifier(Modifier::BOLD),
         )));
-        header.push(Line::from("Run Codex inside WSL to enable sandboxed commands."));
+        header.push(Line::from(
+            "Run Codex inside WSL to enable sandboxed commands.",
+        ));
         header.push(Line::from(""));
         header.push(Paragraph::new(WSL_INSTRUCTIONS).wrap(Wrap { trim: false }));
 

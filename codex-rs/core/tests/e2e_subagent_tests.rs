@@ -66,10 +66,10 @@ artifacts:
             Some(16000),
             None,
         ),
-        )
-        .await
+    )
+    .await
     .expect("Test timeout after 30 seconds")
-        .unwrap();
+    .unwrap();
 
     // Verify result
     assert_eq!(result.agent_name, "test-gen");
@@ -136,10 +136,10 @@ artifacts:
             Some(24000),
             None,
         ),
-        )
-        .await
+    )
+    .await
     .expect("Test timeout after 30 seconds")
-        .unwrap();
+    .unwrap();
 
     assert_eq!(result.status, AgentStatus::Completed);
     assert!(result.artifacts.len() >= 1);
@@ -234,9 +234,9 @@ artifacts:
         Duration::from_secs(30),
         runtime.delegate("budget-test", "Test task", HashMap::new(), Some(5000), None),
     )
-        .await
+    .await
     .expect("Test timeout after 30 seconds")
-        .unwrap();
+    .unwrap();
 
     // Should fail due to budget constraints
     assert_eq!(result.status, AgentStatus::Failed);

@@ -29,13 +29,13 @@ use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::orchestration::CollaborationStore;
-use codex_rmcp_client::RmcpClient;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
 use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::ResponseItem;
+use codex_rmcp_client::RmcpClient;
 use futures::StreamExt;
 use mcp_types::InitializeRequestParams;
 
@@ -1043,10 +1043,7 @@ impl AgentRuntime {
     }
 
     fn is_codex_tool(tool: &str) -> bool {
-        let canonical = tool
-            .rsplit("__")
-            .next()
-            .unwrap_or(tool);
+        let canonical = tool.rsplit("__").next().unwrap_or(tool);
         canonical.starts_with("codex_") || canonical.starts_with("codex-")
     }
 

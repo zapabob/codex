@@ -105,58 +105,58 @@ impl ToolOrchestrator {
                 // Under `Never` or `OnRequest`, do not retry without sandbox; surface a concise message
                 // derived from the actual output (platform-agnostic).
                 if tool.wants_no_sandbox_approval(approval_policy) {
-                // Ask for approval before retrying without sandbox.
-                if !tool.should_bypass_approval(approval_policy, already_approved) {
-                    let mut risk = None;
+                    // Ask for approval before retrying without sandbox.
+                    if !tool.should_bypass_approval(approval_policy, already_approved) {
+                        let mut risk = None;
 
-                    if let Some(metadata) = req.sandbox_retry_data() {
-                        let err = SandboxErr::Denied {
-                            output: output.clone(),
+                        if let Some(metadata) = req.sandbox_retry_data() {
+                            let err = SandboxErr::Denied {
+                                output: output.clone(),
+                            };
+                            let friendly = get_error_message_ui(&CodexErr::Sandbox(err));
+                            let failure_summary = format!("failed in sandbox: {friendly}");
+
+                            risk = tool_ctx
+                                .session
+                                .assess_sandbox_command(
+                                    turn_ctx,
+                                    &tool_ctx.call_id,
+                                    &metadata.command,
+                                    Some(failure_summary.as_str()),
+                                )
+                                .await;
+                        }
+
+                        let reason_msg = build_denial_reason_from_output(output.as_ref());
+                        let approval_ctx = ApprovalCtx {
+                            session: tool_ctx.session,
+                            turn: turn_ctx,
+                            call_id: &tool_ctx.call_id,
+                            retry_reason: Some(reason_msg),
+                            risk,
                         };
-                        let friendly = get_error_message_ui(&CodexErr::Sandbox(err));
-                        let failure_summary = format!("failed in sandbox: {friendly}");
 
-                        risk = tool_ctx
-                            .session
-                            .assess_sandbox_command(
-                                turn_ctx,
-                                &tool_ctx.call_id,
-                                &metadata.command,
-                                Some(failure_summary.as_str()),
-                            )
-                            .await;
+                        let decision = tool.start_approval_async(req, approval_ctx).await;
+                        otel.tool_decision(otel_tn, otel_ci, decision, otel_user);
+
+                        match decision {
+                            ReviewDecision::Denied | ReviewDecision::Abort => {
+                                return Err(ToolError::Rejected("rejected by user".to_string()));
+                            }
+                            ReviewDecision::Approved | ReviewDecision::ApprovedForSession => {}
+                        }
                     }
 
-                    let reason_msg = build_denial_reason_from_output(output.as_ref());
-                    let approval_ctx = ApprovalCtx {
-                        session: tool_ctx.session,
-                        turn: turn_ctx,
-                        call_id: &tool_ctx.call_id,
-                        retry_reason: Some(reason_msg),
-                        risk,
+                    let escalated_attempt = SandboxAttempt {
+                        sandbox: crate::exec::SandboxType::None,
+                        policy: &turn_ctx.sandbox_policy,
+                        manager: &self.sandbox,
+                        sandbox_cwd: &turn_ctx.cwd,
+                        codex_linux_sandbox_exe: None,
                     };
 
-                    let decision = tool.start_approval_async(req, approval_ctx).await;
-                    otel.tool_decision(otel_tn, otel_ci, decision, otel_user);
-
-                    match decision {
-                        ReviewDecision::Denied | ReviewDecision::Abort => {
-                            return Err(ToolError::Rejected("rejected by user".to_string()));
-                        }
-                        ReviewDecision::Approved | ReviewDecision::ApprovedForSession => {}
-                    }
-                }
-
-                let escalated_attempt = SandboxAttempt {
-                    sandbox: crate::exec::SandboxType::None,
-                    policy: &turn_ctx.sandbox_policy,
-                    manager: &self.sandbox,
-                    sandbox_cwd: &turn_ctx.cwd,
-                    codex_linux_sandbox_exe: None,
-                };
-
-                // Second attempt.
-                (*tool).run(req, &escalated_attempt, tool_ctx).await
+                    // Second attempt.
+                    (*tool).run(req, &escalated_attempt, tool_ctx).await
                 } else {
                     // Under `Never` or `OnRequest`, do not retry without sandbox
                     let msg = build_never_denied_message_from_output(output.as_ref());

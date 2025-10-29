@@ -2,7 +2,7 @@ use crate::types::Assignment;
 use crate::types::CoordinationStrategy;
 use crate::types::SupervisorConfig;
 use crate::types::TaskResult;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::collections::{HashMap, HashSet, VecDeque};
 use tokio::task::JoinSet;
 
@@ -16,7 +16,9 @@ pub async fn execute_plan(
     let concurrency_limit = match config.strategy {
         CoordinationStrategy::Sequential => 1,
         CoordinationStrategy::Parallel => config.max_parallel_agents.max(1),
-        CoordinationStrategy::Hybrid => std::cmp::max(1, std::cmp::min(config.max_parallel_agents, 2)),
+        CoordinationStrategy::Hybrid => {
+            std::cmp::max(1, std::cmp::min(config.max_parallel_agents, 2))
+        }
     };
 
     execute_with_dependencies(assignments, concurrency_limit).await
@@ -45,7 +47,9 @@ async fn execute_with_dependencies(
         let filtered_dependencies: HashSet<String> = assignment
             .dependencies
             .iter()
-            .filter(|dependency| all_step_ids.contains(*dependency) && *dependency != &assignment.step_id)
+            .filter(|dependency| {
+                all_step_ids.contains(*dependency) && *dependency != &assignment.step_id
+            })
             .cloned()
             .collect();
 
@@ -145,7 +149,6 @@ fn pop_next_ready(
         if let Some(queue) = ready.get_mut(&domain) {
             if let Some(assignment) = queue.pop_front() {
                 should_remove = queue.is_empty();
-                drop(queue);
                 if should_remove {
                     ready.remove(&domain);
                 }
@@ -200,7 +203,10 @@ mod tests {
             step_id: step_id.to_string(),
             agent_name: agent.to_string(),
             description: description.to_string(),
-            dependencies: dependencies.into_iter().map(|dep| dep.to_string()).collect(),
+            dependencies: dependencies
+                .into_iter()
+                .map(|dep| dep.to_string())
+                .collect(),
             collaboration_domain: domain.map(|value| value.to_string()),
         }
     }
@@ -281,8 +287,10 @@ mod tests {
             .await
             .expect_err("should detect cycle");
 
-        assert!(error
-            .to_string()
-            .contains("dependency cycle or domain deadlock detected"));
+        assert!(
+            error
+                .to_string()
+                .contains("dependency cycle or domain deadlock detected")
+        );
     }
 }

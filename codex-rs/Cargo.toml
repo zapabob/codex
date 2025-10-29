@@ -32,7 +32,7 @@ members = [
     "protocol-ts",
     "rmcp-client",
     "responses-api-proxy",
-    # "supervisor",  # DISABLED: 古い実装、codex_core::Codexとの互換性なし
+    "supervisor",
     "stdio-to-uds",
     "otel",
     "tui",
@@ -48,7 +48,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.51.0-zapabob.1"
+version = "0.52.0-zapabob.1"
 # Track the edition for all workspace crates in one place. Individual
 # crates can still override this value, but keeping it here means new
 # crates created with `cargo new -w ...` automatically inherit the 2021
@@ -84,7 +84,7 @@ codex-protocol = { path = "protocol" }
 codex-protocol-ts = { path = "protocol-ts" }
 codex-responses-api-proxy = { path = "responses-api-proxy" }
 codex-rmcp-client = { path = "rmcp-client" }
-# codex-supervisor = { path = "supervisor" }  # DELETED: 古い実装、完全削除
+codex-supervisor = { path = "supervisor" }
 codex-stdio-to-uds = { path = "stdio-to-uds" }
 codex-tui = { path = "tui" }
 codex-utils-cache = { path = "utils/cache" }

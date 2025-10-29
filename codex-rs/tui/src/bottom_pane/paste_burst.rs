@@ -229,7 +229,7 @@ impl PasteBurst {
             // Safety check: verify character isn't already in buffer
             // (defensive programming, should not happen due to `.take()`)
             if out.is_empty() || !out.contains(ch) {
-            out.push(ch);
+                out.push(ch);
             }
         }
 

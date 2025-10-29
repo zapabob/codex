@@ -5,6 +5,7 @@ pub mod delegate_cmd;
 mod exit_status;
 pub mod login;
 pub mod parallel_delegate_cmd;
+pub mod pair_program_cmd;
 pub mod research_cmd;
 
 use clap::Parser;
@@ -32,10 +33,7 @@ pub struct SeatbeltCommand {
 /// server-side representation. We clamp the value to a non-negative range and
 /// downcast safely to `usize` so it can be consumed by the runtime.
 pub fn resolve_runtime_budget(config: &Config, default_budget: i64) -> usize {
-    let raw_budget = config
-        .model_context_window
-        .unwrap_or(default_budget)
-        .max(0);
+    let raw_budget = config.model_context_window.unwrap_or(default_budget).max(0);
 
     let as_u64 = u64::try_from(raw_budget).unwrap_or(u64::MAX);
     let capped = as_u64.min(usize::MAX as u64);

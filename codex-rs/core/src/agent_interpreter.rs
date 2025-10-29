@@ -174,8 +174,8 @@ impl AgentInterpreter {
         agent_name: String,
         confidence: f64,
     ) -> Result<()> {
-        let regex = Regex::new(regex_str)
-            .with_context(|| format!("Invalid regex pattern: {regex_str}"))?;
+        let regex =
+            Regex::new(regex_str).with_context(|| format!("Invalid regex pattern: {regex_str}"))?;
 
         self.patterns.push(Pattern {
             regex,

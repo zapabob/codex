@@ -70,8 +70,7 @@ pub async fn run_research_command(
 
         if std::env::var("BRAVE_API_KEY").is_ok() {
             println!("   ✅ Brave Search API detected");
-        } else if std::env::var("GOOGLE_API_KEY").is_ok()
-            && std::env::var("GOOGLE_CSE_ID").is_ok()
+        } else if std::env::var("GOOGLE_API_KEY").is_ok() && std::env::var("GOOGLE_CSE_ID").is_ok()
         {
             println!("   ✅ Google Custom Search API detected");
         } else if std::env::var("BING_API_KEY").is_ok() {

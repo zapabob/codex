@@ -200,15 +200,15 @@ impl ResearchProvider for GeminiSearchProvider {
                 warn!("MCP Gemini search failed: {}, trying direct CLI", e);
                 // Fallback to direct CLI
                 match self.execute_gemini_search_direct(query).await {
-                Ok(results) => {
+                    Ok(results) => {
                         info!(
                             "✅ Direct CLI Gemini search successful: {} results",
                             results.len()
                         );
                         let sources: Vec<Source> = results.into_iter().map(|r| r.into()).collect();
                         Ok(sources.into_iter().take(max_results as usize).collect())
-                }
-                Err(e) => {
+                    }
+                    Err(e) => {
                         info!("❌ All Gemini search methods failed: {}", e);
                         Err(e)
                     }

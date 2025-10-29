@@ -1178,7 +1178,7 @@ mod tests {
         features.enable(Feature::UnifiedExec);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
         let (tools, _) = build_specs(&config, Some(HashMap::new())).build();
         let tool_names = tools.iter().map(|t| t.spec.name()).collect::<Vec<_>>();
@@ -1206,7 +1206,7 @@ features: &features,
         features.enable(Feature::UnifiedExec);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
         let (tools, _) = build_specs(&config, Some(HashMap::new())).build();
 
@@ -1228,7 +1228,7 @@ features: &features,
         features.enable(Feature::UnifiedExec);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
         let (tools, _) = build_specs(&config, None).build();
 
@@ -1247,7 +1247,7 @@ features: &features,
         features.disable(Feature::ViewImageTool);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
         let (tools, _) = build_specs(&config, None).build();
 
@@ -1277,7 +1277,7 @@ features: &features,
         features.enable(Feature::WebSearchRequest);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
         let (tools, _) = build_specs(
             &config,
@@ -1370,7 +1370,7 @@ features: &features,
         features.enable(Feature::UnifiedExec);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
 
         // Intentionally construct a map with keys that would sort alphabetically.
@@ -1447,7 +1447,7 @@ features: &features,
         features.enable(Feature::WebSearchRequest);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
 
         let (tools, _) = build_specs(
@@ -1504,7 +1504,7 @@ features: &features,
         features.enable(Feature::WebSearchRequest);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
 
         let (tools, _) = build_specs(
@@ -1558,7 +1558,7 @@ features: &features,
         features.enable(Feature::ApplyPatchFreeform);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
 
         let (tools, _) = build_specs(
@@ -1614,7 +1614,7 @@ features: &features,
         features.enable(Feature::WebSearchRequest);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
 
         let (tools, _) = build_specs(
@@ -1682,7 +1682,7 @@ features: &features,
         features.enable(Feature::WebSearchRequest);
         let config = ToolsConfig::new(&ToolsConfigParams {
             model_family: &model_family,
-features: &features,
+            features: &features,
         });
         let (tools, _) = build_specs(
             &config,
@@ -1787,4 +1787,3 @@ features: &features,
         );
     }
 }
-

@@ -8,6 +8,10 @@ doctest = false
 name = "codex_core"
 path = "src/lib.rs"
 
+[features]
+default = []
+agent_security = []
+
 [lints]
 workspace = true
 
