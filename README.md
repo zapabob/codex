@@ -56,8 +56,8 @@ The Codex v0.52.0 architecture consists of **9 major layers** with **80+ compone
 - **🔒 Automatic Conflict Resolution** - FileEditTracker with 3 merge strategies
 - **🗣️ Natural Language CLI** - AgentInterpreter with pattern matching
 - **🔄 Advanced Error Retry** - Exponential backoff with fallback strategies
-- **📖 Fully Open Source** - Apache 2.0 / MIT dual license
-- **🔌 MCP Protocol Integration** - Standardized tool ecosystem (15 servers)
+- **📖 Fully Open Source** - Apache 2.0
+*🔌 MCP Protocol Integration** - Standardized tool ecosystem (15 servers)
 - **🔍 Multi-source Research** - Gemini Search Grounding, DuckDuckGo, Google, Bing
 
 If you're running into upgrade issues with Homebrew, see the [FAQ entry on brew upgrade codex](./docs/faq.md#brew-update-codex-isnt-upgrading-me).
