@@ -28,7 +28,7 @@ The Codex CLI and IDE extension is a MCP client which means that it can be confi
 
 Codex prefers running quick shell helpers such as `ls` or `rg` when it can, but the gpt-5-codex model occasionally falls back to ad-hoc Python snippets for simple file reads or searches. Those interpreter invocations inflate the conversation because the model has to write the entire program and then stream the results back. If you notice Codex spending most of its time authoring and executing Python scripts for trivial tasks, you can nudge it toward built-in tools by explicitly prohibiting code execution in your instructions.
 
-- Add a sentence such as **「Pythonなどのコード実行を禁止します。」** to the instructions that you pass to `codex exec` or to your base CLI prompt profile.
+- Add a sentence such as **「PythonやRustなどのコード実行を禁止します。」** to the instructions that you pass to `codex exec` or to your base CLI prompt profile. Tailor the language list to whatever interpreters you see Codex launching in your own runs.
 - With Python explicitly disallowed, Codex reliably uses the shell tools (`shell`, `edit`, `search`) and you avoid the overhead of repeatedly drafting short-lived scripts.
 - In practice we have observed token usage on small maintenance tasks drop by an order of magnitude because the agent stops emitting full Python scripts just to list files.
 
