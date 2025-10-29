@@ -246,6 +246,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
             #[serde(default)]
             enabled: Option<bool>,
             #[serde(default)]
+            disabled: Option<bool>,
+            #[serde(default)]
             enabled_tools: Option<Vec<String>>,
             #[serde(default)]
             disabled_tools: Option<Vec<String>>,
@@ -262,7 +264,20 @@ impl<'de> Deserialize<'de> for McpServerConfig {
             (None, None) => None,
         };
         let tool_timeout_sec = raw.tool_timeout_sec;
-        let enabled = raw.enabled.unwrap_or_else(default_enabled);
+        let enabled = match (raw.enabled, raw.disabled) {
+            (Some(enabled), Some(disabled)) => {
+                let derived_enabled = !disabled;
+                if enabled != derived_enabled {
+                    return Err(SerdeError::custom(
+                        "conflicting 'enabled' and 'disabled' settings for MCP server",
+                    ));
+                }
+                enabled
+            }
+            (Some(enabled), None) => enabled,
+            (None, Some(disabled)) => !disabled,
+            (None, None) => default_enabled(),
+        };
         let enabled_tools = raw.enabled_tools.clone();
         let disabled_tools = raw.disabled_tools.clone();
 
@@ -788,6 +803,35 @@ mod tests {
         .expect("should deserialize disabled server config");
 
         assert!(!cfg.enabled);
+    }
+
+    #[test]
+    fn deserialize_disabled_server_config_alias() {
+        let cfg: McpServerConfig = toml::from_str(
+            r#"
+            command = "echo"
+            disabled = true
+        "#,
+        )
+        .expect("should deserialize disabled server config using alias");
+
+        assert!(!cfg.enabled);
+    }
+
+    #[test]
+    fn deserialize_disabled_server_config_conflict() {
+        let err = toml::from_str::<McpServerConfig>(
+            r#"
+            command = "echo"
+            enabled = true
+            disabled = true
+        "#,
+        )
+        .expect_err("conflicting enabled/disabled should error");
+
+        assert!(err
+            .to_string()
+            .contains("conflicting 'enabled' and 'disabled' settings"));
     }
 
     #[test]
