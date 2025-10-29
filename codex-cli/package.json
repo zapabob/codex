@@ -9,6 +9,9 @@
   "engines": {
     "node": ">=16"
   },
+  "os": [
+    "win32"
+  ],
   "files": [
     "bin",
     "vendor"
