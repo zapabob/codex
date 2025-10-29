@@ -8,7 +8,8 @@
 **サブエージェントオーケストレーションとディープリサーチ機能を備えた自律型AIコーディングアシスタント**
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-0.51.0--zapabob.1-blue)]()
+[![npm version](https://img.shields.io/badge/npm-0.52.0-blue)](https://www.npmjs.com/package/@openai/codex)
+[![Version](https://img.shields.io/badge/version-0.52.0-blue)]()
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Rust](https://img.shields.io/badge/rust-1.90+-orange)]()
 [![OpenAI](https://img.shields.io/badge/OpenAI-upstream%20synced-success)]()
@@ -30,15 +31,15 @@
 
 <div align="center">
 
-![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.51.0-architecture.svg)
+![Codex v0.52.0 Architecture](zapabob/docs/codex-v0.52.0-architecture.svg)
 
-*Comprehensive architecture diagram showing orchestration flow, agent coordination, and external integrations (Updated 2025-10-28)*
+*Comprehensive architecture diagram showing orchestration flow, agent coordination, and external integrations (Updated 2025-10-29)*
 
 </div>
 
 #### 📊 **Architecture Overview**
 
-The Codex v0.51.0-zapabob.1 architecture consists of **8 major layers** with **70+ components**:
+The Codex v0.52.0 architecture consists of **8 major layers** with **70+ components**:
 
 1. **🖥️ User Interface Layer** - CLI, TUI, Cursor IDE, Natural Language CLI
 2. **🧠 Core Orchestration Layer** - Task Analyzer, Auto Orchestrator, Supervisor
@@ -299,6 +300,19 @@ graph TB
 
 #### Quick Start
 
+##### Option 1: Install via npm (Recommended)
+
+```bash
+# Install from npm registry (cross-platform binaries included)
+npm install -g @openai/codex
+
+# Verify installation
+codex --version
+# Output: codex-cli 0.52.0
+```
+
+##### Option 2: Build from Source
+
 ```bash
 # Clone the repository
 git clone https://github.com/zapabob/codex.git
@@ -312,7 +326,7 @@ cargo install --path cli --force
 
 # Verify installation
 codex --version
-# Output: codex-cli 0.51.0-zapabob.1
+# Output: codex-cli 0.52.0-zapabob.1
 ```
 
 #### Gemini CLI MCP Setup (Optional)
@@ -481,15 +495,15 @@ limitations under the License.
 
 <div align="center">
 
-![Codex v0.51.0 Architecture](zapabob/docs/codex-v0.51.0-architecture.svg)
+![Codex v0.52.0 Architecture](zapabob/docs/codex-v0.52.0-architecture.svg)
 
-*オーケストレーションフロー、エージェント協調、外部統合を示す包括的なアーキテクチャ図（2025-10-28更新）*
+*オーケストレーションフロー、エージェント協調、外部統合を示す包括的なアーキテクチャ図（2025-10-29更新）*
 
 </div>
 
 #### 📊 **アーキテクチャ概要**
 
-Codex v0.51.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と**70+のコンポーネント**で構成されています：
+Codex v0.52.0アーキテクチャは**8つの主要レイヤー**と**70+のコンポーネント**で構成されています：
 
 1. **🖥️ ユーザーインターフェース層** - CLI、TUI、Cursor IDE、自然言語CLI
 2. **🧠 コアオーケストレーション層** - タスク分析器、自動オーケストレーター、スーパーバイザー
@@ -589,6 +603,19 @@ Codex v0.51.0-zapabob.1アーキテクチャは**8つの主要レイヤー**と*
 
 #### クイックスタート
 
+##### オプション1: npm経由でインストール（推奨）
+
+```bash
+# npmレジストリからインストール（クロスプラットフォームバイナリ付き）
+npm install -g @openai/codex
+
+# インストール確認
+codex --version
+# 出力: codex-cli 0.52.0
+```
+
+##### オプション2: ソースからビルド
+
 ```bash
 # リポジトリをクローン
 git clone https://github.com/zapabob/codex.git
@@ -602,7 +629,7 @@ cargo install --path cli --force
 
 # インストール確認
 codex --version
-# 出力: codex-cli 0.51.0-zapabob.1
+# 出力: codex-cli 0.52.0-zapabob.1
 ```
 
 #### Gemini CLI MCPセットアップ（オプション）
