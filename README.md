@@ -8,7 +8,7 @@
 **サブエージェントオーケストレーションとディープリサーチ機能を備えた自律型AIコーディングアシスタント**
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![npm version](https://img.shields.io/badge/npm-0.52.0-blue)](https://www.npmjs.com/package/@openai/codex)
+[![npm version](https://img.shields.io/badge/npm-0.52.0-blue)](https://npm.pkg.github.com/package/@openai/codex)
 [![Version](https://img.shields.io/badge/version-0.52.0-blue)]()
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Rust](https://img.shields.io/badge/rust-1.90+-orange)]()
@@ -31,24 +31,25 @@
 
 <div align="center">
 
-![Codex v0.52.0 Architecture](zapabob/docs/codex-v0.52.0-architecture.svg)
+![Codex v0.52.0 Architecture](docs/zapabob/codex-v0.52.0-architecture.svg)
 
-*Comprehensive architecture diagram showing orchestration flow, agent coordination, and external integrations (Updated 2025-10-29)*
+*Comprehensive architecture diagram showing orchestration flow, agent coordination, external integrations, and extensions (Updated 2025-10-29)*
 
 </div>
 
 #### 📊 **Architecture Overview**
 
-The Codex v0.52.0 architecture consists of **8 major layers** with **70+ components**:
+The Codex v0.52.0 architecture consists of **9 major layers** with **80+ components**:
 
-1. **🖥️ User Interface Layer** - CLI, TUI, Cursor IDE, Natural Language CLI
+1. **🖥️ User Interface Layer** - CLI, TUI, Cursor IDE, Natural Language CLI, npm Package
 2. **🧠 Core Orchestration Layer** - Task Analyzer, Auto Orchestrator, Supervisor
-3. **🤖 Specialized Sub-Agents** - 7 specialized agents for different tasks
+3. **🤖 Specialized Sub-Agents** - 8 specialized agents for different tasks
 4. **🔍 Deep Research Engine** - Multi-source search with citation management
 5. **🔗 MCP Integration Layer** - 14 MCP servers for tool integration
 6. **🌐 External Integrations** - GitHub API, Slack, Audio notifications
-7. **💾 Data & Configuration** - Settings, session management, audit logs
-8. **🤖 LLM Model Providers** - OpenAI, Google Gemini
+7. **🎨 Extensions & SDK** - VS Code/Windsurf extensions, TypeScript SDK, Archive
+8. **💾 Data & Configuration** - Settings, session management, audit logs
+9. **🤖 LLM Model Providers** - OpenAI, Google Gemini
 
 #### 🎯 **Key Architectural Features**
 
@@ -142,52 +143,80 @@ graph TB
 ### 📁 Repository Structure
 
 <details>
-<summary><b>Directory Organization</b></summary>
+<summary><b>Directory Organization (Post-Organization)</b></summary>
 
 ```mermaid
 graph TB
     Root["📦 codex/"]
-    
+
     Root --> Official["🏢 Official OpenAI/codex"]
-    Root --> Zapabob["⭐ zapabob Extensions"]
+    Root --> Extensions["🔌 Extensions"]
     Root --> Config["⚙️ Configuration"]
-    Root --> Temp["🗑️ Temporary (.gitignore)"]
-    Root --> Archive["📦 Archive"]
+    Root --> Archive["📦 Archive (.archive/)"]
 
     Official --> CodexRS["codex-rs/<br/>Rust Implementation<br/>Core, Agents, Orchestration"]
     Official --> CodexCLI["codex-cli/<br/>npm Package"]
-    Official --> Docs["docs/<br/>51 Official Docs"]
-    Official --> Scripts["scripts/<br/>9 Official Scripts"]
+    Official --> Docs["docs/<br/>Official Documentation"]
+    Official --> Scripts["scripts/<br/>Official CI/CD Scripts"]
+    Official --> Examples["examples/<br/>Sample Code"]
 
-    Zapabob --> ZDocs["zapabob/docs/<br/>- implementation-logs/ (236)<br/>- guides/<br/>- architecture/"]
-    Zapabob --> ZScripts["zapabob/scripts/<br/>- play-completion-sound.ps1<br/>- build automation"]
-    Zapabob --> ZExt["zapabob/extensions/<br/>- vscode-extension/<br/>- windsurf-extension/"]
-    Zapabob --> ZSDK["zapabob/sdk/<br/>TypeScript SDK"]
+    Extensions --> ZDocs["docs/zapabob/<br/>- implementation-logs/ (260+)<br/>- architecture-diagrams/<br/>- guides/"]
+    Extensions --> ZScripts["scripts/zapabob/<br/>Build & Test Automation"]
+    Extensions --> Editors["extensions/<br/>- vscode/<br/>- windsurf/"]
+    Extensions --> SDK["sdk/<br/>TypeScript SDK"]
 
-    Config --> Cursor[".cursor/<br/>- mcp-config.json<br/>- composer-guide.md"]
-    Config --> CodexC[".codex/<br/>- agents/*.yaml (8)<br/>- marisa_owattaze.wav"]
+    Config --> Cursor[".cursor/<br/>IDE Integration"]
+    Config --> CodexC[".codex/<br/>Agent Definitions<br/>Sound Notifications"]
 
-    Temp --> TBuild["_temp/build-logs/<br/>7 logs"]
-    Temp --> TTest["_temp/test-outputs/<br/>6 test files"]
-    Temp --> TArt["_temp/build-artifacts/<br/>exe/pdb"]
-
-    Archive --> AOld["archive/<br/>Legacy PRs"]
-    Archive --> ABackup["archive/backups/<br/>2 files"]
+    Archive --> ADev[".archive/scripts/<br/>Dev Tools & Automation"]
+    Archive --> ATest[".archive/test-*/<br/>Test Results & Reports"]
+    Archive --> AReports[".archive/research-reports/<br/>Security & Code Reviews"]
+    Archive --> ATemp[".archive/_temp/<br/>Build Artifacts"]
+    Archive --> ALegacy[".archive/archive/<br/>Legacy Files"]
 
     classDef officialClass fill:#e3f2fd,stroke:#0d47a1,stroke-width:3px
-    classDef zapaClass fill:#fff9c4,stroke:#f57f17,stroke-width:3px
+    classDef extClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px
     classDef configClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef tempClass fill:#ffebee,stroke:#b71c1c,stroke-width:2px
     classDef archiveClass fill:#eceff1,stroke:#37474f,stroke-width:2px
 
-    class Official,CodexRS,CodexCLI,Docs,Scripts officialClass
-    class Zapabob,ZDocs,ZScripts,ZExt,ZSDK zapaClass
+    class Official,CodexRS,CodexCLI,Docs,Scripts,Examples officialClass
+    class Extensions,ZDocs,ZScripts,Editors,SDK extClass
     class Config,Cursor,CodexC configClass
-    class Temp,TBuild,TTest,TArt tempClass
-    class Archive,AOld,ABackup archiveClass
+    class Archive,ADev,ATest,AReports,ATemp,ALegacy archiveClass
 ```
 
 </details>
+
+### 🎯 zapabob Extensions
+
+This fork includes comprehensive enhancements maintained by zapabob:
+
+#### 📚 Documentation & Guides
+- **📖 Implementation Logs**: `docs/zapabob/implementation-logs/` (260+ detailed logs)
+- **🏗️ Architecture Diagrams**: `docs/zapabob/` (Mermaid/PNG/SVG formats)
+- **📋 Guides & Tutorials**: `docs/zapabob/` (setup, integration, best practices)
+
+#### 🔧 Development Tools
+- **⚙️ Automation Scripts**: `scripts/zapabob/` (build, test, deployment automation)
+- **🎵 Sound Notifications**: Completion sounds for Cursor IDE integration
+- **🔨 Build Tools**: Advanced compilation and packaging scripts
+
+#### 🎨 Editor Extensions
+- **VS Code Extension**: `extensions/vscode/` (IntelliSense, commands)
+- **Windsurf Extension**: `extensions/windsurf/` (AI-assisted development)
+
+#### 💻 SDK & APIs
+- **TypeScript SDK**: `sdk/typescript/` (programmatic Codex integration)
+- **Example Projects**: Real-world usage patterns and templates
+
+#### 📦 Archive (.archive/)
+All development artifacts, test results, and legacy files are preserved in `.archive/`:
+- **Build Logs**: Compilation outputs and performance metrics
+- **Test Results**: Coverage reports, integration test outputs
+- **Research Reports**: Security audits, code reviews
+- **Legacy Files**: Previous versions and deprecated features
+
+**🔄 Access archived files anytime**: Files are never deleted, only organized.
 
 ### ✨ Key Features
 
@@ -292,6 +321,14 @@ graph TB
 
 ### 📦 Installation
 
+#### 🚀 npm Package Features
+- **📦 Package Name**: `@openai/codex`
+- **🔖 Version**: `0.52.0` (Published to GitHub Packages)
+- **💾 Size**: ~133MB (includes cross-platform binaries)
+- **🖥️ Platforms**: macOS (Intel/ARM64), Linux (glibc/musl), Windows (x64/ARM64)
+- **⚡ Ready-to-use**: No compilation required, includes all dependencies
+- **🔧 Features**: CLI + Sub-Agents + Deep Research + MCP Integration
+
 #### Prerequisites
 - **Rust** 1.90 or later
 - **OpenAI API Key** (set as `OPENAI_API_KEY`)
@@ -303,12 +340,17 @@ graph TB
 ##### Option 1: Install via npm (Recommended)
 
 ```bash
-# Install from npm registry (cross-platform binaries included)
-npm install -g @openai/codex
+# Install from GitHub Packages (cross-platform binaries included)
+npm install -g @openai/codex --registry=https://npm.pkg.github.com
 
 # Verify installation
 codex --version
-# Output: codex-cli 0.52.0
+# Output: codex-cli 0.52.0-zapabob.1
+
+# Test functionality
+codex --help
+codex delegate --help
+codex research --help
 ```
 
 ##### Option 2: Build from Source
@@ -448,7 +490,7 @@ cargo test --all
 
 ### 📚 Documentation
 
-- **Architecture**: [`zapabob/docs/codex-v0.51.0-architecture.svg`](zapabob/docs/codex-v0.51.0-architecture.svg)
+- **Architecture**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg)
 - **MCP Config Guide**: [`_docs/MCP設定ファイル同期管理ガイド.md`](_docs/MCP設定ファイル同期管理ガイド.md)
 - **Implementation Logs**: [`_docs/`](_docs/)
 - **Audio Notifications**: [`_docs/2025-10-23_音声通知設定更新.md`](_docs/2025-10-23_音声通知設定更新.md)
@@ -495,24 +537,25 @@ limitations under the License.
 
 <div align="center">
 
-![Codex v0.52.0 Architecture](zapabob/docs/codex-v0.52.0-architecture.svg)
+![Codex v0.52.0 Architecture](docs/zapabob/codex-v0.52.0-architecture.svg)
 
-*オーケストレーションフロー、エージェント協調、外部統合を示す包括的なアーキテクチャ図（2025-10-29更新）*
+*オーケストレーションフロー、エージェント協調、外部統合、拡張機能を示す包括的なアーキテクチャ図（2025-10-29更新）*
 
 </div>
 
 #### 📊 **アーキテクチャ概要**
 
-Codex v0.52.0アーキテクチャは**8つの主要レイヤー**と**70+のコンポーネント**で構成されています：
+Codex v0.52.0アーキテクチャは**9つの主要レイヤー**と**80+のコンポーネント**で構成されています：
 
-1. **🖥️ ユーザーインターフェース層** - CLI、TUI、Cursor IDE、自然言語CLI
+1. **🖥️ ユーザーインターフェース層** - CLI、TUI、Cursor IDE、自然言語CLI、npmパッケージ
 2. **🧠 コアオーケストレーション層** - タスク分析器、自動オーケストレーター、スーパーバイザー
-3. **🤖 専門サブエージェント** - 7つの専門エージェント
+3. **🤖 専門サブエージェント** - 8つの専門エージェント
 4. **🔍 ディープリサーチエンジン** - 引用管理付きマルチソース検索
 5. **🔗 MCP統合層** - ツール統合用14個のMCPサーバー
 6. **🌐 外部統合** - GitHub API、Slack、音声通知
-7. **💾 データ・設定** - 設定、セッション管理、監査ログ
-8. **🤖 LLMモデルプロバイダー** - OpenAI、Anthropic、Google Gemini
+7. **🎨 拡張機能＆SDK** - VS Code/Windsurf拡張、TypeScript SDK、アーカイブ
+8. **💾 データ・設定** - 設定、セッション管理、監査ログ
+9. **🤖 LLMモデルプロバイダー** - OpenAI、Anthropic、Google Gemini
 
 #### 🎯 **主要アーキテクチャ特徴**
 
@@ -591,9 +634,17 @@ Codex v0.52.0アーキテクチャは**8つの主要レイヤー**と**70+のコ
    - 全コードをGitHubで公開
    - コミュニティコントリビューション歓迎
    - 透明性の高い開発プロセス
-   - Apache 2.0 / MITデュアルライセンス
+   - Apache 2.0 /
 
 ### 📦 インストール
+
+#### 🚀 npmパッケージ特徴
+- **📦 パッケージ名**: `@openai/codex`
+- **🔖 バージョン**: `0.52.0` (GitHub Packagesに公開)
+- **💾 サイズ**: ~133MB (クロスプラットフォームバイナリを含む)
+- **🖥️ プラットフォーム**: macOS (Intel/ARM64), Linux (glibc/musl), Windows (x64/ARM64)
+- **⚡ 即利用可能**: コンパイル不要、全依存関係込み
+- **🔧 機能**: CLI + サブエージェント + ディープリサーチ + MCP統合
 
 #### 前提条件
 - **Rust** 1.90以降
@@ -606,12 +657,17 @@ Codex v0.52.0アーキテクチャは**8つの主要レイヤー**と**70+のコ
 ##### オプション1: npm経由でインストール（推奨）
 
 ```bash
-# npmレジストリからインストール（クロスプラットフォームバイナリ付き）
-npm install -g @openai/codex
+# GitHub Packagesからインストール（クロスプラットフォームバイナリ付き）
+npm install -g @openai/codex --registry=https://npm.pkg.github.com
 
 # インストール確認
 codex --version
-# 出力: codex-cli 0.52.0
+# 出力: codex-cli 0.52.0-zapabob.1
+
+# 機能テスト
+codex --help
+codex delegate --help
+codex research --help
 ```
 
 ##### オプション2: ソースからビルド
@@ -647,6 +703,37 @@ gemini -p "Hello Gemini" -o text
 # Codexで使用
 codex research "Rust非同期プログラミングベストプラクティス" --gemini --use-mcp
 ```
+
+### 🎯 zapabob拡張機能
+
+このフォークにはzapabobによってメンテナンスされる包括的な拡張機能が含まれています：
+
+#### 📚 ドキュメント＆ガイド
+- **📖 実装ログ**: `docs/zapabob/implementation-logs/` (260以上の詳細ログ)
+- **🏗️ アーキテクチャ図**: `docs/zapabob/` (Mermaid/PNG/SVG形式)
+- **📋 ガイド＆チュートリアル**: `docs/zapabob/` (セットアップ、統合、最善实践)
+
+#### 🔧 開発ツール
+- **⚙️ 自動化スクリプト**: `scripts/zapabob/` (ビルド、テスト、デプロイ自動化)
+- **🎵 サウンド通知**: Cursor IDE統合用の完了音
+- **🔨 ビルドツール**: 高度なコンパイル・パッケージングスクリプト
+
+#### 🎨 エディタ拡張
+- **VS Code拡張**: `extensions/vscode/` (IntelliSense、コマンド)
+- **Windsurf拡張**: `extensions/windsurf/` (AI支援開発)
+
+#### 💻 SDK＆API
+- **TypeScript SDK**: `sdk/typescript/` (プログラム的Codex統合)
+- **サンプルプロジェクト**: 実世界の使用パターンとテンプレート
+
+#### 📦 アーカイブ (.archive/)
+すべての開発成果物、テスト結果、レガシーファイルは`.archive/`に保存されています：
+- **ビルドログ**: コンパイル出力と性能メトリクス
+- **テスト結果**: カバレッジレポート、統合テスト出力
+- **研究レポート**: セキュリティ監査、コードレビュー
+- **レガシーファイル**: 以前のバージョンと非推奨機能
+
+**🔄 アーカイブファイルはいつでもアクセス可能**: ファイルは削除されず、整理されるだけです。
 
 ### 🚀 使用方法
 
@@ -742,7 +829,7 @@ cargo test --all
 
 ### 📚 ドキュメント
 
-- **アーキテクチャ**: [`zapabob/docs/codex-v0.51.0-architecture.svg`](zapabob/docs/codex-v0.51.0-architecture.svg)
+- **アーキテクチャ**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg)
 - **MCP設定ガイド**: [`_docs/MCP設定ファイル同期管理ガイド.md`](_docs/MCP設定ファイル同期管理ガイド.md)
 - **実装ログ**: [`_docs/`](_docs/)
 - **音声通知**: [`_docs/2025-10-23_音声通知設定更新.md`](_docs/2025-10-23_音声通知設定更新.md)
