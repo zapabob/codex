@@ -10,6 +10,12 @@ on:
   push:
     tags:
       - "rust-v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.52.0)'
+        required: true
+        default: '0.52.0'
 
 concurrency:
   group: ${{ github.workflow }}
