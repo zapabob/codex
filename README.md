@@ -8,8 +8,8 @@
 **サブエージェントオーケストレーションとディープリサーチ機能を備えた自律型AIコーディングアシスタント**
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![npm version](https://img.shields.io/badge/npm-0.52.0-blue)](https://npm.pkg.github.com/package/@openai/codex)
-[![Version](https://img.shields.io/badge/version-0.52.0-blue)]()
+[![npm version](https://img.shields.io/badge/npm-0.53.0-blue)](https://npm.pkg.github.com/package/@openai/codex)
+[![Version](https://img.shields.io/badge/version-0.53.0-blue)]()
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Rust](https://img.shields.io/badge/rust-1.90+-orange)]()
 [![OpenAI](https://img.shields.io/badge/OpenAI-upstream%20synced-success)]()
@@ -27,29 +27,73 @@
 
 **Codex** is a next-generation AI coding assistant that extends the [OpenAI/codex](https://github.com/openai/codex) official repository with autonomous orchestration capabilities, specialized sub-agents, and deep research functionality. This fork, maintained by zapabob, adds powerful enhancements while maintaining compatibility with the upstream project.
 
+### ⚡ Quickstart (Upstream-Compatible)
+
+The zapabob fork stays in sync with the latest [OpenAI/codex](https://github.com/openai/codex) release flow while adding autonomous orchestration. Install or update Codex using the same commands documented upstream:
+
+```bash
+npm install -g @openai/codex
+brew install --cask codex
+
+# Launch Codex CLI with zapabob extensions enabled
+codex
+```
+
+- Prefer `codex --sign-in` to link your ChatGPT Plus/Pro/Team/Enterprise plan, identical to upstream guidance.
+- Configure MCP servers via `~/.codex/config.toml` using the [Model Context Protocol docs](./docs/config.md#mcp_servers).
+- To automate usage, reuse upstream workflows such as [`codex exec`](./docs/exec.md) and the [GitHub Action](https://github.com/openai/codex-action); zapabob enhancements extend these surfaces without breaking compatibility.
+
 ### 🏗️ Architecture
 
 <div align="center">
 
-![Codex v0.52.0 Architecture](docs/zapabob/codex-v0.52.0-architecture.svg)
+```
+┌───────────────────────────── Codex v0.53.0 Hybrid Architecture ─────────────────────────────┐
+│                                                                                              │
+│  ┌───────────────────────┐    ┌────────────────────────────┐    ┌──────────────────────────┐ │
+│  │ User Surfaces         │    │ Upstream Core (OpenAI)     │    │ zapabob Autonomous Layer │ │
+│  │ • CLI / Exec / API    │ ─▶ │ • Session Engine          │ ─▶ │ • Task Analyzer          │ │
+│  │ • TUI & GUI Preview   │    │ • Sandbox & Auth Flow     │    │ • Auto Orchestrator      │ │
+│  │ • IDE Bridges (VS/Crs)│    │ • MCP Router & Tool Exec  │    │ • Supervisor & CollabBus │ │
+│  │ • TypeScript SDK      │    │ • Config Sync (toml/json) │    │ • Sub-Agent Mesh (8+)    │ │
+│  └───────────────────────┘    └────────────────────────────┘    └──────────────────────────┘ │
+│                │                           │                               │                │
+│                ▼                           ▼                               ▼                │
+│      ┌──────────────────────┐     ┌─────────────────────────────┐   ┌──────────────────────┐ │
+│      │ Deep Research Stack  │     │ MCP & Tool Ecosystem (15)   │   │ Knowledge & Telemetry│ │
+│      │ • Gemini Grounding   │     │ • codex / gemini / serena   │   │ • Config & Session DB│ │
+│      │ • DuckDuckGo / Web   │     │ • chrome-devtools / playwright│  │ • Audit Logs & Metrics│ │
+│      │ • Citation & Consensus│     │ • sequential-thinking etc.  │   │ • Artifact Archive    │ │
+│      └──────────────────────┘     └─────────────────────────────┘   └──────────────────────┘ │
+│                │                           │                               │                │
+│                ▼                           ▼                               ▼                │
+│      ┌──────────────────────┐     ┌─────────────────────────────┐   ┌──────────────────────┐ │
+│      │ Delivery Surfaces    │     │ Governance & Safety         │   │ LLM Providers         │ │
+│      │ • PR Automation      │     │ • Policy Guardrails         │   │ • OpenAI o1 / GPT-4.x │ │
+│      │ • Reports & Dashboards│     │ • Budgeter & Rate Controls  │   │ • Google Gemini 1.5   │ │
+│      │ • Slack / Webhooks   │     │ • Seatbelt / Sandbox Policy │   │ • Local / Ollama      │ │
+│      └──────────────────────┘     └─────────────────────────────┘   └──────────────────────┘ │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
-*Comprehensive architecture diagram showing orchestration flow, agent coordination, external integrations, and extensions (Updated 2025-10-29)*
+*Hybrid ASCII architecture diagram showing the upstream-aligned core alongside zapabob orchestration, research, and governance layers (Updated 2025-10-30)*
 
 </div>
 
 #### 📊 **Architecture Overview**
 
-The Codex v0.52.0 architecture consists of **9 major layers** with **80+ components**:
+The Codex v0.53.0 architecture consists of **9 major layers** with **80+ components**:
 
-1. **🖥️ User Interface Layer** - CLI, TUI, Cursor IDE, Natural Language CLI, npm Package
-2. **🧠 Core Orchestration Layer** - Task Analyzer, Auto Orchestrator, Supervisor
-3. **🤖 Specialized Sub-Agents** - 8 specialized agents for different tasks
-4. **🔍 Deep Research Engine** - Multi-source search with citation management
-5. **🔗 MCP Integration Layer** - 14 MCP servers for tool integration
-6. **🌐 External Integrations** - GitHub API, Slack, Audio notifications
-7. **🎨 Extensions & SDK** - VS Code/Windsurf extensions, TypeScript SDK, Archive
-8. **💾 Data & Configuration** - Settings, session management, audit logs
-9. **🤖 LLM Model Providers** - OpenAI, Google Gemini
+1. **🖥️ User Surfaces** – CLI, Exec, TUI preview, IDE bridges, TypeScript SDK
+2. **🧠 Upstream Core (OpenAI)** – Session engine, sandbox/auth, MCP router, config sync
+3. **🤖 zapabob Autonomous Layer** – Task Analyzer, Auto Orchestrator, Supervisor, Sub-Agent Mesh (8+)
+4. **🔍 Deep Research Stack** – Gemini Grounding, DuckDuckGo/web search, citation & consensus tools
+5. **🔗 MCP & Tool Ecosystem** – 15 servers (codex, gemini, serena, chrome-devtools, sequential-thinking, …)
+6. **📚 Knowledge & Telemetry** – Session/config stores, audit logs, artifact archive
+7. **🚀 Delivery Surfaces** – PR automation, reporting dashboards, Slack/webhooks
+8. **🛡️ Governance & Safety** – Policy guardrails, Budgeter, Seatbelt sandbox policies
+9. **🤖 LLM Providers** – OpenAI o1/GPT-4.x, Google Gemini 1.5, local/Ollama models
 
 #### 🎯 **Key Architectural Features**
 
@@ -220,41 +264,22 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 
 ### ✨ Key Features
 
-#### 🆕 **v0.51.0-zapabob.1 - Latest Updates** *(2025-10-28)*
+#### 🆕 **v0.53.0-zapabob.1 - Latest Updates** *(2025-10-30)*
 
-1. **🔄 OpenAI/codex Upstream Integration** *(NEW)*
-   - Merged OpenAI official repository (commit 4a42c4e1)
-   - Resolved 9 merge conflicts manually
-   - Integrated auth system enhancements (Keyring support)
-   - Updated to Rust 2024 edition compatibility
-   - Full semantic versioning alignment
+1. **🔄 Upstream Mainline Sync & Quickstart Parity** *(NEW)*
+   - Merged documentation changes from `openai/codex` `main` (2025-10-30 snapshot)
+   - README quickstart now mirrors upstream npm/brew install flows
+   - Clarified ChatGPT sign-in guidance and MCP configuration links
 
-2. **✨ Gemini Search Grounding for Deep Research** *(NEW)*
-   - Default search backend: Google Gemini Search Grounding
-   - High-quality search results via Google Search API
-   - OAuth 2.0 authentication (no API key required)
-   - Smart fallback chain: Gemini → DuckDuckGo → Google → Bing
-   - Integrated with codex-gemini-mcp server
+2. **🏗️ Hybrid Architecture Documentation Refresh** *(NEW)*
+   - Replaced ASCII diagram with upstream-aligned core vs zapabob autonomous layers
+   - Added governance, telemetry, and delivery surfaces from latest orchestrator roadmap
+   - Kept legacy SVG references noted as pending 0.53.0 regeneration
 
-3. **🤖 Enhanced MCP Integration**
-   - 15 MCP servers fully operational (was 14)
-   - Added: codex-research, codex-agent, sequential-thinking
-   - Complete Cursor IDE / VSCode compatibility
-   - config.toml and mcp.json synchronized
-   - Serena (21 tools), Playwright, Chrome DevTools enabled
-
-4. **🎯 Sub-Agent System Improvements**
-   - 8 specialized agents fully tested
-   - Parallel execution (3x faster processing)
-   - Natural language CLI: `codex agent "<task>"`
-   - Improved error handling and retry logic
-
-5. **🔔 Audio Notification System** *(Enhanced)*
-   - Task completion: Marisa "終わったぜ！" (Owattaze!)
-   - Agent completion notifications
-   - Session end notifications
-   - PowerShell-based audio playback
-   - Location: `.codex/marisa_owattaze.wav`
+3. **🧠 Autonomous Layer Enhancements**
+   - Documented budgeter/seatbelt safeguards and 15-server MCP mesh
+   - Highlighted Sub-Agent Mesh (8+) and Deep Research stack with Gemini Grounding
+   - Updated CLI outputs to `codex-cli 0.53.0-zapabob.1` for semantic version bump
 
 #### 🔥 **ClaudeCode-Surpassing Features**
 
@@ -323,7 +348,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 
 #### 🚀 npm Package Features
 - **📦 Package Name**: `@openai/codex`
-- **🔖 Version**: `0.52.0` (Published to GitHub Packages)
+- **🔖 Version**: `0.53.0` (Published to GitHub Packages)
 - **💾 Size**: ~133MB (includes cross-platform binaries)
 - **🖥️ Platforms**: macOS (Intel/ARM64), Linux (glibc/musl), Windows (x64/ARM64)
 - **⚡ Ready-to-use**: No compilation required, includes all dependencies
@@ -345,7 +370,7 @@ npm install -g @openai/codex --registry=https://npm.pkg.github.com
 
 # Verify installation
 codex --version
-# Output: codex-cli 0.52.0-zapabob.1
+# Output: codex-cli 0.53.0-zapabob.1
 
 # Test functionality
 codex --help
@@ -368,7 +393,7 @@ cargo install --path cli --force
 
 # Verify installation
 codex --version
-# Output: codex-cli 0.52.0-zapabob.1
+# Output: codex-cli 0.53.0-zapabob.1
 ```
 
 #### Gemini CLI MCP Setup (Optional)
@@ -490,7 +515,7 @@ cargo test --all
 
 ### 📚 Documentation
 
-- **Architecture**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg)
+- **Architecture (legacy SVG)**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg) *(0.53.0 refresh scheduled)*
 - **MCP Config Guide**: [`_docs/MCP設定ファイル同期管理ガイド.md`](_docs/MCP設定ファイル同期管理ガイド.md)
 - **Implementation Logs**: [`_docs/`](_docs/)
 - **Audio Notifications**: [`_docs/2025-10-23_音声通知設定更新.md`](_docs/2025-10-23_音声通知設定更新.md)
@@ -537,7 +562,7 @@ limitations under the License.
 
 <div align="center">
 
-![Codex v0.52.0 Architecture](docs/zapabob/codex-v0.52.0-architecture.svg)
+![Codex v0.52.0 Architecture (Legacy SVG)](docs/zapabob/codex-v0.52.0-architecture.svg)
 
 *オーケストレーションフロー、エージェント協調、外部統合、拡張機能を示す包括的なアーキテクチャ図（2025-10-29更新）*
 
@@ -545,17 +570,17 @@ limitations under the License.
 
 #### 📊 **アーキテクチャ概要**
 
-Codex v0.52.0アーキテクチャは**9つの主要レイヤー**と**80+のコンポーネント**で構成されています：
+Codex v0.53.0アーキテクチャは**9つの主要レイヤー**と**80+のコンポーネント**で構成されています：
 
-1. **🖥️ ユーザーインターフェース層** - CLI、TUI、Cursor IDE、自然言語CLI、npmパッケージ
-2. **🧠 コアオーケストレーション層** - タスク分析器、自動オーケストレーター、スーパーバイザー
-3. **🤖 専門サブエージェント** - 8つの専門エージェント
-4. **🔍 ディープリサーチエンジン** - 引用管理付きマルチソース検索
-5. **🔗 MCP統合層** - ツール統合用14個のMCPサーバー
-6. **🌐 外部統合** - GitHub API、Slack、音声通知
-7. **🎨 拡張機能＆SDK** - VS Code/Windsurf拡張、TypeScript SDK、アーカイブ
-8. **💾 データ・設定** - 設定、セッション管理、監査ログ
-9. **🤖 LLMモデルプロバイダー** - OpenAI、Anthropic、Google Gemini
+1. **🖥️ ユーザーサーフェス層** – CLI、Exec、TUIプレビュー、IDE連携、TypeScript SDK
+2. **🧠 上流コア（OpenAI）層** – セッションエンジン、サンドボックス/認証、MCPルーター、設定同期
+3. **🤖 zapabob自律レイヤー** – タスク分析器、自動オーケストレーター、スーパーバイザー、サブエージェントメッシュ（8+）
+4. **🔍 ディープリサーチ層** – Gemini Grounding、DuckDuckGo/ウェブ検索、引用・コンセンサスツール
+5. **🔗 MCP＆ツールエコシステム層** – codex / gemini / serena / chrome-devtools / sequential-thinking 等15サーバー
+6. **📚 ナレッジ＆テレメトリー層** – セッション/設定ストア、監査ログ、アーティファクトアーカイブ
+7. **🚀 デリバリーサーフェス層** – PR自動化、レポートダッシュボード、Slack/Webhook連携
+8. **🛡️ ガバナンス＆セーフティ層** – ポリシーガードレール、Budgeter、Seatbeltサンドボックス
+9. **🤖 LLMプロバイダー層** – OpenAI o1/GPT-4.x、Google Gemini 1.5、ローカル/Ollamaモデル
 
 #### 🎯 **主要アーキテクチャ特徴**
 
@@ -568,41 +593,22 @@ Codex v0.52.0アーキテクチャは**9つの主要レイヤー**と**80+のコ
 
 ### ✨ 主要機能
 
-#### 🆕 **v0.51.0-zapabob.1 - 最新アップデート** *(2025-10-28)*
+#### 🆕 **v0.53.0-zapabob.1 - 最新アップデート** *(2025-10-30)*
 
-1. **🔄 OpenAI/codex公式リポジトリ統合** *(NEW)*
-   - OpenAI公式リポジトリをマージ（コミット 4a42c4e1）
-   - 9ファイルのマージコンフリクトを手動解決
-   - 認証システム強化（Keyring対応）を統合
-   - Rust 2024 edition互換性対応
-   - セマンティックバージョニング完全整合
+1. **🔄 Upstream `main`同期とクイックスタート整合** *(NEW)*
+   - 2025-10-30時点の`openai/codex` `main`ドキュメントを反映
+   - READMEのnpm / brewインストール手順を公式と同一フローに更新
+   - ChatGPTサインイン手順とMCP設定リンクを明確化
 
-2. **✨ Deep ResearchへのGemini Search Grounding統合** *(NEW)*
-   - デフォルト検索バックエンド: Google Gemini Search Grounding
-   - Google Search API経由の高品質検索結果
-   - OAuth 2.0認証（APIキー不要）
-   - スマートフォールバックチェーン: Gemini → DuckDuckGo → Google → Bing
-   - codex-gemini-mcpサーバーと統合
+2. **🏗️ ハイブリッドアーキテクチャ図リフレッシュ** *(NEW)*
+   - ASCII図を上流コアとzapabob自律レイヤーに再構成
+   - ガバナンス、テレメトリー、デリバリー層を最新ロードマップに合わせて追記
+   - SVGはレガシー版として注記し、0.53.0再生成を予告
 
-3. **🤖 MCP統合の強化**
-   - 15個のMCPサーバーが完全動作（14個から増加）
-   - 新規追加: codex-research、codex-agent、sequential-thinking
-   - Cursor IDE / VSCode完全互換
-   - config.tomlとmcp.jsonの自動同期
-   - Serena（21ツール）、Playwright、Chrome DevTools有効化
-
-4. **🎯 サブエージェントシステム改善**
-   - 8個の専門エージェントを完全テスト
-   - 並列実行（3倍高速処理）
-   - 自然言語CLI: `codex agent "<タスク>"`
-   - エラーハンドリングとリトライロジック改善
-
-5. **🔔 音声通知システム** *(強化)*
-   - タスク完了: Marisa「終わったぜ！」
-   - エージェント完了通知
-   - セッション終了通知
-   - PowerShellベースの音声再生
-   - 場所: `.codex/marisa_owattaze.wav`
+3. **🧠 自律レイヤー強化の明文化**
+   - Budgeter/Seatbeltガードと15台のMCPメッシュをドキュメント化
+   - サブエージェントメッシュ（8+）とGemini Grounding対応ディープリサーチを強調
+   - CLI出力を`codex-cli 0.53.0-zapabob.1`に更新しセマンティックバージョンを反映
 
 #### 🔥 **ClaudeCodeを超える機能**
 
@@ -640,7 +646,7 @@ Codex v0.52.0アーキテクチャは**9つの主要レイヤー**と**80+のコ
 
 #### 🚀 npmパッケージ特徴
 - **📦 パッケージ名**: `@openai/codex`
-- **🔖 バージョン**: `0.52.0` (GitHub Packagesに公開)
+- **🔖 バージョン**: `0.53.0` (GitHub Packagesに公開)
 - **💾 サイズ**: ~133MB (クロスプラットフォームバイナリを含む)
 - **🖥️ プラットフォーム**: macOS (Intel/ARM64), Linux (glibc/musl), Windows (x64/ARM64)
 - **⚡ 即利用可能**: コンパイル不要、全依存関係込み
@@ -654,6 +660,15 @@ Codex v0.52.0アーキテクチャは**9つの主要レイヤー**と**80+のコ
 
 #### クイックスタート
 
+最新版のOpenAI公式手順と同様に、npmまたはHomebrewでインストールできます：
+
+```bash
+npm install -g @openai/codex
+brew install --cask codex
+
+codex
+```
+
 ##### オプション1: npm経由でインストール（推奨）
 
 ```bash
@@ -662,7 +677,7 @@ npm install -g @openai/codex --registry=https://npm.pkg.github.com
 
 # インストール確認
 codex --version
-# 出力: codex-cli 0.52.0-zapabob.1
+# 出力: codex-cli 0.53.0-zapabob.1
 
 # 機能テスト
 codex --help
@@ -685,7 +700,7 @@ cargo install --path cli --force
 
 # インストール確認
 codex --version
-# 出力: codex-cli 0.52.0-zapabob.1
+# 出力: codex-cli 0.53.0-zapabob.1
 ```
 
 #### Gemini CLI MCPセットアップ（オプション）
@@ -829,7 +844,7 @@ cargo test --all
 
 ### 📚 ドキュメント
 
-- **アーキテクチャ**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg)
+- **アーキテクチャ（レガシーSVG）**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg)（0.53.0版は準備中）
 - **MCP設定ガイド**: [`_docs/MCP設定ファイル同期管理ガイド.md`](_docs/MCP設定ファイル同期管理ガイド.md)
 - **実装ログ**: [`_docs/`](_docs/)
 - **音声通知**: [`_docs/2025-10-23_音声通知設定更新.md`](_docs/2025-10-23_音声通知設定更新.md)
