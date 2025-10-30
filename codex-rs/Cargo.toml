@@ -35,6 +35,7 @@ members = [
     "supervisor",
     "stdio-to-uds",
     "otel",
+    "gui",
     "tui",
     "git-apply",
     "utils/cache",
