@@ -66,6 +66,14 @@ We provide Codex CLI as a standalone, native executable to ensure a zero-depende
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Web GUI | コントロールセンター
+
+- `codex-gui`（Rust/Axum）を追加し、Codex CLI の主要サブコマンドを HTTP API として公開。
+- `gui/frontend`（Node.js/Vite + React）で操作パネルを提供し、Playbook（Ask/Delegate/Research/Review/Audit）をワンクリック実行。
+- 実行ログ（stdout/stderr/exit code/実行時間）をリアルタイムで可視化し、履歴パネルにスタック。
+- `.env`不要で、`CODEX_GUI_CLI_PATH` と `VITE_API_URL` により CLI パス/ポートを柔軟に切り替え可能。
+- セキュアな CORS 設定と `POST /api/actions/:id/execute` での必須フィールド検証により、GUI からの誤操作を防止。
+
 ### Auto-Orchestration Flow | 自律オーケストレーションフロー
 
 ```
