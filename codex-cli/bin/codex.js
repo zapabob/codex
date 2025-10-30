@@ -128,7 +128,59 @@ const packageManagerEnvVar =
     : "CODEX_MANAGED_BY_NPM";
 env[packageManagerEnvVar] = "1";
 
-const child = spawn(binaryPath, process.argv.slice(2), {
+function isPackageRunnerInvocation() {
+  const lifecycle = process.env.npm_lifecycle_event || "";
+  if (lifecycle === "npx" || lifecycle === "exec") {
+    return true;
+  }
+
+  const userAgent = process.env.npm_config_user_agent || "";
+  if (/\bpnpm\//i.test(userAgent) || /\bbun\//i.test(userAgent)) {
+    return true;
+  }
+
+  const execPath = process.env.npm_execpath || "";
+  return /pnpm/i.test(execPath);
+}
+
+function normalizeArgs(args) {
+  if (!args.length) {
+    return args;
+  }
+
+  if (!isPackageRunnerInvocation()) {
+    return args;
+  }
+
+  // Respect explicit separators. Users can run
+  // `npm exec codex -- exec ...` to force the real subcommand.
+  if (args.includes("--")) {
+    return args;
+  }
+
+  if (args[0] !== "exec") {
+    return args;
+  }
+
+  const execArgs = args.slice(1);
+
+  const looksLikeExplicitExec =
+    execArgs.length === 0 ||
+    execArgs.some((arg) => arg.startsWith("-") || arg === "resume");
+
+  if (looksLikeExplicitExec) {
+    return args;
+  }
+
+  const prompt = ["exec", ...execArgs].join(" ");
+  // eslint-disable-next-line no-console
+  console.warn(
+    "[codex] Treating leading \"exec\" as part of the prompt. To run the non-interactive subcommand, use `codex -- exec ...`.",
+  );
+  return [prompt];
+}
+
+const child = spawn(binaryPath, normalizeArgs(process.argv.slice(2)), {
   stdio: "inherit",
   env,
 });

@@ -6,6 +6,12 @@ Use Codex in non-interactive mode to automate common workflows.
 codex exec "count the total number of lines of code in this project"
 ```
 
+> [!NOTE]
+> When launching Codex through package runners such as `npx`/`npm exec` or `pnpm exec`, include `--` before the `exec` subcommand
+> to force non-interactive mode (for example, `npx @openai/codex -- exec "list stale branches"`). Without the separator, the
+> package runner may forward the word `exec` as part of your prompt and Codex will stay in the interactive TUI instead of running
+> the automation flow.
+
 In non-interactive mode, Codex does not ask for command or edit approvals. By default it runs in `read-only` mode, so it cannot edit files or run commands that require network access.
 
 Use `codex exec --full-auto` to allow file edits. Use `codex exec --sandbox danger-full-access` to allow edits and networked commands.
