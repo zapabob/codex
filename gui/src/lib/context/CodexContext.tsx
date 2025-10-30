@@ -301,6 +301,19 @@ export function CodexProvider({ children }: { children: ReactNode }) {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
 
+        // Initialize SpecStory
+        const specStory = getSpecStory({
+          enableAutoSave: true,
+          saveInterval: 30000, // 30 seconds
+        });
+        await specStory.initialize();
+
+        // Load conversations from SpecStory
+        const savedConversations = await specStory.getConversations();
+        if (savedConversations.length > 0) {
+          dispatch({ type: 'SET_CONVERSATIONS', payload: savedConversations });
+        }
+
         // Load user account
         const account = await apiClient.getAccount();
         if (account) {
@@ -315,8 +328,10 @@ export function CodexProvider({ children }: { children: ReactNode }) {
           });
         }
 
-        // Load conversations
-        await loadConversations();
+        // Load conversations from API if not loaded from SpecStory
+        if (savedConversations.length === 0) {
+          await loadConversations();
+        }
 
         // Load agents
         const agents = await apiClient.getAgents();
@@ -397,6 +412,10 @@ export function CodexProvider({ children }: { children: ReactNode }) {
         initialMessage,
       });
 
+      // Save to SpecStory
+      const specStory = getSpecStory();
+      await specStory.saveConversation(conversation);
+
       dispatch({
         type: 'SET_CURRENT_CONVERSATION',
         payload: conversation,
@@ -423,6 +442,11 @@ export function CodexProvider({ children }: { children: ReactNode }) {
 
     try {
       const message = await apiClient.sendMessage(state.currentConversation.id, content);
+
+      // Save to SpecStory
+      const specStory = getSpecStory();
+      await specStory.saveMessage(state.currentConversation.id, message);
+
       dispatch({ type: 'ADD_MESSAGE', payload: message });
     } catch (error) {
       dispatch({
