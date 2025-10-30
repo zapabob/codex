@@ -293,7 +293,7 @@ impl ChatComposer {
         let was_disabled = self.disable_paste_burst;
         self.disable_paste_burst = disabled;
         if disabled && !was_disabled {
-            self.paste_burst.clear_window_after_non_char();
+            self.paste_burst.clear_after_explicit_paste();
         }
     }
 
@@ -351,11 +351,14 @@ impl ChatComposer {
     }
 
     pub(crate) fn flush_paste_burst_if_due(&mut self) -> bool {
+        if self.disable_paste_burst {
+            return false;
+        }
         self.handle_paste_burst_flush(Instant::now())
     }
 
     pub(crate) fn is_in_paste_burst(&self) -> bool {
-        self.paste_burst.is_active()
+        !self.disable_paste_burst && self.paste_burst.is_active()
     }
 
     pub(crate) fn recommended_paste_flush_delay() -> Duration {
@@ -573,18 +576,20 @@ impl ChatComposer {
 
     #[inline]
     fn handle_non_ascii_char(&mut self, input: KeyEvent) -> (InputResult, bool) {
-        if let KeyEvent {
-            code: KeyCode::Char(ch),
-            ..
-        } = input
-        {
-            let now = Instant::now();
-            if self.paste_burst.try_append_char_if_active(ch, now) {
-                return (InputResult::None, true);
+        if !self.disable_paste_burst {
+            if let KeyEvent {
+                code: KeyCode::Char(ch),
+                ..
+            } = input
+            {
+                let now = Instant::now();
+                if self.paste_burst.try_append_char_if_active(ch, now) {
+                    return (InputResult::None, true);
+                }
             }
-        }
-        if let Some(pasted) = self.paste_burst.flush_before_modified_input() {
-            self.handle_paste(pasted);
+            if let Some(pasted) = self.paste_burst.flush_before_modified_input() {
+                self.handle_paste(pasted);
+            }
         }
         self.textarea.input(input);
         let text_after = self.textarea.text();
@@ -950,7 +955,7 @@ impl ChatComposer {
                         .next()
                         .unwrap_or("")
                         .starts_with('/');
-                if self.paste_burst.is_active() && !in_slash_context {
+                if !self.disable_paste_burst && self.paste_burst.is_active() && !in_slash_context {
                     let now = Instant::now();
                     if self.paste_burst.append_newline_if_active(now) {
                         return (InputResult::None, true);
@@ -975,9 +980,10 @@ impl ChatComposer {
 
                 // During a paste-like burst, treat Enter as a newline instead of submit.
                 let now = Instant::now();
-                if self
-                    .paste_burst
-                    .newline_should_insert_instead_of_submit(now)
+                if !self.disable_paste_burst
+                    && self
+                        .paste_burst
+                        .newline_should_insert_instead_of_submit(now)
                     && !in_slash_context
                 {
                     self.textarea.insert_str("\n");
@@ -1057,6 +1063,9 @@ impl ChatComposer {
     }
 
     fn handle_paste_burst_flush(&mut self, now: Instant) -> bool {
+        if self.disable_paste_burst {
+            return false;
+        }
         match self.paste_burst.flush_if_due(now) {
             FlushResult::Paste(pasted) => {
                 self.handle_paste(pasted);
@@ -1092,7 +1101,8 @@ impl ChatComposer {
         }
 
         // If we're capturing a burst and receive Enter, accumulate it instead of inserting.
-        if matches!(input.code, KeyCode::Enter)
+        if !self.disable_paste_burst
+            && matches!(input.code, KeyCode::Enter)
             && self.paste_burst.is_active()
             && self.paste_burst.append_newline_if_active(now)
         {
@@ -1116,43 +1126,48 @@ impl ChatComposer {
                     return self.handle_non_ascii_char(input);
                 }
 
-                match self.paste_burst.on_plain_char(ch, now) {
-                    CharDecision::BufferAppend => {
-                        self.paste_burst.append_char_to_buffer(ch, now);
-                        return (InputResult::None, true);
-                    }
-                    CharDecision::BeginBuffer { retro_chars } => {
-                        let cur = self.textarea.cursor();
-                        let txt = self.textarea.text();
-                        let safe_cur = Self::clamp_to_char_boundary(txt, cur);
-                        let before = &txt[..safe_cur];
-                        if let Some(grab) =
-                            self.paste_burst
-                                .decide_begin_buffer(now, before, retro_chars as usize)
-                        {
-                            if !grab.grabbed.is_empty() {
-                                self.textarea.replace_range(grab.start_byte..safe_cur, "");
-                            }
-                            self.paste_burst.begin_with_retro_grabbed(grab.grabbed, now);
+                if !self.disable_paste_burst {
+                    match self.paste_burst.on_plain_char(ch, now) {
+                        CharDecision::BufferAppend => {
                             self.paste_burst.append_char_to_buffer(ch, now);
                             return (InputResult::None, true);
                         }
-                        // If decide_begin_buffer opted not to start buffering,
-                        // fall through to normal insertion below.
-                    }
-                    CharDecision::BeginBufferFromPending => {
-                        // First char was held; now append the current one.
-                        self.paste_burst.append_char_to_buffer(ch, now);
-                        return (InputResult::None, true);
-                    }
-                    CharDecision::RetainFirstChar => {
-                        // Keep the first fast char pending momentarily.
-                        return (InputResult::None, true);
+                        CharDecision::BeginBuffer { retro_chars } => {
+                            let cur = self.textarea.cursor();
+                            let txt = self.textarea.text();
+                            let safe_cur = Self::clamp_to_char_boundary(txt, cur);
+                            let before = &txt[..safe_cur];
+                            if let Some(grab) = self.paste_burst.decide_begin_buffer(
+                                now,
+                                before,
+                                retro_chars as usize,
+                            ) {
+                                if !grab.grabbed.is_empty() {
+                                    self.textarea.replace_range(grab.start_byte..safe_cur, "");
+                                }
+                                self.paste_burst.begin_with_retro_grabbed(grab.grabbed, now);
+                                self.paste_burst.append_char_to_buffer(ch, now);
+                                return (InputResult::None, true);
+                            }
+                            // If decide_begin_buffer opted not to start buffering,
+                            // fall through to normal insertion below.
+                        }
+                        CharDecision::BeginBufferFromPending => {
+                            // First char was held; now append the current one.
+                            self.paste_burst.append_char_to_buffer(ch, now);
+                            return (InputResult::None, true);
+                        }
+                        CharDecision::RetainFirstChar => {
+                            // Keep the first fast char pending momentarily.
+                            return (InputResult::None, true);
+                        }
                     }
                 }
             }
-            if let Some(pasted) = self.paste_burst.flush_before_modified_input() {
-                self.handle_paste(pasted);
+            if !self.disable_paste_burst {
+                if let Some(pasted) = self.paste_burst.flush_before_modified_input() {
+                    self.handle_paste(pasted);
+                }
             }
         }
 
@@ -1175,20 +1190,22 @@ impl ChatComposer {
         let crossterm::event::KeyEvent {
             code, modifiers, ..
         } = input;
-        match code {
-            KeyCode::Char(_) => {
-                let has_ctrl_or_alt = modifiers.contains(KeyModifiers::CONTROL)
-                    || modifiers.contains(KeyModifiers::ALT);
-                if has_ctrl_or_alt {
+        if !self.disable_paste_burst {
+            match code {
+                KeyCode::Char(_) => {
+                    let has_ctrl_or_alt = modifiers.contains(KeyModifiers::CONTROL)
+                        || modifiers.contains(KeyModifiers::ALT);
+                    if has_ctrl_or_alt {
+                        self.paste_burst.clear_window_after_non_char();
+                    }
+                }
+                KeyCode::Enter => {
+                    // Keep burst window alive (supports blank lines in paste).
+                }
+                _ => {
+                    // Other keys: clear burst window (buffer should have been flushed above if needed).
                     self.paste_burst.clear_window_after_non_char();
                 }
-            }
-            KeyCode::Enter => {
-                // Keep burst window alive (supports blank lines in paste).
-            }
-            _ => {
-                // Other keys: clear burst window (buffer should have been flushed above if needed).
-                self.paste_burst.clear_window_after_non_char();
             }
         }
 
@@ -2104,6 +2121,40 @@ mod tests {
             composer.handle_key_event(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
         match result {
             InputResult::Submitted(text) => assert_eq!(text, "1あ"),
+            _ => panic!("expected Submitted"),
+        }
+    }
+
+    #[test]
+    fn disable_paste_burst_skips_buffering() {
+        use crossterm::event::KeyCode;
+        use crossterm::event::KeyEvent;
+        use crossterm::event::KeyModifiers;
+
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
+        let sender = AppEventSender::new(tx);
+        let mut composer = ChatComposer::new(
+            true,
+            sender,
+            false,
+            "Ask Codex to do anything".to_string(),
+            true,
+        );
+
+        let _ = composer.handle_key_event(KeyEvent::new(KeyCode::Char('e'), KeyModifiers::NONE));
+        assert_eq!(composer.textarea.text(), "e");
+        assert!(!composer.is_in_paste_burst());
+
+        let _ = composer.handle_key_event(KeyEvent::new(KeyCode::Char('x'), KeyModifiers::NONE));
+        assert_eq!(composer.textarea.text(), "ex");
+        assert!(!composer.is_in_paste_burst());
+
+        assert!(!composer.flush_paste_burst_if_due());
+
+        let (result, _) =
+            composer.handle_key_event(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+        match result {
+            InputResult::Submitted(text) => assert_eq!(text, "ex"),
             _ => panic!("expected Submitted"),
         }
     }
