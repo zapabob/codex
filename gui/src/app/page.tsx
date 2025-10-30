@@ -126,20 +126,21 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) => (
 );
 
 export default function Dashboard() {
+  const { state, clearError } = useCodex();
   const [isLoading, setIsLoading] = useState(false);
 
   const stats = [
     {
       title: '実行中のタスク',
-      value: '12',
-      change: '+3',
+      value: state.agents.filter(a => a.status === 'working').length.toString(),
+      change: '+2',
       icon: Activity,
       color: 'primary',
     },
     {
       title: 'アクティブエージェント',
-      value: '8',
-      change: '+2',
+      value: state.agents.length.toString(),
+      change: `+${state.agents.filter(a => a.status === 'working').length}`,
       icon: Users,
       color: 'secondary',
     },
@@ -151,44 +152,25 @@ export default function Dashboard() {
       color: 'success',
     },
     {
-      title: '処理速度',
-      value: '2.4s',
-      change: '-0.3s',
+      title: '接続状態',
+      value: state.isConnected ? 'オンライン' : 'オフライン',
+      change: state.isConnected ? '接続済み' : '再接続中',
       icon: Zap,
-      color: 'warning',
+      color: state.isConnected ? 'success' : 'warning',
     },
   ];
 
-  const recentActivities = [
-    {
-      id: '1',
-      type: 'task',
-      description: 'コードレビュータスクが完了しました',
-      timestamp: '2分前',
-      status: 'success' as const,
-    },
-    {
-      id: '2',
-      type: 'security',
-      description: 'セキュリティスキャンが実行されました',
-      timestamp: '5分前',
-      status: 'success' as const,
-    },
-    {
-      id: '3',
-      type: 'agent',
-      description: '新しいエージェントが追加されました',
-      timestamp: '10分前',
-      status: 'warning' as const,
-    },
-    {
-      id: '4',
-      type: 'error',
-      description: 'APIレート制限に達しました',
-      timestamp: '15分前',
-      status: 'error' as const,
-    },
-  ];
+  // Convert notifications to activities format
+  const recentActivities = state.notifications.slice(0, 4).map(notification => ({
+    id: notification.id,
+    type: notification.type,
+    description: notification.message,
+    timestamp: new Date(notification.timestamp).toLocaleString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    status: notification.type as 'success' | 'warning' | 'error',
+  }));
 
   const handleQuickAction = (action: string) => {
     setIsLoading(true);

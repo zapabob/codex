@@ -4,13 +4,16 @@ import {
   Toolbar,
   Typography,
   Box,
+  Chip,
+  Tooltip,
   SxProps,
   Theme,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { IconButton } from '@/components/atoms/IconButton';
 import { useAppTheme } from '@/components/templates/ThemeProvider';
-import { Sun, Moon, Monitor, Menu, Settings, User } from 'lucide-react';
+import { useCodex } from '@/lib/context/CodexContext';
+import { Sun, Moon, Monitor, Menu, Settings, User, Wifi, WifiOff, AlertCircle } from 'lucide-react';
 
 export interface HeaderProps {
   title?: string;
@@ -30,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   sx,
 }) => {
   const { theme, toggleTheme } = useAppTheme();
+  const { state } = useCodex();
 
   const getThemeIcon = () => {
     switch (theme) {
@@ -93,6 +97,54 @@ export const Header: React.FC<HeaderProps> = ({
         </motion.div>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* Connection Status */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Tooltip title={`Codexサーバー: ${state.isConnected ? '接続済み' : '未接続'}`}>
+              <Chip
+                icon={state.isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
+                label={state.isConnected ? 'オンライン' : 'オフライン'}
+                size="small"
+                color={state.isConnected ? 'success' : 'error'}
+                variant="outlined"
+                sx={{
+                  '& .MuiChip-icon': {
+                    color: state.isConnected ? 'success.main' : 'error.main',
+                  },
+                }}
+              />
+            </Tooltip>
+          </motion.div>
+
+          {/* Error Notification */}
+          {state.error && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Tooltip title={state.error}>
+                <IconButton
+                  icon={AlertCircle}
+                  tooltip="エラー詳細"
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    color: 'error.main',
+                    borderColor: 'error.main',
+                    '&:hover': {
+                      backgroundColor: 'error.light',
+                      borderColor: 'error.dark',
+                    },
+                  }}
+                />
+              </Tooltip>
+            </motion.div>
+          )}
+
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

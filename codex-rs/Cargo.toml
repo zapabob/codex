@@ -38,6 +38,7 @@ members = [
     "gui",
     "tui",
     "git-apply",
+    "wasm-cli",
     "utils/cache",
     "utils/image",
     "utils/json-to-toml",
