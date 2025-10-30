@@ -1215,6 +1215,18 @@ impl ChatWidget {
             SlashCommand::Approvals => {
                 self.open_approvals_popup();
             }
+            SlashCommand::Delegate => {
+                self.add_delegate_info();
+            }
+            SlashCommand::Orchestrate => {
+                self.add_orchestrate_info();
+            }
+            SlashCommand::Research => {
+                self.add_research_info();
+            }
+            SlashCommand::Hook => {
+                self.add_hook_info();
+            }
             SlashCommand::Quit => {
                 self.app_event_tx.send(AppEvent::ExitRequest);
             }
@@ -2040,6 +2052,38 @@ impl ChatWidget {
         } else {
             self.submit_op(Op::ListMcpTools);
         }
+    }
+
+    fn add_delegate_info(&mut self) {
+        let message = "Use natural language or @mentions to delegate work to sub-agents.\nExample: \"Delegate code review to @code-reviewer for src/main.rs\"";
+        let hint = Some("Tip: run `codex agent 'Deep research on Rust security'` from the CLI for the same interpreter.".to_string());
+        self.add_info_message(message.to_string(), hint);
+    }
+
+    fn add_orchestrate_info(&mut self) {
+        let message = "Kick off auto orchestration and supervisor flows.\nExample: \"Auto orchestrate multi-agent session with agent-alpha and agent-beta for release notes\"";
+        let hint = Some(
+            "Runs the pair programming / auto-orchestrator loop via `codex agent`".to_string(),
+        );
+        self.add_info_message(message.to_string(), hint);
+    }
+
+    fn add_research_info(&mut self) {
+        let message = "Launch Deep Research with Gemini or MCP integrations.\nTry: \"Deep research on WebAssembly security using Gemini\"";
+        let hint = Some(
+            "Generates a full research report with citations and saves to artifacts/report.md"
+                .to_string(),
+        );
+        self.add_info_message(message.to_string(), hint);
+    }
+
+    fn add_hook_info(&mut self) {
+        let message = "Trigger webhook integrations like Slack notifications.\nExample: \"Send Slack webhook to #alerts: \"Deploy succeeded\"\"";
+        let hint = Some(
+            "GitHub and custom webhooks are available from the CLI with `codex webhook`"
+                .to_string(),
+        );
+        self.add_info_message(message.to_string(), hint);
     }
 
     /// Forward file-search results to the bottom pane.

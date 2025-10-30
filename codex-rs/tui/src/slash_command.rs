@@ -15,6 +15,10 @@ pub enum SlashCommand {
     Model,
     Approvals,
     Review,
+    Delegate,
+    Orchestrate,
+    Research,
+    Hook,
     New,
     Init,
     Compact,
@@ -39,6 +43,10 @@ impl SlashCommand {
             SlashCommand::Init => "create an AGENTS.md file with instructions for Codex",
             SlashCommand::Compact => "summarize conversation to prevent hitting the context limit",
             SlashCommand::Review => "review my current changes and find issues",
+            SlashCommand::Delegate => "delegate a task to a sub-agent using natural language",
+            SlashCommand::Orchestrate => "kick off auto orchestration / supervisor flows",
+            SlashCommand::Research => "conduct deep research (Gemini, MCP, web)",
+            SlashCommand::Hook => "trigger webhook integrations (Slack, etc.)",
             SlashCommand::Undo => "ask Codex to undo a turn",
             SlashCommand::Quit => "exit Codex",
             SlashCommand::Diff => "show git diff (including untracked files)",
@@ -69,6 +77,10 @@ impl SlashCommand {
             | SlashCommand::Model
             | SlashCommand::Approvals
             | SlashCommand::Review
+            | SlashCommand::Delegate
+            | SlashCommand::Orchestrate
+            | SlashCommand::Research
+            | SlashCommand::Hook
             | SlashCommand::Logout => false,
             SlashCommand::Diff
             | SlashCommand::Mention
