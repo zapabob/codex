@@ -382,7 +382,7 @@ npm install -g @openai/codex --registry=https://npm.pkg.github.com
 
 # Verify installation
 codex --version
-# Output: codex-cli 0.53.0-zapabob.1
+# Output: codex-cli 0.52.0
 
 # Test functionality
 codex --help
@@ -715,7 +715,7 @@ cargo install --path cli --force
 
 # インストール確認
 codex --version
-# 出力: codex-cli 0.53.0-zapabob.1
+# 出力: codex-cli 0.52.0
 ```
 
 #### Gemini CLI MCPセットアップ（オプション）
