@@ -3,14 +3,14 @@ name: Sub-Agent & Deep Research CI
 on:
   pull_request:
     paths:
-      - 'codex-rs/**'
-      - '.codex/agents/**'
-      - '.github/workflows/subagent-ci.yml'
+      - "codex-rs/**"
+      - ".codex/agents/**"
+      - ".github/workflows/subagent-ci.yml"
   push:
     branches: [main]
     paths:
-      - 'codex-rs/**'
-      - '.codex/agents/**'
+      - "codex-rs/**"
+      - ".codex/agents/**"
 
 env:
   RUST_BACKTRACE: 1
@@ -26,7 +26,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         rust: [stable]
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
     name: Clippy Lint (Sub-Agent Code Quality)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -126,7 +126,7 @@ jobs:
     name: Rustfmt Format Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -145,7 +145,7 @@ jobs:
     name: Validate Agent Definitions
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -182,7 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [rust-build-test]
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -219,7 +219,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [rust-build-test, validate-agents]
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -255,7 +255,7 @@ jobs:
     name: Documentation Validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -279,7 +279,7 @@ jobs:
     name: Security Audit (cargo-audit)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -298,7 +298,7 @@ jobs:
   ci-success:
     name: CI Success (All Checks Passed)
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - rust-build-test
       - clippy
       - rustfmt
@@ -307,7 +307,7 @@ jobs:
       - subagent-test
       - docs-validation
       - security-audit
-    
+
     steps:
       - name: Success notification
         run: |
@@ -322,4 +322,3 @@ jobs:
           echo "✅ Security audit passed"
           echo ""
           echo "Status: Production Ready ✅"
-

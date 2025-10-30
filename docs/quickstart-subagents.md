@@ -24,6 +24,7 @@ cargo build --release -p codex-cli
 **目的**: コードの包括的なレビュー（セキュリティ、パフォーマンス、ベストプラクティス）
 
 **使用例**:
+
 ```bash
 codex delegate code-reviewer \
   --goal "Review TypeScript components for security issues" \
@@ -32,12 +33,14 @@ codex delegate code-reviewer \
 ```
 
 **チェック項目**:
+
 - 型安全性（TypeScript/Rust）
 - セキュリティ脆弱性（SQL injection, XSS等）
 - パフォーマンス最適化
 - 言語固有のベストプラクティス
 
 **出力**:
+
 - `artifacts/code-review-report.md` - 詳細レビューレポート
 - `code-review-reports/review-summary.json` - JSON形式サマリー
 
@@ -48,6 +51,7 @@ codex delegate code-reviewer \
 **目的**: 包括的なテストスイート生成（Unit, Integration, E2E）
 
 **使用例**:
+
 ```bash
 codex delegate test-gen \
   --goal "Generate unit tests for user authentication module" \
@@ -56,12 +60,14 @@ codex delegate test-gen \
 ```
 
 **生成内容**:
+
 - Unit テスト（80%+ カバレッジ目標）
 - Integration テスト
 - エッジケース・エラーハンドリングテスト
 - テストフィクスチャとモック
 
 **出力**:
+
 - `artifacts/test-generation-report.md`
 - `artifacts/test-coverage-analysis.json`
 
@@ -72,6 +78,7 @@ codex delegate test-gen \
 **目的**: セキュリティ監査（CVEスキャン、依存関係分析、脆弱性パッチ提案）
 
 **使用例**:
+
 ```bash
 codex delegate sec-audit \
   --goal "Audit dependencies for CVEs" \
@@ -79,12 +86,14 @@ codex delegate sec-audit \
 ```
 
 **チェック項目**:
+
 - 全依存関係のCVEスキャン
 - コード内の潜在的脆弱性
 - パッチ推奨（バージョン番号付き）
 - 優先度別レポート（Critical/High/Medium/Low）
 
 **出力**:
+
 - `artifacts/security-audit-report.md`
 - `security-reports/vulnerability-summary.json`
 - `security-reports/patch-recommendations.md`
@@ -96,6 +105,7 @@ codex delegate sec-audit \
 **目的**: 複数ソースからの調査・検証・引用付きレポート生成
 
 **使用例**:
+
 ```bash
 codex delegate researcher \
   --goal "Research React Server Components best practices" \
@@ -103,12 +113,14 @@ codex delegate researcher \
 ```
 
 **調査内容**:
+
 - 5+ 信頼できるソースから情報収集
 - ファクトのクロス検証・矛盾検出
 - 全主張に引用を提供
 - 実装例を含む構造化レポート
 
 **出力**:
+
 - `artifacts/research-report.md`
 - `research-reports/sources.json`
 - `research-reports/cross-validation-report.md`
@@ -124,9 +136,11 @@ codex delegate <AGENT> [OPTIONS]
 ```
 
 **必須引数**:
+
 - `<AGENT>` - エージェント名（例: `code-reviewer`, `test-gen`, `sec-audit`, `researcher`）
 
 **オプション**:
+
 - `--goal <GOAL>` - タスクの目標（省略時は scope から自動生成）
 - `--scope <PATH>` - 対象ディレクトリ/ファイル
 - `--budget <TOKENS>` - トークン予算（デフォルトはエージェント定義に従う）
@@ -177,20 +191,20 @@ artifacts:
 
 ### フィールド説明
 
-| フィールド | 説明 |
-|-----------|------|
-| `name` | エージェント名 |
-| `goal` | エージェントの目的 |
-| `tools.mcp` | 利用可能なMCPツールリスト |
-| `tools.fs.read` | ファイル読み取り許可 |
-| `tools.fs.write` | 書き込み許可パスリスト |
-| `tools.net.allow` | ネットワークアクセス許可パターン |
-| `tools.shell.exec` | 実行可能なシェルコマンドリスト |
-| `policies.context.max_tokens` | 最大トークン数 |
-| `policies.context.retention` | コンテキスト保持期間（`job`, `session`, `permanent`） |
-| `policies.secrets.redact` | シークレット自動除去 |
-| `success_criteria` | 成功基準リスト |
-| `artifacts` | 生成するアーティファクトパス |
+| フィールド                    | 説明                                                  |
+| ----------------------------- | ----------------------------------------------------- |
+| `name`                        | エージェント名                                        |
+| `goal`                        | エージェントの目的                                    |
+| `tools.mcp`                   | 利用可能なMCPツールリスト                             |
+| `tools.fs.read`               | ファイル読み取り許可                                  |
+| `tools.fs.write`              | 書き込み許可パスリスト                                |
+| `tools.net.allow`             | ネットワークアクセス許可パターン                      |
+| `tools.shell.exec`            | 実行可能なシェルコマンドリスト                        |
+| `policies.context.max_tokens` | 最大トークン数                                        |
+| `policies.context.retention`  | コンテキスト保持期間（`job`, `session`, `permanent`） |
+| `policies.secrets.redact`     | シークレット自動除去                                  |
+| `success_criteria`            | 成功基準リスト                                        |
+| `artifacts`                   | 生成するアーティファクトパス                          |
 
 ---
 
@@ -285,7 +299,7 @@ codex delegate sec-audit --scope ./src/core --budget 80000
 tools:
   fs:
     write:
-      - "./artifacts"      # これが必要
+      - "./artifacts" # これが必要
       - "./your-output-dir"
 ```
 
@@ -307,15 +321,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      
+          node-version: "20"
+
       - name: Install Codex
         run: npm install -g @openai/codex
-      
+
       - name: Run Code Reviewer
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -323,7 +337,7 @@ jobs:
           codex delegate code-reviewer \
             --scope ./src \
             --out ./code-review-report.json
-      
+
       - name: Upload Report
         uses: actions/upload-artifact@v4
         with:

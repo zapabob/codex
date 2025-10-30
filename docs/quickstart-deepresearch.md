@@ -43,6 +43,7 @@ codex --version
 ```
 
 **期待される出力**:
+
 ```
 codex 0.47.0-alpha.1
 ```
@@ -58,6 +59,7 @@ codex research "What are Rust async best practices?"
 ```
 
 **実行結果**:
+
 ```
 🔍 Starting deep research on: What are Rust async best practices?
    Depth: 3, Breadth: 8
@@ -157,6 +159,7 @@ codex delegate code-reviewer --scope ./src
 ```
 
 **実行結果**:
+
 ```
 🤖 Delegating to agent 'code-reviewer'...
    Goal: Process files in ./src
@@ -254,40 +257,40 @@ codex delegate test-gen \
 
 ### Deep Research コマンド
 
-| コマンド | 説明 | 例 |
-|---------|------|-----|
-| `codex research <topic>` | 基本的な調査 | `codex research "Rust"` |
-| `--depth <1-5>` | 調査の深さ | `--depth 5` |
-| `--breadth <N>` | ソース数 | `--breadth 20` |
-| `--budget <N>` | トークン上限 | `--budget 100000` |
-| `--citations` | 引用を含める | `--citations` |
-| `--lightweight-fallback` | 軽量版使用 | `--lightweight-fallback` |
-| `--gemini` | Gemini CLI使用 | `--gemini` |
-| `--mcp <URL>` | MCP統合 | `--mcp "http://localhost:3000"` |
-| `--out <FILE>` | 出力先 | `--out report.md` |
+| コマンド                 | 説明           | 例                              |
+| ------------------------ | -------------- | ------------------------------- |
+| `codex research <topic>` | 基本的な調査   | `codex research "Rust"`         |
+| `--depth <1-5>`          | 調査の深さ     | `--depth 5`                     |
+| `--breadth <N>`          | ソース数       | `--breadth 20`                  |
+| `--budget <N>`           | トークン上限   | `--budget 100000`               |
+| `--citations`            | 引用を含める   | `--citations`                   |
+| `--lightweight-fallback` | 軽量版使用     | `--lightweight-fallback`        |
+| `--gemini`               | Gemini CLI使用 | `--gemini`                      |
+| `--mcp <URL>`            | MCP統合        | `--mcp "http://localhost:3000"` |
+| `--out <FILE>`           | 出力先         | `--out report.md`               |
 
 ### サブエージェント コマンド
 
-| コマンド | 説明 | 例 |
-|---------|------|-----|
+| コマンド                 | 説明                 | 例                             |
+| ------------------------ | -------------------- | ------------------------------ |
 | `codex delegate <agent>` | エージェント呼び出し | `codex delegate code-reviewer` |
-| `--goal <TEXT>` | ゴール指定 | `--goal "Review code"` |
-| `--scope <PATH>` | 対象パス | `--scope ./src` |
-| `--budget <N>` | トークン上限 | `--budget 40000` |
-| `--deadline <MIN>` | 制限時間 | `--deadline 30` |
-| `--out <FILE>` | 出力先 | `--out result.json` |
+| `--goal <TEXT>`          | ゴール指定           | `--goal "Review code"`         |
+| `--scope <PATH>`         | 対象パス             | `--scope ./src`                |
+| `--budget <N>`           | トークン上限         | `--budget 40000`               |
+| `--deadline <MIN>`       | 制限時間             | `--deadline 30`                |
+| `--out <FILE>`           | 出力先               | `--out result.json`            |
 
 ### 利用可能なエージェント
 
-| エージェント名 | 用途 | 推奨Budget |
-|--------------|------|-----------|
-| `code-reviewer` | 汎用コードレビュー | 40,000 |
-| `ts-reviewer` | TypeScript専用 | 35,000 |
-| `python-reviewer` | Python専用 | 35,000 |
-| `rust-reviewer` | Rust専用 | 30,000 |
-| `unity-reviewer` | Unity C#専用 | 40,000 |
-| `test-gen` | テスト生成 | 50,000 |
-| `sec-audit` | セキュリティ監査 | 60,000 |
+| エージェント名    | 用途               | 推奨Budget |
+| ----------------- | ------------------ | ---------- |
+| `code-reviewer`   | 汎用コードレビュー | 40,000     |
+| `ts-reviewer`     | TypeScript専用     | 35,000     |
+| `python-reviewer` | Python専用         | 35,000     |
+| `rust-reviewer`   | Rust専用           | 30,000     |
+| `unity-reviewer`  | Unity C#専用       | 40,000     |
+| `test-gen`        | テスト生成         | 50,000     |
+| `sec-audit`       | セキュリティ監査   | 60,000     |
 
 ---
 
@@ -425,6 +428,7 @@ codex research "test" --depth 1
 ### Q1: `codex: command not found`
 
 **解決策**:
+
 ```bash
 # グローバルインストールを再実行
 cd codex-cli
@@ -437,6 +441,7 @@ echo $PATH
 ### Q2: タイムアウトエラー
 
 **解決策**:
+
 ```bash
 # ネットワーク確認
 ping google.com
@@ -449,6 +454,7 @@ ping google.com
 ### Q3: レポートが生成されない
 
 **解決策**:
+
 ```bash
 # 出力ディレクトリを確認
 ls -la artifacts/
@@ -481,6 +487,7 @@ codex research "topic" --out $(pwd)/my-report.md
 これでCodex Deep Research & サブエージェント機能を使いこなせるはずや！
 
 **困ったら**:
+
 - GitHub Issues: https://github.com/zapabob/codex/issues
 - ドキュメント: `docs/`
 - サンプル: `_docs/`
@@ -490,4 +497,3 @@ codex research "topic" --out $(pwd)/my-report.md
 **作成日**: 2025-10-11  
 **バージョン**: 0.47.0-alpha.1  
 **Status**: ✅ Production Ready
-

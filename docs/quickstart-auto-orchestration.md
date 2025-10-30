@@ -34,6 +34,7 @@ codex "Implement user authentication with JWT, write tests, and security review"
 ```
 
 **簡単なタスク**は通常実行:
+
 ```bash
 codex "Fix typo in README"
 # → 複雑度: 0.15
@@ -43,16 +44,16 @@ codex "Fix typo in README"
 ### 2. Node.js SDK で使用
 
 ```typescript
-import { CodexOrchestrator } from '@codex/orchestrator';
+import { CodexOrchestrator } from "@codex/orchestrator";
 
 const orchestrator = new CodexOrchestrator();
 
 const result = await orchestrator.execute(
-  "Build REST API with auth, tests, and docs"
+  "Build REST API with auth, tests, and docs",
 );
 
 console.log(`Orchestrated: ${result.wasOrchestrated}`);
-console.log(`Agents: ${result.agentsUsed.join(', ')}`);
+console.log(`Agents: ${result.agentsUsed.join(", ")}`);
 
 await orchestrator.close();
 ```
@@ -82,35 +83,35 @@ await orchestrator.close();
 
 ### 複雑度スコア計算
 
-| Factor | 重み | 例 |
-|--------|------|---|
-| 単語数 | 0.0-0.3 | 長い説明 = 複雑 |
-| 文の数 | 0.0-0.2 | 複数文 = 複雑 |
+| Factor       | 重み    | 例                      |
+| ------------ | ------- | ----------------------- |
+| 単語数       | 0.0-0.3 | 長い説明 = 複雑         |
+| 文の数       | 0.0-0.2 | 複数文 = 複雑           |
 | アクション数 | 0.0-0.3 | implement, test, review |
-| ドメイン数 | 0.0-0.4 | auth, database, api |
-| 接続詞数 | 0.0-0.2 | and, with, plus |
+| ドメイン数   | 0.0-0.4 | auth, database, api     |
+| 接続詞数     | 0.0-0.2 | and, with, plus         |
 
 **閾値**: 0.7
 
 ### 実例
 
-| タスク | スコア | 判定 |
-|--------|--------|------|
-| "Fix typo in README" | 0.15 | ❌ 通常実行 |
-| "Refactor auth module" | 0.65 | ❌ 通常実行 |
-| "Implement OAuth with tests" | 0.75 | ✅ オーケストレーション |
-| "Build full-stack app with auth, tests, docs, deploy" | 0.95 | ✅ オーケストレーション |
+| タスク                                                | スコア | 判定                    |
+| ----------------------------------------------------- | ------ | ----------------------- |
+| "Fix typo in README"                                  | 0.15   | ❌ 通常実行             |
+| "Refactor auth module"                                | 0.65   | ❌ 通常実行             |
+| "Implement OAuth with tests"                          | 0.75   | ✅ オーケストレーション |
+| "Build full-stack app with auth, tests, docs, deploy" | 0.95   | ✅ オーケストレーション |
 
 ---
 
 ## 🤖 どのエージェントが起動するか？
 
-| キーワード | 起動エージェント |
-|-----------|---------------|
-| security, auth, oauth, jwt | `sec-audit` |
-| test, review | `test-gen` |
-| refactor, migrate, fix | `code-reviewer` |
-| docs, documentation | `researcher` |
+| キーワード                 | 起動エージェント |
+| -------------------------- | ---------------- |
+| security, auth, oauth, jwt | `sec-audit`      |
+| test, review               | `test-gen`       |
+| refactor, migrate, fix     | `code-reviewer`  |
+| docs, documentation        | `researcher`     |
 
 **複数マッチ** → **並列実行**
 
@@ -163,12 +164,12 @@ npx ts-node examples/basic-orchestration.ts
 
 ## 📚 詳細ドキュメント
 
-| ドキュメント | 内容 |
-|------------|------|
-| [docs/auto-orchestration.md](docs/auto-orchestration.md) | 完全技術仕様 |
-| [sdk/typescript/README.md](sdk/typescript/README.md) | Node.js SDK API リファレンス |
-| [AGENTS.md](AGENTS.md) | エージェント概要 |
-| [_docs/2025-10-15_*.md](_docs/) | 実装ログ |
+| ドキュメント                                             | 内容                         |
+| -------------------------------------------------------- | ---------------------------- |
+| [docs/auto-orchestration.md](docs/auto-orchestration.md) | 完全技術仕様                 |
+| [sdk/typescript/README.md](sdk/typescript/README.md)     | Node.js SDK API リファレンス |
+| [AGENTS.md](AGENTS.md)                                   | エージェント概要             |
+| [_docs/2025-10-15_\*.md](_docs/)                         | 実装ログ                     |
 
 ---
 
@@ -200,7 +201,7 @@ codex "Migrate from JavaScript to TypeScript with full test coverage"
 ```typescript
 // 閾値を上げて、より複雑なタスクだけオーケストレーション
 const result = await orchestrator.execute(goal, {
-    complexityThreshold: 0.85
+  complexityThreshold: 0.85,
 });
 ```
 
@@ -209,7 +210,7 @@ const result = await orchestrator.execute(goal, {
 ```typescript
 // 依存関係がある場合は順次実行
 const result = await orchestrator.execute(goal, {
-    strategy: 'sequential'
+  strategy: "sequential",
 });
 ```
 
@@ -226,6 +227,7 @@ const result = await orchestrator.execute(goal, {
 ```
 
 実測値:
+
 - Auth + Tests + Docs: **2.7x 高速化**
 - Review + Refactor: **2.6x 高速化**
 - API + DB + Frontend: **2.5x 高速化**
@@ -329,16 +331,16 @@ where codex  # Windows
 
 ## 🎊 ClaudeCode との比較
 
-| 機能 | ClaudeCode | Codex (zapabob) | 優位性 |
-|------|-----------|----------------|--------|
-| 自律オーケストレーション | ✅ | ✅ | 引き分け |
-| 複雑度自動分析 | ❌ | ✅ | **Codex** |
-| MCP 統合 | ❌ | ✅ | **Codex** |
-| Node.js SDK | ❌ | ✅ | **Codex** |
-| 並列実行 | ✅ | ✅ | 引き分け |
-| エージェント協調ストア | ❌ | ✅ | **Codex** |
-| ストリーミング対応 | ✅ | ✅ | 引き分け |
-| ドキュメント | 基本 | ✅ 完全 | **Codex** |
+| 機能                     | ClaudeCode | Codex (zapabob) | 優位性    |
+| ------------------------ | ---------- | --------------- | --------- |
+| 自律オーケストレーション | ✅         | ✅              | 引き分け  |
+| 複雑度自動分析           | ❌         | ✅              | **Codex** |
+| MCP 統合                 | ❌         | ✅              | **Codex** |
+| Node.js SDK              | ❌         | ✅              | **Codex** |
+| 並列実行                 | ✅         | ✅              | 引き分け  |
+| エージェント協調ストア   | ❌         | ✅              | **Codex** |
+| ストリーミング対応       | ✅         | ✅              | 引き分け  |
+| ドキュメント             | 基本       | ✅ 完全         | **Codex** |
 
 **結論**: **Codex (zapabob) の勝利！** 🏆
 
@@ -365,4 +367,3 @@ where codex  # Windows
 **更新日**: 2025-10-15
 
 **なんJ風まとめ**: よっしゃ！ClaudeCode 風の自律オーケストレーションが完成したで！🔥 タスク分析から並列実行まで全自動や！Node.js と Rust が MCP で完璧に連携して、透過的に専門エージェントが協調するで！これで Codex も ClaudeCode に負けへんわ！💪✨
-

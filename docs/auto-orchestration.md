@@ -38,12 +38,10 @@ TaskAnalyzer
 1. **TaskAnalyzer** (`codex-rs/core/src/orchestration/task_analyzer.rs`)
    - タスク複雑度を5つの要素で評価
    - 専門エージェントを自動推薦
-   
 2. **AutoOrchestrator** (`codex-rs/core/src/orchestration/auto_orchestrator.rs`)
    - 実行計画を生成
    - AgentRuntime 経由でサブエージェント並列実行
    - 結果をMarkdown形式で集約
-   
 3. **CollaborationStore** (`codex-rs/core/src/orchestration/collaboration_store.rs`)
    - DashMap でスレッドセーフな共有ストレージ
    - エージェント間でコンテキスト・結果を共有
@@ -55,7 +53,7 @@ TaskAnalyzer
 ### 計算式
 
 ```
-複雑度 = 
+複雑度 =
     min(単語数 / 50, 0.3) +                   // Factor 1
     min((文の数 - 1) * 0.15, 0.2) +           // Factor 2
     min(アクション数 * 0.1, 0.3) +            // Factor 3
@@ -66,23 +64,23 @@ TaskAnalyzer
 
 ### 要素詳細
 
-| Factor | 説明 | キーワード例 | 最大スコア |
-|--------|------|-------------|-----------|
-| 1. 単語数 | 長い説明 = 複雑 | - | 0.3 |
-| 2. 文の数 | 複数文 = 複雑 | `.` `!` `?` | 0.2 |
-| 3. アクション | 複数操作 = 複雑 | implement, create, test, review | 0.3 |
-| 4. ドメイン | 複数領域 = 複雑 | auth, database, api, frontend | 0.4 |
-| 5. 接続詞 | 複数要件 = 複雑 | and, with, plus | 0.2 |
+| Factor        | 説明            | キーワード例                    | 最大スコア |
+| ------------- | --------------- | ------------------------------- | ---------- |
+| 1. 単語数     | 長い説明 = 複雑 | -                               | 0.3        |
+| 2. 文の数     | 複数文 = 複雑   | `.` `!` `?`                     | 0.2        |
+| 3. アクション | 複数操作 = 複雑 | implement, create, test, review | 0.3        |
+| 4. ドメイン   | 複数領域 = 複雑 | auth, database, api, frontend   | 0.4        |
+| 5. 接続詞     | 複数要件 = 複雑 | and, with, plus                 | 0.2        |
 
 ### エージェント推薦ロジック
 
-| キーワード | 推薦エージェント |
-|-----------|----------------|
-| security, auth, oauth, jwt | `sec-audit` |
-| test, review | `test-gen` |
-| refactor, migrate, update, fix | `code-reviewer` |
-| documentation, docs, readme | `researcher` |
-| （該当なし） | `code-reviewer` (デフォルト) |
+| キーワード                     | 推薦エージェント             |
+| ------------------------------ | ---------------------------- |
+| security, auth, oauth, jwt     | `sec-audit`                  |
+| test, review                   | `test-gen`                   |
+| refactor, migrate, update, fix | `code-reviewer`              |
+| documentation, docs, readme    | `researcher`                 |
+| （該当なし）                   | `code-reviewer` (デフォルト) |
 
 ---
 
@@ -104,7 +102,7 @@ codex "Implement user authentication with JWT, write tests, security review, and
 ### 2. MCP Tool 経由（Node.js SDK）
 
 ```typescript
-import { CodexOrchestrator } from '@codex/orchestrator';
+import { CodexOrchestrator } from "@codex/orchestrator";
 
 const orchestrator = new CodexOrchestrator();
 
@@ -112,12 +110,12 @@ const result = await orchestrator.execute(
   "Refactor legacy codebase to TypeScript",
   {
     complexityThreshold: 0.7,
-    strategy: 'hybrid'
-  }
+    strategy: "hybrid",
+  },
 );
 
 console.log(`Orchestrated: ${result.wasOrchestrated}`);
-console.log(`Agents: ${result.agentsUsed.join(', ')}`);
+console.log(`Agents: ${result.agentsUsed.join(", ")}`);
 console.log(result.executionSummary);
 
 await orchestrator.close();
@@ -280,6 +278,7 @@ inputs.insert("previous_results", previous_results.summary());
 ### Output
 
 **format=json**:
+
 ```json
 {
   "was_orchestrated": true,
@@ -292,6 +291,7 @@ inputs.insert("previous_results", previous_results.summary());
 ```
 
 **format=text**:
+
 ```markdown
 # Auto-Orchestration Result
 
@@ -310,6 +310,7 @@ inputs.insert("previous_results", previous_results.summary());
 **Execution Strategy**: parallel
 
 **Summary**: Task complexity exceeds threshold. Orchestrating 3 specialized agents to handle:
+
 1. sec-audit
 2. test-gen
 3. code-reviewer
@@ -327,6 +328,7 @@ cargo test -p codex-core orchestration
 ```
 
 **実装済みテスト**:
+
 - `test_simple_task_low_complexity` - 簡単なタスクの複雑度
 - `test_complex_task_high_complexity` - 複雑なタスクの複雑度
 - `test_keyword_extraction` - キーワード抽出
@@ -377,7 +379,7 @@ impl AutoOrchestrator {
         collaboration_store: Arc<CollaborationStore>,
         workspace_dir: PathBuf,
     ) -> Self;
-    
+
     pub async fn orchestrate(
         &self,
         analysis: TaskAnalysis,
@@ -408,19 +410,19 @@ impl CollaborationStore {
 
 ```typescript
 class CodexOrchestrator {
-    constructor(codexCommand?: string);
-    
-    async execute(
-        goal: string,
-        options?: OrchestrateOptions
-    ): Promise<OrchestratedResult>;
-    
-    async *executeStream(
-        goal: string,
-        options?: OrchestrateOptions
-    ): AsyncIterableIterator<OrchestrationEvent>;
-    
-    async close(): Promise<void>;
+  constructor(codexCommand?: string);
+
+  async execute(
+    goal: string,
+    options?: OrchestrateOptions,
+  ): Promise<OrchestratedResult>;
+
+  async *executeStream(
+    goal: string,
+    options?: OrchestrateOptions,
+  ): AsyncIterableIterator<OrchestrationEvent>;
+
+  async close(): Promise<void>;
 }
 ```
 
@@ -447,11 +449,13 @@ class CodexOrchestrator {
 ### いつ自動オーケストレーションが有効か
 
 ✅ **有効な場合**:
+
 - 複数ドメインにまたがるタスク（auth + test + docs）
 - 複数アクションが必要（implement + review + deploy）
 - 並列実行で高速化できる
 
 ❌ **不要な場合**:
+
 - 単一ファイルの修正
 - 簡単な質問・調査
 - 既に特定のエージェントに delegate している場合
@@ -461,12 +465,12 @@ class CodexOrchestrator {
 ```typescript
 // 閾値を高くして、より複雑なタスクだけオーケストレーション
 const result = await orchestrator.execute(goal, {
-    complexityThreshold: 0.85  // デフォルト: 0.7
+  complexityThreshold: 0.85, // デフォルト: 0.7
 });
 
 // シーケンシャル実行（依存関係がある場合）
 const result = await orchestrator.execute(goal, {
-    strategy: 'sequential'
+  strategy: "sequential",
 });
 ```
 
@@ -476,11 +480,11 @@ const result = await orchestrator.execute(goal, {
 
 ### 並列実行の効果
 
-| タスク | 通常実行 | 並列実行 | 高速化 |
-|--------|---------|----------|-------|
-| Auth + Tests + Docs | 120s | 45s | 2.7x |
-| Review + Refactor + Deploy | 90s | 35s | 2.6x |
-| API + DB + Frontend | 150s | 60s | 2.5x |
+| タスク                     | 通常実行 | 並列実行 | 高速化 |
+| -------------------------- | -------- | -------- | ------ |
+| Auth + Tests + Docs        | 120s     | 45s      | 2.7x   |
+| Review + Refactor + Deploy | 90s      | 35s      | 2.6x   |
+| API + DB + Frontend        | 150s     | 60s      | 2.5x   |
 
 ### オーバーヘッド
 
@@ -500,6 +504,7 @@ const result = await orchestrator.execute(goal, {
 **原因**: 複雑度スコアが閾値未満
 
 **確認方法**:
+
 ```bash
 # ログを確認
 RUST_LOG=trace codex "your task"
@@ -507,6 +512,7 @@ RUST_LOG=trace codex "your task"
 ```
 
 **解決策**:
+
 - タスクをより詳細に記述
 - 複数のアクションを含める
 - 閾値を下げる（将来実装予定）
@@ -516,12 +522,14 @@ RUST_LOG=trace codex "your task"
 **原因**: エージェント定義の不備、権限不足
 
 **確認方法**:
+
 ```bash
 ls .codex/agents/
 cat .codex/agents/sec-audit.yaml
 ```
 
 **解決策**:
+
 - エージェント定義のポリシーを確認
 - 必要な MCP ツールが許可されているか確認
 
@@ -530,6 +538,7 @@ cat .codex/agents/sec-audit.yaml
 **原因**: トークン予算の競合、ネットワーク制限
 
 **解決策**:
+
 ```bash
 # シーケンシャル実行にフォールバック（自動）
 # または明示的に sequential 指定
@@ -562,4 +571,3 @@ cat .codex/agents/sec-audit.yaml
 **実装者**: zapabob  
 **ライセンス**: MIT  
 **ステータス**: Production Ready (alpha)
-

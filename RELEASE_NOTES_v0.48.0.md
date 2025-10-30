@@ -13,12 +13,14 @@
 Implemented Git-style 3-way merge algorithm for advanced conflict resolution.
 
 **Features**:
+
 - Automatic merge for non-conflicting changes
 - Conflict marker generation (`<<<<<<<`, `=======`, `>>>>>>>`)
 - Line-by-line merge logic using `similar` crate
 - Comprehensive test coverage
 
 **Usage**:
+
 ```rust
 use codex_core::orchestration::conflict_resolver::resolve_three_way;
 
@@ -50,6 +52,7 @@ codex agent "Suggest refactoring opportunities in this codebase"
 ```
 
 **Benefits**:
+
 - Intuitive task description
 - Context-aware agent selection
 - Flexible workflow integration
@@ -59,12 +62,14 @@ codex agent "Suggest refactoring opportunities in this codebase"
 ### 3. Enhanced Sub-Agent System 🎯
 
 **Available Agents**:
+
 - `code-reviewer`: Code quality, best practices, security
 - `sec-audit`: Security vulnerability scanning
 - `test-gen`: Automated test generation
 - `researcher`: Deep research with citations
 
 **Quick Commands**:
+
 ```bash
 codex review          # Quick code review
 codex audit           # Security audit
@@ -72,6 +77,7 @@ codex test            # Test generation
 ```
 
 **Parallel Execution**:
+
 ```bash
 codex delegate-parallel code-reviewer,test-gen \
   --scopes ./src,./tests
@@ -88,6 +94,7 @@ codex agent-create "Find all TODO comments and create a summary"
 ```
 
 **Features**:
+
 - Dynamic agent configuration
 - Task-specific behavior
 - Reusable agent definitions
@@ -97,17 +104,20 @@ codex agent-create "Find all TODO comments and create a summary"
 ## 🔧 Improvements
 
 ### Build & Performance
+
 - ✅ Clean release build (16m 29s)
 - ✅ Optimized binary (39.34 MB)
 - ✅ LTO enabled for performance
 - ✅ 710 crates updated to latest compatible versions
 
 ### Stability
+
 - ✅ Fixed `just` Cargo.toml conflict
 - ✅ Cargo cache cleanup for reliable builds
 - ✅ 8/8 integration tests passing
 
 ### Developer Experience
+
 - ✅ Comprehensive test suite (`test-codex-v048.ps1`)
 - ✅ Improved error messages
 - ✅ Better CLI help documentation
@@ -152,6 +162,7 @@ powershell -ExecutionPolicy Bypass -File test-codex-v048.ps1
 ```
 
 **Expected Output**:
+
 ```
 Codex v0.48.0 Real Device Test
 ================================
@@ -179,6 +190,7 @@ All tests passed!
 **Breaking Changes**: None
 
 **New Commands**:
+
 ```bash
 # Old (still works)
 codex delegate code-reviewer --scope ./src
@@ -208,6 +220,7 @@ No configuration changes required. All existing config files are compatible.
 This release is based on [OpenAI/codex](https://github.com/openai/codex) with additional features and improvements.
 
 Special thanks to:
+
 - OpenAI team for the original Codex project
 - Rust community for excellent tooling
 - Contributors to the `similar` crate
@@ -217,12 +230,14 @@ Special thanks to:
 ## 📊 Technical Details
 
 ### Dependencies
+
 - Rust: 1.80.0+
 - similar: 2.7.0 (3-way merge)
 - clap: 4.5.49 (CLI parsing)
 - tokio: 1.48.0 (async runtime)
 
 ### Build Configuration
+
 ```toml
 [profile.release]
 lto = true
@@ -230,6 +245,7 @@ codegen-units = 1
 ```
 
 ### Tested Platforms
+
 - ✅ Windows 11 (x86_64)
 - ⏳ Linux (pending)
 - ⏳ macOS (pending)
@@ -239,12 +255,14 @@ codegen-units = 1
 ## 🔮 Roadmap
 
 ### v0.49.0 (Planned)
+
 - [ ] LLM Intent Classifier
 - [ ] Enhanced webhook integration
 - [ ] Multi-platform binary releases
 - [ ] Performance optimizations
 
 ### v0.50.0 (Future)
+
 - [ ] GUI interface
 - [ ] Plugin system
 - [ ] Cloud integration
@@ -269,4 +287,3 @@ This project maintains the same license as the original OpenAI Codex project.
 **Full Changelog**: [`v0.47.0-alpha.1...v0.48.0`](https://github.com/zapabob/codex-main/compare/v0.47.0-alpha.1...v0.48.0)
 
 🎉 **Enjoy Codex v0.48.0!**
-

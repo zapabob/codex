@@ -44,6 +44,7 @@ gemini --version
 ```
 
 **出力例**:
+
 ```
 gemini version v0.5.0
 ```
@@ -98,6 +99,7 @@ codex research "Rust async best practices" --gemini
 ```
 
 **実行結果**:
+
 ```
 🔍 Starting deep research on: Rust async best practices
    Depth: 3, Breadth: 8
@@ -186,7 +188,7 @@ codex research "Rust async" --depth 3 --gemini
 
 1. **コマンド実行**: `codex research "query" --gemini`
 2. **GeminiSearchProvider起動**: 環境変数チェック
-3. **Gemini CLI呼び出し**: 
+3. **Gemini CLI呼び出し**:
    ```bash
    gemini "Search for: <query>" \
      --api-key $GOOGLE_API_KEY \
@@ -220,6 +222,7 @@ Codex Deep Researchの検索バックエンド優先順位：
 **原因**: Gemini CLIがインストールされていない
 
 **解決策**:
+
 ```bash
 # Goがインストールされているか確認
 go version
@@ -239,6 +242,7 @@ export PATH="$PATH:$HOME/go/bin"
 **原因**: GOOGLE_API_KEYが設定されていない
 
 **解決策**:
+
 ```bash
 # 環境変数を設定
 export GOOGLE_API_KEY="your-api-key"
@@ -255,6 +259,7 @@ echo 'GOOGLE_API_KEY=your-api-key' >> .env
 **原因**: APIキーが無効、またはクォータ超過
 
 **解決策**:
+
 ```bash
 # Gemini CLIを直接テスト
 gemini "Hello" --api-key $GOOGLE_API_KEY
@@ -273,6 +278,7 @@ codex research "query" --depth 3
 **原因**: HTMLパースに失敗、またはGrounding機能がオフ
 
 **解決策**:
+
 ```bash
 # --groundingフラグが正しく渡されているか確認
 # codex-rs/deep-research/src/gemini_search_provider.rsを確認
@@ -289,6 +295,7 @@ codex research "query" --depth 3
 **原因**: Gemini APIの応答が遅い
 
 **解決策**:
+
 ```bash
 # リトライロジックは実装済み（最大3回）
 # タイムアウト設定を確認:
@@ -303,12 +310,12 @@ codex research "query" --depth 2 --breadth 5 --gemini
 
 ## 📊 比較: Gemini CLI vs 他の検索バックエンド
 
-| 検索方法 | APIキー | 品質 | 速度 | コスト |
-|---------|---------|------|------|-------|
-| **Gemini CLI** | GOOGLE_API_KEY | ⭐⭐⭐⭐⭐ | 1-2秒 | 有料（クォータあり） |
-| Google Custom Search | GOOGLE_API_KEY + CSE_ID | ⭐⭐⭐⭐ | 0.3-0.8秒 | 有料 |
-| Brave Search | BRAVE_API_KEY | ⭐⭐⭐⭐ | 0.5-1秒 | 有料 |
-| DuckDuckGo | 不要 | ⭐⭐⭐ | 1-3秒 | 無料 |
+| 検索方法             | APIキー                 | 品質       | 速度      | コスト               |
+| -------------------- | ----------------------- | ---------- | --------- | -------------------- |
+| **Gemini CLI**       | GOOGLE_API_KEY          | ⭐⭐⭐⭐⭐ | 1-2秒     | 有料（クォータあり） |
+| Google Custom Search | GOOGLE_API_KEY + CSE_ID | ⭐⭐⭐⭐   | 0.3-0.8秒 | 有料                 |
+| Brave Search         | BRAVE_API_KEY           | ⭐⭐⭐⭐   | 0.5-1秒   | 有料                 |
+| DuckDuckGo           | 不要                    | ⭐⭐⭐     | 1-3秒     | 無料                 |
 
 ### Gemini CLIの利点
 
@@ -375,11 +382,10 @@ Gemini CLI統合により、Codex Deep Researchは以下を実現しました：
 ✅ **Google Search + Gemini AI**の強力な組み合わせ  
 ✅ **ターミナルから直接**Gemini CLIを呼び出し  
 ✅ **高品質な検索結果**と自然言語理解  
-✅ **フォールバック機能**でAPIキーなしでも動作  
+✅ **フォールバック機能**でAPIキーなしでも動作
 
 ---
 
 **作成日**: 2025-10-11  
 **バージョン**: 0.47.0-alpha.1  
 **Status**: ✅ Production Ready
-
