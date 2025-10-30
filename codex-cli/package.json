@@ -1,5 +1,5 @@
 {
-  "name": "@openai/codex",
+  "name": "@zapabob/codex",
   "version": "0.52.0",
   "license": "Apache-2.0",
   "bin": {
