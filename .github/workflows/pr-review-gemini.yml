@@ -57,7 +57,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       # Install Gemini CLI
       - name: Install Gemini CLI
@@ -73,34 +73,34 @@ jobs:
           # Enhanced review guidelines for Gemini
           REVIEW_PROMPT="
           Please perform a comprehensive code review for this pull request:
-          
+
           **Code Quality Assessment:**
           1. Code structure and organization
           2. Best practices adherence
           3. Performance considerations
           4. Maintainability and readability
-          
+
           **Security Review:**
           1. Potential security vulnerabilities
           2. Input validation and sanitization
           3. Authentication and authorization
           4. Data protection measures
-          
+
           **Technical Analysis:**
           1. Algorithm efficiency
           2. Error handling
           3. Test coverage
           4. Documentation completeness
-          
+
           **Recommendations:**
           - Provide specific, actionable feedback
           - Suggest improvements with examples
           - Highlight critical issues
           - Acknowledge good practices
-          
+
           Format your review in clear sections with bullet points.
           "
-          
+
           echo "Starting Gemini CLI PR Review..."
           gemini -y -m "${{ vars.AI_REVIEW_GEMINI_MODEL }}" -p "$(printf '%s' '$REVIEW_PROMPT')"
 

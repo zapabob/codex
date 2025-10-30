@@ -4,11 +4,11 @@
 
 ### 🎨 ファイル一覧
 
-| 用途 | ファイル | 形式 | サイズ | 解像度 |
-|------|---------|------|--------|--------|
-| GitHub README | `codex-v0.51.0-architecture.svg` | SVG | - | ベクター |
-| X (Twitter) | `codex-v0.51.0-architecture.png` | PNG | - | 2400x1800 |
-| LinkedIn | `codex-v0.51.0-architecture.png` | PNG | - | 2400x1800 |
+| 用途          | ファイル                         | 形式 | サイズ | 解像度    |
+| ------------- | -------------------------------- | ---- | ------ | --------- |
+| GitHub README | `codex-v0.51.0-architecture.svg` | SVG  | -      | ベクター  |
+| X (Twitter)   | `codex-v0.51.0-architecture.png` | PNG  | -      | 2400x1800 |
+| LinkedIn      | `codex-v0.51.0-architecture.png` | PNG  | -      | 2400x1800 |
 
 ---
 
@@ -64,7 +64,7 @@ zapabob/docs/
    - codex-gemini-mcp, serena (21 tools)
    - arxiv, chrome-devtools, playwright
    - sequential-thinking (NEW!)
-   - + 6 more servers
+   - - 6 more servers
 
 7. **🛠️ Tools & Execution**
    - ToolRouter (Dynamic dispatch)
@@ -87,17 +87,17 @@ zapabob/docs/
 
 ## 🎨 カラーコーディング
 
-| レイヤー | カラー | 意味 |
-|---------|--------|------|
-| UI Layer | 🔵 Blue | ユーザー接点 |
-| Core Layer | 🟡 Yellow | コア機能 |
-| Orchestration | 🟣 Purple | 自動調整 |
-| Sub-Agents | 🟢 Green | AI処理 |
-| Deep Research | 🔵 Light Blue | 情報収集 |
-| MCP Integration | 🟠 Orange | 外部統合 |
-| Tools & Execution | 🔴 Pink | 実行系 |
-| External | 🟢 Lime | 外部API |
-| Storage | ⚫ Gray | データ永続化 |
+| レイヤー          | カラー        | 意味         |
+| ----------------- | ------------- | ------------ |
+| UI Layer          | 🔵 Blue       | ユーザー接点 |
+| Core Layer        | 🟡 Yellow     | コア機能     |
+| Orchestration     | 🟣 Purple     | 自動調整     |
+| Sub-Agents        | 🟢 Green      | AI処理       |
+| Deep Research     | 🔵 Light Blue | 情報収集     |
+| MCP Integration   | 🟠 Orange     | 外部統合     |
+| Tools & Execution | 🔴 Pink       | 実行系       |
+| External          | 🟢 Lime       | 外部API      |
+| Storage           | ⚫ Gray       | データ永続化 |
 
 ---
 
@@ -119,6 +119,7 @@ mmdc -i codex-v0.51.0-architecture.mmd \
 ```
 
 ### パラメータ説明
+
 - `-t dark`: ダークテーマ（見やすい）
 - `-b transparent`: 透過背景
 - `-w 2400 -H 1800`: 高解像度（SNS最適）
@@ -128,16 +129,19 @@ mmdc -i codex-v0.51.0-architecture.mmd \
 ## 📱 SNS投稿での使用方法
 
 ### X (Twitter)
+
 1. `codex-v0.51.0-architecture.png` を添付
 2. ツイート文は `X_TWEET_WITH_URL.md` の Version 3 を使用
 3. 画像が自動的にプレビュー表示される
 
 ### LinkedIn
+
 1. `codex-v0.51.0-architecture.png` を添付
 2. 投稿文は `SNS_POST.md` の LinkedIn英語版を使用
 3. 技術的詳細を強調
 
 ### GitHub README.md
+
 1. SVGファイルをMarkdownで埋め込み済み
 2. ダークモード対応
 3. スケーラブル（ベクター形式）
@@ -147,6 +151,7 @@ mmdc -i codex-v0.51.0-architecture.mmd \
 ## ✅ v0.51.0の主要ハイライト
 
 ### 🆕 NEW in v0.51.0
+
 - **Gemini Search Grounding**: デフォルト検索バックエンド
 - **codex-research MCP**: Deep Research専用サーバー
 - **codex-agent MCP**: 自然言語CLI専用サーバー
@@ -154,6 +159,7 @@ mmdc -i codex-v0.51.0-architecture.mmd \
 - **15 MCP Servers**: 14個から増加
 
 ### 🔄 Updated
+
 - **OpenAI upstream**: commit 4a42c4e1統合
 - **Auth System**: Keyring対応
 - **Rust Edition**: 2024互換性
@@ -161,4 +167,3 @@ mmdc -i codex-v0.51.0-architecture.mmd \
 ---
 
 **アーキテクチャ図完成や！SVG（GitHub用）とPNG（SNS用）の両方が生成されたで！🎊**
-

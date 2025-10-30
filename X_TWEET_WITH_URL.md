@@ -3,6 +3,7 @@
 ## 🎯 エンジニア向けツイート（279文字以内）
 
 ### Version 1: 技術的詳細重視
+
 ```
 🚀 Codex v0.51.0: OpenAI official + custom AI orchestration
 
@@ -17,11 +18,13 @@ https://github.com/zapabob/codex
 
 #LLMOps #Rust #AI
 ```
+
 **文字数**: 278文字 ✅
 
 ---
 
 ### Version 2: 実装難易度アピール
+
 ```
 🔥 Just shipped Codex v0.51.0-zapabob.1
 
@@ -37,11 +40,13 @@ https://github.com/zapabob/codex
 
 #Rust #LLMOps
 ```
+
 **文字数**: 277文字 ✅
 
 ---
 
 ### Version 3: 成果重視
+
 ```
 🚀 Codex v0.51.0: AI coding assistant that actually works
 
@@ -56,11 +61,13 @@ https://github.com/zapabob/codex
 
 #AI #LLMOps
 ```
+
 **文字数**: 279文字 ✅ (ピッタリ！)
 
 ---
 
 ### Version 4: 問題解決アピール
+
 ```
 Tired of AI coding tools that can't handle complex projects?
 
@@ -76,11 +83,13 @@ https://github.com/zapabob/codex
 
 #LLMOps #Rust #DevTools
 ```
+
 **文字数**: 279文字 ✅
 
 ---
 
 ### Version 5: コミュニティ重視
+
 ```
 🎉 Codex v0.51.0 is live!
 
@@ -97,6 +106,7 @@ https://github.com/zapabob/codex
 
 #OpenSource #Rust
 ```
+
 **文字数**: 277文字 ✅
 
 ---
@@ -124,13 +134,13 @@ https://github.com/zapabob/codex
 
 ## 🎯 各バージョンの狙い
 
-| Version | ターゲット | 特徴 |
-|---------|----------|------|
-| 1 | 技術志向エンジニア | マージコンフリクト解決、MCP詳細 |
-| 2 | 実装経験者 | ビルド時間、手動解決のリアル感 |
-| **3** | **万能型** | **全要素バランス良く、279文字ピッタリ** |
-| 4 | 問題解決志向 | ペインポイント訴求 |
-| 5 | OSSコミュニティ | オープンソース、コントリビューション |
+| Version | ターゲット         | 特徴                                    |
+| ------- | ------------------ | --------------------------------------- |
+| 1       | 技術志向エンジニア | マージコンフリクト解決、MCP詳細         |
+| 2       | 実装経験者         | ビルド時間、手動解決のリアル感          |
+| **3**   | **万能型**         | **全要素バランス良く、279文字ピッタリ** |
+| 4       | 問題解決志向       | ペインポイント訴求                      |
+| 5       | OSSコミュニティ    | オープンソース、コントリビューション    |
 
 ---
 
@@ -145,4 +155,3 @@ https://github.com/zapabob/codex
 ---
 
 **Version 3を推奨！279文字ピッタリでインパクト最大や！🎊**
-

@@ -77,7 +77,7 @@ codex
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-*Hybrid ASCII architecture diagram showing the upstream-aligned core alongside zapabob orchestration, research, and governance layers (Updated 2025-10-30)*
+_Hybrid ASCII architecture diagram showing the upstream-aligned core alongside zapabob orchestration, research, and governance layers (Updated 2025-10-30)_
 
 </div>
 
@@ -101,7 +101,7 @@ The Codex v0.53.0 architecture consists of **9 major layers** with **80+ compone
 - **🗣️ Natural Language CLI** - AgentInterpreter with pattern matching
 - **🔄 Advanced Error Retry** - Exponential backoff with fallback strategies
 - **📖 Fully Open Source** - Apache 2.0
-*🔌 MCP Protocol Integration** - Standardized tool ecosystem (15 servers)
+  \*🔌 MCP Protocol Integration\*\* - Standardized tool ecosystem (15 servers)
 - **🔍 Multi-source Research** - Gemini Search Grounding, DuckDuckGo, Google, Bing
 
 If you're running into upgrade issues with Homebrew, see the [FAQ entry on brew upgrade codex](./docs/faq.md#brew-update-codex-isnt-upgrading-me).
@@ -236,25 +236,31 @@ graph TB
 This fork includes comprehensive enhancements maintained by zapabob:
 
 #### 📚 Documentation & Guides
+
 - **📖 Implementation Logs**: `docs/zapabob/implementation-logs/` (260+ detailed logs)
 - **🏗️ Architecture Diagrams**: `docs/zapabob/` (Mermaid/PNG/SVG formats)
 - **📋 Guides & Tutorials**: `docs/zapabob/` (setup, integration, best practices)
 
 #### 🔧 Development Tools
+
 - **⚙️ Automation Scripts**: `scripts/zapabob/` (build, test, deployment automation)
 - **🎵 Sound Notifications**: Completion sounds for Cursor IDE integration
 - **🔨 Build Tools**: Advanced compilation and packaging scripts
 
 #### 🎨 Editor Extensions
+
 - **VS Code Extension**: `extensions/vscode/` (IntelliSense, commands)
 - **Windsurf Extension**: `extensions/windsurf/` (AI-assisted development)
 
 #### 💻 SDK & APIs
+
 - **TypeScript SDK**: `sdk/typescript/` (programmatic Codex integration)
 - **Example Projects**: Real-world usage patterns and templates
 
 #### 📦 Archive (.archive/)
+
 All development artifacts, test results, and legacy files are preserved in `.archive/`:
+
 - **Build Logs**: Compilation outputs and performance metrics
 - **Test Results**: Coverage reports, integration test outputs
 - **Research Reports**: Security audits, code reviews
@@ -264,14 +270,14 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 
 ### ✨ Key Features
 
-#### 🆕 **v0.53.0-zapabob.1 - Latest Updates** *(2025-10-30)*
+#### 🆕 **v0.53.0-zapabob.1 - Latest Updates** _(2025-10-30)_
 
-1. **🔄 Upstream Mainline Sync & Quickstart Parity** *(NEW)*
+1. **🔄 Upstream Mainline Sync & Quickstart Parity** _(NEW)_
    - Merged documentation changes from `openai/codex` `main` (2025-10-30 snapshot)
    - README quickstart now mirrors upstream npm/brew install flows
    - Clarified ChatGPT sign-in guidance and MCP configuration links
 
-2. **🏗️ Hybrid Architecture Documentation Refresh** *(NEW)*
+2. **🏗️ Hybrid Architecture Documentation Refresh** _(NEW)_
    - Replaced ASCII diagram with upstream-aligned core vs zapabob autonomous layers
    - Added governance, telemetry, and delivery surfaces from latest orchestrator roadmap
    - Kept legacy SVG references noted as pending 0.53.0 regeneration
@@ -283,43 +289,45 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 
 #### 🔥 **ClaudeCode-Surpassing Features**
 
-1. **🔒 Automatic Conflict Resolution** *(Unique to Codex)*
+1. **🔒 Automatic Conflict Resolution** _(Unique to Codex)_
    - FileEditTracker: Per-file edit queue management
    - 3 merge strategies: Sequential, LastWriteWins, ThreeWayMerge
    - DashMap-based lock-free concurrency
    - Prevents race conditions in multi-agent editing
 
-2. **🗣️ Natural Language CLI** *(Unique to Codex)*
+2. **🗣️ Natural Language CLI** _(Unique to Codex)_
    - `codex agent "Review code for security"` - intuitive invocation
    - AgentInterpreter: Pattern matching & intent classification
    - Auto-dispatch to appropriate specialized agents
    - No need to remember agent names or complex flags
 
-3. **🔗 Webhook & External API Integration** *(Unique to Codex)*
+3. **🔗 Webhook & External API Integration** _(Unique to Codex)_
    - GitHub API: Auto-create PRs, manage issues
    - Slack Webhooks: Channel notifications
    - Custom Webhooks: Generic HTTP endpoints
    - Seamless CI/CD pipeline integration
 
-4. **🔄 Advanced Error Retry with Exponential Backoff** *(Codex Advantage)*
+4. **🔄 Advanced Error Retry with Exponential Backoff** _(Codex Advantage)_
    - Configurable RetryPolicy (max 3 retries, 1s-30s delay)
    - FallbackStrategy: Retry, Skip, or Fail
    - AgentError type system for granular error handling
    - 3x improved resilience over basic retry
 
-5. **📖 Fully Open Source** *(Unique to Codex)*
+5. **📖 Fully Open Source** _(Unique to Codex)_
    - All code publicly available on GitHub
    - Community contributions welcome
    - Transparent development process
-   - Apache 2.0 
+   - Apache 2.0
 
 #### **Autonomous Orchestration** (ClaudeCode-style)
+
 - **TaskAnalyzer**: Automatic task complexity analysis
 - **AutoOrchestrator**: Self-directed sub-agent execution
 - **Threshold-based**: Automatic delegation when complexity > 0.7
 - **Seamless Integration**: Works transparently in the background
 
 #### **Specialized Sub-Agent System**
+
 - **CodeExpert**: Code analysis and refactoring
 - **SecurityExpert**: Security audits and vulnerability scanning
 - **TestingExpert**: Comprehensive test generation
@@ -329,6 +337,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 - **PerformanceExpert**: Performance optimization
 
 #### **Deep Research Engine**
+
 - **Multi-source**: Gemini Search Grounding (default), DuckDuckGo, Google, Bing
 - **Citation-based**: All findings with source attribution
 - **Contradiction Detection**: Identifies conflicting information
@@ -338,6 +347,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 - **MCP Integration**: Native integration with 15 MCP servers
 
 #### **MCP (Model Context Protocol) Integration**
+
 - **Cursor IDE**: Native integration via MCP server
 - **Custom Tools**: Extensible tool ecosystem
 - **Real-time Sync**: Live collaboration capabilities
@@ -347,6 +357,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 ### 📦 Installation
 
 #### 🚀 npm Package Features
+
 - **📦 Package Name**: `@openai/codex`
 - **🔖 Version**: `0.53.0` (Published to GitHub Packages)
 - **💾 Size**: ~133MB (includes cross-platform binaries)
@@ -355,6 +366,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 - **🔧 Features**: CLI + Sub-Agents + Deep Research + MCP Integration
 
 #### Prerequisites
+
 - **Rust** 1.90 or later
 - **OpenAI API Key** (set as `OPENAI_API_KEY`)
 - **Git** for cloning
@@ -509,13 +521,14 @@ cargo test --all
 ```
 
 #### Test Results
+
 - **MCP Integration**: 6/6 passing ✅
 - **Performance**: < 6 seconds ✅
 - **End-to-End**: All flows validated ✅
 
 ### 📚 Documentation
 
-- **Architecture (legacy SVG)**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg) *(0.53.0 refresh scheduled)*
+- **Architecture (legacy SVG)**: [`docs/zapabob/codex-v0.52.0-architecture.svg`](docs/zapabob/codex-v0.52.0-architecture.svg) _(0.53.0 refresh scheduled)_
 - **MCP Config Guide**: [`_docs/MCP設定ファイル同期管理ガイド.md`](_docs/MCP設定ファイル同期管理ガイド.md)
 - **Implementation Logs**: [`_docs/`](_docs/)
 - **Audio Notifications**: [`_docs/2025-10-23_音声通知設定更新.md`](_docs/2025-10-23_音声通知設定更新.md)
@@ -564,7 +577,7 @@ limitations under the License.
 
 ![Codex v0.52.0 Architecture (Legacy SVG)](docs/zapabob/codex-v0.52.0-architecture.svg)
 
-*オーケストレーションフロー、エージェント協調、外部統合、拡張機能を示す包括的なアーキテクチャ図（2025-10-29更新）*
+_オーケストレーションフロー、エージェント協調、外部統合、拡張機能を示す包括的なアーキテクチャ図（2025-10-29更新）_
 
 </div>
 
@@ -587,20 +600,20 @@ Codex v0.53.0アーキテクチャは**9つの主要レイヤー**と**80+のコ
 - **🔒 自動コンフリクト解決** - 3つのマージ戦略を持つFileEditTracker
 - **🗣️ 自然言語CLI** - パターンマッチング付きAgentInterpreter
 - **🔄 高度エラーリトライ** - フォールバック戦略付き指数バックオフ
-- **📖 完全オープンソース** - Apache 2.0 
+- **📖 完全オープンソース** - Apache 2.0
 - **🔌 MCPプロトコル統合** - 標準化ツールエコシステム
 - **🔍 マルチソース研究** - DuckDuckGo、Brave、Google、Bing、Gemini CLI
 
 ### ✨ 主要機能
 
-#### 🆕 **v0.53.0-zapabob.1 - 最新アップデート** *(2025-10-30)*
+#### 🆕 **v0.53.0-zapabob.1 - 最新アップデート** _(2025-10-30)_
 
-1. **🔄 Upstream `main`同期とクイックスタート整合** *(NEW)*
+1. **🔄 Upstream `main`同期とクイックスタート整合** _(NEW)_
    - 2025-10-30時点の`openai/codex` `main`ドキュメントを反映
    - READMEのnpm / brewインストール手順を公式と同一フローに更新
    - ChatGPTサインイン手順とMCP設定リンクを明確化
 
-2. **🏗️ ハイブリッドアーキテクチャ図リフレッシュ** *(NEW)*
+2. **🏗️ ハイブリッドアーキテクチャ図リフレッシュ** _(NEW)_
    - ASCII図を上流コアとzapabob自律レイヤーに再構成
    - ガバナンス、テレメトリー、デリバリー層を最新ロードマップに合わせて追記
    - SVGはレガシー版として注記し、0.53.0再生成を予告
@@ -612,31 +625,31 @@ Codex v0.53.0アーキテクチャは**9つの主要レイヤー**と**80+のコ
 
 #### 🔥 **ClaudeCodeを超える機能**
 
-1. **🔒 自動コンフリクト解決** *(Codex独自)*
+1. **🔒 自動コンフリクト解決** _(Codex独自)_
    - FileEditTracker: ファイルごとの編集キュー管理
    - 3つのマージ戦略: Sequential、LastWriteWins、ThreeWayMerge
    - DashMapベースのロックフリー並行処理
    - マルチエージェント編集時のレースコンディション防止
 
-2. **🗣️ 自然言語CLI** *(Codex独自)*
+2. **🗣️ 自然言語CLI** _(Codex独自)_
    - `codex agent "コードをセキュリティレビューして"` - 直感的な呼び出し
    - AgentInterpreter: パターンマッチング&意図分類
    - 適切な専門エージェントへの自動振り分け
    - エージェント名や複雑なフラグを覚える必要なし
 
-3. **🔗 Webhook & 外部API統合** *(Codex独自)*
+3. **🔗 Webhook & 外部API統合** _(Codex独自)_
    - GitHub API: PR自動作成、Issue管理
    - Slack Webhook: チャンネル通知
    - カスタムWebhook: 汎用HTTPエンドポイント
    - シームレスなCI/CDパイプライン統合
 
-4. **🔄 指数バックオフ付き高度エラーリトライ** *(Codex優位性)*
+4. **🔄 指数バックオフ付き高度エラーリトライ** _(Codex優位性)_
    - 設定可能なRetryPolicy（最大3回、1s-30s遅延）
    - FallbackStrategy: Retry、Skip、Fail
    - AgentError型システムできめ細かいエラーハンドリング
    - 基本リトライの3倍の耐障害性
 
-5. **📖 完全オープンソース** *(Codex独自)*
+5. **📖 完全オープンソース** _(Codex独自)_
    - 全コードをGitHubで公開
    - コミュニティコントリビューション歓迎
    - 透明性の高い開発プロセス
@@ -645,6 +658,7 @@ Codex v0.53.0アーキテクチャは**9つの主要レイヤー**と**80+のコ
 ### 📦 インストール
 
 #### 🚀 npmパッケージ特徴
+
 - **📦 パッケージ名**: `@openai/codex`
 - **🔖 バージョン**: `0.53.0` (GitHub Packagesに公開)
 - **💾 サイズ**: ~133MB (クロスプラットフォームバイナリを含む)
@@ -653,6 +667,7 @@ Codex v0.53.0アーキテクチャは**9つの主要レイヤー**と**80+のコ
 - **🔧 機能**: CLI + サブエージェント + ディープリサーチ + MCP統合
 
 #### 前提条件
+
 - **Rust** 1.90以降
 - **OpenAI APIキー**（`OPENAI_API_KEY`として設定）
 - **Git**（クローン用）
@@ -724,25 +739,31 @@ codex research "Rust非同期プログラミングベストプラクティス" -
 このフォークにはzapabobによってメンテナンスされる包括的な拡張機能が含まれています：
 
 #### 📚 ドキュメント＆ガイド
+
 - **📖 実装ログ**: `docs/zapabob/implementation-logs/` (260以上の詳細ログ)
 - **🏗️ アーキテクチャ図**: `docs/zapabob/` (Mermaid/PNG/SVG形式)
 - **📋 ガイド＆チュートリアル**: `docs/zapabob/` (セットアップ、統合、最善实践)
 
 #### 🔧 開発ツール
+
 - **⚙️ 自動化スクリプト**: `scripts/zapabob/` (ビルド、テスト、デプロイ自動化)
 - **🎵 サウンド通知**: Cursor IDE統合用の完了音
 - **🔨 ビルドツール**: 高度なコンパイル・パッケージングスクリプト
 
 #### 🎨 エディタ拡張
+
 - **VS Code拡張**: `extensions/vscode/` (IntelliSense、コマンド)
 - **Windsurf拡張**: `extensions/windsurf/` (AI支援開発)
 
 #### 💻 SDK＆API
+
 - **TypeScript SDK**: `sdk/typescript/` (プログラム的Codex統合)
 - **サンプルプロジェクト**: 実世界の使用パターンとテンプレート
 
 #### 📦 アーカイブ (.archive/)
+
 すべての開発成果物、テスト結果、レガシーファイルは`.archive/`に保存されています：
+
 - **ビルドログ**: コンパイル出力と性能メトリクス
 - **テスト結果**: カバレッジレポート、統合テスト出力
 - **研究レポート**: セキュリティ監査、コードレビュー
@@ -838,6 +859,7 @@ cargo test --all
 ```
 
 #### テスト結果
+
 - **MCP統合**: 6/6合格 ✅
 - **パフォーマンス**: < 6秒 ✅
 - **エンドツーエンド**: 全フロー検証済み ✅
