@@ -542,6 +542,80 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 - **Git** for cloning
 - **Node.js** (optional, for Gemini CLI)
 
+#### Authentication
+
+Codex supports multiple authentication methods for different AI providers.
+
+##### OpenAI / ChatGPT Authentication
+
+```bash
+# Option 1: API Key (via environment variable)
+export OPENAI_API_KEY="sk-..."
+codex
+
+# Option 2: API Key (via login command)
+echo "sk-..." | codex login --with-api-key
+
+# Option 3: ChatGPT OAuth (browser-based)
+codex login
+
+# Check login status
+codex login status
+```
+
+##### Gemini Authentication
+
+Codex provides local-first Gemini authentication with two methods:
+
+**Method 1: API Key (Google AI Studio)**
+
+Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+```bash
+# Option A: Environment variable (priority)
+export GEMINI_API_KEY="your-api-key"
+codex research "quantum computing" --gemini
+
+# Option B: Secure storage (persistent)
+echo "your-api-key" | codex login gemini login --with-api-key
+
+# Option C: Config file (~/.codex/config.yaml)
+# Add to config.yaml:
+gemini:
+  api_key: "your-api-key"
+```
+
+**Method 2: OAuth 2.0 with PKCE** _(Coming Soon)_
+
+```bash
+# OAuth login with browser redirect (localhost)
+codex login gemini login --oauth
+
+# This will:
+# 1. Start local server on http://localhost:8080
+# 2. Open browser for Google sign-in
+# 3. Save credentials securely
+```
+
+**Gemini Authentication Commands**
+
+```bash
+# Login with API key
+echo "AIza..." | codex login gemini login --with-api-key
+
+# Check Gemini status
+codex login gemini status
+
+# Logout from Gemini
+codex login gemini logout
+```
+
+**Credential Resolution Priority** (for all auth methods):
+1. Environment variables (`GEMINI_API_KEY`)
+2. Config file (`~/.codex/config.yaml`)
+3. Secure storage (`~/.codex/auth.json` or system keyring)
+
+
 #### Quick Start
 
 ##### Option 1: Install via npm (Recommended)
@@ -909,6 +983,80 @@ Codex v0.52.0アーキテクチャは**10の主要レイヤー**と**90+のコ�
 - **OpenAI APIキー**（`OPENAI_API_KEY`として設定）
 - **Git**（クローン用）
 - **Node.js**（オプション、Gemini CLI用）
+
+#### 認証
+
+Codexは複数のAIプロバイダーに対応した認証方法をサポートしています。
+
+##### OpenAI / ChatGPT 認証
+
+```bash
+# オプション1: APIキー（環境変数経由）
+export OPENAI_API_KEY="sk-..."
+codex
+
+# オプション2: APIキー（ログインコマンド経由）
+echo "sk-..." | codex login --with-api-key
+
+# オプション3: ChatGPT OAuth（ブラウザベース）
+codex login
+
+# ログイン状態の確認
+codex login status
+```
+
+##### Gemini 認証
+
+Codexはローカルファーストで安全なGemini認証を2つの方法で提供します：
+
+**方法1: APIキー（Google AI Studio）**
+
+[Google AI Studio](https://makersuite.google.com/app/apikey)からAPIキーを取得してください
+
+```bash
+# オプションA: 環境変数（優先）
+export GEMINI_API_KEY="your-api-key"
+codex research "量子コンピューティング" --gemini
+
+# オプションB: セキュアストレージ（永続）
+echo "your-api-key" | codex login gemini login --with-api-key
+
+# オプションC: 設定ファイル（~/.codex/config.yaml）
+# config.yamlに追加:
+gemini:
+  api_key: "your-api-key"
+```
+
+**方法2: PKCE付きOAuth 2.0** _（近日公開）_
+
+```bash
+# ブラウザリダイレクト（localhost）でOAuthログイン
+codex login gemini login --oauth
+
+# これにより:
+# 1. http://localhost:8080でローカルサーバーを起動
+# 2. Googleサインイン用のブラウザを開く
+# 3. 認証情報を安全に保存
+```
+
+**Gemini 認証コマンド**
+
+```bash
+# APIキーでログイン
+echo "AIza..." | codex login gemini login --with-api-key
+
+# Geminiのステータス確認
+codex login gemini status
+
+# Geminiからログアウト
+codex login gemini logout
+```
+
+**認証情報の解決優先順位**（すべての認証方法共通）:
+1. 環境変数（`GEMINI_API_KEY`）
+2. 設定ファイル（`~/.codex/config.yaml`）
+3. セキュアストレージ（`~/.codex/auth.json`またはシステムキーリング）
+
 
 #### クイックスタート
 
