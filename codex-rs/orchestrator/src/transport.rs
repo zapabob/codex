@@ -160,8 +160,10 @@ impl TransportServer {
             }
             #[cfg(windows)]
             TransportServer::NamedPipe(_) => {
-                // For named pipes, we need to create a new instance for each connection
-                anyhow::bail!("Named pipe accept not implemented yet");
+                // TODO: Windows named pipe accept not yet implemented
+                // Need to create a new pipe instance for each connection
+                // See: https://docs.microsoft.com/en-us/windows/win32/ipc/named-pipes
+                anyhow::bail!("Named pipe accept not implemented yet - use TCP fallback");
             }
             TransportServer::Tcp(listener) => {
                 let (stream, addr) = listener.accept().await?;
@@ -194,7 +196,9 @@ impl TransportConnection {
             }
             #[cfg(windows)]
             TransportConnection::NamedPipe(_) => {
-                anyhow::bail!("Named pipe read not implemented yet");
+                // TODO: Windows named pipe read not yet implemented
+                // Use TCP transport on Windows for now
+                anyhow::bail!("Named pipe read not implemented yet - use TCP fallback");
             }
             TransportConnection::Tcp(stream) => {
                 let mut reader = BufReader::new(stream);
@@ -218,7 +222,9 @@ impl TransportConnection {
             }
             #[cfg(windows)]
             TransportConnection::NamedPipe(_) => {
-                anyhow::bail!("Named pipe write not implemented yet");
+                // TODO: Windows named pipe write not yet implemented
+                // Use TCP transport on Windows for now
+                anyhow::bail!("Named pipe write not implemented yet - use TCP fallback");
             }
             TransportConnection::Tcp(stream) => {
                 stream.write_all(line.as_bytes()).await?;

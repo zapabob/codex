@@ -205,7 +205,9 @@ impl OrchestratorServer {
     
     /// Handle lock operations
     async fn handle_lock_op(&self, envelope: &Envelope) -> Result<serde_json::Value> {
-        // TODO: Implement lock operations
+        // TODO: Implement real lock operations
+        // Should read/write .codex/lock.json with file-based locking
+        // For now, return stub data
         Ok(serde_json::json!({
             "locked": false,
             "owner": null,
@@ -338,8 +340,12 @@ impl OrchestratorServer {
     
     /// Execute a task
     async fn execute_task(&self, task: Task) -> Result<serde_json::Value> {
-        // TODO: Implement actual task execution
-        // For now, just return success
+        // TODO: Implement actual task execution based on operation type
+        // - fs.write: Write file with preimage validation
+        // - fs.patch: Apply unified diff with base commit check
+        // - vcs.commit: Execute git commit
+        // - vcs.push: Execute git push
+        // For now, just simulate success
         
         // Broadcast task completion event
         self.broadcast_event(
