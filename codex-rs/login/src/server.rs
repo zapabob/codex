@@ -560,6 +560,7 @@ pub(crate) async fn persist_tokens_async(
         }
         let auth = AuthDotJson {
             openai_api_key: api_key,
+            gemini_credentials: None,
             tokens: Some(tokens),
             last_refresh: Some(Utc::now()),
         };

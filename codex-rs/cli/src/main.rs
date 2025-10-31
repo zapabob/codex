@@ -499,6 +499,27 @@ struct LoginCommand {
 enum LoginSubcommand {
     /// Show login status.
     Status,
+    /// Gemini authentication commands
+    #[command(subcommand)]
+    Gemini(GeminiLoginSubcommand),
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum GeminiLoginSubcommand {
+    /// Login with Gemini API key or OAuth
+    Login {
+        /// Use API key authentication (reads from stdin)
+        #[arg(long = "with-api-key")]
+        with_api_key: bool,
+        
+        /// Use OAuth 2.0 with PKCE (default)
+        #[arg(long = "oauth", conflicts_with = "with_api_key")]
+        use_oauth: bool,
+    },
+    /// Logout from Gemini
+    Logout,
+    /// Show Gemini login status
+    Status,
 }
 
 #[derive(Debug, Parser)]
@@ -716,6 +737,26 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
             match login_cli.action {
                 Some(LoginSubcommand::Status) => {
                     run_login_status(login_cli.config_overrides).await;
+                }
+                Some(LoginSubcommand::Gemini(gemini_cmd)) => {
+                    match gemini_cmd {
+                        GeminiLoginSubcommand::Login { with_api_key, use_oauth } => {
+                            if with_api_key {
+                                codex_cli::login::run_gemini_login_with_api_key(login_cli.config_overrides).await;
+                            } else if use_oauth {
+                                codex_cli::login::run_gemini_login_with_oauth(login_cli.config_overrides).await;
+                            } else {
+                                // Default to OAuth
+                                codex_cli::login::run_gemini_login_with_oauth(login_cli.config_overrides).await;
+                            }
+                        }
+                        GeminiLoginSubcommand::Logout => {
+                            codex_cli::login::run_gemini_logout(login_cli.config_overrides).await;
+                        }
+                        GeminiLoginSubcommand::Status => {
+                            codex_cli::login::run_gemini_login_status(login_cli.config_overrides).await;
+                        }
+                    }
                 }
                 None => {
                     if login_cli.use_device_code {

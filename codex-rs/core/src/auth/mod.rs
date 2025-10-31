@@ -1,7 +1,7 @@
 // Authentication module for Codex
 // Supports OpenAI/ChatGPT and Gemini authentication
 
-mod gemini;
+pub mod gemini;
 pub(crate) mod storage;
 
 pub use gemini::{CredentialSource, GeminiAuthProvider, GeminiCredentials};

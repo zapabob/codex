@@ -4,6 +4,7 @@ use codex_core::auth::login_with_api_key;
 use codex_core::auth::logout;
 use codex_core::auth::AuthCredentialsStoreMode;
 use codex_core::auth::CLIENT_ID;
+use codex_core::auth::gemini::{GeminiAuthProvider, GeminiCredentials, CredentialSource, read_gemini_api_key_from_env};
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 use codex_core::protocol_config_types::ForcedLoginMethod;
@@ -227,6 +228,110 @@ fn safe_format_key(key: &str) -> String {
     let prefix = &key[..8];
     let suffix = &key[key.len() - 5..];
     format!("{prefix}***{suffix}")
+}
+
+/// Login with Gemini using API key from stdin
+pub async fn run_gemini_login_with_api_key(cli_config_overrides: CliConfigOverrides) -> ! {
+    let config = load_config_or_exit(cli_config_overrides).await;
+    
+    let api_key = read_api_key_from_stdin();
+    
+    let client = codex_core::default_client::create_client();
+    let provider = GeminiAuthProvider::new(config.codex_home.clone(), client);
+    
+    let credentials = GeminiCredentials {
+        source: CredentialSource::ApiKey { key: api_key },
+        last_refresh: None,
+    };
+    
+    match provider.save_credentials(&credentials) {
+        Ok(_) => {
+            eprintln!("Successfully logged in to Gemini with API key");
+            std::process::exit(0);
+        }
+        Err(e) => {
+            eprintln!("Error saving Gemini credentials: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Login with Gemini using OAuth 2.0
+pub async fn run_gemini_login_with_oauth(cli_config_overrides: CliConfigOverrides) -> ! {
+    let _config = load_config_or_exit(cli_config_overrides).await;
+    
+    eprintln!("OAuth 2.0 login for Gemini is not yet implemented.");
+    eprintln!("Please use API key login with: codex login gemini login --with-api-key");
+    eprintln!("Set your API key via: export GEMINI_API_KEY=your-api-key");
+    std::process::exit(1);
+}
+
+/// Show Gemini login status
+pub async fn run_gemini_login_status(cli_config_overrides: CliConfigOverrides) -> ! {
+    let config = load_config_or_exit(cli_config_overrides).await;
+    
+    let client = codex_core::default_client::create_client();
+    let provider = GeminiAuthProvider::new(config.codex_home.clone(), client);
+    
+    match provider.resolve_credentials() {
+        Ok(Some(credentials)) => {
+            match &credentials.source {
+                CredentialSource::ApiKey { key } => {
+                    eprintln!("Logged in to Gemini using API key: {}", safe_format_key(key));
+                    if read_gemini_api_key_from_env().is_some() {
+                        eprintln!("Source: GEMINI_API_KEY environment variable");
+                    } else {
+                        eprintln!("Source: Secure storage");
+                    }
+                }
+                CredentialSource::OAuth { expiry, .. } => {
+                    eprintln!("Logged in to Gemini using OAuth 2.0");
+                    if let Some(exp) = expiry {
+                        eprintln!("Token expires: {}", exp);
+                    }
+                }
+            }
+            std::process::exit(0);
+        }
+        Ok(None) => {
+            eprintln!("Not logged in to Gemini");
+            eprintln!("Use 'codex login gemini login --with-api-key' to login");
+            std::process::exit(0);
+        }
+        Err(e) => {
+            eprintln!("Error checking Gemini login status: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Logout from Gemini
+pub async fn run_gemini_logout(cli_config_overrides: CliConfigOverrides) -> ! {
+    let config = load_config_or_exit(cli_config_overrides).await;
+    
+    let client = codex_core::default_client::create_client();
+    let provider = GeminiAuthProvider::new(config.codex_home.clone(), client);
+    
+    // Try to load current credentials to see if logged in
+    match provider.resolve_credentials() {
+        Ok(Some(_)) => {
+            // Clear the credentials by saving an empty config
+            // For now, we'll just inform the user
+            eprintln!("To logout from Gemini:");
+            eprintln!("1. Unset GEMINI_API_KEY environment variable if set");
+            eprintln!("2. Remove gemini credentials from ~/.codex/config.yaml");
+            eprintln!("3. Remove credentials from secure storage using: codex logout");
+            std::process::exit(0);
+        }
+        Ok(None) => {
+            eprintln!("Not logged in to Gemini");
+            std::process::exit(0);
+        }
+        Err(e) => {
+            eprintln!("Error checking Gemini credentials: {e}");
+            std::process::exit(1);
+        }
+    }
 }
 
 #[cfg(test)]
