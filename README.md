@@ -80,36 +80,76 @@ codex
 <div align="center">
 
 ```
-┌───────────────────────────── Codex v0.52.0 Hybrid Architecture ─────────────────────────────┐
-│                                                                                              │
-│  ┌───────────────────────┐    ┌────────────────────────────┐    ┌──────────────────────────┐ │
-│  │ User Surfaces         │    │ Upstream Core (OpenAI)     │    │ zapabob Autonomous Layer │ │
-│  │ • CLI / Exec / API    │ ─▶ │ • Session Engine          │ ─▶ │ • Task Analyzer          │ │
-│  │ • TUI & GUI Preview   │    │ • Sandbox & Auth Flow     │    │ • Auto Orchestrator      │ │
-│  │ • IDE Bridges (VS/Crs)│    │ • MCP Router & Tool Exec  │    │ • Supervisor & CollabBus │ │
-│  │ • TypeScript SDK      │    │ • Config Sync (toml/json) │    │ • Sub-Agent Mesh (8+)    │ │
-│  └───────────────────────┘    └────────────────────────────┘    └──────────────────────────┘ │
-│                │                           │                               │                │
-│                ▼                           ▼                               ▼                │
-│      ┌──────────────────────┐     ┌─────────────────────────────┐   ┌──────────────────────┐ │
-│      │ Deep Research Stack  │     │ MCP & Tool Ecosystem (15+)  │   │ Knowledge & Telemetry│ │
-│      │ • Gemini Grounding   │     │ • codex / gemini / serena   │   │ • Config & Session DB│ │
-│      │ • DuckDuckGo / Web   │     │ • chrome-devtools / playwright│  │ • Audit Logs & Metrics│ │
-│      │ • Citation & Consensus│     │ • sequential-thinking etc.  │   │ • Artifact Archive    │ │
-│      └──────────────────────┘     └─────────────────────────────┘   └──────────────────────┘ │
-│                │                           │                               │                │
-│                ▼                           ▼                               ▼                │
-│      ┌──────────────────────┐     ┌─────────────────────────────┐   ┌──────────────────────┐ │
-│      │ Delivery Surfaces    │     │ Governance & Safety         │   │ LLM Providers         │ │
-│      │ • PR Automation      │     │ • Policy Guardrails         │   │ • OpenAI o1/o3 / GPT  │ │
-│      │ • Reports & Dashboards│     │ • Budgeter & Rate Controls  │   │ • Google Gemini 2.5   │ │
-│      │ • Slack / Webhooks   │     │ • Seatbelt / Sandbox Policy │   │ • Local / Ollama      │ │
-│      └──────────────────────┘     └─────────────────────────────┘   └──────────────────────┘ │
-│                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────── Codex v0.52.0 Architecture with Orchestration ───────────────────────────┐
+│                                                                                                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                           │
+│  │     CLI      │  │     GUI      │  │   Agent 1    │  │   Agent 2    │  ...                      │
+│  │   (Client)   │  │   (React)    │  │  (Reviewer)  │  │  (Test Gen)  │                           │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘                           │
+│         │                 │                 │                 │                                     │
+│         └─────────────────┴─────────────────┴─────────────────┘                                     │
+│                                      │                                                              │
+│              @codex/protocol-client (TypeScript SDK)                                                │
+│                   • Auto-reconnect  • Event subscriptions                                           │
+│                   • Typed RPC       • React hooks (useProtocol)                                     │
+│                                      │                                                              │
+│                         JSON Lines over UDS / Named Pipe / TCP                                      │
+│                                      ▼                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │                    Orchestrator Server (Rust + Tokio)                                        │  │
+│  │                                                                                              │  │
+│  │  ┌─────────────────┐  ┌────────────────┐  ┌──────────────────┐  ┌────────────────────┐     │  │
+│  │  │ HMAC Auth       │  │ Idempotency    │  │ Rate Limiting    │  │ Event Broadcaster  │     │  │
+│  │  │ (.codex/secret) │  │ Cache (10min)  │  │ (429 on overflow)│  │ (Pub/Sub Topics)   │     │  │
+│  │  └─────────────────┘  └────────────────┘  └──────────────────┘  └────────────────────┘     │  │
+│  │                                                                                              │  │
+│  │  ┌──────────────────────────────────────────────────────────────────────────────────────┐   │  │
+│  │  │                        RPC Operation Router                                          │   │  │
+│  │  │                                                                                      │   │  │
+│  │  │  lock.*   status.*   fs.*   vcs.*   agent.*   task.*   tokens.*   session.*         │   │  │
+│  │  └──────────────────────────┬───────────────────┬───────────────────────────────────────┘   │  │
+│  │                             │                   │                                           │  │
+│  │                      Reads  │            Writes │ (Queued)                                  │  │
+│  │                             ▼                   ▼                                           │  │
+│  │              ┌───────────────────┐    ┌─────────────────────┐                              │  │
+│  │              │  State (Immediate)│    │ Single-Writer Queue │                              │  │
+│  │              │                   │    │  (capacity: 1024)   │                              │  │
+│  │              │ • Lock state      │    │  Position tracking  │                              │  │
+│  │              │ • Token budgets   │    │  Backpressure: 429  │                              │  │
+│  │              │ • Agent registry  │    └──────────┬──────────┘                              │  │
+│  │              └───────────────────┘               │                                          │  │
+│  │                                                  │ FIFO Processing                          │  │
+│  │                                                  ▼                                          │  │
+│  │                                        ┌─────────────────────┐                              │  │
+│  │                                        │   Task Executor     │                              │  │
+│  │                                        │                     │                              │  │
+│  │                                        │ • fs.write/patch    │                              │  │
+│  │                                        │ • vcs.commit/push   │                              │  │
+│  │                                        │ • Preimage check    │────┐                         │  │
+│  │                                        │   (409 on conflict) │    │ Events                  │  │
+│  │                                        └──────────┬──────────┘    │                         │  │
+│  │                                                   │                │                         │  │
+│  │                                                   │ Apply          │                         │  │
+│  │                                                   ▼                ▼                         │  │
+│  │                                        ┌─────────────────────────────┐                      │  │
+│  │                                        │   Repository & File System  │                      │  │
+│  │                                        │   • .codex/lock.json        │                      │  │
+│  │                                        │   • .codex/config.yaml      │                      │  │
+│  │                                        │   • Git VCS                 │                      │  │
+│  │                                        └─────────────────────────────┘                      │  │
+│  └──────────────────────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                                      │
+│  Event Topics: lock.changed • fs.changed • vcs.changed • tokens.updated • agent.join/leave         │
+│                task.progress • task.completed • task.failed                                         │
+│                                                                                                      │
+│  Conflict Resolution: 409 on preimage mismatch → client must re-read, merge, retry                 │
+│  Backpressure: 429 when queue full → client exponential backoff + retry                            │
+│  Idempotency: idem_key prevents duplicate operations (10min cache window)                          │
+│                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-_Hybrid ASCII architecture diagram showing the upstream-aligned core alongside zapabob orchestration, research, and governance layers (Updated 2025-10-30)_
+_New orchestration-first architecture with single-writer queue, optimistic locking (409), backpressure (429), and real-time events (Updated 2025-10-31)_
 
 </div>
 
