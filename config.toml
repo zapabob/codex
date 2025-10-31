@@ -1,52 +1,68 @@
 # Codex Configuration
 # サブエージェント用の設宁E
-# モチE��設宁Emodel = "gpt-5-codex"
+# モチE��設宁Emodel = "gpt-5-codex"
 
-# �E MCP Client機�Eを有効匁Eexperimental_use_rmcp_client = true
+# �E MCP Client機�Eを有効匁Eexperimental_use_rmcp_client = true
 
-# 🔍 Web検索機�Eを有効化（モチE��絁E��込み検索�E�Eenable_web_search = true
+# 🔍 Web検索機�Eを有効化（モチE��絁E��込み検索�E�Eenable_web_search = true
 
-# ==================== 機�Eフラグ ====================
+# ==================== 機�Eフラグ ====================
 [features]
-# Web検索機�E�E�モチE��絁E��込み�E�Eweb_search = true
+# Web検索機�E�E�モチE��絁E��込み�E�Eweb_search = true
 # MCP統吁Emcp_integration = true
 
-# OpenAI Provider設定を上書ぁE# チE��ォルト�EResponses APIの代わりにChat Completions APIを使用
+# OpenAI Provider設定を上書ぁE# チE��ォルト�EResponses APIの代わりにChat Completions APIを使用
 [model_providers.openai]
 base_url = "https://api.openai.com/v1"
 env_key = "OPENAI_API_KEY"
 name = "OpenAI (Chat Completions API)"
 requires_openai_auth = true
 wire_api = "chat"
-# 🔍 Web検索機�Eを有効匁Eenable_web_search = true
+# 🔍 Web検索機�Eを有効匁Eenable_web_search = true
 web_search_grounding = true
 
-# ==================== セキュリチE�� ====================
+# ==================== Gemini Authentication ====================
+# 🔐 Gemini API認証設定（オプション）
+# 認証方法:
+#   1. 環境変数 (優先): export GEMINI_API_KEY="your-key"
+#   2. この設定ファイル (以下のコメントを解除)
+#   3. セキュアストレージ: codex login gemini login --with-api-key
+#
+# [gemini]
+# api_key = "your-gemini-api-key-here"
+# 
+# OAuth 2.0設定（近日公開予定）:
+# [gemini.oauth]
+# client_id = "your-client-id"
+# client_secret = "your-client-secret"
+# redirect_uri = "http://localhost:8080/callback"
+
+# ==================== セキュリチE�� ====================
 [sandbox]
 default_mode = "workspace-write"
 
 [approval]
 policy = "on-request"
 
-# ==================== MCP サーバ�E ====================
+# ==================== MCP サーバ�E ====================
 # 🔄 CursorIDE統合済み設宁E- v0.51.0-zapabob.1 (2025-10-28更新)
 # 
 # 📝 Cursor IDE統吁E
-#   - Codex CLI: こ�Econfig.tomlを使用
+#   - Codex CLI: こ�Econfig.tomlを使用
 #   - Cursor IDE: c:\Users\downl\.cursor\mcp.json を使用
-#   - 🔄 両方の設定ファイルを完�E同期�E�E025-10-28�E�E#
-# ✁EチE��ト済み�E�E025-10-24�E�E
-#   - 全5サーバ�E動作確認済み
-#   - codex: 7チE�Eル利用可能
-#   - serena: 21チE�Eル利用可能
+#   - 🔄 両方の設定ファイルを完�E同期�E�E025-10-28�E�E#
+# ✁EチE��ト済み�E�E025-10-24�E�E
+#   - 全5サーバ�E動作確認済み
+#   - codex: 7チE�Eル利用可能
+#   - serena: 21チE�Eル利用可能
 #   - markitdown, arxiv, gemini: 動作確認済み
 #
-# �E 追加サーバ�E�E�E025-10-28�E�E
-#   - context7: Upstash コンチE��スト管琁E#   - playwright: Web自動化
+# �E 追加サーバ�E�E�E025-10-28�E�E
+#   - context7: Upstash コンチE��スト管琁E#   - playwright: Web自動化
 #   - filesystem: ファイル操佁E#   - github: GitHub API
 #   - youtube: YouTube統吁E#   - chrome-devtools: ブラウザ自動化
-#   - sequential-thinking: 段階的思老E��EEW!�E�E
-# Codex MCP Server - メインサーバ�E�E�コンフリクト回避、�E然言語CLI、Webhook統合！E[mcp_servers.codex]
+#   - sequential-thinking: 段階的思老E��EEW!�E�E
+# Codex MCP Server - メインサーバ�E�E�コンフリクト回避、�E然言語CLI、Webhook統合！E[mcp_servers.codex]
 args = ["mcp-server"]
 command = "codex"
 env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
@@ -55,7 +71,7 @@ env.RUST_LOG = "info"
 env.SLACK_WEBHOOK_URL = "${SLACK_WEBHOOK_URL}"
 startup_timeout_sec = 180
 
-# Codex Supervisor - マルチエージェント調整�E�高度なエラーハンドリング�E�E# ⚠�E�E無効匁E 'supervisor' subcommand not implemented (use 'delegate' instead)
+# Codex Supervisor - マルチエージェント調整�E�高度なエラーハンドリング�E�E# ⚠�E�E無効匁E 'supervisor' subcommand not implemented (use 'delegate' instead)
 [mcp_servers.codex-supervisor]
 args = ["supervisor"]
 command = "codex"
@@ -64,7 +80,7 @@ env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 180
 
-# Codex Research - チE��ープリサーチE��Eebhook統合付き�E�E# 🔄 有効化済み�E�E025-10-28�E�E 'research' subcommand implemented
+# Codex Research - チE��ープリサーチE��Eebhook統合付き�E�E# 🔄 有効化済み�E�E025-10-28�E�E 'research' subcommand implemented
 [mcp_servers.codex-research]
 args = ["research"]
 command = "codex"
@@ -72,7 +88,7 @@ env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 180
 
-# Codex Agent - 自然言語CLI�E�EgentInterpreter�E�E# 🔄 有効化済み�E�E025-10-28�E�E 'agent' subcommand implemented
+# Codex Agent - 自然言語CLI�E�EgentInterpreter�E�E# 🔄 有効化済み�E�E025-10-28�E�E 'agent' subcommand implemented
 [mcp_servers.codex-agent]
 args = ["agent"]
 command = "codex"
@@ -80,7 +96,7 @@ env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 180
 
-# Serena - AIオーケストレーション・コンチE��スト管琁E��E1チE�Eル利用可能�E�E[mcp_servers.serena]
+# Serena - AIオーケストレーション・コンチE��スト管琁E��E1チE�Eル利用可能�E�E[mcp_servers.serena]
 args = [
     "--from",
     "git+https://github.com/oraios/serena",
@@ -93,58 +109,58 @@ command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
 env.RUST_LOG = "info"
 startup_timeout_sec = 90
 
-# Context7 - Upstash コンチE��スト管琁E�Eベクター検索
+# Context7 - Upstash コンチE��スト管琁E�Eベクター検索
 [mcp_servers.context7]
 args = ["-y", "@upstash/context7-mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
 # 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 180
 
-# Playwright - Web自動化・チE��ト�Eスクレイピング
+# Playwright - Web自動化・チE��ト�Eスクレイピング
 [mcp_servers.playwright]
 args = ["-y", "@playwright/mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
 # 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 180
 
-# Filesystem - ファイルシスチE��操作�E管琁E[mcp_servers.filesystem]
+# Filesystem - ファイルシスチE��操作�E管琁E[mcp_servers.filesystem]
 args = ["-y", "@modelcontextprotocol/server-filesystem@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
 # 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 180
 
-# GitHub - GitHub API操作�EPR/Issue管琁E[mcp_servers.github]
+# GitHub - GitHub API操作�EPR/Issue管琁E[mcp_servers.github]
 args = ["-y", "@modelcontextprotocol/server-github@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
 env.GITHUB_TOKEN = "${GITHUB_TOKEN}"
 # 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 180
 
-# Markitdown - 吁E��ファイル形式をMarkdownに変換
+# Markitdown - 吁E��ファイル形式をMarkdownに変換
 [mcp_servers.markitdown]
 args = ["markitdown-mcp"]
 command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
 startup_timeout_sec = 180
 
-# arXiv - 学術論文検索・取得！ErXiv�E�E[mcp_servers.arxiv-mcp-server]
+# arXiv - 学術論文検索・取得！ErXiv�E�E[mcp_servers.arxiv-mcp-server]
 args = ["arxiv-mcp-server"]
 command = "C:\\Users\\downl\\.local\\bin\\uvx.exe"
 startup_timeout_sec = 180
 
-# YouTube - 動画検索・メタチE�Eタ・字幕取征E[mcp_servers.youtube]
+# YouTube - 動画検索・メタチE�Eタ・字幕取征E[mcp_servers.youtube]
 args = ["-y", "@anaisbetts/mcp-youtube@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
 # 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 180
 
-# Gemini CLI - Google Gemini AI統合！EAuth 2.0、Google Search機�E付き�E�E[mcp_servers.codex-gemini-mcp]
+# Gemini CLI - Google Gemini AI統合！EAuth 2.0、Google Search機�E付き�E�E[mcp_servers.codex-gemini-mcp]
 args = []
 command = "codex-gemini-mcp"
 description = "Codex Gemini CLI MCP Server v0.49.0 - Google Gemini AI integration with OAuth 2.0 authentication and Google Search Grounding"
 env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
 startup_timeout_sec = 180
 
-# Brave Search - Web検索機�E�E�EPIキー忁E��E��E# ⚠�E�E無効匁E BRAVE_API_KEY環墁E��数の設定が忁E��E# 使用方況E 環墁E��数BRAVE_API_KEYを設定後、disabled行を削除
+# Brave Search - Web検索機�E�E�EPIキー忁E��E��E# ⚠�E�E無効匁E BRAVE_API_KEY環墁E��数の設定が忁E��E# 使用方況E 環墁E��数BRAVE_API_KEYを設定後、disabled行を削除
 [mcp_servers.brave-search]
 args = ["-y", "@modelcontextprotocol/server-brave-search"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
@@ -152,13 +168,13 @@ disabled = true
 env.BRAVE_API_KEY = "${BRAVE_API_KEY}"
 startup_timeout_sec = 180
 
-# Chrome DevTools - ブラウザチE��チE��・自動化�E�Ehrome DevTools Protocol�E�E[mcp_servers.chrome-devtools]
+# Chrome DevTools - ブラウザチE��チE��・自動化�E�Ehrome DevTools Protocol�E�E[mcp_servers.chrome-devtools]
 args = ["-y", "chrome-devtools-mcp@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
 # 🔄 Cursor IDE (mcp.json) と同期
 startup_timeout_sec = 180
 
-# Sequential Thinking - 段階的思老E�Eロセス実衁E[mcp_servers.sequential-thinking]
+# Sequential Thinking - 段階的思老E�Eロセス実衁E[mcp_servers.sequential-thinking]
 args = ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
 command = "C:\\nvm4w\\nodejs\\npx.cmd"
 # 🔄 Cursor IDE (mcp.json) と同期
@@ -170,26 +186,26 @@ enabled = true
 inherit_model = true
 max_parallel = 4
 token_budget = 40000
-# �E MCP 経由で Codex チE�Eルを使用
+# �E MCP 経由で Codex チE�Eルを使用
 use_codex_mcp = true
 
 # ==================== Deep Research設宁E====================
 [deep_research]
-# Web検索バックエンド！Erave, google, duckduckgo, bing, gemini�E�E# ✨ 更新�E�E025-10-28�E�E Gemini Search Groundingをデフォルトに設宁Edefault_backend = "gemini"
-# フォールバックチェーン�E�有効なバックエンド�Eみ�E�E# Gemini -> DuckDuckGo -> Google -> Bingの頁E��試衁Efallback_backends = ["duckduckgo", "google", "bing"]
+# Web検索バックエンド！Erave, google, duckduckgo, bing, gemini�E�E# ✨ 更新�E�E025-10-28�E�E Gemini Search Groundingをデフォルトに設宁Edefault_backend = "gemini"
+# フォールバックチェーン�E�有効なバックエンド�Eみ�E�E# Gemini -> DuckDuckGo -> Google -> Bingの頁E��試衁Efallback_backends = ["duckduckgo", "google", "bing"]
 # 最大検索結果数
 max_results = 10
 # タイムアウト（秒！Etimeout_seconds = 30
-# キャチE��ュ有効匁Eenable_cache = true
+# キャチE��ュ有効匁Eenable_cache = true
 
-# ==================== フック機�E ====================
-# タスク完亁E��の音声通知
-# Agent/Plan完亁E��: marisa_owattaze.wav�E�終わったぜ�E�E��E[hooks]
-# タスク全体完亁E���E�Elan実行完亁E���E�EↁEMarisa
+# ==================== フック機�E ====================
+# タスク完亁E��の音声通知
+# Agent/Plan完亁E��: marisa_owattaze.wav�E�終わったぜ�E�E��E[hooks]
+# タスク全体完亁E���E�Elan実行完亁E���E�EↁEMarisa
 on_task_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex\\zapabob\\scripts\\play-completion-sound.ps1"
-# サブエージェント完亁E���E�Egent実行完亁E���E�EↁEMarisa
+# サブエージェント完亁E���E�Egent実行完亁E���E�EↁEMarisa
 on_subagent_complete = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex\\zapabob\\scripts\\play-completion-sound.ps1"
-# セチE��ョン終亁E�� ↁEMarisa
+# セチE��ョン終亁E�� ↁEMarisa
 on_session_end = "powershell -ExecutionPolicy Bypass -File C:\\Users\\downl\\Desktop\\codex\\zapabob\\scripts\\play-completion-sound.ps1"
 
 # ==================== 監査ログ ====================
@@ -200,9 +216,9 @@ include_mcp_calls = true
 include_tool_args = true
 log_dir = "~/.codex/audit-logs"
 
-# ==================== チE��ト完亁E====================
-# 🎉 匁E��皁E��スト完亁E��E025-10-24�E�E# - コンパイルチE��チE ✁EPASS
-# - MCPサーバ�EチE��チE ✁EPASS�E��E5サーバ�E�E�E# - CLIコマンドテスチE ✁EPASS
+# ==================== チE��ト完亁E====================
+# 🎉 匁E��皁E��スト完亁E��E025-10-24�E�E# - コンパイルチE��チE ✁EPASS
+# - MCPサーバ�EチE��チE ✁EPASS�E��E5サーバ�E�E�E# - CLIコマンドテスチE ✁EPASS
 # - 統合テスチE ✁EPASS
 # - 本番準備: ✁E完亁E#
 # 詳細: _docs/2025-10-24_comprehensive_test_results.md
