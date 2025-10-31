@@ -31,7 +31,10 @@
 
 Unlike the upstream OpenAI/codex, zapabob/codex includes:
 - **🤖 Autonomous Multi-Agent Orchestration**: Automatically delegates complex tasks to specialized sub-agents without manual intervention
+- **🔐 Repository-Level Concurrency Control**: File-based locking (`.codex/lock.json`) with stale detection prevents data races in multi-agent scenarios
+- **📊 Token Budget Tracking**: Thread-safe usage monitoring with configurable per-agent limits and warning thresholds
 - **🔍 Deep Research Engine**: API-key-free web search with DuckDuckGo integration, Gemini CLI support, and citation-based reporting
+- **🔑 Gemini Authentication**: Dual-mode support (API Key + OAuth 2.0 PKCE) with geminicli integration for Google AI Studio and Vertex AI
 - **🔒 Advanced Conflict Resolution**: FileEditTracker with 3 merge strategies (Sequential, ThreeWayMerge, LastWriteWins) prevents race conditions
 - **🗣️ Natural Language CLI**: Intuitive commands like `codex agent "Review code for security"` with automatic agent dispatch
 - **📊 Collaboration Store**: Thread-safe shared memory (DashMap) for inter-agent communication with priority-based messaging
