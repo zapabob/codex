@@ -11,11 +11,13 @@ pub mod auth;
 pub mod idempotency;
 pub mod protocol;
 pub mod queue;
+pub mod server;
 pub mod transport;
 
 pub use auth::{AuthConfig, AuthManager};
 pub use idempotency::IdempotencyCache;
 pub use protocol::{Envelope, MessageType, ResponseStatus};
 pub use queue::{QueueConfig, SingleWriterQueue, Task, TaskExecutor, TaskStatus};
+pub use server::{OrchestratorServer, ServerConfig};
 pub use transport::{TransportConfig, TransportServer, TransportConnection};
 

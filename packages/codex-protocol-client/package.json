@@ -1,0 +1,30 @@
+{
+  "name": "@codex/protocol-client",
+  "version": "0.52.0",
+  "description": "TypeScript client SDK for Codex orchestrator protocol",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "codex",
+    "orchestrator",
+    "protocol",
+    "client"
+  ],
+  "author": "zapabob",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {},
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
