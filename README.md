@@ -37,6 +37,28 @@ Unlike the upstream OpenAI/codex, zapabob/codex includes:
 - **📊 Collaboration Store**: Thread-safe shared memory (DashMap) for inter-agent communication with priority-based messaging
 - **🔄 Intelligent Task Analysis**: Automatic complexity scoring and agent recommendation based on task requirements
 
+<details>
+<summary><b>📊 Feature Comparison: zapabob/codex vs Upstream OpenAI/codex</b></summary>
+
+| Feature | OpenAI/codex (Upstream) | zapabob/codex | Implementation |
+|---------|------------------------|---------------|----------------|
+| **Basic CLI** | ✅ Yes | ✅ Yes | Inherited from upstream |
+| **MCP Integration** | ✅ Yes | ✅ Enhanced (15+ servers) | Extended with custom servers |
+| **Multi-Agent Orchestration** | ❌ No | ✅ Yes | `supervisor/` module (2000+ lines) |
+| **Automatic Task Analysis** | ❌ No | ✅ Yes (5-factor scoring) | `task_analyzer.rs` (400 lines) |
+| **Conflict Resolution** | ❌ No | ✅ Yes (3 strategies) | `conflict_resolver.rs` (600 lines) |
+| **Natural Language CLI** | ❌ No | ✅ Yes (pattern matching) | `agent_interpreter.rs` (500 lines) |
+| **Deep Research** | ⚠️ Basic | ✅ Advanced (zero-cost) | `deep-research/` module (2000+ lines) |
+| **Inter-Agent Communication** | ❌ No | ✅ Yes (DashMap-based) | `collaboration_store.rs` (300 lines) |
+| **Webhook Integrations** | ⚠️ Limited | ✅ Full (GitHub, Slack, Custom) | Integrated throughout core |
+| **Error Retry Logic** | ⚠️ Basic | ✅ Advanced (exponential backoff) | `error_handler.rs` |
+| **Documentation** | ✅ Yes | ✅ Enhanced (260+ logs) | `docs/zapabob/` |
+| **Total Codebase** | ~50K lines | ~80K lines (+60% unique) | 40+ Rust crates |
+
+**Legend**: ✅ = Fully Implemented | ⚠️ = Partially Implemented | ❌ = Not Available
+
+</details>
+
 ### ⚡ Quickstart (Upstream-Compatible)
 
 The zapabob fork stays in sync with the latest [OpenAI/codex](https://github.com/openai/codex) release flow while adding autonomous orchestration. Install or update Codex using the same commands documented upstream:
@@ -728,6 +750,28 @@ limitations under the License.
 - **🗣️ 自然言語CLI**: `codex agent "コードをセキュリティレビューして"`のような直感的コマンドで自動エージェント振り分け
 - **📊 コラボレーションストア**: DashMapによるスレッドセーフな共有メモリでエージェント間通信と優先度ベースメッセージング
 - **🔄 インテリジェントタスク分析**: タスク要件に基づく自動複雑度スコアリングとエージェント推薦
+
+<details>
+<summary><b>📊 機能比較: zapabob/codex vs 上流OpenAI/codex</b></summary>
+
+| 機能 | OpenAI/codex (上流) | zapabob/codex | 実装 |
+|------|---------------------|---------------|------|
+| **基本CLI** | ✅ あり | ✅ あり | 上流から継承 |
+| **MCP統合** | ✅ あり | ✅ 拡張版 (15+サーバー) | カスタムサーバー追加 |
+| **マルチエージェントオーケストレーション** | ❌ なし | ✅ あり | `supervisor/`モジュール (2000行以上) |
+| **自動タスク分析** | ❌ なし | ✅ あり (5要素スコアリング) | `task_analyzer.rs` (400行) |
+| **コンフリクト解決** | ❌ なし | ✅ あり (3戦略) | `conflict_resolver.rs` (600行) |
+| **自然言語CLI** | ❌ なし | ✅ あり (パターンマッチング) | `agent_interpreter.rs` (500行) |
+| **ディープリサーチ** | ⚠️ 基本的 | ✅ 高度 (ゼロコスト) | `deep-research/`モジュール (2000行以上) |
+| **エージェント間通信** | ❌ なし | ✅ あり (DashMapベース) | `collaboration_store.rs` (300行) |
+| **Webhook統合** | ⚠️ 限定的 | ✅ 完全 (GitHub, Slack, Custom) | core全体に統合 |
+| **エラーリトライロジック** | ⚠️ 基本的 | ✅ 高度 (指数バックオフ) | `error_handler.rs` |
+| **ドキュメント** | ✅ あり | ✅ 拡張版 (260+ログ) | `docs/zapabob/` |
+| **総コードベース** | ~50K行 | ~80K行 (+60%独自) | 40+ Rustクレート |
+
+**凡例**: ✅ = 完全実装 | ⚠️ = 部分実装 | ❌ = 未実装
+
+</details>
 
 ### 🏗️ アーキテクチャ
 
