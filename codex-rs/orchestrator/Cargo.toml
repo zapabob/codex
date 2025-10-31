@@ -1,0 +1,47 @@
+[package]
+name = "codex-orchestrator"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "codex_orchestrator"
+path = "src/lib.rs"
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+tokio-util = { workspace = true, features = ["codec"] }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+uuid = { workspace = true, features = ["serde", "v4"] }
+chrono = { workspace = true, features = ["serde"] }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+log = { workspace = true }
+
+# Security - HMAC
+sha2 = { workspace = true }
+base64 = { workspace = true }
+hmac = "0.12"
+getrandom = "0.2"
+
+# Concurrency
+dashmap = { workspace = true }
+
+# Unix domain sockets (cross-platform)
+# Windows named pipes support is built into tokio
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true

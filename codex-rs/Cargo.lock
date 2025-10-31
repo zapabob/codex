@@ -1638,6 +1638,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "codex-orchestrator"
+version = "0.52.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64",
+ "chrono",
+ "dashmap",
+ "getrandom 0.2.16",
+ "hmac",
+ "log",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.16",
+ "tokio",
+ "tokio-test",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "codex-otel"
 version = "0.52.0"
 dependencies = [
