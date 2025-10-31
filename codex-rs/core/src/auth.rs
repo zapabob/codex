@@ -1,4 +1,5 @@
 mod storage;
+pub mod gemini;
 
 use chrono::Utc;
 use serde::Deserialize;
