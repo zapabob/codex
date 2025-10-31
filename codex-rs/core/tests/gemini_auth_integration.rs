@@ -1,6 +1,7 @@
 // Integration tests for Gemini authentication
 use codex_core::auth::gemini::{CredentialSource, GeminiAuthProvider, GeminiCredentials};
 use codex_core::default_client::create_client;
+use serial_test::serial;
 use std::env;
 use tempfile::tempdir;
 
@@ -23,6 +24,7 @@ fn test_gemini_credentials_serialization() {
 }
 
 #[test]
+#[serial(gemini_env)]
 fn test_gemini_auth_provider_resolve_credentials_from_env() {
     let dir = tempdir().expect("tempdir should succeed");
     let client = create_client();
@@ -52,6 +54,7 @@ fn test_gemini_auth_provider_resolve_credentials_from_env() {
 }
 
 #[test]
+#[serial(gemini_env)]
 fn test_gemini_auth_provider_no_credentials() {
     let dir = tempdir().expect("tempdir should succeed");
     let client = create_client();
@@ -70,6 +73,7 @@ fn test_gemini_auth_provider_no_credentials() {
 }
 
 #[test]
+#[serial(gemini_env)]
 fn test_gemini_credentials_save_and_load() {
     let dir = tempdir().expect("tempdir should succeed");
     let client = create_client();

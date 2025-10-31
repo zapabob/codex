@@ -93,13 +93,13 @@ impl GeminiAuthProvider {
 
     /// Load credentials from config file
     fn load_from_config(&self) -> std::io::Result<Option<GeminiCredentials>> {
-        let config_path = self.codex_home.join("config.yaml");
+        let config_path = self.codex_home.join("config.toml");
         if !config_path.exists() {
             return Ok(None);
         }
 
         let config_content = std::fs::read_to_string(&config_path)?;
-        let config: serde_yaml::Value = serde_yaml::from_str(&config_content)
+        let config: toml::Value = toml::from_str(&config_content)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
 
         // Look for gemini.api_key in config
@@ -192,7 +192,12 @@ impl GeminiAuthProvider {
         // Google OAuth 2.0 token endpoint
         let token_url = "https://oauth2.googleapis.com/token";
 
-        let client_id = env::var("GEMINI_OAUTH_CLIENT_ID").unwrap_or_default();
+        let client_id = env::var("GEMINI_OAUTH_CLIENT_ID").map_err(|_| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "GEMINI_OAUTH_CLIENT_ID environment variable not set",
+            )
+        })?;
         
         let body = serde_json::json!({
             "client_id": client_id,
