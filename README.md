@@ -51,7 +51,7 @@ Unlike the upstream OpenAI/codex, zapabob/codex includes:
 | **Deep Research** | ⚠️ Basic | ✅ Advanced (zero-cost) | `deep-research/` module (2000+ lines) |
 | **Inter-Agent Communication** | ❌ No | ✅ Yes (DashMap-based) | `collaboration_store.rs` (300 lines) |
 | **Webhook Integrations** | ⚠️ Limited | ✅ Full (GitHub, Slack, Custom) | Integrated throughout core |
-| **Error Retry Logic** | ⚠️ Basic | ✅ Advanced (exponential backoff) | `error_handler.rs` |
+| **Error Retry Logic** | ⚠️ Basic | ✅ Advanced (exponential backoff) | `codex-rs/core/src/orchestration/error_handler.rs` |
 | **Documentation** | ✅ Yes | ✅ Enhanced (260+ logs) | `docs/zapabob/` |
 | **Total Codebase** | ~50K lines | ~80K lines (+60% unique) | 40+ Rust crates |
 
@@ -179,7 +179,7 @@ pub struct FileEditTracker {
 pub enum MergeStrategy {
     Sequential,      // Queue edits, execute one-by-one
     ThreeWayMerge,   // Intelligent merge (git-style)
-    LastWriteWins,   // Override (fast but risky)
+    LastWriteWins,   // Override conflicts (fast but may cause data loss)
 }
 ```
 
@@ -426,7 +426,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
      - `Sequential`: Execute edits one-by-one (safest, prevents conflicts)
      - `ThreeWayMerge`: Attempt intelligent merge (faster but may have conflicts)
      - `LastWriteWins`: Fast concurrent writes (use with caution)
-   - **Lock-free concurrency**: DashMap-based implementation eliminates bottlenecks
+   - **Fine-grained locking**: DashMap-based implementation with low-contention concurrency
    - **Edit tokens**: UUID-based permission system for controlled file access
    - **Prevents race conditions**: Guarantees data integrity in multi-agent scenarios
    - **Implementation**: `codex-rs/core/src/orchestration/conflict_resolver.rs` (600+ lines)
@@ -514,7 +514,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
 - **Smart Fallback Chain**: Commercial API → DuckDuckGo → Official Format (Rust docs, Stack Overflow, GitHub)
 - **MCP Integration**: Native integration with 15+ MCP servers for extended search capabilities
 - **Performance**: 1.5s average response time with DuckDuckGo, 45x faster with caching
-- **Implementation**: `codex-rs/deep-research/` (2000+ lines, comprehensive test suite)
+- **Implementation**: `codex-rs/deep-research/` module with comprehensive test suite
 
 #### **MCP (Model Context Protocol) Integration**
 
