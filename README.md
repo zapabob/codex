@@ -184,7 +184,7 @@ pub enum MergeStrategy {
 ```
 
 **Features**:
-- **DashMap**: Lock-free concurrent HashMap for high-performance access
+- **DashMap**: Fine-grained locking concurrent HashMap for high-performance access
 - **Edit Tokens**: UUID-based permission system with agent name tracking
 - **Merge Strategies**: Configurable conflict resolution policies
 - **Audit Trail**: Complete edit history with timestamps and contributors
@@ -835,7 +835,7 @@ Codex v0.52.0アーキテクチャは**10の主要レイヤー**と**90+のコ�
      - `Sequential`: 編集を逐次実行（最も安全、コンフリクト防止）
      - `ThreeWayMerge`: インテリジェントマージ試行（高速だがコンフリクト可能性あり）
      - `LastWriteWins`: 高速並行書き込み（注意して使用）
-   - **ロックフリー並行処理**: DashMapベースの実装でボトルネック排除
+   - **きめ細かいロック機構**: DashMapベースの実装で低競合並行処理
    - **編集トークン**: UUID ベースの権限システムで制御されたファイルアクセス
    - **レースコンディション防止**: マルチエージェントシナリオでデータ整合性を保証
    - **実装**: `codex-rs/core/src/orchestration/conflict_resolver.rs` (600行以上)
