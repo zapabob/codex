@@ -140,6 +140,9 @@ enum Subcommand {
     /// [EXPERIMENTAL] Natural language agent invocation (e.g., "codex agent 'Review with security focus'")
     Agent(AgentCommand),
 
+    /// Manage repository locks
+    Lock(LockCommand),
+
     /// Internal: run the responses API proxy.
     #[clap(hide = true)]
     ResponsesApiProxy(ResponsesApiProxyArgs),
@@ -508,6 +511,26 @@ struct LogoutCommand {
 }
 
 #[derive(Debug, Parser)]
+struct LockCommand {
+    #[command(subcommand)]
+    action: LockSubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum LockSubcommand {
+    /// Show current lock status
+    Status,
+    
+    /// Force remove a stale lock
+    #[clap(visible_alias = "rm")]
+    Remove {
+        /// Skip confirmation prompt
+        #[arg(long)]
+        force: bool,
+    },
+}
+
+#[derive(Debug, Parser)]
 struct GenerateTsCommand {
     /// Output directory where .ts files will be written
     #[arg(short = 'o', long = "out", value_name = "DIR")]
@@ -745,6 +768,9 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 root_config_overrides.clone(),
             );
             run_logout(logout_cli.config_overrides).await;
+        }
+        Some(Subcommand::Lock(lock_cmd)) => {
+            run_lock_command(lock_cmd).await?;
         }
         Some(Subcommand::Completion(completion_cli)) => {
             print_completion(completion_cli);
@@ -1082,6 +1108,58 @@ fn merge_resume_cli_flags(interactive: &mut TuiCli, resume_cli: TuiCli) {
         .config_overrides
         .raw_overrides
         .extend(resume_cli.config_overrides.raw_overrides);
+}
+
+async fn run_lock_command(cmd: LockCommand) -> anyhow::Result<()> {
+    use codex_core::lock::RepoLock;
+    
+    let repo_path = std::env::current_dir()?;
+    
+    match cmd.action {
+        LockSubcommand::Status => {
+            match RepoLock::get_current(&repo_path)? {
+                Some(lock_info) => {
+                    println!("Lock Status: {}", if lock_info.is_stale() { "STALE" } else { "ACTIVE" });
+                    println!("Holder: {}@{}", lock_info.pid, lock_info.hostname);
+                    println!("PID: {}", lock_info.pid);
+                    println!("Repository: {}", lock_info.repo_path);
+                    println!("Started: {}", lock_info.started_at);
+                    if let Some(expires_at) = lock_info.expires_at {
+                        println!("Expires: {}", expires_at);
+                    }
+                    if lock_info.is_stale() {
+                        println!("\nThe lock appears to be stale. Use 'codex lock remove --force' to remove it.");
+                    }
+                }
+                None => {
+                    println!("No lock found on this repository.");
+                }
+            }
+        }
+        LockSubcommand::Remove { force } => {
+            if !force {
+                match RepoLock::get_current(&repo_path)? {
+                    Some(lock_info) => {
+                        println!("Current lock holder: {}@{}", lock_info.pid, lock_info.hostname);
+                        if !lock_info.is_stale() {
+                            eprintln!("Warning: Lock does not appear to be stale!");
+                            eprintln!("Are you sure you want to remove it? Use --force to confirm.");
+                            std::process::exit(1);
+                        }
+                    }
+                    None => {
+                        println!("No lock found.");
+                        return Ok(());
+                    }
+                }
+            }
+            
+            RepoLock::force_unlock(&repo_path)?;
+            println!("Lock removed successfully.");
+        }
+    }
+    
+    Ok(())
 }
 
 fn print_completion(cmd: CompletionCommand) {

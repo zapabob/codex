@@ -702,6 +702,10 @@ cargo test --all
 - **MCP Config Guide**: [`docs/zapabob/MCP設定ファイル同期管理ガイド.md`](docs/zapabob/MCP設定ファイル同期管理ガイド.md)
 - **Implementation Logs**: [`docs/zapabob/implementation-logs/`](docs/zapabob/implementation-logs/) _(260+ detailed logs)_
 - **Audio Notifications**: [`docs/zapabob/2025-10-23_音声通知設定更新.md`](docs/zapabob/2025-10-23_音声通知設定更新.md)
+- **Keyboard Shortcuts**: [`docs/keyboard-shortcuts.md`](docs/keyboard-shortcuts.md) - GUI keyboard shortcuts and accessibility
+- **Lock Mechanism**: [`docs/lock-mechanism.md`](docs/lock-mechanism.md) - Repository lock system and troubleshooting
+- **Orchestrator Status API**: [`docs/orchestrator-status-api.md`](docs/orchestrator-status-api.md) - Real-time orchestration monitoring
+- **Token Management**: [`docs/token-management.md`](docs/token-management.md) - Budget control and pair programming sessions
 
 ### 🤝 Contributing
 
