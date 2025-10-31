@@ -308,6 +308,37 @@ export class CodexAPIClient {
     };
   }
 
+  // Orchestrator status
+  async getOrchestratorStatus(): Promise<any> {
+    // In a real implementation, this would come from the Rust backend
+    // For now, return mock data
+    return {
+      lock: null, // No lock currently held
+      agents: [
+        {
+          id: 'main-supervisor',
+          name: 'Main Supervisor',
+          status: 'active',
+          tasks_completed: 42,
+          tasks_failed: 2,
+        },
+      ],
+      tokens: {
+        used: 15000,
+        budget: 100000,
+        by_agent: [
+          ['main-supervisor', {
+            prompt_tokens: 10000,
+            completion_tokens: 5000,
+            total_tokens: 15000,
+            last_updated: Date.now() / 1000,
+          }],
+        ],
+      },
+      sessions: [],
+    };
+  }
+
   // File operations
   async executeCommand(command: string[], cwd?: string): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return this.httpRequest('execOneOffCommand', {

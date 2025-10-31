@@ -44,6 +44,7 @@ pub mod git_info;
 pub mod hooks;
 pub mod integrations;
 pub mod landlock;
+pub mod lock;
 pub mod mcp;
 mod mcp_connection_manager;
 mod mcp_tool_call;

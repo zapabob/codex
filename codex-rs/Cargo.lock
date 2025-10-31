@@ -1340,6 +1340,7 @@ dependencies = [
  "eventsource-stream",
  "futures",
  "hkdf",
+ "hostname",
  "http",
  "image",
  "indexmap 2.10.0",
@@ -1348,6 +1349,7 @@ dependencies = [
  "libc",
  "maplit",
  "mcp-types",
+ "nix 0.29.0",
  "once_cell",
  "openssl-sys",
  "os_info",
@@ -1387,6 +1389,7 @@ dependencies = [
  "walkdir",
  "which",
  "wildmatch",
+ "winapi",
  "wiremock",
  "x509-parser",
 ]

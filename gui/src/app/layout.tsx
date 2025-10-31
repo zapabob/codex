@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppThemeProvider } from "@/components/templates/ThemeProvider";
 import { PWAProvider } from "@/components/pwa/PWAProvider";
 import { CodexProvider } from "@/lib/context/CodexContext";
+import { KeyboardShortcutsProvider } from "@/lib/context/KeyboardShortcutsContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -56,9 +57,11 @@ export default function RootLayout({
       >
         <PWAProvider>
           <CodexProvider>
-            <AppThemeProvider>
-              {children}
-            </AppThemeProvider>
+            <KeyboardShortcutsProvider>
+              <AppThemeProvider>
+                {children}
+              </AppThemeProvider>
+            </KeyboardShortcutsProvider>
           </CodexProvider>
         </PWAProvider>
       </body>

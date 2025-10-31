@@ -234,6 +234,9 @@ which = "6"
 wildmatch = "2.5.0"
 wiremock = "0.6"
 zeroize = "1.8.1"
+hostname = "0.4"
+nix = { version = "0.29", features = ["signal", "process"] }
+winapi = { version = "0.3", features = ["processthreadsapi", "winnt", "handleapi"] }
 
 # 🚀 Build Performance Profiles (2025-10-15)
 # 開発用: LTO無効化で3〜7分に短縮
