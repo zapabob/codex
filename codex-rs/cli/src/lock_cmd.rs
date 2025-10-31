@@ -65,7 +65,7 @@ pub fn run_lock_status(cmd: LockStatusCommand) -> Result<()> {
             
             // Check if lock is stale
             if !lock.is_locked() {
-                println!("\n  Warning: Lock appears stale (process not alive or expired)");
+                eprintln!("\nWarning: Lock appears stale (process not alive or expired)");
             }
         }
         None => {

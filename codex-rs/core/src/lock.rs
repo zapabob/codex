@@ -249,16 +249,16 @@ impl RepositoryLock {
 fn is_process_alive(pid: u32) -> bool {
     #[cfg(unix)]
     {
-        use libc::{kill, ESRCH};
-        unsafe {
-            // Signal 0 checks if process exists without sending actual signal
-            let result = kill(pid as i32, 0);
-            if result == 0 {
-                true
-            } else {
-                let errno = *libc::__errno_location();
-                errno != ESRCH
-            }
+        // Signal 0 checks if process exists without sending actual signal
+        // Returns 0 if process exists, -1 otherwise
+        let result = unsafe { libc::kill(pid as i32, 0) };
+        if result == 0 {
+            true
+        } else {
+            // Use std::io::Error to safely get errno
+            let err = std::io::Error::last_os_error();
+            // ESRCH means process doesn't exist
+            err.raw_os_error() != Some(libc::ESRCH)
         }
     }
 

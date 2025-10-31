@@ -8,6 +8,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
+/// Helper to convert lock poisoned errors
+fn lock_poisoned_err<T>(_: T) -> anyhow::Error {
+    anyhow!("Internal lock poisoned")
+}
+
 /// Token usage entry for an agent
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenUsage {
@@ -94,7 +99,7 @@ impl TokenBudgetTracker {
             .map(|d| d.as_secs())
             .unwrap_or(0);
 
-        let mut inner = self.inner.write().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let mut inner = self.inner.write().map_err(lock_poisoned_err)?;
 
         // Check per-agent limit
         if let Some(&limit) = inner.config.per_agent_limits.get(&agent_id) {
@@ -155,25 +160,25 @@ impl TokenBudgetTracker {
 
     /// Get total tokens used
     pub fn get_total_used(&self) -> Result<u64> {
-        let inner = self.inner.read().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let inner = self.inner.read().map_err(lock_poisoned_err)?;
         Ok(inner.total_used)
     }
 
     /// Get usage by agent
     pub fn get_agent_usage(&self, agent_id: &str) -> Result<u64> {
-        let inner = self.inner.read().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let inner = self.inner.read().map_err(lock_poisoned_err)?;
         Ok(inner.agent_totals.get(agent_id).copied().unwrap_or(0))
     }
 
     /// Get all agent totals
     pub fn get_all_agent_totals(&self) -> Result<HashMap<String, u64>> {
-        let inner = self.inner.read().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let inner = self.inner.read().map_err(lock_poisoned_err)?;
         Ok(inner.agent_totals.clone())
     }
 
     /// Get remaining budget
     pub fn get_remaining_budget(&self) -> Result<Option<u64>> {
-        let inner = self.inner.read().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let inner = self.inner.read().map_err(lock_poisoned_err)?;
         if inner.config.total_budget == 0 {
             Ok(None) // Unlimited
         } else {
@@ -183,7 +188,7 @@ impl TokenBudgetTracker {
 
     /// Get budget status summary
     pub fn get_status(&self) -> Result<BudgetStatus> {
-        let inner = self.inner.read().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let inner = self.inner.read().map_err(lock_poisoned_err)?;
         
         let usage_percentage = if inner.config.total_budget > 0 {
             Some((inner.total_used as f64 / inner.config.total_budget as f64) * 100.0)
@@ -202,7 +207,7 @@ impl TokenBudgetTracker {
 
     /// Reset usage tracking
     pub fn reset(&self) -> Result<()> {
-        let mut inner = self.inner.write().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let mut inner = self.inner.write().map_err(lock_poisoned_err)?;
         inner.usage_history.clear();
         inner.total_used = 0;
         inner.agent_totals.clear();
@@ -212,7 +217,7 @@ impl TokenBudgetTracker {
 
     /// Update configuration
     pub fn update_config(&self, config: BudgetConfig) -> Result<()> {
-        let mut inner = self.inner.write().map_err(|e| anyhow!("Lock poisoned: {}", e))?;
+        let mut inner = self.inner.write().map_err(lock_poisoned_err)?;
         inner.config = config;
         inner.warning_emitted = false; // Reset warning flag
         Ok(())
