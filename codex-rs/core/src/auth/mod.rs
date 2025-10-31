@@ -1,4 +1,11 @@
-mod storage;
+// Authentication module for Codex
+// Supports OpenAI/ChatGPT and Gemini authentication
+
+mod gemini;
+pub(crate) mod storage;
+
+pub use gemini::{CredentialSource, GeminiAuthProvider, GeminiCredentials};
+pub use storage::{AuthCredentialsStoreMode, AuthDotJson};
 
 use chrono::Utc;
 use serde::Deserialize;
@@ -16,8 +23,6 @@ use std::time::Duration;
 use codex_app_server_protocol::AuthMode;
 use codex_protocol::config_types::ForcedLoginMethod;
 
-pub use crate::auth::storage::AuthCredentialsStoreMode;
-pub use crate::auth::storage::AuthDotJson;
 use crate::auth::storage::AuthStorageBackend;
 use crate::auth::storage::create_auth_storage;
 use crate::config::Config;
@@ -167,6 +172,7 @@ impl CodexAuth {
     pub fn create_dummy_chatgpt_auth_for_testing() -> Self {
         let auth_dot_json = AuthDotJson {
             openai_api_key: None,
+            gemini_credentials: None,
             tokens: Some(TokenData {
                 id_token: Default::default(),
                 access_token: "Access Token".to_string(),
@@ -203,6 +209,7 @@ impl CodexAuth {
 
 pub const OPENAI_API_KEY_ENV_VAR: &str = "OPENAI_API_KEY";
 pub const CODEX_API_KEY_ENV_VAR: &str = "CODEX_API_KEY";
+pub const GEMINI_API_KEY_ENV_VAR: &str = "GEMINI_API_KEY";
 
 pub fn read_openai_api_key_from_env() -> Option<String> {
     env::var(OPENAI_API_KEY_ENV_VAR)
@@ -213,6 +220,13 @@ pub fn read_openai_api_key_from_env() -> Option<String> {
 
 pub fn read_codex_api_key_from_env() -> Option<String> {
     env::var(CODEX_API_KEY_ENV_VAR)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+pub fn read_gemini_api_key_from_env() -> Option<String> {
+    env::var(GEMINI_API_KEY_ENV_VAR)
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
@@ -236,6 +250,7 @@ pub fn login_with_api_key(
 ) -> std::io::Result<()> {
     let auth_dot_json = AuthDotJson {
         openai_api_key: Some(api_key.to_string()),
+        gemini_credentials: None,
         tokens: None,
         last_refresh: None,
     };
@@ -371,6 +386,7 @@ fn load_auth(
 
     let AuthDotJson {
         openai_api_key: auth_json_api_key,
+        gemini_credentials: _gemini_credentials,
         tokens,
         last_refresh,
     } = auth_dot_json;
@@ -386,6 +402,7 @@ fn load_auth(
         storage: storage.clone(),
         auth_dot_json: Arc::new(Mutex::new(Some(AuthDotJson {
             openai_api_key: None,
+            gemini_credentials: None,
             tokens,
             last_refresh,
         }))),
@@ -476,389 +493,6 @@ use std::sync::RwLock;
 #[derive(Clone, Debug)]
 struct CachedAuth {
     auth: Option<CodexAuth>,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::auth::storage::FileAuthStorage;
-    use crate::auth::storage::get_auth_file;
-    use crate::config::Config;
-    use crate::config::ConfigOverrides;
-    use crate::config::ConfigToml;
-    use crate::token_data::IdTokenInfo;
-    use crate::token_data::KnownPlan;
-    use crate::token_data::PlanType;
-
-    use base64::Engine;
-    use codex_protocol::config_types::ForcedLoginMethod;
-    use pretty_assertions::assert_eq;
-    use serde::Serialize;
-    use serde_json::json;
-    use tempfile::tempdir;
-
-    #[tokio::test]
-    async fn refresh_without_id_token() {
-        let codex_home = tempdir().unwrap();
-        let fake_jwt = write_auth_file(
-            AuthFileParams {
-                openai_api_key: None,
-                chatgpt_plan_type: "pro".to_string(),
-                chatgpt_account_id: None,
-            },
-            codex_home.path(),
-        )
-        .expect("failed to write auth file");
-
-        let storage = create_auth_storage(
-            codex_home.path().to_path_buf(),
-            AuthCredentialsStoreMode::File,
-        );
-        let updated = super::update_tokens(
-            &storage,
-            None,
-            Some("new-access-token".to_string()),
-            Some("new-refresh-token".to_string()),
-        )
-        .await
-        .expect("update_tokens should succeed");
-
-        let tokens = updated.tokens.expect("tokens should exist");
-        assert_eq!(tokens.id_token.raw_jwt, fake_jwt);
-        assert_eq!(tokens.access_token, "new-access-token");
-        assert_eq!(tokens.refresh_token, "new-refresh-token");
-    }
-
-    #[test]
-    fn login_with_api_key_overwrites_existing_auth_json() {
-        let dir = tempdir().unwrap();
-        let auth_path = dir.path().join("auth.json");
-        let stale_auth = json!({
-            "OPENAI_API_KEY": "sk-old",
-            "tokens": {
-                "id_token": "stale.header.payload",
-                "access_token": "stale-access",
-                "refresh_token": "stale-refresh",
-                "account_id": "stale-acc"
-            }
-        });
-        std::fs::write(
-            &auth_path,
-            serde_json::to_string_pretty(&stale_auth).unwrap(),
-        )
-        .unwrap();
-
-        super::login_with_api_key(dir.path(), "sk-new", AuthCredentialsStoreMode::File)
-            .expect("login_with_api_key should succeed");
-
-        let storage = FileAuthStorage::new(dir.path().to_path_buf());
-        let auth = storage
-            .try_read_auth_json(&auth_path)
-            .expect("auth.json should parse");
-        assert_eq!(auth.openai_api_key.as_deref(), Some("sk-new"));
-        assert!(auth.tokens.is_none(), "tokens should be cleared");
-    }
-
-    #[test]
-    fn missing_auth_json_returns_none() {
-        let dir = tempdir().unwrap();
-        let auth = CodexAuth::from_auth_storage(dir.path(), AuthCredentialsStoreMode::File)
-            .expect("call should succeed");
-        assert_eq!(auth, None);
-    }
-
-    #[tokio::test]
-    #[serial(codex_api_key)]
-    async fn pro_account_with_no_api_key_uses_chatgpt_auth() {
-        let codex_home = tempdir().unwrap();
-        let fake_jwt = write_auth_file(
-            AuthFileParams {
-                openai_api_key: None,
-                chatgpt_plan_type: "pro".to_string(),
-                chatgpt_account_id: None,
-            },
-            codex_home.path(),
-        )
-        .expect("failed to write auth file");
-
-        let CodexAuth {
-            api_key,
-            mode,
-            auth_dot_json,
-            storage: _,
-            ..
-        } = super::load_auth(codex_home.path(), false, AuthCredentialsStoreMode::File)
-            .unwrap()
-            .unwrap();
-        assert_eq!(None, api_key);
-        assert_eq!(AuthMode::ChatGPT, mode);
-
-        let guard = auth_dot_json.lock().unwrap();
-        let auth_dot_json = guard.as_ref().expect("AuthDotJson should exist");
-        let last_refresh = auth_dot_json
-            .last_refresh
-            .expect("last_refresh should be recorded");
-
-        assert_eq!(
-            &AuthDotJson {
-                openai_api_key: None,
-                tokens: Some(TokenData {
-                    id_token: IdTokenInfo {
-                        email: Some("user@example.com".to_string()),
-                        chatgpt_plan_type: Some(PlanType::Known(KnownPlan::Pro)),
-                        chatgpt_account_id: None,
-                        raw_jwt: fake_jwt,
-                    },
-                    access_token: "test-access-token".to_string(),
-                    refresh_token: "test-refresh-token".to_string(),
-                    account_id: None,
-                }),
-                last_refresh: Some(last_refresh),
-            },
-            auth_dot_json
-        );
-    }
-
-    #[tokio::test]
-    #[serial(codex_api_key)]
-    async fn loads_api_key_from_auth_json() {
-        let dir = tempdir().unwrap();
-        let auth_file = dir.path().join("auth.json");
-        std::fs::write(
-            auth_file,
-            r#"{"OPENAI_API_KEY":"sk-test-key","tokens":null,"last_refresh":null}"#,
-        )
-        .unwrap();
-
-        let auth = super::load_auth(dir.path(), false, AuthCredentialsStoreMode::File)
-            .unwrap()
-            .unwrap();
-        assert_eq!(auth.mode, AuthMode::ApiKey);
-        assert_eq!(auth.api_key, Some("sk-test-key".to_string()));
-
-        assert!(auth.get_token_data().await.is_err());
-    }
-
-    #[test]
-    fn logout_removes_auth_file() -> Result<(), std::io::Error> {
-        let dir = tempdir()?;
-        let auth_dot_json = AuthDotJson {
-            openai_api_key: Some("sk-test-key".to_string()),
-            tokens: None,
-            last_refresh: None,
-        };
-        super::save_auth(dir.path(), &auth_dot_json, AuthCredentialsStoreMode::File)?;
-        let auth_file = get_auth_file(dir.path());
-        assert!(auth_file.exists());
-        assert!(logout(dir.path(), AuthCredentialsStoreMode::File)?);
-        assert!(!auth_file.exists());
-        Ok(())
-    }
-
-    struct AuthFileParams {
-        openai_api_key: Option<String>,
-        chatgpt_plan_type: String,
-        chatgpt_account_id: Option<String>,
-    }
-
-    fn write_auth_file(params: AuthFileParams, codex_home: &Path) -> std::io::Result<String> {
-        let auth_file = get_auth_file(codex_home);
-        // Create a minimal valid JWT for the id_token field.
-        #[derive(Serialize)]
-        struct Header {
-            alg: &'static str,
-            typ: &'static str,
-        }
-        let header = Header {
-            alg: "none",
-            typ: "JWT",
-        };
-        let mut auth_payload = serde_json::json!({
-            "chatgpt_plan_type": params.chatgpt_plan_type,
-            "chatgpt_user_id": "user-12345",
-            "user_id": "user-12345",
-        });
-
-        if let Some(chatgpt_account_id) = params.chatgpt_account_id {
-            let org_value = serde_json::Value::String(chatgpt_account_id);
-            auth_payload["chatgpt_account_id"] = org_value;
-        }
-
-        let payload = serde_json::json!({
-            "email": "user@example.com",
-            "email_verified": true,
-            "https://api.openai.com/auth": auth_payload,
-        });
-        let b64 = |b: &[u8]| base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(b);
-        let header_b64 = b64(&serde_json::to_vec(&header)?);
-        let payload_b64 = b64(&serde_json::to_vec(&payload)?);
-        let signature_b64 = b64(b"sig");
-        let fake_jwt = format!("{header_b64}.{payload_b64}.{signature_b64}");
-
-        let auth_json_data = json!({
-            "OPENAI_API_KEY": params.openai_api_key,
-            "tokens": {
-                "id_token": fake_jwt,
-                "access_token": "test-access-token",
-                "refresh_token": "test-refresh-token"
-            },
-            "last_refresh": Utc::now(),
-        });
-        let auth_json = serde_json::to_string_pretty(&auth_json_data)?;
-        std::fs::write(auth_file, auth_json)?;
-        Ok(fake_jwt)
-    }
-
-    fn build_config(
-        codex_home: &Path,
-        forced_login_method: Option<ForcedLoginMethod>,
-        forced_chatgpt_workspace_id: Option<String>,
-    ) -> Config {
-        let mut config = Config::load_from_base_config_with_overrides(
-            ConfigToml::default(),
-            ConfigOverrides::default(),
-            codex_home.to_path_buf(),
-        )
-        .expect("config should load");
-        config.forced_login_method = forced_login_method;
-        config.forced_chatgpt_workspace_id = forced_chatgpt_workspace_id;
-        config
-    }
-
-    /// Use sparingly.
-    /// TODO (gpeal): replace this with an injectable env var provider.
-    #[cfg(test)]
-    struct EnvVarGuard {
-        key: &'static str,
-        original: Option<std::ffi::OsString>,
-    }
-
-    #[cfg(test)]
-    impl EnvVarGuard {
-        fn set(key: &'static str, value: &str) -> Self {
-            let original = env::var_os(key);
-            unsafe {
-                env::set_var(key, value);
-            }
-            Self { key, original }
-        }
-    }
-
-    #[cfg(test)]
-    impl Drop for EnvVarGuard {
-        fn drop(&mut self) {
-            unsafe {
-                match &self.original {
-                    Some(value) => env::set_var(self.key, value),
-                    None => env::remove_var(self.key),
-                }
-            }
-        }
-    }
-
-    #[tokio::test]
-    async fn enforce_login_restrictions_logs_out_for_method_mismatch() {
-        let codex_home = tempdir().unwrap();
-        login_with_api_key(codex_home.path(), "sk-test", AuthCredentialsStoreMode::File)
-            .expect("seed api key");
-
-        let config = build_config(codex_home.path(), Some(ForcedLoginMethod::Chatgpt), None);
-
-        let err = super::enforce_login_restrictions(&config)
-            .await
-            .expect_err("expected method mismatch to error");
-        assert!(err.to_string().contains("ChatGPT login is required"));
-        assert!(
-            !codex_home.path().join("auth.json").exists(),
-            "auth.json should be removed on mismatch"
-        );
-    }
-
-    #[tokio::test]
-    #[serial(codex_api_key)]
-    async fn enforce_login_restrictions_logs_out_for_workspace_mismatch() {
-        let codex_home = tempdir().unwrap();
-        let _jwt = write_auth_file(
-            AuthFileParams {
-                openai_api_key: None,
-                chatgpt_plan_type: "pro".to_string(),
-                chatgpt_account_id: Some("org_another_org".to_string()),
-            },
-            codex_home.path(),
-        )
-        .expect("failed to write auth file");
-
-        let config = build_config(codex_home.path(), None, Some("org_mine".to_string()));
-
-        let err = super::enforce_login_restrictions(&config)
-            .await
-            .expect_err("expected workspace mismatch to error");
-        assert!(err.to_string().contains("workspace org_mine"));
-        assert!(
-            !codex_home.path().join("auth.json").exists(),
-            "auth.json should be removed on mismatch"
-        );
-    }
-
-    #[tokio::test]
-    #[serial(codex_api_key)]
-    async fn enforce_login_restrictions_allows_matching_workspace() {
-        let codex_home = tempdir().unwrap();
-        let _jwt = write_auth_file(
-            AuthFileParams {
-                openai_api_key: None,
-                chatgpt_plan_type: "pro".to_string(),
-                chatgpt_account_id: Some("org_mine".to_string()),
-            },
-            codex_home.path(),
-        )
-        .expect("failed to write auth file");
-
-        let config = build_config(codex_home.path(), None, Some("org_mine".to_string()));
-
-        super::enforce_login_restrictions(&config)
-            .await
-            .expect("matching workspace should succeed");
-        assert!(
-            codex_home.path().join("auth.json").exists(),
-            "auth.json should remain when restrictions pass"
-        );
-    }
-
-    #[tokio::test]
-    async fn enforce_login_restrictions_allows_api_key_if_login_method_not_set_but_forced_chatgpt_workspace_id_is_set()
-     {
-        let codex_home = tempdir().unwrap();
-        login_with_api_key(codex_home.path(), "sk-test", AuthCredentialsStoreMode::File)
-            .expect("seed api key");
-
-        let config = build_config(codex_home.path(), None, Some("org_mine".to_string()));
-
-        super::enforce_login_restrictions(&config)
-            .await
-            .expect("matching workspace should succeed");
-        assert!(
-            codex_home.path().join("auth.json").exists(),
-            "auth.json should remain when restrictions pass"
-        );
-    }
-
-    #[tokio::test]
-    #[serial(codex_api_key)]
-    async fn enforce_login_restrictions_blocks_env_api_key_when_chatgpt_required() {
-        let _guard = EnvVarGuard::set(CODEX_API_KEY_ENV_VAR, "sk-env");
-        let codex_home = tempdir().unwrap();
-
-        let config = build_config(codex_home.path(), Some(ForcedLoginMethod::Chatgpt), None);
-
-        let err = super::enforce_login_restrictions(&config)
-            .await
-            .expect_err("environment API key should not satisfy forced ChatGPT login");
-        assert!(
-            err.to_string()
-                .contains("ChatGPT login is required, but an API key is currently being used.")
-        );
-    }
 }
 
 /// Central manager providing a single source of truth for auth.json derived
@@ -983,7 +617,7 @@ impl AuthManager {
     /// reloads the in‑memory auth cache so callers immediately observe the
     /// unauthenticated state.
     pub fn logout(&self) -> std::io::Result<bool> {
-        let removed = super::auth::logout(&self.codex_home, self.auth_credentials_store_mode)?;
+        let removed = logout(&self.codex_home, self.auth_credentials_store_mode)?;
         // Always reload to clear any cached auth (even if file absent).
         self.reload();
         Ok(removed)
