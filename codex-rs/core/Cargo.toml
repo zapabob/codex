@@ -52,6 +52,7 @@ dunce = { workspace = true }
 env-flags = { workspace = true }
 eventsource-stream = { workspace = true }
 futures = { workspace = true }
+hostname = "0.4"
 http = { workspace = true }
 indexmap = { workspace = true }
 keyring = { workspace = true, features = [

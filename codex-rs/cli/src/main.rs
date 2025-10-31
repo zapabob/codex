@@ -26,9 +26,11 @@ use supports_color::Stream;
 
 mod mcp_cmd;
 mod webhook_cmd;
+mod lock_cmd;
 
 use crate::mcp_cmd::McpCli;
 use crate::webhook_cmd::WebhookCli;
+use crate::lock_cmd::LockCli;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 use codex_core::features::is_known_feature_key;
@@ -139,6 +141,9 @@ enum Subcommand {
 
     /// [EXPERIMENTAL] Natural language agent invocation (e.g., "codex agent 'Review with security focus'")
     Agent(AgentCommand),
+
+    /// [EXPERIMENTAL] Manage repository locks
+    Lock(LockCli),
 
     /// Internal: run the responses API proxy.
     #[clap(hide = true)]
@@ -870,6 +875,16 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 root_config_overrides.clone(),
             );
             webhook_cmd::run(webhook_cli).await?;
+        }
+        Some(Subcommand::Lock(lock_cli)) => {
+            match lock_cli.command {
+                lock_cmd::LockCommand::Status(status_cmd) => {
+                    lock_cmd::run_lock_status(status_cmd)?;
+                }
+                lock_cmd::LockCommand::Remove(remove_cmd) => {
+                    lock_cmd::run_lock_remove(remove_cmd)?;
+                }
+            }
         }
         Some(Subcommand::Review(mut review_cmd)) => {
             prepend_config_flags(

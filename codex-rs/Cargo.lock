@@ -1340,6 +1340,7 @@ dependencies = [
  "eventsource-stream",
  "futures",
  "hkdf",
+ "hostname",
  "http",
  "image",
  "indexmap 2.10.0",
