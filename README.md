@@ -475,7 +475,7 @@ All development artifacts, test results, and legacy files are preserved in `.arc
    - **AgentError type system**: Granular error classification (NetworkError, TimeoutError, etc.)
    - **Exponential backoff**: 1s → 2s → 4s → 8s with jitter
    - **3x improved resilience**: Compared to simple retry mechanisms
-   - **Implementation**: `codex-rs/supervisor/src/error_handler.rs`
+   - **Implementation**: `codex-rs/core/src/orchestration/error_handler.rs`
 
 **7. 📖 Fully Open Source**
    - **All code public**: Complete source on GitHub (40+ Rust crates, full npm package)
@@ -884,7 +884,7 @@ Codex v0.52.0アーキテクチャは**10の主要レイヤー**と**90+のコ�
    - **AgentError型システム**: きめ細かいエラー分類(NetworkError、TimeoutErrorなど)
    - **指数バックオフ**: 1s → 2s → 4s → 8s (ジッター付き)
    - **3倍の耐障害性向上**: 単純なリトライ機構と比較
-   - **実装**: `codex-rs/supervisor/src/error_handler.rs`
+   - **実装**: `codex-rs/core/src/orchestration/error_handler.rs`
 
 **7. 📖 完全オープンソース**
    - **全コード公開**: GitHub上の完全なソース(40+ Rustクレート、完全npmパッケージ)
