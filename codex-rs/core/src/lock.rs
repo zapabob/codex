@@ -252,6 +252,8 @@ fn is_process_alive(pid: u32) -> bool {
     {
         // Signal 0 checks if process exists without sending actual signal
         // Returns 0 if process exists, -1 otherwise
+        // SAFETY: Calling libc::kill with signal 0 is a standard, no-op way to check if a process exists.
+        // It does not send a signal or affect the target process, and cannot cause undefined behavior.
         let result = unsafe { libc::kill(pid as i32, 0) };
         if result == 0 {
             true
