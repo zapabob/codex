@@ -10,7 +10,7 @@ use std::sync::{Arc, RwLock};
 
 /// Helper to convert lock poisoned errors
 fn lock_poisoned_err<T>(_: T) -> anyhow::Error {
-    anyhow!("Internal lock poisoned")
+    anyhow!("Token budget tracker lock is poisoned, indicating a panic occurred while holding the lock. This typically requires restarting the process.")
 }
 
 /// Token usage entry for an agent
