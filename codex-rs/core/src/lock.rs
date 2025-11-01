@@ -86,7 +86,7 @@ impl LockInfo {
             use nix::unistd::Pid;
             
             let pid = Pid::from_raw(self.pid as i32);
-            match kill(pid, Signal::SIGCONT) {
+            match kill(pid, Signal::from_c_int(0).unwrap()) {
                 Ok(_) => false, // Process exists
                 Err(_) => true, // Process doesn't exist
             }
