@@ -289,6 +289,7 @@ fn is_process_alive(pid: u32) -> bool {
 fn get_parent_pid() -> Option<u32> {
     #[cfg(unix)]
     {
+        // SAFETY: libc::getppid() has no preconditions and cannot fail, so it is safe to call.
         Some(unsafe { libc::getppid() as u32 })
     }
 
