@@ -63,24 +63,17 @@ export function useHotkeys(
       for (const shortcut of shortcutsRef.current) {
         const keyMatches =
           event.key.toLowerCase() === shortcut.key.toLowerCase();
-        const ctrlMatches = !shortcut.ctrl || event.ctrlKey;
-        const shiftMatches = !shortcut.shift || event.shiftKey;
-        const altMatches = !shortcut.alt || event.altKey;
-        const metaMatches = !shortcut.meta || event.metaKey;
-
-        // Check if Ctrl/Cmd is pressed when required
-        const modifierMatches =
-          (shortcut.ctrl && event.ctrlKey) ||
-          (shortcut.meta && event.metaKey) ||
-          (!shortcut.ctrl && !shortcut.meta);
+        const ctrlMatches = (!!shortcut.ctrl) === event.ctrlKey;
+        const shiftMatches = (!!shortcut.shift) === event.shiftKey;
+        const altMatches = (!!shortcut.alt) === event.altKey;
+        const metaMatches = (!!shortcut.meta) === event.metaKey;
 
         if (
           keyMatches &&
           ctrlMatches &&
           shiftMatches &&
           altMatches &&
-          metaMatches &&
-          modifierMatches
+          metaMatches
         ) {
           event.preventDefault();
           shortcut.action();
