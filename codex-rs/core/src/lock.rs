@@ -148,6 +148,7 @@ impl RepositoryLock {
             .and_then(|h| h.into_string().ok());
 
         #[cfg(unix)]
+        // SAFETY: libc::getuid() has no preconditions and cannot fail, so it is safe to call.
         let uid = Some(unsafe { libc::getuid() });
         
         #[cfg(not(unix))]
