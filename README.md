@@ -597,6 +597,6 @@ Apache-2.0 - 詳細は [LICENSE](LICENSE) を参照してください。
 
 [![GitHub](https://img.shields.io/badge/GitHub-zapabob%2Fcodex-blue?logo=github)](https://github.com/zapabob/codex)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/codex)
-[![Twitter](https://img.shields.io/badge/Twitter-%40zapabob-1DA1F2?logo=twitter&logoColor=white)](https://twitter.com/zapabob)
+[![Twitter](https://img.shields.io/badge/Twitter-%40zapabob-1DA1F2?logo=twitter&logoColor=white)](https://twitter.com/zapabob_ouj)
 
 </div>
