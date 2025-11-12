@@ -1,0 +1,15 @@
+﻿{
+    "mcpServers":  {
+                       "codex":  {
+                                     "args":  [
+                                                  "mcp-server"
+                                              ],
+                                     "env":  {
+
+                                             },
+                                     "command":  "codex",
+                                     "description":  "Codex Multi-Agent System with Deep Research, Sub-Agents, and Blueprint Mode",
+                                     "disabled":  false
+                                 }
+                   }
+}
