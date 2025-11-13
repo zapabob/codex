@@ -134,6 +134,62 @@ Codex CLIは豊富な設定オプションをサポートしており、設定�
 
 ---
 
+## Architecture Overview / アーキテクチャ概要
+
+### System Architecture Diagram / システムアーキテクチャ図
+
+<div align="center">
+
+![Codex Architecture](./architecture.svg)
+
+**SVG Version (for web/docs)** / **SVG版（Web/ドキュメント用）**
+
+</div>
+
+<div align="center">
+
+![Codex Architecture for Twitter](./architecture-twitter.png)
+
+**PNG Version for Twitter/X (1200x630)** / **Twitter/X用PNG版 (1200x630)**
+
+</div>
+
+<div align="center">
+
+![Codex Architecture for LinkedIn](./architecture-linkedin.png)
+
+**PNG Version for LinkedIn (1200x627)** / **LinkedIn用PNG版 (1200x627)**
+
+</div>
+
+### Architecture Layers / アーキテクチャレイヤー
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ VR/AR Layer: Quest 2/3/Pro, Vision Pro, SteamVR            │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ UI Layer: CLI, TUI, Tauri GUI, VSCode Extension           │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Application: Codex Core (Rust), Plan Orchestrator         │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ AI Layer: 8+ Sub-Agents, Deep Research, MCP (15+)         │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Integration: Kernel FFI, CUDA Runtime, WebXR              │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Kernel: Linux modules, Windows driver, eBPF                │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Hardware: CPU (16+ cores), GPU (CUDA 12), VR/AR HMD        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ### Docs & FAQ / ドキュメントとFAQ
 
 - [**Getting started**](./docs/getting-started.md) / [**はじめに**](./docs/getting-started.md)
@@ -212,6 +268,9 @@ This repository is licensed under the [Apache-2.0 License](LICENSE).
 
 **Extended Features / 拡張機能:**
 - zapabob/codex - Extended features and improvements
+  - Git History Cleanup Script
+  - Enhanced architecture documentation
+  - Repository priority management
 
 ---
 

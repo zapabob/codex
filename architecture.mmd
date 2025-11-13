@@ -1,0 +1,100 @@
+graph TB
+    subgraph "VR/AR Layer"
+        Quest2["Meta Quest 2<br/>WebXR, 90Hz"]
+        Quest3["Meta Quest 3<br/>Hand Tracking, Passthrough, 120Hz"]
+        QuestPro["Meta Quest Pro<br/>Eye/Face/Hand Tracking, 90Hz"]
+        VisionPro["Apple Vision Pro<br/>visionOS, Spatial Computing"]
+        SteamVR["SteamVR<br/>Virtual Desktop"]
+    end
+
+    subgraph "UI Layer"
+        CLI["CLI<br/>Terminal Interface"]
+        TUI["TUI<br/>3D ASCII Visualization"]
+        TauriGUI["Tauri GUI<br/>Three.js Interactive 3D"]
+        VSCodeExt["VS Code Extension<br/>IDE Integration"]
+    end
+
+    subgraph "Application Layer"
+        Core["Codex Core<br/>Rust Implementation"]
+        PlanOrch["Plan Orchestrator<br/>Blueprint→Plan Migration"]
+        Git4D["Git 4D Visualization<br/>xyz+time axis"]
+    end
+
+    subgraph "AI Layer"
+        SubAgents["8+ Sub-Agents<br/>Parallel Execution 2.6x"]
+        DeepResearch["Deep Research Engine<br/>15+ MCP Servers"]
+        MCP["MCP Integration<br/>Model Context Protocol"]
+    end
+
+    subgraph "Integration Layer"
+        KernelFFI["Kernel FFI<br/>Linux/Windows Modules"]
+        CUDARuntime["CUDA Runtime<br/>GPU Acceleration"]
+        WebXR["WebXR<br/>VR/AR Rendering"]
+    end
+
+    subgraph "Kernel Layer"
+        LinuxModules["Linux Kernel Modules<br/>AI Scheduler/Memory/GPU"]
+        WinDriver["Windows Driver<br/>WDM/KMDF, ETW"]
+        eBPF["eBPF Monitoring<br/>Real-time Metrics"]
+    end
+
+    subgraph "Hardware Layer"
+        CPU["CPU<br/>16+ Cores"]
+        GPU["GPU<br/>CUDA 12, RTX 3080+"]
+        VRHMD["VR/AR HMD<br/>Head-Mounted Display"]
+    end
+
+    %% VR/AR to UI
+    Quest2 --> TauriGUI
+    Quest3 --> TauriGUI
+    QuestPro --> TauriGUI
+    VisionPro --> TauriGUI
+    SteamVR --> TauriGUI
+
+    %% UI to Application
+    CLI --> Core
+    TUI --> Core
+    TauriGUI --> Core
+    TauriGUI --> Git4D
+    VSCodeExt --> Core
+
+    %% Application to AI
+    Core --> SubAgents
+    Core --> DeepResearch
+    Core --> PlanOrch
+    PlanOrch --> SubAgents
+    Git4D --> CUDARuntime
+
+    %% AI to Integration
+    SubAgents --> MCP
+    DeepResearch --> MCP
+
+    %% Integration to Kernel
+    CUDARuntime --> KernelFFI
+    KernelFFI --> LinuxModules
+    KernelFFI --> WinDriver
+    KernelFFI --> eBPF
+    WebXR --> TauriGUI
+
+    %% Kernel to Hardware
+    LinuxModules --> CPU
+    LinuxModules --> GPU
+    WinDriver --> CPU
+    WinDriver --> GPU
+    eBPF --> CPU
+    CUDARuntime --> GPU
+    WebXR --> VRHMD
+
+    style Quest2 fill:#00D4FF
+    style Quest3 fill:#00D4FF
+    style QuestPro fill:#00D4FF
+    style VisionPro fill:#555555
+    style SteamVR fill:#1B2838
+    style Core fill:#FF6B6B
+    style PlanOrch fill:#4ECDC4
+    style Git4D fill:#95E1D3
+    style SubAgents fill:#F38181
+    style DeepResearch fill:#AA96DA
+    style CUDARuntime fill:#76B900
+    style GPU fill:#76B900
+
