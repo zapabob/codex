@@ -1,0 +1,14 @@
+C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\deps\serde-3e82494c6c720e25.d: C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\build\serde-4974fa642475d48e\out/private.rs
+
+C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\deps\libserde-3e82494c6c720e25.rlib: C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\build\serde-4974fa642475d48e\out/private.rs
+
+C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\deps\libserde-3e82494c6c720e25.rmeta: C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\build\serde-4974fa642475d48e\out/private.rs
+
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\build\serde-4974fa642475d48e\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\downl\\Desktop\\codex\\extensions\\codex-viz-web\\backend\\target\\release\\build\\serde-4974fa642475d48e\\out

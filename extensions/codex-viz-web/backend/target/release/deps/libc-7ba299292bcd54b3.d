@@ -1,0 +1,11 @@
+C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\deps\libc-7ba299292bcd54b3.d: C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\lib.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\macros.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\new\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\primitives.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\windows\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\windows\msvc\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\types.rs
+
+C:\Users\downl\Desktop\codex\extensions\codex-viz-web\backend\target\release\deps\liblibc-7ba299292bcd54b3.rmeta: C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\lib.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\macros.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\new\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\primitives.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\windows\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\windows\msvc\mod.rs C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\types.rs
+
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\lib.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\macros.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\new\mod.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\primitives.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\windows\mod.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\windows\msvc\mod.rs:
+C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\libc-0.2.177\src\types.rs:
