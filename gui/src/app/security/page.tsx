@@ -149,7 +149,7 @@ export default function SecurityPage() {
 
   // Get findings from actual security scans
   const allFindings = state.securityScans.flatMap(scan => scan.findings || []);
-  
+
   const securityStats = {
     totalScans: state.securityScans.length,
     criticalVulnerabilities: allFindings.filter(f => f.severity === 'critical').length,

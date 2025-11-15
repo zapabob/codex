@@ -218,36 +218,36 @@ export class CodexAPIClient {
     } catch (error) {
       console.error('Failed to fetch agents from backend:', error);
       // Fallback to default agents if backend is unavailable
-      return [
-        {
-          id: 'code-reviewer',
-          name: 'Code Reviewer',
-          type: 'code-reviewer',
-          status: 'idle',
-          description: 'コードの品質とセキュリティをレビューします',
-        },
-        {
-          id: 'test-gen',
-          name: 'Test Generator',
-          type: 'test-gen',
-          status: 'idle',
-          description: '自動的にテストコードを生成します',
-        },
-        {
-          id: 'sec-audit',
-          name: 'Security Auditor',
-          type: 'sec-audit',
-          status: 'idle',
-          description: 'セキュリティ脆弱性をスキャンします',
-        },
-        {
-          id: 'researcher',
-          name: 'Deep Researcher',
-          type: 'researcher',
-          status: 'idle',
-          description: '高度な研究と分析を行います',
-        },
-      ];
+    return [
+      {
+        id: 'code-reviewer',
+        name: 'Code Reviewer',
+        type: 'code-reviewer',
+        status: 'idle',
+        description: 'コードの品質とセキュリティをレビューします',
+      },
+      {
+        id: 'test-gen',
+        name: 'Test Generator',
+        type: 'test-gen',
+        status: 'idle',
+        description: '自動的にテストコードを生成します',
+      },
+      {
+        id: 'sec-audit',
+        name: 'Security Auditor',
+        type: 'sec-audit',
+        status: 'idle',
+        description: 'セキュリティ脆弱性をスキャンします',
+      },
+      {
+        id: 'researcher',
+        name: 'Deep Researcher',
+        type: 'researcher',
+        status: 'idle',
+        description: '高度な研究と分析を行います',
+      },
+    ];
     }
   }
 
@@ -296,7 +296,7 @@ export class CodexAPIClient {
           response.status,
           errorData.message || `Failed to execute action: ${response.statusText}`
         );
-      }
+    }
 
       const result = await response.json() as {
         id: string;
@@ -338,7 +338,7 @@ export class CodexAPIClient {
           exitCode: result.exit_code,
           duration: result.duration_ms,
         };
-      }
+  }
     } catch (error) {
       if (error instanceof CodexAPIError) {
         throw error;

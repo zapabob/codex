@@ -62,7 +62,7 @@ jobs:
       # Install Codex CLI
       - name: Install Codex CLI
         run: |
-          pnpm add -g @openai/codex@${{ env.CODEX_CLI_VERSION }}
+          pnpm add -g @zapabob/codex@${{ env.CODEX_CLI_VERSION }}
 
       # Install Gemini CLI (for fallback)
       - name: Install Gemini CLI
@@ -142,7 +142,7 @@ jobs:
 
       - name: Install Codex CLI
         run: |
-          pnpm add -g @openai/codex@${{ env.CODEX_CLI_VERSION }}
+          pnpm add -g @zapabob/codex@${{ env.CODEX_CLI_VERSION }}
 
       - name: Security-focused Review
         env:
