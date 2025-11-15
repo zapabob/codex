@@ -18,7 +18,7 @@ export interface IconButtonProps extends Omit<MuiIconButtonProps, 'sx'> {
   sx?: SxProps<Theme>;
 }
 
-const MotionIconButton = motion(MuiIconButton);
+const MotionIconButton = motion.create(MuiIconButton);
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   (

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AppThemeProvider } from "@/components/templates/ThemeProvider";
@@ -21,7 +21,6 @@ export const metadata: Metadata = {
   description: "Modern AI assistant platform with advanced sub-agents, deep research, and security features",
   keywords: ["AI", "assistant", "codex", "machine learning", "automation"],
   authors: [{ name: "zapabob" }],
-  viewport: "width=device-width, initial-scale=1",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -42,6 +41,11 @@ export const metadata: Metadata = {
     title: "Codex GUI - AI Assistant Platform",
     description: "Modern AI assistant platform with advanced sub-agents, deep research, and security features",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
