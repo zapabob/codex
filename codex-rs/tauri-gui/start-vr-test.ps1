@@ -4,14 +4,14 @@
 Write-Host "🎮 Codex VRモード実機テスト起動スクリプト" -ForegroundColor Cyan
 Write-Host ""
 
-# PCのIPアドレス取得
-$ipAddresses = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
+# PCのIPアドレス取得（@()で配列にラップして単一オブジェクトでも配列として扱う）
+$ipAddresses = @(Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
     $_.InterfaceAlias -notlike '*Loopback*' -and 
     $_.IPAddress -notlike '169.254.*' -and
     $_.IPAddress -notlike '127.*'
-} | Select-Object IPAddress, InterfaceAlias
+} | Select-Object IPAddress, InterfaceAlias)
 
-if ($ipAddresses.Count -eq 0) {
+if ($null -eq $ipAddresses -or $ipAddresses.Count -eq 0) {
     Write-Host "❌ IPアドレスが見つかりません" -ForegroundColor Red
     exit 1
 }
