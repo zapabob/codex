@@ -25,8 +25,14 @@
 
 ### 🎉 What's New in v2.2.0 "Extended Features"
 
-**Release Date**: November 14, 2025  
-**Milestone**: zapabob/codex Extended Features Documentation & Architecture Update
+**Release Date**: November 15, 2025  
+**Milestone**: zapabob/codex Extended Features & npm Package Release
+
+**🎁 New in v2.2.0**:
+- ✅ **npm Package Published**: Available as `@zapabob/codex` on npm registry
+- ✅ **Cross-platform Binaries**: Pre-built binaries for 8 platforms (Windows/macOS/Linux x64/ARM64)
+- ✅ **One-command Installation**: `npm install -g @zapabob/codex`
+- ✅ **Automated Releases**: GitHub Actions CI/CD for automatic npm publishing
 
 ---
 
@@ -217,7 +223,7 @@ codex-gui
 - Heatmap visualization (commit frequency)
 - Dependency graph (node clustering)
 
-**🥽 VR/AR Support v2.1.0** - Complete Quest 3/Pro Integration
+**🥽 VR/AR Support v2.2.0** - Complete Quest 3/Pro Integration
 - **Meta Quest 2**: WebXR, Controller-optimized, 90Hz, Virtual Desktop
 - **Meta Quest 3**: ✅ Hand tracking, ✅ Color passthrough, ✅ Depth API, 120Hz
 - **Meta Quest Pro**: ✅ Eye tracking, ✅ Face tracking, ✅ Hand tracking, 90Hz
@@ -248,7 +254,7 @@ codex-gui
 - Contradiction detection
 - 45x faster with caching
 
-**🚀 CI/CD Pipeline v2.1.0** - Complete Automation
+**🚀 CI/CD Pipeline v2.2.0** - Complete Automation with npm Publishing
 - GitHub Actions workflows: Rust CI, Release CI, Security CI, Docs CI
 - Multi-platform builds: Windows, macOS, Linux (x64/ARM64)
 - Automated testing: Unit, Integration, E2E
@@ -259,15 +265,26 @@ codex-gui
 
 ### 📦 Installation
 
-#### Option 1: npm (Recommended)
+#### Option 1: npm (Recommended) ⭐
+
+**Available on npm**: [@zapabob/codex](https://www.npmjs.com/package/@zapabob/codex)
 
 ```bash
 # Install globally
 npm install -g @zapabob/codex
 
 # Verify installation
-codex --version  # codex-cli 2.1.0
+codex --version  # codex-cli 2.2.0
+
+# Update to latest version
+npm update -g @zapabob/codex
 ```
+
+**Features**:
+- ✅ Pre-built binaries for 8 platforms (Windows/macOS/Linux x64/ARM64)
+- ✅ Automatic platform detection
+- ✅ One-command installation
+- ✅ Automatic updates via npm
 
 #### Option 2: Cargo (From source)
 
@@ -643,7 +660,8 @@ just fix
 
 - **v2.0.0** (Nov 2025): Plan mode, Git 4D viz, VR basic (Quest 2) ✅
 - **v2.1.0** (Nov 2025): ✅ CI/CD complete, ✅ Quest 3/Pro full support, Enhanced VR/AR
-- **v2.2.0** (Mar 2026): GPU LLM inference, Cost dashboard, Vision Pro complete, SteamVR
+- **v2.2.0** (Nov 2025): ✅ npm package published (`@zapabob/codex`), ✅ Automated releases, Cross-platform binaries
+- **v2.3.0** (Mar 2026): GPU LLM inference, Cost dashboard, Vision Pro complete, SteamVR
 - **v2.3.0** (Jun 2026): Agent learning, Distributed orchestration
 - **v3.0.0** (2026): Full distributed P2P agents, Quantum computing
 
@@ -664,10 +682,16 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 <a name="japanese"></a>
 ## 📖 日本語
 
-### 🎉 v2.1.0 "Enhanced Vision" の新機能
+### 🎉 v2.2.0 "Extended Features" の新機能
 
-**リリース日**: 2025年11月9日  
-**マイルストーン**: Quest 3/Pro完全対応 & CI/CD統合
+**リリース日**: 2025年11月15日  
+**マイルストーン**: npmパッケージ公開 & 自動リリース対応
+
+**🎁 v2.2.0の新機能**:
+- ✅ **npmパッケージ公開**: `@zapabob/codex`としてnpmレジストリで利用可能
+- ✅ **クロスプラットフォームバイナリ**: 8プラットフォーム対応（Windows/macOS/Linux x64/ARM64）
+- ✅ **ワンコマンドインストール**: `npm install -g @zapabob/codex`
+- ✅ **自動リリース**: GitHub Actions CI/CDによる自動npm公開
 
 #### 🌟 革命的機能
 
@@ -685,7 +709,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 - ヒートマップ可視化（コミット頻度）
 - 依存関係グラフ（ノードクラスタリング）
 
-**🥽 VR/AR対応 v2.1.0** - Quest 3/Pro完全統合
+**🥽 VR/AR対応 v2.2.0** - Quest 3/Pro完全統合
 - **Meta Quest 2**: WebXR、コントローラー最適化、90Hz、Virtual Desktop
 - **Meta Quest 3**: ✅ ハンドトラッキング、✅ カラーパススルー、✅ Depth API、120Hz
 - **Meta Quest Pro**: ✅ アイトラッキング、✅ フェイストラッキング、✅ ハンドトラッキング、90Hz
@@ -716,7 +740,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 - 矛盾検出
 - キャッシュで45倍高速化
 
-**🚀 CI/CDパイプライン v2.1.0** - 完全自動化
+**🚀 CI/CDパイプライン v2.2.0** - npm公開を含む完全自動化
 - GitHub Actionsワークフロー: Rust CI、Release CI、Security CI、Docs CI
 - マルチプラットフォームビルド: Windows、macOS、Linux (x64/ARM64)
 - 自動テスト: Unit、Integration、E2E
@@ -727,18 +751,29 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 
 ### 📦 インストール方法
 
-#### オプション1: npm（推奨）
+#### オプション1: npm（推奨）⭐
+
+**npmで利用可能**: [@zapabob/codex](https://www.npmjs.com/package/@zapabob/codex)
 
 ```bash
 # グローバルインストール
 npm install -g @zapabob/codex
 
 # インストール確認
-codex --version  # codex-cli 2.1.0
+codex --version  # codex-cli 2.2.0
+
+# 最新版に更新
+npm update -g @zapabob/codex
 
 # 初期設定
 codex login  # API key設定
 ```
+
+**特徴**:
+- ✅ 8プラットフォーム対応のプリビルドバイナリ（Windows/macOS/Linux x64/ARM64）
+- ✅ 自動プラットフォーム検出
+- ✅ ワンコマンドインストール
+- ✅ npm経由での自動更新
 
 **システム要件**:
 - Node.js 18+ (npm使用時)
@@ -1042,6 +1077,18 @@ npm run dev
 
 ### 📅 変更履歴（時系列）
 
+#### v2.2.0 (2025-11-15) - "Extended Features"
+
+**🎁 Major Changes**:
+- **npm Package Published**: Available as `@zapabob/codex` on npm registry
+- **Automated Releases**: GitHub Actions CI/CD for automatic npm publishing
+- **Cross-platform Binaries**: Pre-built binaries for 8 platforms
+- **One-command Installation**: `npm install -g @zapabob/codex`
+
+**Breaking Changes**: None
+
+**詳細**: [実装ログ](_docs/2025-11-15_npmパッケージ化@zapabob-codex.md)
+
 #### v2.0.0 (2025-11-06) - "Quantum Leap"
 
 **🎯 Major Changes**:
@@ -1100,21 +1147,21 @@ npm run dev
 
 **v2.0.0必須**:
 1. ✅ Plan mode完全移行
-2. 🔄 Git 4D可視化（実装中）
-3. 🔄 VR基本対応（Quest 2）
-4. 🔄 npmパッケージ化
+2. ✅ Git 4D可視化
+3. ✅ VR基本対応（Quest 2）
+4. ✅ npmパッケージ化
 
 **v2.1.0目標**:
 1. ✅ CI/CD完全構築
 2. ✅ Quest 3/Pro完全対応
-3. GPU LLM推論（TensorRT/vLLM） → v2.2.0で対応
-4. テストカバレッジ80% → 進行中
+3. 🔄 GPU LLM推論（TensorRT/vLLM） → v2.3.0で対応
+4. 🔄 テストカバレッジ80% → 進行中
 
-**v2.1.0で達成**:
-- ✅ CI/CDパイプライン完全構築 → GitHub Actions統合完了
-- ✅ Quest 3/Pro完全対応 → Hand tracking、Passthrough、Eye tracking実装
-- 🔄 テストカバレッジ → 継続的に改善中
-- 🔄 Vision Pro対応 → v2.2.0で完成予定
+**v2.2.0で達成**:
+- ✅ npmパッケージ公開 → `@zapabob/codex`としてnpmレジストリで利用可能
+- ✅ 自動リリース → GitHub Actionsによる自動ビルド・公開
+- ✅ クロスプラットフォーム対応 → 8プラットフォームのバイナリ配布
+- ✅ ワンコマンドインストール → `npm install -g @zapabob/codex`
 
 ---
 
