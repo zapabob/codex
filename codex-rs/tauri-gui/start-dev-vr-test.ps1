@@ -86,6 +86,18 @@ if (-not (Test-Path "node_modules")) {
     }
 }
 
+# ファイアウォール設定
+Write-Host ""
+Write-Host "🔍 ファイアウォール設定確認中..." -ForegroundColor Yellow
+$firewallRule = Get-NetFirewallRule -DisplayName "Next.js Dev Server (Port 3000)" -ErrorAction SilentlyContinue
+if (-not $firewallRule) {
+    Write-Host "📝 ファイアウォールルールを作成します..." -ForegroundColor Yellow
+    New-NetFirewallRule -DisplayName "Next.js Dev Server (Port 3000)" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow -ErrorAction SilentlyContinue | Out-Null
+    Write-Host "✅ ファイアウォールルールを作成しました" -ForegroundColor Green
+} else {
+    Write-Host "✅ ファイアウォールルールが存在します" -ForegroundColor Green
+}
+
 # 開発サーバー起動
 Write-Host ""
 Write-Host "🚀 開発サーバー起動中..." -ForegroundColor Cyan
@@ -94,7 +106,8 @@ Write-Host "📱 Questでの操作手順:" -ForegroundColor Yellow
 Write-Host "   1. QuestでVirtual Desktopアプリを起動" -ForegroundColor White
 Write-Host "   2. PCのデスクトップが表示されることを確認" -ForegroundColor White
 Write-Host "   3. Quest内のブラウザで以下のURLにアクセス:" -ForegroundColor White
-Write-Host "      http://$localIP:3000" -ForegroundColor Cyan
+Write-Host "      ⚠️  localhost:3000 は使用できません！" -ForegroundColor Red
+Write-Host "      ✅ http://$localIP:3000" -ForegroundColor Green
 Write-Host "   4. 「🎮 Git VR/AR」ページに移動" -ForegroundColor White
 Write-Host "   5. リポジトリを選択して「Enter VR」ボタンをクリック" -ForegroundColor White
 Write-Host ""
@@ -104,8 +117,8 @@ Write-Host "   - VR Bitrateを100-150 Mbpsに設定" -ForegroundColor White
 Write-Host "   - 5GHz Wi-Fiを使用（低レイテンシのため）" -ForegroundColor White
 Write-Host ""
 Write-Host "🌐 開発サーバーURL:" -ForegroundColor Green
-Write-Host "   http://localhost:3000" -ForegroundColor Cyan
-Write-Host "   http://$localIP:3000" -ForegroundColor Cyan
+Write-Host "   PCから: http://localhost:3000" -ForegroundColor Cyan
+Write-Host "   Questから: http://$localIP:3000" -ForegroundColor Green
 Write-Host ""
 Write-Host "⚠️  サーバーを停止するには Ctrl+C を押してください" -ForegroundColor Yellow
 Write-Host ""
