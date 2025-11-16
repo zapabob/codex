@@ -103,5 +103,5 @@ cargo build --release -p codex-cli
 - [x] 
 - [x] 
 - [x] 
-- [ ] 高速差分ビルド（opentelemetry-otlpのreqwest featureを削除してaws-lc-sys依存を完全排除）
+- [ ] 高速差分ビルド（reqwestのfeature名をrustls-tlsに修正完了）
 - [ ] 
