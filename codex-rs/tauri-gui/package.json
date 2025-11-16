@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@babylonjs/core": "^7.0.0",
-    "@babylonjs/loaders": "^7.0.0",
     "@babylonjs/gui": "^7.0.0",
+    "@babylonjs/loaders": "^7.0.0",
     "@babylonjs/materials": "^7.0.0",
     "@babylonjs/post-processes": "^7.0.0",
     "@mediapipe/hands": "^0.4.1646424915",
@@ -37,10 +37,22 @@
   "devDependencies": {
     "@babylonjs/inspector": "^7.0.0",
     "@tauri-apps/cli": "^2.0.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
     "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/coverage-v8": "^4.0.9",
+    "@vitest/ui": "^4.0.9",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "jsdom": "^27.2.0",
     "typescript": "^5.6.2",
-    "vite": "^5.4.6"
+    "vite": "^5.4.6",
+    "vitest": "^4.0.9"
   }
 }
