@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![Codex v2.2.0](./architecture-v2.2.0.svg)
+![Codex v2.3.0](./architecture-v2.3.0.svg)
 
-**v2.2.0 "Extended Features" - The World's First AI-Native Operating System**
+**v2.3.0 "Security & Integration" - The World's First AI-Native Operating System**
 
-[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -23,16 +23,16 @@
 <a name="english"></a>
 ## 📖 English
 
-### 🎉 What's New in v2.2.0 "Extended Features"
+### 🎉 What's New in v2.3.0 "Security & Integration"
 
-**Release Date**: November 15, 2025  
-**Milestone**: zapabob/codex Extended Features & npm Package Release
+**Release Date**: January 27, 2025  
+**Milestone**: Security Features & Enhanced Integration
 
-**🎁 New in v2.2.0**:
-- ✅ **npm Package Published**: Available as `@zapabob/codex` on npm registry
-- ✅ **Cross-platform Binaries**: Pre-built binaries for 8 platforms (Windows/macOS/Linux x64/ARM64)
-- ✅ **One-command Installation**: `npm install -g @zapabob/codex`
-- ✅ **Automated Releases**: GitHub Actions CI/CD for automatic npm publishing
+**🎁 New in v2.3.0**:
+- ✅ **Security Features**: Malware detection, password management, real-time monitoring
+- ✅ **Enhanced Integration Tests**: GUI integration tests, E2E test coverage improvements
+- ✅ **CI/CD Pipeline Updates**: Security scanning, automated testing enhancements
+- ✅ **Architecture Updates**: New security layer in architecture diagram
 
 ---
 
@@ -44,7 +44,7 @@ This section highlights the unique features and enhancements added by [@zapabob]
 
 ### 🤖 Sub-Agent System / サブエージェントシステム
 
-**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.2.0)
+**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.3.0)
 
 **English**: A powerful multi-agent orchestration system that enables parallel execution of specialized AI agents. Supports 8+ predefined agents (code-reviewer, test-gen, sec-audit, deep-researcher) and custom YAML-defined agents. Achieves 2.6x speedup through parallel execution.
 
@@ -73,7 +73,7 @@ codex delegate-parallel code-reviewer,test-gen --scopes ./src,./tests
 
 ### 🔍 Deep Research Engine / Deep Researchエンジン
 
-**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.2.0)
+**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.3.0)
 
 **English**: Multi-source research engine with citation management and contradiction detection. Integrates 15+ MCP servers and achieves 45x speedup with intelligent caching.
 
@@ -98,7 +98,7 @@ codex research "Rust async best practices" --depth 3 --strategy comprehensive
 
 ### 🌌 4D Git Visualization / 4次元Git可視化
 
-**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.2.0)
+**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.3.0)
 
 **English**: Revolutionary 4-dimensional Git repository visualization (xyz + time axis) that surpasses Kamui4D. CUDA-accelerated analysis processes 100,000+ commits in 0.05 seconds. Supports real-time playback, heatmap visualization, and dependency graph clustering.
 
@@ -139,7 +139,7 @@ codex-gui
 
 ### ⚡ CUDA Runtime / CUDAランタイム
 
-**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.2.0)
+**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.3.0)
 
 **English**: GPU acceleration layer using Rust-CUDA (cust 0.3.2) for high-performance computing. Achieves 100x speedup for Git analysis and real-time 120fps 3D rendering.
 
@@ -161,7 +161,7 @@ codex-gui
 
 ### 🔧 Windows 11 25H2 AI Integration / Windows 11 25H2 AI統合
 
-**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.2.0)
+**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.3.0)
 
 **English**: Deep integration with Windows 11 25H2 AI APIs, including DirectML optimization, kernel driver integration, and hybrid acceleration mode (Windows AI × CUDA).
 
@@ -184,7 +184,7 @@ codex-gui
 
 ### 🎯 Plan Mode / プランモード
 
-**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.2.0)
+**Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.3.0)
 
 **English**: Advanced planning and execution system with multiple execution strategies (Single, Orchestrated, Competition), budget management, and state persistence.
 
@@ -223,7 +223,7 @@ codex-gui
 - Heatmap visualization (commit frequency)
 - Dependency graph (node clustering)
 
-**🥽 VR/AR Support v2.2.0** - Complete Quest 3/Pro Integration
+**🥽 VR/AR Support v2.3.0** - Complete Quest 3/Pro Integration
 - **Meta Quest 2**: WebXR, Controller-optimized, 90Hz, Virtual Desktop
 - **Meta Quest 3**: ✅ Hand tracking, ✅ Color passthrough, ✅ Depth API, 120Hz
 - **Meta Quest Pro**: ✅ Eye tracking, ✅ Face tracking, ✅ Hand tracking, 90Hz
@@ -239,7 +239,7 @@ codex-gui
 **⚡ CUDA Runtime** - GPU acceleration everywhere
 - Git analysis: 100x faster
 - 3D rendering: Real-time 120fps
-- LLM inference: (Roadmap for v2.2.0)
+- LLM inference: (Roadmap for v2.3.0)
 - Multi-GPU support: (Roadmap)
 
 **🤖 Enhanced Sub-Agent System** - 8+ specialized agents
@@ -254,7 +254,7 @@ codex-gui
 - Contradiction detection
 - 45x faster with caching
 
-**🚀 CI/CD Pipeline v2.2.0** - Complete Automation with npm Publishing
+**🚀 CI/CD Pipeline v2.3.0** - Complete Automation with npm Publishing
 - GitHub Actions workflows: Rust CI, Release CI, Security CI, Docs CI
 - Multi-platform builds: Windows, macOS, Linux (x64/ARM64)
 - Automated testing: Unit, Integration, E2E
@@ -274,7 +274,7 @@ codex-gui
 npm install -g @zapabob/codex
 
 # Verify installation
-codex --version  # codex-cli 2.2.0
+codex --version  # codex-cli 2.3.0
 
 # Update to latest version
 npm update -g @zapabob/codex
@@ -492,7 +492,7 @@ npm run dev
 
 ### 🏗️ Architecture Overview
 
-![Codex v2.2.0 Architecture](./architecture-v2.2.0.svg)
+![Codex v2.3.0 Architecture](./architecture-v2.3.0.svg)
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -661,6 +661,7 @@ just fix
 - **v2.0.0** (Nov 2025): Plan mode, Git 4D viz, VR basic (Quest 2) ✅
 - **v2.1.0** (Nov 2025): ✅ CI/CD complete, ✅ Quest 3/Pro full support, Enhanced VR/AR
 - **v2.2.0** (Nov 2025): ✅ npm package published (`@zapabob/codex`), ✅ Automated releases, Cross-platform binaries
+- **v2.3.0** (Jan 2025): ✅ Security features (malware detection, password management), ✅ Enhanced integration tests, ✅ GUI improvements
 - **v2.3.0** (Mar 2026): GPU LLM inference, Cost dashboard, Vision Pro complete, SteamVR
 - **v2.3.0** (Jun 2026): Agent learning, Distributed orchestration
 - **v3.0.0** (2026): Full distributed P2P agents, Quantum computing
@@ -682,16 +683,16 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 <a name="japanese"></a>
 ## 📖 日本語
 
-### 🎉 v2.2.0 "Extended Features" の新機能
+### 🎉 v2.3.0 "Security & Integration" の新機能
 
-**リリース日**: 2025年11月15日  
-**マイルストーン**: npmパッケージ公開 & 自動リリース対応
+**リリース日**: 2025年1月27日  
+**マイルストーン**: セキュリティ機能 & 統合テスト強化
 
-**🎁 v2.2.0の新機能**:
-- ✅ **npmパッケージ公開**: `@zapabob/codex`としてnpmレジストリで利用可能
-- ✅ **クロスプラットフォームバイナリ**: 8プラットフォーム対応（Windows/macOS/Linux x64/ARM64）
-- ✅ **ワンコマンドインストール**: `npm install -g @zapabob/codex`
-- ✅ **自動リリース**: GitHub Actions CI/CDによる自動npm公開
+**🎁 v2.3.0の新機能**:
+- ✅ **セキュリティ機能**: マルウェア検知、パスワード管理、リアルタイム監視
+- ✅ **統合テスト強化**: GUI統合テスト、E2Eテストカバレッジ向上
+- ✅ **CI/CDパイプライン更新**: セキュリティスキャン、自動テスト強化
+- ✅ **アーキテクチャ更新**: セキュリティレイヤーを追加したアーキテクチャ図
 
 #### 🌟 革命的機能
 
@@ -709,7 +710,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 - ヒートマップ可視化（コミット頻度）
 - 依存関係グラフ（ノードクラスタリング）
 
-**🥽 VR/AR対応 v2.2.0** - Quest 3/Pro完全統合
+**🥽 VR/AR対応 v2.3.0** - Quest 3/Pro完全統合
 - **Meta Quest 2**: WebXR、コントローラー最適化、90Hz、Virtual Desktop
 - **Meta Quest 3**: ✅ ハンドトラッキング、✅ カラーパススルー、✅ Depth API、120Hz
 - **Meta Quest Pro**: ✅ アイトラッキング、✅ フェイストラッキング、✅ ハンドトラッキング、90Hz
@@ -725,7 +726,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 **⚡ CUDAランタイム** - あらゆる場面でGPU加速
 - Git解析: 100倍高速化
 - 3D描画: リアルタイム120fps
-- LLM推論: (v2.2.0で実装予定)
+- LLM推論: (v2.3.0で実装予定)
 - マルチGPU: (ロードマップ)
 
 **🤖 強化されたサブエージェントシステム** - 8種類以上の専門エージェント
@@ -740,7 +741,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 - 矛盾検出
 - キャッシュで45倍高速化
 
-**🚀 CI/CDパイプライン v2.2.0** - npm公開を含む完全自動化
+**🚀 CI/CDパイプライン v2.3.0** - npm公開を含む完全自動化
 - GitHub Actionsワークフロー: Rust CI、Release CI、Security CI、Docs CI
 - マルチプラットフォームビルド: Windows、macOS、Linux (x64/ARM64)
 - 自動テスト: Unit、Integration、E2E
@@ -760,7 +761,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 npm install -g @zapabob/codex
 
 # インストール確認
-codex --version  # codex-cli 2.2.0
+codex --version  # codex-cli 2.3.0
 
 # 最新版に更新
 npm update -g @zapabob/codex
@@ -1077,6 +1078,18 @@ npm run dev
 
 ### 📅 変更履歴（時系列）
 
+#### v2.3.0 (2025-01-27) - "Security & Integration"
+
+**🎁 Major Changes**:
+- **Security Features**: Malware detection, password management, real-time monitoring
+- **Enhanced Integration Tests**: GUI integration tests, E2E test coverage
+- **CI/CD Pipeline Updates**: Security scanning, automated testing
+- **Architecture Diagram**: Updated to v2.3.0 with security layer
+
+**Breaking Changes**: None
+
+**詳細**: [実装ログ](_docs/2025-01-27_バージョンアップとビルドインストール.md)
+
 #### v2.2.0 (2025-11-15) - "Extended Features"
 
 **🎁 Major Changes**:
@@ -1156,6 +1169,11 @@ npm run dev
 2. ✅ Quest 3/Pro完全対応
 3. 🔄 GPU LLM推論（TensorRT/vLLM） → v2.3.0で対応
 4. 🔄 テストカバレッジ80% → 進行中
+
+**v2.3.0で達成**:
+- ✅ セキュリティ機能 → マルウェア検知、パスワード管理、リアルタイム監視
+- ✅ 統合テスト強化 → GUI統合テスト、E2Eテストカバレッジ向上
+- ✅ CI/CDパイプライン更新 → セキュリティスキャン、自動テスト
 
 **v2.2.0で達成**:
 - ✅ npmパッケージ公開 → `@zapabob/codex`としてnpmレジストリで利用可能

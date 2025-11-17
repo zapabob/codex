@@ -1,0 +1,132 @@
+graph TB
+    subgraph "User Space"
+        subgraph "Frontend Layer"
+            WebUI["🌐 Web UI<br/>React + Three.js<br/>3D/4D Visualization"]
+            DesktopUI["🖥️ Desktop Client<br/>Electron<br/>System Tray"]
+            VSCodeExt["📝 VSCode Extension<br/>Plan Mode<br/>Orchestrator Dashboard"]
+            TauriGUI["🎨 Tauri GUI<br/>v2.3.0<br/>VR/AR Support"]
+        end
+        
+        subgraph "Application Layer"
+            CodexCore["🤖 Codex Core<br/>Rust v2.3.0<br/>AI Assistant"]
+            VizBackend["📊 Viz Backend<br/>axum + git2<br/>REST API"]
+            OrchestratorRPC["🎯 Orchestrator RPC<br/>16 Methods<br/>HMAC-SHA256"]
+            SecurityLayer["🔐 Security Layer<br/>Malware Detection<br/>Password Management<br/>Real-time Monitoring"]
+        end
+        
+        subgraph "AI/ML Layer"
+            SubAgents["🤝 Sub-Agents<br/>Code Review<br/>Test Gen<br/>Security Audit"]
+            DeepResearch["🔍 Deep Research<br/>15+ MCP Servers<br/>Zero-cost Search"]
+            MLModels["🧠 ML Models<br/>ONNX/TensorRT<br/>GPU Accelerated"]
+        end
+        
+        subgraph "Integration Layer"
+            ProtocolClient["📡 Protocol Client<br/>TypeScript SDK<br/>React Hooks"]
+            KernelIntegration["🔗 Kernel Integration<br/>Rust FFI<br/>/proc Parser"]
+            WindowsAPI["🪟 Windows API<br/>DeviceIoControl<br/>ETW Tracing"]
+        end
+        
+        subgraph "Testing Layer"
+            UnitTests["🧪 Unit Tests<br/>Rust + TypeScript<br/>80%+ Coverage"]
+            IntegrationTests["🔗 Integration Tests<br/>E2E Flows<br/>GUI Tests"]
+            SecurityTests["🛡️ Security Tests<br/>Vulnerability Scanning<br/>Penetration Testing"]
+        end
+    end
+    
+    subgraph "Kernel Space"
+        subgraph "Linux Kernel Modules"
+            AIScheduler["⚡ AI Scheduler<br/>GPU-aware<br/>Priority Boost"]
+            AIMem["💾 AI Memory<br/>256MB Pinned<br/>Zero-copy"]
+            AIGPU["🎮 AI GPU<br/>DMA Direct<br/>CUDA/ROCm"]
+        end
+        
+        subgraph "Windows Kernel Driver"
+            WinDriver["🪟 AI Driver<br/>WDM/KMDF<br/>Non-paged Pool"]
+            ETWProvider["📊 ETW Provider<br/>Event Manifest<br/>Performance Trace"]
+        end
+        
+        subgraph "eBPF Tracing"
+            GPUTracer["📈 GPU Tracer<br/>CUDA Hook<br/>Latency Hist"]
+            PerfMonitor["⏱️ Perf Monitor<br/>Real-time Stats<br/>BCC/bpftrace"]
+        end
+    end
+    
+    subgraph "CI/CD Pipeline"
+        GitHubActions["⚙️ GitHub Actions<br/>Automated Builds<br/>Multi-platform"]
+        SecurityScan["🔒 Security Scan<br/>cargo-audit<br/>CVE Detection"]
+        NPMRelease["📦 npm Release<br/>@zapabob/codex<br/>Auto-publish"]
+        BinaryRelease["📥 Binary Release<br/>8 Platforms<br/>GitHub Releases"]
+    end
+    
+    subgraph "Hardware Layer"
+        CPU["💻 CPU<br/>x86_64/ARM64<br/>16+ cores"]
+        GPU["🎮 GPU<br/>RTX 3080<br/>CUDA 12"]
+        Memory["🧠 Memory<br/>DDR4/DDR5<br/>64GB+"]
+        Storage["💿 Storage<br/>NVMe SSD<br/>PCIe 4.0"]
+    end
+    
+    WebUI --> VizBackend
+    DesktopUI --> VizBackend
+    VSCodeExt --> OrchestratorRPC
+    TauriGUI --> CodexCore
+    
+    CodexCore --> SubAgents
+    CodexCore --> DeepResearch
+    CodexCore --> MLModels
+    CodexCore --> OrchestratorRPC
+    CodexCore --> SecurityLayer
+    
+    VizBackend --> KernelIntegration
+    ProtocolClient --> OrchestratorRPC
+    SecurityLayer --> KernelIntegration
+    SecurityLayer --> WindowsAPI
+    
+    KernelIntegration -.->|/proc| AIScheduler
+    KernelIntegration -.->|/proc| AIMem
+    KernelIntegration -.->|/proc| AIGPU
+    
+    WindowsAPI -.->|IOCTL| WinDriver
+    WindowsAPI -.->|logman| ETWProvider
+    
+    MLModels --> AIScheduler
+    MLModels --> AIMem
+    MLModels --> AIGPU
+    
+    AIScheduler --> CPU
+    AIScheduler --> GPU
+    AIMem --> Memory
+    AIGPU --> GPU
+    
+    WinDriver --> CPU
+    WinDriver --> GPU
+    
+    GPUTracer -.->|trace| GPU
+    PerfMonitor -.->|monitor| CPU
+    
+    GitHubActions --> SecurityScan
+    GitHubActions --> NPMRelease
+    GitHubActions --> BinaryRelease
+    SecurityScan --> SecurityLayer
+    
+    UnitTests --> CodexCore
+    IntegrationTests --> CodexCore
+    IntegrationTests --> TauriGUI
+    SecurityTests --> SecurityLayer
+    
+    style CodexCore fill:#38bdf8
+    style WebUI fill:#22c55e
+    style SecurityLayer fill:#ef4444
+    style AIScheduler fill:#ef4444
+    style AIGPU fill:#f59e0b
+    style GPU fill:#8b5cf6
+    style GitHubActions fill:#10b981
+    style SecurityScan fill:#f59e0b
+
+
+
+
+
+
+
+
+
