@@ -9,7 +9,7 @@ workspace = true
 [dependencies]
 anyhow = { workspace = true }
 thiserror = { workspace = true }
-tiktoken-rs = "0.7"
+tiktoken-rs = "0.9"
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
