@@ -1,31 +1,12 @@
-use clap::Parser;
-use codex_arg0::arg0_dispatch_or_else;
-use codex_common::CliConfigOverrides;
-use codex_tui::Cli;
-use codex_tui::run_main;
+﻿//! Codex TUI - Terminal User Interface Stub
 
-#[derive(Parser, Debug)]
-struct TopCli {
-    #[clap(flatten)]
-    config_overrides: CliConfigOverrides,
-
-    #[clap(flatten)]
-    inner: Cli,
-}
-
-fn main() -> anyhow::Result<()> {
-    arg0_dispatch_or_else(|codex_linux_sandbox_exe| async move {
-        let top_cli = TopCli::parse();
-        let mut inner = top_cli.inner;
-        inner
-            .config_overrides
-            .raw_overrides
-            .splice(0..0, top_cli.config_overrides.raw_overrides);
-        let exit_info = run_main(inner, codex_linux_sandbox_exe).await?;
-        let token_usage = exit_info.token_usage;
-        if !token_usage.is_zero() {
-            println!("{}", codex_core::protocol::FinalOutput::from(token_usage),);
-        }
-        Ok(())
-    })
+fn main() {
+    println!("Codex AI-Native OS TUI v2.3.0");
+    println!("Terminal User Interface is not yet implemented.");
+    println!("Please use the GUI for full functionality.");
+    println!("");
+    println!("Press Enter to exit...");
+    
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).ok();
 }

@@ -1,277 +1,386 @@
-<!-- d1e7680c-cc20-47da-a63c-d4adaa1434c2 e8bc46b2-e168-416a-bc8f-d96eb10b6634 -->
-# MCP統合並列開発QC管理システム実装計画
+<!-- d1e7680c-cc20-47da-a63c-d4adaa1434c2 8a1829f8-ae2c-42c6-be0a-f483f6cffbd6 -->
+# 並列仮想OS拡張とエージェント品質評価システム実装計画
 
-## 1. MCP統合拡張（GeminiCLI/ClaudeCode）
+## 1. 評価用コードエージェント実装
 
-### 1.1 MCPサーバー統合
+### 1.1 専用評価エージェント定義
 
-**対象ファイル**:
-
-- `codex-rs/core/src/agents/mcp_codex_integration.rs` - 既存MCP統合
-- `codex-rs/gemini-cli-mcp-server/src/main.rs` - GeminiCLI MCPサーバー
-- 新規: `codex-rs/claude-code-mcp-server/src/main.rs` - ClaudeCode MCPサーバー
+**新規ファイル**: `.codex/agents/code-evaluator.yaml`
 
 **実装内容**:
 
-- GeminiCLI MCPサーバーの完全統合（GUI ↔ CLI一対一対応）
-- ClaudeCode MCPサーバーの新規実装
-- MCPプロトコル経由でのコマンド実行
-- リアルタイム進捗通知（SSE/WebSocket）
+- エージェント名: `code-evaluator`
+- 目的: 並列開発されたコードの品質評価と統計分析
+- ツール: 
+- `evaluate_code_quality` - コード品質評価
+- `perform_statistical_analysis` - 統計分析（ガウス分布、ANOVA）
+- `generate_qc_report` - QC管理レポート生成
+- `quantum_optimize` - 量子最適化評価
 
-### 1.2 GUI ↔ CLI一対一対応
+### 1.2 評価エージェント実装
 
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src-tauri/src/mcp_bridge.rs` - MCPブリッジ（新規）
-- `codex-rs/tauri-gui/src/components/mcp/MCPAgentPanel.tsx` - エージェント管理パネル（新規）
-
-**実装内容**:
-
-- 各MCPサーバー（Codex、GeminiCLI、ClaudeCode）への接続管理
-- 接続状態の可視化（接続中/切断/エラー）
-- コマンド送信とレスポンス受信
-- エラーハンドリングとリトライ機能
-
-## 2. 動的リソース管理（コア数*2上限）
-
-### 2.1 リソース管理システム
-
-**対象ファイル**:
-
-- `codex-rs/core/src/orchestration/resource_manager.rs` - リソース管理（新規）
-- `codex-rs/tauri-gui/src-tauri/src/resource_manager.rs` - Tauriコマンド（新規）
+**新規ファイル**: `codex-rs/core/src/agents/code_evaluator.rs`
 
 **実装内容**:
 
-- CPUコア数の自動検出
-- 動的リソース上限計算（コア数 × 2）
-- 実行中タスクのリソース使用量追跡
-- リソース不足時のキューイング
+- `CodeEvaluator` 構造体
+- `evaluate_worktree()` - Worktreeのコード評価
+- `perform_gaussian_analysis()` - ガウス分布分析
+- `perform_anova()` - 分散分析（既存`statistical_analyzer`統合）
+- `generate_qc_chart_data()` - QC管理チャートデータ生成
+- `quantum_optimize_review()` - 量子最適化レビュー（既存`quantum_optimizer`統合）
 
-### 2.2 GUIリソース制御
+### 1.3 評価エージェントCLI統合
 
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src/components/orchestration/ResourceControl.tsx` - リソース制御パネル（新規）
-
-**実装内容**:
-
-- 現在のリソース使用状況表示（使用中/上限）
-- エージェント数の増減ボタン（+/-）
-- 数値入力による直接指定
-- リアルタイム更新（2秒間隔）
-
-## 3. Git Worktree並列開発
-
-### 3.1 並列Worktree管理
-
-**対象ファイル**:
-
-- `codex-rs/core/src/orchestration/worktree_manager.rs` - 既存Worktree管理（拡張）
-- `codex-rs/core/src/orchestration/parallel_worktree.rs` - 並列Worktree実行（新規）
+**対象ファイル**: `codex-rs/cli/src/main.rs`
 
 **実装内容**:
 
-- 複数エージェント用Worktreeの同時作成
-- 各Worktreeでの独立した開発
-- Worktree間の競合検出と解決
-- 最適コードの自動選出とマージ
+- `codex delegate code-evaluator` コマンド追加
+- 評価結果のJSON/CSV出力
+- 統計レポート生成
 
-### 3.2 コード品質評価システム
+## 2. ガウス分布＋分散分析＋QC管理統合
 
-**対象ファイル**:
+### 2.1 統計分析拡張
 
-- `codex-rs/core/src/quality/vulnerability_checker.rs` - 脆弱性チェック（新規）
-- `codex-rs/core/src/quality/statistical_analyzer.rs` - 統計分析（新規）
-- `codex-rs/core/src/quality/quantum_optimizer.rs` - 量子最適化（新規）
+**対象ファイル**: `codex-rs/core/src/quality/statistical_analyzer.rs`
 
-**実装内容**:
+**拡張内容**:
 
-- **脆弱性チェック**: CVEスキャン、セキュリティパターン検出
-- **統計分析**: 
-- 分散分析（ANOVA）によるコード品質評価
-- アルゴリズム複雑度分析
-- 型定義の一貫性チェック
-- 警告の統計的有意性検定
-- **量子最適化**: 
-- 複数Worktreeの結果を量子アルゴリズムで最適化
-- レビューAIによる合議システム
-- 最適コードの自動選出
+- `perform_gaussian_distribution()` - ガウス分布フィッティング
+- `calculate_control_limits()` - QC管理限界線計算（X-bar、R、p-chart）
+- `detect_outliers()` - 異常値検出（3σルール）
+- `perform_batch_anova()` - 複数Worktree間の分散分析
 
-## 4. 品質工程管理GUI
+### 2.2 QC管理チャートデータ生成
 
-### 4.1 ガントチャート
-
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src/components/project/GanttChart.tsx` - ガントチャート（新規）
+**新規ファイル**: `codex-rs/core/src/quality/qc_chart_generator.rs`
 
 **実装内容**:
 
-- dhtmlx-ganttまたはreact-gantt-chart使用
-- エージェントタスクの時系列表示
-- 依存関係表示
-- 進捗状況可視化
-- ドラッグ&ドロップでタスク調整
+- `QCChartData` 構造体（X-bar、R、p-chart用データ）
+- `generate_xbar_chart()` - 平均値管理図データ
+- `generate_r_chart()` - 範囲管理図データ
+- `generate_p_chart()` - 不良率管理図データ
+- `calculate_control_limits()` - 管理限界線計算（UCL、LCL、CL）
 
-### 4.2 カンバンボード
+### 2.3 GUI統計分析チャート拡張
 
-**対象ファイル**:
+**対象ファイル**: `codex-rs/tauri-gui/src/components/quality/StatisticalAnalysisCharts.tsx`
 
-- `codex-rs/tauri-gui/src/components/project/KanbanBoard.tsx` - カンバンボード（新規）
+**拡張内容**:
 
-**実装内容**:
-
-- react-beautiful-dnd使用
-- カラム: To Do, In Progress, Review, Done
-- カード表示: タスク名、担当エージェント、期限、優先度
-- ドラッグ&ドロップでステータス変更
-- フィルター・ソート機能
-
-### 4.3 品質工程管理表
-
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src/components/project/ProjectManagementTable.tsx` - 工程管理表（新規）
-
-**実装内容**:
-
-- ag-gridまたはreact-table使用
-- タスク一覧表示
-- ソート・フィルター・検索
-- エクスポート機能（CSV、Excel）
-- バッチ操作
-
-### 4.4 QCコントロールチャート
-
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src/components/quality/QCControlCharts.tsx` - QC管理図（新規）
-
-**実装内容**:
-
-- X-bar chart（平均値管理図）
-- R chart（範囲管理図）
-- p-chart（不良率管理図）
-- 管理限界線の自動計算
-- 異常値の検出とアラート
-
-### 4.5 統計分析チャート
-
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src/components/quality/StatisticalAnalysisCharts.tsx` - 統計分析チャート（新規）
-
-**実装内容**:
-
-- ガウス分布チャート（ヒストグラム + 正規分布曲線）
-- 分散分析チャート（F統計量、p値表示）
-- ボックスプロット
-- 散布図（相関分析）
-- 統計的有意性の可視化
-
-## 5. 統合ダッシュボード
-
-### 5.1 並列開発ダッシュボード
-
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src/pages/ParallelDevelopmentDashboard.tsx` - 並列開発ダッシュボード（新規）
-
-**実装内容**:
-
-- ガントチャート、カンバン、工程管理表の統合表示
-- タブ切り替えまたは分割画面
+- ガウス分布チャート（ヒストグラム + 正規分布曲線）実装
+- ANOVA結果表示（F統計量、p値、信頼区間）
+- QC管理チャート統合（X-bar、R、p-chart）
 - リアルタイム更新（WebSocket/SSE）
-- カスタマイズ可能なレイアウト
 
-### 5.2 リアルタイムログ表示
+## 3. ガントチャート・カンバン・工程管理表拡張
 
-**対象ファイル**:
+### 3.1 GitHub Actions統合ガントチャート
 
-- `codex-rs/tauri-gui/src/components/orchestration/RealtimeLogViewer.tsx` - リアルタイムログ（新規）
-
-**実装内容**:
-
-- 各エージェントの実行ログをリアルタイム表示
-- ログレベル別フィルタリング（INFO/WARN/ERROR）
-- 検索機能
-- 自動スクロール
-- ログエクスポート機能
-
-### 5.3 ボタン操作UI
-
-**対象ファイル**:
-
-- `codex-rs/tauri-gui/src/components/orchestration/ControlPanel.tsx` - 制御パネル（拡張）
+**新規ファイル**: `codex-rs/tauri-gui/src/components/project/GitHubActionsGanttChart.tsx`
 
 **実装内容**:
 
-- エージェント起動/停止ボタン
-- リソース増減ボタン（+/-）
-- 並列実行開始/停止ボタン
-- Worktree作成/削除ボタン
-- 最適コード選出ボタン
+- GitHub Actions API統合（`@octokit/rest`使用）
+- ワークフロー実行履歴の取得
+- ジョブ・ステップの時系列表示
+- 依存関係可視化（ジョブ間の依存関係）
+- 実行時間・ステータス表示
 
-## 6. 量子最適化レビューシステム
+### 3.2 GitHub Actions API統合
 
-### 6.1 レビューAI合議システム
-
-**対象ファイル**:
-
-- `codex-rs/core/src/quality/review_consensus.rs` - レビュー合議（新規）
+**新規ファイル**: `codex-rs/core/src/integrations/github_actions.rs`
 
 **実装内容**:
 
-- 複数レビューAI（Codex、GeminiCLI、ClaudeCode）による評価
-- 量子最適化アルゴリズムによる最適コード選出
-- 評価スコアの重み付け
-- 合議結果の可視化
+- `GitHubActionsClient` 構造体
+- `list_workflows()` - ワークフロー一覧取得
+- `get_workflow_runs()` - 実行履歴取得
+- `get_job_logs()` - ジョブログ取得
+- `trigger_workflow()` - ワークフロー手動実行
 
-### 6.2 評価指標
+### 3.3 Tauri GitHub Actionsコマンド
+
+**新規ファイル**: `codex-rs/tauri-gui/src-tauri/src/github_actions.rs`
 
 **実装内容**:
 
-- アルゴリズム効率性
-- 脆弱性スコア
-- 型定義の一貫性
-- 警告の統計的有意性
-- コード品質総合スコア
+- `get_workflow_runs` - ワークフロー実行履歴取得
+- `get_workflow_jobs` - ジョブ詳細取得
+- `get_job_logs` - ログ取得
+- `trigger_workflow` - ワークフロー実行
+
+### 3.4 ガントチャート拡張
+
+**対象ファイル**: `codex-rs/tauri-gui/src/components/project/GanttChart.tsx`
+
+**拡張内容**:
+
+- GitHub Actionsワークフロー統合表示
+- エージェントタスク + CI/CDパイプライン統合
+- リアルタイム更新（ポーリングまたはWebhook）
+
+### 3.5 カンバンボード拡張
+
+**対象ファイル**: `codex-rs/tauri-gui/src/components/project/KanbanBoard.tsx`
+
+**拡張内容**:
+
+- GitHub Issues自動同期
+- CI/CD失敗時の自動タスク作成
+- PR作成時の自動カード追加
+
+## 4. Windows仮想OSレイヤー実装（macOS風UI/UX）
+
+### 4.1 仮想OSレイヤー設計
+
+**新規ファイル**: `codex-rs/core/src/virtualization/mod.rs`
+
+**実装内容**:
+
+- `VirtualOSLayer` トレイト定義
+- `macOSEmulator` 構造体（macOS風UI/UX）
+- `LinuxEmulator` 構造体（Linux風UI/UX）
+- `WindowsHost` 構造体（Windowsホスト統合）
+
+### 4.2 macOS風UI/UX実装
+
+**新規ファイル**: `codex-rs/core/src/virtualization/macos_emulator.rs`
+
+**実装内容**:
+
+- macOS風ウィンドウマネージャー（Dock、メニューバー、Spotlight風検索）
+- macOS風ファイルシステム（Finder風UI）
+- macOS風アプリケーションランチャー
+- macOS風通知システム
+- macOS風ショートカット（Cmd+C、Cmd+Vなど）
+
+### 4.3 Linux風UI/UX実装
+
+**新規ファイル**: `codex-rs/core/src/virtualization/linux_emulator.rs`
+
+**実装内容**:
+
+- Linux風デスクトップ環境（GNOME/KDE風）
+- Linux風ターミナルエミュレーション
+- Linux風パッケージマネージャーUI
+- Linux風システム設定UI
+
+### 4.4 WSL2統合
+
+**新規ファイル**: `codex-rs/core/src/virtualization/wsl_integration.rs`
+
+**実装内容**:
+
+- WSL2ディストリビューション管理
+- WSL2ファイルシステムアクセス
+- WSL2プロセス実行
+- WSL2 X11転送（GUIアプリ実行）
+
+### 4.5 Docker統合
+
+**新規ファイル**: `codex-rs/core/src/virtualization/docker_integration.rs`
+
+**実装内容**:
+
+- Dockerコンテナ管理（Linux/macOS環境）
+- Docker Compose統合
+- コンテナ内でのアプリケーション開発
+
+### 4.6 GUI仮想OSレイヤー
+
+**新規ファイル**: `codex-rs/tauri-gui/src/components/virtual/VirtualOSAccess.tsx`
+
+**実装内容**:
+
+- 仮想OS環境選択UI（macOS/Linux）
+- 仮想OSデスクトップ表示
+- 仮想OSアプリケーションランチャー
+- 仮想OSファイルマネージャー
+
+## 5. AIコード生成IDE実装
+
+### 5.1 IDEコア実装
+
+**新規ファイル**: `codex-rs/core/src/ide/mod.rs`
+
+**実装内容**:
+
+- `IDECore` 構造体
+- `CodeGenerator` トレイト（AIコード生成）
+- `CodeExecutor` トレイト（コード実行）
+- `CodeEditor` トレイト（エディタ機能）
+
+### 5.2 AIコード生成エンジン
+
+**新規ファイル**: `codex-rs/core/src/ide/code_generator.rs`
+
+**実装内容**:
+
+- LLM統合（既存MCPサーバー活用）
+- コード生成プロンプト構築
+- 生成コードの検証・テスト
+- エラーハンドリング・修正提案
+
+### 5.3 コード実行エンジン
+
+**新規ファイル**: `codex-rs/core/src/ide/code_executor.rs`
+
+**実装内容**:
+
+- マルチ言語実行環境（Python、JavaScript、Rust、C++など）
+- サンドボックス実行（既存`sandboxing`統合）
+- リアルタイム出力表示
+- デバッガー統合
+
+### 5.4 GUI IDE実装
+
+**新規ファイル**: `codex-rs/tauri-gui/src/pages/IDE.tsx`
+
+**実装内容**:
+
+- Monaco Editor統合（VSCode風エディタ）
+- AIコード生成UI（プロンプト入力、生成ボタン）
+- コード実行UI（実行ボタン、出力表示）
+- ファイル管理（新規作成、保存、開く）
+- ターミナル統合
+
+### 5.5 Tauri IDEコマンド
+
+**新規ファイル**: `codex-rs/tauri-gui/src-tauri/src/ide.rs`
+
+**実装内容**:
+
+- `generate_code` - AIコード生成
+- `execute_code` - コード実行
+- `save_file` - ファイル保存
+- `open_file` - ファイル開く
+- `list_files` - ファイル一覧
+
+## 6. 型定義厳格化と警告0実装
+
+### 6.1 Rust型定義厳格化
+
+**対象ファイル**: 全Rustファイル
+
+**実装内容**:
+
+- `#![deny(warnings)]` 追加（可能な限り）
+- `clippy::pedantic` 有効化
+- 未使用変数・関数の削除
+- 明示的な型注釈追加
+- `Result`型の適切なエラーハンドリング
+
+### 6.2 TypeScript型定義厳格化
+
+**対象ファイル**: `codex-rs/tauri-gui/tsconfig.json`
+
+**実装内容**:
+
+- `strict: true` 有効化
+- `noImplicitAny: true` 有効化
+- `strictNullChecks: true` 有効化
+- Zodスキーマによるランタイム型検証
+- すべてのコンポーネントに明示的な型定義
+
+### 6.3 警告0検証
+
+**実装内容**:
+
+- `cargo clippy -- -D warnings` で警告0確認
+- `tsc --noEmit` でTypeScript警告0確認
+- CI/CDパイプラインに警告チェック追加
+
+## 7. 高速差分ビルドと強制インストール
+
+### 7.1 差分ビルドスクリプト
+
+**新規ファイル**: `scripts/fast-diff-build.ps1`
+
+**実装内容**:
+
+- 変更ファイル検出（`git diff`）
+- 影響範囲のパッケージ特定
+- 差分ビルド実行（`cargo build -p <package>`）
+- ビルド時間計測・表示
+
+### 7.2 プロセスキルと強制インストール
+
+**新規ファイル**: `scripts/force-install.ps1`
+
+**実装内容**:
+
+- 実行中プロセス検出（`codex.exe`、`codex-tui.exe`、`codex-tauri-gui.exe`）
+- プロセス強制終了（`Stop-Process -Force`）
+- バイナリ上書きインストール（`cargo install --path <package> --force`）
+- インストール検証（`codex --version`）
 
 ## 実装順序
 
-1. MCP統合拡張（GeminiCLI/ClaudeCode）
-2. 動的リソース管理システム
-3. Git Worktree並列開発拡張
-4. コード品質評価システム（脆弱性、統計分析）
-5. 品質工程管理GUI（ガント、カンバン、工程管理表）
-6. QCコントロールチャート
-7. 統計分析チャート
-8. 量子最適化レビューシステム
-9. 統合ダッシュボード
-10. リアルタイムログ表示
+1. **Phase 1**: 評価用コードエージェント実装（1-2週間）
+
+- エージェント定義・実装
+- CLI統合
+- 統計分析統合
+
+2. **Phase 2**: ガウス分布＋分散分析＋QC管理統合（1週間）
+
+- 統計分析拡張
+- QC管理チャートデータ生成
+- GUI統合
+
+3. **Phase 3**: GitHub Actions統合ガントチャート（1-2週間）
+
+- GitHub Actions API統合
+- ガントチャート拡張
+- リアルタイム更新
+
+4. **Phase 4**: Windows仮想OSレイヤー実装（2-3週間）
+
+- 仮想OSレイヤー設計
+- macOS風UI/UX実装
+- WSL2/Docker統合
+- GUI統合
+
+5. **Phase 5**: AIコード生成IDE実装（2-3週間）
+
+- IDEコア実装
+- AIコード生成エンジン
+- コード実行エンジン
+- GUI IDE実装
+
+6. **Phase 6**: 型定義厳格化と警告0（1週間）
+
+- Rust型定義厳格化
+- TypeScript型定義厳格化
+- 警告0検証
+
+7. **Phase 7**: 高速差分ビルドと強制インストール（3-5日）
+
+- 差分ビルドスクリプト
+- 強制インストールスクリプト
+- CI/CD統合
 
 ## 検証項目
 
-- MCPサーバーが正しく接続されるか
-- リソース上限（コア数×2）が正しく適用されるか
-- エージェント数の増減が正常に動作するか
-- Git Worktreeが並列で作成・管理されるか
-- コード品質評価が正しく実行されるか
-- 統計分析が統計的に有意な結果を返すか
-- 量子最適化が最適コードを選出できるか
-- GUIがリアルタイムで更新されるか
-- ガントチャート、カンバン、工程管理表が正しく表示されるか
+- 評価用コードエージェントが正しく動作するか
+- ガウス分布・分散分析・QC管理が統計的に正しいか
+- GitHub Actions統合ガントチャートが正しく表示されるか
+- 仮想OSレイヤーがmacOS/Linux風UI/UXを提供できるか
+- AIコード生成IDEがコードを生成・実行できるか
+- 型定義が厳格で警告0か
+- 高速差分ビルドが正しく動作するか
+- 強制インストールが正常に完了するか
 
 ### To-dos
 
-- [ ] GeminiCLI/ClaudeCode MCP統合（GUI ↔ CLI一対一対応）
-- [ ] 動的リソース管理（コア数*2上限、増減ボタン）
-- [ ] Git Worktree並列開発拡張
-- [ ] コード品質評価システム（脆弱性、統計分析、量子最適化）
-- [ ] 品質工程管理GUI（ガント、カンバン、工程管理表）
-- [ ] QCコントロールチャート実装
-- [ ] 統計分析チャート実装
-- [ ] 量子最適化レビューシステム（合議、最適コード選出）
-- [ ] 統合ダッシュボード（リアルタイム更新）
-- [ ] リアルタイムログ表示UI
+- [ ] 評価用コードエージェント実装 - .codex/agents/code-evaluator.yaml定義、codex-rs/core/src/agents/code_evaluator.rs実装、CLI統合
+- [ ] ガウス分布＋分散分析＋QC管理統合 - statistical_analyzer.rs拡張、qc_chart_generator.rs実装、GUI統合
+- [ ] GitHub Actions統合ガントチャート - github_actions.rs実装、GitHubActionsGanttChart.tsx実装、リアルタイム更新
+- [ ] Windows仮想OSレイヤー実装 - virtualization/mod.rs設計、macos_emulator.rs実装、WSL2/Docker統合、GUI統合
+- [ ] AIコード生成IDE実装 - ide/mod.rs実装、code_generator.rs実装、code_executor.rs実装、GUI IDE実装
+- [ ] 型定義厳格化と警告0 - Rust型定義厳格化、TypeScript型定義厳格化、警告0検証
+- [ ] 高速差分ビルドと強制インストール - fast-diff-build.ps1実装、force-install.ps1実装、CI/CD統合

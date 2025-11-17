@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { writeText, readText } from "@tauri-apps/api/clipboard";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Plans from "./pages/Plans";
@@ -12,30 +11,19 @@ import "./App.css";
 import "./styles/cyberpunk-theme.css";
 
 function App() {
-  const [selectedText, setSelectedText] = useState<string>("");
   const [notification, setNotification] = useState<string>("");
-  
+
   // Clipboard operations
-  const handleCopy = useCallback(async (text?: string) => {
+  const handleCopy = useCallback(async (text?: string): Promise<void> => {
     try {
-      const textToCopy = text || selectedText || window.getSelection()?.toString() || "";
+      const textToCopy = text || window.getSelection()?.toString() || "";
       if (textToCopy) {
-        await writeText(textToCopy);
+        await navigator.clipboard.writeText(textToCopy);
         setNotification("📋 Copied to clipboard");
         setTimeout(() => setNotification(""), 2000);
       }
     } catch (error) {
       console.error("Failed to copy:", error);
-    }
-  }, [selectedText]);
-  
-  const handlePaste = useCallback(async () => {
-    try {
-      const text = await readText();
-      return text || "";
-    } catch (error) {
-      console.error("Failed to paste:", error);
-      return "";
     }
   }, []);
   

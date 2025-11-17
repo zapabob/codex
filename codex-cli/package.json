@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "@zapabob/codex",
   "version": "2.2.0",
   "description": "AI-Native OS with 4D Git Visualization & VR/AR Support - The world's first AI operating system with kernel integration",
@@ -54,5 +54,12 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "cd ../codex-rs && cargo build --release",
+    "build:all": "cd ../codex-rs && cargo build --release --workspace",
+    "install": "npm run build && npm install -g .",
+    "test": "cd ../codex-rs && cargo test",
+    "lint": "cd ../codex-rs && cargo clippy -- -D warnings"
   }
 }
