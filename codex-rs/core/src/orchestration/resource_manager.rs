@@ -334,3 +334,4 @@ mod tests {
         assert_eq!(manager.get_available_slots(), max);
     }
 }
+
