@@ -1,5 +1,3 @@
-﻿[workspace]
-
 [package]
 name = "codex-cli"
 version = "2.3.0"

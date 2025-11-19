@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "codex-cli"
+version = "2.3.0"
+
+[[package]]
 name = "codex-core"
 version = "0.1.0"
 dependencies = [
@@ -10,6 +14,10 @@ dependencies = [
  "serde_json",
  "tokio",
 ]
+
+[[package]]
+name = "codex-tui"
+version = "2.3.0"
 
 [[package]]
 name = "itoa"
