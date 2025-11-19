@@ -239,3 +239,9 @@ log_dir = "~/.codex/audit-logs"
 # - 統合テスト PASS
 # - 本番準備：完了
 # 詳細: _docs/2025-10-24_comprehensive_test_results.md
+
+# ==================== QC Orchestrator ====================
+[qc]
+# Default test profile for quality checks
+# Options: minimal, standard, full
+default_profile = "standard"
