@@ -19,3 +19,6 @@ tokio = { version = "1.40", features = [
     "macros",
     "rt-multi-thread",
 ] }
+
+[dev-dependencies]
+tempfile = "3.10"
