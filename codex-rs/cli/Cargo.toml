@@ -1,6 +1,4 @@
-﻿[workspace]
-
-[package]
+﻿[package]
 name = "codex-cli"
 version = "2.3.0"
 edition = "2024"
@@ -8,3 +6,8 @@ edition = "2024"
 [[bin]]
 name = "codex"
 path = "src/main.rs"
+
+[dependencies]
+codex-core = { path = "../core" }
+clap = { workspace = true, features = ["derive"] }
+anyhow = { workspace = true }
