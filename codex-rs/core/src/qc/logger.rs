@@ -34,8 +34,10 @@ impl QcLogger {
         let now: DateTime<Local> = Local::now();
 
         // Generate log file name: YYYY-MM-DD-{worktreename}-impl.md
+        // Sanitize worktree name (replace / with -)
+        let sanitized_name = worktree.name.replace('/', "-");
         let date_str = now.format("%Y-%m-%d").to_string();
-        let log_filename = format!("{}-{}-impl.md", date_str, worktree.name);
+        let log_filename = format!("{}-{}-impl.md", date_str, sanitized_name);
         let log_path = self.logs_dir.join(&log_filename);
 
         // Format the log entry

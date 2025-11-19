@@ -184,10 +184,22 @@ impl QcOrchestrator {
     fn run_command(&self, cmd: &str) -> bool {
         println!("Running: {}", cmd);
 
+        // Determine working directory - use codex-rs subdirectory if it exists for cargo commands
+        let work_dir = if cmd.trim().starts_with("cargo") {
+            let codex_rs_path = self.repo_root.join("codex-rs");
+            if codex_rs_path.exists() {
+                codex_rs_path
+            } else {
+                self.repo_root.clone()
+            }
+        } else {
+            self.repo_root.clone()
+        };
+
         let status = Command::new("sh")
             .arg("-c")
             .arg(cmd)
-            .current_dir(&self.repo_root)
+            .current_dir(&work_dir)
             .status();
 
         match status {
