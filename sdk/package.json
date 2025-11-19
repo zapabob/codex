@@ -19,8 +19,12 @@
   "author": "zapabob",
   "license": "MIT",
   "devDependencies": {
+    "@line/bot-sdk": "^9.0.0",
+    "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
+    "express": "^4.19.2",
     "jest": "^29.7.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.6.0"
   },
   "dependencies": {},
