@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import readline from "node:readline";
-import { fileURLToPath } from "node:url";
 
 import { SandboxMode } from "./threadOptions";
 
@@ -143,8 +142,7 @@ export class CodexExec {
   }
 }
 
-const scriptFileName = fileURLToPath(import.meta.url);
-const scriptDirName = path.dirname(scriptFileName);
+const scriptDirName = __dirname;
 
 function findCodexPath() {
   const { platform, arch } = process;

@@ -165,6 +165,24 @@ for await (const event of orchestrator.executeStream("Build full-stack app")) {
 }
 ```
 
+### LINE Messaging Webhook
+
+The `sdk/examples/line-codex-webhook.ts` example shows how to connect Codex to a
+LINE Messaging API channel. It spins up an Express server that validates LINE
+signatures, forwards user messages to Codex, and replies with the agent's
+response while preserving conversation state per user.
+
+```bash
+export LINE_CHANNEL_ACCESS_TOKEN="..."
+export LINE_CHANNEL_SECRET="..."
+export CODEX_API_KEY="sk-..." # optional when using remote Codex instances
+npm install
+npx ts-node --esm sdk/examples/line-codex-webhook.ts
+```
+
+Set `CODEX_INSTRUCTION_PROMPT` to override the default system instruction used
+for the first turn of every conversation.
+
 ### Error Handling
 
 ```typescript
