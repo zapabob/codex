@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::str::FromStr;
 
 /// Test profile levels
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -22,22 +23,25 @@ pub enum TestProfile {
 }
 
 impl TestProfile {
-    /// Parse from string
-    pub fn from_str(s: &str) -> Result<Self> {
-        match s.to_lowercase().as_str() {
-            "minimal" => Ok(TestProfile::Minimal),
-            "standard" => Ok(TestProfile::Standard),
-            "full" => Ok(TestProfile::Full),
-            _ => anyhow::bail!("Invalid test profile: {s}. Valid values: minimal, standard, full"),
-        }
-    }
-
     /// Convert to string representation
     pub fn as_str(&self) -> &'static str {
         match self {
             TestProfile::Minimal => "minimal",
             TestProfile::Standard => "standard",
             TestProfile::Full => "full",
+        }
+    }
+}
+
+impl FromStr for TestProfile {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "minimal" => Ok(TestProfile::Minimal),
+            "standard" => Ok(TestProfile::Standard),
+            "full" => Ok(TestProfile::Full),
+            _ => anyhow::bail!("Invalid test profile: {s}. Valid values: minimal, standard, full"),
         }
     }
 }
@@ -181,18 +185,17 @@ pub fn run_qc(repo_root: &Path, input: QcInput, config: QcConfig) -> Result<QcRe
         build_recommendation(&diff, &tests, &config, risk_score);
 
     // Write log
-    let log_path = write_log(
-        repo_root,
-        &timestamp,
-        &worktree,
-        &input,
-        &diff,
-        &tests,
+    let log_path = write_log(repo_root, &LogData {
+        timestamp: &timestamp,
+        worktree: &worktree,
+        input: &input,
+        diff: &diff,
+        tests: &tests,
         risk_score,
-        &recommendation,
-        &reasons,
-        &issues,
-    )?;
+        recommendation: &recommendation,
+        reasons: &reasons,
+        issues: &issues,
+    })?;
 
     Ok(QcResult {
         timestamp,
@@ -210,18 +213,18 @@ pub fn run_qc(repo_root: &Path, input: QcInput, config: QcConfig) -> Result<QcRe
 /// Get worktree name from repository
 fn get_worktree_name(repo: &Repository) -> Result<String> {
     // Try to get current branch name
-    if let Ok(head) = repo.head() {
-        if let Some(branch_name) = head.shorthand() {
-            // Sanitize branch name by replacing slashes with dashes
-            return Ok(branch_name.replace('/', "-"));
-        }
+    if let Ok(head) = repo.head()
+        && let Some(branch_name) = head.shorthand()
+    {
+        // Sanitize branch name by replacing slashes with dashes
+        return Ok(branch_name.replace('/', "-"));
     }
 
     // Fall back to worktree path or "detached"
-    if let Some(workdir) = repo.workdir() {
-        if let Some(name) = workdir.file_name() {
-            return Ok(name.to_string_lossy().to_string());
-        }
+    if let Some(workdir) = repo.workdir()
+        && let Some(name) = workdir.file_name()
+    {
+        return Ok(name.to_string_lossy().to_string());
     }
 
     Ok("detached".to_string())
@@ -230,11 +233,11 @@ fn get_worktree_name(repo: &Repository) -> Result<String> {
 /// Compute diff statistics between base_ref and HEAD
 fn compute_diff_stats(repo: &Repository, base_ref: &str) -> Result<DiffStats> {
     // Try to resolve the configured base reference, or fall back to common alternatives
-    let base_refs_to_try = vec![
-        base_ref.to_string(),
-        "origin/main".to_string(),
-        "origin/master".to_string(),
-        "HEAD~1".to_string(),
+    let base_refs_to_try = [
+        base_ref,
+        "origin/main",
+        "origin/master",
+        "HEAD~1",
     ];
 
     let mut last_error = None;
@@ -243,7 +246,7 @@ fn compute_diff_stats(repo: &Repository, base_ref: &str) -> Result<DiffStats> {
         .find_map(|ref_name| match repo.revparse_single(ref_name) {
             Ok(obj) => Some(obj),
             Err(e) => {
-                last_error = Some((ref_name.clone(), e));
+                last_error = Some((*ref_name, e));
                 None
             }
         })
@@ -548,47 +551,49 @@ fn build_recommendation(
     (recommendation, reasons, issues)
 }
 
-/// Write log to _docs/logs
-fn write_log(
-    repo_root: &Path,
-    timestamp: &str,
-    worktree: &str,
-    input: &QcInput,
-    diff: &DiffStats,
-    tests: &[TestResult],
+/// Data for writing log
+struct LogData<'a> {
+    timestamp: &'a str,
+    worktree: &'a str,
+    input: &'a QcInput,
+    diff: &'a DiffStats,
+    tests: &'a [TestResult],
     risk_score: f32,
-    recommendation: &Recommendation,
-    reasons: &[String],
-    issues: &[String],
-) -> Result<PathBuf> {
+    recommendation: &'a Recommendation,
+    reasons: &'a [String],
+    issues: &'a [String],
+}
+
+/// Write log to _docs/logs
+fn write_log(repo_root: &Path, data: &LogData) -> Result<PathBuf> {
     // Create logs directory
     let logs_dir = repo_root.join("_docs/logs");
     fs::create_dir_all(&logs_dir).context("Failed to create _docs/logs directory")?;
 
     // Generate log filename: YYYY-MM-DD-{worktree}-impl.md
     let date = Local::now().format("%Y-%m-%d").to_string();
-    let log_filename = format!("{date}-{worktree}-impl.md");
+    let log_filename = format!("{date}-{}-impl.md", data.worktree);
     let log_path = logs_dir.join(&log_filename);
 
     // Build log content
     let mut content = String::new();
 
     // Header section
-    content.push_str(&format!("## {timestamp}\n\n"));
-    content.push_str(&format!("- Worktree: {worktree}\n"));
-    content.push_str(&format!("- 機能: {}\n", input.feature));
-    content.push_str(&format!("- エージェント名: {}\n", input.agent_name));
-    content.push_str(&format!("- AI名: {}\n", input.ai_name));
-    content.push_str(&format!("- プロファイル: {}\n\n", input.profile.as_str()));
+    content.push_str(&format!("## {}\n\n", data.timestamp));
+    content.push_str(&format!("- Worktree: {}\n", data.worktree));
+    content.push_str(&format!("- 機能: {}\n", data.input.feature));
+    content.push_str(&format!("- エージェント名: {}\n", data.input.agent_name));
+    content.push_str(&format!("- AI名: {}\n", data.input.ai_name));
+    content.push_str(&format!("- プロファイル: {}\n\n", data.input.profile.as_str()));
 
     // Diff stats
     content.push_str("### 変更統計\n\n");
-    content.push_str(&format!("- 変更ファイル数: {}\n", diff.changed_files));
-    content.push_str(&format!("- 変更行数: {}\n\n", diff.changed_lines));
+    content.push_str(&format!("- 変更ファイル数: {}\n", data.diff.changed_files));
+    content.push_str(&format!("- 変更行数: {}\n\n", data.diff.changed_lines));
 
     // Test results
     content.push_str("### テスト結果\n\n");
-    for test in tests {
+    for test in data.tests {
         let status_str = match &test.status {
             CommandStatus::NotRun { reason } => format!("⊘ SKIPPED ({reason})"),
             CommandStatus::Passed => "✓ PASSED".to_string(),
@@ -604,25 +609,25 @@ fn write_log(
 
     // Risk assessment
     content.push_str("### リスク評価\n\n");
-    content.push_str(&format!("- リスクスコア: {risk_score:.2}\n"));
+    content.push_str(&format!("- リスクスコア: {:.2}\n", data.risk_score));
     content.push_str(&format!(
         "- 推奨アクション: **{}**\n\n",
-        recommendation.as_str()
+        data.recommendation.as_str()
     ));
 
     // Reasons
-    if !reasons.is_empty() {
+    if !data.reasons.is_empty() {
         content.push_str("### 理由\n\n");
-        for reason in reasons {
+        for reason in data.reasons {
             content.push_str(&format!("- {reason}\n"));
         }
         content.push('\n');
     }
 
     // Issues
-    if !issues.is_empty() {
+    if !data.issues.is_empty() {
         content.push_str("### 発見された問題\n\n");
-        for issue in issues {
+        for issue in data.issues {
             content.push_str(&format!("- {issue}\n"));
         }
         content.push('\n');

@@ -1,7 +1,7 @@
 //! Codex CLI - AI-Native OS Command Line Interface
 
 use clap::{Parser, Subcommand};
-use codex_core::qc_orchestrator::{QcConfig, QcInput, TestProfile};
+use codex_core::qc_orchestrator::{QcConfig, QcInput};
 use std::process::Command;
 
 #[derive(Parser)]
@@ -68,7 +68,7 @@ fn run_qc_command(
 
     // Parse profile
     let test_profile = if let Some(profile_str) = profile {
-        TestProfile::from_str(&profile_str)?
+        profile_str.parse()?
     } else {
         config.default_profile
     };
