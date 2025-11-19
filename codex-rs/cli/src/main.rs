@@ -143,16 +143,16 @@ fn launch_gui() -> Result<(), Box<dyn std::error::Error>> {
 
 fn print_help() {
     println!("Codex AI-Native OS v2.3.0");
-    println!("");
+    println!();
     println!("USAGE:");
     println!("    codex [COMMAND]");
-    println!("");
+    println!();
     println!("COMMANDS:");
     println!("    tui            Launch Terminal User Interface");
     println!("    gui            Launch Graphical User Interface");
     println!("    qc [OPTIONS]   Run pre-merge quality checks");
     println!("    --help         Show this help message");
-    println!("");
+    println!();
     println!("QC OPTIONS:");
     println!("    --profile <PROFILE>    Test profile to use (minimal, standard, full)");
     println!("                           Default: standard");

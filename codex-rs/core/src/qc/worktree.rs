@@ -69,16 +69,15 @@ impl WorktreeInfo {
 
         for line in worktree_list.lines() {
             if line.starts_with("worktree ") {
-                if let Some(path) = current_worktree_path.take() {
-                    if path == *current_path {
-                        if let Some(branch_name) = current_branch {
-                            // Extract simple name from refs/heads/branch-name
-                            if let Some(name) = branch_name.strip_prefix("refs/heads/") {
-                                return Some(name.to_string());
-                            }
-                            return Some(branch_name);
-                        }
+                if let Some(path) = current_worktree_path.take()
+                    && path == *current_path
+                    && let Some(branch_name) = current_branch
+                {
+                    // Extract simple name from refs/heads/branch-name
+                    if let Some(name) = branch_name.strip_prefix("refs/heads/") {
+                        return Some(name.to_string());
                     }
+                    return Some(branch_name);
                 }
 
                 let path_str = line.strip_prefix("worktree ")?;
@@ -90,15 +89,14 @@ impl WorktreeInfo {
         }
 
         // Check the last worktree
-        if let Some(path) = current_worktree_path {
-            if path == *current_path {
-                if let Some(branch_name) = current_branch {
-                    if let Some(name) = branch_name.strip_prefix("refs/heads/") {
-                        return Some(name.to_string());
-                    }
-                    return Some(branch_name);
-                }
+        if let Some(path) = current_worktree_path
+            && path == *current_path
+            && let Some(branch_name) = current_branch
+        {
+            if let Some(name) = branch_name.strip_prefix("refs/heads/") {
+                return Some(name.to_string());
             }
+            return Some(branch_name);
         }
 
         None

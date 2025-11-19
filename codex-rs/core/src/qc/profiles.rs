@@ -4,12 +4,13 @@ use serde::Deserialize;
 use serde::Serialize;
 
 /// Available test profiles
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum TestProfile {
     /// Minimal testing - fastest option
     Minimal,
     /// Standard testing - default option
+    #[default]
     Standard,
     /// Full testing - comprehensive validation
     Full,
@@ -63,12 +64,6 @@ impl std::fmt::Display for TestProfile {
             TestProfile::Standard => write!(f, "standard"),
             TestProfile::Full => write!(f, "full"),
         }
-    }
-}
-
-impl Default for TestProfile {
-    fn default() -> Self {
-        TestProfile::Standard
     }
 }
 

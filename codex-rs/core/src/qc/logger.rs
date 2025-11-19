@@ -86,7 +86,7 @@ impl QcLogger {
             let status_icon = if *status { "✅" } else { "❌" };
             entry.push_str(&format!("- {} `{}`\n", status_icon, cmd));
         }
-        entry.push_str("\n");
+        entry.push('\n');
 
         // Web tests
         if !result.web_test_results.is_empty() {
@@ -95,7 +95,7 @@ impl QcLogger {
                 let status_icon = if *status { "✅" } else { "❌" };
                 entry.push_str(&format!("- {} `{}`\n", status_icon, cmd));
             }
-            entry.push_str("\n");
+            entry.push('\n');
         }
 
         // Warnings
@@ -104,7 +104,7 @@ impl QcLogger {
             for warning in &result.warnings {
                 entry.push_str(&format!("- ⚠️  {}\n", warning));
             }
-            entry.push_str("\n");
+            entry.push('\n');
         }
 
         entry.push_str("---\n\n");
