@@ -25,7 +25,7 @@
 
 ### 🎉 What's New in v2.3.0 "Security & Integration"
 
-**Release Date**: January 27, 2025  
+**Release Date**: October 27, 2025  
 **Milestone**: Security Features & Enhanced Integration
 
 **🎁 New in v2.3.0**:
