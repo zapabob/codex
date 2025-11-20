@@ -1,10 +1,10 @@
-﻿//! Codex CLI - AI-Native OS Command Line Interface
+//! Codex CLI - AI-Native OS Command Line Interface
 
 use std::process::Command;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
-    
+
     if args.len() < 2 {
         print_help();
         return Ok(());
@@ -27,11 +27,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn launch_tui() -> Result<(), Box<dyn std::error::Error>> {
     println!("Launching Terminal User Interface...");
-    
-    let tui_path = std::env::current_exe()?
-        .parent()
-        .unwrap()
-        .join("codex-tui");
+
+    let tui_path = std::env::current_exe()?.parent().unwrap().join("codex-tui");
 
     match Command::new(tui_path).spawn() {
         Ok(mut child) => {
@@ -51,7 +48,7 @@ fn launch_tui() -> Result<(), Box<dyn std::error::Error>> {
 
 fn launch_gui() -> Result<(), Box<dyn std::error::Error>> {
     println!("Launching Graphical User Interface...");
-    
+
     let gui_path = std::env::current_exe()?
         .parent()
         .unwrap()

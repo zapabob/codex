@@ -42,6 +42,8 @@ This section highlights the unique features and enhancements added by [@zapabob]
 
 このセクションでは、[@zapabob](https://github.com/zapabob)が元の[OpenAI/codex](https://github.com/openai/codex)プロジェクトに追加した独自機能と拡張を紹介します。
 
+**zapabob/codex Enhanced Features**: Consolidated upgrades for the forked distribution, including the sub-agent runtime, documentation assets, and CI guardrails.
+
 ### 🤖 Sub-Agent System / サブエージェントシステム
 
 **Status / 実装状況**: ✅ **Implemented / 実装済み** (v2.3.0)
