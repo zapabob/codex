@@ -40,6 +40,13 @@ mod subagent_tool;
 mod subagent_tool_handler;
 mod supervisor_tool;
 mod supervisor_tool_handler;
+mod external_mcp_manager;
+mod external_mcp_tool;
+mod external_mcp_tool_handler;
+
+pub use external_mcp_manager::ExternalMcpManager;
+pub use external_mcp_tool::*;
+pub use external_mcp_tool_handler::ExternalMcpToolHandler;
 
 use crate::message_processor::MessageProcessor;
 use crate::outgoing_message::OutgoingMessage;

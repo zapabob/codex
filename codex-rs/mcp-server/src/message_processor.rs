@@ -5,6 +5,9 @@ use crate::codex_tool_config::CodexToolCallParam;
 use crate::codex_tool_config::CodexToolCallReplyParam;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_param;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_reply_param;
+use crate::external_mcp_manager::ExternalMcpManager;
+use crate::external_mcp_tool::*;
+use crate::external_mcp_tool_handler::ExternalMcpToolHandler;
 use crate::error_code::INVALID_REQUEST_ERROR_CODE;
 use crate::outgoing_message::OutgoingMessageSender;
 use codex_protocol::ConversationId;
@@ -42,6 +45,8 @@ pub(crate) struct MessageProcessor {
     codex_linux_sandbox_exe: Option<PathBuf>,
     conversation_manager: Arc<ConversationManager>,
     running_requests_id_to_codex_uuid: Arc<Mutex<HashMap<RequestId, ConversationId>>>,
+    external_mcp_manager: Arc<ExternalMcpManager>,
+    external_mcp_handler: Arc<ExternalMcpToolHandler>,
 }
 
 impl MessageProcessor {
@@ -60,12 +65,19 @@ impl MessageProcessor {
         );
         let conversation_manager =
             Arc::new(ConversationManager::new(auth_manager, SessionSource::Mcp));
+
+        // Initialize external MCP manager
+        let external_mcp_manager = Arc::new(ExternalMcpManager::new(None));
+        let external_mcp_handler = Arc::new(ExternalMcpToolHandler::new(Arc::clone(&external_mcp_manager)));
+
         Self {
             outgoing,
             initialized: false,
             codex_linux_sandbox_exe,
             conversation_manager,
             running_requests_id_to_codex_uuid: Arc::new(Mutex::new(HashMap::new())),
+            external_mcp_manager,
+            external_mcp_handler,
         }
     }
 
@@ -202,6 +214,13 @@ impl MessageProcessor {
 
         self.initialized = true;
 
+        // Initialize external MCP servers
+        if let Err(e) = self.external_mcp_manager.initialize_servers().await {
+            tracing::warn!("Failed to initialize external MCP servers: {}", e);
+        } else {
+            tracing::info!("External MCP servers initialized successfully");
+        }
+
         // Build a minimal InitializeResult. Fill with placeholders.
         let result = mcp_types::InitializeResult {
             capabilities: mcp_types::ServerCapabilities {
@@ -312,6 +331,13 @@ impl MessageProcessor {
                 crate::custom_command_tool::create_custom_command_tool(),
                 crate::hook_tool::create_hook_tool(),
                 crate::auto_orchestrator_tool::create_auto_orchestrator_tool(),
+                // External MCP tools
+                create_external_mcp_list_servers_tool(),
+                create_external_mcp_get_server_status_tool(),
+                create_external_mcp_start_server_tool(),
+                create_external_mcp_stop_server_tool(),
+                create_external_mcp_send_request_tool(),
+                create_external_mcp_get_server_config_tool(),
             ],
             next_cursor: None,
         };
@@ -342,6 +368,25 @@ impl MessageProcessor {
             "codex-auto-orchestrate" => {
                 self.handle_tool_call_auto_orchestrator(id, arguments).await
             }
+            // External MCP tools
+            "external_mcp_list_servers" => {
+                self.handle_tool_call_external_mcp(id, name, arguments).await
+            }
+            "external_mcp_get_server_status" => {
+                self.handle_tool_call_external_mcp(id, name, arguments).await
+            }
+            "external_mcp_start_server" => {
+                self.handle_tool_call_external_mcp(id, name, arguments).await
+            }
+            "external_mcp_stop_server" => {
+                self.handle_tool_call_external_mcp(id, name, arguments).await
+            }
+            "external_mcp_send_request" => {
+                self.handle_tool_call_external_mcp(id, name, arguments).await
+            }
+            "external_mcp_get_server_config" => {
+                self.handle_tool_call_external_mcp(id, name, arguments).await
+            }
             _ => {
                 let result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
@@ -357,6 +402,34 @@ impl MessageProcessor {
             }
         }
     }
+    /// Handle external MCP tool calls
+    async fn handle_tool_call_external_mcp(
+        &self,
+        id: RequestId,
+        tool_name: String,
+        arguments: Option<serde_json::Value>,
+    ) {
+        let arguments = arguments.unwrap_or(serde_json::Value::Null);
+
+        if let Err(e) = self.external_mcp_handler.handle_tool_call(
+            &tool_name,
+            arguments,
+            self.outgoing.clone(),
+        ).await {
+            let result = CallToolResult {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
+                    text: format!("External MCP tool call failed: {}", e),
+                    annotations: None,
+                })],
+                is_error: Some(true),
+                structured_content: None,
+            };
+
+            let _ = self.send_response::<mcp_types::CallToolRequest>(id, result).await;
+        }
+    }
+
     async fn handle_tool_call_codex(&self, id: RequestId, arguments: Option<serde_json::Value>) {
         let (initial_prompt, config): (String, Config) = match arguments {
             Some(json_val) => match serde_json::from_value::<CodexToolCallParam>(json_val) {
