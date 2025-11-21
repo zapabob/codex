@@ -159,10 +159,16 @@ Add QC checks to your pre-commit workflow:
 # .git/hooks/pre-commit
 
 echo "Running QC checks..."
-codex qc --profile minimal
+QC_OUTPUT=$(codex qc --profile minimal)
+QC_EXIT=$?
+echo "$QC_OUTPUT"
 
-if [ $? -ne 0 ]; then
-    echo "QC checks failed. Please fix issues before committing."
+# Parse recommendation from QC output
+RECOMMENDATION=$(echo "$QC_OUTPUT" | grep -Eo 'Recommendation: (Approve|Request PR|Reject)' | awk '{print $2}')
+
+if [ "$QC_EXIT" -ne 0 ] || [ "$RECOMMENDATION" = "Request PR" ] || [ "$RECOMMENDATION" = "Reject" ]; then
+    echo "QC checks did not approve this commit. Recommendation: $RECOMMENDATION"
+    echo "Please fix issues or open a PR for review before committing."
     exit 1
 fi
 ```
