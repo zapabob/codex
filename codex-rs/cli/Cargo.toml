@@ -47,4 +47,7 @@ url = "2.5"
 uuid = { version = "1.10", features = ["serde", "v4", "v5"] }
 which = "6.0"
 wildmatch = "2.3"
+# MCP and Deep Research dependencies
+mcp-types = { path = "../mcp-types" }
+codex-deep-research = { path = "../deep-research" }
 

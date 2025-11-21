@@ -48,6 +48,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "tui" => launch_tui(),
         "gui" => launch_gui(),
         "server" => launch_server(),
+        "mcp-gemini" => launch_gemini_mcp_server(),
+        "deep-research" => launch_deep_research(&args),
+        "delegate" => launch_delegate(&args),
         "--version" | "-v" => {
             print_version();
             Ok(())
@@ -347,6 +350,85 @@ fn print_version() {
     println!("Codex AI-Native OS v2.3.0");
 }
 
+/// Launch Gemini CLI MCP Server
+fn launch_gemini_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
+    println!("🚀 Launching Gemini CLI MCP Server...");
+
+    // Check if gemini CLI is available
+    let gemini_check = Command::new("gemini").arg("--help").output();
+    if gemini_check.is_err() {
+        eprintln!("❌ Gemini CLI not found. Please install Gemini CLI first:");
+        eprintln!("   npm install -g @google/gemini-cli");
+        return Ok(());
+    }
+
+    println!("✅ Gemini CLI found");
+    println!("🌐 Starting MCP server on STDIO...");
+    println!("💡 Server will handle Google Search requests via Gemini");
+
+    // Execute the Gemini MCP server
+    let status = Command::new("codex-gemini-cli-mcp-server")
+        .status()?;
+
+    if status.success() {
+        println!("✅ Gemini MCP Server completed successfully");
+    } else {
+        eprintln!("❌ Gemini MCP Server failed with exit code: {}", status);
+    }
+
+    Ok(())
+}
+
+/// Launch Delegate Command
+fn launch_delegate(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+    if args.len() < 3 {
+        println!("Usage: codex delegate <agent-type> \"<task-description>\"");
+        println!("");
+        println!("Available agent types:");
+        println!("  code-reviewer    Code quality and security review");
+        println!("  test-gen         Automated test generation");
+        println!("  sec-audit        Security vulnerability scanning");
+        println!("  researcher       Deep research and analysis");
+        println!("  architect        System architecture design");
+        println!("  refactorer       Code refactoring assistance");
+        return Ok(());
+    }
+
+    let agent_type = args[2].clone();
+    let task = if args.len() > 3 {
+        args[3].clone()
+    } else {
+        println!("Enter task description:");
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        input.trim().to_string()
+    };
+
+    println!("🤖 Delegating to {} agent...", agent_type);
+    println!("📋 Task: {}", task);
+
+    // Create tokio runtime for async operations
+    let rt = Runtime::new()?;
+
+    rt.block_on(async {
+        // Connect to MCP server and delegate task
+        println!("🔗 Connecting to MCP server...");
+
+        // For now, simulate delegation - full implementation pending
+        println!("⚠️  Sub-agent delegation is under development");
+        println!("📝 Task '{}' delegated to {} agent", task, agent_type);
+        println!("⏳ Processing... (simulated)");
+
+        // Simulate processing time
+        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+
+        println!("✅ Delegation completed");
+        println!("📊 Results would be available in the agent inbox");
+
+        Ok(())
+    })
+}
+
 fn print_help() {
     println!("Codex AI-Native OS v2.3.0");
     println!("");
@@ -354,9 +436,11 @@ fn print_help() {
     println!("    codex [COMMAND]");
     println!("");
     println!("COMMANDS:");
-    println!("    tui         Launch Terminal User Interface");
-    println!("    gui         Launch Graphical User Interface");
-    println!("    server      Launch RPC Server for GUI integration");
-    println!("    --help, -h  Show this help message");
+    println!("    tui           Launch Terminal User Interface");
+    println!("    gui           Launch Graphical User Interface");
+    println!("    server        Launch RPC Server for GUI integration");
+    println!("    mcp-gemini    Launch Gemini CLI MCP Server");
+    println!("    delegate      Delegate tasks to specialized sub-agents");
+    println!("    --help, -h    Show this help message");
     println!("    --version, -v Show version information");
 }

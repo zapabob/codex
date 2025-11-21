@@ -8,22 +8,22 @@ anyhow.workspace = true
 async-trait.workspace = true
 codex-rmcp-client = { path = "../rmcp-client" }
 mcp-types = { path = "../mcp-types" }
-regex.workspace = true
-reqwest.workspace = true
-rmcp.workspace = true
+regex = "1.10"
+reqwest = { version = "0.12", features = ["json", "stream"] }
+rmcp = { path = "../rmcp-client" }
 scraper = "0.24"
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }
-urlencoding = { workspace = true }
+urlencoding = "2.1"
 
 [dev-dependencies]
 codex-core = { path = "../core" }
 criterion = { version = "0.7", features = ["async_tokio"] }
-pretty_assertions.workspace = true
-tokio-test.workspace = true
+pretty_assertions = "1.4"
+tokio-test = "0.4"
 
 [[bench]]
 harness = false

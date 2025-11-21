@@ -9,5 +9,5 @@ workspace = true
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-ts-rs = { workspace = true, features = ["serde-json-impl", "no-serde-warnings"] }
-schemars = { workspace = true }
+ts-rs = { version = "10.0", features = ["serde-json-impl", "no-serde-warnings"] }
+schemars = "0.8"
