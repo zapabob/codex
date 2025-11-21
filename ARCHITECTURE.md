@@ -64,9 +64,18 @@ Complete architecture documentation for the Codex AI-Native OS project.
 
 **CLI** (`codex-rs/cli/`):
 - Command-line interface
-- TUI (Terminal UI)
+- TUI (Terminal UI) with GPU stats
 - Configuration management
 - Session handling
+- Plan mode support
+- CUDA acceleration
+
+**Tauri GUI** (`codex-rs/tauri-gui/`):
+- React + Three.js frontend
+- VR/AR integration (Quest 2/3/Pro, Vision Pro)
+- 4D Git visualization
+- Real-time GPU monitoring
+- Hand tracking support (Quest 3/Pro)
 
 #### Kernel Integration
 
@@ -86,9 +95,13 @@ Complete architecture documentation for the Codex AI-Native OS project.
 
 **Frontend** (React + Three.js):
 - 3D/4D visualization
-- GPU-accelerated rendering
+- GPU-accelerated rendering (120fps)
 - Timeline slider
 - Search/Filter/Bookmarks
+- VR/AR mode (WebXR)
+- Hand tracking (Quest 3/Pro)
+- Passthrough AR (Quest 3)
+- Eye tracking (Quest Pro)
 
 **Desktop** (Electron):
 - System tray integration
@@ -226,6 +239,39 @@ window.electronAPI.onOpenRepo((path) => {
 - **Load balancing**: Multiple backend instances
 - **Caching**: Result caching for repeated queries
 
+## 🥽 VR/AR Architecture (v2.1.0)
+
+### Supported Devices
+
+- **Meta Quest 2**: WebXR, 90Hz, Controller-based, Virtual Desktop
+- **Meta Quest 3**: WebXR, 120Hz, Hand tracking, Color passthrough, Depth API
+- **Meta Quest Pro**: WebXR, 90Hz, Eye tracking, Face tracking, Hand tracking
+- **Apple Vision Pro**: visionOS, RealityKit, Spatial Computing, Hand/Eye tracking
+- **SteamVR**: PCVR support, Virtual Desktop, High refresh rate
+
+### VR/AR Features
+
+- **Hand Tracking**: Quest 3/Pro native hand tracking API
+- **Passthrough AR**: Quest 3 color passthrough with depth sensing
+- **Eye Tracking**: Quest Pro eye tracking for foveated rendering
+- **Face Tracking**: Quest Pro face tracking for avatars
+- **Spatial Anchors**: AR position anchoring for persistent overlays
+
+## 🚀 CI/CD Architecture (v2.1.0)
+
+### GitHub Actions Workflows
+
+- **Rust CI** (`rust-ci.yml`): Multi-platform builds, Clippy lint, Format check, Test execution
+- **Release CI** (`release.yml`): Binary generation, npm packaging, GitHub Releases
+- **Security CI**: cargo-audit, CVE scanning, Dependency checks
+- **Docs CI**: README validation, Documentation checks, Link verification
+
+### Build Targets
+
+- Windows (x64, ARM64)
+- macOS (x64, ARM64)
+- Linux (x64, ARM64, musl)
+
 ## 🔮 Future Architecture
 
 Planned enhancements:
@@ -235,6 +281,7 @@ Planned enhancements:
 3. **Mobile**: React Native visualizer
 4. **WebAssembly**: Client-side computation
 5. **gRPC**: High-performance RPC
+6. **GPU LLM Inference**: TensorRT/vLLM integration (v2.2.0)
 
 ## 📚 Further Reading
 
@@ -247,5 +294,5 @@ Planned enhancements:
 
 **Maintained by**: zapabob  
 **License**: Apache 2.0 (user-space), GPL v2 (kernel modules)  
-**Version**: 1.0.0
+**Version**: 2.1.0
 

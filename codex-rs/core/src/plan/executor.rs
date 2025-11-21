@@ -25,6 +25,7 @@ pub enum ExecutionEvent {
     /// Execution started
     Started {
         execution_id: String,
+        #[allow(non_snake_case)]
         Plan_id: String,
         timestamp: DateTime<Utc>,
     },
@@ -91,6 +92,7 @@ pub struct ExecutionResult {
     pub execution_id: String,
 
     /// Plan ID
+    #[allow(non_snake_case)]
     pub Plan_id: String,
 
     /// Success flag
@@ -318,7 +320,7 @@ impl PlanExecutor {
         // Execute via orchestrator
         let result = self
             .orchestrator
-            .execute_Plan(Plan)
+            .execute_plan(Plan)
             .await
             .context("Orchestrator execution failed")?;
 

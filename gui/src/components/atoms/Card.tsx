@@ -18,7 +18,7 @@ export interface CardProps extends Omit<MuiCardProps, 'sx'> {
   sx?: SxProps<Theme>;
 }
 
-const MotionCard = motion(MuiCard);
+const MotionCard = motion.create(MuiCard);
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   (

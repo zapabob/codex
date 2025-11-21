@@ -55,6 +55,8 @@ use crossterm::event::KeyEventKind;
 use crossterm::event::KeyModifiers;
 use rand::Rng;
 use ratatui::buffer::Buffer;
+use ratatui::layout::Constraint;
+use ratatui::layout::Layout;
 use ratatui::layout::Rect;
 use ratatui::style::Color;
 use ratatui::style::Stylize;
@@ -82,6 +84,7 @@ use crate::exec_cell::CommandOutput;
 use crate::exec_cell::ExecCell;
 use crate::exec_cell::new_active_exec_command;
 use crate::get_git_diff::get_git_diff;
+use crate::gpu_stats::GpuStatsSnapshot;
 use crate::history_cell;
 use crate::history_cell::AgentMessageCell;
 use crate::history_cell::HistoryCell;
@@ -93,7 +96,6 @@ use crate::render::Insets;
 use crate::render::renderable::ColumnRenderable;
 use crate::render::renderable::FlexRenderable;
 use crate::render::renderable::Renderable;
-use crate::gpu_stats::GpuStatsSnapshot;
 use crate::slash_command::SlashCommand;
 use crate::status::RateLimitSnapshotDisplay;
 use crate::text_formatting::truncate_text;
@@ -2748,6 +2750,15 @@ impl ChatWidget {
         self.bottom_pane.clear_gpu_stats();
     }
 
+    fn layout_areas(&self, area: Rect) -> [Rect; 3] {
+        Layout::vertical([
+            Constraint::Min(0),
+            Constraint::Length(0),
+            Constraint::Length(self.bottom_pane.desired_height(area.width)),
+        ])
+        .areas(area)
+    }
+
     pub fn cursor_pos(&self, area: Rect) -> Option<(u16, u16)> {
         let [_, _, bottom_pane_area] = self.layout_areas(area);
         self.bottom_pane.cursor_pos(bottom_pane_area)
@@ -2756,16 +2767,18 @@ impl ChatWidget {
 
 impl Renderable for ChatWidget {
     fn render(&self, area: Rect, buf: &mut Buffer) {
-        self.as_renderable().render(area, buf);
+        let [_, _, bottom_pane_area] = self.layout_areas(area);
+        self.bottom_pane.render(bottom_pane_area, buf);
         self.last_rendered_width.set(Some(area.width as usize));
     }
 
     fn desired_height(&self, width: u16) -> u16 {
-        self.as_renderable().desired_height(width)
+        self.bottom_pane.desired_height(width)
     }
 
     fn cursor_pos(&self, area: Rect) -> Option<(u16, u16)> {
-        self.as_renderable().cursor_pos(area)
+        let [_, _, bottom_pane_area] = self.layout_areas(area);
+        self.bottom_pane.cursor_pos(bottom_pane_area)
     }
 }
 

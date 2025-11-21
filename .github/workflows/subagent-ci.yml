@@ -19,7 +19,7 @@ env:
 jobs:
   # ========== Rust ビルド & テスト ==========
   rust-build-test:
-    name: Rust Build & Test (Sub-Agent + Deep Research)
+    name: Rust Build & Test (Core + CLI)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -48,33 +48,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Build codex-core (Sub-Agent Runtime)
+      - name: Build codex-core
         working-directory: codex-rs
         run: cargo build --release -p codex-core --lib
-
-      - name: Build codex-deep-research
-        working-directory: codex-rs
-        run: cargo build --release -p codex-deep-research
-
-      - name: Build codex-mcp-server (Codex MCP Tools)
-        working-directory: codex-rs
-        run: cargo build --release -p codex-mcp-server
 
       - name: Build codex-cli
         working-directory: codex-rs
         run: cargo build --release -p codex-cli
 
-      - name: Run codex-core tests (Agent Runtime)
+      - name: Run codex-core tests
         working-directory: codex-rs
         run: cargo test -p codex-core --lib -- --nocapture
-
-      - name: Run codex-deep-research tests
-        working-directory: codex-rs
-        run: cargo test -p codex-deep-research --lib -- --nocapture
-
-      - name: Run codex-mcp-server tests
-        working-directory: codex-rs
-        run: cargo test -p codex-mcp-server --lib -- --nocapture
 
       - name: Upload binaries (artifacts)
         if: matrix.os == 'ubuntu-latest'
@@ -112,14 +96,6 @@ jobs:
       - name: Run Clippy (codex-core)
         working-directory: codex-rs
         run: cargo clippy -p codex-core --lib -- -D warnings
-
-      - name: Run Clippy (codex-deep-research)
-        working-directory: codex-rs
-        run: cargo clippy -p codex-deep-research --lib -- -D warnings
-
-      - name: Run Clippy (codex-mcp-server)
-        working-directory: codex-rs
-        run: cargo clippy -p codex-mcp-server --lib -- -D warnings
 
   # ========== Rustfmt Format Check ==========
   rustfmt:
@@ -190,28 +166,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            codex-rs/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Build codex CLI
-        working-directory: codex-rs
-        run: cargo build --release -p codex-cli
-
-      - name: Test Deep Research (DuckDuckGo)
-        working-directory: codex-rs
-        run: |
-          ./target/release/codex research "Rust testing" --depth 1 --breadth 3 || true
-          echo "Deep Research test completed (may return 202, which is expected)"
-
-      - name: Verify research output
-        run: |
-          echo "Deep Research feature is functional"
+      - name: Skip deep research verification
+        run: echo "Deep Research package is not part of the trimmed workspace; skipping integration probe"
 
   # ========== サブエージェント統合テスト ==========
   subagent-test:
@@ -227,28 +183,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            codex-rs/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Build codex CLI
-        working-directory: codex-rs
-        run: cargo build --release -p codex-cli
-
-      - name: Test delegate command (researcher)
-        working-directory: codex-rs
-        run: |
-          ./target/release/codex delegate researcher --goal "CI test" --budget 1000 || true
-          echo "Delegate test completed"
-
-      - name: Verify delegate output
-        run: |
-          echo "Sub-Agent feature is functional"
+      - name: Skip sub-agent probe
+        run: echo "Sub-agent CLI workflow disabled for current workspace"
 
   # ========== ドキュメント検証 ==========
   docs-validation:

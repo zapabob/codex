@@ -1,0 +1,44 @@
+name: "qc-optimizer"
+goal: "Before merging to main, orchestrate full-stack QC: run unit/abnormal/comprehensive tests, apply statistical + quantum-inspired optimization heuristics, and log merge decisions."
+tools:
+  mcp:
+    - codex_read_file
+    - codex_grep
+    - codex_codebase_search
+    - grep
+    - read_file
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./_doc"
+      - "./docs"
+      - "./artifacts"
+  shell:
+    exec:
+      - cargo
+      - npm
+      - pnpm
+      - just
+      - git
+      - node
+  net:
+    allow:
+      - "https://docs.rs/*"
+      - "https://doc.rust-lang.org/*"
+      - "https://developer.mozilla.org/*"
+policies:
+  context:
+    max_tokens: 60000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Execute single/unit/abnormal/comprehensive test suites for touched surfaces."
+  - "Summarize failures with actionable recommendations and severity."
+  - "Produce QC and statistical significance notes before each merge."
+  - "Record quantum/mathematical optimization rationale for prioritization."
+  - "Persist results via scripts/create-implementation-log.js under _doc/."
+artifacts:
+  - "_doc/"
+  - "docs/guides/qc-optimizer-orchestration.md"

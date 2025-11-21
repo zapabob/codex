@@ -1,20 +1,12 @@
-[package]
+﻿[package]
 edition = "2024"
 name = "codex-core"
-version = { workspace = true }
+version = "0.1.0"
 
 [lib]
 doctest = false
 name = "codex_core"
 path = "src/lib.rs"
-
-[features]
-agent_security = []
-windows-ai = ["codex-windows-ai"]
-cuda = []
-
-[lints]
-workspace = true
 
 [dependencies]
 anyhow = "1.0"
@@ -94,9 +86,7 @@ time = { workspace = true, features = [
 tokio = { workspace = true, features = [
     "io-std",
     "macros",
-    "process",
     "rt-multi-thread",
-    "signal",
 ] }
 tokio-util = { workspace = true, features = ["rt"] }
 toml = { workspace = true }

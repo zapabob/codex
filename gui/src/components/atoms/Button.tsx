@@ -19,7 +19,7 @@ export interface ButtonProps extends Omit<MuiButtonProps, 'sx'> {
   sx?: SxProps<Theme>;
 }
 
-const MotionButton = motion(MuiButton);
+const MotionButton = motion.create(MuiButton);
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (

@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tracing::{debug, info, warn};
 
 use crate::GpuStats;
-use crate::windows_impl::kernel_driver_ffi::{AiDriverHandle, MemoryPoolStatsC, SchedulerStatsC};
+use crate::kernel_driver_ffi::{AiDriverHandle, MemoryPoolStatsC, SchedulerStatsC};
 
 /// Kernel Driver Bridge for GPU optimization
 ///
@@ -41,6 +41,7 @@ impl KernelBridge {
                 }
                 
                 Ok(Self {
+                    #[allow(clippy::arc_with_non_send_sync)]
                     driver_handle: Some(Arc::new(handle)),
                 })
             }
@@ -124,6 +125,11 @@ impl KernelBridge {
         }
     }
 
+    /// Get driver handle (for advanced use cases)
+    pub fn driver_handle(&self) -> Option<Arc<AiDriverHandle>> {
+        self.driver_handle.clone()
+    }
+
     /// Check Intel Arc B580 compatibility and apply fallback if needed
     pub fn check_intel_arc_compatibility(&self) -> Result<ArcCompatibility> {
         let adapter_info = get_gpu_adapter_info()?;
@@ -189,8 +195,10 @@ struct GpuAdapterInfo {
 /// GPU vendor
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum GpuVendor {
+    #[allow(dead_code)]
     Nvidia,
     Intel,
+    #[allow(dead_code)]
     Amd,
     Unknown,
 }

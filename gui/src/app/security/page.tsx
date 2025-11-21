@@ -147,41 +147,18 @@ export default function SecurityPage() {
     }
   };
 
-  // Mock data for demonstration
-  const mockFindings = [
-    {
-      id: '1',
-      severity: 'high',
-      title: 'SQLインジェクションの脆弱性',
-      description: 'ユーザー入力が適切にサニタイズされていない可能性があります',
-      location: { file: 'src/api/user.js', line: 45 },
-      recommendation: 'プリペアドステートメントを使用するか、入力を適切にエスケープしてください',
-    },
-    {
-      id: '2',
-      severity: 'medium',
-      title: '機密情報のハードコーディング',
-      description: 'APIキーがソースコードに直接記述されています',
-      location: { file: 'config/database.js', line: 12 },
-      recommendation: '環境変数または秘密管理サービスを使用してください',
-    },
-    {
-      id: '3',
-      severity: 'low',
-      title: '古い依存関係',
-      description: '使用しているライブラリにセキュリティアップデートがあります',
-      location: { file: 'package.json' },
-      recommendation: '依存関係を最新バージョンに更新してください',
-    },
-  ];
+  // Get findings from actual security scans
+  const allFindings = state.securityScans.flatMap(scan => scan.findings || []);
 
   const securityStats = {
     totalScans: state.securityScans.length,
-    criticalVulnerabilities: mockFindings.filter(f => f.severity === 'critical').length,
-    highVulnerabilities: mockFindings.filter(f => f.severity === 'high').length,
-    mediumVulnerabilities: mockFindings.filter(f => f.severity === 'medium').length,
-    lowVulnerabilities: mockFindings.filter(f => f.severity === 'low').length,
-    lastScanDate: new Date().toLocaleDateString('ja-JP'),
+    criticalVulnerabilities: allFindings.filter(f => f.severity === 'critical').length,
+    highVulnerabilities: allFindings.filter(f => f.severity === 'high').length,
+    mediumVulnerabilities: allFindings.filter(f => f.severity === 'medium').length,
+    lowVulnerabilities: allFindings.filter(f => f.severity === 'low').length,
+    lastScanDate: state.securityScans.length > 0
+      ? new Date(state.securityScans[0].startedAt).toLocaleDateString('ja-JP')
+      : new Date().toLocaleDateString('ja-JP'),
   };
 
   return (
@@ -358,7 +335,7 @@ export default function SecurityPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {mockFindings.map((finding) => (
+                  {allFindings.map((finding) => (
                     <TableRow key={finding.id} hover>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

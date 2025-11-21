@@ -6,6 +6,7 @@ use crate::bottom_pane::queued_user_messages::QueuedUserMessages;
 use crate::gpu_stats::GpuStatsSnapshot;
 use crate::render::Insets;
 use crate::render::RectExt;
+use crate::render::renderable::Renderable;
 use crate::render::renderable::Renderable as _;
 use crate::tui::FrameRequester;
 use bottom_pane_view::BottomPaneView;
@@ -13,10 +14,11 @@ use codex_file_search::FileMatch;
 use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use ratatui::buffer::Buffer;
-use ratatui::layout::Rect;
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::WidgetRef;
+use crate::render::renderable::{FlexRenderable, RenderableItem};
 use std::time::Duration;
 use std::time::Instant;
 use std::collections::VecDeque;
@@ -181,6 +183,12 @@ impl GpuStatsWidget {
         }
 
         Line::from(spark.cyan())
+    }
+}
+
+impl WidgetRef for GpuStatsWidget {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        GpuStatsWidget::render_ref(self, area, buf);
     }
 }
 
@@ -791,7 +799,7 @@ impl WidgetRef for &BottomPane {
                     width: top_area.width,
                     height,
                 };
-                status.render_ref(status_area, buf);
+                status.render(status_area, buf);
                 cursor_y = cursor_y.saturating_add(height);
                 remaining = remaining.saturating_sub(height);
             }
@@ -812,8 +820,22 @@ impl WidgetRef for &BottomPane {
                 self.queued_user_messages.render(queue_area, buf);
             }
 
-            self.composer.render_ref(content_area, buf);
+            self.composer.render(content_area, buf);
         }
+    }
+}
+
+impl Renderable for BottomPane {
+    fn render(&self, area: Rect, buf: &mut Buffer) {
+        <&BottomPane as WidgetRef>::render_ref(&self, area, buf);
+    }
+
+    fn desired_height(&self, width: u16) -> u16 {
+        BottomPane::desired_height(self, width)
+    }
+
+    fn cursor_pos(&self, area: Rect) -> Option<(u16, u16)> {
+        BottomPane::cursor_pos(self, area)
     }
 }
 

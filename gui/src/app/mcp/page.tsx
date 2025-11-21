@@ -152,12 +152,17 @@ export default function MCPPage() {
     console.log('Toggling server:', serverId, enabled);
   };
 
-  // Mock data for demonstration
-  const mockServerStats = {
+  // Get stats from actual MCP connections
+  const mcpServerStats = {
     totalServers: state.mcpConnections.length,
     connectedServers: state.mcpConnections.filter(c => c.status === 'connected').length,
-    totalRequests: 1250,
-    avgResponseTime: 245, // ms
+    totalRequests: state.mcpConnections.reduce((sum, conn) => {
+      // If connection has request count, use it; otherwise estimate from lastConnected
+      return sum + (conn.requestCount || 0);
+    }, 0),
+    avgResponseTime: state.mcpConnections.length > 0
+      ? state.mcpConnections.reduce((sum, conn) => sum + (conn.avgResponseTime || 0), 0) / state.mcpConnections.length
+      : 0,
   };
 
   return (
@@ -180,7 +185,7 @@ export default function MCPPage() {
                 </Avatar>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {mockServerStats.totalServers}
+                    {mcpServerStats.totalServers}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     総サーバー数
@@ -198,7 +203,7 @@ export default function MCPPage() {
                 </Avatar>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>
-                    {mockServerStats.connectedServers}
+                    {mcpServerStats.connectedServers}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     接続済み
@@ -216,7 +221,7 @@ export default function MCPPage() {
                 </Avatar>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {mockServerStats.totalRequests.toLocaleString()}
+                    {mcpServerStats.totalRequests.toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     リクエスト数
@@ -234,7 +239,7 @@ export default function MCPPage() {
                 </Avatar>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {mockServerStats.avgResponseTime}ms
+                    {mcpServerStats.avgResponseTime > 0 ? `${Math.round(mcpServerStats.avgResponseTime)}ms` : 'N/A'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     平均応答時間

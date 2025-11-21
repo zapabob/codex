@@ -5,7 +5,7 @@ use tracing::info;
 
 use crate::GpuStats;
 
-pub mod kernel_driver;
+// kernel_driver and kernel_driver_ffi are declared in lib.rs at crate root
 
 /// Check if Windows AI is available
 pub fn check_windows_ai_available() -> bool {
@@ -31,40 +31,26 @@ fn get_windows_build_number() -> Result<u32> {
 }
 
 /// Check NPU availability via registry
+///
+/// NOTE: Windows Registry API not available in current windows crate version (0.58)
+/// This function is disabled until windows crate is updated with Registry API support
+#[allow(dead_code)]
 fn check_npu_via_registry() -> Result<bool> {
-    unsafe {
-        let mut hkey = HKEY::default();
-        let result = RegOpenKeyExW(
-            HKEY_LOCAL_MACHINE,
-            &windows::core::w!("SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e97d-e325-11ce-bfc1-08002be10318}"),
-            0,
-            KEY_READ,
-            &mut hkey,
-        );
-
-        if result.is_err() {
-            return Ok(false);
-        }
-
-        // Check for NPU device class
-        // TODO: Implement actual NPU device enumeration
-        // For now, return false as specific registry keys need to be identified
-        
-        RegCloseKey(hkey);
+    // TODO: Implement via registry read when windows crate Registry API is available
+    // For now, return false as placeholder
         Ok(false)
-    }
 }
 
 /// Get DirectML version info
 pub fn get_directml_version() -> Result<DirectMlVersion> {
     let build = get_windows_build_number()?;
-    
+
     // Windows 11 25H2 (Build 26100+) includes DirectML 1.13/1.14
     if build >= 26100 {
         Ok(DirectMlVersion {
             major: 1,
             minor: if build >= 26200 { 14 } else { 13 },
-            build: build,
+            build,
         })
     } else {
         anyhow::bail!("DirectML 1.13+ requires Windows 11 25H2 (Build 26100+)")
