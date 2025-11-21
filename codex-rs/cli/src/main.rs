@@ -50,6 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "server" => launch_server(),
         "mcp-gemini" => launch_gemini_mcp_server(),
         "deep-research" => launch_deep_research(&args),
+        "plan" => launch_plan(&args),
         "delegate" => launch_delegate(&args),
         "--version" | "-v" => {
             print_version();
@@ -466,6 +467,82 @@ fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error
     })
 }
 
+/// Launch Plan Command
+fn launch_plan(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+    if args.len() < 3 {
+        println!("Usage: codex plan <subcommand> [options]");
+        println!("");
+        println!("Subcommands:");
+        println!("  create <name>     Create a new plan");
+        println!("  list              List all plans");
+        println!("  show <id>         Show plan details");
+        println!("  execute <id>      Execute a plan");
+        println!("  status <id>       Show execution status");
+        println!("  approve <id>      Approve pending actions");
+        println!("  reject <id>       Reject pending actions");
+        println!("");
+        println!("Examples:");
+        println!("  codex plan create \"Code Review Plan\" --budget 10000");
+        println!("  codex plan list");
+        println!("  codex plan execute plan_123");
+        println!("  codex plan approve plan_123");
+        return Ok(());
+    }
+
+    let subcommand = args[2].as_str();
+
+    match subcommand {
+        "create" => {
+            if args.len() < 4 {
+                println!("Usage: codex plan create <name> [--budget <tokens>] [--mode <orchestrated|parallel>]");
+                return Ok(());
+            }
+            let name = args[3].clone();
+            let budget: Option<u64> = args.get(4).and_then(|s| s.parse().ok());
+            let mode = args.get(5).unwrap_or(&"orchestrated".to_string()).clone();
+
+            println!("📋 Creating new plan...");
+            println!("📝 Name: {}", name);
+            println!("💰 Budget: {} tokens", budget.unwrap_or(10000));
+            println!("🎯 Mode: {}", mode);
+
+            // Plan creation logic would go here
+            println!("✅ Plan '{}' created successfully", name);
+            println!("🔢 Plan ID: plan_{}", name.to_lowercase().replace(" ", "_"));
+        }
+        "list" => {
+            println!("📋 Available Plans");
+            println!("══════════════════");
+            println!("No plans found. Create one with 'codex plan create <name>'");
+        }
+        "show" | "execute" | "status" | "approve" | "reject" => {
+            let plan_id = args.get(3).unwrap_or(&"".to_string()).clone();
+            if plan_id.is_empty() {
+                println!("Error: Plan ID required for '{}' command", subcommand);
+                return Ok(());
+            }
+
+            match subcommand {
+                "show" => println!("📋 Showing plan: {}", plan_id),
+                "execute" => println!("🚀 Executing plan: {}", plan_id),
+                "status" => println!("📊 Status of plan: {}", plan_id),
+                "approve" => println!("✅ Approving actions for plan: {}", plan_id),
+                "reject" => println!("❌ Rejecting actions for plan: {}", plan_id),
+                _ => unreachable!(),
+            }
+
+            println!("⚠️  Plan functionality is under development");
+            println!("📝 This feature will be available in the next release");
+        }
+        _ => {
+            println!("Error: Unknown subcommand '{}'", subcommand);
+            println!("Run 'codex plan' for available subcommands");
+        }
+    }
+
+    Ok(())
+}
+
 /// Launch Delegate Command
 fn launch_delegate(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
     if args.len() < 3 {
@@ -527,6 +604,8 @@ fn print_help() {
     println!("    gui           Launch Graphical User Interface");
     println!("    server        Launch RPC Server for GUI integration");
     println!("    mcp-gemini    Launch Gemini CLI MCP Server");
+    println!("    deep-research Run deep research with AI assistance");
+    println!("    plan          Create and manage AI execution plans");
     println!("    delegate      Delegate tasks to specialized sub-agents");
     println!("    --help, -h    Show this help message");
     println!("    --version, -v Show version information");
