@@ -44,6 +44,7 @@ The QC orchestrator provides:
 
 2. **Log File** - Structured markdown log in `_docs/logs/`:
    - File naming: `YYYY-MM-DD-{worktreename}-impl.md`
+     - Note: If the worktree or branch name contains slashes (e.g., `feature/auth`), they are replaced with dashes in the log file name (e.g., `2025-11-19-feature-auth-impl.md`).
    - Includes timestamp with timezone
    - Test results with pass/fail indicators
    - Full metrics and recommendation
