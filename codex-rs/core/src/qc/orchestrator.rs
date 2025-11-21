@@ -2,28 +2,50 @@
 
 use std::path::Path;
 use std::process::Command;
-use std::fs;
+use serde::Deserialize;
 
 use crate::qc::TestProfile;
 
-use serde::Deserialize;
+// Risk scoring constants
+/// Maximum lines threshold for normalization (lines beyond this are capped at risk score 1.0)
+const MAX_LINES_FOR_RISK: f64 = 500.0;
+/// Maximum files threshold for normalization (files beyond this are capped at risk score 1.0)  
+const MAX_FILES_FOR_RISK: f64 = 20.0;
+/// Weight given to line changes in risk calculation (0.0-1.0)
+const RISK_WEIGHT_LINES: f64 = 0.7;
+/// Weight given to file changes in risk calculation (0.0-1.0)
+const RISK_WEIGHT_FILES: f64 = 0.3;
 
 /// QC configuration options
 #[derive(Debug, Clone, Deserialize)]
 pub struct QcConfig {
-    pub max_lines_without_pr: Option<usize>,
-use std::process::Command;
-use std::fs;
+    /// Maximum lines (additions + deletions) before recommending a PR
+    #[serde(default = "default_max_lines")]
+    pub max_lines_without_pr: usize,
+    /// Base branch to compare against (e.g., "main", "origin/main")
+    #[serde(default = "default_base_branch")]
+    pub base_branch: String,
+    /// Risk score threshold (0.0-1.0) above which to recommend a PR
+    #[serde(default = "default_risk_threshold")]
+    pub risk_threshold: f64,
+    /// Default test profile
+    #[serde(default)]
+    pub default_profile: TestProfile,
+}
 
-use crate::qc::TestProfile;
+fn default_max_lines() -> usize { 200 }
+fn default_base_branch() -> String { "HEAD".to_string() }
+fn default_risk_threshold() -> f64 { 0.7 }
 
-use serde::Deserialize;
-
-/// QC configuration options
-#[derive(Debug, Clone, Deserialize)]
-pub struct QcConfig {
-    pub max_lines_without_pr: Option<usize>,
-    pub base_branch: Option<String>,
+impl Default for QcConfig {
+    fn default() -> Self {
+        Self {
+            max_lines_without_pr: default_max_lines(),
+            base_branch: default_base_branch(),
+            risk_threshold: default_risk_threshold(),
+            default_profile: TestProfile::default(),
+        }
+    }
 }
 
 /// QC orchestrator for running quality checks
@@ -33,68 +55,6 @@ pub struct QcOrchestrator {
     config: QcConfig,
 }
 
-impl QcOrchestrator {
-    /// Create a new QcOrchestrator with config
-    pub fn new(profile: TestProfile, repo_root: std::path::PathBuf, config: QcConfig) -> Self {
-        QcOrchestrator {
-            profile,
-            repo_root,
-            config,
-        }
-    }
-
-    /// Load QcConfig from a TOML file
-    pub fn load_config_from_file<P: AsRef<Path>>(path: P) -> Result<QcConfig, Box<dyn std::error::Error>> {
-        let contents = fs::read_to_string(path)?;
-        let config: QcConfig = toml::from_str(&contents)?;
-        Ok(config)
-    }
-}
-use std::process::Command;
-use std::fs;
-
-use crate::qc::TestProfile;
-
-use serde::Deserialize;
-
-/// QC configuration options
-#[derive(Debug, Clone, Deserialize)]
-pub struct QcConfig {
-    pub max_lines_without_pr: Option<usize>,
-    pub base_branch: Option<String>,
-}
-
-/// QC orchestrator for running quality checks
-pub struct QcOrchestrator {
-    profile: TestProfile,
-    repo_root: std::path::PathBuf,
-    config: QcConfig,
-}
-
-impl QcOrchestrator {
-    /// Create a new QcOrchestrator with config
-    pub fn new(profile: TestProfile, repo_root: std::path::PathBuf, config: QcConfig) -> Self {
-        QcOrchestrator {
-            profile,
-            repo_root,
-            config,
-        }
-    }
-
-    /// Load QcConfig from a TOML file
-    pub fn load_config_from_file<P: AsRef<Path>>(path: P) -> Result<QcConfig, Box<dyn std::error::Error>> {
-        let contents = fs::read_to_string(path)?;
-        let config: QcConfig = toml::from_str(&contents)?;
-        Ok(config)
-    }
-}
-    /// Load QcConfig from a TOML file
-    pub fn load_config_from_file<P: AsRef<Path>>(path: P) -> Result<QcConfig, Box<dyn std::error::Error>> {
-        let contents = fs::read_to_string(path)?;
-        let config: QcConfig = toml::from_str(&contents)?;
-        Ok(config)
-    }
-}
 /// Result of a QC run
 #[derive(Debug, Clone)]
 pub struct QcResult {
@@ -147,11 +107,17 @@ impl std::fmt::Display for QcRecommendation {
 }
 
 impl QcOrchestrator {
-    /// Create a new QC orchestrator
+    /// Create a new QC orchestrator with default configuration
     pub fn new<P: AsRef<Path>>(repo_root: P, profile: TestProfile) -> Self {
+        Self::with_config(repo_root, profile, QcConfig::default())
+    }
+
+    /// Create a new QC orchestrator with custom configuration
+    pub fn with_config<P: AsRef<Path>>(repo_root: P, profile: TestProfile, config: QcConfig) -> Self {
         Self {
             profile,
             repo_root: repo_root.as_ref().to_path_buf(),
+            config,
         }
     }
 
@@ -179,13 +145,13 @@ impl QcOrchestrator {
         let recommendation = if !all_tests_passed {
             warnings.push("Some tests failed".to_string());
             QcRecommendation::Reject
-        } else if total_lines > 200 {
+        } else if total_lines > self.config.max_lines_without_pr {
             warnings.push(format!(
-                "Total changed lines ({}) exceeds 200-line threshold",
-                total_lines
+                "Total changed lines ({}) exceeds {}-line threshold",
+                total_lines, self.config.max_lines_without_pr
             ));
             QcRecommendation::RequestPr
-        } else if risk_score > 0.7 {
+        } else if risk_score > self.config.risk_threshold {
             warnings.push(format!("High risk score: {:.2}", risk_score));
             QcRecommendation::RequestPr
         } else {
@@ -207,14 +173,20 @@ impl QcOrchestrator {
 
     /// Analyze git diff to count changed lines and files
     fn analyze_diff(&self) -> Result<(usize, usize, usize), String> {
+        // Use configured base branch for comparison
+        let base_ref = &self.config.base_branch;
+        
         let output = Command::new("git")
-            .args(["diff", "--numstat", "origin/main...HEAD"])
+            .args(["diff", "--numstat", base_ref])
             .current_dir(&self.repo_root)
             .output()
             .map_err(|e| format!("Failed to run git diff: {}", e))?;
 
         if !output.status.success() {
-            return Err("git diff command failed".to_string());
+            return Err(format!(
+                "git diff command failed. Make sure '{}' is a valid ref.",
+                base_ref
+            ));
         }
 
         let diff_output = String::from_utf8_lossy(&output.stdout);
@@ -226,6 +198,7 @@ impl QcOrchestrator {
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() >= 3 {
                 file_count += 1;
+                
                 // Handle binary files: git diff --numstat outputs "-" for added/deleted lines
                 if parts[0] != "-" {
                     if let Ok(added) = parts[0].parse::<usize>() {
@@ -237,8 +210,7 @@ impl QcOrchestrator {
                         total_deleted += deleted;
                     }
                 }
-                // If both parts[0] and parts[1] are "-", this is a binary file.
-                // We count it in file_count, but not in lines added/deleted.
+                // Binary files are still counted in file_count even if lines aren't counted
             }
         }
 
@@ -254,12 +226,30 @@ impl QcOrchestrator {
             let success = self.run_command(&cmd);
             results.push((cmd, success));
         }
+        
+        // Run optional commands (these don't affect pass/fail status)
+        let optional_cmds = self.profile.optional_rust_commands();
+        for cmd in optional_cmds {
+            let success = self.run_command(&cmd);
+            if !success {
+                println!("ℹ️  Optional command failed (not affecting QC result): {}", cmd);
+            }
+            // Don't add to results so they don't affect pass/fail
+        }
 
         results
     }
 
     /// Run Web tests based on the profile
     fn run_web_tests(&self) -> Vec<(String, bool)> {
+        // Check if this appears to be a web project
+        let has_package_json = self.repo_root.join("package.json").exists();
+        
+        if !has_package_json {
+            println!("ℹ️  No package.json found, skipping web tests");
+            return Vec::new();
+        }
+        
         let commands = self.profile.web_commands();
         let mut results = Vec::new();
 
@@ -272,6 +262,12 @@ impl QcOrchestrator {
     }
 
     /// Run a shell command and return success status
+    /// 
+    /// # Security Note
+    /// This function executes commands through a shell interpreter. Commands are
+    /// currently hard-coded in TestProfile implementations. If this is extended to
+    /// support user-configurable profiles in the future, proper input validation
+    /// and sanitization must be implemented to prevent command injection vulnerabilities.
     fn run_command(&self, cmd: &str) -> bool {
         println!("Running: {}", cmd);
 
@@ -287,7 +283,8 @@ impl QcOrchestrator {
             self.repo_root.clone()
         };
 
-        let status = if cfg!(windows) {
+        // Use platform-appropriate shell
+        let status = if cfg!(target_os = "windows") {
             Command::new("cmd")
                 .arg("/C")
                 .arg(cmd)
@@ -319,23 +316,24 @@ impl QcOrchestrator {
     }
 
     /// Calculate a risk score based on changes
+    /// 
+    /// Risk scoring algorithm:
+    /// - Line changes are normalized to MAX_LINES_FOR_RISK (500 lines)
+    /// - File changes are normalized to MAX_FILES_FOR_RISK (20 files)  
+    /// - Final score is weighted: RISK_WEIGHT_LINES (70%) for lines, RISK_WEIGHT_FILES (30%) for files
+    /// - Result is clamped to 0.0-1.0 range
     fn calculate_risk_score(
         &self,
         lines_added: usize,
         lines_deleted: usize,
         files_changed: usize,
     ) -> f64 {
-        // Simple risk scoring:
-        // - More changed lines = higher risk
-        // - More files changed = higher risk
-        // - Normalized to 0.0 - 1.0 range
-
         let total_lines = lines_added + lines_deleted;
-        let line_score = (total_lines as f64 / 500.0).min(1.0); // Max at 500 lines
-        let file_score = (files_changed as f64 / 20.0).min(1.0); // Max at 20 files
+        let line_score = (total_lines as f64 / MAX_LINES_FOR_RISK).min(1.0);
+        let file_score = (files_changed as f64 / MAX_FILES_FOR_RISK).min(1.0);
 
-        // Weight: 70% lines, 30% files
-        (line_score * 0.7 + file_score * 0.3).min(1.0)
+        // Weighted average of line and file scores
+        (line_score * RISK_WEIGHT_LINES + file_score * RISK_WEIGHT_FILES).min(1.0)
     }
 }
 

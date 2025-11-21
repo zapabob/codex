@@ -1,7 +1,6 @@
 //! Test profile definitions and configuration
 
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Available test profiles
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -30,29 +29,40 @@ impl TestProfile {
                 ]
             }
             TestProfile::Full => {
-                let mut cmds = Self::Standard.rust_commands();
-                // Add coverage if tarpaulin is available
-                cmds.push("cargo tarpaulin --workspace || echo 'Tarpaulin not available, skipping coverage'".to_string());
+                let cmds = Self::Standard.rust_commands();
+                // Tarpaulin is optional - will be marked as optional test
                 cmds
             }
         }
     }
 
     /// Get the commands to run for Web/GUI tests
+    /// These commands will only run if the working directory contains package.json
     pub fn web_commands(&self) -> Vec<String> {
         match self {
             TestProfile::Minimal => {
                 vec![]
             }
             TestProfile::Standard => {
-                vec!["pnpm test || npm test || echo 'No package manager available'".to_string()]
+                // Try pnpm first, fall back to npm if pnpm doesn't exist
+                vec!["(command -v pnpm > /dev/null 2>&1 && pnpm test) || npm test".to_string()]
             }
             TestProfile::Full => {
                 vec![
-                    "pnpm test || npm test || echo 'No package manager available'".to_string(),
-                    "pnpm lint || npm run lint || echo 'No lint script available'".to_string(),
+                    "(command -v pnpm > /dev/null 2>&1 && pnpm test) || npm test".to_string(),
+                    "(command -v pnpm > /dev/null 2>&1 && pnpm lint) || npm run lint".to_string(),
                 ]
             }
+        }
+    }
+    
+    /// Get optional Rust commands (like coverage) that don't fail the QC if they fail
+    pub fn optional_rust_commands(&self) -> Vec<String> {
+        match self {
+            TestProfile::Full => {
+                vec!["cargo tarpaulin --workspace".to_string()]
+            }
+            _ => vec![],
         }
     }
 }
@@ -141,7 +151,12 @@ mod tests {
     fn test_full_profile_commands() {
         let profile = TestProfile::Full;
         let rust_cmds = profile.rust_commands();
-        assert!(rust_cmds.len() >= 3);
+        // Full profile has same rust commands as standard, plus optional commands
+        assert_eq!(rust_cmds.len(), 2);
+        
+        let optional_cmds = profile.optional_rust_commands();
+        assert_eq!(optional_cmds.len(), 1);
+        assert!(optional_cmds[0].contains("tarpaulin"));
 
         let web_cmds = profile.web_commands();
         assert_eq!(web_cmds.len(), 2);
