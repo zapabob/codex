@@ -3,6 +3,9 @@ name = "codex-cli"
 version = "2.3.0"
 edition = "2024"
 
+[dependencies]
+codex-core = { path = "../core" }
+
 [[bin]]
 name = "codex"
 path = "src/main.rs"
