@@ -287,11 +287,19 @@ impl QcOrchestrator {
             self.repo_root.clone()
         };
 
-        let status = Command::new("sh")
-            .arg("-c")
-            .arg(cmd)
-            .current_dir(&work_dir)
-            .status();
+        let status = if cfg!(windows) {
+            Command::new("cmd")
+                .arg("/C")
+                .arg(cmd)
+                .current_dir(&work_dir)
+                .status()
+        } else {
+            Command::new("sh")
+                .arg("-c")
+                .arg(cmd)
+                .current_dir(&work_dir)
+                .status()
+        };
 
         match status {
             Ok(s) => {
