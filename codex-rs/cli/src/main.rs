@@ -379,6 +379,93 @@ fn launch_gemini_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Launch Deep Research
+fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+    if args.len() < 3 {
+        println!("Usage: codex deep-research \"<query>\" [strategy] [depth]");
+        println!("");
+        println!("Arguments:");
+        println!("  query    Research query");
+        println!("  strategy Comprehensive, Focused, or Exploratory (default: Comprehensive)");
+        println!("  depth    Research depth 1-5 (default: 3)");
+        println!("");
+        println!("Examples:");
+        println!("  codex deep-research \"Rust async patterns\"");
+        println!("  codex deep-research \"React Server Components\" Focused 4");
+        println!("  codex deep-research \"Modern web frameworks\" Exploratory 2");
+        return Ok(());
+    }
+
+    let query = args[2].clone();
+    let strategy = args.get(3).unwrap_or(&"Comprehensive".to_string()).clone();
+    let depth: usize = args.get(4)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(3);
+
+    println!("🔬 Starting Deep Research...");
+    println!("📝 Query: {}", query);
+    println!("🎯 Strategy: {}", strategy);
+    println!("📊 Depth: {}", depth);
+    println!("");
+
+    // Create tokio runtime for async operations
+    let rt = Runtime::new()?;
+
+    rt.block_on(async {
+        use codex_deep_research::*;
+        use std::sync::Arc;
+
+        let config = DeepResearcherConfig {
+            max_depth: depth,
+            max_sources: match strategy.as_str() {
+                "Exploratory" => 20,
+                "Focused" => 8,
+                _ => 12,
+            },
+            strategy: match strategy.as_str() {
+                "Comprehensive" => ResearchStrategy::Comprehensive,
+                "Focused" => ResearchStrategy::Focused,
+                "Exploratory" => ResearchStrategy::Exploratory,
+                _ => ResearchStrategy::Comprehensive,
+            },
+        };
+
+        // Try Gemini provider first, fallback to MCP
+        let provider: Arc<dyn ResearchProvider> = if std::env::var("GEMINI_API_KEY").is_ok() {
+            println!("🤖 Using Gemini Search Provider");
+            Arc::new(GeminiSearchProvider::new()?)
+        } else {
+            println!("🔍 Using MCP Search Provider");
+            Arc::new(McpSearchProvider::new(SearchBackend::Google)?)
+        };
+
+        let researcher = DeepResearcher::new(config, provider);
+        let report = researcher.research(&query).await?;
+
+        println!("📋 Research Report");
+        println!("════════════════════════════════════════");
+        println!("Query: {}", report.query);
+        println!("Strategy: {:?}", report.strategy);
+        println!("Depth Reached: {}", report.depth_reached);
+        println!("Sources Found: {}", report.sources.len());
+        println!("");
+        println!("Summary:");
+        println!("{}", report.summary);
+        println!("");
+        println!("Sources:");
+        for (i, source) in report.sources.iter().enumerate() {
+            println!("{}. {}", i + 1, source.title);
+            println!("   URL: {}", source.url);
+            if let Some(desc) = &source.description {
+                println!("   Description: {}", desc);
+            }
+            println!("");
+        }
+
+        Ok(())
+    })
+}
+
 /// Launch Delegate Command
 fn launch_delegate(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
     if args.len() < 3 {
