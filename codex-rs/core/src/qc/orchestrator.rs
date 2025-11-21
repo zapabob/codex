@@ -170,12 +170,19 @@ impl QcOrchestrator {
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() >= 3 {
                 file_count += 1;
-                if let Ok(added) = parts[0].parse::<usize>() {
-                    total_added += added;
+                // Handle binary files: git diff --numstat outputs "-" for added/deleted lines
+                if parts[0] != "-" {
+                    if let Ok(added) = parts[0].parse::<usize>() {
+                        total_added += added;
+                    }
                 }
-                if let Ok(deleted) = parts[1].parse::<usize>() {
-                    total_deleted += deleted;
+                if parts[1] != "-" {
+                    if let Ok(deleted) = parts[1].parse::<usize>() {
+                        total_deleted += deleted;
+                    }
                 }
+                // If both parts[0] and parts[1] are "-", this is a binary file.
+                // We count it in file_count, but not in lines added/deleted.
             }
         }
 
