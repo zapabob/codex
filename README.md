@@ -25,7 +25,7 @@
 
 ### 🎉 What's New in v2.3.0 "Security & Integration"
 
-**Release Date**: January 27, 2025  
+**Release Date**: October 27, 2025  
 **Milestone**: Security Features & Enhanced Integration
 
 **🎁 New in v2.3.0**:
@@ -41,6 +41,8 @@
 This section highlights the unique features and enhancements added by [@zapabob](https://github.com/zapabob) to the original [OpenAI/codex](https://github.com/openai/codex) project.
 
 このセクションでは、[@zapabob](https://github.com/zapabob)が元の[OpenAI/codex](https://github.com/openai/codex)プロジェクトに追加した独自機能と拡張を紹介します。
+
+**zapabob/codex Enhanced Features**: Consolidated upgrades for the forked distribution, including the sub-agent runtime, documentation assets, and CI guardrails.
 
 ### 🤖 Sub-Agent System / サブエージェントシステム
 
@@ -685,7 +687,7 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 
 ### 🎉 v2.3.0 "Security & Integration" の新機能
 
-**リリース日**: 2025年1月27日  
+**リリース日**: 2025年10月27日  
 **マイルストーン**: セキュリティ機能 & 統合テスト強化
 
 **🎁 v2.3.0の新機能**:
