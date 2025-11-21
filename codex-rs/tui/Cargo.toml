@@ -6,3 +6,13 @@ edition = "2021"
 [[bin]]
 name = "codex-tui"
 path = "src/main.rs"
+
+[dependencies]
+# Core dependencies
+codex-core = { path = "../core" }
+color-eyre = "0.6"
+tokio = { version = "1.0", features = ["full"] }
+
+# Workspace dependencies (inherited)
+tokio-stream = { workspace = true }
+futures-util = { workspace = true }

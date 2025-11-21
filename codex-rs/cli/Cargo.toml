@@ -50,4 +50,5 @@ wildmatch = "2.3"
 # MCP and Deep Research dependencies
 mcp-types = { path = "../mcp-types" }
 codex-deep-research = { path = "../deep-research" }
+codex-core = { path = "../core" }
 

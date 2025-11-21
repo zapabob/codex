@@ -4,7 +4,13 @@ version = "2.3.0"
 rust-version = "1.80"
 
 [workspace]
-members = ["tui"]
+members = [
+    "core",
+    "deep-research",
+    "mcp-types",
+    "protocol",
+    "cli",
+]
 resolver = "2"
 
 [workspace.lints.rust]
@@ -37,6 +43,7 @@ diffy = "0.3"
 dirs = "5.0"
 dunce = "1.0"
 futures = "0.3"
+dashmap = { version = "5.5", features = ["serde"] }
 git2 = "0.18"
 hex = "0.4"
 http = "1.1"
@@ -67,6 +74,7 @@ thiserror = "1.0"
 time = "0.3"
 tokio = "1.40"
 tokio-stream = "0.1"
+futures-util = "0.3"
 tokio-util = "0.7"
 toml = "0.8"
 tracing = "0.1"
@@ -83,3 +91,18 @@ which = "6.0"
 wildmatch = "2.3"
 codex-windows-sandbox = { path = "windows-sandbox" }
 arboard = "3.4"
+# Additional dependencies for TUI and QC
+codex-app-server-protocol = { path = "protocol" }
+codex-apply-patch = { path = "apply-patch" }
+codex-keyring-store = { path = "keyring-store" }
+codex-async-utils = { path = "async-utils" }
+codex-deep-research = { path = "deep-research" }
+codex-file-search = { path = "file-search" }
+codex-git = { path = "git" }
+codex-otel = { path = "otel" }
+codex-protocol = { path = "protocol" }
+codex-rmcp-client = { path = "rmcp-client" }
+codex-utils-pty = { path = "utils-pty" }
+codex-utils-readiness = { path = "utils-readiness" }
+codex-utils-string = { path = "utils-string" }
+codex-utils-tokenizer = { path = "utils-tokenizer" }

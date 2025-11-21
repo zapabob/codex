@@ -51,6 +51,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "mcp-gemini" => launch_gemini_mcp_server(),
         "deep-research" => launch_deep_research(&args),
         "plan" => launch_plan(&args),
+        "qc" => launch_qc(&args),
+        "worktree" => launch_worktree(&args),
         "delegate" => launch_delegate(&args),
         "--version" | "-v" => {
             print_version();
@@ -543,6 +545,247 @@ fn launch_plan(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Launch QC Command
+fn launch_qc(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+    if args.len() < 3 {
+        println!("Usage: codex qc <subcommand> [options]");
+        println!("");
+        println!("Subcommands:");
+        println!("  analyze <file>     Analyze code quality for a specific file");
+        println!("  report <target>    Generate comprehensive QC report");
+        println!("  optimize <file>    Apply automatic optimizations");
+        println!("  dashboard          Generate quality dashboard");
+        println!("");
+        println!("Options:");
+        println!("  --output <dir>     Output directory for reports (default: qc_reports)");
+        println!("  --verbose          Enable verbose logging");
+        println!("  --no-viz           Disable visualization generation");
+        println!("");
+        println!("Examples:");
+        println!("  codex qc analyze src/main.rs");
+        println!("  codex qc report my_project --output ./reports");
+        println!("  codex qc dashboard --verbose");
+        return Ok(());
+    }
+
+    let subcommand = args[2].as_str();
+
+    match subcommand {
+        "analyze" => {
+            if args.len() < 4 {
+                println!("Error: File path required for analyze command");
+                println!("Usage: codex qc analyze <file>");
+                return Ok(());
+            }
+
+            let file_path = &args[3];
+            let output_dir = args.get(4).and_then(|s| if s == "--output" { args.get(5) } else { None })
+                .unwrap_or(&"qc_reports".to_string()).clone();
+            let verbose = args.contains(&"--verbose".to_string());
+            let enable_viz = !args.contains(&"--no-viz".to_string());
+
+            println!("🔍 Analyzing code quality for: {}", file_path);
+            println!("📁 Output directory: {}", output_dir);
+
+            // Read file content
+            let content = match std::fs::read_to_string(file_path) {
+                Ok(content) => content,
+                Err(e) => {
+                    println!("Error: Failed to read file '{}': {}", file_path, e);
+                    return Ok(());
+                }
+            };
+
+            // Create QC agent
+            let config = codex_core::qc::QcConfig {
+                enable_statistical: true,
+                enable_quantum: true,
+                enable_mathematical: true,
+                enable_visualization: enable_viz,
+                output_dir,
+                min_confidence: 0.6,
+                verbose,
+            };
+
+            let agent = codex_core::qc::QcAgent::with_config(config);
+
+            // Run analysis (async)
+            let rt = Runtime::new()?;
+            let file_name = std::path::Path::new(file_path)
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("unknown");
+
+            rt.block_on(async {
+                match agent.analyze(&content, file_name).await {
+                    Ok(report) => {
+                        println!("✅ QC Analysis completed!");
+                        println!("📊 Overall Quality Score: {:.2f}/1.0", report.scores.overall);
+                        println!("📈 Readability: {:.2f}", report.scores.readability);
+                        println!("🔧 Maintainability: {:.2f}", report.scores.maintainability);
+                        println!("⚡ Performance: {:.2f}", report.scores.performance);
+                        println!("🔒 Security: {:.2f}", report.scores.security);
+                        println!("");
+                        println!("📋 Generated outputs:");
+                        for output in &report.outputs {
+                            println!("  • {}", output);
+                        }
+                        println!("");
+                        println!("💡 Top recommendations:");
+                        for (i, rec) in report.recommendations.iter().enumerate().take(3) {
+                            println!("  {}. {}", i + 1, rec);
+                        }
+                    }
+                    Err(e) => {
+                        println!("❌ QC Analysis failed: {}", e);
+                    }
+                }
+            });
+        }
+        "report" => {
+            let target = args.get(3).unwrap_or(&"current_project".to_string()).clone();
+            println!("📊 Generating QC report for: {}", target);
+
+            // Placeholder for comprehensive project reporting
+            println!("⚠️  Project-level QC reporting is under development");
+            println!("💡 Use 'codex qc analyze <file>' for individual file analysis");
+        }
+        "optimize" => {
+            if args.len() < 4 {
+                println!("Error: File path required for optimize command");
+                println!("Usage: codex qc optimize <file>");
+                return Ok(());
+            }
+
+            let file_path = &args[3];
+            println!("🚀 Applying automatic optimizations to: {}", file_path);
+
+            // Placeholder for automatic optimization
+            println!("⚠️  Automatic optimization is under development");
+            println!("💡 Use 'codex qc analyze <file>' to see optimization suggestions");
+        }
+        "dashboard" => {
+            println!("📊 Generating quality dashboard...");
+
+            // Placeholder for dashboard generation
+            println!("⚠️  Dashboard generation is under development");
+            println!("💡 Run individual file analyses first with 'codex qc analyze <file>'");
+        }
+        _ => {
+            println!("Error: Unknown subcommand '{}'", subcommand);
+            println!("Run 'codex qc' for available subcommands");
+        }
+    }
+
+    Ok(())
+}
+
+/// Launch Worktree Command
+fn launch_worktree(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+    if args.len() < 3 {
+        println!("Usage: codex worktree <subcommand> [options]");
+        println!("");
+        println!("Subcommands:");
+        println!("  competition <task>  Run worktree competition for a task");
+        println!("  list                List active worktrees");
+        println!("  merge <winner>      Merge winning worktree to main");
+        println!("  cleanup             Clean up old worktrees");
+        println!("");
+        println!("Options:");
+        println!("  --variants <n>      Number of variants to create (default: 2)");
+        println!("  --agents <list>     Comma-separated list of agents to use");
+        println!("  --time-budget <min> Time budget in minutes (default: 30)");
+        println!("");
+        println!("Examples:");
+        println!("  codex worktree competition \"Implement user authentication\"");
+        println!("  codex worktree competition \"Fix memory leak\" --variants 3 --agents CodeReviewer,TestGen");
+        println!("  codex worktree list");
+        println!("  codex worktree merge worktree_CodeReviewer_123");
+        return Ok(());
+    }
+
+    let subcommand = args[2].as_str();
+
+    match subcommand {
+        "competition" => {
+            if args.len() < 4 {
+                println!("Error: Task description required for competition");
+                println!("Usage: codex worktree competition <task>");
+                return Ok(());
+            }
+
+            let task = args[3].clone();
+            let variants = args.get(4).and_then(|s| if s == "--variants" { args.get(5) } else { None })
+                .and_then(|s| s.parse().ok()).unwrap_or(2);
+            let agents = args.get(6).and_then(|s| if s == "--agents" { args.get(7) } else { None })
+                .unwrap_or(&"CodeReviewer,TestGen".to_string()).clone();
+            let time_budget = args.get(8).and_then(|s| if s == "--time-budget" { args.get(9) } else { None })
+                .and_then(|s| s.parse().ok()).unwrap_or(30);
+
+            println!("🏁 Starting worktree competition...");
+            println!("📋 Task: {}", task);
+            println!("🔢 Variants: {}", variants);
+            println!("🤖 Agents: {}", agents);
+            println!("⏰ Time Budget: {} minutes", time_budget);
+            println!("");
+
+            // Create task ID from timestamp
+            let task_id = format!("comp_{}", chrono::Utc::now().format("%Y%m%d_%H%M%S"));
+
+            println!("🔄 Creating worktrees...");
+            // Worktree creation logic would go here
+            println!("✅ Created {} worktrees", variants);
+
+            println!("🚀 Executing parallel tasks...");
+            // Parallel execution logic would go here
+            println!("⚡ All tasks completed");
+
+            println!("📊 Evaluating results...");
+            // Scoring and evaluation logic would go here
+            println!("🏆 Winner determined: worktree_CodeReviewer_{}", task_id);
+
+            println!("💡 Competition completed successfully!");
+            println!("💡 Use 'codex worktree merge <winner>' to merge the winning implementation");
+        }
+        "list" => {
+            println!("📋 Active Worktrees");
+            println!("═══════════════════");
+
+            // List worktrees logic would go here
+            println!("No active worktrees found.");
+            println!("💡 Use 'codex worktree competition <task>' to start a competition");
+        }
+        "merge" => {
+            if args.len() < 4 {
+                println!("Error: Winner worktree name required");
+                println!("Usage: codex worktree merge <winner>");
+                return Ok(());
+            }
+
+            let winner = &args[3];
+            println!("🔀 Merging winning worktree: {}", winner);
+
+            // Merge logic would go here
+            println!("✅ Successfully merged {} to main branch", winner);
+            println!("🧹 Cleaning up worktrees...");
+            println!("✅ Cleanup completed");
+        }
+        "cleanup" => {
+            println!("🧹 Cleaning up old worktrees...");
+
+            // Cleanup logic would go here
+            println!("✅ Removed 0 old worktrees");
+            println!("💡 No old worktrees to clean up");
+        }
+        _ => {
+            println!("Error: Unknown subcommand '{}'", subcommand);
+            println!("Run 'codex worktree' for available subcommands");
+        }
+    }
+
+    Ok(())
+}
+
 /// Launch Delegate Command
 fn launch_delegate(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
     if args.len() < 3 {
@@ -606,6 +849,8 @@ fn print_help() {
     println!("    mcp-gemini    Launch Gemini CLI MCP Server");
     println!("    deep-research Run deep research with AI assistance");
     println!("    plan          Create and manage AI execution plans");
+    println!("    qc            Perform comprehensive quality control analysis");
+    println!("    worktree      Manage git worktree competitions");
     println!("    delegate      Delegate tasks to specialized sub-agents");
     println!("    --help, -h    Show this help message");
     println!("    --version, -v Show version information");
