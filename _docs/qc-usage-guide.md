@@ -76,11 +76,12 @@ Recommendation: ✅ Approve (safe to merge)
 
 ### Example Log Entry
 
+> **Note:** The "機能" field below is currently a placeholder ("[Description of feature/change]") as output by the logger. The CLI does not yet support customizing this field (e.g., via a `--feature` flag), but future versions may allow user-supplied descriptions.
+
 ```markdown
 ## 2025-11-19 13:40:12 +0900
-
 - Worktree: feature-new-component
-- 機能: Add new React component for user profile
+- 機能: [Description of feature/change]
 - Profile: standard
 - Changed lines: +150 / -30 (Total: 180)
 - Files changed: 5
