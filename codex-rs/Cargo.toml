@@ -4,7 +4,7 @@ version = "2.3.0"
 rust-version = "1.80"
 
 [workspace]
-members = ["core", "cli", "tui"]
+members = ["tui"]
 resolver = "2"
 
 [workspace.lints.rust]
@@ -16,6 +16,8 @@ panic = "warn"
 missing_docs = "warn"
 
 [workspace.dependencies]
+aes-gcm = "0.10"
+askama = "0.12"
 async-stream = "0.3"
 clap = "4.5"
 codex-core = { path = "core" }
