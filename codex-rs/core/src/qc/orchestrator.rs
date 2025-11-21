@@ -124,7 +124,7 @@ impl QcOrchestrator {
     /// Analyze git diff to count changed lines and files
     fn analyze_diff(&self) -> Result<(usize, usize, usize), String> {
         let output = Command::new("git")
-            .args(["diff", "--numstat", "HEAD"])
+            .args(["diff", "--numstat", "origin/main...HEAD"])
             .current_dir(&self.repo_root)
             .output()
             .map_err(|e| format!("Failed to run git diff: {}", e))?;
