@@ -12,6 +12,17 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Deserialize)]
 pub struct QcConfig {
     pub max_lines_without_pr: Option<usize>,
+use std::process::Command;
+use std::fs;
+
+use crate::qc::TestProfile;
+
+use serde::Deserialize;
+
+/// QC configuration options
+#[derive(Debug, Clone, Deserialize)]
+pub struct QcConfig {
+    pub max_lines_without_pr: Option<usize>,
     pub base_branch: Option<String>,
 }
 
@@ -22,6 +33,23 @@ pub struct QcOrchestrator {
     config: QcConfig,
 }
 
+impl QcOrchestrator {
+    /// Create a new QcOrchestrator with config
+    pub fn new(profile: TestProfile, repo_root: std::path::PathBuf, config: QcConfig) -> Self {
+        QcOrchestrator {
+            profile,
+            repo_root,
+            config,
+        }
+    }
+
+    /// Load QcConfig from a TOML file
+    pub fn load_config_from_file<P: AsRef<Path>>(path: P) -> Result<QcConfig, Box<dyn std::error::Error>> {
+        let contents = fs::read_to_string(path)?;
+        let config: QcConfig = toml::from_str(&contents)?;
+        Ok(config)
+    }
+}
 impl QcOrchestrator {
     /// Create a new QcOrchestrator with config
     pub fn new(profile: TestProfile, repo_root: std::path::PathBuf, config: QcConfig) -> Self {
