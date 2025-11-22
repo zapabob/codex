@@ -1,46 +1,78 @@
 //! Codex TUI - Terminal User Interface
 
-use std::sync::Arc;
+use std::io::{self, stdout, Stdout};
+
 use color_eyre::eyre::Result;
-use codex_core::AuthManager;
-use codex_core::config::Config;
-use codex_tui::app::App;
+use crossterm::{
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use ratatui::{prelude::*, widgets::*};
+
+mod app;
+mod ui;
+
+use app::App;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize error handling
     color_eyre::install()?;
 
-    // Load configuration
-    let config = Config::load_or_default()?;
-    let auth_manager = Arc::new(AuthManager::new(&config)?);
-
-    // Parse command line arguments
-    let args: Vec<String> = std::env::args().collect();
-
-    // Initialize terminal
-    let mut terminal = codex_tui::tui::init()?;
+    // Setup terminal
+    let mut terminal = setup_terminal()?;
 
     // Create app
-    let mut app = App::new(
-        auth_manager,
-        config,
-        None, // active_profile
-        None, // initial_prompt
-    )?;
+    let mut app = App::new().await?;
 
-    // Run the TUI application
-    let exit_info = app.run(&mut terminal).await?;
+    // Run the application
+    let res = run_app(&mut terminal, &mut app).await;
 
-    // Cleanup terminal
-    codex_tui::tui::restore()?;
+    // Restore terminal
+    restore_terminal(&mut terminal)?;
 
-    // Print exit information
-    if let Some(conversation_id) = exit_info.conversation_id {
-        println!("Conversation saved: {}", conversation_id);
+    // Print result
+    if let Err(err) = res {
+        println!("Error: {:?}", err);
     }
 
-    println!("Token usage: {}", exit_info.token_usage.total_tokens);
-
     Ok(())
+}
+
+fn setup_terminal() -> Result<Terminal<CrosstermBackend<Stdout>>> {
+    let mut stdout = stdout();
+    enable_raw_mode()?;
+    execute!(stdout, EnterAlternateScreen)?;
+    Ok(Terminal::new(CrosstermBackend::new(stdout))?)
+}
+
+fn restore_terminal(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+) -> Result<()> {
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+    terminal.show_cursor()?;
+    Ok(())
+}
+
+async fn run_app<B: Backend>(
+    terminal: &mut Terminal<B>,
+    app: &mut App,
+) -> Result<()> {
+    loop {
+        terminal.draw(|f| ui::draw(f, app))?;
+
+        if crossterm::event::poll(std::time::Duration::from_millis(100))? {
+            if let crossterm::event::Event::Key(key) = crossterm::event::read()? {
+                match key.code {
+                    crossterm::event::KeyCode::Char('q') => return Ok(()),
+                    crossterm::event::KeyCode::Esc => return Ok(()),
+                    _ => app.handle_key(key),
+                }
+            }
+        }
+
+        // Update app state
+        app.tick().await?;
+    }
 }

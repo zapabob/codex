@@ -29,18 +29,18 @@ reqwest = { version = "0.12", default-features = false, features = [
     "stream",
     "rustls-tls",
 ] }
-rmcp = { workspace = true, default-features = false, features = [
-    "auth",
-    "base64",
-    "client",
-    "macros",
-    "reqwest",
-    "schemars",
-    "server",
-    "transport-child-process",
-    "transport-streamable-http-client-reqwest",
-    "transport-streamable-http-server",
-] }
+# rmcp = { workspace = true, default-features = false, features = [
+#     "auth",
+#     "base64",
+#     "client",
+#     "macros",
+#     "reqwest",
+#     "schemars",
+#     "server",
+#     "transport-child-process",
+#     "transport-streamable-http-client-reqwest",
+#     "transport-streamable-http-server",
+# ] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 sha2 = { workspace = true }

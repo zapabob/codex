@@ -1,4 +1,4 @@
-//! Codex CLI - AI-Native OS Command Line Interface
+﻿//! Codex CLI - AI-Native OS Command Line Interface
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -49,9 +49,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "gui" => launch_gui(),
         "server" => launch_server(),
         "mcp-gemini" => launch_gemini_mcp_server(),
-        "deep-research" => launch_deep_research(&args),
+        // "deep-research" => launch_deep_research(&args), // Temporarily disabled
         "plan" => launch_plan(&args),
-        "qc" => launch_qc(&args),
+        // "qc" => launch_qc(&args), // Temporarily disabled
         "worktree" => launch_worktree(&args),
         "delegate" => launch_delegate(&args),
         "--version" | "-v" => {
@@ -384,26 +384,23 @@ fn launch_gemini_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
 
 /// Launch Deep Research
 fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
-    if args.len() < 3 {
+    if args.len() < 2 {
         println!("Usage: codex deep-research \"<query>\" [strategy] [depth]");
         println!("");
         println!("Arguments:");
-        println!("  query    Research query");
-        println!("  strategy Comprehensive, Focused, or Exploratory (default: Comprehensive)");
-        println!("  depth    Research depth 1-5 (default: 3)");
+        println!("  query      The research query");
+        println!("  strategy   Research strategy (Comprehensive, Focused, Exploratory)");
+        println!("  depth      Maximum research depth (default: 3)");
         println!("");
         println!("Examples:");
-        println!("  codex deep-research \"Rust async patterns\"");
-        println!("  codex deep-research \"React Server Components\" Focused 4");
-        println!("  codex deep-research \"Modern web frameworks\" Exploratory 2");
+        println!("  codex deep-research \"Rust async patterns\" Comprehensive 5");
+        println!("  codex deep-research \"React Server Components\"");
         return Ok(());
     }
 
-    let query = args[2].clone();
-    let strategy = args.get(3).unwrap_or(&"Comprehensive".to_string()).clone();
-    let depth: usize = args.get(4)
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(3);
+    let query = args[1].clone();
+    let strategy = args.get(2).map(|s| s.clone()).unwrap_or_else(|| "Comprehensive".to_string());
+    let depth: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(3);
 
     println!("🔬 Starting Deep Research...");
     println!("📝 Query: {}", query);
@@ -415,54 +412,56 @@ fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error
     let rt = Runtime::new()?;
 
     rt.block_on(async {
-        use codex_deep_research::*;
-        use std::sync::Arc;
+        // Create Gemini search provider with grounding enabled
+        let search_provider = codex_deep_research::GeminiSearchProvider::new("gemini-2.5-flash".to_string());
 
-        let config = DeepResearcherConfig {
-            max_depth: depth,
+        // Create deep researcher
+        let config = codex_deep_research::DeepResearcherConfig {
+            max_depth: depth as u8,
             max_sources: match strategy.as_str() {
                 "Exploratory" => 20,
                 "Focused" => 8,
                 _ => 12,
             },
             strategy: match strategy.as_str() {
-                "Comprehensive" => ResearchStrategy::Comprehensive,
-                "Focused" => ResearchStrategy::Focused,
-                "Exploratory" => ResearchStrategy::Exploratory,
-                _ => ResearchStrategy::Comprehensive,
+                "Comprehensive" => codex_deep_research::ResearchStrategy::Comprehensive,
+                "Focused" => codex_deep_research::ResearchStrategy::Focused,
+                "Exploratory" => codex_deep_research::ResearchStrategy::Exploratory,
+                _ => codex_deep_research::ResearchStrategy::Comprehensive,
             },
         };
 
-        // Try Gemini provider first, fallback to MCP
-        let provider: Arc<dyn ResearchProvider> = if std::env::var("GEMINI_API_KEY").is_ok() {
-            println!("🤖 Using Gemini Search Provider");
-            Arc::new(GeminiSearchProvider::new()?)
-        } else {
-            println!("🔍 Using MCP Search Provider");
-            Arc::new(McpSearchProvider::new(SearchBackend::Google)?)
-        };
+        let researcher = codex_deep_research::DeepResearcher::new(config, std::sync::Arc::new(search_provider));
 
-        let researcher = DeepResearcher::new(config, provider);
-        let report = researcher.research(&query).await?;
-
-        println!("📋 Research Report");
-        println!("════════════════════════════════════════");
-        println!("Query: {}", report.query);
-        println!("Strategy: {:?}", report.strategy);
-        println!("Depth Reached: {}", report.depth_reached);
-        println!("Sources Found: {}", report.sources.len());
-        println!("");
-        println!("Summary:");
-        println!("{}", report.summary);
-        println!("");
-        println!("Sources:");
-        for (i, source) in report.sources.iter().enumerate() {
-            println!("{}. {}", i + 1, source.title);
-            println!("   URL: {}", source.url);
-            if let Some(desc) = &source.description {
-                println!("   Description: {}", desc);
+        // Execute research
+        match researcher.research(&query).await {
+            Ok(report) => {
+                println!("📋 Research Report");
+                println!("════════════════════════════════════════");
+                println!("Query: {}", report.query);
+                println!("Strategy: {:?}", report.strategy);
+                println!("Depth Reached: {}", report.depth_reached);
+                println!("Sources Found: {}", report.sources.len());
+                println!("");
+                println!("Summary:");
+                println!("{}", report.summary);
+                println!("");
+                println!("Sources:");
+                for (i, source) in report.sources.iter().enumerate() {
+                    println!("{}. {}", i + 1, source.title);
+                    println!("   URL: {}", source.url);
+                    if !source.snippet.is_empty() {
+                        println!("   Snippet: {}", source.snippet.chars().take(100).collect::<String>());
+                    }
+                    println!("");
+                }
+                println!("✅ Research completed successfully!");
             }
-            println!("");
+            Err(e) => {
+                eprintln!("❌ Research failed: {}", e);
+                eprintln!("This might be due to Gemini CLI not being available or network issues.");
+                eprintln!("Make sure 'gemini' command is available in PATH.");
+            }
         }
 
         Ok(())
@@ -620,11 +619,11 @@ fn launch_qc(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
                 match agent.analyze(&content, file_name).await {
                     Ok(report) => {
                         println!("✅ QC Analysis completed!");
-                        println!("📊 Overall Quality Score: {:.2f}/1.0", report.scores.overall);
-                        println!("📈 Readability: {:.2f}", report.scores.readability);
-                        println!("🔧 Maintainability: {:.2f}", report.scores.maintainability);
-                        println!("⚡ Performance: {:.2f}", report.scores.performance);
-                        println!("🔒 Security: {:.2f}", report.scores.security);
+                        println!("📊 Overall Quality Score: {:.2}/1.0", report.scores.overall);
+                        println!("📈 Readability: {:.2}", report.scores.readability);
+                        println!("🔧 Maintainability: {:.2}", report.scores.maintainability);
+                        println!("⚡ Performance: {:.2}", report.scores.performance);
+                        println!("🔒 Security: {:.2}", report.scores.security);
                         println!("");
                         println!("📋 Generated outputs:");
                         for output in &report.outputs {
@@ -847,7 +846,7 @@ fn print_help() {
     println!("    gui           Launch Graphical User Interface");
     println!("    server        Launch RPC Server for GUI integration");
     println!("    mcp-gemini    Launch Gemini CLI MCP Server");
-    println!("    deep-research Run deep research with AI assistance");
+    // println!("    deep-research Run deep research with AI assistance"); // Temporarily disabled
     println!("    plan          Create and manage AI execution plans");
     println!("    qc            Perform comprehensive quality control analysis");
     println!("    worktree      Manage git worktree competitions");

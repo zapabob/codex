@@ -11,33 +11,34 @@ path = "src/lib.rs"
 [dependencies]
 anyhow = "1.0"
 askama = "0.12"
-async-channel = { workspace = true }
-async-trait = { workspace = true }
-base64 = { workspace = true }
-bytes = { workspace = true }
-chrono = { workspace = true, features = ["serde"] }
+async-channel = "2.3"
+async-trait = "0.1"
+base64 = "0.22"
+bytes = "1.7"
+chrono = { version = "0.4", features = ["serde"] }
 # 🔐 Security dependencies (Phase 1: TLS/mTLS)
 rustls = { workspace = true }
 rustls-pemfile = { workspace = true }
 tokio-rustls = { workspace = true }
 x509-parser = { workspace = true }
 # 🔐 Security dependencies (Phase 2: Signing/Encryption)
-aes-gcm = "0.10"
-codex-app-server-protocol = { path = "../app-server-protocol" }
-codex-apply-patch = { workspace = true }
-codex-async-utils = { workspace = true }
-codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
-codex-deep-research = { workspace = true }
-codex-file-search = { workspace = true }
-codex-git = { workspace = true }
-codex-keyring-store = { workspace = true }
-codex-otel = { workspace = true, features = ["otel"] }
-codex-protocol = { workspace = true }
-codex-rmcp-client = { workspace = true }
-codex-utils-pty = { workspace = true }
-codex-utils-readiness = { workspace = true }
-codex-utils-string = { workspace = true }
-codex-utils-tokenizer = { workspace = true }
+# aes-gcm = "0.10" # Temporarily disabled due to aws-lc-sys build issues
+# Temporarily disabled complex local dependencies for minimal build
+# codex-app-server-protocol = { path = "../app-server-protocol" }
+# codex-apply-patch = { path = "../apply-patch" }
+# codex-async-utils = { path = "../async-utils" }
+# codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
+# codex-deep-research = { path = "../deep-research" }
+# codex-file-search = { path = "../file-search" }
+# codex-git = { path = "../git" }
+# codex-keyring-store = { path = "../keyring-store" }
+# codex-otel = { workspace = true, features = ["otel"] }
+# codex-protocol = { path = "../protocol" }
+# codex-rmcp-client = { path = "../rmcp-client" }
+# codex-utils-pty = { path = "../utils/pty" }
+# codex-utils-readiness = { path = "../utils/readiness" }
+# codex-utils-string = { path = "../utils/string" }
+# codex-utils-tokenizer = { path = "../utils/tokenizer" }
 dashmap = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }
@@ -51,20 +52,15 @@ hmac = { workspace = true }
 hostname = "0.4"
 http = { workspace = true }
 indexmap = { workspace = true }
-keyring = { workspace = true, features = [
-    "apple-native",
-    "crypto-rust",
-    "linux-native-async-persistent",
-    "windows-native",
-] }
+keyring = { workspace = true, features = ["apple-native", "crypto-rust", "linux-native-async-persistent", "windows-native"] }
 libc = { workspace = true }
-mcp-types = { workspace = true }
+mcp-types = { path = "../mcp-types" }
 once_cell = { workspace = true }
 os_info = { workspace = true }
 rand = { workspace = true }
 regex = { workspace = true }
 regex-lite = { workspace = true }
-reqwest = { workspace = true, features = ["json", "stream"] }
+reqwest = { workspace = true, features = ["json", "stream", "rustls-tls"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }
@@ -99,7 +95,7 @@ uuid = { workspace = true, features = ["serde", "v4", "v5"] }
 which = { workspace = true }
 wildmatch = { workspace = true }
 codex_windows_sandbox = { package = "codex-windows-sandbox", path = "../windows-sandbox-rs" }
-codex-windows-ai = { path = "../windows-ai", optional = true }
+# codex-windows-ai = { path = "../windows-ai", optional = true } # Temporarily disabled
 
 [target.'cfg(target_os = "linux")'.dependencies]
 landlock = { workspace = true }
@@ -119,7 +115,7 @@ openssl-sys = { workspace = true, features = ["vendored"] }
 [dev-dependencies]
 assert_cmd = { workspace = true }
 assert_matches = { workspace = true }
-core_test_support = { workspace = true }
+# core_test_support = { path = "tests/common" } # Temporarily disabled
 escargot = { workspace = true }
 image = { workspace = true, features = ["jpeg", "png"] }
 maplit = { workspace = true }

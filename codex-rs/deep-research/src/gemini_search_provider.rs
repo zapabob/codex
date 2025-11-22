@@ -15,11 +15,9 @@
 use crate::provider::ResearchProvider;
 use crate::types::Source;
 use anyhow::Result;
-use codex_rmcp_client::RmcpClient;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::json;
-use std::sync::Arc;
+use tokio::process::Command;
 use tracing::info;
 use tracing::warn;
 
@@ -43,35 +41,60 @@ impl From<GeminiSearchResult> for Source {
 
 pub struct GeminiSearchProvider {
     pub model: String,
-    /// MCP client for Gemini search tool calls (optional, for rmcp integration)
-    mcp_client: Option<Arc<RmcpClient>>,
+    /// Use Google Web Search Grounding for enhanced search capabilities
+    pub use_grounding: bool,
 }
 
 impl GeminiSearchProvider {
     pub fn new(model: String) -> Self {
         Self {
             model,
-            mcp_client: None,
+            use_grounding: true, // Enable Google Web Search Grounding by default
         }
     }
 
-    /// Create with MCP client for real Gemini search integration
-    pub fn with_mcp_client(model: String, mcp_client: Arc<RmcpClient>) -> Self {
+    /// Create with explicit grounding configuration
+    pub fn with_grounding(model: String, use_grounding: bool) -> Self {
         Self {
             model,
-            mcp_client: Some(mcp_client),
+            use_grounding,
         }
     }
 
-    /// Execute search via Gemini CLI (direct command execution)
+    /// Execute search via Gemini CLI with Google Web Search Grounding
     async fn execute_gemini_search_direct(&self, query: &str) -> Result<Vec<GeminiSearchResult>> {
-        info!("🔍 Executing Gemini CLI search directly");
+        info!("🔍 Executing Gemini CLI search with Google Web Search Grounding");
 
-        // Gemini CLI コマンド実行
-        let output = tokio::process::Command::new("gemini")
-            .args(["search", "--model", &self.model, query])
-            .output()
-            .await?;
+        // Prepare enhanced query with grounding instructions
+        let enhanced_query = if self.use_grounding {
+            format!(
+                "Using Google Web Search Grounding, provide comprehensive research on: {}\n\
+                 Include recent sources, verify information accuracy, and provide citations.",
+                query
+            )
+        } else {
+            query.to_string()
+        };
+
+        // Gemini CLI command with grounding parameters
+        let mut cmd = Command::new("gemini");
+
+        if self.use_grounding {
+            // Enable Google Web Search Grounding
+            cmd.args([
+                "--model", &self.model,
+                "--grounding", "web",
+                "--format", "json",
+                &enhanced_query
+            ]);
+        } else {
+            cmd.args([
+                "--model", &self.model,
+                &enhanced_query
+            ]);
+        }
+
+        let output = cmd.output().await?;
 
         if !output.status.success() {
             let error = String::from_utf8_lossy(&output.stderr);
@@ -79,140 +102,145 @@ impl GeminiSearchProvider {
         }
 
         let response = String::from_utf8(output.stdout)?;
-        self.parse_text_response(&response)
+        self.parse_gemini_response(&response)
+    }
+
+    /// Parse Gemini CLI response (JSON or text format)
+    fn parse_gemini_response(&self, response: &str) -> Result<Vec<GeminiSearchResult>> {
+        // Try to parse as JSON first (with grounding)
+        if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(response) {
+            if let Some(results) = json_value.get("searchResults").and_then(|r| r.as_array()) {
+                let mut parsed_results = Vec::new();
+                for result in results {
+                    if let (Some(title), Some(url), Some(snippet)) = (
+                        result.get("title").and_then(|t| t.as_str()),
+                        result.get("url").and_then(|u| u.as_str()),
+                        result.get("snippet").and_then(|s| s.as_str()),
+                    ) {
+                        parsed_results.push(GeminiSearchResult {
+                            title: title.to_string(),
+                            url: url.to_string(),
+                            snippet: snippet.to_string(),
+                        });
+                    }
+                }
+                if !parsed_results.is_empty() {
+                    return Ok(parsed_results);
+                }
+            }
+
+            // Try alternative JSON structure
+            if let Some(results) = json_value.get("results").and_then(|r| r.as_array()) {
+                let mut parsed_results = Vec::new();
+                for result in results {
+                    if let (Some(title), Some(url), Some(snippet)) = (
+                        result.get("title").and_then(|t| t.as_str()),
+                        result.get("url").and_then(|u| u.as_str()),
+                        result.get("description").or_else(|| result.get("snippet")).and_then(|s| s.as_str()),
+                    ) {
+                        parsed_results.push(GeminiSearchResult {
+                            title: title.to_string(),
+                            url: url.to_string(),
+                            snippet: snippet.to_string(),
+                        });
+                    }
+                }
+                if !parsed_results.is_empty() {
+                    return Ok(parsed_results);
+                }
+            }
+        }
+
+        // Fallback to text parsing
+        self.parse_text_response(response)
     }
 
     /// Parse Gemini CLI text response into structured results
     fn parse_text_response(&self, text: &str) -> Result<Vec<GeminiSearchResult>> {
         let mut results = Vec::new();
 
-        // Simple parsing logic - can be enhanced
+        // Enhanced parsing logic for Gemini CLI output
         let lines: Vec<&str> = text.lines().collect();
-        for line in lines {
-            if line.starts_with("http") {
-                let url = line.trim().to_string();
-                let title = format!("Search Result for {}", url);
-                let snippet = "Gemini CLI search result".to_string();
+        let mut current_result: Option<GeminiSearchResult> = None;
 
-                results.push(GeminiSearchResult {
-                    title,
-                    url,
-                    snippet,
+        for line in lines {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            // Check for URLs
+            if line.starts_with("http") && line.contains("://") {
+                // Save previous result if exists
+                if let Some(result) = current_result.take() {
+                    results.push(result);
+                }
+
+                // Create new result
+                current_result = Some(GeminiSearchResult {
+                    title: format!("Search Result"),
+                    url: line.to_string(),
+                    snippet: String::new(),
                 });
+            } else if let Some(ref mut result) = current_result {
+                // Add to snippet if we have a current result
+                if result.snippet.is_empty() {
+                    result.title = line.to_string();
+                } else if result.snippet.len() < 500 {
+                    result.snippet.push_str(" ");
+                    result.snippet.push_str(line);
+                }
+            } else {
+                // Try to extract title and URL from combined line
+                if let Some(url_start) = line.find("http") {
+                    let title_part = &line[..url_start].trim();
+                    let url_part = &line[url_start..].trim();
+
+                    results.push(GeminiSearchResult {
+                        title: if title_part.is_empty() { "Search Result".to_string() } else { title_part.to_string() },
+                        url: url_part.to_string(),
+                        snippet: "Gemini CLI search result with grounding".to_string(),
+                    });
+                }
             }
         }
 
+        // Save final result
+        if let Some(result) = current_result {
+            results.push(result);
+        }
+
         if results.is_empty() {
-            // Fallback: create a generic result
+            // Fallback: create a generic result with the full text
             results.push(GeminiSearchResult {
-                title: "Gemini Search".to_string(),
+                title: "Gemini Search with Grounding".to_string(),
                 url: "https://gemini.google.com".to_string(),
-                snippet: text.chars().take(200).collect(),
+                snippet: text.chars().take(500).collect(),
             });
         }
 
         Ok(results)
     }
 
-    /// Execute search via MCP (Codex → MCP → Gemini CLI)
-    /// This uses the gemini-cli MCP server defined in config.toml
-    async fn execute_gemini_search_via_mcp(
-        &self,
-        query: &str,
-        max_results: u8,
-    ) -> Result<Vec<GeminiSearchResult>> {
-        info!("🔧 Executing Gemini search via MCP tool");
-
-        let client = self.mcp_client.as_ref().ok_or_else(|| {
-            anyhow::anyhow!("MCP client not configured. Use with_mcp_client() constructor.")
-        })?;
-
-        // Prepare tool call arguments for Gemini Google Search
-        let arguments = json!({
-            "query": query,
-            "model": self.model,
-        });
-
-        // Call the Gemini googleSearch MCP tool
-        let result = client
-            .call_tool("googleSearch".to_string(), Some(arguments), None)
-            .await
-            .map_err(|e| anyhow::anyhow!("Failed to call Gemini googleSearch tool: {}", e))?;
-
-        // Parse the result
-        let mut results = Vec::new();
-        for item in result.content {
-            if let mcp_types::ContentBlock::TextContent(text_content) = item {
-                let text = &text_content.text;
-                // Try to parse as JSON array first
-                if let Ok(json_results) = serde_json::from_str::<Vec<serde_json::Value>>(text) {
-                    for json_result in json_results {
-                        if let Ok(gemini_result) =
-                            serde_json::from_value::<GeminiSearchResult>(json_result)
-                        {
-                            results.push(gemini_result);
-                        }
-                    }
-                } else {
-                    // Fallback: parse as text response
-                    results.extend(self.parse_text_response(text)?);
-                }
-            }
-        }
-
-        if results.is_empty() {
-            warn!("No search results from Gemini MCP tool, falling back to direct CLI");
-            return self.execute_gemini_search_direct(query).await;
-        }
-
-        Ok(results.into_iter().take(max_results as usize).collect())
-    }
 }
 
 #[async_trait::async_trait]
 impl ResearchProvider for GeminiSearchProvider {
     async fn search(&self, query: &str, max_results: u8) -> Result<Vec<Source>> {
-        info!("🔍 Starting Gemini search for: {}", query);
+        info!("🔍 Starting Gemini search with Google Web Search Grounding for: {}", query);
 
-        // Try direct execution first
         match self.execute_gemini_search_direct(query).await {
             Ok(results) => {
                 info!(
-                    "✅ Direct Gemini search successful: {} results",
+                    "✅ Gemini CLI search with grounding successful: {} results",
                     results.len()
                 );
                 let sources: Vec<Source> = results.into_iter().map(|r| r.into()).collect();
-                return Ok(sources.into_iter().take(max_results as usize).collect());
+                Ok(sources.into_iter().take(max_results as usize).collect())
             }
             Err(e) => {
-                info!("⚠️ Direct Gemini search failed: {}", e);
-            }
-        }
-
-        // Try MCP execution as fallback
-        match self.execute_gemini_search_via_mcp(query, max_results).await {
-            Ok(results) => {
-                info!("✅ MCP Gemini search successful: {} results", results.len());
-                let sources: Vec<Source> = results.into_iter().map(|r| r.into()).collect();
-                Ok(sources)
-            }
-            Err(e) => {
-                warn!("MCP Gemini search failed: {}, trying direct CLI", e);
-                // Fallback to direct CLI
-                match self.execute_gemini_search_direct(query).await {
-                    Ok(results) => {
-                        info!(
-                            "✅ Direct CLI Gemini search successful: {} results",
-                            results.len()
-                        );
-                        let sources: Vec<Source> = results.into_iter().map(|r| r.into()).collect();
-                        Ok(sources.into_iter().take(max_results as usize).collect())
-                    }
-                    Err(e) => {
-                        info!("❌ All Gemini search methods failed: {}", e);
-                        Err(e)
-                    }
-                }
+                warn!("❌ Gemini CLI search failed: {}", e);
+                Err(e)
             }
         }
     }

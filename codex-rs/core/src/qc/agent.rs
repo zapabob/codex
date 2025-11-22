@@ -296,6 +296,7 @@ impl QcAgent {
         recommendations.extend(self.generate_recommendations(&statistical_metrics, &quantum_metrics, &mathematical_metrics));
 
         // Create comprehensive report
+        let has_statistical = statistical_metrics.is_some();
         let metrics = QcMetrics {
             statistical: statistical_metrics.unwrap_or_else(|| StatisticalMetrics {
                 code_stats: super::statistical::CodeStatistics {
@@ -325,7 +326,7 @@ impl QcAgent {
         };
 
         // Generate dashboard if visualization is enabled
-        if self.config.enable_visualization && statistical_metrics.is_some() {
+          if self.config.enable_visualization && has_statistical {
             let dashboard_path = format!("{}/{}_dashboard.png", self.config.output_dir, target_name);
             if let Err(e) = self.visualizer.generate_quality_dashboard(
                 &metrics.statistical.code_stats,
@@ -341,14 +342,14 @@ impl QcAgent {
             target: target_name.to_string(),
             config: self.config.clone(),
             metrics,
-            scores,
+            scores: scores.clone(),
             outputs,
             recommendations,
         };
 
         if self.config.verbose {
             println!("✅ QC analysis completed for: {}", target_name);
-            println!("📊 Overall quality score: {:.2f}/1.0", scores.overall);
+            println!("📊 Overall quality score: {:.2}/1.0", scores.clone().overall);
         }
 
         Ok(report)

@@ -173,7 +173,6 @@ else:
             r#"
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import style
 
 # Set cyberpunk style
 plt.style.use('dark_background')
@@ -181,16 +180,29 @@ plt.rcParams['figure.facecolor'] = '#0a0a0a'
 plt.rcParams['axes.facecolor'] = '#1a1a1a'
 plt.rcParams['axes.edgecolor'] = '#00ff41'
 
-# Data
-metrics = ['Lines', 'Code Lines', 'Functions', 'Structs', 'Imports']
-values = [{}, {}, {}, {}, {}]
-colors = ['#00ff41', '#ff0080', '#00ffff', '#ffff00', '#ff8000']
+# Data from Rust
+total_lines = {}
+code_lines = {}
+function_count = {}
+struct_count = {}
+import_count = {}
+avg_function_length = {:.1}
+duplication_percentage = {:.1}
+readability_score = {:.2}
+maintainability_score = {:.2}
+performance_score = {:.2}
+security_score = {:.2}
+output_file = '{}'
 
 # Create subplots
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 8))
 fig.suptitle('Code Quality Dashboard', fontsize=16, fontweight='bold', color='#00ff41')
 
 # Metrics bar chart
+metrics = ['Lines', 'Code Lines', 'Functions', 'Structs', 'Imports']
+values = [total_lines, code_lines, function_count, struct_count, import_count]
+colors = ['#00ff41', '#ff0080', '#00ffff', '#ffff00', '#ff8000']
+
 bars = ax1.bar(metrics, values, color=colors, alpha=0.8, edgecolor='#ffffff', linewidth=1)
 ax1.set_title('Code Metrics', fontsize=12, fontweight='bold', color='#00ff41')
 ax1.tick_params(axis='x', rotation=45)
@@ -201,15 +213,16 @@ for bar in bars:
     ax1.text(bar.get_x() + bar.get_width()/2., height + max(values) * 0.02,
              f'{{:.0f}}'.format(height), ha='center', va='bottom', fontsize=9, color='#00ff41')
 
-# Function length distribution (simplified)
-ax2.hist([{}], bins=10, color='#00ff41', alpha=0.7, edgecolor='#ffffff')
+# Function length distribution (placeholder)
+function_lengths = [10, 15, 20, 25, 30, 35, 40]  # Placeholder data
+ax2.hist(function_lengths, bins=10, color='#00ff41', alpha=0.7, edgecolor='#ffffff')
 ax2.set_title('Function Length Distribution', fontsize=12, fontweight='bold', color='#00ff41')
 ax2.set_xlabel('Lines of Code', fontsize=10)
 ax2.set_ylabel('Frequency', fontsize=10)
 
 # Quality scores
 quality_scores = ['Readability', 'Maintainability', 'Performance', 'Security']
-scores = [{:.2f}, {:.2f}, {:.2f}, {:.2f}]  # Placeholder scores
+scores = [readability_score, maintainability_score, performance_score, security_score]
 ax3.barh(quality_scores, scores, color='#00ff41', alpha=0.8)
 ax3.set_title('Quality Scores', fontsize=12, fontweight='bold', color='#00ff41')
 ax3.set_xlim(0, 1)
@@ -219,10 +232,10 @@ for i, score in enumerate(scores):
     ax3.text(score + 0.01, i, f'{{:.2f}}'.format(score), va='center', fontsize=9, color='#00ff41')
 
 # Summary text
-summary_text = '''Total Lines: {}
-Code Lines: {}
-Avg Function Length: {:.1f}
-Duplication: {:.1f}%'''.format({}, {}, {:.1f}, {:.1f})
+summary_text = f'''Total Lines: {{total_lines}}
+Code Lines: {{code_lines}}
+Avg Function Length: {{avg_function_length:.1f}}
+Duplication: {{duplication_percentage:.1f}}%'''
 
 ax4.text(0.1, 0.5, summary_text, transform=ax4.transAxes,
          fontsize=10, verticalalignment='center', color='#00ff41',
@@ -231,8 +244,8 @@ ax4.set_title('Summary', fontsize=12, fontweight='bold', color='#00ff41')
 ax4.axis('off')
 
 plt.tight_layout()
-plt.savefig('{}', dpi=150, bbox_inches='tight', facecolor='#0a0a0a')
-print("Quality dashboard saved to {}")
+plt.savefig(output_file, dpi=150, bbox_inches='tight', facecolor='#0a0a0a')
+print(f"Quality dashboard saved to {{output_file}}")
 "#,
             stats.total_lines,
             stats.code_lines,
@@ -240,16 +253,12 @@ print("Quality dashboard saved to {}")
             stats.struct_count,
             stats.import_count,
             stats.avg_function_length,
-            stats.total_lines,
-            stats.code_lines,
-            stats.avg_function_length,
             stats.duplication_percentage,
             // Quality scores (simplified calculation)
             1.0 - (stats.duplication_percentage / 100.0).min(1.0),
             1.0 - (stats.max_function_length as f64 / 100.0).min(1.0),
             if stats.function_count > 0 { 0.8 } else { 0.5 },
             if stats.import_count < 20 { 0.9 } else { 0.7 },
-            output_path,
             output_path
         )
     }
@@ -263,7 +272,7 @@ print("Quality dashboard saved to {}")
         let mut data_str = String::new();
         for opt in optimizations {
             data_str.push_str(&format!(
-                "('{}', {:.1f}, {:.2f}), ",
+                "('{}', {:.1}, {:.2}), ",
                 opt.description.chars().take(30).collect::<String>(),
                 opt.improvement_percentage,
                 opt.confidence
