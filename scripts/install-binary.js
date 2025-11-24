@@ -11,7 +11,9 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const pipeline = promisify(require('stream').pipeline);
 
-const VERSION = '2.0.0';
+// Get version from package.json
+const packageJson = require('../package.json');
+const VERSION = packageJson.version || '2.3.0';
 const GITHUB_REPO = 'zapabob/codex';
 
 // Platform detection
@@ -102,17 +104,11 @@ async function extractArchive(archivePath, destDir) {
 }
 
 async function main() {
-  console.log('📦 Installing @zapabob/codex-cli v' + VERSION);
+  console.log('📦 Installing @zapabob/codex v' + VERSION);
   
   try {
     const platformInfo = getPlatformInfo();
     console.log(`🖥️  Platform: ${platformInfo.os}-${platformInfo.archName}`);
-    
-    // Binary filename
-    const binaryName = `codex-${platformInfo.os}-${platformInfo.archName}${platformInfo.ext}`;
-    const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${binaryName}`;
-    
-    console.log(`⬇️  Downloading: ${downloadUrl}`);
     
     // Ensure bin directory exists
     const binDir = path.join(__dirname, '..', 'bin');
@@ -121,14 +117,53 @@ async function main() {
     }
     
     const binaryPath = path.join(binDir, 'codex' + platformInfo.ext);
-    const tempPath = path.join(binDir, 'codex.tmp');
     
-    // Download binary
-    await downloadFile(downloadUrl, tempPath);
-    console.log('✅ Download complete');
+    // Try to find local binary first (for development)
+    const localBinaryPaths = [
+      path.join(__dirname, '..', 'codex-rs', 'target', 'release', 'codex' + platformInfo.ext),
+      path.join(__dirname, '..', 'codex-rs', 'target', 'debug', 'codex' + platformInfo.ext),
+    ];
     
-    // Move to final location
-    fs.renameSync(tempPath, binaryPath);
+    let foundLocal = false;
+    for (const localPath of localBinaryPaths) {
+      if (fs.existsSync(localPath)) {
+        console.log(`📋 Found local binary: ${localPath}`);
+        fs.copyFileSync(localPath, binaryPath);
+        foundLocal = true;
+        break;
+      }
+    }
+    
+    if (!foundLocal) {
+      // Try to find in cargo bin directory
+      const homeDir = process.env.USERPROFILE || process.env.HOME || '';
+      const cargoBinPath = platformInfo.os === 'windows'
+        ? path.join(homeDir, '.cargo', 'bin', 'codex' + platformInfo.ext)
+        : path.join(homeDir, '.cargo', 'bin', 'codex' + platformInfo.ext);
+      
+      if (fs.existsSync(cargoBinPath)) {
+        console.log(`📋 Found cargo-installed binary: ${cargoBinPath}`);
+        fs.copyFileSync(cargoBinPath, binaryPath);
+        foundLocal = true;
+      }
+    }
+    
+    if (!foundLocal) {
+      // Download from GitHub Releases
+      const binaryName = `codex-${platformInfo.os}-${platformInfo.archName}${platformInfo.ext}`;
+      const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${binaryName}`;
+      
+      console.log(`⬇️  Downloading: ${downloadUrl}`);
+      
+      const tempPath = path.join(binDir, 'codex.tmp');
+      
+      // Download binary
+      await downloadFile(downloadUrl, tempPath);
+      console.log('✅ Download complete');
+      
+      // Move to final location
+      fs.renameSync(tempPath, binaryPath);
+    }
     
     // Make executable (Unix)
     if (platformInfo.os !== 'windows') {
@@ -140,7 +175,8 @@ async function main() {
     console.log('🎉 Installation complete!');
     console.log('');
     console.log('Run: codex --version');
-    console.log('Or:  npx @zapabob/codex-cli --version');
+    console.log('Or:  npx @zapabob/codex --version');
+    console.log('Or:  pnpm exec codex --version');
     
   } catch (error) {
     console.error('❌ Installation failed:', error.message);
@@ -149,7 +185,8 @@ async function main() {
     console.error('   git clone https://github.com/zapabob/codex.git');
     console.error('   cd codex/codex-rs');
     console.error('   cargo install --path cli');
-    process.exit(1);
+    // Don't exit with error - allow fallback to cargo install
+    process.exit(0);
   }
 }
 

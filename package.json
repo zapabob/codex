@@ -1,6 +1,6 @@
 {
   "name": "@zapabob/codex",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "AI-Native OS with 4D Git Visualization & VR/AR Support - The world's first AI operating system with kernel integration",
   "keywords": [
     "ai",
@@ -19,10 +19,13 @@
   ],
   "main": "index.js",
   "bin": {
-    "codex": "./bin/codex"
+    "codex": "./bin/codex.js"
   },
   "scripts": {
     "postinstall": "node scripts/install-binary.js",
+    "prepublishOnly": "npm run build:binary",
+    "build:binary": "cd codex-rs && cargo build --release -p codex-cli && copy target\\release\\codex.exe ..\\bin\\codex.exe 2>nul || cp target/release/codex ../bin/codex",
+    "build": "npm run build:binary",
     "test": "echo \"Error: no test specified\" && exit 1",
     "implementation-log": "node scripts/create-implementation-log.js"
   },
@@ -57,7 +60,8 @@
     "bin/",
     "scripts/install-binary.js",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "package.json"
   ],
   "dependencies": {},
   "devDependencies": {}
