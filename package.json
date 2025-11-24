@@ -1,6 +1,7 @@
 {
   "name": "@zapabob/codex",
   "version": "2.3.0",
+  "type": "module",
   "description": "AI-Native OS with 4D Git Visualization & VR/AR Support - The world's first AI operating system with kernel integration",
   "keywords": [
     "ai",

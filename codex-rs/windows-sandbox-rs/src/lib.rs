@@ -227,7 +227,7 @@ mod windows_impl {
         };
 
         unsafe {
-            if matches!(policy.0, SandboxMode::WorkspaceWrite)
+            if matches!(policy, SandboxPolicy::WorkspaceWrite { .. })
                 && let Ok(base) = super::token::get_current_token_for_restriction()
             {
                 if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
