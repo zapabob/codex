@@ -511,14 +511,71 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const runResearch = async (query: string) => {
+  const runResearch = async (query: string, options?: {
+    depth?: number;
+    strategy?: 'comprehensive' | 'focused' | 'exploratory';
+    useGemini?: boolean;
+  }) => {
     try {
-      const result = await apiClient.runResearch({ query });
-      dispatch({ type: 'ADD_RESEARCH_RESULT', payload: result });
-      return result;
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Create initial research result with searching status
+      const initialResult: ResearchResult = {
+        id: `research-${Date.now()}`,
+        query,
+        status: 'searching',
+        sources: [],
+        startedAt: new Date(),
+      };
+      dispatch({ type: 'ADD_RESEARCH_RESULT', payload: initialResult });
+
+      // Use GeminiCLI-based DeepResearch if available
+      const researchResult = await apiClient.deepResearch({
+        query,
+        depth: options?.depth || 3,
+        strategy: options?.strategy || 'comprehensive',
+        useGemini: options?.useGemini !== false, // Default to true
+      });
+
+      // Update research result with completed status
+      const completedResult: ResearchResult = {
+        id: initialResult.id,
+        query: researchResult.query || query,
+        status: 'completed',
+        summary: researchResult.summary,
+        sources: (researchResult.sources || []).map((source, index) => ({
+          url: source.url,
+          title: source.title || `Source ${index + 1}`,
+          snippet: source.snippet || '',
+          confidence: source.relevance_score || 0.7,
+        })),
+        startedAt: initialResult.startedAt,
+        completedAt: new Date(),
+      };
+
+      dispatch({ type: 'UPDATE_RESEARCH_RESULT', payload: completedResult });
+      return completedResult;
     } catch (error) {
       console.error('Research failed:', error);
+      
+      // Update research result with failed status
+      const failedResult: ResearchResult = {
+        id: `research-${Date.now()}`,
+        query,
+        status: 'failed',
+        sources: [],
+        startedAt: new Date(),
+        completedAt: new Date(),
+      };
+      dispatch({ type: 'ADD_RESEARCH_RESULT', payload: failedResult });
+      
+      dispatch({
+        type: 'SET_ERROR',
+        payload: error instanceof Error ? error.message : '研究の実行に失敗しました',
+      });
       throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 

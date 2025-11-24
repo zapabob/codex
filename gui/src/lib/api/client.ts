@@ -648,6 +648,365 @@ export class CodexAPIClient {
     }
   }
 
+  // Resource Management Methods
+  async getResourceStatus(): Promise<{
+    capacity: {
+      maxConcurrent: number;
+      activeTasks: number;
+      availableSlots: number;
+    };
+    stats: {
+      cpuUsagePercent: number;
+      memoryUsedBytes: number;
+      memoryTotalBytes: number;
+      memoryUsagePercent: number;
+      activeAgents: number;
+      cpuCores: number;
+    };
+  }> {
+    try {
+      return await this.sendRequest('resource.getStatus', {});
+    } catch (error) {
+      console.warn('CLI server not available, using mock response:', error);
+      // Fallback to mock response
+      return {
+        capacity: {
+          maxConcurrent: 8,
+          activeTasks: 2,
+          availableSlots: 6,
+        },
+        stats: {
+          cpuUsagePercent: 15.5,
+          memoryUsedBytes: 8589934592, // 8 GB
+          memoryTotalBytes: 17179869184, // 16 GB
+          memoryUsagePercent: 50.0,
+          activeAgents: 2,
+          cpuCores: 4,
+        },
+      };
+    }
+  }
+
+  async acquireResource(): Promise<{ success: boolean; message: string }> {
+    try {
+      return await this.sendRequest('resource.acquire', {});
+    } catch (error) {
+      console.warn('Failed to acquire resource:', error);
+      throw error;
+    }
+  }
+
+  async releaseResource(): Promise<{ success: boolean; message: string }> {
+    try {
+      return await this.sendRequest('resource.release', {});
+    } catch (error) {
+      console.warn('Failed to release resource:', error);
+      throw error;
+    }
+  }
+
+  // CLI Execution Methods
+  async executeCodex(prompt: string): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    success: boolean;
+  }> {
+    try {
+      return await this.sendRequest('cli.codex.execute', { prompt });
+    } catch (error) {
+      console.warn('Failed to execute Codex:', error);
+      throw error;
+    }
+  }
+
+  async executeGemini(prompt: string): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    success: boolean;
+  }> {
+    try {
+      return await this.sendRequest('cli.gemini.execute', { prompt });
+    } catch (error) {
+      console.warn('Failed to execute Gemini:', error);
+      throw error;
+    }
+  }
+
+  async executeClaude(prompt: string): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    success: boolean;
+  }> {
+    try {
+      return await this.sendRequest('cli.claude.execute', { prompt });
+    } catch (error) {
+      console.warn('Failed to execute Claude:', error);
+      throw error;
+    }
+  }
+
+  // Windows 11 25H2 MCP Methods
+  async detectWindowsMCP(): Promise<{
+    windowsVersion: string;
+    mcpStandardAvailable: boolean;
+    features?: {
+      autoDetection: boolean;
+      standardProtocol: boolean;
+      nativeIntegration: boolean;
+    };
+  }> {
+    try {
+      return await this.sendRequest('mcp.windows.detect', {});
+    } catch (error) {
+      console.warn('Failed to detect Windows MCP:', error);
+      throw error;
+    }
+  }
+
+  async autoDetectMCPServers(): Promise<{
+    servers: Array<{
+      name: string;
+      path: string;
+      type: string;
+    }>;
+    count: number;
+  }> {
+    try {
+      return await this.sendRequest('mcp.windows.autoDetect', {});
+    } catch (error) {
+      console.warn('Failed to auto-detect MCP servers:', error);
+      throw error;
+    }
+  }
+
+  async manageMCPConnection(action: 'list' | 'connect' | 'disconnect', serverId?: string): Promise<{
+    success: boolean;
+    serverId?: string;
+    message: string;
+  }> {
+    try {
+      return await this.sendRequest('mcp.windows.manage', {
+        action,
+        serverId,
+      });
+    } catch (error) {
+      console.warn('Failed to manage MCP connection:', error);
+      throw error;
+    }
+  }
+
+  // Malware Detection Methods
+  async scanMalware(params: {
+    path: string;
+    type?: 'file' | 'directory';
+  }): Promise<{
+    success: boolean;
+    threatsFound: number;
+    results: Array<{
+      filePath: string;
+      method: string;
+      threatName: string;
+      confidence: number;
+      severity: string;
+      details: string;
+      timestamp: string;
+    }>;
+  }> {
+    return this.sendRequest('malware.scan', {
+      path: params.path,
+      type: params.type || 'file',
+    });
+  }
+
+  async quarantineMalware(params: {
+    filePath: string;
+    threatName: string;
+    confidence?: number;
+  }): Promise<{
+    success: boolean;
+    entryId: string;
+    originalPath: string;
+    quarantinePath: string;
+    threatName: string;
+    quarantinedAt: string;
+  }> {
+    return this.sendRequest('malware.quarantine', {
+      filePath: params.filePath,
+      threatName: params.threatName,
+      confidence: params.confidence || 0.9,
+    });
+  }
+
+  async deleteQuarantinedFile(entryId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.sendRequest('malware.delete', { entryId });
+  }
+
+  async restoreQuarantinedFile(entryId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.sendRequest('malware.restore', { entryId });
+  }
+
+  async listQuarantine(): Promise<{
+    entries: Array<{
+      id: string;
+      originalPath: string;
+      quarantinePath: string;
+      threatName: string;
+      confidence: number;
+      status: string;
+      quarantinedAt: string;
+    }>;
+    count: number;
+  }> {
+    return this.sendRequest('malware.listQuarantine', {});
+  }
+
+  async getMalwareStats(): Promise<{
+    totalFilesScanned: number;
+    threatsDetected: number;
+    signatureMatches: number;
+    heuristicMatches: number;
+    behavioralMatches: number;
+  }> {
+    return this.sendRequest('malware.getStats', {});
+  }
+
+  // System Tray and Notification Methods
+  async setAutostart(enabled: boolean): Promise<{
+    success: boolean;
+    enabled: boolean;
+    message: string;
+  }> {
+    return this.sendRequest('tray.setAutostart', { enabled });
+  }
+
+  async getAutostart(): Promise<{
+    enabled: boolean;
+    message: string;
+  }> {
+    return this.sendRequest('tray.getAutostart', {});
+  }
+
+  async showNotification(params: {
+    title: string;
+    body?: string;
+    type?: 'info' | 'success' | 'warning' | 'error';
+  }): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.sendRequest('notification.show', {
+      title: params.title,
+      body: params.body || '',
+      type: params.type || 'info',
+    });
+  }
+
+  async setNotificationEnabled(enabled: boolean): Promise<{
+    success: boolean;
+    enabled: boolean;
+    message: string;
+  }> {
+    return this.sendRequest('tray.setNotificationEnabled', { enabled });
+  }
+
+  // GPU Methods
+  async getGPUStatus(): Promise<{
+    gpus: Array<{
+      name: string;
+      vendor: string;
+      usagePercent: number;
+      memoryUsed: number;
+      memoryTotal: number;
+      memoryUsagePercent: number;
+      temperature?: number;
+      powerUsage?: number;
+      clockSpeed?: number;
+      computeCapability?: string;
+      cudaVersion?: string;
+      directMLVersion?: string;
+    }>;
+  }> {
+    try {
+      return await this.sendRequest('gpu.getStatus', {});
+    } catch (error) {
+      console.warn('Failed to get GPU status:', error);
+      throw error;
+    }
+  }
+
+  async getGPUAccess(): Promise<{
+    hasAccess: boolean;
+    permissions: {
+      compute: boolean;
+      memory: boolean;
+      monitoring: boolean;
+    };
+  }> {
+    try {
+      return await this.sendRequest('gpu.getAccess', {});
+    } catch (error) {
+      console.warn('Failed to get GPU access:', error);
+      throw error;
+    }
+  }
+
+  async optimizeGPU(settings: {
+    powerLimit?: number;
+    clockSpeed?: number;
+    memoryClock?: number;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    settings: any;
+  }> {
+    try {
+      return await this.sendRequest('gpu.optimize', { settings });
+    } catch (error) {
+      console.warn('Failed to optimize GPU:', error);
+      throw error;
+    }
+  }
+
+  // DeepResearch Methods
+  async deepResearch(params: {
+    query: string;
+    depth?: number;
+    strategy?: 'comprehensive' | 'focused' | 'exploratory';
+    useGemini?: boolean;
+  }): Promise<{
+    query: string;
+    summary?: string;
+    sources?: Array<{
+      title: string;
+      url: string;
+      snippet: string;
+      relevance_score?: number;
+    }>;
+    strategy?: string;
+    depth?: number;
+  }> {
+    try {
+      return await this.sendRequest('research.deep', {
+        query: params.query,
+        depth: params.depth || 3,
+        strategy: params.strategy || 'comprehensive',
+        useGemini: params.useGemini !== false, // Default to true
+      });
+    } catch (error) {
+      console.warn('Failed to execute DeepResearch:', error);
+      throw error;
+    }
+  }
+
   // Utility methods
   isConnected(): boolean {
     return this.isConnected;
