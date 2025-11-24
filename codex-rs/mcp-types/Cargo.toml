@@ -1,5 +1,4 @@
 [package]
-edition = "2024"
 name = "mcp-types"
 version = "2.3.0"
 

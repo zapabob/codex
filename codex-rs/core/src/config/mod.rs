@@ -268,6 +268,11 @@ pub struct Config {
     /// Collection of various notices we show the user
     pub notices: Notice,
 
+    /// When `true`, checks for Codex updates on startup and surfaces update prompts.
+    /// Set to `false` only if your Codex updates are centrally managed.
+    /// Defaults to `true`.
+    pub check_for_update_on_startup: bool,
+
     /// When true, disables burst-paste detection for typed input entirely.
     /// All characters are inserted as they are received, and no buffering
     /// or placeholder replacement will occur for fast keypress bursts.
@@ -685,6 +690,11 @@ pub struct ConfigToml {
     /// Centralized feature flags (new). Prefer this over individual toggles.
     #[serde(default)]
     pub features: Option<FeaturesToml>,
+
+    /// When `true`, checks for Codex updates on startup and surfaces update prompts.
+    /// Set to `false` only if your Codex updates are centrally managed.
+    /// Defaults to `true`.
+    pub check_for_update_on_startup: Option<bool>,
 
     /// When true, disables burst-paste detection for typed input entirely.
     /// All characters are inserted as they are received, and no buffering
@@ -1166,6 +1176,8 @@ impl Config {
             .or(cfg.review_model)
             .unwrap_or_else(default_review_model);
 
+        let check_for_update_on_startup = cfg.check_for_update_on_startup.unwrap_or(true);
+
         let config = Self {
             model,
             review_model,
@@ -1242,6 +1254,7 @@ impl Config {
             active_project,
             windows_wsl_setup_acknowledged: cfg.windows_wsl_setup_acknowledged.unwrap_or(false),
             notices: cfg.notice.unwrap_or_default(),
+            check_for_update_on_startup,
             disable_paste_burst: cfg.disable_paste_burst.unwrap_or(false),
             tui_notifications: cfg
                 .tui
@@ -2996,6 +3009,7 @@ model_verbosity = "high"
                 active_project: ProjectConfig { trust_level: None },
                 windows_wsl_setup_acknowledged: false,
                 notices: Default::default(),
+                check_for_update_on_startup: true,
                 disable_paste_burst: false,
                 tui_notifications: Default::default(),
                 animations: true,
@@ -3068,6 +3082,7 @@ model_verbosity = "high"
             active_project: ProjectConfig { trust_level: None },
             windows_wsl_setup_acknowledged: false,
             notices: Default::default(),
+            check_for_update_on_startup: true,
             disable_paste_burst: false,
             tui_notifications: Default::default(),
             animations: true,
@@ -3155,6 +3170,7 @@ model_verbosity = "high"
             active_project: ProjectConfig { trust_level: None },
             windows_wsl_setup_acknowledged: false,
             notices: Default::default(),
+            check_for_update_on_startup: true,
             disable_paste_burst: false,
             tui_notifications: Default::default(),
             animations: true,
@@ -3228,6 +3244,7 @@ model_verbosity = "high"
             active_project: ProjectConfig { trust_level: None },
             windows_wsl_setup_acknowledged: false,
             notices: Default::default(),
+            check_for_update_on_startup: true,
             disable_paste_burst: false,
             tui_notifications: Default::default(),
             animations: true,
