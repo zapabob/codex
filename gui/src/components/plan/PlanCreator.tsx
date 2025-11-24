@@ -103,9 +103,8 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
   const loadPlans = async () => {
     try {
       setIsLoading(true);
-      // TODO: Implement plan.list RPC method
-      // const result = await apiClient.sendRequest('plan.list', {});
-      // setPlans(result.plans || []);
+      const plans = await apiClient.listPlans();
+      setPlans(plans || []);
     } catch (error) {
       console.error('Failed to load plans:', error);
     } finally {
@@ -118,23 +117,22 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
 
     try {
       setIsLoading(true);
-      // TODO: Implement plan.create RPC method
-      // const result = await apiClient.sendRequest('plan.create', {
-      //   title: newPlan.title,
-      //   mode: newPlan.mode,
-      //   budgetTokens: newPlan.budgetTokens,
-      //   budgetTime: newPlan.budgetTime,
-      // });
-
-      const createdPlan: Plan = {
-        id: `plan-${Date.now()}`,
+      const result = await apiClient.createPlan({
         title: newPlan.title,
         mode: newPlan.mode,
         budgetTokens: newPlan.budgetTokens,
         budgetTime: newPlan.budgetTime,
-        state: 'drafting',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      });
+
+      const createdPlan: Plan = {
+        id: result.id || `plan-${Date.now()}`,
+        title: result.title || newPlan.title,
+        mode: result.mode || newPlan.mode,
+        budgetTokens: result.budgetTokens || newPlan.budgetTokens,
+        budgetTime: result.budgetTime || newPlan.budgetTime,
+        state: result.state || 'drafting',
+        createdAt: result.createdAt ? new Date(result.createdAt) : new Date(),
+        updatedAt: result.updatedAt ? new Date(result.updatedAt) : new Date(),
       };
 
       setPlans([createdPlan, ...plans]);
@@ -151,8 +149,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
   const handleApprovePlan = async (planId: string) => {
     try {
       setIsLoading(true);
-      // TODO: Implement plan.approve RPC method
-      // await apiClient.sendRequest('plan.approve', { planId });
+      await apiClient.approvePlan(planId);
       
       setPlans(plans.map(p => 
         p.id === planId ? { ...p, state: 'approved' as const, updatedAt: new Date() } : p
@@ -167,8 +164,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
   const handleExecutePlan = async (planId: string) => {
     try {
       setIsLoading(true);
-      // TODO: Implement plan.execute RPC method
-      // await apiClient.sendRequest('plan.execute', { planId });
+      await apiClient.executePlan(planId);
       
       setPlans(plans.map(p => 
         p.id === planId ? { ...p, state: 'executing' as const, updatedAt: new Date() } : p
@@ -186,8 +182,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
   const handleRejectPlan = async (planId: string, reason: string) => {
     try {
       setIsLoading(true);
-      // TODO: Implement plan.reject RPC method
-      // await apiClient.sendRequest('plan.reject', { planId, reason });
+      await apiClient.rejectPlan(planId, reason);
       
       setPlans(plans.map(p => 
         p.id === planId ? { ...p, state: 'rejected' as const, updatedAt: new Date() } : p

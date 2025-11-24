@@ -89,8 +89,25 @@ export class CodexAPIClient {
   }
 
   private async sendRequest(method: string, params: any = {}): Promise<any> {
-    if (!this.isConnected) {
-      throw new Error('Not connected to CLI server');
+    // Wait for connection with timeout
+    if (!this.isConnected || !this.protocolClient || this.protocolClient.readyState !== WebSocket.OPEN) {
+      // Try to reconnect
+      this.initializeConnection();
+      
+      // Wait for connection with timeout
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Connection timeout: CLI server not available'));
+        }, 5000);
+        
+        const checkConnection = setInterval(() => {
+          if (this.isConnected && this.protocolClient?.readyState === WebSocket.OPEN) {
+            clearInterval(checkConnection);
+            clearTimeout(timeout);
+            resolve();
+          }
+        }, 100);
+      });
     }
 
     const id = (++this.requestId).toString();
@@ -104,7 +121,7 @@ export class CodexAPIClient {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(id);
-        reject(new Error('Request timeout'));
+        reject(new Error(`Request timeout for method: ${method}`));
       }, 30000); // 30 second timeout
 
       this.pendingRequests.set(id, {
@@ -118,7 +135,13 @@ export class CodexAPIClient {
         },
       });
 
-      this.protocolClient.send(JSON.stringify(request));
+      try {
+        this.protocolClient.send(JSON.stringify(request));
+      } catch (error) {
+        clearTimeout(timeout);
+        this.pendingRequests.delete(id);
+        reject(new Error(`Failed to send request: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      }
     });
   }
 
@@ -191,13 +214,7 @@ export class CodexAPIClient {
       ? { type: 'apiKey', apiKey: credentials.apiKey }
       : { type: 'chatgpt' };
 
-    try {
-      return await this.sendRequest('account.login', params);
-    } catch (error) {
-      // Fallback to mock response for development
-      console.warn('CLI server not available, using mock response:', error);
-      return { token: 'mock-token' };
-    }
+    return await this.sendRequest('account.login', params);
   }
 
   async logout(): Promise<void> {
@@ -209,18 +226,7 @@ export class CodexAPIClient {
   }
 
   async getAccount(): Promise<any> {
-    try {
-      return await this.sendRequest('account.read');
-    } catch (error) {
-      // Fallback to mock response
-      console.warn('CLI server not available, using mock response:', error);
-      return {
-        id: 'user',
-        email: 'user@example.com',
-        name: 'Mock User',
-        plan: 'free',
-      };
-    }
+    return await this.sendRequest('account.read');
   }
 
   // Conversations
@@ -230,28 +236,15 @@ export class CodexAPIClient {
       initialMessage: config.initialMessage,
     };
 
-    try {
-      const result = await this.sendRequest('conversation.create', params);
-      return {
-        id: result.id || `conv-${Date.now()}`,
-        title: result.title || `New Conversation`,
-        createdAt: new Date(result.createdAt || Date.now()),
-        updatedAt: new Date(result.updatedAt || Date.now()),
-        model: config.model,
-        messageCount: 1,
-      };
-    } catch (error) {
-      // Fallback to mock response
-      console.warn('CLI server not available, using mock response:', error);
-      return {
-        id: `conv-${Date.now()}`,
-        title: `New Conversation`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        model: config.model,
-        messageCount: 1,
-      };
-    }
+    const result = await this.sendRequest('conversation.create', params);
+    return {
+      id: result.id || `conv-${Date.now()}`,
+      title: result.title || `New Conversation`,
+      createdAt: new Date(result.createdAt || Date.now()),
+      updatedAt: new Date(result.updatedAt || Date.now()),
+      model: config.model,
+      messageCount: 1,
+    };
   }
 
   async sendMessage(
@@ -265,37 +258,19 @@ export class CodexAPIClient {
       // Handle attachments if needed
     };
 
-    try {
-      const result = await this.sendRequest('conversation.sendMessage', params);
-      return {
-        id: result.id || `msg-${Date.now()}`,
-        conversationId,
-        role: 'assistant',
-        content: result.content || 'Response from AI',
-        createdAt: new Date(result.createdAt || Date.now()),
-      };
-    } catch (error) {
-      // Fallback to mock response
-      console.warn('CLI server not available, using mock response:', error);
-      return {
-        id: `msg-${Date.now()}`,
-        conversationId,
-        role: 'assistant',
-        content: 'Mock response: CLI server not available',
-        createdAt: new Date(),
-      };
-    }
+    const result = await this.sendRequest('conversation.sendMessage', params);
+    return {
+      id: result.id || `msg-${Date.now()}`,
+      conversationId,
+      role: result.role || 'assistant',
+      content: result.content || 'Response from AI',
+      createdAt: new Date(result.createdAt || Date.now()),
+    };
   }
 
   async listConversations(): Promise<Conversation[]> {
-    try {
-      const result = await this.sendRequest('conversation.list');
-      return result.conversations || [];
-    } catch (error) {
-      // Fallback to mock response
-      console.warn('CLI server not available, using mock response:', error);
-      return [];
-    }
+    const result = await this.sendRequest('conversation.list');
+    return result.conversations || [];
   }
 
   async resumeConversation(path: string): Promise<Conversation> {
@@ -382,49 +357,37 @@ export class CodexAPIClient {
       } else {
         // Generic context mapping
         Object.assign(params, context);
-    }
+      }
 
-      const result = await this.sendRequest('agent.run', params);
+    const result = await this.sendRequest('agent.run', params);
 
-      // Map result to appropriate return type based on agent type
-      if (agentId === 'sec-audit' || agentId === 'audit') {
-        return {
-          id: result.id || `scan-${Date.now()}`,
-          type: 'code',
-          status: result.status || 'completed',
-          findings: result.findings || [],
-          startedAt: new Date(result.startedAt || Date.now()),
-          completedAt: new Date(result.completedAt || Date.now()),
-        } as SecurityScan;
-      } else if (agentId === 'researcher' || agentId === 'research') {
-        return {
-          id: result.id || `research-${Date.now()}`,
-          query: params.query,
-          status: result.status || 'completed',
-          sources: result.sources || [],
-          startedAt: new Date(result.startedAt || Date.now()),
-          completedAt: new Date(result.completedAt || Date.now()),
-        } as ResearchResult;
-      } else {
-        // Generic result for other agent types
-        return {
-          status: result.status || 'completed',
-          output: result.output || '',
-          error: result.error || '',
-          exitCode: result.exitCode || 0,
-          duration: result.duration || 0,
-        };
-  }
-    } catch (error) {
-      // Fallback to mock response for development
-      console.warn('CLI server not available, using mock response:', error);
-
+    // Map result to appropriate return type based on agent type
+    if (agentId === 'sec-audit' || agentId === 'audit') {
       return {
-        status: 'completed',
-        output: 'Mock response: Agent execution completed',
-        error: '',
-        exitCode: 0,
-        duration: 1000,
+        id: result.id || `scan-${Date.now()}`,
+        type: 'code',
+        status: result.status || 'completed',
+        findings: result.findings || [],
+        startedAt: new Date(result.startedAt || Date.now()),
+        completedAt: new Date(result.completedAt || Date.now()),
+      } as SecurityScan;
+    } else if (agentId === 'researcher' || agentId === 'research') {
+      return {
+        id: result.id || `research-${Date.now()}`,
+        query: params.query,
+        status: result.status || 'completed',
+        sources: result.sources || [],
+        startedAt: new Date(result.startedAt || Date.now()),
+        completedAt: new Date(result.completedAt || Date.now()),
+      } as ResearchResult;
+    } else {
+      // Generic result for other agent types
+      return {
+        status: result.status || 'completed',
+        output: result.output || '',
+        error: result.error || '',
+        exitCode: result.exitCode || 0,
+        duration: result.duration || 0,
       };
     }
   }
@@ -664,27 +627,7 @@ export class CodexAPIClient {
       cpuCores: number;
     };
   }> {
-    try {
-      return await this.sendRequest('resource.getStatus', {});
-    } catch (error) {
-      console.warn('CLI server not available, using mock response:', error);
-      // Fallback to mock response
-      return {
-        capacity: {
-          maxConcurrent: 8,
-          activeTasks: 2,
-          availableSlots: 6,
-        },
-        stats: {
-          cpuUsagePercent: 15.5,
-          memoryUsedBytes: 8589934592, // 8 GB
-          memoryTotalBytes: 17179869184, // 16 GB
-          memoryUsagePercent: 50.0,
-          activeAgents: 2,
-          cpuCores: 4,
-        },
-      };
-    }
+    return await this.sendRequest('resource.getStatus', {});
   }
 
   async acquireResource(): Promise<{ success: boolean; message: string }> {
@@ -1073,6 +1016,41 @@ export class CodexAPIClient {
       console.warn('Failed to execute DeepResearch:', error);
       throw error;
     }
+  }
+
+  // Plan Methods
+  async createPlan(params: {
+    title: string;
+    mode: string;
+    budgetTokens: number;
+    budgetTime: number;
+  }): Promise<any> {
+    return await this.sendRequest('plan.create', params);
+  }
+
+  async listPlans(): Promise<any[]> {
+    const result = await this.sendRequest('plan.list', {});
+    return result.plans || [];
+  }
+
+  async showPlan(planId: string): Promise<any> {
+    return await this.sendRequest('plan.show', { planId });
+  }
+
+  async executePlan(planId: string): Promise<any> {
+    return await this.sendRequest('plan.execute', { planId });
+  }
+
+  async getPlanStatus(planId: string): Promise<any> {
+    return await this.sendRequest('plan.status', { planId });
+  }
+
+  async approvePlan(planId: string): Promise<any> {
+    return await this.sendRequest('plan.approve', { planId });
+  }
+
+  async rejectPlan(planId: string, reason: string): Promise<any> {
+    return await this.sendRequest('plan.reject', { planId, reason });
   }
 
   // Utility methods

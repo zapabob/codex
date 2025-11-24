@@ -61,27 +61,24 @@ export const GPUStatus: React.FC<GPUStatusProps> = ({
       setIsLoading(true);
       setError(null);
 
-      // TODO: Implement gpu.getStatus RPC method
-      // const stats = await apiClient.sendRequest('gpu.getStatus', {});
+      const result = await apiClient.getGPUStatus();
       
-      // Mock data for now
-      const mockStats: GPUStats[] = [
-        {
-          name: 'NVIDIA GeForce RTX 3080',
-          vendor: 'nvidia',
-          usagePercent: 45.5,
-          memoryUsed: 8192 * 1024 * 1024, // 8 GB
-          memoryTotal: 10240 * 1024 * 1024, // 10 GB
-          memoryUsagePercent: 80.0,
-          temperature: 72,
-          powerUsage: 250,
-          clockSpeed: 1710,
-          computeCapability: '8.6',
-          cudaVersion: '12.0',
-        },
-      ];
+      const stats: GPUStats[] = (result.gpus || []).map((gpu: any) => ({
+        name: gpu.name || 'Unknown GPU',
+        vendor: (gpu.vendor || 'unknown').toLowerCase() as GPUStats['vendor'],
+        usagePercent: gpu.usagePercent || 0,
+        memoryUsed: gpu.memoryUsed || 0,
+        memoryTotal: gpu.memoryTotal || 0,
+        memoryUsagePercent: gpu.memoryUsagePercent || 0,
+        temperature: gpu.temperature,
+        powerUsage: gpu.powerUsage,
+        clockSpeed: gpu.clockSpeed,
+        computeCapability: gpu.computeCapability,
+        cudaVersion: gpu.cudaVersion,
+        directMLVersion: gpu.directMLVersion,
+      }));
 
-      setGpuStats(mockStats);
+      setGpuStats(stats);
       setLastUpdate(new Date());
     } catch (err) {
       console.error('Failed to fetch GPU stats:', err);

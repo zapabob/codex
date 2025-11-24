@@ -84,32 +84,91 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn launch_tui() -> Result<(), Box<dyn std::error::Error>> {
     println!("Launching Terminal User Interface...");
 
-    // First try codex-tui.exe
-    let tui_path = std::env::current_exe()?.parent().unwrap().join("codex-tui");
-
-    // If not found, try codex-tui (without extension)
-    let tui_path = if tui_path.exists() {
-        tui_path
-    } else {
-        std::env::current_exe()?
-            .parent()
-            .unwrap()
-            .join("codex-tui.exe")
-    };
-
-    match Command::new(&tui_path).spawn() {
-        Ok(mut child) => {
-            println!("TUI launched successfully (PID: {})", child.id());
-            let status = child.wait()?;
-            println!("TUI exited with status: {}", status);
-            Ok(())
+    // Search paths in order of priority
+    let mut tui_paths = Vec::new();
+    
+    // 1. Check environment variable
+    if let Ok(env_path) = std::env::var("CODEX_TUI_PATH") {
+        tui_paths.push(PathBuf::from(env_path));
+    }
+    
+    // 2. Check PATH for codex-tui
+    if which::which("codex-tui").is_ok() {
+        tui_paths.push(PathBuf::from("codex-tui"));
+    }
+    
+    // 3. Check PATH for codex-tui.exe
+    if which::which("codex-tui.exe").is_ok() {
+        tui_paths.push(PathBuf::from("codex-tui.exe"));
+    }
+    
+    // 4. Check in cargo bin directory
+    if let Some(home) = dirs::home_dir() {
+        let cargo_bin = home.join(".cargo").join("bin").join("codex-tui.exe");
+        if cargo_bin.exists() {
+            tui_paths.push(cargo_bin);
         }
-        Err(e) => {
-            eprintln!("Failed to launch TUI: {}", e);
-            eprintln!("TUI path tried: {:?}", tui_path);
-            eprintln!("Please ensure the TUI application is installed and available in PATH.");
-            // Don't exit with error for TUI, as it's not yet implemented
-            Ok(())
+    }
+    
+    // 5. Check relative to current executable
+    if let Ok(exe_dir) = std::env::current_exe() {
+        let exe_parent = exe_dir.parent().unwrap();
+        tui_paths.push(exe_parent.join("codex-tui"));
+        tui_paths.push(exe_parent.join("codex-tui.exe"));
+    }
+    
+    // 6. Check in target directories (development)
+    if let Ok(current_dir) = std::env::current_dir() {
+        tui_paths.push(current_dir.join("target").join("release").join("codex-tui.exe"));
+        tui_paths.push(current_dir.join("target").join("debug").join("codex-tui.exe"));
+        // Also check if we're in codex-rs
+        if current_dir.to_string_lossy().ends_with("codex-rs") {
+            tui_paths.push(current_dir.join("target").join("release").join("codex-tui.exe"));
+            tui_paths.push(current_dir.join("target").join("debug").join("codex-tui.exe"));
+        }
+    }
+
+    // Find first existing path
+    let tui_path = tui_paths.iter().find(|p| {
+        if p.is_absolute() {
+            p.exists()
+        } else {
+            which::which(p).is_ok()
+        }
+    });
+
+    match tui_path {
+        Some(path) => {
+            println!("Found TUI at: {:?}", path);
+            match Command::new(path).spawn() {
+                Ok(mut child) => {
+                    println!("TUI launched successfully (PID: {})", child.id());
+                    let status = child.wait()?;
+                    if status.success() {
+                        println!("TUI exited successfully");
+                        Ok(())
+                    } else {
+                        eprintln!("TUI exited with error code: {:?}", status.code());
+                        std::process::exit(status.code().unwrap_or(1));
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to launch TUI: {}", e);
+                    eprintln!("TUI path: {:?}", path);
+                    eprintln!("Please ensure the TUI application is installed and available.");
+                    std::process::exit(1);
+                }
+            }
+        }
+        None => {
+            eprintln!("TUI binary not found. Searched paths:");
+            for path in &tui_paths {
+                eprintln!("  - {:?}", path);
+            }
+            eprintln!("\nPlease install codex-tui:");
+            eprintln!("  cargo install --path tui");
+            eprintln!("\nOr set CODEX_TUI_PATH environment variable to the TUI binary path.");
+            std::process::exit(1);
         }
     }
 }
@@ -176,12 +235,15 @@ async fn handle_rpc_method(
 
         "account.logout" => Ok(serde_json::Value::Null),
 
-        "account.read" => Ok(serde_json::json!({
-            "id": "user1",
-            "email": "user@example.com",
-            "name": "Mock User",
-            "plan": "free"
-        })),
+        "account.read" => {
+            // TODO: Integrate with actual Codex Core authentication
+            // For now, return error if not implemented
+            Err(RpcError {
+                code: -32601,
+                message: "account.read not yet implemented. Please use actual Codex Core API.".to_string(),
+                data: None,
+            })
+        },
 
         "conversation.list" => Ok(serde_json::json!([])),
 
@@ -201,13 +263,15 @@ async fn handle_rpc_method(
             }))
         }
 
-        "conversation.sendMessage" => Ok(serde_json::json!({
-            "id": format!("msg-{}", chrono::Utc::now().timestamp()),
-            "conversationId": params.get("conversationId").unwrap_or(&serde_json::json!("conv-1")),
-            "role": "assistant",
-            "content": "This is a mock response from the CLI server. Real AI integration coming soon.",
-            "createdAt": chrono::Utc::now().to_rfc3339()
-        })),
+        "conversation.sendMessage" => {
+            // TODO: Integrate with actual Codex Core AI model
+            // For now, return error if not implemented
+            Err(RpcError {
+                code: -32601,
+                message: "conversation.sendMessage not yet implemented. Please use actual Codex Core API.".to_string(),
+                data: None,
+            })
+        },
 
         "agent.list" => Ok(serde_json::json!([
             {
@@ -244,15 +308,19 @@ async fn handle_rpc_method(
             let agent_id = params
                 .get("agentId")
                 .and_then(|v| v.as_str())
-                .unwrap_or("unknown");
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing 'agentId' parameter".to_string(),
+                    data: None,
+                })?;
 
-            Ok(serde_json::json!({
-                "status": "completed",
-                "output": format!("Mock execution completed for agent: {}", agent_id),
-                "error": "",
-                "exitCode": 0,
-                "duration": 100
-            }))
+            // TODO: Integrate with actual Codex Core agent execution
+            // For now, return error if not implemented
+            Err(RpcError {
+                code: -32601,
+                message: format!("agent.run not yet implemented for agent: {}. Please use actual Codex Core API.", agent_id),
+                data: None,
+            })
         }
 
         "mcp.connections" => Ok(serde_json::json!([
