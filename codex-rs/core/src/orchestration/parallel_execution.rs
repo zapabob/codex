@@ -16,13 +16,17 @@ use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use uuid::Uuid;
 
+use super::qc_logger::QcLogger;
+use super::qc_merger::QcMerger;
 use super::resource_manager::ResourceGuard;
 use super::resource_manager::ResourceManager;
 use super::worktree_manager::WorktreeInfo;
 use super::worktree_manager::WorktreeManager;
+use crate::qc::{QcAgent, QcConfig, QcReport, QualityScore};
 use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::Verbosity;
+use walkdir::WalkDir;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "lowercase")]
@@ -30,6 +34,7 @@ pub enum AgentType {
     Codex,
     GeminiCLI,
     Claudecode,
+    QcAgent,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -189,6 +194,88 @@ impl ParallelOrchestrator {
             }
         }
 
+        // Run QC analysis on results if QC agent is enabled
+        let qc_enabled = results.iter().any(|r| matches!(r.agent, AgentType::QcAgent));
+        if !qc_enabled {
+            // Add QC agent task if not already present
+            let qc_task = AgentTask {
+                agent: AgentType::QcAgent,
+                prompt: "Analyze code quality".to_string(),
+                worktree_path: None,
+                timeout_seconds: Some(300),
+                reasoning_effort: None,
+            };
+
+            // Execute QC agent
+            let qc_result = Self::execute_agent(
+                Arc::clone(&self.agent_states),
+                qc_task,
+                None,
+            )
+            .await;
+            results.push(qc_result);
+        }
+
+        // Select best result based on QC scores
+        use super::qc_merger::QcMerger;
+        use super::qc_logger::QcLogger;
+        let qc_merger = QcMerger::new();
+        let logs_dir = self.repo_path.join("_docs");
+        let qc_logger = QcLogger::new(logs_dir).unwrap_or_else(|_| {
+            QcLogger::new(PathBuf::from("_docs")).expect("Failed to create QC logger")
+        });
+
+        // Filter out QC agent results for selection
+        let non_qc_results: Vec<_> = results
+            .iter()
+            .filter(|r| !matches!(r.agent, AgentType::QcAgent))
+            .cloned()
+            .collect();
+
+        if !non_qc_results.is_empty() && !worktrees.is_empty() {
+            // Use worktree-based selection for worktree mode
+            match qc_merger.select_best_worktree(worktrees.clone()).await {
+                Ok((best_worktree, qc_scores)) => {
+                    info!("Selected best worktree based on QC scores: {}", best_worktree.name);
+                    
+                    // Log merge decision
+                    let _ = qc_logger
+                        .log_merge_decision(&best_worktree.name, &qc_scores)
+                        .await;
+
+                    // Merge best worktree back to main branch
+                    info!("Merging best worktree: {}", best_worktree.name);
+                    if let Err(e) = worktree_manager.merge_worktree(&best_worktree, "main") {
+                        tracing::warn!("Failed to merge worktree: {}", e);
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("QC worktree selection failed: {}", e);
+                    // Fallback: use central selection
+                    if let Ok((best_result, qc_scores)) = qc_merger.select_best_central(non_qc_results.clone()).await {
+                        let selected_agent = format!("{:?}", best_result.agent);
+                        let _ = qc_logger.log_merge_decision(&selected_agent, &qc_scores).await;
+                    }
+                }
+            }
+        } else if !non_qc_results.is_empty() {
+            // Use central selection for non-worktree mode
+            match qc_merger.select_best_central(non_qc_results.clone()).await {
+                Ok((best_result, qc_scores)) => {
+                    info!("Selected best result based on QC scores");
+                    
+                    // Log merge decision
+                    let selected_agent = format!("{:?}", best_result.agent);
+                    let _ = qc_logger
+                        .log_merge_decision(&selected_agent, &qc_scores)
+                        .await;
+                }
+                Err(e) => {
+                    tracing::warn!("QC selection failed: {}", e);
+                }
+            }
+        }
+
         // Cleanup worktrees
         self.cleanup_worktrees().await?;
 
@@ -260,6 +347,7 @@ impl ParallelOrchestrator {
             AgentType::Codex => Self::run_codex(task, Arc::clone(&states), worktree).await,
             AgentType::GeminiCLI => Self::run_gemini(task, Arc::clone(&states), worktree).await,
             AgentType::Claudecode => Self::run_claude(task, Arc::clone(&states), worktree).await,
+            AgentType::QcAgent => Self::run_qc_agent(task, Arc::clone(&states), worktree).await,
         }
     }
 
@@ -423,6 +511,92 @@ impl ParallelOrchestrator {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             anyhow::bail!("Claudecode failed: {}", stderr);
         }
+    }
+
+    async fn run_qc_agent(
+        task: &AgentTask,
+        states: Arc<RwLock<HashMap<AgentType, AgentProgress>>>,
+        worktree: Option<WorktreeInfo>,
+    ) -> Result<String> {
+        Self::update_progress(Arc::clone(&states), task.agent, 10.0, "Initializing QC Agent").await;
+
+        let default_path = PathBuf::from(".");
+        let working_dir = worktree.as_ref().map(|w| &w.path).unwrap_or(&default_path);
+
+        Self::update_progress(Arc::clone(&states), task.agent, 20.0, "Reading source code").await;
+
+        // Read source code from worktree or current directory
+        let source_code = if let Some(wt) = &worktree {
+            // Read all Rust files in the worktree
+            Self::read_source_files(&wt.path).await?
+        } else {
+            // Read from prompt or current directory
+            if !task.prompt.is_empty() {
+                task.prompt.clone()
+            } else {
+                Self::read_source_files(working_dir).await?
+            }
+        };
+
+        Self::update_progress(Arc::clone(&states), task.agent, 40.0, "Running QC analysis").await;
+
+        // Create QC agent with default config
+        let qc_config = QcConfig::default();
+        let qc_agent = QcAgent::with_config(qc_config);
+
+        // Run QC analysis
+        let target_name = worktree
+            .as_ref()
+            .map(|w| w.name.clone())
+            .unwrap_or_else(|| "codebase".to_string());
+
+        let qc_report = qc_agent
+            .analyze(&source_code, &target_name)
+            .await
+            .map_err(|e| anyhow::anyhow!("QC analysis failed: {}", e))?;
+
+        Self::update_progress(Arc::clone(&states), task.agent, 80.0, "Generating QC report").await;
+
+        // Serialize QC report to JSON
+        let report_json = serde_json::to_string_pretty(&qc_report)
+            .context("Failed to serialize QC report")?;
+
+        Self::update_progress(Arc::clone(&states), task.agent, 100.0, "QC analysis completed").await;
+
+        Ok(report_json)
+    }
+
+    async fn read_source_files(dir: &PathBuf) -> Result<String> {
+        use std::fs;
+        use walkdir::WalkDir;
+
+        let mut source_content = String::new();
+
+        // Walk through directory and read Rust files
+        for entry in WalkDir::new(dir)
+            .max_depth(5)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(ext) = path.extension() {
+                    if ext == "rs" || ext == "ts" || ext == "tsx" || ext == "js" || ext == "jsx" {
+                        if let Ok(content) = fs::read_to_string(path) {
+                            source_content.push_str(&format!("\n// File: {}\n", path.display()));
+                            source_content.push_str(&content);
+                            source_content.push_str("\n");
+                        }
+                    }
+                }
+            }
+        }
+
+        if source_content.is_empty() {
+            source_content = "// No source files found".to_string();
+        }
+
+        Ok(source_content)
     }
 
     async fn update_progress(

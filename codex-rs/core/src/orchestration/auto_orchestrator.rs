@@ -8,11 +8,14 @@ use crate::agents::AgentRuntime;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;
+use crate::orchestration::QcLogger;
+use crate::orchestration::QcMerger;
 use crate::orchestration::TaskAnalysis;
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 use tracing::debug;
@@ -92,6 +95,12 @@ pub struct AutoOrchestrator {
     /// Conflict resolver for file edits
     conflict_resolver: Arc<ConflictResolver>,
 
+    /// QC merger for quality-based selection
+    qc_merger: Arc<QcMerger>,
+
+    /// QC logger for recording results
+    qc_logger: Arc<QcLogger>,
+
     /// Workspace directory
     workspace_dir: std::path::PathBuf,
 }
@@ -103,12 +112,17 @@ impl AutoOrchestrator {
         collaboration_store: Arc<CollaborationStore>,
         workspace_dir: std::path::PathBuf,
     ) -> Self {
-        Self::with_merge_strategy(
+        let logs_dir = workspace_dir.join("_docs");
+        Self {
             runtime,
             collaboration_store,
+            conflict_resolver: Arc::new(ConflictResolver::new(MergeStrategy::Sequential)),
+            qc_merger: Arc::new(QcMerger::new()),
+            qc_logger: Arc::new(QcLogger::new(logs_dir).unwrap_or_else(|_| {
+                QcLogger::new(PathBuf::from("_docs")).expect("Failed to create QC logger")
+            })),
             workspace_dir,
-            MergeStrategy::Sequential,
-        )
+        }
     }
 
     /// Create a new auto-orchestrator with a specific merge strategy.
@@ -118,10 +132,15 @@ impl AutoOrchestrator {
         workspace_dir: std::path::PathBuf,
         merge_strategy: MergeStrategy,
     ) -> Self {
+        let logs_dir = workspace_dir.join("_docs");
         Self {
             runtime,
             collaboration_store,
             conflict_resolver: Arc::new(ConflictResolver::new(merge_strategy)),
+            qc_merger: Arc::new(QcMerger::new()),
+            qc_logger: Arc::new(QcLogger::new(logs_dir).unwrap_or_else(|_| {
+                QcLogger::new(PathBuf::from("_docs")).expect("Failed to create QC logger")
+            })),
             workspace_dir,
         }
     }
@@ -153,9 +172,61 @@ impl AutoOrchestrator {
         info!("📋 Execution plan created: {} tasks", plan.tasks.len());
 
         // 2. Execute agents from plan
-        let results = self.execute_agents_from_plan(&plan, &analysis).await?;
+        let mut results = self.execute_agents_from_plan(&plan, &analysis).await?;
 
-        // 3. Merge results
+        // 3. Execute QC agent in parallel to analyze results
+        info!("🔍 Running QC analysis on agent results");
+        let qc_result = self.execute_qc_analysis(&results).await?;
+        if let Some(qc_result) = qc_result {
+            results.push(qc_result);
+        }
+
+        // 4. Select best result based on QC scores
+        let (best_result, qc_scores) = self
+            .qc_merger
+            .select_best_central(
+                results
+                    .iter()
+                    .map(|r| self::parallel_execution::AgentResult {
+                        agent: self::parallel_execution::AgentType::Codex, // Convert type
+                        success: matches!(r.status, crate::agents::AgentStatus::Completed),
+                        output: r.artifacts.join("\n"),
+                        elapsed_seconds: r.duration_secs,
+                        error: r.error.clone(),
+                    })
+                    .collect(),
+            )
+            .await
+            .unwrap_or_else(|_| {
+                // Fallback: use first result
+                (
+                    self::parallel_execution::AgentResult {
+                        agent: self::parallel_execution::AgentType::Codex,
+                        success: true,
+                        output: results[0].artifacts.join("\n"),
+                        elapsed_seconds: results[0].duration_secs,
+                        error: None,
+                    },
+                    HashMap::new(),
+                )
+            });
+
+        // 5. Log QC results and merge decision
+        let selected_agent = results
+            .iter()
+            .find(|r| {
+                r.artifacts.join("\n") == best_result.output
+                    || r.agent_name.contains("qc")
+            })
+            .map(|r| r.agent_name.clone())
+            .unwrap_or_else(|| "unknown".to_string());
+
+        let _ = self
+            .qc_logger
+            .log_merge_decision(&selected_agent, &qc_scores)
+            .await;
+
+        // 6. Merge results
         let execution_summary = self.merge_results(&results);
 
         let total_time = start_time.elapsed().as_secs_f64();
@@ -280,6 +351,43 @@ impl AutoOrchestrator {
         );
 
         Ok(results)
+    }
+
+    /// Execute QC analysis on agent results
+    async fn execute_qc_analysis(&self, results: &[AgentResult]) -> Result<Option<AgentResult>> {
+        // Collect all artifacts from successful results
+        let mut combined_output = String::new();
+        for result in results {
+            if matches!(result.status, crate::agents::AgentStatus::Completed) {
+                combined_output.push_str(&format!("\n// Agent: {}\n", result.agent_name));
+                combined_output.push_str(&result.artifacts.join("\n"));
+                combined_output.push_str("\n");
+            }
+        }
+
+        if combined_output.is_empty() {
+            return Ok(None);
+        }
+
+        // Execute QC agent via runtime
+        let mut inputs = HashMap::new();
+        inputs.insert("source_code".to_string(), combined_output);
+        inputs.insert("target_name".to_string(), "orchestrated_results".to_string());
+
+        match self
+            .runtime
+            .delegate("qc-optimizer", "Analyze code quality", inputs, None, None)
+            .await
+        {
+            Ok(qc_result) => {
+                info!("✅ QC analysis completed");
+                Ok(Some(qc_result))
+            }
+            Err(e) => {
+                warn!("⚠️  QC analysis failed: {}", e);
+                Ok(None)
+            }
+        }
     }
 
     /// Merge results from multiple agents into a summary.

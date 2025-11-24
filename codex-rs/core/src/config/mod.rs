@@ -13,6 +13,7 @@ use crate::config::types::ShellEnvironmentPolicy;
 use crate::config::types::ShellEnvironmentPolicyToml;
 use crate::config::types::Tui;
 use crate::config::types::UriBasedFileOpener;
+use crate::orchestration::DevelopmentMode;
 use crate::config_loader::LoadedConfigLayers;
 use crate::config_loader::load_config_as_toml;
 use crate::config_loader::load_config_layers_with_overrides;
@@ -842,6 +843,8 @@ pub struct ConfigOverrides {
     pub experimental_sandbox_command_assessment: Option<bool>,
     /// Additional directories that should be treated as writable roots for this session.
     pub additional_writable_roots: Vec<PathBuf>,
+    /// Development mode selection (central orchestration vs git worktree)
+    pub development_mode: Option<DevelopmentMode>,
 }
 
 impl Config {
@@ -872,6 +875,7 @@ impl Config {
             tools_web_search_request: override_tools_web_search_request,
             experimental_sandbox_command_assessment: sandbox_command_assessment_override,
             additional_writable_roots,
+            development_mode: _development_mode_override,
         } = overrides;
 
         let active_profile_name = config_profile_key
