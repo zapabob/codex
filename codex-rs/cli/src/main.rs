@@ -13,6 +13,7 @@ use once_cell::sync::Lazy;
 use std::path::PathBuf;
 use dirs;
 use which;
+use which;
 use dirs;
 use which;
 
