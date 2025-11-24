@@ -13,8 +13,8 @@ pub struct CapSids {
     pub readonly: String,
 }
 
-pub fn cap_sid_file(policy_cwd: &Path) -> PathBuf {
-    policy_cwd.join(".codex").join("cap_sid")
+pub fn cap_sid_file(codex_home: &Path) -> PathBuf {
+    codex_home.join("cap_sid")
 }
 
 fn make_random_cap_sid_string() -> String {

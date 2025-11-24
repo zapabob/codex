@@ -1,8 +1,8 @@
 [package]
-name = "codex-git"
-version.workspace = true
 edition.workspace = true
+name = "codex-git"
 readme = "README.md"
+version.workspace = true
 
 [lints]
 workspace = true

@@ -44,6 +44,7 @@ dirs = { workspace = true }
 dunce = { workspace = true }
 ed25519-dalek = { workspace = true }
 env-flags = { workspace = true }
+encoding_rs = { workspace = true }
 eventsource-stream = { workspace = true }
 futures = { workspace = true }
 hex = { workspace = true }
@@ -71,6 +72,7 @@ similar = { workspace = true }
 strum_macros = { workspace = true }
 sysinfo = "0.31"
 tempfile = { workspace = true }
+test-case = "3.3.1"
 test-log = { workspace = true }
 thiserror = { workspace = true }
 time = { workspace = true, features = [
@@ -100,6 +102,7 @@ codex_windows_sandbox = { package = "codex-windows-sandbox", path = "../windows-
 [target.'cfg(target_os = "linux")'.dependencies]
 landlock = { workspace = true }
 seccompiler = { workspace = true }
+keyring = { workspace = true, features = ["linux-native-async-persistent"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.10"
@@ -111,6 +114,12 @@ openssl-sys = { workspace = true, features = ["vendored"] }
 # Build OpenSSL from source for musl builds.
 [target.aarch64-unknown-linux-musl.dependencies]
 openssl-sys = { workspace = true, features = ["vendored"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+keyring = { workspace = true, features = ["windows-native"] }
+
+[target.'cfg(any(target_os = "freebsd", target_os = "openbsd"))'.dependencies]
+keyring = { workspace = true, features = ["sync-secret-service"] }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }

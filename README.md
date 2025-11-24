@@ -449,7 +449,9 @@ npm run dev
 - **接続失敗**: ファイアウォール設定を確認し、ポートがブロックされていないことを確認してください
 - **GUIが起動しない**: `codex-gui.exe`がインストールされているか確認: `codex-gui --version`
 
----
+### Execpolicy
+
+See the [Execpolicy quickstart](./docs/execpolicy.md) to set up rules that govern what commands Codex can execute.
 
 ### 🎮 VR/AR Setup
 
