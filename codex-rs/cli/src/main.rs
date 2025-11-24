@@ -1,20 +1,20 @@
-﻿//! Codex CLI - AI-Native OS Command Line Interface
+//! Codex CLI - AI-Native OS Command Line Interface
 
+use codex_core::orchestration::ResourceManager;
+use codex_core::security::{MalwareDetector, Quarantine};
+use dirs;
+use dirs;
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json;
+use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use tokio::sync::RwLock;
-use codex_core::orchestration::ResourceManager;
-use codex_core::security::{MalwareDetector, Quarantine};
-use once_cell::sync::Lazy;
-use std::path::PathBuf;
-use dirs;
 use which;
 use which;
-use dirs;
 use which;
 
 /// RPC Request
@@ -86,22 +86,22 @@ fn launch_tui() -> Result<(), Box<dyn std::error::Error>> {
 
     // Search paths in order of priority
     let mut tui_paths = Vec::new();
-    
+
     // 1. Check environment variable
     if let Ok(env_path) = std::env::var("CODEX_TUI_PATH") {
         tui_paths.push(PathBuf::from(env_path));
     }
-    
+
     // 2. Check PATH for codex-tui
     if which::which("codex-tui").is_ok() {
         tui_paths.push(PathBuf::from("codex-tui"));
     }
-    
+
     // 3. Check PATH for codex-tui.exe
     if which::which("codex-tui.exe").is_ok() {
         tui_paths.push(PathBuf::from("codex-tui.exe"));
     }
-    
+
     // 4. Check in cargo bin directory
     if let Some(home) = dirs::home_dir() {
         let cargo_bin = home.join(".cargo").join("bin").join("codex-tui.exe");
@@ -109,22 +109,42 @@ fn launch_tui() -> Result<(), Box<dyn std::error::Error>> {
             tui_paths.push(cargo_bin);
         }
     }
-    
+
     // 5. Check relative to current executable
     if let Ok(exe_dir) = std::env::current_exe() {
         let exe_parent = exe_dir.parent().unwrap();
         tui_paths.push(exe_parent.join("codex-tui"));
         tui_paths.push(exe_parent.join("codex-tui.exe"));
     }
-    
+
     // 6. Check in target directories (development)
     if let Ok(current_dir) = std::env::current_dir() {
-        tui_paths.push(current_dir.join("target").join("release").join("codex-tui.exe"));
-        tui_paths.push(current_dir.join("target").join("debug").join("codex-tui.exe"));
+        tui_paths.push(
+            current_dir
+                .join("target")
+                .join("release")
+                .join("codex-tui.exe"),
+        );
+        tui_paths.push(
+            current_dir
+                .join("target")
+                .join("debug")
+                .join("codex-tui.exe"),
+        );
         // Also check if we're in codex-rs
         if current_dir.to_string_lossy().ends_with("codex-rs") {
-            tui_paths.push(current_dir.join("target").join("release").join("codex-tui.exe"));
-            tui_paths.push(current_dir.join("target").join("debug").join("codex-tui.exe"));
+            tui_paths.push(
+                current_dir
+                    .join("target")
+                    .join("release")
+                    .join("codex-tui.exe"),
+            );
+            tui_paths.push(
+                current_dir
+                    .join("target")
+                    .join("debug")
+                    .join("codex-tui.exe"),
+            );
         }
     }
 
@@ -240,10 +260,11 @@ async fn handle_rpc_method(
             // For now, return error if not implemented
             Err(RpcError {
                 code: -32601,
-                message: "account.read not yet implemented. Please use actual Codex Core API.".to_string(),
+                message: "account.read not yet implemented. Please use actual Codex Core API."
+                    .to_string(),
                 data: None,
             })
-        },
+        }
 
         "conversation.list" => Ok(serde_json::json!([])),
 
@@ -271,7 +292,7 @@ async fn handle_rpc_method(
                 message: "conversation.sendMessage not yet implemented. Please use actual Codex Core API.".to_string(),
                 data: None,
             })
-        },
+        }
 
         "agent.list" => Ok(serde_json::json!([
             {
@@ -318,7 +339,10 @@ async fn handle_rpc_method(
             // For now, return error if not implemented
             Err(RpcError {
                 code: -32601,
-                message: format!("agent.run not yet implemented for agent: {}. Please use actual Codex Core API.", agent_id),
+                message: format!(
+                    "agent.run not yet implemented for agent: {}. Please use actual Codex Core API.",
+                    agent_id
+                ),
                 data: None,
             })
         }
@@ -359,11 +383,13 @@ async fn handle_rpc_method(
                 })?;
 
             // Parse command into Vec<String>
-            let command: Vec<String> = shlex::split(command_str)
-                .unwrap_or_else(|| vec![command_str.to_string()]);
+            let command: Vec<String> =
+                shlex::split(command_str).unwrap_or_else(|| vec![command_str.to_string()]);
 
             // YOLOモードでも危険なコマンドはブロック
-            if codex_core::command_safety::is_dangerous_command::command_might_be_dangerous(&command) {
+            if codex_core::command_safety::is_dangerous_command::command_might_be_dangerous(
+                &command,
+            ) {
                 return Err(RpcError {
                     code: -32001,
                     message: format!(
@@ -507,11 +533,7 @@ async fn handle_rpc_method(
                 .arg(prompt)
                 .output()
                 .await
-                .or_else(|_| {
-                    tokio::process::Command::new("gemini")
-                        .arg(prompt)
-                        .output()
-                })
+                .or_else(|_| tokio::process::Command::new("gemini").arg(prompt).output())
                 .await
                 .map_err(|e| RpcError {
                     code: -32000,
@@ -542,11 +564,7 @@ async fn handle_rpc_method(
                 .arg(prompt)
                 .output()
                 .await
-                .or_else(|_| {
-                    tokio::process::Command::new("claude")
-                        .arg(prompt)
-                        .output()
-                })
+                .or_else(|_| tokio::process::Command::new("claude").arg(prompt).output())
                 .await
                 .map_err(|e| RpcError {
                     code: -32000,
@@ -602,7 +620,7 @@ async fn handle_rpc_method(
                 _ => Ok(serde_json::json!({
                     "available": false,
                     "message": "Gemini CLI not found. Install with: npm install -g @google/gemini-cli"
-                }))
+                })),
             }
         }
 
@@ -629,11 +647,11 @@ async fn handle_rpc_method(
             // Execute Gemini CLI with optional grounding
             let mut cmd = tokio::process::Command::new("gemini");
             cmd.args(["--model", model]);
-            
+
             if use_grounding {
                 cmd.args(["--grounding", "web", "--format", "json"]);
             }
-            
+
             cmd.arg(query);
 
             let output = cmd.output().await.map_err(|e| RpcError {
@@ -780,12 +798,10 @@ async fn handle_rpc_method(
             #[cfg(target_os = "windows")]
             {
                 use std::process::Command;
-                
+
                 // Check Windows build version
-                let output = Command::new("cmd")
-                    .args(["/C", "ver"])
-                    .output();
-                
+                let output = Command::new("cmd").args(["/C", "ver"]).output();
+
                 let build_version = if let Ok(output) = output {
                     let version_str = String::from_utf8_lossy(&output.stdout);
                     // Extract build number (e.g., "26100" from "Microsoft Windows [Version 10.0.26100.xxxx]")
@@ -805,7 +821,7 @@ async fn handle_rpc_method(
 
                 // Check for MCP standard features
                 let mcp_available = build_version == "25H2";
-                
+
                 Ok(serde_json::json!({
                     "windowsVersion": build_version,
                     "mcpStandardAvailable": mcp_available,
@@ -816,7 +832,7 @@ async fn handle_rpc_method(
                     }
                 }))
             }
-            
+
             #[cfg(not(target_os = "windows"))]
             {
                 Ok(serde_json::json!({
@@ -831,14 +847,16 @@ async fn handle_rpc_method(
             // Auto-detect MCP servers using Windows 11 25H2 standard features
             #[cfg(target_os = "windows")]
             {
-                use std::process::Command;
                 use std::path::PathBuf;
-                
+                use std::process::Command;
+
                 // Common MCP server locations
                 let search_paths = vec![
                     PathBuf::from("C:\\Program Files\\Codex\\mcp-servers"),
-                    PathBuf::from(std::env::var("LOCALAPPDATA").unwrap_or_default()).join("Codex\\mcp-servers"),
-                    PathBuf::from(std::env::var("APPDATA").unwrap_or_default()).join("Codex\\mcp-servers"),
+                    PathBuf::from(std::env::var("LOCALAPPDATA").unwrap_or_default())
+                        .join("Codex\\mcp-servers"),
+                    PathBuf::from(std::env::var("APPDATA").unwrap_or_default())
+                        .join("Codex\\mcp-servers"),
                 ];
 
                 let mut detected_servers = Vec::new();
@@ -850,8 +868,11 @@ async fn handle_rpc_method(
                             for entry in entries.flatten() {
                                 if let Ok(metadata) = entry.metadata() {
                                     if metadata.is_file() {
-                                        let file_name = entry.file_name().to_string_lossy().to_string();
-                                        if file_name.ends_with(".exe") || file_name.ends_with(".cmd") {
+                                        let file_name =
+                                            entry.file_name().to_string_lossy().to_string();
+                                        if file_name.ends_with(".exe")
+                                            || file_name.ends_with(".cmd")
+                                        {
                                             detected_servers.push(serde_json::json!({
                                                 "name": file_name.replace(".exe", "").replace(".cmd", ""),
                                                 "path": entry.path().to_string_lossy().to_string(),
@@ -870,7 +891,7 @@ async fn handle_rpc_method(
                     "count": detected_servers.len()
                 }))
             }
-            
+
             #[cfg(not(target_os = "windows"))]
             {
                 Ok(serde_json::json!({
@@ -919,7 +940,7 @@ async fn handle_rpc_method(
                     code: -32602,
                     message: format!("Unknown action: {}", action),
                     data: None,
-                })
+                }),
             }
         }
 
@@ -948,7 +969,7 @@ async fn handle_rpc_method(
                     ]
                 }))
             }
-            
+
             #[cfg(not(target_os = "windows"))]
             {
                 Ok(serde_json::json!({
@@ -1102,7 +1123,10 @@ async fn handle_rpc_method(
                 let quarantine = quarantine.as_ref().unwrap();
 
                 let path = PathBuf::from(file_path);
-                match quarantine.quarantine_file(&path, threat_name, confidence).await {
+                match quarantine
+                    .quarantine_file(&path, threat_name, confidence)
+                    .await
+                {
                     Ok(entry) => Ok(serde_json::json!({
                         "success": true,
                         "entryId": entry.id,
@@ -1298,10 +1322,7 @@ async fn handle_rpc_method(
                     data: None,
                 })?;
 
-            let body = params
-                .get("body")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
+            let body = params.get("body").and_then(|v| v.as_str()).unwrap_or("");
 
             let notification_type = params
                 .get("type")
@@ -1347,10 +1368,7 @@ async fn handle_rpc_method(
                 Command::new("osascript")
                     .args(&[
                         "-e",
-                        &format!(
-                            "display notification \"{}\" with title \"{}\"",
-                            body, title
-                        ),
+                        &format!("display notification \"{}\" with title \"{}\"", body, title),
                     ])
                     .output()
                     .ok();
@@ -1360,11 +1378,7 @@ async fn handle_rpc_method(
             {
                 use std::process::Command;
                 Command::new("notify-send")
-                    .args(&[
-                        "--app-name", "Codex",
-                        title,
-                        body,
-                    ])
+                    .args(&["--app-name", "Codex", title, body])
                     .output()
                     .ok();
             }
@@ -1407,7 +1421,9 @@ async fn handle_rpc_method(
             })?;
 
             rt.block_on(async {
-                use codex_core::virtualization::{TerminalManager, VirtualNetwork, NetworkSecurityPolicy};
+                use codex_core::virtualization::{
+                    NetworkSecurityPolicy, TerminalManager, VirtualNetwork,
+                };
                 use std::sync::Arc;
                 use tokio::sync::RwLock;
 
@@ -1417,10 +1433,7 @@ async fn handle_rpc_method(
                 let network = VirtualNetwork::new(NetworkSecurityPolicy::Whitelist);
                 let session_id = {
                     let mut manager = TERMINAL_MANAGER.write().await;
-                    manager.create_session(
-                        std::path::PathBuf::from(working_dir),
-                        Some(network),
-                    )
+                    manager.create_session(std::path::PathBuf::from(working_dir), Some(network))
                 };
 
                 Ok(serde_json::json!({
@@ -1469,11 +1482,13 @@ async fn handle_rpc_method(
                     Lazy::new(|| Arc::new(RwLock::new(TerminalManager::new())));
 
                 let mut manager = TERMINAL_MANAGER.write().await;
-                let session = manager.get_session_mut(session_id).ok_or_else(|| RpcError {
-                    code: -32000,
-                    message: "Session not found".to_string(),
-                    data: None,
-                })?;
+                let session = manager
+                    .get_session_mut(session_id)
+                    .ok_or_else(|| RpcError {
+                        code: -32000,
+                        message: "Session not found".to_string(),
+                        data: None,
+                    })?;
 
                 match session.execute_command(command).await {
                     Ok(result) => Ok(serde_json::json!({
@@ -1620,11 +1635,13 @@ async fn handle_rpc_method(
                     Lazy::new(|| Arc::new(RwLock::new(TerminalManager::new())));
 
                 let mut manager = TERMINAL_MANAGER.write().await;
-                let session = manager.get_session_mut(session_id).ok_or_else(|| RpcError {
-                    code: -32000,
-                    message: "Session not found".to_string(),
-                    data: None,
-                })?;
+                let session = manager
+                    .get_session_mut(session_id)
+                    .ok_or_else(|| RpcError {
+                        code: -32000,
+                        message: "Session not found".to_string(),
+                        data: None,
+                    })?;
 
                 match session.change_directory(std::path::PathBuf::from(path)) {
                     Ok(_) => Ok(serde_json::json!({
@@ -1651,10 +1668,7 @@ async fn handle_rpc_method(
                     data: None,
                 })?;
 
-            let depth = params
-                .get("depth")
-                .and_then(|v| v.as_u64())
-                .unwrap_or(3) as u8;
+            let depth = params.get("depth").and_then(|v| v.as_u64()).unwrap_or(3) as u8;
 
             let strategy = params
                 .get("strategy")
@@ -1679,10 +1693,13 @@ async fn handle_rpc_method(
 
                 let output = tokio::process::Command::new("gemini")
                     .args([
-                        "--model", "gemini-2.5-flash",
-                        "--grounding", "web",
-                        "--format", "json",
-                        &enhanced_query
+                        "--model",
+                        "gemini-2.5-flash",
+                        "--grounding",
+                        "web",
+                        "--format",
+                        "json",
+                        &enhanced_query,
                     ])
                     .output()
                     .await
@@ -1703,12 +1720,15 @@ async fn handle_rpc_method(
                             "sources": [],
                             "strategy": strategy,
                             "depth": depth
-                        }))
+                        })),
                     }
                 } else {
                     Err(RpcError {
                         code: -32000,
-                        message: format!("Gemini DeepResearch failed: {}", String::from_utf8_lossy(&output.stderr)),
+                        message: format!(
+                            "Gemini DeepResearch failed: {}",
+                            String::from_utf8_lossy(&output.stderr)
+                        ),
                         data: None,
                     })
                 }
@@ -1732,7 +1752,9 @@ async fn handle_rpc_method(
 
 fn launch_server() -> Result<(), Box<dyn std::error::Error>> {
     println!("Launching Codex Orchestrator RPC Server...");
-    println!("⚠️  YOLO Mode: Full file access enabled, but dangerous commands are blocked for security.");
+    println!(
+        "⚠️  YOLO Mode: Full file access enabled, but dangerous commands are blocked for security."
+    );
 
     // Create tokio runtime for async operations
     let rt = Runtime::new()?;
@@ -1828,17 +1850,17 @@ fn launch_gemini_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("✅ Gemini CLI found");
-    
+
     // Check for MCP server binary
     let mcp_server_paths = vec![
         "codex-gemini-cli-mcp-server",
         "codex-gemini-mcp",
         "gemini-mcp-server",
     ];
-    
+
     let mut mcp_server_found = false;
     let mut mcp_server_path = String::new();
-    
+
     for path in &mcp_server_paths {
         let check = Command::new(path).arg("--version").output();
         if check.is_ok() {
@@ -1847,27 +1869,27 @@ fn launch_gemini_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
             break;
         }
     }
-    
+
     if !mcp_server_found {
         eprintln!("⚠️  MCP server binary not found. Trying direct gemini CLI mode...");
         eprintln!("💡 You can install the MCP server with:");
         eprintln!("   cargo install codex-gemini-cli-mcp-server");
-        
+
         // Fallback: Use gemini CLI directly with MCP-like interface
         println!("🌐 Starting Gemini CLI in MCP mode...");
         println!("💡 Server will handle Google Search requests via Gemini");
-        
+
         // Run gemini CLI with MCP-like parameters
         let status = Command::new("gemini")
             .args(["--model", "gemini-2.5-flash", "--grounding", "web"])
             .status()?;
-        
+
         if status.success() {
             println!("✅ Gemini CLI completed successfully");
         } else {
             eprintln!("❌ Gemini CLI failed with exit code: {}", status);
         }
-        
+
         return Ok(());
     }
 
@@ -1876,8 +1898,7 @@ fn launch_gemini_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
     println!("💡 Server will handle Google Search requests via Gemini");
 
     // Execute the Gemini MCP server with improved error handling
-    let output = Command::new(&mcp_server_path)
-        .output()?;
+    let output = Command::new(&mcp_server_path).output()?;
 
     if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -1887,17 +1908,20 @@ fn launch_gemini_mcp_server() -> Result<(), Box<dyn std::error::Error>> {
         println!("✅ Gemini MCP Server completed successfully");
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        eprintln!("❌ Gemini MCP Server failed with exit code: {}", output.status);
+        eprintln!(
+            "❌ Gemini MCP Server failed with exit code: {}",
+            output.status
+        );
         if !stderr.is_empty() {
             eprintln!("Error output: {}", stderr);
         }
-        
+
         // Provide helpful error messages
         if stderr.contains("OAuth") || stderr.contains("authentication") {
             eprintln!("💡 Authentication issue detected. Please configure OAuth 2.0:");
             eprintln!("   Run: gemini auth login");
         }
-        
+
         if stderr.contains("not found") || stderr.contains("command not found") {
             eprintln!("💡 MCP server not found. Install with:");
             eprintln!("   cargo install codex-gemini-cli-mcp-server");
@@ -1924,7 +1948,10 @@ fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error
     }
 
     let query = args[1].clone();
-    let strategy = args.get(2).map(|s| s.clone()).unwrap_or_else(|| "Comprehensive".to_string());
+    let strategy = args
+        .get(2)
+        .map(|s| s.clone())
+        .unwrap_or_else(|| "Comprehensive".to_string());
     let depth: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(3);
 
     println!("🔬 Starting Deep Research...");
@@ -1938,7 +1965,8 @@ fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error
 
     rt.block_on(async {
         // Create Gemini search provider with grounding enabled
-        let search_provider = codex_deep_research::GeminiSearchProvider::new("gemini-2.5-flash".to_string());
+        let search_provider =
+            codex_deep_research::GeminiSearchProvider::new("gemini-2.5-flash".to_string());
 
         // Create deep researcher
         let config = codex_deep_research::DeepResearcherConfig {
@@ -1956,7 +1984,8 @@ fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error
             },
         };
 
-        let researcher = codex_deep_research::DeepResearcher::new(config, std::sync::Arc::new(search_provider));
+        let researcher =
+            codex_deep_research::DeepResearcher::new(config, std::sync::Arc::new(search_provider));
 
         // Execute research
         match researcher.research(&query).await {
@@ -1976,7 +2005,10 @@ fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error
                     println!("{}. {}", i + 1, source.title);
                     println!("   URL: {}", source.url);
                     if !source.snippet.is_empty() {
-                        println!("   Snippet: {}", source.snippet.chars().take(100).collect::<String>());
+                        println!(
+                            "   Snippet: {}",
+                            source.snippet.chars().take(100).collect::<String>()
+                        );
                     }
                     println!("");
                 }
@@ -2020,7 +2052,9 @@ fn launch_plan(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
     match subcommand {
         "create" => {
             if args.len() < 4 {
-                println!("Usage: codex plan create <name> [--budget <tokens>] [--mode <orchestrated|parallel>]");
+                println!(
+                    "Usage: codex plan create <name> [--budget <tokens>] [--mode <orchestrated|parallel>]"
+                );
                 return Ok(());
             }
             let name = args[3].clone();
@@ -2103,8 +2137,11 @@ fn launch_qc(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
             }
 
             let file_path = &args[3];
-            let output_dir = args.get(4).and_then(|s| if s == "--output" { args.get(5) } else { None })
-                .unwrap_or(&"qc_reports".to_string()).clone();
+            let output_dir = args
+                .get(4)
+                .and_then(|s| if s == "--output" { args.get(5) } else { None })
+                .unwrap_or(&"qc_reports".to_string())
+                .clone();
             let verbose = args.contains(&"--verbose".to_string());
             let enable_viz = !args.contains(&"--no-viz".to_string());
 
@@ -2167,7 +2204,10 @@ fn launch_qc(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
             });
         }
         "report" => {
-            let target = args.get(3).unwrap_or(&"current_project".to_string()).clone();
+            let target = args
+                .get(3)
+                .unwrap_or(&"current_project".to_string())
+                .clone();
             println!("📊 Generating QC report for: {}", target);
 
             // Placeholder for comprehensive project reporting
@@ -2222,7 +2262,9 @@ fn launch_worktree(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
         println!("");
         println!("Examples:");
         println!("  codex worktree competition \"Implement user authentication\"");
-        println!("  codex worktree competition \"Fix memory leak\" --variants 3 --agents CodeReviewer,TestGen");
+        println!(
+            "  codex worktree competition \"Fix memory leak\" --variants 3 --agents CodeReviewer,TestGen"
+        );
         println!("  codex worktree list");
         println!("  codex worktree merge worktree_CodeReviewer_123");
         return Ok(());
@@ -2239,12 +2281,27 @@ fn launch_worktree(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
             }
 
             let task = args[3].clone();
-            let variants = args.get(4).and_then(|s| if s == "--variants" { args.get(5) } else { None })
-                .and_then(|s| s.parse().ok()).unwrap_or(2);
-            let agents = args.get(6).and_then(|s| if s == "--agents" { args.get(7) } else { None })
-                .unwrap_or(&"CodeReviewer,TestGen".to_string()).clone();
-            let time_budget = args.get(8).and_then(|s| if s == "--time-budget" { args.get(9) } else { None })
-                .and_then(|s| s.parse().ok()).unwrap_or(30);
+            let variants = args
+                .get(4)
+                .and_then(|s| if s == "--variants" { args.get(5) } else { None })
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(2);
+            let agents = args
+                .get(6)
+                .and_then(|s| if s == "--agents" { args.get(7) } else { None })
+                .unwrap_or(&"CodeReviewer,TestGen".to_string())
+                .clone();
+            let time_budget = args
+                .get(8)
+                .and_then(|s| {
+                    if s == "--time-budget" {
+                        args.get(9)
+                    } else {
+                        None
+                    }
+                })
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(30);
 
             println!("🏁 Starting worktree competition...");
             println!("📋 Task: {}", task);

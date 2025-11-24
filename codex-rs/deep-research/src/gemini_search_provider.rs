@@ -82,16 +82,16 @@ impl GeminiSearchProvider {
         if self.use_grounding {
             // Enable Google Web Search Grounding
             cmd.args([
-                "--model", &self.model,
-                "--grounding", "web",
-                "--format", "json",
-                &enhanced_query
+                "--model",
+                &self.model,
+                "--grounding",
+                "web",
+                "--format",
+                "json",
+                &enhanced_query,
             ]);
         } else {
-            cmd.args([
-                "--model", &self.model,
-                &enhanced_query
-            ]);
+            cmd.args(["--model", &self.model, &enhanced_query]);
         }
 
         let output = cmd.output().await?;
@@ -136,7 +136,10 @@ impl GeminiSearchProvider {
                     if let (Some(title), Some(url), Some(snippet)) = (
                         result.get("title").and_then(|t| t.as_str()),
                         result.get("url").and_then(|u| u.as_str()),
-                        result.get("description").or_else(|| result.get("snippet")).and_then(|s| s.as_str()),
+                        result
+                            .get("description")
+                            .or_else(|| result.get("snippet"))
+                            .and_then(|s| s.as_str()),
                     ) {
                         parsed_results.push(GeminiSearchResult {
                             title: title.to_string(),
@@ -197,7 +200,11 @@ impl GeminiSearchProvider {
                     let url_part = &line[url_start..].trim();
 
                     results.push(GeminiSearchResult {
-                        title: if title_part.is_empty() { "Search Result".to_string() } else { title_part.to_string() },
+                        title: if title_part.is_empty() {
+                            "Search Result".to_string()
+                        } else {
+                            title_part.to_string()
+                        },
                         url: url_part.to_string(),
                         snippet: "Gemini CLI search result with grounding".to_string(),
                     });
@@ -221,13 +228,15 @@ impl GeminiSearchProvider {
 
         Ok(results)
     }
-
 }
 
 #[async_trait::async_trait]
 impl ResearchProvider for GeminiSearchProvider {
     async fn search(&self, query: &str, max_results: u8) -> Result<Vec<Source>> {
-        info!("🔍 Starting Gemini search with Google Web Search Grounding for: {}", query);
+        info!(
+            "🔍 Starting Gemini search with Google Web Search Grounding for: {}",
+            query
+        );
 
         match self.execute_gemini_search_direct(query).await {
             Ok(results) => {

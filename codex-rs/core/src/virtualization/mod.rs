@@ -3,8 +3,8 @@
 //! Provides virtualization layer for running applications in isolated environments
 //! with macOS-style UI/UX, application creation interface, and internet connectivity.
 
-pub mod macos_emulator;
 pub mod app_creator;
+pub mod macos_emulator;
 pub mod network;
 pub mod terminal;
 
@@ -136,8 +136,7 @@ impl Default for VirtualOSManager {
     }
 }
 
-pub use macos_emulator::MacOSEmulator;
 pub use app_creator::AppCreator;
+pub use macos_emulator::MacOSEmulator;
 pub use network::VirtualNetwork;
-pub use terminal::{TerminalSession, TerminalManager, TerminalResult, TerminalCommand};
-
+pub use terminal::{TerminalCommand, TerminalManager, TerminalResult, TerminalSession};

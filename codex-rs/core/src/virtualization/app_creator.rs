@@ -71,14 +71,16 @@ impl AppCreator {
 
     /// Create a new application
     pub async fn create_app(&self, request: AppCreationRequest) -> Result<AppCreationResult> {
-        info!("Creating application: {} ({:?})", request.name, request.template);
+        info!(
+            "Creating application: {} ({:?})",
+            request.name, request.template
+        );
 
         let app_id = uuid::Uuid::new_v4().to_string();
         let project_path = self.workspace_path.join(&request.name);
 
         // Create project directory
-        std::fs::create_dir_all(&project_path)
-            .context("Failed to create project directory")?;
+        std::fs::create_dir_all(&project_path).context("Failed to create project directory")?;
 
         // Generate application code using Codex
         let generated_files = self.generate_code(&request, &project_path).await?;
@@ -289,11 +291,7 @@ path = "src/lib.rs"
     }
 
     /// Build the application
-    async fn build_app(
-        &self,
-        project_path: &PathBuf,
-        _request: &AppCreationRequest,
-    ) -> Result<()> {
+    async fn build_app(&self, project_path: &PathBuf, _request: &AppCreationRequest) -> Result<()> {
         info!("Building application at: {:?}", project_path);
 
         // TODO: Implement actual build process
@@ -304,4 +302,3 @@ path = "src/lib.rs"
         Ok(())
     }
 }
-

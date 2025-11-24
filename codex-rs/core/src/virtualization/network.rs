@@ -108,7 +108,8 @@ impl VirtualNetwork {
             status: ConnectionStatus::Pending,
         };
 
-        self.active_connections.insert(connection_id.clone(), connection);
+        self.active_connections
+            .insert(connection_id.clone(), connection);
         info!("Created network connection: {}", url);
 
         // TODO: Implement actual network request
@@ -149,4 +150,3 @@ impl Default for VirtualNetwork {
         Self::new(NetworkSecurityPolicy::Whitelist)
     }
 }
-

@@ -57,7 +57,10 @@ impl TerminalSession {
     pub async fn execute_command(&mut self, command: Vec<String>) -> Result<TerminalResult> {
         // YOLOモードでも危険なコマンドは完全にブロック
         if command_might_be_dangerous(&command) {
-            warn!("Dangerous command blocked (even in YOLO mode): {:?}", command);
+            warn!(
+                "Dangerous command blocked (even in YOLO mode): {:?}",
+                command
+            );
             let result = TerminalResult {
                 exit_code: 1,
                 stdout: String::new(),
@@ -66,7 +69,9 @@ impl TerminalSession {
                     command
                 ),
                 is_blocked: true,
-                block_reason: Some("Dangerous commands cannot be executed even in YOLO mode".to_string()),
+                block_reason: Some(
+                    "Dangerous commands cannot be executed even in YOLO mode".to_string(),
+                ),
             };
 
             // Save to history
@@ -164,7 +169,9 @@ impl TerminalSession {
         }
 
         // Normalize path
-        self.working_directory = self.working_directory.canonicalize()
+        self.working_directory = self
+            .working_directory
+            .canonicalize()
             .context("Failed to canonicalize path")?;
 
         Ok(())
@@ -191,14 +198,9 @@ impl TerminalSession {
 
         // Common CLI commands
         let common_commands = vec![
-            "codex", "gemini", "claude",
-            "git", "cargo", "rustc", "rustup",
-            "node", "npm", "npx",
-            "python", "python3", "pip",
-            "go", "golang",
-            "docker", "kubectl",
-            "curl", "wget",
-            "ls", "cd", "pwd", "cat", "grep", "find",
+            "codex", "gemini", "claude", "git", "cargo", "rustc", "rustup", "node", "npm", "npx",
+            "python", "python3", "pip", "go", "golang", "docker", "kubectl", "curl", "wget", "ls",
+            "cd", "pwd", "cat", "grep", "find",
         ];
 
         for cmd in common_commands {
@@ -214,19 +216,13 @@ impl TerminalSession {
     async fn command_exists(cmd: &str) -> bool {
         #[cfg(windows)]
         {
-            let output = Command::new("where")
-                .arg(cmd)
-                .output()
-                .ok();
+            let output = Command::new("where").arg(cmd).output().ok();
             output.map(|o| o.status.success()).unwrap_or(false)
         }
 
         #[cfg(not(windows))]
         {
-            let output = Command::new("which")
-                .arg(cmd)
-                .output()
-                .ok();
+            let output = Command::new("which").arg(cmd).output().ok();
             output.map(|o| o.status.success()).unwrap_or(false)
         }
     }
@@ -245,9 +241,18 @@ impl TerminalSession {
     /// Default environment variables
     fn default_environment() -> HashMap<String, String> {
         let mut env = HashMap::new();
-        env.insert("PATH".to_string(), std::env::var("PATH").unwrap_or_default());
-        env.insert("HOME".to_string(), std::env::var("HOME").unwrap_or_default());
-        env.insert("USER".to_string(), std::env::var("USER").unwrap_or_default());
+        env.insert(
+            "PATH".to_string(),
+            std::env::var("PATH").unwrap_or_default(),
+        );
+        env.insert(
+            "HOME".to_string(),
+            std::env::var("HOME").unwrap_or_default(),
+        );
+        env.insert(
+            "USER".to_string(),
+            std::env::var("USER").unwrap_or_default(),
+        );
         env
     }
 }
@@ -302,4 +307,3 @@ impl Default for TerminalManager {
         Self::new()
     }
 }
-

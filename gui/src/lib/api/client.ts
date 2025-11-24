@@ -136,7 +136,7 @@ export class CodexAPIClient {
       });
 
       try {
-        this.protocolClient.send(JSON.stringify(request));
+      this.protocolClient.send(JSON.stringify(request));
       } catch (error) {
         clearTimeout(timeout);
         this.pendingRequests.delete(id);
@@ -214,7 +214,7 @@ export class CodexAPIClient {
       ? { type: 'apiKey', apiKey: credentials.apiKey }
       : { type: 'chatgpt' };
 
-    return await this.sendRequest('account.login', params);
+      return await this.sendRequest('account.login', params);
   }
 
   async logout(): Promise<void> {
@@ -226,7 +226,7 @@ export class CodexAPIClient {
   }
 
   async getAccount(): Promise<any> {
-    return await this.sendRequest('account.read');
+      return await this.sendRequest('account.read');
   }
 
   // Conversations
@@ -236,15 +236,15 @@ export class CodexAPIClient {
       initialMessage: config.initialMessage,
     };
 
-    const result = await this.sendRequest('conversation.create', params);
-    return {
-      id: result.id || `conv-${Date.now()}`,
-      title: result.title || `New Conversation`,
-      createdAt: new Date(result.createdAt || Date.now()),
-      updatedAt: new Date(result.updatedAt || Date.now()),
-      model: config.model,
-      messageCount: 1,
-    };
+      const result = await this.sendRequest('conversation.create', params);
+      return {
+        id: result.id || `conv-${Date.now()}`,
+        title: result.title || `New Conversation`,
+        createdAt: new Date(result.createdAt || Date.now()),
+        updatedAt: new Date(result.updatedAt || Date.now()),
+        model: config.model,
+        messageCount: 1,
+      };
   }
 
   async sendMessage(
@@ -258,19 +258,19 @@ export class CodexAPIClient {
       // Handle attachments if needed
     };
 
-    const result = await this.sendRequest('conversation.sendMessage', params);
-    return {
-      id: result.id || `msg-${Date.now()}`,
-      conversationId,
+      const result = await this.sendRequest('conversation.sendMessage', params);
+      return {
+        id: result.id || `msg-${Date.now()}`,
+        conversationId,
       role: result.role || 'assistant',
-      content: result.content || 'Response from AI',
-      createdAt: new Date(result.createdAt || Date.now()),
-    };
+        content: result.content || 'Response from AI',
+        createdAt: new Date(result.createdAt || Date.now()),
+      };
   }
 
   async listConversations(): Promise<Conversation[]> {
-    const result = await this.sendRequest('conversation.list');
-    return result.conversations || [];
+      const result = await this.sendRequest('conversation.list');
+      return result.conversations || [];
   }
 
   async resumeConversation(path: string): Promise<Conversation> {
@@ -357,37 +357,37 @@ export class CodexAPIClient {
       } else {
         // Generic context mapping
         Object.assign(params, context);
-      }
+    }
 
-    const result = await this.sendRequest('agent.run', params);
+      const result = await this.sendRequest('agent.run', params);
 
-    // Map result to appropriate return type based on agent type
-    if (agentId === 'sec-audit' || agentId === 'audit') {
-      return {
-        id: result.id || `scan-${Date.now()}`,
-        type: 'code',
-        status: result.status || 'completed',
-        findings: result.findings || [],
-        startedAt: new Date(result.startedAt || Date.now()),
-        completedAt: new Date(result.completedAt || Date.now()),
-      } as SecurityScan;
-    } else if (agentId === 'researcher' || agentId === 'research') {
-      return {
-        id: result.id || `research-${Date.now()}`,
-        query: params.query,
-        status: result.status || 'completed',
-        sources: result.sources || [],
-        startedAt: new Date(result.startedAt || Date.now()),
-        completedAt: new Date(result.completedAt || Date.now()),
-      } as ResearchResult;
-    } else {
-      // Generic result for other agent types
-      return {
-        status: result.status || 'completed',
-        output: result.output || '',
-        error: result.error || '',
-        exitCode: result.exitCode || 0,
-        duration: result.duration || 0,
+      // Map result to appropriate return type based on agent type
+      if (agentId === 'sec-audit' || agentId === 'audit') {
+        return {
+          id: result.id || `scan-${Date.now()}`,
+          type: 'code',
+          status: result.status || 'completed',
+          findings: result.findings || [],
+          startedAt: new Date(result.startedAt || Date.now()),
+          completedAt: new Date(result.completedAt || Date.now()),
+        } as SecurityScan;
+      } else if (agentId === 'researcher' || agentId === 'research') {
+        return {
+          id: result.id || `research-${Date.now()}`,
+          query: params.query,
+          status: result.status || 'completed',
+          sources: result.sources || [],
+          startedAt: new Date(result.startedAt || Date.now()),
+          completedAt: new Date(result.completedAt || Date.now()),
+        } as ResearchResult;
+      } else {
+        // Generic result for other agent types
+        return {
+          status: result.status || 'completed',
+          output: result.output || '',
+          error: result.error || '',
+          exitCode: result.exitCode || 0,
+          duration: result.duration || 0,
       };
     }
   }

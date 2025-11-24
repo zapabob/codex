@@ -745,7 +745,7 @@ pub struct ProjectConfig {
 impl ProjectConfig {
     pub fn is_trusted(&self) -> bool {
         matches!(self.trust_level, Some(TrustLevel::Trusted))
-    }
+        }
 
     pub fn is_untrusted(&self) -> bool {
         matches!(self.trust_level, Some(TrustLevel::Untrusted))

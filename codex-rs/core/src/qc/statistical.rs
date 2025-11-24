@@ -6,8 +6,8 @@
 //! - Function length distribution
 //! - Import dependency analysis
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Statistical metrics for code analysis
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,19 +41,21 @@ impl StatisticalAnalyzer {
         let lines: Vec<&str> = source.lines().collect();
         let total_lines = lines.len();
 
-        let code_lines = lines.iter()
+        let code_lines = lines
+            .iter()
             .filter(|line| {
                 let trimmed = line.trim();
-                !trimmed.is_empty() &&
-                !trimmed.starts_with("//") &&
-                !trimmed.starts_with("/*") &&
-                !trimmed.starts_with("*") &&
-                !trimmed.starts_with("///")
+                !trimmed.is_empty()
+                    && !trimmed.starts_with("//")
+                    && !trimmed.starts_with("/*")
+                    && !trimmed.starts_with("*")
+                    && !trimmed.starts_with("///")
             })
             .count();
 
         let function_count = source.matches("fn ").count() + source.matches("pub fn ").count();
-        let struct_count = source.matches("struct ").count() + source.matches("pub struct ").count();
+        let struct_count =
+            source.matches("struct ").count() + source.matches("pub struct ").count();
         let import_count = source.matches("use ").count();
 
         // Calculate function lengths (simplified)
@@ -63,12 +65,10 @@ impl StatisticalAnalyzer {
         for func in functions.iter().skip(1) {
             if let Some(end_pos) = func.find('{') {
                 let func_body = &func[end_pos..];
-                let brace_count = func_body.chars().fold(0, |count, c| {
-                    match c {
-                        '{' => count + 1,
-                        '}' => count - 1,
-                        _ => count,
-                    }
+                let brace_count = func_body.chars().fold(0, |count, c| match c {
+                    '{' => count + 1,
+                    '}' => count - 1,
+                    _ => count,
                 });
                 if brace_count > 0 {
                     function_lengths.push(func_body.lines().count());
@@ -87,11 +87,11 @@ impl StatisticalAnalyzer {
         // Simplified complexity analysis (count of control structures)
         let mut complexity_distribution = HashMap::new();
         for func in functions.iter().skip(1) {
-            let complexity = func.matches("if ").count() +
-                           func.matches("while ").count() +
-                           func.matches("for ").count() +
-                           func.matches("match ").count() +
-                           1; // base complexity
+            let complexity = func.matches("if ").count()
+                + func.matches("while ").count()
+                + func.matches("for ").count()
+                + func.matches("match ").count()
+                + 1; // base complexity
             *complexity_distribution.entry(complexity as u8).or_insert(0) += 1;
         }
 

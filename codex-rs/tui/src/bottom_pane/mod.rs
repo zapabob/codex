@@ -8,6 +8,7 @@ use crate::render::Insets;
 use crate::render::RectExt;
 use crate::render::renderable::Renderable;
 use crate::render::renderable::Renderable as _;
+use crate::render::renderable::{FlexRenderable, RenderableItem};
 use crate::tui::FrameRequester;
 use bottom_pane_view::BottomPaneView;
 use codex_file_search::FileMatch;
@@ -18,10 +19,9 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::WidgetRef;
-use crate::render::renderable::{FlexRenderable, RenderableItem};
+use std::collections::VecDeque;
 use std::time::Duration;
 use std::time::Instant;
-use std::collections::VecDeque;
 
 mod approval_overlay;
 pub(crate) use approval_overlay::ApprovalOverlay;
@@ -72,7 +72,8 @@ impl GpuStatsWidget {
         if self.history.len() == self.max_points {
             self.history.pop_front();
         }
-        self.history.push_back(snapshot.utilization.clamp(0.0, 100.0));
+        self.history
+            .push_back(snapshot.utilization.clamp(0.0, 100.0));
         self.last_updated = snapshot.timestamp;
         self.latest = Some(snapshot);
     }
@@ -354,7 +355,11 @@ impl BottomPane {
             .map_or(0, |status| status.desired_height(area.width))
             .min(area.height.saturating_sub(1));
         let has_status_content = gpu_height > 0 || status_height > 0;
-        let spacer_height = if queue_height > 0 && has_status_content { 1 } else { 0 };
+        let spacer_height = if queue_height > 0 && has_status_content {
+            1
+        } else {
+            0
+        };
         let combined_height = gpu_height
             .saturating_add(status_height)
             .saturating_add(spacer_height)
@@ -788,7 +793,11 @@ impl WidgetRef for &BottomPane {
                 .map(|status| status.desired_height(top_area.width).min(top_area.height))
                 .unwrap_or(0);
             let has_status_content = gpu_height > 0 || status_height > 0;
-            let spacer_height = if queue_height > 0 && has_status_content { 1 } else { 0 };
+            let spacer_height = if queue_height > 0 && has_status_content {
+                1
+            } else {
+                0
+            };
 
             let mut cursor_y = top_area.y;
             let mut remaining = top_area.height;
@@ -868,8 +877,8 @@ mod tests {
     use insta::assert_snapshot;
     use ratatui::buffer::Buffer;
     use ratatui::layout::Rect;
-    use tokio::sync::mpsc::unbounded_channel;
     use std::time::Instant;
+    use tokio::sync::mpsc::unbounded_channel;
 
     fn snapshot_buffer(buf: &Buffer) -> String {
         let mut lines = Vec::new();

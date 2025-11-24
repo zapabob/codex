@@ -149,20 +149,44 @@ async function main() {
     }
     
     if (!foundLocal) {
-      // Download from GitHub Releases
-      const binaryName = `codex-${platformInfo.os}-${platformInfo.archName}${platformInfo.ext}`;
-      const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${binaryName}`;
+      // Try to build from source if CODEX_BUILD_ON_INSTALL is set
+      if (process.env.CODEX_BUILD_ON_INSTALL === 'true' || process.argv.includes('--build-on-install')) {
+        console.log('🔨 Building binary from source...');
+        try {
+          const { execSync } = require('child_process');
+          execSync('npm run build:binary:fast', { 
+            stdio: 'inherit',
+            cwd: path.join(__dirname, '..')
+          });
+          
+          // Check if binary was built
+          const builtBinaryPath = path.join(__dirname, '..', 'codex-rs', 'target', 'release', 'codex' + platformInfo.ext);
+          if (fs.existsSync(builtBinaryPath)) {
+            console.log(`📋 Found built binary: ${builtBinaryPath}`);
+            fs.copyFileSync(builtBinaryPath, binaryPath);
+            foundLocal = true;
+          }
+        } catch (err) {
+          console.warn('⚠️  Build failed, falling back to download:', err.message);
+        }
+      }
       
-      console.log(`⬇️  Downloading: ${downloadUrl}`);
-      
-      const tempPath = path.join(binDir, 'codex.tmp');
-      
-      // Download binary
-      await downloadFile(downloadUrl, tempPath);
-      console.log('✅ Download complete');
-      
-      // Move to final location
-      fs.renameSync(tempPath, binaryPath);
+      if (!foundLocal) {
+        // Download from GitHub Releases
+        const binaryName = `codex-${platformInfo.os}-${platformInfo.archName}${platformInfo.ext}`;
+        const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${binaryName}`;
+        
+        console.log(`⬇️  Downloading: ${downloadUrl}`);
+        
+        const tempPath = path.join(binDir, 'codex.tmp');
+        
+        // Download binary
+        await downloadFile(downloadUrl, tempPath);
+        console.log('✅ Download complete');
+        
+        // Move to final location
+        fs.renameSync(tempPath, binaryPath);
+      }
     }
     
     // Make executable (Unix)

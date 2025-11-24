@@ -3,7 +3,7 @@
 //! Provides macOS-style UI/UX including Dock, menu bar, Spotlight-style search,
 //! Finder-style file system, and application launcher.
 
-use super::{VirtualOSLayer, VirtualOSType, VirtualOSConfig};
+use super::{VirtualOSConfig, VirtualOSLayer, VirtualOSType};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -102,34 +102,32 @@ impl VirtualOSLayer for MacOSEmulator {
         ];
 
         // Initialize menu bar
-        self.menu_bar_items = vec![
-            MenuBarItem {
-                id: "apple".to_string(),
-                label: "".to_string(), // Apple menu (logo)
-                menu: Menu {
-                    items: vec![
-                        MenuItem {
-                            id: "about".to_string(),
-                            label: "About This Mac".to_string(),
-                            shortcut: None,
-                            action: MenuAction::About,
-                        },
-                        MenuItem {
-                            id: "preferences".to_string(),
-                            label: "System Preferences...".to_string(),
-                            shortcut: Some("Cmd+,".to_string()),
-                            action: MenuAction::Preferences,
-                        },
-                        MenuItem {
-                            id: "quit".to_string(),
-                            label: "Quit Codex".to_string(),
-                            shortcut: Some("Cmd+Q".to_string()),
-                            action: MenuAction::Quit,
-                        },
-                    ],
-                },
+        self.menu_bar_items = vec![MenuBarItem {
+            id: "apple".to_string(),
+            label: "".to_string(), // Apple menu (logo)
+            menu: Menu {
+                items: vec![
+                    MenuItem {
+                        id: "about".to_string(),
+                        label: "About This Mac".to_string(),
+                        shortcut: None,
+                        action: MenuAction::About,
+                    },
+                    MenuItem {
+                        id: "preferences".to_string(),
+                        label: "System Preferences...".to_string(),
+                        shortcut: Some("Cmd+,".to_string()),
+                        action: MenuAction::Preferences,
+                    },
+                    MenuItem {
+                        id: "quit".to_string(),
+                        label: "Quit Codex".to_string(),
+                        shortcut: Some("Cmd+Q".to_string()),
+                        action: MenuAction::Quit,
+                    },
+                ],
             },
-        ];
+        }];
 
         self.is_running = true;
         info!("macOS emulator initialized");
@@ -186,7 +184,9 @@ impl MacOSEmulator {
 
     /// Launch an application
     pub fn launch_app(&mut self, app_id: &str) -> Result<()> {
-        let app = self.dock_apps.iter_mut()
+        let app = self
+            .dock_apps
+            .iter_mut()
             .find(|a| a.id == app_id)
             .context("Application not found")?;
 
@@ -197,7 +197,9 @@ impl MacOSEmulator {
 
     /// Quit an application
     pub fn quit_app(&mut self, app_id: &str) -> Result<()> {
-        let app = self.dock_apps.iter_mut()
+        let app = self
+            .dock_apps
+            .iter_mut()
             .find(|a| a.id == app_id)
             .context("Application not found")?;
 
@@ -232,7 +234,9 @@ impl MacOSEmulator {
 
     /// Minimize a window
     pub fn minimize_window(&mut self, window_id: &str) -> Result<()> {
-        let window = self.windows.iter_mut()
+        let window = self
+            .windows
+            .iter_mut()
             .find(|w| w.id == window_id)
             .context("Window not found")?;
         window.is_minimized = true;
@@ -242,7 +246,9 @@ impl MacOSEmulator {
 
     /// Maximize a window
     pub fn maximize_window(&mut self, window_id: &str) -> Result<()> {
-        let window = self.windows.iter_mut()
+        let window = self
+            .windows
+            .iter_mut()
             .find(|w| w.id == window_id)
             .context("Window not found")?;
         window.is_maximized = !window.is_maximized;
@@ -264,4 +270,3 @@ impl MacOSEmulator {
         &self.menu_bar_items
     }
 }
-

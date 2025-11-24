@@ -9,16 +9,16 @@ windows_modules!(acl, allow, audit, cap, env, logging, policy, token, winutil);
 #[cfg(target_os = "windows")]
 pub use audit::apply_world_writable_scan_and_denies;
 #[cfg(target_os = "windows")]
-pub use windows_impl::run_windows_sandbox_capture;
-#[cfg(target_os = "windows")]
 pub use windows_impl::CaptureResult;
+#[cfg(target_os = "windows")]
+pub use windows_impl::run_windows_sandbox_capture;
 
+#[cfg(not(target_os = "windows"))]
+pub use stub::CaptureResult;
 #[cfg(not(target_os = "windows"))]
 pub use stub::apply_world_writable_scan_and_denies;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_capture;
-#[cfg(not(target_os = "windows"))]
-pub use stub::CaptureResult;
 
 #[cfg(target_os = "windows")]
 mod windows_impl {
@@ -35,8 +35,8 @@ mod windows_impl {
     use super::logging::log_failure;
     use super::logging::log_start;
     use super::logging::log_success;
-    use super::policy::parse_policy;
     use super::policy::SandboxPolicy;
+    use super::policy::parse_policy;
     use super::token::convert_string_sid_to_sid;
     use super::winutil::format_last_error;
     use super::winutil::to_wide;
@@ -50,18 +50,18 @@ mod windows_impl {
     use std::ptr;
     use windows_sys::Win32::Foundation::CloseHandle;
     use windows_sys::Win32::Foundation::GetLastError;
-    use windows_sys::Win32::Foundation::SetHandleInformation;
     use windows_sys::Win32::Foundation::HANDLE;
     use windows_sys::Win32::Foundation::HANDLE_FLAG_INHERIT;
+    use windows_sys::Win32::Foundation::SetHandleInformation;
     use windows_sys::Win32::System::Pipes::CreatePipe;
+    use windows_sys::Win32::System::Threading::CREATE_UNICODE_ENVIRONMENT;
     use windows_sys::Win32::System::Threading::CreateProcessAsUserW;
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
-    use windows_sys::Win32::System::Threading::WaitForSingleObject;
-    use windows_sys::Win32::System::Threading::CREATE_UNICODE_ENVIRONMENT;
     use windows_sys::Win32::System::Threading::INFINITE;
     use windows_sys::Win32::System::Threading::PROCESS_INFORMATION;
     use windows_sys::Win32::System::Threading::STARTF_USESTDHANDLES;
     use windows_sys::Win32::System::Threading::STARTUPINFOW;
+    use windows_sys::Win32::System::Threading::WaitForSingleObject;
 
     type PipeHandles = ((HANDLE, HANDLE), (HANDLE, HANDLE), (HANDLE, HANDLE));
 
@@ -228,14 +228,15 @@ mod windows_impl {
 
         unsafe {
             if matches!(policy.0, SandboxMode::WorkspaceWrite)
-                && let Ok(base) = super::token::get_current_token_for_restriction() {
-                    if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
-                        let mut tmp = bytes.clone();
-                        let psid2 = tmp.as_mut_ptr() as *mut c_void;
-                        allow_null_device(psid2);
-                    }
-                    windows_sys::Win32::Foundation::CloseHandle(base);
+                && let Ok(base) = super::token::get_current_token_for_restriction()
+            {
+                if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
+                    let mut tmp = bytes.clone();
+                    let psid2 = tmp.as_mut_ptr() as *mut c_void;
+                    allow_null_device(psid2);
                 }
+                windows_sys::Win32::Foundation::CloseHandle(base);
+            }
         }
 
         let persist_aces = is_workspace_write;
@@ -244,15 +245,16 @@ mod windows_impl {
         unsafe {
             for p in &allow {
                 if let Ok(added) = add_allow_ace(p, psid_to_use)
-                    && added {
-                        if persist_aces {
-                            if p.is_dir() {
-                                // best-effort seeding omitted intentionally
-                            }
-                        } else {
-                            guards.push((p.clone(), psid_to_use));
+                    && added
+                {
+                    if persist_aces {
+                        if p.is_dir() {
+                            // best-effort seeding omitted intentionally
                         }
+                    } else {
+                        guards.push((p.clone(), psid_to_use));
                     }
+                }
             }
             allow_null_device(psid_to_use);
         }
@@ -456,8 +458,8 @@ mod windows_impl {
 
 #[cfg(not(target_os = "windows"))]
 mod stub {
-    use anyhow::bail;
     use anyhow::Result;
+    use anyhow::bail;
     use codex_protocol::protocol::SandboxPolicy;
     use std::collections::HashMap;
     use std::path::Path;

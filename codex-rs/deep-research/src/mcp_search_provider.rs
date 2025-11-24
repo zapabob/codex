@@ -133,7 +133,6 @@ impl McpSearchProvider {
         }
     }
 
-
     /// Execute search with automatic fallback and caching.
     async fn search_with_fallback(
         &self,
@@ -237,7 +236,10 @@ impl McpSearchProvider {
 
     /// Google Custom Search API (using Gemini Grounding as primary)
     async fn search_google(&self, query: &str, max_results: usize) -> Result<Vec<SearchResult>> {
-        info!("🔍 Google Search: {} (redirecting to Gemini Grounding)", query);
+        info!(
+            "🔍 Google Search: {} (redirecting to Gemini Grounding)",
+            query
+        );
 
         // For Google search, use Gemini with grounding instead
         // This provides better quality results than direct API
@@ -266,10 +268,13 @@ impl McpSearchProvider {
         // Execute Gemini CLI with grounding
         let output = Command::new("gemini")
             .args([
-                "--model", "gemini-2.5-flash",
-                "--grounding", "web",
-                "--format", "json",
-                &enhanced_query
+                "--model",
+                "gemini-2.5-flash",
+                "--grounding",
+                "web",
+                "--format",
+                "json",
+                &enhanced_query,
             ])
             .output()
             .await?;
@@ -284,7 +289,11 @@ impl McpSearchProvider {
     }
 
     /// Parse Gemini CLI response
-    fn parse_gemini_cli_response(&self, response: &str, max_results: usize) -> Result<Vec<SearchResult>> {
+    fn parse_gemini_cli_response(
+        &self,
+        response: &str,
+        max_results: usize,
+    ) -> Result<Vec<SearchResult>> {
         // Try to parse as JSON first
         if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(results) = json_value.get("searchResults").and_then(|r| r.as_array()) {
@@ -293,15 +302,28 @@ impl McpSearchProvider {
                     if let (Some(title), Some(url), Some(snippet)) = (
                         result.get("title").and_then(|t| t.as_str()),
                         result.get("url").and_then(|u| u.as_str()),
-                        result.get("snippet").or_else(|| result.get("description")).and_then(|s| s.as_str()),
+                        result
+                            .get("snippet")
+                            .or_else(|| result.get("description"))
+                            .and_then(|s| s.as_str()),
                     ) {
                         parsed_results.push(SearchResult {
                             title: title.to_string(),
                             url: url.to_string(),
                             snippet: snippet.to_string(),
-                            relevance_score: result.get("relevance_score").and_then(|s| s.as_f64()).unwrap_or(0.8),
-                            published_date: result.get("published_date").and_then(|d| d.as_str()).map(|s| s.to_string()),
-                            domain: result.get("domain").and_then(|d| d.as_str()).unwrap_or("unknown").to_string(),
+                            relevance_score: result
+                                .get("relevance_score")
+                                .and_then(|s| s.as_f64())
+                                .unwrap_or(0.8),
+                            published_date: result
+                                .get("published_date")
+                                .and_then(|d| d.as_str())
+                                .map(|s| s.to_string()),
+                            domain: result
+                                .get("domain")
+                                .and_then(|d| d.as_str())
+                                .unwrap_or("unknown")
+                                .to_string(),
                         });
                     }
                 }
@@ -329,7 +351,8 @@ impl McpSearchProvider {
                 };
 
                 let title = format!("Search Result from Gemini Grounding");
-                let snippet = "Gemini CLI search result with Google Web Search Grounding".to_string();
+                let snippet =
+                    "Gemini CLI search result with Google Web Search Grounding".to_string();
 
                 results.push(SearchResult {
                     title,
@@ -337,7 +360,12 @@ impl McpSearchProvider {
                     snippet,
                     relevance_score: 0.8,
                     published_date: None,
-                    domain: url.split("://").nth(1).and_then(|s| s.split('/').next()).unwrap_or("unknown").to_string(),
+                    domain: url
+                        .split("://")
+                        .nth(1)
+                        .and_then(|s| s.split('/').next())
+                        .unwrap_or("unknown")
+                        .to_string(),
                 });
             }
         }
@@ -473,8 +501,6 @@ impl McpSearchProvider {
         let expired_entries = cache.values().filter(|entry| entry.is_expired()).count();
         (total_entries, expired_entries)
     }
-
-
 
     /// Fetch content from URL
     async fn fetch_content(&self, url: &str) -> Result<String> {

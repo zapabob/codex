@@ -6,15 +6,15 @@
 //! - Mathematical optimization for resource usage
 //! - Code quality visualization and reporting
 
-pub mod statistical;
-pub mod quantum;
-pub mod mathematical;
-pub mod visualization;
 pub mod agent;
+pub mod mathematical;
+pub mod quantum;
+pub mod statistical;
+pub mod visualization;
 
+pub use agent::OptimizationResult;
 pub use agent::QcAgent;
 pub use agent::QcConfig;
-pub use agent::QcReport;
 pub use agent::QcMetrics;
-pub use agent::OptimizationResult;
+pub use agent::QcReport;
 pub use agent::QualityScore;

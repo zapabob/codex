@@ -53,7 +53,9 @@ impl App {
     fn handle_main_menu_key(&mut self, key: KeyEvent) {
         match key.code {
             crossterm::event::KeyCode::Char('1') => {
-                self.state = AppState::Conversation { conversation_id: None };
+                self.state = AppState::Conversation {
+                    conversation_id: None,
+                };
             }
             crossterm::event::KeyCode::Char('2') => {
                 self.state = AppState::PlanManager;

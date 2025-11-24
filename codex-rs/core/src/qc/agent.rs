@@ -198,24 +198,38 @@ impl QcAgent {
             }
 
             let suggestions = self.quantum_optimizer.analyze_optimizations(source);
-            let filtered_suggestions: Vec<_> = suggestions.into_iter()
+            let filtered_suggestions: Vec<_> = suggestions
+                .into_iter()
                 .filter(|s| s.confidence >= self.config.min_confidence)
                 .collect();
 
-            let total_improvement = filtered_suggestions.iter()
+            let total_improvement = filtered_suggestions
+                .iter()
                 .map(|s| s.improvement_percentage)
-                .sum::<f64>() / filtered_suggestions.len() as f64;
+                .sum::<f64>()
+                / filtered_suggestions.len() as f64;
 
             // Generate optimization report
-            let opt_report = self.quantum_optimizer.generate_report(&filtered_suggestions);
-            let opt_path = format!("{}/{}_optimizations.txt", self.config.output_dir, target_name);
+            let opt_report = self
+                .quantum_optimizer
+                .generate_report(&filtered_suggestions);
+            let opt_path = format!(
+                "{}/{}_optimizations.txt",
+                self.config.output_dir, target_name
+            );
             self.save_report(&opt_path, &opt_report)?;
             outputs.push(opt_path);
 
             // Generate visualization if enabled
             if self.config.enable_visualization {
-                let chart_path = format!("{}/{}_optimizations.png", self.config.output_dir, target_name);
-                if let Err(e) = self.visualizer.generate_optimization_chart(&filtered_suggestions, &chart_path) {
+                let chart_path = format!(
+                    "{}/{}_optimizations.png",
+                    self.config.output_dir, target_name
+                );
+                if let Err(e) = self
+                    .visualizer
+                    .generate_optimization_chart(&filtered_suggestions, &chart_path)
+                {
                     eprintln!("Warning: Failed to generate optimization chart: {}", e);
                 } else {
                     outputs.push(chart_path);
@@ -252,7 +266,9 @@ impl QcAgent {
                 time_budget_sec: 1800,
             };
 
-            let allocation = self.mathematical_optimizer.optimize_allocation(&constraints, &workload);
+            let allocation = self
+                .mathematical_optimizer
+                .optimize_allocation(&constraints, &workload);
 
             // Create mock system metrics
             let metrics = super::mathematical::SystemMetrics {
@@ -265,15 +281,21 @@ impl QcAgent {
             let bottlenecks = self.mathematical_optimizer.identify_bottlenecks(&metrics);
 
             // Generate resource report
-            let resource_report = self.mathematical_optimizer.generate_report(&allocation, &bottlenecks);
+            let resource_report = self
+                .mathematical_optimizer
+                .generate_report(&allocation, &bottlenecks);
             let resource_path = format!("{}/{}_resources.txt", self.config.output_dir, target_name);
             self.save_report(&resource_path, &resource_report)?;
             outputs.push(resource_path);
 
             // Generate visualization if enabled
             if self.config.enable_visualization {
-                let chart_path = format!("{}/{}_resources.png", self.config.output_dir, target_name);
-                if let Err(e) = self.visualizer.generate_resource_chart(&allocation, &chart_path) {
+                let chart_path =
+                    format!("{}/{}_resources.png", self.config.output_dir, target_name);
+                if let Err(e) = self
+                    .visualizer
+                    .generate_resource_chart(&allocation, &chart_path)
+                {
                     eprintln!("Warning: Failed to generate resource chart: {}", e);
                 } else {
                     outputs.push(chart_path);
@@ -290,10 +312,18 @@ impl QcAgent {
         };
 
         // Calculate overall quality scores
-        let scores = self.calculate_quality_scores(&statistical_metrics, &quantum_metrics, &mathematical_metrics);
+        let scores = self.calculate_quality_scores(
+            &statistical_metrics,
+            &quantum_metrics,
+            &mathematical_metrics,
+        );
 
         // Generate recommendations
-        recommendations.extend(self.generate_recommendations(&statistical_metrics, &quantum_metrics, &mathematical_metrics));
+        recommendations.extend(self.generate_recommendations(
+            &statistical_metrics,
+            &quantum_metrics,
+            &mathematical_metrics,
+        ));
 
         // Create comprehensive report
         let has_statistical = statistical_metrics.is_some();
@@ -326,12 +356,13 @@ impl QcAgent {
         };
 
         // Generate dashboard if visualization is enabled
-          if self.config.enable_visualization && has_statistical {
-            let dashboard_path = format!("{}/{}_dashboard.png", self.config.output_dir, target_name);
-            if let Err(e) = self.visualizer.generate_quality_dashboard(
-                &metrics.statistical.code_stats,
-                &dashboard_path
-            ) {
+        if self.config.enable_visualization && has_statistical {
+            let dashboard_path =
+                format!("{}/{}_dashboard.png", self.config.output_dir, target_name);
+            if let Err(e) = self
+                .visualizer
+                .generate_quality_dashboard(&metrics.statistical.code_stats, &dashboard_path)
+            {
                 eprintln!("Warning: Failed to generate quality dashboard: {}", e);
             } else {
                 outputs.push(dashboard_path);
@@ -349,14 +380,20 @@ impl QcAgent {
 
         if self.config.verbose {
             println!("✅ QC analysis completed for: {}", target_name);
-            println!("📊 Overall quality score: {:.2}/1.0", scores.clone().overall);
+            println!(
+                "📊 Overall quality score: {:.2}/1.0",
+                scores.clone().overall
+            );
         }
 
         Ok(report)
     }
 
     /// Calculate quality indicators from statistical data
-    fn calculate_quality_indicators(&self, stats: &super::statistical::CodeStatistics) -> HashMap<String, f64> {
+    fn calculate_quality_indicators(
+        &self,
+        stats: &super::statistical::CodeStatistics,
+    ) -> HashMap<String, f64> {
         let mut indicators = HashMap::new();
 
         // Code density (higher is better, up to 0.8)
@@ -376,9 +413,12 @@ impl QcAgent {
         indicators.insert("function_size_score".to_string(), function_size_score);
 
         // Complexity score (lower complexity is better)
-        let avg_complexity = stats.complexity_distribution.iter()
+        let avg_complexity = stats
+            .complexity_distribution
+            .iter()
             .map(|(complexity, count)| *complexity as f64 * *count as f64)
-            .sum::<f64>() / stats.complexity_distribution.values().sum::<usize>() as f64;
+            .sum::<f64>()
+            / stats.complexity_distribution.values().sum::<usize>() as f64;
 
         let complexity_score = if avg_complexity.is_finite() {
             (10.0 / avg_complexity.max(1.0)).min(1.0)
@@ -399,10 +439,11 @@ impl QcAgent {
     }
 
     /// Calculate overall quality scores
-    fn calculate_quality_scores(&self,
+    fn calculate_quality_scores(
+        &self,
         statistical: &Option<StatisticalMetrics>,
         quantum: &Option<QuantumMetrics>,
-        mathematical: &Option<MathematicalMetrics>
+        mathematical: &Option<MathematicalMetrics>,
     ) -> QualityScore {
         let mut readability = 0.5;
         let mut maintainability = 0.5;
@@ -411,14 +452,24 @@ impl QcAgent {
 
         if let Some(stats) = statistical {
             // Readability based on code structure
-            readability = stats.quality_indicators.get("code_density")
-                .unwrap_or(&0.5) * 0.7 + stats.quality_indicators.get("function_size_score")
-                .unwrap_or(&0.5) * 0.3;
+            readability = stats.quality_indicators.get("code_density").unwrap_or(&0.5) * 0.7
+                + stats
+                    .quality_indicators
+                    .get("function_size_score")
+                    .unwrap_or(&0.5)
+                    * 0.3;
 
             // Maintainability based on complexity and structure
-            maintainability = stats.quality_indicators.get("complexity_score")
-                .unwrap_or(&0.5) * 0.6 + stats.quality_indicators.get("import_efficiency")
-                .unwrap_or(&0.5) * 0.4;
+            maintainability = stats
+                .quality_indicators
+                .get("complexity_score")
+                .unwrap_or(&0.5)
+                * 0.6
+                + stats
+                    .quality_indicators
+                    .get("import_efficiency")
+                    .unwrap_or(&0.5)
+                    * 0.4;
         }
 
         if let Some(quantum) = quantum {
@@ -446,10 +497,11 @@ impl QcAgent {
     }
 
     /// Generate recommendations based on analysis
-    fn generate_recommendations(&self,
+    fn generate_recommendations(
+        &self,
         statistical: &Option<StatisticalMetrics>,
         quantum: &Option<QuantumMetrics>,
-        mathematical: &Option<MathematicalMetrics>
+        mathematical: &Option<MathematicalMetrics>,
     ) -> Vec<String> {
         let mut recommendations = Vec::new();
 
@@ -470,21 +522,26 @@ impl QcAgent {
         if let Some(quantum) = quantum {
             for suggestion in &quantum.suggestions {
                 if suggestion.confidence > 0.8 {
-                    recommendations.push(format!("High-confidence optimization: {} (Expected improvement: {:.1}%)",
-                        suggestion.description, suggestion.improvement_percentage));
+                    recommendations.push(format!(
+                        "High-confidence optimization: {} (Expected improvement: {:.1}%)",
+                        suggestion.description, suggestion.improvement_percentage
+                    ));
                 }
             }
         }
 
         if let Some(mathematical) = mathematical {
             for bottleneck in &mathematical.bottlenecks {
-                recommendations.push(format!("Performance bottleneck: {} - {}",
-                    bottleneck.description, bottleneck.recommendation));
+                recommendations.push(format!(
+                    "Performance bottleneck: {} - {}",
+                    bottleneck.description, bottleneck.recommendation
+                ));
             }
         }
 
         if recommendations.is_empty() {
-            recommendations.push("Code quality analysis completed. No major issues found.".to_string());
+            recommendations
+                .push("Code quality analysis completed. No major issues found.".to_string());
         }
 
         recommendations
@@ -494,7 +551,8 @@ impl QcAgent {
     fn save_report(&self, path: &str, content: &str) -> Result<(), String> {
         // Create output directory if it doesn't exist
         if let Some(parent) = Path::new(path).parent() {
-            std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create directory: {}", e))?;
         }
 
         std::fs::write(path, content).map_err(|e| format!("Failed to write report: {}", e))?;

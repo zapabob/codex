@@ -24,8 +24,12 @@
   "scripts": {
     "postinstall": "node scripts/install-binary.js",
     "prepublishOnly": "npm run build:binary",
-    "build:binary": "cd codex-rs && cargo build --release -p codex-cli && copy target\\release\\codex.exe ..\\bin\\codex.exe 2>nul || cp target/release/codex ../bin/codex",
+    "build:binary": "node scripts/build-binary.js",
+    "build:binary:fast": "node scripts/build-binary.js --skip-clean",
     "build": "npm run build:binary",
+    "build:fast": "npm run build:binary:fast",
+    "build-and-install": "node scripts/build-and-install.js",
+    "build-and-install:fast": "node scripts/build-and-install.js --skip-clean",
     "test": "echo \"Error: no test specified\" && exit 1",
     "implementation-log": "node scripts/create-implementation-log.js"
   },
@@ -50,15 +54,17 @@
   ],
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "npm": ">=9.0.0",
+    "pnpm": ">=9.0.0"
   },
+  "packageManager": "pnpm@9.0.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "files": [
     "bin/",
-    "scripts/install-binary.js",
+    "scripts/",
     "README.md",
     "LICENSE",
     "package.json"

@@ -1,11 +1,11 @@
 //! User interface rendering
 
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Gauge, List, ListItem, Paragraph, Wrap},
-    Frame,
 };
 
 use crate::app::{App, AppState};
@@ -58,8 +58,16 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 fn draw_title(f: &mut Frame, area: Rect) {
     let title = Paragraph::new(Line::from(vec![
         Span::styled("🧠 ", Style::default().fg(Color::Cyan)),
-        Span::styled("Codex TUI", Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-        Span::styled(" - AI-Powered Development Assistant", Style::default().fg(Color::Gray)),
+        Span::styled(
+            "Codex TUI",
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            " - AI-Powered Development Assistant",
+            Style::default().fg(Color::Gray),
+        ),
     ]))
     .block(Block::default().borders(Borders::ALL).title("Codex"))
     .wrap(Wrap { trim: true });
@@ -79,7 +87,11 @@ fn draw_main_menu(f: &mut Frame, area: Rect, app: &App) {
 
     let list = List::new(items)
         .block(Block::default().borders(Borders::ALL).title("Main Menu"))
-        .highlight_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD));
+        .highlight_style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        );
 
     f.render_widget(list, area);
 }
@@ -137,7 +149,11 @@ fn draw_quality_control(f: &mut Frame, area: Rect, app: &App) {
     ];
 
     let paragraph = Paragraph::new(text)
-        .block(Block::default().borders(Borders::ALL).title("Quality Control"))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Quality Control"),
+        )
         .wrap(Wrap { trim: true });
 
     f.render_widget(paragraph, area);
