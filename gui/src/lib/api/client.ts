@@ -879,6 +879,74 @@ export class CodexAPIClient {
     return this.sendRequest('malware.getStats', {});
   }
 
+  // Virtual OS Terminal Methods
+  async createTerminalSession(params: {
+    workingDirectory?: string;
+  }): Promise<{
+    sessionId: string;
+    workingDirectory: string;
+  }> {
+    return this.sendRequest('virtualos.terminal.createSession', {
+      workingDirectory: params.workingDirectory || '.',
+    });
+  }
+
+  async executeTerminalCommand(
+    sessionId: string,
+    command: string[]
+  ): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    isBlocked: boolean;
+    blockReason?: string;
+  }> {
+    return this.sendRequest('virtualos.terminal.execute', {
+      sessionId,
+      command,
+    });
+  }
+
+  async listTerminalCommands(sessionId: string): Promise<{
+    commands: string[];
+  }> {
+    return this.sendRequest('virtualos.terminal.listCommands', {
+      sessionId,
+    });
+  }
+
+  async getTerminalHistory(sessionId: string): Promise<{
+    history: Array<{
+      command: string[];
+      workingDirectory: string;
+      timestamp: string;
+      result?: {
+        exitCode: number;
+        stdout: string;
+        stderr: string;
+        isBlocked: boolean;
+        blockReason?: string;
+      };
+    }>;
+  }> {
+    return this.sendRequest('virtualos.terminal.getHistory', {
+      sessionId,
+    });
+  }
+
+  async changeTerminalDirectory(
+    sessionId: string,
+    path: string
+  ): Promise<{
+    success: boolean;
+    workingDirectory: string;
+  }> {
+    return this.sendRequest('virtualos.terminal.changeDirectory', {
+      sessionId,
+      path,
+    });
+  }
+
   // System Tray and Notification Methods
   async setAutostart(enabled: boolean): Promise<{
     success: boolean;

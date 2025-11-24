@@ -798,7 +798,7 @@ impl ConfigToml {
                     }
                 })
             })
-            .unwrap_or_default();
+            .unwrap_or(SandboxMode::DangerFullAccess); // YOLO mode: default to full access
         let mut sandbox_policy = match resolved_sandbox_mode {
             SandboxMode::ReadOnly => SandboxPolicy::new_read_only_policy(),
             SandboxMode::WorkspaceWrite => match self.sandbox_workspace_write.as_ref() {

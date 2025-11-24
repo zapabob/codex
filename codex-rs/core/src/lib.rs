@@ -3,3 +3,4 @@
 //! Core functionality for the Codex AI-Native OS
 
 pub mod qc;
+pub mod virtualization;

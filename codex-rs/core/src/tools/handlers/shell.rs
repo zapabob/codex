@@ -7,6 +7,7 @@ use crate::apply_patch;
 use crate::apply_patch::InternalApplyPatchInvocation;
 use crate::apply_patch::convert_apply_patch_to_protocol;
 use crate::codex::TurnContext;
+use crate::command_safety::is_dangerous_command::command_might_be_dangerous;
 use crate::exec::ExecParams;
 use crate::exec_env::create_env;
 use crate::exec_policy::create_approval_requirement_for_command;
@@ -196,6 +197,14 @@ impl ShellHandler {
         call_id: String,
         freeform: bool,
     ) -> Result<ToolOutput, FunctionCallError> {
+        // YOLOモードでも危険なコマンドは完全にブロック
+        if command_might_be_dangerous(&exec_params.command) {
+            return Err(FunctionCallError::RespondToModel(format!(
+                "Dangerous command blocked: {:?}. Dangerous commands cannot be executed even in YOLO mode for security reasons.",
+                exec_params.command.join(" ")
+            )));
+        }
+
         // Approval policy guard for explicit escalation in non-OnRequest modes.
         if exec_params.with_escalated_permissions.unwrap_or(false)
             && !matches!(

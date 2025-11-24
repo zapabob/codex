@@ -11,6 +11,10 @@ use codex_core::orchestration::ResourceManager;
 use codex_core::security::{MalwareDetector, Quarantine};
 use once_cell::sync::Lazy;
 use std::path::PathBuf;
+use dirs;
+use which;
+use dirs;
+use which;
 
 /// RPC Request
 #[derive(Debug, Serialize, Deserialize)]
@@ -276,10 +280,40 @@ async fn handle_rpc_method(
         })),
 
         "exec.command" => {
-            // Note: In production, this should have proper security checks
+            let command_str = params
+                .get("command")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing 'command' parameter".to_string(),
+                    data: None,
+                })?;
+
+            // Parse command into Vec<String>
+            let command: Vec<String> = shlex::split(command_str)
+                .unwrap_or_else(|| vec![command_str.to_string()]);
+
+            // YOLOモードでも危険なコマンドはブロック
+            if codex_core::command_safety::is_dangerous_command::command_might_be_dangerous(&command) {
+                return Err(RpcError {
+                    code: -32001,
+                    message: format!(
+                        "Dangerous command blocked: {}. Dangerous commands cannot be executed even in YOLO mode for security reasons.",
+                        command_str
+                    ),
+                    data: Some(serde_json::json!({
+                        "blocked": true,
+                        "reason": "dangerous_command",
+                        "command": command_str
+                    })),
+                });
+            }
+
+            // Note: In production, this should execute the actual command
+            // For now, return mock response
             Ok(serde_json::json!({
                 "exitCode": 0,
-                "stdout": "Command executed successfully (mock)",
+                "stdout": format!("Command would be executed: {}", command_str),
                 "stderr": ""
             }))
         }
@@ -1290,6 +1324,253 @@ async fn handle_rpc_method(
             }))
         }
 
+        // Virtual OS Terminal Methods
+        "virtualos.terminal.createSession" => {
+            let working_dir = params
+                .get("workingDirectory")
+                .and_then(|v| v.as_str())
+                .unwrap_or(".");
+
+            let rt = Runtime::new().map_err(|e| RpcError {
+                code: -32000,
+                message: format!("Failed to create runtime: {}", e),
+                data: None,
+            })?;
+
+            rt.block_on(async {
+                use codex_core::virtualization::{TerminalManager, VirtualNetwork, NetworkSecurityPolicy};
+                use std::sync::Arc;
+                use tokio::sync::RwLock;
+
+                static TERMINAL_MANAGER: Lazy<Arc<RwLock<TerminalManager>>> =
+                    Lazy::new(|| Arc::new(RwLock::new(TerminalManager::new())));
+
+                let network = VirtualNetwork::new(NetworkSecurityPolicy::Whitelist);
+                let session_id = {
+                    let mut manager = TERMINAL_MANAGER.write().await;
+                    manager.create_session(
+                        std::path::PathBuf::from(working_dir),
+                        Some(network),
+                    )
+                };
+
+                Ok(serde_json::json!({
+                    "sessionId": session_id,
+                    "workingDirectory": working_dir
+                }))
+            })
+        }
+
+        "virtualos.terminal.execute" => {
+            let session_id = params
+                .get("sessionId")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing 'sessionId' parameter".to_string(),
+                    data: None,
+                })?;
+
+            let command = params
+                .get("command")
+                .and_then(|v| v.as_array())
+                .and_then(|arr| {
+                    arr.iter()
+                        .map(|v| v.as_str().map(|s| s.to_string()))
+                        .collect::<Option<Vec<String>>>()
+                })
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing or invalid 'command' parameter".to_string(),
+                    data: None,
+                })?;
+
+            let rt = Runtime::new().map_err(|e| RpcError {
+                code: -32000,
+                message: format!("Failed to create runtime: {}", e),
+                data: None,
+            })?;
+
+            rt.block_on(async {
+                use codex_core::virtualization::TerminalManager;
+                use std::sync::Arc;
+                use tokio::sync::RwLock;
+
+                static TERMINAL_MANAGER: Lazy<Arc<RwLock<TerminalManager>>> =
+                    Lazy::new(|| Arc::new(RwLock::new(TerminalManager::new())));
+
+                let mut manager = TERMINAL_MANAGER.write().await;
+                let session = manager.get_session_mut(session_id).ok_or_else(|| RpcError {
+                    code: -32000,
+                    message: "Session not found".to_string(),
+                    data: None,
+                })?;
+
+                match session.execute_command(command).await {
+                    Ok(result) => Ok(serde_json::json!({
+                        "exitCode": result.exit_code,
+                        "stdout": result.stdout,
+                        "stderr": result.stderr,
+                        "isBlocked": result.is_blocked,
+                        "blockReason": result.block_reason
+                    })),
+                    Err(e) => Err(RpcError {
+                        code: -32000,
+                        message: format!("Command execution failed: {}", e),
+                        data: None,
+                    }),
+                }
+            })
+        }
+
+        "virtualos.terminal.listCommands" => {
+            let session_id = params
+                .get("sessionId")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing 'sessionId' parameter".to_string(),
+                    data: None,
+                })?;
+
+            let rt = Runtime::new().map_err(|e| RpcError {
+                code: -32000,
+                message: format!("Failed to create runtime: {}", e),
+                data: None,
+            })?;
+
+            rt.block_on(async {
+                use codex_core::virtualization::TerminalManager;
+                use std::sync::Arc;
+                use tokio::sync::RwLock;
+
+                static TERMINAL_MANAGER: Lazy<Arc<RwLock<TerminalManager>>> =
+                    Lazy::new(|| Arc::new(RwLock::new(TerminalManager::new())));
+
+                let manager = TERMINAL_MANAGER.read().await;
+                let session = manager.get_session(session_id).ok_or_else(|| RpcError {
+                    code: -32000,
+                    message: "Session not found".to_string(),
+                    data: None,
+                })?;
+
+                let commands = session.list_available_commands().await;
+                Ok(serde_json::json!({
+                    "commands": commands
+                }))
+            })
+        }
+
+        "virtualos.terminal.getHistory" => {
+            let session_id = params
+                .get("sessionId")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing 'sessionId' parameter".to_string(),
+                    data: None,
+                })?;
+
+            let rt = Runtime::new().map_err(|e| RpcError {
+                code: -32000,
+                message: format!("Failed to create runtime: {}", e),
+                data: None,
+            })?;
+
+            rt.block_on(async {
+                use codex_core::virtualization::TerminalManager;
+                use std::sync::Arc;
+                use tokio::sync::RwLock;
+
+                static TERMINAL_MANAGER: Lazy<Arc<RwLock<TerminalManager>>> =
+                    Lazy::new(|| Arc::new(RwLock::new(TerminalManager::new())));
+
+                let manager = TERMINAL_MANAGER.read().await;
+                let session = manager.get_session(session_id).ok_or_else(|| RpcError {
+                    code: -32000,
+                    message: "Session not found".to_string(),
+                    data: None,
+                })?;
+
+                let history: Vec<serde_json::Value> = session
+                    .get_history()
+                    .iter()
+                    .map(|cmd| {
+                        serde_json::json!({
+                            "command": cmd.command,
+                            "workingDirectory": cmd.working_directory.to_string_lossy(),
+                            "timestamp": cmd.timestamp.to_rfc3339(),
+                            "result": cmd.result.as_ref().map(|r| serde_json::json!({
+                                "exitCode": r.exit_code,
+                                "stdout": r.stdout,
+                                "stderr": r.stderr,
+                                "isBlocked": r.is_blocked,
+                                "blockReason": r.block_reason
+                            }))
+                        })
+                    })
+                    .collect();
+
+                Ok(serde_json::json!({
+                    "history": history
+                }))
+            })
+        }
+
+        "virtualos.terminal.changeDirectory" => {
+            let session_id = params
+                .get("sessionId")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing 'sessionId' parameter".to_string(),
+                    data: None,
+                })?;
+
+            let path = params
+                .get("path")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| RpcError {
+                    code: -32602,
+                    message: "Missing 'path' parameter".to_string(),
+                    data: None,
+                })?;
+
+            let rt = Runtime::new().map_err(|e| RpcError {
+                code: -32000,
+                message: format!("Failed to create runtime: {}", e),
+                data: None,
+            })?;
+
+            rt.block_on(async {
+                use codex_core::virtualization::TerminalManager;
+                use std::sync::Arc;
+                use tokio::sync::RwLock;
+
+                static TERMINAL_MANAGER: Lazy<Arc<RwLock<TerminalManager>>> =
+                    Lazy::new(|| Arc::new(RwLock::new(TerminalManager::new())));
+
+                let mut manager = TERMINAL_MANAGER.write().await;
+                let session = manager.get_session_mut(session_id).ok_or_else(|| RpcError {
+                    code: -32000,
+                    message: "Session not found".to_string(),
+                    data: None,
+                })?;
+
+                match session.change_directory(std::path::PathBuf::from(path)) {
+                    Ok(_) => Ok(serde_json::json!({
+                        "success": true,
+                        "workingDirectory": session.get_working_directory().to_string_lossy()
+                    })),
+                    Err(e) => Err(RpcError {
+                        code: -32000,
+                        message: format!("Failed to change directory: {}", e),
+                        data: None,
+                    }),
+                }
+            })
+        }
+
         // DeepResearch integration via GeminiCLI
         "research.deep" => {
             let query = params
@@ -1382,6 +1663,7 @@ async fn handle_rpc_method(
 
 fn launch_server() -> Result<(), Box<dyn std::error::Error>> {
     println!("Launching Codex Orchestrator RPC Server...");
+    println!("⚠️  YOLO Mode: Full file access enabled, but dangerous commands are blocked for security.");
 
     // Create tokio runtime for async operations
     let rt = Runtime::new()?;

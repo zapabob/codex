@@ -100,9 +100,31 @@ if (-not (Test-Path "Cargo.toml")) {
 Write-Success "Workspace validated: $(Get-Location)"
 Log "Workspace validated: $(Get-Location)"
 
-# Step 2: Clean build (optional)
+# Step 2: Kill running processes and clean build (optional)
+Write-Status "Step 2/7: Stopping running processes..."
+$Processes = @("codex", "codex-tui", "codex-tauri-gui")
+$KilledProcesses = @()
+
+foreach ($ProcName in $Processes) {
+    $Procs = Get-Process -Name $ProcName -ErrorAction SilentlyContinue
+    if ($Procs) {
+        Write-Status "   Stopping $ProcName processes..."
+        $Procs | Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 500
+        $KilledProcesses += $ProcName
+        Write-Success "   Stopped $ProcName"
+        Log "Stopped $ProcName processes"
+    }
+}
+
+if ($KilledProcesses.Count -gt 0) {
+    Write-Success "Stopped $($KilledProcesses.Count) process type(s)"
+} else {
+    Write-Status "No running processes found"
+}
+
 if (-not $SkipClean) {
-    Write-Status "Step 2/7: Cleaning build artifacts (cargo clean)..."
+    Write-Status "Step 2/7 (continued): Cleaning build artifacts (cargo clean)..."
     Log "Running cargo clean"
     
     cargo clean 2>&1 | Out-String | ForEach-Object { Log $_ }
@@ -113,7 +135,7 @@ if (-not $SkipClean) {
         Write-WarningMsg "cargo clean failed, but continuing"
     }
 } else {
-    Write-Status "Step 2/7: Skipping clean step"
+    Write-Status "Step 2/7 (continued): Skipping clean step (using incremental build)"
 }
 
 # Step 3: Format
@@ -128,15 +150,27 @@ if (Get-Command just -ErrorAction SilentlyContinue) {
     cargo fmt --all 2>&1 | Out-String | ForEach-Object { Log $_ }
 }
 
-# Step 4: Release build
+# Step 4: Release build (incremental if SkipClean)
 Write-Status "Step 4/7: Building release (codex-cli)..."
-Write-Host "   [INFO] This may take several minutes..." -ForegroundColor Yellow
-Log "Running cargo build --release -p codex-cli"
+if ($SkipClean) {
+    Write-Host "   [INFO] Using incremental build (faster)..." -ForegroundColor Cyan
+    $BuildCommand = "cargo build --release -p codex-cli"
+} else {
+    Write-Host "   [INFO] Full build (this may take several minutes)..." -ForegroundColor Yellow
+    $BuildCommand = "cargo build --release -p codex-cli"
+}
+
+Log "Running $BuildCommand"
 
 $BuildStart = Get-Date
-$BuildOutput = cargo build --release -p codex-cli 2>&1 | Out-String
+$BuildOutput = Invoke-Expression $BuildCommand 2>&1 | Out-String
 $BuildDuration = (Get-Date) - $BuildStart
 Log $BuildOutput
+
+# Show build progress (tqdm-style)
+$BuildMinutes = [math]::Round($BuildDuration.TotalMinutes, 1)
+$BuildSeconds = [math]::Round($BuildDuration.TotalSeconds, 0)
+Write-Host "   Build time: ${BuildMinutes}m ${BuildSeconds}s" -ForegroundColor Gray
 
 if ($LASTEXITCODE -eq 0) {
     Write-Success "Build succeeded!"
@@ -183,15 +217,26 @@ if (Test-Path $BinaryPath) {
 Write-Status "Step 6/7: Installing globally..."
 $InstallPath = "$env:USERPROFILE\.cargo\bin\codex.exe"
 
-# Stop existing processes
-Write-Status "   Checking for running codex processes..."
-$CodexProcesses = Get-Process codex -ErrorAction SilentlyContinue
-if ($CodexProcesses) {
-    Write-WarningMsg "Found running codex process. Stopping..."
-    $CodexProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
-    Write-Success "Process stopped"
-    Log "Stopped codex processes"
+# Stop existing processes (already done in Step 2, but double-check)
+Write-Status "   Checking for running processes..."
+$Processes = @("codex", "codex-tui", "codex-tauri-gui")
+$FoundProcesses = @()
+
+foreach ($ProcName in $Processes) {
+    $Procs = Get-Process -Name $ProcName -ErrorAction SilentlyContinue
+    if ($Procs) {
+        Write-WarningMsg "Found running $ProcName process. Stopping..."
+        $Procs | Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 500
+        $FoundProcesses += $ProcName
+    }
+}
+
+if ($FoundProcesses.Count -gt 0) {
+    Write-Success "Stopped $($FoundProcesses.Count) process type(s)"
+    Log "Stopped processes: $($FoundProcesses -join ', ')"
+} else {
+    Write-Status "No running processes found"
 }
 
 # Create backup
