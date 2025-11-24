@@ -5939,3 +5939,17 @@ error: Recipe `fmt` could not be run because just could not find the shell: prog
 
 [2025-11-25 04:17:02] Running cargo build --release -p codex-cli
 [2025-11-25 04:17:02] 
+[2025-11-25 04:56:29] === Build started ===
+[2025-11-25 04:56:29] Workspace validated: C:\Users\downl\Desktop\codex-main\codex-main\codex-rs
+[2025-11-25 04:56:29] Running just fmt
+[2025-11-25 04:56:29] just : cargo fmt -- --config imports_granularity=Item
+発生場所 C:\Users\downl\Desktop\codex-main\codex-main\codex-rs\clean-build-install.ps1:146 文字:5
++     just fmt 2>&1 | Out-String | ForEach-Object { Log $_ }
++     ~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (cargo fmt -- --...ranularity=Item:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: Recipe `fmt` could not be run because just could not find the shell: program not found
+
+[2025-11-25 04:56:29] Running cargo build --release -p codex-cli
+[2025-11-25 04:56:29] 

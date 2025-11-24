@@ -172,7 +172,12 @@ large_stack_frames = "forbid"
 [workspace.dependencies]
 # Core dependencies
 anyhow = "1.0"
+ansi-to-tui = "7.0"
+arboard = { version = "3", features = ["wayland-data-control"] }
+assert_cmd = "2.0"
+assert_matches = "1.5"
 async-channel = "2.3"
+async-stream = "0.3"
 async-trait = "0.1"
 base64 = "0.22"
 bytes = "1.7"
@@ -180,29 +185,49 @@ chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
 cmake = { version = "0.1.60", features = ["cmake28"] }
 color-eyre = "0.6"
+crossterm = { git = "https://github.com/nornagon/crossterm", branch = "nornagon/color-query" }
+derive_more = "2"
+diffy = "0.4"
 dirs = "5.0"
+dotenvy = "0.15"
 dunce = "1.0"
 ed25519-dalek = "2.0"
 encoding_rs = "0.8"
 env-flags = "0.1"
+escargot = "0.5"
 eventsource-stream = "0.2"
 futures = { version = "0.3", default-features = false, features = ["std"] }
 hex = "0.4"
 hkdf = "0.12"
 hmac = "0.12"
 http = "1.1"
+ignore = "0.4"
+image = { version = "0.25", features = ["jpeg", "png"] }
 indexmap = "2.5"
+insta = "1.43"
 itertools = "0.12"
 keyring = { version = "3.0", features = ["apple-native", "crypto-rust", "linux-native-async-persistent", "windows-native"] }
 lazy_static = "1.5"
 libc = "0.2"
 lru = "0.12"
+maplit = "1.0"
+mcp-types = { path = "mcp-types" }
+notify = "8.2"
+nucleo-matcher = "0.3"
 once_cell = "1.19"
+opentelemetry-appender-tracing = "0.30"
 os_info = "3.8"
 paste = "1.0"
+pathdiff = "0.2"
+predicates = "3.1"
+pretty_assertions = "1.4"
+pulldown-cmark = "0.10"
 rand = "0.8"
+ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }
+ratatui-macros = "0.6.0"
 regex-lite = "0.1"
 regex = "1.10"
+serial_test = "3.1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
 ring = "0.17"
 rustls = "0.23"
@@ -227,36 +252,29 @@ toml = "0.8"
 toml_edit = "0.22"
 tokio = { version = "1.0", features = ["full"] }
 tokio-stream = "0.1"
+tokio-test = "0.4"
 tracing = { version = "0.1", features = ["log"] }
-tree-sitter = "0.22"
+tracing-appender = "0.2"
+tracing-subscriber = "0.3"
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+tree-sitter = "0.25"
 tree-sitter-bash = "0.21"
+tree-sitter-highlight = "0.25"
+supports-color = "3.0"
+textwrap = "0.16"
+unicode-segmentation = "1.12"
+unicode-width = "0.2.1"
 url = "2.5"
 urlencoding = "2.1"
 uuid = { version = "1.0", features = ["serde", "v4", "v5"] }
+vt100 = "0.16.2"
+walkdir = "2.5"
+webbrowser = "0.8"
 which = "6.0"
 wildmatch = "2.3"
-
-# Local crates
-codex-core = { path = "core" }
-codex-ansi-escape = { path = "ansi-escape" }
-codex-app-server-protocol = { path = "protocol" }
-codex-apply-patch = { path = "apply-patch" }
-codex-async-utils = { path = "async-utils" }
-codex-deep-research = { path = "deep-research" }
-codex-file-search = { path = "file-search" }
-codex-git = { path = "git" }
-codex-keyring-store = { path = "keyring-store" }
-codex-mcp-types = { path = "mcp-types" }
-codex-protocol = { path = "protocol" }
-codex-rmcp-client = { path = "rmcp-client" }
-codex-utils-pty = { path = "utils-pty" }
-codex-utils-readiness = { path = "utils-readiness" }
-codex-utils-string = { path = "utils-string" }
-codex-utils-tokenizer = { path = "utils-tokenizer" }
-
-# Additional dependencies
-aes-gcm = "0.10"
+wiremock = "0.6"
 dashmap = "6.0"
+aes-gcm = "0.10"
 landlock = "0.3"
 mime_guess = "2.0"
 openssl-sys = { version = "0.9", features = ["vendored"] }
@@ -266,32 +284,59 @@ schemars = "0.8"
 strum = "0.26"
 sys-locale = "0.3"
 ts-rs = { version = "10.0", features = ["serde-json-impl", "no-serde-warnings"] }
-
-# TUI/GUI dependencies
-crossterm = "0.27"
-ratatui = "0.26"
 futures-util = "0.3"
-
-# ICU dependencies
 icu_decimal = "2.1"
 icu_locale_core = "2.1"
 icu_provider = { version = "2.1", features = ["sync"] }
 
-# Local crates (path references for workspace builds)
+# Local crates (workspace dependencies)
+codex-core = { path = "core" }
+codex-ansi-escape = { path = "ansi-escape" }
+codex-app-server-protocol = { path = "app-server-protocol" }
+codex-apply-patch = { path = "apply-patch" }
+codex-arg0 = { path = "arg0" }
+codex-async-utils = { path = "async-utils" }
+codex-backend-client = { path = "backend-client" }
+codex-common = { path = "common" }
+codex-deep-research = { path = "deep-research" }
+codex-feedback = { path = "feedback" }
+codex-file-search = { path = "file-search" }
+codex-git = { path = "utils/git" }
+codex-keyring-store = { path = "keyring-store" }
+codex-linux-sandbox = { path = "linux-sandbox" }
+codex-lmstudio = { path = "lmstudio" }
+codex-login = { path = "login" }
+codex-mcp-types = { path = "mcp-types" }
+codex-ollama = { path = "ollama" }
+codex-protocol = { path = "protocol" }
+codex-rmcp-client = { path = "rmcp-client" }
+codex-utils-pty = { path = "utils-pty" }
+codex-utils-readiness = { path = "utils-readiness" }
+codex-utils-string = { path = "utils-string" }
+codex-utils-tokenizer = { path = "utils-tokenizer" }
+codex-windows-sandbox = { path = "windows-sandbox-rs" }
+core_test_support = { path = "core/tests/common" }
 codex-utils-image = { path = "utils/image" }
 
-# Test dependencies
+[patch.crates-io]
+# Patch ratatui to use the forked version that's compatible with unicode-width 0.2.1
+# This ensures ratatui-macros uses the forked ratatui instead of the crates.io version
+ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }
+
+[workspace.dev-dependencies]
 assert_cmd = "2.0"
 assert_matches = "1.5"
 escargot = "0.5"
 # Security Enhancement: Update image crate to latest secure version
 image = { version = "0.25", features = ["jpeg", "png"] }
+insta = "1.43"
 maplit = "1.0"
 predicates = "3.1"
 pretty_assertions = "1.4"
 serial_test = "3.1"
 tokio-test = "0.4"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
+vt100 = "0.16.2"
 walkdir = "2.5"
 webbrowser = "0.8"
 wiremock = "0.6"
