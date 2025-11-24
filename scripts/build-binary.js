@@ -4,9 +4,15 @@
  * Cross-platform build script with process killing and incremental build support
  */
 
-const { spawn, execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { spawn } from 'child_process';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const args = process.argv.slice(2);
 const skipClean = args.includes('--skip-clean');
