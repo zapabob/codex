@@ -19,7 +19,6 @@ import {
   DialogActions,
   Alert,
   Chip,
-  Grid,
   List,
   ListItem,
   ListItemText,
@@ -34,6 +33,7 @@ import {
   AccordionDetails,
   Divider,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Plus,
   Edit,
