@@ -15,6 +15,7 @@ import {
   DialogActions,
   TextField,
   Alert,
+  CircularProgress,
   LinearProgress,
   Table,
   TableBody,
@@ -358,8 +359,8 @@ export default function SecurityPage() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {finding.location.file}
-                          {finding.location.line && `:${finding.location.line}`}
+                          {finding.location?.file || '場所不明'}
+                          {finding.location?.line ? `:${finding.location.line}` : ''}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -483,7 +484,7 @@ export default function SecurityPage() {
               onClick={handleScan}
               variant="contained"
               disabled={!scanTarget.trim() || isScanning}
-              startIcon={isScanning ? <LinearProgress size={16} /> : <Play />}
+              startIcon={isScanning ? <CircularProgress size={16} /> : <Play />}
             >
               {isScanning ? 'スキャン中...' : 'スキャン開始'}
             </Button>

@@ -111,7 +111,7 @@ export const ResourceManagedInput: React.FC<ResourceManagedInputProps> = ({
 
   useEffect(() => {
     // Sync external value
-    if (externalValue !== undefined) {
+    if (externalValue !== undefined && externalValue !== null) {
       setInternalValue(externalValue.toString());
     }
   }, [externalValue]);

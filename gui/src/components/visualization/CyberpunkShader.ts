@@ -16,6 +16,8 @@ import * as THREE from 'three';
  * サイバーパンク風のネオングロー効果を持つシェーダーマテリアル
  */
 export class CyberpunkShaderMaterial extends THREE.ShaderMaterial {
+  declare uniforms: Record<string, THREE.IUniform>;
+
   constructor(options?: {
     color?: THREE.Color | string;
     intensity?: number;
@@ -152,7 +154,7 @@ export class CyberpunkParticleSystem {
   private material: THREE.PointsMaterial;
   private particleCount: number;
 
-  constructor(count: number = 10000, color: THREE.Color | string = 0x00ffff) {
+  constructor(count: number = 10000, color: THREE.Color | string = '#00ffff') {
     this.particleCount = count;
     const threeColor = typeof color === 'string' ? new THREE.Color(color) : color;
 

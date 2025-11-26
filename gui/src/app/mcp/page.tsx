@@ -51,6 +51,7 @@ import {
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { Card } from '@/components/atoms/Card';
 import { useCodex } from '@/lib/context/CodexContext';
+import type { MCPConnection } from '@/lib/types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -83,12 +84,25 @@ const MCP_SERVER_TYPES = [
   { id: 'chrome-mcp', name: 'Chrome MCP', icon: Globe, description: 'Chrome拡張連携' },
 ];
 
+type MCPServerStatus = 'connected' | 'disconnected' | 'error';
+
+interface MCPServerConfig {
+  id?: string;
+  name: string;
+  type: string;
+  url: string;
+  enabled: boolean;
+  status?: MCPServerStatus;
+  requestCount?: number;
+  avgResponseTime?: number;
+}
+
 export default function MCPPage() {
   const { state } = useCodex();
   const [activeTab, setActiveTab] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingServer, setEditingServer] = useState<any>(null);
-  const [newServer, setNewServer] = useState({
+  const [editingServer, setEditingServer] = useState<MCPServerConfig | null>(null);
+  const [newServer, setNewServer] = useState<MCPServerConfig>({
     name: '',
     type: '',
     url: '',
@@ -133,8 +147,17 @@ export default function MCPPage() {
     setNewServer({ name: '', type: '', url: '', enabled: true });
   };
 
-  const handleEditServer = (server: any) => {
-    setEditingServer(server);
+  const handleEditServer = (server: MCPConnection) => {
+    setEditingServer({
+      id: server.id,
+      name: server.name,
+      type: server.type,
+      url: server.url || '',
+      enabled: server.status === 'connected',
+      status: server.status,
+      requestCount: server.requestCount,
+      avgResponseTime: server.avgResponseTime,
+    });
   };
 
   const handleSaveEdit = () => {
@@ -565,24 +588,24 @@ export default function MCPPage() {
                 fullWidth
                 label="サーバー名"
                 value={editingServer.name}
-                onChange={(e) => setEditingServer(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setEditingServer(prev => prev ? { ...prev, name: e.target.value } : prev)}
                 sx={{ mt: 2, mb: 2 }}
               />
               <TextField
                 fullWidth
                 label="接続URL"
                 value={editingServer.url || ''}
-                onChange={(e) => setEditingServer(prev => ({ ...prev, url: e.target.value }))}
+                onChange={(e) => setEditingServer(prev => prev ? { ...prev, url: e.target.value } : prev)}
                 sx={{ mb: 2 }}
               />
               <FormControlLabel
                 control={
                   <Switch
                     checked={editingServer.status === 'connected'}
-                    onChange={(e) => setEditingServer(prev => ({
+                    onChange={(e) => setEditingServer(prev => prev ? {
                       ...prev,
                       status: e.target.checked ? 'connected' : 'disconnected'
-                    }))}
+                    } : prev)}
                   />
                 }
                 label="有効化"

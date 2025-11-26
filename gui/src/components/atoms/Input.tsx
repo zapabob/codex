@@ -16,7 +16,7 @@ export interface InputProps extends Omit<TextFieldProps, 'sx'> {
   sx?: SxProps<Theme>;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
+export const Input = forwardRef<HTMLDivElement, InputProps>(
   (
     {
       startIcon: StartIcon,
