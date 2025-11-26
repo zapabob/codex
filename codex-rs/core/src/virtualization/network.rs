@@ -2,10 +2,13 @@
 //!
 //! Provides network access for virtual OS instances with security policies.
 
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
-use tracing::{info, warn};
+use tracing::info;
+use tracing::warn;
 
 /// Network security policy
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

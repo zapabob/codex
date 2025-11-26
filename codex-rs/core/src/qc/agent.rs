@@ -4,7 +4,8 @@
 //! mathematical optimization, and visualization to provide comprehensive
 //! code quality assessment and improvement suggestions.
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;

@@ -6,7 +6,8 @@
 //! - Function length distribution
 //! - Import dependency analysis
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 
 /// Statistical metrics for code analysis

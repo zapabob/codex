@@ -2,10 +2,13 @@
 //!
 //! Provides interface for creating applications using Codex for code generation.
 
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::path::PathBuf;
-use tracing::{info, warn};
+use tracing::info;
+use tracing::warn;
 
 /// Application template type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

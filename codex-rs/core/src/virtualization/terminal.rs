@@ -6,13 +6,17 @@
 use super::network::VirtualNetwork;
 use crate::command_safety::is_dangerous_command;
 use crate::command_safety::is_safe_command;
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Command;
+use std::process::Stdio;
 use tokio::process::Command as TokioCommand;
-use tracing::{info, warn};
+use tracing::info;
+use tracing::warn;
 
 /// Terminal command execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]

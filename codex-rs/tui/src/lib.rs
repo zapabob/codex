@@ -52,6 +52,11 @@ mod frames;
 mod get_git_diff;
 mod git_visualizer;
 mod gpu_stats;
+mod ui;
+mod tui {
+    pub mod job_control;
+}
+mod gpu_stats;
 mod history_cell;
 pub mod insert_history;
 mod key_hint;

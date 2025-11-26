@@ -1,8 +1,8 @@
 //! Codex CLI - AI-Native OS Command Line Interface
 
 use codex_core::orchestration::ResourceManager;
-use codex_core::security::{MalwareDetector, Quarantine};
-use dirs;
+use codex_core::security::MalwareDetector;
+use codex_core::security::Quarantine;
 use dirs;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
@@ -13,8 +13,6 @@ use std::process::Command;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use tokio::sync::RwLock;
-use which;
-use which;
 use which;
 
 /// RPC Request
@@ -1421,9 +1419,9 @@ async fn handle_rpc_method(
             })?;
 
             rt.block_on(async {
-                use codex_core::virtualization::{
-                    NetworkSecurityPolicy, TerminalManager, VirtualNetwork,
-                };
+                use codex_core::virtualization::NetworkSecurityPolicy;
+                use codex_core::virtualization::TerminalManager;
+                use codex_core::virtualization::VirtualNetwork;
                 use std::sync::Arc;
                 use tokio::sync::RwLock;
 

@@ -9,7 +9,8 @@ pub mod network;
 pub mod terminal;
 
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::path::PathBuf;
 
 /// Virtual OS layer trait
@@ -139,4 +140,7 @@ impl Default for VirtualOSManager {
 pub use app_creator::AppCreator;
 pub use macos_emulator::MacOSEmulator;
 pub use network::VirtualNetwork;
-pub use terminal::{TerminalCommand, TerminalManager, TerminalResult, TerminalSession};
+pub use terminal::TerminalCommand;
+pub use terminal::TerminalManager;
+pub use terminal::TerminalResult;
+pub use terminal::TerminalSession;

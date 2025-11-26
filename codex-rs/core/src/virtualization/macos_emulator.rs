@@ -3,12 +3,17 @@
 //! Provides macOS-style UI/UX including Dock, menu bar, Spotlight-style search,
 //! Finder-style file system, and application launcher.
 
-use super::{VirtualOSConfig, VirtualOSLayer, VirtualOSType};
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use super::VirtualOSConfig;
+use super::VirtualOSLayer;
+use super::VirtualOSType;
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use tracing::{info, warn};
+use tracing::info;
+use tracing::warn;
 
 /// macOS Emulator
 pub struct MacOSEmulator {

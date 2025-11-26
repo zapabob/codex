@@ -1,26 +1,14 @@
 //! User interface rendering
 
-use ratatui::Frame;
-use ratatui::layout::Constraint;
-use ratatui::layout::Direction;
-use ratatui::layout::Layout;
-use ratatui::layout::Rect;
-use ratatui::style::Color;
-use ratatui::style::Modifier;
-use ratatui::style::Style;
-use ratatui::text::Line;
-use ratatui::text::Span;
-use ratatui::widgets::Block;
-use ratatui::widgets::Borders;
-use ratatui::widgets::Clear;
-use ratatui::widgets::Gauge;
-use ratatui::widgets::List;
-use ratatui::widgets::ListItem;
-use ratatui::widgets::Paragraph;
-use ratatui::widgets::Wrap;
+use ratatui::{
+    Frame,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
+    widgets::{Block, Borders, Clear, Gauge, List, ListItem, Paragraph, Wrap},
+};
 
-use crate::app::App;
-use crate::app::AppState;
+use crate::app::{App, AppState};
 
 pub struct UiState {
     /// Current scroll position
