@@ -15,7 +15,6 @@ import {
   Chip,
   Alert,
   LinearProgress,
-  Grid,
   Paper,
   IconButton,
   Dialog,
@@ -23,6 +22,7 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Code,
   Play,

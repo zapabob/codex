@@ -59,6 +59,9 @@ export interface MCPConnection {
   status: "connected" | "disconnected" | "error";
   url?: string;
   lastConnected?: Date;
+  requestCount?: number;
+  avgResponseTime?: number;
+  errorRate?: number;
 }
 
 export interface SecurityScan {
@@ -71,6 +74,7 @@ export interface SecurityScan {
 }
 
 export interface SecurityFinding {
+  id?: string;
   severity: "critical" | "high" | "medium" | "low" | "info";
   title: string;
   description: string;
