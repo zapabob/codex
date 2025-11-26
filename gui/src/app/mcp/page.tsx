@@ -12,6 +12,7 @@ import {
   Avatar,
   Switch,
   FormControlLabel,
+  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
