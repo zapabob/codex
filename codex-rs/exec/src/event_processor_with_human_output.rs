@@ -559,6 +559,9 @@ impl EventProcessor for EventProcessorWithHumanOutput {
                     ts_msg!(self, "task aborted: review ended");
                 }
             },
+            EventMsg::ContextCompacted(_) => {
+                ts_msg!(self, "context compacted");
+            }
             EventMsg::ShutdownComplete => return CodexStatus::Shutdown,
             EventMsg::ConversationPath(_) => {}
             EventMsg::SubAgentTaskCompleted(_) => {
