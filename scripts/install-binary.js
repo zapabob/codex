@@ -172,20 +172,20 @@ async function main() {
       }
       
       if (!foundLocal) {
-        // Download from GitHub Releases
-        const binaryName = `codex-${platformInfo.os}-${platformInfo.archName}${platformInfo.ext}`;
-        const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${binaryName}`;
-        
-        console.log(`⬇️  Downloading: ${downloadUrl}`);
-        
-        const tempPath = path.join(binDir, 'codex.tmp');
-        
-        // Download binary
-        await downloadFile(downloadUrl, tempPath);
-        console.log('✅ Download complete');
-        
-        // Move to final location
-        fs.renameSync(tempPath, binaryPath);
+      // Download from GitHub Releases
+      const binaryName = `codex-${platformInfo.os}-${platformInfo.archName}${platformInfo.ext}`;
+      const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${binaryName}`;
+      
+      console.log(`⬇️  Downloading: ${downloadUrl}`);
+      
+      const tempPath = path.join(binDir, 'codex.tmp');
+      
+      // Download binary
+      await downloadFile(downloadUrl, tempPath);
+      console.log('✅ Download complete');
+      
+      // Move to final location
+      fs.renameSync(tempPath, binaryPath);
       }
     }
     
