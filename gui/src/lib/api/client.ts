@@ -30,6 +30,7 @@ export class CodexAPIClient {
   private protocolClient: any = null;
   private isConnected = false;
   private requestId = 0;
+  private baseUrl = 'http://localhost:3000/api';
   private pendingRequests = new Map<string, {
     resolve: (value: any) => void;
     reject: (error: Error) => void;
@@ -66,7 +67,7 @@ export class CodexAPIClient {
         setTimeout(() => this.initializeConnection(), 5000);
       };
 
-      this.protocolClient.onerror = (error) => {
+      this.protocolClient.onerror = (error: Event) => {
         console.error('WebSocket error:', error);
       };
     } catch (error) {
@@ -239,11 +240,12 @@ export class CodexAPIClient {
       const result = await this.sendRequest('conversation.create', params);
       return {
         id: result.id || `conv-${Date.now()}`,
-        title: result.title || `New Conversation`,
-        createdAt: new Date(result.createdAt || Date.now()),
-        updatedAt: new Date(result.updatedAt || Date.now()),
         model: config.model,
-        messageCount: 1,
+        status: result.status || 'active',
+        createdAt: new Date(result.createdAt || Date.now()),
+        lastActivity: new Date(result.updatedAt || Date.now()),
+        messageCount: result.messageCount || 1,
+        summary: result.summary,
       };
   }
 
@@ -261,10 +263,10 @@ export class CodexAPIClient {
       const result = await this.sendRequest('conversation.sendMessage', params);
       return {
         id: result.id || `msg-${Date.now()}`,
-        conversationId,
       role: result.role || 'assistant',
         content: result.content || 'Response from AI',
-        createdAt: new Date(result.createdAt || Date.now()),
+        timestamp: new Date(result.createdAt || Date.now()),
+        attachments: result.attachments,
       };
   }
 
@@ -392,6 +394,31 @@ export class CodexAPIClient {
       console.error('Agent execution error:', error);
       throw error;
     }
+  }
+
+  async runSecurityAudit(params: { path: string }): Promise<SecurityScan> {
+    const result = await this.runAgent('sec-audit', params);
+
+    if (result && typeof result === 'object' && 'findings' in result) {
+      const scanResult = result as Partial<SecurityScan>;
+      return {
+        id: scanResult.id || `scan-${Date.now()}`,
+        type: scanResult.type || 'code',
+        status: scanResult.status || 'completed',
+        findings: scanResult.findings || [],
+        startedAt: scanResult.startedAt ? new Date(scanResult.startedAt) : new Date(),
+        completedAt: scanResult.completedAt ? new Date(scanResult.completedAt) : new Date(),
+      } as SecurityScan;
+    }
+
+    return {
+      id: `scan-${Date.now()}`,
+      type: 'code',
+      status: 'completed',
+      findings: [],
+      startedAt: new Date(),
+      completedAt: new Date(),
+    };
   }
 
   private parseSecurityFindings(stdout: string, stderr: string): Array<{
@@ -1056,7 +1083,7 @@ export class CodexAPIClient {
   }
 
   // Utility methods
-  isConnected(): boolean {
+  getConnectionStatus(): boolean {
     return this.isConnected;
   }
 

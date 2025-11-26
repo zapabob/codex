@@ -14,7 +14,6 @@ import {
 import Grid from '@/mui/Grid2';
 import {
   Cpu,
-  Memory,
   Zap,
   RefreshCw,
   TrendingUp,

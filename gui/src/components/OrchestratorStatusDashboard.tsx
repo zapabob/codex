@@ -19,7 +19,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useOrchestratorStatus, useTokenBudget, useAgentList, useLockStatus } from '@zapabob/codex-protocol-client/react';
-import { OrchestratorClient } from '@zapabob/codex-protocol-client';
+import { OrchestratorClient, type AgentInfo } from '@zapabob/codex-protocol-client';
 
 interface OrchestratorStatusDashboardProps {
   client: OrchestratorClient;
@@ -118,7 +118,7 @@ export function OrchestratorStatusDashboard({ client, className }: OrchestratorS
           <div className="text-2xl font-bold">{status.active_agents}</div>
           {!agentsLoading && agents.length > 0 && (
             <div className="mt-2 space-y-1">
-              {agents.slice(0, 3).map((agent) => (
+              {agents.slice(0, 3).map((agent: AgentInfo) => (
                 <div key={agent.agent_id} className="text-xs text-muted-foreground truncate">
                   {agent.agent_type}: {agent.status}
                 </div>
@@ -137,7 +137,7 @@ export function OrchestratorStatusDashboard({ client, className }: OrchestratorS
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
-          <ListChecked className="h-4 w-4 text-muted-foreground" />
+          <ListChecks className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{status.active_tasks}</div>

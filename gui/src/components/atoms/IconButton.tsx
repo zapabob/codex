@@ -6,10 +6,15 @@ import {
   SxProps,
   Theme,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 
-export interface IconButtonProps extends Omit<MuiIconButtonProps, 'sx'> {
+export interface IconButtonProps
+  extends Omit<
+      MuiIconButtonProps,
+      'sx' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd' | 'onAnimationIteration'
+    >,
+    Pick<MotionProps, 'onDrag' | 'onDragStart' | 'onDragEnd'> {
   icon: LucideIcon;
   tooltip?: string;
   animated?: boolean;
@@ -34,6 +39,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     },
     ref
   ) => {
+    const { onDrag, onDragStart, onDragEnd, ...rest } = props;
     const iconSize = size === 'small' ? 16 : size === 'large' ? 24 : 20;
 
     const iconButtonSx: SxProps<Theme> = {
@@ -76,7 +82,10 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           stiffness: 400,
           damping: 17,
         }}
-        {...props}
+        onDrag={onDrag}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        {...rest}
       >
         <Icon size={iconSize} />
         {children}
@@ -86,7 +95,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         ref={ref}
         size={size}
         sx={iconButtonSx}
-        {...props}
+        {...rest}
       >
         <Icon size={iconSize} />
         {children}
