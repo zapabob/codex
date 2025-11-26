@@ -89,15 +89,3 @@ impl GpuStatsProvider {
         None
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -26,8 +26,8 @@ mod windows_impl {
     use super::acl::add_deny_write_ace;
     use super::acl::allow_null_device;
     use super::acl::revoke_ace;
-    use super::allow::compute_allow_paths;
     use super::allow::AllowDenyPaths;
+    use super::allow::compute_allow_paths;
     use super::cap::cap_sid_file;
     use super::cap::load_or_create_cap_sids;
     use super::env::apply_no_network_to_env;
