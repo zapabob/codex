@@ -7,11 +7,11 @@ import {
   Card as MuiCard,
   CardContent,
   LinearProgress,
-  Grid,
   Chip,
   Tooltip,
   IconButton,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Cpu,
   Memory,
