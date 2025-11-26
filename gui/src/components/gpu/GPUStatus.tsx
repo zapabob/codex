@@ -164,7 +164,7 @@ export const GPUStatus: React.FC<GPUStatusProps> = ({
       ) : (
         <Grid container spacing={2}>
           {gpuStats.map((gpu, index) => (
-            <Grid item xs={12} md={6} key={index}>
+            <Grid xs={12} md={6} key={index}>
               <MuiCard>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -222,7 +222,7 @@ export const GPUStatus: React.FC<GPUStatusProps> = ({
                   {showDetails && (
                     <Grid container spacing={2} sx={{ mt: 1 }}>
                       {gpu.temperature !== undefined && (
-                        <Grid item xs={6}>
+                        <Grid xs={6}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Zap size={16} />
                             <Typography variant="caption" color="text.secondary">
@@ -232,7 +232,7 @@ export const GPUStatus: React.FC<GPUStatusProps> = ({
                         </Grid>
                       )}
                       {gpu.powerUsage !== undefined && (
-                        <Grid item xs={6}>
+                        <Grid xs={6}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <TrendingUp size={16} />
                             <Typography variant="caption" color="text.secondary">
@@ -242,28 +242,28 @@ export const GPUStatus: React.FC<GPUStatusProps> = ({
                         </Grid>
                       )}
                       {gpu.clockSpeed !== undefined && (
-                        <Grid item xs={6}>
+                        <Grid xs={6}>
                           <Typography variant="caption" color="text.secondary">
                             Clock: {gpu.clockSpeed} MHz
                           </Typography>
                         </Grid>
                       )}
                       {gpu.computeCapability && (
-                        <Grid item xs={6}>
+                        <Grid xs={6}>
                           <Typography variant="caption" color="text.secondary">
                             Compute: {gpu.computeCapability}
                           </Typography>
                         </Grid>
                       )}
                       {gpu.directMLVersion && (
-                        <Grid item xs={6}>
+                        <Grid xs={6}>
                           <Typography variant="caption" color="text.secondary">
                             DirectML: {gpu.directMLVersion}
                           </Typography>
                         </Grid>
                       )}
                       {gpu.cudaVersion && (
-                        <Grid item xs={6}>
+                        <Grid xs={6}>
                           <Typography variant="caption" color="text.secondary">
                             CUDA: {gpu.cudaVersion}
                           </Typography>

@@ -270,7 +270,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
       ) : (
         <Grid container spacing={2}>
           {filteredPlans.map((plan) => (
-            <Grid item xs={12} md={6} key={plan.id}>
+            <Grid xs={12} md={6} key={plan.id}>
               <MuiCard>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>

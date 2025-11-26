@@ -342,26 +342,23 @@ export class CodexAPIClient {
   }
 
   async runAgent(agentId: string, context: any): Promise<any> {
-    try {
-      // Map agent context to parameters
-      const params: any = { agentId };
-      
-      // Map context to agent-specific fields
-      if (agentId === 'code-reviewer' || agentId === 'review') {
-        params.task = context.code || context.path || context.task || '';
-      } else if (agentId === 'sec-audit' || agentId === 'audit') {
-        params.path = context.path || context.task || '';
-      } else if (agentId === 'researcher' || agentId === 'research') {
-        params.query = context.query || context.topic || '';
-        params.depth = context.depth || 3;
-      } else {
-        // Generic context mapping
-        Object.assign(params, context);
+    // Map agent context to parameters
+    const params: any = { agentId };
+
+    if (agentId === 'code-reviewer' || agentId === 'review') {
+      params.task = context.code || context.path || context.task || '';
+    } else if (agentId === 'sec-audit' || agentId === 'audit') {
+      params.path = context.path || context.task || '';
+    } else if (agentId === 'researcher' || agentId === 'research') {
+      params.query = context.query || context.topic || '';
+      params.depth = context.depth || 3;
+    } else {
+      Object.assign(params, context);
     }
 
+    try {
       const result = await this.sendRequest('agent.run', params);
 
-      // Map result to appropriate return type based on agent type
       if (agentId === 'sec-audit' || agentId === 'audit') {
         return {
           id: result.id || `scan-${Date.now()}`,
@@ -371,7 +368,9 @@ export class CodexAPIClient {
           startedAt: new Date(result.startedAt || Date.now()),
           completedAt: new Date(result.completedAt || Date.now()),
         } as SecurityScan;
-      } else if (agentId === 'researcher' || agentId === 'research') {
+      }
+
+      if (agentId === 'researcher' || agentId === 'research') {
         return {
           id: result.id || `research-${Date.now()}`,
           query: params.query,
@@ -380,15 +379,18 @@ export class CodexAPIClient {
           startedAt: new Date(result.startedAt || Date.now()),
           completedAt: new Date(result.completedAt || Date.now()),
         } as ResearchResult;
-      } else {
-        // Generic result for other agent types
-        return {
-          status: result.status || 'completed',
-          output: result.output || '',
-          error: result.error || '',
-          exitCode: result.exitCode || 0,
-          duration: result.duration || 0,
+      }
+
+      return {
+        status: result.status || 'completed',
+        output: result.output || '',
+        error: result.error || '',
+        exitCode: result.exitCode || 0,
+        duration: result.duration || 0,
       };
+    } catch (error) {
+      console.error('Agent execution error:', error);
+      throw error;
     }
   }
 

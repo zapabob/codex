@@ -182,7 +182,7 @@ export function AppCreator() {
 
       <Grid container spacing={3}>
         {/* Template Selection */}
-        <Grid item xs={12} md={4}>
+        <Grid xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
@@ -223,7 +223,7 @@ export function AppCreator() {
         </Grid>
 
         {/* App Configuration */}
-        <Grid item xs={12} md={8}>
+        <Grid xs={12} md={8}>
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>

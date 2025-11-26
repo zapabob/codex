@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Card as MuiCard,
   CardContent,
   CardActions,
@@ -26,6 +25,7 @@ import {
   Tooltip,
   IconButton,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Brain,
   Shield,
@@ -312,7 +312,7 @@ export default function AgentsPage() {
             const color = AGENT_COLORS[agent.type as keyof typeof AGENT_COLORS];
 
             return (
-              <Grid item xs={12} md={6} lg={4} key={agent.id}>
+              <Grid xs={12} md={6} lg={4} key={agent.id}>
                 <MuiCard
                   sx={{
                     height: '100%',
@@ -434,7 +434,7 @@ export default function AgentsPage() {
             クイックアクション
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+            <Grid xs={12} md={4}>
               <Button
                 fullWidth
                 variant="contained"
@@ -451,7 +451,7 @@ export default function AgentsPage() {
                 セキュリティスキャン
               </Button>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid xs={12} md={4}>
               <Button
                 fullWidth
                 variant="contained"
@@ -468,7 +468,7 @@ export default function AgentsPage() {
                 コードレビュー
               </Button>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid xs={12} md={4}>
               <Button
                 fullWidth
                 variant="contained"

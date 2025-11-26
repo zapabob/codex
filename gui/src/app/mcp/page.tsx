@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Card as MuiCard,
   CardContent,
   CardActions,
@@ -32,6 +31,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Server,
   Database,
@@ -177,7 +177,7 @@ export default function MCPPage() {
 
         {/* MCP Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -195,7 +195,7 @@ export default function MCPPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'success.main' }}>
@@ -213,7 +213,7 @@ export default function MCPPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'info.main' }}>
@@ -231,7 +231,7 @@ export default function MCPPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'warning.main' }}>
@@ -281,7 +281,7 @@ export default function MCPPage() {
               {state.mcpConnections.map((server) => {
                 const IconComponent = getServerIcon(server.type);
                 return (
-                  <Grid item xs={12} md={6} lg={4} key={server.id}>
+                  <Grid xs={12} md={6} lg={4} key={server.id}>
                     <MuiCard
                       sx={{
                         height: '100%',
@@ -376,7 +376,7 @@ export default function MCPPage() {
               </Alert>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <Card header="応答時間分布">
                     <Box sx={{ textAlign: 'center', py: 2 }}>
                       <Typography variant="h3" sx={{ color: 'success.main', fontWeight: 700 }}>
@@ -394,7 +394,7 @@ export default function MCPPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <Card header="エラー率">
                     <Box sx={{ textAlign: 'center', py: 2 }}>
                       <Typography variant="h3" sx={{ color: 'error.main', fontWeight: 700 }}>
@@ -463,7 +463,7 @@ export default function MCPPage() {
 
               <Card header="グローバル設定">
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                  <Grid xs={12} md={6}>
                     <TextField
                       fullWidth
                       label="接続タイムアウト"
@@ -472,7 +472,7 @@ export default function MCPPage() {
                       type="number"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid xs={12} md={6}>
                     <TextField
                       fullWidth
                       label="最大同時接続数"
@@ -480,7 +480,7 @@ export default function MCPPage() {
                       type="number"
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid xs={12}>
                     <FormControlLabel
                       control={<Switch defaultChecked />}
                       label="自動再接続"

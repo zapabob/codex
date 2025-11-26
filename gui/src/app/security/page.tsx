@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Card as MuiCard,
   CardContent,
   Chip,
@@ -29,6 +28,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Shield,
   AlertTriangle,
@@ -173,7 +173,7 @@ export default function SecurityPage() {
 
         {/* Security Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'success.main' }}>
@@ -191,7 +191,7 @@ export default function SecurityPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'error.main' }}>
@@ -209,7 +209,7 @@ export default function SecurityPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'warning.main' }}>
@@ -227,7 +227,7 @@ export default function SecurityPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'info.main' }}>
@@ -249,7 +249,7 @@ export default function SecurityPage() {
         {/* Quick Actions */}
         <Card header="セキュリティスキャン" sx={{ mb: 4 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+            <Grid xs={12} md={4}>
               <Button
                 fullWidth
                 variant="contained"
@@ -269,7 +269,7 @@ export default function SecurityPage() {
                 コードスキャン
               </Button>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid xs={12} md={4}>
               <Button
                 fullWidth
                 variant="contained"
@@ -289,7 +289,7 @@ export default function SecurityPage() {
                 依存関係スキャン
               </Button>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid xs={12} md={4}>
               <Button
                 fullWidth
                 variant="contained"
@@ -426,7 +426,7 @@ export default function SecurityPage() {
               </Alert>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <Card header="脆弱性の傾向">
                     <Box sx={{ textAlign: 'center', py: 2 }}>
                       <Typography variant="h3" sx={{ color: 'success.main', fontWeight: 700 }}>
@@ -439,7 +439,7 @@ export default function SecurityPage() {
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <Card header="対応済み脆弱性">
                     <Box sx={{ textAlign: 'center', py: 2 }}>
                       <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 700 }}>

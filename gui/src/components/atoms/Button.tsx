@@ -19,8 +19,6 @@ export interface ButtonProps extends Omit<MuiButtonProps, 'sx'> {
   sx?: SxProps<Theme>;
 }
 
-const MotionButton = motion.create(MuiButton);
-
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -72,32 +70,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ...sx,
     };
 
-    if (animated) {
-      return (
-        <MotionButton
-          ref={ref}
-          variant={variant}
-          size={size}
-          color={color}
-          disabled={loading || disabled}
-          fullWidth={fullWidth}
-          sx={buttonSx}
-          onClick={handleClick}
-          whileHover={{ scale: disabled ? 1 : 1.02 }}
-          whileTap={{ scale: disabled ? 1 : 0.98 }}
-          transition={{
-            type: 'spring',
-            stiffness: 400,
-            damping: 17,
-          }}
-          {...props}
-        >
-          {buttonContent}
-        </MotionButton>
-      );
-    }
-
-    return (
+    const baseButton = (
       <MuiButton
         ref={ref}
         variant={variant}
@@ -112,6 +85,25 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {buttonContent}
       </MuiButton>
     );
+
+    if (animated) {
+      return (
+        <motion.div
+          style={{ display: 'inline-block', width: fullWidth ? '100%' : 'auto' }}
+          whileHover={{ scale: disabled ? 1 : 1.02 }}
+          whileTap={{ scale: disabled ? 1 : 0.98 }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 17,
+          }}
+        >
+          {baseButton}
+        </motion.div>
+      );
+    }
+
+    return baseButton;
   }
 );
 

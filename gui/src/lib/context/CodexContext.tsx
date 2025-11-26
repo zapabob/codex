@@ -225,6 +225,8 @@ function codexReducer(state: CodexState, action: CodexAction): CodexState {
   }
 }
 
+type CommandResult = { exitCode: number; stdout: string; stderr: string };
+
 interface CodexContextType {
   state: CodexState;
   dispatch: React.Dispatch<CodexAction>;
@@ -237,9 +239,16 @@ interface CodexContextType {
   loadConversations: () => Promise<void>;
   selectConversation: (conversation: Conversation) => Promise<void>;
   runAgent: (agentId: string, context: any) => Promise<void>;
-  runSecurityScan: (type: string, target: string) => Promise<void>;
-  runResearch: (query: string) => Promise<void>;
-  executeCommand: (command: string, cwd?: string) => Promise<void>;
+  runSecurityScan: (type: string, target: string) => Promise<SecurityScan>;
+  runResearch: (
+    query: string,
+    options?: {
+      depth?: number;
+      strategy?: 'comprehensive' | 'focused' | 'exploratory';
+      useGemini?: boolean;
+    },
+  ) => Promise<ResearchResult>;
+  executeCommand: (command: string, cwd?: string) => Promise<CommandResult>;
   loadMetrics: () => Promise<void>;
   clearError: () => void;
 }
@@ -500,7 +509,7 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const runSecurityScan = async (type: string, target: string) => {
+  const runSecurityScan = async (type: string, target: string): Promise<SecurityScan> => {
     try {
       const scan = await apiClient.runSecurityAudit({ path: target });
       dispatch({ type: 'ADD_SECURITY_SCAN', payload: scan });
@@ -515,7 +524,7 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     depth?: number;
     strategy?: 'comprehensive' | 'focused' | 'exploratory';
     useGemini?: boolean;
-  }) => {
+  }): Promise<ResearchResult> => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
@@ -579,7 +588,7 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const executeCommand = async (command: string, cwd?: string) => {
+  const executeCommand = async (command: string, cwd?: string): Promise<CommandResult> => {
     try {
       const result = await apiClient.executeCommand(command.split(' '), cwd);
       return result;

@@ -18,8 +18,6 @@ export interface CardProps extends Omit<MuiCardProps, 'sx'> {
   sx?: SxProps<Theme>;
 }
 
-const MotionCard = motion.create(MuiCard);
-
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
@@ -77,11 +75,16 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       </>
     );
 
+    const baseCard = (
+      <MuiCard ref={ref} sx={cardSx} {...props}>
+        {cardContent}
+      </MuiCard>
+    );
+
     if (animated) {
       return (
-        <MotionCard
-          ref={ref}
-          sx={cardSx}
+        <motion.div
+          style={{ width: '100%' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
@@ -90,18 +93,13 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
             stiffness: 300,
             damping: 30,
           }}
-          {...props}
         >
-          {cardContent}
-        </MotionCard>
+          {baseCard}
+        </motion.div>
       );
     }
 
-    return (
-      <MuiCard ref={ref} sx={cardSx} {...props}>
-        {cardContent}
-      </MuiCard>
-    );
+    return baseCard;
   }
 );
 

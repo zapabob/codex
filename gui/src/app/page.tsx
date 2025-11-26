@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-  Grid,
   Typography,
   Box,
   Paper,
@@ -10,6 +9,7 @@ import {
   Avatar,
   LinearProgress,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import { motion } from 'framer-motion';
 import {
   DashboardLayout,
@@ -204,7 +204,7 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} lg={3} key={stat.title}>
+          <Grid xs={12} sm={6} lg={3} key={stat.title}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -219,7 +219,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <Grid container spacing={3}>
         {/* Quick Actions */}
-        <Grid item xs={12} md={6}>
+        <Grid xs={12} md={6}>
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -265,7 +265,7 @@ export default function Dashboard() {
         </Grid>
 
         {/* Recent Activity */}
-        <Grid item xs={12} md={6}>
+        <Grid xs={12} md={6}>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -276,7 +276,7 @@ export default function Dashboard() {
         </Grid>
 
         {/* Performance Overview */}
-        <Grid item xs={12}>
+        <Grid xs={12}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

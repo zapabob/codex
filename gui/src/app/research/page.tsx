@@ -7,7 +7,6 @@ import {
   Paper,
   TextField,
   Button,
-  Grid,
   Card as MuiCard,
   CardContent,
   Chip,
@@ -26,6 +25,7 @@ import {
   IconButton,
   CircularProgress,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Search,
   ChevronDown,
@@ -181,7 +181,7 @@ export default function ResearchPage() {
           ) : (
             <Grid container spacing={3}>
               {state.researchResults.map((result) => (
-                <Grid item xs={12} key={result.id}>
+                <Grid xs={12} key={result.id}>
                   <MuiCard>
                     <CardContent>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -302,7 +302,7 @@ export default function ResearchPage() {
         {/* Research Tips */}
         <Card header="研究のヒント" sx={{ mt: 4 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                 効果的なクエリ例
               </Typography>
@@ -313,7 +313,7 @@ export default function ResearchPage() {
                 <li>パフォーマンスやセキュリティに関する質問</li>
               </Box>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                 研究結果の活用
               </Typography>

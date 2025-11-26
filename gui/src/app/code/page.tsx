@@ -14,14 +14,13 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Grid,
   Divider,
   IconButton,
   Tooltip,
 } from '@mui/material';
+import Grid from '@/mui/Grid2';
 import {
   Play,
-  Stop,
   Save,
   FolderOpen,
   Terminal,
@@ -251,7 +250,7 @@ export default function CodeExecutionPage() {
         {/* Controls */}
         <Card header="コード実行設定">
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={3}>
+            <Grid xs={12} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel>言語</InputLabel>
                 <Select
@@ -268,7 +267,7 @@ export default function CodeExecutionPage() {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={3}>
+            <Grid xs={12} md={3}>
               <TextField
                 fullWidth
                 size="small"
@@ -279,7 +278,7 @@ export default function CodeExecutionPage() {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <Button
                   variant="contained"
