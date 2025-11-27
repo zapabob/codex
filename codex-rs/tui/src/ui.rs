@@ -22,8 +22,10 @@ use crate::app::AppState;
 
 pub struct UiState {
     /// Current scroll position
+    #[allow(dead_code)]
     pub scroll: usize,
     /// Selected item index
+    #[allow(dead_code)]
     pub selected: usize,
 }
 

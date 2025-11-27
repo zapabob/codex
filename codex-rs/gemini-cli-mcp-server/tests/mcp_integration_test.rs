@@ -12,7 +12,6 @@ use std::io::BufReader;
 use std::io::Write;
 use std::process::Command;
 use std::process::Stdio;
-use std::time::Duration;
 
 /// MCPサーバーのバイナリパス取得
 fn get_mcp_server_path() -> String {

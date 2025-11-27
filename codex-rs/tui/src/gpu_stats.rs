@@ -16,6 +16,7 @@ pub(crate) struct GpuStatsSnapshot {
 /// Source of GPU statistics.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum GpuStatsSource {
+    #[allow(dead_code)]
     WindowsAi,
 }
 
@@ -89,15 +90,3 @@ impl GpuStatsProvider {
         None
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

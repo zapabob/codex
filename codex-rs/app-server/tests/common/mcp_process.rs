@@ -75,8 +75,8 @@ impl McpProcess {
         env_overrides: &[(&str, Option<&str>)],
     ) -> anyhow::Result<Self> {
         // Use assert_cmd to locate the binary path and then switch to tokio::process::Command
-        let std_cmd = StdCommand::cargo_bin("codex-app-server")
-            .context("should find binary for codex-mcp-server")?;
+        let bin_path = assert_cmd::cargo::cargo_bin("codex-app-server");
+        let std_cmd = StdCommand::new(bin_path);
 
         let program = std_cmd.get_program().to_owned();
 

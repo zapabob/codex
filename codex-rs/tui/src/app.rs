@@ -14,6 +14,7 @@ pub struct App {
     /// Application state
     pub state: AppState,
     /// UI state
+    #[allow(dead_code)]
     pub ui: UiState,
     /// Should quit
     pub should_quit: bool,

@@ -78,6 +78,7 @@ pub(crate) struct LegacyApp {
     pub(crate) backtrack: BacktrackState,
     pub(crate) feedback: codex_feedback::CodexFeedback,
     /// Set when the user confirms an update; propagated on exit.
+    #[allow(dead_code)]
     pub(crate) pending_update_action: Option<UpdateAction>,
 
     // One-shot suppression of the next world-writable scan after user confirmation.
@@ -249,6 +250,7 @@ impl LegacyApp {
         Ok(true)
     }
 
+    #[allow(dead_code)]
     pub fn draw(&mut self, f: &mut ratatui::Frame, area: ratatui::layout::Rect) {
         // Render chat widget
         self.chat_widget.render(area, f.buffer_mut());
@@ -563,6 +565,7 @@ impl LegacyApp {
         Ok(true)
     }
 
+    #[allow(dead_code)]
     pub(crate) fn token_usage(&self) -> codex_core::protocol::TokenUsage {
         self.chat_widget.token_usage()
     }

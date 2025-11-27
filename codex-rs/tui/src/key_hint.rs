@@ -90,6 +90,7 @@ fn key_hint_style() -> Style {
     Style::default().dim()
 }
 
+#[allow(dead_code)]
 pub(crate) fn has_ctrl_or_alt(mods: KeyModifiers) -> bool {
     (mods.contains(KeyModifiers::CONTROL) || mods.contains(KeyModifiers::ALT)) && !is_altgr(mods)
 }

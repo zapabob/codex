@@ -46,9 +46,9 @@ fn bench_commit_position_calculation_cuda(c: &mut Criterion) {
 
     for size in [1000, 10000, 100000] {
         group.bench_with_input(BenchmarkId::new("cuda", size), &size, |b, &size| {
-            let timestamps: Vec<f32> = (0..size).map(|i| i as f32).collect();
-            let branch_ids: Vec<i32> = (0..size).map(|i| (i % 10) as i32).collect();
-            let parent_counts: Vec<i32> = (0..size).map(|i| (i % 3) as i32).collect();
+            let _timestamps: Vec<f32> = (0..size).map(|i| i as f32).collect();
+            let _branch_ids: Vec<i32> = (0..size).map(|i| (i % 10) as i32).collect();
+            let _parent_counts: Vec<i32> = (0..size).map(|i| (i % 3) as i32).collect();
 
             b.iter(|| {
                 // Copy to GPU

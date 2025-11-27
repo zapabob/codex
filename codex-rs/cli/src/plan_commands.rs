@@ -51,13 +51,13 @@ pub enum PlanCommand {
     /// Approve a Plan
     Approve {
         /// Plan ID
-        Plan_id: String,
+        plan_id: String,
     },
 
     /// Reject a Plan
     Reject {
         /// Plan ID
-        Plan_id: String,
+        plan_id: String,
 
         /// Rejection reason
         #[clap(long)]
@@ -67,7 +67,7 @@ pub enum PlanCommand {
     /// Export a Plan
     Export {
         /// Plan ID
-        Plan_id: String,
+        plan_id: String,
 
         /// Export format (md, json, both)
         #[clap(long, default_value = "both")]
@@ -81,13 +81,13 @@ pub enum PlanCommand {
     /// Get Plan status
     Status {
         /// Plan ID
-        Plan_id: String,
+        plan_id: String,
     },
 
     /// Execute an approved Plan
     Execute {
         /// Plan ID
-        Plan_id: String,
+        plan_id: String,
     },
 
     /// Rollback a Plan execution
@@ -100,7 +100,7 @@ pub enum PlanCommand {
     Executions {
         /// Filter by Plan ID
         #[clap(long)]
-        Plan_id: Option<String>,
+        plan_id: Option<String>,
     },
 }
 
@@ -114,15 +114,15 @@ fn parse_bool_flag(s: &str) -> Result<bool, String> {
 }
 
 /// Run Plan CLI command
-pub async fn run_Plan_command(cli: PlanCli) -> Result<()> {
+pub async fn run_plan_command(cli: PlanCli) -> Result<()> {
     let home_dir = dirs::home_dir().context("Failed to get home directory")?;
-    let Plan_dir = home_dir.join(".codex").join("Plans");
+    let plan_dir = home_dir.join(".codex").join("Plans");
 
-    std::fs::create_dir_all(&Plan_dir).context("Failed to create Plans directory")?;
+    std::fs::create_dir_all(&plan_dir).context("Failed to create Plans directory")?;
 
     match cli.command {
         PlanCommand::Toggle { enabled } => {
-            toggle_Plan_mode(enabled, &Plan_dir)?;
+            toggle_plan_mode(enabled, &plan_dir)?;
         }
         PlanCommand::Create {
             title,
@@ -130,43 +130,46 @@ pub async fn run_Plan_command(cli: PlanCli) -> Result<()> {
             budget_tokens,
             budget_time,
         } => {
-            create_Plan(title, mode, budget_tokens, budget_time, &Plan_dir)?;
+            create_plan(title, mode, budget_tokens, budget_time, &plan_dir)?;
         }
         PlanCommand::List { state } => {
-            list_Plans(state, &Plan_dir)?;
+            list_plans(state, &plan_dir)?;
         }
-        PlanCommand::Approve { Plan_id } => {
-            approve_Plan(&Plan_id, &Plan_dir)?;
+        PlanCommand::Approve { Plan_id: plan_id } => {
+            approve_plan(&plan_id, &plan_dir)?;
         }
-        PlanCommand::Reject { Plan_id, reason } => {
-            reject_Plan(&Plan_id, &reason, &Plan_dir)?;
+        PlanCommand::Reject {
+            Plan_id: plan_id,
+            reason,
+        } => {
+            reject_plan(&plan_id, &reason, &plan_dir)?;
         }
         PlanCommand::Export {
-            Plan_id,
+            Plan_id: plan_id,
             format,
             path,
         } => {
-            export_Plan(&Plan_id, &format, &path, &Plan_dir)?;
+            export_plan(&plan_id, &format, &path, &plan_dir)?;
         }
-        PlanCommand::Status { Plan_id } => {
-            get_Plan_status(&Plan_id, &Plan_dir)?;
+        PlanCommand::Status { Plan_id: plan_id } => {
+            get_plan_status(&plan_id, &plan_dir)?;
         }
-        PlanCommand::Execute { Plan_id } => {
-            execute_Plan(&Plan_id, &Plan_dir).await?;
+        PlanCommand::Execute { Plan_id: plan_id } => {
+            execute_plan(&plan_id, &plan_dir).await?;
         }
         PlanCommand::Rollback { execution_id } => {
-            rollback_execution(&execution_id, &Plan_dir).await?;
+            rollback_execution(&execution_id, &plan_dir).await?;
         }
-        PlanCommand::Executions { Plan_id } => {
-            list_executions(Plan_id, &Plan_dir).await?;
+        PlanCommand::Executions { Plan_id: plan_id } => {
+            list_executions(plan_id, &plan_dir).await?;
         }
     }
 
     Ok(())
 }
 
-fn toggle_Plan_mode(enabled: bool, Plan_dir: &PathBuf) -> Result<()> {
-    let state_file = Plan_dir.join("mode_state.json");
+fn toggle_plan_mode(enabled: bool, plan_dir: &PathBuf) -> Result<()> {
+    let state_file = plan_dir.join("mode_state.json");
 
     let state = serde_json::json!({
         "enabled": enabled,
@@ -187,12 +190,12 @@ fn toggle_Plan_mode(enabled: bool, Plan_dir: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-fn create_Plan(
+fn create_plan(
     title: String,
     mode: ExecutionMode,
     budget_tokens: u64,
     budget_time: u64,
-    Plan_dir: &PathBuf,
+    plan_dir: &PathBuf,
 ) -> Result<()> {
     let now = chrono::Utc::now();
     let id = format!(
@@ -201,7 +204,7 @@ fn create_Plan(
         slug::slugify(&title)
     );
 
-    let Plan = PlanBlock {
+    let plan = PlanBlock {
         id: id.clone(),
         title: title.clone(),
         goal: title.clone(),
@@ -227,12 +230,12 @@ fn create_Plan(
         created_by: Some("cli-user".to_string()),
     };
 
-    let Plan_file = Plan_dir.join(format!("{}.json", id));
-    std::fs::write(&Plan_file, serde_json::to_string_pretty(&Plan)?)
+    let plan_file = plan_dir.join(format!("{}.json", id));
+    std::fs::write(&plan_file, serde_json::to_string_pretty(&plan)?)
         .context("Failed to write Plan")?;
 
     println!("✅ Plan created: {}", id);
-    println!("📋 Status: {:?}", Plan.state);
+    println!("📋 Status: {:?}", plan.state);
     println!("🎯 Mode: {}", mode);
     println!(
         "💰 Budget: {} tokens, {} minutes",
@@ -247,10 +250,10 @@ fn create_Plan(
     Ok(())
 }
 
-fn list_Plans(state_filter: Option<String>, Plan_dir: &PathBuf) -> Result<()> {
-    let entries = std::fs::read_dir(Plan_dir).context("Failed to read Plans directory")?;
+fn list_plans(state_filter: Option<String>, plan_dir: &PathBuf) -> Result<()> {
+    let entries = std::fs::read_dir(plan_dir).context("Failed to read Plans directory")?;
 
-    let mut plan: Vec<PlanBlock> = Vec::new();
+    let mut plans: Vec<PlanBlock> = Vec::new();
 
     for entry in entries {
         let entry = entry?;
@@ -258,15 +261,15 @@ fn list_Plans(state_filter: Option<String>, Plan_dir: &PathBuf) -> Result<()> {
 
         if path.extension().and_then(|s| s.to_str()) == Some("json") {
             if let Ok(content) = std::fs::read_to_string(&path) {
-                if let Ok(Plan) = serde_json::from_str::<PlanBlock>(&content) {
+                if let Ok(plan) = serde_json::from_str::<PlanBlock>(&content) {
                     // Apply state filter if specified
                     if let Some(ref filter) = state_filter {
-                        let state_str = format!("{:?}", Plan.state).to_lowercase();
+                        let state_str = format!("{:?}", plan.state).to_lowercase();
                         if state_str.contains(&filter.to_lowercase()) {
-                            plan.push(Plan);
+                            plans.push(plan);
                         }
                     } else {
-                        plan.push(Plan);
+                        plans.push(plan);
                     }
                 }
             }
@@ -274,17 +277,17 @@ fn list_Plans(state_filter: Option<String>, Plan_dir: &PathBuf) -> Result<()> {
     }
 
     // Sort by creation date (newest first)
-    plan.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    plans.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
-    if plan.is_empty() {
+    if plans.is_empty() {
         println!("📋 No Plans found.");
         return Ok(());
     }
 
-    println!("📋 Plans ({})", plan.len());
+    println!("📋 Plans ({})", plans.len());
     println!();
 
-    for bp in plan {
+    for bp in plans {
         let status_icon = match bp.state {
             PlanState::Inactive => "⚪",
             PlanState::Drafting => "📝",
@@ -327,53 +330,53 @@ fn list_Plans(state_filter: Option<String>, Plan_dir: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-fn approve_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
-    let Plan_file = Plan_dir.join(format!("{}.json", Plan_id));
+fn approve_plan(plan_id: &str, plan_dir: &PathBuf) -> Result<()> {
+    let plan_file = plan_dir.join(format!("{}.json", plan_id));
 
-    if !Plan_file.exists() {
-        anyhow::bail!("Plan not found: {}", Plan_id);
+    if !plan_file.exists() {
+        anyhow::bail!("Plan not found: {}", plan_id);
     }
 
-    let content = std::fs::read_to_string(&Plan_file)?;
-    let mut Plan: PlanBlock = serde_json::from_str(&content)?;
+    let content = std::fs::read_to_string(&plan_file)?;
+    let mut plan: PlanBlock = serde_json::from_str(&content)?;
 
-    Plan.state = Plan
+    plan.state = plan
         .state
         .clone()
         .approve("cli-user".to_string())
         .context("Failed to approve Plan")?;
-    Plan.updated_at = chrono::Utc::now();
+    plan.updated_at = chrono::Utc::now();
 
-    std::fs::write(&Plan_file, serde_json::to_string_pretty(&Plan)?)?;
+    std::fs::write(&plan_file, serde_json::to_string_pretty(&plan)?)?;
 
-    println!("✅ Plan {} approved", Plan_id);
+    println!("✅ Plan {} approved", plan_id);
     println!("🚀 Ready for execution");
     println!();
-    println!("Execute with: codex execute {}", Plan_id);
+    println!("Execute with: codex execute {}", plan_id);
 
     Ok(())
 }
 
-fn reject_Plan(Plan_id: &str, reason: &str, Plan_dir: &PathBuf) -> Result<()> {
-    let Plan_file = Plan_dir.join(format!("{}.json", Plan_id));
+fn reject_plan(plan_id: &str, reason: &str, plan_dir: &PathBuf) -> Result<()> {
+    let plan_file = plan_dir.join(format!("{}.json", plan_id));
 
-    if !Plan_file.exists() {
-        anyhow::bail!("Plan not found: {}", Plan_id);
+    if !plan_file.exists() {
+        anyhow::bail!("Plan not found: {}", plan_id);
     }
 
-    let content = std::fs::read_to_string(&Plan_file)?;
-    let mut Plan: PlanBlock = serde_json::from_str(&content)?;
+    let content = std::fs::read_to_string(&plan_file)?;
+    let mut plan: PlanBlock = serde_json::from_str(&content)?;
 
-    Plan.state = Plan
+    plan.state = plan
         .state
         .clone()
         .reject(reason.to_string(), Some("cli-user".to_string()))
         .context("Failed to reject Plan")?;
-    Plan.updated_at = chrono::Utc::now();
+    plan.updated_at = chrono::Utc::now();
 
-    std::fs::write(&Plan_file, serde_json::to_string_pretty(&Plan)?)?;
+    std::fs::write(&plan_file, serde_json::to_string_pretty(&plan)?)?;
 
-    println!("❌ Plan {} rejected", Plan_id);
+    println!("❌ Plan {} rejected", plan_id);
     println!("📝 Reason: {}", reason);
     println!();
     println!("You can create a new Plan based on this feedback.");
@@ -381,20 +384,20 @@ fn reject_Plan(Plan_id: &str, reason: &str, Plan_dir: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-fn export_Plan(
-    Plan_id: &str,
+fn export_plan(
+    plan_id: &str,
     format: &str,
     export_path: &PathBuf,
-    Plan_dir: &PathBuf,
+    plan_dir: &PathBuf,
 ) -> Result<()> {
-    let Plan_file = Plan_dir.join(format!("{}.json", Plan_id));
+    let plan_file = plan_dir.join(format!("{}.json", plan_id));
 
-    if !Plan_file.exists() {
-        anyhow::bail!("Plan not found: {}", Plan_id);
+    if !plan_file.exists() {
+        anyhow::bail!("Plan not found: {}", plan_id);
     }
 
-    let content = std::fs::read_to_string(&Plan_file)?;
-    let Plan: PlanBlock = serde_json::from_str(&content)?;
+    let content = std::fs::read_to_string(&plan_file)?;
+    let plan: PlanBlock = serde_json::from_str(&content)?;
 
     std::fs::create_dir_all(export_path).context("Failed to create export directory")?;
 
@@ -402,15 +405,15 @@ fn export_Plan(
     let export_json = format == "json" || format == "both";
 
     if export_markdown {
-        let md_path = export_path.join(format!("{}.md", Plan_id));
-        let markdown = generate_markdown(&Plan);
+        let md_path = export_path.join(format!("{}.md", plan_id));
+        let markdown = generate_markdown(&plan);
         std::fs::write(&md_path, markdown)?;
         println!("📄 Exported markdown: {}", md_path.display());
     }
 
     if export_json {
-        let json_path = export_path.join(format!("{}.json", Plan_id));
-        std::fs::write(&json_path, serde_json::to_string_pretty(&Plan)?)?;
+        let json_path = export_path.join(format!("{}.json", plan_id));
+        std::fs::write(&json_path, serde_json::to_string_pretty(&plan)?)?;
         println!("📄 Exported JSON: {}", json_path.display());
     }
 
@@ -516,17 +519,17 @@ fn generate_markdown(bp: &PlanBlock) -> String {
     )
 }
 
-fn get_Plan_status(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
-    let Plan_file = Plan_dir.join(format!("{}.json", Plan_id));
+fn get_plan_status(plan_id: &str, plan_dir: &PathBuf) -> Result<()> {
+    let plan_file = plan_dir.join(format!("{}.json", plan_id));
 
-    if !Plan_file.exists() {
-        anyhow::bail!("Plan not found: {}", Plan_id);
+    if !plan_file.exists() {
+        anyhow::bail!("Plan not found: {}", plan_id);
     }
 
-    let content = std::fs::read_to_string(&Plan_file)?;
-    let Plan: PlanBlock = serde_json::from_str(&content)?;
+    let content = std::fs::read_to_string(&plan_file)?;
+    let plan: PlanBlock = serde_json::from_str(&content)?;
 
-    let status_icon = match &Plan.state {
+    let status_icon = match &plan.state {
         PlanState::Inactive => "⚪",
         PlanState::Drafting => "📝",
         PlanState::Pending { .. } => "⏳",
@@ -538,22 +541,22 @@ fn get_Plan_status(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
         PlanState::Failed { .. } => "💥",
     };
 
-    println!("{} Plan: {}", status_icon, Plan.title);
+    println!("{} Plan: {}", status_icon, plan.title);
     println!();
-    println!("ID: {}", Plan.id);
-    println!("Status: {}", Plan.state);
-    println!("Mode: {}", Plan.mode);
-    println!("Created: {}", Plan.created_at.format("%Y-%m-%d %H:%M:%S"));
-    println!("Updated: {}", Plan.updated_at.format("%Y-%m-%d %H:%M:%S"));
+    println!("ID: {}", plan.id);
+    println!("Status: {}", plan.state);
+    println!("Mode: {}", plan.mode);
+    println!("Created: {}", plan.created_at.format("%Y-%m-%d %H:%M:%S"));
+    println!("Updated: {}", plan.updated_at.format("%Y-%m-%d %H:%M:%S"));
     println!();
-    println!("Goal: {}", Plan.goal);
+    println!("Goal: {}", plan.goal);
     println!();
     println!("Budget:");
-    println!("  Tokens: {}", Plan.budget.session_cap.unwrap_or(100000));
-    println!("  Time: {} minutes", Plan.budget.cap_min.unwrap_or(30));
+    println!("  Tokens: {}", plan.budget.session_cap.unwrap_or(100000));
+    println!("  Time: {} minutes", plan.budget.cap_min.unwrap_or(30));
     println!();
 
-    match &Plan.state {
+    match &plan.state {
         PlanState::Approved {
             approved_by,
             approved_at,
@@ -620,22 +623,18 @@ fn parse_execution_mode(s: &str) -> Result<ExecutionMode, String> {
     }
 }
 
-async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
-    use codex_core::plan::{ExecutionEvent, PlanExecutor};
-    use codex_core::orchestration::PlanOrchestrator;
-    use std::sync::Arc;
+async fn execute_plan(plan_id: &str, plan_dir: &PathBuf) -> Result<()> {
+    let plan_file = plan_dir.join(format!("{}.json", plan_id));
 
-    let Plan_file = Plan_dir.join(format!("{}.json", Plan_id));
-
-    if !Plan_file.exists() {
-        anyhow::bail!("Plan not found: {}", Plan_id);
+    if !plan_file.exists() {
+        anyhow::bail!("Plan not found: {}", plan_id);
     }
 
-    let content = std::fs::read_to_string(&Plan_file)?;
-    let Plan: codex_core::plan::PlanBlock = serde_json::from_str(&content)?;
+    let content = std::fs::read_to_string(&plan_file)?;
+    let plan: codex_core::plan::PlanBlock = serde_json::from_str(&content)?;
 
-    println!("🚀 Executing Plan: {}", Plan.title);
-    println!("📋 ID: {}", Plan.id);
+    println!("🚀 Executing Plan: {}", plan.title);
+    println!("📋 ID: {}", plan.id);
     println!("⏱️  Starting execution...");
     println!();
 
@@ -643,11 +642,11 @@ async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
     // Full execution requires PlanOrchestrator which needs AgentRuntime
     // For now, we just update the state and show a message
 
-    if !Plan.state.can_execute() {
+    if !plan.state.can_execute() {
         anyhow::bail!(
             "Plan is not approved. Current state: {}. Please approve it first with: codex Plan approve {}",
-            Plan.state,
-            Plan_id
+            plan.state,
+            plan_id
         );
     }
 
@@ -655,7 +654,7 @@ async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
     println!("📝 Note: Full orchestrated execution requires agent runtime setup");
     println!();
     println!("Simulated execution steps:");
-    for (i, work_item) in Plan.work_items.iter().enumerate() {
+    for (i, work_item) in plan.work_items.iter().enumerate() {
         println!(
             "  {}. {} (files: {})",
             i + 1,
@@ -669,15 +668,15 @@ async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
     println!("Next steps:");
     println!(
         "  1. Check execution logs: codex Plan executions --Plan-id {}",
-        Plan_id
+        plan_id
     );
     println!("  2. If needed, rollback: codex Plan rollback <execution-id>");
 
     Ok(())
 }
 
-async fn rollback_execution(execution_id: &str, Plan_dir: &PathBuf) -> Result<()> {
-    let executions_dir = Plan_dir.join("executions");
+async fn rollback_execution(execution_id: &str, plan_dir: &PathBuf) -> Result<()> {
+    let executions_dir = plan_dir.join("executions");
     let execution_file = executions_dir.join(format!("{}.json", execution_id));
 
     if !execution_file.exists() {
@@ -696,8 +695,8 @@ async fn rollback_execution(execution_id: &str, Plan_dir: &PathBuf) -> Result<()
     Ok(())
 }
 
-async fn list_executions(Plan_id: Option<String>, Plan_dir: &PathBuf) -> Result<()> {
-    let executions_dir = Plan_dir.join("executions");
+async fn list_executions(plan_id: Option<String>, plan_dir: &PathBuf) -> Result<()> {
+    let executions_dir = plan_dir.join("executions");
 
     if !executions_dir.exists() {
         println!("📋 No execution history found.");
@@ -718,8 +717,8 @@ async fn list_executions(Plan_id: Option<String>, Plan_dir: &PathBuf) -> Result<
         if path.extension().and_then(|s| s.to_str()) == Some("json") {
             if let Ok(content) = std::fs::read_to_string(&path) {
                 if let Ok(result) = serde_json::from_str::<serde_json::Value>(&content) {
-                    if let Some(bp_id) = Plan_id.as_ref() {
-                        if result.get("Plan_id").and_then(|v| v.as_str()) != Some(bp_id) {
+                    if let Some(bp_id) = plan_id.as_ref() {
+                        if result.get("plan_id").and_then(|v| v.as_str()) != Some(bp_id) {
                             continue;
                         }
                     }
@@ -757,5 +756,5 @@ async fn list_executions(Plan_id: Option<String>, Plan_dir: &PathBuf) -> Result<
 }
 
 #[cfg(test)]
-#[path = "Plan_commands_test.rs"]
-mod Plan_commands_test;
+#[path = "plan_commands_test.rs"]
+mod plan_commands_test;

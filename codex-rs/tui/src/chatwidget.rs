@@ -2690,6 +2690,7 @@ impl ChatWidget {
     /// Programmatically submit a user text message as if typed in the
     /// composer. The text will be added to conversation history and sent to
     /// the agent.
+    #[allow(dead_code)]
     pub(crate) fn submit_text_message(&mut self, text: String) {
         if text.is_empty() {
             return;
@@ -2715,6 +2716,7 @@ impl ChatWidget {
         self.submit_user_message(processed_text.into());
     }
 
+    #[allow(dead_code)]
     pub(crate) fn token_usage(&self) -> TokenUsage {
         self.token_info
             .as_ref()
