@@ -3,10 +3,10 @@
 //! Provides mathematical and quantum optimization algorithms
 //! for selecting optimal code implementations.
 
-use std::collections::HashMap;
+use crate::Result;
 use ndarray::{Array2, Axis};
 use serde::{Deserialize, Serialize};
-use crate::Result;
+use std::collections::HashMap;
 
 /// Code quality metrics
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,7 +101,9 @@ impl LinearProgrammingSolver {
         let mut solution = Vec::new();
         for i in 0..n {
             let col = tableau.column(i);
-            let basic_var_index = col.iter().position(|&x| x == 1.0)
+            let basic_var_index = col
+                .iter()
+                .position(|&x| x == 1.0)
                 .filter(|&idx| idx < m)
                 .unwrap_or(m);
 
@@ -119,7 +121,8 @@ impl LinearProgrammingSolver {
         loop {
             // Find entering variable (most negative in objective row)
             let objective_row = tableau.row(m);
-            let entering_col = objective_row.iter()
+            let entering_col = objective_row
+                .iter()
                 .take(n + m)
                 .enumerate()
                 .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
@@ -227,14 +230,16 @@ impl QuantumApproximateOptimizer {
 
         // Apply direction
         match problem.objective.direction {
-            OptimizationDirection::Maximize => {},
+            OptimizationDirection::Maximize => {}
             OptimizationDirection::Minimize => value = -value,
         }
 
         // Check constraints (penalty method)
         let mut penalty = 0.0;
         for constraint in &problem.constraints {
-            let constraint_value: f64 = constraint.coefficients.iter()
+            let constraint_value: f64 = constraint
+                .coefficients
+                .iter()
                 .zip(solution.iter())
                 .map(|(c, s)| c * s)
                 .sum();
@@ -276,7 +281,8 @@ impl CodeSelectionOptimizer {
         let solution = self.solve_multi_objective(&problem)?;
 
         // Find best candidate based on solution
-        let best_index = solution.iter()
+        let best_index = solution
+            .iter()
             .enumerate()
             .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
             .map(|(idx, _)| idx)
@@ -297,9 +303,11 @@ impl CodeSelectionOptimizer {
 
         // Objective: maximize weighted score
         let objective = ObjectiveFunction {
-            coefficients: candidates.iter().enumerate().map(|(i, candidate)| {
-                self.calculate_candidate_score(candidate, requirements)
-            }).collect(),
+            coefficients: candidates
+                .iter()
+                .enumerate()
+                .map(|(i, candidate)| self.calculate_candidate_score(candidate, requirements))
+                .collect(),
             direction: OptimizationDirection::Maximize,
         };
 
@@ -341,7 +349,11 @@ impl CodeSelectionOptimizer {
         }
     }
 
-    fn calculate_candidate_score(&self, candidate: &CodeImplementation, requirements: &CodeRequirements) -> f64 {
+    fn calculate_candidate_score(
+        &self,
+        candidate: &CodeImplementation,
+        requirements: &CodeRequirements,
+    ) -> f64 {
         let mut score = 0.0;
 
         // Performance weight
@@ -357,7 +369,8 @@ impl CodeSelectionOptimizer {
         score += candidate.metrics.test_coverage * requirements.weights.test_coverage;
 
         // Complexity penalty
-        let complexity_penalty = (candidate.metrics.complexity - requirements.target_complexity).max(0.0) * 0.1;
+        let complexity_penalty =
+            (candidate.metrics.complexity - requirements.target_complexity).max(0.0) * 0.1;
         score -= complexity_penalty;
 
         score

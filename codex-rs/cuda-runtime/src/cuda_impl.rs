@@ -2,12 +2,12 @@
 //! https://github.com/Rust-GPU/Rust-CUDA
 
 use anyhow::Result;
-use cust::memory::{DeviceBuffer, DeviceCopy};
+use cust::CudaFlags;
 use cust::context::Context as CudaContext;
 use cust::device::Device;
+use cust::memory::{DeviceBuffer, DeviceCopy};
 use cust::stream::Stream;
 use cust::stream::StreamFlags;
-use cust::CudaFlags;
 use tracing::{debug, info};
 
 use crate::CudaDeviceInfo;
@@ -55,7 +55,9 @@ impl CudaRuntimeImpl {
 
     /// Get device information
     pub fn get_device_info(&self) -> Result<CudaDeviceInfo> {
-        let name = self.device.name()
+        let name = self
+            .device
+            .name()
             .map_err(|e| anyhow::anyhow!("Failed to get device name: {e}"))?;
 
         // NOTE: cust 0.3 API may not have compute_capability() method
@@ -85,9 +87,8 @@ impl CudaRuntimeImpl {
     pub fn copy_to_device<T: DeviceCopy>(&self, data: &[T]) -> Result<DeviceBufferImpl<T>> {
         debug!("Copying {} elements to device", data.len());
 
-        let device_buffer =
-            DeviceBuffer::from_slice(data)
-                .map_err(|e| anyhow::anyhow!("Failed to allocate device memory: {e}"))?;
+        let device_buffer = DeviceBuffer::from_slice(data)
+            .map_err(|e| anyhow::anyhow!("Failed to allocate device memory: {e}"))?;
 
         Ok(DeviceBufferImpl {
             buffer: device_buffer,
@@ -96,7 +97,7 @@ impl CudaRuntimeImpl {
     }
 
     /// Copy data from device
-    /// 
+    ///
     /// NOTE: cust 0.3 API may not have copy_to method
     /// Using placeholder implementation until API is confirmed
     pub fn copy_from_device<T: DeviceCopy + Clone + Default>(
@@ -109,14 +110,14 @@ impl CudaRuntimeImpl {
         // For now, return empty vector as placeholder
         // This should be fixed when actual cust API is available
         let host_data = vec![T::default(); buffer.len()];
-        
+
         // Note: DeviceBuffer::copy_to may have different API in cust 0.3
         // This is a placeholder implementation
         Ok(host_data)
     }
 
     /// Allocate device memory
-    /// 
+    ///
     /// NOTE: DeviceBuffer::zeroed requires Zeroable trait in cust 0.3
     /// For now, allocate by creating default data and copying to device
     pub fn allocate<T: DeviceCopy + Default>(&self, size: usize) -> Result<DeviceBufferImpl<T>> {
@@ -125,9 +126,8 @@ impl CudaRuntimeImpl {
         // Allocate by creating default data and copying to device
         // This avoids Zeroable trait requirement
         let default_data: Vec<T> = (0..size).map(|_| T::default()).collect();
-        let device_buffer =
-            DeviceBuffer::from_slice(&default_data)
-                .map_err(|e| anyhow::anyhow!("Failed to allocate device memory: {e}"))?;
+        let device_buffer = DeviceBuffer::from_slice(&default_data)
+            .map_err(|e| anyhow::anyhow!("Failed to allocate device memory: {e}"))?;
 
         Ok(DeviceBufferImpl {
             buffer: device_buffer,
@@ -137,7 +137,7 @@ impl CudaRuntimeImpl {
 }
 
 /// Device buffer implementation
-/// 
+///
 /// NOTE: T must implement DeviceCopy trait (required by cust::memory::DeviceBuffer)
 pub struct DeviceBufferImpl<T: DeviceCopy> {
     #[allow(dead_code)] // Reserved for future device-to-host copy operations

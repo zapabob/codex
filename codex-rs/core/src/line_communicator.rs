@@ -7,12 +7,12 @@
 //! - File upload/download via LINE
 //! - Real-time development collaboration
 
+use crate::Result;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
-use serde::{Deserialize, Serialize};
-use reqwest::Client;
-use crate::Result;
 
 /// LINE message types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,24 +39,13 @@ pub struct LineMessage {
 /// Development command from LINE
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DevelopmentCommand {
-    ExecuteCode {
-        code: String,
-        language: String,
-    },
-    CreateFile {
-        path: String,
-        content: String,
-    },
-    ReadFile {
-        path: String,
-    },
+    ExecuteCode { code: String, language: String },
+    CreateFile { path: String, content: String },
+    ReadFile { path: String },
     RunTests,
     DeployApp,
     StatusCheck,
-    CustomCommand {
-        command: String,
-        args: Vec<String>,
-    },
+    CustomCommand { command: String, args: Vec<String> },
 }
 
 /// LINE API response
@@ -157,9 +146,10 @@ impl LineCommunicator {
     pub async fn handle_webhook(&self, events: Vec<serde_json::Value>) -> Result<()> {
         for event in events {
             if let Some(message_event) = Self::parse_line_event(event)? {
-                self.command_tx.send(CommunicationCommand::HandleIncomingMessage {
-                    message: message_event,
-                })?;
+                self.command_tx
+                    .send(CommunicationCommand::HandleIncomingMessage {
+                        message: message_event,
+                    })?;
             }
         }
 
@@ -167,14 +157,19 @@ impl LineCommunicator {
     }
 
     /// Execute development command from LINE
-    pub async fn execute_command(&self, user_id: &str, command: DevelopmentCommand) -> Result<String> {
+    pub async fn execute_command(
+        &self,
+        user_id: &str,
+        command: DevelopmentCommand,
+    ) -> Result<String> {
         let (tx, rx) = oneshot::channel();
 
-        self.command_tx.send(CommunicationCommand::ExecuteDevelopmentCommand {
-            user_id: user_id.to_string(),
-            command,
-            response: tx,
-        })?;
+        self.command_tx
+            .send(CommunicationCommand::ExecuteDevelopmentCommand {
+                user_id: user_id.to_string(),
+                command,
+                response: tx,
+            })?;
 
         rx.await?
     }
@@ -229,14 +224,22 @@ impl LineCommunicator {
 
         while let Some(cmd) = rx.recv().await {
             match cmd {
-                CommunicationCommand::SendMessage { user_id, message, response } => {
+                CommunicationCommand::SendMessage {
+                    user_id,
+                    message,
+                    response,
+                } => {
                     let result = self.send_line_message(&user_id, &message).await;
                     let _ = response.send(result);
                 }
                 CommunicationCommand::HandleIncomingMessage { message } => {
                     self.handle_incoming_message(message).await?;
                 }
-                CommunicationCommand::ExecuteDevelopmentCommand { user_id, command, response } => {
+                CommunicationCommand::ExecuteDevelopmentCommand {
+                    user_id,
+                    command,
+                    response,
+                } => {
                     let result = self.execute_development_command(&user_id, command).await;
                     let _ = response.send(result);
                 }
@@ -261,10 +264,14 @@ impl LineCommunicator {
             }]
         });
 
-        let response = self.client
+        let response = self
+            .client
             .post("https://api.line.me/v2/bot/message/push")
             .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", self.config.channel_access_token))
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.config.channel_access_token),
+            )
             .json(&payload)
             .send()
             .await?;
@@ -283,7 +290,9 @@ impl LineCommunicator {
         // Parse and execute command
         if let Some(text) = &message.text {
             if let Some(command) = self.parse_command(text) {
-                let result = self.execute_development_command(&message.sender_id, command).await?;
+                let result = self
+                    .execute_development_command(&message.sender_id, command)
+                    .await?;
 
                 // Send result back to user
                 self.send_message(&message.sender_id, &result).await?;
@@ -340,24 +349,37 @@ impl LineCommunicator {
         None
     }
 
-    async fn execute_development_command(&self, user_id: &str, command: DevelopmentCommand) -> Result<String> {
+    async fn execute_development_command(
+        &self,
+        user_id: &str,
+        command: DevelopmentCommand,
+    ) -> Result<String> {
         // Check session and permissions
         let sessions = self.active_sessions.lock().unwrap();
-        let session = sessions.get(user_id)
+        let session = sessions
+            .get(user_id)
             .ok_or("No active development session")?;
 
         // Execute command based on type
         match command {
-            DevelopmentCommand::ExecuteCode { code, language } => {
-                Ok(format!("Executing {} code:\n{}\n\nResult: Code executed successfully", language, code))
-            }
+            DevelopmentCommand::ExecuteCode { code, language } => Ok(format!(
+                "Executing {} code:\n{}\n\nResult: Code executed successfully",
+                language, code
+            )),
             DevelopmentCommand::CreateFile { path, content } => {
                 // In real implementation, create file safely
-                Ok(format!("Created file: {}\nContent length: {} characters", path, content.len()))
+                Ok(format!(
+                    "Created file: {}\nContent length: {} characters",
+                    path,
+                    content.len()
+                ))
             }
             DevelopmentCommand::ReadFile { path } => {
                 // In real implementation, read file safely
-                Ok(format!("Reading file: {}\nContent: [file content would appear here]", path))
+                Ok(format!(
+                    "Reading file: {}\nContent: [file content would appear here]",
+                    path
+                ))
             }
             DevelopmentCommand::RunTests => {
                 Ok("Running tests...\n✅ All tests passed!".to_string())
@@ -365,15 +387,20 @@ impl LineCommunicator {
             DevelopmentCommand::DeployApp => {
                 Ok("Deploying application...\n🚀 Deployment successful!".to_string())
             }
-            DevelopmentCommand::StatusCheck => {
-                Ok(format!("Session Status:\nUser: {}\nProject: {}\nPermissions: {}",
-                    session.user_name,
-                    session.current_project.as_ref().unwrap_or(&"None".to_string()),
-                    session.permissions.join(", ")))
-            }
-            DevelopmentCommand::CustomCommand { command, args } => {
-                Ok(format!("Executing: {} {}\nResult: Command completed", command, args.join(" ")))
-            }
+            DevelopmentCommand::StatusCheck => Ok(format!(
+                "Session Status:\nUser: {}\nProject: {}\nPermissions: {}",
+                session.user_name,
+                session
+                    .current_project
+                    .as_ref()
+                    .unwrap_or(&"None".to_string()),
+                session.permissions.join(", ")
+            )),
+            DevelopmentCommand::CustomCommand { command, args } => Ok(format!(
+                "Executing: {} {}\nResult: Command completed",
+                command,
+                args.join(" ")
+            )),
         }
     }
 
@@ -417,12 +444,18 @@ Example: /code python print("Hello!")
 Example: /run git status
 
 For more help, visit: https://codex.dev/remote-dev
-"#.to_string()
+"#
+        .to_string()
     }
 
     /// Get active sessions
     pub fn get_active_sessions(&self) -> Vec<DevelopmentSession> {
-        self.active_sessions.lock().unwrap().values().cloned().collect()
+        self.active_sessions
+            .lock()
+            .unwrap()
+            .values()
+            .cloned()
+            .collect()
     }
 
     /// Set user permissions
@@ -454,11 +487,17 @@ mod tests {
 
         // Test code execution command
         let command = communicator.parse_command("/code python print('hello')");
-        assert!(matches!(command, Some(DevelopmentCommand::ExecuteCode { .. })));
+        assert!(matches!(
+            command,
+            Some(DevelopmentCommand::ExecuteCode { .. })
+        ));
 
         // Test file creation command
         let file_command = communicator.parse_command("/file test.txt Hello World");
-        assert!(matches!(file_command, Some(DevelopmentCommand::CreateFile { .. })));
+        assert!(matches!(
+            file_command,
+            Some(DevelopmentCommand::CreateFile { .. })
+        ));
 
         // Test invalid command
         let invalid = communicator.parse_command("invalid command");

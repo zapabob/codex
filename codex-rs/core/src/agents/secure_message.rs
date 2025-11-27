@@ -267,7 +267,8 @@ impl SecureAgentChannel {
         let signature_data = self.build_signature_data(&msg.encrypted_content, &msg.metadata)?;
 
         // Verify Ed25519 signature
-        let signature_bytes: [u8; 64] = msg.signature
+        let signature_bytes: [u8; 64] = msg
+            .signature
             .clone()
             .try_into()
             .map_err(|_| anyhow::anyhow!("Invalid signature length"))?;

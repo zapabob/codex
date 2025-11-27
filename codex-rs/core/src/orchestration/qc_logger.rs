@@ -7,8 +7,8 @@ use anyhow::Context;
 use anyhow::Result;
 use chrono::Utc;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
 use std::fs;
+use std::path::{Path, PathBuf};
 use tracing::{debug, info};
 
 /// Quality Control logger
@@ -23,19 +23,14 @@ impl QcLogger {
 
         // Create logs directory if it doesn't exist
         if !logs_dir.exists() {
-            fs::create_dir_all(&logs_dir)
-                .context("Failed to create logs directory")?;
+            fs::create_dir_all(&logs_dir).context("Failed to create logs directory")?;
         }
 
         Ok(Self { logs_dir })
     }
 
     /// Log QC result and merge decision
-    pub async fn log_qc_result(
-        &self,
-        report: &QcReport,
-        merge_decision: &str,
-    ) -> Result<PathBuf> {
+    pub async fn log_qc_result(&self, report: &QcReport, merge_decision: &str) -> Result<PathBuf> {
         let timestamp = Utc::now();
         let date_str = timestamp.format("%Y-%m-%d").to_string();
         let time_str = timestamp.format("%H-%M-%S").to_string();
@@ -96,8 +91,7 @@ impl QcLogger {
             serde_json::to_string_pretty(&report.metrics).unwrap_or_default()
         );
 
-        fs::write(&filepath, content)
-            .context("Failed to write QC log file")?;
+        fs::write(&filepath, content).context("Failed to write QC log file")?;
 
         info!("QC result logged to: {:?}", filepath);
         Ok(filepath)
@@ -155,14 +149,11 @@ impl QcLogger {
             timestamp.format("%Y-%m-%d %H:%M:%S"),
             selected,
             table_rows,
-            scores.get(selected)
-                .map(|s| s.overall)
-                .unwrap_or(0.0),
+            scores.get(selected).map(|s| s.overall).unwrap_or(0.0),
             serde_json::to_string_pretty(scores).unwrap_or_default()
         );
 
-        fs::write(&filepath, content)
-            .context("Failed to write merge decision log file")?;
+        fs::write(&filepath, content).context("Failed to write merge decision log file")?;
 
         info!("Merge decision logged to: {:?}", filepath);
         Ok(filepath)
@@ -251,4 +242,3 @@ mod tests {
         assert!(result.is_ok());
     }
 }
-

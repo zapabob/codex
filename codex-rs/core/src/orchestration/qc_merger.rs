@@ -129,11 +129,7 @@ impl QcMerger {
             let source_code = Self::read_worktree_code(&worktree.path)?;
 
             // Run QC analysis
-            match self
-                .qc_agent
-                .analyze(&source_code, &worktree.name)
-                .await
-            {
+            match self.qc_agent.analyze(&source_code, &worktree.name).await {
                 Ok(report) => {
                     let score = report.scores.clone();
                     scores.insert(worktree.name.clone(), score.clone());
@@ -236,4 +232,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

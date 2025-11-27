@@ -3,7 +3,9 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use crate::command_safety::is_dangerous_command::{command_might_be_dangerous, requires_initial_appoval};
+use crate::command_safety::is_dangerous_command::{
+    command_might_be_dangerous, requires_initial_appoval,
+};
 use codex_execpolicy::Decision;
 use codex_execpolicy::Evaluation;
 use codex_execpolicy::Policy;
@@ -125,7 +127,8 @@ pub(crate) fn create_approval_requirement_for_command(
     // YOLOモードでも危険なコマンドは完全にブロック
     if command_might_be_dangerous(command) {
         return ApprovalRequirement::Forbidden {
-            reason: "Dangerous commands are blocked even in YOLO mode for security reasons".to_string(),
+            reason: "Dangerous commands are blocked even in YOLO mode for security reasons"
+                .to_string(),
         };
     }
 

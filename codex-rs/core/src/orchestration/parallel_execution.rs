@@ -195,7 +195,9 @@ impl ParallelOrchestrator {
         }
 
         // Run QC analysis on results if QC agent is enabled
-        let qc_enabled = results.iter().any(|r| matches!(r.agent, AgentType::QcAgent));
+        let qc_enabled = results
+            .iter()
+            .any(|r| matches!(r.agent, AgentType::QcAgent));
         if !qc_enabled {
             // Add QC agent task if not already present
             let qc_task = AgentTask {
@@ -207,18 +209,14 @@ impl ParallelOrchestrator {
             };
 
             // Execute QC agent
-            let qc_result = Self::execute_agent(
-                Arc::clone(&self.agent_states),
-                qc_task,
-                None,
-            )
-            .await;
+            let qc_result =
+                Self::execute_agent(Arc::clone(&self.agent_states), qc_task, None).await;
             results.push(qc_result);
         }
 
         // Select best result based on QC scores
-        use super::qc_merger::QcMerger;
         use super::qc_logger::QcLogger;
+        use super::qc_merger::QcMerger;
         let qc_merger = QcMerger::new();
         let logs_dir = self.repo_path.join("_docs");
         let qc_logger = QcLogger::new(logs_dir).unwrap_or_else(|_| {
@@ -236,8 +234,11 @@ impl ParallelOrchestrator {
             // Use worktree-based selection for worktree mode
             match qc_merger.select_best_worktree(worktrees.clone()).await {
                 Ok((best_worktree, qc_scores)) => {
-                    info!("Selected best worktree based on QC scores: {}", best_worktree.name);
-                    
+                    info!(
+                        "Selected best worktree based on QC scores: {}",
+                        best_worktree.name
+                    );
+
                     // Log merge decision
                     let _ = qc_logger
                         .log_merge_decision(&best_worktree.name, &qc_scores)
@@ -252,9 +253,13 @@ impl ParallelOrchestrator {
                 Err(e) => {
                     tracing::warn!("QC worktree selection failed: {}", e);
                     // Fallback: use central selection
-                    if let Ok((best_result, qc_scores)) = qc_merger.select_best_central(non_qc_results.clone()).await {
+                    if let Ok((best_result, qc_scores)) =
+                        qc_merger.select_best_central(non_qc_results.clone()).await
+                    {
                         let selected_agent = format!("{:?}", best_result.agent);
-                        let _ = qc_logger.log_merge_decision(&selected_agent, &qc_scores).await;
+                        let _ = qc_logger
+                            .log_merge_decision(&selected_agent, &qc_scores)
+                            .await;
                     }
                 }
             }
@@ -263,7 +268,7 @@ impl ParallelOrchestrator {
             match qc_merger.select_best_central(non_qc_results.clone()).await {
                 Ok((best_result, qc_scores)) => {
                     info!("Selected best result based on QC scores");
-                    
+
                     // Log merge decision
                     let selected_agent = format!("{:?}", best_result.agent);
                     let _ = qc_logger
@@ -518,7 +523,13 @@ impl ParallelOrchestrator {
         states: Arc<RwLock<HashMap<AgentType, AgentProgress>>>,
         worktree: Option<WorktreeInfo>,
     ) -> Result<String> {
-        Self::update_progress(Arc::clone(&states), task.agent, 10.0, "Initializing QC Agent").await;
+        Self::update_progress(
+            Arc::clone(&states),
+            task.agent,
+            10.0,
+            "Initializing QC Agent",
+        )
+        .await;
 
         let default_path = PathBuf::from(".");
         let working_dir = worktree.as_ref().map(|w| &w.path).unwrap_or(&default_path);
@@ -555,13 +566,25 @@ impl ParallelOrchestrator {
             .await
             .map_err(|e| anyhow::anyhow!("QC analysis failed: {}", e))?;
 
-        Self::update_progress(Arc::clone(&states), task.agent, 80.0, "Generating QC report").await;
+        Self::update_progress(
+            Arc::clone(&states),
+            task.agent,
+            80.0,
+            "Generating QC report",
+        )
+        .await;
 
         // Serialize QC report to JSON
-        let report_json = serde_json::to_string_pretty(&qc_report)
-            .context("Failed to serialize QC report")?;
+        let report_json =
+            serde_json::to_string_pretty(&qc_report).context("Failed to serialize QC report")?;
 
-        Self::update_progress(Arc::clone(&states), task.agent, 100.0, "QC analysis completed").await;
+        Self::update_progress(
+            Arc::clone(&states),
+            task.agent,
+            100.0,
+            "QC analysis completed",
+        )
+        .await;
 
         Ok(report_json)
     }

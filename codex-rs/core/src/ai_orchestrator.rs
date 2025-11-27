@@ -3,10 +3,10 @@
 //! This module provides centralized task orchestration capabilities,
 //! coordinating multiple sub-agents for complex development tasks.
 
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
-use serde::{Deserialize, Serialize};
 // use crate::agents::Agent;
 // use crate::plan::{Plan, Task};
 use crate::Result;
@@ -99,7 +99,11 @@ pub struct QCOptimizer {
 /// Optimization algorithm trait
 pub trait OptimizationAlgorithm {
     fn name(&self) -> &str;
-    fn optimize(&self, tasks: &[OrchestratedTask], agents: &[AgentCapability]) -> Vec<(String, String)>;
+    fn optimize(
+        &self,
+        tasks: &[OrchestratedTask],
+        agents: &[AgentCapability],
+    ) -> Vec<(String, String)>;
 }
 
 /// Mathematical optimization using linear programming
@@ -110,18 +114,25 @@ impl OptimizationAlgorithm for MathematicalOptimizer {
         "mathematical"
     }
 
-    fn optimize(&self, tasks: &[OrchestratedTask], agents: &[AgentCapability]) -> Vec<(String, String)> {
+    fn optimize(
+        &self,
+        tasks: &[OrchestratedTask],
+        agents: &[AgentCapability],
+    ) -> Vec<(String, String)> {
         // Implement linear programming for task-agent assignment
         // This is a simplified version - real implementation would use a solver
         let mut assignments = Vec::new();
 
         for task in tasks.iter().filter(|t| t.assigned_agent.is_none()) {
-            let best_agent = agents.iter()
+            let best_agent = agents
+                .iter()
                 .filter(|a| a.current_tasks < a.max_concurrent_tasks)
                 .max_by(|a, b| {
                     let a_score = self.calculate_assignment_score(task, a);
                     let b_score = self.calculate_assignment_score(task, b);
-                    a_score.partial_cmp(&b_score).unwrap_or(std::cmp::Ordering::Equal)
+                    a_score
+                        .partial_cmp(&b_score)
+                        .unwrap_or(std::cmp::Ordering::Equal)
                 });
 
             if let Some(agent) = best_agent {
@@ -141,20 +152,24 @@ impl MathematicalOptimizer {
         score += task.priority as i32 as f64 * 10.0;
 
         // Specialization match
-        let specialization_match = task.tags.iter()
+        let specialization_match = task
+            .tags
+            .iter()
             .filter(|tag| agent.specialization.contains(tag))
             .count() as f64;
         score += specialization_match * 5.0;
 
         // Workload factor (prefer less busy agents)
-        let workload_factor = 1.0 - (agent.current_tasks as f64 / agent.max_concurrent_tasks as f64);
+        let workload_factor =
+            1.0 - (agent.current_tasks as f64 / agent.max_concurrent_tasks as f64);
         score += workload_factor * 3.0;
 
         // Performance factor
         score += agent.performance_score;
 
         // Complexity compatibility
-        let complexity_factor = 1.0 - (task.estimated_complexity - agent.performance_score).abs() / 10.0;
+        let complexity_factor =
+            1.0 - (task.estimated_complexity - agent.performance_score).abs() / 10.0;
         score += complexity_factor.max(0.0) * 2.0;
 
         score
@@ -169,7 +184,11 @@ impl OptimizationAlgorithm for QuantumOptimizer {
         "quantum"
     }
 
-    fn optimize(&self, tasks: &[OrchestratedTask], agents: &[AgentCapability]) -> Vec<(String, String)> {
+    fn optimize(
+        &self,
+        tasks: &[OrchestratedTask],
+        agents: &[AgentCapability],
+    ) -> Vec<(String, String)> {
         // Simplified quantum-inspired optimization
         // Real implementation would use quantum algorithms
         let mut assignments = Vec::new();
@@ -180,16 +199,23 @@ impl OptimizationAlgorithm for QuantumOptimizer {
         sorted_tasks.sort_by(|a, b| {
             let a_score = (a.priority as i32 as f64) * a.estimated_complexity;
             let b_score = (b.priority as i32 as f64) * b.estimated_complexity;
-            b_score.partial_cmp(&a_score).unwrap_or(std::cmp::Ordering::Equal)
+            b_score
+                .partial_cmp(&a_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         for task in sorted_tasks.iter().filter(|t| t.assigned_agent.is_none()) {
-            let best_agent = agents.iter()
-                .filter(|a| !used_agents.contains(&a.name) && a.current_tasks < a.max_concurrent_tasks)
+            let best_agent = agents
+                .iter()
+                .filter(|a| {
+                    !used_agents.contains(&a.name) && a.current_tasks < a.max_concurrent_tasks
+                })
                 .max_by(|a, b| {
                     let a_score = self.quantum_assignment_score(task, a);
                     let b_score = self.quantum_assignment_score(task, b);
-                    a_score.partial_cmp(&b_score).unwrap_or(std::cmp::Ordering::Equal)
+                    a_score
+                        .partial_cmp(&b_score)
+                        .unwrap_or(std::cmp::Ordering::Equal)
                 });
 
             if let Some(agent) = best_agent {
@@ -239,20 +265,16 @@ impl AIOrchestrator {
     pub async fn submit_task(&self, task: OrchestratedTask) -> Result<String> {
         let (tx, rx) = oneshot::channel();
 
-        self.command_tx.send(OrchestrationCommand::SubmitTask {
-            task,
-            response: tx,
-        })?;
+        self.command_tx
+            .send(OrchestrationCommand::SubmitTask { task, response: tx })?;
 
         rx.await?
     }
 
     /// Register a new agent
     pub async fn register_agent(&self, name: String, capability: AgentCapability) -> Result<()> {
-        self.command_tx.send(OrchestrationCommand::RegisterAgent {
-            name,
-            capability,
-        })?;
+        self.command_tx
+            .send(OrchestrationCommand::RegisterAgent { name, capability })?;
         Ok(())
     }
 
@@ -260,9 +282,8 @@ impl AIOrchestrator {
     pub async fn optimize_assignments(&self) -> Result<Vec<(String, String)>> {
         let (tx, rx) = oneshot::channel();
 
-        self.command_tx.send(OrchestrationCommand::OptimizeAssignment {
-            response: tx,
-        })?;
+        self.command_tx
+            .send(OrchestrationCommand::OptimizeAssignment { response: tx })?;
 
         rx.await?
     }
@@ -275,12 +296,19 @@ impl AIOrchestrator {
             match cmd {
                 OrchestrationCommand::SubmitTask { task, response } => {
                     let task_id = task.id.clone();
-                    self.tasks.lock().unwrap().insert(task.id.clone(), task.clone());
+                    self.tasks
+                        .lock()
+                        .unwrap()
+                        .insert(task.id.clone(), task.clone());
                     self.task_queue.lock().unwrap().push_back(task);
 
                     let _ = response.send(Ok(task_id));
                 }
-                OrchestrationCommand::UpdateTaskStatus { task_id, status, agent_name } => {
+                OrchestrationCommand::UpdateTaskStatus {
+                    task_id,
+                    status,
+                    agent_name,
+                } => {
                     if let Some(task) = self.tasks.lock().unwrap().get_mut(&task_id) {
                         task.status = status;
                         task.assigned_agent = agent_name;
@@ -290,7 +318,10 @@ impl AIOrchestrator {
                     self.agents.lock().unwrap().insert(name, capability);
                 }
                 OrchestrationCommand::GetTaskStatus { task_id, response } => {
-                    let status = self.tasks.lock().unwrap()
+                    let status = self
+                        .tasks
+                        .lock()
+                        .unwrap()
                         .get(&task_id)
                         .map(|t| t.status)
                         .unwrap_or(TaskStatus::Pending);
@@ -313,7 +344,11 @@ impl AIOrchestrator {
 }
 
 impl QCOptimizer {
-    fn optimize_assignments(&self, tasks: &[OrchestratedTask], agents: &[AgentCapability]) -> Vec<(String, String)> {
+    fn optimize_assignments(
+        &self,
+        tasks: &[OrchestratedTask],
+        agents: &[AgentCapability],
+    ) -> Vec<(String, String)> {
         let mut best_assignments = Vec::new();
         let mut best_score = f64::NEG_INFINITY;
 
@@ -331,7 +366,12 @@ impl QCOptimizer {
         best_assignments
     }
 
-    fn evaluate_assignments(&self, assignments: &[(String, String)], tasks: &[OrchestratedTask], agents: &[AgentCapability]) -> f64 {
+    fn evaluate_assignments(
+        &self,
+        assignments: &[(String, String)],
+        tasks: &[OrchestratedTask],
+        agents: &[AgentCapability],
+    ) -> f64 {
         let mut total_score = 0.0;
 
         for (task_id, agent_name) in assignments {
@@ -339,10 +379,17 @@ impl QCOptimizer {
                 if let Some(agent) = agents.iter().find(|a| a.name == *agent_name) {
                     // Calculate assignment quality score
                     let priority_score = task.priority as i32 as f64 * 10.0;
-                    let specialization_match = task.tags.iter()
+                    let specialization_match = task
+                        .tags
+                        .iter()
                         .filter(|tag| agent.specialization.contains(tag))
-                        .count() as f64 * 5.0;
-                    let workload_penalty = if agent.current_tasks >= agent.max_concurrent_tasks { -20.0 } else { 0.0 };
+                        .count() as f64
+                        * 5.0;
+                    let workload_penalty = if agent.current_tasks >= agent.max_concurrent_tasks {
+                        -20.0
+                    } else {
+                        0.0
+                    };
 
                     total_score += priority_score + specialization_match + workload_penalty;
                 }

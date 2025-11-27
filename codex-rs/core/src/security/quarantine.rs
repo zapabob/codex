@@ -108,9 +108,7 @@ impl Quarantine {
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("unknown");
-        let quarantine_path = self
-            .quarantine_dir
-            .join(format!("{}_{}", id, file_name));
+        let quarantine_path = self.quarantine_dir.join(format!("{}_{}", id, file_name));
 
         // Calculate file hash before moving
         let file_hash = self.calculate_file_hash(file_path).await.ok();
@@ -335,8 +333,8 @@ impl Clone for QuarantineStats {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
     use std::fs;
+    use tempfile::TempDir;
 
     #[tokio::test]
     async fn test_quarantine_file() {
@@ -413,4 +411,3 @@ mod tests {
         assert!(!entry.quarantine_path.exists()); // Quarantined file should be gone
     }
 }
-

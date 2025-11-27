@@ -214,10 +214,7 @@ impl AutoOrchestrator {
         // 5. Log QC results and merge decision
         let selected_agent = results
             .iter()
-            .find(|r| {
-                r.artifacts.join("\n") == best_result.output
-                    || r.agent_name.contains("qc")
-            })
+            .find(|r| r.artifacts.join("\n") == best_result.output || r.agent_name.contains("qc"))
             .map(|r| r.agent_name.clone())
             .unwrap_or_else(|| "unknown".to_string());
 
@@ -372,7 +369,10 @@ impl AutoOrchestrator {
         // Execute QC agent via runtime
         let mut inputs = HashMap::new();
         inputs.insert("source_code".to_string(), combined_output);
-        inputs.insert("target_name".to_string(), "orchestrated_results".to_string());
+        inputs.insert(
+            "target_name".to_string(),
+            "orchestrated_results".to_string(),
+        );
 
         match self
             .runtime

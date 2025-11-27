@@ -6,14 +6,14 @@
 //! - Malware detection and isolation
 //! - Behavioral analysis and anomaly detection
 
+use crate::Result;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
-use regex::Regex;
-use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use crate::Result;
 
 /// Security threat levels
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -216,12 +216,13 @@ impl SecurityMonitor {
 
         // Initialize blocked commands
         let blocked = [
-            "rm", "rmdir", "del", "erase", "format", "fdisk", "mkfs",
-            "dd", "shred", "wipe", "srm", "sudo", "su", "chmod +x",
-            "curl", "wget", "ssh", "scp", "ftp", "telnet", "nc", "netcat",
+            "rm", "rmdir", "del", "erase", "format", "fdisk", "mkfs", "dd", "shred", "wipe", "srm",
+            "sudo", "su", "chmod +x", "curl", "wget", "ssh", "scp", "ftp", "telnet", "nc",
+            "netcat",
         ];
 
-        self.blocked_commands.extend(blocked.iter().map(|s| s.to_string()));
+        self.blocked_commands
+            .extend(blocked.iter().map(|s| s.to_string()));
     }
 
     /// Initialize malware signatures
@@ -251,7 +252,12 @@ impl SecurityMonitor {
     }
 
     /// Check if command execution is allowed
-    pub async fn check_command(&self, command: &str, args: &[String], source: &str) -> Result<bool> {
+    pub async fn check_command(
+        &self,
+        command: &str,
+        args: &[String],
+        source: &str,
+    ) -> Result<bool> {
         let (tx, rx) = oneshot::channel();
 
         self.command_tx.send(SecurityCommand::CheckCommand {
@@ -265,7 +271,11 @@ impl SecurityMonitor {
     }
 
     /// Check if file operation is allowed
-    pub async fn check_file_operation(&self, operation: &FileOperation, source: &str) -> Result<bool> {
+    pub async fn check_file_operation(
+        &self,
+        operation: &FileOperation,
+        source: &str,
+    ) -> Result<bool> {
         let (tx, rx) = oneshot::channel();
 
         self.command_tx.send(SecurityCommand::CheckFileOperation {
@@ -328,11 +338,20 @@ impl SecurityMonitor {
 
         while let Some(cmd) = rx.recv().await {
             match cmd {
-                SecurityCommand::CheckCommand { command, args, source, response } => {
+                SecurityCommand::CheckCommand {
+                    command,
+                    args,
+                    source,
+                    response,
+                } => {
                     let result = self.check_command_internal(&command, &args, &source);
                     let _ = response.send(Ok(result));
                 }
-                SecurityCommand::CheckFileOperation { operation, source, response } => {
+                SecurityCommand::CheckFileOperation {
+                    operation,
+                    source,
+                    response,
+                } => {
                     let result = self.check_file_operation_internal(&operation, &source);
                     let _ = response.send(Ok(result));
                 }
@@ -340,8 +359,13 @@ impl SecurityMonitor {
                     let result = self.scan_file_internal(&path).await;
                     let _ = response.send(result);
                 }
-                SecurityCommand::ReportAnomaly { metric, value, description } => {
-                    self.anomaly_detector.detect_anomaly(&metric, value, &description);
+                SecurityCommand::ReportAnomaly {
+                    metric,
+                    value,
+                    description,
+                } => {
+                    self.anomaly_detector
+                        .detect_anomaly(&metric, value, &description);
                 }
                 SecurityCommand::GetEvents { limit, response } => {
                     let events = self.get_recent_events(limit);
@@ -499,8 +523,17 @@ impl SecurityMonitor {
 
     fn is_system_path(&self, path: &Path) -> bool {
         let system_paths = [
-            "/etc", "/usr", "/bin", "/sbin", "/boot", "/sys", "/proc", "/dev",
-            "C:\\Windows", "C:\\System32", "C:\\Program Files",
+            "/etc",
+            "/usr",
+            "/bin",
+            "/sbin",
+            "/boot",
+            "/sys",
+            "/proc",
+            "/dev",
+            "C:\\Windows",
+            "C:\\System32",
+            "C:\\Program Files",
         ];
 
         let path_str = path.to_string_lossy();
@@ -535,7 +568,9 @@ impl AnomalyDetector {
 
     fn detect_anomaly(&mut self, metric: &str, value: f64, description: &str) {
         // Add to history
-        let history = self.metrics_history.entry(metric.to_string())
+        let history = self
+            .metrics_history
+            .entry(metric.to_string())
             .or_insert_with(|| VecDeque::with_capacity(self.window_size));
 
         history.push_back(value);
@@ -546,17 +581,18 @@ impl AnomalyDetector {
         // Calculate statistics
         if history.len() >= 10 {
             let mean = history.iter().sum::<f64>() / history.len() as f64;
-            let variance = history.iter()
-                .map(|x| (x - mean).powi(2))
-                .sum::<f64>() / history.len() as f64;
+            let variance =
+                history.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / history.len() as f64;
             let std_dev = variance.sqrt();
 
             // Check for anomaly (3-sigma rule)
             let threshold = self.thresholds.get(metric).copied().unwrap_or(3.0);
             if (value - mean).abs() > threshold * std_dev {
                 // Log anomaly
-                println!("Anomaly detected: {} - Value: {}, Mean: {}, StdDev: {}",
-                    metric, value, mean, std_dev);
+                println!(
+                    "Anomaly detected: {} - Value: {}, Mean: {}, StdDev: {}",
+                    metric, value, mean, std_dev
+                );
             }
         }
     }
@@ -578,11 +614,15 @@ mod tests {
         let monitor = SecurityMonitor::new();
 
         // Test blocked command
-        let result = monitor.check_command("rm", &["-rf".to_string(), "/".to_string()], "test").await;
+        let result = monitor
+            .check_command("rm", &["-rf".to_string(), "/".to_string()], "test")
+            .await;
         assert_eq!(result.unwrap(), false);
 
         // Test allowed command
-        let result = monitor.check_command("ls", &["-la".to_string()], "test").await;
+        let result = monitor
+            .check_command("ls", &["-la".to_string()], "test")
+            .await;
         assert_eq!(result.unwrap(), true);
     }
 

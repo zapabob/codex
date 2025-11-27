@@ -69,9 +69,7 @@ impl DevelopmentMode {
             Self::Central { .. } => {
                 "Central orchestration with dynamic conflict resolution and deadlock prevention"
             }
-            Self::Worktree { .. } => {
-                "Git worktree parallel development with isolated branches"
-            }
+            Self::Worktree { .. } => "Git worktree parallel development with isolated branches",
         }
     }
 }
@@ -120,7 +118,10 @@ impl DevelopmentModeSelector {
         let repo_root = repo_root.as_ref().to_path_buf();
         let logs_dir = repo_root.join("_docs");
 
-        Ok(Self { repo_root, logs_dir })
+        Ok(Self {
+            repo_root,
+            logs_dir,
+        })
     }
 
     /// Analyze past implementation logs
@@ -128,7 +129,10 @@ impl DevelopmentModeSelector {
         let mut logs = Vec::new();
 
         if !self.logs_dir.exists() {
-            warn!("Implementation logs directory not found: {:?}", self.logs_dir);
+            warn!(
+                "Implementation logs directory not found: {:?}",
+                self.logs_dir
+            );
             return Ok(logs);
         }
 
@@ -269,9 +273,7 @@ impl DevelopmentModeSelector {
                 let date = DateTime::parse_from_rfc3339(date_str)
                     .or_else(|_| {
                         DateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S %z")
-                            .or_else(|_| {
-                                DateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S")
-                            })
+                            .or_else(|_| DateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S"))
                     })
                     .map(|dt| dt.with_timezone(&Utc))
                     .unwrap_or_else(|_| Utc::now());
@@ -325,10 +327,8 @@ impl DevelopmentModeSelector {
             &["orchestration", "orchestrated", "central", "conflict"],
             20,
         )?;
-        let worktree_commits = self.analyze_commit_history(
-            &["worktree", "parallel", "competition", "variant"],
-            20,
-        )?;
+        let worktree_commits =
+            self.analyze_commit_history(&["worktree", "parallel", "competition", "variant"], 20)?;
 
         // Count references in logs
         let mut central_refs = 0;
@@ -352,7 +352,10 @@ impl DevelopmentModeSelector {
 
         debug!(
             "History analysis: central_refs={}, worktree_refs={}, orchestration_commits={}, worktree_commits={}",
-            central_refs, worktree_refs, orchestration_commits.len(), worktree_commits.len()
+            central_refs,
+            worktree_refs,
+            orchestration_commits.len(),
+            worktree_commits.len()
         );
 
         // Recommend based on history
@@ -432,4 +435,3 @@ mod tests {
         assert_eq!(worktree.to_execution_mode(), ExecutionMode::Competition);
     }
 }
-

@@ -200,4 +200,3 @@ impl WorktreeManager {
         Ok(())
     }
 }
-
