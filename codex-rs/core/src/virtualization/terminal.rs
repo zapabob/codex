@@ -4,8 +4,6 @@
 //! with safety checks to prevent dangerous commands.
 
 use super::network::VirtualNetwork;
-use crate::command_safety::is_dangerous_command;
-use crate::command_safety::is_safe_command;
 use anyhow::Context;
 use anyhow::Result;
 use serde::Deserialize;
@@ -259,6 +257,29 @@ impl TerminalSession {
         );
         env
     }
+}
+
+fn command_might_be_dangerous(command: &[String]) -> bool {
+    let Some(cmd0) = command.first().map(String::as_str) else {
+        return false;
+    };
+
+    match cmd0 {
+        "rm" => matches!(command.get(1).map(String::as_str), Some("-f" | "-rf")),
+        "sudo" => true,
+        cmd if cmd.ends_with("git") || cmd == "git" => {
+            matches!(command.get(1).map(String::as_str), Some("reset" | "rm"))
+        }
+        _ => false,
+    }
+}
+
+fn is_known_safe_command(command: &[String]) -> bool {
+    let Some(cmd0) = command.first().map(String::as_str) else {
+        return false;
+    };
+
+    matches!(cmd0, "ls" | "pwd" | "echo" | "cat" | "true" | "false")
 }
 
 /// Terminal Manager
