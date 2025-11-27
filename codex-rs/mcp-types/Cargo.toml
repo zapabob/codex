@@ -1,6 +1,7 @@
 [package]
 name = "mcp-types"
 version = "2.3.0"
+edition = "2024"
 
 [lints]
 rust.unused_qualifications = "warn"
