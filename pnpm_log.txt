@@ -1,0 +1,8 @@
+﻿Scope: all 3 workspace projects
+Progress: resolved 1, reused 0, downloaded 0, added 0
+C:\Users\downl\Desktop\codex-main\gui:
+窶右RR_PNPM_WORKSPACE_PKG_NOT_FOUND窶・In gui: "@zapabob/codex-protocol-client@workspace:*" is in the dependencies but no package named "@zapabob/codex-protocol-client" is present in the workspace
+
+This error happened while installing a direct dependency of C:\Users\downl\Desktop\codex-main\gui
+
+Packages found in the workspace: 

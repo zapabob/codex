@@ -1,0 +1,9 @@
+﻿cargo : error: could not find `Cargo.toml` in `C:\Users\downl\Desktop\codex-mai
+n` or any parent directory
+発生場所 行:1 文字:21
++ ... .; cd codex-rs; cargo check --all-targets --all-features 2>&1 | Out-F ...
++                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: could no...arent directory 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

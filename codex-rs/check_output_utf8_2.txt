@@ -1,0 +1,1121 @@
+﻿cargo : warning: unused imp
+ort: `Context`
+発生場所 行:1 文字:1
++ cargo check --workspace 2
+>&1 | Out-File -Encoding ut
+f8 check_output_u ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~
+    + CategoryInfo         
+     : NotSpecified: (war  
+  ning: unused import: `   
+ Context`:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+ --> core\src\hybrid_accele
+ration.rs:5:14
+  |
+5 | ...::{Context, Re...
+  |       ^^^^^^^
+  |
+  = note: `#[warn(unused_im
+ports)]` on by default
+
+warning: multiple associate
+d items are never used
+   --> core\src\conversatio
+n_history.rs:34:19
+    |
+ 33 | impl ConversationHist
+ory {
+    | ---------------------
+--- associated items in thi
+s implementation
+ 34 |     pub(crate) fn new
+() -> Self {
+    |                   ^^^
+...
+ 41 |     pub(crate) fn tok
+en_info(&self) -> Opti...
+    |                   ^^^
+^^^^^^^
+...
+ 45 |     pub(crate) fn set
+_token_usage_full(&mut...
+    |                   ^^^
+^^^^^^^^^^^^^^^^^
+...
+ 55 |     pub(crate) fn rec
+ord_items<I>(&mut self...
+    |                   ^^^
+^^^^^^^^^
+...
+ 72 |     pub(crate) fn get
+_history(&mut self) ->...
+    |                   ^^^
+^^^^^^^^
+...
+ 79 |     pub(crate) fn get
+_history_for_prompt(&m...
+    |                   ^^^
+^^^^^^^^^^^^^^^^^^^
+...
+ 85 |     pub(crate) fn rem
+ove_first_item(&mut se...
+    |                   ^^^
+^^^^^^^^^^^^^^
+...
+ 97 |     pub(crate) fn rep
+lace(&mut self, items:...
+    |                   ^^^
+^^^^
+...
+101 |     pub(crate) fn upd
+ate_token_info(
+    |                   ^^^
+^^^^^^^^^^^^^^
+...
+116 |     fn normalize_hist
+ory(&mut self) {
+    |        ^^^^^^^^^^^^^^
+^^^
+...
+125 |     pub(crate) fn con
+tents(&self) -> Vec<Re...
+    |                   ^^^
+^^^^^
+...
+129 |     fn remove_ghost_s
+napshots(items: &mut V...
+    |        ^^^^^^^^^^^^^^
+^^^^^^^^
+...
+133 |     fn ensure_call_ou
+tputs_present(&mut sel...
+    |        ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
+...
+239 |     fn remove_orphan_
+outputs(&mut self) {
+    |        ^^^^^^^^^^^^^^
+^^^^^^^
+...
+308 |     fn remove_corresp
+onding_for(&mut self, ...
+    |        ^^^^^^^^^^^^^^
+^^^^^^^^^^
+...
+362 |     fn remove_first_m
+atching<F>(&mut self, ...
+    |        ^^^^^^^^^^^^^^
+^^^^^^^
+...
+371 |     fn process_item(i
+tem: &ResponseItem) ->...
+    |        ^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_co
+de)]` on by default
+
+warning: structure field `P
+lan_id` should have a snake
+ case name
+  --> core\src\plan\executo
+r.rs:29:9
+   |
+29 | ...   Plan_id: S...
+   |       ^^^^^^^ help: co
+nvert the identifier to sna
+ke case: `plan_id`
+   |
+   = note: `#[warn(non_snak
+e_case)]` on by default
+
+warning: structure field `P
+lan_id` should have a snake
+ case name
+  --> core\src\plan\executo
+r.rs:96:9
+   |
+96 | ...ub Plan_id: S...
+   |       ^^^^^^^ help: co
+nvert the identifier to sna
+ke case: `plan_id`
+
+warning: variable `Plan` sh
+ould have a snake case name
+   --> core\src\plan\execut
+or.rs:181:37
+    |
+181 | ...ut Plan: Pla...
+    |       ^^^^ help: conv
+ert the identifier to snake
+ case: `plan`
+
+warning: variable `Plan` sh
+ould have a snake case name
+   --> core\src\plan\execut
+or.rs:297:9
+    |
+297 | ...   Plan: &Pl...
+    |       ^^^^ help: conv
+ert the identifier to snake
+ case: `plan`
+
+warning: `codex-core` (lib)
+ generated 6 warnings (run 
+`cargo fix --lib -p codex-c
+ore` to apply 1 suggestion)
+    Checking codex-tui v2.2
+.0 (C:\Users\downl\Desktop\
+codex-main\codex-rs\tui)
+warning: variable does not 
+need to be mutable
+  --> mcp-server\src\codex_
+tools\mod.rs:33:13
+   |
+33 |         let mut tools 
+= vec![
+   |             ----^^^^^
+   |             |
+   |             help: remo
+ve this `mut`
+   |
+   = note: `#[warn(unused_m
+ut)]` on by default
+
+warning: `codex-mcp-server`
+ (lib) generated 1 warning 
+(run `cargo fix --lib -p co
+dex-mcp-server` to apply 1 
+suggestion)
+   Compiling codex-tauri-gu
+i v2.2.0 (C:\Users\downl\De
+sktop\codex-main\codex-rs\t
+auri-gui\src-tauri)
+warning: use of deprecated 
+associated function `assert
+_cmd::Command::cargo_bin`: 
+incompatible with a custom 
+cargo build-dir, see instea
+d `cargo::cargo_bin_cmd!`
+   --> core\tests\common\te
+st_codex.rs:100:47
+    |
+100 |         if let Ok(cmd
+) = assert_cmd::Command::ca
+rgo_bin("codex") {
+    |                      
+                         ^^
+^^^^^^^
+    |
+    = note: `#[warn(depreca
+ted)]` on by default
+
+warning: use of deprecated 
+associated function `assert
+_cmd::Command::cargo_bin`: 
+incompatible with a custom 
+cargo build-dir, see instea
+d `cargo::cargo_bin_cmd!`
+  --> core\tests\common\tes
+t_codex_exec.rs:14:44
+   |
+14 |         let mut cmd = 
+assert_cmd::Command::cargo_
+bin("codex-exec")
+   |                       
+                     ^^^^^^
+^^^
+
+    Checking codex-windows-
+ai v2.2.0 (C:\Users\downl\D
+esktop\codex-main\codex-rs\
+windows-ai)
+warning: struct `OAuthConfi
+g` is never constructed
+  --> gemini-cli-mcp-server
+\src\oauth.rs:20:12
+   |
+20 | ...ct OAuthConfig {
+   |       ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_cod
+e)]` on by default
+
+warning: struct `OAuthToken
+` is never constructed
+  --> gemini-cli-mcp-server
+\src\oauth.rs:47:12
+   |
+47 | ...ct OAuthToken {
+   |       ^^^^^^^^^^
+
+warning: methods `is_expire
+d` and `remaining_lifetime`
+ are never used
+  --> gemini-cli-mcp-server
+\src\oauth.rs:61:12
+   |
+59 | impl OAuthToken {
+   | --------------- method
+s in this implementation
+60 |     /// Check if token
+ is expire...
+61 |     pub fn is_expired(
+&self) -> ...
+   |            ^^^^^^^^^^
+...
+71 |     pub fn remaining_l
+ifetime(&s...
+   |            ^^^^^^^^^^^
+^^^^^^^
+
+warning: struct `PKCEChalle
+nge` is never constructed
+  --> gemini-cli-mcp-server
+\src\oauth.rs:83:12
+   |
+83 | ...ct PKCEChallenge {
+   |       ^^^^^^^^^^^^^
+
+warning: associated functio
+ns `generate`, `generate_ve
+rifier`, and `generate_chal
+lenge` are never used
+   --> gemini-cli-mcp-serve
+r\src\oauth.rs:91:12
+    |
+ 89 | impl PKCEChallenge {
+    | ------------------ as
+sociated functions in this 
+implementation
+ 90 |     /// Generate a ne
+w PKCE ...
+ 91 |     pub fn generate()
+ -> Res...
+    |            ^^^^^^^^
+...
+106 |     fn generate_verif
+ier() -...
+    |        ^^^^^^^^^^^^^^
+^^^
+...
+114 |     fn generate_chall
+enge(ve...
+    |        ^^^^^^^^^^^^^^
+^^^^
+
+warning: struct `OAuthManag
+er` is never constructed
+   --> gemini-cli-mcp-serve
+r\src\oauth.rs:123:12
+    |
+123 | ...ct OAuthManager {
+    |       ^^^^^^^^^^^^
+
+warning: multiple associate
+d items are never used
+   --> gemini-cli-mcp-serve
+r\src\oauth.rs:130:12
+    |
+128 | impl OAuthManager {
+    | ----------------- ass
+ociated items in this imple
+mentation
+129 |     /// Create a new 
+OAuth manager
+130 |     pub fn new(config
+: OAuthConfig) ...
+    |            ^^^
+...
+138 |     pub fn load_cache
+d_token(&mut se...
+    |            ^^^^^^^^^^
+^^^^^^^
+...
+164 |     pub fn save_token
+(&self, token: ...
+    |            ^^^^^^^^^^
+...
+179 |     pub fn get_author
+ization_url(&se...
+    |            ^^^^^^^^^^
+^^^^^^^^^^^
+...
+193 |     pub async fn exch
+ange_code(&mut ...
+    |                  ^^^^
+^^^^^^^^^
+...
+232 |     pub async fn refr
+esh_token(&mut ...
+    |                  ^^^^
+^^^^^^^^^
+...
+272 |     pub async fn get_
+access_token(&m...
+    |                  ^^^^
+^^^^^^^^^^^^
+...
+299 |     pub fn clear_cach
+e(&mut self) ->...
+    |            ^^^^^^^^^^
+^
+
+warning: `core_test_support
+` (lib) generated 2 warning
+s
+warning: `codex-gemini-cli-
+mcp-server` (bin "codex-gem
+ini-mcp") generated 7 warni
+ngs
+warning: use of deprecated 
+associated function `assert
+_cmd::cargo::CommandCargoEx
+t::cargo_bin`: incompatible
+ with a custom cargo build-
+dir, see instead `cargo::ca
+rgo_bin!`
+  --> mcp-server\tests\comm
+on\mcp_process.rs:59:35
+   |
+59 |         let std_cmd = 
+StdCommand::cargo_bin("code
+x-mcp-server")
+   |                       
+            ^^^^^^^^^
+   |
+   = note: `#[warn(deprecat
+ed)]` on by default
+
+    Checking codex-execpoli
+cy v2.2.0 (C:\Users\downl\D
+esktop\codex-main\codex-rs\
+execpolicy)
+    Checking codex-app-serv
+er v2.2.0 (C:\Users\downl\D
+esktop\codex-main\codex-rs\
+app-server)
+    Checking codex-exec v2.
+2.0 (C:\Users\downl\Desktop
+\codex-main\codex-rs\exec)
+warning: use of deprecated 
+associated function `assert
+_cmd::cargo::CommandCargoEx
+t::cargo_bin`: incompatible
+ with a custom cargo build-
+dir, see instead `cargo::ca
+rgo_bin!`
+  --> app-server\tests\comm
+on\mcp_process.rs:78:35
+   |
+78 |         let std_cmd = 
+StdCommand::cargo_bin("code
+x-app-server")
+   |                       
+            ^^^^^^^^^
+   |
+   = note: `#[warn(deprecat
+ed)]` on by default
+
+warning: `mcp_test_support`
+ (lib) generated 1 warning
+warning: `app_test_support`
+ (lib) generated 1 warning
+    Checking codex-orchestr
+ator v2.2.0 (C:\Users\downl
+\Desktop\codex-main\codex-r
+s\orchestrator)
+error[E0432]: unresolved im
+ports `crate::kernel_driver
+_ffi::AiDriverHandle`, `cra
+te::kernel_driver_ffi::Memo
+ryPoolStatsC`, `crate::kern
+el_driver_ffi::SchedulerSta
+tsC`
+  --> windows-ai\src\kernel
+_driver.rs:12:32
+   |
+12 | use crate::kernel_driv
+er_ffi::{AiDriverHandle, Me
+moryPoolStatsC, SchedulerSt
+atsC};
+   |                       
+         ^^^^^^^^^^^^^^  ^^
+^^^^^^^^^^^^^^  ^^^^^^^^^^^
+^^^^ no `SchedulerStatsC` i
+n `kernel_driver_ffi`
+   |                       
+         |               |
+   |                       
+         |               no
+ `MemoryPoolStatsC` in `ker
+nel_driver_ffi`
+   |                       
+         no `AiDriverHandle
+` in `kernel_driver_ffi`
+
+error[E0432]: unresolved im
+ports `crate::kernel_driver
+_ffi::MemoryPoolStatsC`, `c
+rate::kernel_driver_ffi::Pi
+nnedMemory`
+  --> windows-ai\src\kernel
+_cuda_bridge.rs:12:32
+   |
+12 | use crate::kernel_driv
+er_ffi::{MemoryPoolStatsC, 
+PinnedMemory};
+   |                       
+         ^^^^^^^^^^^^^^^^  
+^^^^^^^^^^^^ no `PinnedMemo
+ry` in `kernel_driver_ffi`
+   |                       
+         |
+   |                       
+         no `MemoryPoolStat
+sC` in `kernel_driver_ffi`
+
+error[E0432]: unresolved im
+port `crate::auth::AuthMana
+ger`
+ --> orchestrator\src\serve
+r.rs:4:5
+  |
+4 | use crate::auth::AuthMa
+nager;
+  |     ^^^^^^^^^^^^^^^^^^^
+^^^^^ no `AuthManager` in `
+auth`
+
+error[E0252]: the name `Typ
+eId` is defined multiple ti
+mes
+   --> tui\src\legacy_app.r
+s:821:5
+    |
+  1 | use std::any::TypeId;
+    |     ---------------- 
+previous import of the type
+ `TypeId` here
+...
+821 | use std::any::TypeId;
+    |     ^^^^^^^^^^^^^^^^ 
+`TypeId` reimported here
+    |
+    = note: `TypeId` must b
+e defined only once in the 
+type namespace of this modu
+le
+
+error[E0432]: unresolved im
+port `auth::AuthHeader`
+  --> orchestrator\src\lib.
+rs:10:9
+   |
+10 | pub use auth::AuthHead
+er;
+   |         ^^^^^^^^^^^^^^
+^^ no `AuthHeader` in `auth
+`
+
+error[E0432]: unresolved im
+port `auth::AuthManager`
+  --> orchestrator\src\lib.
+rs:11:9
+   |
+11 | pub use auth::AuthMana
+ger;
+   |         ^^^^^^^^^^^^^^
+^^^ no `AuthManager` in `au
+th`
+
+error[E0432]: unresolved im
+port `auth::HmacAuthenticat
+or`
+  --> orchestrator\src\lib.
+rs:12:9
+   |
+12 | pub use auth::HmacAuth
+enticator;
+   |         ^^^^^^^^^^^^^^
+^^^^^^^^^ no `HmacAuthentic
+ator` in `auth`
+
+error[E0433]: failed to res
+olve: could not find `TcpTr
+ansport` in `tcp`
+   --> orchestrator\src\tra
+nsport\mod.rs:149:42
+    |
+149 |         TransportPref
+erence::Tcp => tcp::TcpTran
+sport::new(config.tcp_port,
+ codex_dir)
+    |                      
+                    ^^^^^^^
+^^^^^ could not find `TcpTr
+ansport` in `tcp`
+
+For more information about 
+this error, try `rustc --ex
+plain E0432`.
+error: could not compile `c
+odex-windows-ai` (lib) due 
+to 2 previous errors
+warning: build failed, wait
+ing for other jobs to finis
+h...
+warning: unused import: `co
+dex_core::orchestration::pa
+rallel_execution::AgentType
+`
+ --> tauri-gui\src-tauri\sr
+c\orchestration.rs:4:5
+  |
+4 | use codex_core::orchest
+ration::parallel_execution:
+:AgentType;
+  |     ^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^
+  |
+  = note: `#[warn(unused_im
+ports)]` on by default
+
+warning: unexpected `cfg` c
+ondition value: `cuda`
+  --> tauri-gui\src-tauri\s
+rc\main.rs:45:11
+   |
+45 |     #[cfg(feature = "c
+uda")]
+   |           ^^^^^^^^^^^^
+^^^^ help: remove the condi
+tion
+   |
+   = note: no expected valu
+es for `feature`
+   = help: consider adding 
+`cuda` as a feature in `Car
+go.toml`
+   = note: see <https://doc
+.rust-lang.org/nightly/rust
+c/check-cfg/cargo-specifics
+.html> for more information
+ about checking conditional
+ configuration
+   = note: `#[warn(unexpect
+ed_cfgs)]` on by default
+
+warning: unexpected `cfg` c
+ondition value: `cuda`
+  --> tauri-gui\src-tauri\s
+rc\main.rs:47:15
+   |
+47 |     #[cfg(not(feature 
+= "cuda"))]
+   |               ^^^^^^^^
+^^^^^^^^ help: remove the c
+ondition
+   |
+   = note: no expected valu
+es for `feature`
+   = help: consider adding 
+`cuda` as a feature in `Car
+go.toml`
+   = note: see <https://doc
+.rust-lang.org/nightly/rust
+c/check-cfg/cargo-specifics
+.html> for more information
+ about checking conditional
+ configuration
+
+warning: unexpected `cfg` c
+ondition value: `cuda`
+  --> tauri-gui\src-tauri\s
+rc\main.rs:61:11
+   |
+61 |     #[cfg(feature = "c
+uda")]
+   |           ^^^^^^^^^^^^
+^^^^ help: remove the condi
+tion
+   |
+   = note: no expected valu
+es for `feature`
+   = help: consider adding 
+`cuda` as a feature in `Car
+go.toml`
+   = note: see <https://doc
+.rust-lang.org/nightly/rust
+c/check-cfg/cargo-specifics
+.html> for more information
+ about checking conditional
+ configuration
+
+warning: unexpected `cfg` c
+ondition value: `cuda`
+  --> tauri-gui\src-tauri\s
+rc\main.rs:77:15
+   |
+77 |     #[cfg(not(feature 
+= "cuda"))]
+   |               ^^^^^^^^
+^^^^^^^^ help: remove the c
+ondition
+   |
+   = note: no expected valu
+es for `feature`
+   = help: consider adding 
+`cuda` as a feature in `Car
+go.toml`
+   = note: see <https://doc
+.rust-lang.org/nightly/rust
+c/check-cfg/cargo-specifics
+.html> for more information
+ about checking conditional
+ configuration
+
+error[E0412]: cannot find t
+ype `UserHistoryCell` in th
+is scope
+    --> tui\src\legacy_app.
+rs:1044:63
+     |
+1044 |                 .and
+_then(|cell| cell.as_any().
+downcast_ref::<UserHistoryC
+ell>())
+     |                     
+                           
+               ^^^^^^^^^^^^
+^^^
+     |
+    ::: tui\src\history_cel
+l.rs:63:1
+     |
+  63 | pub(crate) trait His
+toryCell: std::fmt::Debug +
+ Send + Sync + Any {
+     | --------------------
+---------------------------
+------------------ similarl
+y named trait `HistoryCell`
+ defined here
+     |
+help: a trait with a simila
+r name exists
+     |
+1044 -                 .and
+_then(|cell| cell.as_any().
+downcast_ref::<UserHistoryC
+ell>())
+1044 +                 .and
+_then(|cell| cell.as_any().
+downcast_ref::<HistoryCell>
+())
+     |
+help: consider importing th
+is struct
+     |
+   1 + use crate::history_c
+ell::UserHistoryCell;
+     |
+
+error[E0412]: cannot find t
+ype `UserHistoryCell` in th
+is scope
+    --> tui\src\legacy_app.
+rs:1070:67
+     |
+1070 |                     
+.and_then(|cell| cell.as_an
+y().downcast_ref::<UserHist
+oryCell>())
+     |                     
+                           
+                   ^^^^^^^^
+^^^^^^^
+     |
+    ::: tui\src\history_cel
+l.rs:63:1
+     |
+  63 | pub(crate) trait His
+toryCell: std::fmt::Debug +
+ Send + Sync + Any {
+     | --------------------
+---------------------------
+------------------ similarl
+y named trait `HistoryCell`
+ defined here
+     |
+help: a trait with a simila
+r name exists
+     |
+1070 -                     
+.and_then(|cell| cell.as_an
+y().downcast_ref::<UserHist
+oryCell>())
+1070 +                     
+.and_then(|cell| cell.as_an
+y().downcast_ref::<HistoryC
+ell>())
+     |
+help: consider importing th
+is struct
+     |
+   1 + use crate::history_c
+ell::UserHistoryCell;
+     |
+
+error[E0412]: cannot find t
+ype `UserHistoryCell` in th
+is scope
+    --> tui\src\legacy_app.
+rs:1205:34
+     |
+1205 |     let user_type = 
+TypeId::of::<UserHistoryCel
+l>();
+     |                     
+             ^^^^^^^^^^^^^^
+^
+     |
+    ::: tui\src\history_cel
+l.rs:63:1
+     |
+  63 | pub(crate) trait His
+toryCell: std::fmt::Debug +
+ Send + Sync + Any {
+     | --------------------
+---------------------------
+------------------ similarl
+y named trait `HistoryCell`
+ defined here
+     |
+help: a trait with a simila
+r name exists
+     |
+1205 -     let user_type = 
+TypeId::of::<UserHistoryCel
+l>();
+1205 +     let user_type = 
+TypeId::of::<HistoryCell>()
+;
+     |
+help: consider importing th
+is struct
+     |
+   1 + use crate::history_c
+ell::UserHistoryCell;
+     |
+
+warning: unused import: `co
+dex_ollama::DEFAULT_OSS_MOD
+EL`
+  --> tui\src\lib.rs:27:5
+   |
+27 | use codex_ollama::DEFA
+ULT_OSS_MODEL;
+   |     ^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_i
+mports)]` on by default
+
+warning: unused import: `st
+d::sync::Arc`
+ --> tui\src\app.rs:3:5
+  |
+3 | use std::sync::Arc;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused import: `to
+kio::sync::Mutex`
+ --> tui\src\app.rs:7:5
+  |
+7 | use tokio::sync::Mutex;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `se
+lf`
+  --> tui\src\app.rs:12:18
+   |
+12 | use crate::tui::{self,
+ Tui, TuiEvent};
+   |                  ^^^^
+
+warning: unused import: `to
+kio::select`
+  --> tui\src\legacy_app.rs
+:41:5
+   |
+41 | use tokio::select;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `to
+kio_stream::StreamExt`
+   --> tui\src\legacy_app.r
+s:100:13
+    |
+100 |         use tokio_str
+eam::StreamExt;
+    |             ^^^^^^^^^
+^^^^^^^^^^^^^^
+
+warning: unused import: `st
+d::any::TypeId`
+   --> tui\src\legacy_app.r
+s:821:5
+    |
+821 | use std::any::TypeId;
+    |     ^^^^^^^^^^^^^^^^
+
+warning: unused import: `Sp
+an`
+  --> tui\src\bottom_pane\m
+od.rs:19:27
+   |
+19 | use ratatui::text::{Li
+ne, Span};
+   |                       
+    ^^^^
+
+warning: unused import: `cr
+ate::render::Insets`
+  --> tui\src\chatwidget.rs
+:95:5
+   |
+95 | use crate::render::Ins
+ets;
+   |     ^^^^^^^^^^^^^^^^^^
+^^^
+
+warning: unused import: `cr
+ate::render::renderable::Fl
+exRenderable`
+  --> tui\src\chatwidget.rs
+:97:5
+   |
+97 | use crate::render::ren
+derable::FlexRenderable;
+   |     ^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `C
+lear` and `Gauge`
+ --> tui\src\ui.rs:8:31
+  |
+8 |     widgets::{Block, Bo
+rders, Clear, Gauge, List, 
+ListItem, Paragraph, Wrap},
+  |                        
+       ^^^^^  ^^^^^
+
+warning: `codex-tauri-gui` 
+(bin "codex-tauri-gui") gen
+erated 5 warnings (run `car
+go fix --bin "codex-tauri-g
+ui"` to apply 1 suggestion)
+Some errors have detailed e
+xplanations: E0432, E0433.
+For more information about 
+an error, try `rustc --expl
+ain E0432`.
+error: could not compile `c
+odex-orchestrator` (lib) du
+e to 5 previous errors
+warning: variable does not 
+need to be mutable
+   --> tui\src\legacy_app.r
+s:101:28
+    |
+101 |         let (app_even
+t_tx, mut app_event_rx) = u
+nbounded_channel();
+    |                      
+      ----^^^^^^^^^^^^
+    |                      
+      |
+    |                      
+      help: remove this `mu
+t`
+    |
+    = note: `#[warn(unused_
+mut)]` on by default
+
+warning: variable does not 
+need to be mutable
+   --> tui\src\legacy_app.r
+s:159:13
+    |
+159 |         let mut app =
+ Self {
+    |             ----^^^
+    |             |
+    |             help: rem
+ove this `mut`
+
+error[E0061]: this method t
+akes 2 arguments but 1 argu
+ment was supplied
+   --> tui\src\lib.rs:543:1
+3
+    |
+543 |         tui.draw(|f| 
+ui::draw(f, &mut app))?;
+    |             ^^^^ ----
+--------------------- argum
+ent #1 of type `u16` is mis
+sing
+    |
+note: method defined here
+   --> tui\src\tui.rs:457:1
+2
+    |
+457 |     pub fn draw(
+    |            ^^^^
+458 |         &mut self,
+459 |         height: u16,
+    |         -----------
+help: provide the argument
+    |
+543 |         tui.draw(/* u
+16 */, |f| ui::draw(f, &mut
+ app))?;
+    |                  ++++
+++++++
+
+warning: use of deprecated 
+method `ratatui::Frame::<'_
+>::size`: use .area() as it
+'s the more correct name
+  --> tui\src\ui.rs:30:18
+   |
+30 |     let size = f.size(
+);
+   |                  ^^^^
+   |
+   = note: `#[warn(deprecat
+ed)]` on by default
+
+warning: unused import: `cr
+ate::render::renderable::Re
+nderable`
+  --> tui\src\bottom_pane\m
+od.rs:10:5
+   |
+10 | use crate::render::ren
+derable::Renderable as _;
+   |     ^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `
+app`
+  --> tui\src\ui.rs:78:46
+   |
+78 | fn draw_main_menu(f: &
+mut Frame, area: Rect, app:
+ &App) {
+   |                       
+                       ^^^ 
+help: if this is intentiona
+l, prefix it with an unders
+core: `_app`
+   |
+   = note: `#[warn(unused_v
+ariables)]` on by default
+
+warning: unused variable: `
+f`
+  --> tui\src\ui.rs:99:22
+   |
+99 | fn draw_conversation(f
+: &mut Frame, area: Rect, a
+pp: &App) {
+   |                      ^
+ help: if this is intention
+al, prefix it with an under
+score: `_f`
+
+warning: unused variable: `
+area`
+  --> tui\src\ui.rs:99:37
+   |
+99 | fn draw_conversation(f
+: &mut Frame, area: Rect, a
+pp: &App) {
+   |                       
+              ^^^^ help: if
+ this is intentional, prefi
+x it with an underscore: `_
+area`
+
+warning: unused variable: `
+app`
+  --> tui\src\ui.rs:99:49
+   |
+99 | fn draw_conversation(f
+: &mut Frame, area: Rect, a
+pp: &App) {
+   |                       
+                          ^
+^^ help: if this is intenti
+onal, prefix it with an und
+erscore: `_app`
+
+warning: unused variable: `
+app`
+   --> tui\src\ui.rs:108:49
+    |
+108 | fn draw_plan_manager(
+f: &mut Frame, area: Rect, 
+app: &App) {
+    |                      
+                           
+^^^ help: if this is intent
+ional, prefix it with an un
+derscore: `_app`
+
+warning: unused variable: `
+app`
+   --> tui\src\ui.rs:128:52
+    |
+128 | fn draw_quality_contr
+ol(f: &mut Frame, area: Rec
+t, app: &App) {
+    |                      
+                           
+   ^^^ help: if this is int
+entional, prefix it with an
+ underscore: `_app`
+
+warning: unused variable: `
+app`
+   --> tui\src\ui.rs:153:45
+    |
+153 | fn draw_settings(f: &
+mut Frame, area: Rect, app:
+ &App) {
+    |                      
+                       ^^^ 
+help: if this is intentiona
+l, prefix it with an unders
+core: `_app`
+
+Some errors have detailed e
+xplanations: E0061, E0252, 
+E0412.
+For more information about 
+an error, try `rustc --expl
+ain E0061`.
+warning: `codex-tui` (lib) 
+generated 22 warnings
+error: could not compile `c
+odex-tui` (lib) due to 5 pr
+evious errors; 22 warnings 
+emitted

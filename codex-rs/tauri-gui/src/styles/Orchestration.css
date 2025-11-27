@@ -1,0 +1,362 @@
+/* Orchestration Page - Cyberpunk Edition */
+
+.orchestration-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.orchestration-header {
+  margin-bottom: 2rem;
+}
+
+.orchestration-title {
+  font-size: 2.5rem;
+  font-family: var(--cyber-font-display);
+  color: var(--cyber-primary);
+  text-shadow: var(--cyber-text-shadow-glow);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.orchestration-subtitle {
+  color: rgba(224, 224, 224, 0.7);
+  font-size: 1rem;
+}
+
+/* Task Cards */
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.task-card {
+  background: var(--cyber-bg-card);
+  border: 1px solid var(--cyber-primary);
+  box-shadow: var(--cyber-box-shadow-glow);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--cyber-primary), var(--cyber-secondary), var(--cyber-accent));
+  opacity: 0.8;
+}
+
+.task-card:hover {
+  background: var(--cyber-bg-hover);
+  box-shadow: 
+    0 0 30px var(--cyber-glow-blue),
+    0 0 50px var(--cyber-glow-purple);
+  transform: translateY(-4px);
+  border-color: var(--cyber-secondary);
+}
+
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.task-agent-name {
+  font-family: var(--cyber-font-display);
+  font-size: 1.2rem;
+  color: var(--cyber-primary);
+  text-shadow: 0 0 10px var(--cyber-glow-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.task-status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.task-status-badge.status-pending {
+  background: linear-gradient(90deg, #ffff00, #ff9500);
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.6);
+  color: #0a0a0f;
+}
+
+.task-status-badge.status-running {
+  background: linear-gradient(90deg, var(--cyber-primary), #0099ff);
+  box-shadow: 0 0 15px var(--cyber-glow-blue);
+  color: #fff;
+  animation: pulse-glow 2s infinite;
+}
+
+.task-status-badge.status-completed {
+  background: linear-gradient(90deg, var(--cyber-success), #00cc00);
+  box-shadow: 0 0 15px var(--cyber-glow-green);
+  color: #0a0a0f;
+}
+
+.task-status-badge.status-failed {
+  background: linear-gradient(90deg, var(--cyber-error), #cc0000);
+  box-shadow: 0 0 15px rgba(255, 49, 49, 0.6);
+  color: #fff;
+}
+
+.task-prompt-input {
+  width: 100%;
+  min-height: 80px;
+  background: rgba(26, 26, 46, 0.6);
+  border: 1px solid var(--cyber-primary);
+  color: #e0e0e0;
+  padding: 0.75rem;
+  font-family: var(--cyber-font-primary);
+  font-size: 0.9rem;
+  border-radius: 4px;
+  resize: vertical;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.task-prompt-input:focus {
+  border-color: var(--cyber-secondary);
+  box-shadow: 
+    0 0 15px var(--cyber-glow-blue),
+    inset 0 0 10px var(--cyber-glow-purple);
+}
+
+.task-prompt-input::placeholder {
+  color: rgba(224, 224, 224, 0.3);
+}
+
+/* Control Panel */
+.control-panel {
+  background: var(--cyber-bg-card);
+  border: 1px solid var(--cyber-secondary);
+  box-shadow: 0 0 30px var(--cyber-glow-purple);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.execute-button {
+  width: 100%;
+  background: linear-gradient(135deg, var(--cyber-primary), var(--cyber-secondary));
+  color: #fff;
+  border: none;
+  padding: 1rem 2rem;
+  font-family: var(--cyber-font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 6px;
+  box-shadow: 0 0 30px var(--cyber-glow-blue);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.execute-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.execute-button:hover::before {
+  left: 100%;
+}
+
+.execute-button:hover {
+  box-shadow: 
+    0 0 40px var(--cyber-glow-blue),
+    0 0 60px var(--cyber-glow-purple);
+  text-shadow: 0 0 10px #fff;
+  transform: translateY(-2px);
+}
+
+.execute-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.execute-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Results Panel */
+.results-panel {
+  background: var(--cyber-bg-card);
+  border: 1px solid var(--cyber-accent);
+  box-shadow: 0 0 25px var(--cyber-glow-pink);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.results-title {
+  font-family: var(--cyber-font-display);
+  font-size: 1.5rem;
+  color: var(--cyber-accent);
+  text-shadow: 0 0 10px var(--cyber-glow-pink);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.result-item {
+  background: rgba(26, 26, 46, 0.5);
+  border-left: 3px solid var(--cyber-primary);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.result-item:hover {
+  background: rgba(26, 26, 46, 0.8);
+  border-left-color: var(--cyber-secondary);
+  box-shadow: 0 0 15px var(--cyber-glow-blue);
+}
+
+.result-agent-name {
+  color: var(--cyber-primary);
+  font-weight: 600;
+  text-shadow: 0 0 5px var(--cyber-glow-blue);
+}
+
+/* System Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-card {
+  background: rgba(26, 26, 46, 0.6);
+  border: 1px solid var(--cyber-primary);
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 0 15px var(--cyber-glow-blue);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--cyber-primary);
+  text-shadow: var(--cyber-text-shadow-glow);
+  font-family: var(--cyber-font-display);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: rgba(224, 224, 224, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.25rem;
+}
+
+/* Progress Bars */
+.progress-bar-container {
+  background: rgba(26, 26, 46, 0.8);
+  border-radius: 10px;
+  height: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyber-primary), var(--cyber-secondary));
+  box-shadow: 0 0 15px var(--cyber-glow-blue);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px var(--cyber-glow-blue);
+  }
+  50% {
+    box-shadow: 0 0 30px var(--cyber-glow-blue), 0 0 50px var(--cyber-glow-purple);
+  }
+}
+
+/* Notification */
+.cyberpunk-notification {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: var(--cyber-bg-card);
+  border: 1px solid var(--cyber-success);
+  box-shadow: 0 0 30px var(--cyber-glow-green);
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  color: var(--cyber-success);
+  font-family: var(--cyber-font-primary);
+  font-weight: 600;
+  z-index: 10000;
+  animation: slideInRight 0.3s ease, fadeOut 0.5s ease 1.5s forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}

@@ -1,0 +1,18 @@
+    Checking codex-core v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
+    Checking codex-gemini-cli-mcp-server v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\gemini-cli-mcp-server)
+   Compiling codex-tauri-gui v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tauri-gui\src-tauri)
+    Checking codex-windows-ai v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\windows-ai)
+error[E0559]: variant `ExecutionEvent::Started` has no field named `Plan_id`
+   --> core\src\plan\executor.rs:207:13
+    |
+207 |             Plan_id: plan.id.clone(),
+    |             ^^^^^^^ unknown field
+    |
+help: a field with a similar name exists
+    |
+207 -             Plan_id: plan.id.clone(),
+207 +             plan_id: plan.id.clone(),
+    |
+
+For more information about this error, try `rustc --explain E0559`.
+error: could not compile `codex-core` (lib) due to 1 previous error

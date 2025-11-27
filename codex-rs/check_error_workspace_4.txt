@@ -1,0 +1,179 @@
+    Checking codex-core v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
+   Compiling codex-tauri-gui v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tauri-gui\src-tauri)
+    Checking codex-common v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\common)
+    Checking codex-backend-client v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\backend-client)
+    Checking codex-arg0 v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\arg0)
+    Checking codex-login v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\login)
+    Checking codex-ollama v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\ollama)
+    Checking codex-supervisor v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\supervisor)
+    Checking core_test_support v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core\tests\common)
+    Checking app_test_support v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\app-server\tests\common)
+warning: use of deprecated associated function `assert_cmd::cargo::CommandCargoExt::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin!`
+  --> app-server\tests\common\mcp_process.rs:78:35
+   |
+78 |         let std_cmd = StdCommand::cargo_bin("codex-app-server")
+   |                                   ^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated associated function `assert_cmd::Command::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin_cmd!`
+   --> core\tests\common\test_codex.rs:100:47
+    |
+100 |         if let Ok(cmd) = assert_cmd::Command::cargo_bin("codex") {
+    |                                               ^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated associated function `assert_cmd::Command::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin_cmd!`
+  --> core\tests\common\test_codex_exec.rs:14:44
+   |
+14 |         let mut cmd = assert_cmd::Command::cargo_bin("codex-exec")
+   |                                            ^^^^^^^^^
+
+    Checking codex-mcp-server v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\mcp-server)
+    Checking codex-exec v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\exec)
+    Checking codex-chatgpt v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\chatgpt)
+warning: `app_test_support` (lib) generated 1 warning
+warning: `core_test_support` (lib) generated 2 warnings
+    Checking codex-tui v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tui)
+    Checking codex-cloud-tasks-client v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\cloud-tasks-client)
+    Checking codex-app-server v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\app-server)
+warning: unused import: `codex_core::orchestration::parallel_execution::AgentType`
+ --> tauri-gui\src-tauri\src\orchestration.rs:4:5
+  |
+4 | use codex_core::orchestration::parallel_execution::AgentType;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unexpected `cfg` condition value: `cuda`
+  --> tauri-gui\src-tauri\src\main.rs:45:11
+   |
+45 |     #[cfg(feature = "cuda")]
+   |           ^^^^^^^^^^^^^^^^ help: remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `cuda` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `cuda`
+  --> tauri-gui\src-tauri\src\main.rs:47:15
+   |
+47 |     #[cfg(not(feature = "cuda"))]
+   |               ^^^^^^^^^^^^^^^^ help: remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `cuda` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `cuda`
+  --> tauri-gui\src-tauri\src\main.rs:61:11
+   |
+61 |     #[cfg(feature = "cuda")]
+   |           ^^^^^^^^^^^^^^^^ help: remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `cuda` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `cuda`
+  --> tauri-gui\src-tauri\src\main.rs:77:15
+   |
+77 |     #[cfg(not(feature = "cuda"))]
+   |               ^^^^^^^^^^^^^^^^ help: remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `cuda` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: `codex-tauri-gui` (bin "codex-tauri-gui") generated 5 warnings (run `cargo fix --bin "codex-tauri-gui"` to apply 1 suggestion)
+    Checking mcp_test_support v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\mcp-server\tests\common)
+warning: use of deprecated associated function `assert_cmd::cargo::CommandCargoExt::cargo_bin`: incompatible with a custom cargo build-dir, see instead `cargo::cargo_bin!`
+  --> mcp-server\tests\common\mcp_process.rs:59:35
+   |
+59 |         let std_cmd = StdCommand::cargo_bin("codex-mcp-server")
+   |                                   ^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: `mcp_test_support` (lib) generated 1 warning
+error[E0599]: no method named `render_widget` found for mutable reference `&mut custom_terminal::Frame<'_>` in the current scope
+  --> tui\src\ui.rs:85:7
+   |
+85 |     f.render_widget(title, area);
+   |       ^^^^^^^^^^^^^
+   |
+help: there is a method `render_widget_ref` with a similar name
+   |
+85 |     f.render_widget_ref(title, area);
+   |                    ++++
+
+error[E0599]: no method named `render_widget` found for mutable reference `&mut custom_terminal::Frame<'_>` in the current scope
+  --> tui\src\ui.rs:99:7
+   |
+99 |     f.render_widget(title, chunks[0]);
+   |       ^^^^^^^^^^^^^
+   |
+help: there is a method `render_widget_ref` with a similar name
+   |
+99 |     f.render_widget_ref(title, chunks[0]);
+   |                    ++++
+
+error[E0599]: no method named `render_widget` found for mutable reference `&mut custom_terminal::Frame<'_>` in the current scope
+   --> tui\src\ui.rs:113:7
+    |
+113 |     f.render_widget(list, chunks[1]);
+    |       ^^^^^^^^^^^^^
+    |
+help: there is a method `render_widget_ref` with a similar name
+    |
+113 |     f.render_widget_ref(list, chunks[1]);
+    |                    ++++
+
+error[E0599]: no method named `render_widget` found for mutable reference `&mut custom_terminal::Frame<'_>` in the current scope
+   --> tui\src\ui.rs:142:7
+    |
+142 |     f.render_widget(paragraph, area);
+    |       ^^^^^^^^^^^^^
+    |
+help: there is a method `render_widget_ref` with a similar name
+    |
+142 |     f.render_widget_ref(paragraph, area);
+    |                    ++++
+
+error[E0599]: no method named `render_widget` found for mutable reference `&mut custom_terminal::Frame<'_>` in the current scope
+   --> tui\src\ui.rs:167:7
+    |
+167 |     f.render_widget(paragraph, area);
+    |       ^^^^^^^^^^^^^
+    |
+help: there is a method `render_widget_ref` with a similar name
+    |
+167 |     f.render_widget_ref(paragraph, area);
+    |                    ++++
+
+error[E0599]: no method named `render_widget` found for mutable reference `&mut custom_terminal::Frame<'_>` in the current scope
+   --> tui\src\ui.rs:187:7
+    |
+187 |     f.render_widget(paragraph, area);
+    |       ^^^^^^^^^^^^^
+    |
+help: there is a method `render_widget_ref` with a similar name
+    |
+187 |     f.render_widget_ref(paragraph, area);
+    |                    ++++
+
+error[E0599]: no method named `render_widget` found for mutable reference `&mut custom_terminal::Frame<'_>` in the current scope
+   --> tui\src\ui.rs:209:7
+    |
+209 |     f.render_widget(status, area);
+    |       ^^^^^^^^^^^^^
+    |
+help: there is a method `render_widget_ref` with a similar name
+    |
+209 |     f.render_widget_ref(status, area);
+    |                    ++++
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `codex-tui` (lib) due to 7 previous errors

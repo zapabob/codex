@@ -1,0 +1,9 @@
+﻿cargo : error: could not find `Cargo.toml` in `C:\Users\downl\Desktop\codex-mai
+n` or any parent directory
+発生場所 行:1 文字:14
++ cd codex-rs; cargo clippy --all-targets --all-features 2>&1 | Out-Fil ...
++              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: could no...arent directory 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

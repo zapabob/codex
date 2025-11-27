@@ -1,0 +1,8 @@
+packages:
+  - docs
+  - sdk/typescript
+  - gui
+  - packages/*
+
+ignoredBuiltDependencies:
+  - esbuild

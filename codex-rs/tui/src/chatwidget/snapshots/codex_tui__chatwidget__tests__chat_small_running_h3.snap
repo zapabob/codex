@@ -1,0 +1,8 @@
+---
+source: tui/src/chatwidget/tests.rs
+assertion_line: 2037
+expression: terminal.backend()
+---
+"                                        "
+"• Thinking (0s • esc to interrupt)      "
+"                                        "

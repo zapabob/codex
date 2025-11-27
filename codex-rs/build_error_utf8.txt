@@ -1,0 +1,727 @@
+﻿cargo : warning: unuse
+d import: `Context`
+発生場所 行:1 文字:1
++ cargo check -p codex
+-tui > build_error.txt
+ 2>&1
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (warning: u   
+ nused import: `Co    
+ntext`:String) []    ,
+ RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+ --> core\src\hybrid_a
+cceleration.rs:5:14
+  |
+5 | ...::{Context, Re.
+..
+  |       ^^^^^^^
+  |
+  = note: `#[warn(unus
+ed_imports)]` on by de
+fault
+
+warning: multiple asso
+ciated items are never
+ used
+   --> core\src\conver
+sation_history.rs:34:1
+9
+    |
+ 33 | impl Conversatio
+nHistory {
+    | ----------------
+-------- associated it
+ems in this implementa
+tion
+ 34 |     pub(crate) f
+n new() -> Self {
+    |                 
+  ^^^
+...
+ 41 |     pub(crate) f
+n token_info(&self) ->
+ Opti...
+    |                 
+  ^^^^^^^^^^
+...
+ 45 |     pub(crate) f
+n set_token_usage_full
+(&mut...
+    |                 
+  ^^^^^^^^^^^^^^^^^^^^
+...
+ 55 |     pub(crate) f
+n record_items<I>(&mut
+ self...
+    |                 
+  ^^^^^^^^^^^^
+...
+ 72 |     pub(crate) f
+n get_history(&mut sel
+f) ->...
+    |                 
+  ^^^^^^^^^^^
+...
+ 79 |     pub(crate) f
+n get_history_for_prom
+pt(&m...
+    |                 
+  ^^^^^^^^^^^^^^^^^^^^
+^^
+...
+ 85 |     pub(crate) f
+n remove_first_item(&m
+ut se...
+    |                 
+  ^^^^^^^^^^^^^^^^^
+...
+ 97 |     pub(crate) f
+n replace(&mut self, i
+tems:...
+    |                 
+  ^^^^^^^
+...
+101 |     pub(crate) f
+n update_token_info(
+    |                 
+  ^^^^^^^^^^^^^^^^^
+...
+116 |     fn normalize
+_history(&mut self) {
+    |        ^^^^^^^^^
+^^^^^^^^
+...
+125 |     pub(crate) f
+n contents(&self) -> V
+ec<Re...
+    |                 
+  ^^^^^^^^
+...
+129 |     fn remove_gh
+ost_snapshots(items: &
+mut V...
+    |        ^^^^^^^^^
+^^^^^^^^^^^^^
+...
+133 |     fn ensure_ca
+ll_outputs_present(&mu
+t sel...
+    |        ^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+...
+239 |     fn remove_or
+phan_outputs(&mut self
+) {
+    |        ^^^^^^^^^
+^^^^^^^^^^^^
+...
+308 |     fn remove_co
+rresponding_for(&mut s
+elf, ...
+    |        ^^^^^^^^^
+^^^^^^^^^^^^^^^
+...
+362 |     fn remove_fi
+rst_matching<F>(&mut s
+elf, ...
+    |        ^^^^^^^^^
+^^^^^^^^^^^^
+...
+371 |     fn process_i
+tem(item: &ResponseIte
+m) ->...
+    |        ^^^^^^^^^
+^^^
+    |
+    = note: `#[warn(de
+ad_code)]` on by defau
+lt
+
+warning: structure fie
+ld `Plan_id` should ha
+ve a snake case name
+  --> core\src\plan\ex
+ecutor.rs:29:9
+   |
+29 | ...   Plan_id: S.
+..
+   |       ^^^^^^^ hel
+p: convert the identif
+ier to snake case: `pl
+an_id`
+   |
+   = note: `#[warn(non
+_snake_case)]` on by d
+efault
+
+warning: structure fie
+ld `Plan_id` should ha
+ve a snake case name
+  --> core\src\plan\ex
+ecutor.rs:96:9
+   |
+96 | ...ub Plan_id: S.
+..
+   |       ^^^^^^^ hel
+p: convert the identif
+ier to snake case: `pl
+an_id`
+
+warning: variable `Pla
+n` should have a snake
+ case name
+   --> core\src\plan\e
+xecutor.rs:181:37
+    |
+181 | ...ut Plan: Pla.
+..
+    |       ^^^^ help:
+ convert the identifie
+r to snake case: `plan
+`
+
+warning: variable `Pla
+n` should have a snake
+ case name
+   --> core\src\plan\e
+xecutor.rs:297:9
+    |
+297 | ...   Plan: &Pl.
+..
+    |       ^^^^ help:
+ convert the identifie
+r to snake case: `plan
+`
+
+warning: `codex-core` 
+(lib) generated 6 warn
+ings (run `cargo fix -
+-lib -p codex-core` to
+ apply 1 suggestion)
+    Checking codex-tui
+ v2.2.0 (C:\Users\down
+l\Desktop\codex-main\c
+odex-rs\tui)
+error[E0432]: unresolv
+ed import `codex_commo
+n::oss`
+  --> tui\src\lib.rs:1
+0:19
+   |
+10 | use codex_common:
+:oss::ensure_oss_provi
+der_ready;
+   |                  
+ ^^^ could not find `o
+ss` in `codex_common`
+
+error[E0432]: unresolv
+ed import `codex_commo
+n::oss`
+  --> tui\src\lib.rs:1
+1:19
+   |
+11 | use codex_common:
+:oss::get_default_mode
+l_for_oss_provider;
+   |                  
+ ^^^ could not find `o
+ss` in `codex_common`
+
+error[E0432]: unresolv
+ed import `codex_core:
+:config::resolve_oss_p
+rovider`
+  --> tui\src\lib.rs:2
+1:5
+   |
+21 | use codex_core::c
+onfig::resolve_oss_pro
+vider;
+   |     ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^ no `resolve_oss_
+provider` in `config`
+
+error[E0432]: unresolv
+ed import `codex_commo
+n::model_presets::HIDE
+_GPT_5_1_CODEX_MAX_MIG
+RATION_PROMPT_CONFIG`
+  --> tui\src\model_mi
+gration.rs:10:5
+   |
+10 | use codex_common:
+:model_presets::HIDE_G
+PT_5_1_CODEX_MAX_MIGRA
+TION_PROMPT_CONFIG;
+   |     ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^ no 
+`HIDE_GPT_5_1_CODEX_MA
+X_MIGRATION_PROMPT_CON
+FIG` in `model_presets
+`
+
+error[E0432]: unresolv
+ed import `codex_commo
+n::model_presets::HIDE
+_GPT5_1_MIGRATION_PROM
+PT_CONFIG`
+  --> tui\src\model_mi
+gration.rs:11:5
+   |
+11 | use codex_common:
+:model_presets::HIDE_G
+PT5_1_MIGRATION_PROMPT
+_CONFIG;
+   |     ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^ no `HIDE_GPT5_
+1_MIGRATION_PROMPT_CON
+FIG` in `model_presets
+`
+
+error[E0432]: unresolv
+ed import `codex_core:
+:DEFAULT_LMSTUDIO_PORT
+`
+ --> tui\src\oss_selec
+tion.rs:4:5
+  |
+4 | use codex_core::DE
+FAULT_LMSTUDIO_PORT;
+  |     ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^ no
+ `DEFAULT_LMSTUDIO_POR
+T` in the root
+
+error[E0432]: unresolv
+ed import `codex_core:
+:DEFAULT_OLLAMA_PORT`
+ --> tui\src\oss_selec
+tion.rs:5:5
+  |
+5 | use codex_core::DE
+FAULT_OLLAMA_PORT;
+  |     ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^ no `
+DEFAULT_OLLAMA_PORT` i
+n the root
+
+error[E0432]: unresolv
+ed import `codex_core:
+:LMSTUDIO_OSS_PROVIDER
+_ID`
+ --> tui\src\oss_selec
+tion.rs:6:5
+  |
+6 | use codex_core::LM
+STUDIO_OSS_PROVIDER_ID
+;
+  |     ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+ no `LMSTUDIO_OSS_PROV
+IDER_ID` in the root
+
+error[E0432]: unresolv
+ed import `codex_core:
+:OLLAMA_OSS_PROVIDER_I
+D`
+ --> tui\src\oss_selec
+tion.rs:7:5
+  |
+7 | use codex_core::OL
+LAMA_OSS_PROVIDER_ID;
+  |     ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^ n
+o `OLLAMA_OSS_PROVIDER
+_ID` in the root
+
+error[E0432]: unresolv
+ed import `codex_core:
+:config::set_default_o
+ss_provider`
+ --> tui\src\oss_selec
+tion.rs:8:5
+  |
+8 | use codex_core::co
+nfig::set_default_oss_
+provider;
+  |     ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^ no `set_defau
+lt_oss_provider` in `c
+onfig`
+
+error[E0432]: unresolv
+ed import `crate::key_
+hint::is_altgr`
+ --> tui\src\bottom_pa
+ne\textarea.rs:1:5
+  |
+1 | use crate::key_hin
+t::is_altgr;
+  |     ^^^^^^^^^^^^^^
+^^^^^^^^^^^ no `is_alt
+gr` in `key_hint`
+
+warning: unused import
+: `codex_ollama::DEFAU
+LT_OSS_MODEL`
+  --> tui\src\lib.rs:2
+5:5
+   |
+25 | use codex_ollama:
+:DEFAULT_OSS_MODEL;
+   |     ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unu
+sed_imports)]` on by d
+efault
+
+warning: unused import
+: `Span`
+  --> tui\src\bottom_p
+ane\mod.rs:19:27
+   |
+19 | use ratatui::text
+::{Line, Span};
+   |                  
+         ^^^^
+
+warning: unused import
+: `crate::render::Inse
+ts`
+  --> tui\src\chatwidg
+et.rs:95:5
+   |
+95 | use crate::render
+::Insets;
+   |     ^^^^^^^^^^^^^
+^^^^^^^^
+
+warning: unused import
+: `crate::render::rend
+erable::FlexRenderable
+`
+  --> tui\src\chatwidg
+et.rs:97:5
+   |
+97 | use crate::render
+::renderable::FlexRend
+erable;
+   |     ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^
+
+warning: unexpected `c
+fg` condition value: `
+windows-ai`
+  --> tui\src\gpu_stat
+s.rs:32:38
+   |
+32 |     #[cfg(all(tar
+get_os = "windows", fe
+ature = "windows-ai"))
+]
+   |                  
+                    ^^
+^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected va
+lues for `feature` are
+: `codex-cuda-runtime`
+, `cuda`, `debug-logs`
+, and `vt100-tests`
+   = help: consider ad
+ding `windows-ai` as a
+ feature in `Cargo.tom
+l`
+   = note: see <https:
+//doc.rust-lang.org/ni
+ghtly/rustc/check-cfg/
+cargo-specifics.html> 
+for more information a
+bout checking conditio
+nal configuration
+   = note: `#[warn(une
+xpected_cfgs)]` on by 
+default
+
+warning: unexpected `c
+fg` condition value: `
+windows-ai`
+  --> tui\src\gpu_stat
+s.rs:39:38
+   |
+39 |     #[cfg(all(tar
+get_os = "windows", fe
+ature = "windows-ai"))
+]
+   |                  
+                    ^^
+^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected va
+lues for `feature` are
+: `codex-cuda-runtime`
+, `cuda`, `debug-logs`
+, and `vt100-tests`
+   = help: consider ad
+ding `windows-ai` as a
+ feature in `Cargo.tom
+l`
+   = note: see <https:
+//doc.rust-lang.org/ni
+ghtly/rustc/check-cfg/
+cargo-specifics.html> 
+for more information a
+bout checking conditio
+nal configuration
+
+warning: unexpected `c
+fg` condition value: `
+windows-ai`
+  --> tui\src\gpu_stat
+s.rs:57:42
+   |
+57 |     #[cfg(not(all
+(target_os = "windows"
+, feature = "windows-a
+i")))]
+   |                  
+                      
+  ^^^^^^^^^^^^^^^^^^^^
+^^
+   |
+   = note: expected va
+lues for `feature` are
+: `codex-cuda-runtime`
+, `cuda`, `debug-logs`
+, and `vt100-tests`
+   = help: consider ad
+ding `windows-ai` as a
+ feature in `Cargo.tom
+l`
+   = note: see <https:
+//doc.rust-lang.org/ni
+ghtly/rustc/check-cfg/
+cargo-specifics.html> 
+for more information a
+bout checking conditio
+nal configuration
+
+warning: unexpected `c
+fg` condition value: `
+windows-ai`
+  --> tui\src\gpu_stat
+s.rs:64:38
+   |
+64 |     #[cfg(all(tar
+get_os = "windows", fe
+ature = "windows-ai"))
+]
+   |                  
+                    ^^
+^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected va
+lues for `feature` are
+: `codex-cuda-runtime`
+, `cuda`, `debug-logs`
+, and `vt100-tests`
+   = help: consider ad
+ding `windows-ai` as a
+ feature in `Cargo.tom
+l`
+   = note: see <https:
+//doc.rust-lang.org/ni
+ghtly/rustc/check-cfg/
+cargo-specifics.html> 
+for more information a
+bout checking conditio
+nal configuration
+
+warning: unexpected `c
+fg` condition value: `
+windows-ai`
+  --> tui\src\gpu_stat
+s.rs:86:42
+   |
+86 |     #[cfg(not(all
+(target_os = "windows"
+, feature = "windows-a
+i")))]
+   |                  
+                      
+  ^^^^^^^^^^^^^^^^^^^^
+^^
+   |
+   = note: expected va
+lues for `feature` are
+: `codex-cuda-runtime`
+, `cuda`, `debug-logs`
+, and `vt100-tests`
+   = help: consider ad
+ding `windows-ai` as a
+ feature in `Cargo.tom
+l`
+   = note: see <https:
+//doc.rust-lang.org/ni
+ghtly/rustc/check-cfg/
+cargo-specifics.html> 
+for more information a
+bout checking conditio
+nal configuration
+
+error[E0609]: no field
+ `oss_provider` on typ
+e `cli::Cli`
+   --> tui\src\lib.rs:
+170:17
+    |
+170 |             cli.
+oss_provider.as_deref(
+),
+    |                 
+^^^^^^^^^^^^ unknown f
+ield
+    |
+    = note: available 
+fields are: `prompt`, 
+`images`, `resume_pick
+er`, `resume_last`, `r
+esume_session_id` ... 
+and 11 others
+
+warning: unused import
+: `crate::render::rend
+erable::Renderable`
+  --> tui\src\bottom_p
+ane\mod.rs:10:5
+   |
+10 | use crate::render
+::renderable::Renderab
+le as _;
+   |     ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^
+
+warning: unreachable p
+attern
+  --> tui\src\model_mi
+gration.rs:63:9
+   |
+62 |         HIDE_GPT5
+_1_MIGRATION_PROMPT_CO
+NFIG => gpt5_migration
+_copy(),
+   |         ---------
+----------------------
+---- matches any value
+63 |         HIDE_GPT_
+5_1_CODEX_MAX_MIGRATIO
+N_PROMPT_CONFIG => gpt
+_5_1_codex_max_migrati
+on_copy(),
+   |         ^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^ no val
+ue can reach this
+   |
+   = note: `#[warn(unr
+eachable_patterns)]` o
+n by default
+
+warning: unreachable p
+attern
+  --> tui\src\model_mi
+gration.rs:64:9
+   |
+62 |         HIDE_GPT5
+_1_MIGRATION_PROMPT_CO
+NFIG => gpt5_migration
+_copy(),
+   |         ---------
+----------------------
+---- matches any value
+63 |         HIDE_GPT_
+5_1_CODEX_MAX_MIGRATIO
+N_PROMPT_CONFIG => gpt
+_5_1_codex_max_migrati
+on_copy(),
+64 |         _ => gpt_
+5_1_codex_max_migratio
+n_copy(),
+   |         ^ no valu
+e can reach this
+
+warning: unused variab
+le: `HIDE_GPT5_1_MIGRA
+TION_PROMPT_CONFIG`
+  --> tui\src\model_mi
+gration.rs:62:9
+   |
+62 |         HIDE_GPT5
+_1_MIGRATION_PROMPT_CO
+NFIG => gpt5_migration
+_copy(),
+   |         ^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^ help: if this is 
+intentional, prefix it
+ with an underscore: `
+_HIDE_GPT5_1_MIGRATION
+_PROMPT_CONFIG`
+   |
+   = note: `#[warn(unu
+sed_variables)]` on by
+ default
+
+warning: unused variab
+le: `HIDE_GPT_5_1_CODE
+X_MAX_MIGRATION_PROMPT
+_CONFIG`
+  --> tui\src\model_mi
+gration.rs:63:9
+   |
+63 |         HIDE_GPT_
+5_1_CODEX_MAX_MIGRATIO
+N_PROMPT_CONFIG => gpt
+_5_1_codex_max_migrati
+on_copy(),
+   |         ^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^ help: 
+if this is intentional
+, prefix it with an un
+derscore: `_HIDE_GPT_5
+_1_CODEX_MAX_MIGRATION
+_PROMPT_CONFIG`
+
+Some errors have detai
+led explanations: E043
+2, E0609.
+For more information a
+bout an error, try `ru
+stc --explain E0432`.
+warning: `codex-tui` (
+lib) generated 14 warn
+ings
+error: could not compi
+le `codex-tui` (lib) d
+ue to 12 previous erro
+rs; 14 warnings emitte
+d

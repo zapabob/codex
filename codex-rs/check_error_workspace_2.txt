@@ -1,0 +1,122 @@
+    Checking codex-core v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
+    Checking codex-gemini-cli-mcp-server v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\gemini-cli-mcp-server)
+   Compiling codex-tauri-gui v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tauri-gui\src-tauri)
+    Checking codex-windows-ai v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\windows-ai)
+    Checking codex-orchestrator v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\orchestrator)
+error[E0753]: expected outer doc comment
+  --> gemini-cli-mcp-server\src\oauth.rs:19:1
+   |
+19 | //! OAuth 2.0 implementation for Gemini CLI
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+   |
+19 - //! OAuth 2.0 implementation for Gemini CLI
+19 + // OAuth 2.0 implementation for Gemini CLI
+   |
+
+warning: unused imports: `DateTime` and `Utc`
+ --> gemini-cli-mcp-server\src\oauth.rs:9:14
+  |
+9 | use chrono::{DateTime, Utc};
+  |              ^^^^^^^^  ^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `reqwest::Client`
+  --> gemini-cli-mcp-server\src\oauth.rs:10:5
+   |
+10 | use reqwest::Client;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> gemini-cli-mcp-server\src\oauth.rs:14:5
+   |
+14 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `PinnedMemory` is never constructed
+  --> windows-ai\src\kernel_driver_ffi.rs:67:12
+   |
+67 | pub struct PinnedMemory {
+   |            ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated items `new`, `size`, and `address` are never used
+  --> windows-ai\src\kernel_driver_ffi.rs:80:12
+   |
+72 | impl PinnedMemory {
+   | ----------------- associated items in this implementation
+...
+80 |     pub fn new(_handle: Arc<AiDriverHandle>, size: usize) -> Result<Self> {
+   |            ^^^
+...
+87 |     pub fn size(&self) -> u64 {
+   |            ^^^^
+...
+91 |     pub fn address(&self) -> u64 {
+   |            ^^^^^^^
+
+warning: trait `CudaRuntimeTrait` is never used
+  --> windows-ai\src\kernel_cuda_bridge.rs:18:11
+   |
+18 | pub trait CudaRuntimeTrait: Send + Sync {
+   |           ^^^^^^^^^^^^^^^^
+
+warning: struct `KernelCudaBridge` is never constructed
+  --> windows-ai\src\kernel_cuda_bridge.rs:30:12
+   |
+30 | pub struct KernelCudaBridge {
+   |            ^^^^^^^^^^^^^^^^
+
+warning: associated items `new`, `attach_cuda_runtime`, `allocate_pinned_memory`, `get_memory_pool_stats`, `optimize_scheduling`, and `get_combined_gpu_stats` are never used
+   --> windows-ai\src\kernel_cuda_bridge.rs:38:12
+    |
+ 36 | impl KernelCudaBridge {
+    | --------------------- associated items in this implementation
+ 37 |     /// Create a new bridge
+ 38 |     pub fn new(kernel_bridge: Arc<KernelBridge>) -> Result<Self> {
+    |            ^^^
+...
+ 49 |     pub fn attach_cuda_runtime(&mut self, runtime: Arc<dyn CudaRuntimeTrait>) {
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+ 57 |     pub fn allocate_pinned_memory(&mut self, size: u64) -> Result<()> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^
+...
+ 91 |     pub fn get_memory_pool_stats(&self) -> Result<MemoryPoolStatsC> {
+    |            ^^^^^^^^^^^^^^^^^^^^^
+...
+ 98 |     pub fn optimize_scheduling(&self) -> Result<()> {
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+121 |     pub async fn get_combined_gpu_stats(&self) -> Result<CombinedGpuStats> {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `CombinedGpuStats` is never constructed
+   --> windows-ai\src\kernel_cuda_bridge.rs:154:12
+    |
+154 | pub struct CombinedGpuStats {
+    |            ^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0753`.
+warning: `codex-gemini-cli-mcp-server` (lib) generated 3 warnings
+error: could not compile `codex-gemini-cli-mcp-server` (lib) due to 1 previous error; 3 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+warning: `codex-windows-ai` (lib) generated 6 warnings
+error[E0559]: variant `ExecutionEvent::Started` has no field named `Plan_id`
+   --> core\src\plan\executor.rs:207:13
+    |
+207 |             Plan_id: plan.id.clone(),
+    |             ^^^^^^^ unknown field
+    |
+help: a field with a similar name exists
+    |
+207 -             Plan_id: plan.id.clone(),
+207 +             plan_id: plan.id.clone(),
+    |
+
+For more information about this error, try `rustc --explain E0559`.
+error: could not compile `codex-core` (lib) due to 1 previous error
