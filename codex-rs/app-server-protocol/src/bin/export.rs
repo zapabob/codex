@@ -1,19 +1,44 @@
 use anyhow::Result;
-use clap::Parser;
+use clap::{Arg, Command};
 use std::path::PathBuf;
 
-#[derive(Parser, Debug)]
-#[command(
-    about = "Generate TypeScript bindings and JSON Schemas for the Codex app-server protocol"
-)]
+#[derive(Debug)]
 struct Args {
     /// Output directory where generated files will be written
-    #[arg(short = 'o', long = "out", value_name = "DIR")]
     out_dir: PathBuf,
 
     /// Optional Prettier executable path to format generated TypeScript files
-    #[arg(short = 'p', long = "prettier", value_name = "PRETTIER_BIN")]
     prettier: Option<PathBuf>,
+}
+
+impl Args {
+    fn parse() -> Self {
+        let matches = Command::new("codex-app-server-protocol-export")
+            .about("Generate TypeScript bindings and JSON Schemas for the Codex app-server protocol")
+            .arg(
+                Arg::new("out")
+                    .short('o')
+                    .long("out")
+                    .value_name("DIR")
+                    .help("Output directory where generated files will be written")
+                    .required(true)
+                    .value_parser(clap::value_parser!(PathBuf)),
+            )
+            .arg(
+                Arg::new("prettier")
+                    .short('p')
+                    .long("prettier")
+                    .value_name("PRETTIER_BIN")
+                    .help("Optional Prettier executable path to format generated TypeScript files")
+                    .value_parser(clap::value_parser!(PathBuf)),
+            )
+            .get_matches();
+
+        Self {
+            out_dir: matches.get_one::<PathBuf>("out").unwrap().clone(),
+            prettier: matches.get_one::<PathBuf>("prettier").cloned(),
+        }
+    }
 }
 
 fn main() -> Result<()> {

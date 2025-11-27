@@ -185,7 +185,7 @@ async-trait = "0.1"
 base64 = "0.22"
 bytes = "1.7"
 chrono = { version = "0.4", features = ["serde"] }
-clap = { version = "4.5", features = ["derive"] }
+clap = { version = "4.5.9", features = ["derive"] }
 cmake = "0.1.54"
 color-eyre = "0.6"
 crossterm = { git = "https://github.com/nornagon/crossterm", branch = "nornagon/color-query" }
@@ -315,7 +315,7 @@ codex-login = { path = "login" }
 codex-mcp-types = { path = "mcp-types" }
 codex-ollama = { path = "ollama" }
 codex-protocol = { path = "protocol" }
-codex-rmcp-client = { path = "rmcp-client" }
+# codex-rmcp-client = { path = "rmcp-client" }
 codex-utils-pty = { path = "utils-pty" }
 codex-utils-readiness = { path = "utils-readiness" }
 codex-utils-string = { path = "utils-string" }

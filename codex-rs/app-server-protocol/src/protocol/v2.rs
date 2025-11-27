@@ -533,12 +533,10 @@ pub struct CancelLoginAccountParams {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
-#[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct CancelLoginAccountResponse {}
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
-#[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct LogoutAccountResponse {}
 
@@ -709,7 +707,6 @@ pub struct ThreadArchiveParams {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
-#[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct ThreadArchiveResponse {}
 
@@ -744,7 +741,6 @@ pub struct ThreadCompactParams {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
-#[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct ThreadCompactResponse {}
 
@@ -956,7 +952,6 @@ pub struct TurnInterruptParams {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
-#[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct TurnInterruptResponse {}
 
@@ -1540,3 +1535,4 @@ mod tests {
         );
     }
 }
+

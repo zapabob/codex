@@ -63,7 +63,6 @@ pub fn spawn_response_stream(
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct Error {
     r#type: Option<String>,
     code: Option<String>,
@@ -73,7 +72,6 @@ struct Error {
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct ResponseCompleted {
     id: String,
     #[serde(default)]
