@@ -9,7 +9,7 @@ pub mod executor;
 pub mod manager;
 pub mod persist;
 pub mod policy;
-// pub mod research_integration; // Temporarily disabled
+pub mod research_integration;
 pub mod schema;
 pub mod state;
 
@@ -20,7 +20,7 @@ pub use persist::PlanPersister;
 pub use policy::{
     ApprovalRole, PermissionTier, PlanPolicy, PolicyEnforcer, PolicyError, PrivilegedOperation,
 };
-// pub use research_integration::{ResearchApprovalDialog, ResearchIntegration, ResearchRequest}; // Temporarily disabled
+pub use research_integration::{ResearchApprovalDialog, ResearchIntegration, ResearchRequest};
 pub use schema::{
     Budget, EvalCriteria, ExecutionMode, PlanBlock, ResearchBlock, ResearchSource, Risk, WorkItem,
 };

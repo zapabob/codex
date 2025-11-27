@@ -1581,11 +1581,7 @@ impl ChatWidget {
                 self.add_info_message("Research command is not yet implemented in TUI mode. Use CLI: `codex research <topic>`".to_string(), None);
             }
             SlashCommand::Plan => {
-                self.add_info_message(
-                    "Plan command is not yet implemented in TUI mode. Use CLI: `codex plan create <goal> --mode orchestrated` or `codex plan execute <id> --mode competition`"
-                        .to_string(),
-                    None,
-                );
+                self.handle_plan_command(&args).await;
             }
             SlashCommand::Hook => {
                 self.add_info_message("Hook command is not yet implemented in TUI mode. Use CLI: `codex hook <event>`".to_string(), None);
@@ -3162,6 +3158,81 @@ impl ChatWidget {
     pub fn cursor_pos(&self, area: Rect) -> Option<(u16, u16)> {
         let [_, _, bottom_pane_area] = self.layout_areas(area);
         self.bottom_pane.cursor_pos(bottom_pane_area)
+    }
+
+    async fn handle_plan_command(&mut self, args: &str) {
+        let args = args.trim();
+
+        if args.is_empty() {
+            self.add_info_message(
+                "Usage: /plan create <goal> [--mode single|orchestrated|competition] or /plan execute <id>".\n\
+                 Use CLI for full plan functionality: `codex plan create <goal> --mode orchestrated`"
+                    .to_string(),
+                None,
+            );
+            return;
+        }
+
+        let parts: Vec<&str> = args.split_whitespace().collect();
+        match parts.first() {
+            Some(&"create") => {
+                if parts.len() < 2 {
+                    self.add_info_message(
+                        "Usage: /plan create <goal> [--mode single|orchestrated|competition]".to_string(),
+                        None,
+                    );
+                    return;
+                }
+
+                let goal = parts[1..].join(" ");
+                let mode = if goal.contains("--mode orchestrated") {
+                    "orchestrated"
+                } else if goal.contains("--mode competition") {
+                    "competition"
+                } else {
+                    "single"
+                };
+
+                self.add_info_message(
+                    format!("📋 Plan creation requested: {}\n🎯 Mode: {}\n\nUse CLI: `codex plan create \"{}\" --mode {}`",
+                           goal.replace("--mode orchestrated", "").replace("--mode competition", "").trim(),
+                           mode, goal, mode),
+                    None,
+                );
+            }
+            Some(&"execute") => {
+                if parts.len() < 2 {
+                    self.add_info_message(
+                        "Usage: /plan execute <plan_id> [--mode single|orchestrated|competition]".to_string(),
+                        None,
+                    );
+                    return;
+                }
+
+                let plan_id = parts[1];
+                let mode = parts.get(3).unwrap_or(&"saved").to_string();
+
+                self.add_info_message(
+                    format!("▶️ Plan execution requested: {}\n🎯 Mode: {}\n\nUse CLI: `codex plan execute {} --mode {}`",
+                           plan_id, mode, plan_id, mode),
+                    None,
+                );
+            }
+            Some(&"list") => {
+                self.add_info_message(
+                    "📋 Available plans:\n\nUse CLI: `codex plan list`".to_string(),
+                    None,
+                );
+            }
+            _ => {
+                self.add_info_message(
+                    "Unknown plan subcommand. Use: create, execute, or list.\n\
+                     Full CLI usage: `codex plan create <goal> --mode orchestrated`"
+                        .to_string(),
+                    None,
+                );
+            }
+        }
     }
 }
 
