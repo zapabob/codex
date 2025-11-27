@@ -2,7 +2,13 @@
 //!
 //! Core functionality for the Codex AI-Native OS
 
+// Rust 2024 best practices: Use impl Trait in type aliases where possible
 pub type Result<T> = anyhow::Result<T>;
+
+// Common collection type aliases for better readability
+pub type HashMap<K, V> = std::collections::HashMap<K, V>;
+pub type HashSet<T> = std::collections::HashSet<T>;
+pub type VecDeque<T> = std::collections::VecDeque<T>;
 
 pub mod qc;
 pub mod virtualization;

@@ -3,15 +3,11 @@
 //! Monitors GPU/CPU temperatures, memory usage, and manages concurrent execution limits
 //! Provides real-time resource monitoring for AI development workflows
 
-use crate::Result;
-use serde::Deserialize;
-use serde::Serialize;
-use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::Mutex;
+use crate::{HashMap, Result};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
 use sysinfo::System;
-use tokio::sync::mpsc;
-use tokio::sync::oneshot;
+use tokio::sync::{mpsc, oneshot};
 
 /// Hardware sensor readings
 #[derive(Debug, Clone, Serialize, Deserialize)]

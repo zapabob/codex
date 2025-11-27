@@ -268,11 +268,13 @@ Only output the JSON, no explanation."#;
             .await
             .context("Failed to generate agent definition")?;
 
-        // レスポンスを収集
+        // レスポンスを収集 - Rust 2024: 使用しない変数の警告を避けるため
         let mut full_response = String::new();
+
         // TODO: Re-enable when ResponseEvent is available
-        // while let Some(event) = response_stream.next().await {
-        //     if let ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) = event? {
+        // Rust 2024: while-let chainsを使用
+        // while let Some(Ok(event)) = response_stream.next().await {
+        //     if let ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) = event {
         //         for content_item in content {
         //             if let ContentItem::OutputText { text } = content_item {
         //                 full_response.push_str(&text);
@@ -656,8 +658,9 @@ Only output the JSON, no explanation."#;
         let mut total_tokens = 0;
 
         // TODO: Re-enable when ResponseEvent is available
-        // while let Some(event) = stream.next().await {
-        //     match event? {
+        // Rust 2024: while-let chainsを使用
+        // while let Some(Ok(event)) = stream.next().await {
+        //     match event {
         //         ResponseEvent::Created => {
         //             debug!("Agent '{}': Response stream started", agent_def.name);
         //         }
