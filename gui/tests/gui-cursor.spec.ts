@@ -22,8 +22,8 @@ test.describe('GUI動作確認 - Cursorブラウザ', () => {
       await expect(page).toHaveTitle(/Codex|GUI|Assistant/i, { timeout: 5000 });
     }
     
-    // ページが読み込まれたことを確認（URLが正しいことを確認）
-    expect(page.url()).toContain('localhost:3000');
+    // ページが読み込まれたことを確認（baseURLに基づくURLであることを確認）
+    expect(page.url()).toMatch(/^http:\/\/localhost:\d+\//);
     
     // ページにコンテンツが存在することを確認（HTML要素が存在する）
     const htmlContent = await page.content();
@@ -45,7 +45,7 @@ test.describe('GUI動作確認 - Cursorブラウザ', () => {
       
       // URLが変更されたか確認
       const currentUrl = page.url();
-      expect(currentUrl).not.toBe('http://localhost:3000/');
+      expect(currentUrl).not.toMatch(/^http:\/\/localhost:1919\/$/);
     }
   });
 

@@ -7,8 +7,8 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
 use serde::{Deserialize, Serialize};
-use crate::agents::Agent;
-use crate::plan::{Plan, Task};
+// use crate::agents::Agent;
+// use crate::plan::{Plan, Task};
 use crate::Result;
 
 /// Task priority levels
@@ -97,7 +97,6 @@ pub struct QCOptimizer {
 }
 
 /// Optimization algorithm trait
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub trait OptimizationAlgorithm {
     fn name(&self) -> &str;
     fn optimize(&self, tasks: &[OrchestratedTask], agents: &[AgentCapability]) -> Vec<(String, String)>;

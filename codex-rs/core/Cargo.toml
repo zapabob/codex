@@ -17,28 +17,26 @@ base64 = "0.22"
 bytes = "1.7"
 chrono = { version = "0.4", features = ["serde"] }
 # 🔐 Security dependencies (Phase 1: TLS/mTLS)
-rustls = { workspace = true }
-rustls-pemfile = { workspace = true }
-tokio-rustls = { workspace = true }
 x509-parser = { workspace = true }
 # 🔐 Security dependencies (Phase 2: Signing/Encryption)
 # aes-gcm = "0.10" # Temporarily disabled due to aws-lc-sys build issues
 # Temporarily disabled complex local dependencies for minimal build
-# codex-app-server-protocol = { path = "../app-server-protocol" }
-# codex-apply-patch = { path = "../apply-patch" }
-# codex-async-utils = { path = "../async-utils" }
-# codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
-# codex-deep-research = { path = "../deep-research" }
-# codex-file-search = { path = "../file-search" }
-# codex-git = { path = "../git" }
-# codex-keyring-store = { path = "../keyring-store" }
-# codex-otel = { workspace = true, features = ["otel"] }
-# codex-protocol = { path = "../protocol" }
-# codex-rmcp-client = { path = "../rmcp-client" }
-# codex-utils-pty = { path = "../utils/pty" }
-# codex-utils-readiness = { path = "../utils/readiness" }
-# codex-utils-string = { path = "../utils/string" }
-# codex-utils-tokenizer = { path = "../utils/tokenizer" }
+codex-app-server-protocol = { path = "../app-server-protocol" }
+codex-apply-patch = { path = "../apply-patch" }
+codex-async-utils = { path = "../async-utils" }
+codex-api = { path = "../codex-api" }
+codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
+codex-deep-research = { path = "../deep-research" }
+codex-file-search = { path = "../file-search" }
+codex-git = { path = "../utils/git" }
+codex-keyring-store = { path = "../keyring-store" }
+codex-otel = { path = "../otel", features = ["otel"] }
+codex-protocol = { path = "../protocol" }
+codex-rmcp-client = { path = "../rmcp-client" }
+codex-utils-pty = { path = "../utils/pty" }
+codex-utils-readiness = { path = "../utils/readiness" }
+codex-utils-string = { path = "../utils/string" }
+codex-utils-tokenizer = { path = "../utils/tokenizer" }
 dashmap = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }

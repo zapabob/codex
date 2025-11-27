@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![Codex v2.3.0](./architecture-v2.3.0.svg)
+![Codex v2.4.0](./architecture-v2.4.0.svg)
 
-**v2.3.0 "Security & Integration" - The World's First AI-Native Operating System**
+**v2.4.0 "AI Orchestration & Testing Suite" - The World's First AI-Native Operating System**
 
-[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.4.0-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -23,16 +23,24 @@
 <a name="english"></a>
 ## 📖 English
 
-### 🎉 What's New in v2.3.0 "Security & Integration"
+### 🎉 What's New in v2.4.0 "AI Orchestration & Testing Suite"
 
-**Release Date**: October 27, 2025  
-**Milestone**: Security Features & Enhanced Integration
+**Release Date**: November 27, 2025
+**Milestone**: AI Orchestration & Comprehensive Testing Suite
 
-**🎁 New in v2.3.0**:
-- ✅ **Security Features**: Malware detection, password management, real-time monitoring
-- ✅ **Enhanced Integration Tests**: GUI integration tests, E2E test coverage improvements
-- ✅ **CI/CD Pipeline Updates**: Security scanning, automated testing enhancements
-- ✅ **Architecture Updates**: New security layer in architecture diagram
+**🎁 New in v2.4.0**:
+- ✅ **AI Orchestration Engine**: Multi-layered research pipeline, centralized task manager, sub-agent coordination
+- ✅ **Mathematical & Quantum Optimization**: Linear programming for mathematical optimization, QAOA-inspired quantum optimization
+- ✅ **Git Worktree Parallel Development**: Automated worktree management, conflict resolution, AI integration
+- ✅ **QC Agent Quality Control**: Automated testing, quality metrics collection, optimal code selection
+- ✅ **MacOS-style Virtual OS**: CLI app creation, security monitoring, GitHub integration, webhook support
+- ✅ **LINE Bidirectional Communication**: Remote development via interactive LINE communication
+- ✅ **AI Security Monitoring**: Prevention of dangerous shell commands, malware detection and quarantine
+- ✅ **GUI Parallel Execution**: Simultaneous execution of Codex, GeminiCLI, and ClaudeCode agents
+- ✅ **Hardware Monitoring**: Real-time monitoring of GPU temperature, fan speed, CPU temperature, memory usage
+- ✅ **Rust 2024 Edition**: Type definition improvements, compilation warning elimination
+- ✅ **Playwright GUI Testing**: Comprehensive GUI testing suite with Cursor browser integration
+- ✅ **Architecture Updates**: New AI orchestration layer and testing infrastructure in architecture diagram
 
 ---
 
@@ -687,16 +695,24 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 <a name="japanese"></a>
 ## 📖 日本語
 
-### 🎉 v2.3.0 "Security & Integration" の新機能
+### 🎉 v2.4.0 "AI Orchestration & Testing Suite" の新機能
 
-**リリース日**: 2025年10月27日  
-**マイルストーン**: セキュリティ機能 & 統合テスト強化
+**リリース日**: 2025年11月27日
+**マイルストーン**: AIオーケストレーション & 総合テストスイート
 
-**🎁 v2.3.0の新機能**:
-- ✅ **セキュリティ機能**: マルウェア検知、パスワード管理、リアルタイム監視
-- ✅ **統合テスト強化**: GUI統合テスト、E2Eテストカバレッジ向上
-- ✅ **CI/CDパイプライン更新**: セキュリティスキャン、自動テスト強化
-- ✅ **アーキテクチャ更新**: セキュリティレイヤーを追加したアーキテクチャ図
+**🎁 v2.4.0の新機能**:
+- ✅ **AIオーケストレーションエンジン**: 多層リサーチパイプライン、中央集権型タスクマネージャー、サブエージェント協調
+- ✅ **数学・量子最適化**: 数理最適化のための線形計画法、QAOAインスパイアの量子最適化
+- ✅ **Git Worktree並列開発**: 自動ワークツリー管理、コンフリクト解決、AI統合
+- ✅ **QCエージェント品質管理**: 自動テスト、品質メトリクス収集、最適コード選択
+- ✅ **MacOS風仮想OS**: CLIアプリ作成、セキュリティ監視、GitHub統合、Webhookサポート
+- ✅ **LINE双方向通信**: インタラクティブLINE通信によるリモート開発
+- ✅ **AIセキュリティ監視**: 危険なシェルコマンド防止、マルウェア検知・隔離
+- ✅ **GUI並列実行**: Codex、GeminiCLI、ClaudeCodeエージェントの同時実行
+- ✅ **ハードウェア監視**: GPU温度、ファン速度、CPU温度、メモリ使用量のリアルタイム監視
+- ✅ **Rust 2024 Edition**: 型定義改善、コンパイル警告除去
+- ✅ **Playwright GUIテスト**: Cursorブラウザ統合による包括的GUIテストスイート
+- ✅ **アーキテクチャ更新**: AIオーケストレーションレイヤーとテストインフラを追加したアーキテクチャ図
 
 #### 🌟 革命的機能
 
@@ -1082,17 +1098,25 @@ npm run dev
 
 ### 📅 変更履歴（時系列）
 
-#### v2.3.0 (2025-01-27) - "Security & Integration"
+#### v2.4.0 (2025-11-27) - "AI Orchestration & Testing Suite"
 
 **🎁 Major Changes**:
-- **Security Features**: Malware detection, password management, real-time monitoring
-- **Enhanced Integration Tests**: GUI integration tests, E2E test coverage
-- **CI/CD Pipeline Updates**: Security scanning, automated testing
-- **Architecture Diagram**: Updated to v2.3.0 with security layer
+- **AI Orchestration Engine**: Multi-layered research pipeline, centralized task manager, sub-agent coordination
+- **Mathematical & Quantum Optimization**: Linear programming for mathematical optimization, QAOA-inspired quantum optimization
+- **Git Worktree Parallel Development**: Automated worktree management, conflict resolution, AI integration
+- **QC Agent Quality Control**: Automated testing, quality metrics collection, optimal code selection
+- **MacOS-style Virtual OS**: CLI app creation, security monitoring, GitHub integration, webhook support
+- **LINE Bidirectional Communication**: Remote development via interactive LINE communication
+- **AI Security Monitoring**: Prevention of dangerous shell commands, malware detection and quarantine
+- **GUI Parallel Execution**: Simultaneous execution of Codex, GeminiCLI, and ClaudeCode agents
+- **Hardware Monitoring**: Real-time monitoring of GPU temperature, fan speed, CPU temperature, memory usage
+- **Rust 2024 Edition**: Type definition improvements, compilation warning elimination
+- **Playwright GUI Testing**: Comprehensive GUI testing suite with Cursor browser integration
+- **Architecture Diagram**: Updated to v2.4.0 with AI orchestration layer and testing infrastructure
 
 **Breaking Changes**: None
 
-**詳細**: [実装ログ](_docs/2025-01-27_バージョンアップとビルドインストール.md)
+**詳細**: [実装ログ](_docs/2025-11-27_AIオーケストレーション_サブエージェント_最適化エンジン実装.md), [_docs/2025-11-27_Windows11-25H2新機能_VR-AR_Git可視化_GUI-CLI連接_MCP-AIエージェント基盤実装.md](_docs/2025-11-27_Windows11-25H2新機能_VR-AR_Git可視化_GUI-CLI連接_MCP-AIエージェント基盤実装.md), [_docs/2025-11-27_MacOS風仮想OS・LINE通信・セキュリティ・GUI並列実行・v2.3.2アップデート実装.md](_docs/2025-11-27_MacOS風仮想OS・LINE通信・セキュリティ・GUI並列実行・v2.3.2アップデート実装.md), [_docs/2025-11-27_Rust2024_Codexベストプラクティス_型定義改善_警告0対応.md](_docs/2025-11-27_Rust2024_Codexベストプラクティス_型定義改善_警告0対応.md)
 
 #### v2.2.0 (2025-11-15) - "Extended Features"
 

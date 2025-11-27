@@ -6,6 +6,18 @@ use super::types::AgentStatus;
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
+use codex_otel::otel_event_manager::OtelEventManager;
+use codex_protocol::ConversationId;
+use codex_protocol::config_types::ReasoningEffort;
+use codex_protocol::config_types::ReasoningSummary;
+use codex_protocol::config_types::Verbosity;
+use codex_protocol::models::ContentItem;
+use codex_protocol::models::ResponseItem;
+use codex_protocol::protocol::SessionSource;
+use codex_protocol::protocol::SubAgentSource;
+use codex_rmcp_client::RmcpClient;
+use futures::StreamExt;
+use mcp_types::InitializeRequestParams;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -24,21 +36,11 @@ use crate::audit_log::AuditEventType;
 use crate::audit_log::ExecutionStatus;
 use crate::audit_log::log_audit_event;
 use crate::client::ModelClient;
-// use crate::client_common::Prompt; // Temporarily disabled
-// use crate::client_common::ResponseEvent; // Temporarily disabled
+use crate::client_common::Prompt;
+use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::orchestration::CollaborationStore;
-use codex_otel::otel_event_manager::OtelEventManager;
-use codex_protocol::ConversationId;
-use codex_protocol::config_types::ReasoningEffort;
-use codex_protocol::config_types::ReasoningSummary;
-use codex_protocol::config_types::Verbosity;
-use codex_protocol::models::ContentItem;
-use codex_protocol::models::ResponseItem;
-use codex_rmcp_client::RmcpClient;
-use futures::StreamExt;
-use mcp_types::InitializeRequestParams;
 
 /// サブエージェントランタイム
 pub struct AgentRuntime {
@@ -257,10 +259,10 @@ Only output the JSON, no explanation."#;
             self.auth_manager.clone(),
             self.otel_manager.clone(),
             self.provider.clone(),
-            Some(ReasoningEffort::Medium),
-            ReasoningSummary::Detailed,
-            self.conversation_id,
-            "cli".to_string(), // zapabob: デフォルトはCLI
+            Some(self.reasoning_effort),
+            self.reasoning_summary,
+            self.conversation_id.clone(),
+            Self::session_source(),
         );
 
         let mut response_stream = model_client
@@ -268,21 +270,23 @@ Only output the JSON, no explanation."#;
             .await
             .context("Failed to generate agent definition")?;
 
-        // レスポンスを収集 - Rust 2024: 使用しない変数の警告を避けるため
+        // レスポンスを収集
         let mut full_response = String::new();
-
-        // TODO: Re-enable when ResponseEvent is available
-        // Rust 2024: while-let chainsを使用
-        // while let Some(Ok(event)) = response_stream.next().await {
-        //     if let ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) = event {
-        //         for content_item in content {
-        //             if let ContentItem::OutputText { text } = content_item {
-        //                 full_response.push_str(&text);
-        //             }
-        //         }
-        //     }
-        // }
-        full_response = "Mock response for now".to_string();
+        while let Some(event) = response_stream.next().await {
+            match event? {
+                ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) => {
+                    for content_item in content {
+                        if let ContentItem::OutputText { text } = content_item {
+                            full_response.push_str(&text);
+                        }
+                    }
+                }
+                ResponseEvent::Completed { .. } => {
+                    // no-op; generation relies on parsed JSON below
+                }
+                _ => {}
+            }
+        }
 
         // JSONを抽出（コードブロック内の可能性があるため）
         let json_str = if let Some(start) = full_response.find('{') {
@@ -423,13 +427,18 @@ Only output the JSON, no explanation."#;
             auth_manager: self.auth_manager.clone(),
             otel_manager: self.otel_manager.clone(),
             provider: self.provider.clone(),
-            conversation_id: self.conversation_id,
+            conversation_id: self.conversation_id.clone(),
             codex_binary_path: self.codex_binary_path.clone(),
             collaboration_store: self.collaboration_store.clone(),
             reasoning_effort: self.reasoning_effort,
             reasoning_summary: self.reasoning_summary,
             verbosity: self.verbosity,
         }
+    }
+
+    #[inline]
+    fn session_source() -> SessionSource {
+        SessionSource::SubAgent(SubAgentSource::Other("codex-agent-runtime".to_string()))
     }
 
     /// エージェントを委任実行
@@ -620,10 +629,10 @@ Only output the JSON, no explanation."#;
             self.auth_manager.clone(),
             self.otel_manager.clone(),
             self.provider.clone(),
-            Some(ReasoningEffort::Medium),
-            ReasoningSummary::Detailed,
-            self.conversation_id,
-            "cli".to_string(), // zapabob: デフォルトはCLI
+            Some(self.reasoning_effort),
+            self.reasoning_summary,
+            self.conversation_id.clone(),
+            Self::session_source(),
         );
 
         // 4. ResponseItem構築（Promptに渡す）
@@ -657,30 +666,16 @@ Only output the JSON, no explanation."#;
         let mut response_text = String::new();
         let mut total_tokens = 0;
 
-        // TODO: Re-enable when ResponseEvent is available
-        // Rust 2024: while-let chainsを使用
-        // while let Some(Ok(event)) = stream.next().await {
-        //     match event {
-        //         ResponseEvent::Created => {
-        //             debug!("Agent '{}': Response stream started", agent_def.name);
-        //         }
-        //         ResponseEvent::OutputItemDone(item) => {
-        //             debug!("Agent '{}': Output item done", agent_def.name);
-        //             // Extract text from ResponseItem
-        //             if let ResponseItem::Message { content, .. } = item {
-        //                 for content_item in content {
-        //                     if let ContentItem::OutputText { text } = content_item {
-        //                         response_text.push_str(&text);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         ResponseEvent::Completed {
-        //             response_id: _,
-        //             token_usage,
-        //         } => {
-        //             debug!("Agent '{}': Response completed", agent_def.name);
-                    // Use actual token usage from API
+        while let Some(event) = stream.next().await {
+            match event? {
+                ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) => {
+                    for content_item in content {
+                        if let ContentItem::OutputText { text } = content_item {
+                            response_text.push_str(&text);
+                        }
+                    }
+                }
+                ResponseEvent::Completed { token_usage, .. } => {
                     if let Some(usage) = token_usage {
                         total_tokens = usage.total_tokens as usize;
                         debug!(
@@ -694,6 +689,10 @@ Only output the JSON, no explanation."#;
                 }
                 _ => {}
             }
+        }
+
+        if response_text.is_empty() {
+            response_text.push_str("No response generated.");
         }
 
         // 7. トークン予算チェックと消費
@@ -1318,10 +1317,10 @@ impl AgentRuntime {
             self.auth_manager.clone(),
             self.otel_manager.clone(),
             self.provider.clone(),
-            Some(ReasoningEffort::Medium),
-            ReasoningSummary::Detailed,
-            self.conversation_id,
-            "cli".to_string(), // zapabob: デフォルトはCLI
+            Some(self.reasoning_effort),
+            self.reasoning_summary,
+            self.conversation_id.clone(),
+            Self::session_source(),
         );
 
         let mut response_stream = model_client
@@ -1426,6 +1425,44 @@ impl AgentRuntime {
             serde_json::to_string_pretty(&result).unwrap_or_else(|_| format!("{result:?}"));
 
         Ok(result_text)
+    }
+}
+
+impl Default for AgentRuntime {
+    fn default() -> Self {
+        let config = Arc::new(
+            Config::load_from_disk_or_default()
+                .unwrap_or_else(|err| panic!("Failed to load config from disk: {err}")),
+        );
+
+        let auth_manager = AuthManager::shared(
+            config.codex_home.clone(),
+            false,
+            config.cli_auth_credentials_store_mode,
+        );
+
+        let otel_manager = OtelEventManager::new_noop();
+        let conversation_id = ConversationId::new();
+        let workspace = std::env::current_dir()
+            .unwrap_or_else(|_| PathBuf::from("."))
+            .canonicalize()
+            .unwrap_or_else(|_| PathBuf::from("."));
+
+        Self::new(
+            workspace,
+            config
+                .model_context_window
+                .and_then(|window| usize::try_from(window).ok())
+                .unwrap_or(16_000),
+            config,
+            Some(auth_manager),
+            otel_manager,
+            config.model_provider.clone(),
+            conversation_id,
+            ReasoningEffort::default(),
+            ReasoningSummary::default(),
+            Verbosity::default(),
+        )
     }
 }
 

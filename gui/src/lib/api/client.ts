@@ -44,7 +44,7 @@ export class CodexAPIClient {
   private initializeConnection() {
     try {
       // Direct WebSocket connection to CLI server
-      this.protocolClient = new WebSocket('ws://localhost:3001');
+      this.protocolClient = new WebSocket(this.getBaseUrl());
 
       this.protocolClient.onopen = () => {
         console.log('Connected to Codex CLI Server');
@@ -1088,7 +1088,9 @@ export class CodexAPIClient {
   }
 
   getBaseUrl(): string {
-    return 'ws://localhost:3001'; // CLI server WebSocket URL
+    // Use environment variable or default to port 3001
+    const port = process.env.WS_PORT || '3001';
+    return `ws://localhost:${port}`; // CLI server WebSocket URL
   }
 
   setBaseUrl(url: string): void {

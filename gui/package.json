@@ -1,6 +1,6 @@
 {
   "name": "gui",
-  "version": "0.56.0",
+  "version": "0.55.0",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 1919",
