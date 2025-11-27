@@ -1,0 +1,252 @@
+﻿cargo :     Checking c
+ore_test_support v2.2.
+0 (C:\Users\downl\Desk
+top\codex-main\codex-r
+s\core\tests\common)
+発生場所 行:1 文字:52
++ ... lue "-D warnings
+"; cargo check --works
+pace --all-targets 2>&
+1 | Out-F ...
++                     
+   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (    Checki   
+ ng co...e\tests\c    
+ommon):String) []    ,
+ RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+    Checking codex-tui
+ v2.2.0 (C:\Users\down
+l\Desktop\codex-main\c
+odex-rs\tui)
+    Checking codex-exe
+c v2.2.0 (C:\Users\dow
+nl\Desktop\codex-main\
+codex-rs\exec)
+    Checking codex-app
+-server v2.2.0 (C:\Use
+rs\downl\Desktop\codex
+-main\codex-rs\app-ser
+ver)
+    Checking codex-clo
+ud-tasks-client v2.2.0
+ (C:\Users\downl\Deskt
+op\codex-main\codex-rs
+\cloud-tasks-client)
+    Checking codex-cha
+tgpt v2.2.0 (C:\Users\
+downl\Desktop\codex-ma
+in\codex-rs\chatgpt)
+    Checking mcp_test_
+support v2.2.0 (C:\Use
+rs\downl\Desktop\codex
+-main\codex-rs\mcp-ser
+ver\tests\common)
+    Checking codex-exe
+cpolicy v2.2.0 (C:\Use
+rs\downl\Desktop\codex
+-main\codex-rs\execpol
+icy)
+    Checking app_test_
+support v2.2.0 (C:\Use
+rs\downl\Desktop\codex
+-main\codex-rs\app-ser
+ver\tests\common)
+   Compiling codex-tau
+ri-gui v2.2.0 (C:\User
+s\downl\Desktop\codex-
+main\codex-rs\tauri-gu
+i\src-tauri)
+error: use of deprecat
+ed function `assert_cm
+d::cargo::cargo_bin`: 
+incompatible with a cu
+stom cargo build-dir, 
+see instead `cargo::ca
+rgo_bin!`
+   --> core\tests\comm
+on\test_codex.rs:100:4
+3
+    |
+100 |         let bin_
+path = assert_cmd::car
+go::cargo_bin("codex")
+;
+    |                 
+                      
+    ^^^^^^^^^
+    |
+    = note: `-D deprec
+ated` implied by `-D w
+arnings`
+    = help: to overrid
+e `-D warnings` add `#
+[allow(deprecated)]`
+
+error: use of deprecat
+ed function `assert_cm
+d::cargo::cargo_bin`: 
+incompatible with a cu
+stom cargo build-dir, 
+see instead `cargo::ca
+rgo_bin!`
+  --> core\tests\commo
+n\test_codex_exec.rs:1
+4:43
+   |
+14 |         let bin_p
+ath = assert_cmd::carg
+o::cargo_bin("codex-ex
+ec");
+   |                  
+                      
+   ^^^^^^^^^
+
+error: use of deprecat
+ed function `assert_cm
+d::cargo::cargo_bin`: 
+incompatible with a cu
+stom cargo build-dir, 
+see instead `cargo::ca
+rgo_bin!`
+  --> mcp-server\tests
+\common\mcp_process.rs
+:59:43
+   |
+59 |         let bin_p
+ath = assert_cmd::carg
+o::cargo_bin("codex-mc
+p-server");
+   |                  
+                      
+   ^^^^^^^^^
+   |
+   = note: `-D depreca
+ted` implied by `-D wa
+rnings`
+   = help: to override
+ `-D warnings` add `#[
+allow(deprecated)]`
+
+error: use of deprecat
+ed function `assert_cm
+d::cargo::cargo_bin`: 
+incompatible with a cu
+stom cargo build-dir, 
+see instead `cargo::ca
+rgo_bin!`
+  --> app-server\tests
+\common\mcp_process.rs
+:78:43
+   |
+78 |         let bin_p
+ath = assert_cmd::carg
+o::cargo_bin("codex-ap
+p-server");
+   |                  
+                      
+   ^^^^^^^^^
+   |
+   = note: `-D depreca
+ted` implied by `-D wa
+rnings`
+   = help: to override
+ `-D warnings` add `#[
+allow(deprecated)]`
+
+error: unused import: 
+`assert_cmd::prelude`
+  --> mcp-server\tests
+\common\mcp_process.rs
+:13:5
+   |
+13 | use assert_cmd::p
+relude::*;
+   |     ^^^^^^^^^^^^^
+^^^^^^
+   |
+   = note: `-D unused-
+imports` implied by `-
+D warnings`
+   = help: to override
+ `-D warnings` add `#[
+allow(unused_imports)]
+`
+
+error: could not compi
+le `mcp_test_support` 
+(lib) due to 2 previou
+s errors
+warning: build failed,
+ waiting for other job
+s to finish...
+error: unused import: 
+`assert_cmd::prelude`
+  --> app-server\tests
+\common\mcp_process.rs
+:14:5
+   |
+14 | use assert_cmd::p
+relude::*;
+   |     ^^^^^^^^^^^^^
+^^^^^^
+   |
+   = note: `-D unused-
+imports` implied by `-
+D warnings`
+   = help: to override
+ `-D warnings` add `#[
+allow(unused_imports)]
+`
+
+error[E0432]: unresolv
+ed import `crate::app_
+backtrack`
+   --> tui\src\legacy_
+app.rs:694:16
+    |
+694 |     use crate::a
+pp_backtrack::Backtrac
+kState;
+    |                ^
+^^^^^^^^^^^^ could not
+ find `app_backtrack` 
+in the crate root
+
+error[E0432]: unresolv
+ed import `crate::app_
+backtrack`
+   --> tui\src\legacy_
+app.rs:695:16
+    |
+695 |     use crate::a
+pp_backtrack::user_cou
+nt;
+    |                ^
+^^^^^^^^^^^^ could not
+ find `app_backtrack` 
+in the crate root
+
+error: could not compi
+le `core_test_support`
+ (lib) due to 2 previo
+us errors
+error: could not compi
+le `app_test_support` 
+(lib) due to 2 previou
+s errors
+For more information a
+bout this error, try `
+rustc --explain E0432`
+.
+error: could not compi
+le `codex-tui` (lib te
+st) due to 2 previous 
+errors
