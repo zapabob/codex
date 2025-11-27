@@ -1,6 +1,16 @@
 //! Codex CLI - AI-Native OS Command Line Interface
 
+use codex_core::agents::AgentRuntime;
+use codex_core::agents::competition::CompetitionConfig;
+use codex_core::agents::competition::CompetitionRunner;
+use codex_core::execution::ExecutionEngine;
+use codex_core::execution::ExecutionResult;
+use codex_core::orchestration::CollaborationStore;
+use codex_core::orchestration::PlanOrchestrator;
 use codex_core::orchestration::ResourceManager;
+use codex_core::plan::ApprovalRole;
+use codex_core::plan::PlanManager;
+use codex_core::plan::schema::ExecutionMode;
 use codex_core::security::MalwareDetector;
 use codex_core::security::Quarantine;
 use dirs;
@@ -2023,55 +2033,104 @@ fn launch_deep_research(args: &[String]) -> Result<(), Box<dyn std::error::Error
     })
 }
 
+fn parse_execution_mode(
+    args: &[String],
+    default_mode: ExecutionMode,
+) -> Result<ExecutionMode, String> {
+    for (idx, arg) in args.iter().enumerate() {
+        if let Some(mode_value) = arg.strip_prefix("--mode=") {
+            return parse_execution_mode_value(mode_value);
+        }
+
+        if arg == "--mode" {
+            if let Some(next) = args.get(idx + 1) {
+                return parse_execution_mode_value(next);
+            }
+            return Err("--mode flag provided without value".to_string());
+        }
+    }
+
+    Ok(default_mode)
+}
+
+fn parse_execution_mode_value(value: &str) -> Result<ExecutionMode, String> {
+    match value.to_lowercase().as_str() {
+        "single" => Ok(ExecutionMode::Single),
+        "orchestrated" => Ok(ExecutionMode::Orchestrated),
+        "competition" => Ok(ExecutionMode::Competition),
+        other => Err(format!("Unknown execution mode: {}", other)),
+    }
+}
+
 /// Launch Plan Command
 fn launch_plan(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
     if args.len() < 3 {
         println!("Usage: codex plan <subcommand> [options]");
         println!("");
         println!("Subcommands:");
-        println!("  create <name>     Create a new plan");
-        println!("  list              List all plans");
-        println!("  show <id>         Show plan details");
-        println!("  execute <id>      Execute a plan");
-        println!("  status <id>       Show execution status");
-        println!("  approve <id>      Approve pending actions");
-        println!("  reject <id>       Reject pending actions");
+        println!(
+            "  create <goal> [--mode single|orchestrated|competition]   Create a new plan (default: orchestrated)"
+        );
+        println!("  list                                                  List all plans");
+        println!("  show <id>                                            Show plan details");
+        println!(
+            "  execute <id> [--mode single|orchestrated|competition]   Execute a plan (default: saved mode)"
+        );
+        println!("  status <id>                                          Show execution status");
+        println!("  approve <id>                                         Approve pending actions");
+        println!("  reject <id> [reason]                                 Reject pending actions");
         println!("");
         println!("Examples:");
-        println!("  codex plan create \"Code Review Plan\" --budget 10000");
-        println!("  codex plan list");
-        println!("  codex plan execute plan_123");
-        println!("  codex plan approve plan_123");
+        println!("  codex plan create \"Add pagination to users list\" --mode orchestrated");
+        println!("  codex plan execute plan_2024-05-01 --mode competition");
+        println!("  codex plan approve plan_2024-05-01");
         return Ok(());
     }
 
     let subcommand = args[2].as_str();
+    let manager = PlanManager::new()?;
 
     match subcommand {
         "create" => {
             if args.len() < 4 {
                 println!(
-                    "Usage: codex plan create <name> [--budget <tokens>] [--mode <orchestrated|parallel>]"
+                    "Usage: codex plan create <goal> [--mode single|orchestrated|competition]"
                 );
                 return Ok(());
             }
-            let name = args[3].clone();
-            let budget: Option<u64> = args.get(4).and_then(|s| s.parse().ok());
-            let mode = args.get(5).unwrap_or(&"orchestrated".to_string()).clone();
+            let goal = args[3].clone();
+            let mode = match parse_execution_mode(args, ExecutionMode::default()) {
+                Ok(mode) => mode,
+                Err(e) => {
+                    eprintln!("{}", e);
+                    return Ok(());
+                }
+            };
+            let title = goal.clone();
 
             println!("📋 Creating new plan...");
-            println!("📝 Name: {}", name);
-            println!("💰 Budget: {} tokens", budget.unwrap_or(10000));
+            println!("📝 Goal: {}", goal);
             println!("🎯 Mode: {}", mode);
 
-            // Plan creation logic would go here
-            println!("✅ Plan '{}' created successfully", name);
-            println!("🔢 Plan ID: plan_{}", name.to_lowercase().replace(" ", "_"));
+            let id = manager.create_Plan(goal, title, None)?;
+            manager.update_Plan(&id, |plan| plan.mode = mode)?;
+
+            println!("✅ Plan created successfully");
+            println!("🔢 Plan ID: {}", id);
         }
         "list" => {
             println!("📋 Available Plans");
             println!("══════════════════");
-            println!("No plans found. Create one with 'codex plan create <name>'");
+            let persister = codex_core::plan::persist::PlanPersister::new()?;
+            let ids = persister.list_plans()?;
+
+            if ids.is_empty() {
+                println!("No plans found. Create one with 'codex plan create <goal>'");
+            } else {
+                for id in ids {
+                    println!("- {}", id);
+                }
+            }
         }
         "show" | "execute" | "status" | "approve" | "reject" => {
             let plan_id = args.get(3).unwrap_or(&"".to_string()).clone();
@@ -2081,16 +2140,89 @@ fn launch_plan(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
             }
 
             match subcommand {
-                "show" => println!("📋 Showing plan: {}", plan_id),
-                "execute" => println!("🚀 Executing plan: {}", plan_id),
-                "status" => println!("📊 Status of plan: {}", plan_id),
-                "approve" => println!("✅ Approving actions for plan: {}", plan_id),
-                "reject" => println!("❌ Rejecting actions for plan: {}", plan_id),
+                "show" => {
+                    let plan = manager.get_Plan(&plan_id)?;
+                    println!("📋 Plan: {}", plan.title);
+                    println!("🆔 ID: {}", plan.id);
+                    println!("🎯 Mode: {}", plan.mode);
+                    println!("📊 State: {}", plan.state);
+                    println!("📝 Goal: {}", plan.goal);
+                    println!("🧪 Work items: {}", plan.work_items.len());
+                }
+                "execute" => {
+                    let mut plan = manager.get_Plan(&plan_id)?;
+                    let mode = match parse_execution_mode(args, plan.mode) {
+                        Ok(mode) => mode,
+                        Err(e) => {
+                            eprintln!("{}", e);
+                            return Ok(());
+                        }
+                    };
+                    manager.update_Plan(&plan.id, |p| p.mode = mode)?;
+                    plan.mode = mode;
+
+                    let rt = Runtime::new()?;
+
+                    match mode {
+                        ExecutionMode::Orchestrated => {
+                            let runtime = Arc::new(AgentRuntime::default());
+                            let collaboration_store = Arc::new(CollaborationStore::new());
+                            let orchestrator = PlanOrchestrator::new(
+                                runtime,
+                                collaboration_store,
+                                std::env::current_dir()?,
+                                vec![],
+                            );
+
+                            let result = rt.block_on(orchestrator.execute_plan(&plan))?;
+                            println!("✅ Orchestrated execution complete");
+                            println!("📝 Summary: {}", result.execution_summary);
+                        }
+                        ExecutionMode::Competition => {
+                            let repo_root = std::env::current_dir()?;
+                            let runner =
+                                CompetitionRunner::new(CompetitionConfig::default(), repo_root)?;
+                            let competition_result = rt.block_on(runner.run_competition(&plan))?;
+
+                            println!(
+                                "🏁 Competition completed in {:.1}s",
+                                competition_result.execution_time_secs
+                            );
+                            println!("🥇 Winner: {}", competition_result.winner);
+                            println!("📊 Scores:\n{}", competition_result.comparison_table);
+
+                            runner.merge_winner(&competition_result)?;
+                            runner.archive_losers(&competition_result)?;
+                            runner.cleanup()?;
+                        }
+                        ExecutionMode::Single => {
+                            let runtime = Arc::new(AgentRuntime::default());
+                            let engine = ExecutionEngine::new(ExecutionMode::Single, runtime);
+                            let ExecutionResult { summary, .. } =
+                                rt.block_on(engine.execute(&plan))?;
+                            println!("✅ Single-agent execution complete");
+                            println!("📝 Summary: {}", summary);
+                        }
+                    }
+                }
+                "status" => {
+                    let plan = manager.get_Plan(&plan_id)?;
+                    println!("📊 Plan status: {} (mode: {})", plan.state, plan.mode);
+                }
+                "approve" => {
+                    manager.approve_Plan(&plan_id, "cli".to_string(), ApprovalRole::Maintainer)?;
+                    println!("✅ Plan approved: {}", plan_id);
+                }
+                "reject" => {
+                    let reason = args
+                        .get(4)
+                        .cloned()
+                        .unwrap_or_else(|| "No reason provided".to_string());
+                    manager.reject_Plan(&plan_id, reason.clone(), Some("cli".to_string()))?;
+                    println!("❌ Plan rejected: {}", plan_id);
+                }
                 _ => unreachable!(),
             }
-
-            println!("⚠️  Plan functionality is under development");
-            println!("📝 This feature will be available in the next release");
         }
         _ => {
             println!("Error: Unknown subcommand '{}'", subcommand);

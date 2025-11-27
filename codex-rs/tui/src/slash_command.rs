@@ -48,7 +48,7 @@ impl SlashCommand {
             SlashCommand::Delegate => "delegate a task to a sub-agent using natural language",
             SlashCommand::Orchestrate => "kick off auto orchestration / supervisor flows",
             SlashCommand::Research => "conduct deep research (Gemini, MCP, web)",
-            SlashCommand::Plan => "create execution plan with approval gates",
+            SlashCommand::Plan => "create or execute plans (single/orchestrated/competition)",
             SlashCommand::Hook => "trigger webhook integrations (Slack, etc.)",
             SlashCommand::Undo => "ask Codex to undo a turn",
             SlashCommand::Quit | SlashCommand::Exit => "exit Codex",
