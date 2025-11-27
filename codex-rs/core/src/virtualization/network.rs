@@ -83,16 +83,16 @@ impl VirtualNetwork {
     /// Add a domain to whitelist
     pub fn add_whitelist(&mut self, domain: String) {
         if !self.whitelist.contains(&domain) {
-            self.whitelist.push(domain);
             info!("Added to whitelist: {}", domain);
+            self.whitelist.push(domain);
         }
     }
 
     /// Add a domain to blacklist
     pub fn add_blacklist(&mut self, domain: String) {
         if !self.blacklist.contains(&domain) {
-            self.blacklist.push(domain);
             info!("Added to blacklist: {}", domain);
+            self.blacklist.push(domain);
         }
     }
 

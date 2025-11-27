@@ -9,7 +9,7 @@ async-trait.workspace = true
 # Remove rmcp-client dependency - use direct GeminiCLI integration
 mcp-types = { path = "../mcp-types" }
 regex = "1.10"
-reqwest = { version = "0.12", features = ["json", "stream"] }
+reqwest = { workspace = true, default-features = false, features = ["json", "stream", "rustls-tls"] }
 # Security Enhancement: Keep scraper at secure version
 scraper = "0.24"
 serde = { workspace = true, features = ["derive"] }
