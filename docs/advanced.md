@@ -24,6 +24,7 @@ See the Rust documentation on [`RUST_LOG`](https://docs.rs/env_logger/latest/env
 
 The Codex CLI and IDE extension is a MCP client which means that it can be configured to connect to MCP servers. For more information, refer to the [`config docs`](./config.md#mcp-integration).
 
+<<<<<<< HEAD
 ## Steering tool usage to save tokens {#steer-tool-usage}
 
 Codex prefers running quick shell helpers such as `ls` or `rg` when it can, but the gpt-5-codex model occasionally falls back to ad-hoc Python snippets for simple file reads or searches. Those interpreter invocations inflate the conversation because the model has to write the entire program and then stream the results back. If you notice Codex spending most of its time authoring and executing Python scripts for trivial tasks, you can nudge it toward built-in tools by explicitly prohibiting code execution in your instructions.
@@ -34,7 +35,10 @@ Codex prefers running quick shell helpers such as `ls` or `rg` when it can, but 
 
 This guardrail is especially useful when you are running Codex in tight budgets or when latency matters; you still keep shell access for the lightweight utilities that Codex already knows how to call without bloating the transcript.
 
+## Using Codex as an MCP Server {#mcp-server}
+=======
 ## Using Codex as an MCP Server
+>>>>>>> 8b314e2d0 (doc: fix relative links and add tips (#7319))
 
 The Codex CLI can also be run as an MCP _server_ via `codex mcp-server`. For example, you can use `codex mcp-server` to make Codex available as a tool inside of a multi-agent framework like the OpenAI [Agents SDK](https://platform.openai.com/docs/guides/agents). Use `codex mcp` separately to add/list/get/remove MCP server launchers in your configuration.
 

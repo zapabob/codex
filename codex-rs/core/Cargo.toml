@@ -46,6 +46,7 @@ ed25519-dalek = { workspace = true }
 env-flags = { workspace = true }
 encoding_rs = { workspace = true }
 eventsource-stream = { workspace = true }
+fastrand = "2.0"
 futures = { workspace = true }
 hex = { workspace = true }
 hkdf = { workspace = true }
@@ -53,9 +54,10 @@ hmac = { workspace = true }
 hostname = "0.4"
 http = { workspace = true }
 indexmap = { workspace = true }
-keyring = { workspace = true, features = ["apple-native", "crypto-rust", "linux-native-async-persistent", "windows-native"] }
+keyring = { workspace = true, features = ["crypto-rust"] }
 libc = { workspace = true }
 mcp-types = { path = "../mcp-types" }
+ndarray = "0.15"
 once_cell = { workspace = true }
 os_info = { workspace = true }
 rand = { workspace = true }
@@ -66,6 +68,8 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }
 sha1 = { workspace = true }
+sha2 = { workspace = true }
+sysinfo = "0.31"
 sha2 = { workspace = true }
 shlex = { workspace = true }
 similar = { workspace = true }
