@@ -64,7 +64,7 @@ uncommon_codepoints = "forbid"
 unconditional_recursion = "forbid"
 unknown_lints = "warn"
 unnameable_test_items = "forbid"
-unreachable_code = "forbid"
+unreachable_code = "deny"
 
 # Resource Management (Enhanced)
 unused_allocation = "warn"
@@ -291,7 +291,7 @@ futures-util = "0.3"
 icu_decimal = "2.1"
 icu_locale_core = "2.1"
 icu_provider = { version = "2.1", features = ["sync"] }
-tonic = { version = "0.11", default-features = false, features = ["transport", "tls-native-roots", "tls-webpki-roots"] }
+tonic = { version = "0.11", default-features = false, features = ["transport", "tls", "tls-roots", "tls-webpki-roots"] }
 portable-pty = "0.9"
 
 # Local crates (workspace dependencies)

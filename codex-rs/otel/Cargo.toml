@@ -47,7 +47,8 @@ strum_macros = { workspace = true }
 tokio = { workspace = true }
 tonic = { workspace = true, optional = true, features = [
     "transport",
-    "tls-native-roots",
+    "tls",
+    "tls-roots",
     "tls-webpki-roots",
 ] }
 tracing = { workspace = true }
