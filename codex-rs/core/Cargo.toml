@@ -30,7 +30,7 @@ codex-deep-research = { path = "../deep-research" }
 codex-file-search = { path = "../file-search" }
 codex-git = { path = "../utils/git" }
 codex-keyring-store = { path = "../keyring-store" }
-codex-otel = { path = "../otel", features = ["otel"] }
+codex-otel = { path = "../otel", default-features = false }
 codex-protocol = { path = "../protocol" }
 codex-rmcp-client = { path = "../rmcp-client" }
 codex-utils-pty = { path = "../utils/pty" }
