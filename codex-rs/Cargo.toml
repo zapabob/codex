@@ -1,11 +1,9 @@
 ﻿[workspace]
 resolver = "2"
 members = [
-    "core",
     "deep-research",
-    "mcp-registry",
-    "mcp-types",
     "protocol",
+    "core",
     "cli",
     "tui",
 ]
@@ -233,8 +231,8 @@ ratatui-macros = "0.6.0"
 regex-lite = "0.1"
 regex = "1.10"
 serial_test = "3.1"
-reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
-ring = "0.17"
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream"] }
+ring = "0.16"
 rustls = "0.23"
 rustls-pemfile = "2.1"
 tokio-rustls = "0.26"

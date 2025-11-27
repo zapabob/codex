@@ -887,7 +887,7 @@ dependencies = [
 
 [[package]]
 name = "codex-ansi-escape"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "ansi-to-tui",
  "ratatui",
@@ -896,7 +896,7 @@ dependencies = [
 
 [[package]]
 name = "codex-app-server-protocol"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -915,7 +915,7 @@ dependencies = [
 
 [[package]]
 name = "codex-apply-patch"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -930,7 +930,7 @@ dependencies = [
 
 [[package]]
 name = "codex-arg0"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "codex-apply-patch",
@@ -943,7 +943,7 @@ dependencies = [
 
 [[package]]
 name = "codex-backend-client"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "codex-backend-openapi-models",
@@ -957,7 +957,7 @@ dependencies = [
 
 [[package]]
 name = "codex-backend-openapi-models"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "serde",
  "serde_json",
@@ -1011,7 +1011,7 @@ dependencies = [
 
 [[package]]
 name = "codex-common"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "clap",
  "codex-app-server-protocol",
@@ -1109,7 +1109,7 @@ dependencies = [
 
 [[package]]
 name = "codex-deep-research"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1132,7 +1132,7 @@ dependencies = [
 
 [[package]]
 name = "codex-feedback"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "codex-protocol",
@@ -1143,7 +1143,7 @@ dependencies = [
 
 [[package]]
 name = "codex-file-search"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -1156,7 +1156,7 @@ dependencies = [
 
 [[package]]
 name = "codex-git"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "assert_matches",
@@ -1174,7 +1174,7 @@ dependencies = [
 
 [[package]]
 name = "codex-linux-sandbox"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "clap",
  "codex-core",
@@ -1187,7 +1187,7 @@ dependencies = [
 
 [[package]]
 name = "codex-lmstudio"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "codex-core",
  "reqwest",
@@ -1200,7 +1200,7 @@ dependencies = [
 
 [[package]]
 name = "codex-login"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "base64",
@@ -1224,7 +1224,7 @@ dependencies = [
 
 [[package]]
 name = "codex-ollama"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "assert_matches",
  "async-stream",
@@ -1240,7 +1240,7 @@ dependencies = [
 
 [[package]]
 name = "codex-protocol"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "base64",
@@ -1267,7 +1267,7 @@ dependencies = [
 
 [[package]]
 name = "codex-tui"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "arboard",
@@ -1333,7 +1333,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-cache"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "lru",
  "sha1",
@@ -1342,7 +1342,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-image"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "base64",
  "codex-utils-cache",
@@ -1354,7 +1354,7 @@ dependencies = [
 
 [[package]]
 name = "codex-windows-sandbox"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "codex-protocol",
@@ -1503,7 +1503,7 @@ dependencies = [
 
 [[package]]
 name = "core_test_support"
-version = "0.64.0-alpha.9"
+version = "2.3.2"
 dependencies = [
  "anyhow",
  "assert_cmd",

@@ -9,10 +9,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
-use sysinfo::ProcessExt;
-use sysinfo::ProcessorExt;
 use sysinfo::System;
-use sysinfo::SystemExt;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
@@ -303,15 +300,12 @@ impl ResourceMonitor {
     }
 
     fn get_sensors_internal(&self) -> HardwareSensors {
-        let system = self.system.lock().unwrap();
+        let mut system = self.system.lock().unwrap();
+        system.refresh_all();
 
         // CPU information
-        let cpu_usage = system
-            .processors()
-            .iter()
-            .map(|p| p.cpu_usage())
-            .sum::<f32>()
-            / system.processors().len() as f32;
+        let cpu_usage =
+            system.cpus().iter().map(|p| p.cpu_usage()).sum::<f32>() / system.cpus().len() as f32;
 
         // Memory information
         let memory_used = system.used_memory() as f64 / 1024.0 / 1024.0 / 1024.0; // GB

@@ -2,6 +2,8 @@
 //!
 //! Core functionality for the Codex AI-Native OS
 
+pub type Result<T> = anyhow::Result<T>;
+
 pub mod qc;
 pub mod virtualization;
 pub mod ai_orchestrator;
@@ -13,3 +15,5 @@ pub mod security_monitor;
 pub mod webhook_integrator;
 pub mod line_communicator;
 pub mod resource_monitor;
+pub mod agents;
+pub mod plan;

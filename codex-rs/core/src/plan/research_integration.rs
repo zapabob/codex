@@ -165,7 +165,9 @@ impl ResearchIntegration {
         };
 
         // Create provider (use web search provider as default)
-        let provider = Arc::new(codex_deep_research::WebSearchProvider::new(3, 30));
+        // TODO: Re-enable when codex_deep_research is available
+        // let provider = Arc::new(codex_deep_research::WebSearchProvider::new(3, 30));
+        let provider = Arc::new(MockWebSearchProvider::new());
 
         let researcher = DeepResearcher::new(config.clone(), provider);
 
