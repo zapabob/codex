@@ -61,7 +61,7 @@ os_info = { workspace = true }
 rand = { workspace = true }
 regex = { workspace = true }
 regex-lite = { workspace = true }
-reqwest = { workspace = true, default-features = false, features = ["json", "stream", "rustls-tls"] }
+reqwest = { workspace = true, default-features = false, features = ["json", "stream"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }
@@ -107,13 +107,7 @@ keyring = { workspace = true, features = ["linux-native-async-persistent"] }
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.10"
 
-# Build OpenSSL from source for musl builds.
-[target.x86_64-unknown-linux-musl.dependencies]
-openssl-sys = { workspace = true, features = ["vendored"] }
-
-# Build OpenSSL from source for musl builds.
-[target.aarch64-unknown-linux-musl.dependencies]
-openssl-sys = { workspace = true, features = ["vendored"] }
+# Using ring for all platforms instead of OpenSSL
 
 [target.'cfg(target_os = "windows")'.dependencies]
 keyring = { workspace = true, features = ["windows-native"] }
@@ -138,4 +132,4 @@ walkdir = { workspace = true }
 wiremock = { workspace = true }
 
 [package.metadata.cargo-shear]
-ignored = ["openssl-sys"]
+ignored = []

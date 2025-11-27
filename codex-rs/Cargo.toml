@@ -233,7 +233,7 @@ regex-lite = "0.1"
 regex = "1.10"
 serial_test = "3.1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
-ring = "0.17"
+ring = { version = "=0.16.20" }
 rustls = "0.23"
 rustls-pemfile = "2.1"
 tokio-rustls = "0.26"
@@ -281,7 +281,6 @@ dashmap = "6.0"
 aes-gcm = "0.10"
 landlock = "0.3"
 mime_guess = "2.0"
-openssl-sys = { version = "0.9", features = ["vendored"] }
 seccompiler = "0.4"
 serde_with = { version = "3.8", features = ["macros", "base64"] }
 schemars = "0.8"
@@ -327,6 +326,7 @@ codex-utils-image = { path = "utils/image" }
 # This ensures ratatui-macros uses the forked ratatui instead of the crates.io version
 ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }
 
-# Use OpenSSL instead of ring/aws-lc-sys for better compatibility
+# Force disable aws-lc-sys for Windows compatibility
+# Use ring instead of aws-lc-sys for better compatibility
 # This aligns with official OpenAI/codex repository approach
 
