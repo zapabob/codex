@@ -1,34 +1,17 @@
-<!-- 1fa2a24c-271c-4a0d-81f8-29e9b344b8ab 3f591ee8-ad87-4638-a97f-2d2bab12a865 -->
-# Codex Core Compile Fix & Type Restoration Plan
+<!-- 1fa2a24c-271c-4a0d-81f8-29e9b344b8ab 9c4de1db-7952-4786-bbcf-9bf60388201a -->
+# Restore Tonic TLS Feature Coverage
 
-1. **Restore Core Dependencies**  
+1. **Audit Current TLS Feature Flags**  
 
-- Re-enable required workspace crates in [codex-rs/Cargo.toml](codex-rs/Cargo.toml) (`codex-protocol`, `codex-rmcp-client`, `codex-otel`, other commented Codex crates) and ensure feature flags are configured for Windows-friendly builds.  
-- Run `cargo metadata` (read-only) to confirm dependency graph resolves without conflicts.
+- Review `tonic` dependency declarations in [`codex-rs/Cargo.toml`](codex-rs/Cargo.toml) and [`codex-rs/otel/Cargo.toml`](codex-rs/otel/Cargo.toml) to confirm `tls-webpki-roots` is absent and that `tls-roots` is only an alias for the native roots feature.
 
-2. **Revive Removed Modules**  
+2. **Reintroduce WebPKI Support**  
 
-- For each `.bak` module under `core/src` (e.g., `client.rs.bak`, `client_common.rs.bak`, `model_provider_info.rs.bak`, `codex_conversation.rs.bak`), restore them to their original filenames, re-export in [core/src/lib.rs](codex-rs/core/src/lib.rs), and resolve any import drift introduced since their removal.
+- Update both files so `tonic` is built with `transport`, `tls-native-roots`, and `tls-webpki-roots` (keeping `tls` if needed for shared TLS code) to restore compatibility with WebPKI-signed cert chains.
 
-3. **Rewire AgentRuntime Types**  
+3. **Validate Dependency Graph**  
 
-- Revert `AgentRuntime` in [core/src/agents/runtime.rs](codex-rs/core/src/agents/runtime.rs) to use the proper types (`Config`, `AuthManager`, `OtelEventManager`, `ModelProviderInfo`, `CollaborationStore`, `ConversationId`, `ReasoningEffort`, etc.).  
-- Reconnect helper logic for LLM streaming (`ModelClient`, `ResponseItem`, `ContentItem`, `ResponseEvent`) and audit logging (`log_audit_event`, `AuditEvent`, `AuditEventType`, `ExecutionStatus`).  
-- Ensure dependent modules (plan executor, orchestration, async subagent integration) import the restored types correctly.
-
-4. **Implement Missing Stubs with Best Practices**  
-
-- Audit any interim placeholder logic added during prior fixes (e.g., mock responses, hard-coded strings). Replace with real implementations leveraging the restored modules, adding error handling and tracing aligned with existing `tracing` conventions.
-
-5. **Lint & Warning Cleanup**  
-
-- Run `just fmt` for formatting, then `just fix -p codex-core` to auto-apply Clippy suggestions.  
-- Manually address remaining warnings (unused imports, missing docs) to achieve “warnings = 0” for `codex-core`.
-
-6. **Deep Validation & Tests**  
-
-- Execute `cargo check -p codex-core` followed by `cargo test -p codex-core` (or targeted suites) to confirm the resolved types compile and runtime tests pass.  
-- Document the restored functionality and compiler-clean build in a new `_docs` entry (timestamped) summarizing the fixes, referencing the re-enabled modules and tests run.
+- Run `cargo metadata` (or `cargo check -p codex-core`) from `codex-rs` to ensure the workspace resolves successfully with the restored feature set and no new warnings surface.
 
 ### To-dos
 
@@ -37,3 +20,9 @@
 - [ ] 継続的なテスト自動化の実装
 - [ ] 未解決型参照58件の解消と型定義整備
 - [ ] 警告0に向けたlint対応
+- [ ] CLI/TUI/GUI統合テストの実行
+- [ ] 安定版リリース準備の完了
+- [ ] 未解決型参照58件の解消と型定義整備
+- [ ] Confirm tonic features missing webpki support
+- [ ] Re-add tls-webpki-roots in workspace + otel crates
+- [ ] Run cargo metadata/check to ensure deps resolve
