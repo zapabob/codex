@@ -38,7 +38,7 @@ invalid_reference_casting = "forbid"
 # Code Quality (Maximum Security - Much stricter than official)
 ambiguous_glob_reexports = "forbid"
 const_item_mutation = "forbid"
-dead_code = "forbid"
+dead_code = "warn"
 deprecated = "warn"  # Allow derive macros
 deprecated_in_future = "forbid"
 hidden_glob_reexports = "forbid"

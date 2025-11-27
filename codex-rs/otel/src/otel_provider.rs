@@ -21,6 +21,7 @@ use opentelemetry_otlp::OTEL_EXPORTER_OTLP_TIMEOUT_DEFAULT;
 #[cfg(feature = "otel")]
 use opentelemetry_otlp::Protocol;
 #[cfg(feature = "otel")]
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::WithExportConfig;
 #[cfg(feature = "otel")]
 use opentelemetry_otlp::WithHttpConfig;
