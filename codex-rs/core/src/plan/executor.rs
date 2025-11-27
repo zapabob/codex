@@ -3,7 +3,7 @@
 //! Handles the execution of approved Plans with progress tracking,
 //! rollback capabilities, and integration with PlanOrchestrator.
 
-// use crate::orchestration::{OrchestratedResult, PlanOrchestrator};
+use crate::orchestration::{OrchestratedResult, PlanOrchestrator};
 use crate::plan::PlanBlock;
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
