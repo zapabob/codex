@@ -326,5 +326,7 @@ codex-utils-image = { path = "utils/image" }
 # Patch ratatui to use the forked version that's compatible with unicode-width 0.2.1
 # This ensures ratatui-macros uses the forked ratatui instead of the crates.io version
 ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }
-# Use rustls instead of aws-lc-sys for better Windows compatibility
+
+# Use OpenSSL instead of ring/aws-lc-sys for better compatibility
+# This aligns with official OpenAI/codex repository approach
 
