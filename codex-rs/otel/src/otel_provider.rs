@@ -21,12 +21,11 @@ use opentelemetry_otlp::OTEL_EXPORTER_OTLP_TIMEOUT_DEFAULT;
 #[cfg(feature = "otel")]
 use opentelemetry_otlp::Protocol;
 #[cfg(feature = "otel")]
-#[cfg(feature = "otel")]
 use opentelemetry_otlp::WithExportConfig;
-#[cfg(feature = "otel")]
-use opentelemetry_otlp::WithHttpConfig;
-#[cfg(feature = "otel")]
-use opentelemetry_otlp::WithTonicConfig;
+// #[cfg(feature = "otel")]
+// use opentelemetry_otlp::WithHttpConfig;
+// #[cfg(feature = "otel")]
+// use opentelemetry_otlp::WithTonicConfig;
 #[cfg(feature = "otel")]
 use opentelemetry_sdk::Resource;
 #[cfg(feature = "otel")]
@@ -133,10 +132,10 @@ impl OtelProvider {
                 };
 
                 let exporter = LogExporter::builder()
-                    .with_tonic()
+                    // .with_tonic()
                     .with_endpoint(endpoint)
-                    .with_metadata(MetadataMap::from_headers(header_map))
-                    .with_tls_config(tls_config)
+                    // .with_metadata(MetadataMap::from_headers(header_map))
+                    // .with_tls_config(tls_config)
                     .build()?;
 
                 builder = builder.with_batch_exporter(exporter);
@@ -155,15 +154,15 @@ impl OtelProvider {
                 };
 
                 let mut exporter_builder = LogExporter::builder()
-                    .with_http()
+                    // .with_http()
                     .with_endpoint(endpoint)
-                    .with_protocol(protocol)
-                    .with_headers(headers.clone());
+                    // .with_protocol(protocol)
+                    // .with_headers(headers.clone());
 
-                if let Some(tls) = tls.as_ref() {
-                    let client = build_http_client(tls, settings.codex_home.as_path())?;
-                    exporter_builder = exporter_builder.with_http_client(client);
-                }
+                // if let Some(tls) = tls.as_ref() {
+                //     let client = build_http_client(tls, settings.codex_home.as_path())?;
+                //     exporter_builder = exporter_builder.with_http_client(client);
+                // }
 
                 let exporter = exporter_builder.build()?;
 

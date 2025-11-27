@@ -4602,18 +4602,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "opentelemetry-http"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0ba633e55c5ea6f431875ba55e71664f2fa5d3a90bd34ec9302eecc41c865dd"
-dependencies = [
- "async-trait",
- "bytes",
- "http 0.2.12",
- "opentelemetry 0.23.0",
-]
-
-[[package]]
 name = "opentelemetry-otlp"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4621,16 +4609,10 @@ checksum = "a94c69209c05319cdf7460c6d4c055ed102be242a0a6245835d7bc42c6ec7f54"
 dependencies = [
  "async-trait",
  "futures-core",
- "http 0.2.12",
  "opentelemetry 0.23.0",
- "opentelemetry-http",
  "opentelemetry-proto",
  "opentelemetry_sdk 0.23.0",
- "prost",
- "serde_json",
  "thiserror 1.0.69",
- "tokio",
- "tonic",
 ]
 
 [[package]]
@@ -4639,12 +4621,8 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "984806e6cf27f2b49282e2a05e288f30594f3dbc74eb7a6e99422bc48ed78162"
 dependencies = [
- "hex",
  "opentelemetry 0.23.0",
  "opentelemetry_sdk 0.23.0",
- "prost",
- "serde",
- "tonic",
 ]
 
 [[package]]
@@ -4701,13 +4679,10 @@ dependencies = [
  "futures-channel",
  "futures-executor",
  "futures-util",
- "glob",
  "lazy_static",
  "once_cell",
  "opentelemetry 0.23.0",
  "ordered-float 4.6.0",
- "percent-encoding",
- "rand 0.8.5",
  "serde_json",
  "thiserror 1.0.69",
  "tokio",
@@ -5136,29 +5111,6 @@ version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52717f9a02b6965224f95ca2a81e2e0c5c43baacd28ca057577988930b6c3d5b"
 dependencies = [
- "quote",
- "syn 2.0.111",
-]
-
-[[package]]
-name = "prost"
-version = "0.12.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "deb1435c188b76130da55f17a466d252ff7b1418b2ad3e037d127b94e3411f29"
-dependencies = [
- "bytes",
- "prost-derive",
-]
-
-[[package]]
-name = "prost-derive"
-version = "0.12.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
-dependencies = [
- "anyhow",
- "itertools 0.10.5",
- "proc-macro2",
  "quote",
  "syn 2.0.111",
 ]
@@ -7018,7 +6970,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "76c4eb7a4e9ef9d4763600161f12f5070b92a578e1b634db88a6887844c91a13"
 dependencies = [
  "async-stream",
- "async-trait",
  "axum",
  "base64 0.21.7",
  "bytes",
@@ -7029,7 +6980,6 @@ dependencies = [
  "hyper-timeout",
  "percent-encoding",
  "pin-project",
- "prost",
  "rustls-native-certs",
  "rustls-pemfile",
  "rustls-pki-types",
