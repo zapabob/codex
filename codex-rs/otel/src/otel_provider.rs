@@ -1,45 +1,82 @@
+#[cfg(feature = "otel")]
 use crate::config::OtelExporter;
+#[cfg(feature = "otel")]
 use crate::config::OtelHttpProtocol;
+#[cfg(feature = "otel")]
 use crate::config::OtelSettings;
+#[cfg(feature = "otel")]
 use crate::config::OtelTlsConfig;
+#[cfg(feature = "otel")]
 use http::Uri;
+#[cfg(feature = "otel")]
 use opentelemetry::KeyValue;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::LogExporter;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::OTEL_EXPORTER_OTLP_LOGS_TIMEOUT;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::OTEL_EXPORTER_OTLP_TIMEOUT;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::OTEL_EXPORTER_OTLP_TIMEOUT_DEFAULT;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::Protocol;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::WithExportConfig;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::WithHttpConfig;
+#[cfg(feature = "otel")]
 use opentelemetry_otlp::WithTonicConfig;
+#[cfg(feature = "otel")]
 use opentelemetry_sdk::Resource;
+#[cfg(feature = "otel")]
 use opentelemetry_sdk::logs::SdkLoggerProvider;
+#[cfg(feature = "otel")]
 use opentelemetry_semantic_conventions as semconv;
+#[cfg(feature = "otel")]
 use reqwest::Certificate as ReqwestCertificate;
+#[cfg(feature = "otel")]
 use reqwest::Identity as ReqwestIdentity;
+#[cfg(feature = "otel")]
 use reqwest::header::HeaderMap;
+#[cfg(feature = "otel")]
 use reqwest::header::HeaderName;
+#[cfg(feature = "otel")]
 use reqwest::header::HeaderValue;
+#[cfg(feature = "otel")]
 use std::env;
+#[cfg(feature = "otel")]
 use std::error::Error;
+#[cfg(feature = "otel")]
 use std::fs;
+#[cfg(feature = "otel")]
 use std::io::ErrorKind;
+#[cfg(feature = "otel")]
 use std::io::{self};
+#[cfg(feature = "otel")]
 use std::path::Path;
+#[cfg(feature = "otel")]
 use std::path::PathBuf;
+#[cfg(feature = "otel")]
 use std::time::Duration;
+#[cfg(feature = "otel")]
 use tonic::metadata::MetadataMap;
+#[cfg(feature = "otel")]
 use tonic::transport::Certificate as TonicCertificate;
+#[cfg(feature = "otel")]
 use tonic::transport::ClientTlsConfig;
+#[cfg(feature = "otel")]
 use tonic::transport::Identity as TonicIdentity;
 use tracing::debug;
 
+#[cfg(feature = "otel")]
 const ENV_ATTRIBUTE: &str = "env";
 
+#[cfg(feature = "otel")]
 pub struct OtelProvider {
     pub logger: SdkLoggerProvider,
 }
 
+#[cfg(feature = "otel")]
 impl OtelProvider {
     pub fn shutdown(&self) {
         let _ = self.logger.shutdown();
