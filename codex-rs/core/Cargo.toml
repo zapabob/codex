@@ -129,6 +129,8 @@ serial_test = { workspace = true }
 tempfile = { workspace = true }
 tokio-test = { workspace = true }
 tracing-test = { workspace = true, features = ["no-env-filter"] }
+chardetng = "0.1"
+rustls = "0.23"
 walkdir = { workspace = true }
 wiremock = { workspace = true }
 

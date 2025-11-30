@@ -71,6 +71,9 @@ pub mod model_family;
 pub mod model_provider_info;
 
 // Re-export commonly used types
+pub use auth::CodexAuth;
+pub use client_common::Prompt;
+pub use command_safety::is_safe_command;
 pub use model_provider_info::ModelProviderInfo;
 pub use safety::get_platform_sandbox;
 
@@ -185,6 +188,7 @@ pub mod state;
 pub mod tasks;
 pub mod telemetry;
 pub mod terminal;
+pub mod text_encoding;
 pub mod token_budget;
 pub mod token_data;
 pub mod tools;
