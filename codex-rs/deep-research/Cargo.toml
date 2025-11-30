@@ -22,10 +22,12 @@ urlencoding = "2.1"
 tokio-util = { version = "0.7", features = ["codec"] }
 
 [dev-dependencies]
-codex-core = { path = "../core" }
 criterion = { version = "0.7", features = ["async_tokio"] }
 pretty_assertions = "1.4"
 tokio-test = "0.4"
+
+[features]
+default = []
 
 [[bench]]
 harness = false

@@ -26,8 +26,8 @@ codex-apply-patch = { path = "../apply-patch" }
 codex-async-utils = { path = "../async-utils" }
 codex-api = { path = "../codex-api" }
 codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
-# codex-deep-research = { path = "../deep-research" }  # Temporarily disabled due to circular dependency
-# codex-execpolicy = { path = "../execpolicy" }  # Temporarily disabled due to starlark version conflict
+codex-deep-research = { path = "../deep-research", optional = true }
+codex-execpolicy = { path = "../execpolicy", optional = true }
 codex-file-search = { path = "../file-search" }
 codex-git = { path = "../utils/git" }
 codex-keyring-store = { path = "../keyring-store" }
@@ -135,6 +135,8 @@ wiremock = { workspace = true }
 [features]
 default = []
 rmcp = ["codex-rmcp-client"]
+execpolicy = ["codex-execpolicy"]
+deep-research = ["codex-deep-research"]
 
 [package.metadata.cargo-shear]
 ignored = []

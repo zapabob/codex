@@ -1,7 +1,10 @@
+#![cfg(feature = "deep-research")]
+
 //! DeepResearch integration for plan mode
 //!
 //! Integrates deep research capabilities with Plan planning phase.
 
+#[cfg(feature = "deep-research")]
 use super::policy::ApprovalRole;
 use super::policy::PolicyEnforcer;
 use super::policy::PrivilegedOperation;
