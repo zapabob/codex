@@ -133,3 +133,9 @@ function Write-TestResult {
 2. **継続的なテスト自動化**: CI/CDパイプラインの強化
 
 
+
+
+
+
+
+

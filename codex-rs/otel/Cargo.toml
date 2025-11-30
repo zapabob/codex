@@ -24,12 +24,9 @@ codex-app-server-protocol = { workspace = true }
 codex-protocol = { workspace = true }
 eventsource-stream = { workspace = true }
 opentelemetry = { workspace = true, features = ["logs"], optional = true }
-opentelemetry-otlp = { workspace = true, features = ["logs"], optional = true }
+opentelemetry-otlp = { workspace = true, features = ["logs", "grpc-tonic", "http-proto", "http-json", "reqwest-client"], optional = true }
 opentelemetry-semantic-conventions = { workspace = true }
-opentelemetry_sdk = { workspace = true, features = [
-    "logs",
-    "rt-tokio",
-], optional = true }
+opentelemetry_sdk = { workspace = true, optional = true }
 http = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["json", "stream", "rustls-tls"] }
 serde = { workspace = true, features = ["derive"] }

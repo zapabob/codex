@@ -83,7 +83,6 @@ unused_must_use = "warn"
 unused_mut = "warn"
 unused_parens = "warn"
 unused_qualifications = "warn"
-unused_variables = "warn"
 
 # Runtime Safety (Maximum Security - Stricter than official)
 panic = "forbid"

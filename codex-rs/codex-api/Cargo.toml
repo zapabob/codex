@@ -26,5 +26,3 @@ assert_matches = { workspace = true }
 pretty_assertions = { workspace = true }
 tokio-test = { workspace = true }
 
-[lints]
-workspace = true

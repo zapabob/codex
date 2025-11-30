@@ -67,9 +67,9 @@ struct Error {
     r#type: Option<String>,
     code: Option<String>,
     message: Option<String>,
-    #[allow(unused)]
+    #[allow(dead_code)]
     plan_type: Option<String>,
-    #[allow(unused)]
+    #[allow(dead_code)]
     resets_at: Option<i64>,
 }
 

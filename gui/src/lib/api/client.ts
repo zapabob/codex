@@ -344,18 +344,18 @@ export class CodexAPIClient {
   }
 
   async runAgent(agentId: string, context: any): Promise<any> {
-    // Map agent context to parameters
-    const params: any = { agentId };
-
-    if (agentId === 'code-reviewer' || agentId === 'review') {
-      params.task = context.code || context.path || context.task || '';
-    } else if (agentId === 'sec-audit' || agentId === 'audit') {
-      params.path = context.path || context.task || '';
-    } else if (agentId === 'researcher' || agentId === 'research') {
-      params.query = context.query || context.topic || '';
-      params.depth = context.depth || 3;
-    } else {
-      Object.assign(params, context);
+      // Map agent context to parameters
+      const params: any = { agentId };
+      
+      if (agentId === 'code-reviewer' || agentId === 'review') {
+        params.task = context.code || context.path || context.task || '';
+      } else if (agentId === 'sec-audit' || agentId === 'audit') {
+        params.path = context.path || context.task || '';
+      } else if (agentId === 'researcher' || agentId === 'research') {
+        params.query = context.query || context.topic || '';
+        params.depth = context.depth || 3;
+      } else {
+        Object.assign(params, context);
     }
 
     try {
@@ -383,12 +383,12 @@ export class CodexAPIClient {
         } as ResearchResult;
       }
 
-      return {
-        status: result.status || 'completed',
-        output: result.output || '',
-        error: result.error || '',
-        exitCode: result.exitCode || 0,
-        duration: result.duration || 0,
+        return {
+          status: result.status || 'completed',
+          output: result.output || '',
+          error: result.error || '',
+          exitCode: result.exitCode || 0,
+          duration: result.duration || 0,
       };
     } catch (error) {
       console.error('Agent execution error:', error);

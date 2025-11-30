@@ -37,6 +37,7 @@ codex-common = { workspace = true, features = [
     "sandbox_summary",
 ] }
 codex-core = { workspace = true }
+# codex-deep-research = { workspace = true } # TODO: Enable when deep-research is stable
 codex-feedback = { workspace = true }
 codex-file-search = { workspace = true }
 codex-login = { workspace = true }
