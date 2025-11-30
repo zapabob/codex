@@ -15,9 +15,10 @@ async-channel = "2.3"
 async-trait = "0.1"
 base64 = "0.22"
 bytes = "1.7"
-chardetng = "0.1"
+chardetng = { version = "0.1", optional = true }
+rustls = { version = "0.23", optional = true }
+rustls-pemfile = { version = "2.0", optional = true }
 chrono = { version = "0.4", features = ["serde"] }
-walkdir = { version = "2.5", optional = true }
 # 🔐 Security dependencies (Phase 1: TLS/mTLS)
 x509-parser = { workspace = true }
 # 🔐 Security dependencies (Phase 2: Signing/Encryption)
@@ -114,7 +115,6 @@ core-foundation = "0.10"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 keyring = { workspace = true, features = ["windows-native"] }
-walkdir = { version = "2.5", optional = true }
 
 [target.'cfg(any(target_os = "freebsd", target_os = "openbsd"))'.dependencies]
 keyring = { workspace = true, features = ["sync-secret-service"] }
@@ -132,6 +132,7 @@ serial_test = { workspace = true }
 tempfile = { workspace = true }
 tokio-test = { workspace = true }
 tracing-test = { workspace = true, features = ["no-env-filter"] }
+walkdir = { version = "2.5", optional = true }
 wiremock = { workspace = true }
 
 [features]
@@ -139,7 +140,10 @@ default = []
 rmcp = ["codex-rmcp-client"]
 execpolicy = ["codex-execpolicy"]
 deep-research = ["codex-deep-research"]
-windows-ai = ["codex-windows-ai", "walkdir"]
+windows-ai = ["codex-windows-ai"]
+chardetng = ["dep:chardetng"]
+rustls = ["dep:rustls", "dep:rustls-pemfile"]
+walkdir = ["dep:walkdir"]
 
 [package.metadata.cargo-shear]
 ignored = []

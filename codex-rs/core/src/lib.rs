@@ -2,6 +2,8 @@
 //!
 //! Core functionality for the Codex AI-Native OS
 
+// External dependencies are automatically available in Rust 2018+
+
 // Rust 2024 best practices: Use impl Trait in type aliases where possible
 pub type Result<T> = anyhow::Result<T>;
 
@@ -76,6 +78,8 @@ pub use client_common::Prompt;
 pub use command_safety::is_safe_command;
 pub use model_provider_info::ModelProviderInfo;
 pub use safety::get_platform_sandbox;
+#[cfg(feature = "windows-ai")]
+pub use windows_ai_integration::WindowsAiOptions;
 
 // RMCP client stubs when rmcp feature is disabled
 #[cfg(not(feature = "rmcp"))]

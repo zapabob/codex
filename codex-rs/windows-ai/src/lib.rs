@@ -55,6 +55,9 @@ pub struct GpuStats {
     pub memory_used: u64,
     pub memory_total: u64,
     pub temperature: f32,
+    pub ai_task_count: u32,
+    pub average_latency_ms: f32,
+    pub boosted_thread_count: u32,
 }
 
 /// Windows AI Runtime

@@ -93,6 +93,9 @@ impl WindowsAiRuntimeImpl {
             memory_used: 4 * 1024 * 1024 * 1024,   // 4GB
             memory_total: 10 * 1024 * 1024 * 1024, // 10GB
             temperature: 0.0,                      // Not available via WinML
+            ai_task_count: 0,
+            average_latency_ms: 0.0,
+            boosted_thread_count: 0,
         };
 
         Ok(stats)

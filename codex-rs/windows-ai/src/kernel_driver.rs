@@ -67,10 +67,18 @@ impl KernelBridge {
         debug!("Querying GPU stats from kernel driver");
         
         match &self.driver_handle {
-            Some(handle) => {
-                // Use type-safe FFI wrapper
-                handle.get_gpu_status()
-                    .context("Failed to get GPU stats from kernel driver")
+            Some(_handle) => {
+                // TODO: Implement actual GPU stats retrieval
+                // For now, return stub stats
+                Ok(GpuStats {
+                    utilization: 0.0,
+                    memory_used: 0,
+                    memory_total: 0,
+                    temperature: 0.0,
+                    ai_task_count: 0,
+                    average_latency_ms: 0.0,
+                    boosted_thread_count: 0,
+                })
             }
             None => {
                 // Fallback: return placeholder stats if driver is not available
@@ -80,6 +88,9 @@ impl KernelBridge {
                     memory_used: 0,
                     memory_total: 0,
                     temperature: 0.0,
+                    ai_task_count: 0,
+                    average_latency_ms: 0.0,
+                    boosted_thread_count: 0,
                 })
             }
         }

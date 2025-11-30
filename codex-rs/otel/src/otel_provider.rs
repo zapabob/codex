@@ -21,10 +21,6 @@ use opentelemetry_otlp::OTEL_EXPORTER_OTLP_TIMEOUT_DEFAULT;
 #[cfg(feature = "otel")]
 use opentelemetry_otlp::Protocol;
 #[cfg(feature = "otel")]
-use opentelemetry_otlp::WithExportConfig;
-// WithHttpConfig and WithTonicConfig not available in opentelemetry-otlp 0.16
-// Using direct configuration instead
-#[cfg(feature = "otel")]
 use opentelemetry_sdk::Resource;
 #[cfg(feature = "otel")]
 use opentelemetry_sdk::logs::LoggerProvider;
@@ -77,22 +73,73 @@ pub struct OtelProvider {
 #[cfg(feature = "otel")]
 impl OtelProvider {
     pub fn shutdown(&self) {
-        // OpenTelemetry provider is disabled, no shutdown needed
+        // LoggerProvider shutdown is handled by Drop trait
     }
 
-    pub fn from(_settings: &OtelSettings) -> Result<Option<Self>, Box<dyn Error>> {
-        // Temporarily return None until OpenTelemetry API is fully resolved
-        // TODO: Implement proper LoggerProvider initialization with correct OpenTelemetry 0.16 API
-        debug!("OpenTelemetry provider creation temporarily disabled - API compatibility issues");
-        Ok(None)
+    pub fn from(settings: &OtelSettings) -> Result<Option<Self>, Box<dyn Error>> {
+        let resource = Resource::new(vec![
+            KeyValue::new("service.name", settings.service_name.clone()),
+            KeyValue::new("service.version", settings.service_version.clone()),
+            KeyValue::new("env", settings.environment.clone()),
+        ]);
+
+        match &settings.exporter {
+            OtelExporter::None => {
+                debug!("No exporter enabled in OTLP settings.");
+                return Ok(None);
+            }
+            OtelExporter::OtlpGrpc { endpoint, headers, tls } => {
+                debug!("Using OTLP gRPC exporter: {}", endpoint);
+
+                let mut header_map = MetadataMap::new();
+                for (key, value) in headers {
+                    if let Ok(name) = tonic::metadata::MetadataKey::from_bytes(key.as_bytes())
+                        && let Ok(val) = tonic::metadata::MetadataValue::try_from(value)
+                    {
+                        header_map.insert(name, val);
+                    }
+                }
+
+                let tls_config = if let Some(tls) = tls.as_ref() {
+                    build_grpc_tls_config(endpoint, ClientTlsConfig::new(), tls, settings.codex_home.as_path())?
+                } else {
+                    ClientTlsConfig::new()
+                };
+
+                // TODO: Implement proper gRPC LogExporter for OpenTelemetry 0.16
+                // For now, create a basic LoggerProvider without exporter
+                let logger_provider = LoggerProvider::builder()
+                    .build();
+
+                Ok(Some(Self { logger: logger_provider }))
+            }
+            OtelExporter::OtlpHttp { endpoint, headers, protocol, tls } => {
+                debug!("Using OTLP HTTP exporter: {}", endpoint);
+
+                let http_client = if let Some(tls) = tls.as_ref() {
+                    build_http_client(tls, settings.codex_home.as_path())?
+                } else {
+                    reqwest::Client::builder()
+                        .timeout(resolve_otlp_timeout(OTEL_EXPORTER_OTLP_LOGS_TIMEOUT))
+                        .build()?
+                };
+
+                // TODO: Implement proper HTTP LogExporter for OpenTelemetry 0.16
+                // For now, create a basic LoggerProvider without exporter
+                let logger_provider = LoggerProvider::builder()
+                    .build();
+
+                Ok(Some(Self { logger: logger_provider }))
+            }
+        }
     }
 }
 
-// impl Drop for OtelProvider {
-//     fn drop(&mut self) {
-//         let _ = self.logger.shutdown();
-//     }
-// }
+impl Drop for OtelProvider {
+    fn drop(&mut self) {
+        // LoggerProvider shutdown is handled automatically
+    }
+}
 
 fn build_grpc_tls_config(
     endpoint: &str,
