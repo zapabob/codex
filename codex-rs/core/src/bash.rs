@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use tree_sitter::Node;
 use tree_sitter::Parser;
 use tree_sitter::Tree;
-use tree_sitter_bash::LANGUAGE as BASH;
+use tree_sitter_bash::language;
 
 use crate::shell::ShellType;
 use crate::shell::detect_shell_type;
@@ -11,7 +11,7 @@ use crate::shell::detect_shell_type;
 /// Parse the provided bash source using tree-sitter-bash, returning a Tree on
 /// success or None if parsing failed.
 pub fn try_parse_shell(shell_lc_arg: &str) -> Option<Tree> {
-    let lang = BASH.into();
+    let lang = language();
     let mut parser = Parser::new();
     #[expect(clippy::expect_used)]
     parser.set_language(&lang).expect("load bash grammar");

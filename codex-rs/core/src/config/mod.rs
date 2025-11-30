@@ -43,7 +43,10 @@ use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode;
 use codex_protocol::config_types::TrustLevel;
 use codex_protocol::config_types::Verbosity;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::OAuthCredentialsStoreMode;
+#[cfg(not(feature = "rmcp"))]
+use crate::OAuthCredentialsStoreMode;
 use dirs::home_dir;
 use dunce::canonicalize;
 use serde::Deserialize;

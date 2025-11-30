@@ -16,7 +16,7 @@ pub mod resource_manager;
 pub mod task_analyzer;
 pub mod worktree_manager;
 
-pub use auto_orchestrator::AutoOrchestrator;
+pub use auto_orchestrator::{AutoOrchestrator, OrchestratedResult};
 pub use collaboration_store::CollaborationStore;
 pub use conflict_resolver::{ConflictResolver, FileEditTracker, MergeStrategy};
 pub use development_mode::{DevelopmentMode, DevelopmentModeSelector, ImplementationLog};

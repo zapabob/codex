@@ -36,7 +36,10 @@ use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::TaskStartedEvent;
 use codex_protocol::protocol::TurnAbortReason;
 use codex_protocol::protocol::TurnContextItem;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::ElicitationResponse;
+#[cfg(not(feature = "rmcp"))]
+use crate::ElicitationResponse;
 use futures::future::BoxFuture;
 use futures::prelude::*;
 use futures::stream::FuturesOrdered;
@@ -124,6 +127,7 @@ use crate::user_instructions::UserInstructions;
 use crate::user_notification::UserNotification;
 use crate::util::backoff;
 use codex_async_utils::OrCancelExt;
+#[cfg(feature = "execpolicy")]
 use codex_execpolicy::Policy as ExecPolicy;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::config_types::ReasoningEffort as ReasoningEffortConfig;
@@ -1517,8 +1521,14 @@ mod handlers {
     use codex_protocol::protocol::TurnAbortReason;
 
     use codex_protocol::user_input::UserInput;
+    #[cfg(feature = "rmcp")]
     use codex_rmcp_client::ElicitationAction;
-    use codex_rmcp_client::ElicitationResponse;
+    #[cfg(not(feature = "rmcp"))]
+    use crate::ElicitationAction;
+    #[cfg(feature = "rmcp")]
+use codex_rmcp_client::ElicitationResponse;
+#[cfg(not(feature = "rmcp"))]
+use crate::ElicitationResponse;
     use mcp_types::RequestId;
     use std::sync::Arc;
     use tracing::info;

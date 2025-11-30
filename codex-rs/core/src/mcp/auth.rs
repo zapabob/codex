@@ -2,8 +2,14 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use codex_protocol::protocol::McpAuthStatus;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::OAuthCredentialsStoreMode;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::determine_streamable_http_auth_status;
+#[cfg(not(feature = "rmcp"))]
+use crate::OAuthCredentialsStoreMode;
+#[cfg(not(feature = "rmcp"))]
+use crate::determine_streamable_http_auth_status;
 use futures::future::join_all;
 use tracing::warn;
 

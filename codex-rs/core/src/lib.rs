@@ -25,12 +25,12 @@ pub mod client_common;
 pub mod codex;
 pub mod codex_conversation;
 pub mod codex_delegate;
-pub use codex_protocol;
 pub mod command_safety;
 pub mod compact;
 pub mod compact_remote;
 pub mod config;
 pub mod config_loader;
+pub mod context_manager;
 pub mod conversation_history;
 pub mod conversation_manager;
 pub mod custom_commands;
@@ -39,6 +39,16 @@ pub mod default_client;
 pub mod environment_context;
 pub mod error;
 pub mod event_mapping;
+
+// Re-export protocol types and functions
+pub use codex_protocol::*;
+
+// Re-export protocol types directly
+pub use codex_protocol::*;
+
+// Re-export protocol submodule for crate::protocol access
+pub use codex_protocol::protocol;
+pub use event_mapping::parse_turn_item;
 pub mod exec;
 pub mod exec_env;
 pub mod exec_policy;
@@ -59,6 +69,97 @@ pub mod mcp_tool_call;
 pub mod message_history;
 pub mod model_family;
 pub mod model_provider_info;
+
+// Re-export commonly used types
+pub use model_provider_info::ModelProviderInfo;
+pub use safety::get_platform_sandbox;
+
+// RMCP client stubs when rmcp feature is disabled
+#[cfg(not(feature = "rmcp"))]
+pub mod rmcp_client_stub {
+    use std::fmt;
+
+    #[derive(Debug)]
+    pub struct RmcpClient;
+
+    #[derive(Debug, Clone)]
+    pub enum OAuthCredentialsStoreMode {
+        Keyring,
+        Env,
+    }
+
+    #[derive(Debug)]
+    pub struct ElicitationResponse;
+
+    #[derive(Debug)]
+    pub struct SendElicitation;
+
+    pub enum ElicitationAction {
+        Accept,
+        Decline,
+        Cancel,
+    }
+
+    pub fn determine_streamable_http_auth_status() -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
+    }
+
+    impl fmt::Display for RmcpClient {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "RmcpClient(stub)")
+        }
+    }
+}
+
+#[cfg(not(feature = "rmcp"))]
+pub use rmcp_client_stub::*;
+
+// ExecPolicy stubs when execpolicy feature is disabled
+#[cfg(not(feature = "execpolicy"))]
+pub mod execpolicy_stub {
+    use std::collections::HashMap;
+
+    #[derive(Debug, Clone)]
+    pub struct Policy;
+
+    #[derive(Debug, Clone)]
+    pub enum Decision {
+        Allow,
+        Deny,
+        Prompt,
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct Evaluation {
+        pub decision: Decision,
+        pub reason: String,
+    }
+
+    #[derive(Debug)]
+    pub struct PolicyParser;
+
+    impl Policy {
+        pub fn evaluate(&self, _command: &[String], _env: &HashMap<String, String>) -> Evaluation {
+            Evaluation {
+                decision: Decision::Allow,
+                reason: "Policy disabled".to_string(),
+            }
+        }
+    }
+
+    impl PolicyParser {
+        pub fn new() -> Self {
+            Self
+        }
+
+        pub fn parse(&self, _content: &str) -> Result<Policy, Box<dyn std::error::Error>> {
+            Ok(Policy)
+        }
+    }
+}
+
+#[cfg(not(feature = "execpolicy"))]
+pub use execpolicy_stub::*;
 pub mod natural_language_parser;
 pub mod openai_model_info;
 pub mod optimization_engine;
@@ -83,6 +184,7 @@ pub mod spawn;
 pub mod state;
 pub mod tasks;
 pub mod telemetry;
+pub mod terminal;
 pub mod token_budget;
 pub mod token_data;
 pub mod tools;

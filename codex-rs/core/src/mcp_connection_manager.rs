@@ -30,10 +30,16 @@ use codex_protocol::protocol::McpStartupFailure;
 use codex_protocol::protocol::McpStartupStatus;
 use codex_protocol::protocol::McpStartupUpdateEvent;
 use codex_protocol::protocol::SandboxPolicy;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::ElicitationResponse;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::OAuthCredentialsStoreMode;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::RmcpClient;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::SendElicitation;
+#[cfg(not(feature = "rmcp"))]
+use crate::{ElicitationResponse, OAuthCredentialsStoreMode, RmcpClient, SendElicitation};
 use futures::future::BoxFuture;
 use futures::future::FutureExt;
 use futures::future::Shared;

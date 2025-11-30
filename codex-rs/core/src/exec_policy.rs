@@ -6,10 +6,16 @@ use std::sync::Arc;
 use crate::command_safety::is_dangerous_command::{
     command_might_be_dangerous, requires_initial_appoval,
 };
+#[cfg(feature = "execpolicy")]
 use codex_execpolicy::Decision;
+#[cfg(feature = "execpolicy")]
 use codex_execpolicy::Evaluation;
+#[cfg(feature = "execpolicy")]
 use codex_execpolicy::Policy;
+#[cfg(feature = "execpolicy")]
 use codex_execpolicy::PolicyParser;
+#[cfg(not(feature = "execpolicy"))]
+use crate::{Decision, Evaluation, Policy, PolicyParser};
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::SandboxPolicy;
 use thiserror::Error;

@@ -15,7 +15,10 @@ use codex_protocol::models::ContentItem;
 use codex_protocol::models::ResponseItem;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::SubAgentSource;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::RmcpClient;
+#[cfg(not(feature = "rmcp"))]
+use crate::RmcpClient;
 use futures::StreamExt;
 use mcp_types::InitializeRequestParams;
 use std::collections::HashMap;
@@ -275,11 +278,11 @@ Only output the JSON, no explanation."#;
         while let Some(event) = response_stream.next().await {
             match event? {
                 ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) => {
-                    for content_item in content {
-                        if let ContentItem::OutputText { text } = content_item {
-                            full_response.push_str(&text);
-                        }
+                for content_item in content {
+                    if let ContentItem::OutputText { text } = content_item {
+                        full_response.push_str(&text);
                     }
+                }
                 }
                 ResponseEvent::Completed { .. } => {
                     // no-op; generation relies on parsed JSON below
@@ -669,12 +672,12 @@ Only output the JSON, no explanation."#;
         while let Some(event) = stream.next().await {
             match event? {
                 ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) => {
-                    for content_item in content {
-                        if let ContentItem::OutputText { text } = content_item {
-                            response_text.push_str(&text);
+                        for content_item in content {
+                            if let ContentItem::OutputText { text } = content_item {
+                                response_text.push_str(&text);
+                            }
                         }
                     }
-                }
                 ResponseEvent::Completed { token_usage, .. } => {
                     if let Some(usage) = token_usage {
                         total_tokens = usage.total_tokens as usize;
