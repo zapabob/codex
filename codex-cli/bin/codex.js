@@ -57,7 +57,7 @@ switch (platform) {
 }
 
 if (!targetTriple) {
-  console.error(Unsupported platform: -);
+  console.error(`Unsupported platform: ${platform}-${arch}`);
   console.error("Supported platforms: Linux x64/arm64, macOS x64/arm64, Windows x64/arm64");
   process.exit(1);
 }
@@ -65,13 +65,14 @@ if (!targetTriple) {
 // Find binary path
 const binaryName = platform === "win32" ? "codex.exe" : "codex";
 const binaryPaths = [
+  // Custom / experimental builds take priority so users can enable bespoke features.
+  process.env.CODEX_BINARY_PATH,
   // Local development
   join(__dirname, "..", "codex-rs", "target", "release", binaryName),
   join(__dirname, "..", "codex-rs", "target", "debug", binaryName),
   // Installed binary
   join(__dirname, "..", "bin", targetTriple, binaryName),
   // Global installation
-  process.env.CODEX_BINARY_PATH,
 ].filter(Boolean);
 
 let binaryPath = null;
