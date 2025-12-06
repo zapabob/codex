@@ -84,6 +84,7 @@ impl TestCodexBuilder {
         })
     }
 
+    #[allow(deprecated)]
     async fn prepare_config(
         &mut self,
         server: &wiremock::MockServer,

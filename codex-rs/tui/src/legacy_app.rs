@@ -690,9 +690,9 @@ impl LegacyApp {
 
 #[cfg(test)]
 mod tests {
+    use super::BacktrackState;
+    use super::user_count;
     use super::*;
-    use crate::app_backtrack::BacktrackState;
-    use crate::app_backtrack::user_count;
     use crate::chatwidget::tests::make_chatwidget_manual_with_sender;
     use crate::file_search::FileSearchManager;
     use crate::history_cell::AgentMessageCell;

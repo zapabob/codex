@@ -11,7 +11,7 @@ use tokio::process::ChildStdin;
 use tokio::process::ChildStdout;
 
 use anyhow::Context;
-use assert_cmd::prelude::*;
+
 use codex_app_server_protocol::AddConversationListenerParams;
 use codex_app_server_protocol::ArchiveConversationParams;
 use codex_app_server_protocol::CancelLoginAccountParams;
@@ -70,6 +70,7 @@ impl McpProcess {
     ///
     /// Pass a tuple of (key, Some(value)) to set/override, or (key, None) to
     /// remove a variable from the child's environment.
+    #[allow(deprecated)]
     pub async fn new_with_env(
         codex_home: &Path,
         env_overrides: &[(&str, Option<&str>)],

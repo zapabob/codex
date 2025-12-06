@@ -16,6 +16,7 @@ use std::os::unix::net::UnixListener;
 use uds_windows::UnixListener;
 
 #[test]
+#[allow(deprecated)]
 fn pipes_stdin_and_stdout_through_socket() -> anyhow::Result<()> {
     let dir = tempfile::TempDir::new().context("failed to create temp dir")?;
     let socket_path = dir.path().join("socket");

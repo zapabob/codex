@@ -10,7 +10,7 @@ use tokio::process::ChildStdin;
 use tokio::process::ChildStdout;
 
 use anyhow::Context;
-use assert_cmd::prelude::*;
+
 use codex_mcp_server::CodexToolCallParam;
 
 use mcp_types::CallToolRequestParams;
@@ -51,6 +51,7 @@ impl McpProcess {
     ///
     /// Pass a tuple of (key, Some(value)) to set/override, or (key, None) to
     /// remove a variable from the child's environment.
+    #[allow(deprecated)]
     pub async fn new_with_env(
         codex_home: &Path,
         env_overrides: &[(&str, Option<&str>)],
