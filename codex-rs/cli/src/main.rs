@@ -158,6 +158,10 @@ enum Subcommand {
     #[clap(name = "agent-create")]
     AgentCreate(AgentCreateCommand),
 
+    /// [EXPERIMENTAL] Development mode orchestration (centralized/parallel)
+    #[clap(name = "dev-mode")]
+    DevMode(crate::dev_mode_cmd::DevModeCli),
+
     /// [EXPERIMENTAL] Conduct deep research on a topic.
     Research(ResearchCommand),
 
