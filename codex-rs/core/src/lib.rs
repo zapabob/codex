@@ -11,8 +11,10 @@
 #![allow(clippy::collapsible_match)]
 #![allow(clippy::empty_line_after_doc_comments)]
 
+pub mod agent_communication;
 pub mod agent_interpreter;
 pub mod agents;
+mod ai_orchestrator;
 mod apply_patch;
 pub mod async_subagent_integration;
 pub mod audit_log;
@@ -52,6 +54,7 @@ pub mod landlock;
 pub mod lock;
 pub mod mcp;
 mod mcp_connection_manager;
+mod mcp_integration_manager;
 mod mcp_tool_call;
 mod message_history;
 mod model_provider_info;

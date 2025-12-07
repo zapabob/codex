@@ -186,6 +186,139 @@ impl McpIntegrationManager {
             },
         );
 
+        // YouTube - Video search and analysis
+        servers.insert(
+            "youtube".to_string(),
+            EnhancedMcpServer {
+                command: "youtube-mcp-server".to_string(),
+                args: vec!["--api-key".to_string(), "${YOUTUBE_API_KEY}".to_string()],
+                env: {
+                    let mut env = HashMap::new();
+                    env.insert(
+                        "YOUTUBE_API_KEY".to_string(),
+                        "${YOUTUBE_API_KEY}".to_string(),
+                    );
+                    env.insert("YOUTUBE_MAX_RESULTS".to_string(), "25".to_string());
+                    env.insert("YOUTUBE_SEARCH_ORDER".to_string(), "relevance".to_string());
+                    env
+                },
+                capabilities: vec![
+                    "video-search".to_string(),
+                    "channel-analysis".to_string(),
+                    "transcript-extraction".to_string(),
+                    "video-metadata".to_string(),
+                    "content-analysis".to_string(),
+                ],
+            },
+        );
+
+        // Playwright - Browser automation and scraping
+        servers.insert(
+            "playwright".to_string(),
+            EnhancedMcpServer {
+                command: "playwright-mcp-server".to_string(),
+                args: vec![
+                    "--browser".to_string(),
+                    "chromium".to_string(),
+                    "--headless".to_string(),
+                    "true".to_string(),
+                ],
+                env: {
+                    let mut env = HashMap::new();
+                    env.insert("PLAYWRIGHT_BROWSER".to_string(), "chromium".to_string());
+                    env.insert("PLAYWRIGHT_HEADLESS".to_string(), "true".to_string());
+                    env.insert("PLAYWRIGHT_TIMEOUT".to_string(), "30000".to_string());
+                    env.insert("PLAYWRIGHT_VIEWPORT".to_string(), "1280x720".to_string());
+                    env
+                },
+                capabilities: vec![
+                    "web-scraping".to_string(),
+                    "browser-automation".to_string(),
+                    "screenshot-capture".to_string(),
+                    "dom-analysis".to_string(),
+                    "form-interaction".to_string(),
+                    "javascript-execution".to_string(),
+                ],
+            },
+        );
+
+        // Filesystem - Enhanced file system operations
+        servers.insert(
+            "filesystem".to_string(),
+            EnhancedMcpServer {
+                command: "filesystem-mcp-server".to_string(),
+                args: vec![
+                    "--root-dir".to_string(),
+                    ".".to_string(),
+                    "--enable-git".to_string(),
+                    "true".to_string(),
+                    "--enable-metadata".to_string(),
+                    "true".to_string(),
+                ],
+                env: {
+                    let mut env = HashMap::new();
+                    env.insert("FILESYSTEM_ROOT".to_string(), ".".to_string());
+                    env.insert("FILESYSTEM_ENABLE_GIT".to_string(), "true".to_string());
+                    env.insert("FILESYSTEM_ENABLE_METADATA".to_string(), "true".to_string());
+                    env.insert(
+                        "FILESYSTEM_MAX_FILE_SIZE".to_string(),
+                        "10485760".to_string(),
+                    ); // 10MB
+                    env
+                },
+                capabilities: vec![
+                    "file-operations".to_string(),
+                    "directory-traversal".to_string(),
+                    "git-integration".to_string(),
+                    "metadata-extraction".to_string(),
+                    "content-analysis".to_string(),
+                    "batch-operations".to_string(),
+                    "search-indexing".to_string(),
+                ],
+            },
+        );
+
+        // Gemini CLI MCP - Gemini AI integration
+        servers.insert(
+            "gemini-cli".to_string(),
+            EnhancedMcpServer {
+                command: "codex-gemini-mcp".to_string(),
+                args: vec![],
+                env: {
+                    let mut env = HashMap::new();
+                    env.insert(
+                        "GEMINI_API_KEY".to_string(),
+                        "${GEMINI_API_KEY}".to_string(),
+                    );
+                    env.insert(
+                        "GEMINI_MODEL".to_string(),
+                        "gemini-2.0-flash-exp".to_string(),
+                    );
+                    env.insert("GEMINI_MAX_TOKENS".to_string(), "8192".to_string());
+                    env.insert("GEMINI_TEMPERATURE".to_string(), "0.7".to_string());
+                    env.insert(
+                        "OAUTH_CLIENT_ID".to_string(),
+                        "${OAUTH_CLIENT_ID}".to_string(),
+                    );
+                    env.insert(
+                        "OAUTH_CLIENT_SECRET".to_string(),
+                        "${OAUTH_CLIENT_SECRET}".to_string(),
+                    );
+                    env
+                },
+                capabilities: vec![
+                    "ai-assistance".to_string(),
+                    "code-generation".to_string(),
+                    "code-review".to_string(),
+                    "documentation".to_string(),
+                    "research-assistance".to_string(),
+                    "problem-solving".to_string(),
+                    "creative-writing".to_string(),
+                    "data-analysis".to_string(),
+                ],
+            },
+        );
+
         // Development modes
         let mut development = HashMap::new();
         development.insert(
@@ -194,6 +327,8 @@ impl McpIntegrationManager {
                 "serena".to_string(),
                 "github".to_string(),
                 "git-enhanced".to_string(),
+                "filesystem".to_string(),
+                "playwright".to_string(),
             ],
         );
         development.insert(
@@ -202,6 +337,8 @@ impl McpIntegrationManager {
                 "serena".to_string(),
                 "arxiv".to_string(),
                 "docs-analyzer".to_string(),
+                "youtube".to_string(),
+                "gemini-cli".to_string(),
             ],
         );
 
