@@ -1343,11 +1343,11 @@ impl ChatWidget {
                 self.add_info_message("Orchestrate command is not yet implemented in TUI mode. Use CLI: `codex orchestrate <goal>`".to_string(), None);
             }
             SlashCommand::CentralDev => {
-                self.add_info_message("Starting centralized development mode with main agent coordinating sub-agents...".to_string(), None);
+                self.add_info_message("Starting centralized development mode with main agent coordinating sub-agents...\nActive MCP servers: serena, arxiv, youtube, gemini-cli".to_string(), None);
                 // TODO: Implement centralized development mode
             }
             SlashCommand::ParallelDev => {
-                self.add_info_message("Starting parallel development mode using git worktrees...".to_string(), None);
+                self.add_info_message("Starting parallel development mode using git worktrees...\nActive MCP servers: serena, github, git-enhanced, filesystem, playwright".to_string(), None);
                 // TODO: Implement parallel development mode
             }
             SlashCommand::Research => {

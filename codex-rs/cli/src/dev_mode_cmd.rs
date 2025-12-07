@@ -101,7 +101,7 @@ async fn run_centralized_dev(
     mcp_manager.start_servers_for_mode("centralized").await?;
 
     println!("✅ Centralized development mode initialized");
-    println!("📋 Active MCP servers: serena, arxiv");
+    println!("📋 Active MCP servers: serena, arxiv, youtube, gemini-cli");
 
     if let Some(task_desc) = task {
         println!("🎯 Task: {}", task_desc);
@@ -150,7 +150,7 @@ async fn run_parallel_dev(
     mcp_manager.start_servers_for_mode("parallel").await?;
 
     println!("✅ Parallel development mode initialized");
-    println!("📋 Active MCP servers: serena, github, git-enhanced");
+    println!("📋 Active MCP servers: serena, github, git-enhanced, filesystem, playwright");
 
     if let Some(task_desc) = task {
         println!("🎯 Task: {}", task_desc);

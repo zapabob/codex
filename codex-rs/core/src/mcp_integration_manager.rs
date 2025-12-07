@@ -390,7 +390,11 @@ impl McpIntegrationManager {
         let mut auto_start = HashMap::new();
         auto_start.insert(
             "centralized".to_string(),
-            vec!["serena".to_string(), "arxiv".to_string()],
+            vec![
+                "serena".to_string(),
+                "arxiv".to_string(),
+                "gemini-cli".to_string(),
+            ],
         );
         auto_start.insert(
             "parallel".to_string(),
@@ -398,6 +402,7 @@ impl McpIntegrationManager {
                 "serena".to_string(),
                 "github".to_string(),
                 "git-enhanced".to_string(),
+                "filesystem".to_string(),
             ],
         );
 

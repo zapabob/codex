@@ -62,17 +62,92 @@ servers:
       - "structure-analysis"
       - "search-indexing"
 
+  # YouTube - Video search and analysis
+  youtube:
+    command: "youtube-mcp-server"
+    args: ["--api-key", "${YOUTUBE_API_KEY}"]
+    env:
+      YOUTUBE_API_KEY: "${YOUTUBE_API_KEY}"
+      YOUTUBE_MAX_RESULTS: "25"
+      YOUTUBE_SEARCH_ORDER: "relevance"
+    capabilities:
+      - "video-search"
+      - "channel-analysis"
+      - "transcript-extraction"
+      - "video-metadata"
+      - "content-analysis"
+
+  # Playwright - Browser automation and scraping
+  playwright:
+    command: "playwright-mcp-server"
+    args: ["--browser", "chromium", "--headless", "true"]
+    env:
+      PLAYWRIGHT_BROWSER: "chromium"
+      PLAYWRIGHT_HEADLESS: "true"
+      PLAYWRIGHT_TIMEOUT: "30000"
+      PLAYWRIGHT_VIEWPORT: "1280x720"
+    capabilities:
+      - "web-scraping"
+      - "browser-automation"
+      - "screenshot-capture"
+      - "dom-analysis"
+      - "form-interaction"
+      - "javascript-execution"
+
+  # Filesystem - Enhanced file system operations
+  filesystem:
+    command: "filesystem-mcp-server"
+    args: ["--root-dir", ".", "--enable-git", "true", "--enable-metadata", "true"]
+    env:
+      FILESYSTEM_ROOT: "."
+      FILESYSTEM_ENABLE_GIT: "true"
+      FILESYSTEM_ENABLE_METADATA: "true"
+      FILESYSTEM_MAX_FILE_SIZE: "10485760"
+    capabilities:
+      - "file-operations"
+      - "directory-traversal"
+      - "git-integration"
+      - "metadata-extraction"
+      - "content-analysis"
+      - "batch-operations"
+      - "search-indexing"
+
+  # Gemini CLI MCP - Gemini AI integration
+  gemini-cli:
+    command: "codex-gemini-mcp"
+    args: []
+    env:
+      GEMINI_API_KEY: "${GEMINI_API_KEY}"
+      GEMINI_MODEL: "gemini-2.0-flash-exp"
+      GEMINI_MAX_TOKENS: "8192"
+      GEMINI_TEMPERATURE: "0.7"
+      OAUTH_CLIENT_ID: "${OAUTH_CLIENT_ID}"
+      OAUTH_CLIENT_SECRET: "${OAUTH_CLIENT_SECRET}"
+    capabilities:
+      - "ai-assistance"
+      - "code-generation"
+      - "code-review"
+      - "documentation"
+      - "research-assistance"
+      - "problem-solving"
+      - "creative-writing"
+      - "data-analysis"
+
 # Development mode specific servers
 development:
   parallel-dev:
     - serena
     - github
     - git-enhanced
+    - filesystem
+    - playwright
 
   centralized-dev:
     - serena
     - arxiv
     - docs-analyzer
+    - youtube
+    - gemini-cli
 
 # Agent-specific server assignments
 agent_servers:
@@ -80,21 +155,29 @@ agent_servers:
     - serena
     - docs-analyzer
     - git-enhanced
+    - filesystem
+    - gemini-cli
 
   researcher:
     - arxiv
     - github
     - docs-analyzer
+    - youtube
+    - playwright
 
   code-reviewer:
     - serena
     - github
     - git-enhanced
+    - filesystem
+    - gemini-cli
 
   qc-optimizer:
     - serena
     - github
     - docs-analyzer
+    - filesystem
+    - playwright
 
 # Auto-start servers for different development modes
 auto_start:
