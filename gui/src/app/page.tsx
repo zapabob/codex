@@ -201,12 +201,12 @@ export default function Dashboard() {
         setShowGit4D(!showGit4D);
         break;
       default:
-        setIsLoading(true);
-        // Simulate async operation
-        setTimeout(() => {
-          setIsLoading(false);
-          console.log(`Quick action: ${action}`);
-        }, 2000);
+    setIsLoading(true);
+    // Simulate async operation
+    setTimeout(() => {
+      setIsLoading(false);
+      console.log(`Quick action: ${action}`);
+    }, 2000);
     }
   };
 
