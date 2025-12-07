@@ -25,6 +25,7 @@ use owo_colors::OwoColorize;
 use std::path::PathBuf;
 use supports_color::Stream;
 
+mod dev_mode_cmd;
 mod git_commands;
 mod lock_cmd;
 mod mcp_cmd;
@@ -898,6 +899,9 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 parallel_cmd.config_overrides,
             )
             .await?;
+        }
+        Some(Subcommand::DevMode(dev_mode_cmd)) => {
+            crate::dev_mode_cmd::run_dev_mode_command(dev_mode_cmd).await?;
         }
         Some(Subcommand::PairProgram(mut pair_cmd)) => {
             prepend_config_flags(
