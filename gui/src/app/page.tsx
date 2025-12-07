@@ -18,6 +18,10 @@ import { Card } from '@/components/atoms/Card';
 import { Button } from '@/components/atoms/Button';
 import { LoadingSpinner } from '@/components/molecules/LoadingSpinner';
 import { useCodex } from '@/lib/context/CodexContext';
+import { SpatialUI } from '@/components/vr/SpatialUI';
+import { MacOSEmulator } from '@/components/virtual-os/MacOSEmulator';
+import { Git4DVisualization } from '@/components/visualization/Git4DVisualization';
+import { WebXRManager } from '@/lib/xr/webxr-manager';
 import {
   Brain,
   Code,
@@ -27,6 +31,9 @@ import {
   Users,
   Activity,
   Settings,
+  Eye,
+  Monitor,
+  GitBranch,
 } from 'lucide-react';
 
 interface StatCardProps {
@@ -129,6 +136,10 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) => (
 export default function Dashboard() {
   const { state, clearError } = useCodex();
   const [isLoading, setIsLoading] = useState(false);
+  const [isVRMode, setIsVRMode] = useState(false);
+  const [isVirtualOS, setIsVirtualOS] = useState(false);
+  const [showGit4D, setShowGit4D] = useState(false);
+  const [xrManager] = useState(() => new WebXRManager());
 
   const stats = [
     {
@@ -174,12 +185,29 @@ export default function Dashboard() {
   }));
 
   const handleQuickAction = (action: string) => {
-    setIsLoading(true);
-    // Simulate async operation
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log(`Quick action: ${action}`);
-    }, 2000);
+    switch (action) {
+      case 'vr-mode':
+        setIsVRMode(!isVRMode);
+        if (!isVRMode) {
+          xrManager.initializeVR();
+        } else {
+          xrManager.exitVR();
+        }
+        break;
+      case 'virtual-os':
+        setIsVirtualOS(!isVirtualOS);
+        break;
+      case 'git-4d':
+        setShowGit4D(!showGit4D);
+        break;
+      default:
+        setIsLoading(true);
+        // Simulate async operation
+        setTimeout(() => {
+          setIsLoading(false);
+          console.log(`Quick action: ${action}`);
+        }, 2000);
+    }
   };
 
   return (
@@ -258,6 +286,33 @@ export default function Dashboard() {
                   variant="text"
                 >
                   エージェント設定
+                </Button>
+                <Button
+                  fullWidth
+                  startIcon={<Eye size={20} />}
+                  onClick={() => handleQuickAction('vr-mode')}
+                  variant="outlined"
+                  color={isVRMode ? "primary" : "inherit"}
+                >
+                  {isVRMode ? 'VRモード終了' : 'VR/ARモード開始'}
+                </Button>
+                <Button
+                  fullWidth
+                  startIcon={<Monitor size={20} />}
+                  onClick={() => handleQuickAction('virtual-os')}
+                  variant="outlined"
+                  color={isVirtualOS ? "primary" : "inherit"}
+                >
+                  {isVirtualOS ? '仮想OS終了' : '仮想OS起動'}
+                </Button>
+                <Button
+                  fullWidth
+                  startIcon={<GitBranch size={20} />}
+                  onClick={() => handleQuickAction('git-4d')}
+                  variant="outlined"
+                  color={showGit4D ? "primary" : "inherit"}
+                >
+                  {showGit4D ? 'Git4D終了' : 'Git4D可視化'}
                 </Button>
               </Box>
             </Card>
@@ -360,6 +415,49 @@ export default function Dashboard() {
           </motion.div>
         </Grid>
       </Grid>
+
+      {/* VR/AR Mode */}
+      {isVRMode && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+        >
+          <SpatialUI
+            elements={[
+              {
+                id: 'dashboard',
+                content: <Typography>VR Dashboard</Typography>,
+                position: { x: 0, y: 0, z: -2 },
+              },
+            ]}
+            handPosition={{ x: 0, y: 0, z: 0 }}
+            onElementInteract={(id) => console.log(`Interacted with ${id}`)}
+          />
+        </motion.div>
+      )}
+
+      {/* Virtual OS */}
+      {isVirtualOS && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+        >
+          <MacOSEmulator />
+        </motion.div>
+      )}
+
+      {/* Git4D Visualization */}
+      {showGit4D && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+        >
+          <Git4DVisualization />
+        </motion.div>
+      )}
     </DashboardLayout>
   );
 }

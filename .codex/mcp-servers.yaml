@@ -118,7 +118,7 @@ servers:
     args: []
     env:
       GEMINI_API_KEY: "${GEMINI_API_KEY}"
-      GEMINI_MODEL: "gemini-2.0-flash-exp"
+      GEMINI_MODEL: "gemini-3.0-pro-latest"
       GEMINI_MAX_TOKENS: "8192"
       GEMINI_TEMPERATURE: "0.7"
       OAUTH_CLIENT_ID: "${OAUTH_CLIENT_ID}"

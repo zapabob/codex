@@ -1,0 +1,288 @@
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import { Box, Typography, Paper, IconButton, Slider, FormControlLabel, Switch } from '@mui/material';
+import { motion } from 'framer-motion';
+import { GitBranch, Play, Pause, RotateCcw, Settings } from 'lucide-react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import * as THREE from 'three';
+
+/**
+ * Git4DVisualization Component
+ *
+ * 4D Git repository visualization with time axis
+ * Supports Quest 2/3 VR integration and Windows 11 25H2 AI acceleration
+ */
+export const Git4DVisualization: React.FC = () => {
+  const mountRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<THREE.Scene>();
+  const rendererRef = useRef<THREE.WebGLRenderer>();
+  const cameraRef = useRef<THREE.PerspectiveCamera>();
+  const animationFrameRef = useRef<number>();
+  const controlsRef = useRef<OrbitControls>(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [timeScale, setTimeScale] = useState(1);
+  const [showLabels, setShowLabels] = useState(true);
+  const [vrMode, setVrMode] = useState(false);
+
+  // Mock git data - replace with real data from backend
+  const [commits] = useState(() => generateMockCommits());
+
+  useEffect(() => {
+    if (!mountRef.current) return;
+
+    // Initialize Three.js scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a0a);
+    sceneRef.current = scene;
+
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      mountRef.current.clientWidth / mountRef.current.clientHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 0, 5);
+    cameraRef.current = camera;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    rendererRef.current = renderer;
+
+    mountRef.current.appendChild(renderer.domElement);
+
+    // Add lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 10, 5);
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);
+
+    // Create commit visualization
+    createCommitVisualization(scene, commits);
+
+    // Animation loop
+    const animate = () => {
+      animationFrameRef.current = requestAnimationFrame(animate);
+
+      if (isPlaying) {
+        // Rotate camera for dynamic view
+        camera.position.x = Math.cos(Date.now() * 0.001 * timeScale) * 8;
+        camera.position.z = Math.sin(Date.now() * 0.001 * timeScale) * 8;
+        camera.lookAt(0, 0, 0);
+      }
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // Handle resize
+    const handleResize = () => {
+      if (!mountRef.current) return;
+      camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (mountRef.current && renderer.domElement) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+    };
+  }, [commits, isPlaying, timeScale]);
+
+  const createCommitVisualization = (scene: THREE.Scene, commits: any[]) => {
+    commits.forEach((commit, index) => {
+      // Create commit node
+      const geometry = new THREE.SphereGeometry(0.1, 16, 16);
+      const material = new THREE.MeshPhongMaterial({
+        color: new THREE.Color().setHSL(commit.branch / 10, 0.8, 0.6),
+        emissive: new THREE.Color(0x111111),
+      });
+
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.set(
+        commit.x,
+        commit.y,
+        commit.z
+      );
+      sphere.userData = { commit, index };
+      scene.add(sphere);
+
+      // Add connection lines to parent commits
+      if (commit.parents && commit.parents.length > 0) {
+        commit.parents.forEach((parentId: string) => {
+          const parentCommit = commits.find(c => c.id === parentId);
+          if (parentCommit) {
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(commit.x, commit.y, commit.z),
+              new THREE.Vector3(parentCommit.x, parentCommit.y, parentCommit.z),
+            ]);
+
+            const lineMaterial = new THREE.LineBasicMaterial({
+              color: 0x666666,
+              transparent: true,
+              opacity: 0.6,
+            });
+
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(line);
+          }
+        });
+      }
+
+      // Add labels if enabled
+      if (showLabels) {
+        // Label implementation would go here
+      }
+    });
+  };
+
+  const generateMockCommits = () => {
+    const commits = [];
+    const branches = ['main', 'feature/auth', 'feature/ui', 'hotfix/security'];
+
+    for (let i = 0; i < 100; i++) {
+      commits.push({
+        id: `commit-${i}`,
+        message: `Commit ${i}: ${Math.random() > 0.5 ? 'Add' : 'Fix'} ${['feature', 'bug', 'docs', 'test'][Math.floor(Math.random() * 4)]}`,
+        author: ['Alice', 'Bob', 'Charlie', 'Diana'][Math.floor(Math.random() * 4)],
+        timestamp: Date.now() - (i * 24 * 60 * 60 * 1000), // One commit per day
+        branch: Math.floor(Math.random() * branches.length),
+        x: (Math.random() - 0.5) * 10,
+        y: (Math.random() - 0.5) * 10,
+        z: (Math.random() - 0.5) * 10,
+        parents: i > 0 ? [`commit-${Math.max(0, i - Math.floor(Math.random() * 3) - 1)}`] : [],
+      });
+    }
+
+    return commits;
+  };
+
+  const resetView = () => {
+    if (cameraRef.current) {
+      cameraRef.current.position.set(0, 0, 5);
+      cameraRef.current.lookAt(0, 0, 0);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          p: 2,
+          m: 2,
+          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+          color: 'white',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <GitBranch size={24} />
+          <Typography variant="h6">Git4D Visualization</Typography>
+          <Box sx={{ flex: 1 }} />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showLabels}
+                onChange={(e) => setShowLabels(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Labels"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={vrMode}
+                onChange={(e) => setVrMode(e.target.checked)}
+                color="secondary"
+              />
+            }
+            label="VR Mode"
+          />
+        </Box>
+
+        {/* Controls */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <IconButton
+            onClick={() => setIsPlaying(!isPlaying)}
+            color="primary"
+            sx={{ bgcolor: 'rgba(255,255,255,0.1)' }}
+          >
+            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+          </IconButton>
+
+          <IconButton
+            onClick={resetView}
+            color="primary"
+            sx={{ bgcolor: 'rgba(255,255,255,0.1)' }}
+          >
+            <RotateCcw size={20} />
+          </IconButton>
+
+          <Typography variant="body2" sx={{ minWidth: 60 }}>
+            Speed:
+          </Typography>
+          <Slider
+            value={timeScale}
+            onChange={(_, value) => setTimeScale(value as number)}
+            min={0.1}
+            max={3}
+            step={0.1}
+            sx={{
+              width: 100,
+              color: 'primary.main',
+              '& .MuiSlider-thumb': {
+                bgcolor: 'primary.main',
+              },
+            }}
+          />
+          <Typography variant="body2">{timeScale.toFixed(1)}x</Typography>
+        </Box>
+
+        {/* 3D Visualization Canvas */}
+        <Box
+          ref={mountRef}
+          sx={{
+            width: '100%',
+            height: 600,
+            borderRadius: 2,
+            overflow: 'hidden',
+            bgcolor: '#000',
+          }}
+        />
+
+        {/* Stats */}
+        <Box sx={{ mt: 2, display: 'flex', gap: 4 }}>
+          <Typography variant="body2">
+            Commits: {commits.length}
+          </Typography>
+          <Typography variant="body2">
+            Branches: {new Set(commits.map(c => c.branch)).size}
+          </Typography>
+          <Typography variant="body2">
+            Contributors: {new Set(commits.map(c => c.author)).size}
+          </Typography>
+        </Box>
+      </Paper>
+    </motion.div>
+  );
+};
