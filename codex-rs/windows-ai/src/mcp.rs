@@ -10,12 +10,18 @@
 //! - Error handling and retry logic
 //! - Integration with Codex MCP Server
 
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::Value;
 use std::collections::HashMap;
-use tokio::sync::{mpsc, oneshot};
-use tracing::{debug, error, info, warn};
+use tokio::sync::mpsc;
+use tokio::sync::oneshot;
+use tracing::debug;
+use tracing::error;
+use tracing::info;
+use tracing::warn;
 
 /// MCP Message types (JSON-RPC 2.0)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,13 +110,10 @@ impl McpClient {
             .map_err(|e| anyhow::anyhow!("Failed to send MCP request: {e}"))?;
 
         // Wait for response with timeout
-        let response = tokio::time::timeout(
-            std::time::Duration::from_secs(30),
-            response_rx,
-        )
-        .await
-        .context("MCP request timeout")?
-        .map_err(|_| anyhow::anyhow!("Response channel closed"))?;
+        let response = tokio::time::timeout(std::time::Duration::from_secs(30), response_rx)
+            .await
+            .context("MCP request timeout")?
+            .map_err(|_| anyhow::anyhow!("Response channel closed"))?;
 
         self.pending_requests.remove(&id);
 
@@ -118,11 +121,9 @@ impl McpClient {
             Some(err) => {
                 anyhow::bail!("MCP error {}: {}", err.code, err.message);
             }
-            None => {
-                response.result.ok_or_else(|| {
-                    anyhow::anyhow!("MCP response has neither result nor error")
-                })
-            }
+            None => response
+                .result
+                .ok_or_else(|| anyhow::anyhow!("MCP response has neither result nor error")),
         }
     }
 
@@ -148,11 +149,17 @@ impl McpClient {
                     if let Some(tx) = self.pending_requests.remove(&response.id) {
                         let _ = tx.send(response);
                     } else {
-                        warn!("Received response for unknown request ID: {:?}", response.id);
+                        warn!(
+                            "Received response for unknown request ID: {:?}",
+                            response.id
+                        );
                     }
                 }
                 McpMessage::Request(request) => {
-                    debug!("Received MCP request: {} (ID: {:?})", request.method, request.id);
+                    debug!(
+                        "Received MCP request: {} (ID: {:?})",
+                        request.method, request.id
+                    );
                     // TODO: Handle incoming requests (e.g., tool calls from other agents)
                 }
                 McpMessage::Notification(notification) => {
@@ -244,8 +251,3 @@ pub fn is_mcp_available() -> bool {
         false
     }
 }
-
-
-
-
-

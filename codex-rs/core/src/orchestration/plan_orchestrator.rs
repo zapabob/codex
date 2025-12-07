@@ -3,13 +3,17 @@
 //! Enhances AutoOrchestrator to accept PlanBlock, emit telemetry, and trigger webhooks.
 
 use crate::agents::AgentRuntime;
-use crate::orchestration::{
-    AutoOrchestrator, CollaborationStore, OrchestratedResult, TaskAnalyzer,
-};
+use crate::orchestration::AutoOrchestrator;
+use crate::orchestration::CollaborationStore;
+use crate::orchestration::OrchestratedResult;
+use crate::orchestration::TaskAnalyzer;
 use crate::plan::PlanBlock;
-use crate::telemetry::{EventType, TelemetryEvent};
-use crate::webhooks::{WebhookConfig, WebhookPayload};
-use anyhow::{Context, Result};
+use crate::telemetry::EventType;
+use crate::telemetry::TelemetryEvent;
+use crate::webhooks::WebhookConfig;
+use crate::webhooks::WebhookPayload;
+use anyhow::Context;
+use anyhow::Result;
 use std::sync::Arc;
 use tracing::debug;
 use tracing::info;

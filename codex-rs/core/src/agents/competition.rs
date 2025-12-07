@@ -3,9 +3,12 @@
 //! Creates multiple git worktrees, executes identical tasks in parallel,
 //! scores results, and auto-merges the winner.
 
-use crate::plan::schema::{EvalCriteria, PlanBlock};
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use crate::plan::schema::EvalCriteria;
+use crate::plan::schema::PlanBlock;
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::path::PathBuf;
 use std::process::Command;
 use tracing::debug;

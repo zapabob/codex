@@ -18,9 +18,15 @@ pub mod resource_manager;
 pub mod worktree_manager;
 
 // Re-export common types
-pub use auto_orchestrator::{AutoOrchestrator, OrchestratedResult};
+pub use auto_orchestrator::AutoOrchestrator;
+pub use auto_orchestrator::OrchestratedResult;
 pub use collaboration_store::CollaborationStore;
-pub use conflict_resolver::{ConflictResolver, MergeStrategy};
+pub use conflict_resolver::ConflictResolver;
+pub use conflict_resolver::MergeStrategy;
 pub use plan_orchestrator::PlanOrchestrator;
-pub use resource_manager::{ResourceCapacity, ResourceGuard, ResourceManager, SystemStats};
-pub use task_analyzer::{TaskAnalysis, TaskAnalyzer};
+pub use resource_manager::ResourceCapacity;
+pub use resource_manager::ResourceGuard;
+pub use resource_manager::ResourceManager;
+pub use resource_manager::SystemStats;
+pub use task_analyzer::TaskAnalysis;
+pub use task_analyzer::TaskAnalyzer;

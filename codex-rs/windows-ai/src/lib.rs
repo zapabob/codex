@@ -29,18 +29,18 @@ use anyhow::Result;
 mod windows_impl;
 
 #[cfg(target_os = "windows")]
+mod kernel_cuda_bridge;
+#[cfg(target_os = "windows")]
 pub mod kernel_driver;
 #[cfg(target_os = "windows")]
 mod kernel_driver_ffi;
 #[cfg(target_os = "windows")]
-mod kernel_cuda_bridge;
-#[cfg(target_os = "windows")]
 mod mcp;
 
 #[cfg(target_os = "windows")]
-pub use windows_impl::*;
-#[cfg(target_os = "windows")]
 pub use mcp::*;
+#[cfg(target_os = "windows")]
+pub use windows_impl::*;
 
 #[cfg(not(target_os = "windows"))]
 mod stub;
@@ -106,7 +106,7 @@ impl WindowsAiRuntime {
 }
 
 /// Kernel Driver integration
-/// 
+///
 /// Re-export kernel_driver module (defined at line 32)
 #[cfg(target_os = "windows")]
 pub use kernel_driver::*;

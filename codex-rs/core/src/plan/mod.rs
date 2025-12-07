@@ -13,15 +13,33 @@ pub mod research_integration;
 pub mod schema;
 pub mod state;
 
-pub use budget::{BudgetError, BudgetTracker, BudgetUsage, format_usage};
-pub use executor::{ExecutionEvent, ExecutionResult, PlanExecutor, TestResult};
-pub use manager::{ManagerError, PlanManager};
+pub use budget::BudgetError;
+pub use budget::BudgetTracker;
+pub use budget::BudgetUsage;
+pub use budget::format_usage;
+pub use executor::ExecutionEvent;
+pub use executor::ExecutionResult;
+pub use executor::PlanExecutor;
+pub use executor::TestResult;
+pub use manager::ManagerError;
+pub use manager::PlanManager;
 pub use persist::PlanPersister;
-pub use policy::{
-    ApprovalRole, PermissionTier, PlanPolicy, PolicyEnforcer, PolicyError, PrivilegedOperation,
-};
-pub use research_integration::{ResearchApprovalDialog, ResearchIntegration, ResearchRequest};
-pub use schema::{
-    Budget, EvalCriteria, ExecutionMode, PlanBlock, ResearchBlock, ResearchSource, Risk, WorkItem,
-};
-pub use state::{PlanState, StateTransitionError};
+pub use policy::ApprovalRole;
+pub use policy::PermissionTier;
+pub use policy::PlanPolicy;
+pub use policy::PolicyEnforcer;
+pub use policy::PolicyError;
+pub use policy::PrivilegedOperation;
+pub use research_integration::ResearchApprovalDialog;
+pub use research_integration::ResearchIntegration;
+pub use research_integration::ResearchRequest;
+pub use schema::Budget;
+pub use schema::EvalCriteria;
+pub use schema::ExecutionMode;
+pub use schema::PlanBlock;
+pub use schema::ResearchBlock;
+pub use schema::ResearchSource;
+pub use schema::Risk;
+pub use schema::WorkItem;
+pub use state::PlanState;
+pub use state::StateTransitionError;
