@@ -22,8 +22,6 @@ use tree_sitter::Parser;
 use tree_sitter::Query;
 use tree_sitter::QueryCursor;
 use tree_sitter::StreamingIterator;
-use tree_sitter_bash::LANGUAGE as BASH;
-
 pub use standalone_executable::main;
 
 /// Detailed instructions for gpt-4.1 on how to use the `apply_patch` tool.
@@ -352,7 +350,7 @@ fn extract_apply_patch_from_bash(
     // how tree-sitter parses the script and whether the query syntax is correct. Be sure
     // to test both positive and negative cases.
     static APPLY_PATCH_QUERY: LazyLock<Query> = LazyLock::new(|| {
-        let language = BASH.into();
+        let language = tree_sitter_bash::language();
         #[expect(clippy::expect_used)]
         Query::new(
             &language,
@@ -398,7 +396,7 @@ fn extract_apply_patch_from_bash(
         .expect("valid bash query")
     });
 
-    let lang = BASH.into();
+    let lang = tree_sitter_bash::language();
     let mut parser = Parser::new();
     parser
         .set_language(&lang)

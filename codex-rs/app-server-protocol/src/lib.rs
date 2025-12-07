@@ -1,4 +1,4 @@
-mod export;
+pub mod export;
 mod jsonrpc_lite;
 mod protocol;
 

@@ -45,3 +45,17 @@ test:
 # Run the MCP server
 mcp-server-run *args:
     cargo run -p codex-mcp-server -- "$@"
+
+# Build TUI
+build-tui:
+    cargo build --release -p codex-tui
+
+# Install TUI
+install-tui:
+    cargo install --path tui --force
+
+# Build and install both CLI and TUI
+build-install-all:
+    cargo build --release -p codex-cli -p codex-tui
+    cargo install --path cli --force
+    cargo install --path tui --force

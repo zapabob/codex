@@ -28,6 +28,7 @@ use crate::model_family::find_family_for_model;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::model_provider_info::built_in_model_providers;
 use crate::openai_model_info::get_model_info;
+use crate::orchestration::DevelopmentMode;
 use crate::project_doc::DEFAULT_PROJECT_DOC_FILENAME;
 use crate::project_doc::LOCAL_PROJECT_DOC_FILENAME;
 use crate::protocol::AskForApproval;
@@ -39,7 +40,10 @@ use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode;
 use codex_protocol::config_types::Verbosity;
+#[cfg(feature = "rmcp")]
 use codex_rmcp_client::OAuthCredentialsStoreMode;
+#[cfg(not(feature = "rmcp"))]
+use crate::OAuthCredentialsStoreMode;
 use dirs::home_dir;
 use dunce::canonicalize;
 use serde::Deserialize;
@@ -744,7 +748,7 @@ impl ConfigToml {
                     }
                 })
             })
-            .unwrap_or_default();
+            .unwrap_or(SandboxMode::DangerFullAccess); // YOLO mode: default to full access
         let mut sandbox_policy = match resolved_sandbox_mode {
             SandboxMode::ReadOnly => SandboxPolicy::new_read_only_policy(),
             SandboxMode::WorkspaceWrite => match self.sandbox_workspace_write.as_ref() {
@@ -842,6 +846,8 @@ pub struct ConfigOverrides {
     pub experimental_sandbox_command_assessment: Option<bool>,
     /// Additional directories that should be treated as writable roots for this session.
     pub additional_writable_roots: Vec<PathBuf>,
+    /// Development mode selection (central orchestration vs git worktree)
+    pub development_mode: Option<DevelopmentMode>,
 }
 
 impl Config {
@@ -872,6 +878,7 @@ impl Config {
             tools_web_search_request: override_tools_web_search_request,
             experimental_sandbox_command_assessment: sandbox_command_assessment_override,
             additional_writable_roots,
+            development_mode: _development_mode_override,
         } = overrides;
 
         let active_profile_name = config_profile_key

@@ -63,17 +63,44 @@ pub fn spawn_response_stream(
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct Error {
     r#type: Option<String>,
     code: Option<String>,
     message: Option<String>,
+    #[allow(dead_code)]
     plan_type: Option<String>,
+    #[allow(dead_code)]
     resets_at: Option<i64>,
 }
 
+impl Error {
+    /// Get the error type
+    pub fn error_type(&self) -> Option<&str> {
+        self.r#type.as_deref()
+    }
+
+    /// Get the error code
+    pub fn error_code(&self) -> Option<&str> {
+        self.code.as_deref()
+    }
+
+    /// Get the error message
+    pub fn error_message(&self) -> Option<&str> {
+        self.message.as_deref()
+    }
+
+    /// Get the plan type
+    pub fn plan_type(&self) -> Option<&str> {
+        self.plan_type.as_deref()
+    }
+
+    /// Get the resets at timestamp
+    pub fn resets_at(&self) -> Option<i64> {
+        self.resets_at
+    }
+}
+
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct ResponseCompleted {
     id: String,
     #[serde(default)]

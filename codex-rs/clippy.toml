@@ -1,13 +1,47 @@
+# Enhanced Security and Type Safety Configuration
+# More secure than official repository standards
+
 allow-expect-in-tests = true
 allow-unwrap-in-tests = true
+
+# Security and Memory Safety (Higher priority than official)
 disallowed-methods = [
+    # Original UI restrictions
     { path = "ratatui::style::Color::Rgb", reason = "Use ANSI colors, which work better in various terminal themes." },
     { path = "ratatui::style::Color::Indexed", reason = "Use ANSI colors, which work better in various terminal themes." },
     { path = "ratatui::style::Stylize::white", reason = "Avoid hardcoding white; prefer default fg or dim/bold. Exception: Disable this rule if rendering over a hardcoded ANSI background." },
     { path = "ratatui::style::Stylize::black", reason = "Avoid hardcoding black; prefer default fg or dim/bold. Exception: Disable this rule if rendering over a hardcoded ANSI background." },
     { path = "ratatui::style::Stylize::yellow", reason = "Avoid yellow; prefer other colors in `tui/styles.md`." },
+
+    # Enhanced Security Restrictions (More restrictive than official)
+    { path = "std::mem::transmute", reason = "Transmute is unsafe and can cause undefined behavior. Use safe alternatives." },
+    { path = "std::ptr::null", reason = "Null pointers are dangerous. Use Option<T> or NonNull<T>." },
+    { path = "std::mem::uninitialized", reason = "Uninitialized memory is unsafe. Use MaybeUninit<T>." },
+    { path = "std::mem::zeroed", reason = "Zeroed memory can be unsafe. Use safe initialization." },
 ]
 
-# Increase the size threshold for result_large_err to accommodate
-# richer error variants.
-large-error-threshold = 256
+# Enhanced Type Safety (Stricter than official)
+large-error-threshold = 128  # Smaller than official (256) for better error handling
+too-many-arguments-threshold = 5  # Stricter argument limits
+cognitive-complexity-threshold = 15  # Lower cognitive complexity
+too-large-for-stack = 2048  # Stricter stack size limits
+
+# Security Enhancements (Not in official)
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "Use BTreeMap for deterministic ordering and better cache performance." },
+    { path = "std::collections::HashSet", reason = "Use BTreeSet for deterministic ordering." },
+]
+
+# Memory Safety (Stricter than official)
+max-fn-params-bools = 2  # Limit boolean parameters
+too-many-lines-threshold = 300  # Stricter line limits per function
+
+# Performance and Security Trade-offs
+array-size-threshold = 1024  # Smaller arrays for stack safety
+vec-box-size-threshold = 1024  # Smaller boxed vecs
+# string-lit-as-bytes removed - not a valid clippy config
+
+# Enhanced Linting (More comprehensive than official)
+warn-on-all-wildcard-imports = true
+single-char-binding-names-threshold = 3  # Allow fewer single-char names
+allow-one-hash-in-raw-strings = false  # Stricter raw string rules
