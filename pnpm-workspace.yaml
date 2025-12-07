@@ -1,8 +1,12 @@
 packages:
   - docs
   - sdk/typescript
+<<<<<<< HEAD
   - gui
   - packages/*
+=======
+  - shell-tool-mcp
+>>>>>>> upstream/main
 
 ignoredBuiltDependencies:
   - esbuild

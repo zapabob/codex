@@ -42,7 +42,11 @@
     "coverage": "jest --coverage",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
+<<<<<<< HEAD
     "prepare": "echo 'Skipping build (no src)'"
+=======
+    "prepare": "pnpm run build"
+>>>>>>> upstream/main
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.20.2",

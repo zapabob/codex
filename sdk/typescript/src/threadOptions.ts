@@ -13,4 +13,8 @@ export type ThreadOptions = {
   networkAccessEnabled?: boolean;
   webSearchEnabled?: boolean;
   approvalPolicy?: ApprovalMode;
+<<<<<<< HEAD
+=======
+  additionalDirectories?: string[];
+>>>>>>> upstream/main
 };

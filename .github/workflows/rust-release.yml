@@ -10,12 +10,15 @@ on:
   push:
     tags:
       - "rust-v*.*.*"
+<<<<<<< HEAD
   workflow_dispatch:
     inputs:
       version:
         description: "Version to release (e.g., 0.52.0)"
         required: true
         default: "0.52.0"
+=======
+>>>>>>> upstream/main
 
 concurrency:
   group: ${{ github.workflow }}
@@ -25,7 +28,11 @@ jobs:
   tag-check:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v5
+=======
+      - uses: actions/checkout@v6
+>>>>>>> upstream/main
 
       - name: Validate tag matches Cargo.toml version
         shell: bash
@@ -82,7 +89,11 @@ jobs:
             target: aarch64-pc-windows-msvc
 
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v5
+=======
+      - uses: actions/checkout@v6
+>>>>>>> upstream/main
       - uses: dtolnay/rust-toolchain@1.90
         with:
           targets: ${{ matrix.target }}
@@ -301,6 +312,18 @@ jobs:
           # ${{ matrix.target }}
           dest="dist/${{ matrix.target }}"
 
+<<<<<<< HEAD
+=======
+          # We want to ship the raw Windows executables in the GitHub Release
+          # in addition to the compressed archives. Keep the originals for
+          # Windows targets; remove them elsewhere to limit the number of
+          # artifacts that end up in the GitHub Release.
+          keep_originals=false
+          if [[ "${{ matrix.runner }}" == windows* ]]; then
+            keep_originals=true
+          fi
+
+>>>>>>> upstream/main
           # For compatibility with environments that lack the `zstd` tool we
           # additionally create a `.tar.gz` for all platforms and `.zip` for
           # Windows alongside every single binary that we publish. The end result is:
@@ -330,7 +353,15 @@ jobs:
 
             # Also create .zst (existing behaviour) *and* remove the original
             # uncompressed binary to keep the directory small.
+<<<<<<< HEAD
             zstd -T0 -19 --rm "$dest/$base"
+=======
+            zstd_args=(-T0 -19)
+            if [[ "${keep_originals}" == false ]]; then
+              zstd_args+=(--rm)
+            fi
+            zstd "${zstd_args[@]}" "$dest/$base"
+>>>>>>> upstream/main
           done
 
       - name: Remove signing keychain
@@ -364,8 +395,24 @@ jobs:
           path: |
             codex-rs/dist/${{ matrix.target }}/*
 
+<<<<<<< HEAD
   release:
     needs: build
+=======
+  shell-tool-mcp:
+    name: shell-tool-mcp
+    needs: tag-check
+    uses: ./.github/workflows/shell-tool-mcp.yml
+    with:
+      release-tag: ${{ github.ref_name }}
+      publish: true
+    secrets: inherit
+
+  release:
+    needs:
+      - build
+      - shell-tool-mcp
+>>>>>>> upstream/main
     name: release
     runs-on: ubuntu-latest
     permissions:
@@ -379,7 +426,11 @@ jobs:
 
     steps:
       - name: Checkout repository
+<<<<<<< HEAD
         uses: actions/checkout@v5
+=======
+        uses: actions/checkout@v6
+>>>>>>> upstream/main
 
       - uses: actions/download-artifact@v4
         with:
@@ -388,6 +439,17 @@ jobs:
       - name: List
         run: ls -R dist/
 
+<<<<<<< HEAD
+=======
+      # This is a temporary fix: we should modify shell-tool-mcp.yml so these
+      # files do not end up in dist/ in the first place.
+      - name: Delete entries from dist/ that should not go in the release
+        run: |
+          rm -rf dist/shell-tool-mcp*
+
+          ls -R dist/
+
+>>>>>>> upstream/main
       - name: Define release name
         id: release_name
         run: |
@@ -421,7 +483,11 @@ jobs:
           run_install: false
 
       - name: Setup Node.js for npm packaging
+<<<<<<< HEAD
         uses: actions/setup-node@v6
+=======
+        uses: actions/setup-node@v5
+>>>>>>> upstream/main
         with:
           node-version: 22
 
@@ -472,11 +538,19 @@ jobs:
 
     steps:
       - name: Setup Node.js
+<<<<<<< HEAD
         uses: actions/setup-node@v6
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
           scope: "@zapabob"
+=======
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          scope: "@openai"
+>>>>>>> upstream/main
 
       # Trusted publishing requires npm CLI version 11.5.1 or later.
       - name: Update npm

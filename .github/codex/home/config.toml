@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 model = "gpt-5"
+=======
+model = "gpt-5.1"
+>>>>>>> upstream/main
 
 # Consider setting [mcp_servers] here!

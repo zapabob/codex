@@ -19,18 +19,30 @@ const DEFAULT_COMPLETED_USAGE: ResponseCompletedUsage = {
   total_tokens: 47,
 };
 
+<<<<<<< HEAD
 type SseEvent = {
+=======
+export type SseEvent = {
+>>>>>>> upstream/main
   type: string;
   [key: string]: unknown;
 };
 
+<<<<<<< HEAD
 type SseResponseBody = {
+=======
+export type SseResponseBody = {
+>>>>>>> upstream/main
   kind: "sse";
   events: SseEvent[];
 };
 
 export type ResponsesProxyOptions = {
+<<<<<<< HEAD
   responseBodies: SseResponseBody[];
+=======
+  responseBodies: Generator<SseResponseBody> | SseResponseBody[];
+>>>>>>> upstream/main
   statusCode?: number;
 };
 
@@ -64,11 +76,25 @@ function formatSseEvent(event: SseEvent): string {
 export async function startResponsesTestProxy(
   options: ResponsesProxyOptions,
 ): Promise<ResponsesProxy> {
+<<<<<<< HEAD
   const responseBodies = options.responseBodies;
   if (responseBodies.length === 0) {
     throw new Error("responseBodies is required");
   }
 
+=======
+  function* createGenerator(array: SseResponseBody[]): Generator<SseResponseBody> {
+    for (const elem of array) {
+      yield elem;
+    }
+    throw new Error("not enough responses provided");
+  }
+
+  const responseBodies: Generator<SseResponseBody> = Array.isArray(options.responseBodies)
+    ? createGenerator(options.responseBodies)
+    : options.responseBodies;
+
+>>>>>>> upstream/main
   const requests: RecordedRequest[] = [];
 
   function readRequestBody(req: http.IncomingMessage): Promise<string> {
@@ -84,8 +110,11 @@ export async function startResponsesTestProxy(
     });
   }
 
+<<<<<<< HEAD
   let responseIndex = 0;
 
+=======
+>>>>>>> upstream/main
   const server = http.createServer((req, res) => {
     async function handle(): Promise<void> {
       if (req.method === "POST" && req.url === "/responses") {
@@ -97,8 +126,12 @@ export async function startResponsesTestProxy(
         res.statusCode = status;
         res.setHeader("content-type", "text/event-stream");
 
+<<<<<<< HEAD
         const responseBody = responseBodies[Math.min(responseIndex, responseBodies.length - 1)]!;
         responseIndex += 1;
+=======
+        const responseBody = responseBodies.next().value;
+>>>>>>> upstream/main
         for (const event of responseBody.events) {
           res.write(formatSseEvent(event));
         }
@@ -177,6 +210,25 @@ export function assistantMessage(text: string, itemId: string = DEFAULT_MESSAGE_
   };
 }
 
+<<<<<<< HEAD
+=======
+export function shell_call(): SseEvent {
+  const command = ["bash", "-lc", "echo 'Hello, world!'"];
+  return {
+    type: "response.output_item.done",
+    item: {
+      type: "function_call",
+      call_id: `call_id${Math.random().toString(36).slice(2)}`,
+      name: "shell",
+      arguments: JSON.stringify({
+        command,
+        timeout_ms: 100,
+      }),
+    },
+  };
+}
+
+>>>>>>> upstream/main
 export function responseFailed(errorMessage: string): SseEvent {
   return {
     type: "error",
