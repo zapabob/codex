@@ -1342,11 +1342,23 @@ impl ChatWidget {
             SlashCommand::Orchestrate => {
                 self.add_info_message("Orchestrate command is not yet implemented in TUI mode. Use CLI: `codex orchestrate <goal>`".to_string(), None);
             }
+            SlashCommand::CentralDev => {
+                self.add_info_message("Starting centralized development mode with main agent coordinating sub-agents...".to_string(), None);
+                // TODO: Implement centralized development mode
+            }
+            SlashCommand::ParallelDev => {
+                self.add_info_message("Starting parallel development mode using git worktrees...".to_string(), None);
+                // TODO: Implement parallel development mode
+            }
             SlashCommand::Research => {
                 self.add_info_message("Research command is not yet implemented in TUI mode. Use CLI: `codex research <topic>`".to_string(), None);
             }
             SlashCommand::Plan => {
                 self.add_info_message("Plan command is not yet implemented in TUI mode. Use CLI: `codex plan create <description>`".to_string(), None);
+            }
+            SlashCommand::Qc => {
+                self.add_info_message("Running Quality Control agent for code analysis...".to_string(), None);
+                // TODO: Implement QC agent integration
             }
             SlashCommand::Hook => {
                 self.add_info_message("Hook command is not yet implemented in TUI mode. Use CLI: `codex hook <event>`".to_string(), None);

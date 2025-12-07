@@ -44,6 +44,15 @@ pub enum TaskStatus {
     Blocked,
 }
 
+/// Development orchestration mode
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DevelopmentMode {
+    /// Central agent coordinates all sub-agents
+    Centralized,
+    /// Each agent works in separate git worktree
+    Parallel,
+}
+
 /// Agent capabilities and workload
 #[derive(Debug, Clone)]
 pub struct AgentCapability {
@@ -62,6 +71,8 @@ pub struct AIOrchestrator {
     command_tx: mpsc::UnboundedSender<OrchestrationCommand>,
     command_rx: Arc<Mutex<Option<mpsc::UnboundedReceiver<OrchestrationCommand>>>>,
     qc_optimizer: Arc<QCOptimizer>,
+    development_mode: DevelopmentMode,
+    worktree_manager: Option<Arc<crate::orchestration::worktree_manager::WorktreeManager>>,
 }
 
 /// Commands for the orchestrator
@@ -86,6 +97,10 @@ pub enum OrchestrationCommand {
     },
     OptimizeAssignment {
         response: oneshot::Sender<Result<Vec<(String, String)>>>,
+    },
+    SetDevelopmentMode {
+        mode: DevelopmentMode,
+        response: oneshot::Sender<Result<()>>,
     },
     Shutdown,
 }
@@ -241,6 +256,10 @@ impl QuantumOptimizer {
 
 impl AIOrchestrator {
     pub fn new() -> Self {
+        Self::with_mode(DevelopmentMode::Centralized)
+    }
+
+    pub fn with_mode(mode: DevelopmentMode) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
 
         let qc_optimizer = Arc::new(QCOptimizer {
@@ -251,6 +270,12 @@ impl AIOrchestrator {
             quality_metrics: HashMap::new(),
         });
 
+        let worktree_manager = if mode == DevelopmentMode::Parallel {
+            Some(Arc::new(crate::orchestration::worktree_manager::WorktreeManager::new(".").unwrap()))
+        } else {
+            None
+        };
+
         Self {
             tasks: Arc::new(Mutex::new(HashMap::new())),
             agents: Arc::new(Mutex::new(HashMap::new())),
@@ -258,7 +283,19 @@ impl AIOrchestrator {
             command_tx: tx,
             command_rx: Arc::new(Mutex::new(Some(rx))),
             qc_optimizer,
+            development_mode: mode,
+            worktree_manager,
         }
+    }
+
+    /// Set development mode
+    pub async fn set_development_mode(&self, mode: DevelopmentMode) -> Result<()> {
+        let (tx, rx) = oneshot::channel();
+
+        self.command_tx
+            .send(OrchestrationCommand::SetDevelopmentMode { mode, response: tx })?;
+
+        rx.await?
     }
 
     /// Submit a new task for orchestration
@@ -334,6 +371,15 @@ impl AIOrchestrator {
 
                     let assignments = self.qc_optimizer.optimize_assignments(&tasks, &agents);
                     let _ = response.send(Ok(assignments));
+                }
+                OrchestrationCommand::SetDevelopmentMode { mode, response } => {
+                    self.development_mode = mode;
+                    self.worktree_manager = if mode == DevelopmentMode::Parallel {
+                        Some(Arc::new(crate::orchestration::worktree_manager::WorktreeManager::new(".").unwrap()))
+                    } else {
+                        None
+                    };
+                    let _ = response.send(Ok(()));
                 }
                 OrchestrationCommand::Shutdown => break,
             }

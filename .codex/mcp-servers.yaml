@@ -1,0 +1,102 @@
+# MCP Servers Configuration for Codex
+# Enhanced MCP server configurations with Serena, ArXiv, GitHub integration
+
+servers:
+  # Serena - Advanced code intelligence and analysis
+  serena:
+    command: "npx"
+    args: ["@modelcontextprotocol/server-serena", "--port", "3001"]
+    env:
+      MCP_SERENA_MODEL: "gpt-4o"
+      MCP_SERENA_MAX_TOKENS: "100000"
+    capabilities:
+      - "code-analysis"
+      - "semantic-search"
+      - "refactoring-suggestions"
+      - "dependency-analysis"
+
+  # ArXiv - Academic paper search and analysis
+  arxiv:
+    command: "python"
+    args: ["-m", "arxiv_mcp_server"]
+    env:
+      ARXIV_MAX_RESULTS: "50"
+      ARXIV_SORT_BY: "relevance"
+    capabilities:
+      - "academic-search"
+      - "paper-analysis"
+      - "citation-extraction"
+      - "research-synthesis"
+
+  # GitHub - Repository and issue management
+  github:
+    command: "node"
+    args: ["dist/github-mcp-server.js"]
+    env:
+      GITHUB_TOKEN: "${GITHUB_TOKEN}"
+      GITHUB_API_BASE: "https://api.github.com"
+    capabilities:
+      - "repo-search"
+      - "issue-management"
+      - "pr-analysis"
+      - "code-review"
+      - "contributor-insights"
+
+  # Enhanced filesystem with git integration
+  git-enhanced:
+    command: "git-enhanced-mcp"
+    args: ["--enable-git-log", "--enable-blame"]
+    capabilities:
+      - "git-history"
+      - "code-blame"
+      - "commit-analysis"
+      - "branch-comparison"
+
+  # Documentation analyzer
+  docs-analyzer:
+    command: "docs-analyzer-mcp"
+    args: ["--support-formats", "md,pdf,html,docx"]
+    capabilities:
+      - "document-parsing"
+      - "content-extraction"
+      - "structure-analysis"
+      - "search-indexing"
+
+# Development mode specific servers
+development:
+  parallel-dev:
+    - serena
+    - github
+    - git-enhanced
+
+  centralized-dev:
+    - serena
+    - arxiv
+    - docs-analyzer
+
+# Agent-specific server assignments
+agent_servers:
+  architect:
+    - serena
+    - docs-analyzer
+    - git-enhanced
+
+  researcher:
+    - arxiv
+    - github
+    - docs-analyzer
+
+  code-reviewer:
+    - serena
+    - github
+    - git-enhanced
+
+  qc-optimizer:
+    - serena
+    - github
+    - docs-analyzer
+
+# Auto-start servers for different development modes
+auto_start:
+  centralized: ["serena", "arxiv"]
+  parallel: ["serena", "github", "git-enhanced"]

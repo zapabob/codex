@@ -17,8 +17,11 @@ pub enum SlashCommand {
     Review,
     Delegate,
     Orchestrate,
+    CentralDev,
+    ParallelDev,
     Research,
     Plan,
+    Qc,
     Hook,
     New,
     Init,
@@ -47,8 +50,13 @@ impl SlashCommand {
             SlashCommand::Review => "review my current changes and find issues",
             SlashCommand::Delegate => "delegate a task to a sub-agent using natural language",
             SlashCommand::Orchestrate => "kick off auto orchestration / supervisor flows",
+            SlashCommand::CentralDev => {
+                "centralized development with main agent coordinating sub-agents"
+            }
+            SlashCommand::ParallelDev => "parallel development using git worktrees for each agent",
             SlashCommand::Research => "conduct deep research (Gemini, MCP, web)",
             SlashCommand::Plan => "create execution plan with approval gates",
+            SlashCommand::Qc => "run quality control agent for code analysis and optimization",
             SlashCommand::Hook => "trigger webhook integrations (Slack, etc.)",
             SlashCommand::Undo => "ask Codex to undo a turn",
             SlashCommand::Quit | SlashCommand::Exit => "exit Codex",

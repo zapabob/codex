@@ -22,6 +22,10 @@ pub struct App {
     pub legacy_app: Option<LegacyApp>,
     /// Legacy App Event Receiver
     pub legacy_event_rx: Option<UnboundedReceiver<AppEvent>>,
+    /// AI Orchestrator
+    pub orchestrator: Option<crate::ai_orchestrator::AIOrchestrator>,
+    /// MCP Integration Manager
+    pub mcp_manager: Option<crate::mcp_integration_manager::McpIntegrationManager>,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +38,12 @@ pub enum AppState {
     PlanManager,
     /// Quality control
     QualityControl,
+    /// Development mode orchestration
+    DevelopmentMode {
+        mode: crate::ai_orchestrator::DevelopmentMode,
+        active_servers: Vec<String>,
+        agent_status: std::collections::HashMap<String, String>,
+    },
     /// Settings
     Settings,
 }
