@@ -976,7 +976,7 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
             }
         },
         Some(Subcommand::Plan(plan_cli)) => {
-            plan_commands::run_Plan_command(plan_cli).await?;
+            plan_commands::run_plan_command(plan_cli).await?;
         }
         Some(Subcommand::GitAnalyze(git_cli)) => {
             git_commands::run_git_analyze_command(git_cli).await?;

@@ -5,6 +5,7 @@ members = [
     "async-utils",
     "app-server",
     "app-server-protocol",
+    "app-server-test-client",
     "apply-patch",
     "arg0",
     "audit",
@@ -17,11 +18,14 @@ members = [
     "core",
     "deep-research",
     "exec",
+    "exec-server",
     "gemini-cli-mcp-server",
     "execpolicy",
+    "execpolicy-legacy",
     "keyring-store",
     "file-search",
     "linux-sandbox",
+    "lmstudio",
     "login",
     "mcp-server",                   # ENABLED: supervisor依存削除済み
     "mcp-types",
@@ -48,21 +52,25 @@ members = [
     "tauri-gui/src-tauri",          # Tauri GUI with VR/AR support
     "windows-ai",                   # Windows 11 AI API integration
     "cuda-runtime",                 # CUDA GPU acceleration
+    "codex-client",
+    "codex-api",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "2.2.0"
+version = "2.3.2"
 # Track the edition for all workspace crates in one place. Individual
 # crates can still override this value, but keeping it here means new
 # crates created with `cargo new -w ...` automatically inherit the 2024
 # edition.
 edition = "2024"
+license = "Apache-2.0"
 
 [workspace.dependencies]
 # Internal
 app_test_support = { path = "app-server/tests/common" }
 codex-ansi-escape = { path = "ansi-escape" }
+codex-api = { path = "codex-api" }
 codex-app-server = { path = "app-server" }
 codex-app-server-protocol = { path = "app-server-protocol" }
 codex-apply-patch = { path = "apply-patch" }
@@ -74,11 +82,14 @@ codex-common = { path = "common" }
 codex-core = { path = "core" }
 codex-deep-research = { path = "deep-research" }
 codex-exec = { path = "exec" }
+codex-execpolicy = { path = "execpolicy" }
+codex-client = { path = "codex-client" }
 codex-feedback = { path = "feedback" }
 codex-file-search = { path = "file-search" }
 codex-git = { path = "utils/git" }
 codex-keyring-store = { path = "keyring-store" }
 codex-linux-sandbox = { path = "linux-sandbox" }
+codex-lmstudio = { path = "lmstudio" }
 codex-login = { path = "login" }
 codex-mcp-server = { path = "mcp-server" }
 codex-ollama = { path = "ollama" }
@@ -107,16 +118,17 @@ mcp_test_support = { path = "mcp-server/tests/common" }
 allocative = "0.3.3"
 ansi-to-tui = "7.0.0"
 anyhow = "1"
-arboard = "3"
-askama = "0.12"
+arboard = { version = "3", features = ["wayland-data-control"] }
+askama = "0.14"
 assert_cmd = "2"
 assert_matches = "1.5.0"
 async-channel = "2.3.1"
 async-stream = "0.3.6"
 async-trait = "0.1.89"
-axum = "0.8"
+axum = { version = "0.8", default-features = false }
 base64 = "0.22.1"
 bytes = "1.10.1"
+chardetng = "0.1.17"
 chrono = "0.4.42"
 clap = "4"
 clap_complete = "4"
@@ -129,6 +141,7 @@ diffy = "0.4.2"
 dirs = "6"
 dotenvy = "0.15.7"
 dunce = "1.0.4"
+encoding_rs = "0.8.35"
 env-flags = "0.1.1"
 env_logger = "0.11.5"
 escargot = "0.5"
@@ -140,14 +153,14 @@ icu_decimal = "2.1"
 icu_locale_core = "2.1"
 icu_provider = { version = "2.1", features = ["sync"] }
 ignore = "0.4.23"
-image = { version = "^0.25.8", default-features = false }
+image = { version = "^0.25.9", default-features = false }
 indexmap = "2.12.0"
 insta = "1.43.2"
 itertools = "0.14.0"
-keyring = "3.0"
+keyring = { version = "3.6", default-features = false }
 landlock = "0.4.1"
 lazy_static = "1"
-libc = "0.2.175"
+libc = "0.2.177"
 log = "0.4"
 lru = "0.12.5"
 maplit = "1.0.2"
@@ -155,7 +168,7 @@ mime_guess = "2.0.5"
 multimap = "0.10.0"
 notify = "8.2.0"
 nucleo-matcher = "0.3.1"
-once_cell = "1.20"
+once_cell = "1.20.2"
 openssl-sys = "*"
 opentelemetry = "0.30.0"
 opentelemetry-appender-tracing = "0.30.0"
@@ -175,7 +188,7 @@ rand = "0.9"
 ratatui = "0.29.0"
 ratatui-macros = "0.6.0"
 # ratatui-macros = "0.7.0-alpha.4"  # DISABLED: バージョン競合のため
-regex = "1.11"
+regex = "1.12.2"
 regex-lite = "0.1.7"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
@@ -184,15 +197,15 @@ reqwest = { version = "0.12", default-features = false, features = [
     "charset",
     "macos-system-configuration",
 ] }
-rmcp = { version = "0.8.5", default-features = false }
+rmcp = { version = "0.10.0", default-features = false }
 schemars = "0.8.22"
 seccompiler = "0.5.0"
 sentry = "0.34.0"
 serde = "1"
 serde_json = "1"
-serde_with = "3.14"
+serde_with = "3.16"
 serde_yaml = "0.9"
-serial_test = "3"
+serial_test = "3.2.0"
 sha1 = "0.10.6"
 sha2 = "0.10"
 shlex = "1.3.0"
@@ -217,6 +230,7 @@ hex = "0.4"
 hkdf = "0.12"
 hmac = "0.12"
 similar = "2.7.0"
+socket2 = "0.6.0"
 starlark = "0.13.0"
 strum = "0.27.2"
 strum_macros = "0.27.2"
@@ -233,21 +247,21 @@ tokio-stream = "0.1.17"
 tokio-test = "0.4"
 tokio-util = "0.7.16"
 toml = "0.9.5"
-toml_edit = "0.23.4"
+toml_edit = "0.23.5"
 tonic = "0.13.1"
-tracing = "0.1.41"
+tracing = "0.1.43"
 tracing-appender = "0.2.3"
 tracing-subscriber = "0.3.20"
 tracing-test = "0.2.5"
-tree-sitter = "0.25.9"
-tree-sitter-bash = "0.25.0"
-tree-sitter-highlight = "0.25.0"
+tree-sitter = "0.25.10"
+tree-sitter-bash = "0.25"
+tree-sitter-highlight = "0.25.10"
 tree-sitter-json = "0.25.0"
 tree-sitter-python = "0.25.0"
 ts-rs = "11"
 uds_windows = "1.1.0"
 unicode-segmentation = "1.12.0"
-unicode-width = "0.2.1"
+unicode-width = "0.2"
 url = "2"
 urlencoding = "2.1"
 uuid = "1"
@@ -258,7 +272,7 @@ which = "6"
 wildmatch = "2.5.0"
 
 wiremock = "0.6"
-zeroize = "1.8.1"
+zeroize = "1.8.2"
 
 # 🚀 Build Performance Profiles (2025-10-15)
 # 開発用: LTO無効化で3〜7分に短縮
@@ -272,7 +286,6 @@ opt-level = 0
 [profile.dev-debug]
 debug = true
 inherits = "dev"
-
 # 高速テスト用（最適化なし）
 [profile.test]
 lto = false
@@ -343,6 +356,7 @@ opt-level = 0
 [patch.crates-io]
 # ratatui = { path = "../../ratatui" }
 crossterm = { git = "https://github.com/nornagon/crossterm", branch = "nornagon/color-query" }
+portable-pty = { git = "https://github.com/pakrym/wezterm", branch = "PSUEDOCONSOLE_INHERIT_CURSOR" }
 ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }
 
 # Uncomment to debug local changes.

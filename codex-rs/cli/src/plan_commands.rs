@@ -2,9 +2,13 @@
 //!
 //! Provides command-line interface for creating, managing, and executing plan.
 
-use anyhow::{Context, Result};
-use clap::{Parser, Subcommand};
-use codex_core::plan::{ExecutionMode, PlanBlock, PlanState};
+use anyhow::Context;
+use anyhow::Result;
+use clap::Parser;
+use clap::Subcommand;
+use codex_core::plan::ExecutionMode;
+use codex_core::plan::PlanBlock;
+use codex_core::plan::PlanState;
 use std::path::PathBuf;
 
 /// Plan Mode commands
@@ -135,32 +139,29 @@ pub async fn run_plan_command(cli: PlanCli) -> Result<()> {
         PlanCommand::List { state } => {
             list_plans(state, &plan_dir)?;
         }
-        PlanCommand::Approve { Plan_id: plan_id } => {
+        PlanCommand::Approve { plan_id } => {
             approve_plan(&plan_id, &plan_dir)?;
         }
-        PlanCommand::Reject {
-            Plan_id: plan_id,
-            reason,
-        } => {
+        PlanCommand::Reject { plan_id, reason } => {
             reject_plan(&plan_id, &reason, &plan_dir)?;
         }
         PlanCommand::Export {
-            Plan_id: plan_id,
+            plan_id,
             format,
             path,
         } => {
             export_plan(&plan_id, &format, &path, &plan_dir)?;
         }
-        PlanCommand::Status { Plan_id: plan_id } => {
+        PlanCommand::Status { plan_id } => {
             get_plan_status(&plan_id, &plan_dir)?;
         }
-        PlanCommand::Execute { Plan_id: plan_id } => {
+        PlanCommand::Execute { plan_id } => {
             execute_plan(&plan_id, &plan_dir).await?;
         }
         PlanCommand::Rollback { execution_id } => {
             rollback_execution(&execution_id, &plan_dir).await?;
         }
-        PlanCommand::Executions { Plan_id: plan_id } => {
+        PlanCommand::Executions { plan_id } => {
             list_executions(plan_id, &plan_dir).await?;
         }
     }

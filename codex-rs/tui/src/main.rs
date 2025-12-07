@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
         .config_overrides
         .raw_overrides
         .splice(0..0, top_cli.config_overrides.raw_overrides);
-    
+
     let exit_info = run_main(inner, None).await?;
     let token_usage = exit_info.token_usage;
     if !token_usage.is_zero() {

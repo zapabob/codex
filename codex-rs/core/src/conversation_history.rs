@@ -216,6 +216,7 @@ impl ConversationHistory {
                 | ResponseItem::FunctionCallOutput { .. }
                 | ResponseItem::CustomToolCallOutput { .. }
                 | ResponseItem::GhostSnapshot { .. }
+                | ResponseItem::CompactionSummary { .. }
                 | ResponseItem::Other
                 | ResponseItem::Message { .. } => {
                     // nothing to do for these variants
@@ -283,6 +284,7 @@ impl ConversationHistory {
                 | ResponseItem::Reasoning { .. }
                 | ResponseItem::WebSearchCall { .. }
                 | ResponseItem::GhostSnapshot { .. }
+                | ResponseItem::CompactionSummary { .. }
                 | ResponseItem::Other
                 | ResponseItem::Message { .. } => {
                     // nothing to do for these variants
@@ -400,6 +402,7 @@ impl ConversationHistory {
             | ResponseItem::WebSearchCall { .. }
             | ResponseItem::CustomToolCall { .. }
             | ResponseItem::GhostSnapshot { .. }
+            | ResponseItem::CompactionSummary { .. }
             | ResponseItem::Other => item.clone(),
         }
     }
@@ -540,6 +543,7 @@ fn is_api_message(message: &ResponseItem) -> bool {
         | ResponseItem::Reasoning { .. }
         | ResponseItem::WebSearchCall { .. } => true,
         ResponseItem::GhostSnapshot { .. } => false,
+        ResponseItem::CompactionSummary { .. } => false,
         ResponseItem::Other => false,
     }
 }

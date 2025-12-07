@@ -3,10 +3,17 @@
 //! High-level API for creating, updating, approving, and exporting plan.
 
 use super::persist::PlanPersister;
-use super::policy::{ApprovalRole, PolicyEnforcer, PrivilegedOperation};
-use super::schema::{PlanBlock, ResearchBlock, Risk, WorkItem};
-use super::state::{PlanState, StateTransitionError};
-use anyhow::{Context, Result};
+use super::policy::ApprovalRole;
+use super::policy::PolicyEnforcer;
+use super::policy::PrivilegedOperation;
+use super::schema::PlanBlock;
+use super::schema::ResearchBlock;
+use super::schema::Risk;
+use super::schema::WorkItem;
+use super::state::PlanState;
+use super::state::StateTransitionError;
+use anyhow::Context;
+use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;

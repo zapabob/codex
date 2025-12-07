@@ -3,7 +3,8 @@
 //! Handles writing Plans to both Markdown (human-readable) and JSON (machine-readable) formats.
 
 use super::schema::PlanBlock;
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use std::fs;
 use std::path::PathBuf;
 

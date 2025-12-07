@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Changelog
 
 All notable changes to Codex will be documented in this file.
@@ -241,3 +242,6 @@ codex git-analyze visualize-3d --export-json commits-3d.json
 ## [0.47.0-alpha.1] - Previous Release
 
 See previous changelogs for history before v0.50.0.
+=======
+The changelog can be found on the [releases page](https://github.com/openai/codex/releases).
+>>>>>>> upstream/main

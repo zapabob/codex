@@ -33,7 +33,10 @@ Optional and experimental capabilities are toggled via the `[features]` table in
 
 ```toml
 [features]
+<<<<<<< HEAD
 streamable_shell = true          # enable the streamable exec tool
+=======
+>>>>>>> upstream/main
 web_search_request = true        # allow the model to request web searches
 # view_image_tool defaults to true; omit to keep defaults
 ```
@@ -43,7 +46,10 @@ Supported features:
 | Key                                       | Default | Stage        | Description                                          |
 | ----------------------------------------- | :-----: | ------------ | ---------------------------------------------------- |
 | `unified_exec`                            |  false  | Experimental | Use the unified PTY-backed exec tool                 |
+<<<<<<< HEAD
 | `streamable_shell`                        |  false  | Experimental | Use the streamable exec-command/write-stdin pair     |
+=======
+>>>>>>> upstream/main
 | `rmcp_client`                             |  false  | Experimental | Enable oauth support for streamable HTTP MCP servers |
 | `apply_patch_freeform`                    |  false  | Beta         | Include the freeform `apply_patch` tool              |
 | `view_image_tool`                         |  true   | Stable       | Include the `view_image` tool                        |
@@ -64,7 +70,11 @@ Notes:
 The model that Codex should use.
 
 ```toml
+<<<<<<< HEAD
 model = "gpt-5"  # overrides the default ("gpt-5-codex" on macOS/Linux, "gpt-5" on Windows)
+=======
+model = "gpt-5.1"  # overrides the default ("gpt-5.1-codex-max" across platforms)
+>>>>>>> upstream/main
 ```
 
 ### model_providers
@@ -191,12 +201,20 @@ model = "mistral"
 
 ### model_reasoning_effort
 
+<<<<<<< HEAD
 If the selected model is known to support reasoning (for example: `o3`, `o4-mini`, `codex-*`, `gpt-5`, `gpt-5-codex`), reasoning is enabled by default when using the Responses API. As explained in the [OpenAI Platform documentation](https://platform.openai.com/docs/guides/reasoning?api-mode=responses#get-started-with-reasoning), this can be set to:
+=======
+If the selected model is known to support reasoning (for example: `o3`, `o4-mini`, `codex-*`, `gpt-5.1-codex-max`, `gpt-5.1`, `gpt-5.1-codex`), reasoning is enabled by default when using the Responses API. As explained in the [OpenAI Platform documentation](https://platform.openai.com/docs/guides/reasoning?api-mode=responses#get-started-with-reasoning), this can be set to:
+>>>>>>> upstream/main
 
 - `"minimal"`
 - `"low"`
 - `"medium"` (default)
 - `"high"`
+<<<<<<< HEAD
+=======
+- `"xhigh"` (available only on `gpt-5.1-codex-max`)
+>>>>>>> upstream/main
 
 Note: to minimize reasoning, choose `"minimal"`.
 
@@ -227,7 +245,11 @@ When set, Codex includes a `text` object in the request payload with the configu
 Example:
 
 ```toml
+<<<<<<< HEAD
 model = "gpt-5"
+=======
+model = "gpt-5.1"
+>>>>>>> upstream/main
 model_verbosity = "low"
 ```
 
@@ -247,11 +269,27 @@ The size of the context window for the model, in tokens.
 
 In general, Codex knows the context window for the most common OpenAI models, but if you are using a new model with an old version of the Codex CLI, then you can use `model_context_window` to tell Codex what value to use to determine how much context is left during a conversation.
 
+<<<<<<< HEAD
 ### model_max_output_tokens
 
 This is analogous to `model_context_window`, but for the maximum number of output tokens for the model.
 
 > See also [`codex exec`](./exec.md) to see how these model settings influence non-interactive runs.
+=======
+### oss_provider
+
+Specifies the default OSS provider to use when running Codex. This is used when the `--oss` flag is provided without a specific provider.
+
+Valid values are:
+
+- `"lmstudio"` - Use LM Studio as the local model provider
+- `"ollama"` - Use Ollama as the local model provider
+
+```toml
+# Example: Set default OSS provider to LM Studio
+oss_provider = "lmstudio"
+```
+>>>>>>> upstream/main
 
 ## Execution environment
 
@@ -347,11 +385,21 @@ Use the optional `[tools]` table to toggle built-in tools that the agent may cal
 
 ```toml
 [tools]
+<<<<<<< HEAD
 web_search = true   # allow Codex to issue first-party web searches without prompting you
 view_image = false  # disable image uploads (they're enabled by default)
 ```
 
 `web_search` is also recognized under the legacy name `web_search_request`. The `view_image` toggle is useful when you want to include screenshots or diagrams from your repo without pasting them manually. Codex still respects sandboxing: it can only attach files inside the workspace roots you allow.
+=======
+web_search = true   # allow Codex to issue first-party web searches without prompting you (deprecated)
+view_image = false  # disable image uploads (they're enabled by default)
+```
+
+`web_search` is deprecated; use the `web_search_request` feature flag instead.
+
+The `view_image` toggle is useful when you want to include screenshots or diagrams from your repo without pasting them manually. Codex still respects sandboxing: it can only attach files inside the workspace roots you allow.
+>>>>>>> upstream/main
 
 ### approval_presets
 
@@ -426,7 +474,11 @@ You can configure Codex to use [MCP servers](https://modelcontextprotocol.io/abo
 command = "npx"
 # Optional
 args = ["-y", "mcp-server"]
+<<<<<<< HEAD
 # Optional: propagate additional env vars to the MVP server.
+=======
+# Optional: propagate additional env vars to the MCP server.
+>>>>>>> upstream/main
 # A default whitelist of env vars will be propagated to the MCP server.
 # https://github.com/openai/codex/blob/main/codex-rs/rmcp-client/src/utils.rs#L82
 env = { "API_KEY" = "value" }
@@ -455,10 +507,18 @@ http_headers = { "HEADER_NAME" = "HEADER_VALUE" }
 env_http_headers = { "HEADER_NAME" = "ENV_VAR" }
 ```
 
+<<<<<<< HEAD
 Streamable HTTP connections always use the experimental Rust MCP client under the hood, so expect occasional rough edges. OAuth login flows are gated on the `experimental_use_rmcp_client = true` flag:
 
 ```toml
 experimental_use_rmcp_client = true
+=======
+Streamable HTTP connections always use the experimental Rust MCP client under the hood, so expect occasional rough edges. OAuth login flows are gated on the `rmcp_client = true` flag:
+
+```toml
+[features]
+rmcp_client = true
+>>>>>>> upstream/main
 ```
 
 After enabling it, run `codex mcp login <server-name>` when the server supports OAuth.
@@ -480,6 +540,7 @@ disabled_tools = ["search"]
 
 When both `enabled_tools` and `disabled_tools` are specified, Codex first restricts the server to the allow-list and then removes any tools that appear in the deny-list.
 
+<<<<<<< HEAD
 #### Experimental RMCP client
 
 This flag enables OAuth support for streamable HTTP servers.
@@ -491,6 +552,8 @@ experimental_use_rmcp_client = true
 …
 ```
 
+=======
+>>>>>>> upstream/main
 #### MCP CLI commands
 
 ```shell
@@ -594,7 +657,11 @@ metadata above):
 - `codex.tool_decision`
   - `tool_name`
   - `call_id`
+<<<<<<< HEAD
   - `decision` (`approved`, `approved_for_session`, `denied`, or `abort`)
+=======
+  - `decision` (`approved`, `approved_execpolicy_amendment`, `approved_for_session`, `denied`, or `abort`)
+>>>>>>> upstream/main
   - `source` (`config` or `user`)
 - `codex.tool_result`
   - `tool_name`
@@ -635,6 +702,26 @@ Set `otel.exporter` to control where events go:
   }}
   ```
 
+<<<<<<< HEAD
+=======
+Both OTLP exporters accept an optional `tls` block so you can trust a custom CA
+or enable mutual TLS. Relative paths are resolved against `~/.codex/`:
+
+```toml
+[otel]
+exporter = { otlp-http = {
+  endpoint = "https://otel.example.com/v1/logs",
+  protocol = "binary",
+  headers = { "x-otlp-api-key" = "${OTLP_TOKEN}" },
+  tls = {
+    ca-certificate = "certs/otel-ca.pem",
+    client-certificate = "/etc/codex/certs/client.pem",
+    client-private-key = "/etc/codex/certs/client-key.pem",
+  }
+}}
+```
+
+>>>>>>> upstream/main
 If the exporter is `none` nothing is written anywhere; otherwise you must run or point to your
 own collector. All exporters run on a background batch worker that is flushed on
 shutdown.
@@ -802,7 +889,11 @@ Users can specify config values at multiple levels. Order of precedence is as fo
 1. custom command-line argument, e.g., `--model o3`
 2. as part of a profile, where the `--profile` is specified via a CLI (or in the config file itself)
 3. as an entry in `config.toml`, e.g., `model = "o3"`
+<<<<<<< HEAD
 4. the default value that comes with Codex CLI (i.e., Codex CLI defaults to `gpt-5-codex`)
+=======
+4. the default value that comes with Codex CLI (i.e., Codex CLI defaults to `gpt-5.1-codex-max`)
+>>>>>>> upstream/main
 
 ### history
 
@@ -815,6 +906,14 @@ To disable this behavior, configure `[history]` as follows:
 persistence = "none"  # "save-all" is the default value
 ```
 
+<<<<<<< HEAD
+=======
+To cap the size of `history.jsonl`, set `history.max_bytes` to a positive byte
+count. When the file grows beyond the limit, Codex removes the oldest entries,
+compacting the file down to roughly 80% of the hard cap while keeping the newest
+record intact. Omitting the option—or setting it to `0`—disables pruning.
+
+>>>>>>> upstream/main
 ### file_opener
 
 Identifies the editor/URI scheme to use for hyperlinking citations in model output. If set, citations to files in the model output will be hyperlinked using the specified URI scheme so they can be ctrl/cmd-clicked from the terminal to open them.
@@ -854,12 +953,23 @@ Options that are specific to the TUI.
 ```toml
 [tui]
 # Send desktop notifications when approvals are required or a turn completes.
+<<<<<<< HEAD
 # Defaults to false.
+=======
+# Defaults to true.
+>>>>>>> upstream/main
 notifications = true
 
 # You can optionally filter to specific notification types.
 # Available types are "agent-turn-complete" and "approval-requested".
 notifications = [ "agent-turn-complete", "approval-requested" ]
+<<<<<<< HEAD
+=======
+
+# Disable terminal animations (welcome screen, status shimmer, spinner).
+# Defaults to true.
+animations = false
+>>>>>>> upstream/main
 ```
 
 > [!NOTE]
@@ -903,6 +1013,7 @@ Valid values:
 
 ## Config reference
 
+<<<<<<< HEAD
 | Key                                              | Type / Values                                                     | Notes                                                                                                                      |
 | ------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `model`                                          | string                                                            | Model to use (e.g., `gpt-5-codex`).                                                                                        |
@@ -961,3 +1072,66 @@ Valid values:
 | `forced_login_method`                            | `chatgpt` \| `api`                                                | Only allow Codex to be used with ChatGPT or API keys.                                                                      |
 | `forced_chatgpt_workspace_id`                    | string (uuid)                                                     | Only allow Codex to be used with the specified ChatGPT workspace.                                                          |
 | `cli_auth_credentials_store`                     | `file` \| `keyring` \| `auto`                                     | Where to store CLI login credentials (default: `file`).                                                                    |
+=======
+| Key                                              | Type / Values                                                     | Notes                                                                                                                           |
+| ------------------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                                          | string                                                            | Model to use (e.g., `gpt-5.1-codex-max`).                                                                                       |
+| `model_provider`                                 | string                                                            | Provider id from `model_providers` (default: `openai`).                                                                         |
+| `model_context_window`                           | number                                                            | Context window tokens.                                                                                                          |
+| `tool_output_token_limit`                        | number                                                            | Token budget for stored function/tool outputs in history (default: 2,560 tokens).                                               |
+| `approval_policy`                                | `untrusted` \| `on-failure` \| `on-request` \| `never`            | When to prompt for approval.                                                                                                    |
+| `sandbox_mode`                                   | `read-only` \| `workspace-write` \| `danger-full-access`          | OS sandbox policy.                                                                                                              |
+| `sandbox_workspace_write.writable_roots`         | array<string>                                                     | Extra writable roots in workspace‑write.                                                                                        |
+| `sandbox_workspace_write.network_access`         | boolean                                                           | Allow network in workspace‑write (default: false).                                                                              |
+| `sandbox_workspace_write.exclude_tmpdir_env_var` | boolean                                                           | Exclude `$TMPDIR` from writable roots (default: false).                                                                         |
+| `sandbox_workspace_write.exclude_slash_tmp`      | boolean                                                           | Exclude `/tmp` from writable roots (default: false).                                                                            |
+| `notify`                                         | array<string>                                                     | External program for notifications.                                                                                             |
+| `tui.animations`                                 | boolean                                                           | Enable terminal animations (welcome screen, shimmer, spinner). Defaults to true; set to `false` to disable visual motion.       |
+| `instructions`                                   | string                                                            | Currently ignored; use `experimental_instructions_file` or `AGENTS.md`.                                                         |
+| `features.<feature-flag>`                        | boolean                                                           | See [feature flags](#feature-flags) for details                                                                                 |
+| `mcp_servers.<id>.command`                       | string                                                            | MCP server launcher command (stdio servers only).                                                                               |
+| `mcp_servers.<id>.args`                          | array<string>                                                     | MCP server args (stdio servers only).                                                                                           |
+| `mcp_servers.<id>.env`                           | map<string,string>                                                | MCP server env vars (stdio servers only).                                                                                       |
+| `mcp_servers.<id>.url`                           | string                                                            | MCP server url (streamable http servers only).                                                                                  |
+| `mcp_servers.<id>.bearer_token_env_var`          | string                                                            | environment variable containing a bearer token to use for auth (streamable http servers only).                                  |
+| `mcp_servers.<id>.enabled`                       | boolean                                                           | When false, Codex skips starting the server (default: true).                                                                    |
+| `mcp_servers.<id>.startup_timeout_sec`           | number                                                            | Startup timeout in seconds (default: 10). Timeout is applied both for initializing MCP server and initially listing tools.      |
+| `mcp_servers.<id>.tool_timeout_sec`              | number                                                            | Per-tool timeout in seconds (default: 60). Accepts fractional values; omit to use the default.                                  |
+| `mcp_servers.<id>.enabled_tools`                 | array<string>                                                     | Restrict the server to the listed tool names.                                                                                   |
+| `mcp_servers.<id>.disabled_tools`                | array<string>                                                     | Remove the listed tool names after applying `enabled_tools`, if any.                                                            |
+| `model_providers.<id>.name`                      | string                                                            | Display name.                                                                                                                   |
+| `model_providers.<id>.base_url`                  | string                                                            | API base URL.                                                                                                                   |
+| `model_providers.<id>.env_key`                   | string                                                            | Env var for API key.                                                                                                            |
+| `model_providers.<id>.wire_api`                  | `chat` \| `responses`                                             | Protocol used (default: `chat`).                                                                                                |
+| `model_providers.<id>.query_params`              | map<string,string>                                                | Extra query params (e.g., Azure `api-version`).                                                                                 |
+| `model_providers.<id>.http_headers`              | map<string,string>                                                | Additional static headers.                                                                                                      |
+| `model_providers.<id>.env_http_headers`          | map<string,string>                                                | Headers sourced from env vars.                                                                                                  |
+| `model_providers.<id>.request_max_retries`       | number                                                            | Per‑provider HTTP retry count (default: 4).                                                                                     |
+| `model_providers.<id>.stream_max_retries`        | number                                                            | SSE stream retry count (default: 5).                                                                                            |
+| `model_providers.<id>.stream_idle_timeout_ms`    | number                                                            | SSE idle timeout (ms) (default: 300000).                                                                                        |
+| `project_doc_max_bytes`                          | number                                                            | Max bytes to read from `AGENTS.md`.                                                                                             |
+| `profile`                                        | string                                                            | Active profile name.                                                                                                            |
+| `profiles.<name>.*`                              | various                                                           | Profile‑scoped overrides of the same keys.                                                                                      |
+| `history.persistence`                            | `save-all` \| `none`                                              | History file persistence (default: `save-all`).                                                                                 |
+| `history.max_bytes`                              | number                                                            | Maximum size of `history.jsonl` in bytes; when exceeded, history is compacted to ~80% of this limit by dropping oldest entries. |
+| `file_opener`                                    | `vscode` \| `vscode-insiders` \| `windsurf` \| `cursor` \| `none` | URI scheme for clickable citations (default: `vscode`).                                                                         |
+| `tui`                                            | table                                                             | TUI‑specific options.                                                                                                           |
+| `tui.notifications`                              | boolean \| array<string>                                          | Enable desktop notifications in the tui (default: true).                                                                        |
+| `hide_agent_reasoning`                           | boolean                                                           | Hide model reasoning events.                                                                                                    |
+| `check_for_update_on_startup`                    | boolean                                                           | Check for Codex updates on startup (default: true). Set to `false` only if updates are centrally managed.                       |
+| `show_raw_agent_reasoning`                       | boolean                                                           | Show raw reasoning (when available).                                                                                            |
+| `model_reasoning_effort`                         | `minimal` \| `low` \| `medium` \| `high`                          | Responses API reasoning effort.                                                                                                 |
+| `model_reasoning_summary`                        | `auto` \| `concise` \| `detailed` \| `none`                       | Reasoning summaries.                                                                                                            |
+| `model_verbosity`                                | `low` \| `medium` \| `high`                                       | GPT‑5 text verbosity (Responses API).                                                                                           |
+| `model_supports_reasoning_summaries`             | boolean                                                           | Force‑enable reasoning summaries.                                                                                               |
+| `model_reasoning_summary_format`                 | `none` \| `experimental`                                          | Force reasoning summary format.                                                                                                 |
+| `chatgpt_base_url`                               | string                                                            | Base URL for ChatGPT auth flow.                                                                                                 |
+| `experimental_instructions_file`                 | string (path)                                                     | Replace built‑in instructions (experimental).                                                                                   |
+| `experimental_use_exec_command_tool`             | boolean                                                           | Use experimental exec command tool.                                                                                             |
+| `projects.<path>.trust_level`                    | string                                                            | Mark project/worktree as trusted (only `"trusted"` is recognized).                                                              |
+| `tools.web_search`                               | boolean                                                           | Enable web search tool (deprecated) (default: false).                                                                           |
+| `tools.view_image`                               | boolean                                                           | Enable or disable the `view_image` tool so Codex can attach local image files from the workspace (default: true).               |
+| `forced_login_method`                            | `chatgpt` \| `api`                                                | Only allow Codex to be used with ChatGPT or API keys.                                                                           |
+| `forced_chatgpt_workspace_id`                    | string (uuid)                                                     | Only allow Codex to be used with the specified ChatGPT workspace.                                                               |
+| `cli_auth_credentials_store`                     | `file` \| `keyring` \| `auto`                                     | Where to store CLI login credentials (default: `file`).                                                                         |
+>>>>>>> upstream/main

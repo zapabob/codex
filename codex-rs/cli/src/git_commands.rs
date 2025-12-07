@@ -493,7 +493,7 @@ fn analyze_visualize_3d(
     #[cfg(feature = "cuda")]
     let commits: Vec<Commit3D> = if use_cuda {
         let oids: Vec<Oid> = revwalk.take(limit).collect::<Result<Vec<_>, _>>()?;
-            // git_cuda is conditionally compiled, use crate:: prefix within #[cfg] block
+        // git_cuda is conditionally compiled, use crate:: prefix within #[cfg] block
         crate::git_cuda::analyze_commits_cuda(&repo, oids, limit)?
     } else {
         // Convert CommitData3D to Commit3D
@@ -510,7 +510,7 @@ fn analyze_visualize_3d(
                         .unwrap_or_default()
                         .to_rfc3339(),
                     branch: "main".to_string(), // CPU version doesn't track branch
-                    parents: Vec::new(), // CPU version doesn't track parents
+                    parents: Vec::new(),        // CPU version doesn't track parents
                     x: c.x,
                     y: c.y,
                     z: c.z,
