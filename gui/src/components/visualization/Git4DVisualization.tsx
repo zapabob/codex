@@ -219,7 +219,37 @@ export const Git4DVisualization: React.FC = () => {
                 color="secondary"
               />
             }
-            label="VR Mode"
+            label="VR Mode (Quest 2/3)"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={arMode}
+                onChange={(e) => setArMode(e.target.checked)}
+                color="info"
+              />
+            }
+            label="AR Mode"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={windowsAiMode}
+                onChange={(e) => setWindowsAiMode(e.target.checked)}
+                color="success"
+              />
+            }
+            label="Windows AI (25H2)"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={handTrackingEnabled}
+                onChange={(e) => setHandTrackingEnabled(e.target.checked)}
+                color="warning"
+              />
+            }
+            label="Hand Tracking"
           />
         </Box>
 
