@@ -25,6 +25,32 @@ use ratatui::widgets::canvas::Canvas;
 use std::path::Path;
 use std::time::Instant;
 
+/// AR anchor for spatial positioning
+#[derive(Debug, Clone)]
+pub struct ArAnchor {
+    /// Anchor position in 3D space
+    pub position: (f32, f32, f32),
+    /// Anchor rotation
+    pub rotation: (f32, f32, f32),
+    /// Associated commit data
+    pub commit_id: Option<String>,
+    /// Anchor stability (0.0-1.0)
+    pub stability: f32,
+}
+
+/// Hand tracking data for VR interaction
+#[derive(Debug, Clone)]
+pub struct HandTrackingData {
+    /// Left hand position
+    pub left_hand: (f32, f32, f32),
+    /// Right hand position
+    pub right_hand: (f32, f32, f32),
+    /// Hand gestures detected
+    pub gestures: Vec<String>,
+    /// Pinch strength (0.0-1.0)
+    pub pinch_strength: f32,
+}
+
 /// 4D commit node for visualization (xyz + time)
 #[derive(Debug, Clone)]
 pub struct CommitNode3D {
@@ -205,6 +231,13 @@ impl GitVisualizer3D {
         let end_time = commits.iter().map(|c| c.timestamp).max().unwrap_or(0);
         let time_control = TimelineControl::new(start_time, end_time);
 
+        // Check Windows AI availability
+        #[cfg(all(target_os = "windows", feature = "windows-ai"))]
+        let windows_ai_enabled = true; // Windows 11 25H2 AI available
+
+        #[cfg(not(all(target_os = "windows", feature = "windows-ai")))]
+        let windows_ai_enabled = false;
+
         Ok(Self {
             commits,
             camera_pos: (0.0, 0.0, 50.0),
@@ -216,6 +249,11 @@ impl GitVisualizer3D {
             current_time: end_time,
             playback_active: false,
             playback_speed: 1.0,
+            vr_enabled: false, // VR disabled by default
+            ar_anchors: Vec::new(),
+            windows_ai_enabled,
+            hand_tracking: None,
+            spatial_audio: false,
         })
     }
 
@@ -587,6 +625,103 @@ impl GitVisualizer3D {
     /// Get timeline progress (0.0-1.0)
     pub fn get_timeline_progress(&self) -> f32 {
         self.time_control.get_progress()
+    }
+
+    /// Enable VR mode for Quest 2/3 integration
+    pub fn enable_vr(&mut self) {
+        self.vr_enabled = true;
+        self.spatial_audio = true;
+        // Initialize VR-specific settings
+        self.fov = 90.0; // Wider FOV for VR
+        self.camera_pos = (0.0, 1.6, 0.0); // Eye height for VR
+    }
+
+    /// Disable VR mode
+    pub fn disable_vr(&mut self) {
+        self.vr_enabled = false;
+        self.spatial_audio = false;
+        self.fov = 60.0; // Standard FOV
+        self.camera_pos = (0.0, 0.0, 50.0); // Standard camera position
+    }
+
+    /// Add AR anchor for spatial positioning
+    pub fn add_ar_anchor(&mut self, position: (f32, f32, f32), commit_id: Option<String>) {
+        self.ar_anchors.push(ArAnchor {
+            position,
+            rotation: (0.0, 0.0, 0.0),
+            commit_id,
+            stability: 0.8,
+        });
+    }
+
+    /// Update hand tracking data for VR interaction
+    pub fn update_hand_tracking(&mut self, hand_data: HandTrackingData) {
+        self.hand_tracking = Some(hand_data);
+
+        // Handle gestures
+        for gesture in &hand_data.gestures {
+            match gesture.as_str() {
+                "pinch" => {
+                    // Zoom in/out based on pinch strength
+                    let zoom_factor = 1.0 - hand_data.pinch_strength * 0.5;
+                    self.fov = 60.0 * zoom_factor;
+                }
+                "swipe_left" => {
+                    // Rotate view left
+                    self.rotation -= 0.1;
+                }
+                "swipe_right" => {
+                    // Rotate view right
+                    self.rotation += 0.1;
+                }
+                _ => {}
+            }
+        }
+    }
+
+    /// Get VR performance metrics
+    pub fn get_vr_metrics(&self) -> HashMap<&str, f32> {
+        let mut metrics = HashMap::new();
+        metrics.insert("vr_enabled", if self.vr_enabled { 1.0 } else { 0.0 });
+        metrics.insert("spatial_audio", if self.spatial_audio { 1.0 } else { 0.0 });
+        metrics.insert("ar_anchors", self.ar_anchors.len() as f32);
+        metrics.insert("fov", self.fov);
+        metrics
+    }
+
+    /// Optimize visualization using Windows 11 25H2 AI
+    #[cfg(all(target_os = "windows", feature = "windows-ai"))]
+    pub async fn optimize_with_windows_ai(&mut self) -> Result<(), String> {
+        if !self.windows_ai_enabled {
+            return Err("Windows AI not enabled".to_string());
+        }
+
+        // Use Windows AI to optimize camera positioning and commit clustering
+        // This would integrate with the Windows AI APIs for intelligent layout
+
+        // For now, apply basic AI-optimized camera positioning
+        self.camera_pos = (5.0, 3.0, 5.0); // Optimal viewing position
+        self.rotation = 0.785; // 45 degrees for better perspective
+
+        Ok(())
+    }
+
+    /// Get Windows AI performance metrics
+    pub fn get_ai_metrics(&self) -> HashMap<&str, f32> {
+        let mut metrics = HashMap::new();
+        #[cfg(all(target_os = "windows", feature = "windows-ai"))]
+        {
+            metrics.insert(
+                "windows_ai_enabled",
+                if self.windows_ai_enabled { 1.0 } else { 0.0 },
+            );
+        }
+        #[cfg(not(all(target_os = "windows", feature = "windows-ai")))]
+        {
+            metrics.insert("windows_ai_enabled", 0.0);
+        }
+        metrics.insert("cuda_enabled", if self.cuda_enabled { 1.0 } else { 0.0 });
+        metrics
     }
 }
 

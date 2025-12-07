@@ -560,9 +560,13 @@ impl McpIntegrationManager {
 
     /// Optimize server configuration using Windows AI
     #[cfg(all(target_os = "windows", feature = "windows-ai"))]
-    pub async fn optimize_server_config(&self, server_name: &str) -> Result<EnhancedMcpServer, String> {
+    pub async fn optimize_server_config(
+        &self,
+        server_name: &str,
+    ) -> Result<EnhancedMcpServer, String> {
         let servers = self.active_servers.lock().await;
-        let server = servers.get(server_name)
+        let server = servers
+            .get(server_name)
             .ok_or_else(|| format!("Server '{}' not found", server_name))?;
 
         let optimization_prompt = format!(
@@ -570,9 +574,10 @@ impl McpIntegrationManager {
             server_name, server
         );
 
-        let optimized_config = execute_with_windows_ai(&optimization_prompt, &self.windows_ai_options)
-            .await
-            .map_err(|e| format!("AI optimization failed: {}", e))?;
+        let optimized_config =
+            execute_with_windows_ai(&optimization_prompt, &self.windows_ai_options)
+                .await
+                .map_err(|e| format!("AI optimization failed: {}", e))?;
 
         // Parse optimized config (simplified - in reality would need proper parsing)
         // For now, return the original server config
@@ -591,13 +596,30 @@ impl McpIntegrationManager {
                 if let Ok(gpu_stats) = crate::windows_ai_integration::get_gpu_stats() {
                     metrics.insert("gpu_utilization".to_string(), gpu_stats.utilization as f64);
                     metrics.insert("gpu_memory_used".to_string(), gpu_stats.memory_used as f64);
-                    metrics.insert("gpu_memory_total".to_string(), gpu_stats.memory_total as f64);
+                    metrics.insert(
+                        "gpu_memory_total".to_string(),
+                        gpu_stats.memory_total as f64,
+                    );
                 }
             }
         }
 
-        metrics.insert("windows_ai_enabled".to_string(), if self.windows_ai_options.enabled { 1.0 } else { 0.0 });
-        metrics.insert("kernel_accelerated".to_string(), if self.windows_ai_options.kernel_accelerated { 1.0 } else { 0.0 });
+        metrics.insert(
+            "windows_ai_enabled".to_string(),
+            if self.windows_ai_options.enabled {
+                1.0
+            } else {
+                0.0
+            },
+        );
+        metrics.insert(
+            "kernel_accelerated".to_string(),
+            if self.windows_ai_options.kernel_accelerated {
+                1.0
+            } else {
+                0.0
+            },
+        );
 
         Ok(metrics)
     }

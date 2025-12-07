@@ -26,6 +26,9 @@ export const Git4DVisualization: React.FC = () => {
   const [timeScale, setTimeScale] = useState(1);
   const [showLabels, setShowLabels] = useState(true);
   const [vrMode, setVrMode] = useState(false);
+  const [arMode, setArMode] = useState(false);
+  const [windowsAiMode, setWindowsAiMode] = useState(false);
+  const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
 
   // Mock git data - replace with real data from backend
   const [commits] = useState(() => generateMockCommits());
