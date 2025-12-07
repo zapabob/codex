@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
 // use crate::agents::Agent;
 // use crate::plan::{Plan, Task};
-use crate::Result;
+use crate::error::Result;
 
 /// Task priority levels
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

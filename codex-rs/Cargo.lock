@@ -1470,6 +1470,7 @@ dependencies = [
  "env-flags",
  "escargot",
  "eventsource-stream",
+ "fastrand",
  "futures",
  "hex",
  "hkdf",

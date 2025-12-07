@@ -350,7 +350,7 @@ fn extract_apply_patch_from_bash(
     // how tree-sitter parses the script and whether the query syntax is correct. Be sure
     // to test both positive and negative cases.
     static APPLY_PATCH_QUERY: LazyLock<Query> = LazyLock::new(|| {
-        let language = tree_sitter_bash::language();
+        let language = tree_sitter_bash::LANGUAGE.try_into().unwrap();
         #[expect(clippy::expect_used)]
         Query::new(
             &language,
@@ -396,7 +396,7 @@ fn extract_apply_patch_from_bash(
         .expect("valid bash query")
     });
 
-    let lang = tree_sitter_bash::language();
+    let lang = tree_sitter_bash::LANGUAGE.try_into().unwrap();
     let mut parser = Parser::new();
     parser
         .set_language(&lang)

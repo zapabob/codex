@@ -110,6 +110,7 @@ url = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v4", "v5"] }
 which = { workspace = true }
 wildmatch = { workspace = true }
+fastrand = "2.3.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 landlock = { workspace = true }

@@ -2,7 +2,7 @@
 //!
 //! Inter-agent messaging system for centralized and parallel development modes
 
-use crate::agents::secure_message::SecureAgentCommunicator;
+// use crate::agents::secure_message::SecureAgentCommunicator;
 use crate::agents::secure_message::SecureAgentMessage;
 use crate::agents::secure_message::SecureMetadata;
 use serde::Deserialize;
@@ -16,7 +16,7 @@ use uuid::Uuid;
 /// Agent communication manager
 pub struct AgentCommunicationManager {
     /// Communicator instance
-    communicator: Arc<SecureAgentCommunicator>,
+    // communicator: Arc<SecureAgentCommunicator>,
     /// Message channels for each agent
     agent_channels: Arc<Mutex<HashMap<String, mpsc::UnboundedSender<InterAgentMessage>>>>,
     /// Development mode context
@@ -193,7 +193,7 @@ impl AgentCommunicationManager {
     /// Create new communication manager
     pub fn new(development_mode: DevelopmentMode) -> Self {
         Self {
-            communicator: Arc::new(SecureAgentCommunicator::new()),
+            // communicator: Arc::new(SecureAgentCommunicator::new()),
             agent_channels: Arc::new(Mutex::new(HashMap::new())),
             development_mode,
         }

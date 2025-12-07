@@ -28,7 +28,7 @@ use crate::model_family::find_family_for_model;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::model_provider_info::built_in_model_providers;
 use crate::openai_model_info::get_model_info;
-use crate::orchestration::DevelopmentMode;
+use crate::ai_orchestrator::DevelopmentMode;
 use crate::project_doc::DEFAULT_PROJECT_DOC_FILENAME;
 use crate::project_doc::LOCAL_PROJECT_DOC_FILENAME;
 use crate::protocol::AskForApproval;
@@ -40,10 +40,7 @@ use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode;
 use codex_protocol::config_types::Verbosity;
-#[cfg(feature = "rmcp")]
 use codex_rmcp_client::OAuthCredentialsStoreMode;
-#[cfg(not(feature = "rmcp"))]
-use crate::OAuthCredentialsStoreMode;
 use dirs::home_dir;
 use dunce::canonicalize;
 use serde::Deserialize;
