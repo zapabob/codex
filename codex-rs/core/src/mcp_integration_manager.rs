@@ -350,6 +350,9 @@ impl McpIntegrationManager {
                 "serena".to_string(),
                 "docs-analyzer".to_string(),
                 "git-enhanced".to_string(),
+                "youtube".to_string(),
+                "filesystem".to_string(),
+                "gemini-cli".to_string(),
             ],
         );
         agent_servers.insert(
@@ -358,6 +361,8 @@ impl McpIntegrationManager {
                 "arxiv".to_string(),
                 "github".to_string(),
                 "docs-analyzer".to_string(),
+                "youtube".to_string(),
+                "gemini-cli".to_string(),
             ],
         );
         agent_servers.insert(
@@ -366,6 +371,8 @@ impl McpIntegrationManager {
                 "serena".to_string(),
                 "github".to_string(),
                 "git-enhanced".to_string(),
+                "filesystem".to_string(),
+                "gemini-cli".to_string(),
             ],
         );
         agent_servers.insert(
@@ -374,6 +381,8 @@ impl McpIntegrationManager {
                 "serena".to_string(),
                 "github".to_string(),
                 "docs-analyzer".to_string(),
+                "filesystem".to_string(),
+                "playwright".to_string(),
             ],
         );
 
