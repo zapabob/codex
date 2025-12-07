@@ -147,6 +147,7 @@ impl ContextManager {
             | ResponseItem::WebSearchCall { .. }
             | ResponseItem::CustomToolCall { .. }
             | ResponseItem::GhostSnapshot { .. }
+            | ResponseItem::CompactionSummary { .. }
             | ResponseItem::Other => item.clone(),
         }
     }
@@ -165,6 +166,7 @@ fn is_api_message(message: &ResponseItem) -> bool {
         | ResponseItem::Reasoning { .. }
         | ResponseItem::WebSearchCall { .. } => true,
         ResponseItem::GhostSnapshot { .. } => false,
+        ResponseItem::CompactionSummary { .. } => false,
         ResponseItem::Other => false,
     }
 }

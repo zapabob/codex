@@ -81,6 +81,7 @@ pub(crate) async fn stream_chat_completions(
             ResponseItem::CustomToolCallOutput { .. } => {}
             ResponseItem::WebSearchCall { .. } => {}
             ResponseItem::GhostSnapshot { .. } => {}
+            ResponseItem::CompactionSummary { .. } => {}
         }
     }
 
@@ -316,6 +317,10 @@ pub(crate) async fn stream_chat_completions(
             }
             ResponseItem::GhostSnapshot { .. } => {
                 // Ghost snapshots annotate history but are not sent to the model.
+                continue;
+            }
+            ResponseItem::CompactionSummary { .. } => {
+                // Compaction summaries annotate history but are not sent to the model.
                 continue;
             }
             ResponseItem::Reasoning { .. }
