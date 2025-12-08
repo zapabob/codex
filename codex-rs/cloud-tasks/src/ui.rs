@@ -741,6 +741,7 @@ fn attempt_status_span(status: AttemptStatus) -> Option<ratatui::text::Span<'sta
     match status {
         AttemptStatus::Completed => Some("Completed".green()),
         AttemptStatus::Failed => Some("Failed".red().bold()),
+        AttemptStatus::Running => Some("Running".yellow()),
         AttemptStatus::InProgress => Some("In progress".magenta()),
         AttemptStatus::Pending => Some("Pending".cyan()),
         AttemptStatus::Cancelled => Some("Cancelled".dim()),
@@ -787,6 +788,7 @@ fn render_task_item(_app: &App, t: &codex_cloud_tasks_client::TaskSummary) -> Li
     let status = match t.status {
         TaskStatus::Ready => "READY".green(),
         TaskStatus::Pending => "PENDING".magenta(),
+        TaskStatus::Running => "RUNNING".yellow(),
         TaskStatus::Applied => "APPLIED".blue(),
         TaskStatus::Error => "ERROR".red(),
     };

@@ -18,6 +18,7 @@ pub struct CloudTask {
 /// Task Status
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum TaskStatus {
+    Pending,
     Ready,
     Running,
     Applied,
@@ -39,6 +40,14 @@ pub enum AttemptStatus {
     Cancelled,
     #[serde(rename = "unknown")]
     Unknown,
+    #[serde(rename = "failed")]
+    Failed,
+}
+
+impl Default for AttemptStatus {
+    fn default() -> Self {
+        Self::Unknown
+    }
 }
 
 /// Apply Status
