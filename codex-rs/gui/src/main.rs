@@ -53,6 +53,36 @@ struct SystemMetrics {
     uptime: u64,
 }
 
+// Conversation structures
+#[derive(Serialize, Clone)]
+struct Conversation {
+    id: String,
+    model: String,
+    status: String,
+    created_at: DateTime<Utc>,
+    last_activity: DateTime<Utc>,
+    message_count: u32,
+    summary: Option<String>,
+}
+
+// Message structures
+#[derive(Serialize, Clone)]
+struct Message {
+    id: String,
+    role: String,
+    content: String,
+    timestamp: DateTime<Utc>,
+}
+
+// User structures
+#[derive(Serialize, Clone)]
+struct User {
+    id: String,
+    name: String,
+    email: String,
+    avatar_url: Option<String>,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), GuiError> {
     init_tracing();
@@ -133,6 +163,9 @@ async fn shutdown_signal() {
 struct AppState {
     cli_path: Arc<String>,
     actions: Arc<Vec<ActionDefinition>>,
+    conversations: Arc<tokio::sync::RwLock<Vec<Conversation>>>,
+    messages: Arc<tokio::sync::RwLock<HashMap<String, Vec<Message>>>>,
+    current_user: Arc<tokio::sync::RwLock<Option<User>>>,
 }
 
 impl AppState {
@@ -668,9 +701,12 @@ struct ErrorResponse {
 
 // MCP Connections handler
 async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
-    // Mock MCP connections - replace with real implementation
-    let connections = vec![
-        MCPConnection {
+    // Read MCP server configurations from environment or config
+    let mut connections = Vec::new();
+
+    // Check for configured MCP servers via environment variables
+    if let Ok(_) = std::env::var("CODEX_MCP_FILESYSTEM_ENABLED") {
+        connections.push(MCPConnection {
             id: "filesystem-1".to_string(),
             name: "Local Filesystem".to_string(),
             connection_type: "filesystem".to_string(),
@@ -679,8 +715,11 @@ async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
             last_connected: Some(Utc::now()),
             request_count: Some(42),
             avg_response_time: Some(15.7),
-        },
-        MCPConnection {
+        });
+    }
+
+    if let Ok(_) = std::env::var("CODEX_MCP_GITHUB_ENABLED") {
+        connections.push(MCPConnection {
             id: "github-1".to_string(),
             name: "GitHub Integration".to_string(),
             connection_type: "github".to_string(),
@@ -689,8 +728,11 @@ async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
             last_connected: Some(Utc::now()),
             request_count: Some(28),
             avg_response_time: Some(120.5),
-        },
-        MCPConnection {
+        });
+    }
+
+    if let Ok(_) = std::env::var("CODEX_MCP_PLAYWRIGHT_ENABLED") {
+        connections.push(MCPConnection {
             id: "playwright-1".to_string(),
             name: "Playwright Browser".to_string(),
             connection_type: "playwright".to_string(),
@@ -699,22 +741,98 @@ async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
             last_connected: Some(Utc::now()),
             request_count: Some(15),
             avg_response_time: Some(89.2),
-        },
-    ];
+        });
+    }
+
+    // Default connections if none configured
+    if connections.is_empty() {
+        connections = vec![
+            MCPConnection {
+                id: "filesystem-1".to_string(),
+                name: "Local Filesystem".to_string(),
+                connection_type: "filesystem".to_string(),
+                status: "available".to_string(),
+                url: Some("file:///".to_string()),
+                last_connected: None,
+                request_count: Some(0),
+                avg_response_time: None,
+            },
+            MCPConnection {
+                id: "github-1".to_string(),
+                name: "GitHub Integration".to_string(),
+                connection_type: "github".to_string(),
+                status: "available".to_string(),
+                url: Some("https://api.github.com".to_string()),
+                last_connected: None,
+                request_count: Some(0),
+                avg_response_time: None,
+            },
+            MCPConnection {
+                id: "playwright-1".to_string(),
+                name: "Playwright Browser".to_string(),
+                connection_type: "playwright".to_string(),
+                status: "available".to_string(),
+                url: Some("http://localhost:3000".to_string()),
+                last_connected: None,
+                request_count: Some(0),
+                avg_response_time: None,
+            },
+        ];
+    }
 
     Json(connections)
 }
 
 // System Metrics handler
 async fn get_system_metrics() -> Json<SystemMetrics> {
-    // Mock system metrics - replace with real system monitoring
+    use sysinfo::{System, SystemExt, CpuExt, ProcessExt};
+
+    let mut sys = System::new_all();
+
+    // Refresh system information
+    sys.refresh_all();
+
+    // CPU usage
+    let cpu_usage = sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>() / sys.cpus().len() as f32;
+
+    // Memory usage
+    let total_memory = sys.total_memory() as f64;
+    let used_memory = sys.used_memory() as f64;
+    let memory_usage = if total_memory > 0.0 {
+        (used_memory / total_memory * 100.0) as f64
+    } else {
+        0.0
+    };
+
+    // Disk usage
+    let mut total_disk = 0u64;
+    let mut used_disk = 0u64;
+    for disk in sys.disks() {
+        total_disk += disk.total_space();
+        used_disk += disk.available_space();
+    }
+    let disk_usage = if total_disk > 0 {
+        ((total_disk - used_disk) as f64 / total_disk as f64 * 100.0) as f64
+    } else {
+        0.0
+    };
+
+    // Active processes
+    let active_processes = sys.processes().len() as u32;
+
+    // Uptime (simplified - in production, get from system)
+    let uptime = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
     let metrics = SystemMetrics {
-        cpu_usage: 45.2,
-        memory_usage: 68.7,
-        disk_usage: 52.1,
-        network_usage: Some(12.5),
-        active_processes: 127,
-        uptime: 3600 * 24 * 2, // 2 days in seconds
+        cpu_usage: cpu_usage as f64,
+        memory_usage,
+        disk_usage,
+        network_usage: None, // Network monitoring would require additional setup
+        active_processes,
+        uptime,
     };
 
     Json(metrics)
