@@ -4,6 +4,8 @@ use codex_core::ai_orchestrator;
 use codex_core::mcp_integration_manager;
 use color_eyre::eyre::Result;
 use crossterm::event::KeyEvent;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::app_event::AppEvent;
 use crate::legacy_app::LegacyApp;
@@ -69,6 +71,8 @@ impl App {
             legacy_event_rx: None,
             orchestrator: None,
             mcp_manager: None,
+            git_lock_manager: None,
+            conflict_detector: None,
         })
     }
 
@@ -99,6 +103,13 @@ impl App {
             }
             crossterm::event::KeyCode::Char('4') => {
                 self.state = AppState::Settings;
+            }
+            crossterm::event::KeyCode::Char('5') => {
+                // Initialize GitLockManager state
+                self.state = AppState::GitLockManager {
+                    locks: Vec::new(),
+                    conflicts: Vec::new(),
+                };
             }
             crossterm::event::KeyCode::Char('q') => {
                 self.should_quit = true;

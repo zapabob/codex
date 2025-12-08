@@ -62,6 +62,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         AppState::QualityControl => draw_quality_control(f, chunks[1], app),
         AppState::Settings => draw_settings(f, chunks[1], app),
         AppState::DevelopmentMode { .. } => draw_development_mode(f, chunks[1], app),
+        AppState::GitLockManager { .. } => draw_git_lock_manager(f, chunks[1], app),
     }
 
     // Draw status
@@ -106,6 +107,7 @@ fn draw_main_menu(f: &mut Frame, area: Rect, _app: &App) {
         ListItem::new("2. Plan Manager"),
         ListItem::new("3. Quality Control"),
         ListItem::new("4. Settings"),
+        ListItem::new("5. Git Lock Manager"),
     ];
 
     let list = List::new(items)
@@ -204,6 +206,7 @@ fn draw_status(f: &mut Frame, area: Rect, app: &App) {
         AppState::QualityControl => "Quality Control - Analyze and optimize code",
         AppState::Settings => "Settings - Configure preferences",
         AppState::DevelopmentMode { .. } => "Development Mode - AI orchestration active",
+        AppState::GitLockManager { .. } => "Git Lock Manager - Parallel development control",
     };
 
     let status = Paragraph::new(status_text)
@@ -228,5 +231,29 @@ fn draw_development_mode(f: &mut Frame, area: Rect, _app: &App) {
         .block(Block::default().borders(Borders::ALL).title("Development Mode"))
         .style(Style::default().fg(Color::Cyan));
 
+    f.render_widget(paragraph, area);
+}
+
+fn draw_git_lock_manager(f: &mut Frame, area: Rect, _app: &mut App) {
+    let content = vec![
+        Line::from("🔒 Git Lock Manager - Parallel Development Control"),
+        Line::from(""),
+        Line::from("Active Locks:"),
+        Line::from("Conflicts:"),
+        Line::from(""),
+        Line::from("Commands:"),
+        Line::from("  r - Refresh lock status"),
+        Line::from("  m - Return to main menu"),
+        Line::from(""),
+        Line::from("Features:"),
+        Line::from("  • File-level locking"),
+        Line::from("  • Branch-level locking"),
+        Line::from("  • Conflict detection"),
+        Line::from("  • Deadlock prevention"),
+    ];
+
+    let paragraph = Paragraph::new(content)
+        .block(Block::default().borders(Borders::ALL).title("Git Lock Manager"))
+        .wrap(Wrap { trim: true });
     f.render_widget(paragraph, area);
 }
