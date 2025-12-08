@@ -199,6 +199,7 @@ reqwest = { version = "0.12", default-features = false, features = [
 ] }
 rmcp = { version = "0.10.0", default-features = false }
 schemars = "0.8.22"
+syn = { version = "2.0", features = ["full", "extra-traits", "visit"] }
 seccompiler = "0.5.0"
 sentry = "0.34.0"
 serde = "1"

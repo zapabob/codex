@@ -197,7 +197,7 @@ impl AgentCommunicationManager {
         Self {
             #[cfg(feature = "agent_security")]
             communicator: Arc::new(crate::agents::secure_message::SecureAgentCommunicator::new()),
-            agent_channels: Arc::new(Mutex::new(HashMap::new())),
+            agent_channels: Arc::new(Mutex::new(BTreeMap::new())),
             development_mode,
         }
     }
@@ -258,7 +258,7 @@ impl AgentCommunicationManager {
             ttl: 3600, // 1 hour
             requires_ack: true,
             custom_fields: {
-                let mut fields = HashMap::new();
+                let mut fields = BTreeMap::new();
                 fields.insert(
                     "development_mode".to_string(),
                     serde_json::to_string(&self.development_mode).unwrap_or_default(),
@@ -350,7 +350,7 @@ impl AgentCommunicationManager {
     pub async fn coordinate_parallel_merge(
         &self,
         task_id: &str,
-        worktree_results: HashMap<String, String>,
+        worktree_results: BTreeMap<String, String>,
     ) -> Result<(), String> {
         // Send merge coordination to all agents
         let merge_message = InterAgentMessage::QcFeedback {
@@ -369,7 +369,7 @@ impl AgentCommunicationManager {
                 "Ensure code consistency across worktrees".to_string(),
             ],
             metrics: {
-                let mut metrics = HashMap::new();
+                let mut metrics = BTreeMap::new();
                 metrics.insert("worktrees_count".to_string(), worktree_results.len() as f64);
                 metrics.insert(
                     "total_lines".to_string(),
