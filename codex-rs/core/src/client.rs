@@ -640,7 +640,12 @@ fn parse_rate_limit_snapshot(headers: &HeaderMap) -> Option<RateLimitSnapshot> {
         "x-codex-secondary-reset-at",
     );
 
-    Some(RateLimitSnapshot { primary, secondary })
+    Some(RateLimitSnapshot {
+        primary,
+        secondary,
+        credits: None,
+        plan_type: None,
+    })
 }
 
 fn parse_rate_limit_window(

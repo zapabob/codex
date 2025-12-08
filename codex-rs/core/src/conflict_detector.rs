@@ -7,6 +7,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
+#[cfg(debug_assertions)]
+use std::path::Path as StdPath;
+
 use anyhow::Result;
 use git2::Repository;
 use serde::Deserialize;
@@ -18,15 +21,6 @@ use crate::git_lock_manager::GitOperation;
 use crate::git_lock_manager::LockConflict;
 use crate::git_lock_manager::LockEntry;
 
-impl AstConflictDetector {
-    /// Create a new AST conflict detector
-    pub fn new(repo_path: std::path::PathBuf) -> Self {
-        Self {
-            repo_path,
-            ast_cache: Arc::new(parking_lot::Mutex::new(BTreeMap::new())),
-        }
-    }
-}
 
 /// AST-based conflict detector
 pub struct AstConflictDetector {
@@ -88,8 +82,9 @@ pub enum MergeStrategy {
 
 impl AstConflictDetector {
     /// Create new AST conflict detector
-    pub fn new() -> Self {
+    pub fn new(repo_path: std::path::PathBuf) -> Self {
         Self {
+            repo_path,
             ast_cache: Arc::new(parking_lot::Mutex::new(BTreeMap::new())),
         }
     }
@@ -193,10 +188,13 @@ impl AstConflictDetector {
 impl ConflictDetectorTrait for AstConflictDetector {
     async fn detect_conflicts(
         &self,
-        _repo_path: &std::path::Path,
+        repo_path: &std::path::Path,
         operation: &GitOperation,
         existing_locks: &[LockEntry],
     ) -> Result<Vec<LockConflict>> {
+        // Ensure repo_path is the same as self.repo_path
+        debug_assert_eq!(repo_path, self.repo_path.as_path());
+
         let mut conflicts = Vec::new();
 
         for lock in existing_locks {

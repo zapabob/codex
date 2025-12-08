@@ -289,7 +289,7 @@ impl AIOrchestrator {
         };
 
         let conflict_detector = if mode == DevelopmentMode::Parallel {
-            Some(Arc::new(Mutex::new(Box::new(AstConflictDetector::new()) as Box<dyn ConflictDetectorTrait + Send + Sync>)))
+            Some(Arc::new(Mutex::new(Box::new(AstConflictDetector::new(std::path::PathBuf::from("."))) as Box<dyn ConflictDetectorTrait + Send + Sync>)))
         } else {
             None
         };
