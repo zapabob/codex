@@ -12,7 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   Activity,
   Users,
-  List Checked,
+  CheckSquare,
   Coins,
   Server,
   Clock,

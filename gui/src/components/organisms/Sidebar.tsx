@@ -24,6 +24,7 @@ import {
   Zap,
   Search,
   Server,
+  CheckSquare,
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -47,6 +48,7 @@ const navigationItems: NavigationItem[] = [
   { id: 'dashboard', label: 'ダッシュボード', icon: Home },
   { id: 'code', label: 'コード実行', icon: Code },
   { id: 'agents', label: 'エージェント', icon: Users },
+  { id: 'tasks', label: 'タスク管理', icon: CheckSquare },
   { id: 'research', label: 'Deep Research', icon: Search },
   { id: 'security', label: 'セキュリティ', icon: Shield },
   { id: 'mcp', label: 'MCPサーバー', icon: Server },
