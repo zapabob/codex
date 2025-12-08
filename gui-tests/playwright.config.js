@@ -49,9 +49,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'cd ../codex-rs && cargo run --bin codex-gui',
+    command: 'cd ../codex-rs/target/release && ./codex-gui.exe',
     port: 8787,
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes
+    timeout: 30 * 1000, // 30 seconds
   },
 });
