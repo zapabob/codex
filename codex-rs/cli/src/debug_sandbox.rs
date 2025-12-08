@@ -215,7 +215,12 @@ async fn run_command_under_sandbox(
     };
     let status = child.wait().await?;
 
-    handle_exit_status(status);
+    let exit_code = crate::exit_status::handle_process_exit_status(status);
+    // Note: In debug mode, we exit the process. In production, we would return the exit code.
+    #[cfg(debug_assertions)]
+    std::process::exit(exit_code as i32);
+    #[cfg(not(debug_assertions))]
+    Ok(())
 }
 
 pub fn create_sandbox_mode(full_auto: bool) -> SandboxMode {

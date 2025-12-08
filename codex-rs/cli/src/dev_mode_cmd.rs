@@ -98,7 +98,7 @@ async fn run_centralized_dev(
 
     // Initialize MCP manager and start servers
     let mcp_manager = McpIntegrationManager::new();
-    mcp_manager.start_servers_for_mode("centralized").await?;
+    mcp_manager.start_servers_for_mode("centralized").await.map_err(anyhow::Error::msg)?;
 
     println!("✅ Centralized development mode initialized");
     println!("📋 Active MCP servers: serena, arxiv, youtube, gemini-cli");
@@ -147,7 +147,7 @@ async fn run_parallel_dev(
 
     // Initialize MCP manager and start servers
     let mcp_manager = McpIntegrationManager::new();
-    mcp_manager.start_servers_for_mode("parallel").await?;
+    mcp_manager.start_servers_for_mode("parallel").await.map_err(anyhow::Error::msg)?;
 
     println!("✅ Parallel development mode initialized");
     println!("📋 Active MCP servers: serena, github, git-enhanced, filesystem, playwright");
@@ -217,7 +217,7 @@ async fn stop_dev_mode() -> anyhow::Result<()> {
     // Stop all active servers
     let active_servers = mcp_manager.get_active_servers().await;
     for server_name in active_servers.keys() {
-        mcp_manager.stop_server(server_name).await?;
+        mcp_manager.stop_server(server_name).await.map_err(anyhow::Error::msg)?;
         println!("✅ Stopped MCP server: {}", server_name);
     }
 
@@ -229,7 +229,7 @@ async fn stop_dev_mode() -> anyhow::Result<()> {
 /// List available MCP servers
 async fn list_mcp_servers() -> anyhow::Result<()> {
     let mcp_manager = McpIntegrationManager::new();
-    let config = mcp_manager.load_config().await?;
+    let config = mcp_manager.load_config().await.map_err(anyhow::Error::msg)?;
 
     println!("🔧 Available MCP Servers");
     println!("========================");

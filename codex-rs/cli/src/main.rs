@@ -630,8 +630,8 @@ fn run_update_action(action: UpdateAction) -> anyhow::Result<()> {
     let (cmd, args) = action.command_args();
     let cmd_str = action.command_str();
     println!("Updating Codex via `{cmd_str}`...");
-    let command_path = normalize_for_wsl(cmd);
-    let normalized_args: Vec<String> = args.iter().map(normalize_for_wsl).collect();
+    let command_path = normalize_for_wsl(std::path::Path::new(cmd));
+    let normalized_args: Vec<String> = args.iter().map(|arg| normalize_for_wsl(std::path::Path::new(arg)).to_string_lossy().to_string()).collect();
     let status = std::process::Command::new(&command_path)
         .args(&normalized_args)
         .status()?;
