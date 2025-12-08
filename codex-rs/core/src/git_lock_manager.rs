@@ -1,284 +1,376 @@
-//! Git Lock Manager for Parallel Development Deadlock Prevention
+//! Git Lock Manager for parallel development deadlock prevention
 //!
-//! This module provides Git repository-level locking mechanisms to prevent
-//! deadlocks and conflicts in parallel development scenarios.
+//! This module provides fine-grained locking mechanisms for Git repositories
+//! to prevent conflicts and deadlocks in parallel development scenarios.
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::path::PathBuf;
 use std::sync::Arc;
-use tokio::sync::Mutex;
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use anyhow::{Result, Context};
+use std::time::Duration;
+use std::time::Instant;
 
-/// Entry in the lock table
+use anyhow::Result;
+use chrono::DateTime;
+use chrono::Utc;
+use git2::Repository;
+use git2::RepositoryState;
+use parking_lot::Mutex;
+use serde::Deserialize;
+use serde::Serialize;
+use tokio::sync::Semaphore;
+use tokio::time::timeout;
+
+/// Lock entry representing a held lock
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LockEntry {
-    /// Lock type (file or branch)
-    pub lock_type: LockType,
+    /// Unique lock ID
+    pub id: String,
     /// Owner of the lock (user/process ID)
     pub owner: String,
+    /// Lock type
+    pub lock_type: LockType,
     /// Timestamp when lock was acquired
-    pub timestamp: DateTime<Utc>,
-    /// Lock metadata
-    pub metadata: BTreeMap<String, String>,
+    pub acquired_at: DateTime<Utc>,
+    /// Lock timeout duration
+    pub timeout: Duration,
+    /// Files/branches covered by this lock
+    pub resources: Vec<String>,
 }
 
-/// Type of lock
+/// Types of locks that can be acquired
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LockType {
-    /// File-level lock
-    File,
-    /// Branch-level lock
-    Branch,
-    /// Repository-level lock
-    Repository,
+    /// Exclusive file lock (blocks all access to specific files)
+    FileExclusive,
+    /// Shared file lock (allows read access but blocks write)
+    FileShared,
+    /// Branch-level lock (blocks branch operations)
+    BranchExclusive,
+    /// Repository-level lock (blocks all operations)
+    RepositoryExclusive,
 }
 
-/// File lock information
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileLock {
-    /// File path relative to repository root
-    pub path: PathBuf,
-    /// Lock owner
-    pub owner: String,
-    /// Lock timestamp
-    pub timestamp: DateTime<Utc>,
-    /// Lock reason/description
+/// Lock conflict detection result
+#[derive(Debug, Clone)]
+pub struct LockConflict {
+    /// Conflicting lock
+    pub conflicting_lock: LockEntry,
+    /// Conflict reason
     pub reason: String,
+    /// Suggested resolution
+    pub resolution: ConflictResolution,
 }
 
-/// Branch lock information
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BranchLock {
-    /// Branch name
-    pub branch: String,
-    /// Lock owner
-    pub owner: String,
-    /// Lock timestamp
-    pub timestamp: DateTime<Utc>,
-    /// Locked files (if partial branch lock)
-    pub files: Vec<PathBuf>,
+/// Suggested conflict resolution strategies
+#[derive(Debug, Clone)]
+pub enum ConflictResolution {
+    /// Wait for lock to be released
+    Wait,
+    /// Force release conflicting lock (dangerous)
+    ForceRelease,
+    /// Retry operation later
+    RetryLater,
+    /// Use alternative approach
+    AlternativePath,
 }
 
-/// Git Lock Manager
+/// Git Lock Manager - main coordination point for repository locking
 pub struct GitLockManager {
-    /// Repository root path
+    /// Path to the Git repository
     repo_path: PathBuf,
-    /// Lock table (key: lock identifier, value: lock entry)
+    /// Active locks storage
     locks: Arc<Mutex<BTreeMap<String, LockEntry>>>,
-    /// Lock file path
-    lock_file: PathBuf,
+    /// Maximum concurrent operations semaphore
+    concurrency_limit: Arc<Semaphore>,
+    /// Lock timeout settings
+    default_timeout: Duration,
+    /// Conflict detector
+    conflict_detector: Option<Arc<dyn ConflictDetectorTrait>>,
+}
+
+/// Trait for conflict detection algorithms
+#[async_trait::async_trait]
+pub trait ConflictDetectorTrait: Send + Sync {
+    /// Detect potential conflicts between operations
+    async fn detect_conflicts(
+        &self,
+        repo: &Repository,
+        operation: &GitOperation,
+        existing_locks: &[LockEntry],
+    ) -> Result<Vec<LockConflict>>;
+
+    /// Calculate conflict probability score (0.0-1.0)
+    async fn conflict_probability(
+        &self,
+        repo: &Repository,
+        op1: &GitOperation,
+        op2: &GitOperation,
+    ) -> Result<f64>;
+}
+
+/// Git operations that require locking
+#[derive(Debug, Clone)]
+pub enum GitOperation {
+    /// File modification operations
+    ModifyFiles(Vec<PathBuf>),
+    /// Branch operations
+    CreateBranch(String),
+    /// Merge operations
+    MergeBranches { source: String, target: String },
+    /// Rebase operations
+    RebaseBranch { branch: String, base: String },
+    /// Repository-wide operations
+    RepositoryMaintenance,
 }
 
 impl GitLockManager {
-    /// Create new GitLockManager for the given repository
+    /// Create new GitLockManager for repository
     pub fn new<P: AsRef<Path>>(repo_path: P) -> Result<Self> {
         let repo_path = repo_path.as_ref().to_path_buf();
-        let lock_file = repo_path.join(".git").join("codex_locks.json");
+
+        // Validate repository exists and is valid
+        let _repo = Repository::open(&repo_path)?;
 
         Ok(Self {
             repo_path,
             locks: Arc::new(Mutex::new(BTreeMap::new())),
-            lock_file,
+            concurrency_limit: Arc::new(Semaphore::new(10)), // Allow 10 concurrent operations
+            default_timeout: Duration::from_secs(300),       // 5 minutes
+            conflict_detector: None,
         })
     }
 
-    /// Acquire a file lock
-    pub async fn acquire_file_lock(
+    /// Set conflict detector
+    pub fn with_conflict_detector(mut self, detector: Arc<dyn ConflictDetectorTrait>) -> Self {
+        self.conflict_detector = Some(detector);
+        self
+    }
+
+    /// Set concurrency limit
+    pub fn with_concurrency_limit(mut self, limit: usize) -> Self {
+        self.concurrency_limit = Arc::new(Semaphore::new(limit));
+        self
+    }
+
+    /// Set default lock timeout
+    pub fn with_default_timeout(mut self, timeout: Duration) -> Self {
+        self.default_timeout = timeout;
+        self
+    }
+
+    /// Acquire lock for operation
+    pub async fn acquire_lock(
         &self,
-        file_path: &Path,
-        owner: &str,
-        reason: &str,
-    ) -> Result<FileLock> {
-        let mut locks = self.locks.lock().await;
+        operation: GitOperation,
+        owner: String,
+        timeout: Option<Duration>,
+    ) -> Result<LockGuard> {
+        let timeout = timeout.unwrap_or(self.default_timeout);
 
-        let lock_key = format!("file:{}", file_path.display());
-        if locks.contains_key(&lock_key) {
-            return Err(anyhow::anyhow!("File {} is already locked", file_path.display()));
-        }
-
-        let file_lock = FileLock {
-            path: file_path.to_path_buf(),
-            owner: owner.to_string(),
-            timestamp: Utc::now(),
-            reason: reason.to_string(),
-        };
-
-        let lock_entry = LockEntry {
-            lock_type: LockType::File,
-            owner: owner.to_string(),
-            timestamp: file_lock.timestamp,
-            metadata: BTreeMap::from([
-                ("path".to_string(), file_path.display().to_string()),
-                ("reason".to_string(), reason.to_string()),
-            ]),
-        };
-
-        locks.insert(lock_key, lock_entry);
-        self.save_locks(&locks).await?;
-
-        Ok(file_lock)
-    }
-
-    /// Release a file lock
-    pub async fn release_file_lock(&self, file_path: &Path, owner: &str) -> Result<()> {
-        let mut locks = self.locks.lock().await;
-
-        let lock_key = format!("file:{}", file_path.display());
-        if let Some(entry) = locks.get(&lock_key) {
-            if entry.owner != owner {
-                return Err(anyhow::anyhow!("Lock owned by different user: {}", entry.owner));
+        // Check for conflicts before acquiring permit
+        if let Some(detector) = &self.conflict_detector {
+            let conflicts = self.check_conflicts(&operation).await?;
+            if !conflicts.is_empty() {
+                return Err(anyhow::anyhow!("Lock conflicts detected: {:?}", conflicts));
             }
-            locks.remove(&lock_key);
-            self.save_locks(&locks).await?;
         }
 
-        Ok(())
-    }
+        // Acquire concurrency permit
+        let permit = timeout(Duration::from_secs(30), self.concurrency_limit.acquire()).await??;
 
-    /// Acquire a branch lock
-    pub async fn acquire_branch_lock(
-        &self,
-        branch: &str,
-        owner: &str,
-        files: Option<Vec<PathBuf>>,
-    ) -> Result<BranchLock> {
-        let mut locks = self.locks.lock().await;
+        // Generate lock ID
+        let lock_id = format!("{}_{}", owner, chrono::Utc::now().timestamp_millis());
 
-        let lock_key = format!("branch:{}", branch);
-        if locks.contains_key(&lock_key) {
-            return Err(anyhow::anyhow!("Branch {} is already locked", branch));
-        }
-
-        let branch_lock = BranchLock {
-            branch: branch.to_string(),
-            owner: owner.to_string(),
-            timestamp: Utc::now(),
-            files: files.unwrap_or_default(),
-        };
-
+        // Create lock entry
         let lock_entry = LockEntry {
-            lock_type: LockType::Branch,
-            owner: owner.to_string(),
-            timestamp: branch_lock.timestamp,
-            metadata: BTreeMap::from([
-                ("branch".to_string(), branch.to_string()),
-                ("files_count".to_string(), branch_lock.files.len().to_string()),
-            ]),
+            id: lock_id.clone(),
+            owner,
+            lock_type: operation.lock_type(),
+            acquired_at: Utc::now(),
+            timeout,
+            resources: operation.resources(),
         };
 
-        locks.insert(lock_key, lock_entry);
-        self.save_locks(&locks).await?;
+        // Store lock
+        {
+            let mut locks = self.locks.lock();
+            locks.insert(lock_id.clone(), lock_entry);
+        }
 
-        Ok(branch_lock)
+        Ok(LockGuard {
+            manager: self,
+            lock_id,
+            _permit: permit,
+        })
     }
 
-    /// Release a branch lock
-    pub async fn release_branch_lock(&self, branch: &str, owner: &str) -> Result<()> {
-        let mut locks = self.locks.lock().await;
+    /// Check for conflicts with existing locks
+    async fn check_conflicts(&self, operation: &GitOperation) -> Result<Vec<LockConflict>> {
+        let locks = {
+            let locks = self.locks.lock();
+            locks.values().cloned().collect::<Vec<_>>()
+        };
 
-        let lock_key = format!("branch:{}", branch);
-        if let Some(entry) = locks.get(&lock_key) {
-            if entry.owner != owner {
-                return Err(anyhow::anyhow!("Lock owned by different user: {}", entry.owner));
+        if let Some(detector) = &self.conflict_detector {
+            let repo = Repository::open(&self.repo_path)?;
+            detector.detect_conflicts(&repo, operation, &locks).await
+        } else {
+            // Simple conflict detection without advanced analysis
+            let mut conflicts = Vec::new();
+            for lock in locks {
+                if operation.conflicts_with(&lock) {
+                    conflicts.push(LockConflict {
+                        conflicting_lock: lock,
+                        reason: "Resource conflict".to_string(),
+                        resolution: ConflictResolution::Wait,
+                    });
+                }
             }
-            locks.remove(&lock_key);
-            self.save_locks(&locks).await?;
-        }
-
-        Ok(())
-    }
-
-    /// Check if a file is locked
-    pub async fn is_file_locked(&self, file_path: &Path) -> Result<Option<String>> {
-        let locks = self.locks.lock().await;
-        let lock_key = format!("file:{}", file_path.display());
-
-        if let Some(entry) = locks.get(&lock_key) {
-            Ok(Some(entry.owner.clone()))
-        } else {
-            Ok(None)
+            Ok(conflicts)
         }
     }
 
-    /// Check if a branch is locked
-    pub async fn is_branch_locked(&self, branch: &str) -> Result<Option<String>> {
-        let locks = self.locks.lock().await;
-        let lock_key = format!("branch:{}", branch);
-
-        if let Some(entry) = locks.get(&lock_key) {
-            Ok(Some(entry.owner.clone()))
-        } else {
-            Ok(None)
-        }
+    /// Release lock (called by LockGuard drop)
+    fn release_lock(&self, lock_id: &str) {
+        let mut locks = self.locks.lock();
+        locks.remove(lock_id);
     }
 
-    /// List all active locks
-    pub async fn list_locks(&self) -> Result<Vec<LockEntry>> {
-        let locks = self.locks.lock().await;
-        Ok(locks.values().cloned().collect())
+    /// Get current active locks
+    pub fn active_locks(&self) -> Vec<LockEntry> {
+        let locks = self.locks.lock();
+        locks.values().cloned().collect()
     }
 
-    /// Load locks from disk
-    pub async fn load_locks(&self) -> Result<()> {
-        if !self.lock_file.exists() {
-            return Ok(());
-        }
-
-        let data = tokio::fs::read_to_string(&self.lock_file)
-            .await
-            .with_context(|| format!("Failed to read lock file: {}", self.lock_file.display()))?;
-
-        let locks: BTreeMap<String, LockEntry> = serde_json::from_str(&data)
-            .with_context(|| "Failed to parse lock file")?;
-
-        let mut current_locks = self.locks.lock().await;
-        *current_locks = locks;
-
-        Ok(())
-    }
-
-    /// Save locks to disk
-    async fn save_locks(&self, locks: &BTreeMap<String, LockEntry>) -> Result<()> {
-        // Ensure .git directory exists
-        if let Some(parent) = self.lock_file.parent() {
-            tokio::fs::create_dir_all(parent)
-                .await
-                .with_context(|| format!("Failed to create .git directory: {}", parent.display()))?;
-        }
-
-        let data = serde_json::to_string_pretty(locks)
-            .with_context(|| "Failed to serialize locks")?;
-
-        tokio::fs::write(&self.lock_file, data)
-            .await
-            .with_context(|| format!("Failed to write lock file: {}", self.lock_file.display()))?;
-
-        Ok(())
-    }
-
-    /// Clean up stale locks (older than specified duration)
-    pub async fn cleanup_stale_locks(&self, max_age_seconds: i64) -> Result<usize> {
-        let mut locks = self.locks.lock().await;
+    /// Force release expired locks
+    pub fn cleanup_expired_locks(&self) {
+        let mut locks = self.locks.lock();
         let now = Utc::now();
-        let mut removed_count = 0;
 
-        locks.retain(|_, entry| {
-            let age = now.signed_duration_since(entry.timestamp).num_seconds();
-            if age > max_age_seconds {
-                removed_count += 1;
-                false
-            } else {
-                true
-            }
+        locks.retain(|_, lock| {
+            let elapsed = now.signed_duration_since(lock.acquired_at);
+            elapsed.num_seconds() < lock.timeout.as_secs() as i64
         });
+    }
+}
 
-        if removed_count > 0 {
-            self.save_locks(&locks).await?;
+/// RAII guard for locks - automatically releases lock when dropped
+pub struct LockGuard<'a> {
+    manager: &'a GitLockManager,
+    lock_id: String,
+    _permit: tokio::sync::SemaphorePermit<'a>,
+}
+
+impl<'a> Drop for LockGuard<'a> {
+    fn drop(&mut self) {
+        self.manager.release_lock(&self.lock_id);
+    }
+}
+
+impl GitOperation {
+    /// Get lock type required for this operation
+    fn lock_type(&self) -> LockType {
+        match self {
+            GitOperation::ModifyFiles(_) => LockType::FileExclusive,
+            GitOperation::CreateBranch(_) => LockType::BranchExclusive,
+            GitOperation::MergeBranches { .. } => LockType::BranchExclusive,
+            GitOperation::RebaseBranch { .. } => LockType::BranchExclusive,
+            GitOperation::RepositoryMaintenance => LockType::RepositoryExclusive,
+        }
+    }
+
+    /// Get resources affected by this operation
+    fn resources(&self) -> Vec<String> {
+        match self {
+            GitOperation::ModifyFiles(files) => files
+                .iter()
+                .map(|p| p.to_string_lossy().to_string())
+                .collect(),
+            GitOperation::CreateBranch(branch) => vec![format!("branch:{}", branch)],
+            GitOperation::MergeBranches { source, target } => {
+                vec![format!("branch:{}", source), format!("branch:{}", target)]
+            }
+            GitOperation::RebaseBranch { branch, base } => {
+                vec![format!("branch:{}", branch), format!("branch:{}", base)]
+            }
+            GitOperation::RepositoryMaintenance => vec!["repository".to_string()],
+        }
+    }
+
+    /// Check if this operation conflicts with an existing lock
+    fn conflicts_with(&self, lock: &LockEntry) -> bool {
+        let self_resources = self.resources();
+
+        // Check resource overlap
+        for resource in &self_resources {
+            if lock.resources.contains(resource) {
+                match (&self.lock_type(), &lock.lock_type) {
+                    // Two exclusive locks always conflict
+                    (LockType::FileExclusive, LockType::FileExclusive) => return true,
+                    (LockType::BranchExclusive, LockType::BranchExclusive) => return true,
+                    (LockType::RepositoryExclusive, _) => return true,
+                    (_, LockType::RepositoryExclusive) => return true,
+
+                    // Exclusive vs Shared conflicts
+                    (LockType::FileExclusive, LockType::FileShared) => return true,
+                    (LockType::FileShared, LockType::FileExclusive) => return true,
+
+                    // Shared vs Shared is OK for read operations
+                    (LockType::FileShared, LockType::FileShared) => continue,
+                    _ => continue,
+                }
+            }
         }
 
-        Ok(removed_count)
+        false
+    }
+}
+
+/// Default conflict detector implementation
+pub struct BasicConflictDetector;
+
+#[async_trait::async_trait]
+impl ConflictDetectorTrait for BasicConflictDetector {
+    async fn detect_conflicts(
+        &self,
+        _repo: &Repository,
+        operation: &GitOperation,
+        existing_locks: &[LockEntry],
+    ) -> Result<Vec<LockConflict>> {
+        let mut conflicts = Vec::new();
+
+        for lock in existing_locks {
+            if operation.conflicts_with(lock) {
+                conflicts.push(LockConflict {
+                    conflicting_lock: lock.clone(),
+                    reason: format!("Resource conflict on {:?}", lock.resources),
+                    resolution: ConflictResolution::Wait,
+                });
+            }
+        }
+
+        Ok(conflicts)
+    }
+
+    async fn conflict_probability(
+        &self,
+        _repo: &Repository,
+        op1: &GitOperation,
+        op2: &GitOperation,
+    ) -> Result<f64> {
+        if op1.conflicts_with(&LockEntry {
+            id: "".to_string(),
+            owner: "".to_string(),
+            lock_type: op2.lock_type(),
+            acquired_at: Utc::now(),
+            timeout: Duration::from_secs(0),
+            resources: op2.resources(),
+        }) {
+            Ok(1.0) // Certain conflict
+        } else {
+            Ok(0.0) // No conflict
+        }
     }
 }
 
@@ -288,54 +380,42 @@ mod tests {
     use tempfile::TempDir;
 
     #[tokio::test]
-    async fn test_file_lock_basic() {
+    async fn test_lock_acquisition() {
         let temp_dir = TempDir::new().unwrap();
+        let repo = Repository::init(&temp_dir).unwrap();
+
+        // Create bare repo for testing
+        drop(repo);
+
         let manager = GitLockManager::new(&temp_dir).unwrap();
 
-        let file_path = Path::new("test.txt");
+        let operation = GitOperation::ModifyFiles(vec!["test.txt".into()]);
+        let guard = manager
+            .acquire_lock(operation, "test_user".to_string(), None)
+            .await
+            .unwrap();
 
-        // Acquire lock
-        let lock = manager.acquire_file_lock(file_path, "user1", "testing").await.unwrap();
-        assert_eq!(lock.owner, "user1");
-        assert_eq!(lock.path, file_path);
+        // Lock should be active
+        assert_eq!(manager.active_locks().len(), 1);
 
-        // Check if locked
-        let owner = manager.is_file_locked(file_path).await.unwrap();
-        assert_eq!(owner, Some("user1".to_string()));
-
-        // Try to acquire same lock (should fail)
-        let result = manager.acquire_file_lock(file_path, "user2", "testing").await;
-        assert!(result.is_err());
-
-        // Release lock
-        manager.release_file_lock(file_path, "user1").await.unwrap();
-
-        // Check if unlocked
-        let owner = manager.is_file_locked(file_path).await.unwrap();
-        assert_eq!(owner, None);
+        // Lock should be released when guard is dropped
+        drop(guard);
+        assert_eq!(manager.active_locks().len(), 0);
     }
 
-    #[tokio::test]
-    async fn test_branch_lock_basic() {
-        let temp_dir = TempDir::new().unwrap();
-        let manager = GitLockManager::new(&temp_dir).unwrap();
+    #[test]
+    fn test_operation_conflicts() {
+        let op1 = GitOperation::ModifyFiles(vec!["file1.txt".into()]);
+        let op2 = GitOperation::ModifyFiles(vec!["file1.txt".into()]);
 
-        let branch = "feature/test";
-
-        // Acquire lock
-        let lock = manager.acquire_branch_lock(branch, "user1", None).await.unwrap();
-        assert_eq!(lock.owner, "user1");
-        assert_eq!(lock.branch, branch);
-
-        // Check if locked
-        let owner = manager.is_branch_locked(branch).await.unwrap();
-        assert_eq!(owner, Some("user1".to_string()));
-
-        // Release lock
-        manager.release_branch_lock(branch, "user1").await.unwrap();
-
-        // Check if unlocked
-        let owner = manager.is_branch_locked(branch).await.unwrap();
-        assert_eq!(owner, None);
+        // Same file operations should conflict
+        assert!(op1.conflicts_with(&LockEntry {
+            id: "test".to_string(),
+            owner: "user".to_string(),
+            lock_type: LockType::FileExclusive,
+            acquired_at: Utc::now(),
+            timeout: Duration::from_secs(60),
+            resources: vec!["file1.txt".to_string()],
+        }));
     }
 }
