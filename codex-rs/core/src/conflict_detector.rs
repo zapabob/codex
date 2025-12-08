@@ -21,7 +21,6 @@ use crate::git_lock_manager::GitOperation;
 use crate::git_lock_manager::LockConflict;
 use crate::git_lock_manager::LockEntry;
 
-
 /// AST-based conflict detector
 pub struct AstConflictDetector {
     /// Repository path
