@@ -26,3 +26,15 @@ impl From<ExitCode> for std::process::ExitCode {
         std::process::ExitCode::from(code as u8)
     }
 }
+
+/// Handle exit status from a command execution
+pub fn handle_exit_status(exit_code: Option<i32>) -> ExitCode {
+    match exit_code {
+        Some(0) => ExitCode::Success,
+        Some(1) => ExitCode::Error,
+        Some(2) => ExitCode::ConfigError,
+        Some(3) => ExitCode::NetworkError,
+        Some(4) => ExitCode::AuthError,
+        _ => ExitCode::Error,
+    }
+}
