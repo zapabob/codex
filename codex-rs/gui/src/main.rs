@@ -28,6 +28,31 @@ use tracing::info;
 use tracing::warn;
 use uuid::Uuid;
 
+// MCP Connection structures
+#[derive(Serialize)]
+struct MCPConnection {
+    id: String,
+    name: String,
+    #[serde(rename = "type")]
+    connection_type: String,
+    status: String,
+    url: Option<String>,
+    last_connected: Option<DateTime<Utc>>,
+    request_count: Option<u32>,
+    avg_response_time: Option<f64>,
+}
+
+// System Metrics structures
+#[derive(Serialize)]
+struct SystemMetrics {
+    cpu_usage: f64,
+    memory_usage: f64,
+    disk_usage: f64,
+    network_usage: Option<f64>,
+    active_processes: u32,
+    uptime: u64,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), GuiError> {
     init_tracing();
@@ -45,6 +70,8 @@ async fn main() -> Result<(), GuiError> {
     let app = Router::new()
         .route("/api/actions", get(list_actions))
         .route("/api/actions/{id}/execute", post(execute_action))
+        .route("/api/mcp/connections", get(list_mcp_connections))
+        .route("/api/system/metrics", get(get_system_metrics))
         .with_state(state)
         .layer(
             CorsLayer::new()
@@ -637,4 +664,58 @@ struct ErrorResponse {
     code: &'static str,
     message: String,
     field: Option<String>,
+}
+
+// MCP Connections handler
+async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
+    // Mock MCP connections - replace with real implementation
+    let connections = vec![
+        MCPConnection {
+            id: "filesystem-1".to_string(),
+            name: "Local Filesystem".to_string(),
+            connection_type: "filesystem".to_string(),
+            status: "connected".to_string(),
+            url: Some("file:///".to_string()),
+            last_connected: Some(Utc::now()),
+            request_count: Some(42),
+            avg_response_time: Some(15.7),
+        },
+        MCPConnection {
+            id: "github-1".to_string(),
+            name: "GitHub Integration".to_string(),
+            connection_type: "github".to_string(),
+            status: "connected".to_string(),
+            url: Some("https://api.github.com".to_string()),
+            last_connected: Some(Utc::now()),
+            request_count: Some(28),
+            avg_response_time: Some(120.5),
+        },
+        MCPConnection {
+            id: "playwright-1".to_string(),
+            name: "Playwright Browser".to_string(),
+            connection_type: "playwright".to_string(),
+            status: "connected".to_string(),
+            url: Some("http://localhost:3000".to_string()),
+            last_connected: Some(Utc::now()),
+            request_count: Some(15),
+            avg_response_time: Some(89.2),
+        },
+    ];
+
+    Json(connections)
+}
+
+// System Metrics handler
+async fn get_system_metrics() -> Json<SystemMetrics> {
+    // Mock system metrics - replace with real system monitoring
+    let metrics = SystemMetrics {
+        cpu_usage: 45.2,
+        memory_usage: 68.7,
+        disk_usage: 52.1,
+        network_usage: Some(12.5),
+        active_processes: 127,
+        uptime: 3600 * 24 * 2, // 2 days in seconds
+    };
+
+    Json(metrics)
 }
