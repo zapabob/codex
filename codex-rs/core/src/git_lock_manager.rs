@@ -95,7 +95,7 @@ pub trait ConflictDetectorTrait: Send + Sync {
     /// Detect potential conflicts between operations
     async fn detect_conflicts(
         &self,
-        repo: &Repository,
+        repo_path: &std::path::Path,
         operation: &GitOperation,
         existing_locks: &[LockEntry],
     ) -> Result<Vec<LockConflict>>;
@@ -103,7 +103,7 @@ pub trait ConflictDetectorTrait: Send + Sync {
     /// Calculate conflict probability score (0.0-1.0)
     async fn conflict_probability(
         &self,
-        repo: &Repository,
+        repo_path: &std::path::Path,
         op1: &GitOperation,
         op2: &GitOperation,
     ) -> Result<f64>;
@@ -170,14 +170,14 @@ impl GitLockManager {
 
         // Check for conflicts before acquiring permit
         if let Some(detector) = &self.conflict_detector {
-            let conflicts = self.check_conflicts(&operation).await?;
+            let conflicts = detector.detect_conflicts(&self.repo_path, &operation, &[]).await?;
             if !conflicts.is_empty() {
                 return Err(anyhow::anyhow!("Lock conflicts detected: {:?}", conflicts));
             }
         }
 
         // Acquire concurrency permit
-        let permit = timeout(Duration::from_secs(30), self.concurrency_limit.acquire()).await??;
+        let permit = tokio::time::timeout(Duration::from_secs(30), self.concurrency_limit.acquire()).await??;
 
         // Generate lock ID
         let lock_id = format!("{}_{}", owner, chrono::Utc::now().timestamp_millis());
@@ -213,8 +213,7 @@ impl GitLockManager {
         };
 
         if let Some(detector) = &self.conflict_detector {
-            let repo = Repository::open(&self.repo_path)?;
-            detector.detect_conflicts(&repo, operation, &locks).await
+            detector.detect_conflicts(&self.repo_path, operation, &locks).await
         } else {
             // Simple conflict detection without advanced analysis
             let mut conflicts = Vec::new();

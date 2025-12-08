@@ -9,6 +9,7 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
 use crate::git_lock_manager::GitLockManager;
 use crate::conflict_detector::AstConflictDetector;
+use crate::git_lock_manager::ConflictDetectorTrait;
 // use crate::agents::Agent;
 // use crate::plan::{Plan, Task};
 use crate::error::Result;
@@ -76,7 +77,7 @@ pub struct AIOrchestrator {
     development_mode: DevelopmentMode,
     worktree_manager: Option<Arc<crate::orchestration::worktree_manager::WorktreeManager>>,
     git_lock_manager: Option<Arc<GitLockManager>>,
-    conflict_detector: Option<Arc<Mutex<ConflictDetector>>>,
+    conflict_detector: Option<Arc<Mutex<dyn ConflictDetectorTrait + Send + Sync>>>,
 }
 
 /// Commands for the orchestrator
@@ -288,7 +289,7 @@ impl AIOrchestrator {
         };
 
         let conflict_detector = if mode == DevelopmentMode::Parallel {
-            Some(Arc::new(Mutex::new(ConflictDetector::new())))
+            Some(Arc::new(Mutex::new(AstConflictDetector::new()) as Arc<Mutex<dyn ConflictDetectorTrait + Send + Sync>>))
         } else {
             None
         };
