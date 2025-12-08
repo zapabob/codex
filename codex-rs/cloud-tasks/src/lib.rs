@@ -806,11 +806,10 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     {
                                         continue;
                                     }
-                                    let diff_lines: Vec<String> = attempt
-                                        .diff
-                                        .as_ref()
-                                        .map(|d| d.lines().map(str::to_string).collect())
-                                        .unwrap_or_default();
+                                    let diff_lines = <std::string::String as AsRef<str>>::as_ref(&attempt.diff)
+                                        .lines()
+                                        .map(|s| s.to_string())
+                                        .collect::<Vec<String>>();
                                     let text_lines = conversation_lines(None, &attempt.messages);
                                     ov.attempts.push(app::AttemptView {
                                         turn_id: Some(attempt.turn_id.clone()),
