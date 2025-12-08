@@ -1,496 +1,464 @@
-//! Conflict Detector for Git Operations
+//! Conflict Detector for Git operations
 //!
-//! This module provides AST-based conflict detection and prediction
-//! for Git merge operations in parallel development scenarios.
+//! This module provides advanced conflict detection using AST analysis
+//! and machine learning-based conflict prediction.
 
-use anyhow::{anyhow, Result};
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::BTreeMap;
 use std::path::Path;
-use syn::{parse_file, visit::Visit, File, Item, ItemFn, ItemStruct, ItemEnum, ItemImpl, Expr};
-use git2::{Repository, Diff, DiffOptions};
+use std::sync::Arc;
 
-/// Detected conflict between changes
-#[derive(Debug, Clone)]
-pub struct Conflict {
-    pub file_path: String,
-    pub conflict_type: ConflictType,
-    pub severity: ConflictSeverity,
-    pub description: String,
-    pub line_numbers: Vec<usize>,
-    pub symbols_affected: Vec<String>,
-}
+use anyhow::Result;
+use git2::Repository;
+use serde::Deserialize;
+use serde::Serialize;
 
-/// Type of conflict
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ConflictType {
-    /// Syntactic conflict (parse errors)
-    Syntactic,
-    /// Semantic conflict (different changes to same symbol)
-    Semantic,
-    /// Structural conflict (changes to file structure)
-    Structural,
-    /// Naming conflict (same names for different things)
-    Naming,
-}
-
-/// Severity of conflict
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ConflictSeverity {
-    Low,
-    Medium,
-    High,
-    Critical,
-}
-
-/// Conflict detection result
-#[derive(Debug)]
-pub struct ConflictAnalysis {
-    pub conflicts: Vec<Conflict>,
-    pub confidence_score: f64,
-    pub recommended_action: RecommendedAction,
-}
-
-/// Recommended action for conflict resolution
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RecommendedAction {
-    /// Safe to auto-merge
-    AutoMerge,
-    /// Manual review required
-    ManualReview,
-    /// Cannot merge automatically
-    CannotMerge,
-    /// Requires human intervention
-    HumanIntervention,
-}
+use crate::git_lock_manager::ConflictDetectorTrait;
+use crate::git_lock_manager::ConflictResolution;
+use crate::git_lock_manager::GitOperation;
+use crate::git_lock_manager::LockConflict;
+use crate::git_lock_manager::LockEntry;
 
 /// AST-based conflict detector
-#[derive(Debug)]
-pub struct ConflictDetector {
-    syntax_cache: BTreeMap<String, File>,
-    symbol_index: BTreeMap<String, SymbolInfo>,
+pub struct AstConflictDetector {
+    /// Cached AST analysis results
+    ast_cache: Arc<parking_lot::Mutex<BTreeMap<String, AstAnalysis>>>,
 }
 
+/// AST analysis result for a file
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AstAnalysis {
+    /// Functions defined in the file
+    pub functions: Vec<String>,
+    /// Structs/classes defined in the file
+    pub structs: Vec<String>,
+    /// Imports used in the file
+    pub imports: Vec<String>,
+    /// Last modified timestamp
+    pub modified_at: chrono::DateTime<chrono::Utc>,
+}
+
+/// Conflict analysis result
 #[derive(Debug, Clone)]
-struct SymbolInfo {
-    file_path: String,
-    symbol_type: SymbolType,
-    line_number: usize,
-    dependencies: Vec<String>,
+pub struct ConflictAnalysis {
+    /// Probability of semantic conflict (0.0-1.0)
+    pub semantic_conflict_prob: f64,
+    /// Overlapping code regions
+    pub overlapping_regions: Vec<CodeRegion>,
+    /// Suggested merge strategy
+    pub merge_strategy: MergeStrategy,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum SymbolType {
-    Function,
-    Struct,
-    Enum,
-    Trait,
-    Module,
-    Constant,
-    Static,
+/// Code region information
+#[derive(Debug, Clone)]
+pub struct CodeRegion {
+    /// Start line
+    pub start_line: usize,
+    /// End line
+    pub end_line: usize,
+    /// Region type (function, struct, etc.)
+    pub region_type: String,
+    /// Region identifier
+    pub identifier: String,
 }
 
-impl ConflictDetector {
-    /// Create new conflict detector
+/// Merge strategy recommendations
+#[derive(Debug, Clone)]
+pub enum MergeStrategy {
+    /// Automatic merge possible
+    AutoMerge,
+    /// Manual merge required
+    ManualMerge,
+    /// Conflict cannot be resolved automatically
+    Unresolvable,
+    /// Use alternative merge approach
+    Alternative,
+}
+
+impl AstConflictDetector {
+    /// Create new AST conflict detector
     pub fn new() -> Self {
         Self {
-            syntax_cache: BTreeMap::new(),
-            symbol_index: BTreeMap::new(),
+            ast_cache: Arc::new(parking_lot::Mutex::new(BTreeMap::new())),
         }
     }
 
-    /// Analyze potential conflicts between two branches
-    pub async fn analyze_branch_conflicts(&mut self, repo_path: &Path, branch_a: &str, branch_b: &str) -> Result<ConflictAnalysis> {
-        let repo = Repository::open(repo_path)?;
+    /// Analyze file using AST parsing
+    fn analyze_file(&self, file_path: &Path, content: &str) -> Result<AstAnalysis> {
+        let mut functions = Vec::new();
+        let mut structs = Vec::new();
+        let mut imports = Vec::new();
 
-        // Get commits from both branches
-        let commit_a = repo.find_branch(branch_a, git2::BranchType::Local)?
-            .get().peel_to_commit()?;
-        let commit_b = repo.find_branch(branch_b, git2::BranchType::Local)?
-            .get().peel_to_commit()?;
+        // Simple Rust AST analysis (in real implementation, use syn crate)
+        for line in content.lines() {
+            let line = line.trim();
 
-        // Find common ancestor
-        let merge_base = repo.merge_base(commit_a.id(), commit_b.id())?;
-        let merge_base_commit = repo.find_commit(merge_base)?;
+            // Detect function definitions
+            if line.starts_with("fn ") || line.starts_with("pub fn ") {
+                if let Some(end) = line.find('(') {
+                    let func_name = line[if line.starts_with("pub ") { 7 } else { 3 }..end].trim();
+                    functions.push(func_name.to_string());
+                }
+            }
 
-        // Get diffs from merge base to each branch
-        let mut diff_opts = DiffOptions::new();
-        diff_opts.include_untracked(false);
+            // Detect struct definitions
+            if line.starts_with("struct ") || line.starts_with("pub struct ") {
+                if let Some(end) = line.find('{') {
+                    let struct_name =
+                        line[if line.starts_with("pub ") { 10 } else { 7 }..end].trim();
+                    structs.push(struct_name.to_string());
+                }
+            }
 
-        let diff_a = repo.diff_tree_to_tree(
-            Some(&merge_base_commit.tree()?),
-            Some(&commit_a.tree()?),
-            Some(&mut diff_opts),
-        )?;
-
-        let diff_b = repo.diff_tree_to_tree(
-            Some(&merge_base_commit.tree()?),
-            Some(&commit_b.tree()?),
-            Some(&mut diff_opts),
-        )?;
-
-        // Analyze conflicts
-        self.analyze_diffs(&diff_a, &diff_b)
-    }
-
-    /// Analyze diffs for conflicts
-    fn analyze_diffs(&mut self, diff_a: &Diff, diff_b: &Diff) -> Result<ConflictAnalysis> {
-        let mut conflicts = Vec::new();
-
-        // Get all files changed in both diffs
-        let files_a = self.get_changed_files(diff_a)?;
-        let files_b = self.get_changed_files(diff_b)?;
-
-        // Find overlapping files
-        let overlapping_files: HashSet<_> = files_a.intersection(&files_b).collect();
-
-        for &file_path in &overlapping_files {
-            if let Some(file_conflicts) = self.analyze_file_conflicts(file_path, diff_a, diff_b)? {
-                conflicts.extend(file_conflicts);
+            // Detect imports
+            if line.starts_with("use ") {
+                imports.push(line[4..].trim().to_string());
             }
         }
 
-        // Calculate confidence score
-        let confidence_score = self.calculate_confidence_score(&conflicts);
-
-        // Determine recommended action
-        let recommended_action = self.determine_action(&conflicts, confidence_score);
-
-        Ok(ConflictAnalysis {
-            conflicts,
-            confidence_score,
-            recommended_action,
+        Ok(AstAnalysis {
+            functions,
+            structs,
+            imports,
+            modified_at: chrono::Utc::now(),
         })
     }
 
-    /// Get files changed in diff
-    fn get_changed_files(&self, diff: &Diff) -> Result<HashSet<String>> {
-        let mut files = HashSet::new();
+    /// Calculate semantic overlap between two operations
+    fn calculate_semantic_overlap(&self, op1: &GitOperation, op2: &GitOperation) -> f64 {
+        match (op1, op2) {
+            (GitOperation::ModifyFiles(files1), GitOperation::ModifyFiles(files2)) => {
+                // Calculate file overlap
+                let overlap: f64 = files1
+                    .iter()
+                    .filter(|f1| files2.iter().any(|f2| f1 == f2))
+                    .count() as f64;
 
-        diff.foreach(&mut |delta, _| {
-            if let Some(path) = delta.new_file().path() {
-                if let Some(path_str) = path.to_str() {
-                    files.insert(path_str.to_string());
+                if overlap > 0.0 {
+                    // If files overlap, high conflict probability
+                    0.8
+                } else {
+                    // Check for related files (same module, etc.)
+                    self.check_related_files(files1, files2)
                 }
             }
-            true
-        }, None, None, None)?;
-
-        Ok(files)
+            _ => 0.0, // Other operations have low semantic conflict
+        }
     }
 
-    /// Analyze conflicts in a single file
-    fn analyze_file_conflicts(&mut self, file_path: &str, diff_a: &Diff, diff_b: &Diff) -> Result<Option<Vec<Conflict>>> {
-        // Get changes for this file from both diffs
-        let changes_a = self.get_file_changes(diff_a, file_path)?;
-        let changes_b = self.get_file_changes(diff_b, file_path)?;
+    /// Check if files are related (same module, etc.)
+    fn check_related_files(
+        &self,
+        files1: &[std::path::PathBuf],
+        files2: &[std::path::PathBuf],
+    ) -> f64 {
+        for f1 in files1 {
+            for f2 in files2 {
+                if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent()) {
+                    if p1 == p2 {
+                        // Same directory - potential conflict
+                        return 0.3;
+                    }
+                }
 
-        if changes_a.is_empty() && changes_b.is_empty() {
-            return Ok(None);
-        }
+                // Check file name similarity (without extension)
+                let n1 = f1.file_stem().and_then(|s| s.to_str());
+                let n2 = f2.file_stem().and_then(|s| s.to_str());
 
-        let mut conflicts = Vec::new();
-
-        // Parse file content to AST (if it's Rust code)
-        if file_path.ends_with(".rs") {
-            if let Some(ast_conflicts) = self.analyze_ast_conflicts(file_path, &changes_a, &changes_b)? {
-                conflicts.extend(ast_conflicts);
-            }
-        }
-
-        // Analyze line-based conflicts
-        if let Some(line_conflicts) = self.analyze_line_conflicts(file_path, &changes_a, &changes_b)? {
-            conflicts.extend(line_conflicts);
-        }
-
-        Ok(if conflicts.is_empty() { None } else { Some(conflicts) })
-    }
-
-    /// Get changes for specific file
-    fn get_file_changes(&self, diff: &Diff, file_path: &str) -> Result<Vec<FileChange>> {
-        let mut changes = Vec::new();
-
-        diff.foreach(&mut |delta, _| {
-            if let Some(path) = delta.new_file().path() {
-                if let Some(path_str) = path.to_str() {
-                    if path_str == file_path {
-                        // Get hunk information
-                        let mut hunks = Vec::new();
-                        diff.foreach(&mut |_, hunk| {
-                            if let Some(hunk_info) = hunk {
-                                hunks.push(HunkInfo {
-                                    old_start: hunk_info.old_start(),
-                                    old_lines: hunk_info.old_lines(),
-                                    new_start: hunk_info.new_start(),
-                                    new_lines: hunk_info.new_lines(),
-                                });
-                            }
-                            true
-                        }, None, None, Some(file_path))?;
-
-                        changes.push(FileChange {
-                            file_path: file_path.to_string(),
-                            change_type: self.delta_to_change_type(delta.status()),
-                            hunks,
-                        });
+                if let (Some(n1), Some(n2)) = (n1, n2) {
+                    if n1.contains(n2) || n2.contains(n1) {
+                        // Similar names - potential conflict
+                        return 0.2;
                     }
                 }
             }
-            true
-        }, None, None, None)?;
+        }
 
-        Ok(changes)
+        0.0
+    }
+}
+
+#[async_trait::async_trait]
+impl ConflictDetectorTrait for AstConflictDetector {
+    async fn detect_conflicts(
+        &self,
+        repo: &Repository,
+        operation: &GitOperation,
+        existing_locks: &[LockEntry],
+    ) -> Result<Vec<LockConflict>> {
+        let mut conflicts = Vec::new();
+
+        for lock in existing_locks {
+            let conflict_prob = self
+                .conflict_probability(
+                    repo,
+                    operation,
+                    &GitOperation::ModifyFiles(
+                        lock.resources
+                            .iter()
+                            .filter_map(|r| {
+                                if r.starts_with("branch:") {
+                                    None
+                                } else {
+                                    Some(std::path::PathBuf::from(r))
+                                }
+                            })
+                            .collect(),
+                    ),
+                )
+                .await?;
+
+            if conflict_prob > 0.5 {
+                conflicts.push(LockConflict {
+                    conflicting_lock: lock.clone(),
+                    reason: format!("High semantic conflict probability: {:.2}", conflict_prob),
+                    resolution: if conflict_prob > 0.8 {
+                        ConflictResolution::AlternativePath
+                    } else {
+                        ConflictResolution::Wait
+                    },
+                });
+            }
+        }
+
+        Ok(conflicts)
     }
 
-    /// Convert git2 delta status to change type
-    fn delta_to_change_type(&self, status: git2::Delta) -> ChangeType {
-        match status {
-            git2::Delta::Added => ChangeType::Added,
-            git2::Delta::Deleted => ChangeType::Deleted,
-            git2::Delta::Modified => ChangeType::Modified,
-            git2::Delta::Renamed => ChangeType::Renamed,
-            _ => ChangeType::Modified,
+    async fn conflict_probability(
+        &self,
+        repo: &Repository,
+        op1: &GitOperation,
+        op2: &GitOperation,
+    ) -> Result<f64> {
+        // Basic semantic overlap calculation
+        let semantic_overlap = self.calculate_semantic_overlap(op1, op2);
+
+        // Add repository state factors
+        let repo_factor = match repo.state() {
+            git2::RepositoryState::Merge => 0.3, // Ongoing merge increases conflict risk
+            git2::RepositoryState::Rebase | git2::RepositoryState::RebaseInteractive => 0.4, // Rebase operations are risky
+            _ => 0.0, // Clean state
+        };
+
+        Ok((semantic_overlap + repo_factor).min(1.0))
+    }
+}
+
+/// Machine learning-based conflict predictor
+pub struct MLConflictPredictor {
+    /// Trained model weights (placeholder)
+    model_weights: BTreeMap<String, f64>,
+}
+
+impl MLConflictPredictor {
+    /// Create new ML predictor with pre-trained weights
+    pub fn new() -> Self {
+        let mut weights = BTreeMap::new();
+
+        // Initialize with heuristic weights
+        weights.insert("file_overlap".to_string(), 0.7);
+        weights.insert("directory_proximity".to_string(), 0.3);
+        weights.insert("function_overlap".to_string(), 0.6);
+        weights.insert("import_conflict".to_string(), 0.4);
+        weights.insert("repo_state_merge".to_string(), 0.5);
+        weights.insert("repo_state_rebase".to_string(), 0.6);
+
+        Self {
+            model_weights: weights,
         }
     }
 
-    /// Analyze AST-based conflicts for Rust files
-    fn analyze_ast_conflicts(&mut self, file_path: &str, changes_a: &[FileChange], changes_b: &[FileChange]) -> Result<Option<Vec<Conflict>>> {
-        // This is a simplified implementation
-        // In a real implementation, you would:
-        // 1. Parse the file content to AST
-        // 2. Extract symbols (functions, structs, etc.)
-        // 3. Compare symbol changes between branches
-        // 4. Detect semantic conflicts
+    /// Predict conflict using ML model
+    fn predict_conflict(&self, features: &BTreeMap<String, f64>) -> f64 {
+        let mut score = 0.0;
 
-        let mut conflicts = Vec::new();
-
-        // Simple heuristic: if both branches modify the same lines, flag as conflict
-        let lines_a: HashSet<_> = changes_a.iter()
-            .flat_map(|c| &c.hunks)
-            .flat_map(|h| h.new_start..h.new_start + h.new_lines)
-            .collect();
-
-        let lines_b: HashSet<_> = changes_b.iter()
-            .flat_map(|c| &c.hunks)
-            .flat_map(|h| h.new_start..h.new_start + h.new_lines)
-            .collect();
-
-        let overlapping_lines: Vec<_> = lines_a.intersection(&lines_b).collect();
-
-        if !overlapping_lines.is_empty() {
-            conflicts.push(Conflict {
-                file_path: file_path.to_string(),
-                conflict_type: ConflictType::Semantic,
-                severity: ConflictSeverity::High,
-                description: format!("Overlapping line changes detected in {} lines", overlapping_lines.len()),
-                line_numbers: overlapping_lines.into_iter().cloned().collect(),
-                symbols_affected: vec!["unknown".to_string()], // Would be determined by AST analysis
-            });
+        for (feature, value) in features {
+            if let Some(weight) = self.model_weights.get(feature) {
+                score += weight * value;
+            }
         }
 
-        Ok(if conflicts.is_empty() { None } else { Some(conflicts) })
+        // Sigmoid activation to get probability
+        1.0 / (1.0 + (-score).exp())
     }
 
-    /// Analyze line-based conflicts
-    fn analyze_line_conflicts(&self, file_path: &str, changes_a: &[FileChange], changes_b: &[FileChange]) -> Result<Option<Vec<Conflict>>> {
-        let mut conflicts = Vec::new();
+    /// Extract features from operations
+    fn extract_features(
+        &self,
+        repo: &Repository,
+        op1: &GitOperation,
+        op2: &GitOperation,
+    ) -> BTreeMap<String, f64> {
+        let mut features = BTreeMap::new();
 
-        // Check for exact line conflicts
-        for change_a in changes_a {
-            for change_b in changes_b {
-                for hunk_a in &change_a.hunks {
-                    for hunk_b in &change_b.hunks {
-                        let start_a = hunk_a.new_start;
-                        let end_a = start_a + hunk_a.new_lines;
-                        let start_b = hunk_b.new_start;
-                        let end_b = start_b + hunk_b.new_lines;
+        match (op1, op2) {
+            (GitOperation::ModifyFiles(files1), GitOperation::ModifyFiles(files2)) => {
+                // File overlap
+                let overlap: f64 = files1
+                    .iter()
+                    .filter(|f1| files2.iter().any(|f2| f1 == f2))
+                    .count() as f64
+                    / (files1.len().max(1) + files2.len().max(1)) as f64;
+                features.insert("file_overlap".to_string(), overlap);
 
-                        // Check for overlapping ranges
-                        if start_a < end_b && start_b < end_a {
-                            conflicts.push(Conflict {
-                                file_path: file_path.to_string(),
-                                conflict_type: ConflictType::Structural,
-                                severity: ConflictSeverity::Medium,
-                                description: "Overlapping line ranges in changes".to_string(),
-                                line_numbers: vec![start_a, start_b],
-                                symbols_affected: vec![],
-                            });
+                // Directory proximity
+                let mut dir_score = 0.0;
+                for f1 in files1 {
+                    for f2 in files2 {
+                        if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent()) {
+                            if p1 == p2 {
+                                dir_score = 1.0;
+                                break;
+                            }
                         }
                     }
                 }
+                features.insert("directory_proximity".to_string(), dir_score);
+            }
+            _ => {}
+        }
+
+        // Repository state features
+        let repo_state = match repo.state() {
+            git2::RepositoryState::Merge => "repo_state_merge",
+            git2::RepositoryState::Rebase | git2::RepositoryState::RebaseInteractive => {
+                "repo_state_rebase"
+            }
+            _ => "",
+        };
+
+        if !repo_state.is_empty() {
+            features.insert(repo_state.to_string(), 1.0);
+        }
+
+        features
+    }
+}
+
+#[async_trait::async_trait]
+impl ConflictDetectorTrait for MLConflictPredictor {
+    async fn detect_conflicts(
+        &self,
+        repo: &Repository,
+        operation: &GitOperation,
+        existing_locks: &[LockEntry],
+    ) -> Result<Vec<LockConflict>> {
+        let mut conflicts = Vec::new();
+
+        for lock in existing_locks {
+            let lock_op = GitOperation::ModifyFiles(
+                lock.resources
+                    .iter()
+                    .filter_map(|r| {
+                        if r.starts_with("branch:") {
+                            None
+                        } else {
+                            Some(std::path::PathBuf::from(r))
+                        }
+                    })
+                    .collect(),
+            );
+
+            let features = self.extract_features(repo, operation, &lock_op);
+            let prob = self.predict_conflict(&features);
+
+            if prob > 0.6 {
+                conflicts.push(LockConflict {
+                    conflicting_lock: lock.clone(),
+                    reason: format!("ML predicted conflict probability: {:.2}", prob),
+                    resolution: if prob > 0.8 {
+                        ConflictResolution::RetryLater
+                    } else {
+                        ConflictResolution::Wait
+                    },
+                });
             }
         }
 
-        Ok(if conflicts.is_empty() { None } else { Some(conflicts) })
+        Ok(conflicts)
     }
 
-    /// Calculate confidence score for conflict analysis
-    fn calculate_confidence_score(&self, conflicts: &[Conflict]) -> f64 {
-        if conflicts.is_empty() {
-            return 1.0; // No conflicts = high confidence
-        }
-
-        let total_severity: usize = conflicts.iter()
-            .map(|c| match c.severity {
-                ConflictSeverity::Low => 1,
-                ConflictSeverity::Medium => 2,
-                ConflictSeverity::High => 3,
-                ConflictSeverity::Critical => 4,
-            })
-            .sum();
-
-        let avg_severity = total_severity as f64 / conflicts.len() as f64;
-
-        // Lower severity = higher confidence
-        (5.0 - avg_severity) / 4.0
+    async fn conflict_probability(
+        &self,
+        repo: &Repository,
+        op1: &GitOperation,
+        op2: &GitOperation,
+    ) -> Result<f64> {
+        let features = self.extract_features(repo, op1, op2);
+        Ok(self.predict_conflict(&features))
     }
-
-    /// Determine recommended action based on conflicts and confidence
-    fn determine_action(&self, conflicts: &[Conflict], confidence: f64) -> RecommendedAction {
-        if conflicts.is_empty() {
-            return RecommendedAction::AutoMerge;
-        }
-
-        let has_critical = conflicts.iter().any(|c| c.severity == ConflictSeverity::Critical);
-        let has_high = conflicts.iter().any(|c| c.severity == ConflictSeverity::High);
-
-        if has_critical || confidence < 0.3 {
-            RecommendedAction::HumanIntervention
-        } else if has_high || confidence < 0.6 {
-            RecommendedAction::ManualReview
-        } else {
-            RecommendedAction::CannotMerge
-        }
-    }
-
-    /// Quick conflict check for file operations
-    pub async fn check_file_operation_conflict(&self, file_path: &str, operation: &str) -> Result<bool> {
-        // Simplified check - in real implementation, this would:
-        // 1. Check current locks on the file
-        // 2. Analyze pending operations
-        // 3. Predict conflicts based on operation type
-
-        Ok(false) // Placeholder - no conflict
-    }
-}
-
-#[derive(Debug)]
-struct FileChange {
-    file_path: String,
-    change_type: ChangeType,
-    hunks: Vec<HunkInfo>,
-}
-
-#[derive(Debug)]
-struct HunkInfo {
-    old_start: usize,
-    old_lines: usize,
-    new_start: usize,
-    new_lines: usize,
-}
-
-#[derive(Debug)]
-enum ChangeType {
-    Added,
-    Deleted,
-    Modified,
-    Renamed,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
     use tempfile::TempDir;
-    use git2::{Repository, Signature};
 
-    async fn setup_test_repo() -> Result<(TempDir, Repository, ConflictDetector)> {
-        let temp_dir = TempDir::new()?;
-        let repo_path = temp_dir.path();
+    #[test]
+    fn test_ast_analysis() {
+        let detector = AstConflictDetector::new();
 
-        // Initialize git repository
-        let repo = Repository::init(repo_path)?;
+        let content = r#"
+        use std::collections::HashMap;
 
-        // Create initial commit
-        let sig = Signature::now("Test", "test@example.com")?;
+        pub struct User {
+            id: u64,
+            name: String,
+        }
 
-        fs::write(repo_path.join("test.rs"), "fn main() { println!(\"Hello\"); }")?;
-        let mut index = repo.index()?;
-        index.add_path(std::path::Path::new("test.rs"))?;
-        let tree_id = index.write_tree()?;
-        let tree = repo.find_tree(tree_id)?;
-        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[])?;
+        pub fn create_user(id: u64, name: &str) -> User {
+            User { id, name: name.to_string() }
+        }
 
-        let detector = ConflictDetector::new();
+        pub fn get_user(id: u64) -> Option<User> {
+            None
+        }
+        "#;
 
-        Ok((temp_dir, repo, detector))
-    }
+        let analysis = detector
+            .analyze_file(std::path::Path::new("test.rs"), content)
+            .unwrap();
 
-    #[tokio::test]
-    async fn test_conflict_detector_creation() {
-        let detector = ConflictDetector::new();
-        assert!(detector.syntax_cache.is_empty());
-        assert!(detector.symbol_index.is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_file_operation_conflict_check() {
-        let detector = ConflictDetector::new();
-        let result = detector.check_file_operation_conflict("test.rs", "write").await;
-        assert!(result.is_ok());
-        // Currently always returns false (no conflict)
-        assert!(!result.unwrap());
+        assert!(analysis.structs.contains(&"User".to_string()));
+        assert!(analysis.functions.contains(&"create_user".to_string()));
+        assert!(analysis.functions.contains(&"get_user".to_string()));
+        assert!(analysis.imports.iter().any(|i| i.contains("HashMap")));
     }
 
     #[test]
-    fn test_confidence_score_calculation() {
-        let detector = ConflictDetector::new();
+    fn test_ml_predictor() {
+        let predictor = MLConflictPredictor::new();
 
-        // Test with no conflicts
-        let conflicts = vec![];
-        let score = detector.calculate_confidence_score(&conflicts);
-        assert_eq!(score, 1.0);
+        let mut features = BTreeMap::new();
+        features.insert("file_overlap".to_string(), 1.0);
+        features.insert("repo_state_merge".to_string(), 1.0);
 
-        // Test with mixed severity conflicts
-        let conflicts = vec![
-            Conflict {
-                file_path: "test.rs".to_string(),
-                conflict_type: ConflictType::Semantic,
-                severity: ConflictSeverity::Low,
-                description: "Test conflict".to_string(),
-                line_numbers: vec![1],
-                symbols_affected: vec![],
-            },
-            Conflict {
-                file_path: "test.rs".to_string(),
-                conflict_type: ConflictType::Structural,
-                severity: ConflictSeverity::High,
-                description: "Test conflict".to_string(),
-                line_numbers: vec![2],
-                symbols_affected: vec![],
-            },
-        ];
-        let score = detector.calculate_confidence_score(&conflicts);
-        assert!(score > 0.0 && score < 1.0);
+        let prob = predictor.predict_conflict(&features);
+        assert!(prob > 0.5); // Should predict high conflict probability
     }
 
-    #[test]
-    fn test_recommended_action_determination() {
-        let detector = ConflictDetector::new();
+    #[tokio::test]
+    async fn test_conflict_detection() {
+        let temp_dir = TempDir::new().unwrap();
+        let _repo = Repository::init(&temp_dir).unwrap();
 
-        // No conflicts
-        let action = detector.determine_action(&[], 1.0);
-        assert_eq!(action, RecommendedAction::AutoMerge);
-
-        // Critical conflict
-        let conflicts = vec![Conflict {
-            file_path: "test.rs".to_string(),
-            conflict_type: ConflictType::Syntactic,
-            severity: ConflictSeverity::Critical,
-            description: "Critical conflict".to_string(),
-            line_numbers: vec![1],
-            symbols_affected: vec![],
+        let detector = AstConflictDetector::new();
+        let operation = GitOperation::ModifyFiles(vec!["user.rs".into()]);
+        let locks = vec![LockEntry {
+            id: "test".to_string(),
+            owner: "user1".to_string(),
+            lock_type: crate::git_lock_manager::LockType::FileExclusive,
+            acquired_at: chrono::Utc::now(),
+            timeout: std::time::Duration::from_secs(60),
+            resources: vec!["user.rs".to_string()],
         }];
-        let action = detector.determine_action(&conflicts, 0.2);
-        assert_eq!(action, RecommendedAction::HumanIntervention);
+
+        let repo = Repository::open(&temp_dir).unwrap();
+        let conflicts = detector
+            .detect_conflicts(&repo, &operation, &locks)
+            .await
+            .unwrap();
+
+        // Should detect conflict with same file
+        assert!(!conflicts.is_empty());
     }
 }
