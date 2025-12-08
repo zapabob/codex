@@ -160,6 +160,747 @@ Before deploying AI-generated code:
 
 ---
 
+## 🔧 Error Zero Policy (2025-01-12)
+
+### ⚠️ ZERO TOLERANCE FOR ERRORS - 絶対ゼロポリシー ⚠️
+
+**ALL CODE MUST PASS WITH ZERO ERRORS/WARNINGS:**
+
+#### 🚀 TypeScript/JavaScript Error Zero Requirements
+
+```typescript
+// ✅ STRICT: Explicit types everywhere
+interface User {
+  readonly id: number;
+  readonly name: string;
+  readonly email: string;
+  readonly createdAt: Date;
+  readonly metadata?: Record<string, unknown>;
+}
+
+function getUserById(id: number): Promise<User | null> {
+  return database.findUser(id);
+}
+
+// ❌ FORBIDDEN: Any type usage
+function badFunction(input: any): any {
+  // NEVER use any - always use proper types
+}
+```
+
+**TypeScript Rules (2024-2025)**:
+- ✅ **Zero any types**: Use `unknown`, `never`, or proper unions
+- ✅ **Strict mode always**: `"strict": true` in tsconfig.json
+- ✅ **Explicit return types**: Every function must have explicit return type
+- ✅ **Readonly by default**: Use `readonly` for immutable properties
+- ✅ **Union types over enums**: Prefer union types for better type safety
+- ✅ **Discriminated unions**: Use discriminant properties for type safety
+- ✅ **Template literal types**: Leverage TypeScript 4.5+ template literals
+- ✅ **Satisfies operator**: Use `satisfies` for type checking without widening
+- ✅ **const assertions**: Use `as const` for literal type preservation
+- ✅ **No implicit any**: `"noImplicitAny": true`
+- ✅ **Exact optional properties**: Consider using exact optional properties
+
+#### 🦀 Rust Error Zero Requirements (2024-2025 Edition)
+
+```rust
+// ✅ RUST 2024 EDITION: Modern async, generics, and safety
+use std::future::Future;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct User {
+    pub id: u64,
+    pub name: String,
+    pub email: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+// Async functions with proper error handling
+pub async fn get_user_by_id(id: u64) -> Result<Option<User>, DatabaseError> {
+    // Implementation with proper error propagation
+    Ok(database.find_user(id).await?)
+}
+
+// Generic associated types (GATs) for advanced traits
+pub trait Repository<T> {
+    type Error;
+
+    async fn find_by_id(&self, id: u64) -> Result<Option<T>, Self::Error>;
+    async fn save(&self, entity: T) -> Result<T, Self::Error>;
+}
+
+// Zero-cost abstractions with const generics
+pub struct ArrayVec<T, const N: usize> {
+    data: [T; N],
+    len: usize,
+}
+
+// Async closures (Rust 2024)
+pub async fn process_users<F, Fut>(users: Vec<User>, processor: F) -> Result<(), Error>
+where
+    F: Fn(User) -> Fut,
+    Fut: Future<Output = Result<(), Error>>,
+{
+    futures::future::join_all(users.into_iter().map(processor)).await;
+    Ok(())
+}
+```
+
+**Rust 2024-2025 Rules**:
+- ✅ **Edition 2024**: Use latest Rust edition features
+- ✅ **Async/await everywhere**: No blocking operations in async contexts
+- ✅ **Result/Option patterns**: Never use unwrap() in production
+- ✅ **Zero unsafe blocks**: Review all unsafe code thoroughly
+- ✅ **Generic associated types (GATs)**: Use for advanced trait design
+- ✅ **Const generics**: Leverage compile-time generic parameters
+- ✅ **Async closures**: Use async move || syntax
+- ✅ **Never type (!)**: Use for diverging functions
+- ✅ **Pattern types**: Use for complex pattern matching
+- ✅ **Trait upcasting**: Coerce dyn Trait to supertraits
+- ✅ **Impl Trait in type aliases**: For cleaner APIs
+- ✅ **Precise capturing**: Use precise closure capturing
+- ✅ **Let-else statements**: For better error handling
+- ✅ **Generic const expressions**: In const contexts
+
+#### 🔨 Build & Compilation Zero Error Policy
+
+**Pre-commit hooks (MANDATORY):**
+
+```bash
+# .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: rust-check
+        name: Rust Check (Zero Errors)
+        entry: bash -c "cd codex-rs && cargo check --all-targets --all-features"
+        language: system
+        pass_filenames: false
+
+      - repo: local
+        hooks:
+          - id: rust-clippy
+            name: Rust Clippy (Zero Warnings)
+            entry: bash -c "cd codex-rs && cargo clippy --all-targets --all-features -- -D warnings"
+            language: system
+            pass_filenames: false
+
+      - repo: local
+        hooks:
+          - id: typescript-check
+            name: TypeScript Check (Zero Errors)
+            entry: bash -c "cd gui && npm run type-check"
+            language: system
+            pass_filenames: false
+
+      - repo: local
+        hooks:
+          - id: typescript-lint
+            name: TypeScript ESLint (Zero Warnings)
+            entry: bash -c "cd gui && npm run lint -- --max-warnings 0"
+            language: system
+            pass_filenames: false
+```
+
+**CI/CD Pipeline Requirements:**
+
+```yaml
+# .github/workflows/ci.yml
+name: CI - Zero Error Policy
+on: [push, pull_request]
+
+jobs:
+  rust-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cd codex-rs && cargo check --all-targets --all-features
+      - run: cd codex-rs && cargo clippy --all-targets --all-features -- -D warnings
+      - run: cd codex-rs && cargo test --all-features
+
+  typescript-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd gui && npm ci
+      - run: cd gui && npm run type-check
+      - run: cd gui && npm run lint -- --max-warnings 0
+      - run: cd gui && npm run test -- --coverage --passWithNoTests
+```
+
+#### 🧪 Testing Zero Error Policy
+
+**Test Coverage Requirements:**
+- **Unit Tests**: 85%+ line coverage, 90%+ branch coverage
+- **Integration Tests**: 100% critical paths
+- **E2E Tests**: 100% user journeys
+- **Performance Tests**: No regressions allowed
+
+**Property-based Testing (2025):**
+```rust
+// Use proptest for comprehensive testing
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn user_email_roundtrip(email in "[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}") {
+        let user = User::new(email.to_string());
+        prop_assert_eq!(user.email(), email);
+    }
+}
+```
+
+#### 📊 Performance Zero Regression Policy
+
+**Benchmark Requirements:**
+```rust
+// Criterion benchmarks for performance tracking
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+fn bench_user_creation(c: &mut Criterion) {
+    c.bench_function("create_user", |b| {
+        b.iter(|| {
+            black_box(User::new(
+                "test@example.com".to_string(),
+                "Test User".to_string()
+            ))
+        })
+    });
+}
+
+criterion_group!(benches, bench_user_creation);
+criterion_main!(benches);
+```
+
+**Performance Budgets:**
+- Build time: < 5 minutes (incremental), < 15 minutes (clean)
+- Bundle size: < 200KB gzipped for web assets
+- Memory usage: < 100MB baseline, < 200MB peak
+- CPU usage: < 10% idle, < 50% during operations
+
+#### 🔒 Security Zero Vulnerability Policy
+
+**Security Scanning (MANDATORY):**
+```bash
+# Pre-commit security checks
+cargo audit --deny warnings  # Rust security advisories
+npm audit --audit-level high # Node.js security advisories
+trivy fs . --security-checks vuln # Container/file system vulnerabilities
+```
+
+**Code Security Requirements:**
+- ✅ No hardcoded secrets or credentials
+- ✅ Input validation on all external inputs
+- ✅ SQL injection protection (prepared statements)
+- ✅ XSS protection (Content Security Policy)
+- ✅ CSRF protection for state-changing operations
+- ✅ Secure headers (HSTS, CSP, X-Frame-Options)
+- ✅ Dependency pinning for reproducible builds
+- ✅ Regular dependency updates and security patches
+
+### Core Language Features (2024-2025)
+
+**1. Async Ecosystem Excellence:**
+```rust
+// ✅ ASYNC TRAIT 2.0: Better ergonomics
+#[async_trait]
+pub trait UserService: Send + Sync {
+    async fn get_user(&self, id: UserId) -> Result<User, Error>;
+    async fn create_user(&self, user: NewUser) -> Result<User, Error>;
+}
+
+// ✅ ASYNC ITERATORS: Stream processing
+async fn process_user_stream(
+    mut users: impl Stream<Item = Result<User, Error>>
+) -> Result<Vec<User>, Error> {
+    let mut results = Vec::new();
+    while let Some(user) = users.next().await {
+        results.push(user?);
+    }
+    Ok(results)
+}
+
+// ✅ ASYNC CLOSURES: Function literals
+let processor = async move |user: User| -> Result<(), Error> {
+    database.save_user(user).await?;
+    cache.invalidate_user(user.id).await?;
+    Ok(())
+};
+```
+
+**2. Generic Programming Advancements:**
+```rust
+// ✅ CONST GENERICS: Compile-time arrays
+struct FixedVec<T, const CAP: usize> {
+    data: [MaybeUninit<T>; CAP],
+    len: usize,
+}
+
+// ✅ GATs: Associated type generics
+pub trait Iterator {
+    type Item<'a> where Self: 'a;
+
+    fn next(&mut self) -> Option<Self::Item<'_>>;
+}
+
+// ✅ SPECIALIZATION: Override implementations
+impl<T> Default for Vec<T> {
+    default fn default() -> Self {
+        Vec::new()
+    }
+}
+
+impl Default for Vec<u8> {
+    fn default() -> Self {
+        Vec::with_capacity(1024) // Pre-allocated for performance
+    }
+}
+```
+
+**3. Memory Safety & Performance:**
+```rust
+// ✅ PIN PROJECTIONS: Self-referential structs
+pub struct Node<T> {
+    value: T,
+    next: Option<Pin<Box<Node<T>>>>,
+}
+
+// ✅ MAYBEUNINIT: Safe uninitialized memory
+pub struct ArrayVec<T, const N: usize> {
+    data: [MaybeUninit<T>; N],
+    len: usize,
+}
+
+impl<T, const N: usize> ArrayVec<T, N> {
+    pub fn push(&mut self, value: T) -> Result<(), T> {
+        if self.len >= N {
+            return Err(value);
+        }
+        self.data[self.len].write(value);
+        self.len += 1;
+        Ok(())
+    }
+}
+```
+
+**4. Error Handling 2025:**
+```rust
+// ✅ ANYHOW + THISERROR: Modern error handling
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
+
+    #[error("Validation error: {0}")]
+    Validation(#[from] validator::ValidationError),
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+}
+
+pub type Result<T> = std::result::Result<T, AppError>;
+
+// ✅ ERROR CONTEXT: Rich error information
+async fn get_user(id: UserId) -> Result<User> {
+    let user = database::get_user(id)
+        .await
+        .context("Failed to fetch user from database")?;
+
+    user.validate()
+        .context("User validation failed")?;
+
+    Ok(user)
+}
+```
+
+**5. Testing & Documentation (2025):**
+```rust
+// ✅ DOC TESTS: Executable documentation
+/// Sorts users by creation date (newest first)
+///
+/// # Examples
+///
+/// ```
+/// # use std::collections::HashMap;
+/// let mut users = vec![
+///     User { id: 1, created_at: "2023-01-01".parse().unwrap() },
+///     User { id: 2, created_at: "2023-01-02".parse().unwrap() },
+/// ];
+///
+/// sort_users_by_date(&mut users);
+///
+/// assert_eq!(users[0].id, 2); // Newest first
+/// assert_eq!(users[1].id, 1);
+/// ```
+pub fn sort_users_by_date(users: &mut [User]) {
+    users.sort_by_key(|u| std::cmp::Reverse(u.created_at));
+}
+
+// ✅ PROPERTY TESTING: Comprehensive coverage
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+    use super::*;
+
+    proptest! {
+        #[test]
+        fn user_email_roundtrip(email in "[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}") {
+            let user = User::new(email.clone());
+            prop_assert_eq!(user.email(), email);
+        }
+
+        #[test]
+        fn user_creation_never_panics(
+            email in "\\PC*",  // Any valid Unicode
+            name in "\\PC{0,100}"  // Up to 100 chars
+        ) {
+            let result = User::new(email, name);
+            // Should either succeed or return a proper error
+            prop_assert!(result.is_ok() || matches!(result, Err(UserError::Validation(_))));
+        }
+    }
+}
+```
+
+**6. Performance Optimization (2025):**
+```rust
+// ✅ SIMD: Vectorized operations
+use std::simd::{f32x4, SimdFloat};
+
+pub fn vector_add(a: &[f32], b: &[f32], result: &mut [f32]) {
+    let lanes = f32x4::LANES;
+
+    for i in (0..a.len()).step_by(lanes) {
+        let va = f32x4::from_slice(&a[i..]);
+        let vb = f32x4::from_slice(&b[i..]);
+        let sum = va + vb;
+        sum.copy_to_slice(&mut result[i..]);
+    }
+}
+
+// ✅ ASYNC POOLS: Connection pooling
+#[derive(Clone)]
+pub struct DatabasePool {
+    pool: sqlx::PgPool,
+}
+
+impl DatabasePool {
+    pub async fn execute(&self, query: &str, params: &[&dyn ToSql]) -> Result<u64, Error> {
+        let mut conn = self.pool.acquire().await?;
+        conn.execute(query, params).await
+    }
+}
+
+// ✅ MEMORY POOLING: Reuse allocations
+use bumpalo::Bump;
+
+pub struct MemoryArena {
+    arena: Bump,
+}
+
+impl MemoryArena {
+    pub fn allocate_user(&self, email: &str, name: &str) -> &User {
+        self.arena.alloc(User {
+            email: self.arena.alloc_str(email),
+            name: self.arena.alloc_str(name),
+        })
+    }
+}
+```
+
+### Type System Excellence (2024-2025)
+
+**1. Advanced Type Features:**
+```typescript
+// ✅ SATISFIES OPERATOR: Type checking without widening
+type Routes = {
+  '/users': { method: 'GET'; response: User[] };
+  '/users/:id': { method: 'GET'; response: User };
+  '/users': { method: 'POST'; body: NewUser; response: User };
+};
+
+const api = {
+  getUsers: { method: 'GET', path: '/users' },
+  getUser: { method: 'GET', path: '/users/:id' },
+  createUser: { method: 'POST', path: '/users' },
+} satisfies Record<string, { method: HttpMethod; path: string }>;
+
+// ✅ TEMPLATE LITERAL TYPES: Advanced string manipulation
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type RoutePath = `/${string}`;
+
+type ApiResponse<T extends RoutePath> =
+  T extends '/users' ? User[] :
+  T extends '/users/:id' ? User :
+  never;
+
+// ✅ MAPPED TYPES ADVANCEMENT: Key remapping
+type EventConfig<T> = {
+  [K in keyof T as `on${Capitalize<string & K>}`]: (value: T[K]) => void;
+};
+
+interface UserForm {
+  name: string;
+  email: string;
+  age: number;
+}
+
+type UserFormEvents = EventConfig<UserForm>;
+// Results in: { onName: (value: string) => void; onEmail: (value: string) => void; onAge: (value: number) => void; }
+```
+
+**2. Utility Types Evolution:**
+```typescript
+// ✅ AWAITED: Unwrapping Promise types
+type Unwrapped<T> = T extends PromiseLike<infer U> ? Unwrapped<U> : T;
+
+// ✅ EXACT OPTIONAL PROPERTIES: Strict optional handling
+interface User {
+  readonly id: number;
+  readonly name: string;
+  readonly email: string;
+  readonly createdAt: Date;
+  readonly updatedAt?: Date; // Exact optional - undefined not allowed
+}
+
+// ✅ CONDITIONAL TYPES ADVANCEMENT
+type ApiResponse<T> = T extends { error: true }
+  ? { success: false; error: T['message'] }
+  : T extends { data: infer D }
+  ? { success: true; data: D }
+  : never;
+
+// ✅ UTILITY TYPES 2025: Advanced compositions
+type DeepReadonly<T> = {
+  readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
+};
+
+type DeepRequired<T> = {
+  [P in keyof T]-?: T[P] extends object ? DeepRequired<T[P]> : T[P];
+};
+
+type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+type RequiredKeys<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+```
+
+**3. Module System & Imports (2025):**
+```typescript
+// ✅ TYPE-ONLY IMPORTS: Performance optimization
+import type { User, UserService } from './user';
+import { createUser } from './user-factory';
+
+// ✅ DYNAMIC IMPORTS: Code splitting
+const loadHeavyModule = async () => {
+  const { HeavyComponent } = await import('./components/HeavyComponent');
+  return HeavyComponent;
+};
+
+// ✅ IMPORT ATTRIBUTES: JSON modules
+import data from './data.json' assert { type: 'json' };
+import styles from './styles.css' assert { type: 'css' };
+
+// ✅ NAMESPACE IMPORTS: Clean API design
+import * as React from 'react';
+import * as Utils from './utils';
+
+// ✅ RE-EXPORTS: Clean public API
+export type { User, UserService } from './user';
+export { createUser, updateUser } from './user-factory';
+```
+
+**4. Async Programming Excellence:**
+```typescript
+// ✅ TOP-LEVEL AWAIT: Module-level async
+const config = await loadConfig();
+export const db = await connectDatabase(config);
+
+// ✅ ASYNC ITERATORS: Stream processing
+async function* generateUsers(): AsyncIterableIterator<User> {
+  let page = 1;
+  while (true) {
+    const users = await api.getUsers({ page, limit: 100 });
+    if (users.length === 0) break;
+
+    for (const user of users) {
+      yield user;
+    }
+    page++;
+  }
+}
+
+// Usage
+for await (const user of generateUsers()) {
+  await processUser(user);
+}
+
+// ✅ ASYNC DISPOSABLE: Resource management
+class DatabaseConnection implements AsyncDisposable {
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.close();
+  }
+}
+
+async function withDatabase<T>(
+  operation: (db: DatabaseConnection) => Promise<T>
+): Promise<T> {
+  await using db = new DatabaseConnection();
+  return await operation(db);
+}
+```
+
+**5. Decorators & Metadata (2025):**
+```typescript
+// ✅ DECORATORS: Metadata and behavior
+function logged(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const method = descriptor.value;
+  descriptor.value = async function (...args: any[]) {
+    console.log(`Calling ${propertyKey} with`, args);
+    const result = await method.apply(this, args);
+    console.log(`${propertyKey} returned`, result);
+    return result;
+  };
+}
+
+function validate(target: any, propertyKey: string, parameterIndex: number) {
+  // Parameter validation decorator
+}
+
+class UserService {
+  @logged
+  async createUser(@validate email: string, @validate name: string): Promise<User> {
+    // Implementation
+  }
+}
+
+// ✅ METADATA REFLECTION: Runtime type information
+import 'reflect-metadata';
+
+class User {
+  @Reflect.metadata('design:type', String)
+  name: string;
+
+  @Reflect.metadata('design:type', String)
+  email: string;
+}
+
+function getPropertyType(target: any, propertyKey: string): any {
+  return Reflect.getMetadata('design:type', target, propertyKey);
+}
+```
+
+**6. Performance & Bundle Optimization (2025):**
+```typescript
+// ✅ TREE SHAKING: Pure functions
+export const calculateTotal = (items: CartItem[]): number => {
+  return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+};
+
+// ✅ LAZY LOADING: Component splitting
+const LazyDashboard = lazy(() =>
+  import('./components/Dashboard').then(module => ({ default: module.Dashboard }))
+);
+
+// ✅ CODE SPLITTING: Route-based
+const routes = [
+  {
+    path: '/dashboard',
+    component: lazy(() => import('./pages/Dashboard')),
+  },
+  {
+    path: '/analytics',
+    component: lazy(() => import('./pages/Analytics')),
+  },
+];
+
+// ✅ BUNDLE ANALYSIS: Import cost awareness
+import { heavyFunction } from 'lodash-es'; // Tree-shakeable
+import lightWeight from 'lightweight-lib'; // Minimal bundle impact
+```
+
+**7. Testing Excellence (2025):**
+```typescript
+// ✅ TYPE-DRIVEN TESTING: Test type safety
+import { expectTypeOf } from 'vitest';
+
+describe('User API', () => {
+  it('should return properly typed user', async () => {
+    const user = await api.getUser(1);
+
+    // Type assertions at runtime
+    expectTypeOf(user).toMatchTypeOf<User>();
+    expect(user).toHaveProperty('id');
+    expect(user).toHaveProperty('name');
+  });
+
+  it('should handle error responses', async () => {
+    const result = await api.getUser(999);
+
+    expectTypeOf(result).toMatchTypeOf<ApiError | User>();
+    if ('error' in result) {
+      expect(result.error).toBeDefined();
+    }
+  });
+});
+
+// ✅ VISUAL REGRESSION: UI testing
+import { test, expect } from '@playwright/test';
+
+test('dashboard visual regression', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  // Visual comparison
+  await expect(page).toHaveScreenshot('dashboard.png', {
+    threshold: 0.1, // 10% difference allowed
+  });
+});
+```
+
+**8. Configuration & Tooling (2025):**
+```json
+// ✅ TSCONFIG.JSON: 2025 edition
+{
+  "compilerOptions": {
+    "target": "ES2025",
+    "module": "ES2025",
+    "lib": ["ES2025", "DOM", "WebWorker"],
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "allowArbitraryExtensions": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "skipLibCheck": false,
+    "skipDefaultLibCheck": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}
+```
+
+---
+
 ## 💻 Coding Standards
 
 ### TypeScript/JavaScript

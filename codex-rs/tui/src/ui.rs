@@ -61,6 +61,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         AppState::PlanManager => draw_plan_manager(f, chunks[1], app),
         AppState::QualityControl => draw_quality_control(f, chunks[1], app),
         AppState::Settings => draw_settings(f, chunks[1], app),
+        AppState::DevelopmentMode { .. } => draw_development_mode(f, chunks[1], app),
     }
 
     // Draw status
@@ -202,6 +203,7 @@ fn draw_status(f: &mut Frame, area: Rect, app: &App) {
         AppState::PlanManager => "Plan Manager - Create or execute plans",
         AppState::QualityControl => "Quality Control - Analyze and optimize code",
         AppState::Settings => "Settings - Configure preferences",
+        AppState::DevelopmentMode { .. } => "Development Mode - AI orchestration active",
     };
 
     let status = Paragraph::new(status_text)
@@ -209,4 +211,22 @@ fn draw_status(f: &mut Frame, area: Rect, app: &App) {
         .style(Style::default().fg(Color::Green));
 
     f.render_widget(status, area);
+}
+
+fn draw_development_mode(f: &mut Frame, area: Rect, _app: &App) {
+    let content = vec![
+        Line::from("Development Mode Active"),
+        Line::from(""),
+        Line::from("AI Orchestration: Active"),
+        Line::from("Sub-agents: Ready"),
+        Line::from("MCP Servers: Connected"),
+        Line::from(""),
+        Line::from("Press ESC to return to main menu"),
+    ];
+
+    let paragraph = Paragraph::new(content)
+        .block(Block::default().borders(Borders::ALL).title("Development Mode"))
+        .style(Style::default().fg(Color::Cyan));
+
+    f.render_widget(paragraph, area);
 }

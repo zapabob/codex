@@ -27,15 +27,12 @@ import {
   IconButton,
 } from '@mui/material';
 import {
-  Brain,
   Shield,
   Code,
   Search,
   Zap,
   Settings,
   Play,
-  Pause,
-  RotateCcw,
   Info,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
@@ -61,11 +58,18 @@ const AGENT_COLORS = {
   'docs': 'success',
 } as const;
 
+interface Agent {
+  id: string;
+  name: string;
+  description?: string;
+  capabilities?: string[];
+}
+
 interface AgentExecutionDialogProps {
-  agent: any;
+  agent: Agent;
   open: boolean;
   onClose: () => void;
-  onExecute: (context: any) => void;
+  onExecute: (context: string) => void;
 }
 
 function AgentExecutionDialog({ agent, open, onClose, onExecute }: AgentExecutionDialogProps) {
@@ -77,7 +81,7 @@ function AgentExecutionDialog({ agent, open, onClose, onExecute }: AgentExecutio
   const handleExecute = async () => {
     setIsExecuting(true);
     try {
-      let executionContext: any = {};
+      let executionContext: { target?: string; query?: string; context?: string } = {};
 
       switch (agent.type) {
         case 'code-reviewer':
@@ -245,15 +249,15 @@ function AgentExecutionDialog({ agent, open, onClose, onExecute }: AgentExecutio
 
 export default function AgentsPage() {
   const { state, runAgent, runSecurityScan, runResearch } = useCodex();
-  const [selectedAgent, setSelectedAgent] = useState<any>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleAgentExecute = async (agent: any) => {
+  const handleAgentExecute = async (agent: Agent) => {
     setSelectedAgent(agent);
     setDialogOpen(true);
   };
 
-  const handleExecuteConfirm = async (context: any) => {
+  const handleExecuteConfirm = async (context: string) => {
     try {
       switch (selectedAgent.type) {
         case 'sec-audit':

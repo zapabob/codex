@@ -301,7 +301,7 @@ fn spawn_apply(
         } = job;
         let result = codex_cloud_tasks_client::CloudBackend::apply_task(
             &*backend,
-            task_id.clone(),
+            &task_id,
             diff_override,
         )
         .await;

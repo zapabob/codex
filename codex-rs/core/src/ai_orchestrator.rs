@@ -4,9 +4,11 @@
 //! coordinating multiple sub-agents for complex development tasks.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, VecDeque};
+use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
+use crate::git_lock_manager::GitLockManager;
+use crate::conflict_detector::ConflictDetector;
 // use crate::agents::Agent;
 // use crate::plan::{Plan, Task};
 use crate::error::Result;
@@ -65,14 +67,16 @@ pub struct AgentCapability {
 
 /// Central orchestration engine
 pub struct AIOrchestrator {
-    tasks: Arc<Mutex<HashMap<String, OrchestratedTask>>>,
-    agents: Arc<Mutex<HashMap<String, AgentCapability>>>,
+    tasks: Arc<Mutex<BTreeMap<String, OrchestratedTask>>>,
+    agents: Arc<Mutex<BTreeMap<String, AgentCapability>>>,
     task_queue: Arc<Mutex<VecDeque<OrchestratedTask>>>,
     command_tx: mpsc::UnboundedSender<OrchestrationCommand>,
     command_rx: Arc<Mutex<Option<mpsc::UnboundedReceiver<OrchestrationCommand>>>>,
     qc_optimizer: Arc<QCOptimizer>,
     development_mode: DevelopmentMode,
     worktree_manager: Option<Arc<crate::orchestration::worktree_manager::WorktreeManager>>,
+    git_lock_manager: Option<Arc<GitLockManager>>,
+    conflict_detector: Option<Arc<Mutex<ConflictDetector>>>,
 }
 
 /// Commands for the orchestrator
@@ -108,7 +112,7 @@ pub enum OrchestrationCommand {
 /// Quality Control and Optimization Engine
 pub struct QCOptimizer {
     optimization_algorithms: Vec<Box<dyn OptimizationAlgorithm>>,
-    quality_metrics: HashMap<String, f64>,
+    quality_metrics: BTreeMap<String, f64>,
 }
 
 /// Optimization algorithm trait
@@ -267,7 +271,7 @@ impl AIOrchestrator {
                 Box::new(MathematicalOptimizer),
                 Box::new(QuantumOptimizer),
             ],
-            quality_metrics: HashMap::new(),
+            quality_metrics: BTreeMap::new(),
         });
 
         let worktree_manager = if mode == DevelopmentMode::Parallel {
@@ -276,15 +280,30 @@ impl AIOrchestrator {
             None
         };
 
+        // Initialize Git lock manager if in parallel mode
+        let git_lock_manager = if mode == DevelopmentMode::Parallel {
+            Some(Arc::new(GitLockManager::with_concurrency_limit(".", 5).unwrap()))
+        } else {
+            None
+        };
+
+        let conflict_detector = if mode == DevelopmentMode::Parallel {
+            Some(Arc::new(Mutex::new(ConflictDetector::new())))
+        } else {
+            None
+        };
+
         Self {
-            tasks: Arc::new(Mutex::new(HashMap::new())),
-            agents: Arc::new(Mutex::new(HashMap::new())),
+            tasks: Arc::new(Mutex::new(BTreeMap::new())),
+            agents: Arc::new(Mutex::new(BTreeMap::new())),
             task_queue: Arc::new(Mutex::new(VecDeque::new())),
             command_tx: tx,
             command_rx: Arc::new(Mutex::new(Some(rx))),
             qc_optimizer,
             development_mode: mode,
             worktree_manager,
+            git_lock_manager,
+            conflict_detector,
         }
     }
 

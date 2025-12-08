@@ -103,6 +103,9 @@ impl SlashCommand {
             | SlashCommand::Exit => true,
             SlashCommand::Rollout => true,
             SlashCommand::TestApproval => true,
+            SlashCommand::CentralDev => true,
+            SlashCommand::ParallelDev => true,
+            SlashCommand::Qc => true,
         }
     }
 

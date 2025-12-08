@@ -169,7 +169,7 @@ export default function CodeExecutionPage() {
 
     try {
       let command: string;
-      let args: string[] = [];
+      const args: string[] = [];
 
       // Create temporary file and execute based on language
       switch (language) {

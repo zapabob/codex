@@ -68,10 +68,10 @@ fn highlight_names() -> &'static [&'static str] {
 
 fn highlight_config() -> &'static HighlightConfiguration {
     HIGHLIGHT_CONFIG.get_or_init(|| {
-        let language = tree_sitter_bash::language();
+        let language = tree_sitter_bash::LANGUAGE;
         #[expect(clippy::expect_used)]
         let mut config = HighlightConfiguration::new(
-            language,
+            language.into(),
             "bash",
             tree_sitter_bash::HIGHLIGHT_QUERY,
             "",

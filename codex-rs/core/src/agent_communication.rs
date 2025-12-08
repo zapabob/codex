@@ -5,9 +5,10 @@
 // use crate::agents::secure_message::SecureAgentCommunicator;
 use crate::agents::secure_message::SecureAgentMessage;
 use crate::agents::secure_message::SecureMetadata;
+use crate::agents::secure_message::MessageType;
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::sync::mpsc;
@@ -16,9 +17,10 @@ use uuid::Uuid;
 /// Agent communication manager
 pub struct AgentCommunicationManager {
     /// Communicator instance
-    // communicator: Arc<SecureAgentCommunicator>,
+    #[cfg(feature = "agent_security")]
+    communicator: Arc<crate::agents::secure_message::SecureAgentCommunicator>,
     /// Message channels for each agent
-    agent_channels: Arc<Mutex<HashMap<String, mpsc::UnboundedSender<InterAgentMessage>>>>,
+    agent_channels: Arc<Mutex<BTreeMap<String, mpsc::UnboundedSender<InterAgentMessage>>>>,
     /// Development mode context
     development_mode: DevelopmentMode,
 }
@@ -67,7 +69,7 @@ pub enum InterAgentMessage {
         agent_name: String,
         feedback_type: QcFeedbackType,
         suggestions: Vec<String>,
-        metrics: HashMap<String, f64>,
+        metrics: BTreeMap<String, f64>,
     },
     /// MCP server status
     McpServerStatus {
@@ -82,7 +84,7 @@ pub enum InterAgentMessage {
 pub enum TaskResult {
     Success {
         output: String,
-        metrics: HashMap<String, f64>,
+        metrics: BTreeMap<String, f64>,
     },
     Failure {
         error: String,
@@ -160,7 +162,7 @@ pub enum QcFeedbackType {
     },
     Performance {
         improvements: Vec<String>,
-        metrics: HashMap<String, f64>,
+        metrics: BTreeMap<String, f64>,
     },
     Security {
         vulnerabilities: Vec<String>,
@@ -193,7 +195,8 @@ impl AgentCommunicationManager {
     /// Create new communication manager
     pub fn new(development_mode: DevelopmentMode) -> Self {
         Self {
-            // communicator: Arc::new(SecureAgentCommunicator::new()),
+            #[cfg(feature = "agent_security")]
+            communicator: Arc::new(crate::agents::secure_message::SecureAgentCommunicator::new()),
             agent_channels: Arc::new(Mutex::new(HashMap::new())),
             development_mode,
         }
@@ -250,7 +253,7 @@ impl AgentCommunicationManager {
     ) -> Result<String, String> {
         let metadata = SecureMetadata {
             message_id: Uuid::new_v4().to_string(),
-            message_type: "inter_agent".to_string(),
+            message_type: MessageType::InterAgentMessage,
             priority: 1,
             ttl: 3600, // 1 hour
             requires_ack: true,
@@ -279,17 +282,31 @@ impl AgentCommunicationManager {
             metadata,
         };
 
-        self.communicator.send_secure_message(secure_message).await
+        #[cfg(feature = "agent_security")]
+        {
+            self.communicator.send_secure_message(secure_message).await
+        }
+        #[cfg(not(feature = "agent_security"))]
+        {
+            Err("Agent security feature not enabled".to_string())
+        }
     }
 
     /// Receive secure message
     pub async fn receive_secure_message(&self) -> Result<InterAgentMessage, String> {
-        let secure_message = self.communicator.receive_secure_message().await?;
+        #[cfg(feature = "agent_security")]
+        {
+            let secure_message = self.communicator.receive_secure_message().await?;
 
-        let message: InterAgentMessage = serde_json::from_slice(&secure_message.encrypted_content)
-            .map_err(|e| format!("Failed to deserialize message: {}", e))?;
+            let message: InterAgentMessage = serde_json::from_slice(&secure_message.encrypted_content)
+                .map_err(|e| format!("Failed to deserialize message: {}", e))?;
 
-        Ok(message)
+            Ok(message)
+        }
+        #[cfg(not(feature = "agent_security"))]
+        {
+            Err("Agent security feature not enabled".to_string())
+        }
     }
 
     /// Get communication statistics

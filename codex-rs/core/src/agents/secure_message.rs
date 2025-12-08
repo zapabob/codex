@@ -3,13 +3,35 @@
 
 use serde::Deserialize;
 use serde::Serialize;
+use std::collections::BTreeMap;
+
+#[cfg(feature = "agent_security")]
+/// Placeholder for secure communication
+#[derive(Debug)]
+pub struct SecureAgentCommunicator {
+}
+
+#[cfg(feature = "agent_security")]
+impl SecureAgentCommunicator {
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub async fn send_secure_message(&self, _message: SecureAgentMessage) -> Result<String> {
+        // Placeholder implementation
+        Ok("message_sent".to_string())
+    }
+
+    pub async fn receive_secure_message(&self) -> Result<SecureAgentMessage> {
+        // Placeholder implementation
+        Err(anyhow::anyhow!("No message available"))
+    }
+}
 
 #[cfg(feature = "agent_security")]
 use anyhow::Context;
 #[cfg(feature = "agent_security")]
 use anyhow::Result;
-#[cfg(feature = "agent_security")]
-use std::collections::HashMap;
 #[cfg(feature = "agent_security")]
 use std::sync::Arc;
 #[cfg(feature = "agent_security")]
@@ -54,6 +76,15 @@ pub struct SecureMetadata {
 
     /// Message type
     pub message_type: MessageType,
+
+    /// Time to live in seconds
+    pub ttl: u64,
+
+    /// Requires acknowledgment
+    pub requires_ack: bool,
+
+    /// Custom fields for extensibility
+    pub custom_fields: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -72,6 +103,9 @@ pub enum MessageType {
 
     /// Shutdown command
     Shutdown,
+
+    /// Inter-agent communication
+    InterAgentMessage,
 }
 
 /// Secure Agent Channel (encrypted communication)
@@ -93,7 +127,7 @@ pub struct SecureAgentChannel {
 
     /// Trusted agent public keys
     #[cfg(feature = "agent_security")]
-    trusted_public_keys: Arc<Mutex<HashMap<String, ed25519_dalek::VerifyingKey>>>,
+    trusted_public_keys: Arc<Mutex<BTreeMap<String, ed25519_dalek::VerifyingKey>>>,
 
     /// Nonce counter (replay attack protection)
     nonce_counter: AtomicU64,
@@ -112,7 +146,7 @@ impl SecureAgentChannel {
 
         let keypair = Arc::new(signing_keypair);
         let enc_key = Arc::new(encryption_key);
-        let trusted_keys = Arc::new(Mutex::new(HashMap::new()));
+        let trusted_keys = Arc::new(Mutex::new(BTreeMap::new()));
 
         let channel1 = Self {
             tx: tx1,

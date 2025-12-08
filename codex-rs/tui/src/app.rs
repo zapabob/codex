@@ -1,5 +1,7 @@
 //! Application state and logic
 
+use codex_core::ai_orchestrator;
+use codex_core::mcp_integration_manager;
 use color_eyre::eyre::Result;
 use crossterm::event::KeyEvent;
 
@@ -23,9 +25,9 @@ pub struct App {
     /// Legacy App Event Receiver
     pub legacy_event_rx: Option<UnboundedReceiver<AppEvent>>,
     /// AI Orchestrator
-    pub orchestrator: Option<crate::ai_orchestrator::AIOrchestrator>,
+    pub orchestrator: Option<ai_orchestrator::AIOrchestrator>,
     /// MCP Integration Manager
-    pub mcp_manager: Option<crate::mcp_integration_manager::McpIntegrationManager>,
+    pub mcp_manager: Option<mcp_integration_manager::McpIntegrationManager>,
 }
 
 #[derive(Debug, Clone)]
@@ -40,7 +42,7 @@ pub enum AppState {
     QualityControl,
     /// Development mode orchestration
     DevelopmentMode {
-        mode: crate::ai_orchestrator::DevelopmentMode,
+        mode: ai_orchestrator::DevelopmentMode,
         active_servers: Vec<String>,
         agent_status: std::collections::HashMap<String, String>,
     },
@@ -56,6 +58,8 @@ impl App {
             should_quit: false,
             legacy_app: None,
             legacy_event_rx: None,
+            orchestrator: None,
+            mcp_manager: None,
         })
     }
 
@@ -66,6 +70,7 @@ impl App {
             AppState::PlanManager => self.handle_plan_key(key),
             AppState::QualityControl => self.handle_qc_key(key),
             AppState::Settings => self.handle_settings_key(key),
+            AppState::DevelopmentMode { .. } => self.handle_development_mode_key(key),
         }
     }
 
@@ -160,5 +165,10 @@ impl App {
             }
         }
         Ok(())
+    }
+
+    fn handle_development_mode_key(&mut self, _key: KeyEvent) {
+        // TODO: Implement development mode key handling
+        // For now, just ignore
     }
 }

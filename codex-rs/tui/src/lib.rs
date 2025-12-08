@@ -10,6 +10,7 @@ use app::App;
 use codex_app_server_protocol::AuthMode;
 // use codex_common::oss::ensure_oss_provider_ready;
 // use codex_common::oss::get_default_model_for_oss_provider;
+use codex_core::ai_orchestrator::DevelopmentMode;
 use codex_core::AuthManager;
 use codex_core::BUILT_IN_OSS_MODEL_PROVIDER_ID;
 use codex_core::CodexAuth;
@@ -227,6 +228,7 @@ pub async fn run_main(
         compact_prompt: None,
         include_apply_patch_tool: None,
         show_raw_agent_reasoning: cli.oss.then_some(true),
+        development_mode: None,
         tools_web_search_request: None,
         experimental_sandbox_command_assessment: None,
         additional_writable_roots: additional_dirs,

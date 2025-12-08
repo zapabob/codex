@@ -164,6 +164,12 @@ pub enum CodexErr {
     #[error(transparent)]
     TokioJoin(#[from] JoinError),
 
+    #[error(transparent)]
+    TokioMpscSend(#[from] tokio::sync::mpsc::error::SendError<crate::ai_orchestrator::OrchestrationCommand>),
+
+    #[error(transparent)]
+    TokioOneshotRecv(#[from] tokio::sync::oneshot::error::RecvError),
+
     #[error("{0}")]
     EnvVar(EnvVarError),
 }

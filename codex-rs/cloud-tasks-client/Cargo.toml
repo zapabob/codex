@@ -17,11 +17,12 @@ mock = []
 
 [dependencies]
 anyhow = "1"
-async-trait = "0.1"
+async-trait = { workspace = true }
 chrono = { version = "0.4", features = ["serde"] }
 diffy = "0.4.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2.0.17"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls-native-roots"] }
 codex-backend-client = { path = "../backend-client", optional = true }
 codex-git = { workspace = true }

@@ -155,7 +155,7 @@ impl LegacyApp {
         let upgrade_version = crate::updates::get_upgrade_version(&config);
 
         let gpu_event_tx = app_event_tx.clone();
-        let app = Self {
+        let mut app = Self {
             server: conversation_manager,
             app_event_tx,
             chat_widget,

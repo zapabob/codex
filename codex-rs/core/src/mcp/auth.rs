@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use anyhow::Result;
 use codex_protocol::protocol::McpAuthStatus;
@@ -23,7 +23,7 @@ pub struct McpAuthStatusEntry {
 pub async fn compute_auth_statuses<'a, I>(
     servers: I,
     store_mode: OAuthCredentialsStoreMode,
-) -> HashMap<String, McpAuthStatusEntry>
+) -> BTreeMap<String, McpAuthStatusEntry>
 where
     I: IntoIterator<Item = (&'a String, &'a McpServerConfig)>,
 {

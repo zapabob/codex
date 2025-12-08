@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 use schemars::r#gen::SchemaSettings;
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 /// Client-supplied configuration for a `codex` tool-call.
@@ -44,7 +44,7 @@ pub struct CodexToolCallParam {
     /// Individual config settings that will override what is in
     /// CODEX_HOME/config.toml.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub config: Option<HashMap<String, serde_json::Value>>,
+    pub config: Option<BTreeMap<String, serde_json::Value>>,
 
     /// The set of instructions to use instead of the default ones.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -167,6 +167,7 @@ impl CodexToolCallParam {
             developer_instructions,
             compact_prompt,
             include_apply_patch_tool: None,
+            development_mode: None,
             show_raw_agent_reasoning: None,
             tools_web_search_request: None,
             experimental_sandbox_command_assessment: None,
