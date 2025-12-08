@@ -311,7 +311,7 @@ export default function AIToolsPage() {
           ].map((tab) => (
             <Button
               key={tab.id}
-              variant={activeTab === tab.id ? 'primary' : 'ghost'}
+              variant={activeTab === tab.id ? 'contained' : 'outlined'}
               onClick={() => setActiveTab(tab.id as any)}
               className="px-4 py-2 whitespace-nowrap"
             >

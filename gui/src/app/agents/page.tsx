@@ -61,6 +61,7 @@ const AGENT_COLORS = {
 interface Agent {
   id: string;
   name: string;
+  type: "code-reviewer" | "test-gen" | "sec-audit" | "researcher" | "performance" | "debug" | "docs";
   description?: string;
   capabilities?: string[];
 }
@@ -69,7 +70,7 @@ interface AgentExecutionDialogProps {
   agent: Agent;
   open: boolean;
   onClose: () => void;
-  onExecute: (context: string) => void;
+  onExecute: (context: { target?: string; query?: string; context?: string; code?: string; language?: string; path?: string }) => void;
 }
 
 function AgentExecutionDialog({ agent, open, onClose, onExecute }: AgentExecutionDialogProps) {
@@ -81,7 +82,7 @@ function AgentExecutionDialog({ agent, open, onClose, onExecute }: AgentExecutio
   const handleExecute = async () => {
     setIsExecuting(true);
     try {
-      let executionContext: { target?: string; query?: string; context?: string } = {};
+      let executionContext: { target?: string; query?: string; context?: string; code?: string; language?: string; path?: string } = {};
 
       switch (agent.type) {
         case 'code-reviewer':
@@ -257,14 +258,15 @@ export default function AgentsPage() {
     setDialogOpen(true);
   };
 
-  const handleExecuteConfirm = async (context: string) => {
+  const handleExecuteConfirm = async (context: { target?: string; query?: string; context?: string; code?: string; language?: string; path?: string }) => {
     try {
+      if (!selectedAgent) return;
       switch (selectedAgent.type) {
         case 'sec-audit':
-          await runSecurityScan('code', context.path);
+          await runSecurityScan('code', context.path || '');
           break;
         case 'researcher':
-          await runResearch(context.query);
+          await runResearch(context.query || '');
           break;
         default:
           await runAgent(selectedAgent.id, context);
@@ -310,13 +312,13 @@ export default function AgentsPage() {
           </Alert>
         )}
 
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
           {state.agents.map((agent) => {
             const IconComponent = AGENT_ICONS[agent.type as keyof typeof AGENT_ICONS];
             const color = AGENT_COLORS[agent.type as keyof typeof AGENT_COLORS];
 
             return (
-              <Grid item xs={12} md={6} lg={4} key={agent.id}>
+              <Box key={agent.id} sx={{ height: '100%' }}>
                 <MuiCard
                   sx={{
                     height: '100%',
@@ -417,10 +419,10 @@ export default function AgentsPage() {
                     </Button>
                   </CardActions>
                 </MuiCard>
-              </Grid>
+              </Box>
             );
           })}
-        </Grid>
+        </Box>
 
         {/* Agent Execution Dialog */}
         {selectedAgent && (
@@ -437,13 +439,16 @@ export default function AgentsPage() {
           <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
             クイックアクション
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+            <Box sx={{ width: '100%' }}>
               <Button
                 fullWidth
                 variant="contained"
                 startIcon={<Shield />}
-                onClick={() => handleAgentExecute(state.agents.find(a => a.type === 'sec-audit'))}
+                onClick={() => {
+                  const agent = state.agents.find(a => a.type === 'sec-audit');
+                  if (agent) handleAgentExecute(agent);
+                }}
                 sx={{
                   py: 2,
                   background: 'linear-gradient(45deg, #d32f2f, #f44336)',
@@ -454,13 +459,16 @@ export default function AgentsPage() {
               >
                 セキュリティスキャン
               </Button>
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </Box>
+            <Box sx={{ width: '100%' }}>
               <Button
                 fullWidth
                 variant="contained"
                 startIcon={<Code />}
-                onClick={() => handleAgentExecute(state.agents.find(a => a.type === 'code-reviewer'))}
+                onClick={() => {
+                  const agent = state.agents.find(a => a.type === 'code-reviewer');
+                  if (agent) handleAgentExecute(agent);
+                }}
                 sx={{
                   py: 2,
                   background: 'linear-gradient(45deg, #1976d2, #2196f3)',
@@ -471,13 +479,16 @@ export default function AgentsPage() {
               >
                 コードレビュー
               </Button>
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </Box>
+            <Box sx={{ width: '100%' }}>
               <Button
                 fullWidth
                 variant="contained"
                 startIcon={<Search />}
-                onClick={() => handleAgentExecute(state.agents.find(a => a.type === 'researcher'))}
+                onClick={() => {
+                  const agent = state.agents.find(a => a.type === 'researcher');
+                  if (agent) handleAgentExecute(agent);
+                }}
                 sx={{
                   py: 2,
                   background: 'linear-gradient(45deg, #7b1fa2, #9c27b0)',
@@ -488,8 +499,8 @@ export default function AgentsPage() {
               >
                 Deep Research
               </Button>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Box>
       </Box>
     </DashboardLayout>

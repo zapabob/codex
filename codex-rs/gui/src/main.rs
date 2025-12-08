@@ -122,17 +122,15 @@ impl AppState {
     }
 }
 
-#[axum::debug_handler]
 async fn list_actions(State(state): State<AppState>) -> Json<Vec<ActionMetadata>> {
     let payload = state.actions.iter().map(ActionMetadata::from).collect();
 
     Json(payload)
 }
 
-#[axum::debug_handler]
 async fn execute_action(
-    Path(id): Path<String>,
     State(state): State<AppState>,
+    Path(id): Path<String>,
     Json(payload): Json<ExecuteRequest>,
 ) -> Result<Json<ExecutionResponse>, GuiError> {
     let action = state

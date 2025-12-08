@@ -18,8 +18,20 @@ use crate::git_lock_manager::GitOperation;
 use crate::git_lock_manager::LockConflict;
 use crate::git_lock_manager::LockEntry;
 
+impl AstConflictDetector {
+    /// Create a new AST conflict detector
+    pub fn new(repo_path: std::path::PathBuf) -> Self {
+        Self {
+            repo_path,
+            ast_cache: Arc::new(parking_lot::Mutex::new(BTreeMap::new())),
+        }
+    }
+}
+
 /// AST-based conflict detector
 pub struct AstConflictDetector {
+    /// Repository path
+    repo_path: std::path::PathBuf,
     /// Cached AST analysis results
     ast_cache: Arc<parking_lot::Mutex<BTreeMap<String, AstAnalysis>>>,
 }
@@ -181,7 +193,7 @@ impl AstConflictDetector {
 impl ConflictDetectorTrait for AstConflictDetector {
     async fn detect_conflicts(
         &self,
-        repo_path: &std::path::Path,
+        _repo_path: &std::path::Path,
         operation: &GitOperation,
         existing_locks: &[LockEntry],
     ) -> Result<Vec<LockConflict>> {

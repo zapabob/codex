@@ -239,7 +239,7 @@ interface CodexContextType {
   runAgent: (agentId: string, context: any) => Promise<void>;
   runSecurityScan: (type: string, target: string) => Promise<void>;
   runResearch: (query: string) => Promise<void>;
-  executeCommand: (command: string, cwd?: string) => Promise<void>;
+  executeCommand: (command: string, cwd?: string) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
   loadMetrics: () => Promise<void>;
   clearError: () => void;
 }

@@ -574,3 +574,6 @@ if __name__ == "__main__":
 console.log("AI-generated code for ${userPrompt}");
 console.log("This is a placeholder implementation.");
 console.log("Please refine the prompt for more specific code generation.");
+`;
+  };
+}

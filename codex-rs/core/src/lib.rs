@@ -17,8 +17,11 @@ pub mod agents;
 pub mod ai_orchestrator;
 pub mod git_lock_manager;
 pub mod conflict_detector;
+#[cfg(feature = "cuda")]
 pub mod cuda_accelerator;
+#[cfg(feature = "cuda")]
 pub mod vr_ar_integration;
+#[cfg(feature = "cuda")]
 pub mod git4d_accelerated;
 pub mod mcp_integration_manager;
 mod apply_patch;

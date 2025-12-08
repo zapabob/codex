@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import {
   Play,
-  Stop,
+  Square,
   Save,
   FolderOpen,
   Terminal,
@@ -250,8 +250,8 @@ export default function CodeExecutionPage() {
 
         {/* Controls */}
         <Card header="コード実行設定">
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={3}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, gap: 2, alignItems: 'center' }}>
+            <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 3' } }}>
               <FormControl fullWidth size="small">
                 <InputLabel>言語</InputLabel>
                 <Select
@@ -266,9 +266,9 @@ export default function CodeExecutionPage() {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
+            </Box>
 
-            <Grid item xs={12} md={3}>
+            <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 3' } }}>
               <TextField
                 fullWidth
                 size="small"
@@ -277,9 +277,9 @@ export default function CodeExecutionPage() {
                 onChange={(e) => setFilename(e.target.value)}
                 placeholder={`script.${SUPPORTED_LANGUAGES.find(l => l.value === language)?.extension}`}
               />
-            </Grid>
+            </Box>
 
-            <Grid item xs={12} md={6}>
+            <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <Button
                   variant="contained"
@@ -323,8 +323,8 @@ export default function CodeExecutionPage() {
                   </IconButton>
                 </Tooltip>
               </Box>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           {!state.isConnected && (
             <Alert severity="warning" sx={{ mt: 2 }}>

@@ -384,7 +384,7 @@ export function BrowserInterface({ selectedEnvironment, browserSession, onBrowse
               <div className="space-y-2 font-mono text-sm">
                 {browserSession.console.map((log, index) => (
                   <div key={index} className="text-gray-700">
-                    <span className="text-gray-500">></span> {log}
+                    <span className="text-gray-500">&gt;</span> {log}
                   </div>
                 ))}
               </div>
