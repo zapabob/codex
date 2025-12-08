@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
 use crate::git_lock_manager::GitLockManager;
-use crate::conflict_detector::ConflictDetector;
+use crate::conflict_detector::AstConflictDetector;
 // use crate::agents::Agent;
 // use crate::plan::{Plan, Task};
 use crate::error::Result;
