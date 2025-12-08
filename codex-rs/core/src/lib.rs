@@ -150,3 +150,7 @@ pub use codex_protocol::models::LocalShellStatus;
 pub use codex_protocol::models::ResponseItem;
 pub use event_mapping::parse_turn_item;
 pub mod otel_init;
+
+// Provider IDs
+pub const CODEX_PROVIDER_ID: &str = "codex";
+pub const LMSTUDIO_OSS_PROVIDER_ID: &str = "lmstudio-oss";

@@ -279,12 +279,16 @@ impl Client {
             return RateLimitSnapshot {
                 primary: None,
                 secondary: None,
+                credits: None,
+                plan_type: None,
             };
         };
 
         RateLimitSnapshot {
             primary: Self::map_rate_limit_window(details.primary_window),
             secondary: Self::map_rate_limit_window(details.secondary_window),
+            credits: None,
+            plan_type: None,
         }
     }
 

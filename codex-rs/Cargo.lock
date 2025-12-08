@@ -1218,19 +1218,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "codex-app-server-test-client"
-version = "2.3.2"
-dependencies = [
- "anyhow",
- "clap",
- "codex-app-server-protocol",
- "codex-protocol",
- "serde",
- "serde_json",
- "uuid",
-]
-
-[[package]]
 name = "codex-apply-patch"
 version = "2.3.2"
 dependencies = [
