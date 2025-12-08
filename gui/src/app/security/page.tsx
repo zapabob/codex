@@ -1,495 +1,307 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  Card as MuiCard,
-  CardContent,
-  Chip,
-  Avatar,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Alert,
-  LinearProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Tooltip,
-  IconButton,
-  Tabs,
-  Tab,
-} from '@mui/material';
-import {
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Play,
-  FileText,
-  Code,
-  Database,
-  Globe,
-  Lock,
-} from 'lucide-react';
-import { DashboardLayout } from '@/components/templates/DashboardLayout';
-import { Card } from '@/components/atoms/Card';
-import { useCodex } from '@/lib/context/CodexContext';
+import { useState, useEffect } from 'react'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/atoms/Button'
+import { SecurityDashboard } from '@/components/security/SecurityDashboard'
+import { MalwareScanner } from '@/components/security/MalwareScanner'
+import { QuarantineManager } from '@/components/security/QuarantineManager'
+import { SecurityMonitor } from '@/components/security/SecurityMonitor'
+import { SecurityReports } from '@/components/security/SecurityReports'
+import { DashboardLayout } from '@/components/templates/DashboardLayout'
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+// Security status types
+export type SecurityStatus = 'secure' | 'warning' | 'threat' | 'critical'
+
+// Scan types
+export type ScanType = 'quick' | 'deep' | 'custom'
+
+// Security metrics interface
+export interface SecurityMetrics {
+  lastScan: Date | null
+  totalScans: number
+  threatsDetected: number
+  filesScanned: number
+  quarantinedFiles: number
+  systemHealth: number // 0-100
+  realTimeMonitoring: boolean
 }
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+// Security alert interface
+export interface SecurityAlert {
+  id: string
+  type: 'malware' | 'suspicious' | 'anomaly' | 'system'
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description: string
+  affectedFiles: string[]
+  timestamp: Date
+  resolved: boolean
+}
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`security-tabpanel-${index}`}
-      aria-labelledby={`security-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
+// Quarantine entry interface
+export interface QuarantineEntry {
+  id: string
+  fileName: string
+  originalPath: string
+  threatLevel: string
+  quarantineDate: Date
+  fileSize: number
+  canRestore: boolean
+}
+
+// Security scan result interface
+export interface ScanResult {
+  id: string
+  scanType: ScanType
+  targetPath: string
+  startTime: Date
+  endTime: Date | null
+  status: 'running' | 'completed' | 'failed'
+  filesScanned: number
+  threatsFound: number
+  duration: number // in seconds
 }
 
 export default function SecurityPage() {
-  const { state, runSecurityScan } = useCodex();
-  const [scanDialogOpen, setScanDialogOpen] = useState(false);
-  const [scanTarget, setScanTarget] = useState('');
-  const [scanType, setScanType] = useState('code');
-  const [isScanning, setIsScanning] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'scanner' | 'quarantine' | 'monitor' | 'reports'>('dashboard')
+  const [securityMetrics, setSecurityMetrics] = useState<SecurityMetrics>({
+    lastScan: null,
+    totalScans: 0,
+    threatsDetected: 0,
+    filesScanned: 0,
+    quarantinedFiles: 0,
+    systemHealth: 85,
+    realTimeMonitoring: false,
+  })
+  const [alerts, setAlerts] = useState<SecurityAlert[]>([])
+  const [scanResults, setScanResults] = useState<ScanResult[]>([])
 
-  const handleScan = async () => {
-    if (!scanTarget.trim()) return;
-
-    setIsScanning(true);
-    try {
-      await runSecurityScan(scanType, scanTarget);
-      setScanDialogOpen(false);
-      setScanTarget('');
-    } catch (error) {
-      console.error('Security scan failed:', error);
-    } finally {
-      setIsScanning(false);
+  // Initialize sample data
+  useEffect(() => {
+    const sampleMetrics: SecurityMetrics = {
+      lastScan: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      totalScans: 15,
+      threatsDetected: 3,
+      filesScanned: 1250,
+      quarantinedFiles: 3,
+      systemHealth: 92,
+      realTimeMonitoring: true,
     }
-  };
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return <XCircle size={16} color="#d32f2f" />;
-      case 'high':
-        return <AlertTriangle size={16} color="#f57c00" />;
-      case 'medium':
-        return <AlertTriangle size={16} color="#fbc02d" />;
-      case 'low':
-        return <AlertTriangle size={16} color="#388e3c" />;
-      default:
-        return <CheckCircle size={16} color="#388e3c" />;
+    const sampleAlerts: SecurityAlert[] = [
+      {
+        id: '1',
+        type: 'malware',
+        severity: 'high',
+        title: 'Trojan Malware Detected',
+        description: 'Suspicious file with trojan signatures found in downloads folder',
+        affectedFiles: ['/Users/Downloads/suspicious.exe'],
+        timestamp: new Date(Date.now() - 30 * 60 * 1000),
+        resolved: false,
+      },
+      {
+        id: '2',
+        type: 'anomaly',
+        severity: 'medium',
+        title: 'Unusual Network Activity',
+        description: 'Detected unusual outbound connections to unknown IP addresses',
+        affectedFiles: [],
+        timestamp: new Date(Date.now() - 45 * 60 * 1000),
+        resolved: true,
+      },
+      {
+        id: '3',
+        type: 'system',
+        severity: 'low',
+        title: 'Security Update Available',
+        description: 'New security signatures are available for download',
+        affectedFiles: [],
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        resolved: false,
+      }
+    ]
+
+    const sampleScans: ScanResult[] = [
+      {
+        id: '1',
+        scanType: 'quick',
+        targetPath: '/Users',
+        startTime: new Date(Date.now() - 3 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        status: 'completed',
+        filesScanned: 1250,
+        threatsFound: 1,
+        duration: 1800,
+      },
+      {
+        id: '2',
+        scanType: 'deep',
+        targetPath: '/System',
+        startTime: new Date(Date.now() - 6 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() - 5 * 60 * 60 * 1000),
+        status: 'completed',
+        filesScanned: 5000,
+        threatsFound: 2,
+        duration: 3600,
+      }
+    ]
+
+    setSecurityMetrics(sampleMetrics)
+    setAlerts(sampleAlerts)
+    setScanResults(sampleScans)
+  }, [])
+
+  const getOverallStatus = (): SecurityStatus => {
+    const unresolvedCritical = alerts.filter(a => !a.resolved && a.severity === 'critical').length
+    const unresolvedHigh = alerts.filter(a => !a.resolved && a.severity === 'high').length
+
+    if (unresolvedCritical > 0 || securityMetrics.systemHealth < 50) {
+      return 'critical'
+    } else if (unresolvedHigh > 0 || securityMetrics.systemHealth < 70) {
+      return 'threat'
+    } else if (alerts.filter(a => !a.resolved).length > 0 || securityMetrics.systemHealth < 90) {
+      return 'warning'
+    } else {
+      return 'secure'
     }
-  };
+  }
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return 'error';
-      case 'high':
-        return 'warning';
-      case 'medium':
-        return 'warning';
-      case 'low':
-        return 'success';
-      default:
-        return 'default';
-    }
-  };
-
-  const getScanStatusColor = (status: string) => {
-    switch (status) {
-      case 'running':
-        return 'warning';
-      case 'completed':
-        return 'success';
-      case 'failed':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
-
-  const getScanTypeIcon = (type: string) => {
-    switch (type) {
-      case 'dependency':
-        return <Database size={16} />;
-      case 'code':
-        return <Code size={16} />;
-      case 'secrets':
-        return <Lock size={16} />;
-      default:
-        return <Shield size={16} />;
-    }
-  };
-
-  // Get findings from actual security scans
-  const allFindings = state.securityScans.flatMap(scan => scan.findings || []);
-
-  const securityStats = {
-    totalScans: state.securityScans.length,
-    criticalVulnerabilities: allFindings.filter(f => f.severity === 'critical').length,
-    highVulnerabilities: allFindings.filter(f => f.severity === 'high').length,
-    mediumVulnerabilities: allFindings.filter(f => f.severity === 'medium').length,
-    lowVulnerabilities: allFindings.filter(f => f.severity === 'low').length,
-    lastScanDate: state.securityScans.length > 0
-      ? new Date(state.securityScans[0].startedAt).toLocaleDateString('ja-JP')
-      : new Date().toLocaleDateString('ja-JP'),
-  };
+  const overallStatus = getOverallStatus()
 
   return (
-    <DashboardLayout title="セキュリティダッシュボード">
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
-          セキュリティダッシュボード
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          コード、依存関係、設定のセキュリティを継続的に監視し、脆弱性を検出します。
-        </Typography>
+    <DashboardLayout>
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Security Center</h1>
+            <p className="text-gray-600 mt-1">
+              Advanced malware detection, isolation, and threat management
+            </p>
+          </div>
 
-        {/* Security Stats */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: 'success.main' }}>
-                  <CheckCircle size={20} />
-                </Avatar>
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {securityStats.totalScans}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    総スキャン数
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-          </Grid>
+          {/* Overall Status */}
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className={`text-2xl font-bold ${
+                overallStatus === 'secure' ? 'text-green-600' :
+                overallStatus === 'warning' ? 'text-yellow-600' :
+                overallStatus === 'threat' ? 'text-orange-600' : 'text-red-600'
+              }`}>
+                {overallStatus === 'secure' ? 'SECURE' :
+                 overallStatus === 'warning' ? 'WARNING' :
+                 overallStatus === 'threat' ? 'THREAT' : 'CRITICAL'}
+              </div>
+              <div className="text-sm text-gray-600">System Status</div>
+            </div>
 
-          <Grid item xs={12} md={3}>
-            <Card>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: 'error.main' }}>
-                  <XCircle size={20} />
-                </Avatar>
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'error.main' }}>
-                    {securityStats.criticalVulnerabilities}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    クリティカル
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-          </Grid>
+            {/* Quick Stats */}
+            <div className="flex gap-4 text-sm">
+              <div className="text-center">
+                <div className="font-bold text-gray-900">{alerts.filter(a => !a.resolved).length}</div>
+                <div className="text-gray-600">Active Alerts</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-gray-900">{securityMetrics.quarantinedFiles}</div>
+                <div className="text-gray-600">Quarantined</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-gray-900">{securityMetrics.systemHealth}%</div>
+                <div className="text-gray-600">Health</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <Grid item xs={12} md={3}>
-            <Card>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: 'warning.main' }}>
-                  <AlertTriangle size={20} />
-                </Avatar>
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'warning.main' }}>
-                    {securityStats.highVulnerabilities}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    高リスク
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={3}>
-            <Card>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: 'info.main' }}>
-                  <Clock size={20} />
-                </Avatar>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    最終スキャン
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {securityStats.lastScanDate}
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Quick Actions */}
-        <Card header="セキュリティスキャン" sx={{ mb: 4 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<Code />}
-                onClick={() => {
-                  setScanType('code');
-                  setScanDialogOpen(true);
-                }}
-                sx={{
-                  py: 2,
-                  background: 'linear-gradient(45deg, #1976d2, #2196f3)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #0d47a1, #1976d2)',
-                  },
-                }}
-              >
-                コードスキャン
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<Database />}
-                onClick={() => {
-                  setScanType('dependency');
-                  setScanDialogOpen(true);
-                }}
-                sx={{
-                  py: 2,
-                  background: 'linear-gradient(45deg, #388e3c, #4caf50)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #1b5e20, #388e3c)',
-                  },
-                }}
-              >
-                依存関係スキャン
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<Lock />}
-                onClick={() => {
-                  setScanType('secrets');
-                  setScanDialogOpen(true);
-                }}
-                sx={{
-                  py: 2,
-                  background: 'linear-gradient(45deg, #f57c00, #ff9800)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #e65100, #f57c00)',
-                  },
-                }}
-              >
-                シークレットスキャン
-              </Button>
-            </Grid>
-          </Grid>
-        </Card>
-
-        {/* Scan Results */}
-        <MuiCard>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-              <Tab label="脆弱性一覧" />
-              <Tab label="スキャン履歴" />
-              <Tab label="セキュリティレポート" />
-            </Tabs>
-          </Box>
-
-          <TabPanel value={activeTab} index={0}>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>深刻度</TableCell>
-                    <TableCell>タイトル</TableCell>
-                    <TableCell>場所</TableCell>
-                    <TableCell>推奨事項</TableCell>
-                    <TableCell>アクション</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {allFindings.map((finding) => (
-                    <TableRow key={finding.id} hover>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {getSeverityIcon(finding.severity)}
-                          <Chip
-                            label={finding.severity}
-                            size="small"
-                            color={getSeverityColor(finding.severity)}
-                            variant="outlined"
-                          />
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {finding.title}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {finding.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {finding.location.file}
-                          {finding.location.line && `:${finding.location.line}`}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ maxWidth: 200 }}>
-                          {finding.recommendation}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Button size="small" variant="outlined">
-                          修正
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </TabPanel>
-
-          <TabPanel value={activeTab} index={1}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {state.securityScans.map((scan) => (
-                <MuiCard key={scan.id} variant="outlined">
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        {getScanTypeIcon(scan.type)}
-                        <Typography variant="h6">
-                          {scan.type === 'code' ? 'コードスキャン' :
-                           scan.type === 'dependency' ? '依存関係スキャン' :
-                           scan.type === 'secrets' ? 'シークレットスキャン' : 'セキュリティスキャン'}
-                        </Typography>
-                        <Chip
-                          label={scan.status === 'running' ? '実行中' :
-                                scan.status === 'completed' ? '完了' : '失敗'}
-                          color={getScanStatusColor(scan.status)}
-                          size="small"
-                        />
-                      </Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(scan.startedAt).toLocaleString('ja-JP')}
-                      </Typography>
-                    </Box>
-
-                    {scan.status === 'running' && (
-                      <LinearProgress sx={{ mb: 1 }} />
-                    )}
-
-                    <Typography variant="body2" color="text.secondary">
-                      検出された脆弱性: {scan.findings?.length || 0}件
-                    </Typography>
-                  </CardContent>
-                </MuiCard>
-              ))}
-            </Box>
-          </TabPanel>
-
-          <TabPanel value={activeTab} index={2}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <Alert severity="success">
-                <Typography variant="body2">
-                  セキュリティスコア: 92/100 - 良好なセキュリティ状態を維持しています。
-                </Typography>
-              </Alert>
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Card header="脆弱性の傾向">
-                    <Box sx={{ textAlign: 'center', py: 2 }}>
-                      <Typography variant="h3" sx={{ color: 'success.main', fontWeight: 700 }}>
-                        ↓ 15%
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        先月比脆弱性減少
-                      </Typography>
-                    </Box>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Card header="対応済み脆弱性">
-                    <Box sx={{ textAlign: 'center', py: 2 }}>
-                      <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 700 }}>
-                        23件
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        今月の修正数
-                      </Typography>
-                    </Box>
-                  </Card>
-                </Grid>
-              </Grid>
-            </Box>
-          </TabPanel>
-        </MuiCard>
-
-        {/* Scan Dialog */}
-        <Dialog open={scanDialogOpen} onClose={() => setScanDialogOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Shield size={20} />
-            セキュリティスキャン
-          </DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              label="スキャン対象"
-              value={scanTarget}
-              onChange={(e) => setScanTarget(e.target.value)}
-              placeholder={scanType === 'code' ? './src' : scanType === 'dependency' ? './package.json' : './'}
-              sx={{ mt: 2 }}
-            />
-            <Alert severity="info" sx={{ mt: 2 }}>
-              {scanType === 'code' && 'ソースコードのセキュリティ脆弱性をスキャンします。'}
-              {scanType === 'dependency' && '依存関係の既知の脆弱性をチェックします。'}
-              {scanType === 'secrets' && 'ハードコードされたシークレットやAPIキーを検出します。'}
-            </Alert>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setScanDialogOpen(false)}>キャンセル</Button>
+        {/* Tab Navigation */}
+        <div className="flex gap-1 p-4 bg-gray-50 border-b overflow-x-auto">
+          {[
+            { id: 'dashboard', label: 'Security Dashboard', icon: '📊' },
+            { id: 'scanner', label: 'Malware Scanner', icon: '🔍' },
+            { id: 'quarantine', label: 'Quarantine', icon: '🛡️' },
+            { id: 'monitor', label: 'Real-time Monitor', icon: '📈' },
+            { id: 'reports', label: 'Security Reports', icon: '📋' }
+          ].map((tab) => (
             <Button
-              onClick={handleScan}
-              variant="contained"
-              disabled={!scanTarget.trim() || isScanning}
-              startIcon={isScanning ? <LinearProgress size={16} /> : <Play />}
+              key={tab.id}
+              variant={activeTab === tab.id ? 'primary' : 'ghost'}
+              onClick={() => setActiveTab(tab.id as any)}
+              className="px-4 py-2 whitespace-nowrap"
             >
-              {isScanning ? 'スキャン中...' : 'スキャン開始'}
+              <span className="mr-2">{tab.icon}</span>
+              {tab.label}
             </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          {activeTab === 'dashboard' && (
+            <SecurityDashboard
+              metrics={securityMetrics}
+              alerts={alerts}
+              status={overallStatus}
+            />
+          )}
+
+          {activeTab === 'scanner' && (
+            <MalwareScanner
+              onScanComplete={(result) => {
+                setScanResults(prev => [result, ...prev.slice(0, 9)])
+                setSecurityMetrics(prev => ({
+                  ...prev,
+                  lastScan: new Date(),
+                  totalScans: prev.totalScans + 1,
+                  threatsDetected: prev.threatsDetected + result.threatsFound,
+                  filesScanned: prev.filesScanned + result.filesScanned,
+                }))
+              }}
+            />
+          )}
+
+          {activeTab === 'quarantine' && (
+            <QuarantineManager
+              onFileRestored={() => {
+                setSecurityMetrics(prev => ({
+                  ...prev,
+                  quarantinedFiles: Math.max(0, prev.quarantinedFiles - 1),
+                }))
+              }}
+              onFileDeleted={() => {
+                setSecurityMetrics(prev => ({
+                  ...prev,
+                  quarantinedFiles: Math.max(0, prev.quarantinedFiles - 1),
+                }))
+              }}
+            />
+          )}
+
+          {activeTab === 'monitor' && (
+            <SecurityMonitor
+              isMonitoring={securityMetrics.realTimeMonitoring}
+              onToggleMonitoring={(enabled) => {
+                setSecurityMetrics(prev => ({
+                  ...prev,
+                  realTimeMonitoring: enabled,
+                }))
+              }}
+              onAlertDetected={(alert) => {
+                setAlerts(prev => [alert, ...prev])
+              }}
+            />
+          )}
+
+          {activeTab === 'reports' && (
+            <SecurityReports
+              scanResults={scanResults}
+              alerts={alerts}
+              metrics={securityMetrics}
+            />
+          )}
+        </div>
+      </div>
     </DashboardLayout>
-  );
+  )
 }
