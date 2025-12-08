@@ -190,7 +190,7 @@ impl ConflictDetectorTrait for AstConflictDetector {
         for lock in existing_locks {
             let conflict_prob = self
                 .conflict_probability(
-                    repo,
+                    repo_path,
                     operation,
                     &GitOperation::ModifyFiles(
                         lock.resources
@@ -233,11 +233,14 @@ impl ConflictDetectorTrait for AstConflictDetector {
         let semantic_overlap = self.calculate_semantic_overlap(op1, op2);
 
         // Add repository state factors
-        let repo_factor = match Repository::open(repo_path).ok().and_then(|r| Some(r.state())) {
+        let repo_factor = match Repository::open(repo_path)
+            .ok()
+            .and_then(|r| Some(r.state()))
+        {
             Some(git2::RepositoryState::Merge) => 0.3, // Ongoing merge increases conflict risk
-            Some(git2::RepositoryState::Rebase) |
-            Some(git2::RepositoryState::RebaseInteractive) => 0.4, // Rebase operations are risky
-            _ => 0.0, // Clean state
+            Some(git2::RepositoryState::Rebase)
+            | Some(git2::RepositoryState::RebaseInteractive) => 0.4, // Rebase operations are risky
+            _ => 0.0,                                  // Clean state
         };
 
         Ok((semantic_overlap + repo_factor).min(1.0))

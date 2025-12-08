@@ -170,14 +170,18 @@ impl GitLockManager {
 
         // Check for conflicts before acquiring permit
         if let Some(detector) = &self.conflict_detector {
-            let conflicts = detector.detect_conflicts(&self.repo_path, &operation, &[]).await?;
+            let conflicts = detector
+                .detect_conflicts(&self.repo_path, &operation, &[])
+                .await?;
             if !conflicts.is_empty() {
                 return Err(anyhow::anyhow!("Lock conflicts detected: {:?}", conflicts));
             }
         }
 
         // Acquire concurrency permit
-        let permit = tokio::time::timeout(Duration::from_secs(30), self.concurrency_limit.acquire()).await??;
+        let permit =
+            tokio::time::timeout(Duration::from_secs(30), self.concurrency_limit.acquire())
+                .await??;
 
         // Generate lock ID
         let lock_id = format!("{}_{}", owner, chrono::Utc::now().timestamp_millis());
@@ -213,7 +217,9 @@ impl GitLockManager {
         };
 
         if let Some(detector) = &self.conflict_detector {
-            detector.detect_conflicts(&self.repo_path, operation, &locks).await
+            detector
+                .detect_conflicts(&self.repo_path, operation, &locks)
+                .await
         } else {
             // Simple conflict detection without advanced analysis
             let mut conflicts = Vec::new();
@@ -333,7 +339,7 @@ pub struct BasicConflictDetector;
 impl ConflictDetectorTrait for BasicConflictDetector {
     async fn detect_conflicts(
         &self,
-        _repo: &Repository,
+        _repo_path: &std::path::Path,
         operation: &GitOperation,
         existing_locks: &[LockEntry],
     ) -> Result<Vec<LockConflict>> {
@@ -354,7 +360,7 @@ impl ConflictDetectorTrait for BasicConflictDetector {
 
     async fn conflict_probability(
         &self,
-        _repo: &Repository,
+        _repo_path: &std::path::Path,
         op1: &GitOperation,
         op2: &GitOperation,
     ) -> Result<f64> {

@@ -77,7 +77,7 @@ pub struct AIOrchestrator {
     development_mode: DevelopmentMode,
     worktree_manager: Option<Arc<crate::orchestration::worktree_manager::WorktreeManager>>,
     git_lock_manager: Option<Arc<GitLockManager>>,
-    conflict_detector: Option<Arc<Mutex<dyn ConflictDetectorTrait + Send + Sync>>>,
+    conflict_detector: Option<Arc<Mutex<Box<dyn ConflictDetectorTrait + Send + Sync>>>>,
 }
 
 /// Commands for the orchestrator
@@ -289,7 +289,7 @@ impl AIOrchestrator {
         };
 
         let conflict_detector = if mode == DevelopmentMode::Parallel {
-            Some(Arc::new(Mutex::new(AstConflictDetector::new()) as Arc<Mutex<dyn ConflictDetectorTrait + Send + Sync>>))
+            Some(Arc::new(Mutex::new(Box::new(AstConflictDetector::new()) as Box<dyn ConflictDetectorTrait + Send + Sync>)))
         } else {
             None
         };
