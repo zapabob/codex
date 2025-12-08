@@ -799,6 +799,9 @@ pub struct TokenCountEvent {
 pub struct RateLimitSnapshot {
     pub primary: Option<RateLimitWindow>,
     pub secondary: Option<RateLimitWindow>,
+    pub credits: Option<CreditsSnapshot>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub plan_type: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize, JsonSchema, TS)]
@@ -811,6 +814,17 @@ pub struct RateLimitWindow {
     /// Unix timestamp (seconds since epoch) when the window resets.
     #[ts(type = "number | null")]
     pub resets_at: Option<i64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, JsonSchema, TS)]
+pub struct CreditsSnapshot {
+    /// Whether the user has credits available
+    pub has_credits: bool,
+    /// Whether the user has unlimited credits
+    pub unlimited: bool,
+    /// Current credit balance as a string
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub balance: Option<String>,
 }
 
 // Includes prompts, tools and space to call compact.

@@ -12,6 +12,7 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::routing::get;
 use axum::routing::post;
+use axum::debug_handler;
 use chrono::DateTime;
 use chrono::Utc;
 use http::Method;
@@ -121,12 +122,14 @@ impl AppState {
     }
 }
 
+#[axum::debug_handler]
 async fn list_actions(State(state): State<AppState>) -> Json<Vec<ActionMetadata>> {
     let payload = state.actions.iter().map(ActionMetadata::from).collect();
 
     Json(payload)
 }
 
+#[axum::debug_handler]
 async fn execute_action(
     Path(id): Path<String>,
     State(state): State<AppState>,
