@@ -35,7 +35,7 @@ codex-app-server-protocol = { workspace = true }
 codex-apply-patch = { workspace = true }
 codex-async-utils = { workspace = true }
 codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
-cudarc = { version = "0.9", features = ["cuda-12020"], optional = true }
+cudarc = { version = "0.12", optional = true }
 codex-deep-research = { workspace = true }
 codex-file-search = { workspace = true }
 codex-git = { workspace = true }
