@@ -282,7 +282,7 @@ impl AIOrchestrator {
 
         // Initialize Git lock manager if in parallel mode
         let git_lock_manager = if mode == DevelopmentMode::Parallel {
-            Some(Arc::new(GitLockManager::with_concurrency_limit(".", 5).unwrap()))
+            Some(Arc::new(GitLockManager::new(".").unwrap().with_concurrency_limit(5)))
         } else {
             None
         };
