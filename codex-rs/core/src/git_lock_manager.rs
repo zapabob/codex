@@ -8,18 +8,15 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use std::time::Instant;
 
 use anyhow::Result;
 use chrono::DateTime;
 use chrono::Utc;
 use git2::Repository;
-use git2::RepositoryState;
 use parking_lot::Mutex;
 use serde::Deserialize;
 use serde::Serialize;
 use tokio::sync::Semaphore;
-use tokio::time::timeout;
 
 /// Lock entry representing a held lock
 #[derive(Debug, Clone, Serialize, Deserialize)]

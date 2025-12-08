@@ -83,7 +83,7 @@ impl AstConflictDetector {
     }
 
     /// Analyze file using AST parsing
-    fn analyze_file(&self, file_path: &Path, content: &str) -> Result<AstAnalysis> {
+    fn analyze_file(&self, _file_path: &Path, content: &str) -> Result<AstAnalysis> {
         let mut functions = Vec::new();
         let mut structs = Vec::new();
         let mut imports = Vec::new();

@@ -28,6 +28,10 @@ pub struct App {
     pub orchestrator: Option<ai_orchestrator::AIOrchestrator>,
     /// MCP Integration Manager
     pub mcp_manager: Option<mcp_integration_manager::McpIntegrationManager>,
+    /// Git Lock Manager for parallel development
+    pub git_lock_manager: Option<Arc<codex_core::git_lock_manager::GitLockManager>>,
+    /// Conflict Detector
+    pub conflict_detector: Option<Arc<Mutex<Box<dyn codex_core::git_lock_manager::ConflictDetectorTrait + Send + Sync>>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,10 +48,15 @@ pub enum AppState {
     DevelopmentMode {
         mode: ai_orchestrator::DevelopmentMode,
         active_servers: Vec<String>,
-        agent_status: std::collections::HashMap<String, String>,
+        agent_status: std::collections::BTreeMap<String, String>,
     },
     /// Settings
     Settings,
+    /// Git Lock Management
+    GitLockManager {
+        locks: Vec<codex_core::git_lock_manager::LockEntry>,
+        conflicts: Vec<codex_core::git_lock_manager::LockConflict>,
+    },
 }
 
 impl App {
@@ -71,6 +80,7 @@ impl App {
             AppState::QualityControl => self.handle_qc_key(key),
             AppState::Settings => self.handle_settings_key(key),
             AppState::DevelopmentMode { .. } => self.handle_development_mode_key(key),
+            AppState::GitLockManager { .. } => self.handle_git_lock_key(key),
         }
     }
 
@@ -132,6 +142,19 @@ impl App {
         // Handle settings
         if let crossterm::event::KeyCode::Char('m') = _key.code {
             self.state = AppState::MainMenu;
+        }
+    }
+
+    fn handle_git_lock_key(&mut self, key: KeyEvent) {
+        match key.code {
+            crossterm::event::KeyCode::Char('m') => {
+                self.state = AppState::MainMenu;
+            }
+            crossterm::event::KeyCode::Char('r') => {
+                // Refresh lock status
+                // TODO: Implement refresh logic
+            }
+            _ => {}
         }
     }
 

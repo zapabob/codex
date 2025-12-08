@@ -17,7 +17,6 @@ pub mod agents;
 pub mod ai_orchestrator;
 pub mod git_lock_manager;
 pub mod conflict_detector;
-pub mod conflict_detector;
 pub mod mcp_integration_manager;
 mod apply_patch;
 pub mod async_subagent_integration;
