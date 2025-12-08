@@ -27,6 +27,7 @@ import {
   CheckSquare,
   TrendingUp,
   Monitor,
+  Bot,
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -54,6 +55,7 @@ const navigationItems: NavigationItem[] = [
   { id: 'qc', label: 'QC管理', icon: TrendingUp },
   { id: 'security', label: 'セキュリティ', icon: Shield },
   { id: 'virtual-os', label: '仮想OS', icon: Monitor },
+  { id: 'ai-tools', label: 'AIツール統合', icon: Bot },
   { id: 'research', label: 'Deep Research', icon: Search },
   { id: 'security', label: 'セキュリティ', icon: Shield },
   { id: 'mcp', label: 'MCPサーバー', icon: Server },
