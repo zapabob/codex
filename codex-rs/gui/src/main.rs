@@ -173,6 +173,9 @@ impl AppState {
         Self {
             cli_path: Arc::new(cli_path),
             actions: Arc::new(actions),
+            conversations: Arc::new(tokio::sync::RwLock::new(Vec::new())),
+            messages: Arc::new(tokio::sync::RwLock::new(HashMap::new())),
+            current_user: Arc::new(tokio::sync::RwLock::new(None)),
         }
     }
 
