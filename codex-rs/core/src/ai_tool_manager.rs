@@ -1,10 +1,19 @@
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::process::{Command, Stdio};
-use std::sync::{Arc, Mutex};
-use tokio::sync::{broadcast, mpsc, Semaphore};
-use tokio::time::{self, Duration, Instant};
-use serde::{Deserialize, Serialize};
 use futures::future::join_all;
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::collections::VecDeque;
+use std::process::Command;
+use std::process::Stdio;
+use std::sync::Arc;
+use std::sync::Mutex;
+use tokio::sync::Semaphore;
+use tokio::sync::broadcast;
+use tokio::sync::mpsc;
+use tokio::time::Duration;
+use tokio::time::Instant;
+use tokio::time::{self};
 
 /// Multi-AI tool orchestration system for parallel development
 pub struct AIToolManager {
@@ -92,10 +101,10 @@ pub struct DevelopmentTask {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TaskComplexity {
-    Simple,     // Single file changes
-    Medium,     // Multiple file changes
-    Complex,    // Architecture changes
-    Critical,   // Breaking changes
+    Simple,   // Single file changes
+    Medium,   // Multiple file changes
+    Complex,  // Architecture changes
+    Critical, // Breaking changes
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -155,35 +164,38 @@ impl AIToolManager {
         ));
 
         // Execute subtasks in parallel
-        let execution_futures: Vec<_> = subtasks.into_iter().map(|subtask| {
-            let execution_engine = Arc::clone(&self.execution_engine);
-            let event_sender = self.event_sender.clone();
+        let execution_futures: Vec<_> = subtasks
+            .into_iter()
+            .map(|subtask| {
+                let execution_engine = Arc::clone(&self.execution_engine);
+                let event_sender = self.event_sender.clone();
 
-            async move {
-                // Acquire resource permit
-                let _permit = self.resource_semaphore.acquire().await.unwrap();
+                async move {
+                    // Acquire resource permit
+                    let _permit = self.resource_semaphore.acquire().await.unwrap();
 
-                let result = execution_engine.execute_subtask(subtask.clone()).await;
+                    let result = execution_engine.execute_subtask(subtask.clone()).await;
 
-                // Send completion event
-                match &result {
-                    Ok(exec_result) => {
-                        let _ = event_sender.send(AIToolEvent::SessionCompleted(
-                            exec_result.session_id.clone(),
-                            exec_result.clone(),
-                        ));
+                    // Send completion event
+                    match &result {
+                        Ok(exec_result) => {
+                            let _ = event_sender.send(AIToolEvent::SessionCompleted(
+                                exec_result.session_id.clone(),
+                                exec_result.clone(),
+                            ));
+                        }
+                        Err(e) => {
+                            let _ = event_sender.send(AIToolEvent::SessionFailed(
+                                subtask.id.clone(),
+                                e.to_string(),
+                            ));
+                        }
                     }
-                    Err(e) => {
-                        let _ = event_sender.send(AIToolEvent::SessionFailed(
-                            subtask.id.clone(),
-                            e.to_string(),
-                        ));
-                    }
+
+                    result
                 }
-
-                result
-            }
-        }).collect();
+            })
+            .collect();
 
         // Wait for all executions to complete
         let results = join_all(execution_futures).await;
@@ -200,11 +212,10 @@ impl AIToolManager {
         }
 
         // Integrate results
-        let integrated_result = self.result_integrator.integrate_results(
-            task.clone(),
-            successful_results,
-            errors,
-        ).await?;
+        let integrated_result = self
+            .result_integrator
+            .integrate_results(task.clone(), successful_results, errors)
+            .await?;
 
         let _ = self.event_sender.send(AIToolEvent::ResultsIntegrated(
             task.id.clone(),
@@ -248,12 +259,10 @@ impl AIToolManager {
         }
 
         // Start the AI tool process
-        let process_handle = self.execution_engine.start_tool_process(
-            tool,
-            &task_id,
-            task_description,
-            working_directory,
-        ).await?;
+        let process_handle = self
+            .execution_engine
+            .start_tool_process(tool, &task_id, task_description, working_directory)
+            .await?;
 
         // Update session with process handle
         {
@@ -264,7 +273,9 @@ impl AIToolManager {
             }
         }
 
-        let _ = self.event_sender.send(AIToolEvent::SessionStarted(session_id.clone()));
+        let _ = self
+            .event_sender
+            .send(AIToolEvent::SessionStarted(session_id.clone()));
 
         Ok(session_id)
     }
@@ -283,7 +294,9 @@ impl AIToolManager {
 
     /// Get session status
     pub fn get_session_status(&self, session_id: &str) -> Option<SessionStatus> {
-        self.active_sessions.lock().unwrap()
+        self.active_sessions
+            .lock()
+            .unwrap()
             .get(session_id)
             .map(|s| s.status.clone())
     }
@@ -305,9 +318,14 @@ impl AIToolManager {
 
     /// Get active sessions count for a tool
     async fn get_active_sessions_for_tool(&self, tool_id: &str) -> usize {
-        self.active_sessions.lock().unwrap()
+        self.active_sessions
+            .lock()
+            .unwrap()
             .values()
-            .filter(|s| s.tool_id == tool_id && matches!(s.status, SessionStatus::Running | SessionStatus::Starting))
+            .filter(|s| {
+                s.tool_id == tool_id
+                    && matches!(s.status, SessionStatus::Running | SessionStatus::Starting)
+            })
             .count()
     }
 
@@ -316,72 +334,81 @@ impl AIToolManager {
         let mut tools = HashMap::new();
 
         // Codex
-        tools.insert("codex".to_string(), AITool {
-            id: "codex".to_string(),
-            name: "Codex".to_string(),
-            command: vec!["codex".to_string()],
-            working_directory: None,
-            environment_variables: HashMap::new(),
-            capabilities: vec![
-                AICapability::CodeGeneration,
-                AICapability::CodeReview,
-                AICapability::Testing,
-                AICapability::Refactoring,
-                AICapability::Documentation,
-            ],
-            resource_requirements: ResourceRequirements {
-                cpu_cores: 2.0,
-                memory_mb: 4096,
-                concurrent_limit: 3,
+        tools.insert(
+            "codex".to_string(),
+            AITool {
+                id: "codex".to_string(),
+                name: "Codex".to_string(),
+                command: vec!["codex".to_string()],
+                working_directory: None,
+                environment_variables: HashMap::new(),
+                capabilities: vec![
+                    AICapability::CodeGeneration,
+                    AICapability::CodeReview,
+                    AICapability::Testing,
+                    AICapability::Refactoring,
+                    AICapability::Documentation,
+                ],
+                resource_requirements: ResourceRequirements {
+                    cpu_cores: 2.0,
+                    memory_mb: 4096,
+                    concurrent_limit: 3,
+                },
+                timeout_seconds: 300,
+                max_concurrent_sessions: 3,
             },
-            timeout_seconds: 300,
-            max_concurrent_sessions: 3,
-        });
+        );
 
         // Gemini CLI
-        tools.insert("gemini-cli".to_string(), AITool {
-            id: "gemini-cli".to_string(),
-            name: "Gemini CLI".to_string(),
-            command: vec!["gemini".to_string(), "chat".to_string()],
-            working_directory: None,
-            environment_variables: HashMap::new(),
-            capabilities: vec![
-                AICapability::CodeGeneration,
-                AICapability::Analysis,
-                AICapability::Chat,
-                AICapability::Documentation,
-            ],
-            resource_requirements: ResourceRequirements {
-                cpu_cores: 1.5,
-                memory_mb: 2048,
-                concurrent_limit: 5,
+        tools.insert(
+            "gemini-cli".to_string(),
+            AITool {
+                id: "gemini-cli".to_string(),
+                name: "Gemini CLI".to_string(),
+                command: vec!["gemini".to_string(), "chat".to_string()],
+                working_directory: None,
+                environment_variables: HashMap::new(),
+                capabilities: vec![
+                    AICapability::CodeGeneration,
+                    AICapability::Analysis,
+                    AICapability::Chat,
+                    AICapability::Documentation,
+                ],
+                resource_requirements: ResourceRequirements {
+                    cpu_cores: 1.5,
+                    memory_mb: 2048,
+                    concurrent_limit: 5,
+                },
+                timeout_seconds: 180,
+                max_concurrent_sessions: 5,
             },
-            timeout_seconds: 180,
-            max_concurrent_sessions: 5,
-        });
+        );
 
         // Claude Code
-        tools.insert("claude-code".to_string(), AITool {
-            id: "claude-code".to_string(),
-            name: "Claude Code".to_string(),
-            command: vec!["claude".to_string(), "code".to_string()],
-            working_directory: None,
-            environment_variables: HashMap::new(),
-            capabilities: vec![
-                AICapability::CodeGeneration,
-                AICapability::CodeReview,
-                AICapability::Refactoring,
-                AICapability::Testing,
-                AICapability::Analysis,
-            ],
-            resource_requirements: ResourceRequirements {
-                cpu_cores: 2.5,
-                memory_mb: 6144,
-                concurrent_limit: 2,
+        tools.insert(
+            "claude-code".to_string(),
+            AITool {
+                id: "claude-code".to_string(),
+                name: "Claude Code".to_string(),
+                command: vec!["claude".to_string(), "code".to_string()],
+                working_directory: None,
+                environment_variables: HashMap::new(),
+                capabilities: vec![
+                    AICapability::CodeGeneration,
+                    AICapability::CodeReview,
+                    AICapability::Refactoring,
+                    AICapability::Testing,
+                    AICapability::Analysis,
+                ],
+                resource_requirements: ResourceRequirements {
+                    cpu_cores: 2.5,
+                    memory_mb: 6144,
+                    concurrent_limit: 2,
+                },
+                timeout_seconds: 600,
+                max_concurrent_sessions: 2,
             },
-            timeout_seconds: 600,
-            max_concurrent_sessions: 2,
-        });
+        );
 
         tools
     }
@@ -406,7 +433,14 @@ impl AsyncExecutionEngine {
         let tool = subtask.tool.clone();
 
         // Start tool process
-        let mut child = self.start_tool_process(&tool, &subtask.id, &subtask.description, subtask.working_directory.as_deref()).await?;
+        let mut child = self
+            .start_tool_process(
+                &tool,
+                &subtask.id,
+                &subtask.description,
+                subtask.working_directory.as_deref(),
+            )
+            .await?;
 
         // Store process handle
         {
@@ -421,7 +455,8 @@ impl AsyncExecutionEngine {
         let result = tokio::time::timeout(timeout_duration, async {
             let output = child.wait_with_output().await?;
             Ok(output)
-        }).await;
+        })
+        .await;
 
         // Remove from active processes
         {
@@ -535,7 +570,10 @@ impl TaskDistributor {
         }
     }
 
-    pub fn distribute_task(&self, task: DevelopmentTask) -> Result<Vec<SubTask>, Box<dyn std::error::Error>> {
+    pub fn distribute_task(
+        &self,
+        task: DevelopmentTask,
+    ) -> Result<Vec<SubTask>, Box<dyn std::error::Error>> {
         // Analyze task complexity and requirements
         let subtask_count = match task.complexity {
             TaskComplexity::Simple => 1,
@@ -566,46 +604,65 @@ impl TaskDistributor {
         Ok(subtasks)
     }
 
-    fn generate_subtask_description(&self, task: &DevelopmentTask, index: usize, total: usize) -> String {
+    fn generate_subtask_description(
+        &self,
+        task: &DevelopmentTask,
+        index: usize,
+        total: usize,
+    ) -> String {
         match task.complexity {
             TaskComplexity::Simple => task.description.clone(),
-            TaskComplexity::Medium => {
-                match index {
-                    0 => format!("Implement core functionality: {}", task.description),
-                    1 => format!("Add tests and validation: {}", task.description),
-                    _ => task.description.clone(),
-                }
-            }
-            TaskComplexity::Complex => {
-                match index {
-                    0 => format!("Design architecture: {}", task.description),
-                    1 => format!("Implement core components: {}", task.description),
-                    2 => format!("Add testing and documentation: {}", task.description),
-                    _ => task.description.clone(),
-                }
-            }
-            TaskComplexity::Critical => {
-                match index {
-                    0 => format!("Analysis and design: {}", task.description),
-                    1 => format!("Core implementation: {}", task.description),
-                    2 => format!("Testing and validation: {}", task.description),
-                    3 => format!("Documentation and deployment: {}", task.description),
-                    _ => task.description.clone(),
-                }
-            }
+            TaskComplexity::Medium => match index {
+                0 => format!("Implement core functionality: {}", task.description),
+                1 => format!("Add tests and validation: {}", task.description),
+                _ => task.description.clone(),
+            },
+            TaskComplexity::Complex => match index {
+                0 => format!("Design architecture: {}", task.description),
+                1 => format!("Implement core components: {}", task.description),
+                2 => format!("Add testing and documentation: {}", task.description),
+                _ => task.description.clone(),
+            },
+            TaskComplexity::Critical => match index {
+                0 => format!("Analysis and design: {}", task.description),
+                1 => format!("Core implementation: {}", task.description),
+                2 => format!("Testing and validation: {}", task.description),
+                3 => format!("Documentation and deployment: {}", task.description),
+                _ => task.description.clone(),
+            },
         }
     }
 
-    fn select_capabilities_for_subtask(&self, requirements: &[AICapability], index: usize) -> Vec<AICapability> {
+    fn select_capabilities_for_subtask(
+        &self,
+        requirements: &[AICapability],
+        index: usize,
+    ) -> Vec<AICapability> {
         match index {
-            0 => requirements.iter().filter(|cap| matches!(cap, AICapability::CodeGeneration | AICapability::Analysis)).cloned().collect(),
-            1 => requirements.iter().filter(|cap| matches!(cap, AICapability::CodeGeneration | AICapability::Testing)).cloned().collect(),
-            2 => requirements.iter().filter(|cap| matches!(cap, AICapability::Testing | AICapability::Documentation)).cloned().collect(),
+            0 => requirements
+                .iter()
+                .filter(|cap| matches!(cap, AICapability::CodeGeneration | AICapability::Analysis))
+                .cloned()
+                .collect(),
+            1 => requirements
+                .iter()
+                .filter(|cap| matches!(cap, AICapability::CodeGeneration | AICapability::Testing))
+                .cloned()
+                .collect(),
+            2 => requirements
+                .iter()
+                .filter(|cap| matches!(cap, AICapability::Testing | AICapability::Documentation))
+                .cloned()
+                .collect(),
             _ => requirements.to_vec(),
         }
     }
 
-    fn select_tool_for_subtask(&self, requirements: &[AICapability], index: usize) -> &'static AITool {
+    fn select_tool_for_subtask(
+        &self,
+        requirements: &[AICapability],
+        index: usize,
+    ) -> &'static AITool {
         // In real implementation, this would be more sophisticated
         // For now, return a default tool
         // This needs to be fixed to return an actual tool reference
@@ -638,7 +695,10 @@ impl ResultIntegrator {
     pub fn new() -> Self {
         let mut strategies = HashMap::new();
         strategies.insert("default".to_string(), IntegrationStrategy::Merge);
-        strategies.insert("code_generation".to_string(), IntegrationStrategy::BestQuality);
+        strategies.insert(
+            "code_generation".to_string(),
+            IntegrationStrategy::BestQuality,
+        );
         strategies.insert("testing".to_string(), IntegrationStrategy::Combine);
 
         Self {
@@ -669,7 +729,11 @@ impl ResultIntegrator {
             integrated_output: integrated_result.output,
             subtask_results: results,
             errors,
-            execution_time: results.iter().map(|r| r.execution_time).max().unwrap_or(Duration::from_secs(0)),
+            execution_time: results
+                .iter()
+                .map(|r| r.execution_time)
+                .max()
+                .unwrap_or(Duration::from_secs(0)),
             quality_score: integrated_result.quality_score,
             recommendations: integrated_result.recommendations,
         })
@@ -685,13 +749,19 @@ impl ResultIntegrator {
         }
     }
 
-    async fn merge_results(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+    async fn merge_results(
+        &self,
+        results: Vec<ExecutionResult>,
+    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
         let mut combined_output = String::new();
         let mut total_quality = 0.0;
 
         for result in results {
             if result.success {
-                combined_output.push_str(&format!("--- {} ---\n{}\n\n", result.tool_id, result.output));
+                combined_output.push_str(&format!(
+                    "--- {} ---\n{}\n\n",
+                    result.tool_id, result.output
+                ));
                 total_quality += result.quality_score;
             }
         }
@@ -704,8 +774,12 @@ impl ResultIntegrator {
         })
     }
 
-    async fn select_best_quality(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
-        let best_result = results.into_iter()
+    async fn select_best_quality(
+        &self,
+        results: Vec<ExecutionResult>,
+    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+        let best_result = results
+            .into_iter()
             .filter(|r| r.success)
             .max_by(|a, b| a.quality_score.partial_cmp(&b.quality_score).unwrap())
             .ok_or("No successful results")?;
@@ -718,7 +792,10 @@ impl ResultIntegrator {
         })
     }
 
-    async fn combine_results(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+    async fn combine_results(
+        &self,
+        results: Vec<ExecutionResult>,
+    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
         // Combine complementary results
         let mut combined_output = String::new();
         let mut all_files = HashSet::new();
@@ -726,7 +803,10 @@ impl ResultIntegrator {
 
         for result in results {
             if result.success {
-                combined_output.push_str(&format!("{} Results:\n{}\n\n", result.tool_id, result.output));
+                combined_output.push_str(&format!(
+                    "{} Results:\n{}\n\n",
+                    result.tool_id, result.output
+                ));
                 all_files.extend(result.files_modified);
                 total_quality += result.quality_score;
             }
@@ -743,7 +823,10 @@ impl ResultIntegrator {
         })
     }
 
-    async fn vote_on_results(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+    async fn vote_on_results(
+        &self,
+        results: Vec<ExecutionResult>,
+    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
         // Simple voting mechanism - most common successful result
         let successful_results: Vec<_> = results.into_iter().filter(|r| r.success).collect();
 
@@ -765,10 +848,10 @@ impl ResultIntegrator {
 
 #[derive(Debug, Clone)]
 pub enum IntegrationStrategy {
-    Merge,        // Combine all results
-    BestQuality,  // Select highest quality result
-    Combine,      // Combine complementary results
-    Vote,         // Vote on best result
+    Merge,       // Combine all results
+    BestQuality, // Select highest quality result
+    Combine,     // Combine complementary results
+    Vote,        // Vote on best result
 }
 
 #[derive(Debug, Clone)]
