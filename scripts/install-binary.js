@@ -11,7 +11,7 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const pipeline = promisify(require('stream').pipeline);
 
-const VERSION = '2.0.0';
+const VERSION = '2.3.2';
 const GITHUB_REPO = 'zapabob/codex';
 
 // Platform detection
