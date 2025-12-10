@@ -1,13 +1,12 @@
-<<<<<<< HEAD
 # Codex - AI-Native OS with 4D Git Visualization & VR/AR Support
 
 <div align="center">
 
-![Codex v2.2.0](./architecture-v2.2.0.svg)
+![Codex v2.5.0](./architecture-v2.5.0.svg)
 
-**v2.2.0 "Extended Features" - The World's First AI-Native Operating System**
+**v2.5.0 "Official Integration" - The World's First AI-Native Operating System**
 
-[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -24,16 +23,20 @@
 <a name="english"></a>
 ## 📖 English
 
-### 🎉 What's New in v2.2.0 "Extended Features"
+### 🎉 What's New in v2.5.0 "Official Integration"
 
-**Release Date**: November 15, 2025  
-**Milestone**: zapabob/codex Extended Features & npm Package Release
+**Release Date**: December 11, 2025
+**Milestone**: Official OpenAI/codex Repository Integration & Major Updates
 
-**🎁 New in v2.2.0**:
-- ✅ **npm Package Published**: Available as `@zapabob/codex` on npm registry
-- ✅ **Cross-platform Binaries**: Pre-built binaries for 8 platforms (Windows/macOS/Linux x64/ARM64)
-- ✅ **One-command Installation**: `npm install -g @zapabob/codex`
-- ✅ **Automated Releases**: GitHub Actions CI/CD for automatic npm publishing
+**🎁 New in v2.5.0**:
+- ✅ **Official Repository Integration**: Merged latest features, security fixes, and bug fixes from OpenAI/codex
+- ✅ **Unified Exec System**: Enhanced execution environment with async watchers and improved session management
+- ✅ **Security Enhancements**: Updated MCP SDK to v1.24.0, improved sandboxing and permission management
+- ✅ **Windows Sandbox Improvements**: ConPTY support and enhanced Windows-specific sandboxing
+- ✅ **Performance Optimizations**: Faster incremental builds and optimized async execution patterns
+- ✅ **Cross-platform Compatibility**: Improved Windows, macOS, and Linux support
+- ✅ **CI/CD Pipeline Updates**: Updated GitHub Actions workflows (actions/checkout@v6)
+- ✅ **Zero Error Policy**: All code passes with zero errors/warnings (Rust 2024 edition)
 
 ---
 
@@ -493,7 +496,7 @@ npm run dev
 
 ### 🏗️ Architecture Overview
 
-![Codex v2.2.0 Architecture](./architecture-v2.2.0.svg)
+![Codex v2.5.0 Architecture](./architecture-v2.5.0.svg)
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -683,16 +686,20 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 <a name="japanese"></a>
 ## 📖 日本語
 
-### 🎉 v2.2.0 "Extended Features" の新機能
+### 🎉 v2.5.0 "Official Integration" の新機能
 
-**リリース日**: 2025年11月15日  
-**マイルストーン**: npmパッケージ公開 & 自動リリース対応
+**リリース日**: 2025年12月11日
+**マイルストーン**: OpenAI/codex公式リポジトリ統合 & メジャーアップデート
 
-**🎁 v2.2.0の新機能**:
-- ✅ **npmパッケージ公開**: `@zapabob/codex`としてnpmレジストリで利用可能
-- ✅ **クロスプラットフォームバイナリ**: 8プラットフォーム対応（Windows/macOS/Linux x64/ARM64）
-- ✅ **ワンコマンドインストール**: `npm install -g @zapabob/codex`
-- ✅ **自動リリース**: GitHub Actions CI/CDによる自動npm公開
+**🎁 v2.5.0の新機能**:
+- ✅ **公式リポジトリ統合**: OpenAI/codexの最新機能、セキュリティ修正、バグ修正を統合
+- ✅ **Unified Execシステム**: 非同期ウォッチャーと改善されたセッション管理による実行環境強化
+- ✅ **セキュリティ強化**: MCP SDK v1.24.0更新、サンドボックスと権限管理の改善
+- ✅ **Windowsサンドボックス改善**: ConPTYサポートとWindows固有のサンドボックス強化
+- ✅ **パフォーマンス最適化**: 高速インクリメンタルビルドと最適化された非同期実行パターン
+- ✅ **クロスプラットフォーム互換性**: Windows、macOS、Linuxのサポート改善
+- ✅ **CI/CDパイプライン更新**: GitHub Actionsワークフロー更新 (actions/checkout@v6)
+- ✅ **ゼロエラーポリシー**: すべてのコードがゼロエラー/警告で合格 (Rust 2024 edition)
 
 #### 🌟 革命的機能
 
@@ -1077,6 +1084,20 @@ npm run dev
 ---
 
 ### 📅 変更履歴（時系列）
+
+#### v2.5.0 (2025-12-11) - "Official Integration"
+
+**🎁 Major Changes**:
+- **Official Repository Integration**: Merged latest OpenAI/codex features, security fixes, and bug fixes
+- **Unified Exec System**: Enhanced execution environment with async watchers and improved session management
+- **Security Enhancements**: Updated MCP SDK to v1.24.0, improved sandboxing and permission management
+- **Windows Sandbox Improvements**: ConPTY support and enhanced Windows-specific sandboxing
+- **Performance Optimizations**: Faster incremental builds and optimized async execution patterns
+- **Zero Error Policy**: All code passes with zero errors/warnings (Rust 2024 edition)
+
+**Breaking Changes**: None (backward compatible)
+
+**詳細**: [実装ログ](_docs/2025-12-11_公式リポジトリ統合・バージョン2.5.0リリース.md)
 
 #### v2.2.0 (2025-11-15) - "Extended Features"
 

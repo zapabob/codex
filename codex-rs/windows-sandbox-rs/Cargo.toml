@@ -1,7 +1,8 @@
 [package]
-name = "codex-windows-sandbox"
-version = { workspace = true }
 edition = "2024"
+license.workspace = true
+name = "codex-windows-sandbox"
+version.workspace = true
 
 [lib]
 name = "codex_windows_sandbox"
@@ -9,17 +10,17 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0"
+chrono = { workspace = true }
+dunce = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-dunce = "1.0"
 [dependencies.rand]
-version = "0.8"
 default-features = false
 features = ["std", "small_rng"]
+version = "0.8"
 [dependencies.dirs-next]
 version = "2.0"
 [dependencies.windows-sys]
-version = "0.52"
 features = [
     "Win32_Foundation",
     "Win32_System_Diagnostics_Debug",
@@ -42,3 +43,4 @@ features = [
     "Win32_System_Com",
     "Win32_Security_Authentication_Identity",
 ]
+version = "0.52"
