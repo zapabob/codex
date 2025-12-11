@@ -155,6 +155,13 @@ pub(crate) enum AppEvent {
 
     /// GPU monitoring became unavailable (e.g. device removed or feature disabled).
     GpuStatsUnavailable,
+
+    /// Plan Mode Events (Rust 2024 Integration)
+    PlanCreate,
+    PlanList,
+    QcImprovement,
+    QcMonitoring,
+    QcPrediction,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

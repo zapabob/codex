@@ -1507,7 +1507,7 @@ impl ChatWidget {
                 self.add_info_message("Research command is not yet implemented in TUI mode. Use CLI: `codex research <topic>`".to_string(), None);
             }
             SlashCommand::Plan => {
-                self.add_info_message("Plan command is not yet implemented in TUI mode. Use CLI: `codex plan create <description>`".to_string(), None);
+                self.handle_plan_command().await;
             }
             SlashCommand::Qc => {
                 self.add_info_message("Running Quality Control agent for code analysis...".to_string(), None);
@@ -3071,6 +3071,91 @@ impl ChatWidget {
             Constraint::Length(self.bottom_pane.desired_height(area.width)),
         ])
         .areas(area)
+    }
+
+    /// Handle plan command with QC agent integration (Rust 2024)
+    async fn handle_plan_command(&mut self) {
+        self.add_info_message("🚀 Planモードを起動中... QCエージェントPhase 4統合".to_string(), None);
+
+        // Show plan creation popup
+        self.show_plan_creation_popup().await;
+    }
+
+    /// Show plan creation popup with QC integration
+    async fn show_plan_creation_popup(&mut self) {
+        use crate::ui::ColumnRenderable;
+
+        let mut items = Vec::new();
+
+        items.push(crate::ui::SelectionItem {
+            id: "create_plan".to_string(),
+            display: Line::from("📝 新規Plan作成".bold()),
+            description: Some("品質保証ワークフロー付きPlanを作成".into()),
+            ..Default::default()
+        });
+
+        items.push(crate::ui::SelectionItem {
+            id: "list_plans".to_string(),
+            display: Line::from("📋 Plan一覧".bold()),
+            description: Some("既存のPlanを表示".into()),
+            ..Default::default()
+        });
+
+        items.push(crate::ui::SelectionItem {
+            id: "qc_improvement".to_string(),
+            display: Line::from("🔧 QC改善計画".bold()),
+            description: Some("自動品質改善計画を生成 (Rust 2024)".into()),
+            ..Default::default()
+        });
+
+        items.push(crate::ui::SelectionItem {
+            id: "monitoring_dashboard".to_string(),
+            display: Line::from("📊 品質監視ダッシュボード".bold()),
+            description: Some("リアルタイム品質監視を開始".into()),
+            ..Default::default()
+        });
+
+        items.push(crate::ui::SelectionItem {
+            id: "ml_prediction".to_string(),
+            display: Line::from("🤖 ML品質予測".bold()),
+            description: Some("機械学習による品質予測を実行".into()),
+            ..Default::default()
+        });
+
+        let mut header = ColumnRenderable::new();
+        header.push(Line::from("Plan Mode - 品質保証統合 (Rust 2024)".bold()));
+        header.push(Line::from(""));
+        header.push(Line::from("Phase 4機能:"));
+        header.push(Line::from("• リアルタイム品質監視"));
+        header.push(Line::from("• ML品質予測"));
+        header.push(Line::from("• 自動品質改善"));
+
+        self.bottom_pane.show_selection_view(crate::ui::SelectionViewParams {
+            header: Box::new(header),
+            footer_hint: Some(crate::ui::standard_popup_hint_line()),
+            items,
+            on_select: Some(Box::new(|selected_id, app_event_tx| {
+                match selected_id.as_str() {
+                    "create_plan" => {
+                        app_event_tx.send(crate::app::AppEvent::PlanCreate);
+                    }
+                    "list_plans" => {
+                        app_event_tx.send(crate::app::AppEvent::PlanList);
+                    }
+                    "qc_improvement" => {
+                        app_event_tx.send(crate::app::AppEvent::QcImprovement);
+                    }
+                    "monitoring_dashboard" => {
+                        app_event_tx.send(crate::app::AppEvent::QcMonitoring);
+                    }
+                    "ml_prediction" => {
+                        app_event_tx.send(crate::app::AppEvent::QcPrediction);
+                    }
+                    _ => {}
+                }
+            })),
+            ..Default::default()
+        });
     }
 
     pub fn cursor_pos(&self, area: Rect) -> Option<(u16, u16)> {
