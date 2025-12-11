@@ -79,12 +79,26 @@ pub struct ExecApprovalRequestEvent {
     #[ts(optional)]
     pub proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
     pub parsed_cmd: Vec<ParsedCommand>,
+    pub server_name: String,
+    pub request_id: RequestId,
+    pub message: String,
+    pub parsed_cmd: Vec<ParsedCommand>,
+    pub cwd: PathBuf,
+    pub command: Vec<String>,
+    pub reason: Option<String>,
+    pub risk: Option<SandboxCommandAssessment>,
+    pub proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
+    pub parsed_cmd: Vec<ParsedCommand>,
+    pub server_name: String,
+    pub request_id: RequestId,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct ApplyPatchApprovalRequestEvent {
-    /// Responses API call id for the associated patch apply call, if available.
+    /// Identifier for the associated patch apply call, if available.
     pub call_id: String,
+    /// Mapping of changed files with their corresponding changes.
     pub changes: HashMap<PathBuf, FileChange>,
     /// Optional explanatory reason (e.g. request for extra write access).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -92,4 +106,14 @@ pub struct ApplyPatchApprovalRequestEvent {
     /// When set, the agent is asking the user to allow writes under this root for the remainder of the session.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub grant_root: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
+pub struct McpElicitationApprovalRequestEvent {
+    /// Name of the server handling the request.
+    pub server_name: String,
+    /// Identifier of the approval request.
+    pub request_id: RequestId,
+    /// Message describing the elicitation request.
+    pub message: String,
 }
