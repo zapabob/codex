@@ -70,6 +70,7 @@ pub(crate) fn new_status_output(
     session_id: &Option<ConversationId>,
     rate_limits: Option<&RateLimitSnapshotDisplay>,
     now: DateTime<Local>,
+    model_name: &str,
 ) -> CompositeHistoryCell {
     let command = PlainHistoryCell::new(vec!["/status".magenta().into()]);
     let card = StatusHistoryCell::new(
@@ -79,6 +80,7 @@ pub(crate) fn new_status_output(
         session_id,
         rate_limits,
         now,
+        model_name,
     );
 
     CompositeHistoryCell::new(vec![Box::new(command), Box::new(card)])
@@ -92,9 +94,10 @@ impl StatusHistoryCell {
         session_id: &Option<ConversationId>,
         rate_limits: Option<&RateLimitSnapshotDisplay>,
         now: DateTime<Local>,
+        model_name: &str,
     ) -> Self {
-        let config_entries = create_config_summary_entries(config);
-        let (model_name, model_details) = compose_model_display(config, &config_entries);
+        let config_entries = create_config_summary_entries(config, model_name);
+        let (model_name, model_details) = compose_model_display(model_name, &config_entries);
         let approval = config_entries
             .iter()
             .find(|(k, _)| *k == "approval")

@@ -39,6 +39,7 @@ pub(crate) struct SelectionItem {
     pub description: Option<String>,
     pub selected_description: Option<String>,
     pub is_current: bool,
+    pub is_default: bool,
     pub actions: Vec<SelectionAction>,
     pub dismiss_on_select: bool,
     pub search_value: Option<String>,
@@ -181,11 +182,14 @@ impl ListSelectionView {
                     let is_selected = self.state.selected_idx == Some(visible_idx);
                     let prefix = if is_selected { '›' } else { ' ' };
                     let name = item.name.as_str();
-                    let name_with_marker = if item.is_current {
-                        format!("{name} (current)")
+                    let marker = if item.is_current {
+                        " (current)"
+                    } else if item.is_default {
+                        " (default)"
                     } else {
-                        item.name.clone()
+                        ""
                     };
+                    let name_with_marker = format!("{name}{marker}");
                     let n = visible_idx + 1;
                     let display_name = if self.is_searchable {
                         // The number keys don't work when search is enabled (since we let the
