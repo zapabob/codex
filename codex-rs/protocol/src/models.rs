@@ -182,32 +182,6 @@ fn local_image_error_placeholder(
     }
 }
 
-<<<<<<< HEAD
-=======
-fn invalid_image_error_placeholder(
-    path: &std::path::Path,
-    error: impl std::fmt::Display,
-) -> ContentItem {
-    ContentItem::InputText {
-        text: format!(
-            "Image located at `{}` is invalid: {}",
-            path.display(),
-            error
-        ),
-    }
-}
-
-fn unsupported_image_error_placeholder(path: &std::path::Path, mime: &str) -> ContentItem {
-    ContentItem::InputText {
-        text: format!(
-            "Codex cannot attach image at `{}`: unsupported image format `{}`.",
-            path.display(),
-            mime
-        ),
-    }
-}
-
->>>>>>> upstream/main
 impl From<ResponseInputItem> for ResponseItem {
     fn from(item: ResponseInputItem) -> Self {
         match item {
@@ -299,9 +273,6 @@ impl From<Vec<UserInput>> for ResponseInputItem {
                         Err(err) => {
                             tracing::warn!("Failed to resize image {}: {}", path.display(), err);
                             if matches!(&err, ImageProcessingError::Read { .. }) {
-<<<<<<< HEAD
-                                local_image_error_placeholder(&path, &err)
-=======
                                 Some(local_image_error_placeholder(&path, &err))
                             } else if err.is_invalid_image() {
                                 Some(invalid_image_error_placeholder(&path, &err))

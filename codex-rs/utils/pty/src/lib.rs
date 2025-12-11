@@ -80,20 +80,36 @@ impl ExecCommandSession {
         self.exit_code.lock().ok().and_then(|guard| *guard)
     }
 
-<<<<<<< HEAD
+    pub fn terminate(&self) {
+        if let Ok(mut killer_opt) = self.killer.lock() {
+            if let Some(mut killer) = killer_opt.take() {
+                let _ = killer.kill();
+            }
+        }
+
+        if let Ok(mut h) = self.reader_handle.lock()
+            && let Some(handle) = h.take()
+        {
+            handle.abort();
+        }
+        if let Ok(mut h) = self.writer_handle.lock()
+            && let Some(handle) = h.take()
+        {
+            handle.abort();
+        }
+        if let Ok(mut h) = self.wait_handle.lock()
+            && let Some(handle) = h.take()
+        {
+            handle.abort();
+        }
+    }
+
 impl Drop for ExecCommandSession {
     fn drop(&mut self) {
         if let Ok(mut killer_opt) = self.killer.lock()
             && let Some(mut killer) = killer_opt.take()
         {
             let _ = killer.kill();
-=======
-    pub fn terminate(&self) {
-        if let Ok(mut killer_opt) = self.killer.lock() {
-            if let Some(mut killer) = killer_opt.take() {
-                let _ = killer.kill();
-            }
->>>>>>> upstream/main
         }
 
         if let Ok(mut h) = self.reader_handle.lock()
