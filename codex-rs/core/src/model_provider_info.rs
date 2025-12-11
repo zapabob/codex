@@ -96,6 +96,7 @@ pub struct ModelProviderInfo {
 }
 
 impl ModelProviderInfo {
+<<<<<<< HEAD
     /// Construct a `POST` RequestBuilder for the given URL using the provided
     /// [`CodexHttpClient`] applying:
     ///   • provider-specific headers (static + env based)
@@ -192,6 +193,10 @@ impl ModelProviderInfo {
     /// onto an existing [`CodexRequestBuilder`] and return the updated
     /// builder.
     fn apply_http_headers(&self, mut builder: CodexRequestBuilder) -> CodexRequestBuilder {
+=======
+    fn build_header_map(&self) -> crate::error::Result<HeaderMap> {
+        let mut headers = HeaderMap::new();
+>>>>>>> upstream/main
         if let Some(extra) = &self.http_headers {
             for (k, v) in extra {
                 builder = builder.header(k, v);
@@ -256,6 +261,45 @@ impl ModelProviderInfo {
             .map(Duration::from_millis)
             .unwrap_or(Duration::from_millis(DEFAULT_STREAM_IDLE_TIMEOUT_MS))
     }
+    pub fn create_openai_provider() -> ModelProviderInfo {
+        ModelProviderInfo {
+            name: "OpenAI".into(),
+            // Allow users to override the default OpenAI endpoint by
+            // exporting `OPENAI_BASE_URL`. This is useful when pointing
+            // Codex at a proxy, mock server, or Azure-style deployment
+            // without requiring a full TOML override for the built-in
+            // OpenAI provider.
+            base_url: std::env::var("OPENAI_BASE_URL")
+                .ok()
+                .filter(|v| !v.trim().is_empty()),
+            env_key: None,
+            env_key_instructions: None,
+            experimental_bearer_token: None,
+            wire_api: WireApi::Responses,
+            query_params: None,
+            http_headers: Some(
+                [("version".to_string(), env!("CARGO_PKG_VERSION").to_string())]
+                    .into_iter()
+                    .collect(),
+            ),
+            env_http_headers: Some(
+                [
+                    (
+                        "OpenAI-Organization".to_string(),
+                        "OPENAI_ORGANIZATION".to_string(),
+                    ),
+                    ("OpenAI-Project".to_string(), "OPENAI_PROJECT".to_string()),
+                ]
+                .into_iter()
+                .collect(),
+            ),
+            // Use global defaults for retry/timeout unless overridden in config.toml.
+            request_max_retries: None,
+            stream_max_retries: None,
+            stream_idle_timeout_ms: None,
+            requires_openai_auth: true,
+        }
+    }
 }
 
 const DEFAULT_OLLAMA_PORT: u32 = 11434;
@@ -271,6 +315,7 @@ pub fn built_in_model_providers() -> HashMap<String, ModelProviderInfo> {
     // open source ("oss") providers by default. Users are encouraged to add to
     // `model_providers` in config.toml to add their own providers.
     [
+<<<<<<< HEAD
         (
             "openai",
             P {
@@ -312,6 +357,17 @@ pub fn built_in_model_providers() -> HashMap<String, ModelProviderInfo> {
             },
         ),
         (BUILT_IN_OSS_MODEL_PROVIDER_ID, create_oss_provider()),
+=======
+        ("openai", P::create_openai_provider()),
+        (
+            OLLAMA_OSS_PROVIDER_ID,
+            create_oss_provider(DEFAULT_OLLAMA_PORT, WireApi::Chat),
+        ),
+        (
+            LMSTUDIO_OSS_PROVIDER_ID,
+            create_oss_provider(DEFAULT_LMSTUDIO_PORT, WireApi::Responses),
+        ),
+>>>>>>> upstream/main
     ]
     .into_iter()
     .map(|(k, v)| (k.to_string(), v))

@@ -74,11 +74,22 @@ async fn run_stream_with_bytes(sse_body: &[u8]) -> Vec<ResponseEvent> {
     let config = Arc::new(config);
 
     let conversation_id = ConversationId::new();
+<<<<<<< HEAD
 
     let otel_event_manager = OtelEventManager::new(
         conversation_id,
         config.model.as_str(),
         config.model_family.slug.as_str(),
+=======
+    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+    let auth_mode = auth_manager.get_auth_mode();
+    let model = ModelsManager::get_model_offline(config.model.as_deref());
+    let model_family = ModelsManager::construct_model_family_offline(model.as_str(), &config);
+    let otel_event_manager = OtelEventManager::new(
+        conversation_id,
+        model.as_str(),
+        model_family.slug.as_str(),
+>>>>>>> upstream/main
         None,
         Some("test@test.com".to_string()),
         Some(AuthMode::ChatGPT),

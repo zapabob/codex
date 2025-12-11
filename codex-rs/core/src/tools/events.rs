@@ -111,11 +111,28 @@ impl ToolEmitter {
         }
     }
 
+<<<<<<< HEAD
     pub fn unified_exec(command: String, cwd: PathBuf, is_startup_command: bool) -> Self {
+=======
+    pub fn unified_exec(
+        command: &[String],
+        cwd: PathBuf,
+        source: ExecCommandSource,
+        process_id: Option<String>,
+    ) -> Self {
+        let parsed_cmd = parse_command(command);
+>>>>>>> upstream/main
         Self::UnifiedExec {
             command,
             cwd,
+<<<<<<< HEAD
             is_startup_command,
+=======
+            source,
+            interaction_input: None, // TODO(jif) drop this field in the protocol.
+            parsed_cmd,
+            process_id,
+>>>>>>> upstream/main
         }
     }
 

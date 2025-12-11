@@ -22,6 +22,10 @@ rustPlatform.buildRustPackage (_: {
   cargoLock.outputHashes = {
     "ratatui-0.29.0" = "sha256-HBvT5c8GsiCxMffNjJGLmHnvG77A6cqEL+1ARurBXho=";
     "crossterm-0.28.1" = "sha256-6qCtfSMuXACKFb9ATID39XyFDIEMFDmbx6SSmNe+728=";
+<<<<<<< HEAD
+=======
+    "filedescriptor-0.8.3" = "sha256-aIbzfHYjPDzWSZrgbauezGzg6lm3frhyBbU01gTQpaE=";
+>>>>>>> upstream/main
   };
 
   meta = with lib; {

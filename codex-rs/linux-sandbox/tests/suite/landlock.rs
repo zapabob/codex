@@ -7,6 +7,7 @@ use codex_core::exec::SandboxType;
 use codex_core::exec::process_exec_tool_call;
 use codex_core::exec_env::create_env;
 use codex_core::protocol::SandboxPolicy;
+use codex_core::sandboxing::SandboxPermissions;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tempfile::NamedTempFile;
@@ -42,7 +43,7 @@ async fn run_cmd(cmd: &[&str], writable_roots: &[PathBuf], timeout_ms: u64) {
         cwd,
         timeout_ms: Some(timeout_ms),
         env: create_env_from_core_vars(),
-        with_escalated_permissions: None,
+        sandbox_permissions: SandboxPermissions::UseDefault,
         justification: None,
         arg0: None,
     };
@@ -145,7 +146,7 @@ async fn assert_network_blocked(cmd: &[&str]) {
         // do not stall the suite.
         timeout_ms: Some(NETWORK_TIMEOUT_MS),
         env: create_env_from_core_vars(),
-        with_escalated_permissions: None,
+        sandbox_permissions: SandboxPermissions::UseDefault,
         justification: None,
         arg0: None,
     };

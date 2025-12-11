@@ -6,8 +6,12 @@ sandbox placement and transformation of portable CommandSpec into a
 ready‑to‑spawn environment.
 */
 
+<<<<<<< HEAD
 pub mod assessment;
 
+=======
+use crate::exec::ExecExpiration;
+>>>>>>> upstream/main
 use crate::exec::ExecToolCallOutput;
 use crate::exec::SandboxType;
 use crate::exec::StdoutStream;
@@ -22,18 +26,28 @@ use crate::seatbelt::create_seatbelt_command_args;
 use crate::spawn::CODEX_SANDBOX_ENV_VAR;
 use crate::spawn::CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use crate::tools::sandboxing::SandboxablePreference;
+pub use codex_protocol::models::SandboxPermissions;
 use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 
+<<<<<<< HEAD
 #[derive(Clone, Debug)]
+=======
+#[derive(Debug)]
+>>>>>>> upstream/main
 pub struct CommandSpec {
     pub program: String,
     pub args: Vec<String>,
     pub cwd: PathBuf,
     pub env: HashMap<String, String>,
+<<<<<<< HEAD
     pub timeout_ms: Option<u64>,
     pub with_escalated_permissions: Option<bool>,
+=======
+    pub expiration: ExecExpiration,
+    pub sandbox_permissions: SandboxPermissions,
+>>>>>>> upstream/main
     pub justification: Option<String>,
 }
 
@@ -44,7 +58,7 @@ pub struct ExecEnv {
     pub env: HashMap<String, String>,
     pub timeout_ms: Option<u64>,
     pub sandbox: SandboxType,
-    pub with_escalated_permissions: Option<bool>,
+    pub sandbox_permissions: SandboxPermissions,
     pub justification: Option<String>,
     pub arg0: Option<String>,
 }
@@ -158,8 +172,13 @@ impl SandboxManager {
             env,
             timeout_ms: spec.timeout_ms,
             sandbox,
+<<<<<<< HEAD
             with_escalated_permissions: spec.with_escalated_permissions,
             justification: spec.justification.clone(),
+=======
+            sandbox_permissions: spec.sandbox_permissions,
+            justification: spec.justification,
+>>>>>>> upstream/main
             arg0: arg0_override,
         })
     }

@@ -63,6 +63,7 @@ use anyhow::Context as _;
 use clap::Parser;
 use codex_core::config::find_codex_home;
 use codex_core::is_dangerous_command::command_might_be_dangerous;
+use codex_core::sandboxing::SandboxPermissions;
 use codex_execpolicy::Decision;
 use codex_execpolicy::Policy;
 use codex_execpolicy::RuleMatch;
@@ -81,6 +82,8 @@ mod mcp;
 mod mcp_escalation_policy;
 mod socket;
 mod stopwatch;
+
+pub use mcp::ExecResult;
 
 /// Default value of --execve option relative to the current executable.
 /// Note this must match the name of the binary as specified in Cargo.toml.
@@ -200,13 +203,19 @@ pub(crate) fn evaluate_exec_policy(
             && rule_match.decision() == evaluation.decision
     });
 
+    let sandbox_permissions = if decision_driven_by_policy {
+        SandboxPermissions::RequireEscalated
+    } else {
+        SandboxPermissions::UseDefault
+    };
+
     Ok(match evaluation.decision {
         Decision::Forbidden => ExecPolicyOutcome::Forbidden,
         Decision::Prompt => ExecPolicyOutcome::Prompt {
-            run_with_escalated_permissions: decision_driven_by_policy,
+            sandbox_permissions,
         },
         Decision::Allow => ExecPolicyOutcome::Allow {
-            run_with_escalated_permissions: decision_driven_by_policy,
+            sandbox_permissions,
         },
     })
 }
@@ -229,6 +238,7 @@ async fn load_exec_policy() -> anyhow::Result<Policy> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use codex_core::sandboxing::SandboxPermissions;
     use codex_execpolicy::Decision;
     use codex_execpolicy::Policy;
     use pretty_assertions::assert_eq;
@@ -245,7 +255,7 @@ mod tests {
         assert_eq!(
             outcome,
             ExecPolicyOutcome::Prompt {
-                run_with_escalated_permissions: false
+                sandbox_permissions: SandboxPermissions::UseDefault
             }
         );
     }
@@ -274,7 +284,7 @@ mod tests {
         assert_eq!(
             outcome,
             ExecPolicyOutcome::Allow {
-                run_with_escalated_permissions: true
+                sandbox_permissions: SandboxPermissions::RequireEscalated
             }
         );
     }

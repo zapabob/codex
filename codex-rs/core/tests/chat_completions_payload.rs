@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::sync::Arc;
 
 use codex_app_server_protocol::AuthMode;
@@ -74,11 +76,20 @@ async fn run_request(input: Vec<ResponseItem>) -> Value {
     let config = Arc::new(config);
 
     let conversation_id = ConversationId::new();
+<<<<<<< HEAD
 
     let otel_event_manager = OtelEventManager::new(
         conversation_id,
         config.model.as_str(),
         config.model_family.slug.as_str(),
+=======
+    let model = ModelsManager::get_model_offline(config.model.as_deref());
+    let model_family = ModelsManager::construct_model_family_offline(model.as_str(), &config);
+    let otel_event_manager = OtelEventManager::new(
+        conversation_id,
+        model.as_str(),
+        model_family.slug.as_str(),
+>>>>>>> upstream/main
         None,
         Some("test@test.com".to_string()),
         Some(AuthMode::ChatGPT),
@@ -110,11 +121,15 @@ async fn run_request(input: Vec<ResponseItem>) -> Value {
         }
     }
 
-    let requests = match server.received_requests().await {
-        Some(reqs) => reqs,
-        None => panic!("request not made"),
-    };
-    match requests[0].body_json() {
+    let all_requests = server.received_requests().await.expect("received requests");
+    let requests: Vec<_> = all_requests
+        .iter()
+        .filter(|req| req.method == "POST" && req.url.path().ends_with("/chat/completions"))
+        .collect();
+    let request = requests
+        .first()
+        .unwrap_or_else(|| panic!("expected POST request to /chat/completions"));
+    match request.body_json() {
         Ok(v) => v,
         Err(e) => panic!("invalid json body: {e}"),
     }

@@ -11,6 +11,11 @@ use uuid::Uuid;
 use crate::codex::TurnContext;
 use crate::protocol::EventMsg;
 use crate::protocol::TaskStartedEvent;
+<<<<<<< HEAD
+=======
+use crate::sandboxing::ExecEnv;
+use crate::sandboxing::SandboxPermissions;
+>>>>>>> upstream/main
 use crate::state::TaskKind;
 use crate::tools::context::ToolPayload;
 use crate::tools::parallel::ToolCallRuntime;
@@ -56,6 +61,7 @@ impl SessionTask for UserShellCommandTask {
         // Execute the user's script under their default shell when known; this
         // allows commands that use shell features (pipes, &&, redirects, etc.).
         // We do not source rc files or otherwise reformat the script.
+<<<<<<< HEAD
         let shell_invocation = match session.user_shell() {
             crate::shell::Shell::Zsh(zsh) => vec![
                 zsh.shell_path.clone(),
@@ -76,6 +82,45 @@ impl SessionTask for UserShellCommandTask {
             crate::shell::Shell::Unknown => {
                 shlex::split(&self.command).unwrap_or_else(|| vec![self.command.clone()])
             }
+=======
+        let use_login_shell = true;
+        let command = session
+            .user_shell()
+            .derive_exec_args(&self.command, use_login_shell);
+
+        let call_id = Uuid::new_v4().to_string();
+        let raw_command = self.command.clone();
+        let cwd = turn_context.cwd.clone();
+
+        let parsed_cmd = parse_command(&command);
+        session
+            .send_event(
+                turn_context.as_ref(),
+                EventMsg::ExecCommandBegin(ExecCommandBeginEvent {
+                    call_id: call_id.clone(),
+                    process_id: None,
+                    turn_id: turn_context.sub_id.clone(),
+                    command: command.clone(),
+                    cwd: cwd.clone(),
+                    parsed_cmd: parsed_cmd.clone(),
+                    source: ExecCommandSource::UserShell,
+                    interaction_input: None,
+                }),
+            )
+            .await;
+
+        let exec_env = ExecEnv {
+            command: command.clone(),
+            cwd: cwd.clone(),
+            env: create_env(&turn_context.shell_environment_policy),
+            // TODO(zhao-oai): Now that we have ExecExpiration::Cancellation, we
+            // should use that instead of an "arbitrarily large" timeout here.
+            expiration: USER_SHELL_TIMEOUT_MS.into(),
+            sandbox: SandboxType::None,
+            sandbox_permissions: SandboxPermissions::UseDefault,
+            justification: None,
+            arg0: None,
+>>>>>>> upstream/main
         };
 
         let params = ShellToolCallParams {

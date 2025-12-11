@@ -151,7 +151,8 @@ fn create_exec_command_tool() -> ToolSpec {
         "login".to_string(),
         JsonSchema::Boolean {
             description: Some(
-                "Whether to run the shell with -l/-i semantics. Defaults to true.".to_string(),
+                "Whether to run the shell with -l/-i semantics. Defaults to false unless a shell snapshot is available."
+                    .to_string(),
             ),
         },
     );
@@ -171,6 +172,27 @@ fn create_exec_command_tool() -> ToolSpec {
             ),
         },
     );
+<<<<<<< HEAD
+=======
+    properties.insert(
+        "sandbox_permissions".to_string(),
+        JsonSchema::String {
+            description: Some(
+                "Sandbox permissions for the command. Set to \"require_escalated\" to request running without sandbox restrictions; defaults to \"use_default\"."
+                    .to_string(),
+            ),
+        },
+    );
+    properties.insert(
+        "justification".to_string(),
+        JsonSchema::String {
+            description: Some(
+                "Only set if sandbox_permissions is \"require_escalated\". 1-sentence explanation of why we want to run this command."
+                    .to_string(),
+            ),
+        },
+    );
+>>>>>>> upstream/main
 
     ToolSpec::Function(ResponsesApiTool {
         name: "exec_command".to_string(),
@@ -254,21 +276,97 @@ fn create_shell_tool() -> ToolSpec {
     );
 
     properties.insert(
-        "with_escalated_permissions".to_string(),
-        JsonSchema::Boolean {
-            description: Some("Whether to request escalated permissions. Set to true if command needs to be run without sandbox restrictions".to_string()),
+        "sandbox_permissions".to_string(),
+        JsonSchema::String {
+            description: Some("Sandbox permissions for the command. Set to \"require_escalated\" to request running without sandbox restrictions; defaults to \"use_default\".".to_string()),
         },
     );
     properties.insert(
         "justification".to_string(),
         JsonSchema::String {
-            description: Some("Only set if with_escalated_permissions is true. 1-sentence explanation of why we want to run this command.".to_string()),
+            description: Some("Only set if sandbox_permissions is \"require_escalated\". 1-sentence explanation of why we want to run this command.".to_string()),
         },
     );
 
     ToolSpec::Function(ResponsesApiTool {
         name: "shell".to_string(),
+<<<<<<< HEAD
         description: "Runs a shell command and returns its output.".to_string(),
+=======
+        description,
+        strict: false,
+        parameters: JsonSchema::Object {
+            properties,
+            required: Some(vec!["command".to_string()]),
+            additional_properties: Some(false.into()),
+        },
+    })
+}
+
+fn create_shell_command_tool() -> ToolSpec {
+    let mut properties = BTreeMap::new();
+    properties.insert(
+        "command".to_string(),
+        JsonSchema::String {
+            description: Some(
+                "The shell script to execute in the user's default shell".to_string(),
+            ),
+        },
+    );
+    properties.insert(
+        "workdir".to_string(),
+        JsonSchema::String {
+            description: Some("The working directory to execute the command in".to_string()),
+        },
+    );
+    properties.insert(
+        "login".to_string(),
+        JsonSchema::Boolean {
+            description: Some(
+                "Whether to run the shell with login shell semantics. Defaults to false unless a shell snapshot is available."
+                    .to_string(),
+            ),
+        },
+    );
+    properties.insert(
+        "timeout_ms".to_string(),
+        JsonSchema::Number {
+            description: Some("The timeout for the command in milliseconds".to_string()),
+        },
+    );
+    properties.insert(
+        "sandbox_permissions".to_string(),
+        JsonSchema::String {
+            description: Some("Sandbox permissions for the command. Set to \"require_escalated\" to request running without sandbox restrictions; defaults to \"use_default\".".to_string()),
+        },
+    );
+    properties.insert(
+        "justification".to_string(),
+        JsonSchema::String {
+            description: Some("Only set if sandbox_permissions is \"require_escalated\". 1-sentence explanation of why we want to run this command.".to_string()),
+        },
+    );
+
+    let description = if cfg!(windows) {
+        r#"Runs a Powershell command (Windows) and returns its output.
+        
+Examples of valid command strings:
+
+- ls -a (show hidden): "Get-ChildItem -Force"
+- recursive find by name: "Get-ChildItem -Recurse -Filter *.py"
+- recursive grep: "Get-ChildItem -Path C:\\myrepo -Recurse | Select-String -Pattern 'TODO' -CaseSensitive"
+- ps aux | grep python: "Get-Process | Where-Object { $_.ProcessName -like '*python*' }"
+- setting an env var: "$env:FOO='bar'; echo $env:FOO"
+- running an inline Python script: "@'\\nprint('Hello, world!')\\n'@ | python -"#
+    } else {
+        r#"Runs a shell command and returns its output.
+- Always set the `workdir` param when using the shell_command function. Do not use `cd` unless absolutely necessary."#
+    }.to_string();
+
+    ToolSpec::Function(ResponsesApiTool {
+        name: "shell_command".to_string(),
+        description,
+>>>>>>> upstream/main
         strict: false,
         parameters: JsonSchema::Object {
             properties,
@@ -695,10 +793,16 @@ pub(crate) fn create_tools_json_for_chat_completions_api(
             }
 
             if let Some(map) = tool.as_object_mut() {
+                let name = map
+                    .get("name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or_default()
+                    .to_string();
                 // Remove "type" field as it is not needed in chat completions.
                 map.remove("type");
                 Some(json!({
                     "type": "function",
+                    "name": name,
                     "function": map,
                 }))
             } else {
@@ -1845,6 +1949,60 @@ mod tests {
                 description: "Do something cool".to_string(),
                 strict: false,
             })
+        );
+    }
+
+    #[test]
+    fn chat_tools_include_top_level_name() {
+        let mut properties = BTreeMap::new();
+        properties.insert("foo".to_string(), JsonSchema::String { description: None });
+        let tools = vec![ToolSpec::Function(ResponsesApiTool {
+            name: "demo".to_string(),
+            description: "A demo tool".to_string(),
+            strict: false,
+            parameters: JsonSchema::Object {
+                properties,
+                required: None,
+                additional_properties: None,
+            },
+        })];
+
+        let responses_json = create_tools_json_for_responses_api(&tools).unwrap();
+        assert_eq!(
+            responses_json,
+            vec![json!({
+                "type": "function",
+                "name": "demo",
+                "description": "A demo tool",
+                "strict": false,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "foo": { "type": "string" }
+                    },
+                },
+            })]
+        );
+
+        let tools_json = create_tools_json_for_chat_completions_api(&tools).unwrap();
+
+        assert_eq!(
+            tools_json,
+            vec![json!({
+                "type": "function",
+                "name": "demo",
+                "function": {
+                    "name": "demo",
+                    "description": "A demo tool",
+                    "strict": false,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "foo": { "type": "string" }
+                        },
+                    },
+                }
+            })]
         );
     }
 }

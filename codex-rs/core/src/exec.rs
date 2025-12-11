@@ -26,6 +26,7 @@ use crate::protocol::SandboxPolicy;
 use crate::sandboxing::CommandSpec;
 use crate::sandboxing::ExecEnv;
 use crate::sandboxing::SandboxManager;
+use crate::sandboxing::SandboxPermissions;
 use crate::spawn::StdioPolicy;
 use crate::spawn::spawn_child_async;
 
@@ -52,7 +53,7 @@ pub struct ExecParams {
     pub cwd: PathBuf,
     pub timeout_ms: Option<u64>,
     pub env: HashMap<String, String>,
-    pub with_escalated_permissions: Option<bool>,
+    pub sandbox_permissions: SandboxPermissions,
     pub justification: Option<String>,
     pub arg0: Option<String>,
 }
@@ -97,7 +98,7 @@ pub async fn process_exec_tool_call(
         cwd,
         timeout_ms,
         env,
-        with_escalated_permissions,
+        sandbox_permissions,
         justification,
         arg0: _,
     } = params;
@@ -114,8 +115,13 @@ pub async fn process_exec_tool_call(
         args: args.to_vec(),
         cwd,
         env,
+<<<<<<< HEAD
         timeout_ms,
         with_escalated_permissions,
+=======
+        expiration,
+        sandbox_permissions,
+>>>>>>> upstream/main
         justification,
     };
 
@@ -145,7 +151,7 @@ pub(crate) async fn execute_exec_env(
         env,
         timeout_ms,
         sandbox,
-        with_escalated_permissions,
+        sandbox_permissions,
         justification,
         arg0,
     } = env;
@@ -155,7 +161,7 @@ pub(crate) async fn execute_exec_env(
         cwd,
         timeout_ms,
         env,
-        with_escalated_permissions,
+        sandbox_permissions,
         justification,
         arg0,
     };
@@ -742,7 +748,7 @@ mod tests {
             cwd: std::env::current_dir()?,
             timeout_ms: Some(500),
             env,
-            with_escalated_permissions: None,
+            sandbox_permissions: SandboxPermissions::UseDefault,
             justification: None,
             arg0: None,
         };
@@ -774,4 +780,64 @@ mod tests {
         assert!(killed, "grandchild process with pid {pid} is still alive");
         Ok(())
     }
+<<<<<<< HEAD
+=======
+
+    #[tokio::test]
+    async fn process_exec_tool_call_respects_cancellation_token() -> Result<()> {
+        let command = long_running_command();
+        let cwd = std::env::current_dir()?;
+        let env: HashMap<String, String> = std::env::vars().collect();
+        let cancel_token = CancellationToken::new();
+        let cancel_tx = cancel_token.clone();
+        let params = ExecParams {
+            command,
+            cwd: cwd.clone(),
+            expiration: ExecExpiration::Cancellation(cancel_token),
+            env,
+            sandbox_permissions: SandboxPermissions::UseDefault,
+            justification: None,
+            arg0: None,
+        };
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(1_000)).await;
+            cancel_tx.cancel();
+        });
+        let result = process_exec_tool_call(
+            params,
+            &SandboxPolicy::DangerFullAccess,
+            cwd.as_path(),
+            &None,
+            None,
+        )
+        .await;
+        let output = match result {
+            Err(CodexErr::Sandbox(SandboxErr::Timeout { output })) => output,
+            other => panic!("expected timeout error, got {other:?}"),
+        };
+        assert!(output.timed_out);
+        assert_eq!(output.exit_code, EXEC_TIMEOUT_EXIT_CODE);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    fn long_running_command() -> Vec<String> {
+        vec![
+            "/bin/sh".to_string(),
+            "-c".to_string(),
+            "sleep 30".to_string(),
+        ]
+    }
+
+    #[cfg(windows)]
+    fn long_running_command() -> Vec<String> {
+        vec![
+            "powershell.exe".to_string(),
+            "-NonInteractive".to_string(),
+            "-NoLogo".to_string(),
+            "-Command".to_string(),
+            "Start-Sleep -Seconds 30".to_string(),
+        ]
+    }
+>>>>>>> upstream/main
 }

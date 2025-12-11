@@ -8,6 +8,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use ts_rs::TS;
 
+<<<<<<< HEAD
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Hash, JsonSchema, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum SandboxRiskLevel {
@@ -29,6 +30,33 @@ impl SandboxRiskLevel {
             Self::Medium => "medium",
             Self::High => "high",
         }
+=======
+/// Proposed execpolicy change to allow commands starting with this prefix.
+///
+/// The `command` tokens form the prefix that would be added as an execpolicy
+/// `prefix_rule(..., decision="allow")`, letting the agent bypass approval for
+/// commands that start with this token sequence.
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+#[serde(transparent)]
+#[ts(type = "Array<string>")]
+pub struct ExecPolicyAmendment {
+    pub command: Vec<String>,
+}
+
+impl ExecPolicyAmendment {
+    pub fn new(command: Vec<String>) -> Self {
+        Self { command }
+    }
+
+    pub fn command(&self) -> &[String] {
+        &self.command
+    }
+}
+
+impl From<Vec<String>> for ExecPolicyAmendment {
+    fn from(command: Vec<String>) -> Self {
+        Self { command }
+>>>>>>> upstream/main
     }
 }
 
@@ -43,9 +71,16 @@ pub struct ExecApprovalRequestEvent {
     /// Optional human-readable reason for the approval (e.g. retry without sandbox).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+<<<<<<< HEAD
     /// Optional model-provided risk assessment describing the blocked command.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub risk: Option<SandboxCommandAssessment>,
+=======
+    /// Proposed execpolicy amendment that can be applied to allow future runs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
+>>>>>>> upstream/main
     pub parsed_cmd: Vec<ParsedCommand>,
 }
 

@@ -94,7 +94,7 @@ impl EnvironmentContext {
             && self.writable_roots == *writable_roots
     }
 
-    pub fn diff(before: &TurnContext, after: &TurnContext) -> Self {
+    pub fn diff(before: &TurnContext, after: &TurnContext, shell: &Shell) -> Self {
         let cwd = if before.cwd != after.cwd {
             Some(after.cwd.clone())
         } else {
@@ -110,18 +110,24 @@ impl EnvironmentContext {
         } else {
             None
         };
+<<<<<<< HEAD
         EnvironmentContext::new(cwd, approval_policy, sandbox_policy, None)
+=======
+        EnvironmentContext::new(cwd, approval_policy, sandbox_policy, shell.clone())
+>>>>>>> upstream/main
     }
-}
 
-impl From<&TurnContext> for EnvironmentContext {
-    fn from(turn_context: &TurnContext) -> Self {
+    pub fn from_turn_context(turn_context: &TurnContext, shell: &Shell) -> Self {
         Self::new(
             Some(turn_context.cwd.clone()),
             Some(turn_context.approval_policy),
             Some(turn_context.sandbox_policy.clone()),
+<<<<<<< HEAD
             // Shell is not configurable from turn to turn
             None,
+=======
+            shell.clone(),
+>>>>>>> upstream/main
         )
     }
 }
@@ -199,6 +205,17 @@ mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
 
+<<<<<<< HEAD
+=======
+    fn fake_shell() -> Shell {
+        Shell {
+            shell_type: ShellType::Bash,
+            shell_path: PathBuf::from("/bin/bash"),
+            shell_snapshot: None,
+        }
+    }
+
+>>>>>>> upstream/main
     fn workspace_write_policy(writable_roots: Vec<&str>, network_access: bool) -> SandboxPolicy {
         SandboxPolicy::WorkspaceWrite {
             writable_roots: writable_roots.into_iter().map(PathBuf::from).collect(),
@@ -329,8 +346,13 @@ mod tests {
             Some(workspace_write_policy(vec!["/repo"], false)),
             Some(Shell::Bash(BashShell {
                 shell_path: "/bin/bash".into(),
+<<<<<<< HEAD
                 bashrc_path: "/home/user/.bashrc".into(),
             })),
+=======
+                shell_snapshot: None,
+            },
+>>>>>>> upstream/main
         );
         let context2 = EnvironmentContext::new(
             Some(PathBuf::from("/repo")),
@@ -338,8 +360,13 @@ mod tests {
             Some(workspace_write_policy(vec!["/repo"], false)),
             Some(Shell::Zsh(ZshShell {
                 shell_path: "/bin/zsh".into(),
+<<<<<<< HEAD
                 zshrc_path: "/home/user/.zshrc".into(),
             })),
+=======
+                shell_snapshot: None,
+            },
+>>>>>>> upstream/main
         );
 
         assert!(context1.equals_except_shell(&context2));

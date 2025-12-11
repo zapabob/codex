@@ -72,6 +72,11 @@ pub(crate) struct UnifiedExecSession {
     session: ExecCommandSession,
     output_buffer: OutputBuffer,
     output_notify: Arc<Notify>,
+<<<<<<< HEAD
+=======
+    cancellation_token: CancellationToken,
+    output_drained: Arc<Notify>,
+>>>>>>> upstream/main
     output_task: JoinHandle<()>,
     sandbox_type: SandboxType,
 }
@@ -84,6 +89,11 @@ impl UnifiedExecSession {
     ) -> Self {
         let output_buffer = Arc::new(Mutex::new(OutputBufferState::default()));
         let output_notify = Arc::new(Notify::new());
+<<<<<<< HEAD
+=======
+        let cancellation_token = CancellationToken::new();
+        let output_drained = Arc::new(Notify::new());
+>>>>>>> upstream/main
         let mut receiver = initial_output_rx;
         let buffer_clone = Arc::clone(&output_buffer);
         let notify_clone = Arc::clone(&output_notify);
@@ -98,7 +108,11 @@ impl UnifiedExecSession {
                     }
                     Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
                     Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
+<<<<<<< HEAD
                 }
+=======
+                };
+>>>>>>> upstream/main
             }
         });
 
@@ -106,6 +120,11 @@ impl UnifiedExecSession {
             session,
             output_buffer,
             output_notify,
+<<<<<<< HEAD
+=======
+            cancellation_token,
+            output_drained,
+>>>>>>> upstream/main
             output_task,
             sandbox_type,
         }
@@ -122,12 +141,30 @@ impl UnifiedExecSession {
         )
     }
 
+    pub(super) fn output_receiver(&self) -> tokio::sync::broadcast::Receiver<Vec<u8>> {
+        self.session.output_receiver()
+    }
+
+    pub(super) fn cancellation_token(&self) -> CancellationToken {
+        self.cancellation_token.clone()
+    }
+
+    pub(super) fn output_drained_notify(&self) -> Arc<Notify> {
+        Arc::clone(&self.output_drained)
+    }
+
     pub(super) fn has_exited(&self) -> bool {
         self.session.has_exited()
     }
 
     pub(super) fn exit_code(&self) -> Option<i32> {
         self.session.exit_code()
+    }
+
+    pub(super) fn terminate(&self) {
+        self.session.terminate();
+        self.cancellation_token.cancel();
+        self.output_task.abort();
     }
 
     async fn snapshot_output(&self) -> Vec<Vec<u8>> {
@@ -212,6 +249,6 @@ impl UnifiedExecSession {
 
 impl Drop for UnifiedExecSession {
     fn drop(&mut self) {
-        self.output_task.abort();
+        self.terminate();
     }
 }

@@ -33,7 +33,9 @@ use tokio::sync::Mutex;
 
 use crate::codex::Session;
 use crate::codex::TurnContext;
+use crate::sandboxing::SandboxPermissions;
 
+mod async_watcher;
 mod errors;
 mod session;
 mod session_manager;
@@ -46,6 +48,24 @@ pub(crate) const MIN_YIELD_TIME_MS: u64 = 250;
 pub(crate) const MAX_YIELD_TIME_MS: u64 = 30_000;
 pub(crate) const DEFAULT_MAX_OUTPUT_TOKENS: usize = 10_000;
 pub(crate) const UNIFIED_EXEC_OUTPUT_MAX_BYTES: usize = 1024 * 1024; // 1 MiB
+
+#[derive(Debug, Default)]
+pub(crate) struct CommandTranscript {
+    pub data: Vec<u8>,
+}
+
+impl CommandTranscript {
+    pub fn append(&mut self, bytes: &[u8]) {
+        self.data.extend_from_slice(bytes);
+        if self.data.len() > UNIFIED_EXEC_OUTPUT_MAX_BYTES {
+            let excess = self
+                .data
+                .len()
+                .saturating_sub(UNIFIED_EXEC_OUTPUT_MAX_BYTES);
+            self.data.drain(..excess);
+        }
+    }
+}
 
 pub(crate) struct UnifiedExecContext {
     pub session: Arc<Session>,
@@ -70,11 +90,21 @@ pub(crate) struct ExecCommandRequest<'a> {
     pub login: bool,
     pub yield_time_ms: Option<u64>,
     pub max_output_tokens: Option<usize>,
+<<<<<<< HEAD
+=======
+    pub workdir: Option<PathBuf>,
+    pub sandbox_permissions: SandboxPermissions,
+    pub justification: Option<String>,
+>>>>>>> upstream/main
 }
 
 #[derive(Debug)]
 pub(crate) struct WriteStdinRequest<'a> {
+<<<<<<< HEAD
     pub session_id: i32,
+=======
+    pub process_id: &'a str,
+>>>>>>> upstream/main
     pub input: &'a str,
     pub yield_time_ms: Option<u64>,
     pub max_output_tokens: Option<usize>,
@@ -86,12 +116,19 @@ pub(crate) struct UnifiedExecResponse {
     pub chunk_id: String,
     pub wall_time: Duration,
     pub output: String,
+<<<<<<< HEAD
     pub session_id: Option<i32>,
+=======
+    /// Raw bytes returned for this unified exec call before any truncation.
+    pub raw_output: Vec<u8>,
+    pub process_id: Option<String>,
+>>>>>>> upstream/main
     pub exit_code: Option<i32>,
     pub original_token_count: Option<usize>,
 }
 
 #[derive(Default)]
+<<<<<<< HEAD
 pub(crate) struct UnifiedExecSessionManager {
     next_session_id: AtomicI32,
     sessions: Mutex<HashMap<i32, SessionEntry>>,
@@ -105,6 +142,40 @@ struct SessionEntry {
     command: String,
     cwd: PathBuf,
     started_at: tokio::time::Instant,
+=======
+pub(crate) struct SessionStore {
+    sessions: HashMap<String, SessionEntry>,
+    reserved_sessions_id: HashSet<String>,
+}
+
+impl SessionStore {
+    fn remove(&mut self, session_id: &str) -> Option<SessionEntry> {
+        self.reserved_sessions_id.remove(session_id);
+        self.sessions.remove(session_id)
+    }
+}
+
+pub(crate) struct UnifiedExecSessionManager {
+    session_store: Mutex<SessionStore>,
+}
+
+impl Default for UnifiedExecSessionManager {
+    fn default() -> Self {
+        Self {
+            session_store: Mutex::new(SessionStore::default()),
+        }
+    }
+}
+
+struct SessionEntry {
+    session: Arc<UnifiedExecSession>,
+    session_ref: Arc<Session>,
+    turn_ref: Arc<TurnContext>,
+    call_id: String,
+    process_id: String,
+    command: Vec<String>,
+    last_used: tokio::time::Instant,
+>>>>>>> upstream/main
 }
 
 pub(crate) fn clamp_yield_time(yield_time_ms: Option<u64>) -> u64 {
@@ -199,6 +270,12 @@ mod tests {
                     login: true,
                     yield_time_ms,
                     max_output_tokens: None,
+<<<<<<< HEAD
+=======
+                    workdir: None,
+                    sandbox_permissions: SandboxPermissions::UseDefault,
+                    justification: None,
+>>>>>>> upstream/main
                 },
                 &context,
             )
@@ -215,7 +292,11 @@ mod tests {
             .services
             .unified_exec_manager
             .write_stdin(WriteStdinRequest {
+<<<<<<< HEAD
                 session_id,
+=======
+                process_id,
+>>>>>>> upstream/main
                 input,
                 yield_time_ms,
                 max_output_tokens: None,

@@ -27,8 +27,11 @@ use crate::model_family::derive_default_model_family;
 use crate::model_family::find_family_for_model;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::model_provider_info::built_in_model_providers;
+<<<<<<< HEAD
 use crate::openai_model_info::get_model_info;
 use crate::ai_orchestrator::DevelopmentMode;
+=======
+>>>>>>> upstream/main
 use crate::project_doc::DEFAULT_PROJECT_DOC_FILENAME;
 use crate::project_doc::LOCAL_PROJECT_DOC_FILENAME;
 use crate::protocol::AskForApproval;
@@ -41,6 +44,7 @@ use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode;
 use codex_protocol::config_types::Verbosity;
 use codex_rmcp_client::OAuthCredentialsStoreMode;
+use codex_utils_absolute_path::AbsolutePathBufGuard;
 use dirs::home_dir;
 use dunce::canonicalize;
 use serde::Deserialize;
@@ -59,12 +63,16 @@ pub mod edit;
 pub mod profile;
 pub mod types;
 
+<<<<<<< HEAD
 #[cfg(target_os = "windows")]
 pub const OPENAI_DEFAULT_MODEL: &str = "gpt-5";
 #[cfg(not(target_os = "windows"))]
 pub const OPENAI_DEFAULT_MODEL: &str = "gpt-5-codex";
 const OPENAI_DEFAULT_REVIEW_MODEL: &str = "gpt-5-codex";
 pub const GPT_5_CODEX_MEDIUM_MODEL: &str = "gpt-5-codex";
+=======
+const OPENAI_DEFAULT_REVIEW_MODEL: &str = "gpt-5.1-codex-max";
+>>>>>>> upstream/main
 
 /// Maximum number of bytes of the documentation that will be embedded. Larger
 /// files are *silently truncated* to this size so we do not take up too much of
@@ -77,7 +85,7 @@ pub(crate) const CONFIG_TOML_FILE: &str = "config.toml";
 #[derive(Debug, Clone, PartialEq)]
 pub struct Config {
     /// Optional override of model selection.
-    pub model: String,
+    pub model: Option<String>,
 
     /// Model used specifically for review sessions. Defaults to "gpt-5-codex".
     pub review_model: String,
@@ -239,9 +247,6 @@ pub struct Config {
 
     pub tools_web_search_request: bool,
 
-    /// When `true`, run a model-based assessment for commands denied by the sandbox.
-    pub experimental_sandbox_command_assessment: bool,
-
     /// If set to `true`, used only the experimental unified exec tool.
     pub use_experimental_unified_exec_tool: bool,
 
@@ -288,9 +293,9 @@ impl Config {
         )
         .await?;
 
-        let cfg: ConfigToml = root_value.try_into().map_err(|e| {
+        let cfg = deserialize_config_toml_with_base(root_value, &codex_home).map_err(|e| {
             tracing::error!("Failed to deserialize overridden config: {e}");
-            std::io::Error::new(std::io::ErrorKind::InvalidData, e)
+            e
         })?;
 
         Self::load_from_base_config_with_overrides(cfg, overrides, codex_home)
@@ -308,9 +313,9 @@ pub async fn load_config_as_toml_with_cli_overrides(
     )
     .await?;
 
-    let cfg: ConfigToml = root_value.try_into().map_err(|e| {
+    let cfg = deserialize_config_toml_with_base(root_value, codex_home).map_err(|e| {
         tracing::error!("Failed to deserialize overridden config: {e}");
-        std::io::Error::new(std::io::ErrorKind::InvalidData, e)
+        e
     })?;
 
     Ok(cfg)
@@ -344,6 +349,18 @@ fn apply_overlays(
     }
 
     base
+}
+
+fn deserialize_config_toml_with_base(
+    root_value: TomlValue,
+    config_base_dir: &Path,
+) -> std::io::Result<ConfigToml> {
+    // This guard ensures that any relative paths that is deserialized into an
+    // [AbsolutePathBuf] is resolved against `config_base_dir`.
+    let _guard = AbsolutePathBufGuard::new(config_base_dir);
+    root_value
+        .try_into()
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
 }
 
 pub async fn load_global_mcp_servers(
@@ -657,7 +674,12 @@ pub struct ConfigToml {
     pub experimental_use_unified_exec_tool: Option<bool>,
     pub experimental_use_rmcp_client: Option<bool>,
     pub experimental_use_freeform_apply_patch: Option<bool>,
+<<<<<<< HEAD
     pub experimental_sandbox_command_assessment: Option<bool>,
+=======
+    /// Preferred OSS provider for local models, e.g. "lmstudio" or "ollama".
+    pub oss_provider: Option<String>,
+>>>>>>> upstream/main
 }
 
 impl From<ConfigToml> for UserSavedConfig {
@@ -840,7 +862,6 @@ pub struct ConfigOverrides {
     pub include_apply_patch_tool: Option<bool>,
     pub show_raw_agent_reasoning: Option<bool>,
     pub tools_web_search_request: Option<bool>,
-    pub experimental_sandbox_command_assessment: Option<bool>,
     /// Additional directories that should be treated as writable roots for this session.
     pub additional_writable_roots: Vec<PathBuf>,
     /// Development mode selection (central orchestration vs git worktree)
@@ -873,7 +894,6 @@ impl Config {
             include_apply_patch_tool: include_apply_patch_tool_override,
             show_raw_agent_reasoning,
             tools_web_search_request: override_tools_web_search_request,
-            experimental_sandbox_command_assessment: sandbox_command_assessment_override,
             additional_writable_roots,
             development_mode: _development_mode_override,
         } = overrides;
@@ -899,7 +919,6 @@ impl Config {
         let feature_overrides = FeatureOverrides {
             include_apply_patch_tool: include_apply_patch_tool_override,
             web_search_request: override_tools_web_search_request,
-            experimental_sandbox_command_assessment: sandbox_command_assessment_override,
         };
 
         let features = Features::from_config(&cfg, &config_profile, feature_overrides);
@@ -1002,8 +1021,6 @@ impl Config {
         let tools_web_search_request = features.enabled(Feature::WebSearchRequest);
         let use_experimental_unified_exec_tool = features.enabled(Feature::UnifiedExec);
         let use_experimental_use_rmcp_client = features.enabled(Feature::RmcpClient);
-        let experimental_sandbox_command_assessment =
-            features.enabled(Feature::SandboxCommandAssessment);
 
         let forced_chatgpt_workspace_id =
             cfg.forced_chatgpt_workspace_id.as_ref().and_then(|value| {
@@ -1017,6 +1034,7 @@ impl Config {
 
         let forced_login_method = cfg.forced_login_method;
 
+<<<<<<< HEAD
         let model = model
             .or(config_profile.model)
             .or(cfg.model)
@@ -1046,6 +1064,9 @@ impl Config {
                 .as_ref()
                 .and_then(|info| info.auto_compact_token_limit)
         });
+=======
+        let model = model.or(config_profile.model).or(cfg.model);
+>>>>>>> upstream/main
 
         let compact_prompt = compact_prompt.or(cfg.compact_prompt).and_then(|value| {
             let trimmed = value.trim();
@@ -1090,10 +1111,15 @@ impl Config {
         let config = Self {
             model,
             review_model,
+<<<<<<< HEAD
             model_family,
             model_context_window,
             model_max_output_tokens,
             model_auto_compact_token_limit,
+=======
+            model_context_window: cfg.model_context_window,
+            model_auto_compact_token_limit: cfg.model_auto_compact_token_limit,
+>>>>>>> upstream/main
             model_provider_id,
             model_provider,
             cwd: resolved_cwd,
@@ -1155,7 +1181,6 @@ impl Config {
             forced_login_method,
             include_apply_patch_tool: include_apply_patch_tool_flag,
             tools_web_search_request,
-            experimental_sandbox_command_assessment,
             use_experimental_unified_exec_tool,
             use_experimental_use_rmcp_client,
             features,
@@ -1233,10 +1258,6 @@ impl Config {
             Ok(Some(s))
         }
     }
-}
-
-fn default_model() -> String {
-    OPENAI_DEFAULT_MODEL.to_string()
 }
 
 fn default_review_model() -> String {
@@ -1776,10 +1797,11 @@ trust_level = "trusted"
         };
 
         let root_value = load_resolved_config(codex_home.path(), Vec::new(), overrides).await?;
-        let cfg: ConfigToml = root_value.try_into().map_err(|e| {
-            tracing::error!("Failed to deserialize overridden config: {e}");
-            std::io::Error::new(std::io::ErrorKind::InvalidData, e)
-        })?;
+        let cfg =
+            deserialize_config_toml_with_base(root_value, codex_home.path()).map_err(|e| {
+                tracing::error!("Failed to deserialize overridden config: {e}");
+                e
+            })?;
         assert_eq!(
             cfg.mcp_oauth_credentials_store,
             Some(OAuthCredentialsStoreMode::Keyring),
@@ -1896,10 +1918,11 @@ trust_level = "trusted"
         )
         .await?;
 
-        let cfg: ConfigToml = root_value.try_into().map_err(|e| {
-            tracing::error!("Failed to deserialize overridden config: {e}");
-            std::io::Error::new(std::io::ErrorKind::InvalidData, e)
-        })?;
+        let cfg =
+            deserialize_config_toml_with_base(root_value, codex_home.path()).map_err(|e| {
+                tracing::error!("Failed to deserialize overridden config: {e}");
+                e
+            })?;
 
         assert_eq!(cfg.model.as_deref(), Some("managed_config"));
         Ok(())
@@ -2859,12 +2882,17 @@ model_verbosity = "high"
         )?;
         assert_eq!(
             Config {
-                model: "o3".to_string(),
+                model: Some("o3".to_string()),
                 review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
+<<<<<<< HEAD
                 model_family: find_family_for_model("o3").expect("known model slug"),
                 model_context_window: Some(200_000),
                 model_max_output_tokens: Some(100_000),
                 model_auto_compact_token_limit: Some(180_000),
+=======
+                model_context_window: None,
+                model_auto_compact_token_limit: None,
+>>>>>>> upstream/main
                 model_provider_id: "openai".to_string(),
                 model_provider: fixture.openai_provider.clone(),
                 approval_policy: AskForApproval::Never,
@@ -2898,7 +2926,6 @@ model_verbosity = "high"
                 forced_login_method: None,
                 include_apply_patch_tool: false,
                 tools_web_search_request: false,
-                experimental_sandbox_command_assessment: false,
                 use_experimental_unified_exec_tool: false,
                 use_experimental_use_rmcp_client: false,
                 features: Features::with_defaults(),
@@ -2930,12 +2957,17 @@ model_verbosity = "high"
             fixture.codex_home(),
         )?;
         let expected_gpt3_profile_config = Config {
-            model: "gpt-3.5-turbo".to_string(),
+            model: Some("gpt-3.5-turbo".to_string()),
             review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
+<<<<<<< HEAD
             model_family: find_family_for_model("gpt-3.5-turbo").expect("known model slug"),
             model_context_window: Some(16_385),
             model_max_output_tokens: Some(4_096),
             model_auto_compact_token_limit: Some(14_746),
+=======
+            model_context_window: None,
+            model_auto_compact_token_limit: None,
+>>>>>>> upstream/main
             model_provider_id: "openai-chat-completions".to_string(),
             model_provider: fixture.openai_chat_completions_provider.clone(),
             approval_policy: AskForApproval::UnlessTrusted,
@@ -2969,7 +3001,6 @@ model_verbosity = "high"
             forced_login_method: None,
             include_apply_patch_tool: false,
             tools_web_search_request: false,
-            experimental_sandbox_command_assessment: false,
             use_experimental_unified_exec_tool: false,
             use_experimental_use_rmcp_client: false,
             features: Features::with_defaults(),
@@ -3016,12 +3047,17 @@ model_verbosity = "high"
             fixture.codex_home(),
         )?;
         let expected_zdr_profile_config = Config {
-            model: "o3".to_string(),
+            model: Some("o3".to_string()),
             review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
+<<<<<<< HEAD
             model_family: find_family_for_model("o3").expect("known model slug"),
             model_context_window: Some(200_000),
             model_max_output_tokens: Some(100_000),
             model_auto_compact_token_limit: Some(180_000),
+=======
+            model_context_window: None,
+            model_auto_compact_token_limit: None,
+>>>>>>> upstream/main
             model_provider_id: "openai".to_string(),
             model_provider: fixture.openai_provider.clone(),
             approval_policy: AskForApproval::OnFailure,
@@ -3055,7 +3091,6 @@ model_verbosity = "high"
             forced_login_method: None,
             include_apply_patch_tool: false,
             tools_web_search_request: false,
-            experimental_sandbox_command_assessment: false,
             use_experimental_unified_exec_tool: false,
             use_experimental_use_rmcp_client: false,
             features: Features::with_defaults(),
@@ -3088,12 +3123,19 @@ model_verbosity = "high"
             fixture.codex_home(),
         )?;
         let expected_gpt5_profile_config = Config {
+<<<<<<< HEAD
             model: "gpt-5".to_string(),
             review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
             model_family: find_family_for_model("gpt-5").expect("known model slug"),
             model_context_window: Some(272_000),
             model_max_output_tokens: Some(128_000),
             model_auto_compact_token_limit: Some(244_800),
+=======
+            model: Some("gpt-5.1".to_string()),
+            review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
+            model_context_window: None,
+            model_auto_compact_token_limit: None,
+>>>>>>> upstream/main
             model_provider_id: "openai".to_string(),
             model_provider: fixture.openai_provider.clone(),
             approval_policy: AskForApproval::OnFailure,
@@ -3127,7 +3169,6 @@ model_verbosity = "high"
             forced_login_method: None,
             include_apply_patch_tool: false,
             tools_web_search_request: false,
-            experimental_sandbox_command_assessment: false,
             use_experimental_unified_exec_tool: false,
             use_experimental_use_rmcp_client: false,
             features: Features::with_defaults(),

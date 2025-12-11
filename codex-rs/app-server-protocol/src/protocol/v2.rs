@@ -4,8 +4,26 @@ use std::path::PathBuf;
 use crate::protocol::common::AuthMode;
 use codex_protocol::ConversationId;
 use codex_protocol::account::PlanType;
+<<<<<<< HEAD
 use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
+=======
+use codex_protocol::approvals::ExecPolicyAmendment as CoreExecPolicyAmendment;
+use codex_protocol::config_types::ForcedLoginMethod;
+use codex_protocol::config_types::ReasoningSummary;
+use codex_protocol::config_types::SandboxMode as CoreSandboxMode;
+use codex_protocol::config_types::Verbosity;
+use codex_protocol::items::AgentMessageContent as CoreAgentMessageContent;
+use codex_protocol::items::TurnItem as CoreTurnItem;
+use codex_protocol::models::ResponseItem;
+use codex_protocol::openai_models::ReasoningEffort;
+use codex_protocol::parse_command::ParsedCommand as CoreParsedCommand;
+use codex_protocol::plan_tool::PlanItemArg as CorePlanItemArg;
+use codex_protocol::plan_tool::StepStatus as CorePlanStepStatus;
+use codex_protocol::protocol::AskForApproval as CoreAskForApproval;
+use codex_protocol::protocol::CodexErrorInfo as CoreCodexErrorInfo;
+use codex_protocol::protocol::CreditsSnapshot as CoreCreditsSnapshot;
+>>>>>>> upstream/main
 use codex_protocol::protocol::RateLimitSnapshot as CoreRateLimitSnapshot;
 use codex_protocol::protocol::RateLimitWindow as CoreRateLimitWindow;
 use codex_protocol::user_input::UserInput as CoreUserInput;
@@ -41,21 +59,356 @@ macro_rules! v2_enum_from_core {
     };
 }
 
+<<<<<<< HEAD
 v2_enum_from_core!(
     pub enum AskForApproval from codex_protocol::protocol::AskForApproval {
         UnlessTrusted, OnFailure, OnRequest, Never
     }
 );
+=======
+/// This translation layer make sure that we expose codex error code in camel case.
+///
+/// When an upstream HTTP status is available (for example, from the Responses API or a provider),
+/// it is forwarded in `httpStatusCode` on the relevant `codexErrorInfo` variant.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum CodexErrorInfo {
+    ContextWindowExceeded,
+    UsageLimitExceeded,
+    HttpConnectionFailed {
+        #[serde(rename = "httpStatusCode")]
+        #[ts(rename = "httpStatusCode")]
+        http_status_code: Option<u16>,
+    },
+    /// Failed to connect to the response SSE stream.
+    ResponseStreamConnectionFailed {
+        #[serde(rename = "httpStatusCode")]
+        #[ts(rename = "httpStatusCode")]
+        http_status_code: Option<u16>,
+    },
+    InternalServerError,
+    Unauthorized,
+    BadRequest,
+    SandboxError,
+    /// The response SSE stream disconnected in the middle of a turn before completion.
+    ResponseStreamDisconnected {
+        #[serde(rename = "httpStatusCode")]
+        #[ts(rename = "httpStatusCode")]
+        http_status_code: Option<u16>,
+    },
+    /// Reached the retry limit for responses.
+    ResponseTooManyFailedAttempts {
+        #[serde(rename = "httpStatusCode")]
+        #[ts(rename = "httpStatusCode")]
+        http_status_code: Option<u16>,
+    },
+    Other,
+}
 
-v2_enum_from_core!(
-    pub enum SandboxMode from codex_protocol::config_types::SandboxMode {
-        ReadOnly, WorkspaceWrite, DangerFullAccess
+impl From<CoreCodexErrorInfo> for CodexErrorInfo {
+    fn from(value: CoreCodexErrorInfo) -> Self {
+        match value {
+            CoreCodexErrorInfo::ContextWindowExceeded => CodexErrorInfo::ContextWindowExceeded,
+            CoreCodexErrorInfo::UsageLimitExceeded => CodexErrorInfo::UsageLimitExceeded,
+            CoreCodexErrorInfo::HttpConnectionFailed { http_status_code } => {
+                CodexErrorInfo::HttpConnectionFailed { http_status_code }
+            }
+            CoreCodexErrorInfo::ResponseStreamConnectionFailed { http_status_code } => {
+                CodexErrorInfo::ResponseStreamConnectionFailed { http_status_code }
+            }
+            CoreCodexErrorInfo::InternalServerError => CodexErrorInfo::InternalServerError,
+            CoreCodexErrorInfo::Unauthorized => CodexErrorInfo::Unauthorized,
+            CoreCodexErrorInfo::BadRequest => CodexErrorInfo::BadRequest,
+            CoreCodexErrorInfo::SandboxError => CodexErrorInfo::SandboxError,
+            CoreCodexErrorInfo::ResponseStreamDisconnected { http_status_code } => {
+                CodexErrorInfo::ResponseStreamDisconnected { http_status_code }
+            }
+            CoreCodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code } => {
+                CodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code }
+            }
+            CoreCodexErrorInfo::Other => CodexErrorInfo::Other,
+        }
     }
-);
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "kebab-case")]
+#[ts(rename_all = "kebab-case", export_to = "v2/")]
+pub enum AskForApproval {
+    #[serde(rename = "untrusted")]
+    #[ts(rename = "untrusted")]
+    UnlessTrusted,
+    OnFailure,
+    OnRequest,
+    Never,
+}
+>>>>>>> upstream/main
+
+impl AskForApproval {
+    pub fn to_core(self) -> CoreAskForApproval {
+        match self {
+            AskForApproval::UnlessTrusted => CoreAskForApproval::UnlessTrusted,
+            AskForApproval::OnFailure => CoreAskForApproval::OnFailure,
+            AskForApproval::OnRequest => CoreAskForApproval::OnRequest,
+            AskForApproval::Never => CoreAskForApproval::Never,
+        }
+    }
+}
+
+impl From<CoreAskForApproval> for AskForApproval {
+    fn from(value: CoreAskForApproval) -> Self {
+        match value {
+            CoreAskForApproval::UnlessTrusted => AskForApproval::UnlessTrusted,
+            CoreAskForApproval::OnFailure => AskForApproval::OnFailure,
+            CoreAskForApproval::OnRequest => AskForApproval::OnRequest,
+            CoreAskForApproval::Never => AskForApproval::Never,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "kebab-case")]
+#[ts(rename_all = "kebab-case", export_to = "v2/")]
+pub enum SandboxMode {
+    ReadOnly,
+    WorkspaceWrite,
+    DangerFullAccess,
+}
+
+impl SandboxMode {
+    pub fn to_core(self) -> CoreSandboxMode {
+        match self {
+            SandboxMode::ReadOnly => CoreSandboxMode::ReadOnly,
+            SandboxMode::WorkspaceWrite => CoreSandboxMode::WorkspaceWrite,
+            SandboxMode::DangerFullAccess => CoreSandboxMode::DangerFullAccess,
+        }
+    }
+}
+
+impl From<CoreSandboxMode> for SandboxMode {
+    fn from(value: CoreSandboxMode) -> Self {
+        match value {
+            CoreSandboxMode::ReadOnly => SandboxMode::ReadOnly,
+            CoreSandboxMode::WorkspaceWrite => SandboxMode::WorkspaceWrite,
+            CoreSandboxMode::DangerFullAccess => SandboxMode::DangerFullAccess,
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+<<<<<<< HEAD
 #[serde(tag = "mode", rename_all = "camelCase")]
 #[ts(tag = "mode")]
+=======
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum ConfigLayerName {
+    Mdm,
+    System,
+    SessionFlags,
+    User,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "v2/")]
+pub struct SandboxWorkspaceWrite {
+    #[serde(default)]
+    pub writable_roots: Vec<PathBuf>,
+    #[serde(default)]
+    pub network_access: bool,
+    #[serde(default)]
+    pub exclude_tmpdir_env_var: bool,
+    #[serde(default)]
+    pub exclude_slash_tmp: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "v2/")]
+pub struct ToolsV2 {
+    #[serde(alias = "web_search_request")]
+    pub web_search: Option<bool>,
+    pub view_image: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "v2/")]
+pub struct ProfileV2 {
+    pub model: Option<String>,
+    pub model_provider: Option<String>,
+    pub approval_policy: Option<AskForApproval>,
+    pub model_reasoning_effort: Option<ReasoningEffort>,
+    pub model_reasoning_summary: Option<ReasoningSummary>,
+    pub model_verbosity: Option<Verbosity>,
+    pub chatgpt_base_url: Option<String>,
+    #[serde(default, flatten)]
+    pub additional: HashMap<String, JsonValue>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "v2/")]
+pub struct Config {
+    pub model: Option<String>,
+    pub review_model: Option<String>,
+    pub model_context_window: Option<i64>,
+    pub model_auto_compact_token_limit: Option<i64>,
+    pub model_provider: Option<String>,
+    pub approval_policy: Option<AskForApproval>,
+    pub sandbox_mode: Option<SandboxMode>,
+    pub sandbox_workspace_write: Option<SandboxWorkspaceWrite>,
+    pub forced_chatgpt_workspace_id: Option<String>,
+    pub forced_login_method: Option<ForcedLoginMethod>,
+    pub tools: Option<ToolsV2>,
+    pub profile: Option<String>,
+    #[serde(default)]
+    pub profiles: HashMap<String, ProfileV2>,
+    pub instructions: Option<String>,
+    pub developer_instructions: Option<String>,
+    pub compact_prompt: Option<String>,
+    pub model_reasoning_effort: Option<ReasoningEffort>,
+    pub model_reasoning_summary: Option<ReasoningSummary>,
+    pub model_verbosity: Option<Verbosity>,
+    #[serde(default, flatten)]
+    pub additional: HashMap<String, JsonValue>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigLayerMetadata {
+    pub name: ConfigLayerName,
+    pub source: String,
+    pub version: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigLayer {
+    pub name: ConfigLayerName,
+    pub source: String,
+    pub version: String,
+    pub config: JsonValue,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum MergeStrategy {
+    Replace,
+    Upsert,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum WriteStatus {
+    Ok,
+    OkOverridden,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct OverriddenMetadata {
+    pub message: String,
+    pub overriding_layer: ConfigLayerMetadata,
+    pub effective_value: JsonValue,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigWriteResponse {
+    pub status: WriteStatus,
+    pub version: String,
+    /// Canonical path to the config file that was written.
+    pub file_path: String,
+    pub overridden_metadata: Option<OverriddenMetadata>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum ConfigWriteErrorCode {
+    ConfigLayerReadonly,
+    ConfigVersionConflict,
+    ConfigValidationError,
+    ConfigPathNotFound,
+    ConfigSchemaUnknownKey,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigReadParams {
+    #[serde(default)]
+    pub include_layers: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigReadResponse {
+    pub config: Config,
+    pub origins: HashMap<String, ConfigLayerMetadata>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub layers: Option<Vec<ConfigLayer>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigValueWriteParams {
+    pub key_path: String,
+    pub value: JsonValue,
+    pub merge_strategy: MergeStrategy,
+    /// Path to the config file to write; defaults to the user's `config.toml` when omitted.
+    pub file_path: Option<String>,
+    pub expected_version: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigBatchWriteParams {
+    pub edits: Vec<ConfigEdit>,
+    /// Path to the config file to write; defaults to the user's `config.toml` when omitted.
+    pub file_path: Option<String>,
+    pub expected_version: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigEdit {
+    pub key_path: String,
+    pub value: JsonValue,
+    pub merge_strategy: MergeStrategy,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum ApprovalDecision {
+    Accept,
+    /// Approve and remember the approval for the session.
+    AcceptForSession,
+    AcceptWithExecpolicyAmendment {
+        execpolicy_amendment: ExecPolicyAmendment,
+    },
+    Decline,
+    Cancel,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(tag = "type", rename_all = "camelCase")]
+#[ts(tag = "type")]
+>>>>>>> upstream/main
 #[ts(export_to = "v2/")]
 pub enum SandboxPolicy {
     DangerFullAccess,
@@ -116,6 +469,146 @@ impl From<codex_protocol::protocol::SandboxPolicy> for SandboxPolicy {
     }
 }
 
+<<<<<<< HEAD
+=======
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(transparent)]
+#[ts(type = "Array<string>", export_to = "v2/")]
+pub struct ExecPolicyAmendment {
+    pub command: Vec<String>,
+}
+
+impl ExecPolicyAmendment {
+    pub fn into_core(self) -> CoreExecPolicyAmendment {
+        CoreExecPolicyAmendment::new(self.command)
+    }
+}
+
+impl From<CoreExecPolicyAmendment> for ExecPolicyAmendment {
+    fn from(value: CoreExecPolicyAmendment) -> Self {
+        Self {
+            command: value.command().to_vec(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(tag = "type", rename_all = "camelCase")]
+#[ts(tag = "type")]
+#[ts(export_to = "v2/")]
+pub enum CommandAction {
+    Read {
+        command: String,
+        name: String,
+        path: PathBuf,
+    },
+    ListFiles {
+        command: String,
+        path: Option<String>,
+    },
+    Search {
+        command: String,
+        query: Option<String>,
+        path: Option<String>,
+    },
+    Unknown {
+        command: String,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase", export_to = "v2/")]
+#[derive(Default)]
+pub enum SessionSource {
+    Cli,
+    #[serde(rename = "vscode")]
+    #[ts(rename = "vscode")]
+    #[default]
+    VsCode,
+    Exec,
+    AppServer,
+    #[serde(other)]
+    Unknown,
+}
+
+impl From<CoreSessionSource> for SessionSource {
+    fn from(value: CoreSessionSource) -> Self {
+        match value {
+            CoreSessionSource::Cli => SessionSource::Cli,
+            CoreSessionSource::VSCode => SessionSource::VsCode,
+            CoreSessionSource::Exec => SessionSource::Exec,
+            CoreSessionSource::Mcp => SessionSource::AppServer,
+            CoreSessionSource::SubAgent(_) => SessionSource::Unknown,
+            CoreSessionSource::Unknown => SessionSource::Unknown,
+        }
+    }
+}
+
+impl From<SessionSource> for CoreSessionSource {
+    fn from(value: SessionSource) -> Self {
+        match value {
+            SessionSource::Cli => CoreSessionSource::Cli,
+            SessionSource::VsCode => CoreSessionSource::VSCode,
+            SessionSource::Exec => CoreSessionSource::Exec,
+            SessionSource::AppServer => CoreSessionSource::Mcp,
+            SessionSource::Unknown => CoreSessionSource::Unknown,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct GitInfo {
+    pub sha: Option<String>,
+    pub branch: Option<String>,
+    pub origin_url: Option<String>,
+}
+
+impl CommandAction {
+    pub fn into_core(self) -> CoreParsedCommand {
+        match self {
+            CommandAction::Read {
+                command: cmd,
+                name,
+                path,
+            } => CoreParsedCommand::Read { cmd, name, path },
+            CommandAction::ListFiles { command: cmd, path } => {
+                CoreParsedCommand::ListFiles { cmd, path }
+            }
+            CommandAction::Search {
+                command: cmd,
+                query,
+                path,
+            } => CoreParsedCommand::Search { cmd, query, path },
+            CommandAction::Unknown { command: cmd } => CoreParsedCommand::Unknown { cmd },
+        }
+    }
+}
+
+impl From<CoreParsedCommand> for CommandAction {
+    fn from(value: CoreParsedCommand) -> Self {
+        match value {
+            CoreParsedCommand::Read { cmd, name, path } => CommandAction::Read {
+                command: cmd,
+                name,
+                path,
+            },
+            CoreParsedCommand::ListFiles { cmd, path } => {
+                CommandAction::ListFiles { command: cmd, path }
+            }
+            CoreParsedCommand::Search { cmd, query, path } => CommandAction::Search {
+                command: cmd,
+                query,
+                path,
+            },
+            CoreParsedCommand::Unknown { cmd } => CommandAction::Unknown { command: cmd },
+        }
+    }
+}
+
+>>>>>>> upstream/main
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[ts(tag = "type")]
@@ -173,10 +666,21 @@ pub struct CancelLoginAccountParams {
     pub login_id: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum CancelLoginAccountStatus {
+    Canceled,
+    NotFound,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-pub struct CancelLoginAccountResponse {}
+pub struct CancelLoginAccountResponse {
+    pub status: CancelLoginAccountStatus,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
@@ -251,6 +755,60 @@ pub struct ModelListResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
+<<<<<<< HEAD
+=======
+pub struct ListMcpServersParams {
+    /// Opaque pagination cursor returned by a previous call.
+    pub cursor: Option<String>,
+    /// Optional page size; defaults to a server-defined value.
+    pub limit: Option<u32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct McpServer {
+    pub name: String,
+    pub tools: std::collections::HashMap<String, McpTool>,
+    pub resources: Vec<McpResource>,
+    pub resource_templates: Vec<McpResourceTemplate>,
+    pub auth_status: McpAuthStatus,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ListMcpServersResponse {
+    pub data: Vec<McpServer>,
+    /// Opaque cursor to pass to the next call to continue after the last item.
+    /// If None, there are no more items to return.
+    pub next_cursor: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct McpServerOauthLoginParams {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub scopes: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub timeout_secs: Option<i64>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct McpServerOauthLoginResponse {
+    pub authorization_url: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+>>>>>>> upstream/main
 pub struct FeedbackUploadParams {
     pub classification: String,
     pub reason: Option<String>,
@@ -642,6 +1200,55 @@ pub struct AgentMessageDeltaNotification {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
+<<<<<<< HEAD
+=======
+pub struct ReasoningSummaryTextDeltaNotification {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub item_id: String,
+    pub delta: String,
+    #[ts(type = "number")]
+    pub summary_index: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ReasoningSummaryPartAddedNotification {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub item_id: String,
+    #[ts(type = "number")]
+    pub summary_index: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ReasoningTextDeltaNotification {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub item_id: String,
+    pub delta: String,
+    #[ts(type = "number")]
+    pub content_index: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct TerminalInteractionNotification {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub item_id: String,
+    pub process_id: String,
+    pub stdin: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+>>>>>>> upstream/main
 pub struct CommandExecutionOutputDeltaNotification {
     pub item_id: String,
     pub delta: String,
@@ -658,6 +1265,77 @@ pub struct McpToolCallProgressNotification {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
+<<<<<<< HEAD
+=======
+pub struct McpServerOauthLoginCompletedNotification {
+    pub name: String,
+    pub success: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub error: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct WindowsWorldWritableWarningNotification {
+    pub sample_paths: Vec<String>,
+    pub extra_count: usize,
+    pub failed_scan: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ContextCompactedNotification {
+    pub thread_id: String,
+    pub turn_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct CommandExecutionRequestApprovalParams {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub item_id: String,
+    /// Optional explanatory reason (e.g. request for network access).
+    pub reason: Option<String>,
+    /// Optional proposed execpolicy amendment to allow similar commands without prompting.
+    pub proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct CommandExecutionRequestApprovalResponse {
+    pub decision: ApprovalDecision,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct FileChangeRequestApprovalParams {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub item_id: String,
+    /// Optional explanatory reason (e.g. request for extra write access).
+    pub reason: Option<String>,
+    /// [UNSTABLE] When set, the agent is asking the user to allow writes under this root
+    /// for the remainder of the session (unclear if this is honored today).
+    pub grant_root: Option<PathBuf>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[ts(export_to = "v2/")]
+pub struct FileChangeRequestApprovalResponse {
+    pub decision: ApprovalDecision,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+>>>>>>> upstream/main
 pub struct AccountRateLimitsUpdatedNotification {
     pub rate_limits: RateLimitSnapshot,
 }

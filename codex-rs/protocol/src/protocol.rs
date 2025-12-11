@@ -36,8 +36,12 @@ use ts_rs::TS;
 
 pub use crate::approvals::ApplyPatchApprovalRequestEvent;
 pub use crate::approvals::ExecApprovalRequestEvent;
+<<<<<<< HEAD
 pub use crate::approvals::SandboxCommandAssessment;
 pub use crate::approvals::SandboxRiskLevel;
+=======
+pub use crate::approvals::ExecPolicyAmendment;
+>>>>>>> upstream/main
 
 /// Open/close tags for special user-input blocks. Used across crates to avoid
 /// duplicated hardcoded strings.
@@ -490,6 +494,9 @@ pub enum EventMsg {
 
     /// Incremental chunk of output from a running command.
     ExecCommandOutputDelta(ExecCommandOutputDeltaEvent),
+
+    /// Terminal interaction for an in-progress command (stdin sent and stdout observed).
+    TerminalInteraction(TerminalInteractionEvent),
 
     ExecCommandEnd(ExecCommandEndEvent),
 
@@ -1239,6 +1246,24 @@ pub struct ReviewLineRange {
     pub end: u32,
 }
 
+<<<<<<< HEAD
+=======
+#[derive(Debug, Clone, Copy, Display, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecCommandSource {
+    Agent,
+    UserShell,
+    UnifiedExecStartup,
+    UnifiedExecInteraction,
+}
+
+impl Default for ExecCommandSource {
+    fn default() -> Self {
+        Self::Agent
+    }
+}
+
+>>>>>>> upstream/main
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct ExecCommandBeginEvent {
     /// Identifier so this can be paired with the ExecCommandEnd event.
@@ -1301,6 +1326,17 @@ pub struct ExecCommandOutputDeltaEvent {
     #[schemars(with = "String")]
     #[ts(type = "string")]
     pub chunk: Vec<u8>,
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
+pub struct TerminalInteractionEvent {
+    /// Identifier for the ExecCommandBegin that produced this chunk.
+    pub call_id: String,
+    /// Process id associated with the running command.
+    pub process_id: String,
+    /// Stdin sent to the running session.
+    pub stdin: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
@@ -1416,7 +1452,30 @@ pub struct ListCustomPromptsResponseEvent {
     pub custom_prompts: Vec<CustomPrompt>,
 }
 
+<<<<<<< HEAD
 #[derive(Debug, Default, Clone, Deserialize, Serialize, JsonSchema, TS)]
+=======
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
+pub struct SkillInfo {
+    pub name: String,
+    pub description: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
+pub struct SkillErrorInfo {
+    pub path: PathBuf,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS, Default)]
+pub struct SkillLoadOutcomeInfo {
+    pub skills: Vec<SkillInfo>,
+    pub errors: Vec<SkillErrorInfo>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
+>>>>>>> upstream/main
 pub struct SessionConfiguredEvent {
     /// Name left as session_id instead of conversation_id for backwards compatibility.
     pub session_id: ConversationId,
@@ -1438,6 +1497,9 @@ pub struct SessionConfiguredEvent {
     /// When present, UIs can use these to seed the history.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub initial_messages: Option<Vec<EventMsg>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skill_load_outcome: Option<SkillLoadOutcomeInfo>,
 
     pub rollout_path: PathBuf,
 }
@@ -1608,6 +1670,7 @@ mod tests {
                 history_log_id: 0,
                 history_entry_count: 0,
                 initial_messages: None,
+                skill_load_outcome: None,
                 rollout_path: rollout_file.path().to_path_buf(),
             }),
         };

@@ -76,6 +76,7 @@ async fn codex_mini_latest_tools() {
 
     let server = MockServer::start().await;
 
+<<<<<<< HEAD
     let sse = sse_completed("resp");
     let template = ResponseTemplate::new(200)
         .insert_header("content-type", "text/event-stream")
@@ -112,6 +113,16 @@ async fn codex_mini_latest_tools() {
         .await
         .expect("create new conversation")
         .conversation;
+=======
+    let TestCodex { codex, .. } = test_codex()
+        .with_config(|config| {
+            config.user_instructions = Some("be consistent and helpful".to_string());
+            config.features.disable(Feature::ApplyPatchFreeform);
+            config.model = Some("codex-mini-latest".to_string());
+        })
+        .build(&server)
+        .await?;
+>>>>>>> upstream/main
 
     codex
         .submit(Op::UserInput {
@@ -161,6 +172,7 @@ async fn prompt_tools_are_consistent_across_requests() {
 
     let server = MockServer::start().await;
 
+<<<<<<< HEAD
     let sse = sse_completed("resp");
     let template = ResponseTemplate::new(200)
         .insert_header("content-type", "text/event-stream")
@@ -192,6 +204,29 @@ async fn prompt_tools_are_consistent_across_requests() {
     let base_instructions = config.model_family.base_instructions.clone();
     let codex = conversation_manager
         .new_conversation(config)
+=======
+    let TestCodex {
+        codex,
+        config,
+        conversation_manager,
+        ..
+    } = test_codex()
+        .with_config(|config| {
+            config.user_instructions = Some("be consistent and helpful".to_string());
+            config.model = Some("gpt-5.1-codex-max".to_string());
+        })
+        .build(&server)
+        .await?;
+    let base_instructions = conversation_manager
+        .get_models_manager()
+        .construct_model_family(
+            config
+                .model
+                .as_deref()
+                .expect("test config should have a model"),
+            &config,
+        )
+>>>>>>> upstream/main
         .await
         .expect("create new conversation")
         .conversation;
@@ -656,6 +691,7 @@ async fn send_user_turn_with_no_changes_does_not_send_environment_context() {
 
     let server = MockServer::start().await;
 
+<<<<<<< HEAD
     let sse = sse_completed("resp");
     let template = ResponseTemplate::new(200)
         .insert_header("content-type", "text/event-stream")
@@ -679,11 +715,24 @@ async fn send_user_turn_with_no_changes_does_not_send_environment_context() {
     config.cwd = cwd.path().to_path_buf();
     config.model_provider = model_provider;
     config.user_instructions = Some("be consistent and helpful".to_string());
+=======
+    let TestCodex {
+        codex,
+        config,
+        session_configured,
+        ..
+    } = test_codex()
+        .with_config(|config| {
+            config.user_instructions = Some("be consistent and helpful".to_string());
+        })
+        .build(&server)
+        .await?;
+>>>>>>> upstream/main
 
     let default_cwd = config.cwd.clone();
     let default_approval_policy = config.approval_policy;
     let default_sandbox_policy = config.sandbox_policy.clone();
-    let default_model = config.model.clone();
+    let default_model = session_configured.model;
     let default_effort = config.model_reasoning_effort;
     let default_summary = config.model_reasoning_summary;
 
@@ -772,6 +821,7 @@ async fn send_user_turn_with_changes_sends_environment_context() {
 
     let server = MockServer::start().await;
 
+<<<<<<< HEAD
     let sse = sse_completed("resp");
     let template = ResponseTemplate::new(200)
         .insert_header("content-type", "text/event-stream")
@@ -795,11 +845,26 @@ async fn send_user_turn_with_changes_sends_environment_context() {
     config.cwd = cwd.path().to_path_buf();
     config.model_provider = model_provider;
     config.user_instructions = Some("be consistent and helpful".to_string());
+=======
+    let req1 = mount_sse_once(&server, sse_completed("resp-1")).await;
+    let req2 = mount_sse_once(&server, sse_completed("resp-2")).await;
+    let TestCodex {
+        codex,
+        config,
+        session_configured,
+        ..
+    } = test_codex()
+        .with_config(|config| {
+            config.user_instructions = Some("be consistent and helpful".to_string());
+        })
+        .build(&server)
+        .await?;
+>>>>>>> upstream/main
 
     let default_cwd = config.cwd.clone();
     let default_approval_policy = config.approval_policy;
     let default_sandbox_policy = config.sandbox_policy.clone();
-    let default_model = config.model.clone();
+    let default_model = session_configured.model;
     let default_effort = config.model_reasoning_effort;
     let default_summary = config.model_reasoning_summary;
 

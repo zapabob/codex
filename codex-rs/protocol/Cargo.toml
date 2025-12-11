@@ -13,8 +13,12 @@ workspace = true
 [dependencies]
 codex-git = { path = "../utils/git" }
 
+<<<<<<< HEAD
 base64 = { workspace = true }
 codex-utils-image = { path = "../utils/image" }
+=======
+codex-utils-image = { workspace = true }
+>>>>>>> upstream/main
 icu_decimal = { workspace = true }
 icu_locale_core = { workspace = true }
 icu_provider = { workspace = true, features = ["sync"] }

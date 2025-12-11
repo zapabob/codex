@@ -46,6 +46,7 @@ codex-rmcp-client = { workspace = true }
 codex-supervisor = { workspace = true }
 codex-stdio-to-uds = { workspace = true }
 codex-tui = { workspace = true }
+codex-tui2 = { workspace = true }
 ctor = { workspace = true }
 chrono = { workspace = true }
 dirs = { workspace = true }

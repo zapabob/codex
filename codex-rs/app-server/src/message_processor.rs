@@ -51,7 +51,12 @@ impl MessageProcessor {
             conversation_manager,
             outgoing.clone(),
             codex_linux_sandbox_exe,
+<<<<<<< HEAD
             config,
+=======
+            Arc::clone(&config),
+            cli_overrides.clone(),
+>>>>>>> upstream/main
             feedback,
         );
 

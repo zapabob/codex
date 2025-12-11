@@ -1,7 +1,14 @@
 [package]
+<<<<<<< HEAD
 edition = "2024"
 name = "codex-core"
 version = { workspace = true }
+=======
+edition.workspace = true
+license.workspace = true
+name = "codex-core"
+version.workspace = true
+>>>>>>> upstream/main
 
 [lib]
 doctest = false
@@ -18,10 +25,10 @@ workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-askama = { workspace = true }
 async-channel = { workspace = true }
 async-trait = { workspace = true }
 base64 = { workspace = true }
+<<<<<<< HEAD
 bytes = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
 # 🔐 Security dependencies (Phase 1: TLS/mTLS)
@@ -37,6 +44,16 @@ codex-async-utils = { workspace = true }
 codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
 cudarc = { version = "0.12", optional = true }
 codex-deep-research = { workspace = true }
+=======
+chardetng = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+codex-api = { workspace = true }
+codex-app-server-protocol = { workspace = true }
+codex-apply-patch = { workspace = true }
+codex-async-utils = { workspace = true }
+codex-client = { workspace = true }
+codex-execpolicy = { workspace = true }
+>>>>>>> upstream/main
 codex-file-search = { workspace = true }
 codex-git = { workspace = true }
 codex-keyring-store = { workspace = true }
@@ -45,6 +62,7 @@ syn = { workspace = true }
 codex-otel = { workspace = true, features = ["otel"] }
 codex-protocol = { workspace = true }
 codex-rmcp-client = { workspace = true }
+codex-utils-absolute-path = { workspace = true }
 codex-utils-pty = { workspace = true }
 codex-utils-readiness = { workspace = true }
 codex-utils-string = { workspace = true }
@@ -54,7 +72,11 @@ codex_windows_sandbox = { package = "codex-windows-sandbox", path = "../windows-
 dashmap = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }
+<<<<<<< HEAD
 ed25519-dalek = { workspace = true }
+=======
+encoding_rs = { workspace = true }
+>>>>>>> upstream/main
 env-flags = { workspace = true }
 eventsource-stream = { workspace = true }
 futures = { workspace = true }
@@ -86,7 +108,10 @@ sha2 = { workspace = true }
 shlex = { workspace = true }
 similar = { workspace = true }
 strum_macros = { workspace = true }
+<<<<<<< HEAD
 sysinfo = "0.31"
+=======
+>>>>>>> upstream/main
 tempfile = { workspace = true }
 test-log = { workspace = true }
 thiserror = { workspace = true }
@@ -117,6 +142,7 @@ fastrand = "2.3.0"
 parking_lot = "0.12.5"
 
 [target.'cfg(target_os = "linux")'.dependencies]
+keyring = { workspace = true, features = ["linux-native-async-persistent"] }
 landlock = { workspace = true }
 seccompiler = { workspace = true }
 

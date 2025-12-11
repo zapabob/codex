@@ -1,5 +1,6 @@
 //! Models for app server
 
+<<<<<<< HEAD
 use serde::{Deserialize, Serialize};
 use codex_app_server_protocol::AuthMode;
 use codex_protocol::config_types::ReasoningEffort;
@@ -9,6 +10,25 @@ use codex_protocol::config_types::ReasoningEffort;
 pub struct RequestModel {
     pub id: String,
     pub data: serde_json::Value,
+=======
+use codex_app_server_protocol::Model;
+use codex_app_server_protocol::ReasoningEffortOption;
+use codex_core::ConversationManager;
+use codex_core::config::Config;
+use codex_protocol::openai_models::ModelPreset;
+use codex_protocol::openai_models::ReasoningEffortPreset;
+
+pub async fn supported_models(
+    conversation_manager: Arc<ConversationManager>,
+    config: &Config,
+) -> Vec<Model> {
+    conversation_manager
+        .list_models(config)
+        .await
+        .into_iter()
+        .map(model_from_preset)
+        .collect()
+>>>>>>> upstream/main
 }
 
 /// Response model

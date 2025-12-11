@@ -7,6 +7,7 @@ use chrono::DateTime;
 use chrono::Local;
 use codex_common::create_config_summary_entries;
 use codex_core::config::Config;
+use codex_core::openai_models::model_family::ModelFamily;
 use codex_core::protocol::SandboxPolicy;
 use codex_core::protocol::TokenUsage;
 use codex_protocol::ConversationId;
@@ -65,20 +66,32 @@ struct StatusHistoryCell {
 
 pub(crate) fn new_status_output(
     config: &Config,
+<<<<<<< HEAD
+=======
+    auth_manager: &AuthManager,
+    model_family: &ModelFamily,
+>>>>>>> upstream/main
     total_usage: &TokenUsage,
     context_usage: Option<&TokenUsage>,
     session_id: &Option<ConversationId>,
     rate_limits: Option<&RateLimitSnapshotDisplay>,
     now: DateTime<Local>,
+    model_name: &str,
 ) -> CompositeHistoryCell {
     let command = PlainHistoryCell::new(vec!["/status".magenta().into()]);
     let card = StatusHistoryCell::new(
         config,
+<<<<<<< HEAD
+=======
+        auth_manager,
+        model_family,
+>>>>>>> upstream/main
         total_usage,
         context_usage,
         session_id,
         rate_limits,
         now,
+        model_name,
     );
 
     CompositeHistoryCell::new(vec![Box::new(command), Box::new(card)])
@@ -87,14 +100,20 @@ pub(crate) fn new_status_output(
 impl StatusHistoryCell {
     fn new(
         config: &Config,
+<<<<<<< HEAD
+=======
+        auth_manager: &AuthManager,
+        model_family: &ModelFamily,
+>>>>>>> upstream/main
         total_usage: &TokenUsage,
         context_usage: Option<&TokenUsage>,
         session_id: &Option<ConversationId>,
         rate_limits: Option<&RateLimitSnapshotDisplay>,
         now: DateTime<Local>,
+        model_name: &str,
     ) -> Self {
-        let config_entries = create_config_summary_entries(config);
-        let (model_name, model_details) = compose_model_display(config, &config_entries);
+        let config_entries = create_config_summary_entries(config, model_name);
+        let (model_name, model_details) = compose_model_display(model_name, &config_entries);
         let approval = config_entries
             .iter()
             .find(|(k, _)| *k == "approval")
@@ -108,7 +127,7 @@ impl StatusHistoryCell {
         let agents_summary = compose_agents_summary(config);
         let account = compose_account_display(config);
         let session_id = session_id.as_ref().map(std::string::ToString::to_string);
-        let context_window = config.model_context_window.and_then(|window| {
+        let context_window = model_family.context_window.and_then(|window| {
             context_usage.map(|usage| StatusContextWindowData {
                 percent_remaining: usage.percent_of_context_window_remaining(window),
                 tokens_in_context: usage.tokens_in_context_window(),

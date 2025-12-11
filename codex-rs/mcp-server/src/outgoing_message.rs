@@ -258,6 +258,7 @@ mod tests {
                 history_log_id: 1,
                 history_entry_count: 1000,
                 initial_messages: None,
+                skill_load_outcome: None,
                 rollout_path: rollout_file.path().to_path_buf(),
             }),
         };
@@ -293,6 +294,7 @@ mod tests {
             history_log_id: 1,
             history_entry_count: 1000,
             initial_messages: None,
+            skill_load_outcome: None,
             rollout_path: rollout_file.path().to_path_buf(),
         };
         let event = Event {
