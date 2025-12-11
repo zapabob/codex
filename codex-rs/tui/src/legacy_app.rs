@@ -561,6 +561,9 @@ impl LegacyApp {
             AppEvent::GpuStatsUnavailable => {
                 self.chat_widget.clear_gpu_stats();
             }
+            AppEvent::OpenAllModelsPopup { .. } => {
+                // TODO: Implement OpenAllModelsPopup handling
+            }
         }
         Ok(true)
     }

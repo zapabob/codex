@@ -191,7 +191,6 @@ async fn run_codex_tool_session_inner(
                             event.id.clone(),
                             call_id,
                             parsed_cmd,
-                            risk,
                         )
                         .await;
                         continue;

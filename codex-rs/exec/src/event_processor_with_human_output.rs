@@ -539,7 +539,7 @@ impl EventProcessor for EventProcessorWithHumanOutput {
             EventMsg::WebSearchBegin(_)
             | EventMsg::ExecApprovalRequest(_)
             | EventMsg::ApplyPatchApprovalRequest(_)
-            | EventMsg::TerminalInteraction(_)
+            // | EventMsg::TerminalInteraction(_) // Removed in v2.5.0
             | EventMsg::ExecCommandOutputDelta(_)
             | EventMsg::GetHistoryEntryResponse(_)
             | EventMsg::McpListToolsResponse(_)

@@ -614,7 +614,7 @@ impl Session {
             unified_exec_manager: UnifiedExecSessionManager::default(),
             notifier: UserNotifier::new(config.notify.clone()),
             rollout: Mutex::new(Some(rollout_recorder)),
-            user_shell: default_shell,
+            user_shell: default_shell.into(),
             show_raw_agent_reasoning: config.show_raw_agent_reasoning,
             auth_manager: Arc::clone(&auth_manager),
             otel_event_manager,
@@ -832,20 +832,9 @@ impl Session {
         let provider = turn_context.client.provider().clone();
         let auth_manager = Arc::clone(&self.services.auth_manager);
         let otel = self.services.otel_event_manager.clone();
-        crate::sandboxing::assessment::assess_command(
-            config,
-            provider,
-            auth_manager,
-            &otel,
-            self.conversation_id,
-            turn_context.client.get_session_source(),
-            call_id,
-            command,
-            &turn_context.sandbox_policy,
-            &turn_context.cwd,
-            failure_message,
-        )
-        .await
+        // TODO: assessment functionality removed in v2.5.0 - replaced with unified exec
+        // For now, return None to disable command assessment
+        None
     }
 
     /// Emit an exec approval request event and await the user's decision.

@@ -48,7 +48,7 @@ use codex_core::protocol::PatchApplyEndEvent;
 use codex_core::protocol::SessionConfiguredEvent;
 use codex_core::protocol::TaskCompleteEvent;
 use codex_core::protocol::TaskStartedEvent;
-use codex_core::protocol::TerminalInteractionEvent;
+// use codex_core::protocol::TerminalInteractionEvent; // Removed in v2.5.0
 use codex_core::protocol::WebSearchEndEvent;
 use codex_protocol::plan_tool::StepStatus;
 use codex_protocol::plan_tool::UpdatePlanArgs;
@@ -111,7 +111,7 @@ impl EventProcessorWithJsonOutput {
             EventMsg::AgentReasoning(ev) => self.handle_reasoning_event(ev),
             EventMsg::ExecCommandBegin(ev) => self.handle_exec_command_begin(ev),
             EventMsg::ExecCommandEnd(ev) => self.handle_exec_command_end(ev),
-            EventMsg::TerminalInteraction(ev) => self.handle_terminal_interaction(ev),
+            // EventMsg::TerminalInteraction(ev) => self.handle_terminal_interaction(ev), // Removed in v2.5.0
             EventMsg::ExecCommandOutputDelta(ev) => {
                 self.handle_output_chunk(&ev.call_id, &ev.chunk)
             }
@@ -183,10 +183,10 @@ impl EventProcessorWithJsonOutput {
         vec![]
     }
 
-    fn handle_terminal_interaction(&mut self, _ev: &TerminalInteractionEvent) -> Vec<ThreadEvent> {
-        //TODO see how we want to process them
-        vec![]
-    }
+    // fn handle_terminal_interaction(&mut self, _ev: &TerminalInteractionEvent) -> Vec<ThreadEvent> {
+    //     //TODO see how we want to process them
+    //     vec![]
+    // } // Removed in v2.5.0
 
     fn handle_agent_message(&self, payload: &AgentMessageEvent) -> Vec<ThreadEvent> {
         let item = ThreadItem {

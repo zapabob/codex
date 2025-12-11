@@ -175,7 +175,7 @@ impl Features {
         let mut features = Features::with_defaults();
 
         let base_legacy = LegacyFeatureToggles {
-            experimental_sandbox_command_assessment: cfg.experimental_sandbox_command_assessment,
+            // experimental_sandbox_command_assessment: cfg.experimental_sandbox_command_assessment, // Removed in v2.5.0
             experimental_use_freeform_apply_patch: cfg.experimental_use_freeform_apply_patch,
             experimental_use_unified_exec_tool: cfg.experimental_use_unified_exec_tool,
             experimental_use_rmcp_client: cfg.experimental_use_rmcp_client,
@@ -191,8 +191,7 @@ impl Features {
 
         let profile_legacy = LegacyFeatureToggles {
             include_apply_patch_tool: config_profile.include_apply_patch_tool,
-            experimental_sandbox_command_assessment: config_profile
-                .experimental_sandbox_command_assessment,
+            // experimental_sandbox_command_assessment: config_profile.experimental_sandbox_command_assessment, // Removed in v2.5.0
             experimental_use_freeform_apply_patch: config_profile
                 .experimental_use_freeform_apply_patch,
 

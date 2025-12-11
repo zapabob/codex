@@ -5,7 +5,7 @@ use crate::client_common::tools::ToolSpec;
 use crate::codex::Session;
 use crate::codex::TurnContext;
 use crate::function_tool::FunctionCallError;
-use codex_protocol::models::SandboxPermissions;
+// use codex_protocol::models::SandboxPermissions; // Temporarily disabled - needs investigation
 use crate::tools::context::SharedTurnDiffTracker;
 use crate::tools::context::ToolInvocation;
 use crate::tools::context::ToolPayload;
@@ -115,7 +115,7 @@ impl ToolRouter {
                             command: exec.command,
                             workdir: exec.working_directory,
                             timeout_ms: exec.timeout_ms,
-                            sandbox_permissions: Some(SandboxPermissions::UseDefault),
+                            with_escalated_permissions: Some(false), // sandbox_permissions removed in v2.5.0
                             justification: None,
                         };
                         Ok(Some(ToolCall {

@@ -4,7 +4,7 @@ use crate::ModelProviderInfo;
 use crate::client_common::Prompt;
 use crate::client_common::ResponseEvent;
 use crate::client_common::ResponseStream;
-use crate::default_client::CodexHttpClient;
+use codex_client::CodexHttpClient;
 use crate::error::CodexErr;
 use crate::error::ConnectionFailedError;
 use crate::error::ResponseStreamFailed;
