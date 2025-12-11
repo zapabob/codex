@@ -7,7 +7,10 @@
 //! - Code quality visualization and reporting
 
 pub mod agent;
+pub mod agent_coordination;
 pub mod mathematical;
+pub mod monitoring;
+pub mod prediction;
 pub mod quantum;
 pub mod statistical;
 pub mod visualization;

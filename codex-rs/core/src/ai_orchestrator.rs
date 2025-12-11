@@ -10,8 +10,8 @@ use tokio::sync::{mpsc, oneshot};
 use crate::git_lock_manager::GitLockManager;
 use crate::conflict_detector::AstConflictDetector;
 use crate::git_lock_manager::ConflictDetectorTrait;
-// use crate::agents::Agent;
-// use crate::plan::{Plan, Task};
+use crate::qc::QcAgent;
+use crate::qc::agent_coordination::{AgentCoordinator, AgentType, TaskPriority};
 use crate::error::Result;
 
 /// Task priority levels
@@ -35,6 +35,21 @@ pub struct OrchestratedTask {
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub estimated_complexity: f64,
     pub tags: Vec<String>,
+    /// QC quality requirements (for quality assurance tasks)
+    pub quality_requirements: Option<QualityRequirements>,
+}
+
+/// Quality requirements for QC integration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QualityRequirements {
+    pub min_readability_score: f64,
+    pub min_maintainability_score: f64,
+    pub min_performance_score: f64,
+    pub min_security_score: f64,
+    pub max_complexity_score: f64,
+    pub enable_statistical_analysis: bool,
+    pub enable_quantum_optimization: bool,
+    pub enable_mathematical_optimization: bool,
 }
 
 /// Task execution status
@@ -524,4 +539,377 @@ mod tests {
         assert_eq!(assignments.len(), 1);
         assert_eq!(assignments[0], ("task1".to_string(), "agent1".to_string()));
     }
+
+    /// Execute QC quality assurance workflow
+    ///
+    /// # Arguments
+    /// * `codebase_path` - Path to the codebase to analyze
+    /// * `quality_requirements` - Quality requirements to enforce
+    /// * `max_concurrent_agents` - Maximum number of concurrent QC agents
+    ///
+    /// # Returns
+    /// Quality assurance results
+    ///
+    /// # Example
+    /// ```
+    /// use codex_core::ai_orchestrator::AiOrchestrator;
+    /// use codex_core::qc::agent_coordination::AgentType;
+    ///
+    /// let orchestrator = AiOrchestrator::new();
+    /// let requirements = QualityRequirements {
+    ///     min_readability_score: 0.8,
+    ///     min_maintainability_score: 0.75,
+    ///     min_performance_score: 0.7,
+    ///     min_security_score: 0.85,
+    ///     max_complexity_score: 0.3,
+    ///     enable_statistical_analysis: true,
+    ///     enable_quantum_optimization: true,
+    ///     enable_mathematical_optimization: true,
+    /// };
+    ///
+    /// let result = orchestrator.execute_qc_quality_assurance(
+    ///     "/path/to/codebase",
+    ///     requirements,
+    ///     4
+    /// ).await;
+    /// ```
+    pub async fn execute_qc_quality_assurance(
+        &self,
+        codebase_path: &str,
+        quality_requirements: QualityRequirements,
+        max_concurrent_agents: usize,
+    ) -> Result<QcQualityAssuranceResult, String> {
+        println!("🔍 Starting QC Quality Assurance workflow for: {}", codebase_path);
+
+        // Initialize QC agent coordinator
+        let coordinator = AgentCoordinator::new();
+
+        // Register QC agents
+        if quality_requirements.enable_statistical_analysis {
+            coordinator.register_agent("statistical_agent".to_string(), AgentType::StatisticalAnalyzer);
+        }
+        if quality_requirements.enable_quantum_optimization {
+            coordinator.register_agent("quantum_agent".to_string(), AgentType::QuantumOptimizer);
+        }
+        if quality_requirements.enable_mathematical_optimization {
+            coordinator.register_agent("mathematical_agent".to_string(), AgentType::MathematicalOptimizer);
+        }
+
+        // Discover code files to analyze
+        let code_files = self.discover_code_files(codebase_path)?;
+
+        if code_files.is_empty() {
+            return Err("No code files found for analysis".to_string());
+        }
+
+        println!("📁 Found {} code files for analysis", code_files.len());
+
+        // Prepare analysis tasks
+        let analysis_types = self.get_enabled_analysis_types(&quality_requirements);
+
+        // Execute parallel QC analysis
+        let parallel_results = coordinator.execute_parallel_qc_analysis(
+            &code_files,
+            &analysis_types,
+            max_concurrent_agents,
+        ).await?;
+
+        // Aggregate results
+        let aggregated_results = self.aggregate_qc_results(&parallel_results)?;
+
+        // Evaluate against quality requirements
+        let compliance_result = self.evaluate_quality_compliance(
+            &aggregated_results,
+            &quality_requirements,
+        );
+
+        // Generate improvement recommendations
+        let recommendations = self.generate_qc_improvement_plan(
+            &aggregated_results,
+            &quality_requirements,
+        );
+
+        let result = QcQualityAssuranceResult {
+            codebase_path: codebase_path.to_string(),
+            total_files_analyzed: code_files.len(),
+            quality_requirements,
+            aggregated_results,
+            compliance_result,
+            recommendations,
+            analysis_timestamp: chrono::Utc::now(),
+            execution_duration_ms: 0, // Would be calculated in real implementation
+        };
+
+        println!("✅ QC Quality Assurance completed");
+        println!("📊 Overall compliance: {:.1}%", compliance_result.overall_compliance * 100.0);
+
+        Ok(result)
+    }
+
+    /// Discover code files in the codebase
+    fn discover_code_files(&self, path: &str) -> Result<Vec<String>, String> {
+        use std::fs;
+        use std::path::Path;
+
+        let path = Path::new(path);
+        if !path.exists() {
+            return Err(format!("Path does not exist: {}", path.display()));
+        }
+
+        let mut code_files = Vec::new();
+
+        fn visit_dirs(dir: &Path, files: &mut Vec<String>) -> std::io::Result<()> {
+            if dir.is_dir() {
+                for entry in fs::read_dir(dir)? {
+                    let entry = entry?;
+                    let path = entry.path();
+
+                    if path.is_dir() {
+                        // Skip common non-code directories
+                        let dir_name = path.file_name()
+                            .and_then(|n| n.to_str())
+                            .unwrap_or("");
+
+                        if !matches!(dir_name, "target" | "node_modules" | ".git" | "build" | "dist") {
+                            visit_dirs(&path, files)?;
+                        }
+                    } else if let Some(extension) = path.extension() {
+                        // Include common programming language files
+                        let ext_str = extension.to_string_lossy().to_lowercase();
+                        if matches!(ext_str.as_str(),
+                            "rs" | "py" | "js" | "ts" | "java" | "cpp" | "c" | "h" | "hpp" |
+                            "go" | "rb" | "php" | "cs" | "swift" | "kt" | "scala" | "clj") {
+                            if let Ok(content) = fs::read_to_string(&path) {
+                                files.push(content);
+                            }
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
+
+        visit_dirs(path, &mut code_files)
+            .map_err(|e| format!("Failed to discover code files: {}", e))?;
+
+        Ok(code_files)
+    }
+
+    /// Get enabled analysis types based on requirements
+    fn get_enabled_analysis_types(&self, requirements: &QualityRequirements) -> Vec<AgentType> {
+        let mut types = Vec::new();
+
+        if requirements.enable_statistical_analysis {
+            types.push(AgentType::StatisticalAnalyzer);
+        }
+        if requirements.enable_quantum_optimization {
+            types.push(AgentType::QuantumOptimizer);
+        }
+        if requirements.enable_mathematical_optimization {
+            types.push(AgentType::MathematicalOptimizer);
+        }
+
+        types
+    }
+
+    /// Aggregate parallel QC results
+    fn aggregate_qc_results(
+        &self,
+        parallel_results: &[crate::qc::agent_coordination::ParallelExecutionResult],
+    ) -> Result<QcAggregatedResults, String> {
+        let mut total_files = 0;
+        let mut successful_analyses = 0;
+        let mut average_scores = QcQualityScores {
+            readability: 0.0,
+            maintainability: 0.0,
+            performance: 0.0,
+            security: 0.0,
+            overall: 0.0,
+        };
+        let mut total_execution_time = 0u64;
+
+        for result in parallel_results {
+            if result.success {
+                successful_analyses += 1;
+
+                if let Some(result_data) = &result.result {
+                    // Parse QC scores from result (simplified)
+                    if let Some(scores) = result_data.get("quality_scores") {
+                        if let Some(scores_obj) = scores.as_object() {
+                            average_scores.readability += scores_obj
+                                .get("readability")
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.0);
+                            average_scores.maintainability += scores_obj
+                                .get("maintainability")
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.0);
+                            average_scores.performance += scores_obj
+                                .get("performance")
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.0);
+                            average_scores.security += scores_obj
+                                .get("security")
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.0);
+                            average_scores.overall += scores_obj
+                                .get("overall")
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.0);
+                        }
+                    }
+                }
+            }
+
+            total_files += 1;
+            total_execution_time += result.execution_time_ms;
+        }
+
+        // Calculate averages
+        let count = successful_analyses as f64;
+        if count > 0.0 {
+            average_scores.readability /= count;
+            average_scores.maintainability /= count;
+            average_scores.performance /= count;
+            average_scores.security /= count;
+            average_scores.overall /= count;
+        }
+
+        Ok(QcAggregatedResults {
+            total_files_analyzed: total_files,
+            successful_analyses,
+            average_quality_scores: average_scores,
+            total_execution_time_ms: total_execution_time,
+        })
+    }
+
+    /// Evaluate quality compliance against requirements
+    fn evaluate_quality_compliance(
+        &self,
+        results: &QcAggregatedResults,
+        requirements: &QualityRequirements,
+    ) -> QualityComplianceResult {
+        let scores = &results.average_quality_scores;
+
+        let readability_ok = scores.readability >= requirements.min_readability_score;
+        let maintainability_ok = scores.maintainability >= requirements.min_maintainability_score;
+        let performance_ok = scores.performance >= requirements.min_performance_score;
+        let security_ok = scores.security >= requirements.min_security_score;
+        let complexity_ok = scores.overall <= requirements.max_complexity_score; // Note: using overall as complexity proxy
+
+        let compliant_categories = [readability_ok, maintainability_ok, performance_ok, security_ok, complexity_ok]
+            .iter()
+            .filter(|&&ok| ok)
+            .count();
+
+        let overall_compliance = compliant_categories as f64 / 5.0;
+
+        QualityComplianceResult {
+            readability_compliant: readability_ok,
+            maintainability_compliant: maintainability_ok,
+            performance_compliant: performance_ok,
+            security_compliant: security_ok,
+            complexity_compliant: complexity_ok,
+            overall_compliance,
+            compliant_categories,
+            total_categories: 5,
+        }
+    }
+
+    /// Generate QC improvement recommendations
+    fn generate_qc_improvement_plan(
+        &self,
+        results: &QcAggregatedResults,
+        requirements: &QualityRequirements,
+    ) -> Vec<String> {
+        let mut recommendations = Vec::new();
+
+        let scores = &results.average_quality_scores;
+
+        if scores.readability < requirements.min_readability_score {
+            recommendations.push(format!(
+                "Improve code readability (current: {:.2}, target: {:.2}). Consider using consistent formatting and meaningful variable names.",
+                scores.readability, requirements.min_readability_score
+            ));
+        }
+
+        if scores.maintainability < requirements.min_maintainability_score {
+            recommendations.push(format!(
+                "Enhance code maintainability (current: {:.2}, target: {:.2}). Focus on reducing code duplication and improving modularity.",
+                scores.maintainability, requirements.min_maintainability_score
+            ));
+        }
+
+        if scores.performance < requirements.min_performance_score {
+            recommendations.push(format!(
+                "Optimize code performance (current: {:.2}, target: {:.2}). Consider algorithmic improvements and resource utilization optimization.",
+                scores.performance, requirements.min_performance_score
+            ));
+        }
+
+        if scores.security < requirements.min_security_score {
+            recommendations.push(format!(
+                "Strengthen security measures (current: {:.2}, target: {:.2}). Implement input validation and secure coding practices.",
+                scores.security, requirements.min_security_score
+            ));
+        }
+
+        if scores.overall > requirements.max_complexity_score {
+            recommendations.push(format!(
+                "Reduce code complexity (current: {:.2}, max allowed: {:.2}). Break down complex functions and improve code structure.",
+                scores.overall, requirements.max_complexity_score
+            ));
+        }
+
+        if recommendations.is_empty() {
+            recommendations.push("All quality requirements are met. Consider implementing advanced optimization techniques.".to_string());
+        }
+
+        recommendations
+    }
+}
+
+/// QC Quality Assurance Result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcQualityAssuranceResult {
+    pub codebase_path: String,
+    pub total_files_analyzed: usize,
+    pub quality_requirements: QualityRequirements,
+    pub aggregated_results: QcAggregatedResults,
+    pub compliance_result: QualityComplianceResult,
+    pub recommendations: Vec<String>,
+    pub analysis_timestamp: chrono::DateTime<chrono::Utc>,
+    pub execution_duration_ms: u64,
+}
+
+/// Aggregated QC Results
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcAggregatedResults {
+    pub total_files_analyzed: usize,
+    pub successful_analyses: usize,
+    pub average_quality_scores: QcQualityScores,
+    pub total_execution_time_ms: u64,
+}
+
+/// QC Quality Scores
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcQualityScores {
+    pub readability: f64,
+    pub maintainability: f64,
+    pub performance: f64,
+    pub security: f64,
+    pub overall: f64,
+}
+
+/// Quality Compliance Result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QualityComplianceResult {
+    pub readability_compliant: bool,
+    pub maintainability_compliant: bool,
+    pub performance_compliant: bool,
+    pub security_compliant: bool,
+    pub complexity_compliant: bool,
+    pub overall_compliance: f64,
+    pub compliant_categories: usize,
+    pub total_categories: usize,
 }

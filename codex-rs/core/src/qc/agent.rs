@@ -43,6 +43,28 @@ impl Default for QcConfig {
     }
 }
 
+impl Default for GpuConfig {
+    fn default() -> Self {
+        Self {
+            enable_cuda: true,
+            device_id: 0,
+            memory_limit_mb: 4096,
+            enable_parallel: true,
+            num_threads: num_cpus::get(),
+        }
+    }
+}
+
+impl Default for ParallelConfig {
+    fn default() -> Self {
+        Self {
+            max_concurrent_agents: 4,
+            communication_timeout_sec: 30,
+            load_balancing_strategy: LoadBalancingStrategy::Adaptive,
+        }
+    }
+}
+
 /// Quality metrics aggregated from all analyses
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QcMetrics {
@@ -132,9 +154,47 @@ pub struct OptimizationResult {
     pub changes: Vec<String>,
 }
 
+/// GPU acceleration configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GpuConfig {
+    /// Enable CUDA acceleration
+    pub enable_cuda: bool,
+    /// GPU device ID
+    pub device_id: usize,
+    /// Memory limit (MB)
+    pub memory_limit_mb: usize,
+    /// Enable parallel processing
+    pub enable_parallel: bool,
+    /// Number of parallel threads
+    pub num_threads: usize,
+}
+
+/// Parallel processing configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParallelConfig {
+    /// Maximum concurrent agents
+    pub max_concurrent_agents: usize,
+    /// Agent communication timeout (seconds)
+    pub communication_timeout_sec: u64,
+    /// Load balancing strategy
+    pub load_balancing_strategy: LoadBalancingStrategy,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum LoadBalancingStrategy {
+    /// Round-robin distribution
+    RoundRobin,
+    /// Load-based distribution
+    LoadBased,
+    /// Adaptive distribution
+    Adaptive,
+}
+
 /// Main Quality Control Agent
 pub struct QcAgent {
     config: QcConfig,
+    gpu_config: GpuConfig,
+    parallel_config: ParallelConfig,
     statistical_analyzer: super::statistical::StatisticalAnalyzer,
     quantum_optimizer: super::quantum::QuantumOptimizer,
     mathematical_optimizer: super::mathematical::MathematicalOptimizer,
@@ -144,17 +204,32 @@ pub struct QcAgent {
 impl QcAgent {
     /// Create new QC agent with default configuration
     pub fn new() -> Self {
-        Self::with_config(QcConfig::default())
+        Self::with_full_config(
+            QcConfig::default(),
+            GpuConfig::default(),
+            ParallelConfig::default(),
+        )
     }
 
-    /// Create new QC agent with custom configuration
+    /// Create new QC agent with custom QC configuration
     pub fn with_config(config: QcConfig) -> Self {
+        Self::with_full_config(
+            config,
+            GpuConfig::default(),
+            ParallelConfig::default(),
+        )
+    }
+
+    /// Create new QC agent with full configuration
+    pub fn with_full_config(config: QcConfig, gpu_config: GpuConfig, parallel_config: ParallelConfig) -> Self {
         Self {
             statistical_analyzer: super::statistical::StatisticalAnalyzer,
             quantum_optimizer: super::quantum::QuantumOptimizer,
             mathematical_optimizer: super::mathematical::MathematicalOptimizer,
             visualizer: super::visualization::QualityVisualizer::new(),
             config,
+            gpu_config,
+            parallel_config,
         }
     }
 

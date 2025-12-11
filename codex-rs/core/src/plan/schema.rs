@@ -137,6 +137,74 @@ pub struct ResearchBlock {
     pub timestamp: DateTime<Utc>,
 }
 
+/// QC Quality Assurance block
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcQualityBlock {
+    /// Quality requirements to enforce
+    pub quality_requirements: QcQualityRequirements,
+    /// Quality analysis results
+    pub analysis_results: Option<QcAnalysisResults>,
+    /// Quality improvement recommendations
+    pub recommendations: Vec<String>,
+    /// Whether quality gates passed
+    pub quality_gates_passed: bool,
+    /// Timestamp of QC analysis
+    pub timestamp: DateTime<Utc>,
+}
+
+/// QC Quality Requirements
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcQualityRequirements {
+    /// Minimum readability score (0.0-1.0)
+    pub min_readability_score: f64,
+    /// Minimum maintainability score (0.0-1.0)
+    pub min_maintainability_score: f64,
+    /// Minimum performance score (0.0-1.0)
+    pub min_performance_score: f64,
+    /// Minimum security score (0.0-1.0)
+    pub min_security_score: f64,
+    /// Maximum complexity score (0.0-1.0)
+    pub max_complexity_score: f64,
+    /// Enable statistical analysis
+    pub enable_statistical_analysis: bool,
+    /// Enable quantum optimization
+    pub enable_quantum_optimization: bool,
+    /// Enable mathematical optimization
+    pub enable_mathematical_optimization: bool,
+}
+
+/// QC Analysis Results
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcAnalysisResults {
+    /// Overall quality scores
+    pub quality_scores: QcQualityScores,
+    /// Number of files analyzed
+    pub files_analyzed: usize,
+    /// Analysis execution time (ms)
+    pub execution_time_ms: u64,
+    /// Quality compliance status
+    pub compliance_status: QcComplianceStatus,
+}
+
+/// QC Quality Scores
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcQualityScores {
+    pub readability: f64,
+    pub maintainability: f64,
+    pub performance: f64,
+    pub security: f64,
+    pub overall: f64,
+}
+
+/// QC Compliance Status
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QcComplianceStatus {
+    pub overall_compliance: f64,
+    pub compliant_categories: usize,
+    pub total_categories: usize,
+    pub critical_issues: Vec<String>,
+}
+
 /// Complete Plan block
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlanBlock {
@@ -181,6 +249,9 @@ pub struct PlanBlock {
 
     /// Optional research results
     pub research: Option<ResearchBlock>,
+
+    /// Optional QC quality assurance results
+    pub quality_assurance: Option<QcQualityBlock>,
 
     /// Current state
     pub state: super::state::PlanState,

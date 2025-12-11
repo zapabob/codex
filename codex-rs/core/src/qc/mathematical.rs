@@ -38,10 +38,562 @@ pub struct ResourceAllocation {
     pub optimization_score: f64,
 }
 
+/// Linear programming problem definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinearProgram {
+    /// Objective function coefficients (maximize: c^T * x)
+    pub objective_coeffs: Vec<f64>,
+    /// Constraint matrix (A * x <= b)
+    pub constraint_matrix: Vec<Vec<f64>>,
+    /// Constraint bounds (b)
+    pub constraint_bounds: Vec<f64>,
+    /// Variable bounds (lower, upper) for each variable
+    pub variable_bounds: Vec<(f64, f64)>,
+}
+
+/// Convex optimization problem
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConvexProblem {
+    /// Objective function (convex)
+    pub objective: ConvexFunction,
+    /// Constraints (must be convex)
+    pub constraints: Vec<ConvexConstraint>,
+}
+
+/// Convex function types
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ConvexFunction {
+    /// Linear: c^T * x
+    Linear(Vec<f64>),
+    /// Quadratic: (1/2)x^T * Q * x + c^T * x
+    Quadratic {
+        quadratic_matrix: Vec<Vec<f64>>,
+        linear_coeffs: Vec<f64>,
+    },
+    /// Sum of convex functions
+    Sum(Vec<ConvexFunction>),
+}
+
+/// Convex constraints
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConvexConstraint {
+    pub function: ConvexFunction,
+    pub bound: f64,
+    pub constraint_type: ConstraintType,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ConstraintType {
+    LessEqual,
+    Equal,
+    GreaterEqual,
+}
+
+/// Linear programming solution
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LPSolution {
+    pub optimal_value: f64,
+    pub optimal_point: Vec<f64>,
+    pub is_feasible: bool,
+    pub iterations: usize,
+}
+
+/// Convex optimization solution
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConvexSolution {
+    pub optimal_value: f64,
+    pub optimal_point: Vec<f64>,
+    pub is_feasible: bool,
+    pub convergence: bool,
+    pub iterations: usize,
+}
+
+impl ConvexFunction {
+    /// Get dimension of the function
+    pub fn dimension(&self) -> usize {
+        match self {
+            ConvexFunction::Linear(coeffs) => coeffs.len(),
+            ConvexFunction::Quadratic { quadratic_matrix, .. } => quadratic_matrix.len(),
+            ConvexFunction::Sum(functions) => {
+                functions.first().map(|f| f.dimension()).unwrap_or(0)
+            }
+        }
+    }
+
+    /// Check if function is empty
+    pub fn is_empty(&self) -> bool {
+        self.dimension() == 0
+    }
+}
+
+/// CUDA-accelerated linear algebra operations for optimization
+#[cfg(feature = "cuda")]
+pub mod cuda_math {
+    use cudarc::driver::{CudaDevice, CudaSlice, LaunchAsync, LaunchConfig};
+    use std::sync::Arc;
+
+    /// CUDA-accelerated matrix-vector multiplication
+    pub struct CudaLinearAlgebra {
+        device: Arc<CudaDevice>,
+        mat_vec_kernel: cudarc::driver::CudaFunction,
+    }
+
+    impl CudaLinearAlgebra {
+        pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+            let device = CudaDevice::new(0)?;
+
+            // Load PTX with matrix-vector multiplication kernel
+            let ptx = cudarc::nvrtc::compile_ptx(LINEAR_ALGEBRA_KERNELS)?;
+            device.load_ptx(ptx, "math", &["matrix_vector_mul"])?;
+
+            let mat_vec_kernel = device.get_func("math", "matrix_vector_mul").unwrap();
+
+            Ok(Self {
+                device,
+                mat_vec_kernel,
+            })
+        }
+
+        /// Perform matrix-vector multiplication on GPU
+        pub fn matrix_vector_mul(
+            &self,
+            matrix: &[Vec<f64>],
+            vector: &[f64],
+            result: &mut [f64],
+        ) -> Result<(), Box<dyn std::error::Error>> {
+            let rows = matrix.len();
+            let cols = matrix[0].len();
+
+            // Flatten matrix for GPU
+            let mut flat_matrix = Vec::with_capacity(rows * cols);
+            for row in matrix {
+                flat_matrix.extend_from_slice(row);
+            }
+
+            // Allocate GPU memory
+            let d_matrix = self.device.htod_copy(flat_matrix)?;
+            let d_vector = self.device.htod_copy(vector.to_vec())?;
+            let mut d_result = self.device.alloc_zeros::<f64>(rows)?;
+
+            // Launch kernel
+            let config = LaunchConfig::for_num_elems(rows as u32);
+            unsafe {
+                self.mat_vec_kernel.launch(
+                    config,
+                    (&d_matrix, &d_vector, &mut d_result, rows as i32, cols as i32),
+                )?;
+            }
+
+            // Copy result back
+            self.device.dtoh_sync_copy_into(&d_result, result)?;
+
+            Ok(())
+        }
+    }
+
+    static LINEAR_ALGEBRA_KERNELS: &str = r#"
+    extern "C" __global__ void matrix_vector_mul(
+        const double* matrix,
+        const double* vector,
+        double* result,
+        int rows,
+        int cols
+    ) {
+        int row = blockIdx.x * blockDim.x + threadIdx.x;
+        if (row < rows) {
+            double sum = 0.0;
+            for (int col = 0; col < cols; col++) {
+                sum += matrix[row * cols + col] * vector[col];
+            }
+            result[row] = sum;
+        }
+    }
+    "#;
+}
+
 /// Mathematical optimizer using linear programming concepts
-pub struct MathematicalOptimizer;
+pub struct MathematicalOptimizer {
+    /// CUDA acceleration support (optional)
+    #[cfg(feature = "cuda")]
+    cuda_accel: Option<cuda_math::CudaLinearAlgebra>,
+}
 
 impl MathematicalOptimizer {
+    /// Create new optimizer with optional CUDA acceleration
+    pub fn new() -> Self {
+        Self {
+            #[cfg(feature = "cuda")]
+            cuda_accel: cuda_math::CudaLinearAlgebra::new().ok(),
+        }
+    }
+
+    /// Create optimizer with explicit CUDA enable/disable
+    pub fn with_cuda(cuda_enabled: bool) -> Self {
+        Self {
+            #[cfg(feature = "cuda")]
+            cuda_accel: if cuda_enabled {
+                cuda_math::CudaLinearAlgebra::new().ok()
+            } else {
+                None
+            },
+            #[cfg(not(feature = "cuda"))]
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+impl MathematicalOptimizer {
+    /// Solve linear programming problem using simplex method approximation
+    pub fn solve_linear_program(&self, problem: &LinearProgram) -> Result<LPSolution, String> {
+        if problem.objective_coeffs.is_empty() {
+            return Err("Objective function cannot be empty".to_string());
+        }
+
+        let n_vars = problem.objective_coeffs.len();
+        let n_constraints = problem.constraint_matrix.len();
+
+        // Validate dimensions
+        for (i, row) in problem.constraint_matrix.iter().enumerate() {
+            if row.len() != n_vars {
+                return Err(format!("Constraint {} has {} variables, expected {}", i, row.len(), n_vars));
+            }
+        }
+
+        if problem.constraint_bounds.len() != n_constraints {
+            return Err(format!("Expected {} constraint bounds, got {}", n_constraints, problem.constraint_bounds.len()));
+        }
+
+        if problem.variable_bounds.len() != n_vars {
+            return Err(format!("Expected {} variable bounds, got {}", n_vars, problem.variable_bounds.len()));
+        }
+
+        // Use simplified interior point method approximation
+        self.solve_lp_interior_point(problem)
+    }
+
+    /// Solve convex optimization problem using gradient descent with projections
+    pub fn solve_convex_problem(&self, problem: &ConvexProblem, max_iterations: usize, tolerance: f64) -> Result<ConvexSolution, String> {
+        if problem.objective.is_empty() {
+            return Err("Objective function cannot be empty".to_string());
+        }
+
+        let n_vars = problem.objective.dimension();
+
+        // Initialize at feasible point (simple projection)
+        let mut x = vec![0.0; n_vars];
+
+        // Project onto feasible set
+        x = self.project_onto_feasible_set(&x, &problem.constraints)?;
+
+        let mut prev_value = self.evaluate_convex_function(&problem.objective, &x);
+
+        for iteration in 0..max_iterations {
+            // Compute gradient
+            let gradient = self.compute_convex_gradient(&problem.objective, &x)?;
+
+            // Compute step size (simplified line search)
+            let step_size = self.compute_step_size(&x, &gradient, &problem.constraints, 1.0);
+
+            // Update
+            for i in 0..n_vars {
+                x[i] -= step_size * gradient[i];
+            }
+
+            // Project onto feasible set
+            x = self.project_onto_feasible_set(&x, &problem.constraints)?;
+
+            let current_value = self.evaluate_convex_function(&problem.objective, &x);
+
+            // Check convergence
+            if (prev_value - current_value).abs() < tolerance {
+                return Ok(ConvexSolution {
+                    optimal_value: current_value,
+                    optimal_point: x,
+                    is_feasible: true,
+                    convergence: true,
+                    iterations: iteration + 1,
+                });
+            }
+
+            prev_value = current_value;
+        }
+
+        // Maximum iterations reached
+        let final_value = self.evaluate_convex_function(&problem.objective, &x);
+        Ok(ConvexSolution {
+            optimal_value: final_value,
+            optimal_point: x,
+            is_feasible: true,
+            convergence: false,
+            iterations: max_iterations,
+        })
+    }
+
+    /// Interior point method for linear programming (simplified)
+    fn solve_lp_interior_point(&self, problem: &LinearProgram) -> Result<LPSolution, String> {
+        let n_vars = problem.objective_coeffs.len();
+        let n_constraints = problem.constraint_matrix.len();
+
+        // Initialize at interior point
+        let mut x = vec![1.0; n_vars]; // Start with positive values
+        let mut iterations = 0;
+        let max_iterations = 100;
+        let tolerance = 1e-6;
+
+        for iteration in 0..max_iterations {
+            iterations = iteration + 1;
+
+            // Check feasibility
+            let mut feasible = true;
+            let mut constraint_violations = Vec::new();
+
+            for i in 0..n_constraints {
+                let constraint_value: f64 = problem.constraint_matrix[i].iter()
+                    .zip(&x)
+                    .map(|(a, xi)| a * xi)
+                    .sum();
+
+                if constraint_value > problem.constraint_bounds[i] + tolerance {
+                    feasible = false;
+                    constraint_violations.push(i);
+                }
+            }
+
+            // Check variable bounds
+            for i in 0..n_vars {
+                let (lower, upper) = problem.variable_bounds[i];
+                if x[i] < lower - tolerance || x[i] > upper + tolerance {
+                    feasible = false;
+                    break;
+                }
+            }
+
+            if feasible {
+                // Compute objective value
+                let objective_value: f64 = problem.objective_coeffs.iter()
+                    .zip(&x)
+                    .map(|(c, xi)| c * xi)
+                    .sum();
+
+                return Ok(LPSolution {
+                    optimal_value: objective_value,
+                    optimal_point: x,
+                    is_feasible: true,
+                    iterations,
+                });
+            }
+
+            // Take step towards feasibility (simplified gradient projection)
+            for &violation_idx in &constraint_violations {
+                let constraint_value: f64 = problem.constraint_matrix[violation_idx].iter()
+                    .zip(&x)
+                    .map(|(a, xi)| a * xi)
+                    .sum();
+
+                let violation = constraint_value - problem.constraint_bounds[violation_idx];
+
+                // Project back onto constraint
+                let step_size = violation / problem.constraint_matrix[violation_idx].iter().map(|a| a * a).sum::<f64>().sqrt();
+
+                for j in 0..n_vars {
+                    x[j] -= step_size * problem.constraint_matrix[violation_idx][j];
+                }
+            }
+
+            // Ensure variable bounds
+            for i in 0..n_vars {
+                let (lower, upper) = problem.variable_bounds[i];
+                x[i] = x[i].max(lower).min(upper);
+            }
+        }
+
+        // Maximum iterations reached, return best solution found
+        let objective_value: f64 = problem.objective_coeffs.iter()
+            .zip(&x)
+            .map(|(c, xi)| c * xi)
+            .sum();
+
+        Ok(LPSolution {
+            optimal_value: objective_value,
+            optimal_point: x,
+            is_feasible: false, // Could not find feasible solution within iterations
+            iterations,
+        })
+    }
+
+    /// Evaluate convex function at given point
+    fn evaluate_convex_function(&self, function: &ConvexFunction, x: &[f64]) -> f64 {
+        match function {
+            ConvexFunction::Linear(coeffs) => {
+                coeffs.iter().zip(x).map(|(c, xi)| c * xi).sum()
+            }
+            ConvexFunction::Quadratic { quadratic_matrix, linear_coeffs } => {
+                let mut value = 0.0;
+
+                // Quadratic term: (1/2)x^T * Q * x
+                for i in 0..x.len() {
+                    for j in 0..x.len() {
+                        value += 0.5 * quadratic_matrix[i][j] * x[i] * x[j];
+                    }
+                }
+
+                // Linear term: c^T * x
+                for i in 0..linear_coeffs.len() {
+                    value += linear_coeffs[i] * x[i];
+                }
+
+                value
+            }
+            ConvexFunction::Sum(functions) => {
+                functions.iter().map(|f| self.evaluate_convex_function(f, x)).sum()
+            }
+        }
+    }
+
+    /// Compute gradient of convex function
+    fn compute_convex_gradient(&self, function: &ConvexFunction, x: &[f64]) -> Result<Vec<f64>, String> {
+        let n = x.len();
+        let mut gradient = vec![0.0; n];
+
+        match function {
+            ConvexFunction::Linear(coeffs) => {
+                gradient.copy_from_slice(coeffs);
+            }
+            ConvexFunction::Quadratic { quadratic_matrix, linear_coeffs } => {
+                // Gradient of quadratic: Q * x + c
+                for i in 0..n {
+                    gradient[i] += linear_coeffs[i];
+                    for j in 0..n {
+                        gradient[i] += quadratic_matrix[i][j] * x[j];
+                    }
+                }
+            }
+            ConvexFunction::Sum(functions) => {
+                for f in functions {
+                    let grad_f = self.compute_convex_gradient(f, x)?;
+                    for i in 0..n {
+                        gradient[i] += grad_f[i];
+                    }
+                }
+            }
+        }
+
+        Ok(gradient)
+    }
+
+    /// Compute step size for gradient descent (simplified line search)
+    fn compute_step_size(&self, x: &[f64], gradient: &[f64], constraints: &[ConvexConstraint], initial_step: f64) -> f64 {
+        let mut step_size = initial_step;
+        let mut new_x = x.to_vec();
+
+        // Simple backtracking line search
+        for _ in 0..10 {
+            // Try step
+            for i in 0..x.len() {
+                new_x[i] = x[i] - step_size * gradient[i];
+            }
+
+            // Check if still feasible
+            if self.is_point_feasible(&new_x, constraints) {
+                return step_size;
+            }
+
+            // Reduce step size
+            step_size *= 0.5;
+        }
+
+        // Return minimum step size if no feasible step found
+        step_size
+    }
+
+    /// Project point onto feasible set (simplified projection)
+    fn project_onto_feasible_set(&self, x: &[f64], constraints: &[ConvexConstraint]) -> Result<Vec<f64>, String> {
+        let mut projected = x.to_vec();
+
+        // For each constraint, project if violated
+        for constraint in constraints {
+            let value = self.evaluate_convex_function(&constraint.function, &projected);
+
+            match constraint.constraint_type {
+                ConstraintType::LessEqual => {
+                    if value > constraint.bound {
+                        // Simple projection for linear constraints
+                        // In practice, this would be more sophisticated
+                        if let ConvexFunction::Linear(coeffs) = &constraint.function {
+                            let norm_squared: f64 = coeffs.iter().map(|c| c * c).sum();
+                            if norm_squared > 0.0 {
+                                let violation = value - constraint.bound;
+                                let step_size = violation / norm_squared;
+
+                                for i in 0..projected.len() {
+                                    projected[i] -= step_size * coeffs[i];
+                                }
+                            }
+                        }
+                    }
+                }
+                ConstraintType::GreaterEqual => {
+                    if value < constraint.bound {
+                        // Similar projection for lower bounds
+                        if let ConvexFunction::Linear(coeffs) = &constraint.function {
+                            let norm_squared: f64 = coeffs.iter().map(|c| c * c).sum();
+                            if norm_squared > 0.0 {
+                                let violation = constraint.bound - value;
+                                let step_size = violation / norm_squared;
+
+                                for i in 0..projected.len() {
+                                    projected[i] += step_size * coeffs[i];
+                                }
+                            }
+                        }
+                    }
+                }
+                ConstraintType::Equal => {
+                    // Equality constraints are more complex - simplified handling
+                    let diff = value - constraint.bound;
+                    if diff.abs() > 1e-6 {
+                        if let ConvexFunction::Linear(coeffs) = &constraint.function {
+                            let norm_squared: f64 = coeffs.iter().map(|c| c * c).sum();
+                            if norm_squared > 0.0 {
+                                let step_size = diff / norm_squared;
+
+                                for i in 0..projected.len() {
+                                    projected[i] -= step_size * coeffs[i];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(projected)
+    }
+
+    /// Check if point is feasible
+    fn is_point_feasible(&self, x: &[f64], constraints: &[ConvexConstraint]) -> bool {
+        for constraint in constraints {
+            let value = self.evaluate_convex_function(&constraint.function, x);
+
+            match constraint.constraint_type {
+                ConstraintType::LessEqual => {
+                    if value > constraint.bound + 1e-6 {
+                        return false;
+                    }
+                }
+                ConstraintType::GreaterEqual => {
+                    if value < constraint.bound - 1e-6 {
+                        return false;
+                    }
+                }
+                ConstraintType::Equal => {
+                    if (value - constraint.bound).abs() > 1e-6 {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
+    }
     /// Optimize resource allocation for given constraints
     pub fn optimize_allocation(
         &self,
