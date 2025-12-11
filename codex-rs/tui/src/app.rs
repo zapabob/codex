@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 //! Application state and logic
 
-use codex_core::ai_orchestrator;
-use codex_core::mcp_integration_manager;
-=======
 use crate::app_backtrack::BacktrackState;
 use crate::app_event::AppEvent;
 use crate::app_event_sender::AppEventSender;
@@ -27,6 +23,8 @@ use crate::tui::TuiEvent;
 use crate::update_action::UpdateAction;
 use codex_ansi_escape::ansi_escape_line;
 use codex_app_server_protocol::AuthMode;
+use codex_core::ai_orchestrator;
+use codex_core::mcp_integration_manager;
 use codex_core::AuthManager;
 use codex_core::ConversationManager;
 use codex_core::config::Config;
@@ -47,7 +45,6 @@ use codex_protocol::ConversationId;
 use codex_protocol::openai_models::ModelPreset;
 use codex_protocol::openai_models::ModelUpgrade;
 use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
->>>>>>> upstream/main
 use color_eyre::eyre::Result;
 use crossterm::event::KeyEvent;
 use std::sync::Arc;
