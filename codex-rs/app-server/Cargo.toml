@@ -16,28 +16,24 @@ workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
+chrono = { workspace = true }
+codex-app-server-protocol = { workspace = true }
 codex-arg0 = { workspace = true }
+codex-backend-client = { workspace = true }
 codex-common = { workspace = true, features = ["cli"] }
 codex-core = { workspace = true }
-codex-backend-client = { workspace = true }
+codex-feedback = { workspace = true }
 codex-file-search = { workspace = true }
 codex-login = { workspace = true }
 codex-protocol = { workspace = true }
-codex-app-server-protocol = { workspace = true }
-codex-feedback = { workspace = true }
 codex-rmcp-client = { workspace = true }
 codex-utils-json-to-toml = { workspace = true }
-chrono = { workspace = true }
+mcp-types = { workspace = true }
+opentelemetry-appender-tracing = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-<<<<<<< HEAD
-=======
 sha2 = { workspace = true }
-mcp-types = { workspace = true }
 tempfile = { workspace = true }
-toml = { workspace = true }
-toml_edit = { workspace = true }
->>>>>>> upstream/main
 tokio = { workspace = true, features = [
     "io-std",
     "macros",
@@ -45,9 +41,10 @@ tokio = { workspace = true, features = [
     "rt-multi-thread",
     "signal",
 ] }
+toml = { workspace = true }
+toml_edit = { workspace = true }
 tracing = { workspace = true, features = ["log"] }
 tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
-opentelemetry-appender-tracing = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v7"] }
 
 [dev-dependencies]

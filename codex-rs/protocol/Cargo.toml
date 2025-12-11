@@ -13,21 +13,17 @@ workspace = true
 [dependencies]
 codex-git = { path = "../utils/git" }
 
-<<<<<<< HEAD
 base64 = { workspace = true }
-codex-utils-image = { path = "../utils/image" }
-=======
 codex-utils-image = { workspace = true }
->>>>>>> upstream/main
 icu_decimal = { workspace = true }
 icu_locale_core = { workspace = true }
 icu_provider = { workspace = true, features = ["sync"] }
 mcp-types = { path = "../mcp-types" }
 mime_guess = { workspace = true }
+schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_with = { workspace = true, features = ["macros", "base64"] }
-schemars = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 sys-locale = { workspace = true }
