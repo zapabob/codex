@@ -1,0 +1,56 @@
+
+> gui@2.5.0 dev
+> next dev -H 0.0.0.0
+
+  ▲ Next.js 14.2.33
+  - Local:        http://localhost:3000
+  - Network:      http://0.0.0.0:3000
+
+ ✓ Starting...
+ ✓ Ready in 4.2s
+ ○ Compiling / ...
+ ✓ Compiled / in 17.6s (3156 modules)
+ GET / 200 in 19596ms
+ GET / 200 in 19606ms
+ ✓ Compiled in 2.2s (1329 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 10.1s (1823 modules)
+ GET / 200 in 1034ms
+ GET / 200 in 224ms
+ GET / 200 in 226ms
+ GET / 200 in 229ms
+ GET / 200 in 233ms
+ GET / 200 in 235ms
+ GET / 200 in 306ms
+ GET /favicon.ico 200 in 142ms
+ GET /favicon.ico 200 in 139ms
+ GET /favicon.ico 200 in 350ms
+ GET /favicon.ico 200 in 196ms
+ GET /favicon.ico 200 in 186ms
+ GET /favicon.ico 200 in 22ms
+ GET / 200 in 180ms
+ GET / 200 in 186ms
+ GET / 200 in 241ms
+ GET / 200 in 250ms
+ GET / 200 in 247ms
+ GET / 200 in 268ms
+ ○ Compiling /security ...
+ ✓ Compiled /virtual-os in 6.8s (3273 modules)
+ GET /favicon.ico 200 in 5439ms
+ GET /favicon.ico 200 in 5434ms
+ GET /favicon.ico 200 in 5432ms
+ GET /favicon.ico 200 in 5431ms
+ GET /favicon.ico 200 in 3813ms
+ GET /plan 404 in 7991ms
+ GET /gpu 404 in 8290ms
+ GET /non-existent-page-12345 404 in 7809ms
+ GET / 200 in 3834ms
+ GET /virtual-os 200 in 8339ms
+ GET /security 200 in 8430ms
+ GET /favicon.ico 200 in 65ms
+ GET /favicon.ico 200 in 30ms
+ GET /favicon.ico 200 in 28ms
+ GET /favicon.ico 200 in 18ms
+ GET /favicon.ico 200 in 16ms
+ GET /favicon.ico 200 in 24ms
+ GET /favicon.ico 200 in 10ms

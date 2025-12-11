@@ -1,10 +1,74 @@
-<<<<<<< HEAD
 # Changelog
 
 All notable changes to Codex will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.5.0] - 2025-12-11
+
+### Official Repository Integration & Major Updates
+
+This release integrates the latest features, security fixes, and bug fixes from the official OpenAI Codex repository while maintaining all custom enhancements and unique features.
+
+### Added
+
+**Official Repository Integration**
+- Merged latest upstream changes from OpenAI Codex
+- Integrated new unified exec system and async watchers
+- Added shell snapshot functionality
+- Enhanced Windows sandboxing with ConPTY support
+- New TUI2 interface components
+- Absolute path utilities for cross-platform compatibility
+
+**Security Enhancements**
+- Updated @modelcontextprotocol/sdk to v1.24.0
+- Enhanced sandboxing and permission management
+- Improved command risk assessment (experimental feature removed)
+- Better escalation policy handling
+
+**Performance Improvements**
+- Faster incremental builds and compilation
+- Optimized async execution patterns
+- Enhanced caching mechanisms
+
+**Developer Experience**
+- Updated GitHub Actions workflows (actions/checkout@v6)
+- Improved CI/CD pipelines
+- Better error handling and logging
+- Enhanced MCP server integration
+
+### Fixed
+
+**Bug Fixes from Upstream**
+- Removed duplicated parallel FeatureSpec
+- Fixed flaky tests (3 instances)
+- Resolved command execution issues
+- Improved event handling in unified exec
+
+**Custom Feature Fixes**
+- Maintained all zapabob-specific enhancements
+- Preserved sub-agent system and Deep Research
+- Kept GUI extensions and VR/AR support
+- Retained custom CI/CD workflows
+
+### Changed
+
+**Breaking Changes**
+- Updated Cargo.toml dependencies
+- Modified internal API structures
+- Enhanced protocol handling
+
+**Non-Breaking Changes**
+- Improved code organization
+- Better documentation
+- Enhanced testing coverage
+
+### Removed
+
+**Deprecated Features**
+- Removed experimental command risk assessment feature
+- Cleaned up unused parallel templates
 
 ## [2.1.0] - 2025-11-09
 
