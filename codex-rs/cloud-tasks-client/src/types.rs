@@ -1,7 +1,9 @@
 //! Cloud Tasks Types
 
-use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
+use chrono::DateTime;
+use chrono::Utc;
+use serde::Deserialize;
+use serde::Serialize;
 
 /// Task ID - wrapper around String for type safety
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]

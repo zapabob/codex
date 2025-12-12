@@ -44,12 +44,15 @@ pub fn handle_process_exit_status(status: std::process::ExitStatus) -> ExitCode 
     if status.success() {
         ExitCode::Success
     } else {
-        status.code().map(|code| match code {
-            1 => ExitCode::Error,
-            2 => ExitCode::ConfigError,
-            3 => ExitCode::NetworkError,
-            4 => ExitCode::AuthError,
-            _ => ExitCode::Error,
-        }).unwrap_or(ExitCode::Error)
+        status
+            .code()
+            .map(|code| match code {
+                1 => ExitCode::Error,
+                2 => ExitCode::ConfigError,
+                3 => ExitCode::NetworkError,
+                4 => ExitCode::AuthError,
+                _ => ExitCode::Error,
+            })
+            .unwrap_or(ExitCode::Error)
     }
 }

@@ -10,10 +10,9 @@ use std::time::Duration;
 mod win;
 
 use anyhow::Result;
-#[cfg(not(windows))]
-use portable_pty::native_pty_system;
 use portable_pty::CommandBuilder;
 use portable_pty::PtySize;
+#[cfg(not(windows))]
 use portable_pty::native_pty_system;
 use tokio::sync::Mutex as TokioMutex;
 use tokio::sync::broadcast;
@@ -100,12 +99,12 @@ impl ExecCommandSession {
             handle.abort();
         }
 
-    impl Drop for ExecCommandSession {
-        fn drop(&mut self) {
-            self.terminate();
+        impl Drop for ExecCommandSession {
+            fn drop(&mut self) {
+                self.terminate();
+            }
         }
     }
-}
 }
 
 #[derive(Debug)]

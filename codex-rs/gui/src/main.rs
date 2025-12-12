@@ -801,7 +801,8 @@ async fn get_system_metrics() -> Json<SystemMetrics> {
     sys.refresh_all();
 
     // CPU usage
-    let cpu_usage = sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>() / sys.cpus().len() as f32;
+    let cpu_usage =
+        sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>() / sys.cpus().len() as f32;
 
     // Memory usage
     let total_memory = sys.total_memory() as f64;
@@ -858,7 +859,11 @@ async fn create_conversation(
         status: "active".to_string(),
         created_at: Utc::now(),
         last_activity: Utc::now(),
-        message_count: if request.initial_message.is_some() { 1 } else { 0 },
+        message_count: if request.initial_message.is_some() {
+            1
+        } else {
+            0
+        },
         summary: None,
     };
 
@@ -887,9 +892,7 @@ async fn get_messages(
     Path(conversation_id): Path<String>,
 ) -> Result<Json<Vec<Message>>, GuiError> {
     let messages = state.messages.read().await;
-    let conversation_messages = messages.get(&conversation_id)
-        .cloned()
-        .unwrap_or_default();
+    let conversation_messages = messages.get(&conversation_id).cloned().unwrap_or_default();
 
     Ok(Json(conversation_messages))
 }
@@ -914,7 +917,9 @@ async fn send_message(
 
     // Add message to conversation
     let mut messages = state.messages.write().await;
-    let conversation_messages = messages.entry(conversation_id.clone()).or_insert_with(Vec::new);
+    let conversation_messages = messages
+        .entry(conversation_id.clone())
+        .or_insert_with(Vec::new);
     conversation_messages.push(message.clone());
 
     // Update conversation metadata

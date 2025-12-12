@@ -26,26 +26,21 @@ use windows_sys::Win32::Security::Authorization::TRUSTEE_W;
 use windows_sys::Win32::Security::EqualSid;
 use windows_sys::Win32::Security::GetAce;
 use windows_sys::Win32::Security::GetAclInformation;
-use windows_sys::Win32::Security::MapGenericMask;
 use windows_sys::Win32::Security::ACCESS_ALLOWED_ACE;
 use windows_sys::Win32::Security::ACE_HEADER;
 use windows_sys::Win32::Security::ACL;
 use windows_sys::Win32::Security::ACL_SIZE_INFORMATION;
 use windows_sys::Win32::Security::DACL_SECURITY_INFORMATION;
-use windows_sys::Win32::Security::GENERIC_MAPPING;
 use windows_sys::Win32::Storage::FileSystem::CreateFileW;
-use windows_sys::Win32::Storage::FileSystem::FILE_ALL_ACCESS;
 use windows_sys::Win32::Storage::FileSystem::FILE_APPEND_DATA;
 use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_NORMAL;
-use windows_sys::Win32::Storage::FileSystem::FILE_FLAG_BACKUP_SEMANTICS;
-use windows_sys::Win32::Storage::FileSystem::FILE_DELETE_CHILD;
 use windows_sys::Win32::Storage::FileSystem::FILE_GENERIC_EXECUTE;
 use windows_sys::Win32::Storage::FileSystem::FILE_GENERIC_READ;
 use windows_sys::Win32::Storage::FileSystem::FILE_GENERIC_WRITE;
 use windows_sys::Win32::Storage::FileSystem::FILE_SHARE_READ;
-use windows_sys::Win32::Storage::FileSystem::FILE_SHARE_WRITE;use windows_sys::Win32::Storage::FileSystem::OPEN_EXISTING;
+use windows_sys::Win32::Storage::FileSystem::FILE_SHARE_WRITE;
+use windows_sys::Win32::Storage::FileSystem::OPEN_EXISTING;
 use windows_sys::Win32::Storage::FileSystem::READ_CONTROL;
-use windows_sys::Win32::Storage::FileSystem::DELETE;
 const SE_KERNEL_OBJECT: u32 = 6;
 const INHERIT_ONLY_ACE: u8 = 0x08;
 
@@ -92,37 +87,41 @@ pub unsafe fn dacl_has_write_allow_for_sid(p_dacl: *mut ACL, psid: *mut c_void) 
 // Compute effective rights for a trustee SID against a DACL and decide if write is effectively allowed.
 // This accounts for deny ACEs and ordering; falls back to a conservative per-ACE scan if the API fails.
 #[allow(dead_code)]
-pub unsafe fn dacl_effective_allows_write(p_dacl: *mut ACL, psid: *mut c_void) -> bool { unsafe {
-    if p_dacl.is_null() {
-        return false;
-    }
-    let trustee = TRUSTEE_W {
-        pMultipleTrustee: std::ptr::null_mut(),
-        MultipleTrusteeOperation: 0,
-        TrusteeForm: TRUSTEE_IS_SID,
-        TrusteeType: TRUSTEE_IS_UNKNOWN,
-        ptstrName: psid as *mut u16,
-    };
-    let mut access: u32 = 0;
-    let ok = GetEffectiveRightsFromAclW(p_dacl, &trustee, &mut access);
-    if ok == ERROR_SUCCESS {
-        // Map generic bits to avoid 窶徇issing窶・write when generic permissions are present.
-        let mut mapped_access = access;
-        if (access & GENERIC_WRITE_MASK) != 0 {
-            mapped_access |= FILE_GENERIC_WRITE | FILE_WRITE_DATA | FILE_APPEND_DATA;
+pub unsafe fn dacl_effective_allows_write(p_dacl: *mut ACL, psid: *mut c_void) -> bool {
+    unsafe {
+        if p_dacl.is_null() {
+            return false;
         }
-        if (access & READ_CONTROL) != 0 {
-            mapped_access |= FILE_GENERIC_READ;
+
+        let trustee = TRUSTEE_W {
+            pMultipleTrustee: std::ptr::null_mut(),
+            MultipleTrusteeOperation: 0,
+            TrusteeForm: TRUSTEE_IS_SID,
+            TrusteeType: TRUSTEE_IS_UNKNOWN,
+            ptstrName: psid as *mut u16,
+        };
+        let mut access: u32 = 0;
+        let ok = GetEffectiveRightsFromAclW(p_dacl, &trustee, &mut access);
+        if ok == ERROR_SUCCESS {
+            // Map generic bits to avoid missing flags when generic permissions are present.
+            let mut mapped_access = access;
+            if (access & GENERIC_WRITE_MASK) != 0 {
+                mapped_access |= FILE_GENERIC_WRITE | FILE_WRITE_DATA | FILE_APPEND_DATA;
+            }
+            if (access & READ_CONTROL) != 0 {
+                mapped_access |= FILE_GENERIC_READ;
+            }
+            let write_bits = FILE_GENERIC_WRITE
+                | FILE_WRITE_DATA
+                | FILE_APPEND_DATA
+                | FILE_WRITE_EA
+                | FILE_WRITE_ATTRIBUTES;
+            return (mapped_access & write_bits) != 0;
         }
-        let write_bits = FILE_GENERIC_WRITE
-            | FILE_WRITE_DATA
-            | FILE_APPEND_DATA
-            | FILE_WRITE_EA
-            | FILE_WRITE_ATTRIBUTES;
-        return (mapped_access & write_bits) != 0;
+
+        // Fallback: simple allow ACE scan (already ignores inherit-only)
+        dacl_has_write_allow_for_sid(p_dacl, psid)
     }
-    // Fallback: simple allow ACE scan (already ignores inherit-only)
-    return dacl_has_write_allow_for_sid(p_dacl, psid);
 }
 
 #[allow(dead_code)]
@@ -131,37 +130,37 @@ pub unsafe fn dacl_effective_allows_mask(
     psid: *mut c_void,
     desired_mask: u32,
 ) -> bool {
-    if p_dacl.is_null() {
-        return false;
-    }
-    use windows_sys::Win32::Security::Authorization::GetEffectiveRightsFromAclW;
-    use windows_sys::Win32::Security::Authorization::TRUSTEE_IS_SID;
-    use windows_sys::Win32::Security::Authorization::TRUSTEE_IS_UNKNOWN;
-    use windows_sys::Win32::Security::Authorization::TRUSTEE_W;
+    unsafe {
+        if p_dacl.is_null() {
+            return false;
+        }
 
-    let trustee = TRUSTEE_W {
-        pMultipleTrustee: std::ptr::null_mut(),
-        MultipleTrusteeOperation: 0,
-        TrusteeForm: TRUSTEE_IS_SID,
-        TrusteeType: TRUSTEE_IS_UNKNOWN,
-        ptstrName: psid as *mut u16,
-    };
-    let mut access: u32 = 0;
-    let ok = GetEffectiveRightsFromAclW(p_dacl, &trustee, &mut access);
-    if ok == ERROR_SUCCESS {
-        // Map generic bits to avoid 窶徇issing窶・when generic permissions are present.
-        let mut mapped_access = access;
-        if (access & GENERIC_WRITE_MASK) != 0 {
-            mapped_access |= FILE_GENERIC_WRITE | FILE_WRITE_DATA | FILE_APPEND_DATA;
+        let trustee = TRUSTEE_W {
+            pMultipleTrustee: std::ptr::null_mut(),
+            MultipleTrusteeOperation: 0,
+            TrusteeForm: TRUSTEE_IS_SID,
+            TrusteeType: TRUSTEE_IS_UNKNOWN,
+            ptstrName: psid as *mut u16,
+        };
+
+        let mut access: u32 = 0;
+        let ok = GetEffectiveRightsFromAclW(p_dacl, &trustee, &mut access);
+        if ok == ERROR_SUCCESS {
+            // Map generic bits to avoid missing flags when generic permissions are present.
+            let mut mapped_access = access;
+            if (access & GENERIC_WRITE_MASK) != 0 {
+                mapped_access |= FILE_GENERIC_WRITE | FILE_WRITE_DATA | FILE_APPEND_DATA;
+            }
+            if (access & READ_CONTROL) != 0 {
+                mapped_access |= FILE_GENERIC_READ;
+            }
+            return (mapped_access & desired_mask) == desired_mask;
         }
-        if (access & READ_CONTROL) != 0 {
-            mapped_access |= FILE_GENERIC_READ;
-        }
-        return (mapped_access & desired_mask) == desired_mask;
+
+        // Fallback: simple allow ACE scan (already ignores inherit-only)
+        dacl_has_write_allow_for_sid(p_dacl, psid)
     }
-    // Fallback: simple allow ACE scan (already ignores inherit-only)
-    dacl_has_write_allow_for_sid(p_dacl, psid)
-}}
+}
 pub unsafe fn add_allow_ace(path: &Path, psid: *mut c_void) -> Result<bool> { unsafe {    let mut p_sd: *mut c_void = std::ptr::null_mut();
     let mut p_dacl: *mut ACL = std::ptr::null_mut();
     let code = GetNamedSecurityInfoW(

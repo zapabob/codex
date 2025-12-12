@@ -9,14 +9,14 @@ use std::process::Command;
 use std::process::Stdio;
 
 use crate::allow::compute_allow_paths;
-use crate::allow::AllowDenyPaths;
 use crate::logging::log_note;
-use crate::policy::{SandboxPolicy, SandboxMode};
-use anyhow::anyhow;
+use crate::policy::SandboxMode;
+use crate::policy::SandboxPolicy;
 use anyhow::Context;
 use anyhow::Result;
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use anyhow::anyhow;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 
 use windows_sys::Win32::Foundation::CloseHandle;
 use windows_sys::Win32::Foundation::GetLastError;
@@ -185,8 +185,8 @@ fn canonical_existing(paths: &[PathBuf]) -> Vec<PathBuf> {
 
 pub fn gather_read_roots(
     command_cwd: &Path,
-    policy: &SandboxPolicy,
-    policy_cwd: &Path,
+    _policy: &SandboxPolicy,
+    _policy_cwd: &Path,
 ) -> Vec<PathBuf> {
     let mut roots: Vec<PathBuf> = Vec::new();
     for p in [
@@ -285,11 +285,11 @@ fn find_setup_exe() -> PathBuf {
 
 fn run_setup_exe(payload: &ElevationPayload, needs_elevation: bool) -> Result<()> {
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
-    use windows_sys::Win32::System::Threading::WaitForSingleObject;
     use windows_sys::Win32::System::Threading::INFINITE;
-    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
+    use windows_sys::Win32::System::Threading::WaitForSingleObject;
     use windows_sys::Win32::UI::Shell::SEE_MASK_NOCLOSEPROCESS;
     use windows_sys::Win32::UI::Shell::SHELLEXECUTEINFOW;
+    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
     let exe = find_setup_exe();
     let payload_json = serde_json::to_string(payload)?;
     let payload_b64 = BASE64_STANDARD.encode(payload_json.as_bytes());

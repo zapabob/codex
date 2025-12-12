@@ -299,12 +299,9 @@ fn spawn_apply(
             task_id,
             diff_override,
         } = job;
-        let result = codex_cloud_tasks_client::CloudBackend::apply_task(
-            &*backend,
-            &task_id,
-            diff_override,
-        )
-        .await;
+        let result =
+            codex_cloud_tasks_client::CloudBackend::apply_task(&*backend, &task_id, diff_override)
+                .await;
 
         let event = match result {
             Ok(outcome) => app::AppEvent::ApplyFinished {

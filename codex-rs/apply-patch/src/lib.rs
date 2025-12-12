@@ -16,13 +16,13 @@ use parser::ParseError::*;
 use parser::UpdateFileChunk;
 pub use parser::parse_patch;
 use similar::TextDiff;
+pub use standalone_executable::main;
 use thiserror::Error;
 use tree_sitter::LanguageError;
 use tree_sitter::Parser;
 use tree_sitter::Query;
 use tree_sitter::QueryCursor;
 use tree_sitter::StreamingIterator;
-pub use standalone_executable::main;
 
 /// Detailed instructions for gpt-4.1 on how to use the `apply_patch` tool.
 pub const APPLY_PATCH_TOOL_INSTRUCTIONS: &str = include_str!("../apply_patch_tool_instructions.md");

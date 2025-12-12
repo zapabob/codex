@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::ConversationId;
 use crate::parse_command::ParsedCommand;
 use crate::protocol::FileChange;
-use crate::ConversationId;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;

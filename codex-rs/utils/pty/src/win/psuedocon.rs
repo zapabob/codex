@@ -21,9 +21,9 @@
 
 use super::WinChild;
 use crate::win::procthreadattr::ProcThreadAttributeList;
+use anyhow::Error;
 use anyhow::bail;
 use anyhow::ensure;
-use anyhow::Error;
 use filedescriptor::FileDescriptor;
 use filedescriptor::OwnedHandle;
 use lazy_static::lazy_static;

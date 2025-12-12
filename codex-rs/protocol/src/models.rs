@@ -182,23 +182,17 @@ fn local_image_error_placeholder(
     }
 }
 
+#[allow(dead_code)]
 fn invalid_image_error_placeholder(
     path: &std::path::Path,
     error: impl std::fmt::Display,
 ) -> ContentItem {
     ContentItem::InputText {
-        text: format!(
-            "Invalid image format at `{}`: {}",
-            path.display(),
-            error
-        ),
+        text: format!("Invalid image format at `{}`: {}", path.display(), error),
     }
 }
 
-fn unsupported_image_error_placeholder(
-    path: &std::path::Path,
-    mime: &str,
-) -> ContentItem {
+fn unsupported_image_error_placeholder(path: &std::path::Path, mime: &str) -> ContentItem {
     ContentItem::InputText {
         text: format!(
             "Unsupported image format at `{}`: MIME type `{}` is not supported",

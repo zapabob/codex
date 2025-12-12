@@ -1,5 +1,6 @@
 use anyhow::Result;
-use clap::{Arg, Command};
+use clap::Arg;
+use clap::Command;
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -14,7 +15,9 @@ struct Args {
 impl Args {
     fn parse() -> Self {
         let matches = Command::new("codex-app-server-protocol-export")
-            .about("Generate TypeScript bindings and JSON Schemas for the Codex app-server protocol")
+            .about(
+                "Generate TypeScript bindings and JSON Schemas for the Codex app-server protocol",
+            )
             .arg(
                 Arg::new("out")
                     .short('o')

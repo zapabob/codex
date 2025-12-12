@@ -2,8 +2,8 @@
 
 use anyhow::Context;
 use anyhow::Result;
-use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use codex_windows_sandbox::convert_string_sid_to_sid;
 use codex_windows_sandbox::dpapi_protect;
 // use crate::ensure_allow_write_aces; // TODO: Function not defined
@@ -11,17 +11,17 @@ use codex_windows_sandbox::dpapi_protect;
 use codex_windows_sandbox::load_or_create_cap_sids;
 use codex_windows_sandbox::log_note;
 // use crate::path_mask_allows; // TODO: Function not defined
-use codex_windows_sandbox::sandbox_dir;
-use codex_windows_sandbox::string_from_sid_bytes;
 use codex_windows_sandbox::LOG_FILE_NAME;
 use codex_windows_sandbox::SETUP_VERSION;
-use rand::rngs::SmallRng;
+use codex_windows_sandbox::sandbox_dir;
+use codex_windows_sandbox::string_from_sid_bytes;
 use rand::RngCore;
 use rand::SeedableRng;
+use rand::rngs::SmallRng;
 use serde::Deserialize;
 use serde::Serialize;
-use std::ffi::c_void;
 use std::ffi::OsStr;
+use std::ffi::c_void;
 use std::fs::File;
 use std::io::Write;
 use std::os::windows::ffi::OsStrExt;
@@ -29,48 +29,48 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::time::Duration;
-use windows::core::Interface;
-use windows::core::BSTR;
 use windows::Win32::Foundation::VARIANT_TRUE;
 use windows::Win32::NetworkManagement::WindowsFirewall::INetFwPolicy2;
 use windows::Win32::NetworkManagement::WindowsFirewall::INetFwRule3;
-use windows::Win32::NetworkManagement::WindowsFirewall::NetFwPolicy2;
-use windows::Win32::NetworkManagement::WindowsFirewall::NetFwRule;
 use windows::Win32::NetworkManagement::WindowsFirewall::NET_FW_ACTION_BLOCK;
 use windows::Win32::NetworkManagement::WindowsFirewall::NET_FW_IP_PROTOCOL_ANY;
 use windows::Win32::NetworkManagement::WindowsFirewall::NET_FW_PROFILE2_ALL;
 use windows::Win32::NetworkManagement::WindowsFirewall::NET_FW_RULE_DIR_OUT;
+use windows::Win32::NetworkManagement::WindowsFirewall::NetFwPolicy2;
+use windows::Win32::NetworkManagement::WindowsFirewall::NetFwRule;
+use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
+use windows::Win32::System::Com::COINIT_APARTMENTTHREADED;
 use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::CoInitializeEx;
 use windows::Win32::System::Com::CoUninitialize;
-use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
-use windows::Win32::System::Com::COINIT_APARTMENTTHREADED;
-use windows_sys::Win32::Foundation::GetLastError;
-use windows_sys::Win32::Foundation::LocalFree;
+use windows::core::BSTR;
+use windows::core::Interface;
 use windows_sys::Win32::Foundation::ERROR_INSUFFICIENT_BUFFER;
+use windows_sys::Win32::Foundation::GetLastError;
 use windows_sys::Win32::Foundation::HLOCAL;
+use windows_sys::Win32::Foundation::LocalFree;
+use windows_sys::Win32::NetworkManagement::NetManagement::LOCALGROUP_MEMBERS_INFO_3;
 use windows_sys::Win32::NetworkManagement::NetManagement::NERR_Success;
 use windows_sys::Win32::NetworkManagement::NetManagement::NetLocalGroupAddMembers;
 use windows_sys::Win32::NetworkManagement::NetManagement::NetUserAdd;
 use windows_sys::Win32::NetworkManagement::NetManagement::NetUserSetInfo;
-use windows_sys::Win32::NetworkManagement::NetManagement::LOCALGROUP_MEMBERS_INFO_3;
 use windows_sys::Win32::NetworkManagement::NetManagement::UF_DONT_EXPIRE_PASSWD;
 use windows_sys::Win32::NetworkManagement::NetManagement::UF_SCRIPT;
 use windows_sys::Win32::NetworkManagement::NetManagement::USER_INFO_1;
 use windows_sys::Win32::NetworkManagement::NetManagement::USER_INFO_1003;
 use windows_sys::Win32::NetworkManagement::NetManagement::USER_PRIV_USER;
+use windows_sys::Win32::Security::ACL;
 use windows_sys::Win32::Security::Authorization::ConvertStringSidToSidW;
-use windows_sys::Win32::Security::Authorization::SetEntriesInAclW;
-use windows_sys::Win32::Security::Authorization::SetNamedSecurityInfoW;
 use windows_sys::Win32::Security::Authorization::EXPLICIT_ACCESS_W;
 use windows_sys::Win32::Security::Authorization::GRANT_ACCESS;
 use windows_sys::Win32::Security::Authorization::SE_FILE_OBJECT;
+use windows_sys::Win32::Security::Authorization::SetEntriesInAclW;
+use windows_sys::Win32::Security::Authorization::SetNamedSecurityInfoW;
 use windows_sys::Win32::Security::Authorization::TRUSTEE_IS_SID;
 use windows_sys::Win32::Security::Authorization::TRUSTEE_W;
-use windows_sys::Win32::Security::LookupAccountNameW;
-use windows_sys::Win32::Security::ACL;
 use windows_sys::Win32::Security::CONTAINER_INHERIT_ACE;
 use windows_sys::Win32::Security::DACL_SECURITY_INFORMATION;
+use windows_sys::Win32::Security::LookupAccountNameW;
 use windows_sys::Win32::Security::OBJECT_INHERIT_ACE;
 use windows_sys::Win32::Security::SID_NAME_USE;
 use windows_sys::Win32::Storage::FileSystem::DELETE;
@@ -263,13 +263,13 @@ fn add_inheritable_allow_no_log(path: &Path, sid: &[u8], mask: u32) -> Result<()
             TrusteeType: TRUSTEE_IS_SID,
             ptstrName: psid as *mut u16,
         };
-        let ea = EXPLICIT_ACCESS_W {
+        let _ea = EXPLICIT_ACCESS_W {
             grfAccessPermissions: mask,
             grfAccessMode: GRANT_ACCESS,
             grfInheritance: OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE,
             Trustee: trustee,
         };
-        let mut new_dacl: *mut ACL = std::ptr::null_mut();
+        let new_dacl: *mut ACL = std::ptr::null_mut();
         // let set = SetEntriesInAclW(1, &ea, existing_dacl, &mut new_dacl); // TODO: existing_dacl not available
         // if set != 0 {
         //     return Err(anyhow::anyhow!("SetEntriesInAclW failed: {}", set));
@@ -392,8 +392,8 @@ fn run_netsh_firewall(sid: &str, log: &mut File) -> Result<()> {
             log_line(
                 log,
                 &format!(
-                "firewall rule configured via COM with LocalUserAuthorizedList={local_user_spec}"
-            ),
+                    "firewall rule configured via COM with LocalUserAuthorizedList={local_user_spec}"
+                ),
             )?;
             Ok(())
         })()
@@ -652,14 +652,14 @@ fn run_setup(payload: &Payload, log: &mut File, sbx_dir: &Path) -> Result<()> {
         convert_string_sid_to_sid(&caps.workspace)
             .ok_or_else(|| anyhow::anyhow!("convert capability SID failed"))?
     };
-    let mut refresh_errors: Vec<String> = Vec::new();
+    let refresh_errors: Vec<String> = Vec::new();
     let users_sid = resolve_sid("Users")?;
     let users_psid = sid_bytes_to_psid(&users_sid)?;
     let auth_sid = resolve_sid("Authenticated Users")?;
     let auth_psid = sid_bytes_to_psid(&auth_sid)?;
     let everyone_sid = resolve_sid("Everyone")?;
     let everyone_psid = sid_bytes_to_psid(&everyone_sid)?;
-    let rx_psids = vec![users_psid, auth_psid, everyone_psid];
+    let _rx_psids = vec![users_psid, auth_psid, everyone_psid];
     log_line(log, &format!("resolved capability SID {}", caps.workspace))?;
     if !refresh_only {
         run_netsh_firewall(&offline_sid_str, log)?;
@@ -766,14 +766,14 @@ fn run_setup(payload: &Payload, log: &mut File, sbx_dir: &Path) -> Result<()> {
             )?;
             continue;
         }
-        let sids = vec![offline_psid, online_psid, cap_psid];
-        let write_mask = FILE_GENERIC_READ
+        let _sids = vec![offline_psid, online_psid, cap_psid];
+        let _write_mask = FILE_GENERIC_READ
             | FILE_GENERIC_WRITE
             | FILE_GENERIC_EXECUTE
             | DELETE
             | FILE_DELETE_CHILD;
-        let mut need_grant = false;
-        for (label, psid) in [
+        let need_grant = false;
+        for (_label, _psid) in [
             ("offline", offline_psid),
             ("online", online_psid),
             ("cap", cap_psid),

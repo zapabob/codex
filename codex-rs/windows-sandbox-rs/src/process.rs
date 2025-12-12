@@ -84,20 +84,22 @@ fn quote_arg(a: &str) -> String {
 
 #[allow(dead_code)]
 unsafe fn ensure_inheritable_stdio(si: &mut STARTUPINFOW) -> Result<()> {
-    for kind in [STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, STD_ERROR_HANDLE] {
-        let h = GetStdHandle(kind);
-        if h == 0 || h == INVALID_HANDLE_VALUE {
-            return Err(anyhow!("GetStdHandle failed: {}", GetLastError()));
+    unsafe {
+        for kind in [STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, STD_ERROR_HANDLE] {
+            let h = GetStdHandle(kind);
+            if h == 0 || h == INVALID_HANDLE_VALUE {
+                return Err(anyhow!("GetStdHandle failed: {}", GetLastError()));
+            }
+            if SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
+                return Err(anyhow!("SetHandleInformation failed: {}", GetLastError()));
+            }
         }
-        if SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
-            return Err(anyhow!("SetHandleInformation failed: {}", GetLastError()));
-        }
+        si.dwFlags |= STARTF_USESTDHANDLES;
+        si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+        si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+        Ok(())
     }
-    si.dwFlags |= STARTF_USESTDHANDLES;
-    si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-    si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
-    Ok(())
 }
 
 /// # Safety
@@ -112,123 +114,131 @@ pub unsafe fn create_process_as_user(
     logs_base_dir: Option<&Path>,
     stdio: Option<(HANDLE, HANDLE, HANDLE)>,
 ) -> Result<(PROCESS_INFORMATION, STARTUPINFOW)> {
-    let cmdline_str = argv
-        .iter()
-        .map(|a| quote_arg(a))
-        .collect::<Vec<_>>()
-        .join(" ");
-    let mut cmdline: Vec<u16> = to_wide(&cmdline_str);
-    let env_block = make_env_block(env_map);
-    let mut si: STARTUPINFOW = std::mem::zeroed();
-    si.cb = std::mem::size_of::<STARTUPINFOW>() as u32;
-    // Some processes (e.g., PowerShell) can fail with STATUS_DLL_INIT_FAILED
-    // if lpDesktop is not set when launching with a restricted token.
-    // Point explicitly at the interactive desktop.
-    let desktop = to_wide("Winsta0\\Default");
-    si.lpDesktop = desktop.as_ptr() as *mut u16;
-    let mut pi: PROCESS_INFORMATION = std::mem::zeroed();
-    // Ensure handles are inheritable when custom stdio is supplied.
-    let inherit_handles = match stdio {
-        Some((stdin_h, stdout_h, stderr_h)) => {
-            si.dwFlags |= STARTF_USESTDHANDLES;
-            si.hStdInput = stdin_h;
-            si.hStdOutput = stdout_h;
-            si.hStdError = stderr_h;
-            for h in [stdin_h, stdout_h, stderr_h] {
-                if SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
-                    return Err(anyhow!(
-                        "SetHandleInformation failed for stdio handle: {}",
-                        GetLastError()
-                    ));
+    unsafe {
+        let cmdline_str = argv
+            .iter()
+            .map(|a| quote_arg(a))
+            .collect::<Vec<_>>()
+            .join(" ");
+        let mut cmdline: Vec<u16> = to_wide(&cmdline_str);
+        let env_block = make_env_block(env_map);
+        let mut si: STARTUPINFOW = std::mem::zeroed();
+        si.cb = std::mem::size_of::<STARTUPINFOW>() as u32;
+        // Some processes (e.g., PowerShell) can fail with STATUS_DLL_INIT_FAILED
+        // if lpDesktop is not set when launching with a restricted token.
+        // Point explicitly at the interactive desktop.
+        let desktop = to_wide("Winsta0\\Default");
+        si.lpDesktop = desktop.as_ptr() as *mut u16;
+        let mut pi: PROCESS_INFORMATION = std::mem::zeroed();
+        // Ensure handles are inheritable when custom stdio is supplied.
+        let inherit_handles = match stdio {
+            Some((stdin_h, stdout_h, stderr_h)) => {
+                si.dwFlags |= STARTF_USESTDHANDLES;
+                si.hStdInput = stdin_h;
+                si.hStdOutput = stdout_h;
+                si.hStdError = stderr_h;
+                for h in [stdin_h, stdout_h, stderr_h] {
+                    if SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
+                        return Err(anyhow!(
+                            "SetHandleInformation failed for stdio handle: {}",
+                            GetLastError()
+                        ));
+                    }
                 }
+                true
             }
-            true
-        }
-        None => {
-            ensure_inheritable_stdio(&mut si)?;
-            true
-        }
-    };
+            None => {
+                ensure_inheritable_stdio(&mut si)?;
+                true
+            }
+        };
 
-    let ok = CreateProcessAsUserW(
-        h_token,
-        std::ptr::null(),
-        cmdline.as_mut_ptr(),
-        std::ptr::null_mut(),
-        std::ptr::null_mut(),
-        inherit_handles as i32,
-        CREATE_UNICODE_ENVIRONMENT,
-        env_block.as_ptr() as *mut c_void,
-        to_wide(cwd).as_ptr(),
-        &si,
-        &mut pi,
-    );
-    if ok == 0 {
-        let err = GetLastError() as i32;
-        let msg = format!(
-            "CreateProcessAsUserW failed: {} ({}) | cwd={} | cmd={} | env_u16_len={} | si_flags={}",
-            err,
-            format_last_error(err),
-            cwd.display(),
-            cmdline_str,
-            env_block.len(),
-            si.dwFlags,
+        let ok = CreateProcessAsUserW(
+            h_token,
+            std::ptr::null(),
+            cmdline.as_mut_ptr(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            inherit_handles as i32,
+            CREATE_UNICODE_ENVIRONMENT,
+            env_block.as_ptr() as *mut c_void,
+            to_wide(cwd).as_ptr(),
+            &si,
+            &mut pi,
         );
-        logging::debug_log(&msg, logs_base_dir);
-        return Err(anyhow!("CreateProcessAsUserW failed: {}", err));
+        if ok == 0 {
+            let err = GetLastError() as i32;
+            let msg = format!(
+                "CreateProcessAsUserW failed: {} ({}) | cwd={} | cmd={} | env_u16_len={} | si_flags={}",
+                err,
+                format_last_error(err),
+                cwd.display(),
+                cmdline_str,
+                env_block.len(),
+                si.dwFlags,
+            );
+            logging::debug_log(&msg, logs_base_dir);
+            return Err(anyhow!("CreateProcessAsUserW failed: {}", err));
+        }
+        Ok((pi, si))
     }
-    Ok((pi, si))
 }
 
 /// # Safety
 /// Caller must provide valid process information handles.
 #[allow(dead_code)]
 pub unsafe fn wait_process_and_exitcode(pi: &PROCESS_INFORMATION) -> Result<i32> {
-    let res = WaitForSingleObject(pi.hProcess, INFINITE);
-    if res != 0 {
-        return Err(anyhow!("WaitForSingleObject failed: {}", GetLastError()));
+    unsafe {
+        let res = WaitForSingleObject(pi.hProcess, INFINITE);
+        if res != 0 {
+            return Err(anyhow!("WaitForSingleObject failed: {}", GetLastError()));
+        }
+        let mut code: u32 = 0;
+        if GetExitCodeProcess(pi.hProcess, &mut code) == 0 {
+            return Err(anyhow!("GetExitCodeProcess failed: {}", GetLastError()));
+        }
+        Ok(code as i32)
     }
-    let mut code: u32 = 0;
-    if GetExitCodeProcess(pi.hProcess, &mut code) == 0 {
-        return Err(anyhow!("GetExitCodeProcess failed: {}", GetLastError()));
-    }
-    Ok(code as i32)
 }
 
 /// # Safety
 /// Caller must close the returned job handle.
 #[allow(dead_code)]
 pub unsafe fn create_job_kill_on_close() -> Result<HANDLE> {
-    let h = CreateJobObjectW(std::ptr::null_mut(), std::ptr::null());
-    if h == 0 {
-        return Err(anyhow!("CreateJobObjectW failed: {}", GetLastError()));
+    unsafe {
+        let h = CreateJobObjectW(std::ptr::null_mut(), std::ptr::null());
+        if h == 0 {
+            return Err(anyhow!("CreateJobObjectW failed: {}", GetLastError()));
+        }
+        let mut limits: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = std::mem::zeroed();
+        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        let ok = SetInformationJobObject(
+            h,
+            JobObjectExtendedLimitInformation,
+            &mut limits as *mut _ as *mut c_void,
+            std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
+        );
+        if ok == 0 {
+            return Err(anyhow!(
+                "SetInformationJobObject failed: {}",
+                GetLastError()
+            ));
+        }
+        Ok(h)
     }
-    let mut limits: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = std::mem::zeroed();
-    limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-    let ok = SetInformationJobObject(
-        h,
-        JobObjectExtendedLimitInformation,
-        &mut limits as *mut _ as *mut c_void,
-        std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
-    );
-    if ok == 0 {
-        return Err(anyhow!(
-            "SetInformationJobObject failed: {}",
-            GetLastError()
-        ));
-    }
-    Ok(h)
 }
 
 /// # Safety
 /// Caller must pass valid handles for a job object and a process.
 #[allow(dead_code)]
 pub unsafe fn assign_to_job(h_job: HANDLE, h_process: HANDLE) -> Result<()> {
-    if AssignProcessToJobObject(h_job, h_process) == 0 {
-        return Err(anyhow!(
-            "AssignProcessToJobObject failed: {}",
-            GetLastError()
-        ));
+    unsafe {
+        if AssignProcessToJobObject(h_job, h_process) == 0 {
+            return Err(anyhow!(
+                "AssignProcessToJobObject failed: {}",
+                GetLastError()
+            ));
+        }
+        Ok(())
     }
-    Ok(())
 }

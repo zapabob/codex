@@ -36,9 +36,9 @@ use ts_rs::TS;
 
 pub use crate::approvals::ApplyPatchApprovalRequestEvent;
 pub use crate::approvals::ExecApprovalRequestEvent;
+pub use crate::approvals::ExecPolicyAmendment;
 pub use crate::approvals::SandboxCommandAssessment;
 pub use crate::approvals::SandboxRiskLevel;
-pub use crate::approvals::ExecPolicyAmendment;
 
 /// Open/close tags for special user-input blocks. Used across crates to avoid
 /// duplicated hardcoded strings.

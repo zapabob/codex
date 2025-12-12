@@ -1,4 +1,4 @@
-﻿macro_rules! windows_modules {
+macro_rules! windows_modules {
     ($($name:ident),+ $(,)?) => {
         $(#[cfg(target_os = "windows")] mod $name;)+
     };
@@ -11,9 +11,6 @@ windows_modules!(
 pub mod setup_orchestrator;
 
 #[cfg(target_os = "windows")]
-pub use windows_impl::CaptureResult;
-#[cfg(target_os = "windows")]
-pub use windows_impl::preflight_audit_everyone_writable;#[cfg(target_os = "windows")]
 pub use cap::load_or_create_cap_sids;
 #[cfg(target_os = "windows")]
 pub use dpapi::protect as dpapi_protect;
@@ -22,15 +19,19 @@ pub use dpapi::unprotect as dpapi_unprotect;
 #[cfg(target_os = "windows")]
 pub use identity::require_logon_sandbox_creds;
 #[cfg(target_os = "windows")]
-pub use logging::log_note;
-#[cfg(target_os = "windows")]
 pub use logging::LOG_FILE_NAME;
+#[cfg(target_os = "windows")]
+pub use logging::log_note;
 #[cfg(target_os = "windows")]
 pub use token::convert_string_sid_to_sid;
 #[cfg(target_os = "windows")]
-pub use winutil::string_from_sid_bytes;
+pub use windows_impl::CaptureResult;
+#[cfg(target_os = "windows")]
+pub use windows_impl::preflight_audit_everyone_writable;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
+#[cfg(target_os = "windows")]
+pub use winutil::string_from_sid_bytes;
 
 #[cfg(not(target_os = "windows"))]
 pub use stub::CaptureResult;
@@ -39,13 +40,12 @@ pub use stub::preflight_audit_everyone_writable;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_capture;
 
-
-pub use setup_orchestrator::sandbox_dir;
-pub use setup_orchestrator::setup_marker_path;
-pub use setup_orchestrator::sandbox_users_path;
-pub use setup_orchestrator::run_setup_refresh;
-pub use setup_orchestrator::run_elevated_setup;
 pub use setup_orchestrator::SETUP_VERSION;
+pub use setup_orchestrator::run_elevated_setup;
+pub use setup_orchestrator::run_setup_refresh;
+pub use setup_orchestrator::sandbox_dir;
+pub use setup_orchestrator::sandbox_users_path;
+pub use setup_orchestrator::setup_marker_path;
 #[cfg(target_os = "windows")]
 mod windows_impl {
     use super::acl::add_allow_ace;
