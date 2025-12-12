@@ -161,7 +161,9 @@ client_request_definitions! {
         response: v2::McpServerOauthLoginResponse,
     },
 
-    McpServersList => "mcpServers/list" {
+    #[serde(rename = "mcpServers/list")]
+    #[ts(rename = "mcpServers/list")]
+    McpServersList {
         params: v2::ListMcpServersParams,
         response: v2::ListMcpServersResponse,
     },
