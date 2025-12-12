@@ -1,25 +1,11 @@
-<<<<<<< HEAD
-use crate::token::world_sid;
-use crate::winutil::to_wide;
-=======
-use crate::acl::add_deny_write_ace;
-use crate::acl::path_mask_allows;
-use crate::cap::cap_sid_file;
-use crate::cap::load_or_create_cap_sids;
-use crate::logging::{debug_log, log_note};
-use crate::policy::SandboxPolicy;
-use crate::token::convert_string_sid_to_sid;
-use crate::token::world_sid;
-use anyhow::anyhow;
->>>>>>> upstream/main
-use anyhow::Result;
+﻿use crate::token::world_sid;
+use crate::winutil::to_wide;use anyhow::Result;
 use std::collections::HashSet;
 use std::ffi::c_void;
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
 use std::time::Instant;
-<<<<<<< HEAD
 use windows_sys::Win32::Foundation::LocalFree;
 use windows_sys::Win32::Foundation::ERROR_SUCCESS;
 use windows_sys::Win32::Foundation::HLOCAL;
@@ -48,15 +34,7 @@ use windows_sys::Win32::Security::GetAclInformation;
 use windows_sys::Win32::Security::GetAce;
 use windows_sys::Win32::Security::ACCESS_ALLOWED_ACE;
 use windows_sys::Win32::Security::ACE_HEADER;
-use windows_sys::Win32::Security::EqualSid;
-=======
-use windows_sys::Win32::Storage::FileSystem::FILE_APPEND_DATA;
-use windows_sys::Win32::Storage::FileSystem::FILE_WRITE_ATTRIBUTES;
-use windows_sys::Win32::Storage::FileSystem::FILE_WRITE_DATA;
-use windows_sys::Win32::Storage::FileSystem::FILE_WRITE_EA;
->>>>>>> upstream/main
-
-// Preflight scan limits
+use windows_sys::Win32::Security::EqualSid;// Preflight scan limits
 const MAX_ITEMS_PER_DIR: i32 = 1000;
 const AUDIT_TIME_LIMIT_SECS: i64 = 2;
 const MAX_CHECKED_LIMIT: i32 = 50000;
@@ -116,7 +94,6 @@ fn gather_candidates(cwd: &Path, env: &std::collections::HashMap<String, String>
     out
 }
 
-<<<<<<< HEAD
 unsafe fn path_has_world_write_allow(path: &Path) -> Result<bool> { unsafe {
     let mut p_sd: *mut c_void = std::ptr::null_mut();
     let mut p_dacl: *mut ACL = std::ptr::null_mut();
@@ -188,17 +165,7 @@ unsafe fn path_has_world_write_allow(path: &Path) -> Result<bool> { unsafe {
         LocalFree(p_sd as HLOCAL);
     }
     Ok(has)
-}}
-=======
-unsafe fn path_has_world_write_allow(path: &Path) -> Result<bool> {
-    let mut world = world_sid()?;
-    let psid_world = world.as_mut_ptr() as *mut c_void;
-    let write_mask = FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_WRITE_EA | FILE_WRITE_ATTRIBUTES;
-    path_mask_allows(path, &[psid_world], write_mask, false)
-}
->>>>>>> upstream/main
-
-pub fn audit_everyone_writable(
+}}pub fn audit_everyone_writable(
     cwd: &Path,
     env: &std::collections::HashMap<String, String>,
     logs_base_dir: Option<&Path>,
@@ -316,7 +283,6 @@ pub fn audit_everyone_writable(
     );
     Ok(Vec::new())
 }
-<<<<<<< HEAD
 // Fast mask-based check: does the DACL contain any ACCESS_ALLOWED ACE for
 // Everyone that includes generic or specific write bits? Skips inherit-only
 // ACEs (do not apply to the current object).
@@ -368,96 +334,4 @@ unsafe fn dacl_quick_world_write_mask_allows(p_dacl: *mut ACL, psid_world: *mut 
             }
         }
     }
-    false
-=======
-
-pub fn apply_world_writable_scan_and_denies(
-    codex_home: &Path,
-    cwd: &Path,
-    env_map: &std::collections::HashMap<String, String>,
-    sandbox_policy: &SandboxPolicy,
-    logs_base_dir: Option<&Path>,
-) -> Result<()> {
-    let flagged = audit_everyone_writable(cwd, env_map, logs_base_dir)?;
-    if flagged.is_empty() {
-        return Ok(());
-    }
-    if let Err(err) = apply_capability_denies_for_world_writable(
-        codex_home,
-        &flagged,
-        sandbox_policy,
-        cwd,
-        logs_base_dir,
-    ) {
-        log_note(
-            &format!("AUDIT: failed to apply capability deny ACEs: {}", err),
-            logs_base_dir,
-        );
-    }
-    Ok(())
-}
-
-pub fn apply_capability_denies_for_world_writable(
-    codex_home: &Path,
-    flagged: &[PathBuf],
-    sandbox_policy: &SandboxPolicy,
-    cwd: &Path,
-    logs_base_dir: Option<&Path>,
-) -> Result<()> {
-    if flagged.is_empty() {
-        return Ok(());
-    }
-    std::fs::create_dir_all(codex_home)?;
-    let cap_path = cap_sid_file(codex_home);
-    let caps = load_or_create_cap_sids(codex_home);
-    std::fs::write(&cap_path, serde_json::to_string(&caps)?)?;
-    let (active_sid, workspace_roots): (*mut c_void, Vec<PathBuf>) = match sandbox_policy {
-        SandboxPolicy::WorkspaceWrite { writable_roots, .. } => {
-            let sid = unsafe { convert_string_sid_to_sid(&caps.workspace) }
-                .ok_or_else(|| anyhow!("ConvertStringSidToSidW failed for workspace capability"))?;
-            let mut roots: Vec<PathBuf> =
-                vec![dunce::canonicalize(cwd).unwrap_or_else(|_| cwd.to_path_buf())];
-            for root in writable_roots {
-                let candidate = if root.is_absolute() {
-                    root.clone()
-                } else {
-                    cwd.join(root)
-                };
-                roots.push(dunce::canonicalize(&candidate).unwrap_or(candidate));
-            }
-            (sid, roots)
-        }
-        SandboxPolicy::ReadOnly => (
-            unsafe { convert_string_sid_to_sid(&caps.readonly) }.ok_or_else(|| {
-                anyhow!("ConvertStringSidToSidW failed for readonly capability")
-            })?,
-            Vec::new(),
-        ),
-        SandboxPolicy::DangerFullAccess => {
-            return Ok(());
-        }
-    };
-    for path in flagged {
-        if workspace_roots.iter().any(|root| path.starts_with(root)) {
-            continue;
-        }
-        let res = unsafe { add_deny_write_ace(path, active_sid) };
-        match res {
-            Ok(true) => log_note(
-                &format!("AUDIT: applied capability deny ACE to {}", path.display()),
-                logs_base_dir,
-            ),
-            Ok(false) => {}
-            Err(err) => log_note(
-                &format!(
-                    "AUDIT: failed to apply capability deny ACE to {}: {}",
-                    path.display(),
-                    err
-                ),
-                logs_base_dir,
-            ),
-        }
-    }
-    Ok(())
->>>>>>> upstream/main
-}
+    false}

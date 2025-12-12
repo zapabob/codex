@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+﻿use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::protocol::common::AuthMode;
@@ -21,6 +21,7 @@ use codex_protocol::protocol::CreditsSnapshot as CoreCreditsSnapshot;
 use codex_protocol::protocol::RateLimitSnapshot as CoreRateLimitSnapshot;
 use codex_protocol::protocol::RateLimitWindow as CoreRateLimitWindow;
 use codex_protocol::protocol::SessionSource as CoreSessionSource;
+use codex_protocol::protocol::McpAuthStatus;
 use codex_protocol::user_input::UserInput as CoreUserInput;
 use mcp_types::ContentBlock as McpContentBlock;
 use schemars::JsonSchema;
@@ -28,6 +29,10 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use ts_rs::TS;
+use crate::FileChangeOutputDeltaNotification;
+use mcp_types::ResourceTemplate as McpResourceTemplate;
+use mcp_types::Resource as McpResource;
+use mcp_types::Tool as McpTool;
 
 // Macro to declare a camelCased API v2 enum mirroring a core enum which
 // tends to use kebab-case.
@@ -95,31 +100,25 @@ pub enum CodexErrorInfo {
     Other,
 }
 
-impl From<CoreCodexErrorInfo> for CodexErrorInfo {
-    fn from(value: CoreCodexErrorInfo) -> Self {
-        match value {
-            CoreCodexErrorInfo::ContextWindowExceeded => CodexErrorInfo::ContextWindowExceeded,
-            CoreCodexErrorInfo::UsageLimitExceeded => CodexErrorInfo::UsageLimitExceeded,
-            CoreCodexErrorInfo::HttpConnectionFailed { http_status_code } => {
+ => {
                 CodexErrorInfo::HttpConnectionFailed { http_status_code }
             }
-            CoreCodexErrorInfo::ResponseStreamConnectionFailed { http_status_code } => {
+            CodexErrorInfo::ResponseStreamConnectionFailed { http_status_code } => {
                 CodexErrorInfo::ResponseStreamConnectionFailed { http_status_code }
             }
-            CoreCodexErrorInfo::InternalServerError => CodexErrorInfo::InternalServerError,
-            CoreCodexErrorInfo::Unauthorized => CodexErrorInfo::Unauthorized,
-            CoreCodexErrorInfo::BadRequest => CodexErrorInfo::BadRequest,
-            CoreCodexErrorInfo::SandboxError => CodexErrorInfo::SandboxError,
-            CoreCodexErrorInfo::ResponseStreamDisconnected { http_status_code } => {
+            CodexErrorInfo::InternalServerError => CodexErrorInfo::InternalServerError,
+            CodexErrorInfo::Unauthorized => CodexErrorInfo::Unauthorized,
+            CodexErrorInfo::BadRequest => CodexErrorInfo::BadRequest,
+            CodexErrorInfo::SandboxError => CodexErrorInfo::SandboxError,
+            CodexErrorInfo::ResponseStreamDisconnected { http_status_code } => {
                 CodexErrorInfo::ResponseStreamDisconnected { http_status_code }
             }
-            CoreCodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code } => {
+            CodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code } => {
                 CodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code }
             }
-            CoreCodexErrorInfo::Other => CodexErrorInfo::Other,
+            CodexErrorInfo::Other => CodexErrorInfo::Other,
         }
     }
-}
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "kebab-case")]

@@ -1,4 +1,4 @@
-macro_rules! windows_modules {
+﻿macro_rules! windows_modules {
     ($($name:ident),+ $(,)?) => {
         $(#[cfg(target_os = "windows")] mod $name;)+
     };
@@ -9,24 +9,9 @@ windows_modules!(
 );
 
 #[cfg(target_os = "windows")]
-<<<<<<< HEAD
 pub use windows_impl::CaptureResult;
 #[cfg(target_os = "windows")]
-pub use windows_impl::preflight_audit_everyone_writable;
-=======
-#[path = "setup_orchestrator.rs"]
-mod setup;
-
-#[cfg(target_os = "windows")]
-pub use acl::ensure_allow_write_aces;
-#[cfg(target_os = "windows")]
-pub use acl::fetch_dacl_handle;
-#[cfg(target_os = "windows")]
-pub use acl::path_mask_allows;
-#[cfg(target_os = "windows")]
-pub use audit::apply_world_writable_scan_and_denies;
->>>>>>> upstream/main
-#[cfg(target_os = "windows")]
+pub use windows_impl::preflight_audit_everyone_writable;#[cfg(target_os = "windows")]
 pub use cap::load_or_create_cap_sids;
 #[cfg(target_os = "windows")]
 pub use dpapi::protect as dpapi_protect;
