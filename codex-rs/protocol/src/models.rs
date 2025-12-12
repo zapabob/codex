@@ -182,6 +182,32 @@ fn local_image_error_placeholder(
     }
 }
 
+fn invalid_image_error_placeholder(
+    path: &std::path::Path,
+    error: impl std::fmt::Display,
+) -> ContentItem {
+    ContentItem::InputText {
+        text: format!(
+            "Invalid image format at `{}`: {}",
+            path.display(),
+            error
+        ),
+    }
+}
+
+fn unsupported_image_error_placeholder(
+    path: &std::path::Path,
+    mime: &str,
+) -> ContentItem {
+    ContentItem::InputText {
+        text: format!(
+            "Unsupported image format at `{}`: MIME type `{}` is not supported",
+            path.display(),
+            mime
+        ),
+    }
+}
+
 impl From<ResponseInputItem> for ResponseItem {
     fn from(item: ResponseInputItem) -> Self {
         match item {
@@ -274,8 +300,6 @@ impl From<Vec<UserInput>> for ResponseInputItem {
                             tracing::warn!("Failed to resize image {}: {}", path.display(), err);
                             if matches!(&err, ImageProcessingError::Read { .. }) {
                                 Some(local_image_error_placeholder(&path, &err))
-                            } else if err.is_invalid_image() {
-                                Some(invalid_image_error_placeholder(&path, &err))
                             } else {
                                 let Some(mime_guess) = mime_guess::from_path(&path).first() else {
                                     return Some(local_image_error_placeholder(

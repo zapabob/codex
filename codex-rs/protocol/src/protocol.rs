@@ -1463,6 +1463,7 @@ pub struct SkillLoadOutcomeInfo {
     pub skills: Vec<SkillInfo>,
     pub errors: Vec<SkillErrorInfo>,
 }
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct SessionConfiguredEvent {
     /// Name left as session_id instead of conversation_id for backwards compatibility.
     pub session_id: ConversationId,

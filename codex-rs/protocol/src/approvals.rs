@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use crate::parse_command::ParsedCommand;
 use crate::protocol::FileChange;
+use crate::ConversationId;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
@@ -80,17 +81,7 @@ pub struct ExecApprovalRequestEvent {
     pub proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
     pub parsed_cmd: Vec<ParsedCommand>,
     pub server_name: String,
-    pub request_id: RequestId,
-    pub message: String,
-    pub parsed_cmd: Vec<ParsedCommand>,
-    pub cwd: PathBuf,
-    pub command: Vec<String>,
-    pub reason: Option<String>,
-    pub risk: Option<SandboxCommandAssessment>,
-    pub proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
-    pub parsed_cmd: Vec<ParsedCommand>,
-    pub server_name: String,
-    pub request_id: RequestId,
+    pub request_id: ConversationId,
     pub message: String,
 }
 
@@ -113,7 +104,7 @@ pub struct McpElicitationApprovalRequestEvent {
     /// Name of the server handling the request.
     pub server_name: String,
     /// Identifier of the approval request.
-    pub request_id: RequestId,
+    pub request_id: ConversationId,
     /// Message describing the elicitation request.
     pub message: String,
 }
