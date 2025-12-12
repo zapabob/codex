@@ -90,22 +90,15 @@ pub use conversation_manager::NewConversation;
 pub use auth::AuthManager;
 pub use auth::CodexAuth;
 pub mod default_client;
-<<<<<<< HEAD
 pub mod hybrid_acceleration;
 pub mod model_family;
 mod openai_model_info;
-=======
->>>>>>> upstream/main
 pub mod project_doc;
 mod rollout;
 pub(crate) mod safety;
 pub mod seatbelt;
 pub mod shell;
-<<<<<<< HEAD
-=======
 pub mod shell_snapshot;
-pub mod skills;
->>>>>>> upstream/main
 pub mod spawn;
 pub mod terminal;
 pub mod token_budget;
