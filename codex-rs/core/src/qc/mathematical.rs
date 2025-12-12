@@ -229,18 +229,18 @@ impl MathematicalOptimizer {
 
     /// Create optimizer with explicit CUDA enable/disable
     pub fn with_cuda(cuda_enabled: bool) -> Self {
-        #[cfg(feature = "cuda")]
+            #[cfg(feature = "cuda")]
         {
             Self {
-                cuda_accel: if cuda_enabled {
-                    cuda_math::CudaLinearAlgebra::new().ok()
-                } else {
-                    None
-                },
+            cuda_accel: if cuda_enabled {
+                cuda_math::CudaLinearAlgebra::new().ok()
+            } else {
+                None
+            },
             }
         }
 
-        #[cfg(not(feature = "cuda"))]
+            #[cfg(not(feature = "cuda"))]
         {
             let _ = cuda_enabled;
             Self {}

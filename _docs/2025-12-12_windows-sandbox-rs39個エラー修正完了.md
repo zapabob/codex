@@ -228,3 +228,4 @@ if (Test-Path "C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav") {
     Write-Host "ピープ音を5回再生しました" -ForegroundColor Yellow
 }
 ```
+
