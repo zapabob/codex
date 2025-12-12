@@ -164,6 +164,15 @@ description = "Codex Gemini CLI MCP Server v0.49.0 - Google Gemini AI integratio
 env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
 startup_timeout_sec = 180
 
+# Codex Gemini CLI MCP Server - ビルド成功プログラム
+[mcp_servers.codex-gemini-cli-mcp-server]
+args = []
+command = "codex-gemini-cli-mcp-server.exe"
+description = "Codex Gemini CLI MCP Server (Built) - Local build of Gemini CLI MCP Server"
+env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
+env.RUST_LOG = "info"
+startup_timeout_sec = 180
+
 # Brave Search - Web検索APIキー要
 # ⚠️ 無効化中（BRAVE_API_KEY環境変数の設定が必要）
 # 使用方法: 環境変数BRAVE_API_KEYを設定後、disabled行を削除

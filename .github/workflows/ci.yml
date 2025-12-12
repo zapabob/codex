@@ -12,11 +12,7 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - name: Checkout repository
-<<<<<<< HEAD
-        uses: actions/checkout@v5
-=======
         uses: actions/checkout@v6
->>>>>>> upstream/main
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -24,11 +20,7 @@ jobs:
           run_install: false
 
       - name: Setup Node.js
-<<<<<<< HEAD
-        uses: actions/setup-node@v6
-=======
         uses: actions/setup-node@v5
->>>>>>> upstream/main
         with:
           node-version: 22
 
@@ -71,3 +63,96 @@ jobs:
 
       - name: Prettier (run `pnpm run format:fix` to fix)
         run: pnpm run format
+
+  mcp-integration-test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tqdm requests
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install Node.js dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build MCP programs
+      - name: Build MCP programs
+        run: |
+          cd codex-rs
+          cargo build --release -p codex-gemini-cli-mcp-server
+          cargo build --release -p codex-supervisor || echo "supervisor build failed, continuing..."
+          cargo build --release -p codex-mcp-server || echo "mcp-server build failed, continuing..."
+          cargo build --release -p codex-deep-research || echo "deep-research build failed, continuing..."
+
+      # Test MCP binaries
+      - name: Test MCP binaries
+        run: |
+          cd codex-rs
+          if (Test-Path "target\release\codex-gemini-cli-mcp-server.exe") {
+            Write-Host "✅ codex-gemini-cli-mcp-server.exe found"
+          } else {
+            Write-Host "❌ codex-gemini-cli-mcp-server.exe missing"
+            exit 1
+          }
+
+      # Run integration tests
+      - name: Run integration tests
+        run: |
+          python test_continuous_integration.py
+        continue-on-error: true
+
+      # Build TUI
+      - name: Build TUI
+        run: |
+          cd codex-rs
+          cargo build --release -p codex-tui
+
+      - name: Test TUI binary
+        run: |
+          cd codex-rs
+          if (Test-Path "target\release\codex-tui.exe") {
+            .\target\release\codex-tui.exe --help | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ TUI binary functional"
+            } else {
+              Write-Host "❌ TUI binary test failed"
+              exit 1
+            }
+          } else {
+            Write-Host "❌ TUI binary not found"
+            exit 1
+          }

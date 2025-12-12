@@ -89,53 +89,7 @@ pub async fn perform_oauth_login_return_url(
     let authorization_url = flow.authorization_url();
     let completion = flow.spawn();
 
-<<<<<<< HEAD
-    let default_headers = build_default_headers(http_headers, env_http_headers)?;
-    let http_client = apply_default_headers(ClientBuilder::new(), &default_headers).build()?;
-
-    let mut oauth_state = OAuthState::new(server_url, Some(http_client)).await?;
-    let scope_refs: Vec<&str> = scopes.iter().map(String::as_str).collect();
-    oauth_state
-        .start_authorization(&scope_refs, &redirect_uri, Some("Codex"))
-        .await?;
-    let auth_url = oauth_state.get_authorization_url().await?;
-
-    println!("Authorize `{server_name}` by opening this URL in your browser:\n{auth_url}\n");
-
-    if webbrowser::open(&auth_url).is_err() {
-        println!("(Browser launch failed; please copy the URL above manually.)");
-    }
-
-    let (code, csrf_state) = timeout(Duration::from_secs(300), rx)
-        .await
-        .context("timed out waiting for OAuth callback")?
-        .context("OAuth callback was cancelled")?;
-
-    oauth_state
-        .handle_callback(&code, &csrf_state)
-        .await
-        .context("failed to handle OAuth callback")?;
-
-    let (client_id, credentials_opt) = oauth_state
-        .get_credentials()
-        .await
-        .context("failed to retrieve OAuth credentials")?;
-    let credentials =
-        credentials_opt.ok_or_else(|| anyhow!("OAuth provider did not return credentials"))?;
-
-    let stored = StoredOAuthTokens {
-        server_name: server_name.to_string(),
-        url: server_url.to_string(),
-        client_id,
-        token_response: WrappedOAuthTokenResponse(credentials),
-    };
-    save_oauth_tokens(server_name, &stored, store_mode)?;
-
-    drop(guard);
-    Ok(())
-=======
     Ok(OauthLoginHandle::new(authorization_url, completion))
->>>>>>> upstream/main
 }
 
 fn spawn_callback_server(server: Arc<Server>, tx: oneshot::Sender<(String, String)>) {
