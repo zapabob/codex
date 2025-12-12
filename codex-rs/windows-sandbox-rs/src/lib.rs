@@ -244,6 +244,18 @@ mod windows_impl {
                     let psid = convert_string_sid_to_sid(&caps.workspace).unwrap();
                     super::token::create_workspace_write_token_with_cap(psid)?
                 }
+                SandboxMode::DangerFullAccess => {
+                    // For danger full access, create a token with minimal restrictions
+                    let caps = load_or_create_cap_sids(sandbox_policy_cwd);
+                    ensure_dir(&cap_sid_file(sandbox_policy_cwd))?;
+                    fs::write(
+                        cap_sid_file(sandbox_policy_cwd),
+                        serde_json::to_string(&caps)?,
+                    )?;
+                    // Use workspace cap for danger mode (less restrictive)
+                    let psid = convert_string_sid_to_sid(&caps.workspace).unwrap();
+                    super::token::create_workspace_write_token_with_cap(psid)?
+                }
             }
         };
 

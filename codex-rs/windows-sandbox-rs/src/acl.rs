@@ -118,7 +118,7 @@ pub unsafe fn dacl_effective_allows_write(p_dacl: *mut ACL, psid: *mut c_void) -
         return (mapped_access & write_bits) != 0;
     }
     // Fallback: simple allow ACE scan (already ignores inherit-only)
-    dacl_has_write_allow_for_sid(p_dacl, psid)
+    return dacl_has_write_allow_for_sid(p_dacl, psid);
 }
 
 #[allow(dead_code)]

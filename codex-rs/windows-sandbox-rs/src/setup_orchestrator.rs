@@ -225,8 +225,7 @@ pub(crate) fn gather_write_roots(
     if matches!(policy, SandboxPolicy::WorkspaceWrite { .. }) {
         roots.push(command_cwd.to_path_buf());
     }
-    let AllowDenyPaths { allow, .. } =
-        compute_allow_paths(policy, policy_cwd, command_cwd, env_map);
+    let allow = compute_allow_paths(policy, policy_cwd, command_cwd, env_map);
     roots.extend(allow);
     canonical_existing(&roots)
 }
