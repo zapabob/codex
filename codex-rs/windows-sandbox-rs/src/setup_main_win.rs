@@ -4,17 +4,17 @@ use anyhow::Context;
 use anyhow::Result;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
-use crate::token::convert_string_sid_to_sid;
-use crate::dpapi::protect as dpapi_protect;
+use codex_windows_sandbox::convert_string_sid_to_sid;
+use codex_windows_sandbox::dpapi_protect;
 // use crate::ensure_allow_write_aces; // TODO: Function not defined
 // use crate::fetch_dacl_handle; // TODO: Function not defined
-use crate::cap::load_or_create_cap_sids;
-use crate::logging::log_note;
+use codex_windows_sandbox::load_or_create_cap_sids;
+use codex_windows_sandbox::log_note;
 // use crate::path_mask_allows; // TODO: Function not defined
-use crate::setup_orchestrator::sandbox_dir;
-use crate::winutil::string_from_sid_bytes;
-use crate::logging::LOG_FILE_NAME;
-use crate::setup_orchestrator::SETUP_VERSION;
+use codex_windows_sandbox::sandbox_dir;
+use codex_windows_sandbox::string_from_sid_bytes;
+use codex_windows_sandbox::LOG_FILE_NAME;
+use codex_windows_sandbox::SETUP_VERSION;
 use rand::rngs::SmallRng;
 use rand::RngCore;
 use rand::SeedableRng;
