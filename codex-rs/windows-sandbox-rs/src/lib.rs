@@ -8,7 +8,6 @@ windows_modules!(
     acl, allow, audit, cap, dpapi, env, identity, logging, policy, process, token, winutil
 );
 
-pub mod setup_main_win;
 pub mod setup_orchestrator;
 
 #[cfg(target_os = "windows")]
@@ -29,6 +28,8 @@ pub use logging::LOG_FILE_NAME;
 #[cfg(target_os = "windows")]
 pub use token::convert_string_sid_to_sid;
 #[cfg(target_os = "windows")]
+pub use winutil::string_from_sid_bytes;
+#[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
 
 #[cfg(not(target_os = "windows"))]
@@ -44,6 +45,7 @@ pub use setup_orchestrator::setup_marker_path;
 pub use setup_orchestrator::sandbox_users_path;
 pub use setup_orchestrator::run_setup_refresh;
 pub use setup_orchestrator::run_elevated_setup;
+pub use setup_orchestrator::SETUP_VERSION;
 #[cfg(target_os = "windows")]
 mod windows_impl {
     use super::acl::add_allow_ace;
