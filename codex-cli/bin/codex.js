@@ -62,7 +62,6 @@ if (!targetTriple) {
 const vendorRoot = path.join(__dirname, "..", "vendor");
 const archRoot = path.join(vendorRoot, targetTriple);
 const codexBinaryName = process.platform === "win32" ? "codex.exe" : "codex";
-<<<<<<< HEAD
 
 // Try platform-specific binary name first, then fallback to default
 let binaryPath = path.join(archRoot, "codex", `codex-${targetTriple}`);
@@ -72,9 +71,6 @@ if (!existsSync(binaryPath)) {
 if (!existsSync(binaryPath)) {
   throw new Error(`Codex binary not found for platform ${targetTriple} at ${binaryPath}`);
 }
-=======
-const binaryPath = path.join(archRoot, "codex", codexBinaryName);
->>>>>>> upstream/main
 
 // Use an asynchronous spawn instead of spawnSync so that Node is able to
 // respond to signals (e.g. Ctrl-C / SIGINT) while the native binary is
@@ -107,7 +103,6 @@ function detectPackageManager() {
     return "bun";
   }
 
-<<<<<<< HEAD
   if (
     process.env.BUN_INSTALL ||
     process.env.BUN_INSTALL_GLOBAL_DIR ||
@@ -116,8 +111,6 @@ function detectPackageManager() {
     return "bun";
   }
 
-=======
->>>>>>> upstream/main
   return userAgent ? "npm" : null;
 }
 

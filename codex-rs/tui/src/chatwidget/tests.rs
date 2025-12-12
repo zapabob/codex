@@ -242,120 +242,6 @@ fn exited_review_mode_emits_results_and_finishes() {
     assert!(!chat.is_review_mode);
 }
 
-<<<<<<< HEAD
-=======
-/// Exiting review restores the pre-review context window indicator.
-#[test]
-fn review_restores_context_window_indicator() {
-    let (mut chat, mut rx, _ops) = make_chatwidget_manual(None);
-
-    let context_window = 13_000;
-    let pre_review_tokens = 12_700; // ~30% remaining after subtracting baseline.
-    let review_tokens = 12_030; // ~97% remaining after subtracting baseline.
-
-    chat.handle_codex_event(Event {
-        id: "token-before".into(),
-        msg: EventMsg::TokenCount(TokenCountEvent {
-            info: Some(make_token_info(pre_review_tokens, context_window)),
-            rate_limits: None,
-        }),
-    });
-    assert_eq!(chat.bottom_pane.context_window_percent(), Some(30));
-
-    chat.handle_codex_event(Event {
-        id: "review-start".into(),
-        msg: EventMsg::EnteredReviewMode(ReviewRequest {
-            target: ReviewTarget::BaseBranch {
-                branch: "feature".to_string(),
-            },
-            user_facing_hint: Some("feature branch".to_string()),
-        }),
-    });
-
-    chat.handle_codex_event(Event {
-        id: "token-review".into(),
-        msg: EventMsg::TokenCount(TokenCountEvent {
-            info: Some(make_token_info(review_tokens, context_window)),
-            rate_limits: None,
-        }),
-    });
-    assert_eq!(chat.bottom_pane.context_window_percent(), Some(97));
-
-    chat.handle_codex_event(Event {
-        id: "review-end".into(),
-        msg: EventMsg::ExitedReviewMode(ExitedReviewModeEvent {
-            review_output: None,
-        }),
-    });
-    let _ = drain_insert_history(&mut rx);
-
-    assert_eq!(chat.bottom_pane.context_window_percent(), Some(30));
-    assert!(!chat.is_review_mode);
-}
-
-/// Receiving a TokenCount event without usage clears the context indicator.
-#[test]
-fn token_count_none_resets_context_indicator() {
-    let (mut chat, _rx, _ops) = make_chatwidget_manual(None);
-
-    let context_window = 13_000;
-    let pre_compact_tokens = 12_700;
-
-    chat.handle_codex_event(Event {
-        id: "token-before".into(),
-        msg: EventMsg::TokenCount(TokenCountEvent {
-            info: Some(make_token_info(pre_compact_tokens, context_window)),
-            rate_limits: None,
-        }),
-    });
-    assert_eq!(chat.bottom_pane.context_window_percent(), Some(30));
-
-    chat.handle_codex_event(Event {
-        id: "token-cleared".into(),
-        msg: EventMsg::TokenCount(TokenCountEvent {
-            info: None,
-            rate_limits: None,
-        }),
-    });
-    assert_eq!(chat.bottom_pane.context_window_percent(), None);
-}
-
-#[test]
-fn context_indicator_shows_used_tokens_when_window_unknown() {
-    let (mut chat, _rx, _ops) = make_chatwidget_manual(Some("unknown-model"));
-
-    chat.config.model_context_window = None;
-    let auto_compact_limit = 200_000;
-    chat.config.model_auto_compact_token_limit = Some(auto_compact_limit);
-
-    // No model window, so the indicator should fall back to showing tokens used.
-    let total_tokens = 106_000;
-    let token_usage = TokenUsage {
-        total_tokens,
-        ..TokenUsage::default()
-    };
-    let token_info = TokenUsageInfo {
-        total_token_usage: token_usage.clone(),
-        last_token_usage: token_usage,
-        model_context_window: None,
-    };
-
-    chat.handle_codex_event(Event {
-        id: "token-usage".into(),
-        msg: EventMsg::TokenCount(TokenCountEvent {
-            info: Some(token_info),
-            rate_limits: None,
-        }),
-    });
-
-    assert_eq!(chat.bottom_pane.context_window_percent(), None);
-    assert_eq!(
-        chat.bottom_pane.context_window_used_tokens(),
-        Some(total_tokens)
-    );
-}
-
->>>>>>> upstream/main
 #[cfg_attr(
     target_os = "macos",
     ignore = "system configuration APIs are blocked under macOS seatbelt"
@@ -365,18 +251,9 @@ async fn helpers_are_available_and_do_not_panic() {
     let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
     let tx = AppEventSender::new(tx_raw);
     let cfg = test_config();
-<<<<<<< HEAD
     let conversation_manager = Arc::new(ConversationManager::with_auth(CodexAuth::from_api_key(
         "test",
     )));
-=======
-    let resolved_model = ModelsManager::get_model_offline(cfg.model.as_deref());
-    let model_family = ModelsManager::construct_model_family_offline(&resolved_model, &cfg);
-    let conversation_manager = Arc::new(ConversationManager::with_models_provider(
-        CodexAuth::from_api_key("test"),
-        cfg.model_provider.clone(),
-    ));
->>>>>>> upstream/main
     let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("test"));
     let init = ChatWidgetInit {
         config: cfg,
@@ -387,11 +264,6 @@ async fn helpers_are_available_and_do_not_panic() {
         enhanced_keys_supported: false,
         auth_manager,
         feedback: codex_feedback::CodexFeedback::new(),
-<<<<<<< HEAD
-=======
-        is_first_run: true,
-        model_family,
->>>>>>> upstream/main
     };
     let mut w = ChatWidget::new(init, conversation_manager);
     // Basic construction sanity.
@@ -431,15 +303,8 @@ fn make_chatwidget_manual(
         bottom_pane: bottom,
         active_cell: None,
         config: cfg.clone(),
-<<<<<<< HEAD
         auth_manager,
         session_header: SessionHeader::new(cfg.model),
-=======
-        model_family: ModelsManager::construct_model_family_offline(&resolved_model, &cfg),
-        auth_manager: auth_manager.clone(),
-        models_manager: Arc::new(ModelsManager::new(auth_manager)),
-        session_header: SessionHeader::new(resolved_model.clone()),
->>>>>>> upstream/main
         initial_user_message: None,
         token_info: None,
         rate_limit_snapshot: None,
@@ -555,111 +420,6 @@ fn test_rate_limit_warnings_monthly() {
 }
 
 #[test]
-<<<<<<< HEAD
-=======
-fn rate_limit_snapshot_keeps_prior_credits_when_missing_from_headers() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(None);
-
-    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
-        primary: None,
-        secondary: None,
-        credits: Some(CreditsSnapshot {
-            has_credits: true,
-            unlimited: false,
-            balance: Some("17.5".to_string()),
-        }),
-        plan_type: None,
-    }));
-    let initial_balance = chat
-        .rate_limit_snapshot
-        .as_ref()
-        .and_then(|snapshot| snapshot.credits.as_ref())
-        .and_then(|credits| credits.balance.as_deref());
-    assert_eq!(initial_balance, Some("17.5"));
-
-    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
-        primary: Some(RateLimitWindow {
-            used_percent: 80.0,
-            window_minutes: Some(60),
-            resets_at: Some(123),
-        }),
-        secondary: None,
-        credits: None,
-        plan_type: None,
-    }));
-
-    let display = chat
-        .rate_limit_snapshot
-        .as_ref()
-        .expect("rate limits should be cached");
-    let credits = display
-        .credits
-        .as_ref()
-        .expect("credits should persist when headers omit them");
-
-    assert_eq!(credits.balance.as_deref(), Some("17.5"));
-    assert!(!credits.unlimited);
-    assert_eq!(
-        display.primary.as_ref().map(|window| window.used_percent),
-        Some(80.0)
-    );
-}
-
-#[test]
-fn rate_limit_snapshot_updates_and_retains_plan_type() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(None);
-
-    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
-        primary: Some(RateLimitWindow {
-            used_percent: 10.0,
-            window_minutes: Some(60),
-            resets_at: None,
-        }),
-        secondary: Some(RateLimitWindow {
-            used_percent: 5.0,
-            window_minutes: Some(300),
-            resets_at: None,
-        }),
-        credits: None,
-        plan_type: Some(PlanType::Plus),
-    }));
-    assert_eq!(chat.plan_type, Some(PlanType::Plus));
-
-    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
-        primary: Some(RateLimitWindow {
-            used_percent: 25.0,
-            window_minutes: Some(30),
-            resets_at: Some(123),
-        }),
-        secondary: Some(RateLimitWindow {
-            used_percent: 15.0,
-            window_minutes: Some(300),
-            resets_at: Some(234),
-        }),
-        credits: None,
-        plan_type: Some(PlanType::Pro),
-    }));
-    assert_eq!(chat.plan_type, Some(PlanType::Pro));
-
-    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
-        primary: Some(RateLimitWindow {
-            used_percent: 30.0,
-            window_minutes: Some(60),
-            resets_at: Some(456),
-        }),
-        secondary: Some(RateLimitWindow {
-            used_percent: 18.0,
-            window_minutes: Some(300),
-            resets_at: Some(567),
-        }),
-        credits: None,
-        plan_type: None,
-    }));
-    assert_eq!(chat.plan_type, Some(PlanType::Pro));
-}
-
-#[test]
->>>>>>> upstream/main
 fn rate_limit_switch_prompt_skips_when_on_lower_cost_model() {
     let (mut chat, _, _) = make_chatwidget_manual(Some(NUDGE_MODEL_SLUG));
     chat.auth_manager =
@@ -698,24 +458,6 @@ fn rate_limit_switch_prompt_shows_once_per_session() {
 }
 
 #[test]
-<<<<<<< HEAD
-=======
-fn rate_limit_switch_prompt_respects_hidden_notice() {
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
-    let (mut chat, _, _) = make_chatwidget_manual(Some("gpt-5"));
-    chat.auth_manager = AuthManager::from_auth_for_testing(auth);
-    chat.config.notices.hide_rate_limit_model_nudge = Some(true);
-
-    chat.on_rate_limit_snapshot(Some(snapshot(95.0)));
-
-    assert!(matches!(
-        chat.rate_limit_switch_prompt,
-        RateLimitSwitchPromptState::Idle
-    ));
-}
-
-#[test]
->>>>>>> upstream/main
 fn rate_limit_switch_prompt_defers_until_task_complete() {
     let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
     let (mut chat, _, _) = make_chatwidget_manual(Some("gpt-5"));
@@ -763,11 +505,7 @@ fn exec_approval_emits_proposed_command_and_decision_history() {
         reason: Some(
             "this is a test reason such as one that would be produced by the model".into(),
         ),
-<<<<<<< HEAD
         risk: None,
-=======
-        proposed_execpolicy_amendment: None,
->>>>>>> upstream/main
         parsed_cmd: vec![],
     };
     chat.handle_codex_event(Event {
@@ -810,11 +548,7 @@ fn exec_approval_decision_truncates_multiline_and_long_commands() {
         reason: Some(
             "this is a test reason such as one that would be produced by the model".into(),
         ),
-<<<<<<< HEAD
         risk: None,
-=======
-        proposed_execpolicy_amendment: None,
->>>>>>> upstream/main
         parsed_cmd: vec![],
     };
     chat.handle_codex_event(Event {
@@ -863,11 +597,7 @@ fn exec_approval_decision_truncates_multiline_and_long_commands() {
         command: vec!["bash".into(), "-lc".into(), long],
         cwd: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
         reason: None,
-<<<<<<< HEAD
         risk: None,
-=======
-        proposed_execpolicy_amendment: None,
->>>>>>> upstream/main
         parsed_cmd: vec![],
     };
     chat.handle_codex_event(Event {
@@ -936,7 +666,6 @@ fn active_blob(chat: &ChatWidget) -> String {
     lines_to_single_string(&lines)
 }
 
-<<<<<<< HEAD
 fn open_fixture(name: &str) -> File {
     // 1) Prefer fixtures within this crate
     {
@@ -959,18 +688,6 @@ fn open_fixture(name: &str) -> File {
     }
     // 3) Last resort: CWD
     File::open(name).expect("open fixture file")
-=======
-fn get_available_model(chat: &ChatWidget, model: &str) -> ModelPreset {
-    let models = chat
-        .models_manager
-        .try_list_models()
-        .expect("models lock available");
-    models
-        .iter()
-        .find(|&preset| preset.model == model)
-        .cloned()
-        .unwrap_or_else(|| panic!("{model} preset not found"))
->>>>>>> upstream/main
 }
 
 #[test]
@@ -1176,78 +893,6 @@ fn exec_history_cell_shows_working_then_failed() {
     assert!(blob.to_lowercase().contains("bloop"), "expected error text");
 }
 
-<<<<<<< HEAD
-=======
-#[test]
-fn exec_end_without_begin_uses_event_command() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
-    let command = vec![
-        "bash".to_string(),
-        "-lc".to_string(),
-        "echo orphaned".to_string(),
-    ];
-    let parsed_cmd = codex_core::parse_command::parse_command(&command);
-    let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    chat.handle_codex_event(Event {
-        id: "call-orphan".to_string(),
-        msg: EventMsg::ExecCommandEnd(ExecCommandEndEvent {
-            call_id: "call-orphan".to_string(),
-            process_id: None,
-            turn_id: "turn-1".to_string(),
-            command,
-            cwd,
-            parsed_cmd,
-            source: ExecCommandSource::Agent,
-            interaction_input: None,
-            stdout: "done".to_string(),
-            stderr: String::new(),
-            aggregated_output: "done".to_string(),
-            exit_code: 0,
-            duration: std::time::Duration::from_millis(5),
-            formatted_output: "done".to_string(),
-        }),
-    });
-
-    let cells = drain_insert_history(&mut rx);
-    assert_eq!(cells.len(), 1, "expected finalized exec cell to flush");
-    let blob = lines_to_single_string(&cells[0]);
-    assert!(
-        blob.contains("• Ran echo orphaned"),
-        "expected command text to come from event: {blob:?}"
-    );
-    assert!(
-        !blob.contains("call-orphan"),
-        "call id should not be rendered when event has the command: {blob:?}"
-    );
-}
-
-#[test]
-fn exec_history_shows_unified_exec_startup_commands() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
-
-    let begin = begin_exec_with_source(
-        &mut chat,
-        "call-startup",
-        "echo unified exec startup",
-        ExecCommandSource::UnifiedExecStartup,
-    );
-    assert!(
-        drain_insert_history(&mut rx).is_empty(),
-        "exec begin should not flush until completion"
-    );
-
-    end_exec(&mut chat, begin, "echo unified exec startup\n", "", 0);
-
-    let cells = drain_insert_history(&mut rx);
-    assert_eq!(cells.len(), 1, "expected finalized exec cell to flush");
-    let blob = lines_to_single_string(&cells[0]);
-    assert!(
-        blob.contains("• Ran echo unified exec startup"),
-        "expected startup command to render: {blob:?}"
-    );
-}
-
->>>>>>> upstream/main
 /// Selecting the custom prompt option from the review popup sends
 /// OpenReviewCustomPrompt to the app event channel.
 #[test]
@@ -1326,18 +971,6 @@ fn slash_exit_requests_exit() {
 }
 
 #[test]
-<<<<<<< HEAD
-=======
-fn slash_resume_opens_picker() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
-
-    chat.dispatch_command(SlashCommand::Resume);
-
-    assert_matches!(rx.try_recv(), Ok(AppEvent::OpenResumePicker));
-}
-
-#[test]
->>>>>>> upstream/main
 fn slash_undo_sends_op() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
 
@@ -1844,13 +1477,8 @@ fn full_access_confirmation_popup_snapshot() {
 
 #[cfg(target_os = "windows")]
 #[test]
-<<<<<<< HEAD
 fn windows_auto_mode_instructions_popup_lists_install_steps() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual();
-=======
-fn windows_auto_mode_prompt_requests_enabling_sandbox_feature() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(None);
->>>>>>> upstream/main
 
     chat.open_windows_auto_mode_instructions();
 
@@ -1861,41 +1489,11 @@ fn windows_auto_mode_prompt_requests_enabling_sandbox_feature() {
     );
 }
 
-<<<<<<< HEAD
-=======
-#[cfg(target_os = "windows")]
-#[test]
-fn startup_prompts_for_windows_sandbox_when_agent_requested() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(None);
-
-    set_windows_sandbox_enabled(false);
-    chat.config.forced_auto_mode_downgraded_on_windows = true;
-
-    chat.maybe_prompt_windows_sandbox_enable();
-
-    let popup = render_bottom_popup(&chat, 120);
-    assert!(
-        popup.contains("Agent mode on Windows uses an experimental sandbox"),
-        "expected startup prompt to explain sandbox: {popup}"
-    );
-    assert!(
-        popup.contains("Enable experimental sandbox"),
-        "expected startup prompt to offer enabling the sandbox: {popup}"
-    );
-
-    set_windows_sandbox_enabled(true);
-}
-
->>>>>>> upstream/main
 #[test]
 fn model_reasoning_selection_popup_snapshot() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.1-codex-max"));
 
-<<<<<<< HEAD
     chat.config.model = "gpt-5-codex".to_string();
-=======
-    set_chatgpt_auth(&mut chat);
->>>>>>> upstream/main
     chat.config.model_reasoning_effort = Some(ReasoningEffortConfig::High);
 
     let preset = builtin_model_presets(None)
@@ -1909,43 +1507,6 @@ fn model_reasoning_selection_popup_snapshot() {
 }
 
 #[test]
-<<<<<<< HEAD
-=======
-fn model_reasoning_selection_popup_extra_high_warning_snapshot() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.1-codex-max"));
-
-    set_chatgpt_auth(&mut chat);
-    chat.config.model_reasoning_effort = Some(ReasoningEffortConfig::XHigh);
-
-    let preset = get_available_model(&chat, "gpt-5.1-codex-max");
-    chat.open_reasoning_popup(preset);
-
-    let popup = render_bottom_popup(&chat, 80);
-    assert_snapshot!("model_reasoning_selection_popup_extra_high_warning", popup);
-}
-
-#[test]
-fn reasoning_popup_shows_extra_high_with_space() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.1-codex-max"));
-
-    set_chatgpt_auth(&mut chat);
-
-    let preset = get_available_model(&chat, "gpt-5.1-codex-max");
-    chat.open_reasoning_popup(preset);
-
-    let popup = render_bottom_popup(&chat, 120);
-    assert!(
-        popup.contains("Extra high"),
-        "expected popup to include 'Extra high'; popup: {popup}"
-    );
-    assert!(
-        !popup.contains("Extrahigh"),
-        "expected popup not to include 'Extrahigh'; popup: {popup}"
-    );
-}
-
-#[test]
->>>>>>> upstream/main
 fn single_reasoning_option_skips_selection() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
 
@@ -2007,13 +1568,9 @@ fn feedback_upload_consent_popup_snapshot() {
 
 #[test]
 fn reasoning_popup_escape_returns_to_model_popup() {
-<<<<<<< HEAD
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual();
 
     chat.config.model = "gpt-5".to_string();
-=======
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.1"));
->>>>>>> upstream/main
     chat.open_model_popup();
 
     let presets = builtin_model_presets(None)
@@ -2064,31 +1621,6 @@ fn exec_history_extends_previous_when_consecutive() {
 }
 
 #[test]
-<<<<<<< HEAD
-=======
-fn user_shell_command_renders_output_not_exploring() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
-
-    let begin_ls = begin_exec_with_source(
-        &mut chat,
-        "user-shell-ls",
-        "ls",
-        ExecCommandSource::UserShell,
-    );
-    end_exec(&mut chat, begin_ls, "file1\nfile2\n", "", 0);
-
-    let cells = drain_insert_history(&mut rx);
-    assert_eq!(
-        cells.len(),
-        1,
-        "expected a single history cell for the user command"
-    );
-    let blob = lines_to_single_string(cells.first().unwrap());
-    assert_snapshot!("user_shell_ls_output", blob);
-}
-
-#[test]
->>>>>>> upstream/main
 fn disabled_slash_command_while_task_running_snapshot() {
     // Build a chat widget and simulate an active task
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
@@ -2286,15 +1818,7 @@ fn approval_modal_exec_snapshot() {
         reason: Some(
             "this is a test reason such as one that would be produced by the model".into(),
         ),
-<<<<<<< HEAD
         risk: None,
-=======
-        proposed_execpolicy_amendment: Some(ExecPolicyAmendment::new(vec![
-            "echo".into(),
-            "hello".into(),
-            "world".into(),
-        ])),
->>>>>>> upstream/main
         parsed_cmd: vec![],
     };
     chat.handle_codex_event(Event {
@@ -2339,15 +1863,7 @@ fn approval_modal_exec_without_reason_snapshot() {
         command: vec!["bash".into(), "-lc".into(), "echo hello world".into()],
         cwd: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
         reason: None,
-<<<<<<< HEAD
         risk: None,
-=======
-        proposed_execpolicy_amendment: Some(ExecPolicyAmendment::new(vec![
-            "echo".into(),
-            "hello".into(),
-            "world".into(),
-        ])),
->>>>>>> upstream/main
         parsed_cmd: vec![],
     };
     chat.handle_codex_event(Event {
@@ -2558,14 +2074,7 @@ fn status_widget_and_approval_modal_snapshot() {
         reason: Some(
             "this is a test reason such as one that would be produced by the model".into(),
         ),
-<<<<<<< HEAD
         risk: None,
-=======
-        proposed_execpolicy_amendment: Some(ExecPolicyAmendment::new(vec![
-            "echo".into(),
-            "hello world".into(),
-        ])),
->>>>>>> upstream/main
         parsed_cmd: vec![],
     };
     chat.handle_codex_event(Event {
@@ -2613,25 +2122,6 @@ fn status_widget_active_snapshot() {
 }
 
 #[test]
-<<<<<<< HEAD
-=======
-fn background_event_updates_status_header() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
-
-    chat.handle_codex_event(Event {
-        id: "bg-1".into(),
-        msg: EventMsg::BackgroundEvent(BackgroundEventEvent {
-            message: "Waiting for `vim`".to_string(),
-        }),
-    });
-
-    assert!(chat.bottom_pane.status_indicator_visible());
-    assert_eq!(chat.current_status_header, "Waiting for `vim`");
-    assert!(drain_insert_history(&mut rx).is_empty());
-}
-
-#[test]
->>>>>>> upstream/main
 fn apply_patch_events_emit_history_cells() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(None);
 

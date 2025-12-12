@@ -6,9 +6,9 @@
 //!      key. These override or extend the defaults at runtime.
 
 use crate::CodexAuth;
-use crate::default_client::CodexHttpClient;
 use crate::default_client::CodexRequestBuilder;
 use codex_app_server_protocol::AuthMode;
+use codex_client::CodexHttpClient;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;

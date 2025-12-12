@@ -80,6 +80,7 @@ use crate::protocol::AskForApproval;
 use crate::protocol::BackgroundEventEvent;
 use crate::protocol::DeprecationNoticeEvent;
 use crate::protocol::ErrorEvent;
+use crate::protocol::ExecPolicyAmendment;
 use crate::protocol::Event;
 use crate::protocol::EventMsg;
 use crate::protocol::ExecApprovalRequestEvent;
@@ -88,6 +89,7 @@ use crate::protocol::RateLimitSnapshot;
 use crate::protocol::ReasoningContentDeltaEvent;
 use crate::protocol::ReasoningRawContentDeltaEvent;
 use crate::protocol::ReviewDecision;
+use crate::protocol::SandboxCommandAssessment;
 use crate::protocol::SandboxPolicy;
 use crate::protocol::SessionConfiguredEvent;
 use crate::protocol::SkillErrorInfo;
@@ -98,6 +100,7 @@ use crate::protocol::Submission;
 use crate::protocol::TokenCountEvent;
 use crate::protocol::TokenUsage;
 use crate::protocol::TurnDiffEvent;
+use crate::protocol::WarningEvent;
 use crate::rollout::RolloutRecorder;
 use crate::rollout::RolloutRecorderParams;
 use crate::shell;
@@ -199,12 +202,7 @@ impl Codex {
         .await;
 
         let config = Arc::new(config);
-        if config.features.enabled(Feature::RemoteModels)
-            && let Err(err) = models_manager.refresh_available_models(&config).await
-        {
-            error!("failed to refresh available models: {err:?}");
-        }
-        let model = models_manager.get_model(&config.model, &config).await;
+        let model = config.model.clone();
         let session_configuration = SessionConfiguration {
             provider: config.model_provider.clone(),
             model: model.clone(),
@@ -627,7 +625,7 @@ impl Session {
             config.active_profile.clone(),
         );
 
-        let mut default_shell = shell::default_user_shell();
+        let mut default_shell = shell::default_user_shell().await;
         // Create the mutable state for the Session.
         if config.features.enabled(Feature::ShellSnapshot) {
             default_shell.shell_snapshot =
@@ -933,6 +931,7 @@ impl Session {
         }
 
         let parsed_cmd = parse_command(&command);
+        let message = format!("Command execution requires approval: {}", command.join(" "));
         let event = EventMsg::ExecApprovalRequest(ExecApprovalRequestEvent {
             call_id,
             command,
@@ -941,6 +940,9 @@ impl Session {
             risk,
             proposed_execpolicy_amendment,
             parsed_cmd,
+            server_name: "local".to_string(),
+            request_id: self.conversation_id,
+            message,
         });
         self.send_event(turn_context, event).await;
         rx_approve.await.unwrap_or_default()
@@ -1091,7 +1093,7 @@ impl Session {
             Some(turn_context.cwd.clone()),
             Some(turn_context.approval_policy),
             Some(turn_context.sandbox_policy.clone()),
-            shell.as_ref().clone(),
+            Some(shell.as_ref().clone()),
         )));
         items
     }
@@ -2000,7 +2002,12 @@ async fn run_turn(
         .client
         .get_model_family()
         .supports_parallel_tool_calls;
-    let parallel_tool_calls = model_supports_parallel && sess.enabled(Feature::ParallelToolCalls);
+    let parallel_tool_calls = model_supports_parallel
+        && turn_context
+            .client
+            .config()
+            .features
+            .enabled(Feature::ParallelToolCalls);
     let prompt = Prompt {
         input,
         tools: router.specs(),

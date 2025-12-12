@@ -1,4 +1,6 @@
 use crate::codex::TurnContext;
+use crate::protocol::EventMsg;
+use crate::protocol::WarningEvent;
 use crate::state::TaskKind;
 use crate::tasks::SessionTask;
 use crate::tasks::SessionTaskContext;

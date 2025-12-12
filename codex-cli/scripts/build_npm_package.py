@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-<<<<<<< HEAD
 """Stage and optionally package the @zapabob/codex npm module."""
-=======
-"""Stage and optionally package the @openai/codex npm module."""
->>>>>>> upstream/main
 
 import argparse
 import json

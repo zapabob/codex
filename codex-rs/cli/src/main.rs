@@ -20,12 +20,7 @@ use codex_exec::Cli as ExecCli;
 use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;
 use codex_tui::AppExitInfo;
 use codex_tui::Cli as TuiCli;
-<<<<<<< HEAD
 use codex_tui::updates::UpdateAction;
-=======
-use codex_tui::update_action::UpdateAction;
-use codex_tui2 as tui2;
->>>>>>> upstream/main
 use owo_colors::OwoColorize;
 use std::path::PathBuf;
 use supports_color::Stream;

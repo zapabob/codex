@@ -28,7 +28,7 @@ use crate::model_family::find_family_for_model;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::model_provider_info::built_in_model_providers;
 use crate::openai_model_info::get_model_info;
-use crate::ai_orchestrator::DevelopmentMode;
+use crate::orchestration::development_mode::DevelopmentMode;
 use crate::project_doc::DEFAULT_PROJECT_DOC_FILENAME;
 use crate::project_doc::LOCAL_PROJECT_DOC_FILENAME;
 use crate::protocol::AskForApproval;
@@ -77,8 +77,8 @@ pub(crate) const CONFIG_TOML_FILE: &str = "config.toml";
 /// Application configuration loaded from disk and merged with overrides.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Config {
-    /// Optional override of model selection.
-    pub model: Option<String>,
+    /// Selected model for the session.
+    pub model: String,
 
     /// Model used specifically for review sessions. Defaults to "gpt-5-codex".
     pub review_model: String,
@@ -1244,6 +1244,10 @@ impl Config {
 
 fn default_review_model() -> String {
     OPENAI_DEFAULT_REVIEW_MODEL.to_string()
+}
+
+fn default_model() -> String {
+    OPENAI_DEFAULT_MODEL.to_string()
 }
 
 /// Returns the path to the Codex configuration directory, which can be

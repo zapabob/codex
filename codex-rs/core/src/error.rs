@@ -164,6 +164,7 @@ pub enum CodexErr {
     #[error(transparent)]
     TokioJoin(#[from] JoinError),
 
+    #[cfg(feature = "dev-orchestrator")]
     #[error(transparent)]
     TokioMpscSend(#[from] tokio::sync::mpsc::error::SendError<crate::ai_orchestrator::OrchestrationCommand>),
 

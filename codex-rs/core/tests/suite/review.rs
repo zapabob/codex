@@ -364,13 +364,8 @@ async fn review_uses_custom_review_model_from_config() {
     let codex_home = TempDir::new().unwrap();
     // Choose a review model different from the main model; ensure it is used.
     let codex = new_conversation_for_server(&server, &codex_home, |cfg| {
-<<<<<<< HEAD
         cfg.model = "gpt-4.1".to_string();
         cfg.review_model = "gpt-5".to_string();
-=======
-        cfg.model = Some("gpt-4.1".to_string());
-        cfg.review_model = "gpt-5.1".to_string();
->>>>>>> upstream/main
     })
     .await;
 

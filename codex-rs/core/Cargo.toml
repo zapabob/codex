@@ -12,6 +12,7 @@ path = "src/lib.rs"
 [features]
 agent_security = []
 cuda = []
+dev-orchestrator = []
 test-support = []
 windows-ai = ["codex-windows-ai"]
 

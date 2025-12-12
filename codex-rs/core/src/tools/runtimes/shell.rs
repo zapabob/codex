@@ -6,25 +6,14 @@ builds a CommandSpec, and runs it under the current SandboxAttempt.
 */
 use crate::command_safety::is_dangerous_command::requires_initial_appoval;
 use crate::exec::ExecToolCallOutput;
-<<<<<<< HEAD
 use crate::protocol::SandboxPolicy;
-=======
 use crate::sandboxing::SandboxPermissions;
->>>>>>> upstream/main
 use crate::sandboxing::execute_env;
 use crate::tools::runtimes::build_command_spec;
 use crate::tools::runtimes::maybe_wrap_shell_lc_with_snapshot;
 use crate::tools::sandboxing::Approvable;
 use crate::tools::sandboxing::ApprovalCtx;
-<<<<<<< HEAD
-use crate::tools::sandboxing::ProvidesSandboxRetryData;
 use crate::tools::sandboxing::SandboxAttempt;
-use crate::tools::sandboxing::SandboxRetryData;
-=======
-use crate::tools::sandboxing::ExecApprovalRequirement;
-use crate::tools::sandboxing::SandboxAttempt;
-use crate::tools::sandboxing::SandboxOverride;
->>>>>>> upstream/main
 use crate::tools::sandboxing::Sandboxable;
 use crate::tools::sandboxing::SandboxablePreference;
 use crate::tools::sandboxing::ToolCtx;
@@ -108,20 +97,7 @@ impl Approvable<ShellRequest> for ShellRuntime {
         Box::pin(async move {
             with_cached_approval(&session.services, key, move || async move {
                 session
-<<<<<<< HEAD
-                    .request_command_approval(turn, call_id, command, cwd, reason, risk)
-=======
-                    .request_command_approval(
-                        turn,
-                        call_id,
-                        command,
-                        cwd,
-                        reason,
-                        req.exec_approval_requirement
-                            .proposed_execpolicy_amendment()
-                            .cloned(),
-                    )
->>>>>>> upstream/main
+                    .request_command_approval(turn, call_id, command, cwd, reason, None, None)
                     .await
             })
             .await
@@ -138,29 +114,12 @@ impl Approvable<ShellRequest> for ShellRuntime {
             policy,
             sandbox_policy,
             &req.command,
-            req.with_escalated_permissions.unwrap_or(false),
+            req.sandbox_permissions.requires_escalated_permissions(),
         )
     }
 
-<<<<<<< HEAD
     fn wants_escalated_first_attempt(&self, req: &ShellRequest) -> bool {
-        req.with_escalated_permissions.unwrap_or(false)
-=======
-    fn sandbox_mode_for_first_attempt(&self, req: &ShellRequest) -> SandboxOverride {
-        if req.sandbox_permissions.requires_escalated_permissions()
-            || matches!(
-                req.exec_approval_requirement,
-                ExecApprovalRequirement::Skip {
-                    bypass_sandbox: true,
-                    ..
-                }
-            )
-        {
-            SandboxOverride::BypassSandboxFirstAttempt
-        } else {
-            SandboxOverride::NoOverride
-        }
->>>>>>> upstream/main
+        req.sandbox_permissions.requires_escalated_permissions()
     }
 }
 
@@ -179,13 +138,8 @@ impl ToolRuntime<ShellRequest, ExecToolCallOutput> for ShellRuntime {
             &command,
             &req.cwd,
             &req.env,
-<<<<<<< HEAD
             req.timeout_ms,
-            req.with_escalated_permissions,
-=======
-            req.timeout_ms.into(),
             req.sandbox_permissions,
->>>>>>> upstream/main
             req.justification.clone(),
         )?;
         let env = attempt

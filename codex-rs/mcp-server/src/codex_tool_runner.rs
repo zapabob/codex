@@ -178,12 +178,9 @@ async fn run_codex_tool_session_inner(
                         cwd,
                         call_id,
                         reason: _,
-<<<<<<< HEAD
                         risk,
-=======
-                        proposed_execpolicy_amendment: _,
->>>>>>> upstream/main
                         parsed_cmd,
+                        ..
                     }) => {
                         handle_exec_approval_request(
                             command,

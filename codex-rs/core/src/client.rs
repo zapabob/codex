@@ -41,7 +41,6 @@ use crate::client_common::ResponsesApiRequest;
 use crate::client_common::create_reasoning_param_for_request;
 use crate::client_common::create_text_param_for_request;
 use crate::config::Config;
-use crate::default_client::CodexHttpClient;
 use crate::default_client::create_client;
 use crate::error::CodexErr;
 use crate::error::ConnectionFailedError;
@@ -61,6 +60,7 @@ use crate::protocol::TokenUsage;
 use crate::token_data::PlanType;
 use crate::tools::spec::create_tools_json_for_responses_api;
 use crate::util::backoff;
+use codex_client::CodexHttpClient;
 
 #[derive(Debug, Deserialize)]
 struct ErrorResponse {

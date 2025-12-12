@@ -13,7 +13,6 @@ use std::path::Path;
 
 pub mod apply_patch;
 pub mod shell;
-pub mod unified_exec;
 
 /// Shared helper to construct a CommandSpec from a tokenized command line.
 /// Validates that at least a program is present.
@@ -21,13 +20,8 @@ pub(crate) fn build_command_spec(
     command: &[String],
     cwd: &Path,
     env: &HashMap<String, String>,
-<<<<<<< HEAD
     timeout_ms: Option<u64>,
-    with_escalated_permissions: Option<bool>,
-=======
-    expiration: ExecExpiration,
     sandbox_permissions: SandboxPermissions,
->>>>>>> upstream/main
     justification: Option<String>,
 ) -> Result<CommandSpec, ToolError> {
     let (program, args) = command
@@ -38,13 +32,8 @@ pub(crate) fn build_command_spec(
         args: args.to_vec(),
         cwd: cwd.to_path_buf(),
         env: env.clone(),
-<<<<<<< HEAD
         timeout_ms,
-        with_escalated_permissions,
-=======
-        expiration,
         sandbox_permissions,
->>>>>>> upstream/main
         justification,
     })
 }

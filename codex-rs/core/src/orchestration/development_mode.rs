@@ -370,6 +370,7 @@ impl DevelopmentModeSelector {
             Ok(DevelopmentMode::Worktree {
                 num_worktrees: 3,
                 auto_merge_winner: true,
+                enable_qc: true,
             })
         } else {
             info!("Recommending Central orchestration mode based on history");
@@ -383,6 +384,7 @@ impl DevelopmentModeSelector {
             DevelopmentMode::Central {
                 merge_strategy,
                 dynamic_conflict_detection,
+                ..
             } => {
                 format!(
                     "Central Orchestration Mode\n\
@@ -396,6 +398,7 @@ impl DevelopmentModeSelector {
             DevelopmentMode::Worktree {
                 num_worktrees,
                 auto_merge_winner,
+                ..
             } => {
                 format!(
                     "Git Worktree Parallel Development Mode\n\
@@ -425,12 +428,14 @@ mod tests {
         let central = DevelopmentMode::Central {
             merge_strategy: MergeStrategy::ThreeWayMerge,
             dynamic_conflict_detection: true,
+            enable_qc: true,
         };
         assert_eq!(central.to_execution_mode(), ExecutionMode::Orchestrated);
 
         let worktree = DevelopmentMode::Worktree {
             num_worktrees: 3,
             auto_merge_winner: true,
+            enable_qc: true,
         };
         assert_eq!(worktree.to_execution_mode(), ExecutionMode::Competition);
     }

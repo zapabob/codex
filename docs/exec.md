@@ -6,15 +6,12 @@ Use Codex in non-interactive mode to automate common workflows.
 codex exec "count the total number of lines of code in this project"
 ```
 
-<<<<<<< HEAD
 > [!NOTE]
 > When launching Codex through package runners such as `npx`/`npm exec` or `pnpm exec`, include `--` before the `exec` subcommand
 > to force non-interactive mode (for example, `npx @openai/codex -- exec "list stale branches"`). Without the separator, the
 > package runner may forward the word `exec` as part of your prompt and Codex will stay in the interactive TUI instead of running
 > the automation flow.
 
-=======
->>>>>>> upstream/main
 In non-interactive mode, Codex does not ask for command or edit approvals. By default it runs in `read-only` mode, so it cannot edit files or run commands that require network access.
 
 Use `codex exec --full-auto` to allow file edits. Use `codex exec --sandbox danger-full-access` to allow edits and networked commands.
@@ -108,13 +105,8 @@ codex exec resume --last "Fix use-after-free issues"
 Only the conversation context is preserved; you must still provide flags to customize Codex behavior.
 
 ```shell
-<<<<<<< HEAD
 codex exec --model gpt-5-codex --json "Review the change, look for use-after-free issues"
 codex exec --model gpt-5 --json resume --last "Fix use-after-free issues"
-=======
-codex exec --model gpt-5.1-codex-max --json "Review the change, look for use-after-free issues"
-codex exec --model gpt-5.1 --json resume --last "Fix use-after-free issues"
->>>>>>> upstream/main
 ```
 
 ## Authentication

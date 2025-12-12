@@ -290,23 +290,6 @@ impl BottomPane {
         self.status.as_ref()
     }
 
-<<<<<<< HEAD
-=======
-    pub fn skills(&self) -> Option<&Vec<SkillMetadata>> {
-        self.composer.skills()
-    }
-
-    #[cfg(test)]
-    pub(crate) fn context_window_percent(&self) -> Option<i64> {
-        self.context_window_percent
-    }
-
-    #[cfg(test)]
-    pub(crate) fn context_window_used_tokens(&self) -> Option<i64> {
-        self.context_window_used_tokens
-    }
-
->>>>>>> upstream/main
     fn active_view(&self) -> Option<&dyn BottomPaneView> {
         self.view_stack.last().map(std::convert::AsRef::as_ref)
     }
@@ -909,11 +892,7 @@ mod tests {
             id: "1".to_string(),
             command: vec!["echo".into(), "ok".into()],
             reason: None,
-<<<<<<< HEAD
             risk: None,
-=======
-            proposed_execpolicy_amendment: None,
->>>>>>> upstream/main
         }
     }
 

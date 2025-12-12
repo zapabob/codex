@@ -5,11 +5,7 @@ use crate::RolloutRecorder;
 use crate::agents::AgentRuntime;
 use crate::async_subagent_integration::AsyncSubAgentIntegration;
 use crate::mcp_connection_manager::McpConnectionManager;
-<<<<<<< HEAD
-=======
-use crate::openai_models::models_manager::ModelsManager;
 use crate::skills::SkillLoadOutcome;
->>>>>>> upstream/main
 use crate::tools::sandboxing::ApprovalStore;
 use crate::unified_exec::UnifiedExecSessionManager;
 use crate::user_notification::UserNotifier;
@@ -25,14 +21,8 @@ pub(crate) struct SessionServices {
     pub(crate) show_raw_agent_reasoning: bool,
     pub(crate) auth_manager: Arc<AuthManager>,
     pub(crate) otel_event_manager: OtelEventManager,
-<<<<<<< HEAD
-    #[allow(dead_code)]
     pub(crate) agent_runtime: Arc<AgentRuntime>,
-    #[allow(dead_code)]
     pub(crate) async_subagent_integration: Arc<AsyncSubAgentIntegration>,
-    pub(crate) tool_approvals: Arc<Mutex<ApprovalStore>>,
-=======
     pub(crate) tool_approvals: Mutex<ApprovalStore>,
     pub(crate) skills: Option<SkillLoadOutcome>,
->>>>>>> upstream/main
 }

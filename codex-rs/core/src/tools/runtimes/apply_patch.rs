@@ -118,11 +118,8 @@ impl Approvable<ApplyPatchRequest> for ApplyPatchRuntime {
                             vec!["apply_patch".to_string()],
                             cwd,
                             Some(reason),
-<<<<<<< HEAD
-                            risk,
-=======
                             None,
->>>>>>> upstream/main
+                            None,
                         )
                         .await
                 } else if user_explicitly_approved {

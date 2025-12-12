@@ -294,6 +294,7 @@ impl PlanBlock {
             rollback: String::new(),
             artifacts: Vec::new(),
             research: None,
+            quality_assurance: None,
             state: super::state::PlanState::Drafting,
             need_approval: true,
             created_at: now,

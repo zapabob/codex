@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 FROM node:25-slim
-=======
-FROM node:24-slim
->>>>>>> upstream/main
 
 ARG TZ
 ENV TZ="$TZ"

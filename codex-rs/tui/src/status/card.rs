@@ -66,11 +66,6 @@ struct StatusHistoryCell {
 
 pub(crate) fn new_status_output(
     config: &Config,
-<<<<<<< HEAD
-=======
-    auth_manager: &AuthManager,
-    model_family: &ModelFamily,
->>>>>>> upstream/main
     total_usage: &TokenUsage,
     context_usage: Option<&TokenUsage>,
     session_id: &Option<ConversationId>,
@@ -81,11 +76,6 @@ pub(crate) fn new_status_output(
     let command = PlainHistoryCell::new(vec!["/status".magenta().into()]);
     let card = StatusHistoryCell::new(
         config,
-<<<<<<< HEAD
-=======
-        auth_manager,
-        model_family,
->>>>>>> upstream/main
         total_usage,
         context_usage,
         session_id,
@@ -100,11 +90,6 @@ pub(crate) fn new_status_output(
 impl StatusHistoryCell {
     fn new(
         config: &Config,
-<<<<<<< HEAD
-=======
-        auth_manager: &AuthManager,
-        model_family: &ModelFamily,
->>>>>>> upstream/main
         total_usage: &TokenUsage,
         context_usage: Option<&TokenUsage>,
         session_id: &Option<ConversationId>,

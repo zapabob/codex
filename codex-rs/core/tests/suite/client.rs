@@ -241,13 +241,9 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
 
     // Mock server that will receive the resumed request
     let server = MockServer::start().await;
-<<<<<<< HEAD
     let resp_mock =
         responses::mount_sse_once_match(&server, path("/v1/responses"), sse_completed("resp1"))
             .await;
-=======
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
->>>>>>> upstream/main
 
     // Configure Codex to resume from our file
     let model_provider = ModelProviderInfo {
@@ -395,13 +391,9 @@ async fn includes_base_instructions_override_in_request() {
     skip_if_no_network!();
     // Mock server
     let server = MockServer::start().await;
-<<<<<<< HEAD
     let resp_mock =
         responses::mount_sse_once_match(&server, path("/v1/responses"), sse_completed("resp1"))
             .await;
-=======
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
->>>>>>> upstream/main
 
     let model_provider = ModelProviderInfo {
         base_url: Some(format!("{}/v1", server.uri())),
@@ -597,13 +589,9 @@ async fn includes_user_instructions_message_in_request() {
     skip_if_no_network!();
     let server = MockServer::start().await;
 
-<<<<<<< HEAD
     let resp_mock =
         responses::mount_sse_once_match(&server, path("/v1/responses"), sse_completed("resp1"))
             .await;
-=======
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
->>>>>>> upstream/main
 
     let model_provider = ModelProviderInfo {
         base_url: Some(format!("{}/v1", server.uri())),
@@ -659,309 +647,13 @@ async fn includes_user_instructions_message_in_request() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-<<<<<<< HEAD
-=======
-async fn skills_append_to_instructions_when_feature_enabled() {
-    skip_if_no_network!();
-    let server = MockServer::start().await;
-
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
-
-    let model_provider = ModelProviderInfo {
-        base_url: Some(format!("{}/v1", server.uri())),
-        ..built_in_model_providers()["openai"].clone()
-    };
-
-    let codex_home = TempDir::new().unwrap();
-    let skill_dir = codex_home.path().join("skills/demo");
-    std::fs::create_dir_all(&skill_dir).expect("create skill dir");
-    std::fs::write(
-        skill_dir.join("SKILL.md"),
-        "---\nname: demo\ndescription: build charts\n---\n\n# body\n",
-    )
-    .expect("write skill");
-
-    let mut config = load_default_config_for_test(&codex_home);
-    config.model_provider = model_provider;
-    config.features.enable(Feature::Skills);
-    config.cwd = codex_home.path().to_path_buf();
-
-    let conversation_manager = ConversationManager::with_models_provider(
-        CodexAuth::from_api_key("Test API Key"),
-        config.model_provider.clone(),
-    );
-    let codex = conversation_manager
-        .new_conversation(config)
-        .await
-        .expect("create new conversation")
-        .conversation;
-
-    codex
-        .submit(Op::UserInput {
-            items: vec![UserInput::Text {
-                text: "hello".into(),
-            }],
-        })
-        .await
-        .unwrap();
-
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TaskComplete(_))).await;
-
-    let request = resp_mock.single_request();
-    let request_body = request.body_json();
-
-    assert_message_role(&request_body["input"][0], "user");
-    let instructions_text = request_body["input"][0]["content"][0]["text"]
-        .as_str()
-        .expect("instructions text");
-    assert!(
-        instructions_text.contains("## Skills"),
-        "expected skills section present"
-    );
-    assert!(
-        instructions_text.contains("demo: build charts"),
-        "expected skill summary"
-    );
-    let expected_path = normalize_path(skill_dir.join("SKILL.md")).unwrap();
-    let expected_path_str = expected_path.to_string_lossy().replace('\\', "/");
-    assert!(
-        instructions_text.contains(&expected_path_str),
-        "expected path {expected_path_str} in instructions"
-    );
-}
-
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn includes_configured_effort_in_request() -> anyhow::Result<()> {
-    skip_if_no_network!(Ok(()));
-    let server = MockServer::start().await;
-
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
-    let TestCodex { codex, .. } = test_codex()
-        .with_model("gpt-5.1-codex")
-        .with_config(|config| {
-            config.model_reasoning_effort = Some(ReasoningEffort::Medium);
-        })
-        .build(&server)
-        .await?;
-
-    codex
-        .submit(Op::UserInput {
-            items: vec![UserInput::Text {
-                text: "hello".into(),
-            }],
-        })
-        .await
-        .unwrap();
-
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TaskComplete(_))).await;
-
-    let request = resp_mock.single_request();
-    let request_body = request.body_json();
-
-    assert_eq!(
-        request_body
-            .get("reasoning")
-            .and_then(|t| t.get("effort"))
-            .and_then(|v| v.as_str()),
-        Some("medium")
-    );
-
-    Ok(())
-}
-
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn includes_no_effort_in_request() -> anyhow::Result<()> {
-    skip_if_no_network!(Ok(()));
-    let server = MockServer::start().await;
-
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
-    let TestCodex { codex, .. } = test_codex()
-        .with_model("gpt-5.1-codex")
-        .build(&server)
-        .await?;
-
-    codex
-        .submit(Op::UserInput {
-            items: vec![UserInput::Text {
-                text: "hello".into(),
-            }],
-        })
-        .await
-        .unwrap();
-
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TaskComplete(_))).await;
-
-    let request = resp_mock.single_request();
-    let request_body = request.body_json();
-
-    assert_eq!(
-        request_body
-            .get("reasoning")
-            .and_then(|t| t.get("effort"))
-            .and_then(|v| v.as_str()),
-        None
-    );
-
-    Ok(())
-}
-
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn includes_default_reasoning_effort_in_request_when_defined_by_model_family()
--> anyhow::Result<()> {
-    skip_if_no_network!(Ok(()));
-    let server = MockServer::start().await;
-
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
-    let TestCodex { codex, .. } = test_codex().with_model("gpt-5.1").build(&server).await?;
-
-    codex
-        .submit(Op::UserInput {
-            items: vec![UserInput::Text {
-                text: "hello".into(),
-            }],
-        })
-        .await
-        .unwrap();
-
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TaskComplete(_))).await;
-
-    let request = resp_mock.single_request();
-    let request_body = request.body_json();
-
-    assert_eq!(
-        request_body
-            .get("reasoning")
-            .and_then(|t| t.get("effort"))
-            .and_then(|v| v.as_str()),
-        Some("medium")
-    );
-
-    Ok(())
-}
-
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn includes_default_verbosity_in_request() -> anyhow::Result<()> {
-    skip_if_no_network!(Ok(()));
-    let server = MockServer::start().await;
-
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
-    let TestCodex { codex, .. } = test_codex().with_model("gpt-5.1").build(&server).await?;
-
-    codex
-        .submit(Op::UserInput {
-            items: vec![UserInput::Text {
-                text: "hello".into(),
-            }],
-        })
-        .await
-        .unwrap();
-
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TaskComplete(_))).await;
-
-    let request = resp_mock.single_request();
-    let request_body = request.body_json();
-
-    assert_eq!(
-        request_body
-            .get("text")
-            .and_then(|t| t.get("verbosity"))
-            .and_then(|v| v.as_str()),
-        Some("low")
-    );
-
-    Ok(())
-}
-
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn configured_verbosity_not_sent_for_models_without_support() -> anyhow::Result<()> {
-    skip_if_no_network!(Ok(()));
-    let server = MockServer::start().await;
-
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
-    let TestCodex { codex, .. } = test_codex()
-        .with_model("gpt-5.1-codex")
-        .with_config(|config| {
-            config.model_verbosity = Some(Verbosity::High);
-        })
-        .build(&server)
-        .await?;
-
-    codex
-        .submit(Op::UserInput {
-            items: vec![UserInput::Text {
-                text: "hello".into(),
-            }],
-        })
-        .await
-        .unwrap();
-
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TaskComplete(_))).await;
-
-    let request = resp_mock.single_request();
-    let request_body = request.body_json();
-
-    assert!(
-        request_body
-            .get("text")
-            .and_then(|t| t.get("verbosity"))
-            .is_none()
-    );
-
-    Ok(())
-}
-
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn configured_verbosity_is_sent() -> anyhow::Result<()> {
-    skip_if_no_network!(Ok(()));
-    let server = MockServer::start().await;
-
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
-    let TestCodex { codex, .. } = test_codex()
-        .with_model("gpt-5.1")
-        .with_config(|config| {
-            config.model_verbosity = Some(Verbosity::High);
-        })
-        .build(&server)
-        .await?;
-
-    codex
-        .submit(Op::UserInput {
-            items: vec![UserInput::Text {
-                text: "hello".into(),
-            }],
-        })
-        .await
-        .unwrap();
-
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TaskComplete(_))).await;
-
-    let request = resp_mock.single_request();
-    let request_body = request.body_json();
-
-    assert_eq!(
-        request_body
-            .get("text")
-            .and_then(|t| t.get("verbosity"))
-            .and_then(|v| v.as_str()),
-        Some("high")
-    );
-
-    Ok(())
-}
-
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
->>>>>>> upstream/main
 async fn includes_developer_instructions_message_in_request() {
     skip_if_no_network!();
     let server = MockServer::start().await;
 
-<<<<<<< HEAD
     let resp_mock =
         responses::mount_sse_once_match(&server, path("/v1/responses"), sse_completed("resp1"))
             .await;
-=======
-    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
->>>>>>> upstream/main
 
     let model_provider = ModelProviderInfo {
         base_url: Some(format!("{}/v1", server.uri())),
@@ -1066,22 +758,13 @@ async fn azure_responses_request_includes_store_and_reasoning_ids() {
     let model = ModelsManager::get_model_offline(config.model.as_deref());
     config.model = Some(model.clone());
     let config = Arc::new(config);
-<<<<<<< HEAD
 
-=======
-    let model_family = ModelsManager::construct_model_family_offline(model.as_str(), &config);
->>>>>>> upstream/main
     let conversation_id = ConversationId::new();
 
     let otel_event_manager = OtelEventManager::new(
         conversation_id,
-<<<<<<< HEAD
         config.model.as_str(),
         config.model_family.slug.as_str(),
-=======
-        model.as_str(),
-        model_family.slug.as_str(),
->>>>>>> upstream/main
         None,
         Some("test@test.com".to_string()),
         Some(AuthMode::ChatGPT),
@@ -1434,12 +1117,8 @@ async fn context_window_error_sets_total_tokens_to_model_window() -> anyhow::Res
 
     let TestCodex { codex, .. } = test_codex()
         .with_config(|config| {
-<<<<<<< HEAD
             config.model = "gpt-5".to_string();
             config.model_family = find_family_for_model("gpt-5").expect("known gpt-5 model family");
-=======
-            config.model = Some("gpt-5.1".to_string());
->>>>>>> upstream/main
             config.model_context_window = Some(272_000);
         })
         .build(&server)

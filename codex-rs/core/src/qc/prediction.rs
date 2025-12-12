@@ -867,5 +867,4 @@ mod tests {
         assert!(risk.risk_factors.len() >= 2); // At least readability and security
         assert!(!risk.mitigation_strategies.is_empty());
     }
-}</contents>
-</xai:function_call<parameter name="file_path">codex-rs/core/src/qc/prediction.rs
+}

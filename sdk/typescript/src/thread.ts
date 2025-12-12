@@ -86,17 +86,9 @@ export class Thread {
       skipGitRepoCheck: options?.skipGitRepoCheck,
       outputSchemaFile: schemaPath,
       modelReasoningEffort: options?.modelReasoningEffort,
-<<<<<<< HEAD
       networkAccessEnabled: options?.networkAccessEnabled,
       webSearchEnabled: options?.webSearchEnabled,
       approvalPolicy: options?.approvalPolicy,
-=======
-      signal: turnOptions.signal,
-      networkAccessEnabled: options?.networkAccessEnabled,
-      webSearchEnabled: options?.webSearchEnabled,
-      approvalPolicy: options?.approvalPolicy,
-      additionalDirectories: options?.additionalDirectories,
->>>>>>> upstream/main
     });
     try {
       for await (const item of generator) {

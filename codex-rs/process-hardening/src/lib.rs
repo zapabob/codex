@@ -55,22 +55,6 @@ pub(crate) fn pre_main_hardening_linux() {
     }
 }
 
-<<<<<<< HEAD
-=======
-#[cfg(any(target_os = "freebsd", target_os = "openbsd"))]
-pub(crate) fn pre_main_hardening_bsd() {
-    // FreeBSD/OpenBSD: set RLIMIT_CORE to 0 and clear LD_* env vars
-    set_core_file_size_limit_to_zero();
-
-    let ld_keys = env_keys_with_prefix(std::env::vars_os(), b"LD_");
-    for key in ld_keys {
-        unsafe {
-            std::env::remove_var(key);
-        }
-    }
-}
-
->>>>>>> upstream/main
 #[cfg(target_os = "macos")]
 pub(crate) fn pre_main_hardening_macos() {
     // Prevent debuggers from attaching to this process.

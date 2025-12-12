@@ -980,5 +980,4 @@ mod tests {
             })
         }
     }
-}</contents>
-</xai:function_call<parameter name="file_path">codex-rs/core/src/qc/improvement.rs
+}

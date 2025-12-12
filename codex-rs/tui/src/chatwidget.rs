@@ -2,11 +2,6 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::path::PathBuf;
 use std::sync::Arc;
-<<<<<<< HEAD
-=======
-use std::time::Duration;
-use std::time::Instant;
->>>>>>> upstream/main
 
 use codex_core::config::Config;
 use codex_core::config::types::Notifications;
@@ -38,11 +33,6 @@ use codex_core::protocol::Op;
 use codex_core::protocol::PatchApplyBeginEvent;
 use codex_core::protocol::RateLimitSnapshot;
 use codex_core::protocol::ReviewRequest;
-<<<<<<< HEAD
-=======
-use codex_core::protocol::ReviewTarget;
-use codex_core::protocol::SkillLoadOutcomeInfo;
->>>>>>> upstream/main
 use codex_core::protocol::StreamErrorEvent;
 use codex_core::protocol::TaskCompleteEvent;
 use codex_core::protocol::TerminalInteractionEvent;
@@ -243,11 +233,6 @@ pub(crate) struct ChatWidgetInit {
     pub(crate) enhanced_keys_supported: bool,
     pub(crate) auth_manager: Arc<AuthManager>,
     pub(crate) feedback: codex_feedback::CodexFeedback,
-<<<<<<< HEAD
-=======
-    pub(crate) is_first_run: bool,
-    pub(crate) model_family: ModelFamily,
->>>>>>> upstream/main
 }
 
 #[derive(Default)]
@@ -503,12 +488,6 @@ impl ChatWidget {
         // Mark task stopped and request redraw now that all content is in history.
         self.bottom_pane.set_task_running(false);
         self.running_commands.clear();
-<<<<<<< HEAD
-=======
-        self.suppressed_exec_calls.clear();
-        self.last_unified_wait = None;
-        self.task_started_at = None;
->>>>>>> upstream/main
         self.request_redraw();
 
         // If there is a queued user message, send exactly one now to begin the next turn.
@@ -522,34 +501,11 @@ impl ChatWidget {
     }
 
     pub(crate) fn set_token_info(&mut self, info: Option<TokenUsageInfo>) {
-<<<<<<< HEAD
         if let Some(info) = info {
             let context_window = info
                 .model_context_window
                 .or(self.config.model_context_window);
             let percent = context_window.map(|window| {
-=======
-        match info {
-            Some(info) => self.apply_token_info(info),
-            None => {
-                self.bottom_pane.set_context_window(None, None);
-                self.token_info = None;
-            }
-        }
-    }
-
-    fn apply_token_info(&mut self, info: TokenUsageInfo) {
-        let percent = self.context_remaining_percent(&info);
-        let used_tokens = self.context_used_tokens(&info, percent.is_some());
-        self.bottom_pane.set_context_window(percent, used_tokens);
-        self.token_info = Some(info);
-    }
-
-    fn context_remaining_percent(&self, info: &TokenUsageInfo) -> Option<i64> {
-        info.model_context_window
-            .or(self.model_family.context_window)
-            .map(|window| {
->>>>>>> upstream/main
                 info.last_token_usage
                     .percent_of_context_window_remaining(window)
             });
@@ -588,12 +544,7 @@ impl ChatWidget {
                     .unwrap_or(false);
 
             if high_usage
-<<<<<<< HEAD
                 && self.config.model != NUDGE_MODEL_SLUG
-=======
-                && !self.rate_limit_switch_prompt_hidden()
-                && self.model_family.get_model_slug() != NUDGE_MODEL_SLUG
->>>>>>> upstream/main
                 && !matches!(
                     self.rate_limit_switch_prompt,
                     RateLimitSwitchPromptState::Shown
@@ -909,18 +860,9 @@ impl ChatWidget {
 
     pub(crate) fn handle_exec_end_now(&mut self, ev: ExecCommandEndEvent) {
         let running = self.running_commands.remove(&ev.call_id);
-<<<<<<< HEAD
         let (command, parsed, is_user_shell_command) = match running {
             Some(rc) => (rc.command, rc.parsed_cmd, rc.is_user_shell_command),
             None => (vec![ev.call_id.clone()], Vec::new(), false),
-=======
-        if self.suppressed_exec_calls.remove(&ev.call_id) {
-            return;
-        }
-        let (command, parsed, source) = match running {
-            Some(rc) => (rc.command, rc.parsed_cmd, rc.source),
-            None => (ev.command.clone(), ev.parsed_cmd.clone(), ev.source),
->>>>>>> upstream/main
         };
 
         let needs_new = self
@@ -934,13 +876,7 @@ impl ChatWidget {
                 ev.call_id.clone(),
                 command,
                 parsed,
-<<<<<<< HEAD
                 is_user_shell_command,
-=======
-                source,
-                ev.interaction_input.clone(),
-                self.config.animations,
->>>>>>> upstream/main
             )));
         }
 
@@ -985,11 +921,7 @@ impl ChatWidget {
             id,
             command: ev.command,
             reason: ev.reason,
-<<<<<<< HEAD
             risk: ev.risk,
-=======
-            proposed_execpolicy_amendment: ev.proposed_execpolicy_amendment,
->>>>>>> upstream/main
         };
         self.bottom_pane.push_approval_request(request);
         self.request_redraw();
@@ -1105,11 +1037,6 @@ impl ChatWidget {
             enhanced_keys_supported,
             auth_manager,
             feedback,
-<<<<<<< HEAD
-=======
-            is_first_run,
-            model_family,
->>>>>>> upstream/main
         } = common;
         let model_slug = model_family.get_model_slug().to_string();
         let mut config = config;
@@ -1129,23 +1056,11 @@ impl ChatWidget {
                 enhanced_keys_supported,
                 placeholder_text: placeholder,
                 disable_paste_burst: config.disable_paste_burst,
-<<<<<<< HEAD
             }),
             active_cell: None,
             config: config.clone(),
             auth_manager,
             session_header: SessionHeader::new(config.model),
-=======
-                animations_enabled: config.animations,
-                skills: None,
-            }),
-            active_cell: None,
-            config,
-            model_family,
-            auth_manager,
-            models_manager,
-            session_header: SessionHeader::new(model_slug),
->>>>>>> upstream/main
             initial_user_message: create_initial_user_message(
                 initial_prompt.unwrap_or_default(),
                 initial_images,
@@ -1172,16 +1087,7 @@ impl ChatWidget {
             last_rendered_width: std::cell::Cell::new(None),
             feedback,
             current_rollout_path: None,
-<<<<<<< HEAD
         }
-=======
-            task_started_at: None,
-        };
-
-        widget.prefetch_rate_limits();
-
-        widget
->>>>>>> upstream/main
     }
 
     /// Create a ChatWidget attached to an existing conversation (e.g., a fork).
@@ -1199,11 +1105,6 @@ impl ChatWidget {
             enhanced_keys_supported,
             auth_manager,
             feedback,
-<<<<<<< HEAD
-=======
-            model_family,
-            ..
->>>>>>> upstream/main
         } = common;
         let model_slug = model_family.get_model_slug().to_string();
         let mut rng = rand::rng();
@@ -1223,23 +1124,11 @@ impl ChatWidget {
                 enhanced_keys_supported,
                 placeholder_text: placeholder,
                 disable_paste_burst: config.disable_paste_burst,
-<<<<<<< HEAD
             }),
             active_cell: None,
             config: config.clone(),
             auth_manager,
             session_header: SessionHeader::new(config.model),
-=======
-                animations_enabled: config.animations,
-                skills: None,
-            }),
-            active_cell: None,
-            config,
-            model_family,
-            auth_manager,
-            models_manager,
-            session_header: SessionHeader::new(model_slug),
->>>>>>> upstream/main
             initial_user_message: create_initial_user_message(
                 initial_prompt.unwrap_or_default(),
                 initial_images,
@@ -1266,16 +1155,7 @@ impl ChatWidget {
             last_rendered_width: std::cell::Cell::new(None),
             feedback,
             current_rollout_path: None,
-<<<<<<< HEAD
         }
-=======
-            task_started_at: None,
-        };
-
-        widget.prefetch_rate_limits();
-
-        widget
->>>>>>> upstream/main
     }
 
     pub(crate) fn handle_key_event(&mut self, key_event: KeyEvent) {
@@ -1901,11 +1781,6 @@ impl ChatWidget {
         };
         self.add_to_history(crate::status::new_status_output(
             &self.config,
-<<<<<<< HEAD
-=======
-            self.auth_manager.as_ref(),
-            &self.model_family,
->>>>>>> upstream/main
             total_usage,
             context_usage,
             &self.conversation_id,
@@ -1916,15 +1791,9 @@ impl ChatWidget {
     }
 
     fn lower_cost_preset(&self) -> Option<ModelPreset> {
-<<<<<<< HEAD
         let auth_mode = self.auth_manager.auth().map(|auth| auth.mode);
         builtin_model_presets(auth_mode)
             .into_iter()
-=======
-        let models = self.models_manager.try_list_models().ok()?;
-        models
-            .iter()
->>>>>>> upstream/main
             .find(|preset| preset.model == NUDGE_MODEL_SLUG)
     }
 
@@ -2001,26 +1870,9 @@ impl ChatWidget {
     /// Open a popup to choose a quick auto model. Selecting "All models"
     /// opens the full picker with every available preset.
     pub(crate) fn open_model_popup(&mut self) {
-<<<<<<< HEAD
         let current_model = self.config.model.clone();
         let auth_mode = self.auth_manager.auth().map(|auth| auth.mode);
         let presets: Vec<ModelPreset> = builtin_model_presets(auth_mode);
-=======
-        let current_model = self.model_family.get_model_slug().to_string();
-        let presets: Vec<ModelPreset> =
-            // todo(aibrahim): make this async function
-            match self.models_manager.try_list_models() {
-                Ok(models) => models,
-                Err(_) => {
-                    self.add_info_message(
-                        "Models are being updated; please try /model again in a moment."
-                            .to_string(),
-                        None,
-                    );
-                    return;
-                }
-            };
->>>>>>> upstream/main
 
         let current_label = presets
             .iter()
@@ -2742,11 +2594,7 @@ impl ChatWidget {
     /// Set the model in the widget's config copy.
     pub(crate) fn set_model(&mut self, model: &str) {
         self.session_header.set_model(model);
-<<<<<<< HEAD
         self.config.model = model.to_string();
-=======
-        self.model_family = model_family;
->>>>>>> upstream/main
     }
 
     pub(crate) fn add_info_message(&mut self, message: String, hint: Option<String>) {

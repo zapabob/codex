@@ -530,5 +530,4 @@ mod tests {
         let stats = monitor.get_statistics();
         assert_eq!(stats.snapshots_in_history, 1);
     }
-}</contents>
-</xai:function_call<parameter name="file_path">codex-rs/core/src/qc/monitoring.rs
+}

@@ -71,65 +71,9 @@ async fn list_models_returns_all_models_with_large_limit() -> Result<()> {
             is_default: true,
         },
         Model {
-<<<<<<< HEAD
             id: "gpt-5".to_string(),
             model: "gpt-5".to_string(),
             display_name: "gpt-5".to_string(),
-=======
-            id: "gpt-5.1-codex-mini".to_string(),
-            model: "gpt-5.1-codex-mini".to_string(),
-            display_name: "gpt-5.1-codex-mini".to_string(),
-            description: "Optimized for codex. Cheaper, faster, but less capable.".to_string(),
-            supported_reasoning_efforts: vec![
-                ReasoningEffortOption {
-                    reasoning_effort: ReasoningEffort::Medium,
-                    description: "Dynamically adjusts reasoning based on the task".to_string(),
-                },
-                ReasoningEffortOption {
-                    reasoning_effort: ReasoningEffort::High,
-                    description: "Maximizes reasoning depth for complex or ambiguous problems"
-                        .to_string(),
-                },
-            ],
-            default_reasoning_effort: ReasoningEffort::Medium,
-            is_default: false,
-        },
-        Model {
-            id: "robin".to_string(),
-            model: "robin".to_string(),
-            display_name: "robin".to_string(),
-            description: "Robin".to_string(),
-            supported_reasoning_efforts: vec![
-                ReasoningEffortOption {
-                    reasoning_effort: ReasoningEffort::Low,
-                    description: "Balances speed with some reasoning; useful for straightforward \
-                                   queries and short explanations"
-                        .to_string(),
-                },
-                ReasoningEffortOption {
-                    reasoning_effort: ReasoningEffort::Medium,
-                    description: "Provides a solid balance of reasoning depth and latency for \
-                         general-purpose tasks"
-                        .to_string(),
-                },
-                ReasoningEffortOption {
-                    reasoning_effort: ReasoningEffort::High,
-                    description: "Maximizes reasoning depth for complex or ambiguous problems"
-                        .to_string(),
-                },
-                ReasoningEffortOption {
-                    reasoning_effort: ReasoningEffort::XHigh,
-                    description: "Extra high reasoning for complex problems".to_string(),
-                },
-            ],
-            default_reasoning_effort: ReasoningEffort::Medium,
-            is_default: false,
-        },
-        Model {
-            id: "gpt-5.1".to_string(),
-            model: "gpt-5.1".to_string(),
-            display_name: "gpt-5.1".to_string(),
->>>>>>> upstream/main
             description: "Broad world knowledge with strong general reasoning.".to_string(),
             supported_reasoning_efforts: vec![
                 ReasoningEffortOption {
@@ -213,79 +157,8 @@ async fn list_models_pagination_works() -> Result<()> {
     } = to_response::<ModelListResponse>(second_response)?;
 
     assert_eq!(second_items.len(), 1);
-<<<<<<< HEAD
     assert_eq!(second_items[0].id, "gpt-5");
     assert!(second_cursor.is_none());
-=======
-    assert_eq!(second_items[0].id, "gpt-5.1-codex");
-    let third_cursor = second_cursor.ok_or_else(|| anyhow!("cursor for third page"))?;
-
-    let third_request = mcp
-        .send_list_models_request(ModelListParams {
-            limit: Some(1),
-            cursor: Some(third_cursor.clone()),
-        })
-        .await?;
-
-    let third_response: JSONRPCResponse = timeout(
-        DEFAULT_TIMEOUT,
-        mcp.read_stream_until_response_message(RequestId::Integer(third_request)),
-    )
-    .await??;
-
-    let ModelListResponse {
-        data: third_items,
-        next_cursor: third_cursor,
-    } = to_response::<ModelListResponse>(third_response)?;
-
-    assert_eq!(third_items.len(), 1);
-    assert_eq!(third_items[0].id, "gpt-5.1-codex-mini");
-    let fourth_cursor = third_cursor.ok_or_else(|| anyhow!("cursor for fourth page"))?;
-
-    let fourth_request = mcp
-        .send_list_models_request(ModelListParams {
-            limit: Some(1),
-            cursor: Some(fourth_cursor.clone()),
-        })
-        .await?;
-
-    let fourth_response: JSONRPCResponse = timeout(
-        DEFAULT_TIMEOUT,
-        mcp.read_stream_until_response_message(RequestId::Integer(fourth_request)),
-    )
-    .await??;
-
-    let ModelListResponse {
-        data: fourth_items,
-        next_cursor: fourth_cursor,
-    } = to_response::<ModelListResponse>(fourth_response)?;
-
-    assert_eq!(fourth_items.len(), 1);
-    assert_eq!(fourth_items[0].id, "robin");
-    let fifth_cursor = fourth_cursor.ok_or_else(|| anyhow!("cursor for fifth page"))?;
-
-    let fifth_request = mcp
-        .send_list_models_request(ModelListParams {
-            limit: Some(1),
-            cursor: Some(fifth_cursor.clone()),
-        })
-        .await?;
-
-    let fifth_response: JSONRPCResponse = timeout(
-        DEFAULT_TIMEOUT,
-        mcp.read_stream_until_response_message(RequestId::Integer(fifth_request)),
-    )
-    .await??;
-
-    let ModelListResponse {
-        data: fifth_items,
-        next_cursor: fifth_cursor,
-    } = to_response::<ModelListResponse>(fifth_response)?;
-
-    assert_eq!(fifth_items.len(), 1);
-    assert_eq!(fifth_items[0].id, "gpt-5.1");
-    assert!(fifth_cursor.is_none());
->>>>>>> upstream/main
     Ok(())
 }
 

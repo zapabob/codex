@@ -801,20 +801,9 @@ async fn start_test_conversation(
     let home = TempDir::new().expect("create temp dir");
     let mut config = load_default_config_for_test(&home);
     config.model_provider = model_provider;
-<<<<<<< HEAD
     config.compact_prompt = Some(TEST_COMPACT_PROMPT.to_string());
 
     let manager = ConversationManager::with_auth(CodexAuth::from_api_key("dummy"));
-=======
-    config.compact_prompt = Some(SUMMARIZATION_PROMPT.to_string());
-    if let Some(model) = model {
-        config.model = Some(model.to_string());
-    }
-    let manager = ConversationManager::with_models_provider(
-        CodexAuth::from_api_key("dummy"),
-        config.model_provider.clone(),
-    );
->>>>>>> upstream/main
     let NewConversation { conversation, .. } = manager
         .new_conversation(config.clone())
         .await

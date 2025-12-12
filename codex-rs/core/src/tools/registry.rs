@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use codex_protocol::models::ResponseInputItem;
+use codex_utils_readiness::Readiness;
 use tracing::warn;
 
 use crate::client_common::tools::ToolSpec;
@@ -30,13 +31,10 @@ pub trait ToolHandler: Send + Sync {
         )
     }
 
-<<<<<<< HEAD
-=======
     async fn is_mutating(&self, _invocation: &ToolInvocation) -> bool {
         false
     }
 
->>>>>>> upstream/main
     async fn handle(&self, invocation: ToolInvocation) -> Result<ToolOutput, FunctionCallError>;
 }
 
@@ -113,14 +111,11 @@ impl ToolRegistry {
                     let output_cell = &output_cell;
                     let invocation = invocation;
                     async move {
-<<<<<<< HEAD
-=======
                         if handler.is_mutating(&invocation).await {
                             tracing::trace!("waiting for tool gate");
                             invocation.turn.tool_call_gate.wait_ready().await;
                             tracing::trace!("tool gate released");
                         }
->>>>>>> upstream/main
                         match handler.handle(invocation).await {
                             Ok(output) => {
                                 let preview = output.log_preview();

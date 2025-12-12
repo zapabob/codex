@@ -180,7 +180,6 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         development_mode: None,
         show_raw_agent_reasoning: oss.then_some(true),
         tools_web_search_request: None,
-<<<<<<< HEAD
         experimental_sandbox_command_assessment: None,
         additional_writable_roots: Vec::new(),
     };
@@ -191,9 +190,6 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
             eprintln!("Error parsing -c overrides: {e}");
             std::process::exit(1);
         }
-=======
-        additional_writable_roots: add_dir,
->>>>>>> upstream/main
     };
 
     let config = Config::load_with_cli_overrides(cli_kv_overrides, overrides).await?;

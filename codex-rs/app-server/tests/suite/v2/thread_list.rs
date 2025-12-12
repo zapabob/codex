@@ -4,17 +4,9 @@ use app_test_support::create_fake_rollout;
 use app_test_support::to_response;
 use codex_app_server_protocol::JSONRPCResponse;
 use codex_app_server_protocol::RequestId;
-<<<<<<< HEAD
 use codex_app_server_protocol::ThreadListParams;
 use codex_app_server_protocol::ThreadListResponse;
 use serde_json::json;
-=======
-use codex_app_server_protocol::SessionSource;
-use codex_app_server_protocol::ThreadListResponse;
-use codex_protocol::protocol::GitInfo as CoreGitInfo;
-use std::path::Path;
-use std::path::PathBuf;
->>>>>>> upstream/main
 use tempfile::TempDir;
 use tokio::time::timeout;
 use uuid::Uuid;
@@ -95,7 +87,6 @@ async fn thread_list_basic_empty() -> Result<()> {
 
     let mut mcp = init_mcp(codex_home.path()).await?;
 
-<<<<<<< HEAD
     // List threads in an empty CODEX_HOME; should return an empty page with nextCursor: null.
     let list_id = mcp
         .send_thread_list_request(ThreadListParams {
@@ -107,13 +98,6 @@ async fn thread_list_basic_empty() -> Result<()> {
     let list_resp: JSONRPCResponse = timeout(
         DEFAULT_READ_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(list_id)),
-=======
-    let ThreadListResponse { data, next_cursor } = list_threads(
-        &mut mcp,
-        None,
-        Some(10),
-        Some(vec!["mock_provider".to_string()]),
->>>>>>> upstream/main
     )
     .await?;
     assert!(data.is_empty());
@@ -276,199 +260,6 @@ async fn thread_list_respects_provider_filter() -> Result<()> {
     assert_eq!(thread.model_provider, "other_provider");
     let expected_ts = chrono::DateTime::parse_from_rfc3339("2025-01-02T11:00:00Z")?.timestamp();
     assert_eq!(thread.created_at, expected_ts);
-<<<<<<< HEAD
-=======
-    assert_eq!(thread.cwd, PathBuf::from("/"));
-    assert_eq!(thread.cli_version, "0.0.0");
-    assert_eq!(thread.source, SessionSource::Cli);
-    assert_eq!(thread.git_info, None);
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn thread_list_fetches_until_limit_or_exhausted() -> Result<()> {
-    let codex_home = TempDir::new()?;
-    create_minimal_config(codex_home.path())?;
-
-    // Newest 16 conversations belong to a different provider; the older 8 are the
-    // only ones that match the filter. We request 8 so the server must keep
-    // paging past the first two pages to reach the desired count.
-    create_fake_rollouts(
-        codex_home.path(),
-        24,
-        |i| {
-            if i < 16 {
-                "skip_provider"
-            } else {
-                "target_provider"
-            }
-        },
-        |i| timestamp_at(2025, 3, 30 - i as u32, 12, 0, 0),
-        "Hello",
-    )?;
-
-    let mut mcp = init_mcp(codex_home.path()).await?;
-
-    // Request 8 threads for the target provider; the matches only start on the
-    // third page so we rely on pagination to reach the limit.
-    let ThreadListResponse { data, next_cursor } = list_threads(
-        &mut mcp,
-        None,
-        Some(8),
-        Some(vec!["target_provider".to_string()]),
-    )
-    .await?;
-    assert_eq!(
-        data.len(),
-        8,
-        "should keep paging until the requested count is filled"
-    );
-    assert!(
-        data.iter()
-            .all(|thread| thread.model_provider == "target_provider"),
-        "all returned threads must match the requested provider"
-    );
-    assert_eq!(
-        next_cursor, None,
-        "once the requested count is satisfied on the final page, nextCursor should be None"
-    );
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn thread_list_enforces_max_limit() -> Result<()> {
-    let codex_home = TempDir::new()?;
-    create_minimal_config(codex_home.path())?;
-
-    create_fake_rollouts(
-        codex_home.path(),
-        105,
-        |_| "mock_provider",
-        |i| {
-            let month = 5 + (i / 28);
-            let day = (i % 28) + 1;
-            timestamp_at(2025, month as u32, day as u32, 0, 0, 0)
-        },
-        "Hello",
-    )?;
-
-    let mut mcp = init_mcp(codex_home.path()).await?;
-
-    let ThreadListResponse { data, next_cursor } = list_threads(
-        &mut mcp,
-        None,
-        Some(200),
-        Some(vec!["mock_provider".to_string()]),
-    )
-    .await?;
-    assert_eq!(
-        data.len(),
-        100,
-        "limit should be clamped to the maximum page size"
-    );
-    assert!(
-        next_cursor.is_some(),
-        "when more than the maximum exist, nextCursor should continue pagination"
-    );
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn thread_list_stops_when_not_enough_filtered_results_exist() -> Result<()> {
-    let codex_home = TempDir::new()?;
-    create_minimal_config(codex_home.path())?;
-
-    // Only the last 7 conversations match the provider filter; we ask for 10 to
-    // ensure the server exhausts pagination without looping forever.
-    create_fake_rollouts(
-        codex_home.path(),
-        22,
-        |i| {
-            if i < 15 {
-                "skip_provider"
-            } else {
-                "target_provider"
-            }
-        },
-        |i| timestamp_at(2025, 4, 28 - i as u32, 8, 0, 0),
-        "Hello",
-    )?;
-
-    let mut mcp = init_mcp(codex_home.path()).await?;
-
-    // Request more threads than exist after filtering; expect all matches to be
-    // returned with nextCursor None.
-    let ThreadListResponse { data, next_cursor } = list_threads(
-        &mut mcp,
-        None,
-        Some(10),
-        Some(vec!["target_provider".to_string()]),
-    )
-    .await?;
-    assert_eq!(
-        data.len(),
-        7,
-        "all available filtered threads should be returned"
-    );
-    assert!(
-        data.iter()
-            .all(|thread| thread.model_provider == "target_provider"),
-        "results should still respect the provider filter"
-    );
-    assert_eq!(
-        next_cursor, None,
-        "when results are exhausted before reaching the limit, nextCursor should be None"
-    );
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn thread_list_includes_git_info() -> Result<()> {
-    let codex_home = TempDir::new()?;
-    create_minimal_config(codex_home.path())?;
-
-    let git_info = CoreGitInfo {
-        commit_hash: Some("abc123".to_string()),
-        branch: Some("main".to_string()),
-        repository_url: Some("https://example.com/repo.git".to_string()),
-    };
-    let conversation_id = create_fake_rollout(
-        codex_home.path(),
-        "2025-02-01T09-00-00",
-        "2025-02-01T09:00:00Z",
-        "Git info preview",
-        Some("mock_provider"),
-        Some(git_info),
-    )?;
-
-    let mut mcp = init_mcp(codex_home.path()).await?;
-
-    let ThreadListResponse { data, .. } = list_threads(
-        &mut mcp,
-        None,
-        Some(10),
-        Some(vec!["mock_provider".to_string()]),
-    )
-    .await?;
-    let thread = data
-        .iter()
-        .find(|t| t.id == conversation_id)
-        .expect("expected thread for created rollout");
-
-    let expected_git = ApiGitInfo {
-        sha: Some("abc123".to_string()),
-        branch: Some("main".to_string()),
-        origin_url: Some("https://example.com/repo.git".to_string()),
-    };
-    assert_eq!(thread.git_info, Some(expected_git));
-    assert_eq!(thread.source, SessionSource::Cli);
-    assert_eq!(thread.cwd, PathBuf::from("/"));
-    assert_eq!(thread.cli_version, "0.0.0");
->>>>>>> upstream/main
 
     Ok(())
 }

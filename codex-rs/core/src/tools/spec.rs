@@ -172,8 +172,6 @@ fn create_exec_command_tool() -> ToolSpec {
             ),
         },
     );
-<<<<<<< HEAD
-=======
     properties.insert(
         "sandbox_permissions".to_string(),
         JsonSchema::String {
@@ -192,7 +190,6 @@ fn create_exec_command_tool() -> ToolSpec {
             ),
         },
     );
->>>>>>> upstream/main
 
     ToolSpec::Function(ResponsesApiTool {
         name: "exec_command".to_string(),
@@ -290,10 +287,7 @@ fn create_shell_tool() -> ToolSpec {
 
     ToolSpec::Function(ResponsesApiTool {
         name: "shell".to_string(),
-<<<<<<< HEAD
         description: "Runs a shell command and returns its output.".to_string(),
-=======
-        description,
         strict: false,
         parameters: JsonSchema::Object {
             properties,
@@ -366,7 +360,6 @@ Examples of valid command strings:
     ToolSpec::Function(ResponsesApiTool {
         name: "shell_command".to_string(),
         description,
->>>>>>> upstream/main
         strict: false,
         parameters: JsonSchema::Object {
             properties,

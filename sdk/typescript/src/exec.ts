@@ -18,22 +18,12 @@ export type CodexExecArgs = {
   sandboxMode?: SandboxMode;
   // --cd
   workingDirectory?: string;
-<<<<<<< HEAD
-=======
-  // --add-dir
-  additionalDirectories?: string[];
->>>>>>> upstream/main
   // --skip-git-repo-check
   skipGitRepoCheck?: boolean;
   // --output-schema
   outputSchemaFile?: string;
   // --config model_reasoning_effort
   modelReasoningEffort?: ModelReasoningEffort;
-<<<<<<< HEAD
-=======
-  // AbortSignal to cancel the execution
-  signal?: AbortSignal;
->>>>>>> upstream/main
   // --config sandbox_workspace_write.network_access
   networkAccessEnabled?: boolean;
   // --config features.web_search_request
@@ -47,16 +37,8 @@ const TYPESCRIPT_SDK_ORIGINATOR = "codex_sdk_ts";
 
 export class CodexExec {
   private executablePath: string;
-<<<<<<< HEAD
   constructor(executablePath: string | null = null) {
     this.executablePath = executablePath || findCodexPath();
-=======
-  private envOverride?: Record<string, string>;
-
-  constructor(executablePath: string | null = null, env?: Record<string, string>) {
-    this.executablePath = executablePath || findCodexPath();
-    this.envOverride = env;
->>>>>>> upstream/main
   }
 
   async *run(args: CodexExecArgs): AsyncGenerator<string> {
@@ -74,15 +56,6 @@ export class CodexExec {
       commandArgs.push("--cd", args.workingDirectory);
     }
 
-<<<<<<< HEAD
-=======
-    if (args.additionalDirectories?.length) {
-      for (const dir of args.additionalDirectories) {
-        commandArgs.push("--add-dir", dir);
-      }
-    }
-
->>>>>>> upstream/main
     if (args.skipGitRepoCheck) {
       commandArgs.push("--skip-git-repo-check");
     }
@@ -96,14 +69,7 @@ export class CodexExec {
     }
 
     if (args.networkAccessEnabled !== undefined) {
-<<<<<<< HEAD
       commandArgs.push("--config", `sandbox_workspace_write.network_access=${args.networkAccessEnabled}`);
-=======
-      commandArgs.push(
-        "--config",
-        `sandbox_workspace_write.network_access=${args.networkAccessEnabled}`,
-      );
->>>>>>> upstream/main
     }
 
     if (args.webSearchEnabled !== undefined) {
@@ -124,22 +90,9 @@ export class CodexExec {
       commandArgs.push("resume", args.threadId);
     }
 
-<<<<<<< HEAD
     const env = {
       ...process.env,
     };
-=======
-    const env: Record<string, string> = {};
-    if (this.envOverride) {
-      Object.assign(env, this.envOverride);
-    } else {
-      for (const [key, value] of Object.entries(process.env)) {
-        if (value !== undefined) {
-          env[key] = value;
-        }
-      }
-    }
->>>>>>> upstream/main
     if (!env[INTERNAL_ORIGINATOR_ENV]) {
       env[INTERNAL_ORIGINATOR_ENV] = TYPESCRIPT_SDK_ORIGINATOR;
     }
@@ -152,10 +105,6 @@ export class CodexExec {
 
     const child = spawn(this.executablePath, commandArgs, {
       env,
-<<<<<<< HEAD
-=======
-      signal: args.signal,
->>>>>>> upstream/main
     });
 
     let spawnError: unknown | null = null;

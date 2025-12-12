@@ -38,11 +38,7 @@ pub(crate) enum ApprovalRequest {
         id: String,
         command: Vec<String>,
         reason: Option<String>,
-<<<<<<< HEAD
         risk: Option<SandboxCommandAssessment>,
-=======
-        proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
->>>>>>> upstream/main
     },
     ApplyPatch {
         id: String,
@@ -292,11 +288,7 @@ impl From<ApprovalRequest> for ApprovalRequestState {
                 id,
                 command,
                 reason,
-<<<<<<< HEAD
                 risk,
-=======
-                proposed_execpolicy_amendment,
->>>>>>> upstream/main
             } => {
                 let mut header: Vec<Line<'static>> = Vec::new();
                 if let Some(reason) = reason {
@@ -414,11 +406,7 @@ mod tests {
             id: "test".to_string(),
             command: vec!["echo".to_string(), "hi".to_string()],
             reason: Some("reason".to_string()),
-<<<<<<< HEAD
             risk: None,
-=======
-            proposed_execpolicy_amendment: None,
->>>>>>> upstream/main
         }
     }
 
@@ -452,73 +440,6 @@ mod tests {
     }
 
     #[test]
-<<<<<<< HEAD
-=======
-    fn exec_prefix_option_emits_execpolicy_amendment() {
-        let (tx, mut rx) = unbounded_channel::<AppEvent>();
-        let tx = AppEventSender::new(tx);
-        let mut view = ApprovalOverlay::new(
-            ApprovalRequest::Exec {
-                id: "test".to_string(),
-                command: vec!["echo".to_string()],
-                reason: None,
-                proposed_execpolicy_amendment: Some(ExecPolicyAmendment::new(vec![
-                    "echo".to_string(),
-                ])),
-            },
-            tx,
-            Features::with_defaults(),
-        );
-        view.handle_key_event(KeyEvent::new(KeyCode::Char('p'), KeyModifiers::NONE));
-        let mut saw_op = false;
-        while let Ok(ev) = rx.try_recv() {
-            if let AppEvent::CodexOp(Op::ExecApproval { decision, .. }) = ev {
-                assert_eq!(
-                    decision,
-                    ReviewDecision::ApprovedExecpolicyAmendment {
-                        proposed_execpolicy_amendment: ExecPolicyAmendment::new(vec![
-                            "echo".to_string()
-                        ])
-                    }
-                );
-                saw_op = true;
-                break;
-            }
-        }
-        assert!(
-            saw_op,
-            "expected approval decision to emit an op with command prefix"
-        );
-    }
-
-    #[test]
-    fn exec_prefix_option_hidden_when_execpolicy_disabled() {
-        let (tx, mut rx) = unbounded_channel::<AppEvent>();
-        let tx = AppEventSender::new(tx);
-        let mut view = ApprovalOverlay::new(
-            ApprovalRequest::Exec {
-                id: "test".to_string(),
-                command: vec!["echo".to_string()],
-                reason: None,
-                proposed_execpolicy_amendment: Some(ExecPolicyAmendment::new(vec![
-                    "echo".to_string(),
-                ])),
-            },
-            tx,
-            {
-                let mut features = Features::with_defaults();
-                features.disable(Feature::ExecPolicy);
-                features
-            },
-        );
-        assert_eq!(view.options.len(), 2);
-        view.handle_key_event(KeyEvent::new(KeyCode::Char('p'), KeyModifiers::NONE));
-        assert!(!view.is_complete());
-        assert!(rx.try_recv().is_err());
-    }
-
-    #[test]
->>>>>>> upstream/main
     fn header_includes_command_snippet() {
         let (tx, _rx) = unbounded_channel::<AppEvent>();
         let tx = AppEventSender::new(tx);
@@ -527,11 +448,7 @@ mod tests {
             id: "test".into(),
             command,
             reason: None,
-<<<<<<< HEAD
             risk: None,
-=======
-            proposed_execpolicy_amendment: None,
->>>>>>> upstream/main
         };
 
         let view = ApprovalOverlay::new(exec_request, tx);

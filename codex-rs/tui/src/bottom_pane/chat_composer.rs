@@ -709,19 +709,7 @@ impl ChatComposer {
         lower.ends_with(".png") || lower.ends_with(".jpg") || lower.ends_with(".jpeg")
     }
 
-<<<<<<< HEAD
     /// Extract the `@token` that the cursor is currently positioned on, if any.
-=======
-    fn skills_enabled(&self) -> bool {
-        self.skills.as_ref().is_some_and(|s| !s.is_empty())
-    }
-
-    pub fn skills(&self) -> Option<&Vec<SkillMetadata>> {
-        self.skills.as_ref()
-    }
-
-    /// Extract a token prefixed with `prefix` under the cursor, if any.
->>>>>>> upstream/main
     ///
     /// The returned string **does not** include the leading `@`.
     ///
@@ -1442,92 +1430,6 @@ impl ChatComposer {
             .map(|items| if items.is_empty() { 0 } else { 1 })
     }
 
-<<<<<<< HEAD
-=======
-    fn sync_popups(&mut self) {
-        let file_token = Self::current_at_token(&self.textarea);
-        let skill_token = self.current_skill_token();
-
-        let allow_command_popup = file_token.is_none() && skill_token.is_none();
-        self.sync_command_popup(allow_command_popup);
-
-        if matches!(self.active_popup, ActivePopup::Command(_)) {
-            self.dismissed_file_popup_token = None;
-            self.dismissed_skill_popup_token = None;
-            return;
-        }
-
-        if let Some(token) = skill_token {
-            self.sync_skill_popup(token);
-            return;
-        }
-        self.dismissed_skill_popup_token = None;
-
-        if let Some(token) = file_token {
-            self.sync_file_search_popup(token);
-            return;
-        }
-
-        self.dismissed_file_popup_token = None;
-        if matches!(
-            self.active_popup,
-            ActivePopup::File(_) | ActivePopup::Skill(_)
-        ) {
-            self.active_popup = ActivePopup::None;
-        }
-    }
-
-    /// If the cursor is currently within a slash command on the first line,
-    /// extract the command name and the rest of the line after it.
-    /// Returns None if the cursor is outside a slash command.
-    fn slash_command_under_cursor(first_line: &str, cursor: usize) -> Option<(&str, &str)> {
-        if !first_line.starts_with('/') {
-            return None;
-        }
-
-        let name_start = 1usize;
-        let name_end = first_line[name_start..]
-            .find(char::is_whitespace)
-            .map(|idx| name_start + idx)
-            .unwrap_or_else(|| first_line.len());
-
-        if cursor > name_end {
-            return None;
-        }
-
-        let name = &first_line[name_start..name_end];
-        let rest_start = first_line[name_end..]
-            .find(|c: char| !c.is_whitespace())
-            .map(|idx| name_end + idx)
-            .unwrap_or(name_end);
-        let rest = &first_line[rest_start..];
-
-        Some((name, rest))
-    }
-
-    /// Heuristic for whether the typed slash command looks like a valid
-    /// prefix for any known command (built-in or custom prompt).
-    /// Empty names only count when there is no extra content after the '/'.
-    fn looks_like_slash_prefix(&self, name: &str, rest_after_name: &str) -> bool {
-        if name.is_empty() {
-            return rest_after_name.is_empty();
-        }
-
-        let builtin_match = built_in_slash_commands()
-            .into_iter()
-            .any(|(cmd_name, _)| fuzzy_match(cmd_name, name).is_some());
-
-        if builtin_match {
-            return true;
-        }
-
-        let prompt_prefix = format!("{PROMPTS_CMD_PREFIX}:");
-        self.custom_prompts
-            .iter()
-            .any(|p| fuzzy_match(&format!("{prompt_prefix}{}", p.name), name).is_some())
-    }
-
->>>>>>> upstream/main
     /// Synchronize `self.command_popup` with the current text in the
     /// textarea. This must be called after every modification that can change
     /// the text so the popup is shown/updated/hidden as appropriate.

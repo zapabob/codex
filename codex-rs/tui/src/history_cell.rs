@@ -672,21 +672,7 @@ pub(crate) fn new_session_info(
         CompositeHistoryCell {
             parts: vec![Box::new(PlainHistoryCell { lines })],
         }
-<<<<<<< HEAD
     })
-=======
-        if requested_model != model {
-            let lines = vec![
-                "model changed:".magenta().bold().into(),
-                format!("requested: {requested_model}").into(),
-                format!("used: {model}").into(),
-            ];
-            parts.push(Box::new(PlainHistoryCell { lines }));
-        }
-    }
-
-    SessionInfoCell(CompositeHistoryCell { parts })
->>>>>>> upstream/main
 }
 
 pub(crate) fn new_user_prompt(message: String) -> UserHistoryCell {
@@ -2267,13 +2253,9 @@ mod tests {
     }
     #[test]
     fn reasoning_summary_block() {
-<<<<<<< HEAD
         let mut config = test_config();
         config.model_family.reasoning_summary_format = ReasoningSummaryFormat::Experimental;
 
-=======
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
->>>>>>> upstream/main
         let cell = new_reasoning_summary_block(
             "**High level reasoning**\n\nDetailed reasoning goes here.".to_string(),
             &config,
@@ -2288,56 +2270,21 @@ mod tests {
 
     #[test]
     fn reasoning_summary_block_returns_reasoning_cell_when_feature_disabled() {
-<<<<<<< HEAD
         let mut config = test_config();
         config.model_family.reasoning_summary_format = ReasoningSummaryFormat::Experimental;
 
         let cell =
             new_reasoning_summary_block("Detailed reasoning goes here.".to_string(), &config);
-=======
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
-        let cell = new_reasoning_summary_block(
-            "Detailed reasoning goes here.".to_string(),
-            reasoning_format,
-        );
->>>>>>> upstream/main
 
         let rendered = render_transcript(cell.as_ref());
         assert_eq!(rendered, vec!["• Detailed reasoning goes here."]);
     }
 
     #[test]
-<<<<<<< HEAD
     fn reasoning_summary_block_falls_back_when_header_is_missing() {
         let mut config = test_config();
         config.model_family.reasoning_summary_format = ReasoningSummaryFormat::Experimental;
 
-=======
-    fn reasoning_summary_block_respects_config_overrides() {
-        let mut config = test_config();
-        config.model = Some("gpt-3.5-turbo".to_string());
-        config.model_supports_reasoning_summaries = Some(true);
-        config.model_reasoning_summary_format = Some(ReasoningSummaryFormat::Experimental);
-        let model_family =
-            ModelsManager::construct_model_family_offline(&config.model.clone().unwrap(), &config);
-        assert_eq!(
-            model_family.reasoning_summary_format,
-            ReasoningSummaryFormat::Experimental
-        );
-
-        let cell = new_reasoning_summary_block(
-            "**High level reasoning**\n\nDetailed reasoning goes here.".to_string(),
-            model_family.reasoning_summary_format,
-        );
-
-        let rendered_display = render_lines(&cell.display_lines(80));
-        assert_eq!(rendered_display, vec!["• Detailed reasoning goes here."]);
-    }
-
-    #[test]
-    fn reasoning_summary_block_falls_back_when_header_is_missing() {
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
->>>>>>> upstream/main
         let cell = new_reasoning_summary_block(
             "**High level reasoning without closing".to_string(),
             &config,
@@ -2349,13 +2296,9 @@ mod tests {
 
     #[test]
     fn reasoning_summary_block_falls_back_when_summary_is_missing() {
-<<<<<<< HEAD
         let mut config = test_config();
         config.model_family.reasoning_summary_format = ReasoningSummaryFormat::Experimental;
 
-=======
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
->>>>>>> upstream/main
         let cell = new_reasoning_summary_block(
             "**High level reasoning without closing**".to_string(),
             &config,
@@ -2375,13 +2318,9 @@ mod tests {
 
     #[test]
     fn reasoning_summary_block_splits_header_and_summary_when_present() {
-<<<<<<< HEAD
         let mut config = test_config();
         config.model_family.reasoning_summary_format = ReasoningSummaryFormat::Experimental;
 
-=======
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
->>>>>>> upstream/main
         let cell = new_reasoning_summary_block(
             "**High level plan**\n\nWe should fix the bug next.".to_string(),
             &config,

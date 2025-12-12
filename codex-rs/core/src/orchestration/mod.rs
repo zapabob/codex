@@ -1,6 +1,7 @@
 // Auto-orchestration and task analysis
 pub mod auto_orchestrator;
 pub mod task_analyzer;
+pub mod development_mode;
 
 // Blueprint orchestration
 pub mod plan_orchestrator;

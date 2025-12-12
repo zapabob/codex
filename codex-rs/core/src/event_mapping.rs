@@ -200,8 +200,6 @@ mod tests {
                     text: "# AGENTS.md instructions for test_directory\n\n<INSTRUCTIONS>\ntest_text\n</INSTRUCTIONS>".to_string(),
                 }],
             },
-<<<<<<< HEAD
-=======
             ResponseItem::Message {
                 id: None,
                 role: "user".to_string(),
@@ -217,7 +215,6 @@ mod tests {
                     text: "<user_shell_command>echo 42</user_shell_command>".to_string(),
                 }],
             },
->>>>>>> upstream/main
         ];
 
         for item in items {

@@ -10,11 +10,6 @@ use crate::error::SandboxErr;
 use crate::exec::ExecToolCallOutput;
 use crate::sandboxing::SandboxManager;
 use crate::tools::sandboxing::ApprovalCtx;
-<<<<<<< HEAD
-use crate::tools::sandboxing::ProvidesSandboxRetryData;
-=======
-use crate::tools::sandboxing::ExecApprovalRequirement;
->>>>>>> upstream/main
 use crate::tools::sandboxing::SandboxAttempt;
 use crate::tools::sandboxing::ToolCtx;
 use crate::tools::sandboxing::ToolError;
@@ -55,65 +50,22 @@ impl ToolOrchestrator {
             tool.wants_initial_approval(req, approval_policy, &turn_ctx.sandbox_policy);
         let mut already_approved = false;
 
-<<<<<<< HEAD
         if needs_initial_approval {
-            let mut risk = None;
-
-            if let Some(metadata) = req.sandbox_retry_data() {
-                risk = tool_ctx
-                    .session
-                    .assess_sandbox_command(turn_ctx, &tool_ctx.call_id, &metadata.command, None)
-                    .await;
-            }
-
             let approval_ctx = ApprovalCtx {
                 session: tool_ctx.session,
                 turn: turn_ctx,
                 call_id: &tool_ctx.call_id,
                 retry_reason: None,
-                risk,
             };
             let decision = tool.start_approval_async(req, approval_ctx).await;
 
-            otel.tool_decision(otel_tn, otel_ci, decision, otel_user.clone());
+            otel.tool_decision(otel_tn, otel_ci, decision.clone(), otel_user.clone());
 
             match decision {
                 ReviewDecision::Denied | ReviewDecision::Abort => {
                     return Err(ToolError::Rejected("rejected by user".to_string()));
                 }
                 ReviewDecision::Approved | ReviewDecision::ApprovedForSession => {}
-=======
-        let requirement = tool.exec_approval_requirement(req).unwrap_or_else(|| {
-            default_exec_approval_requirement(approval_policy, &turn_ctx.sandbox_policy)
-        });
-        match requirement {
-            ExecApprovalRequirement::Skip { .. } => {
-                otel.tool_decision(otel_tn, otel_ci, &ReviewDecision::Approved, otel_cfg);
-            }
-            ExecApprovalRequirement::Forbidden { reason } => {
-                return Err(ToolError::Rejected(reason));
-            }
-            ExecApprovalRequirement::NeedsApproval { reason, .. } => {
-                let approval_ctx = ApprovalCtx {
-                    session: tool_ctx.session,
-                    turn: turn_ctx,
-                    call_id: &tool_ctx.call_id,
-                    retry_reason: reason,
-                };
-                let decision = tool.start_approval_async(req, approval_ctx).await;
-
-                otel.tool_decision(otel_tn, otel_ci, &decision, otel_user.clone());
-
-                match decision {
-                    ReviewDecision::Denied | ReviewDecision::Abort => {
-                        return Err(ToolError::Rejected("rejected by user".to_string()));
-                    }
-                    ReviewDecision::Approved
-                    | ReviewDecision::ApprovedExecpolicyAmendment { .. }
-                    | ReviewDecision::ApprovedForSession => {}
-                }
-                already_approved = true;
->>>>>>> upstream/main
             }
             already_approved = true;
         } else {
@@ -167,7 +119,7 @@ impl ToolOrchestrator {
                     };
 
                     let decision = tool.start_approval_async(req, approval_ctx).await;
-                    otel.tool_decision(otel_tn, otel_ci, decision, otel_user);
+                    otel.tool_decision(otel_tn, otel_ci, decision.clone(), otel_user);
 
                     match decision {
                         ReviewDecision::Denied | ReviewDecision::Abort => {

@@ -1,6 +1,7 @@
 use crate::config::types::ReasoningSummaryFormat;
 use crate::tools::handlers::apply_patch::ApplyPatchToolType;
 use crate::tools::spec::ConfigShellToolType;
+use crate::openai_model_info::get_model_info;
 
 /// The `instructions` field in the payload sent to a model should always start
 /// with this content.
@@ -55,6 +56,16 @@ pub struct ModelFamily {
 
     /// Preferred shell tool type for this model family when features do not override it.
     pub shell_type: ConfigShellToolType,
+}
+
+impl ModelFamily {
+    pub fn get_model_slug(&self) -> &str {
+        self.slug.as_str()
+    }
+
+    pub fn auto_compact_token_limit(&self) -> Option<i64> {
+        get_model_info(self).and_then(|info| info.auto_compact_token_limit)
+    }
 }
 
 macro_rules! model_family {

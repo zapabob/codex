@@ -121,6 +121,15 @@ pub(crate) struct SessionStore {
     reserved_sessions_id: HashSet<String>,
 }
 
+impl Default for SessionStore {
+    fn default() -> Self {
+        Self {
+            sessions: HashMap::new(),
+            reserved_sessions_id: HashSet::new(),
+        }
+    }
+}
+
 impl SessionStore {
     fn remove(&mut self, process_id: &str) -> Option<SessionEntry> {
         self.reserved_sessions_id.remove(process_id);

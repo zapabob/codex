@@ -229,19 +229,23 @@ impl MathematicalOptimizer {
 
     /// Create optimizer with explicit CUDA enable/disable
     pub fn with_cuda(cuda_enabled: bool) -> Self {
-        Self {
-            #[cfg(feature = "cuda")]
-            cuda_accel: if cuda_enabled {
-                cuda_math::CudaLinearAlgebra::new().ok()
-            } else {
-                None
-            },
-            #[cfg(not(feature = "cuda"))]
-            _phantom: std::marker::PhantomData,
+        #[cfg(feature = "cuda")]
+        {
+            Self {
+                cuda_accel: if cuda_enabled {
+                    cuda_math::CudaLinearAlgebra::new().ok()
+                } else {
+                    None
+                },
+            }
+        }
+
+        #[cfg(not(feature = "cuda"))]
+        {
+            let _ = cuda_enabled;
+            Self {}
         }
     }
-
-impl MathematicalOptimizer {
     /// Solve linear programming problem using simplex method approximation
     pub fn solve_linear_program(&self, problem: &LinearProgram) -> Result<LPSolution, String> {
         if problem.objective_coeffs.is_empty() {
@@ -848,7 +852,7 @@ mod tests {
 
     #[test]
     fn test_resource_allocation() {
-        let optimizer = MathematicalOptimizer;
+        let optimizer = MathematicalOptimizer::new();
         let constraints = ResourceConstraints {
             cpu_cores: 8,
             memory_mb: 8192,
@@ -875,7 +879,7 @@ mod tests {
 
     #[test]
     fn test_bottleneck_detection() {
-        let optimizer = MathematicalOptimizer;
+        let optimizer = MathematicalOptimizer::new();
         let metrics = SystemMetrics {
             cpu_usage: 95.0,
             memory_usage: 85.0,

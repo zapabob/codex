@@ -32,11 +32,6 @@ type PreBuildHook = dyn FnOnce(&Path) + Send + 'static;
 
 pub struct TestCodexBuilder {
     config_mutators: Vec<Box<ConfigMutator>>,
-<<<<<<< HEAD
-=======
-    auth: CodexAuth,
-    pre_build_hooks: Vec<Box<PreBuildHook>>,
->>>>>>> upstream/main
 }
 
 impl TestCodexBuilder {
@@ -48,29 +43,6 @@ impl TestCodexBuilder {
         self
     }
 
-<<<<<<< HEAD
-=======
-    pub fn with_auth(mut self, auth: CodexAuth) -> Self {
-        self.auth = auth;
-        self
-    }
-
-    pub fn with_model(self, model: &str) -> Self {
-        let new_model = model.to_string();
-        self.with_config(move |config| {
-            config.model = Some(new_model.clone());
-        })
-    }
-
-    pub fn with_pre_build_hook<F>(mut self, hook: F) -> Self
-    where
-        F: FnOnce(&Path) + Send + 'static,
-    {
-        self.pre_build_hooks.push(Box::new(hook));
-        self
-    }
-
->>>>>>> upstream/main
     pub async fn build(&mut self, server: &wiremock::MockServer) -> anyhow::Result<TestCodex> {
         let home = Arc::new(TempDir::new()?);
         self.build_with_home(server, home, None).await
@@ -92,14 +64,7 @@ impl TestCodexBuilder {
         resume_from: Option<PathBuf>,
     ) -> anyhow::Result<TestCodex> {
         let (config, cwd) = self.prepare_config(server, &home).await?;
-<<<<<<< HEAD
         let conversation_manager = ConversationManager::with_auth(CodexAuth::from_api_key("dummy"));
-=======
-
-        let auth = self.auth.clone();
-        let conversation_manager =
-            ConversationManager::with_models_provider(auth.clone(), config.model_provider.clone());
->>>>>>> upstream/main
 
         let new_conversation = match resume_from {
             Some(path) => {
@@ -135,17 +100,9 @@ impl TestCodexBuilder {
         let mut config = load_default_config_for_test(home);
         config.cwd = cwd.path().to_path_buf();
         config.model_provider = model_provider;
-<<<<<<< HEAD
         let bin_path = assert_cmd::cargo::cargo_bin("codex");
         if bin_path.exists() {
             config.codex_linux_sandbox_exe = Some(bin_path);
-=======
-        for hook in self.pre_build_hooks.drain(..) {
-            hook(home.path());
-        }
-        if let Ok(cmd) = assert_cmd::Command::cargo_bin("codex") {
-            config.codex_linux_sandbox_exe = Some(PathBuf::from(cmd.get_program().to_os_string()));
->>>>>>> upstream/main
         }
 
         let mut mutators = vec![];
@@ -329,10 +286,5 @@ fn function_call_output<'a>(bodies: &'a [Value], call_id: &str) -> &'a Value {
 pub fn test_codex() -> TestCodexBuilder {
     TestCodexBuilder {
         config_mutators: vec![],
-<<<<<<< HEAD
-=======
-        auth: CodexAuth::from_api_key("dummy"),
-        pre_build_hooks: vec![],
->>>>>>> upstream/main
     }
 }

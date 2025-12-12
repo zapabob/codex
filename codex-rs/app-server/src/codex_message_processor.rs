@@ -57,13 +57,6 @@ use codex_app_server_protocol::LoginChatGptCompleteNotification;
 use codex_app_server_protocol::LoginChatGptResponse;
 use codex_app_server_protocol::LogoutAccountResponse;
 use codex_app_server_protocol::LogoutChatGptResponse;
-<<<<<<< HEAD
-=======
-use codex_app_server_protocol::McpServer;
-use codex_app_server_protocol::McpServerOauthLoginCompletedNotification;
-use codex_app_server_protocol::McpServerOauthLoginParams;
-use codex_app_server_protocol::McpServerOauthLoginResponse;
->>>>>>> upstream/main
 use codex_app_server_protocol::ModelListParams;
 use codex_app_server_protocol::ModelListResponse;
 use codex_app_server_protocol::NewConversationParams;
@@ -185,18 +178,8 @@ struct ActiveLogin {
     login_id: Uuid,
 }
 
-<<<<<<< HEAD
 impl ActiveLogin {
     fn drop(&self) {
-=======
-#[derive(Clone, Copy, Debug)]
-enum CancelLoginError {
-    NotFound(Uuid),
-}
-
-impl Drop for ActiveLogin {
-    fn drop(&mut self) {
->>>>>>> upstream/main
         self.shutdown_handle.shutdown();
     }
 }
@@ -248,78 +231,6 @@ impl CodexMessageProcessor {
         }
     }
 
-<<<<<<< HEAD
-=======
-    async fn load_latest_config(&self) -> Result<Config, JSONRPCErrorError> {
-        Config::load_with_cli_overrides(self.cli_overrides.clone(), ConfigOverrides::default())
-            .await
-            .map_err(|err| JSONRPCErrorError {
-                code: INTERNAL_ERROR_CODE,
-                message: format!("failed to reload config: {err}"),
-                data: None,
-            })
-    }
-
-    fn review_request_from_target(
-        target: ApiReviewTarget,
-    ) -> Result<(ReviewRequest, String), JSONRPCErrorError> {
-        fn invalid_request(message: String) -> JSONRPCErrorError {
-            JSONRPCErrorError {
-                code: INVALID_REQUEST_ERROR_CODE,
-                message,
-                data: None,
-            }
-        }
-
-        let cleaned_target = match target {
-            ApiReviewTarget::UncommittedChanges => ApiReviewTarget::UncommittedChanges,
-            ApiReviewTarget::BaseBranch { branch } => {
-                let branch = branch.trim().to_string();
-                if branch.is_empty() {
-                    return Err(invalid_request("branch must not be empty".to_string()));
-                }
-                ApiReviewTarget::BaseBranch { branch }
-            }
-            ApiReviewTarget::Commit { sha, title } => {
-                let sha = sha.trim().to_string();
-                if sha.is_empty() {
-                    return Err(invalid_request("sha must not be empty".to_string()));
-                }
-                let title = title
-                    .map(|t| t.trim().to_string())
-                    .filter(|t| !t.is_empty());
-                ApiReviewTarget::Commit { sha, title }
-            }
-            ApiReviewTarget::Custom { instructions } => {
-                let trimmed = instructions.trim().to_string();
-                if trimmed.is_empty() {
-                    return Err(invalid_request(
-                        "instructions must not be empty".to_string(),
-                    ));
-                }
-                ApiReviewTarget::Custom {
-                    instructions: trimmed,
-                }
-            }
-        };
-
-        let core_target = match cleaned_target {
-            ApiReviewTarget::UncommittedChanges => CoreReviewTarget::UncommittedChanges,
-            ApiReviewTarget::BaseBranch { branch } => CoreReviewTarget::BaseBranch { branch },
-            ApiReviewTarget::Commit { sha, title } => CoreReviewTarget::Commit { sha, title },
-            ApiReviewTarget::Custom { instructions } => CoreReviewTarget::Custom { instructions },
-        };
-
-        let hint = codex_core::review_prompts::user_facing_hint(&core_target);
-        let review_request = ReviewRequest {
-            target: core_target,
-            user_facing_hint: Some(hint.clone()),
-        };
-
-        Ok((review_request, hint))
-    }
-
->>>>>>> upstream/main
     pub async fn process_request(&mut self, request: ClientRequest) {
         match request {
             ClientRequest::Initialize { .. } => {
@@ -366,15 +277,6 @@ impl CodexMessageProcessor {
             ClientRequest::ModelList { request_id, params } => {
                 self.list_models(request_id, params).await;
             }
-<<<<<<< HEAD
-=======
-            ClientRequest::McpServerOauthLogin { request_id, params } => {
-                self.mcp_server_oauth_login(request_id, params).await;
-            }
-            ClientRequest::McpServersList { request_id, params } => {
-                self.list_mcp_servers(request_id, params).await;
-            }
->>>>>>> upstream/main
             ClientRequest::LoginAccount { request_id, params } => {
                 self.login_v2(request_id, params).await;
             }
@@ -1744,12 +1646,8 @@ impl CodexMessageProcessor {
 
     async fn list_models(&self, request_id: RequestId, params: ModelListParams) {
         let ModelListParams { limit, cursor } = params;
-<<<<<<< HEAD
         let auth_mode = self.auth_manager.auth().map(|auth| auth.mode);
         let models = supported_models(auth_mode);
-=======
-        let models = supported_models(self.conversation_manager.clone(), &self.config).await;
->>>>>>> upstream/main
         let total = models.len();
 
         if total == 0 {
@@ -1803,192 +1701,6 @@ impl CodexMessageProcessor {
         self.outgoing.send_response(request_id, response).await;
     }
 
-<<<<<<< HEAD
-=======
-    async fn mcp_server_oauth_login(
-        &self,
-        request_id: RequestId,
-        params: McpServerOauthLoginParams,
-    ) {
-        let config = match self.load_latest_config().await {
-            Ok(config) => config,
-            Err(error) => {
-                self.outgoing.send_error(request_id, error).await;
-                return;
-            }
-        };
-
-        if !config.features.enabled(Feature::RmcpClient) {
-            let error = JSONRPCErrorError {
-                code: INVALID_REQUEST_ERROR_CODE,
-                message: "OAuth login is only supported when [features].rmcp_client is true in config.toml".to_string(),
-                data: None,
-            };
-            self.outgoing.send_error(request_id, error).await;
-            return;
-        }
-
-        let McpServerOauthLoginParams {
-            name,
-            scopes,
-            timeout_secs,
-        } = params;
-
-        let Some(server) = config.mcp_servers.get(&name) else {
-            let error = JSONRPCErrorError {
-                code: INVALID_REQUEST_ERROR_CODE,
-                message: format!("No MCP server named '{name}' found."),
-                data: None,
-            };
-            self.outgoing.send_error(request_id, error).await;
-            return;
-        };
-
-        let (url, http_headers, env_http_headers) = match &server.transport {
-            McpServerTransportConfig::StreamableHttp {
-                url,
-                http_headers,
-                env_http_headers,
-                ..
-            } => (url.clone(), http_headers.clone(), env_http_headers.clone()),
-            _ => {
-                let error = JSONRPCErrorError {
-                    code: INVALID_REQUEST_ERROR_CODE,
-                    message: "OAuth login is only supported for streamable HTTP servers."
-                        .to_string(),
-                    data: None,
-                };
-                self.outgoing.send_error(request_id, error).await;
-                return;
-            }
-        };
-
-        match perform_oauth_login_return_url(
-            &name,
-            &url,
-            config.mcp_oauth_credentials_store_mode,
-            http_headers,
-            env_http_headers,
-            scopes.as_deref().unwrap_or_default(),
-            timeout_secs,
-        )
-        .await
-        {
-            Ok(handle) => {
-                let authorization_url = handle.authorization_url().to_string();
-                let notification_name = name.clone();
-                let outgoing = Arc::clone(&self.outgoing);
-
-                tokio::spawn(async move {
-                    let (success, error) = match handle.wait().await {
-                        Ok(()) => (true, None),
-                        Err(err) => (false, Some(err.to_string())),
-                    };
-
-                    let notification = ServerNotification::McpServerOauthLoginCompleted(
-                        McpServerOauthLoginCompletedNotification {
-                            name: notification_name,
-                            success,
-                            error,
-                        },
-                    );
-                    outgoing.send_server_notification(notification).await;
-                });
-
-                let response = McpServerOauthLoginResponse { authorization_url };
-                self.outgoing.send_response(request_id, response).await;
-            }
-            Err(err) => {
-                let error = JSONRPCErrorError {
-                    code: INTERNAL_ERROR_CODE,
-                    message: format!("failed to login to MCP server '{name}': {err}"),
-                    data: None,
-                };
-                self.outgoing.send_error(request_id, error).await;
-            }
-        }
-    }
-
-    async fn list_mcp_servers(&self, request_id: RequestId, params: ListMcpServersParams) {
-        let snapshot = collect_mcp_snapshot(self.config.as_ref()).await;
-
-        let tools_by_server = group_tools_by_server(&snapshot.tools);
-
-        let mut server_names: Vec<String> = self
-            .config
-            .mcp_servers
-            .keys()
-            .cloned()
-            .chain(snapshot.auth_statuses.keys().cloned())
-            .chain(snapshot.resources.keys().cloned())
-            .chain(snapshot.resource_templates.keys().cloned())
-            .collect();
-        server_names.sort();
-        server_names.dedup();
-
-        let total = server_names.len();
-        let limit = params.limit.unwrap_or(total as u32).max(1) as usize;
-        let effective_limit = limit.min(total);
-        let start = match params.cursor {
-            Some(cursor) => match cursor.parse::<usize>() {
-                Ok(idx) => idx,
-                Err(_) => {
-                    let error = JSONRPCErrorError {
-                        code: INVALID_REQUEST_ERROR_CODE,
-                        message: format!("invalid cursor: {cursor}"),
-                        data: None,
-                    };
-                    self.outgoing.send_error(request_id, error).await;
-                    return;
-                }
-            },
-            None => 0,
-        };
-
-        if start > total {
-            let error = JSONRPCErrorError {
-                code: INVALID_REQUEST_ERROR_CODE,
-                message: format!("cursor {start} exceeds total MCP servers {total}"),
-                data: None,
-            };
-            self.outgoing.send_error(request_id, error).await;
-            return;
-        }
-
-        let end = start.saturating_add(effective_limit).min(total);
-
-        let data: Vec<McpServer> = server_names[start..end]
-            .iter()
-            .map(|name| McpServer {
-                name: name.clone(),
-                tools: tools_by_server.get(name).cloned().unwrap_or_default(),
-                resources: snapshot.resources.get(name).cloned().unwrap_or_default(),
-                resource_templates: snapshot
-                    .resource_templates
-                    .get(name)
-                    .cloned()
-                    .unwrap_or_default(),
-                auth_status: snapshot
-                    .auth_statuses
-                    .get(name)
-                    .cloned()
-                    .unwrap_or(CoreMcpAuthStatus::Unsupported)
-                    .into(),
-            })
-            .collect();
-
-        let next_cursor = if end < total {
-            Some(end.to_string())
-        } else {
-            None
-        };
-
-        let response = ListMcpServersResponse { data, next_cursor };
-
-        self.outgoing.send_response(request_id, response).await;
-    }
-
->>>>>>> upstream/main
     async fn handle_resume_conversation(
         &self,
         request_id: RequestId,
@@ -2571,138 +2283,9 @@ impl CodexMessageProcessor {
     async fn turn_interrupt(&mut self, request_id: RequestId, params: TurnInterruptParams) {
         let TurnInterruptParams { thread_id, .. } = params;
 
-<<<<<<< HEAD
         // Resolve conversation id from v2 thread id string.
         let conversation_id = match ConversationId::from_string(&thread_id) {
             Ok(id) => id,
-=======
-        Turn {
-            id: turn_id,
-            items,
-            error: None,
-            status: TurnStatus::InProgress,
-        }
-    }
-
-    async fn emit_review_started(
-        &self,
-        request_id: &RequestId,
-        turn: Turn,
-        parent_thread_id: String,
-        review_thread_id: String,
-    ) {
-        let response = ReviewStartResponse {
-            turn: turn.clone(),
-            review_thread_id,
-        };
-        self.outgoing
-            .send_response(request_id.clone(), response)
-            .await;
-
-        let notif = TurnStartedNotification {
-            thread_id: parent_thread_id,
-            turn,
-        };
-        self.outgoing
-            .send_server_notification(ServerNotification::TurnStarted(notif))
-            .await;
-    }
-
-    async fn start_inline_review(
-        &self,
-        request_id: &RequestId,
-        parent_conversation: Arc<CodexConversation>,
-        review_request: ReviewRequest,
-        display_text: &str,
-        parent_thread_id: String,
-    ) -> std::result::Result<(), JSONRPCErrorError> {
-        let turn_id = parent_conversation
-            .submit(Op::Review { review_request })
-            .await;
-
-        match turn_id {
-            Ok(turn_id) => {
-                let turn = Self::build_review_turn(turn_id, display_text);
-                self.emit_review_started(
-                    request_id,
-                    turn,
-                    parent_thread_id.clone(),
-                    parent_thread_id,
-                )
-                .await;
-                Ok(())
-            }
-            Err(err) => Err(JSONRPCErrorError {
-                code: INTERNAL_ERROR_CODE,
-                message: format!("failed to start review: {err}"),
-                data: None,
-            }),
-        }
-    }
-
-    async fn start_detached_review(
-        &mut self,
-        request_id: &RequestId,
-        parent_conversation_id: ConversationId,
-        review_request: ReviewRequest,
-        display_text: &str,
-    ) -> std::result::Result<(), JSONRPCErrorError> {
-        let rollout_path = find_conversation_path_by_id_str(
-            &self.config.codex_home,
-            &parent_conversation_id.to_string(),
-        )
-        .await
-        .map_err(|err| JSONRPCErrorError {
-            code: INTERNAL_ERROR_CODE,
-            message: format!("failed to locate conversation id {parent_conversation_id}: {err}"),
-            data: None,
-        })?
-        .ok_or_else(|| JSONRPCErrorError {
-            code: INVALID_REQUEST_ERROR_CODE,
-            message: format!("no rollout found for conversation id {parent_conversation_id}"),
-            data: None,
-        })?;
-
-        let mut config = self.config.as_ref().clone();
-        config.model = Some(self.config.review_model.clone());
-
-        let NewConversation {
-            conversation_id,
-            conversation,
-            session_configured,
-            ..
-        } = self
-            .conversation_manager
-            .fork_conversation(usize::MAX, config, rollout_path)
-            .await
-            .map_err(|err| JSONRPCErrorError {
-                code: INTERNAL_ERROR_CODE,
-                message: format!("error creating detached review conversation: {err}"),
-                data: None,
-            })?;
-
-        if let Err(err) = self
-            .attach_conversation_listener(conversation_id, false, ApiVersion::V2)
-            .await
-        {
-            tracing::warn!(
-                "failed to attach listener for review conversation {}: {}",
-                conversation_id,
-                err.message
-            );
-        }
-
-        let rollout_path = conversation.rollout_path();
-        let fallback_provider = self.config.model_provider_id.as_str();
-        match read_summary_from_rollout(rollout_path.as_path(), fallback_provider).await {
-            Ok(summary) => {
-                let thread = summary_to_thread(summary);
-                let notif = ThreadStartedNotification { thread };
-                self.outgoing
-                    .send_server_notification(ServerNotification::ThreadStarted(notif))
-                    .await;
-            }
->>>>>>> upstream/main
             Err(err) => {
                 let error = JSONRPCErrorError {
                     code: INVALID_REQUEST_ERROR_CODE,

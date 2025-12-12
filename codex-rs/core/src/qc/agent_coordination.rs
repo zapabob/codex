@@ -393,5 +393,4 @@ mod tests {
         let stats_after = coordinator.get_statistics();
         assert_eq!(stats_after.resource_utilization[&ResourceType::CpuCores], 8.0);
     }
-}</contents>
-</xai:function_call<parameter name="file_path">codex-rs/core/src/qc/agent_coordination.rs
+}

@@ -14,6 +14,7 @@
 pub mod agent_communication;
 pub mod agent_interpreter;
 pub mod agents;
+#[cfg(feature = "dev-orchestrator")]
 pub mod ai_orchestrator;
 pub mod git_lock_manager;
 pub mod conflict_detector;
@@ -68,9 +69,12 @@ mod message_history;
 mod model_provider_info;
 pub mod natural_language_parser;
 pub mod orchestration;
+#[cfg(feature = "dev-orchestrator")]
+pub mod qc;
 pub mod parse_command;
 mod response_processing;
 pub mod sandboxing;
+pub mod skills;
 pub mod token_data;
 mod truncate;
 mod unified_exec;
