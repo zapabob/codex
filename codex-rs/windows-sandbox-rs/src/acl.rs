@@ -1,4 +1,7 @@
 ﻿use crate::audit::GENERIC_WRITE_MASK;
+use windows_sys::Win32::Storage::FileSystem::FILE_WRITE_DATA;
+use windows_sys::Win32::Storage::FileSystem::FILE_WRITE_EA;
+use windows_sys::Win32::Storage::FileSystem::FILE_WRITE_ATTRIBUTES;
 use crate::winutil::to_wide;
 use anyhow::anyhow;
 use anyhow::Result;

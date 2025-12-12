@@ -4,16 +4,17 @@ use anyhow::Context;
 use anyhow::Result;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
-use super::convert_string_sid_to_sid;
-use super::dpapi_protect;
-// use super::ensure_allow_write_aces; // TODO: Function not defined
-// use super::fetch_dacl_handle; // TODO: Function not defined
-use super::load_or_create_cap_sids;
-use super::log_note;
-// use super::path_mask_allows; // TODO: Function not defined
-use super::sandbox_dir;
-use super::winutil::string_from_sid_bytes;
-use super::LOG_FILE_NAME;
+use crate::token::convert_string_sid_to_sid;
+use crate::dpapi::protect as dpapi_protect;
+// use crate::ensure_allow_write_aces; // TODO: Function not defined
+// use crate::fetch_dacl_handle; // TODO: Function not defined
+use crate::cap::load_or_create_cap_sids;
+use crate::logging::log_note;
+// use crate::path_mask_allows; // TODO: Function not defined
+use crate::setup_orchestrator::sandbox_dir;
+use crate::winutil::string_from_sid_bytes;
+use crate::logging::LOG_FILE_NAME;
+use crate::setup_orchestrator::SETUP_VERSION;
 use rand::rngs::SmallRng;
 use rand::RngCore;
 use rand::SeedableRng;
@@ -712,8 +713,8 @@ fn run_setup(payload: &Payload, log: &mut File, sbx_dir: &Path) -> Result<()> {
         //                 e
         //             ),
         //         )?;
-            }
-        }
+        //     }
+        // }
         log_line(
             log,
             &format!("granting read ACE to {} for sandbox users", root.display()),
