@@ -1,4 +1,4 @@
-﻿use std::collections::HashMap;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::protocol::common::AuthMode;
@@ -18,20 +18,20 @@ use codex_protocol::plan_tool::PlanItemArg as CorePlanItemArg;
 use codex_protocol::plan_tool::StepStatus as CorePlanStepStatus;
 use codex_protocol::protocol::AskForApproval as CoreAskForApproval;
 use codex_protocol::protocol::CreditsSnapshot as CoreCreditsSnapshot;
+use codex_protocol::protocol::McpAuthStatus;
 use codex_protocol::protocol::RateLimitSnapshot as CoreRateLimitSnapshot;
 use codex_protocol::protocol::RateLimitWindow as CoreRateLimitWindow;
 use codex_protocol::protocol::SessionSource as CoreSessionSource;
-use codex_protocol::protocol::McpAuthStatus;
 use codex_protocol::user_input::UserInput as CoreUserInput;
 use mcp_types::ContentBlock as McpContentBlock;
+use mcp_types::Resource as McpResource;
+use mcp_types::ResourceTemplate as McpResourceTemplate;
+use mcp_types::Tool as McpTool;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use ts_rs::TS;
-use mcp_types::ResourceTemplate as McpResourceTemplate;
-use mcp_types::Resource as McpResource;
-use mcp_types::Tool as McpTool;
 
 // Macro to declare a camelCased API v2 enum mirroring a core enum which
 // tends to use kebab-case.
@@ -57,7 +57,6 @@ macro_rules! v2_enum_from_core {
         }
     };
 }
-
 
 /// This translation layer make sure that we expose codex error code in camel case.
 ///
@@ -111,7 +110,6 @@ pub enum AskForApproval {
     Never,
 }
 
-
 impl AskForApproval {
     pub fn to_core(self) -> CoreAskForApproval {
         match self {
@@ -164,7 +162,6 @@ impl From<CoreSandboxMode> for SandboxMode {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
-
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub enum ConfigLayerName {
@@ -372,7 +369,6 @@ pub enum ApprovalDecision {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[ts(tag = "type")]
-
 #[ts(export_to = "v2/")]
 pub enum SandboxPolicy {
     DangerFullAccess,
@@ -432,7 +428,6 @@ impl From<codex_protocol::protocol::SandboxPolicy> for SandboxPolicy {
         }
     }
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
 #[serde(transparent)]
@@ -570,7 +565,6 @@ impl From<CoreParsedCommand> for CommandAction {
         }
     }
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(tag = "type", rename_all = "camelCase")]

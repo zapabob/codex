@@ -110,11 +110,7 @@ impl EnvironmentContext {
         } else {
             None
         };
-<<<<<<< HEAD
         EnvironmentContext::new(cwd, approval_policy, sandbox_policy, None)
-=======
-        EnvironmentContext::new(cwd, approval_policy, sandbox_policy, shell.clone())
->>>>>>> upstream/main
     }
 
     pub fn from_turn_context(turn_context: &TurnContext, shell: &Shell) -> Self {
@@ -122,12 +118,8 @@ impl EnvironmentContext {
             Some(turn_context.cwd.clone()),
             Some(turn_context.approval_policy),
             Some(turn_context.sandbox_policy.clone()),
-<<<<<<< HEAD
             // Shell is not configurable from turn to turn
             None,
-=======
-            shell.clone(),
->>>>>>> upstream/main
         )
     }
 }
@@ -175,9 +167,8 @@ impl EnvironmentContext {
             }
             lines.push("  </writable_roots>".to_string());
         }
-        if let Some(shell) = self.shell
-            && let Some(shell_name) = shell.name()
-        {
+        if let Some(shell) = self.shell {
+            let shell_name = shell.name();
             lines.push(format!("  <shell>{shell_name}</shell>"));
         }
         lines.push(ENVIRONMENT_CONTEXT_CLOSE_TAG.to_string());
@@ -199,23 +190,18 @@ impl From<EnvironmentContext> for ResponseItem {
 
 #[cfg(test)]
 mod tests {
-    use crate::shell::BashShell;
-    use crate::shell::ZshShell;
+    use crate::shell::ShellType;
 
     use super::*;
     use pretty_assertions::assert_eq;
 
-<<<<<<< HEAD
-=======
-    fn fake_shell() -> Shell {
+    fn fake_shell(shell_type: ShellType, shell_path: &str) -> Shell {
         Shell {
-            shell_type: ShellType::Bash,
-            shell_path: PathBuf::from("/bin/bash"),
+            shell_type,
+            shell_path: PathBuf::from(shell_path),
             shell_snapshot: None,
         }
     }
-
->>>>>>> upstream/main
     fn workspace_write_policy(writable_roots: Vec<&str>, network_access: bool) -> SandboxPolicy {
         SandboxPolicy::WorkspaceWrite {
             writable_roots: writable_roots.into_iter().map(PathBuf::from).collect(),
@@ -344,29 +330,13 @@ mod tests {
             Some(PathBuf::from("/repo")),
             Some(AskForApproval::OnRequest),
             Some(workspace_write_policy(vec!["/repo"], false)),
-            Some(Shell::Bash(BashShell {
-                shell_path: "/bin/bash".into(),
-<<<<<<< HEAD
-                bashrc_path: "/home/user/.bashrc".into(),
-            })),
-=======
-                shell_snapshot: None,
-            },
->>>>>>> upstream/main
+            Some(fake_shell(ShellType::Bash, "/bin/bash")),
         );
         let context2 = EnvironmentContext::new(
             Some(PathBuf::from("/repo")),
             Some(AskForApproval::OnRequest),
             Some(workspace_write_policy(vec!["/repo"], false)),
-            Some(Shell::Zsh(ZshShell {
-                shell_path: "/bin/zsh".into(),
-<<<<<<< HEAD
-                zshrc_path: "/home/user/.zshrc".into(),
-            })),
-=======
-                shell_snapshot: None,
-            },
->>>>>>> upstream/main
+            Some(fake_shell(ShellType::Zsh, "/bin/zsh")),
         );
 
         assert!(context1.equals_except_shell(&context2));

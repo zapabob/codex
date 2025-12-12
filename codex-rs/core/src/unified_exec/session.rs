@@ -9,6 +9,7 @@ use tokio::sync::mpsc;
 use tokio::sync::oneshot::error::TryRecvError;
 use tokio::task::JoinHandle;
 use tokio::time::Duration;
+use tokio_util::sync::CancellationToken;
 
 use crate::exec::ExecToolCallOutput;
 use crate::exec::SandboxType;
@@ -72,11 +73,8 @@ pub(crate) struct UnifiedExecSession {
     session: ExecCommandSession,
     output_buffer: OutputBuffer,
     output_notify: Arc<Notify>,
-<<<<<<< HEAD
-=======
     cancellation_token: CancellationToken,
     output_drained: Arc<Notify>,
->>>>>>> upstream/main
     output_task: JoinHandle<()>,
     sandbox_type: SandboxType,
 }
@@ -89,11 +87,8 @@ impl UnifiedExecSession {
     ) -> Self {
         let output_buffer = Arc::new(Mutex::new(OutputBufferState::default()));
         let output_notify = Arc::new(Notify::new());
-<<<<<<< HEAD
-=======
         let cancellation_token = CancellationToken::new();
         let output_drained = Arc::new(Notify::new());
->>>>>>> upstream/main
         let mut receiver = initial_output_rx;
         let buffer_clone = Arc::clone(&output_buffer);
         let notify_clone = Arc::clone(&output_notify);
@@ -108,11 +103,7 @@ impl UnifiedExecSession {
                     }
                     Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
                     Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
-<<<<<<< HEAD
                 }
-=======
-                };
->>>>>>> upstream/main
             }
         });
 
@@ -120,11 +111,8 @@ impl UnifiedExecSession {
             session,
             output_buffer,
             output_notify,
-<<<<<<< HEAD
-=======
             cancellation_token,
             output_drained,
->>>>>>> upstream/main
             output_task,
             sandbox_type,
         }

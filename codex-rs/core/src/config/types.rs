@@ -448,8 +448,6 @@ pub enum OtelHttpProtocol {
     Json,
 }
 
-<<<<<<< HEAD
-=======
 #[derive(Deserialize, Debug, Clone, PartialEq, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct OtelTlsConfig {
@@ -457,8 +455,6 @@ pub struct OtelTlsConfig {
     pub client_certificate: Option<AbsolutePathBuf>,
     pub client_private_key: Option<AbsolutePathBuf>,
 }
-
->>>>>>> upstream/main
 /// Which OTEL exporter to use.
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "kebab-case")]

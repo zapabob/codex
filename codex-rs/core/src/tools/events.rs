@@ -8,6 +8,7 @@ use crate::parse_command::parse_command;
 use crate::protocol::EventMsg;
 use crate::protocol::ExecCommandBeginEvent;
 use crate::protocol::ExecCommandEndEvent;
+use crate::protocol::ExecCommandSource;
 use crate::protocol::FileChange;
 use crate::protocol::PatchApplyBeginEvent;
 use crate::protocol::PatchApplyEndEvent;
@@ -87,11 +88,10 @@ pub(crate) enum ToolEmitter {
         auto_approved: bool,
     },
     UnifiedExec {
-        command: String,
+        command: Vec<String>,
         cwd: PathBuf,
-        // True for `exec_command` and false for `write_stdin`.
-        #[allow(dead_code)]
-        is_startup_command: bool,
+        source: ExecCommandSource,
+        process_id: Option<String>,
     },
 }
 
@@ -111,28 +111,17 @@ impl ToolEmitter {
         }
     }
 
-<<<<<<< HEAD
-    pub fn unified_exec(command: String, cwd: PathBuf, is_startup_command: bool) -> Self {
-=======
     pub fn unified_exec(
         command: &[String],
         cwd: PathBuf,
         source: ExecCommandSource,
         process_id: Option<String>,
     ) -> Self {
-        let parsed_cmd = parse_command(command);
->>>>>>> upstream/main
         Self::UnifiedExec {
-            command,
+            command: command.to_vec(),
             cwd,
-<<<<<<< HEAD
-            is_startup_command,
-=======
             source,
-            interaction_input: None, // TODO(jif) drop this field in the protocol.
-            parsed_cmd,
             process_id,
->>>>>>> upstream/main
         }
     }
 
@@ -235,7 +224,7 @@ impl ToolEmitter {
                 emit_patch_end(ctx, String::new(), (*message).to_string(), false).await;
             }
             (Self::UnifiedExec { command, cwd, .. }, ToolEventStage::Begin) => {
-                emit_exec_command_begin(ctx, &[command.to_string()], cwd.as_path(), false).await;
+                emit_exec_command_begin(ctx, command.as_slice(), cwd.as_path(), false).await;
             }
             (Self::UnifiedExec { .. }, ToolEventStage::Success(output)) => {
                 emit_exec_end(

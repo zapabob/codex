@@ -22,14 +22,15 @@
 //! - `session_manager.rs`: orchestration (approvals, sandboxing, reuse) and request handling.
 
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::sync::atomic::AtomicI32;
 use std::time::Duration;
 
 use rand::Rng;
 use rand::rng;
 use tokio::sync::Mutex;
+use tokio::time::Instant;
 
 use crate::codex::Session;
 use crate::codex::TurnContext;
@@ -83,28 +84,20 @@ impl UnifiedExecContext {
     }
 }
 
-#[derive(Debug)]
-pub(crate) struct ExecCommandRequest<'a> {
-    pub command: &'a str,
-    pub shell: &'a str,
-    pub login: bool,
+#[derive(Debug, Clone)]
+pub(crate) struct ExecCommandRequest {
+    pub command: Vec<String>,
+    pub process_id: String,
     pub yield_time_ms: Option<u64>,
     pub max_output_tokens: Option<usize>,
-<<<<<<< HEAD
-=======
     pub workdir: Option<PathBuf>,
     pub sandbox_permissions: SandboxPermissions,
     pub justification: Option<String>,
->>>>>>> upstream/main
 }
 
 #[derive(Debug)]
 pub(crate) struct WriteStdinRequest<'a> {
-<<<<<<< HEAD
-    pub session_id: i32,
-=======
     pub process_id: &'a str,
->>>>>>> upstream/main
     pub input: &'a str,
     pub yield_time_ms: Option<u64>,
     pub max_output_tokens: Option<usize>,
@@ -116,42 +109,22 @@ pub(crate) struct UnifiedExecResponse {
     pub chunk_id: String,
     pub wall_time: Duration,
     pub output: String,
-<<<<<<< HEAD
-    pub session_id: Option<i32>,
-=======
     /// Raw bytes returned for this unified exec call before any truncation.
     pub raw_output: Vec<u8>,
     pub process_id: Option<String>,
->>>>>>> upstream/main
     pub exit_code: Option<i32>,
     pub original_token_count: Option<usize>,
 }
 
-#[derive(Default)]
-<<<<<<< HEAD
-pub(crate) struct UnifiedExecSessionManager {
-    next_session_id: AtomicI32,
-    sessions: Mutex<HashMap<i32, SessionEntry>>,
-}
-
-struct SessionEntry {
-    session: session::UnifiedExecSession,
-    session_ref: Arc<Session>,
-    turn_ref: Arc<TurnContext>,
-    call_id: String,
-    command: String,
-    cwd: PathBuf,
-    started_at: tokio::time::Instant,
-=======
 pub(crate) struct SessionStore {
     sessions: HashMap<String, SessionEntry>,
     reserved_sessions_id: HashSet<String>,
 }
 
 impl SessionStore {
-    fn remove(&mut self, session_id: &str) -> Option<SessionEntry> {
-        self.reserved_sessions_id.remove(session_id);
-        self.sessions.remove(session_id)
+    fn remove(&mut self, process_id: &str) -> Option<SessionEntry> {
+        self.reserved_sessions_id.remove(process_id);
+        self.sessions.remove(process_id)
     }
 }
 
@@ -174,8 +147,10 @@ struct SessionEntry {
     call_id: String,
     process_id: String,
     command: Vec<String>,
-    last_used: tokio::time::Instant,
->>>>>>> upstream/main
+    cwd: PathBuf,
+    started_at: Instant,
+    last_used: Instant,
+    transcript: Arc<Mutex<CommandTranscript>>,
 }
 
 pub(crate) fn clamp_yield_time(yield_time_ms: Option<u64>) -> u64 {
@@ -270,12 +245,6 @@ mod tests {
                     login: true,
                     yield_time_ms,
                     max_output_tokens: None,
-<<<<<<< HEAD
-=======
-                    workdir: None,
-                    sandbox_permissions: SandboxPermissions::UseDefault,
-                    justification: None,
->>>>>>> upstream/main
                 },
                 &context,
             )
@@ -292,11 +261,7 @@ mod tests {
             .services
             .unified_exec_manager
             .write_stdin(WriteStdinRequest {
-<<<<<<< HEAD
                 session_id,
-=======
-                process_id,
->>>>>>> upstream/main
                 input,
                 yield_time_ms,
                 max_output_tokens: None,

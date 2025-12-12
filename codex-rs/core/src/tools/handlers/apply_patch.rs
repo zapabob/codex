@@ -42,13 +42,9 @@ impl ToolHandler for ApplyPatchHandler {
         )
     }
 
-<<<<<<< HEAD
-=======
     async fn is_mutating(&self, _invocation: &ToolInvocation) -> bool {
         true
     }
-
->>>>>>> upstream/main
     async fn handle(&self, invocation: ToolInvocation) -> Result<ToolOutput, FunctionCallError> {
         let ToolInvocation {
             session,

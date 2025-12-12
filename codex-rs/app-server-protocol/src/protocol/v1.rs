@@ -453,5 +453,3 @@ pub struct SessionConfiguredNotification {
 pub struct AuthStatusChangeNotification {
     pub auth_method: Option<AuthMode>,
 }
-
-

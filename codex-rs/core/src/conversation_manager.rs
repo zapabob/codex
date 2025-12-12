@@ -195,17 +195,6 @@ impl ConversationManager {
 
         self.finalize_spawn(codex, conversation_id).await
     }
-<<<<<<< HEAD
-=======
-
-    pub async fn list_models(&self, config: &Config) -> Vec<ModelPreset> {
-        self.models_manager.list_models(config).await
-    }
-
-    pub fn get_models_manager(&self) -> Arc<ModelsManager> {
-        self.models_manager.clone()
-    }
->>>>>>> upstream/main
 }
 
 /// Return a prefix of `items` obtained by cutting strictly before the nth user message

@@ -27,11 +27,8 @@ use crate::model_family::derive_default_model_family;
 use crate::model_family::find_family_for_model;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::model_provider_info::built_in_model_providers;
-<<<<<<< HEAD
 use crate::openai_model_info::get_model_info;
 use crate::ai_orchestrator::DevelopmentMode;
-=======
->>>>>>> upstream/main
 use crate::project_doc::DEFAULT_PROJECT_DOC_FILENAME;
 use crate::project_doc::LOCAL_PROJECT_DOC_FILENAME;
 use crate::protocol::AskForApproval;
@@ -63,16 +60,12 @@ pub mod edit;
 pub mod profile;
 pub mod types;
 
-<<<<<<< HEAD
 #[cfg(target_os = "windows")]
 pub const OPENAI_DEFAULT_MODEL: &str = "gpt-5";
 #[cfg(not(target_os = "windows"))]
 pub const OPENAI_DEFAULT_MODEL: &str = "gpt-5-codex";
 const OPENAI_DEFAULT_REVIEW_MODEL: &str = "gpt-5-codex";
 pub const GPT_5_CODEX_MEDIUM_MODEL: &str = "gpt-5-codex";
-=======
-const OPENAI_DEFAULT_REVIEW_MODEL: &str = "gpt-5.1-codex-max";
->>>>>>> upstream/main
 
 /// Maximum number of bytes of the documentation that will be embedded. Larger
 /// files are *silently truncated* to this size so we do not take up too much of
@@ -674,12 +667,10 @@ pub struct ConfigToml {
     pub experimental_use_unified_exec_tool: Option<bool>,
     pub experimental_use_rmcp_client: Option<bool>,
     pub experimental_use_freeform_apply_patch: Option<bool>,
-<<<<<<< HEAD
     pub experimental_sandbox_command_assessment: Option<bool>,
-=======
+
     /// Preferred OSS provider for local models, e.g. "lmstudio" or "ollama".
     pub oss_provider: Option<String>,
->>>>>>> upstream/main
 }
 
 impl From<ConfigToml> for UserSavedConfig {
@@ -1034,7 +1025,6 @@ impl Config {
 
         let forced_login_method = cfg.forced_login_method;
 
-<<<<<<< HEAD
         let model = model
             .or(config_profile.model)
             .or(cfg.model)
@@ -1064,9 +1054,6 @@ impl Config {
                 .as_ref()
                 .and_then(|info| info.auto_compact_token_limit)
         });
-=======
-        let model = model.or(config_profile.model).or(cfg.model);
->>>>>>> upstream/main
 
         let compact_prompt = compact_prompt.or(cfg.compact_prompt).and_then(|value| {
             let trimmed = value.trim();
@@ -1111,15 +1098,10 @@ impl Config {
         let config = Self {
             model,
             review_model,
-<<<<<<< HEAD
             model_family,
             model_context_window,
             model_max_output_tokens,
             model_auto_compact_token_limit,
-=======
-            model_context_window: cfg.model_context_window,
-            model_auto_compact_token_limit: cfg.model_auto_compact_token_limit,
->>>>>>> upstream/main
             model_provider_id,
             model_provider,
             cwd: resolved_cwd,
@@ -2884,15 +2866,10 @@ model_verbosity = "high"
             Config {
                 model: Some("o3".to_string()),
                 review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
-<<<<<<< HEAD
                 model_family: find_family_for_model("o3").expect("known model slug"),
                 model_context_window: Some(200_000),
                 model_max_output_tokens: Some(100_000),
                 model_auto_compact_token_limit: Some(180_000),
-=======
-                model_context_window: None,
-                model_auto_compact_token_limit: None,
->>>>>>> upstream/main
                 model_provider_id: "openai".to_string(),
                 model_provider: fixture.openai_provider.clone(),
                 approval_policy: AskForApproval::Never,
@@ -2959,15 +2936,10 @@ model_verbosity = "high"
         let expected_gpt3_profile_config = Config {
             model: Some("gpt-3.5-turbo".to_string()),
             review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
-<<<<<<< HEAD
             model_family: find_family_for_model("gpt-3.5-turbo").expect("known model slug"),
             model_context_window: Some(16_385),
             model_max_output_tokens: Some(4_096),
             model_auto_compact_token_limit: Some(14_746),
-=======
-            model_context_window: None,
-            model_auto_compact_token_limit: None,
->>>>>>> upstream/main
             model_provider_id: "openai-chat-completions".to_string(),
             model_provider: fixture.openai_chat_completions_provider.clone(),
             approval_policy: AskForApproval::UnlessTrusted,
@@ -3049,15 +3021,10 @@ model_verbosity = "high"
         let expected_zdr_profile_config = Config {
             model: Some("o3".to_string()),
             review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
-<<<<<<< HEAD
             model_family: find_family_for_model("o3").expect("known model slug"),
             model_context_window: Some(200_000),
             model_max_output_tokens: Some(100_000),
             model_auto_compact_token_limit: Some(180_000),
-=======
-            model_context_window: None,
-            model_auto_compact_token_limit: None,
->>>>>>> upstream/main
             model_provider_id: "openai".to_string(),
             model_provider: fixture.openai_provider.clone(),
             approval_policy: AskForApproval::OnFailure,
@@ -3123,19 +3090,12 @@ model_verbosity = "high"
             fixture.codex_home(),
         )?;
         let expected_gpt5_profile_config = Config {
-<<<<<<< HEAD
-            model: "gpt-5".to_string(),
+            model: Some("gpt-5".to_string()),
             review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
             model_family: find_family_for_model("gpt-5").expect("known model slug"),
             model_context_window: Some(272_000),
             model_max_output_tokens: Some(128_000),
             model_auto_compact_token_limit: Some(244_800),
-=======
-            model: Some("gpt-5.1".to_string()),
-            review_model: OPENAI_DEFAULT_REVIEW_MODEL.to_string(),
-            model_context_window: None,
-            model_auto_compact_token_limit: None,
->>>>>>> upstream/main
             model_provider_id: "openai".to_string(),
             model_provider: fixture.openai_provider.clone(),
             approval_policy: AskForApproval::OnFailure,

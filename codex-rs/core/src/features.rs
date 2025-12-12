@@ -37,14 +37,8 @@ pub enum Feature {
     ViewImageTool,
     /// Allow the model to request web searches.
     WebSearchRequest,
-<<<<<<< HEAD
     /// Enable the model-based risk assessments for sandboxed commands.
     SandboxCommandAssessment,
-    /// Create a ghost commit at each turn.
-    GhostCommit,
-    /// Enable Windows sandbox (restricted token) on Windows.
-    WindowsSandbox,
-=======
     /// Gate the execpolicy enforcement for shell/unified exec.
     ExecPolicy,
     /// Enable Windows sandbox (restricted token) on Windows.
@@ -61,7 +55,12 @@ pub enum Feature {
     ShellSnapshot,
     /// Experimental TUI v2 (viewport) implementation.
     Tui2,
->>>>>>> upstream/main
+    /// Create a ghost commit at each turn to support undo.
+    GhostCommit,
+    /// Include the shell tool (legacy gating; generally enabled).
+    ShellTool,
+    /// Emit model warning messages (legacy gating; generally enabled).
+    ModelWarnings,
 }
 
 impl Feature {
@@ -259,8 +258,6 @@ pub struct FeatureSpec {
 }
 
 pub const FEATURES: &[FeatureSpec] = &[
-<<<<<<< HEAD
-=======
     // Stable features.
     FeatureSpec {
         id: Feature::GhostCommit,
@@ -293,7 +290,6 @@ pub const FEATURES: &[FeatureSpec] = &[
         default_enabled: true,
     },
     // Unstable features.
->>>>>>> upstream/main
     FeatureSpec {
         id: Feature::UnifiedExec,
         key: "unified_exec",
@@ -313,35 +309,22 @@ pub const FEATURES: &[FeatureSpec] = &[
         default_enabled: false,
     },
     FeatureSpec {
-        id: Feature::ViewImageTool,
-        key: "view_image_tool",
-        stage: Stage::Stable,
-        default_enabled: true,
-    },
-    FeatureSpec {
         id: Feature::WebSearchRequest,
         key: "web_search_request",
         stage: Stage::Stable,
         default_enabled: false,
     },
     FeatureSpec {
-<<<<<<< HEAD
         id: Feature::SandboxCommandAssessment,
         key: "experimental_sandbox_command_assessment",
         stage: Stage::Experimental,
         default_enabled: false,
     },
     FeatureSpec {
-        id: Feature::GhostCommit,
-        key: "ghost_commit",
-        stage: Stage::Experimental,
-        default_enabled: false,
-=======
         id: Feature::ExecPolicy,
         key: "exec_policy",
         stage: Stage::Experimental,
         default_enabled: true,
->>>>>>> upstream/main
     },
     FeatureSpec {
         id: Feature::WindowsSandbox,
@@ -349,8 +332,6 @@ pub const FEATURES: &[FeatureSpec] = &[
         stage: Stage::Experimental,
         default_enabled: false,
     },
-<<<<<<< HEAD
-=======
     FeatureSpec {
         id: Feature::RemoteCompaction,
         key: "remote_compaction",
@@ -381,5 +362,4 @@ pub const FEATURES: &[FeatureSpec] = &[
         stage: Stage::Experimental,
         default_enabled: false,
     },
->>>>>>> upstream/main
 ];

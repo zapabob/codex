@@ -54,16 +54,11 @@ use crate::flags::CODEX_RS_SSE_FIXTURE;
 use crate::model_family::ModelFamily;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::model_provider_info::WireApi;
-<<<<<<< HEAD
 use crate::openai_model_info::get_model_info;
 use crate::protocol::RateLimitSnapshot;
 use crate::protocol::RateLimitWindow;
 use crate::protocol::TokenUsage;
 use crate::token_data::PlanType;
-=======
-use crate::openai_models::model_family::ModelFamily;
-use crate::tools::spec::create_tools_json_for_chat_completions_api;
->>>>>>> upstream/main
 use crate::tools::spec::create_tools_json_for_responses_api;
 use crate::util::backoff;
 
@@ -124,7 +119,6 @@ impl ModelClient {
     }
 
     pub fn get_model_context_window(&self) -> Option<i64> {
-<<<<<<< HEAD
         let pct = self.config.model_family.effective_context_window_percent;
         self.config
             .model_context_window
@@ -137,16 +131,6 @@ impl ModelClient {
             get_model_info(&self.config.model_family).and_then(|info| info.auto_compact_token_limit)
         })
     }
-
-=======
-        let model_family = self.get_model_family();
-        let effective_context_window_percent = model_family.effective_context_window_percent;
-        model_family
-            .context_window
-            .map(|w| w.saturating_mul(effective_context_window_percent) / 100)
-    }
-
->>>>>>> upstream/main
     pub fn config(&self) -> Arc<Config> {
         Arc::clone(&self.config)
     }
@@ -159,7 +143,6 @@ impl ModelClient {
         match self.provider.wire_api {
             WireApi::Responses => self.stream_responses(prompt).await,
             WireApi::Chat => {
-<<<<<<< HEAD
                 // Create the raw streaming connection first.
                 let response_stream = stream_chat_completions(
                     prompt,
@@ -168,68 +151,9 @@ impl ModelClient {
                     &self.provider,
                     &self.otel_event_manager,
                     &self.session_source,
-=======
-                let api_stream = self.stream_chat_completions(prompt).await?;
-
-                if self.config.show_raw_agent_reasoning {
-                    Ok(map_response_stream(
-                        api_stream.streaming_mode(),
-                        self.otel_event_manager.clone(),
-                    ))
-                } else {
-                    Ok(map_response_stream(
-                        api_stream.aggregate(),
-                        self.otel_event_manager.clone(),
-                    ))
-                }
-            }
-        }
-    }
-
-    /// Streams a turn via the OpenAI Chat Completions API.
-    ///
-    /// This path is only used when the provider is configured with
-    /// `WireApi::Chat`; it does not support `output_schema` today.
-    async fn stream_chat_completions(&self, prompt: &Prompt) -> Result<ApiResponseStream> {
-        if prompt.output_schema.is_some() {
-            return Err(CodexErr::UnsupportedOperation(
-                "output_schema is not supported for Chat Completions API".to_string(),
-            ));
-        }
-
-        let auth_manager = self.auth_manager.clone();
-        let model_family = self.get_model_family();
-        let instructions = prompt.get_full_instructions(&model_family).into_owned();
-        let tools_json = create_tools_json_for_chat_completions_api(&prompt.tools)?;
-        let api_prompt = build_api_prompt(prompt, instructions, tools_json);
-        let conversation_id = self.conversation_id.to_string();
-        let session_source = self.session_source.clone();
-
-        let mut refreshed = false;
-        loop {
-            let auth = auth_manager.as_ref().and_then(|m| m.auth());
-            let api_provider = self
-                .provider
-                .to_api_provider(auth.as_ref().map(|a| a.mode))?;
-            let api_auth = auth_provider_from_auth(auth.clone(), &self.provider).await?;
-            let transport = ReqwestTransport::new(build_reqwest_client());
-            let (request_telemetry, sse_telemetry) = self.build_streaming_telemetry();
-            let client = ApiChatClient::new(transport, api_provider, api_auth)
-                .with_telemetry(Some(request_telemetry), Some(sse_telemetry));
-
-            let stream_result = client
-                .stream_prompt(
-                    &self.get_model(),
-                    &api_prompt,
-                    Some(conversation_id.clone()),
-                    Some(session_source.clone()),
->>>>>>> upstream/main
                 )
                 .await?;
 
-                // Wrap it with the aggregation adapter so callers see *only*
-                // the final assistant message per turn (matching the
-                // behaviour of the Responses API).
                 let mut aggregated = if self.config.show_raw_agent_reasoning {
                     crate::chat_completions::AggregatedChatStream::streaming_mode(response_stream)
                 } else {
@@ -324,17 +248,10 @@ impl ModelClient {
             prompt_cache_key: Some(self.conversation_id.to_string()),
             text,
         };
-
-<<<<<<< HEAD
         let mut payload_json = serde_json::to_value(&payload)?;
         if azure_workaround {
             attach_item_ids(&mut payload_json, &input_with_instructions);
         }
-=======
-            let stream_result = client
-                .stream_prompt(&self.get_model(), &api_prompt, options)
-                .await;
->>>>>>> upstream/main
 
         let max_attempts = self.provider.request_max_retries();
         for attempt in 0..=max_attempts {
@@ -590,7 +507,6 @@ enum StreamAttemptError {
     Fatal(CodexErr),
 }
 
-<<<<<<< HEAD
 impl StreamAttemptError {
     /// attempt is 0-based.
     fn delay(&self, attempt: u64) -> Duration {
@@ -600,34 +516,8 @@ impl StreamAttemptError {
             Self::RetryableHttpError { retry_after, .. } => {
                 retry_after.unwrap_or_else(|| backoff(backoff_attempt))
             }
-            Self::RetryableTransportError { .. } => backoff(backoff_attempt),
-            Self::Fatal(_) => {
-                // Should not be called on Fatal errors.
-                Duration::from_secs(0)
-=======
-        let instructions = prompt
-            .get_full_instructions(&self.get_model_family())
-            .into_owned();
-        let payload = ApiCompactionInput {
-            model: &self.get_model(),
-            input: &prompt.input,
-            instructions: &instructions,
-        };
-
-        let mut extra_headers = ApiHeaderMap::new();
-        if let SessionSource::SubAgent(sub) = &self.session_source {
-            let subagent = if let crate::protocol::SubAgentSource::Other(label) = sub {
-                label.clone()
-            } else {
-                serde_json::to_value(sub)
-                    .ok()
-                    .and_then(|v| v.as_str().map(std::string::ToString::to_string))
-                    .unwrap_or_else(|| "other".to_string())
-            };
-            if let Ok(val) = HeaderValue::from_str(&subagent) {
-                extra_headers.insert("x-openai-subagent", val);
->>>>>>> upstream/main
-            }
+            Self::RetryableTransportError(_) => backoff(backoff_attempt),
+            Self::Fatal(_) => Duration::from_secs(0),
         }
     }
 
