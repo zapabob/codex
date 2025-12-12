@@ -168,7 +168,9 @@ client_request_definitions! {
         response: v2::ListMcpServersResponse,
     },
 
-    LoginAccount => "account/login/start" {
+    #[serde(rename = "account/login/start")]
+    #[ts(rename = "account/login/start")]
+    LoginAccount {
 
         params: v2::LoginAccountParams,
         response: v2::LoginAccountResponse,
