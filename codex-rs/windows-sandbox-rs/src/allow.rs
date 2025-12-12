@@ -1,4 +1,10 @@
 use crate::policy::SandboxMode;
+
+#[derive(Debug, Clone)]
+pub struct AllowDenyPaths {
+    pub allow: Vec<std::path::PathBuf>,
+    pub deny: Vec<std::path::PathBuf>,
+}
 use crate::policy::SandboxPolicy;
 use std::collections::HashMap;
 use std::path::Path;

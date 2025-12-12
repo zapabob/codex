@@ -5,8 +5,11 @@
 }
 
 windows_modules!(
-    acl, allow, audit, cap, dpapi, env, identity, logging, policy, process, setup_main_win, setup_orchestrator, token, winutil
+    acl, allow, audit, cap, dpapi, env, identity, logging, policy, process, token, winutil
 );
+
+pub mod setup_main_win;
+pub mod setup_orchestrator;
 
 #[cfg(target_os = "windows")]
 pub use windows_impl::CaptureResult;
