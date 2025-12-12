@@ -154,7 +154,9 @@ client_request_definitions! {
     },
 
 
-    McpServerOauthLogin => "mcpServer/oauth/login" {
+    #[serde(rename = "mcpServer/oauth/login")]
+    #[ts(rename = "mcpServer/oauth/login")]
+    McpServerOauthLogin {
         params: v2::McpServerOauthLoginParams,
         response: v2::McpServerOauthLoginResponse,
     },
