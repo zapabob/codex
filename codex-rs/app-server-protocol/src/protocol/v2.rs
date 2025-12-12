@@ -6,7 +6,6 @@ use codex_protocol::ConversationId;
 use codex_protocol::account::PlanType;
 use codex_protocol::approvals::ExecPolicyAmendment as CoreExecPolicyAmendment;
 use codex_protocol::config_types::ForcedLoginMethod;
-use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode as CoreSandboxMode;
 use codex_protocol::config_types::Verbosity;
@@ -55,13 +54,7 @@ macro_rules! v2_enum_from_core {
     };
 }
 
-<<<<<<< HEAD
-v2_enum_from_core!(
-    pub enum AskForApproval from codex_protocol::protocol::AskForApproval {
-        UnlessTrusted, OnFailure, OnRequest, Never
-    }
-);
-=======
+
 /// This translation layer make sure that we expose codex error code in camel case.
 ///
 /// When an upstream HTTP status is available (for example, from the Responses API or a provider),
@@ -139,7 +132,7 @@ pub enum AskForApproval {
     OnRequest,
     Never,
 }
->>>>>>> upstream/main
+
 
 impl AskForApproval {
     pub fn to_core(self) -> CoreAskForApproval {
@@ -193,10 +186,7 @@ impl From<CoreSandboxMode> for SandboxMode {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
-<<<<<<< HEAD
-#[serde(tag = "mode", rename_all = "camelCase")]
-#[ts(tag = "mode")]
-=======
+
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub enum ConfigLayerName {
@@ -404,7 +394,7 @@ pub enum ApprovalDecision {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[ts(tag = "type")]
->>>>>>> upstream/main
+
 #[ts(export_to = "v2/")]
 pub enum SandboxPolicy {
     DangerFullAccess,
@@ -465,8 +455,7 @@ impl From<codex_protocol::protocol::SandboxPolicy> for SandboxPolicy {
     }
 }
 
-<<<<<<< HEAD
-=======
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
 #[serde(transparent)]
 #[ts(type = "Array<string>", export_to = "v2/")]
@@ -604,7 +593,7 @@ impl From<CoreParsedCommand> for CommandAction {
     }
 }
 
->>>>>>> upstream/main
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[ts(tag = "type")]
@@ -751,8 +740,7 @@ pub struct ModelListResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-<<<<<<< HEAD
-=======
+
 pub struct ListMcpServersParams {
     /// Opaque pagination cursor returned by a previous call.
     pub cursor: Option<String>,
@@ -804,7 +792,7 @@ pub struct McpServerOauthLoginResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
->>>>>>> upstream/main
+
 pub struct FeedbackUploadParams {
     pub classification: String,
     pub reason: Option<String>,
@@ -1196,8 +1184,7 @@ pub struct AgentMessageDeltaNotification {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-<<<<<<< HEAD
-=======
+
 pub struct ReasoningSummaryTextDeltaNotification {
     pub thread_id: String,
     pub turn_id: String,
@@ -1244,7 +1231,7 @@ pub struct TerminalInteractionNotification {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
->>>>>>> upstream/main
+
 pub struct CommandExecutionOutputDeltaNotification {
     pub item_id: String,
     pub delta: String,
@@ -1261,8 +1248,7 @@ pub struct McpToolCallProgressNotification {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-<<<<<<< HEAD
-=======
+
 pub struct McpServerOauthLoginCompletedNotification {
     pub name: String,
     pub success: bool,
@@ -1331,7 +1317,7 @@ pub struct FileChangeRequestApprovalResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
->>>>>>> upstream/main
+
 pub struct AccountRateLimitsUpdatedNotification {
     pub rate_limits: RateLimitSnapshot,
 }

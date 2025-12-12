@@ -153,11 +153,7 @@ client_request_definitions! {
         response: v2::ModelListResponse,
     },
 
-<<<<<<< HEAD
-    #[serde(rename = "account/login/start")]
-    #[ts(rename = "account/login/start")]
-    LoginAccount {
-=======
+
     McpServerOauthLogin => "mcpServer/oauth/login" {
         params: v2::McpServerOauthLoginParams,
         response: v2::McpServerOauthLoginResponse,
@@ -169,7 +165,7 @@ client_request_definitions! {
     },
 
     LoginAccount => "account/login/start" {
->>>>>>> upstream/main
+
         params: v2::LoginAccountParams,
         response: v2::LoginAccountResponse,
     },
@@ -545,11 +541,10 @@ server_notification_definitions! {
     ItemCompleted => "item/completed" (v2::ItemCompletedNotification),
     AgentMessageDelta => "item/agentMessage/delta" (v2::AgentMessageDeltaNotification),
     CommandExecutionOutputDelta => "item/commandExecution/outputDelta" (v2::CommandExecutionOutputDeltaNotification),
-<<<<<<< HEAD
-=======
+
     TerminalInteraction => "item/commandExecution/terminalInteraction" (v2::TerminalInteractionNotification),
     FileChangeOutputDelta => "item/fileChange/outputDelta" (v2::FileChangeOutputDeltaNotification),
->>>>>>> upstream/main
+
     McpToolCallProgress => "item/mcpToolCall/progress" (v2::McpToolCallProgressNotification),
     McpServerOauthLoginCompleted => "mcpServer/oauthLogin/completed" (v2::McpServerOauthLoginCompletedNotification),
     AccountUpdated => "account/updated" (v2::AccountUpdatedNotification),

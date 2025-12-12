@@ -10,11 +10,10 @@ use codex_protocol::config_types::Verbosity;
 use codex_protocol::models::ResponseItem;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::EventMsg;
-<<<<<<< HEAD
-=======
+
 use codex_protocol::protocol::FileChange;
 use codex_protocol::protocol::ReviewDecision;
->>>>>>> upstream/main
+
 use codex_protocol::protocol::SandboxPolicy;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::TurnAbortReason;
@@ -195,8 +194,7 @@ pub struct GitDiffToRemoteResponse {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
-<<<<<<< HEAD
-=======
+
 pub struct ApplyPatchApprovalParams {
     pub conversation_id: ConversationId,
     /// Use to correlate this with [codex_core::protocol::PatchApplyBeginEvent]
@@ -236,7 +234,7 @@ pub struct ExecCommandApprovalResponse {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
->>>>>>> upstream/main
+
 pub struct CancelLoginChatGptParams {
     #[schemars(with = "String")]
     pub login_id: Uuid,
