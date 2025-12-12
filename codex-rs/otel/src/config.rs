@@ -20,16 +20,12 @@ pub enum OtelHttpProtocol {
     Json,
 }
 
-<<<<<<< HEAD
-=======
 #[derive(Clone, Debug, Default)]
 pub struct OtelTlsConfig {
     pub ca_certificate: Option<AbsolutePathBuf>,
     pub client_certificate: Option<AbsolutePathBuf>,
     pub client_private_key: Option<AbsolutePathBuf>,
 }
-
->>>>>>> upstream/main
 #[derive(Clone, Debug)]
 pub enum OtelExporter {
     None,
