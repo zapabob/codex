@@ -1,13 +1,13 @@
 use crate::dpapi;
 use crate::logging::debug_log;
 use crate::policy::SandboxPolicy;
-use crate::setup::run_elevated_setup;
-use crate::setup::sandbox_users_path;
-use crate::setup::setup_marker_path;
-use crate::setup::SandboxUserRecord;
-use crate::setup::SandboxUsersFile;
-use crate::setup::SetupMarker;
-use crate::setup::{gather_read_roots, gather_write_roots};
+use crate::setup_orchestrator::run_elevated_setup;
+use crate::setup_orchestrator::sandbox_users_path;
+use crate::setup_orchestrator::setup_marker_path;
+use crate::setup_orchestrator::SandboxUserRecord;
+use crate::setup_orchestrator::SandboxUsersFile;
+use crate::setup_orchestrator::SetupMarker;
+use crate::setup_orchestrator::{gather_read_roots, gather_write_roots};
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -116,7 +116,7 @@ pub fn require_logon_sandbox_creds(
     env_map: &HashMap<String, String>,
     codex_home: &Path,
 ) -> Result<SandboxCreds> {
-    let sandbox_dir = crate::setup::sandbox_dir(codex_home);
+    let sandbox_dir = crate::setup_orchestrator::sandbox_dir(codex_home);
     let needed_read = gather_read_roots(command_cwd, policy, policy_cwd);
     let mut needed_write = gather_write_roots(policy, policy_cwd, command_cwd, env_map);
     // Ensure the sandbox directory itself is writable by sandbox users.
@@ -158,7 +158,7 @@ pub fn require_logon_sandbox_creds(
         identity = select_identity(policy, codex_home)?;
     }
     // Always refresh ACLs (non-elevated) for current roots via the setup binary.
-    crate::setup::run_setup_refresh(policy, policy_cwd, command_cwd, env_map, codex_home)?;
+    crate::setup_orchestrator::run_setup_refresh(policy, policy_cwd, command_cwd, env_map, codex_home)?;
     let identity = identity.ok_or_else(|| {
         anyhow!(
             "Windows sandbox setup is missing or out of date; rerun the sandbox setup with elevation"

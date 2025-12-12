@@ -27,14 +27,6 @@ pub use logging::log_note;
 #[cfg(target_os = "windows")]
 pub use logging::LOG_FILE_NAME;
 #[cfg(target_os = "windows")]
-pub use setup::run_elevated_setup;
-#[cfg(target_os = "windows")]
-pub use setup::run_setup_refresh;
-#[cfg(target_os = "windows")]
-pub use setup::sandbox_dir;
-#[cfg(target_os = "windows")]
-pub use setup::SETUP_VERSION;
-#[cfg(target_os = "windows")]
 pub use token::convert_string_sid_to_sid;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
@@ -46,6 +38,12 @@ pub use stub::preflight_audit_everyone_writable;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_capture;
 
+
+pub use setup_orchestrator::sandbox_dir;
+pub use setup_orchestrator::setup_marker_path;
+pub use setup_orchestrator::sandbox_users_path;
+pub use setup_orchestrator::run_setup_refresh;
+pub use setup_orchestrator::run_elevated_setup;
 #[cfg(target_os = "windows")]
 mod windows_impl {
     use super::acl::add_allow_ace;

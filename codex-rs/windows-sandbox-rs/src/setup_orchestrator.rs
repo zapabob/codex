@@ -11,7 +11,7 @@ use std::process::Stdio;
 use crate::allow::compute_allow_paths;
 use crate::allow::AllowDenyPaths;
 use crate::logging::log_note;
-use crate::policy::SandboxPolicy;
+use crate::policy::{SandboxPolicy, SandboxMode};
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -51,7 +51,7 @@ pub fn run_setup_refresh(
     codex_home: &Path,
 ) -> Result<()> {
     // Skip in danger-full-access.
-    if matches!(policy, SandboxPolicy::DangerFullAccess) {
+    if matches!(policy.0, SandboxMode::DangerFullAccess) {
         return Ok(());
     }
     let payload = ElevationPayload {
@@ -183,7 +183,7 @@ fn canonical_existing(paths: &[PathBuf]) -> Vec<PathBuf> {
         .collect()
 }
 
-pub(crate) fn gather_read_roots(
+pub fn gather_read_roots(
     command_cwd: &Path,
     policy: &SandboxPolicy,
     policy_cwd: &Path,
@@ -201,20 +201,12 @@ pub(crate) fn gather_read_roots(
         roots.push(PathBuf::from(up));
     }
     roots.push(command_cwd.to_path_buf());
-    if let SandboxPolicy::WorkspaceWrite { writable_roots, .. } = policy {
-        for root in writable_roots {
-            let candidate = if root.is_absolute() {
-                root.clone()
-            } else {
-                policy_cwd.join(root)
-            };
-            roots.push(candidate);
-        }
-    }
+    // Note: SandboxPolicy doesn't have writable_roots field in current implementation
+    // This would need to be implemented if workspace-specific roots are needed
     canonical_existing(&roots)
 }
 
-pub(crate) fn gather_write_roots(
+pub fn gather_write_roots(
     policy: &SandboxPolicy,
     policy_cwd: &Path,
     command_cwd: &Path,
@@ -222,7 +214,7 @@ pub(crate) fn gather_write_roots(
 ) -> Vec<PathBuf> {
     let mut roots: Vec<PathBuf> = Vec::new();
     // Always include the command CWD for workspace-write.
-    if matches!(policy, SandboxPolicy::WorkspaceWrite { .. }) {
+    if matches!(policy.0, SandboxMode::WorkspaceWrite) {
         roots.push(command_cwd.to_path_buf());
     }
     let allow = compute_allow_paths(policy, policy_cwd, command_cwd, env_map);
