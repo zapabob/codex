@@ -427,7 +427,7 @@ fn delete_oauth_tokens_from_file(key: &str) -> Result<bool> {
     Ok(removed)
 }
 
-fn compute_expires_at_millis(response: &OAuthTokenResponse) -> Option<u64> {
+pub fn compute_expires_at_millis(response: &OAuthTokenResponse) -> Option<u64> {
     let expires_in = response.expires_in()?;
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
