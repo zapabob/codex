@@ -5,7 +5,7 @@
 }
 
 windows_modules!(
-    acl, allow, audit, cap, dpapi, env, identity, logging, policy, process, token, winutil
+    acl, allow, audit, cap, dpapi, env, identity, logging, policy, process, setup_main_win, setup_orchestrator, token, winutil
 );
 
 #[cfg(target_os = "windows")]
@@ -35,13 +35,6 @@ pub use setup::SETUP_VERSION;
 pub use token::convert_string_sid_to_sid;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
-<<<<<<< HEAD
-=======
-#[cfg(target_os = "windows")]
-pub use windows_impl::CaptureResult;
-#[cfg(target_os = "windows")]
-pub use winutil::string_from_sid_bytes;
->>>>>>> upstream/main
 
 #[cfg(not(target_os = "windows"))]
 pub use stub::CaptureResult;
