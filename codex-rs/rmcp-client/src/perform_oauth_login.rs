@@ -17,6 +17,7 @@ use urlencoding::decode;
 use crate::OAuthCredentialsStoreMode;
 use crate::StoredOAuthTokens;
 use crate::WrappedOAuthTokenResponse;
+use crate::oauth::compute_expires_at_millis;
 use crate::save_oauth_tokens;
 use crate::utils::apply_default_headers;
 use crate::utils::build_default_headers;

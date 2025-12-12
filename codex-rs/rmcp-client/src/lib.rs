@@ -1,7 +1,7 @@
 mod auth_status;
 mod find_codex_home;
 mod logging_client_handler;
-mod oauth;
+pub mod oauth;
 mod perform_oauth_login;
 mod rmcp_client;
 mod utils;
@@ -20,6 +20,4 @@ pub use perform_oauth_login::perform_oauth_login;
 pub use oauth::compute_expires_at_millis;
 pub use perform_oauth_login::perform_oauth_login_return_url;
 pub use rmcp::model::ElicitationAction;
-pub use rmcp_client::Elicitation;
-pub use rmcp_client::ElicitationResponse;
 pub use rmcp_client::RmcpClient;

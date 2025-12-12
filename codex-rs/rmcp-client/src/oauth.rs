@@ -57,6 +57,7 @@ pub struct StoredOAuthTokens {
     pub url: String,
     pub client_id: String,
     pub token_response: WrappedOAuthTokenResponse,
+    pub expires_at: Option<u64>,
 }
 
 /// Determine where Codex should store and read MCP credentials.
@@ -291,6 +292,7 @@ impl OAuthPersistor {
                     url: self.inner.url.clone(),
                     client_id,
                     token_response: WrappedOAuthTokenResponse(credentials.clone()),
+                    expires_at: None,
                 };
                 let mut last_credentials = self.inner.last_credentials.lock().await;
                 if last_credentials.as_ref() != Some(&stored) {
@@ -378,6 +380,7 @@ fn load_oauth_tokens_from_file(server_name: &str, url: &str) -> Result<Option<St
             url: entry.server_url.clone(),
             client_id: entry.client_id.clone(),
             token_response: WrappedOAuthTokenResponse(token_response),
+            expires_at: None,
         };
 
         return Ok(Some(stored));
@@ -809,6 +812,7 @@ mod tests {
             url: "https://example.test".to_string(),
             client_id: "client-id".to_string(),
             token_response: WrappedOAuthTokenResponse(response),
+            expires_at: None,
         }
     }
 }
