@@ -29,7 +29,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use ts_rs::TS;
-use crate::FileChangeOutputDeltaNotification;
 use mcp_types::ResourceTemplate as McpResourceTemplate;
 use mcp_types::Resource as McpResource;
 use mcp_types::Tool as McpTool;
@@ -99,26 +98,6 @@ pub enum CodexErrorInfo {
     },
     Other,
 }
-
- => {
-                CodexErrorInfo::HttpConnectionFailed { http_status_code }
-            }
-            CodexErrorInfo::ResponseStreamConnectionFailed { http_status_code } => {
-                CodexErrorInfo::ResponseStreamConnectionFailed { http_status_code }
-            }
-            CodexErrorInfo::InternalServerError => CodexErrorInfo::InternalServerError,
-            CodexErrorInfo::Unauthorized => CodexErrorInfo::Unauthorized,
-            CodexErrorInfo::BadRequest => CodexErrorInfo::BadRequest,
-            CodexErrorInfo::SandboxError => CodexErrorInfo::SandboxError,
-            CodexErrorInfo::ResponseStreamDisconnected { http_status_code } => {
-                CodexErrorInfo::ResponseStreamDisconnected { http_status_code }
-            }
-            CodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code } => {
-                CodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code }
-            }
-            CodexErrorInfo::Other => CodexErrorInfo::Other,
-        }
-    }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "kebab-case")]
@@ -1231,7 +1210,19 @@ pub struct TerminalInteractionNotification {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 
+pub struct FileChangeOutputDeltaNotification {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub item_id: String,
+    pub delta: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct CommandExecutionOutputDeltaNotification {
+    pub thread_id: String,
+    pub turn_id: String,
     pub item_id: String,
     pub delta: String,
 }
