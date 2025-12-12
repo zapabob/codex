@@ -276,7 +276,6 @@ impl From<Vec<UserInput>> for ResponseInputItem {
                                 Some(local_image_error_placeholder(&path, &err))
                             } else if err.is_invalid_image() {
                                 Some(invalid_image_error_placeholder(&path, &err))
->>>>>>> upstream/main
                             } else {
                                 let Some(mime_guess) = mime_guess::from_path(&path).first() else {
                                     return Some(local_image_error_placeholder(
@@ -319,8 +318,6 @@ pub struct ShellToolCallParams {
     pub justification: Option<String>,
 }
 
-<<<<<<< HEAD
-=======
 /// If the `name` of a `ResponseItem::FunctionCall` is `shell_command`, the
 /// `arguments` field should deserialize to this struct.
 #[derive(Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -340,8 +337,6 @@ pub struct ShellCommandToolCallParams {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub justification: Option<String>,
 }
-
->>>>>>> upstream/main
 /// Responses API compatible content items that can be returned by a tool call.
 /// This is a subset of ContentItem with the types we support as function call outputs.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, JsonSchema, TS)]

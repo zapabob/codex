@@ -10,11 +10,8 @@ use std::time::Duration;
 mod win;
 
 use anyhow::Result;
-<<<<<<< HEAD
-=======
 #[cfg(not(windows))]
 use portable_pty::native_pty_system;
->>>>>>> upstream/main
 use portable_pty::CommandBuilder;
 use portable_pty::PtySize;
 use portable_pty::native_pty_system;
@@ -102,38 +99,13 @@ impl ExecCommandSession {
         {
             handle.abort();
         }
-    }
 
-impl Drop for ExecCommandSession {
-    fn drop(&mut self) {
-        if let Ok(mut killer_opt) = self.killer.lock()
-            && let Some(mut killer) = killer_opt.take()
-        {
-            let _ = killer.kill();
-        }
-
-        if let Ok(mut h) = self.reader_handle.lock()
-            && let Some(handle) = h.take()
-        {
-            handle.abort();
-        }
-        if let Ok(mut h) = self.writer_handle.lock()
-            && let Some(handle) = h.take()
-        {
-            handle.abort();
-        }
-        if let Ok(mut h) = self.wait_handle.lock()
-            && let Some(handle) = h.take()
-        {
-            handle.abort();
+    impl Drop for ExecCommandSession {
+        fn drop(&mut self) {
+            self.terminate();
         }
     }
 }
-
-impl Drop for ExecCommandSession {
-    fn drop(&mut self) {
-        self.terminate();
-    }
 }
 
 #[derive(Debug)]

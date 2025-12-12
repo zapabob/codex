@@ -36,12 +36,9 @@ use ts_rs::TS;
 
 pub use crate::approvals::ApplyPatchApprovalRequestEvent;
 pub use crate::approvals::ExecApprovalRequestEvent;
-<<<<<<< HEAD
 pub use crate::approvals::SandboxCommandAssessment;
 pub use crate::approvals::SandboxRiskLevel;
-=======
 pub use crate::approvals::ExecPolicyAmendment;
->>>>>>> upstream/main
 
 /// Open/close tags for special user-input blocks. Used across crates to avoid
 /// duplicated hardcoded strings.
@@ -1246,8 +1243,6 @@ pub struct ReviewLineRange {
     pub end: u32,
 }
 
-<<<<<<< HEAD
-=======
 #[derive(Debug, Clone, Copy, Display, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecCommandSource {
@@ -1262,8 +1257,6 @@ impl Default for ExecCommandSource {
         Self::Agent
     }
 }
-
->>>>>>> upstream/main
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct ExecCommandBeginEvent {
     /// Identifier so this can be paired with the ExecCommandEnd event.
@@ -1452,10 +1445,7 @@ pub struct ListCustomPromptsResponseEvent {
     pub custom_prompts: Vec<CustomPrompt>,
 }
 
-<<<<<<< HEAD
 #[derive(Debug, Default, Clone, Deserialize, Serialize, JsonSchema, TS)]
-=======
-#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct SkillInfo {
     pub name: String,
     pub description: String,
@@ -1473,9 +1463,6 @@ pub struct SkillLoadOutcomeInfo {
     pub skills: Vec<SkillInfo>,
     pub errors: Vec<SkillErrorInfo>,
 }
-
-#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
->>>>>>> upstream/main
 pub struct SessionConfiguredEvent {
     /// Name left as session_id instead of conversation_id for backwards compatibility.
     pub session_id: ConversationId,
