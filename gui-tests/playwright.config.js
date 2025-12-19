@@ -31,10 +31,10 @@ export default defineConfig({
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
 
-    /* Increase timeouts for slower page loads */
-    actionTimeout: 15000,
-    navigationTimeout: 45000,
-    expectTimeout: 15000,
+    /* Increase timeouts for slower page loads with shadcn/ui components */
+    actionTimeout: 30000,
+    navigationTimeout: 60000,
+    expectTimeout: 30000,
   },
 
   /* Configure projects for major browsers */

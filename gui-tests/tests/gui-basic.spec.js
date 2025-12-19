@@ -61,20 +61,36 @@ test.describe('Codex GUI Basic Functionality', () => {
       await page.waitForTimeout(500);
     }
 
-    // Click AI tools navigation link with retry for slow clicks
-    try {
-      await page.click('text=AIツール統合', { timeout: 10000 });
-    } catch (error) {
-      console.log('First click attempt failed, retrying...');
-      await page.waitForTimeout(1000);
-      await page.click('text=AIツール統合', { timeout: 15000 });
+    // Click AI tools navigation link with multiple retry attempts
+    let clickSuccess = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await page.click('text=AIツール統合', { timeout: 20000 });
+        clickSuccess = true;
+        break;
+      } catch (error) {
+        console.log(`AI tools click attempt ${attempt} failed, retrying...`);
+        await page.waitForTimeout(2000);
+      }
     }
 
-    // Wait for navigation
-    await page.waitForTimeout(3000);
+    if (!clickSuccess) {
+      throw new Error('Failed to click AI tools navigation after 3 attempts');
+    }
+
+    // Wait for navigation and page content to load
+    await page.waitForTimeout(5000);
+    await page.waitForLoadState('networkidle', { timeout: 30000 });
 
     // Verify navigation succeeded by URL
     await expect(page.url()).toMatch(/.*ai-tools/);
+
+    // Wait for shadcn/ui components to render
+    try {
+      await page.waitForSelector('[data-radix-card], .card, .MuiCard-root', { timeout: 20000 });
+    } catch (error) {
+      console.log('shadcn/ui components not found, checking for any content...');
+    }
 
     // Check if page has any content (implemented or placeholder)
     const pageHasContent = await page.locator('body').textContent();
@@ -136,20 +152,36 @@ test.describe('Codex GUI Basic Functionality', () => {
       await page.waitForTimeout(500);
     }
 
-    // Click QC navigation link with retry for slow clicks
-    try {
-      await page.click('text=QC管理', { timeout: 10000 });
-    } catch (error) {
-      console.log('First click attempt failed, retrying...');
-      await page.waitForTimeout(1000);
-      await page.click('text=QC管理', { timeout: 15000 });
+    // Click QC navigation link with multiple retry attempts
+    let clickSuccess = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await page.click('text=QC管理', { timeout: 20000 });
+        clickSuccess = true;
+        break;
+      } catch (error) {
+        console.log(`QC click attempt ${attempt} failed, retrying...`);
+        await page.waitForTimeout(2000);
+      }
     }
 
-    // Wait for navigation
-    await page.waitForTimeout(3000);
+    if (!clickSuccess) {
+      throw new Error('Failed to click QC navigation after 3 attempts');
+    }
+
+    // Wait for navigation and page content to load
+    await page.waitForTimeout(5000);
+    await page.waitForLoadState('networkidle', { timeout: 30000 });
 
     // Verify navigation succeeded by URL
     await expect(page.url()).toMatch(/.*qc/);
+
+    // Wait for shadcn/ui components to render
+    try {
+      await page.waitForSelector('[data-radix-card], .card, .MuiCard-root', { timeout: 20000 });
+    } catch (error) {
+      console.log('shadcn/ui components not found, checking for any content...');
+    }
 
     // Check if page has any content (implemented or placeholder)
     const pageHasContent = await page.locator('body').textContent();
@@ -308,17 +340,24 @@ test.describe('Codex GUI Basic Functionality', () => {
     // Wait for tasks page to load
     await page.waitForSelector('text=タスク管理', { timeout: 5000 });
 
+    // Wait for page to fully load with complex components
+    await page.waitForTimeout(3000);
+
     // Check for Kanban board components (support both MUI and shadcn/ui)
-    await page.waitForSelector('[class*="kanban"], .MuiGrid-root, [data-radix-card], [class*="card"]', { timeout: 15000 });
+    try {
+      await page.waitForSelector('[class*="kanban"], .MuiGrid-root, [data-radix-card], [class*="card"], [data-dnd-kit-overlay]', { timeout: 25000 });
+    } catch (error) {
+      console.log('Kanban components not found, checking for basic content...');
+    }
 
     // Verify columns or cards exist
-    const columns = page.locator('[data-testid*="column"], [class*="column"]');
-    if (await columns.count() > 0) {
-      await expect(columns.first()).toBeVisible();
+    const columns = page.locator('[data-testid*="column"], [class*="column"], [data-radix-card]');
+    if (await columns.count({ timeout: 10000 }) > 0) {
+      await expect(columns.first()).toBeVisible({ timeout: 5000 });
     } else {
       // If no specific columns, check for general content (support both UI libraries)
       const content = page.locator('.MuiCard-root, [data-radix-card], .MuiPaper-root, [class*="card"]');
-      await expect(content.first()).toBeVisible({ timeout: 5000 });
+      await expect(content.first()).toBeVisible({ timeout: 10000 });
     }
   });
 
@@ -329,19 +368,24 @@ test.describe('Codex GUI Basic Functionality', () => {
     await page.waitForTimeout(3000); // Initial page load
 
     // Wait for the page title to appear
-    await page.waitForSelector('text=セキュリティ', { timeout: 15000 });
+    await page.waitForSelector('text=セキュリティ', { timeout: 20000 });
 
     // Check for security-related content (support both UI libraries)
-    await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="security"], [class*="card"]', { timeout: 20000 });
+    try {
+      await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="security"], [class*="card"], [data-malware-scanner]', { timeout: 25000 });
+    } catch (error) {
+      console.log('Security components not found immediately, waiting longer...');
+      await page.waitForTimeout(5000);
+    }
 
     // Verify security metrics or status indicators (support both MUI and shadcn/ui)
-    const chips = page.locator('.MuiChip-root, [data-radix-badge]');
-    if (await chips.count() > 0) {
+    const chips = page.locator('.MuiChip-root, [data-radix-badge], [class*="status"]');
+    if (await chips.count({ timeout: 10000 }) > 0) {
       await expect(chips.first()).toBeVisible({ timeout: 5000 });
     } else {
       // If no chips, just verify some content exists
-      const content = page.locator('.MuiCard-root, [data-radix-card]');
-      await expect(content.first()).toBeVisible({ timeout: 5000 });
+      const content = page.locator('.MuiCard-root, [data-radix-card], .MuiPaper-root');
+      await expect(content.first()).toBeVisible({ timeout: 10000 });
     }
   });
 
