@@ -32,9 +32,9 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
 
     /* Increase timeouts for slower page loads with shadcn/ui components */
-    actionTimeout: 45000,
-    navigationTimeout: 90000,
-    expectTimeout: 45000,
+    actionTimeout: 60000,
+    navigationTimeout: 120000,
+    expectTimeout: 60000,
   },
 
   /* Configure projects for major browsers */

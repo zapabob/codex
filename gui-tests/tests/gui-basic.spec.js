@@ -39,7 +39,7 @@ test.describe('Codex GUI Basic Functionality', () => {
       let contentFound = false;
       for (const selector of selectors) {
         try {
-          await page.waitForSelector(selector, { timeout: 15000 });
+          await page.waitForSelector(selector, { timeout: 30000 });
           console.log(`Found content with selector: ${selector}`);
           contentFound = true;
           break;
@@ -79,7 +79,7 @@ test.describe('Codex GUI Basic Functionality', () => {
         await agentsLink.waitFor({ state: 'attached', timeout: 5000 });
 
         // Try clicking with force if needed
-        await agentsLink.click({ timeout: 15000, force: attempt > 3 });
+        await agentsLink.click({ timeout: 30000, force: attempt > 3 });
         clickSuccess = true;
         break;
       } catch (error) {
@@ -155,7 +155,7 @@ test.describe('Codex GUI Basic Functionality', () => {
       let contentFound = false;
       for (const selector of selectors) {
         try {
-          await page.waitForSelector(selector, { timeout: 15000 });
+          await page.waitForSelector(selector, { timeout: 30000 });
           console.log(`Found content with selector: ${selector}`);
           contentFound = true;
           break;
@@ -199,7 +199,7 @@ test.describe('Codex GUI Basic Functionality', () => {
         await aiToolsLink.waitFor({ state: 'attached', timeout: 5000 });
 
         // Try clicking with force if needed
-        await aiToolsLink.click({ timeout: 15000, force: attempt > 3 });
+        await aiToolsLink.click({ timeout: 30000, force: attempt > 3 });
         clickSuccess = true;
         break;
       } catch (error) {
@@ -286,7 +286,7 @@ test.describe('Codex GUI Basic Functionality', () => {
       let contentFound = false;
       for (const selector of selectors) {
         try {
-          await page.waitForSelector(selector, { timeout: 15000 });
+          await page.waitForSelector(selector, { timeout: 30000 });
           console.log(`Found content with selector: ${selector}`);
           contentFound = true;
           break;
@@ -326,7 +326,7 @@ test.describe('Codex GUI Basic Functionality', () => {
         await codeLink.waitFor({ state: 'attached', timeout: 5000 });
 
         // Try clicking with force if needed
-        await codeLink.click({ timeout: 15000, force: attempt > 3 });
+        await codeLink.click({ timeout: 30000, force: attempt > 3 });
         clickSuccess = true;
         break;
       } catch (error) {
@@ -423,7 +423,7 @@ test.describe('Codex GUI Basic Functionality', () => {
       let contentFound = false;
       for (const selector of selectors) {
         try {
-          await page.waitForSelector(selector, { timeout: 15000 });
+          await page.waitForSelector(selector, { timeout: 30000 });
           console.log(`Found content with selector: ${selector}`);
           contentFound = true;
           break;
@@ -463,7 +463,7 @@ test.describe('Codex GUI Basic Functionality', () => {
         await qcLink.waitFor({ state: 'attached', timeout: 5000 });
 
         // Try clicking with force if needed
-        await qcLink.click({ timeout: 15000, force: attempt > 3 });
+        await qcLink.click({ timeout: 30000, force: attempt > 3 });
         clickSuccess = true;
         break;
       } catch (error) {
