@@ -399,6 +399,13 @@ impl TextArea {
             }
             KeyEvent {
                 code: KeyCode::Home,
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                self.set_cursor(0);
+            }
+            KeyEvent {
+                code: KeyCode::Home,
                 ..
             } => {
                 self.move_cursor_to_beginning_of_line(false);
@@ -412,6 +419,14 @@ impl TextArea {
             }
 
             KeyEvent {
+                code: KeyCode::End,
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                let len = self.text.len();
+                self.set_cursor(len);
+            }
+            KeyEvent {
                 code: KeyCode::End, ..
             } => {
                 self.move_cursor_to_end_of_line(false);
@@ -422,6 +437,20 @@ impl TextArea {
                 ..
             } => {
                 self.move_cursor_to_end_of_line(true);
+            }
+            KeyEvent {
+                code: KeyCode::Backspace,
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                self.delete_backward_word();
+            }
+            KeyEvent {
+                code: KeyCode::Delete,
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                self.delete_forward_word();
             }
             _o => {
                 #[cfg(feature = "debug-logs")]

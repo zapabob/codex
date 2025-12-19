@@ -119,8 +119,30 @@ impl CommandPopup {
         }
 
         for (_, cmd) in self.builtins.iter() {
+            let mut matched = false;
+            let mut best_score = i32::MAX;
+            let mut best_indices = None;
+
+            // Check primary name
             if let Some((indices, score)) = fuzzy_match(cmd.command(), filter) {
-                out.push((CommandItem::Builtin(*cmd), Some(indices), score));
+                matched = true;
+                best_score = score;
+                best_indices = Some(indices);
+            }
+
+            // Check aliases
+            for alias in cmd.aliases().iter().chain(cmd.japanese_aliases().iter()) {
+                if let Some((_, score)) = fuzzy_match(alias, filter) {
+                    matched = true;
+                    if score < best_score {
+                        best_score = score;
+                        // Do NOT use indices from alias for primary name highlighting
+                    }
+                }
+            }
+
+            if matched {
+                out.push((CommandItem::Builtin(*cmd), best_indices, best_score));
             }
         }
         // Support both search styles:
@@ -364,7 +386,7 @@ mod tests {
 
     #[test]
     fn fuzzy_filter_matches_subsequence_for_ac() {
-        let mut popup = CommandPopup::new(Vec::new(), false);
+        let mut popup = CommandPopup::new(Vec::new());
         popup.on_composer_text_change("/ac".to_string());
 
         let cmds: Vec<&str> = popup

@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::collections::VecDeque;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -258,7 +259,7 @@ pub(crate) struct ChatWidget {
     rate_limit_switch_prompt: RateLimitSwitchPromptState,
     // Stream lifecycle controller
     stream_controller: Option<StreamController>,
-    running_commands: HashMap<String, RunningCommand>,
+    running_commands: BTreeMap<String, RunningCommand>,
     task_complete_pending: bool,
     // Queue of interruptive UI events deferred during an active write cycle
     interrupts: InterruptManager,
@@ -1038,9 +1039,9 @@ impl ChatWidget {
             auth_manager,
             feedback,
         } = common;
-        let model_slug = model_family.get_model_slug().to_string();
+        let model_slug = config.model.clone().unwrap_or_else(|| "gpt-4o".to_string());
         let mut config = config;
-        config.model = Some(model_slug.clone());
+        config.model = Some(model_slug);
         let mut rng = rand::rng();
         let placeholder = EXAMPLE_PROMPTS[rng.random_range(0..EXAMPLE_PROMPTS.len())].to_string();
         let codex_op_tx = spawn_agent(config.clone(), app_event_tx.clone(), conversation_manager);
@@ -1070,7 +1071,7 @@ impl ChatWidget {
             rate_limit_warnings: RateLimitWarningState::default(),
             rate_limit_switch_prompt: RateLimitSwitchPromptState::default(),
             stream_controller: None,
-            running_commands: HashMap::new(),
+            running_commands: BTreeMap::new(),
             task_complete_pending: false,
             interrupts: InterruptManager::new(),
             reasoning_buffer: String::new(),
@@ -1087,6 +1088,7 @@ impl ChatWidget {
             last_rendered_width: std::cell::Cell::new(None),
             feedback,
             current_rollout_path: None,
+            task_started_at: None,
         }
     }
 
@@ -1106,7 +1108,7 @@ impl ChatWidget {
             auth_manager,
             feedback,
         } = common;
-        let model_slug = model_family.get_model_slug().to_string();
+        let model_slug = config.model.clone().unwrap_or_else(|| "gpt-4o".to_string());
         let mut rng = rand::rng();
         let placeholder = EXAMPLE_PROMPTS[rng.random_range(0..EXAMPLE_PROMPTS.len())].to_string();
 
@@ -1138,7 +1140,7 @@ impl ChatWidget {
             rate_limit_warnings: RateLimitWarningState::default(),
             rate_limit_switch_prompt: RateLimitSwitchPromptState::default(),
             stream_controller: None,
-            running_commands: HashMap::new(),
+            running_commands: BTreeMap::new(),
             task_complete_pending: false,
             interrupts: InterruptManager::new(),
             reasoning_buffer: String::new(),
@@ -1155,10 +1157,11 @@ impl ChatWidget {
             last_rendered_width: std::cell::Cell::new(None),
             feedback,
             current_rollout_path: None,
+            task_started_at: None,
         }
     }
 
-    pub(crate) fn handle_key_event(&mut self, key_event: KeyEvent) {
+    pub(crate) async fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event {
             KeyEvent {
                 code: KeyCode::Char(c),
@@ -1211,7 +1214,7 @@ impl ChatWidget {
                         self.queue_user_message(user_message);
                     }
                     InputResult::Command(cmd) => {
-                        self.dispatch_command(cmd);
+                        self.dispatch_command(cmd).await;
                     }
                     InputResult::None => {}
                 }
@@ -1234,7 +1237,7 @@ impl ChatWidget {
         self.request_redraw();
     }
 
-    fn dispatch_command(&mut self, cmd: SlashCommand) {
+    async fn dispatch_command(&mut self, cmd: SlashCommand) {
         if !cmd.available_during_task() && self.bottom_pane.is_task_running() {
             let message = format!(
                 "'/{}' is disabled while a task is in progress.",
@@ -1333,7 +1336,7 @@ impl ChatWidget {
             }
             SlashCommand::TestApproval => {
                 use codex_core::protocol::EventMsg;
-                use std::collections::HashMap;
+                use std::collections::BTreeMap;
 
                 use codex_core::protocol::ApplyPatchApprovalRequestEvent;
                 use codex_core::protocol::FileChange;
@@ -1348,7 +1351,7 @@ impl ChatWidget {
                     // }),
                     msg: EventMsg::ApplyPatchApprovalRequest(ApplyPatchApprovalRequestEvent {
                         call_id: "1".to_string(),
-                        changes: HashMap::from([
+                        changes: BTreeMap::from([
                             (
                                 PathBuf::from("/tmp/test.txt"),
                                 FileChange::Add {
@@ -1370,31 +1373,28 @@ impl ChatWidget {
             }
             // zapabob独自: Delegate, Orchestrate, Research, Hook commands
             SlashCommand::Delegate => {
-                self.add_info_message("Delegate command is not yet implemented in TUI mode. Use CLI: `codex delegate <agent>`".to_string(), None);
+                self.handle_delegate_command().await;
             }
             SlashCommand::Orchestrate => {
-                self.add_info_message("Orchestrate command is not yet implemented in TUI mode. Use CLI: `codex orchestrate <goal>`".to_string(), None);
+                self.handle_orchestrate_command().await;
             }
             SlashCommand::CentralDev => {
-                self.add_info_message("Starting centralized development mode with main agent coordinating sub-agents...\nActive MCP servers: serena, arxiv, youtube, gemini-cli".to_string(), None);
-                // TODO: Implement centralized development mode
+                self.handle_central_dev_command().await;
             }
             SlashCommand::ParallelDev => {
-                self.add_info_message("Starting parallel development mode using git worktrees...\nActive MCP servers: serena, github, git-enhanced, filesystem, playwright".to_string(), None);
-                // TODO: Implement parallel development mode
+                self.handle_parallel_dev_command().await;
             }
             SlashCommand::Research => {
-                self.add_info_message("Research command is not yet implemented in TUI mode. Use CLI: `codex research <topic>`".to_string(), None);
+                self.handle_research_command().await;
             }
             SlashCommand::Plan => {
                 self.handle_plan_command().await;
             }
             SlashCommand::Qc => {
-                self.add_info_message("Running Quality Control agent for code analysis...".to_string(), None);
-                // TODO: Implement QC agent integration
+                self.handle_qc_command().await;
             }
             SlashCommand::Hook => {
-                self.add_info_message("Hook command is not yet implemented in TUI mode. Use CLI: `codex hook <event>`".to_string(), None);
+                self.handle_hook_command().await;
             }
         }
     }
@@ -2923,7 +2923,10 @@ impl ChatWidget {
 
     /// Handle plan command with QC agent integration (Rust 2024)
     async fn handle_plan_command(&mut self) {
-        self.add_info_message("🚀 Planモードを起動中... QCエージェントPhase 4統合".to_string(), None);
+        self.add_info_message(
+            "🚀 Planモードを起動中... QCエージェントPhase 4統合".to_string(),
+            None,
+        );
 
         // Show plan creation popup
         self.show_plan_creation_popup().await;
@@ -2935,38 +2938,43 @@ impl ChatWidget {
 
         let mut items = Vec::new();
 
-        items.push(crate::ui::SelectionItem {
-            id: "create_plan".to_string(),
-            display: Line::from("📝 新規Plan作成".bold()),
+        items.push(SelectionItem {
+            name: "📝 新規Plan作成".into(),
             description: Some("品質保証ワークフロー付きPlanを作成".into()),
+            actions: vec![Box::new(|tx| tx.send(AppEvent::PlanCreate))],
+            dismiss_on_select: true,
             ..Default::default()
         });
 
-        items.push(crate::ui::SelectionItem {
-            id: "list_plans".to_string(),
-            display: Line::from("📋 Plan一覧".bold()),
+        items.push(SelectionItem {
+            name: "📋 Plan一覧".into(),
             description: Some("既存のPlanを表示".into()),
+            actions: vec![Box::new(|tx| tx.send(AppEvent::PlanList))],
+            dismiss_on_select: true,
             ..Default::default()
         });
 
-        items.push(crate::ui::SelectionItem {
-            id: "qc_improvement".to_string(),
-            display: Line::from("🔧 QC改善計画".bold()),
+        items.push(SelectionItem {
+            name: "🔧 QC改善計画".into(),
             description: Some("自動品質改善計画を生成 (Rust 2024)".into()),
+            actions: vec![Box::new(|tx| tx.send(AppEvent::QcImprovement))],
+            dismiss_on_select: true,
             ..Default::default()
         });
 
-        items.push(crate::ui::SelectionItem {
-            id: "monitoring_dashboard".to_string(),
-            display: Line::from("📊 品質監視ダッシュボード".bold()),
+        items.push(SelectionItem {
+            name: "📊 品質監視ダッシュボード".into(),
             description: Some("リアルタイム品質監視を開始".into()),
+            actions: vec![Box::new(|tx| tx.send(AppEvent::QcMonitoring))],
+            dismiss_on_select: true,
             ..Default::default()
         });
 
-        items.push(crate::ui::SelectionItem {
-            id: "ml_prediction".to_string(),
-            display: Line::from("🤖 ML品質予測".bold()),
+        items.push(SelectionItem {
+            name: "🤖 ML品質予測".into(),
             description: Some("機械学習による品質予測を実行".into()),
+            actions: vec![Box::new(|tx| tx.send(AppEvent::QcPrediction))],
+            dismiss_on_select: true,
             ..Default::default()
         });
 
@@ -2978,32 +2986,83 @@ impl ChatWidget {
         header.push(Line::from("• ML品質予測"));
         header.push(Line::from("• 自動品質改善"));
 
-        self.bottom_pane.show_selection_view(crate::ui::SelectionViewParams {
+        self.bottom_pane.show_selection_view(SelectionViewParams {
             header: Box::new(header),
-            footer_hint: Some(crate::ui::standard_popup_hint_line()),
+            footer_hint: Some(standard_popup_hint_line()),
             items,
-            on_select: Some(Box::new(|selected_id, app_event_tx| {
-                match selected_id.as_str() {
-                    "create_plan" => {
-                        app_event_tx.send(crate::app::AppEvent::PlanCreate);
-                    }
-                    "list_plans" => {
-                        app_event_tx.send(crate::app::AppEvent::PlanList);
-                    }
-                    "qc_improvement" => {
-                        app_event_tx.send(crate::app::AppEvent::QcImprovement);
-                    }
-                    "monitoring_dashboard" => {
-                        app_event_tx.send(crate::app::AppEvent::QcMonitoring);
-                    }
-                    "ml_prediction" => {
-                        app_event_tx.send(crate::app::AppEvent::QcPrediction);
-                    }
-                    _ => {}
-                }
-            })),
             ..Default::default()
         });
+    }
+
+    async fn handle_research_command(&mut self) {
+        self.add_info_message(
+            "🔍 Researchモードを起動中... DeepResearch統合".to_string(),
+            None,
+        );
+        self.show_research_popup().await;
+    }
+
+    async fn show_research_popup(&mut self) {
+        use crate::ui::ColumnRenderable;
+        let mut items = Vec::new();
+        items.push(SelectionItem {
+            name: "🌐 Deep Researchを実行".into(),
+            description: Some("Web, MCP, 文献を用いた詳細調査を実行".into()),
+            actions: vec![Box::new(|tx| tx.send(AppEvent::ResearchTopic))],
+            dismiss_on_select: true,
+            ..Default::default()
+        });
+        items.push(SelectionItem {
+            name: "📂 ローカルコード調査".into(),
+            description: Some("現在のワークスペース内のコード構造を詳細に分析".into()),
+            dismiss_on_select: true,
+            ..Default::default()
+        });
+
+        let mut header = ColumnRenderable::new();
+        header.push(Line::from("Research Mode - 高度な情報収集".bold()));
+        self.bottom_pane.show_selection_view(SelectionViewParams {
+            header: Box::new(header),
+            footer_hint: Some(standard_popup_hint_line()),
+            items,
+            ..Default::default()
+        });
+    }
+
+    async fn handle_delegate_command(&mut self) {
+        self.add_info_message(
+            "🤝 Delegateモード: サブエージェントへの委譲準備".to_string(),
+            None,
+        );
+        self.set_composer_text("/delegate agent_name \"task description\"".to_string());
+    }
+
+    async fn handle_orchestrate_command(&mut self) {
+        self.add_info_message(
+            "🎻 Orchestrateモード: 自律エージェント群の指揮".to_string(),
+            None,
+        );
+        self.set_composer_text("/orchestrate \"goal description\"".to_string());
+    }
+
+    async fn handle_qc_command(&mut self) {
+        self.add_info_message("🛡️ Quality Control: コード品質検証を開始".to_string(), None);
+        self.app_event_tx.send(AppEvent::QcImprovement);
+    }
+
+    async fn handle_hook_command(&mut self) {
+        self.add_info_message("🔗 Hookモード: 外部連携トリガー".to_string(), None);
+        self.set_composer_text("/hook slack \"message\"".to_string());
+    }
+
+    async fn handle_central_dev_command(&mut self) {
+        self.add_info_message("🏗️ Centralized Devモードを開始".to_string(), None);
+        self.set_composer_text("/central-dev \"build features A and B\"".to_string());
+    }
+
+    async fn handle_parallel_dev_command(&mut self) {
+        self.add_info_message("🌿 Parallel Devモードを開始 (Worktrees)".to_string(), None);
+        self.set_composer_text("/parallel-dev \"implement feature X while fixing Y\"".to_string());
     }
 
     pub fn cursor_pos(&self, area: Rect) -> Option<(u16, u16)> {

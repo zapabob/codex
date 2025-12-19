@@ -109,6 +109,42 @@ impl SlashCommand {
         }
     }
 
+    /// English aliases for the command.
+    pub fn aliases(self) -> &'static [&'static str] {
+        match self {
+            SlashCommand::Quit | SlashCommand::Exit => &["exit", "quit", "bye"],
+            SlashCommand::Review => &["check", "audit"],
+            SlashCommand::Delegate => &["assign", "handover"],
+            SlashCommand::Research => &["search", "investigate", "deepsearch"],
+            SlashCommand::Plan => &["schedule", "blueprint"],
+            SlashCommand::New => &["clear", "reset"],
+            SlashCommand::Undo => &["back", "revert"],
+            _ => &[],
+        }
+    }
+
+    /// Japanese aliases for the command.
+    pub fn japanese_aliases(self) -> &'static [&'static str] {
+        match self {
+            SlashCommand::Model => &["モデル", "設定"],
+            SlashCommand::Approvals => &["承認", "許可"],
+            SlashCommand::Review => &["レビュー", "添削", "修正"],
+            SlashCommand::Delegate => &["委譲", "依頼"],
+            SlashCommand::Orchestrate => &["オーケストレーション", "指揮"],
+            SlashCommand::Research => &["調査", "検索", "リサーチ"],
+            SlashCommand::Plan => &["計画", "プラン"],
+            SlashCommand::Qc => &["品質", "検証"],
+            SlashCommand::New => &["新規", "クリア"],
+            SlashCommand::Undo => &["元に戻す", "取り消し"],
+            SlashCommand::Diff => &["差分", "変更"],
+            SlashCommand::Status => &["ステータス", "状態"],
+            SlashCommand::Mcp => &["ツール"],
+            SlashCommand::Quit | SlashCommand::Exit => &["終了", "閉じる"],
+            SlashCommand::Feedback => &["フィードバック", "報告"],
+            _ => &[],
+        }
+    }
+
     fn is_visible(self) -> bool {
         match self {
             SlashCommand::Rollout | SlashCommand::TestApproval => cfg!(debug_assertions),

@@ -99,7 +99,7 @@ mod windows_impl {
         Ok(())
     }
 
-    fn make_env_block(env: &HashMap<String, String>) -> Vec<u16> {
+    fn make_env_block(env: &BTreeMap<String, String>) -> Vec<u16> {
         let mut items: Vec<(String, String)> =
             env.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
         items.sort_by(|a, b| {
@@ -198,21 +198,32 @@ mod windows_impl {
 
     pub fn preflight_audit_everyone_writable(
         cwd: &Path,
-        env_map: &HashMap<String, String>,
+        env_map: &BTreeMap<String, String>,
         logs_base_dir: Option<&Path>,
     ) -> Result<Vec<PathBuf>> {
         audit::audit_everyone_writable(cwd, env_map, logs_base_dir)
     }
 
-    pub fn run_windows_sandbox_capture(
-        policy_json_or_preset: &str,
-        sandbox_policy_cwd: &Path,
-        command: Vec<String>,
-        cwd: &Path,
-        mut env_map: HashMap<String, String>,
-        timeout_ms: Option<u64>,
-        logs_base_dir: Option<&Path>,
-    ) -> Result<CaptureResult> {
+    pub struct SandboxCaptureOptions<'a> {
+        pub policy_json_or_preset: &'a str,
+        pub sandbox_policy_cwd: &'a Path,
+        pub command: Vec<String>,
+        pub cwd: &'a Path,
+        pub env_map: BTreeMap<String, String>,
+        pub timeout_ms: Option<u64>,
+        pub logs_base_dir: Option<&'a Path>,
+    }
+
+    pub fn run_windows_sandbox_capture(options: SandboxCaptureOptions) -> Result<CaptureResult> {
+        let SandboxCaptureOptions {
+            policy_json_or_preset,
+            sandbox_policy_cwd,
+            command,
+            cwd,
+            mut env_map,
+            timeout_ms,
+            logs_base_dir,
+        } = options;
         let policy = SandboxPolicy::parse(policy_json_or_preset)?;
         normalize_null_device_env(&mut env_map);
         ensure_non_interactive_pager(&mut env_map);
@@ -463,34 +474,25 @@ mod windows_impl {
 mod stub {
     use anyhow::Result;
     use anyhow::bail;
-    use std::collections::HashMap;
-    use std::path::Path;
-
-    #[derive(Debug, Default)]
-    pub struct CaptureResult {
-        pub exit_code: i32,
-        pub stdout: Vec<u8>,
-        pub stderr: Vec<u8>,
-        pub timed_out: bool,
+    pub struct SandboxCaptureOptions<'a> {
+        pub policy_json_or_preset: &'a str,
+        pub sandbox_policy_cwd: &'a Path,
+        pub command: Vec<String>,
+        pub cwd: &'a Path,
+        pub env_map: BTreeMap<String, String>,
+        pub timeout_ms: Option<u64>,
+        pub logs_base_dir: Option<&'a Path>,
     }
 
     pub fn preflight_audit_everyone_writable(
         _cwd: &Path,
-        _env_map: &HashMap<String, String>,
+        _env_map: &BTreeMap<String, String>,
         _logs_base_dir: Option<&Path>,
     ) -> Result<Vec<std::path::PathBuf>> {
         bail!("Windows sandbox is only available on Windows")
     }
 
-    pub fn run_windows_sandbox_capture(
-        _policy_json_or_preset: &str,
-        _sandbox_policy_cwd: &Path,
-        _command: Vec<String>,
-        _cwd: &Path,
-        _env_map: HashMap<String, String>,
-        _timeout_ms: Option<u64>,
-        _logs_base_dir: Option<&Path>,
-    ) -> Result<CaptureResult> {
+    pub fn run_windows_sandbox_capture(_options: SandboxCaptureOptions) -> Result<CaptureResult> {
         bail!("Windows sandbox is only available on Windows")
     }
 }

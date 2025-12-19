@@ -564,6 +564,45 @@ impl LegacyApp {
             AppEvent::OpenAllModelsPopup { .. } => {
                 // TODO: Implement OpenAllModelsPopup handling
             }
+            AppEvent::PlanCreate => {
+                self.chat_widget
+                    .set_composer_text("/plan create \"goal\"".to_string());
+            }
+            AppEvent::PlanList => {
+                self.chat_widget.set_composer_text("/plan list".to_string());
+            }
+            AppEvent::QcImprovement => {
+                self.chat_widget
+                    .set_composer_text("/qc improve".to_string());
+            }
+            AppEvent::QcMonitoring => {
+                self.chat_widget.add_info_message(
+                    "Quality monitoring dashboard is not yet fully integrated in TUI.".to_string(),
+                    None,
+                );
+            }
+            AppEvent::QcPrediction => {
+                self.chat_widget.add_info_message(
+                    "ML prediction results will be shown in the transcript.".to_string(),
+                    None,
+                );
+            }
+            AppEvent::DelegateAgent => {
+                self.chat_widget
+                    .set_composer_text("/delegate agent_name \"task\"".to_string());
+            }
+            AppEvent::OrchestrateFlow => {
+                self.chat_widget
+                    .set_composer_text("/orchestrate \"goal\"".to_string());
+            }
+            AppEvent::ResearchTopic => {
+                self.chat_widget
+                    .set_composer_text("/research \"topic\"".to_string());
+            }
+            AppEvent::TriggerHook => {
+                self.chat_widget
+                    .set_composer_text("/hook slack \"message\"".to_string());
+            }
         }
         Ok(true)
     }
@@ -605,7 +644,7 @@ impl LegacyApp {
                 {
                     self.handle_backtrack_esc_key(tui);
                 } else {
-                    self.chat_widget.handle_key_event(key_event);
+                    self.chat_widget.handle_key_event(key_event).await;
                 }
             }
             // Enter confirms backtrack when primed + count > 0. Otherwise pass to widget.
@@ -630,7 +669,7 @@ impl LegacyApp {
                 if key_event.code != KeyCode::Esc && self.backtrack.primed {
                     self.reset_backtrack_state();
                 }
-                self.chat_widget.handle_key_event(key_event);
+                self.chat_widget.handle_key_event(key_event).await;
             }
             _ => {
                 // Ignore Release key events.
@@ -787,10 +826,12 @@ mod tests {
                 history_log_id: 0,
                 history_entry_count: 0,
                 initial_messages: None,
+                skill_load_outcome: None,
                 rollout_path: PathBuf::new(),
             };
             Arc::new(new_session_info(
                 app.chat_widget.config_ref(),
+                &event.model,
                 event,
                 is_first,
             )) as Arc<dyn HistoryCell>

@@ -162,6 +162,12 @@ pub(crate) enum AppEvent {
     QcImprovement,
     QcMonitoring,
     QcPrediction,
+
+    /// Delegated development events
+    DelegateAgent,
+    OrchestrateFlow,
+    ResearchTopic,
+    TriggerHook,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
