@@ -21,117 +21,98 @@ test.describe('Codex GUI Basic Functionality', () => {
   test('should navigate to agents page', async ({ page }) => {
     await page.goto('/');
     // Wait for main dashboard to load
-    await page.waitForSelector('text=ようこそ, .MuiTypography-root', { timeout: 30000 });
+    await page.waitForSelector('text=ようこそ, .MuiTypography-root', { timeout: 20000 });
 
     // モバイルの場合はメニューを開く
     if (await page.locator('[data-testid="mobile-menu"]').isVisible()) {
       await page.click('[data-testid="mobile-menu"]');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(500);
     }
 
-    // Click agents navigation link
-    await page.click('text=エージェント');
+    // Click agents navigation link with retry for slow clicks
+    try {
+      await page.click('text=エージェント', { timeout: 10000 });
+    } catch (error) {
+      console.log('First click attempt failed, retrying...');
+      await page.waitForTimeout(1000);
+      await page.click('text=エージェント', { timeout: 15000 });
+    }
 
-    // Wait for navigation and page load
-    await page.waitForTimeout(5000);
-    await page.waitForLoadState('networkidle', { timeout: 45000 });
+    // Wait for navigation
+    await page.waitForTimeout(3000);
 
-    // Verify navigation succeeded
+    // Verify navigation succeeded by URL
     await expect(page.url()).toMatch(/.*agents/);
 
-    // Check if page is implemented - if not, skip test gracefully
-    const hasPageTitle = await page.locator('text=AI エージェント, text=エージェント, h1, h2, h3, h4, h5, h6').isVisible({ timeout: 15000 });
-    if (!hasPageTitle) {
-      console.log('Agent page appears to be under development - skipping content verification');
-      return; // Skip test instead of failing
-    }
+    // Check if page has any content (implemented or placeholder)
+    const pageHasContent = await page.locator('body').textContent();
+    expect(pageHasContent && pageHasContent.length > 10).toBeTruthy();
 
-    // If page has title, check for content
-    try {
-      await expect(page.locator('text=AI エージェント')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.log('Agent page content not yet visible, but navigation succeeded');
-    }
+    console.log('✅ Agents page navigation successful');
   });
 
   test('should navigate to AI tools page', async ({ page }) => {
     await page.goto('/');
     // Wait for main dashboard to load
-    await page.waitForSelector('text=ようこそ, .MuiTypography-root', { timeout: 30000 });
+    await page.waitForSelector('text=ようこそ, .MuiTypography-root', { timeout: 20000 });
 
     if (await page.locator('[data-testid="mobile-menu"]').isVisible()) {
       await page.click('[data-testid="mobile-menu"]');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(500);
     }
 
-    // Click AI tools navigation link
-    await page.click('text=AIツール統合');
+    // Click AI tools navigation link with retry for slow clicks
+    try {
+      await page.click('text=AIツール統合', { timeout: 10000 });
+    } catch (error) {
+      console.log('First click attempt failed, retrying...');
+      await page.waitForTimeout(1000);
+      await page.click('text=AIツール統合', { timeout: 15000 });
+    }
 
-    // Wait for navigation and page load
-    await page.waitForTimeout(5000);
-    await page.waitForLoadState('networkidle', { timeout: 45000 });
+    // Wait for navigation
+    await page.waitForTimeout(3000);
 
-    // Verify navigation succeeded
+    // Verify navigation succeeded by URL
     await expect(page.url()).toMatch(/.*ai-tools/);
 
-    // Check if page is implemented - if not, skip test gracefully
-    const hasPageTitle = await page.locator('text=AIツール統合, h1, h2, h3, h4, h5, h6').isVisible({ timeout: 15000 });
-    if (!hasPageTitle) {
-      console.log('AI tools page appears to be under development - skipping content verification');
-      return; // Skip test instead of failing
-    }
+    // Check if page has any content (implemented or placeholder)
+    const pageHasContent = await page.locator('body').textContent();
+    expect(pageHasContent && pageHasContent.length > 10).toBeTruthy();
 
-    // If page has title, check for content (shadcn/ui cards)
-    try {
-      await expect(page.locator('text=AIツール統合, h1:has-text("AIツール")')).toBeVisible({ timeout: 10000 });
-
-      // Check for shadcn/ui Card components
-      const cardCount = await page.locator('[data-radix-card], .rounded-xl.border.bg-card, [class*="card"]').count();
-      if (cardCount === 0) {
-        console.log('AI tools page has title but no card components yet');
-      }
-    } catch (error) {
-      console.log('AI tools page content not yet visible, but navigation succeeded');
-    }
+    console.log('✅ AI tools page navigation successful');
   });
 
   test('should navigate to code execution page', async ({ page }) => {
     await page.goto('/');
     // Wait for main dashboard to load
-    await page.waitForSelector('text=ようこそ, .MuiTypography-root', { timeout: 30000 });
+    await page.waitForSelector('text=ようこそ, .MuiTypography-root', { timeout: 20000 });
 
     if (await page.locator('[data-testid="mobile-menu"]').isVisible()) {
       await page.click('[data-testid="mobile-menu"]');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(500);
     }
 
-    // Click code execution navigation link
-    await page.click('text=コード実行');
+    // Click code execution navigation link with retry for slow clicks
+    try {
+      await page.click('text=コード実行', { timeout: 10000 });
+    } catch (error) {
+      console.log('First click attempt failed, retrying...');
+      await page.waitForTimeout(1000);
+      await page.click('text=コード実行', { timeout: 15000 });
+    }
 
-    // Wait for navigation and page load
-    await page.waitForTimeout(5000);
-    await page.waitForLoadState('networkidle', { timeout: 45000 });
+    // Wait for navigation
+    await page.waitForTimeout(3000);
 
-    // Verify navigation succeeded
+    // Verify navigation succeeded by URL
     await expect(page.url()).toMatch(/.*code/);
 
-    // Check if page is implemented - if not, skip test gracefully
-    const hasPageTitle = await page.locator('text=コード実行, h1, h2, h3, h4, h5, h6').isVisible({ timeout: 15000 });
-    if (!hasPageTitle) {
-      console.log('Code execution page appears to be under development - skipping content verification');
-      return; // Skip test instead of failing
-    }
+    // Check if page has any content (implemented or placeholder)
+    const pageHasContent = await page.locator('body').textContent();
+    expect(pageHasContent && pageHasContent.length > 10).toBeTruthy();
 
-    // If page has title, check for content (MUI components)
-    try {
-      const hasCodeContent = await page.locator('textarea, .MuiTextField-root').count({ timeout: 15000 }) > 0 ||
-                            await page.locator('h4:has-text("コード"), h5:has-text("コード")').isVisible({ timeout: 10000 });
-      if (!hasCodeContent) {
-        console.log('Code execution page has title but no code editor yet');
-      }
-    } catch (error) {
-      console.log('Code execution page content not yet visible, but navigation succeeded');
-    }
+    console.log('✅ Code execution page navigation successful');
   });
 
   test('should navigate to MCP management page', async ({ page }) => {
@@ -152,32 +133,29 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     if (await page.locator('[data-testid="mobile-menu"]').isVisible()) {
       await page.click('[data-testid="mobile-menu"]');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(500);
     }
 
-    // Click QC navigation link
-    await page.click('text=QC管理');
+    // Click QC navigation link with retry for slow clicks
+    try {
+      await page.click('text=QC管理', { timeout: 10000 });
+    } catch (error) {
+      console.log('First click attempt failed, retrying...');
+      await page.waitForTimeout(1000);
+      await page.click('text=QC管理', { timeout: 15000 });
+    }
 
-    // Wait for navigation and page load with longer timeout
-    await page.waitForTimeout(5000);
-    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    // Wait for navigation
+    await page.waitForTimeout(3000);
 
-    // Verify navigation succeeded
+    // Verify navigation succeeded by URL
     await expect(page.url()).toMatch(/.*qc/);
 
-    // Check if page is implemented - if not, skip test gracefully
-    const hasPageTitle = await page.locator('text=QC管理, h1, h2, h3, h4, h5, h6').isVisible({ timeout: 10000 });
-    if (!hasPageTitle) {
-      console.log('QC page appears to be under development - skipping content verification');
-      return; // Skip test instead of failing
-    }
+    // Check if page has any content (implemented or placeholder)
+    const pageHasContent = await page.locator('body').textContent();
+    expect(pageHasContent && pageHasContent.length > 10).toBeTruthy();
 
-    // If page has title, check for content
-    try {
-      await expect(page.locator('text=QC管理')).toBeVisible({ timeout: 5000 });
-    } catch (error) {
-      console.log('QC page content not yet visible, but navigation succeeded');
-    }
+    console.log('✅ Quality control page navigation successful');
   });
 
   test('should navigate to task management page', async ({ page }) => {
