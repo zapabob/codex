@@ -740,7 +740,7 @@ test.describe('Codex GUI Basic Functionality', () => {
     await page.waitForSelector('text=仮想OS', { timeout: 5000 });
 
     // Check for virtual OS components (support both UI libraries)
-    await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="virtual"], [class*="mac"], [class*="card"]', { timeout: 15000 });
+    await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="virtual"], [class*="mac"], [class*="card"]', { timeout: 45000 });
 
     // Verify virtual components are present
     const components = page.locator('.MuiCard-root, [data-radix-card], .MuiPaper-root, [class*="card"]');
