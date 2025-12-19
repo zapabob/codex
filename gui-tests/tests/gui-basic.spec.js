@@ -716,7 +716,7 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     // Check for security-related content (support both UI libraries)
     try {
-      await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="security"], [class*="card"], [data-malware-scanner]', { timeout: 60000 });
+      await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="security"], [class*="card"], [data-malware-scanner]', { timeout: 25000 });
     } catch (error) {
       console.log('Security components not found immediately, waiting longer...');
       await page.waitForTimeout(5000);
@@ -740,7 +740,7 @@ test.describe('Codex GUI Basic Functionality', () => {
     await page.waitForSelector('text=仮想OS', { timeout: 5000 });
 
     // Check for virtual OS components (support both UI libraries)
-    await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="virtual"], [class*="mac"], [class*="card"]', { timeout: 45000 });
+    await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="virtual"], [class*="mac"], [class*="card"]', { timeout: 15000 });
 
     // Verify virtual components are present
     const components = page.locator('.MuiCard-root, [data-radix-card], .MuiPaper-root, [class*="card"]');

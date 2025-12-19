@@ -32,9 +32,9 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
 
     /* Increase timeouts for slower page loads with shadcn/ui components */
-    actionTimeout: 120000,
-    navigationTimeout: 180000,
-    expectTimeout: 120000,
+    actionTimeout: 60000,
+    navigationTimeout: 120000,
+    expectTimeout: 60000,
   },
 
   /* Configure projects for major browsers */
@@ -61,7 +61,7 @@ export default defineConfig({
       command: 'cd /d C:\\Users\\downl\\Desktop\\codex-main\\gui && npm run dev',
       port: 3000,
       reuseExistingServer: !process.env.CI,
-      timeout: 180 * 1000, // 180 seconds for Next.js dev server
+      timeout: 120 * 1000, // 120 seconds for Next.js dev server
     }
   ],
 });
