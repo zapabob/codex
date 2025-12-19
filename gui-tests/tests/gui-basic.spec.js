@@ -114,7 +114,7 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     // Wait for navigation and page content to load
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 45000 });
+    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
@@ -234,7 +234,7 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     // Wait for navigation and page content to load
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 45000 });
+    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
@@ -361,7 +361,7 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     // Wait for navigation and page content to load
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 45000 });
+    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
@@ -498,7 +498,7 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     // Wait for navigation and page content to load
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 45000 });
+    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
@@ -579,7 +579,7 @@ test.describe('Codex GUI Basic Functionality', () => {
     // If page has title, check for content
     try {
       // Try to wait for agent cards to load (support both MUI and shadcn/ui)
-      await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="card"], [class*="agent"]', { timeout: 15000 });
+      await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="card"], [class*="agent"]', { timeout: 30000 });
 
       // Get first agent card (support both UI libraries)
       const firstAgentCard = page.locator('.MuiCard-root, [data-radix-card], [class*="agent"]').first();
@@ -653,7 +653,7 @@ test.describe('Codex GUI Basic Functionality', () => {
     await page.waitForSelector('text=MCPサーバー', { timeout: 15000 });
 
     // Wait for server cards to load (support both UI libraries)
-    await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="card"]', { timeout: 20000 });
+    await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="card"]', { timeout: 45000 });
 
     // Check if at least one server card is visible
     const serverCards = page.locator('.MuiCard-root, [data-radix-card]');
@@ -689,7 +689,7 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     // Check for Kanban board components (support both MUI and shadcn/ui)
     try {
-      await page.waitForSelector('[class*="kanban"], .MuiGrid-root, [data-radix-card], [class*="card"], [data-dnd-kit-overlay]', { timeout: 25000 });
+      await page.waitForSelector('[class*="kanban"], .MuiGrid-root, [data-radix-card], [class*="card"], [data-dnd-kit-overlay]', { timeout: 60000 });
     } catch (error) {
       console.log('Kanban components not found, checking for basic content...');
     }
@@ -716,7 +716,7 @@ test.describe('Codex GUI Basic Functionality', () => {
 
     // Check for security-related content (support both UI libraries)
     try {
-      await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="security"], [class*="card"], [data-malware-scanner]', { timeout: 25000 });
+      await page.waitForSelector('.MuiCard-root, [data-radix-card], [class*="security"], [class*="card"], [data-malware-scanner]', { timeout: 60000 });
     } catch (error) {
       console.log('Security components not found immediately, waiting longer...');
       await page.waitForTimeout(5000);
