@@ -50,6 +50,7 @@ jobs:
   general:
     name: Format / etc
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     needs: changed
     if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}
     defaults:
@@ -99,6 +100,9 @@ jobs:
       USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') && 'false' || 'true' }}
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: 10G
+      # Optimize for Windows memory usage
+      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') && '2' || '4' }}
+      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') && '0' || '1' }}
 
     strategy:
       fail-fast: false
@@ -335,7 +339,7 @@ jobs:
   tests:
     name: Tests — ${{ matrix.runner }} - ${{ matrix.target }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: ${{ startsWith(matrix.runner, 'windows') && 60 || 30 }}
     needs: changed
     if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}
     defaults:
@@ -346,6 +350,9 @@ jobs:
       USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') && 'false' || 'true' }}
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: 10G
+      # Optimize for Windows memory usage
+      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') && '2' || '4' }}
+      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') && '0' || '1' }}
 
     strategy:
       fail-fast: false

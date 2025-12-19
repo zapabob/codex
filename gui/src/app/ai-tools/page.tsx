@@ -270,13 +270,13 @@ export default function AIToolsPage() {
 
   return (
     <DashboardLayout>
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col" data-testid="ai-tools-page">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">AI Tools Orchestration</h1>
+            <h1 className="text-3xl font-bold text-gray-900" data-testid="ai-tools-title">AIツール統合</h1>
             <p className="text-gray-600 mt-1">
-              Parallel development with multiple AI tools for large-scale projects
+              複数のAIツールを並行して使用した大規模プロジェクト開発
             </p>
           </div>
 

@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "playwright test",
+    "test": "playwright test --project=chromium-cursor",
     "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed"
+    "test:headed": "playwright test --headed --project=chromium-cursor",
+    "test:ci": "playwright test --project=chromium-cursor"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

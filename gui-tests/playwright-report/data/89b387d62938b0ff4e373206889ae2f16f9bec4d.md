@@ -1,0 +1,108 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]:
+        - heading "Codex Control" [level=6] [ref=e8]
+        - text: AI Assistant Platform
+      - generic [ref=e9]:
+        - list [ref=e10]:
+          - listitem [ref=e12]:
+            - button "ダッシュボード" [ref=e13] [cursor=pointer]:
+              - img [ref=e15]
+              - generic [ref=e19]: ダッシュボード
+          - listitem [ref=e21]:
+            - button "コード実行" [ref=e22] [cursor=pointer]:
+              - img [ref=e24]
+              - generic [ref=e28]: コード実行
+          - listitem [ref=e30]:
+            - button "エージェント" [ref=e31] [cursor=pointer]:
+              - img [ref=e33]
+              - generic [ref=e39]: エージェント
+          - listitem [ref=e41]:
+            - button "タスク管理" [ref=e42] [cursor=pointer]:
+              - img [ref=e44]
+              - generic [ref=e48]: タスク管理
+          - listitem [ref=e50]:
+            - button "QC管理" [ref=e51] [cursor=pointer]:
+              - img [ref=e53]
+              - generic [ref=e57]: QC管理
+          - listitem [ref=e59]:
+            - button "セキュリティ" [ref=e60] [cursor=pointer]:
+              - img [ref=e62]
+              - generic [ref=e65]: セキュリティ
+          - listitem [ref=e67]:
+            - button "仮想OS" [ref=e68] [cursor=pointer]:
+              - img [ref=e70]
+              - generic [ref=e73]: 仮想OS
+          - listitem [ref=e75]:
+            - button "AIツール統合" [ref=e76] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e82]: AIツール統合
+          - listitem [ref=e84]:
+            - button "Deep Research" [ref=e85] [cursor=pointer]:
+              - img [ref=e87]
+              - generic [ref=e91]: Deep Research
+          - listitem [ref=e93]:
+            - button "セキュリティ" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+              - generic [ref=e99]: セキュリティ
+          - listitem [ref=e101]:
+            - button "MCPサーバー" [ref=e102] [cursor=pointer]:
+              - img [ref=e104]
+              - generic [ref=e108]: MCPサーバー
+          - listitem [ref=e110]:
+            - button "分析" [ref=e111] [cursor=pointer]:
+              - img [ref=e113]
+              - generic [ref=e116]: 分析
+          - listitem [ref=e118]:
+            - button "ドキュメント" [ref=e119] [cursor=pointer]:
+              - img [ref=e121]
+              - generic [ref=e125]: ドキュメント
+          - listitem [ref=e127]:
+            - button "パフォーマンス" [ref=e128] [cursor=pointer]:
+              - img [ref=e130]
+              - generic [ref=e133]: パフォーマンス
+        - separator [ref=e134]
+        - list [ref=e135]:
+          - listitem [ref=e137]:
+            - button "設定" [ref=e138] [cursor=pointer]:
+              - img [ref=e140]
+              - generic [ref=e144]: 設定
+    - main [ref=e145]:
+      - generic [ref=e147]:
+        - generic [ref=e149]: エージェント管理
+        - generic [ref=e150]:
+          - 'generic "Codexサーバー: 未接続" [ref=e152]':
+            - img [ref=e153]
+            - generic [ref=e160]: オフライン
+          - 'button "HTTP 404: Not Found" [ref=e162] [cursor=pointer]':
+            - img [ref=e163]
+          - button "テーマ切り替え (system)" [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+          - button "設定" [ref=e170] [cursor=pointer]:
+            - img [ref=e171]
+          - button "プロフィール" [ref=e175] [cursor=pointer]:
+            - img [ref=e176]
+      - generic [ref=e180]:
+        - heading "AI エージェント" [level=4] [ref=e181]
+        - paragraph [ref=e182]: 専門化されたAIエージェントで、コードレビュー、テスト生成、セキュリティスキャン、研究などを自動化します。
+        - alert [ref=e183]:
+          - img [ref=e185]
+          - generic [ref=e187]: "HTTP 404: Not Found"
+        - generic [ref=e188]:
+          - heading "クイックアクション" [level=5] [ref=e189]
+          - generic [ref=e190]:
+            - button "セキュリティスキャン" [ref=e192] [cursor=pointer]:
+              - img [ref=e194]
+              - text: セキュリティスキャン
+            - button "コードレビュー" [ref=e197] [cursor=pointer]:
+              - img [ref=e199]
+              - text: コードレビュー
+            - button "Deep Research" [ref=e203] [cursor=pointer]:
+              - img [ref=e205]
+              - text: Deep Research
+```

@@ -298,8 +298,8 @@ export default function AgentsPage() {
 
   return (
     <DashboardLayout title="エージェント管理">
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
+      <Box sx={{ p: 3 }} data-testid="agents-page">
+        <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }} data-testid="agents-title">
           AI エージェント
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
@@ -312,13 +312,13 @@ export default function AgentsPage() {
           </Alert>
         )}
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }} data-testid="agents-grid">
           {state.agents.map((agent) => {
             const IconComponent = AGENT_ICONS[agent.type as keyof typeof AGENT_ICONS];
             const color = AGENT_COLORS[agent.type as keyof typeof AGENT_COLORS];
 
             return (
-              <Box key={agent.id} sx={{ height: '100%' }}>
+              <Box key={agent.id} sx={{ height: '100%' }} data-testid={`agent-card-${agent.id}`}>
                 <MuiCard
                   sx={{
                     height: '100%',

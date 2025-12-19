@@ -156,3 +156,35 @@ jobs:
             Write-Host "❌ TUI binary not found"
             exit 1
           }
+
+  gui-tests:
+    name: GUI Integration Tests
+    runs-on: windows-latest
+    timeout-minutes: 20
+    needs: build-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: gui-tests
+        run: npx playwright install --with-deps
+
+      - name: Run GUI integration tests
+        working-directory: gui-tests
+        run: npm run test:headed -- --project=chromium-cursor
+        env:
+          CI: true

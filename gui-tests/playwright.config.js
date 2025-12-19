@@ -14,6 +14,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+  /* Global setup and teardown */
+  globalSetup: require.resolve('./global-setup'),
+  globalTeardown: require.resolve('./global-teardown'),
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -27,6 +30,11 @@ export default defineConfig({
     /* Browser context options */
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
+
+    /* Increase timeouts for slower page loads */
+    actionTimeout: 15000,
+    navigationTimeout: 45000,
+    expectTimeout: 15000,
   },
 
   /* Configure projects for major browsers */
@@ -50,16 +58,10 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: 'cd ../codex-rs/target/release && ./codex-gui.exe',
-      port: 8787,
-      reuseExistingServer: !process.env.CI,
-      timeout: 30 * 1000, // 30 seconds
-    },
-    {
-      command: 'cd ../gui && npm run start',
+      command: 'cd /d C:\\Users\\downl\\Desktop\\codex-main\\gui && npm run dev',
       port: 3000,
       reuseExistingServer: !process.env.CI,
-      timeout: 60 * 1000, // 60 seconds for Next.js
+      timeout: 120 * 1000, // 120 seconds for Next.js dev server
     }
   ],
 });

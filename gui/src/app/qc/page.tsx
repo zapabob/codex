@@ -213,7 +213,7 @@ export default function QCPage() {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Quality Control Center</h1>
+            <h1 className="text-3xl font-bold text-gray-900">QC管理</h1>
             <p className="text-gray-600 mt-1">
               ANOVA-based statistical analysis and automated quality management
             </p>
