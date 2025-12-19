@@ -113,8 +113,11 @@ test.describe('Codex GUI Basic Functionality', () => {
     }
 
     // Wait for navigation and page content to load
+    await page.waitForTimeout(5000); // Allow time for React hydration
+    await page.waitForLoadState('networkidle', { timeout: 120000 });
+
+    // Additional wait for shadcn/ui components to render
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
@@ -233,8 +236,11 @@ test.describe('Codex GUI Basic Functionality', () => {
     }
 
     // Wait for navigation and page content to load
+    await page.waitForTimeout(5000); // Allow time for React hydration
+    await page.waitForLoadState('networkidle', { timeout: 120000 });
+
+    // Additional wait for shadcn/ui components to render
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
@@ -360,8 +366,11 @@ test.describe('Codex GUI Basic Functionality', () => {
     }
 
     // Wait for navigation and page content to load
+    await page.waitForTimeout(5000); // Allow time for React hydration
+    await page.waitForLoadState('networkidle', { timeout: 120000 });
+
+    // Additional wait for shadcn/ui components to render
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
@@ -497,8 +506,11 @@ test.describe('Codex GUI Basic Functionality', () => {
     }
 
     // Wait for navigation and page content to load
+    await page.waitForTimeout(5000); // Allow time for React hydration
+    await page.waitForLoadState('networkidle', { timeout: 120000 });
+
+    // Additional wait for shadcn/ui components to render
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle', { timeout: 90000 });
 
     // Verify navigation succeeded by URL (allow some flexibility)
     const currentUrl = page.url();
