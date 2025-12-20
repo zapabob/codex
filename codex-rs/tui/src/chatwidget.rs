@@ -1,8 +1,10 @@
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
+use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Instant;
 
 use codex_core::config::Config;
 use codex_core::config::types::Notifications;
@@ -37,6 +39,7 @@ use codex_core::protocol::ReviewRequest;
 use codex_core::protocol::StreamErrorEvent;
 use codex_core::protocol::TaskCompleteEvent;
 use codex_core::protocol::TerminalInteractionEvent;
+use codex_core::protocol::SkillLoadOutcomeInfo;
 use codex_core::protocol::TokenUsage;
 use codex_core::protocol::TokenUsageInfo;
 use codex_core::protocol::TurnAbortReason;
@@ -48,6 +51,7 @@ use codex_core::protocol::ViewImageToolCallEvent;
 use codex_core::protocol::WarningEvent;
 use codex_core::protocol::WebSearchBeginEvent;
 use codex_core::protocol::WebSearchEndEvent;
+use codex_core::skills::SkillMetadata;
 use codex_protocol::ConversationId;
 use codex_protocol::parse_command::ParsedCommand;
 use codex_protocol::user_input::UserInput;
@@ -2934,7 +2938,7 @@ impl ChatWidget {
 
     /// Show plan creation popup with QC integration
     async fn show_plan_creation_popup(&mut self) {
-        use crate::ui::ColumnRenderable;
+        use crate::render::renderable::ColumnRenderable;
 
         let mut items = Vec::new();
 
@@ -3003,7 +3007,7 @@ impl ChatWidget {
     }
 
     async fn show_research_popup(&mut self) {
-        use crate::ui::ColumnRenderable;
+        use crate::render::renderable::ColumnRenderable;
         let mut items = Vec::new();
         items.push(SelectionItem {
             name: "🌐 Deep Researchを実行".into(),

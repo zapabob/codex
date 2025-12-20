@@ -17,6 +17,7 @@ pub mod agents;
 #[cfg(feature = "dev-orchestrator")]
 pub mod ai_orchestrator;
 mod apply_patch;
+mod api_bridge;
 pub mod async_subagent_integration;
 pub mod audit_log;
 pub mod auth;
@@ -97,6 +98,7 @@ pub mod default_client;
 pub mod hybrid_acceleration;
 pub mod model_family;
 mod openai_model_info;
+pub mod openai_models;
 pub mod project_doc;
 mod rollout;
 pub(crate) mod safety;

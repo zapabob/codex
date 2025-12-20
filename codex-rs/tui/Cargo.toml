@@ -16,6 +16,8 @@ path = "src/lib.rs"
 vt100-tests = []
 # Gate verbose debug logging inside the TUI implementation.
 debug-logs = []
+# Enable development orchestrator integration (and its upstream core feature).
+dev-orchestrator = ["codex-core/dev-orchestrator"]
 # Enable CUDA-accelerated git analysis
 # cuda = ["codex-cuda-runtime/cuda"]
 windows-ai = []

@@ -15,6 +15,7 @@ use codex_core::BUILT_IN_OSS_MODEL_PROVIDER_ID;
 use codex_core::CodexAuth;
 use codex_core::INTERACTIVE_SESSION_SOURCES;
 use codex_core::RolloutRecorder;
+#[cfg(feature = "dev-orchestrator")]
 use codex_core::ai_orchestrator::DevelopmentMode;
 use codex_core::auth::enforce_login_restrictions;
 use codex_core::config::Config;
@@ -62,7 +63,9 @@ mod markdown;
 mod markdown_render;
 mod markdown_stream;
 mod ui;
-// mod model_migration;
+mod app_backtrack;
+mod model_migration;
+mod skill_error_prompt;
 pub mod onboarding;
 // mod oss_selection;
 mod pager_overlay;

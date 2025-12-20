@@ -38,7 +38,7 @@ pub(crate) enum ApprovalRequest {
         id: String,
         command: Vec<String>,
         reason: Option<String>,
-        risk: Option<SandboxCommandAssessment>,
+        risk: Option<codex_protocol::protocol::SandboxCommandAssessment>,
     },
     ApplyPatch {
         id: String,

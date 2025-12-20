@@ -50,10 +50,8 @@ use crossterm::event::KeyEvent;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use crate::app_event::AppEvent;
 use crate::legacy_app::LegacyApp;
 use crate::tui::Tui;
-use crate::tui::TuiEvent;
 use crate::ui::UiState;
 use tokio::sync::mpsc::UnboundedReceiver;
 

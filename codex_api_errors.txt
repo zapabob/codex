@@ -1,0 +1,7 @@
+﻿cargo : error: could not find `Cargo.toml` in `C:\Users\downl\Desktop\codex-main` or any parent directory
+発生場所 C:\Users\downl\AppData\Local\Temp\ps-script-c3f964ab-5853-4d5f-bba5-75cde7d3e2b0.ps1:96 文字:62
++ ... E_INCREMENTAL="true"; cargo build -p codex-api --release 2>&1 | Out-F ...
++                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: could no...arent directory:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
