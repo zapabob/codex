@@ -16,15 +16,6 @@ pub mod agent_interpreter;
 pub mod agents;
 #[cfg(feature = "dev-orchestrator")]
 pub mod ai_orchestrator;
-pub mod git_lock_manager;
-pub mod conflict_detector;
-#[cfg(feature = "cuda")]
-pub mod cuda_accelerator;
-#[cfg(feature = "cuda")]
-pub mod vr_ar_integration;
-#[cfg(feature = "cuda")]
-pub mod git4d_accelerated;
-pub mod mcp_integration_manager;
 mod apply_patch;
 pub mod async_subagent_integration;
 pub mod audit_log;
@@ -35,9 +26,18 @@ mod client;
 mod client_common;
 pub mod codex;
 mod codex_conversation;
+pub mod conflict_detector;
+#[cfg(feature = "cuda")]
+pub mod cuda_accelerator;
 pub mod execution;
+#[cfg(feature = "cuda")]
+pub mod git4d_accelerated;
+pub mod git_lock_manager;
+pub mod mcp_integration_manager;
 pub mod plan;
 pub mod telemetry;
+#[cfg(feature = "cuda")]
+pub mod vr_ar_integration;
 pub mod webhooks;
 pub use codex_conversation::CodexConversation;
 mod codex_delegate;
@@ -69,9 +69,9 @@ mod message_history;
 mod model_provider_info;
 pub mod natural_language_parser;
 pub mod orchestration;
+pub mod parse_command;
 #[cfg(feature = "dev-orchestrator")]
 pub mod qc;
-pub mod parse_command;
 mod response_processing;
 pub mod sandboxing;
 pub mod skills;

@@ -20,7 +20,6 @@ pub mod prediction;
 pub mod quantum;
 pub mod sandboxed_execution;
 pub mod statistical;
-pub mod validation_testing;
 pub mod visualization;
 
 pub use agent::OptimizationResult;

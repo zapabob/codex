@@ -4,8 +4,9 @@
 
 use clap::Args;
 use clap::Subcommand;
+use codex_core::ai_orchestrator::AIOrchestrator;
+use codex_core::ai_orchestrator::DevelopmentMode;
 use codex_core::mcp_integration_manager::McpIntegrationManager;
-use codex_core::ai_orchestrator::{AIOrchestrator, DevelopmentMode};
 use std::collections::HashMap;
 
 /// Development mode CLI commands
@@ -62,34 +63,24 @@ pub enum DevModeCommand {
 /// Run development mode commands
 pub async fn run_dev_mode_command(cli: DevModeCli) -> anyhow::Result<()> {
     match cli.command {
-        DevModeCommand::Central { task, agents } => {
-            run_centralized_dev(task, agents).await
-        }
-        DevModeCommand::Parallel { task, agents, worktree_base } => {
-            run_parallel_dev(task, agents, worktree_base).await
-        }
-        DevModeCommand::Status => {
-            show_dev_status().await
-        }
-        DevModeCommand::Stop => {
-            stop_dev_mode().await
-        }
-        DevModeCommand::ListServers => {
-            list_mcp_servers().await
-        }
-        DevModeCommand::StartServers { servers } => {
-            start_mcp_servers(servers).await
-        }
-        DevModeCommand::StopServers { servers } => {
-            stop_mcp_servers(servers).await
-        }
+        DevModeCommand::Central { task, agents } => run_centralized_dev(task, agents).await,
+        DevModeCommand::Parallel {
+            task,
+            agents,
+            worktree_base,
+        } => run_parallel_dev(task, agents, worktree_base).await,
+        DevModeCommand::Status => show_dev_status().await,
+        DevModeCommand::Stop => stop_dev_mode().await,
+        DevModeCommand::ListServers => list_mcp_servers().await,
+        DevModeCommand::StartServers { servers } => start_mcp_servers(servers).await,
+        DevModeCommand::StopServers { servers } => stop_mcp_servers(servers).await,
     }
 }
 
 /// Run centralized development mode
 async fn run_centralized_dev(
     task: Option<String>,
-    agents: Option<Vec<String>>
+    agents: Option<Vec<String>>,
 ) -> anyhow::Result<()> {
     println!("🚀 Starting centralized development mode...");
 
@@ -98,7 +89,10 @@ async fn run_centralized_dev(
 
     // Initialize MCP manager and start servers
     let mcp_manager = McpIntegrationManager::new();
-    mcp_manager.start_servers_for_mode("centralized").await.map_err(anyhow::Error::msg)?;
+    mcp_manager
+        .start_servers_for_mode("centralized")
+        .await
+        .map_err(anyhow::Error::msg)?;
 
     println!("✅ Centralized development mode initialized");
     println!("📋 Active MCP servers: serena, arxiv, youtube, gemini-cli");
@@ -116,11 +110,13 @@ async fn run_centralized_dev(
             status: codex_core::ai_orchestrator::TaskStatus::Pending,
             created_at: chrono::Utc::now(),
             estimated_complexity: 5.0,
-            tags: agents.unwrap_or_else(|| vec![
-                "architect".to_string(),
-                "code-reviewer".to_string(),
-                "researcher".to_string(),
-            ]),
+            tags: agents.unwrap_or_else(|| {
+                vec![
+                    "architect".to_string(),
+                    "code-reviewer".to_string(),
+                    "researcher".to_string(),
+                ]
+            }),
         };
 
         let task_id = orchestrator.submit_task(task).await?;
@@ -138,7 +134,7 @@ async fn run_centralized_dev(
 async fn run_parallel_dev(
     task: Option<String>,
     agents: Option<Vec<String>>,
-    worktree_base: Option<String>
+    worktree_base: Option<String>,
 ) -> anyhow::Result<()> {
     println!("🚀 Starting parallel development mode...");
 
@@ -147,14 +143,20 @@ async fn run_parallel_dev(
 
     // Initialize MCP manager and start servers
     let mcp_manager = McpIntegrationManager::new();
-    mcp_manager.start_servers_for_mode("parallel").await.map_err(anyhow::Error::msg)?;
+    mcp_manager
+        .start_servers_for_mode("parallel")
+        .await
+        .map_err(anyhow::Error::msg)?;
 
     println!("✅ Parallel development mode initialized");
     println!("📋 Active MCP servers: serena, github, git-enhanced, filesystem, playwright");
 
     if let Some(task_desc) = task {
         println!("🎯 Task: {}", task_desc);
-        println!("📁 Worktree base: {}", worktree_base.unwrap_or_else(|| ".codex-worktrees".to_string()));
+        println!(
+            "📁 Worktree base: {}",
+            worktree_base.unwrap_or_else(|| ".codex-worktrees".to_string())
+        );
 
         // Create orchestrated task for parallel execution
         let task = codex_core::ai_orchestrator::OrchestratedTask {
@@ -166,12 +168,14 @@ async fn run_parallel_dev(
             status: codex_core::ai_orchestrator::TaskStatus::Pending,
             created_at: chrono::Utc::now(),
             estimated_complexity: 7.0,
-            tags: agents.unwrap_or_else(|| vec![
-                "architect".to_string(),
-                "code-reviewer".to_string(),
-                "researcher".to_string(),
-                "qc-optimizer".to_string(),
-            ]),
+            tags: agents.unwrap_or_else(|| {
+                vec![
+                    "architect".to_string(),
+                    "code-reviewer".to_string(),
+                    "researcher".to_string(),
+                    "qc-optimizer".to_string(),
+                ]
+            }),
         };
 
         let task_id = orchestrator.submit_task(task).await?;
@@ -217,7 +221,10 @@ async fn stop_dev_mode() -> anyhow::Result<()> {
     // Stop all active servers
     let active_servers = mcp_manager.get_active_servers().await;
     for server_name in active_servers.keys() {
-        mcp_manager.stop_server(server_name).await.map_err(anyhow::Error::msg)?;
+        mcp_manager
+            .stop_server(server_name)
+            .await
+            .map_err(anyhow::Error::msg)?;
         println!("✅ Stopped MCP server: {}", server_name);
     }
 
@@ -229,7 +236,10 @@ async fn stop_dev_mode() -> anyhow::Result<()> {
 /// List available MCP servers
 async fn list_mcp_servers() -> anyhow::Result<()> {
     let mcp_manager = McpIntegrationManager::new();
-    let config = mcp_manager.load_config().await.map_err(anyhow::Error::msg)?;
+    let config = mcp_manager
+        .load_config()
+        .await
+        .map_err(anyhow::Error::msg)?;
 
     println!("🔧 Available MCP Servers");
     println!("========================");

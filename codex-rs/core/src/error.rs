@@ -166,7 +166,9 @@ pub enum CodexErr {
 
     #[cfg(feature = "dev-orchestrator")]
     #[error(transparent)]
-    TokioMpscSend(#[from] tokio::sync::mpsc::error::SendError<crate::ai_orchestrator::OrchestrationCommand>),
+    TokioMpscSend(
+        #[from] tokio::sync::mpsc::error::SendError<crate::ai_orchestrator::OrchestrationCommand>,
+    ),
 
     #[error(transparent)]
     TokioOneshotRecv(#[from] tokio::sync::oneshot::error::RecvError),

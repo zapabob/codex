@@ -228,7 +228,11 @@ fn draw_development_mode(f: &mut Frame, area: Rect, _app: &App) {
     ];
 
     let paragraph = Paragraph::new(content)
-        .block(Block::default().borders(Borders::ALL).title("Development Mode"))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Development Mode"),
+        )
         .style(Style::default().fg(Color::Cyan));
 
     f.render_widget(paragraph, area);
@@ -253,7 +257,11 @@ fn draw_git_lock_manager(f: &mut Frame, area: Rect, _app: &mut App) {
     ];
 
     let paragraph = Paragraph::new(content)
-        .block(Block::default().borders(Borders::ALL).title("Git Lock Manager"))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Git Lock Manager"),
+        )
         .wrap(Wrap { trim: true });
     f.render_widget(paragraph, area);
 }

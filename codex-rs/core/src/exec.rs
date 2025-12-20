@@ -191,16 +191,19 @@ async fn exec_windows_sandbox(
 
     let sandbox_cwd = cwd.clone();
     let logs_base_dir = find_codex_home().ok();
+    let env_btree: std::collections::BTreeMap<String, String> = env.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+    let policy_str_owned = policy_str.to_string();
     let spawn_res = tokio::task::spawn_blocking(move || {
-        run_windows_sandbox_capture(
-            policy_str,
-            &sandbox_cwd,
+        use codex_windows_sandbox::SandboxCaptureOptions;
+        run_windows_sandbox_capture(SandboxCaptureOptions {
+            policy_json_or_preset: &policy_str_owned,
+            sandbox_policy_cwd: &sandbox_cwd,
             command,
-            &cwd,
-            env,
+            cwd: &cwd,
+            env_map: env_btree,
             timeout_ms,
-            logs_base_dir.as_deref(),
-        )
+            logs_base_dir: logs_base_dir.as_deref(),
+        })
     })
     .await;
 

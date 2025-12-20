@@ -991,20 +991,18 @@ impl ChatComposer {
                 let mut text = self.textarea.text().to_string();
                 let original_input = text.clone();
                 let input_starts_with_space = original_input.starts_with(' ');
-                self.textarea.set_text("");
 
-                // Replace all pending pastes in the text
+                // Replace all pending pastes in the text before checking for slash commands
                 for (placeholder, actual) in &self.pending_pastes {
                     if text.contains(placeholder) {
                         text = text.replace(placeholder, actual);
                     }
                 }
-                self.pending_pastes.clear();
 
-                // If there is neither text nor attachments, suppress submission entirely.
-                let has_attachments = !self.attached_images.is_empty();
-                text = text.trim().to_string();
-                if let Some((name, _rest)) = parse_slash_name(&text) {
+                // Check for slash commands BEFORE clearing the textarea
+                // This allows us to restore the original input if the command is not recognized
+                let trimmed_text = text.trim();
+                if let Some((name, _rest)) = parse_slash_name(trimmed_text) {
                     let treat_as_plain_text = input_starts_with_space || name.contains('/');
                     if !treat_as_plain_text {
                         let is_builtin = built_in_slash_commands()
@@ -1026,12 +1024,21 @@ impl ChatComposer {
                             self.app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
                                 history_cell::new_info_event(message, None),
                             )));
+                            // Restore original input without trimming to preserve user's exact input
                             self.textarea.set_text(&original_input);
                             self.textarea.set_cursor(original_input.len());
                             return (InputResult::None, true);
                         }
                     }
                 }
+
+                // Clear textarea only after slash command validation
+                self.textarea.set_text("");
+                self.pending_pastes.clear();
+
+                // If there is neither text nor attachments, suppress submission entirely.
+                let has_attachments = !self.attached_images.is_empty();
+                text = trimmed_text.to_string();
 
                 let expanded_prompt = match expand_custom_prompt(&text, &self.custom_prompts) {
                     Ok(expanded) => expanded,
@@ -1124,7 +1131,17 @@ impl ChatComposer {
                     return self.handle_non_ascii_char(input);
                 }
 
-                if !self.disable_paste_burst {
+                // Check if we're in a slash command context - if so, disable paste burst
+                // to ensure immediate input reflection
+                let in_slash_context = self
+                    .textarea
+                    .text()
+                    .lines()
+                    .next()
+                    .unwrap_or("")
+                    .starts_with('/');
+
+                if !self.disable_paste_burst && !in_slash_context {
                     match self.paste_burst.on_plain_char(ch, now) {
                         CharDecision::BufferAppend => {
                             self.paste_burst.append_char_to_buffer(ch, now);

@@ -27,6 +27,8 @@ pub use token::convert_string_sid_to_sid;
 #[cfg(target_os = "windows")]
 pub use windows_impl::CaptureResult;
 #[cfg(target_os = "windows")]
+pub use windows_impl::SandboxCaptureOptions;
+#[cfg(target_os = "windows")]
 pub use windows_impl::preflight_audit_everyone_writable;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
@@ -35,6 +37,8 @@ pub use winutil::string_from_sid_bytes;
 
 #[cfg(not(target_os = "windows"))]
 pub use stub::CaptureResult;
+#[cfg(not(target_os = "windows"))]
+pub use stub::SandboxCaptureOptions;
 #[cfg(not(target_os = "windows"))]
 pub use stub::preflight_audit_everyone_writable;
 #[cfg(not(target_os = "windows"))]
@@ -68,6 +72,7 @@ mod windows_impl {
     use super::winutil::format_last_error;
     use super::winutil::to_wide;
     use anyhow::Result;
+    use std::collections::BTreeMap;
     use std::collections::HashMap;
     use std::ffi::c_void;
     use std::fs;
@@ -201,7 +206,8 @@ mod windows_impl {
         env_map: &BTreeMap<String, String>,
         logs_base_dir: Option<&Path>,
     ) -> Result<Vec<PathBuf>> {
-        audit::audit_everyone_writable(cwd, env_map, logs_base_dir)
+        let env_hashmap: HashMap<String, String> = env_map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        audit::audit_everyone_writable(cwd, &env_hashmap, logs_base_dir)
     }
 
     pub struct SandboxCaptureOptions<'a> {
@@ -225,9 +231,11 @@ mod windows_impl {
             logs_base_dir,
         } = options;
         let policy = SandboxPolicy::parse(policy_json_or_preset)?;
-        normalize_null_device_env(&mut env_map);
-        ensure_non_interactive_pager(&mut env_map);
-        apply_no_network_to_env(&mut env_map)?;
+        let mut env_hashmap: HashMap<String, String> = env_map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        normalize_null_device_env(&mut env_hashmap);
+        ensure_non_interactive_pager(&mut env_hashmap);
+        apply_no_network_to_env(&mut env_hashmap)?;
+        env_map = env_hashmap.into_iter().collect();
 
         let current_dir = cwd.to_path_buf();
         // for now, don't fail if we detect world-writable directories
@@ -284,7 +292,8 @@ mod windows_impl {
         }
 
         let persist_aces = matches!(policy.0, SandboxMode::WorkspaceWrite);
-        let allow = compute_allow_paths(&policy, sandbox_policy_cwd, &current_dir, &env_map);
+        let env_hashmap: HashMap<String, String> = env_map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        let allow = compute_allow_paths(&policy, sandbox_policy_cwd, &current_dir, &env_hashmap);
         let mut guards: Vec<(PathBuf, *mut c_void)> = Vec::new();
         unsafe {
             for p in &allow {
@@ -474,6 +483,16 @@ mod windows_impl {
 mod stub {
     use anyhow::Result;
     use anyhow::bail;
+    use std::collections::BTreeMap;
+    use std::path::Path;
+    
+    pub struct CaptureResult {
+        pub exit_code: i32,
+        pub stdout: Vec<u8>,
+        pub stderr: Vec<u8>,
+        pub timed_out: bool,
+    }
+    
     pub struct SandboxCaptureOptions<'a> {
         pub policy_json_or_preset: &'a str,
         pub sandbox_policy_cwd: &'a Path,

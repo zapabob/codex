@@ -1,5 +1,6 @@
 // Test authentication fixtures
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 
 pub fn test_api_key() -> String {
     "test-api-key".to_string()

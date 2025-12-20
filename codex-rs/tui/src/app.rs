@@ -23,14 +23,14 @@ use crate::tui::TuiEvent;
 use crate::update_action::UpdateAction;
 use codex_ansi_escape::ansi_escape_line;
 use codex_app_server_protocol::AuthMode;
-use codex_core::ai_orchestrator;
-use codex_core::mcp_integration_manager;
 use codex_core::AuthManager;
 use codex_core::ConversationManager;
+use codex_core::ai_orchestrator;
 use codex_core::config::Config;
 use codex_core::config::edit::ConfigEditsBuilder;
 #[cfg(target_os = "windows")]
 use codex_core::features::Feature;
+use codex_core::mcp_integration_manager;
 use codex_core::openai_models::model_presets::HIDE_GPT_5_1_CODEX_MAX_MIGRATION_PROMPT_CONFIG;
 use codex_core::openai_models::model_presets::HIDE_GPT5_1_MIGRATION_PROMPT_CONFIG;
 use codex_core::openai_models::models_manager::ModelsManager;
@@ -76,7 +76,9 @@ pub struct App {
     /// Git Lock Manager for parallel development
     pub git_lock_manager: Option<Arc<codex_core::git_lock_manager::GitLockManager>>,
     /// Conflict Detector
-    pub conflict_detector: Option<Arc<Mutex<Box<dyn codex_core::git_lock_manager::ConflictDetectorTrait + Send + Sync>>>>,
+    pub conflict_detector: Option<
+        Arc<Mutex<Box<dyn codex_core::git_lock_manager::ConflictDetectorTrait + Send + Sync>>>,
+    >,
 }
 
 #[derive(Debug, Clone)]

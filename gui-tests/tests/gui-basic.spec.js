@@ -178,7 +178,7 @@ test.describe('Codex GUI Basic Functionality', () => {
     // Handle mobile menu if present
     try {
       if (await page.locator('[data-testid="mobile-menu"]').isVisible({ timeout: 5000 })) {
-        await page.click('[data-testid="mobile-menu"]');
+      await page.click('[data-testid="mobile-menu"]');
         await page.waitForTimeout(1000);
       }
     } catch (error) {

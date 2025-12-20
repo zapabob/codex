@@ -1,6 +1,7 @@
 //! WSL path handling utilities
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::path::PathBuf;
 
 /// Convert Windows path to WSL path
 pub fn windows_to_wsl_path(windows_path: &Path) -> PathBuf {

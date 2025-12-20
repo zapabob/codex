@@ -1,8 +1,9 @@
 //! Models for app server
 
-use serde::{Deserialize, Serialize};
 use codex_app_server_protocol::AuthMode;
 use codex_protocol::config_types::ReasoningEffort;
+use serde::Deserialize;
+use serde::Serialize;
 
 /// Request model
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -7,7 +7,7 @@ use chrono::DateTime;
 use chrono::Local;
 use codex_common::create_config_summary_entries;
 use codex_core::config::Config;
-use codex_core::openai_models::model_family::ModelFamily;
+use codex_core::openai_models::model_family::find_family_for_model;
 use codex_core::protocol::SandboxPolicy;
 use codex_core::protocol::TokenUsage;
 use codex_protocol::ConversationId;
@@ -112,6 +112,7 @@ impl StatusHistoryCell {
         let agents_summary = compose_agents_summary(config);
         let account = compose_account_display(config);
         let session_id = session_id.as_ref().map(std::string::ToString::to_string);
+        let model_family = find_family_for_model(model_name).with_config_overrides(config);
         let context_window = model_family.context_window.and_then(|window| {
             context_usage.map(|usage| StatusContextWindowData {
                 percent_remaining: usage.percent_of_context_window_remaining(window),
