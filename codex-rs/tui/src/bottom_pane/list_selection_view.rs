@@ -44,6 +44,7 @@ pub(crate) struct SelectionItem {
     pub actions: Vec<SelectionAction>,
     pub dismiss_on_select: bool,
     pub search_value: Option<String>,
+    pub disabled_reason: Option<String>,
 }
 
 pub(crate) struct SelectionViewParams {
@@ -54,6 +55,7 @@ pub(crate) struct SelectionViewParams {
     pub is_searchable: bool,
     pub search_placeholder: Option<String>,
     pub header: Box<dyn Renderable>,
+    pub initial_selected_idx: Option<usize>,
 }
 
 impl Default for SelectionViewParams {
@@ -66,6 +68,7 @@ impl Default for SelectionViewParams {
             is_searchable: false,
             search_placeholder: None,
             header: Box::new(()),
+            initial_selected_idx: None,
         }
     }
 }
@@ -82,6 +85,7 @@ pub(crate) struct ListSelectionView {
     filtered_indices: Vec<usize>,
     last_selected_actual_idx: Option<usize>,
     header: Box<dyn Renderable>,
+    initial_selected_idx: Option<usize>,
 }
 
 impl ListSelectionView {
@@ -112,6 +116,7 @@ impl ListSelectionView {
             filtered_indices: Vec::new(),
             last_selected_actual_idx: None,
             header,
+            initial_selected_idx: params.initial_selected_idx,
         };
         s.apply_filter();
         s
@@ -134,7 +139,8 @@ impl ListSelectionView {
                 (!self.is_searchable)
                     .then(|| self.items.iter().position(|item| item.is_current))
                     .flatten()
-            });
+            })
+            .or_else(|| self.initial_selected_idx.take());
 
         if self.is_searchable && !self.search_query.is_empty() {
             let query_lower = self.search_query.to_lowercase();
@@ -212,6 +218,7 @@ impl ListSelectionView {
                         match_indices: None,
                         description,
                         wrap_indent,
+                        disabled_reason: item.disabled_reason.clone(),
                     }
                 })
             })
@@ -223,6 +230,7 @@ impl ListSelectionView {
         self.state.move_up_wrap(len);
         let visible = Self::max_visible_rows(len);
         self.state.ensure_visible(len, visible);
+        self.skip_disabled_up();
     }
 
     fn move_down(&mut self) {
@@ -230,12 +238,14 @@ impl ListSelectionView {
         self.state.move_down_wrap(len);
         let visible = Self::max_visible_rows(len);
         self.state.ensure_visible(len, visible);
+        self.skip_disabled_down();
     }
 
     fn accept(&mut self) {
         if let Some(idx) = self.state.selected_idx
             && let Some(actual_idx) = self.filtered_indices.get(idx)
             && let Some(item) = self.items.get(*actual_idx)
+            && item.disabled_reason.is_none()
         {
             self.last_selected_actual_idx = Some(*actual_idx);
             for act in &item.actions {
@@ -257,6 +267,44 @@ impl ListSelectionView {
 
     pub(crate) fn take_last_selected_index(&mut self) -> Option<usize> {
         self.last_selected_actual_idx.take()
+    }
+
+    fn rows_width(total_width: u16) -> u16 {
+        total_width.saturating_sub(2)
+    }
+
+    fn skip_disabled_down(&mut self) {
+        let len = self.visible_len();
+        for _ in 0..len {
+            if let Some(idx) = self.state.selected_idx
+                && let Some(actual_idx) = self.filtered_indices.get(idx)
+                && self
+                    .items
+                    .get(*actual_idx)
+                    .is_some_and(|item| item.disabled_reason.is_some())
+            {
+                self.state.move_down_wrap(len);
+            } else {
+                break;
+            }
+        }
+    }
+
+    fn skip_disabled_up(&mut self) {
+        let len = self.visible_len();
+        for _ in 0..len {
+            if let Some(idx) = self.state.selected_idx
+                && let Some(actual_idx) = self.filtered_indices.get(idx)
+                && self
+                    .items
+                    .get(*actual_idx)
+                    .is_some_and(|item| item.disabled_reason.is_some())
+            {
+                self.state.move_up_wrap(len);
+            } else {
+                break;
+            }
+        }
     }
 }
 
@@ -339,6 +387,10 @@ impl BottomPaneView for ListSelectionView {
                     .map(|d| d as usize)
                     .and_then(|d| d.checked_sub(1))
                     && idx < self.items.len()
+                    && self
+                        .items
+                        .get(idx)
+                        .is_some_and(|item| item.disabled_reason.is_none())
                 {
                     self.state.selected_idx = Some(idx);
                     self.accept();
@@ -368,8 +420,13 @@ impl Renderable for ListSelectionView {
         // Measure wrapped height for up to MAX_POPUP_ROWS items at the given width.
         // Build the same display rows used by the renderer so wrapping math matches.
         let rows = self.build_rows();
-
-        let rows_height = measure_rows_height(&rows, &self.state, MAX_POPUP_ROWS, width);
+        let rows_width = Self::rows_width(width);
+        let rows_height = measure_rows_height(
+            &rows,
+            &self.state,
+            MAX_POPUP_ROWS,
+            rows_width.saturating_add(1),
+        );
 
         // Subtract 4 for the padding on the left and right of the header.
         let mut height = self.header.desired_height(width.saturating_sub(4));
@@ -403,8 +460,13 @@ impl Renderable for ListSelectionView {
             // Subtract 4 for the padding on the left and right of the header.
             .desired_height(content_area.width.saturating_sub(4));
         let rows = self.build_rows();
-        let rows_height =
-            measure_rows_height(&rows, &self.state, MAX_POPUP_ROWS, content_area.width);
+        let rows_width = Self::rows_width(content_area.width);
+        let rows_height = measure_rows_height(
+            &rows,
+            &self.state,
+            MAX_POPUP_ROWS,
+            rows_width.saturating_add(1),
+        );
         let [header_area, _, search_area, list_area] = Layout::vertical([
             Constraint::Max(header_height),
             Constraint::Max(1),
@@ -439,18 +501,18 @@ impl Renderable for ListSelectionView {
         }
 
         if list_area.height > 0 {
-            let list_area = Rect {
-                x: list_area.x - 2,
+            let render_area = Rect {
+                x: list_area.x.saturating_sub(2),
                 y: list_area.y,
-                width: list_area.width + 2,
+                width: rows_width.max(1),
                 height: list_area.height,
             };
             render_rows(
-                list_area,
+                render_area,
                 buf,
                 &rows,
                 &self.state,
-                list_area.height as usize,
+                render_area.height as usize,
                 "no matches",
             );
         }
@@ -508,7 +570,10 @@ mod tests {
     }
 
     fn render_lines(view: &ListSelectionView) -> String {
-        let width = 48;
+        render_lines_with_width(view, 48)
+    }
+
+    fn render_lines_with_width(view: &ListSelectionView, width: u16) -> String {
         let height = view.desired_height(width);
         let area = Rect::new(0, 0, width, height);
         let mut buf = Buffer::empty(area);
@@ -574,6 +639,203 @@ mod tests {
         assert!(
             lines.contains("filters"),
             "expected search query line to include rendered query, got {lines:?}"
+        );
+    }
+
+    #[test]
+    fn wraps_long_option_without_overflowing_columns() {
+        let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
+        let tx = AppEventSender::new(tx_raw);
+        let items = vec![
+            SelectionItem {
+                name: "Yes, proceed".to_string(),
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+            SelectionItem {
+                name: "Yes, and don't ask again for commands that start with `python -mpre_commit run --files eslint-plugin/no-mixed-const-enum-exports.js`".to_string(),
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+        ];
+        let view = ListSelectionView::new(
+            SelectionViewParams {
+                title: Some("Approval".to_string()),
+                items,
+                ..Default::default()
+            },
+            tx,
+        );
+
+        let rendered = render_lines_with_width(&view, 60);
+        let command_line = rendered
+            .lines()
+            .find(|line| line.contains("python -mpre_commit run"))
+            .expect("rendered lines should include wrapped command");
+        assert!(
+            command_line.starts_with("     `python -mpre_commit run"),
+            "wrapped command line should align under the numbered prefix:\n{rendered}"
+        );
+        assert!(
+            rendered.contains("eslint-plugin/no-")
+                && rendered.contains("mixed-const-enum-exports.js"),
+            "long command should not be truncated even when wrapped:\n{rendered}"
+        );
+    }
+
+    #[test]
+    fn width_changes_do_not_hide_rows() {
+        let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
+        let tx = AppEventSender::new(tx_raw);
+        let items = vec![
+            SelectionItem {
+                name: "gpt-5.1-codex".to_string(),
+                description: Some(
+                    "Optimized for Codex. Balance of reasoning quality and coding ability."
+                        .to_string(),
+                ),
+                is_current: true,
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+            SelectionItem {
+                name: "gpt-5.1-codex-mini".to_string(),
+                description: Some(
+                    "Optimized for Codex. Cheaper, faster, but less capable.".to_string(),
+                ),
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+            SelectionItem {
+                name: "gpt-4.1-codex".to_string(),
+                description: Some(
+                    "Legacy model. Use when you need compatibility with older automations."
+                        .to_string(),
+                ),
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+        ];
+        let view = ListSelectionView::new(
+            SelectionViewParams {
+                title: Some("Select Model and Effort".to_string()),
+                items,
+                ..Default::default()
+            },
+            tx,
+        );
+        let mut missing: Vec<u16> = Vec::new();
+        for width in 60..=90 {
+            let rendered = render_lines_with_width(&view, width);
+            if !rendered.contains("3.") {
+                missing.push(width);
+            }
+        }
+        assert!(
+            missing.is_empty(),
+            "third option missing at widths {missing:?}"
+        );
+    }
+
+    #[test]
+    fn narrow_width_keeps_all_rows_visible() {
+        let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
+        let tx = AppEventSender::new(tx_raw);
+        let desc = "x".repeat(10);
+        let items: Vec<SelectionItem> = (1..=3)
+            .map(|idx| SelectionItem {
+                name: format!("Item {idx}"),
+                description: Some(desc.clone()),
+                dismiss_on_select: true,
+                ..Default::default()
+            })
+            .collect();
+        let view = ListSelectionView::new(
+            SelectionViewParams {
+                title: Some("Debug".to_string()),
+                items,
+                ..Default::default()
+            },
+            tx,
+        );
+        let rendered = render_lines_with_width(&view, 24);
+        assert!(
+            rendered.contains("3."),
+            "third option missing for width 24:\n{rendered}"
+        );
+    }
+
+    #[test]
+    fn snapshot_model_picker_width_80() {
+        let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
+        let tx = AppEventSender::new(tx_raw);
+        let items = vec![
+            SelectionItem {
+                name: "gpt-5.1-codex".to_string(),
+                description: Some(
+                    "Optimized for Codex. Balance of reasoning quality and coding ability."
+                        .to_string(),
+                ),
+                is_current: true,
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+            SelectionItem {
+                name: "gpt-5.1-codex-mini".to_string(),
+                description: Some(
+                    "Optimized for Codex. Cheaper, faster, but less capable.".to_string(),
+                ),
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+            SelectionItem {
+                name: "gpt-4.1-codex".to_string(),
+                description: Some(
+                    "Legacy model. Use when you need compatibility with older automations."
+                        .to_string(),
+                ),
+                dismiss_on_select: true,
+                ..Default::default()
+            },
+        ];
+        let view = ListSelectionView::new(
+            SelectionViewParams {
+                title: Some("Select Model and Effort".to_string()),
+                items,
+                ..Default::default()
+            },
+            tx,
+        );
+        assert_snapshot!(
+            "list_selection_model_picker_width_80",
+            render_lines_with_width(&view, 80)
+        );
+    }
+
+    #[test]
+    fn snapshot_narrow_width_preserves_third_option() {
+        let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
+        let tx = AppEventSender::new(tx_raw);
+        let desc = "x".repeat(10);
+        let items: Vec<SelectionItem> = (1..=3)
+            .map(|idx| SelectionItem {
+                name: format!("Item {idx}"),
+                description: Some(desc.clone()),
+                dismiss_on_select: true,
+                ..Default::default()
+            })
+            .collect();
+        let view = ListSelectionView::new(
+            SelectionViewParams {
+                title: Some("Debug".to_string()),
+                items,
+                ..Default::default()
+            },
+            tx,
+        );
+        assert_snapshot!(
+            "list_selection_narrow_width_preserves_rows",
+            render_lines_with_width(&view, 24)
         );
     }
 }

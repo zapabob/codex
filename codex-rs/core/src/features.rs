@@ -18,49 +18,81 @@ pub(crate) use legacy::LegacyFeatureToggles;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
     Experimental,
-    Beta,
+    Beta {
+        name: &'static str,
+        menu_description: &'static str,
+        announcement: &'static str,
+    },
     Stable,
     Deprecated,
     Removed,
 }
 
+impl Stage {
+    pub fn beta_menu_name(self) -> Option<&'static str> {
+        match self {
+            Stage::Beta { name, .. } => Some(name),
+            _ => None,
+        }
+    }
+
+    pub fn beta_menu_description(self) -> Option<&'static str> {
+        match self {
+            Stage::Beta {
+                menu_description, ..
+            } => Some(menu_description),
+            _ => None,
+        }
+    }
+
+    pub fn beta_announcement(self) -> Option<&'static str> {
+        match self {
+            Stage::Beta { announcement, .. } => Some(announcement),
+            _ => None,
+        }
+    }
+}
+
 /// Unique features toggled via configuration.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Feature {
+    // Stable.
+    /// Create a ghost commit at each turn.
+    GhostCommit,
+    /// Include the view_image tool.
+    ViewImageTool,
+    /// Send warnings to the model to correct it on the tool usage.
+    ModelWarnings,
+    /// Enable the default shell tool.
+    ShellTool,
+
+    // Experimental
     /// Use the single unified PTY-backed exec tool.
     UnifiedExec,
     /// Enable experimental RMCP features such as OAuth login.
     RmcpClient,
     /// Include the freeform apply_patch tool.
     ApplyPatchFreeform,
-    /// Include the view_image tool.
-    ViewImageTool,
     /// Allow the model to request web searches.
     WebSearchRequest,
-    /// Enable the model-based risk assessments for sandboxed commands.
-    SandboxCommandAssessment,
     /// Gate the execpolicy enforcement for shell/unified exec.
     ExecPolicy,
     /// Enable Windows sandbox (restricted token) on Windows.
     WindowsSandbox,
+    /// Use the elevated Windows sandbox pipeline (setup + runner).
+    WindowsSandboxElevated,
     /// Remote compaction enabled (only for ChatGPT auth)
     RemoteCompaction,
     /// Refresh remote models and emit AppReady once the list is available.
     RemoteModels,
     /// Allow model to call multiple tools in parallel (only for models supporting it).
     ParallelToolCalls,
-    /// Experimental skills injection (CLI flag-driven).
-    Skills,
     /// Experimental shell snapshotting.
     ShellSnapshot,
     /// Experimental TUI v2 (viewport) implementation.
     Tui2,
-    /// Create a ghost commit at each turn to support undo.
-    GhostCommit,
-    /// Include the shell tool (legacy gating; generally enabled).
-    ShellTool,
-    /// Emit model warning messages (legacy gating; generally enabled).
-    ModelWarnings,
+    /// Enable discovery and injection of skills.
+    Skills,
 }
 
 impl Feature {
@@ -289,13 +321,34 @@ pub const FEATURES: &[FeatureSpec] = &[
         stage: Stage::Stable,
         default_enabled: true,
     },
-    // Unstable features.
+    FeatureSpec {
+        id: Feature::WebSearchRequest,
+        key: "web_search_request",
+        stage: Stage::Stable,
+        default_enabled: false,
+    },
+    // Beta program. Rendered in the `/experimental` menu for users.
     FeatureSpec {
         id: Feature::UnifiedExec,
         key: "unified_exec",
-        stage: Stage::Experimental,
+        stage: Stage::Beta {
+            name: "Background terminal",
+            menu_description: "Run long-running terminal commands in the background.",
+            announcement: "NEW! Try Background terminals for long running processes. Enable in /experimental!",
+        },
         default_enabled: false,
     },
+    FeatureSpec {
+        id: Feature::ShellSnapshot,
+        key: "shell_snapshot",
+        stage: Stage::Beta {
+            name: "Shell snapshot",
+            menu_description: "Snapshot your shell environment to avoid re-running login scripts for every command.",
+            announcement: "NEW! Try shell snapshotting to make your Codex faster. Enable in /experimental!",
+        },
+        default_enabled: false,
+    },
+    // Unstable features.
     FeatureSpec {
         id: Feature::RmcpClient,
         key: "rmcp_client",
@@ -305,18 +358,6 @@ pub const FEATURES: &[FeatureSpec] = &[
     FeatureSpec {
         id: Feature::ApplyPatchFreeform,
         key: "apply_patch_freeform",
-        stage: Stage::Beta,
-        default_enabled: false,
-    },
-    FeatureSpec {
-        id: Feature::WebSearchRequest,
-        key: "web_search_request",
-        stage: Stage::Stable,
-        default_enabled: false,
-    },
-    FeatureSpec {
-        id: Feature::SandboxCommandAssessment,
-        key: "experimental_sandbox_command_assessment",
         stage: Stage::Experimental,
         default_enabled: false,
     },
@@ -328,7 +369,13 @@ pub const FEATURES: &[FeatureSpec] = &[
     },
     FeatureSpec {
         id: Feature::WindowsSandbox,
-        key: "enable_experimental_windows_sandbox",
+        key: "experimental_windows_sandbox",
+        stage: Stage::Experimental,
+        default_enabled: false,
+    },
+    FeatureSpec {
+        id: Feature::WindowsSandboxElevated,
+        key: "elevated_windows_sandbox",
         stage: Stage::Experimental,
         default_enabled: false,
     },
@@ -348,13 +395,7 @@ pub const FEATURES: &[FeatureSpec] = &[
         id: Feature::Skills,
         key: "skills",
         stage: Stage::Experimental,
-        default_enabled: false,
-    },
-    FeatureSpec {
-        id: Feature::ShellSnapshot,
-        key: "shell_snapshot",
-        stage: Stage::Experimental,
-        default_enabled: false,
+        default_enabled: true,
     },
     FeatureSpec {
         id: Feature::Tui2,

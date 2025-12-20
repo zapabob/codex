@@ -1,7 +1,8 @@
 [package]
-edition = { workspace = true }
 name = "codex-cli"
-version = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "codex"
@@ -11,17 +12,11 @@ path = "src/main.rs"
 name = "codex_cli"
 path = "src/lib.rs"
 
-[features]
-# cuda = ["codex-cuda-runtime"]
-default = []
-windows-ai = ["codex-core/windows-ai", "codex-windows-ai"]
-
 [lints]
 workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-chrono = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 clap_complete = { workspace = true }
 codex-app-server = { workspace = true }
@@ -31,30 +26,23 @@ codex-chatgpt = { workspace = true }
 codex-cloud-tasks = { path = "../cloud-tasks" }
 codex-common = { workspace = true, features = ["cli"] }
 codex-core = { workspace = true }
-# codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
-codex-deep-research = { workspace = true }
 codex-exec = { workspace = true }
-codex-gemini-cli-mcp-server = { path = "../gemini-cli-mcp-server" }
+codex-execpolicy = { workspace = true }
 codex-login = { workspace = true }
 codex-mcp-server = { workspace = true }
-codex-otel = { workspace = true }
 codex-process-hardening = { workspace = true }
 codex-protocol = { workspace = true }
-codex-protocol-ts = { workspace = true }
 codex-responses-api-proxy = { workspace = true }
 codex-rmcp-client = { workspace = true }
 codex-stdio-to-uds = { workspace = true }
-codex-supervisor = { workspace = true }
 codex-tui = { workspace = true }
 codex-tui2 = { workspace = true }
-codex-windows-ai = { path = "../windows-ai", optional = true }
+codex-utils-absolute-path = { workspace = true }
 ctor = { workspace = true }
-dirs = { workspace = true }
-git2 = { workspace = true }
+libc = { workspace = true }
 owo-colors = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
+regex-lite = { workspace = true }
 serde_json = { workspace = true }
-slug = "0.1"
 supports-color = { workspace = true }
 tokio = { workspace = true, features = [
     "io-std",
@@ -75,14 +63,3 @@ assert_matches = { workspace = true }
 predicates = { workspace = true }
 pretty_assertions = { workspace = true }
 tempfile = { workspace = true }
-
-[build-dependencies]
-
-[[bench]]
-harness = false
-name = "git_analysis"
-path = "../benches/git_analysis.rs"
-
-[dependencies.criterion]
-features = ["html_reports"]
-version = "0.5"

@@ -4,6 +4,7 @@
 // definitions that do not contain business logic.
 
 use codex_utils_absolute_path::AbsolutePathBuf;
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -15,171 +16,6 @@ use serde::Serialize;
 use serde::de::Error as SerdeError;
 
 pub const DEFAULT_OTEL_ENVIRONMENT: &str = "dev";
-
-/// Security configuration for TLS/mTLS and encryption
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(default)]
-pub struct SecurityConfig {
-    /// Enable zero trust mode
-    pub zero_trust_mode: bool,
-
-    /// Enable TLS for MCP connections
-    pub tls_enabled: bool,
-
-    /// TLS version (e.g., "1.3")
-    pub tls_version: String,
-
-    /// Enable mutual TLS (client certificate required)
-    pub mtls_enabled: bool,
-
-    /// Certificate configuration
-    pub certificates: CertificateConfig,
-
-    /// Signing configuration (Ed25519)
-    pub signing: SigningConfig,
-
-    /// Encryption configuration (AES-256-GCM)
-    pub encryption: EncryptionConfig,
-
-    /// Replay attack protection
-    pub replay_protection: ReplayProtectionConfig,
-
-    /// Rate limiting configuration
-    pub rate_limiting: RateLimitingConfig,
-}
-
-impl Default for SecurityConfig {
-    fn default() -> Self {
-        Self {
-            zero_trust_mode: false,
-            tls_enabled: false,
-            tls_version: "1.3".to_string(),
-            mtls_enabled: false,
-            certificates: CertificateConfig::default(),
-            signing: SigningConfig::default(),
-            encryption: EncryptionConfig::default(),
-            replay_protection: ReplayProtectionConfig::default(),
-            rate_limiting: RateLimitingConfig::default(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(default)]
-pub struct CertificateConfig {
-    pub ca_cert: Option<PathBuf>,
-    pub client_cert: Option<PathBuf>,
-    pub client_key: Option<PathBuf>,
-    pub verify_peer: bool,
-}
-
-impl Default for CertificateConfig {
-    fn default() -> Self {
-        Self {
-            ca_cert: None,
-            client_cert: None,
-            client_key: None,
-            verify_peer: true,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(default)]
-pub struct SigningConfig {
-    pub algorithm: String,
-    pub signing_key: Option<PathBuf>,
-    pub signing_public_key: Option<PathBuf>,
-}
-
-impl Default for SigningConfig {
-    fn default() -> Self {
-        Self {
-            algorithm: "Ed25519".to_string(),
-            signing_key: None,
-            signing_public_key: None,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(default)]
-pub struct EncryptionConfig {
-    pub algorithm: String,
-    pub key_derivation: String,
-    pub key_rotation_days: u32,
-}
-
-impl Default for EncryptionConfig {
-    fn default() -> Self {
-        Self {
-            algorithm: "AES-256-GCM".to_string(),
-            key_derivation: "HKDF-SHA256".to_string(),
-            key_rotation_days: 90,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(default)]
-pub struct ReplayProtectionConfig {
-    pub enabled: bool,
-    pub nonce_store: String,
-    pub redis_url: Option<String>,
-    pub timestamp_tolerance_sec: u64,
-}
-
-impl Default for ReplayProtectionConfig {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            nonce_store: "memory".to_string(),
-            redis_url: None,
-            timestamp_tolerance_sec: 300,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(default)]
-pub struct RateLimitingConfig {
-    pub enabled: bool,
-    pub max_requests_per_sec: f64,
-    pub burst_size: u32,
-}
-
-impl Default for RateLimitingConfig {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            max_requests_per_sec: 10.0,
-            burst_size: 20,
-        }
-    }
-}
-
-/// Agent security configuration
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(default)]
-pub struct AgentSecurityConfig {
-    pub encryption_enabled: bool,
-    pub signing_enabled: bool,
-    pub encryption: EncryptionConfig,
-    pub signing: SigningConfig,
-    pub rate_limiting: RateLimitingConfig,
-}
-
-impl Default for AgentSecurityConfig {
-    fn default() -> Self {
-        Self {
-            encryption_enabled: false,
-            signing_enabled: false,
-            encryption: EncryptionConfig::default(),
-            signing: SigningConfig::default(),
-            rate_limiting: RateLimitingConfig::default(),
-        }
-    }
-}
 
 #[derive(Serialize, Debug, Clone, PartialEq)]
 pub struct McpServerConfig {
@@ -422,8 +258,8 @@ pub struct History {
     /// If true, history entries will not be written to disk.
     pub persistence: HistoryPersistence,
 
-    /// If set, the maximum size of the history file in bytes.
-    /// TODO(mbolin): Not currently honored.
+    /// If set, the maximum size of the history file in bytes. The oldest entries
+    /// are dropped once the file exceeds this limit.
     pub max_bytes: Option<usize>,
 }
 
@@ -455,6 +291,7 @@ pub struct OtelTlsConfig {
     pub client_certificate: Option<AbsolutePathBuf>,
     pub client_private_key: Option<AbsolutePathBuf>,
 }
+
 /// Which OTEL exporter to use.
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -462,12 +299,18 @@ pub enum OtelExporterKind {
     None,
     OtlpHttp {
         endpoint: String,
+        #[serde(default)]
         headers: HashMap<String, String>,
         protocol: OtelHttpProtocol,
+        #[serde(default)]
+        tls: Option<OtelTlsConfig>,
     },
     OtlpGrpc {
         endpoint: String,
+        #[serde(default)]
         headers: HashMap<String, String>,
+        #[serde(default)]
+        tls: Option<OtelTlsConfig>,
     },
 }
 
@@ -480,8 +323,11 @@ pub struct OtelConfigToml {
     /// Mark traces with environment (dev, staging, prod, test). Defaults to dev.
     pub environment: Option<String>,
 
-    /// Exporter to use. Defaults to `otlp-file`.
+    /// Optional log exporter
     pub exporter: Option<OtelExporterKind>,
+
+    /// Optional trace exporter
+    pub trace_exporter: Option<OtelExporterKind>,
 }
 
 /// Effective OTEL settings after defaults are applied.
@@ -490,6 +336,7 @@ pub struct OtelConfig {
     pub log_user_prompt: bool,
     pub environment: String,
     pub exporter: OtelExporterKind,
+    pub trace_exporter: OtelExporterKind,
 }
 
 impl Default for OtelConfig {
@@ -498,6 +345,7 @@ impl Default for OtelConfig {
             log_user_prompt: false,
             environment: DEFAULT_OTEL_ENVIRONMENT.to_owned(),
             exporter: OtelExporterKind::None,
+            trace_exporter: OtelExporterKind::None,
         }
     }
 }
@@ -511,7 +359,7 @@ pub enum Notifications {
 
 impl Default for Notifications {
     fn default() -> Self {
-        Self::Enabled(false)
+        Self::Enabled(true)
     }
 }
 
@@ -519,9 +367,23 @@ impl Default for Notifications {
 #[derive(Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Tui {
     /// Enable desktop notifications from the TUI when the terminal is unfocused.
-    /// Defaults to `false`.
+    /// Defaults to `true`.
     #[serde(default)]
     pub notifications: Notifications,
+
+    /// Enable animations (welcome screen, shimmer effects, spinners).
+    /// Defaults to `true`.
+    #[serde(default = "default_true")]
+    pub animations: bool,
+
+    /// Show startup tooltips in the TUI welcome screen.
+    /// Defaults to `true`.
+    #[serde(default = "default_true")]
+    pub show_tooltips: bool,
+}
+
+const fn default_true() -> bool {
+    true
 }
 
 /// Settings for notices we display to users via the tui and app-server clients
@@ -533,6 +395,16 @@ pub struct Notice {
     pub hide_full_access_warning: Option<bool>,
     /// Tracks whether the user has acknowledged the Windows world-writable directories warning.
     pub hide_world_writable_warning: Option<bool>,
+    /// Tracks whether the user opted out of the rate limit model switch reminder.
+    pub hide_rate_limit_model_nudge: Option<bool>,
+    /// Tracks whether the user has seen the model migration prompt
+    pub hide_gpt5_1_migration_prompt: Option<bool>,
+    /// Tracks whether the user has seen the gpt-5.1-codex-max migration prompt
+    #[serde(rename = "hide_gpt-5.1-codex-max_migration_prompt")]
+    pub hide_gpt_5_1_codex_max_migration_prompt: Option<bool>,
+    /// Tracks acknowledged model migrations as old->new model slug mappings.
+    #[serde(default)]
+    pub model_migrations: BTreeMap<String, String>,
 }
 
 impl Notice {
@@ -543,7 +415,7 @@ impl Notice {
 #[derive(Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct SandboxWorkspaceWrite {
     #[serde(default)]
-    pub writable_roots: Vec<PathBuf>,
+    pub writable_roots: Vec<AbsolutePathBuf>,
     #[serde(default)]
     pub network_access: bool,
     #[serde(default)]
@@ -602,17 +474,17 @@ pub type EnvironmentVariablePattern = WildMatchPattern<'*', '?'>;
 /// Deriving the `env` based on this policy works as follows:
 /// 1. Create an initial map based on the `inherit` policy.
 /// 2. If `ignore_default_excludes` is false, filter the map using the default
-///    exclude pattern(s), which are: `"*KEY*"` and `"*TOKEN*"`.
+///    exclude pattern(s), which are: `"*KEY*"`, `"*SECRET*"`, and `"*TOKEN*"`.
 /// 3. If `exclude` is not empty, filter the map using the provided patterns.
 /// 4. Insert any entries from `r#set` into the map.
 /// 5. If non-empty, filter the map using the `include_only` patterns.
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ShellEnvironmentPolicy {
     /// Starting point when building the environment.
     pub inherit: ShellEnvironmentPolicyInherit,
 
     /// True to skip the check to exclude default environment variables that
-    /// contain "KEY" or "TOKEN" in their name.
+    /// contain "KEY", "SECRET", or "TOKEN" in their name. Defaults to true.
     pub ignore_default_excludes: bool,
 
     /// Environment variable names to exclude from the environment.
@@ -632,7 +504,7 @@ impl From<ShellEnvironmentPolicyToml> for ShellEnvironmentPolicy {
     fn from(toml: ShellEnvironmentPolicyToml) -> Self {
         // Default to inheriting the full environment when not specified.
         let inherit = toml.inherit.unwrap_or(ShellEnvironmentPolicyInherit::All);
-        let ignore_default_excludes = toml.ignore_default_excludes.unwrap_or(false);
+        let ignore_default_excludes = toml.ignore_default_excludes.unwrap_or(true);
         let exclude = toml
             .exclude
             .unwrap_or_default()
@@ -659,12 +531,17 @@ impl From<ShellEnvironmentPolicyToml> for ShellEnvironmentPolicy {
     }
 }
 
-#[derive(Deserialize, Debug, Clone, PartialEq, Eq, Default, Hash)]
-#[serde(rename_all = "kebab-case")]
-pub enum ReasoningSummaryFormat {
-    #[default]
-    None,
-    Experimental,
+impl Default for ShellEnvironmentPolicy {
+    fn default() -> Self {
+        Self {
+            inherit: ShellEnvironmentPolicyInherit::All,
+            ignore_default_excludes: true,
+            exclude: Vec::new(),
+            r#set: HashMap::new(),
+            include_only: Vec::new(),
+            use_profile: false,
+        }
+    }
 }
 
 #[cfg(test)]

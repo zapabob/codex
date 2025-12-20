@@ -14,16 +14,11 @@ pub enum SlashCommand {
     // more frequently used commands should be listed first.
     Model,
     Approvals,
+    Experimental,
+    Skills,
     Review,
-    Delegate,
-    Orchestrate,
-    CentralDev,
-    ParallelDev,
-    Research,
-    Plan,
-    Qc,
-    Hook,
     New,
+    Resume,
     Init,
     Compact,
     Undo,
@@ -36,6 +31,7 @@ pub enum SlashCommand {
     Exit,
     Feedback,
     Rollout,
+    Ps,
     TestApproval,
 }
 
@@ -48,23 +44,17 @@ impl SlashCommand {
             SlashCommand::Init => "create an AGENTS.md file with instructions for Codex",
             SlashCommand::Compact => "summarize conversation to prevent hitting the context limit",
             SlashCommand::Review => "review my current changes and find issues",
-            SlashCommand::Delegate => "delegate a task to a sub-agent using natural language",
-            SlashCommand::Orchestrate => "kick off auto orchestration / supervisor flows",
-            SlashCommand::CentralDev => {
-                "centralized development with main agent coordinating sub-agents"
-            }
-            SlashCommand::ParallelDev => "parallel development using git worktrees for each agent",
-            SlashCommand::Research => "conduct deep research (Gemini, MCP, web)",
-            SlashCommand::Plan => "create execution plan with approval gates",
-            SlashCommand::Qc => "run quality control agent for code analysis and optimization",
-            SlashCommand::Hook => "trigger webhook integrations (Slack, etc.)",
+            SlashCommand::Resume => "resume a saved chat",
             SlashCommand::Undo => "ask Codex to undo a turn",
             SlashCommand::Quit | SlashCommand::Exit => "exit Codex",
             SlashCommand::Diff => "show git diff (including untracked files)",
             SlashCommand::Mention => "mention a file",
+            SlashCommand::Skills => "use skills to improve how Codex performs specific tasks",
             SlashCommand::Status => "show current session configuration and token usage",
+            SlashCommand::Ps => "list background terminals",
             SlashCommand::Model => "choose what model and reasoning effort to use",
             SlashCommand::Approvals => "choose what Codex can do without approval",
+            SlashCommand::Experimental => "toggle beta features",
             SlashCommand::Mcp => "list configured MCP tools",
             SlashCommand::Logout => "log out of Codex",
             SlashCommand::Rollout => "print the rollout file path",
@@ -82,66 +72,26 @@ impl SlashCommand {
     pub fn available_during_task(self) -> bool {
         match self {
             SlashCommand::New
+            | SlashCommand::Resume
             | SlashCommand::Init
             | SlashCommand::Compact
             | SlashCommand::Undo
             | SlashCommand::Model
             | SlashCommand::Approvals
+            | SlashCommand::Experimental
             | SlashCommand::Review
-            | SlashCommand::Delegate
-            | SlashCommand::Orchestrate
-            | SlashCommand::Research
-            | SlashCommand::Plan
-            | SlashCommand::Hook
             | SlashCommand::Logout => false,
             SlashCommand::Diff
             | SlashCommand::Mention
+            | SlashCommand::Skills
             | SlashCommand::Status
+            | SlashCommand::Ps
             | SlashCommand::Mcp
             | SlashCommand::Feedback
             | SlashCommand::Quit
             | SlashCommand::Exit => true,
             SlashCommand::Rollout => true,
             SlashCommand::TestApproval => true,
-            SlashCommand::CentralDev => true,
-            SlashCommand::ParallelDev => true,
-            SlashCommand::Qc => true,
-        }
-    }
-
-    /// English aliases for the command.
-    pub fn aliases(self) -> &'static [&'static str] {
-        match self {
-            SlashCommand::Quit | SlashCommand::Exit => &["exit", "quit", "bye"],
-            SlashCommand::Review => &["check", "audit"],
-            SlashCommand::Delegate => &["assign", "handover"],
-            SlashCommand::Research => &["search", "investigate", "deepsearch"],
-            SlashCommand::Plan => &["schedule", "blueprint"],
-            SlashCommand::New => &["clear", "reset"],
-            SlashCommand::Undo => &["back", "revert"],
-            _ => &[],
-        }
-    }
-
-    /// Japanese aliases for the command.
-    pub fn japanese_aliases(self) -> &'static [&'static str] {
-        match self {
-            SlashCommand::Model => &["モデル", "設定"],
-            SlashCommand::Approvals => &["承認", "許可"],
-            SlashCommand::Review => &["レビュー", "添削", "修正"],
-            SlashCommand::Delegate => &["委譲", "依頼"],
-            SlashCommand::Orchestrate => &["オーケストレーション", "指揮"],
-            SlashCommand::Research => &["調査", "検索", "リサーチ"],
-            SlashCommand::Plan => &["計画", "プラン"],
-            SlashCommand::Qc => &["品質", "検証"],
-            SlashCommand::New => &["新規", "クリア"],
-            SlashCommand::Undo => &["元に戻す", "取り消し"],
-            SlashCommand::Diff => &["差分", "変更"],
-            SlashCommand::Status => &["ステータス", "状態"],
-            SlashCommand::Mcp => &["ツール"],
-            SlashCommand::Quit | SlashCommand::Exit => &["終了", "閉じる"],
-            SlashCommand::Feedback => &["フィードバック", "報告"],
-            _ => &[],
         }
     }
 

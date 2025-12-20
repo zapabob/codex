@@ -8,7 +8,6 @@ use clap::ArgGroup;
 use codex_common::CliConfigOverrides;
 use codex_common::format_env_display::format_env_display;
 use codex_core::config::Config;
-use codex_core::config::ConfigOverrides;
 use codex_core::config::edit::ConfigEditsBuilder;
 use codex_core::config::find_codex_home;
 use codex_core::config::load_global_mcp_servers;
@@ -53,11 +52,11 @@ pub enum McpSubcommand {
     Remove(RemoveArgs),
 
     /// [experimental] Authenticate with a configured MCP server via OAuth.
-    /// Requires experimental_use_rmcp_client = true in config.toml.
+    /// Requires features.rmcp_client = true in config.toml.
     Login(LoginArgs),
 
     /// [experimental] Remove stored OAuth credentials for a server.
-    /// Requires experimental_use_rmcp_client = true in config.toml.
+    /// Requires features.rmcp_client = true in config.toml.
     Logout(LogoutArgs),
 }
 
@@ -199,7 +198,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
     let overrides = config_overrides
         .parse_overrides()
         .map_err(anyhow::Error::msg)?;
-    let config = Config::load_with_cli_overrides(overrides, ConfigOverrides::default())
+    let config = Config::load_with_cli_overrides(overrides)
         .await
         .context("failed to load configuration")?;
 
@@ -284,7 +283,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
             Ok(true) => {
                 if !config.features.enabled(Feature::RmcpClient) {
                     println!(
-                        "MCP server supports login. Add `experimental_use_rmcp_client = true` \
+                        "MCP server supports login. Add `features.rmcp_client = true` \
                          to your config.toml and run `codex mcp login {name}` to login."
                     );
                 } else {
@@ -348,7 +347,7 @@ async fn run_login(config_overrides: &CliConfigOverrides, login_args: LoginArgs)
     let overrides = config_overrides
         .parse_overrides()
         .map_err(anyhow::Error::msg)?;
-    let config = Config::load_with_cli_overrides(overrides, ConfigOverrides::default())
+    let config = Config::load_with_cli_overrides(overrides)
         .await
         .context("failed to load configuration")?;
 
@@ -391,7 +390,7 @@ async fn run_logout(config_overrides: &CliConfigOverrides, logout_args: LogoutAr
     let overrides = config_overrides
         .parse_overrides()
         .map_err(anyhow::Error::msg)?;
-    let config = Config::load_with_cli_overrides(overrides, ConfigOverrides::default())
+    let config = Config::load_with_cli_overrides(overrides)
         .await
         .context("failed to load configuration")?;
 
@@ -420,7 +419,7 @@ async fn run_list(config_overrides: &CliConfigOverrides, list_args: ListArgs) ->
     let overrides = config_overrides
         .parse_overrides()
         .map_err(anyhow::Error::msg)?;
-    let config = Config::load_with_cli_overrides(overrides, ConfigOverrides::default())
+    let config = Config::load_with_cli_overrides(overrides)
         .await
         .context("failed to load configuration")?;
 
@@ -677,7 +676,7 @@ async fn run_get(config_overrides: &CliConfigOverrides, get_args: GetArgs) -> Re
     let overrides = config_overrides
         .parse_overrides()
         .map_err(anyhow::Error::msg)?;
-    let config = Config::load_with_cli_overrides(overrides, ConfigOverrides::default())
+    let config = Config::load_with_cli_overrides(overrides)
         .await
         .context("failed to load configuration")?;
 

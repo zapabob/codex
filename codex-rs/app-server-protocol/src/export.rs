@@ -34,6 +34,7 @@ use std::process::Command;
 use ts_rs::TS;
 
 const HEADER: &str = "// GENERATED CODE! DO NOT MODIFY BY HAND!\n\n";
+const IGNORED_DEFINITIONS: &[&str] = &["Option<()>"];
 
 #[derive(Clone)]
 pub struct GeneratedSchema {
@@ -269,8 +270,11 @@ where
         out_dir.join(format!("{file_stem}.json"))
     };
 
-    write_pretty_json(out_path, &schema_value)
-        .with_context(|| format!("Failed to write JSON schema for {file_stem}"))?;
+    if !IGNORED_DEFINITIONS.contains(&logical_name) {
+        write_pretty_json(out_path, &schema_value)
+            .with_context(|| format!("Failed to write JSON schema for {file_stem}"))?;
+    }
+
     let namespace = match raw_namespace {
         Some("v1") | None => None,
         Some(ns) => Some(ns.to_string()),

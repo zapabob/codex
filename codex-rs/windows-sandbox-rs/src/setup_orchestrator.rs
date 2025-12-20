@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::ffi::c_void;
 use std::os::windows::process::CommandExt;
 use std::path::Path;
@@ -9,14 +10,14 @@ use std::process::Command;
 use std::process::Stdio;
 
 use crate::allow::compute_allow_paths;
+use crate::allow::AllowDenyPaths;
 use crate::logging::log_note;
-use crate::policy::SandboxMode;
 use crate::policy::SandboxPolicy;
+use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use anyhow::anyhow;
-use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use base64::Engine;
 
 use windows_sys::Win32::Foundation::CloseHandle;
 use windows_sys::Win32::Foundation::GetLastError;
@@ -51,16 +52,28 @@ pub fn run_setup_refresh(
     codex_home: &Path,
 ) -> Result<()> {
     // Skip in danger-full-access.
-    if matches!(policy.0, SandboxMode::DangerFullAccess) {
+    if matches!(
+        policy,
+        SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. }
+    ) {
         return Ok(());
     }
+    let (read_roots, write_roots) = build_payload_roots(
+        policy,
+        policy_cwd,
+        command_cwd,
+        env_map,
+        codex_home,
+        None,
+        None,
+    );
     let payload = ElevationPayload {
         version: SETUP_VERSION,
         offline_username: OFFLINE_USERNAME.to_string(),
         online_username: ONLINE_USERNAME.to_string(),
         codex_home: codex_home.to_path_buf(),
-        read_roots: gather_read_roots(command_cwd, policy, policy_cwd),
-        write_roots: gather_write_roots(policy, policy_cwd, command_cwd, env_map),
+        read_roots,
+        write_roots,
         real_user: std::env::var("USERNAME").unwrap_or_else(|_| "Administrators".to_string()),
         refresh_only: true,
     };
@@ -183,12 +196,13 @@ fn canonical_existing(paths: &[PathBuf]) -> Vec<PathBuf> {
         .collect()
 }
 
-pub fn gather_read_roots(
-    command_cwd: &Path,
-    _policy: &SandboxPolicy,
-    _policy_cwd: &Path,
-) -> Vec<PathBuf> {
+pub(crate) fn gather_read_roots(command_cwd: &Path, policy: &SandboxPolicy) -> Vec<PathBuf> {
     let mut roots: Vec<PathBuf> = Vec::new();
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            roots.push(dir.to_path_buf());
+        }
+    }
     for p in [
         PathBuf::from(r"C:\Windows"),
         PathBuf::from(r"C:\Program Files"),
@@ -201,12 +215,15 @@ pub fn gather_read_roots(
         roots.push(PathBuf::from(up));
     }
     roots.push(command_cwd.to_path_buf());
-    // Note: SandboxPolicy doesn't have writable_roots field in current implementation
-    // This would need to be implemented if workspace-specific roots are needed
+    if let SandboxPolicy::WorkspaceWrite { writable_roots, .. } = policy {
+        for root in writable_roots {
+            roots.push(root.to_path_buf());
+        }
+    }
     canonical_existing(&roots)
 }
 
-pub fn gather_write_roots(
+pub(crate) fn gather_write_roots(
     policy: &SandboxPolicy,
     policy_cwd: &Path,
     command_cwd: &Path,
@@ -214,12 +231,20 @@ pub fn gather_write_roots(
 ) -> Vec<PathBuf> {
     let mut roots: Vec<PathBuf> = Vec::new();
     // Always include the command CWD for workspace-write.
-    if matches!(policy.0, SandboxMode::WorkspaceWrite) {
+    if matches!(policy, SandboxPolicy::WorkspaceWrite { .. }) {
         roots.push(command_cwd.to_path_buf());
     }
-    let allow = compute_allow_paths(policy, policy_cwd, command_cwd, env_map);
+    let AllowDenyPaths { allow, .. } =
+        compute_allow_paths(policy, policy_cwd, command_cwd, env_map);
     roots.extend(allow);
-    canonical_existing(&roots)
+    let mut dedup: HashSet<PathBuf> = HashSet::new();
+    let mut out: Vec<PathBuf> = Vec::new();
+    for r in canonical_existing(&roots) {
+        if dedup.insert(r.clone()) {
+            out.push(r);
+        }
+    }
+    out
 }
 
 #[derive(Serialize)]
@@ -285,11 +310,11 @@ fn find_setup_exe() -> PathBuf {
 
 fn run_setup_exe(payload: &ElevationPayload, needs_elevation: bool) -> Result<()> {
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
-    use windows_sys::Win32::System::Threading::INFINITE;
     use windows_sys::Win32::System::Threading::WaitForSingleObject;
+    use windows_sys::Win32::System::Threading::INFINITE;
+    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
     use windows_sys::Win32::UI::Shell::SEE_MASK_NOCLOSEPROCESS;
     use windows_sys::Win32::UI::Shell::SHELLEXECUTEINFOW;
-    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
     let exe = find_setup_exe();
     let payload_json = serde_json::to_string(payload)?;
     let payload_b64 = BASE64_STANDARD.encode(payload_json.as_bytes());
@@ -355,19 +380,15 @@ pub fn run_elevated_setup(
     // Ensure the shared sandbox directory exists before we send it to the elevated helper.
     let sbx_dir = sandbox_dir(codex_home);
     std::fs::create_dir_all(&sbx_dir)?;
-    let mut write_roots = if let Some(roots) = write_roots_override {
-        roots
-    } else {
-        gather_write_roots(policy, policy_cwd, command_cwd, env_map)
-    };
-    if !write_roots.contains(&sbx_dir) {
-        write_roots.push(sbx_dir.clone());
-    }
-    let read_roots = if let Some(roots) = read_roots_override {
-        roots
-    } else {
-        gather_read_roots(command_cwd, policy, policy_cwd)
-    };
+    let (read_roots, write_roots) = build_payload_roots(
+        policy,
+        policy_cwd,
+        command_cwd,
+        env_map,
+        codex_home,
+        read_roots_override,
+        write_roots_override,
+    );
     let payload = ElevationPayload {
         version: SETUP_VERSION,
         offline_username: OFFLINE_USERNAME.to_string(),
@@ -380,4 +401,32 @@ pub fn run_elevated_setup(
     };
     let needs_elevation = !is_elevated()?;
     run_setup_exe(&payload, needs_elevation)
+}
+
+fn build_payload_roots(
+    policy: &SandboxPolicy,
+    policy_cwd: &Path,
+    command_cwd: &Path,
+    env_map: &HashMap<String, String>,
+    codex_home: &Path,
+    read_roots_override: Option<Vec<PathBuf>>,
+    write_roots_override: Option<Vec<PathBuf>>,
+) -> (Vec<PathBuf>, Vec<PathBuf>) {
+    let sbx_dir = sandbox_dir(codex_home);
+    let mut write_roots = if let Some(roots) = write_roots_override {
+        canonical_existing(&roots)
+    } else {
+        gather_write_roots(policy, policy_cwd, command_cwd, env_map)
+    };
+    if !write_roots.contains(&sbx_dir) {
+        write_roots.push(sbx_dir.clone());
+    }
+    let mut read_roots = if let Some(roots) = read_roots_override {
+        canonical_existing(&roots)
+    } else {
+        gather_read_roots(command_cwd, policy)
+    };
+    let write_root_set: HashSet<PathBuf> = write_roots.iter().cloned().collect();
+    read_roots.retain(|root| !write_root_set.contains(root));
+    (read_roots, write_roots)
 }

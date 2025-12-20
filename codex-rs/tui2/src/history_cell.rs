@@ -26,12 +26,12 @@ use base64::Engine;
 use codex_common::format_env_display::format_env_display;
 use codex_core::config::Config;
 use codex_core::config::types::McpServerTransportConfig;
-use codex_core::config::types::ReasoningSummaryFormat;
 use codex_core::protocol::FileChange;
 use codex_core::protocol::McpAuthStatus;
 use codex_core::protocol::McpInvocation;
 use codex_core::protocol::SessionConfiguredEvent;
 use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
+use codex_protocol::openai_models::ReasoningSummaryFormat;
 use codex_protocol::plan_tool::PlanItemArg;
 use codex_protocol::plan_tool::StepStatus;
 use codex_protocol::plan_tool::UpdatePlanArgs;
@@ -1021,9 +1021,9 @@ pub(crate) fn new_active_mcp_tool_call(
     McpToolCallCell::new(call_id, invocation, animations_enabled)
 }
 
-pub(crate) fn new_web_search_call(query: String) -> PlainHistoryCell {
-    let lines: Vec<Line<'static>> = vec![Line::from(vec![padded_emoji("🌐").into(), query.into()])];
-    PlainHistoryCell { lines }
+pub(crate) fn new_web_search_call(query: String) -> PrefixedWrappedHistoryCell {
+    let text: Text<'static> = Line::from(vec!["Searched".bold(), " ".into(), query.into()]).into();
+    PrefixedWrappedHistoryCell::new(text, "• ".dim(), "  ")
 }
 
 /// If the first content is an image, return a new cell with the image.
@@ -1514,11 +1514,10 @@ mod tests {
     use crate::exec_cell::ExecCall;
     use crate::exec_cell::ExecCell;
     use codex_core::config::Config;
-    use codex_core::config::ConfigOverrides;
-    use codex_core::config::ConfigToml;
+    use codex_core::config::ConfigBuilder;
     use codex_core::config::types::McpServerConfig;
     use codex_core::config::types::McpServerTransportConfig;
-    use codex_core::openai_models::models_manager::ModelsManager;
+    use codex_core::models_manager::manager::ModelsManager;
     use codex_core::protocol::McpAuthStatus;
     use codex_protocol::parse_command::ParsedCommand;
     use dirs::home_dir;
@@ -1532,14 +1531,13 @@ mod tests {
     use mcp_types::TextContent;
     use mcp_types::Tool;
     use mcp_types::ToolInputSchema;
-
-    fn test_config() -> Config {
-        Config::load_from_base_config_with_overrides(
-            ConfigToml::default(),
-            ConfigOverrides::default(),
-            std::env::temp_dir(),
-        )
-        .expect("config")
+    async fn test_config() -> Config {
+        let codex_home = std::env::temp_dir();
+        ConfigBuilder::default()
+            .codex_home(codex_home.clone())
+            .build()
+            .await
+            .expect("config")
     }
 
     fn render_lines(lines: &[Line<'static>]) -> Vec<String> {
@@ -1558,9 +1556,9 @@ mod tests {
         render_lines(&cell.transcript_lines(u16::MAX))
     }
 
-    #[test]
-    fn mcp_tools_output_masks_sensitive_values() {
-        let mut config = test_config();
+    #[tokio::test]
+    async fn mcp_tools_output_masks_sensitive_values() {
+        let mut config = test_config().await;
         let mut env = HashMap::new();
         env.insert("TOKEN".to_string(), "secret".to_string());
         let stdio_config = McpServerConfig {
@@ -1664,13 +1662,57 @@ mod tests {
         assert_eq!(
             rendered,
             vec![
-                "✔ You approved codex".to_string(),
-                "  to run echo something".to_string(),
+                "✔ You approved codex to".to_string(),
+                "  run echo something".to_string(),
                 "  really long to ensure".to_string(),
                 "  wrapping happens this".to_string(),
                 "  time".to_string(),
             ]
         );
+    }
+
+    #[test]
+    fn web_search_history_cell_snapshot() {
+        let cell = new_web_search_call(
+            "example search query with several generic words to exercise wrapping".to_string(),
+        );
+        let rendered = render_lines(&cell.display_lines(64)).join("\n");
+
+        insta::assert_snapshot!(rendered);
+    }
+
+    #[test]
+    fn web_search_history_cell_wraps_with_indented_continuation() {
+        let cell = new_web_search_call(
+            "example search query with several generic words to exercise wrapping".to_string(),
+        );
+        let rendered = render_lines(&cell.display_lines(64));
+
+        assert_eq!(
+            rendered,
+            vec![
+                "• Searched example search query with several generic words to".to_string(),
+                "  exercise wrapping".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn web_search_history_cell_short_query_does_not_wrap() {
+        let cell = new_web_search_call("short query".to_string());
+        let rendered = render_lines(&cell.display_lines(64));
+
+        assert_eq!(rendered, vec!["• Searched short query".to_string()]);
+    }
+
+    #[test]
+    fn web_search_history_cell_transcript_snapshot() {
+        let cell = new_web_search_call(
+            "example search query with several generic words to exercise wrapping".to_string(),
+        );
+        let rendered = render_lines(&cell.transcript_lines(64)).join("\n");
+
+        insta::assert_snapshot!(rendered);
     }
 
     #[test]
@@ -2347,9 +2389,9 @@ mod tests {
         assert_eq!(rendered, vec!["• Detailed reasoning goes here."]);
     }
 
-    #[test]
-    fn reasoning_summary_block_respects_config_overrides() {
-        let mut config = test_config();
+    #[tokio::test]
+    async fn reasoning_summary_block_respects_config_overrides() {
+        let mut config = test_config().await;
         config.model = Some("gpt-3.5-turbo".to_string());
         config.model_supports_reasoning_summaries = Some(true);
         config.model_reasoning_summary_format = Some(ReasoningSummaryFormat::Experimental);

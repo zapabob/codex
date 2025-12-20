@@ -204,6 +204,7 @@ impl CommandPopup {
                     display_shortcut: None,
                     description: Some(description),
                     wrap_indent: None,
+                    disabled_reason: None,
                 }
             })
             .collect()

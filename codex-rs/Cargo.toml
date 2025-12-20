@@ -5,9 +5,9 @@ members = [
     "async-utils",
     "app-server",
     "app-server-protocol",
+    "app-server-test-client",
     "apply-patch",
     "arg0",
-    "audit",
     "feedback",
     "codex-backend-openapi-models",
     "cloud-tasks",
@@ -15,10 +15,8 @@ members = [
     "cli",
     "common",
     "core",
-    "deep-research",
     "exec",
     "exec-server",
-    "gemini-cli-mcp-server",
     "execpolicy",
     "execpolicy-legacy",
     "keyring-store",
@@ -26,19 +24,15 @@ members = [
     "linux-sandbox",
     "lmstudio",
     "login",
-    "mcp-server",                   # ENABLED: supervisor依存削除済み
+    "mcp-server",
     "mcp-types",
     "ollama",
-    "orchestrator",
     "process-hardening",
     "protocol",
-    "protocol-ts",
     "rmcp-client",
     "responses-api-proxy",
-    "supervisor",
     "stdio-to-uds",
     "otel",
-    "gui",
     "tui",
     "tui2",
     "utils/absolute-path",
@@ -49,17 +43,13 @@ members = [
     "utils/pty",
     "utils/readiness",
     "utils/string",
-    "utils/tokenizer",
-    "tauri-gui/src-tauri",          # Tauri GUI with VR/AR support
-    "windows-ai",                   # Windows 11 AI API integration
-    #    "cuda-runtime",                 # CUDA GPU acceleration
     "codex-client",
     "codex-api",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "2.5.0"
+version = "0.0.0"
 # Track the edition for all workspace crates in one place. Individual
 # crates can still override this value, but keeping it here means new
 # crates created with `cargo new -w ...` automatically inherit the 2024
@@ -82,7 +72,6 @@ codex-chatgpt = { path = "chatgpt" }
 codex-client = { path = "codex-client" }
 codex-common = { path = "common" }
 codex-core = { path = "core" }
-codex-deep-research = { path = "deep-research" }
 codex-exec = { path = "exec" }
 codex-execpolicy = { path = "execpolicy" }
 codex-feedback = { path = "feedback" }
@@ -97,11 +86,9 @@ codex-ollama = { path = "ollama" }
 codex-otel = { path = "otel" }
 codex-process-hardening = { path = "process-hardening" }
 codex-protocol = { path = "protocol" }
-codex-protocol-ts = { path = "protocol-ts" }
 codex-responses-api-proxy = { path = "responses-api-proxy" }
 codex-rmcp-client = { path = "rmcp-client" }
 codex-stdio-to-uds = { path = "stdio-to-uds" }
-codex-supervisor = { path = "supervisor" }
 codex-tui = { path = "tui" }
 codex-tui2 = { path = "tui2" }
 codex-utils-absolute-path = { path = "utils/absolute-path" }
@@ -111,7 +98,6 @@ codex-utils-json-to-toml = { path = "utils/json-to-toml" }
 codex-utils-pty = { path = "utils/pty" }
 codex-utils-readiness = { path = "utils/readiness" }
 codex-utils-string = { path = "utils/string" }
-codex-utils-tokenizer = { path = "utils/tokenizer" }
 codex-windows-sandbox = { path = "windows-sandbox-rs" }
 core_test_support = { path = "core/tests/common" }
 exec_server_test_support = { path = "exec-server/tests/common" }
@@ -138,7 +124,6 @@ clap_complete = "4"
 color-eyre = "0.6.3"
 crossterm = "0.28.1"
 ctor = "0.5.0"
-dashmap = "6.0"
 derive_more = "2"
 diffy = "0.4.2"
 dirs = "6"
@@ -150,17 +135,13 @@ env_logger = "0.11.5"
 escargot = "0.5"
 eventsource-stream = "0.2.3"
 futures = { version = "0.3", default-features = false }
-git2 = { version = "0.20", default-features = false, features = [
-    "https",
-    "vendored-openssl",
-    "vendored-libgit2",
-] }
 http = "1.3.1"
 icu_decimal = "2.1"
 icu_locale_core = "2.1"
 icu_provider = { version = "2.1", features = ["sync"] }
 ignore = "0.4.23"
 image = { version = "^0.25.9", default-features = false }
+include_dir = "0.7.4"
 indexmap = "2.12.0"
 insta = "1.44.3"
 itertools = "0.14.0"
@@ -169,7 +150,7 @@ landlock = "0.4.1"
 lazy_static = "1"
 libc = "0.2.177"
 log = "0.4"
-lru = "0.12.5"
+lru = "0.16.2"
 maplit = "1.0.2"
 mime_guess = "2.0.5"
 multimap = "0.10.0"
@@ -182,9 +163,9 @@ opentelemetry-appender-tracing = "0.30.0"
 opentelemetry-otlp = "0.30.0"
 opentelemetry-semantic-conventions = "0.30.0"
 opentelemetry_sdk = "0.30.0"
+tracing-opentelemetry = "0.31.0"
 os_info = "3.12.0"
 owo-colors = "4.2.0"
-paste = "1.0.15"
 path-absolutize = "3.1.1"
 pathdiff = "0.2"
 portable-pty = "0.9.0"
@@ -194,20 +175,13 @@ pulldown-cmark = "0.10"
 rand = "0.9"
 ratatui = "0.29.0"
 ratatui-macros = "0.6.0"
-# ratatui-macros = "0.7.0-alpha.4"  # DISABLED: バージョン競合のため
 regex = "1.12.2"
 regex-lite = "0.1.7"
-reqwest = { version = "0.12", default-features = false, features = [
-    "json",
-    "rustls-tls-native-roots",
-    "http2",
-    "charset",
-    "macos-system-configuration",
-] }
-rmcp = { version = "0.10.0", default-features = false }
+reqwest = "0.12"
+rmcp = { version = "0.12.0", default-features = false }
 schemars = "0.8.22"
 seccompiler = "0.5.0"
-sentry = "0.34.0"
+sentry = "0.46.0"
 serde = "1"
 serde_json = "1"
 serde_with = "3.16"
@@ -216,29 +190,8 @@ serial_test = "3.2.0"
 sha1 = "0.10.6"
 sha2 = "0.10"
 shlex = "1.3.0"
-syn = { version = "2.0", features = ["full", "extra-traits", "visit"] }
-# 🔐 Security: TLS/mTLS (Phase 1)
-rustls = { version = "0.23", default-features = false, features = [
-    "ring",
-    "logging",
-    "std",
-    "tls12",
-] }
-rustls-pemfile = "2.2"
-tokio-rustls = { version = "0.26", default-features = false, features = [
-    "ring",
-    "logging",
-    "tls12",
-] }
-x509-parser = "0.16"
-# 🔐 Security: Signing/Encryption (Phase 2)
-aes-gcm = "0.10"
-ed25519-dalek = "2.1"
-hex = "0.4"
-hkdf = "0.12"
-hmac = "0.12"
 similar = "2.7.0"
-socket2 = "0.6.0"
+socket2 = "0.6.1"
 starlark = "0.13.0"
 strum = "0.27.2"
 strum_macros = "0.27.2"
@@ -264,8 +217,6 @@ tracing-test = "0.2.5"
 tree-sitter = "0.25.10"
 tree-sitter-bash = "0.25"
 tree-sitter-highlight = "0.25.10"
-tree-sitter-json = "0.25.0"
-tree-sitter-python = "0.25.0"
 ts-rs = "11"
 uds_windows = "1.1.0"
 unicode-segmentation = "1.12.0"
@@ -281,23 +232,6 @@ wildmatch = "2.6.1"
 
 wiremock = "0.6"
 zeroize = "1.8.2"
-
-# 🚀 Build Performance Profiles (2025-10-15)
-# 開発用: LTO無効化で3〜7分に短縮
-[profile.dev]
-codegen-units = 16 # デフォルト値（並列コンパイル有効）
-incremental = true
-lto = false
-opt-level = 0
-
-# デバッグ情報付き開発用（gdb/lldbデバッグ用）
-[profile.dev-debug]
-debug = true
-inherits = "dev"
-# 高速テスト用（最適化なし）
-[profile.test]
-lto = false
-opt-level = 0
 
 [workspace.lints]
 rust = {}
@@ -335,18 +269,12 @@ unnecessary_filter_map = "deny"
 unnecessary_lazy_evaluations = "deny"
 unnecessary_sort_by = "deny"
 unnecessary_to_owned = "deny"
-unused_variables = "allow"
 unwrap_used = "deny"
 
 # cargo-shear cannot see the platform-specific openssl-sys usage, so we
 # silence the false positive here instead of deleting a real dependency.
 [workspace.metadata.cargo-shear]
-ignored = [
-    "icu_provider",
-    "openssl-sys",
-    "codex-utils-readiness",
-    "codex-utils-tokenizer",
-]
+ignored = ["icu_provider", "openssl-sys", "codex-utils-readiness"]
 
 [profile.release]
 lto = "fat"
@@ -363,6 +291,7 @@ inherits = "test"
 opt-level = 0
 
 [patch.crates-io]
+# Uncomment to debug local changes.
 # ratatui = { path = "../../ratatui" }
 crossterm = { git = "https://github.com/nornagon/crossterm", branch = "nornagon/color-query" }
 ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }

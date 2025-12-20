@@ -5,6 +5,9 @@ use tokio::sync::RwLock;
 use tokio_util::either::Either;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::AbortOnDropHandle;
+use tracing::Instrument;
+use tracing::instrument;
+use tracing::trace_span;
 
 use crate::codex::Session;
 use crate::codex::TurnContext;
@@ -42,8 +45,9 @@ impl ToolCallRuntime {
         }
     }
 
+    #[instrument(level = "trace", skip_all, fields(call = ?call))]
     pub(crate) fn handle_tool_call(
-        &self,
+        self,
         call: ToolCall,
         cancellation_token: CancellationToken,
     ) -> impl std::future::Future<Output = Result<ResponseInputItem, CodexErr>> {
@@ -57,11 +61,20 @@ impl ToolCallRuntime {
         let started = Instant::now();
         let readiness = self.turn_context.tool_call_gate.clone();
 
+        let dispatch_span = trace_span!(
+            "dispatch_tool_call",
+            otel.name = call.tool_name.as_str(),
+            tool_name = call.tool_name.as_str(),
+            call_id = call.call_id.as_str(),
+            aborted = false,
+        );
+
         let handle: AbortOnDropHandle<Result<ResponseInputItem, FunctionCallError>> =
             AbortOnDropHandle::new(tokio::spawn(async move {
                 tokio::select! {
                     _ = cancellation_token.cancelled() => {
                         let secs = started.elapsed().as_secs_f32().max(0.1);
+                        dispatch_span.record("aborted", true);
                         Ok(Self::aborted_response(&call, secs))
                     },
                     res = async {
@@ -76,6 +89,7 @@ impl ToolCallRuntime {
 
                         router
                             .dispatch_tool_call(session, turn, tracker, call.clone())
+                            .instrument(dispatch_span.clone())
                             .await
                     } => res,
                 }
@@ -91,6 +105,7 @@ impl ToolCallRuntime {
                 ))),
             }
         }
+        .in_current_span()
     }
 }
 

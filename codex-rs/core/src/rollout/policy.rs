@@ -27,8 +27,8 @@ pub(crate) fn should_persist_response_item(item: &ResponseItem) -> bool {
         | ResponseItem::CustomToolCall { .. }
         | ResponseItem::CustomToolCallOutput { .. }
         | ResponseItem::WebSearchCall { .. }
-        | ResponseItem::GhostSnapshot { .. } => true,
-        ResponseItem::CompactionSummary { .. } => true,
+        | ResponseItem::GhostSnapshot { .. }
+        | ResponseItem::Compaction { .. } => true,
         ResponseItem::Other => false,
     }
 }
@@ -42,6 +42,7 @@ pub(crate) fn should_persist_event_msg(ev: &EventMsg) -> bool {
         | EventMsg::AgentReasoning(_)
         | EventMsg::AgentReasoningRawContent(_)
         | EventMsg::TokenCount(_)
+        | EventMsg::ContextCompacted(_)
         | EventMsg::EnteredReviewMode(_)
         | EventMsg::ExitedReviewMode(_)
         | EventMsg::UndoCompleted(_)
@@ -65,6 +66,7 @@ pub(crate) fn should_persist_event_msg(ev: &EventMsg) -> bool {
         | EventMsg::ExecCommandOutputDelta(_)
         | EventMsg::ExecCommandEnd(_)
         | EventMsg::ExecApprovalRequest(_)
+        | EventMsg::ElicitationRequest(_)
         | EventMsg::ApplyPatchApprovalRequest(_)
         | EventMsg::BackgroundEvent(_)
         | EventMsg::StreamError(_)
@@ -74,7 +76,10 @@ pub(crate) fn should_persist_event_msg(ev: &EventMsg) -> bool {
         | EventMsg::GetHistoryEntryResponse(_)
         | EventMsg::UndoStarted(_)
         | EventMsg::McpListToolsResponse(_)
+        | EventMsg::McpStartupUpdate(_)
+        | EventMsg::McpStartupComplete(_)
         | EventMsg::ListCustomPromptsResponse(_)
+        | EventMsg::ListSkillsResponse(_)
         | EventMsg::PlanUpdate(_)
         | EventMsg::ShutdownComplete
         | EventMsg::ViewImageToolCall(_)
@@ -84,13 +89,6 @@ pub(crate) fn should_persist_event_msg(ev: &EventMsg) -> bool {
         | EventMsg::AgentMessageContentDelta(_)
         | EventMsg::ReasoningContentDelta(_)
         | EventMsg::ReasoningRawContentDelta(_)
-        // zapabob独自: SubAgent events (ロールアウトには保存しない)
-        | EventMsg::SubAgentTaskCompleted(_)
-        | EventMsg::SubAgentTaskFailed(_)
-        | EventMsg::SubAgentProgressUpdate(_)
-        | EventMsg::SubAgentMessage(_)
-        | EventMsg::SubAgentError(_)
-        | EventMsg::SubAgentInfo(_)
-        | EventMsg::ConversationPath(_) => false,
+        | EventMsg::SkillsUpdateAvailable => false,
     }
 }
