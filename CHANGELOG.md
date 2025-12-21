@@ -5,6 +5,40 @@ All notable changes to Codex will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2025-12-19
+
+### Version Unification & Upstream Integration
+
+This release unifies all package versions to 2.6.0 across the entire repository and integrates latest upstream features.
+
+### Added
+
+**Version Unification**
+- Unified all `package.json` files to version 2.6.0
+- Updated Rust workspace version to 2.6.0
+- Synchronized all internal dependencies to 2.6.0
+
+**Upstream Integration**
+- Integrated latest upstream features for plan and skill systems
+- Updated ReasoningEffort import paths to match upstream conventions
+- Enhanced TUI input and slash command handling
+
+### Changed
+
+**Dependencies**
+- Updated `@zapabob/codex-protocol-client` to 2.6.0 in VS Code extension
+- All internal `@zapabob/*` dependencies now use 2.6.0
+
+**Code Organization**
+- Aligned ReasoningEffort imports with upstream: `codex_protocol::openai_models::ReasoningEffort`
+- Maintained compatibility with upstream plan and skill implementations
+
+### Fixed
+
+**Import Paths**
+- Fixed ReasoningEffort import location to match upstream conventions
+- Ensured consistent import paths across codebase
+
 ## [2.5.0] - 2025-12-11
 
 ### Official Repository Integration & Major Updates

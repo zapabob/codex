@@ -4,7 +4,7 @@ use chrono::Utc;
 use codex_api::ResponseEvent;
 use codex_app_server_protocol::AuthMode;
 use codex_protocol::ConversationId;
-use codex_protocol::config_types::ReasoningEffort;
+use codex_protocol::openai_models::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::models::ResponseItem;
 use codex_protocol::protocol::AskForApproval;
@@ -192,6 +192,32 @@ impl OtelManager {
         );
 
         response
+    }
+
+    pub fn record_api_request(
+        &self,
+        attempt: u64,
+        status: Option<u16>,
+        error: Option<&str>,
+        duration: Duration,
+    ) {
+        tracing::event!(
+            tracing::Level::INFO,
+            event.name = "codex.api_request",
+            event.timestamp = %timestamp(),
+            conversation.id = %self.metadata.conversation_id,
+            app.version = %self.metadata.app_version,
+            auth_mode = self.metadata.auth_mode,
+            user.account_id = self.metadata.account_id,
+            user.email = self.metadata.account_email,
+            terminal.type = %self.metadata.terminal_type,
+            model = %self.metadata.model,
+            slug = %self.metadata.slug,
+            duration_ms = %duration.as_millis(),
+            http.response.status_code = status,
+            error.message = error,
+            attempt = attempt,
+        );
     }
 
     pub fn log_sse_event<E>(

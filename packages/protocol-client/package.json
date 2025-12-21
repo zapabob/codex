@@ -1,6 +1,6 @@
 {
   "name": "@zapabob/codex-protocol-client",
-  "version": "2.3.2",
+  "version": "2.6.0",
   "description": "TypeScript client for Codex Orchestrator RPC protocol",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

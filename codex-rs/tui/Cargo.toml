@@ -1,7 +1,8 @@
 [package]
-edition = "2024"
 name = "codex-tui"
-version = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "codex-tui"
@@ -16,11 +17,6 @@ path = "src/lib.rs"
 vt100-tests = []
 # Gate verbose debug logging inside the TUI implementation.
 debug-logs = []
-# Enable development orchestrator integration (and its upstream core feature).
-dev-orchestrator = ["codex-core/dev-orchestrator"]
-# Enable CUDA-accelerated git analysis
-# cuda = ["codex-cuda-runtime/cuda"]
-windows-ai = []
 
 [lints]
 workspace = true
@@ -32,6 +28,7 @@ chrono = { workspace = true, features = ["serde"] }
 clap = { workspace = true, features = ["derive"] }
 codex-ansi-escape = { workspace = true }
 codex-app-server-protocol = { workspace = true }
+codex-arg0 = { workspace = true }
 codex-backend-client = { workspace = true }
 codex-common = { workspace = true, features = [
     "cli",
@@ -39,11 +36,9 @@ codex-common = { workspace = true, features = [
     "sandbox_summary",
 ] }
 codex-core = { workspace = true }
-# codex-cuda-runtime = { path = "../cuda-runtime", optional = true }
 codex-feedback = { workspace = true }
 codex-file-search = { workspace = true }
 codex-login = { workspace = true }
-codex-ollama = { workspace = true }
 codex-protocol = { workspace = true }
 codex-utils-absolute-path = { workspace = true }
 color-eyre = { workspace = true }
@@ -52,7 +47,6 @@ derive_more = { workspace = true, features = ["is_variant"] }
 diffy = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }
-git2 = { workspace = true }
 image = { workspace = true, features = ["jpeg", "png"] }
 itertools = { workspace = true }
 lazy_static = { workspace = true }
@@ -83,6 +77,8 @@ tokio = { workspace = true, features = [
     "process",
     "rt-multi-thread",
     "signal",
+    "test-util",
+    "time",
 ] }
 tokio-stream = { workspace = true, features = ["sync"] }
 toml = { workspace = true }
@@ -96,6 +92,7 @@ unicode-width = { workspace = true }
 url = { workspace = true }
 
 codex-windows-sandbox = { workspace = true }
+tokio-util = { workspace = true, features = ["time"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = { workspace = true }
@@ -107,6 +104,7 @@ arboard = { workspace = true }
 
 
 [dev-dependencies]
+codex-core = { workspace = true, features = ["test-support"] }
 assert_matches = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
 insta = { workspace = true }
@@ -114,3 +112,4 @@ pretty_assertions = { workspace = true }
 rand = { workspace = true }
 serial_test = { workspace = true }
 vt100 = { workspace = true }
+uuid = { workspace = true }

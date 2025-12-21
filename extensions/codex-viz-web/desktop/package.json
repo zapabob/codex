@@ -1,6 +1,6 @@
 {
   "name": "codex-viz-desktop",
-  "version": "0.2.0",
+  "version": "2.6.0",
   "description": "Codex Repository Visualizer - Desktop Client",
   "main": "dist/main.js",
   "type": "module",

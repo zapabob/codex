@@ -465,7 +465,6 @@ impl UnifiedExecSessionManager {
             args,
             env.cwd.as_path(),
             &env.env,
-            &env.arg0,
         )
         .await
         .map_err(|err| UnifiedExecError::create_session(err.to_string()))?;

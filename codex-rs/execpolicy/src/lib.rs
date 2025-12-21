@@ -3,9 +3,11 @@
 #[macro_use]
 extern crate starlark;
 
+mod amend;
 mod arg_matcher;
 mod arg_resolver;
 mod arg_type;
+mod decision;
 mod error;
 mod exec_call;
 mod execv_checker;
@@ -13,12 +15,16 @@ mod opt;
 mod policy;
 mod policy_parser;
 mod program;
+mod rule;
 mod sed_command;
 mod valid_exec;
 
+pub use amend::AmendError;
+pub use amend::blocking_append_allow_prefix_rule;
 pub use arg_matcher::ArgMatcher;
 pub use arg_resolver::PositionalArg;
 pub use arg_type::ArgType;
+pub use decision::Decision;
 pub use error::Error;
 pub use error::Result;
 pub use exec_call::ExecCall;
@@ -31,6 +37,7 @@ pub use program::MatchedExec;
 pub use program::NegativeExamplePassedCheck;
 pub use program::PositiveExampleFailedCheck;
 pub use program::ProgramSpec;
+pub use rule::RuleMatch;
 pub use sed_command::parse_sed_command;
 pub use valid_exec::MatchedArg;
 pub use valid_exec::MatchedFlag;

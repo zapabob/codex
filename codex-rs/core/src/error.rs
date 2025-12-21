@@ -1,14 +1,16 @@
-use crate::codex::ProcessedResponseItem;
 use crate::exec::ExecToolCallOutput;
 use crate::token_data::KnownPlan;
 use crate::token_data::PlanType;
-use crate::truncate::truncate_middle;
+use crate::truncate::TruncationPolicy;
+use crate::truncate::truncate_text;
 use chrono::DateTime;
 use chrono::Datelike;
 use chrono::Local;
 use chrono::Utc;
 use codex_async_utils::CancelErr;
 use codex_protocol::ConversationId;
+use codex_protocol::protocol::CodexErrorInfo;
+use codex_protocol::protocol::ErrorEvent;
 use codex_protocol::protocol::RateLimitSnapshot;
 use reqwest::StatusCode;
 use serde_json;
@@ -57,9 +59,7 @@ pub enum SandboxErr {
 #[derive(Error, Debug)]
 pub enum CodexErr {
     #[error("turn aborted. Something went wrong? Hit `/feedback` to report the issue.")]
-    TurnAborted {
-        dangling_artifacts: Vec<ProcessedResponseItem>,
-    },
+    TurnAborted,
 
     /// Returned by ResponsesClient when the SSE stream disconnects or errors out **after** the HTTP
     /// handshake has succeeded but **before** it finished emitting `response.completed`.
@@ -98,6 +98,14 @@ pub enum CodexErr {
     /// Unexpected HTTP status code.
     #[error("{0}")]
     UnexpectedStatus(UnexpectedResponseError),
+
+    /// Invalid request.
+    #[error("{0}")]
+    InvalidRequest(String),
+
+    /// Invalid image.
+    #[error("Image poisoning")]
+    InvalidImageRequest(),
 
     #[error("{0}")]
     UsageLimitReached(UsageLimitReachedError),
@@ -163,36 +171,13 @@ pub enum CodexErr {
     #[error(transparent)]
     TokioJoin(#[from] JoinError),
 
-    #[cfg(feature = "dev-orchestrator")]
-    #[error(transparent)]
-    TokioMpscSend(
-        #[from] tokio::sync::mpsc::error::SendError<crate::ai_orchestrator::OrchestrationCommand>,
-    ),
-
-    #[error(transparent)]
-    TokioOneshotRecv(#[from] tokio::sync::oneshot::error::RecvError),
-
     #[error("{0}")]
     EnvVar(EnvVarError),
 }
 
-/// Converts a cancellation error to TurnAborted.
-///
-/// Note: This conversion always initializes `dangling_artifacts` as empty because
-/// `CancelErr` carries artifacts as `serde_json::Value`, but `ProcessedResponseItem`
-/// doesn't implement `Deserialize`. Callers that need to preserve dangling artifacts
-/// should construct `TurnAborted` directly instead of using this `From` implementation.
-///
-/// Future work: Consider refactoring to eliminate the need for dangling artifacts
-/// in error types (see todo comment on `TurnAborted`).
 impl From<CancelErr> for CodexErr {
-    fn from(_cancel_err: CancelErr) -> Self {
-        // Note: cancel_err.dangling_artifacts is ignored because ProcessedResponseItem
-        // cannot be deserialized from Value. Callers needing artifacts should use:
-        //   CodexErr::TurnAborted { dangling_artifacts: vec![...] }
-        CodexErr::TurnAborted {
-            dangling_artifacts: Vec::new(),
-        }
+    fn from(_: CancelErr) -> Self {
+        CodexErr::TurnAborted
     }
 }
 
@@ -450,12 +435,55 @@ impl CodexErr {
         (self as &dyn std::any::Any).downcast_ref::<T>()
     }
 
-    /// Creates a `TurnAborted` error with the given dangling artifacts.
-    ///
-    /// Use this when you have artifacts that should be preserved across the abort,
-    /// rather than converting from `CancelErr` which always results in empty artifacts.
-    pub fn turn_aborted_with_artifacts(dangling_artifacts: Vec<ProcessedResponseItem>) -> Self {
-        CodexErr::TurnAborted { dangling_artifacts }
+    /// Translate core error to client-facing protocol error.
+    pub fn to_codex_protocol_error(&self) -> CodexErrorInfo {
+        match self {
+            CodexErr::ContextWindowExceeded => CodexErrorInfo::ContextWindowExceeded,
+            CodexErr::UsageLimitReached(_)
+            | CodexErr::QuotaExceeded
+            | CodexErr::UsageNotIncluded => CodexErrorInfo::UsageLimitExceeded,
+            CodexErr::RetryLimit(_) => CodexErrorInfo::ResponseTooManyFailedAttempts {
+                http_status_code: self.http_status_code_value(),
+            },
+            CodexErr::ConnectionFailed(_) => CodexErrorInfo::HttpConnectionFailed {
+                http_status_code: self.http_status_code_value(),
+            },
+            CodexErr::ResponseStreamFailed(_) => CodexErrorInfo::ResponseStreamConnectionFailed {
+                http_status_code: self.http_status_code_value(),
+            },
+            CodexErr::RefreshTokenFailed(_) => CodexErrorInfo::Unauthorized,
+            CodexErr::SessionConfiguredNotFirstEvent
+            | CodexErr::InternalServerError
+            | CodexErr::InternalAgentDied => CodexErrorInfo::InternalServerError,
+            CodexErr::UnsupportedOperation(_) | CodexErr::ConversationNotFound(_) => {
+                CodexErrorInfo::BadRequest
+            }
+            CodexErr::Sandbox(_) => CodexErrorInfo::SandboxError,
+            _ => CodexErrorInfo::Other,
+        }
+    }
+
+    pub fn to_error_event(&self, message_prefix: Option<String>) -> ErrorEvent {
+        let error_message = self.to_string();
+        let message: String = match message_prefix {
+            Some(prefix) => format!("{prefix}: {error_message}"),
+            None => error_message,
+        };
+        ErrorEvent {
+            message,
+            codex_error_info: Some(self.to_codex_protocol_error()),
+        }
+    }
+
+    pub fn http_status_code_value(&self) -> Option<u16> {
+        let http_status_code = match self {
+            CodexErr::RetryLimit(err) => Some(err.status),
+            CodexErr::UnexpectedStatus(err) => Some(err.status),
+            CodexErr::ConnectionFailed(err) => err.source.status(),
+            CodexErr::ResponseStreamFailed(err) => err.source.status(),
+            _ => None,
+        };
+        http_status_code.as_ref().map(StatusCode::as_u16)
     }
 }
 
@@ -489,7 +517,10 @@ pub fn get_error_message_ui(e: &CodexErr) -> String {
         _ => e.to_string(),
     };
 
-    truncate_middle(&message, ERROR_MESSAGE_UI_MAX_BYTES).0
+    truncate_text(
+        &message,
+        TruncationPolicy::Bytes(ERROR_MESSAGE_UI_MAX_BYTES),
+    )
 }
 
 #[cfg(test)]
@@ -502,6 +533,10 @@ mod tests {
     use chrono::Utc;
     use codex_protocol::protocol::RateLimitWindow;
     use pretty_assertions::assert_eq;
+    use reqwest::Response;
+    use reqwest::ResponseBuilderExt;
+    use reqwest::StatusCode;
+    use reqwest::Url;
 
     fn rate_limit_snapshot() -> RateLimitSnapshot {
         let primary_reset_at = Utc
@@ -523,6 +558,8 @@ mod tests {
                 window_minutes: Some(120),
                 resets_at: Some(secondary_reset_at),
             }),
+            credits: None,
+            plan_type: None,
         }
     }
 
@@ -594,6 +631,33 @@ mod tests {
             output: Box::new(output),
         });
         assert_eq!(get_error_message_ui(&err), "stdout only");
+    }
+
+    #[test]
+    fn to_error_event_handles_response_stream_failed() {
+        let response = http::Response::builder()
+            .status(StatusCode::TOO_MANY_REQUESTS)
+            .url(Url::parse("http://example.com").unwrap())
+            .body("")
+            .unwrap();
+        let source = Response::from(response).error_for_status_ref().unwrap_err();
+        let err = CodexErr::ResponseStreamFailed(ResponseStreamFailed {
+            source,
+            request_id: Some("req-123".to_string()),
+        });
+
+        let event = err.to_error_event(Some("prefix".to_string()));
+
+        assert_eq!(
+            event.message,
+            "prefix: Error while reading the server response: HTTP status client error (429 Too Many Requests) for url (http://example.com/), request id: req-123"
+        );
+        assert_eq!(
+            event.codex_error_info,
+            Some(CodexErrorInfo::ResponseStreamConnectionFailed {
+                http_status_code: Some(429)
+            })
+        );
     }
 
     #[test]

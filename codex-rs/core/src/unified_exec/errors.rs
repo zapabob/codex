@@ -5,8 +5,9 @@ use thiserror::Error;
 pub(crate) enum UnifiedExecError {
     #[error("Failed to create unified exec session: {message}")]
     CreateSession { message: String },
-    #[error("Unknown process id {process_id}")]
-    UnknownProcessId { process_id: String },
+    // Called "session" in the model's training.
+    #[error("Unknown session id {process_id}")]
+    UnknownSessionId { process_id: String },
     #[error("failed to write to stdin")]
     WriteToStdin,
     #[error("missing command line for unified exec request")]

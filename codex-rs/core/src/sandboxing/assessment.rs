@@ -45,5 +45,3 @@ pub async fn assess_command(
         risk_level: SandboxRiskLevel::High,
     })
 }
-
-

@@ -236,7 +236,7 @@ impl AsyncManagedClient {
             .await
             {
                 Ok(result) => result,
-                Err(CancelErr::Cancelled) => Err(StartupOutcomeError::Cancelled),
+                Err(_) => Err(StartupOutcomeError::Cancelled),
             }
         };
         Self {

@@ -1,4 +1,3 @@
-pub mod gemini;
 mod storage;
 
 use chrono::Utc;
@@ -235,15 +234,6 @@ impl CodexAuth {
             })
     }
 
-    /// Raw internal plan value from the ID token.
-    /// Exposes the underlying `token_data::PlanType` without mapping it to the
-    /// public `AccountPlanType`. Use this when downstream code needs to inspect
-    /// internal/unknown plan strings exactly as issued in the token.
-    pub(crate) fn get_plan_type(&self) -> Option<InternalPlanType> {
-        self.get_current_token_data()
-            .and_then(|t| t.id_token.chatgpt_plan_type)
-    }
-
     fn get_current_auth_json(&self) -> Option<AuthDotJson> {
         #[expect(clippy::unwrap_used)]
         self.auth_dot_json.lock().unwrap().clone()
@@ -343,7 +333,10 @@ pub fn save_auth(
 }
 
 /// Load CLI auth data using the configured credential store backend.
-/// Returns `None` when no credentials are stored.
+/// Returns `None` when no credentials are stored. This function is
+/// provided only for tests. Production code should not directly load
+/// from the auth.json storage. It should use the AuthManager abstraction
+/// instead.
 pub fn load_auth_dot_json(
     codex_home: &Path,
     auth_credentials_store_mode: AuthCredentialsStoreMode,
@@ -1036,10 +1029,6 @@ mod tests {
             .expect("auth available");
 
         pretty_assertions::assert_eq!(auth.account_plan_type(), Some(AccountPlanType::Pro));
-        pretty_assertions::assert_eq!(
-            auth.get_plan_type(),
-            Some(InternalPlanType::Known(InternalKnownPlan::Pro))
-        );
     }
 
     #[test]
@@ -1060,10 +1049,6 @@ mod tests {
             .expect("auth available");
 
         pretty_assertions::assert_eq!(auth.account_plan_type(), Some(AccountPlanType::Unknown));
-        pretty_assertions::assert_eq!(
-            auth.get_plan_type(),
-            Some(InternalPlanType::Unknown("mystery-tier".to_string()))
-        );
     }
 }
 
@@ -1219,5 +1204,9 @@ impl AuthManager {
         // Always reload to clear any cached auth (even if file absent).
         self.reload();
         Ok(removed)
+    }
+
+    pub fn get_auth_mode(&self) -> Option<AuthMode> {
+        self.auth().map(|a| a.mode)
     }
 }

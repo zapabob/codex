@@ -1,8 +1,4 @@
-// Allow expect/unwrap for locale parsing - en-US and "und" are guaranteed to parse
-#![allow(clippy::expect_used)]
-#![allow(clippy::unwrap_used)]
-
-use std::rc::Rc;
+use std::sync::OnceLock;
 
 use icu_decimal::DecimalFormatter;
 use icu_decimal::input::Decimal;
@@ -15,18 +11,15 @@ fn make_local_formatter() -> Option<DecimalFormatter> {
 }
 
 fn make_en_us_formatter() -> DecimalFormatter {
-    let loc: Locale = "en-US".parse().expect("en-US locale should always parse");
+    #![allow(clippy::expect_used)]
+    let loc: Locale = "en-US".parse().expect("en-US wasn't a valid locale");
     DecimalFormatter::try_new(loc.into(), DecimalFormatterOptions::default())
-        .expect("DecimalFormatter creation with en-US should not fail")
+        .expect("en-US wasn't a valid locale")
 }
 
-fn formatter() -> Rc<DecimalFormatter> {
-    thread_local! {
-        static FORMATTER: Rc<DecimalFormatter> =
-            Rc::new(make_local_formatter().unwrap_or_else(make_en_us_formatter));
-    }
-
-    FORMATTER.with(Rc::clone)
+fn formatter() -> &'static DecimalFormatter {
+    static FORMATTER: OnceLock<DecimalFormatter> = OnceLock::new();
+    FORMATTER.get_or_init(|| make_local_formatter().unwrap_or_else(make_en_us_formatter))
 }
 
 /// Format an i64 with locale-aware digit separators (e.g. "12345" -> "12,345"
@@ -76,8 +69,7 @@ fn format_si_suffix_with_formatter(n: i64, formatter: &DecimalFormatter) -> Stri
 ///   - 1200 -> "1.20K"
 ///   - 123456789 -> "123M"
 pub fn format_si_suffix(n: i64) -> String {
-    let fmt = formatter();
-    format_si_suffix_with_formatter(n, fmt.as_ref())
+    format_si_suffix_with_formatter(n, formatter())
 }
 
 #[cfg(test)]

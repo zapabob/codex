@@ -19,8 +19,8 @@ use crate::tools::router::ToolCall;
 use crate::tools::router::ToolRouter;
 use codex_protocol::models::FunctionCallOutputPayload;
 use codex_protocol::models::ResponseInputItem;
-use codex_utils_readiness::Readiness;
 
+#[derive(Clone)]
 pub(crate) struct ToolCallRuntime {
     router: Arc<ToolRouter>,
     session: Arc<Session>,
@@ -59,7 +59,6 @@ impl ToolCallRuntime {
         let tracker = Arc::clone(&self.tracker);
         let lock = Arc::clone(&self.parallel_execution);
         let started = Instant::now();
-        let readiness = self.turn_context.tool_call_gate.clone();
 
         let dispatch_span = trace_span!(
             "dispatch_tool_call",
@@ -78,9 +77,6 @@ impl ToolCallRuntime {
                         Ok(Self::aborted_response(&call, secs))
                     },
                     res = async {
-                        tracing::info!("waiting for tool gate");
-                        readiness.wait_ready().await;
-                        tracing::info!("tool gate released");
                         let _guard = if supports_parallel {
                             Either::Left(lock.read().await)
                         } else {
@@ -132,7 +128,7 @@ impl ToolCallRuntime {
 
     fn abort_message(call: &ToolCall, secs: f32) -> String {
         match call.tool_name.as_str() {
-            "shell" | "container.exec" | "local_shell" | "unified_exec" => {
+            "shell" | "container.exec" | "local_shell" | "shell_command" | "unified_exec" => {
                 format!("Wall time: {secs:.1} seconds\naborted by user")
             }
             _ => format!("aborted by user after {secs:.1}s"),

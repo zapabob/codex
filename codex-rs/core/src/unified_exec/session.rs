@@ -2,7 +2,6 @@
 
 use std::collections::VecDeque;
 use std::sync::Arc;
-
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
 use tokio::sync::mpsc;
@@ -15,11 +14,13 @@ use crate::exec::ExecToolCallOutput;
 use crate::exec::SandboxType;
 use crate::exec::StreamOutput;
 use crate::exec::is_likely_sandbox_denied;
-use crate::truncate::truncate_middle;
+use crate::truncate::TruncationPolicy;
+use crate::truncate::formatted_truncate_text;
 use codex_utils_pty::ExecCommandSession;
 use codex_utils_pty::SpawnedPty;
 
 use super::UNIFIED_EXEC_OUTPUT_MAX_BYTES;
+use super::UNIFIED_EXEC_OUTPUT_MAX_TOKENS;
 use super::UnifiedExecError;
 
 #[derive(Debug, Default)]
@@ -66,7 +67,11 @@ impl OutputBufferState {
 }
 
 pub(crate) type OutputBuffer = Arc<Mutex<OutputBufferState>>;
-pub(crate) type OutputHandles = (OutputBuffer, Arc<Notify>);
+pub(crate) struct OutputHandles {
+    pub(crate) output_buffer: OutputBuffer,
+    pub(crate) output_notify: Arc<Notify>,
+    pub(crate) cancellation_token: CancellationToken,
+}
 
 #[derive(Debug)]
 pub(crate) struct UnifiedExecSession {
@@ -103,7 +108,7 @@ impl UnifiedExecSession {
                     }
                     Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
                     Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
-                }
+                };
             }
         });
 
@@ -123,10 +128,11 @@ impl UnifiedExecSession {
     }
 
     pub(super) fn output_handles(&self) -> OutputHandles {
-        (
-            Arc::clone(&self.output_buffer),
-            Arc::clone(&self.output_notify),
-        )
+        OutputHandles {
+            output_buffer: Arc::clone(&self.output_buffer),
+            output_notify: Arc::clone(&self.output_notify),
+            cancellation_token: self.cancellation_token.clone(),
+        }
     }
 
     pub(super) fn output_receiver(&self) -> tokio::sync::broadcast::Receiver<Vec<u8>> {
@@ -160,15 +166,11 @@ impl UnifiedExecSession {
         guard.snapshot()
     }
 
-    fn sandbox_type(&self) -> SandboxType {
+    pub(crate) fn sandbox_type(&self) -> SandboxType {
         self.sandbox_type
     }
 
     pub(super) async fn check_for_sandbox_denial(&self) -> Result<(), UnifiedExecError> {
-        if self.sandbox_type() == SandboxType::None || !self.has_exited() {
-            return Ok(());
-        }
-
         let _ =
             tokio::time::timeout(Duration::from_millis(20), self.output_notify.notified()).await;
 
@@ -178,27 +180,40 @@ impl UnifiedExecSession {
             aggregated.extend_from_slice(&chunk);
         }
         let aggregated_text = String::from_utf8_lossy(&aggregated).to_string();
-        let exit_code = self.exit_code().unwrap_or(-1);
+        self.check_for_sandbox_denial_with_text(&aggregated_text)
+            .await?;
 
+        Ok(())
+    }
+
+    pub(super) async fn check_for_sandbox_denial_with_text(
+        &self,
+        text: &str,
+    ) -> Result<(), UnifiedExecError> {
+        let sandbox_type = self.sandbox_type();
+        if sandbox_type == SandboxType::None || !self.has_exited() {
+            return Ok(());
+        }
+
+        let exit_code = self.exit_code().unwrap_or(-1);
         let exec_output = ExecToolCallOutput {
             exit_code,
-            stdout: StreamOutput::new(aggregated_text.clone()),
-            stderr: StreamOutput::new(String::new()),
-            aggregated_output: StreamOutput::new(aggregated_text.clone()),
-            duration: Duration::ZERO,
-            timed_out: false,
+            stderr: StreamOutput::new(text.to_string()),
+            aggregated_output: StreamOutput::new(text.to_string()),
+            ..Default::default()
         };
-
-        if is_likely_sandbox_denied(self.sandbox_type(), &exec_output) {
-            let (snippet, _) = truncate_middle(&aggregated_text, UNIFIED_EXEC_OUTPUT_MAX_BYTES);
+        if is_likely_sandbox_denied(sandbox_type, &exec_output) {
+            let snippet = formatted_truncate_text(
+                text,
+                TruncationPolicy::Tokens(UNIFIED_EXEC_OUTPUT_MAX_TOKENS),
+            );
             let message = if snippet.is_empty() {
-                format!("exit code {exit_code}")
+                format!("Session exited with code {exit_code}")
             } else {
                 snippet
             };
             return Err(UnifiedExecError::sandbox_denied(message, exec_output));
         }
-
         Ok(())
     }
 
@@ -213,25 +228,36 @@ impl UnifiedExecSession {
         } = spawned;
         let managed = Self::new(session, output_rx, sandbox_type);
 
-        let exit_ready = match exit_rx.try_recv() {
-            Ok(_) | Err(TryRecvError::Closed) => true,
-            Err(TryRecvError::Empty) => false,
-        };
+        let exit_ready = matches!(exit_rx.try_recv(), Ok(_) | Err(TryRecvError::Closed));
 
         if exit_ready {
+            managed.signal_exit();
             managed.check_for_sandbox_denial().await?;
             return Ok(managed);
         }
 
-        tokio::pin!(exit_rx);
-        if tokio::time::timeout(Duration::from_millis(50), &mut exit_rx)
+        if tokio::time::timeout(Duration::from_millis(150), &mut exit_rx)
             .await
             .is_ok()
         {
+            managed.signal_exit();
             managed.check_for_sandbox_denial().await?;
+            return Ok(managed);
         }
 
+        tokio::spawn({
+            let cancellation_token = managed.cancellation_token.clone();
+            async move {
+                let _ = exit_rx.await;
+                cancellation_token.cancel();
+            }
+        });
+
         Ok(managed)
+    }
+
+    fn signal_exit(&self) {
+        self.cancellation_token.cancel();
     }
 }
 

@@ -10,10 +10,9 @@ pub struct TestCodexExecBuilder {
 }
 
 impl TestCodexExecBuilder {
-    #[allow(deprecated)]
     pub fn cmd(&self) -> assert_cmd::Command {
-        let bin_path = assert_cmd::cargo::cargo_bin("codex-exec");
-        let mut cmd = assert_cmd::Command::new(bin_path);
+        let mut cmd = assert_cmd::Command::cargo_bin("codex-exec")
+            .expect("should find binary for codex-exec");
         cmd.current_dir(self.cwd.path())
             .env("CODEX_HOME", self.home.path())
             .env(CODEX_API_KEY_ENV_VAR, "dummy");

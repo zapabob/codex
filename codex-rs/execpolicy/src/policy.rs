@@ -12,6 +12,7 @@ use crate::error::Result;
 use crate::policy_parser::ForbiddenProgramRegex;
 use crate::program::PositiveExampleFailedCheck;
 
+#[derive(Debug)]
 pub struct Policy {
     programs: MultiMap<String, ProgramSpec>,
     forbidden_program_regexes: Vec<ForbiddenProgramRegex>,

@@ -33,10 +33,12 @@ pub enum OtelExporter {
     OtlpGrpc {
         endpoint: String,
         headers: HashMap<String, String>,
+        tls: Option<OtelTlsConfig>,
     },
     OtlpHttp {
         endpoint: String,
         headers: HashMap<String, String>,
         protocol: OtelHttpProtocol,
+        tls: Option<OtelTlsConfig>,
     },
 }

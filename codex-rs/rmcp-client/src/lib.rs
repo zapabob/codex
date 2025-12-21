@@ -3,6 +3,7 @@ mod find_codex_home;
 mod logging_client_handler;
 pub mod oauth;
 mod perform_oauth_login;
+mod program_resolver;
 mod rmcp_client;
 mod utils;
 
@@ -20,4 +21,7 @@ pub use perform_oauth_login::OauthLoginHandle;
 pub use perform_oauth_login::perform_oauth_login;
 pub use perform_oauth_login::perform_oauth_login_return_url;
 pub use rmcp::model::ElicitationAction;
+pub use rmcp_client::Elicitation;
+pub use rmcp_client::ElicitationResponse;
 pub use rmcp_client::RmcpClient;
+pub use rmcp_client::SendElicitation;

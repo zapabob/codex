@@ -1,6 +1,6 @@
 {
   "name": "codex-mcp-server",
-  "version": "0.47.0",
+  "version": "2.6.0",
   "description": "Codex MCP Server - Sub-Agent Delegation & Deep Research",
   "main": "dist/index.js",
   "bin": {

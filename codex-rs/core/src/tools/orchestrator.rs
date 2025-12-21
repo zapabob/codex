@@ -10,10 +10,13 @@ use crate::error::SandboxErr;
 use crate::exec::ExecToolCallOutput;
 use crate::sandboxing::SandboxManager;
 use crate::tools::sandboxing::ApprovalCtx;
+use crate::tools::sandboxing::ExecApprovalRequirement;
 use crate::tools::sandboxing::SandboxAttempt;
+use crate::tools::sandboxing::SandboxOverride;
 use crate::tools::sandboxing::ToolCtx;
 use crate::tools::sandboxing::ToolError;
 use crate::tools::sandboxing::ToolRuntime;
+use crate::tools::sandboxing::default_exec_approval_requirement;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::ReviewDecision;
 
@@ -46,39 +49,49 @@ impl ToolOrchestrator {
         let otel_cfg = codex_otel::otel_manager::ToolDecisionSource::Config;
 
         // 1) Approval
-        let needs_initial_approval =
-            tool.wants_initial_approval(req, approval_policy, &turn_ctx.sandbox_policy);
         let mut already_approved = false;
 
-        if needs_initial_approval {
-            let approval_ctx = ApprovalCtx {
-                session: tool_ctx.session,
-                turn: turn_ctx,
-                call_id: &tool_ctx.call_id,
-                retry_reason: None,
-            };
-            let decision = tool.start_approval_async(req, approval_ctx).await;
-
-            otel.tool_decision(otel_tn, otel_ci, decision.clone(), otel_user.clone());
-
-            match decision {
-                ReviewDecision::Denied | ReviewDecision::Abort => {
-                    return Err(ToolError::Rejected("rejected by user".to_string()));
-                }
-                ReviewDecision::Approved | ReviewDecision::ApprovedForSession => {}
+        let requirement = tool.exec_approval_requirement(req).unwrap_or_else(|| {
+            default_exec_approval_requirement(approval_policy, &turn_ctx.sandbox_policy)
+        });
+        match requirement {
+            ExecApprovalRequirement::Skip { .. } => {
+                otel.tool_decision(otel_tn, otel_ci, ReviewDecision::Approved, otel_cfg);
             }
-            already_approved = true;
-        } else {
-            otel.tool_decision(otel_tn, otel_ci, ReviewDecision::Approved, otel_cfg);
+            ExecApprovalRequirement::Forbidden { reason } => {
+                return Err(ToolError::Rejected(reason));
+            }
+            ExecApprovalRequirement::NeedsApproval { reason, .. } => {
+                let approval_ctx = ApprovalCtx {
+                    session: tool_ctx.session,
+                    turn: turn_ctx,
+                    call_id: &tool_ctx.call_id,
+                    retry_reason: reason,
+                };
+                let decision = tool.start_approval_async(req, approval_ctx).await;
+
+                otel.tool_decision(otel_tn, otel_ci, decision.clone(), otel_user.clone());
+
+                match decision {
+                    ReviewDecision::Denied | ReviewDecision::Abort => {
+                        return Err(ToolError::Rejected("rejected by user".to_string()));
+                    }
+                    ReviewDecision::Approved
+                    | ReviewDecision::ApprovedExecpolicyAmendment { .. }
+                    | ReviewDecision::ApprovedForSession => {}
+                }
+                already_approved = true;
+            }
         }
 
         // 2) First attempt under the selected sandbox.
-        let mut initial_sandbox = self
-            .sandbox
-            .select_initial(&turn_ctx.sandbox_policy, tool.sandbox_preference());
-        if tool.wants_escalated_first_attempt(req) {
-            initial_sandbox = crate::exec::SandboxType::None;
-        }
+        let initial_sandbox = match tool.sandbox_mode_for_first_attempt(req) {
+            SandboxOverride::BypassSandboxFirstAttempt => crate::exec::SandboxType::None,
+            SandboxOverride::NoOverride => self
+                .sandbox
+                .select_initial(&turn_ctx.sandbox_policy, tool.sandbox_preference()),
+        };
+
         // Platform-specific flag gating is handled by SandboxManager::select_initial
         // via crate::safety::get_platform_sandbox().
         let initial_attempt = SandboxAttempt {
@@ -125,7 +138,9 @@ impl ToolOrchestrator {
                         ReviewDecision::Denied | ReviewDecision::Abort => {
                             return Err(ToolError::Rejected("rejected by user".to_string()));
                         }
-                        ReviewDecision::Approved | ReviewDecision::ApprovedForSession => {}
+                        ReviewDecision::Approved
+                        | ReviewDecision::ApprovedExecpolicyAmendment { .. }
+                        | ReviewDecision::ApprovedForSession => {}
                     }
                 }
 

@@ -2565,7 +2565,7 @@ async fn try_run_turn(
             .await
         {
             Ok(event) => event,
-            Err(codex_async_utils::CancelErr::Cancelled) => break Err(CodexErr::TurnAborted),
+            Err(_) => break Err(CodexErr::TurnAborted),
         };
 
         let event = match event {

@@ -4,23 +4,22 @@ Runtime: shell
 Executes shell requests under the orchestrator: asks for approval when needed,
 builds a CommandSpec, and runs it under the current SandboxAttempt.
 */
-use crate::command_safety::is_dangerous_command::requires_initial_appoval;
 use crate::exec::ExecToolCallOutput;
-use crate::protocol::SandboxPolicy;
 use crate::sandboxing::SandboxPermissions;
 use crate::sandboxing::execute_env;
 use crate::tools::runtimes::build_command_spec;
 use crate::tools::runtimes::maybe_wrap_shell_lc_with_snapshot;
 use crate::tools::sandboxing::Approvable;
 use crate::tools::sandboxing::ApprovalCtx;
+use crate::tools::sandboxing::ExecApprovalRequirement;
 use crate::tools::sandboxing::SandboxAttempt;
+use crate::tools::sandboxing::SandboxOverride;
 use crate::tools::sandboxing::Sandboxable;
 use crate::tools::sandboxing::SandboxablePreference;
 use crate::tools::sandboxing::ToolCtx;
 use crate::tools::sandboxing::ToolError;
 use crate::tools::sandboxing::ToolRuntime;
 use crate::tools::sandboxing::with_cached_approval;
-use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::ReviewDecision;
 use futures::future::BoxFuture;
 use std::path::PathBuf;
@@ -33,6 +32,7 @@ pub struct ShellRequest {
     pub env: std::collections::HashMap<String, String>,
     pub sandbox_permissions: SandboxPermissions,
     pub justification: Option<String>,
+    pub exec_approval_requirement: ExecApprovalRequirement,
 }
 
 #[derive(Default)]
@@ -97,29 +97,40 @@ impl Approvable<ShellRequest> for ShellRuntime {
         Box::pin(async move {
             with_cached_approval(&session.services, key, move || async move {
                 session
-                    .request_command_approval(turn, call_id, command, cwd, reason, None, None)
+                    .request_command_approval(
+                        turn,
+                        call_id,
+                        command,
+                        cwd,
+                        reason,
+                        req.exec_approval_requirement
+                            .proposed_execpolicy_amendment()
+                            .cloned(),
+                    )
                     .await
             })
             .await
         })
     }
 
-    fn wants_initial_approval(
-        &self,
-        req: &ShellRequest,
-        policy: AskForApproval,
-        sandbox_policy: &SandboxPolicy,
-    ) -> bool {
-        requires_initial_appoval(
-            policy,
-            sandbox_policy,
-            &req.command,
-            req.sandbox_permissions.requires_escalated_permissions(),
-        )
+    fn exec_approval_requirement(&self, req: &ShellRequest) -> Option<ExecApprovalRequirement> {
+        Some(req.exec_approval_requirement.clone())
     }
 
-    fn wants_escalated_first_attempt(&self, req: &ShellRequest) -> bool {
-        req.sandbox_permissions.requires_escalated_permissions()
+    fn sandbox_mode_for_first_attempt(&self, req: &ShellRequest) -> SandboxOverride {
+        if req.sandbox_permissions.requires_escalated_permissions()
+            || matches!(
+                req.exec_approval_requirement,
+                ExecApprovalRequirement::Skip {
+                    bypass_sandbox: true,
+                    ..
+                }
+            )
+        {
+            SandboxOverride::BypassSandboxFirstAttempt
+        } else {
+            SandboxOverride::NoOverride
+        }
     }
 }
 
@@ -138,14 +149,14 @@ impl ToolRuntime<ShellRequest, ExecToolCallOutput> for ShellRuntime {
             &command,
             &req.cwd,
             &req.env,
-            req.timeout_ms,
+            req.timeout_ms.into(),
             req.sandbox_permissions,
             req.justification.clone(),
         )?;
         let env = attempt
-            .env_for(&spec)
+            .env_for(spec)
             .map_err(|err| ToolError::Codex(err.into()))?;
-        let out = execute_env(&env, attempt.policy, Self::stdout_stream(ctx))
+        let out = execute_env(env, attempt.policy, Self::stdout_stream(ctx))
             .await
             .map_err(ToolError::Codex)?;
         Ok(out)

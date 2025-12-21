@@ -1,12 +1,17 @@
+use std::path::PathBuf;
+
 use tree_sitter::Node;
 use tree_sitter::Parser;
 use tree_sitter::Tree;
-use tree_sitter_bash::LANGUAGE;
+use tree_sitter_bash::LANGUAGE as BASH;
+
+use crate::shell::ShellType;
+use crate::shell::detect_shell_type;
 
 /// Parse the provided bash source using tree-sitter-bash, returning a Tree on
 /// success or None if parsing failed.
 pub fn try_parse_shell(shell_lc_arg: &str) -> Option<Tree> {
-    let lang = LANGUAGE.try_into().unwrap();
+    let lang = BASH.into();
     let mut parser = Parser::new();
     #[expect(clippy::expect_used)]
     parser.set_language(&lang).expect("load bash grammar");
@@ -88,17 +93,26 @@ pub fn try_parse_word_only_commands_sequence(tree: &Tree, src: &str) -> Option<V
     Some(commands)
 }
 
+pub fn extract_bash_command(command: &[String]) -> Option<(&str, &str)> {
+    let [shell, flag, script] = command else {
+        return None;
+    };
+    if !matches!(flag.as_str(), "-lc" | "-c")
+        || !matches!(
+            detect_shell_type(&PathBuf::from(shell)),
+            Some(ShellType::Zsh) | Some(ShellType::Bash) | Some(ShellType::Sh)
+        )
+    {
+        return None;
+    }
+    Some((shell, script))
+}
+
 /// Returns the sequence of plain commands within a `bash -lc "..."` or
 /// `zsh -lc "..."` invocation when the script only contains word-only commands
 /// joined by safe operators.
 pub fn parse_shell_lc_plain_commands(command: &[String]) -> Option<Vec<Vec<String>>> {
-    let [shell, flag, script] = command else {
-        return None;
-    };
-
-    if flag != "-lc" || !(shell == "bash" || shell == "zsh") {
-        return None;
-    }
+    let (_, script) = extract_bash_command(command)?;
 
     let tree = try_parse_shell(script)?;
     try_parse_word_only_commands_sequence(&tree, script)

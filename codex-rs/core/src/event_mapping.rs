@@ -15,6 +15,7 @@ use uuid::Uuid;
 
 use crate::user_instructions::SkillInstructions;
 use crate::user_instructions::UserInstructions;
+use crate::user_shell_command::is_user_shell_command_text;
 
 fn is_session_prefix(text: &str) -> bool {
     let trimmed = text.trim_start();
@@ -34,7 +35,7 @@ fn parse_user_message(message: &[ContentItem]) -> Option<UserMessageItem> {
     for content_item in message.iter() {
         match content_item {
             ContentItem::InputText { text } => {
-                if is_session_prefix(text) {
+                if is_session_prefix(text) || is_user_shell_command_text(text) {
                     return None;
                 }
                 content.push(UserInput::Text { text: text.clone() });
@@ -119,7 +120,7 @@ pub fn parse_turn_item(item: &ResponseItem) -> Option<TurnItem> {
             ..
         } => Some(TurnItem::WebSearch(WebSearchItem {
             id: id.clone().unwrap_or_default(),
-            query: query.clone(),
+            query: query.clone().unwrap_or_default(),
         })),
         _ => None,
     }
@@ -316,7 +317,7 @@ mod tests {
             id: Some("ws_1".to_string()),
             status: Some("completed".to_string()),
             action: WebSearchAction::Search {
-                query: "weather".to_string(),
+                query: Some("weather".to_string()),
             },
         };
 

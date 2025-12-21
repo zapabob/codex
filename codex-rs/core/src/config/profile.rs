@@ -2,10 +2,10 @@ use codex_utils_absolute_path::AbsolutePathBuf;
 use serde::Deserialize;
 
 use crate::protocol::AskForApproval;
-use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode;
 use codex_protocol::config_types::Verbosity;
+use codex_protocol::openai_models::ReasoningEffort;
 
 /// Collection of common configuration options that a user can define as a unit
 /// in `config.toml`.
@@ -32,6 +32,7 @@ pub struct ConfigProfile {
     /// Optional feature toggles scoped to this profile.
     #[serde(default)]
     pub features: Option<crate::features::FeaturesToml>,
+    pub oss_provider: Option<String>,
 }
 
 impl From<ConfigProfile> for codex_app_server_protocol::Profile {

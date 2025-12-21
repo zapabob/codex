@@ -1,11 +1,7 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use anyhow::Result;
 use codex_protocol::protocol::McpAuthStatus;
-#[cfg(feature = "rmcp")]
-use codex_rmcp_client::OAuthCredentialsStoreMode;
-#[cfg(feature = "rmcp")]
-use codex_rmcp_client::determine_streamable_http_auth_status;
 use codex_rmcp_client::OAuthCredentialsStoreMode;
 use codex_rmcp_client::determine_streamable_http_auth_status;
 use futures::future::join_all;
@@ -23,7 +19,7 @@ pub struct McpAuthStatusEntry {
 pub async fn compute_auth_statuses<'a, I>(
     servers: I,
     store_mode: OAuthCredentialsStoreMode,
-) -> BTreeMap<String, McpAuthStatusEntry>
+) -> HashMap<String, McpAuthStatusEntry>
 where
     I: IntoIterator<Item = (&'a String, &'a McpServerConfig)>,
 {
