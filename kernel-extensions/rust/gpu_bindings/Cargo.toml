@@ -1,6 +1,6 @@
 [package]
 name = "gpu-bindings"
-version = "2.6.0"
+version = "2.7.0"
 edition = "2024"
 authors = ["zapabob"]
 license = "Apache-2.0"

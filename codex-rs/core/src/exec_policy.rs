@@ -7,11 +7,13 @@ use crate::command_safety::is_dangerous_command::requires_initial_appoval;
 use codex_execpolicy::AmendError;
 use codex_execpolicy::Decision;
 use codex_execpolicy::Error as ExecPolicyRuleError;
-use codex_execpolicy::Evaluation;
+use codex_execpolicy::ExecCall;
+use codex_execpolicy::MatchedExec;
 use codex_execpolicy::Policy;
 use codex_execpolicy::PolicyParser;
 use codex_execpolicy::RuleMatch;
 use codex_execpolicy::blocking_append_allow_prefix_rule;
+use multimap::MultiMap;
 use codex_protocol::approvals::ExecPolicyAmendment;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::SandboxPolicy;
@@ -85,7 +87,14 @@ pub(crate) async fn load_exec_policy_for_features(
     codex_home: &Path,
 ) -> Result<Policy, ExecPolicyError> {
     if !features.enabled(Feature::ExecPolicy) {
-        Ok(Policy::empty())
+        Policy::new(MultiMap::new(), Vec::new(), Vec::new())
+            .map_err(|e| ExecPolicyError::ParsePolicy {
+                path: "empty".to_string(),
+                source: codex_execpolicy::Error::InvalidField {
+                    field: "empty",
+                    reason: format!("failed to create empty policy: {e}"),
+                },
+            })
     } else {
         load_exec_policy(codex_home).await
     }
@@ -95,7 +104,20 @@ pub async fn load_exec_policy(codex_home: &Path) -> Result<Policy, ExecPolicyErr
     let policy_dir = codex_home.join(RULES_DIR_NAME);
     let policy_paths = collect_policy_files(&policy_dir).await?;
 
-    let mut parser = PolicyParser::new();
+    if policy_paths.is_empty() {
+        use codex_execpolicy::get_default_policy;
+        return get_default_policy().map_err(|e| ExecPolicyError::ParsePolicy {
+            path: "default".to_string(),
+            source: codex_execpolicy::Error::InvalidField {
+                field: "default",
+                reason: format!("failed to load default policy: {e}"),
+            },
+        });
+    }
+
+    // Combine all policy files into one source
+    let mut combined_source = String::new();
+    let mut combined_content = String::new();
     for policy_path in &policy_paths {
         let contents =
             fs::read_to_string(policy_path)
@@ -105,15 +127,21 @@ pub async fn load_exec_policy(codex_home: &Path) -> Result<Policy, ExecPolicyErr
                     source,
                 })?;
         let identifier = policy_path.to_string_lossy().to_string();
-        parser
-            .parse(&identifier, &contents)
-            .map_err(|source| ExecPolicyError::ParsePolicy {
-                path: identifier,
-                source,
-            })?;
+        combined_source.push_str(&format!("# {}\n", identifier));
+        combined_content.push_str(&contents);
+        combined_content.push('\n');
     }
 
-    let policy = parser.build();
+    let parser = PolicyParser::new(&combined_source, &combined_content);
+    let policy = parser
+        .parse()
+        .map_err(|e| ExecPolicyError::ParsePolicy {
+            path: format!("combined from {} files", policy_paths.len()),
+            source: codex_execpolicy::Error::InvalidField {
+                field: "combined",
+                reason: format!("failed to parse combined policy: {e}"),
+            },
+        })?;
     tracing::debug!(
         "loaded execpolicy from {} files in {}",
         policy_paths.len(),
@@ -146,10 +174,15 @@ pub(crate) async fn append_execpolicy_amendment_and_update(
         source,
     })?;
 
-    current_policy
-        .write()
-        .await
-        .add_prefix_rule(&prefix, Decision::Allow)?;
+    // Reload policy from disk to reflect the changes
+    let reloaded_policy = load_exec_policy(codex_home).await
+        .map_err(|e| ExecPolicyUpdateError::AddRule {
+            source: codex_execpolicy::Error::InvalidField {
+                field: "reload",
+                reason: format!("failed to reload policy: {e}"),
+            },
+        })?;
+    *current_policy.write().await = reloaded_policy;
 
     Ok(())
 }
@@ -206,6 +239,12 @@ fn try_derive_execpolicy_amendment_for_allow_rules(
         })
 }
 
+/// Evaluation result for multiple commands
+struct Evaluation {
+    decision: Decision,
+    matched_rules: Vec<RuleMatch>,
+}
+
 /// Only return PROMPT_REASON when an execpolicy rule drove the prompt decision.
 fn derive_prompt_reason(evaluation: &Evaluation) -> Option<String> {
     evaluation.matched_rules.iter().find_map(|rule_match| {
@@ -234,7 +273,51 @@ pub(crate) async fn create_exec_approval_requirement_for_command(
         }
     };
     let policy = exec_policy.read().await;
-    let evaluation = policy.check_multiple(commands.iter(), &heuristics_fallback);
+    
+    // Check each command individually and aggregate results
+    let mut matched_rules = Vec::new();
+    let mut overall_decision = Decision::Allow;
+    
+    for cmd in &commands {
+        let exec_call = ExecCall {
+            program: cmd[0].clone(),
+            args: cmd[1..].to_vec(),
+        };
+        
+        match policy.check(&exec_call) {
+            Ok(MatchedExec::Forbidden { reason, .. }) => {
+                overall_decision = Decision::Forbidden;
+                matched_rules.push(RuleMatch::PrefixRuleMatch {
+                    matched_prefix: cmd.clone(),
+                    decision: Decision::Forbidden,
+                });
+                break; // Forbidden takes precedence
+            }
+            Ok(MatchedExec::Match { .. }) => {
+                // Command is allowed by policy
+                matched_rules.push(RuleMatch::PrefixRuleMatch {
+                    matched_prefix: cmd.clone(),
+                    decision: Decision::Allow,
+                });
+            }
+            Err(_) => {
+                // No policy match, use heuristics
+                let heuristics_decision = heuristics_fallback(cmd);
+                if heuristics_decision == Decision::Prompt && overall_decision != Decision::Forbidden {
+                    overall_decision = Decision::Prompt;
+                }
+                matched_rules.push(RuleMatch::HeuristicsRuleMatch {
+                    command: cmd.clone(),
+                    decision: heuristics_decision,
+                });
+            }
+        }
+    }
+    
+    let evaluation = Evaluation {
+        decision: overall_decision,
+        matched_rules,
+    };
 
     match evaluation.decision {
         Decision::Forbidden => ExecApprovalRequirement::Forbidden {
@@ -338,17 +421,14 @@ mod tests {
             .await
             .expect("policy result");
 
-        let commands = [vec!["rm".to_string()]];
-        assert_eq!(
-            Evaluation {
-                decision: Decision::Allow,
-                matched_rules: vec![RuleMatch::HeuristicsRuleMatch {
-                    command: vec!["rm".to_string()],
-                    decision: Decision::Allow
-                }],
-            },
-            policy.check_multiple(commands.iter(), &|_| Decision::Allow)
-        );
+        // Empty policy should allow all commands via heuristics
+        let exec_call = ExecCall {
+            program: "rm".to_string(),
+            args: Vec::new(),
+        };
+        let result = policy.check(&exec_call);
+        // Should return an error (NoSpecForProgram) which means heuristics will be used
+        assert!(result.is_err());
         assert!(!temp_dir.path().join(RULES_DIR_NAME).exists());
     }
 
@@ -378,17 +458,15 @@ mod tests {
         let policy = load_exec_policy(temp_dir.path())
             .await
             .expect("policy result");
-        let command = [vec!["rm".to_string()]];
-        assert_eq!(
-            Evaluation {
-                decision: Decision::Forbidden,
-                matched_rules: vec![RuleMatch::PrefixRuleMatch {
-                    matched_prefix: vec!["rm".to_string()],
-                    decision: Decision::Forbidden
-                }],
-            },
-            policy.check_multiple(command.iter(), &|_| Decision::Allow)
-        );
+        let exec_call = ExecCall {
+            program: "rm".to_string(),
+            args: Vec::new(),
+        };
+        let result = policy.check(&exec_call);
+        assert!(matches!(
+            result,
+            Ok(MatchedExec::Forbidden { .. })
+        ));
     }
 
     #[tokio::test]
@@ -421,11 +499,8 @@ mod tests {
         let policy_src = r#"
 prefix_rule(pattern=["rm"], decision="forbidden")
 "#;
-        let mut parser = PolicyParser::new();
-        parser
-            .parse("test.rules", policy_src)
-            .expect("parse policy");
-        let policy = Arc::new(RwLock::new(parser.build()));
+        let parser = PolicyParser::new("test.rules", policy_src);
+        let policy = Arc::new(RwLock::new(parser.parse().expect("parse policy")));
 
         let forbidden_script = vec![
             "bash".to_string(),
@@ -454,11 +529,8 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn exec_approval_requirement_prefers_execpolicy_match() {
         let policy_src = r#"prefix_rule(pattern=["rm"], decision="prompt")"#;
-        let mut parser = PolicyParser::new();
-        parser
-            .parse("test.rules", policy_src)
-            .expect("parse policy");
-        let policy = Arc::new(RwLock::new(parser.build()));
+        let parser = PolicyParser::new("test.rules", policy_src);
+        let policy = Arc::new(RwLock::new(parser.parse().expect("parse policy")));
         let command = vec!["rm".to_string()];
 
         let requirement = create_exec_approval_requirement_for_command(
@@ -483,11 +555,8 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn exec_approval_requirement_respects_approval_policy() {
         let policy_src = r#"prefix_rule(pattern=["rm"], decision="prompt")"#;
-        let mut parser = PolicyParser::new();
-        parser
-            .parse("test.rules", policy_src)
-            .expect("parse policy");
-        let policy = Arc::new(RwLock::new(parser.build()));
+        let parser = PolicyParser::new("test.rules", policy_src);
+        let policy = Arc::new(RwLock::new(parser.parse().expect("parse policy")));
         let command = vec!["rm".to_string()];
 
         let requirement = create_exec_approval_requirement_for_command(
@@ -512,7 +581,9 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     async fn exec_approval_requirement_falls_back_to_heuristics() {
         let command = vec!["cargo".to_string(), "build".to_string()];
 
-        let empty_policy = Arc::new(RwLock::new(Policy::empty()));
+        let empty_policy = Arc::new(RwLock::new(
+            Policy::new(MultiMap::new(), Vec::new(), Vec::new()).unwrap()
+        ));
         let requirement = create_exec_approval_requirement_for_command(
             &empty_policy,
             &Features::with_defaults(),
@@ -535,11 +606,8 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn heuristics_apply_when_other_commands_match_policy() {
         let policy_src = r#"prefix_rule(pattern=["apple"], decision="allow")"#;
-        let mut parser = PolicyParser::new();
-        parser
-            .parse("test.rules", policy_src)
-            .expect("parse policy");
-        let policy = Arc::new(RwLock::new(parser.build()));
+        let parser = PolicyParser::new("test.rules", policy_src);
+        let policy = Arc::new(RwLock::new(parser.parse().expect("parse policy")));
         let command = vec![
             "bash".to_string(),
             "-lc".to_string(),
@@ -568,24 +636,22 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn append_execpolicy_amendment_updates_policy_and_file() {
         let codex_home = tempdir().expect("create temp dir");
-        let current_policy = Arc::new(RwLock::new(Policy::empty()));
+        let current_policy = Arc::new(RwLock::new(
+            Policy::new(MultiMap::new(), Vec::new(), Vec::new()).unwrap()
+        ));
         let prefix = vec!["echo".to_string(), "hello".to_string()];
 
         append_execpolicy_amendment_and_update(codex_home.path(), &current_policy, &prefix)
             .await
             .expect("update policy");
 
-        let evaluation = current_policy.read().await.check(
-            &["echo".to_string(), "hello".to_string(), "world".to_string()],
-            &|_| Decision::Allow,
-        );
-        assert!(matches!(
-            evaluation,
-            Evaluation {
-                decision: Decision::Allow,
-                ..
-            }
-        ));
+        let exec_call = ExecCall {
+            program: "echo".to_string(),
+            args: vec!["hello".to_string(), "world".to_string()],
+        };
+        let result = current_policy.read().await.check(&exec_call);
+        // Should match the prefix rule and allow
+        assert!(matches!(result, Ok(MatchedExec::Match { .. })));
 
         let contents = fs::read_to_string(default_policy_path(codex_home.path()))
             .expect("policy file should have been created");
@@ -599,7 +665,9 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn append_execpolicy_amendment_rejects_empty_prefix() {
         let codex_home = tempdir().expect("create temp dir");
-        let current_policy = Arc::new(RwLock::new(Policy::empty()));
+        let current_policy = Arc::new(RwLock::new(
+            Policy::new(MultiMap::new(), Vec::new(), Vec::new()).unwrap()
+        ));
 
         let result =
             append_execpolicy_amendment_and_update(codex_home.path(), &current_policy, &[]).await;
@@ -617,7 +685,9 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     async fn proposed_execpolicy_amendment_is_present_for_single_command_without_policy_match() {
         let command = vec!["cargo".to_string(), "build".to_string()];
 
-        let empty_policy = Arc::new(RwLock::new(Policy::empty()));
+        let empty_policy = Arc::new(RwLock::new(
+            Policy::new(MultiMap::new(), Vec::new(), Vec::new()).unwrap()
+        ));
         let requirement = create_exec_approval_requirement_for_command(
             &empty_policy,
             &Features::with_defaults(),
@@ -645,7 +715,9 @@ prefix_rule(pattern=["rm"], decision="forbidden")
         features.disable(Feature::ExecPolicy);
 
         let requirement = create_exec_approval_requirement_for_command(
-            &Arc::new(RwLock::new(Policy::empty())),
+            &Arc::new(RwLock::new(
+                Policy::new(MultiMap::new(), Vec::new(), Vec::new()).unwrap()
+            )),
             &features,
             &command,
             AskForApproval::UnlessTrusted,
@@ -666,11 +738,8 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn proposed_execpolicy_amendment_is_omitted_when_policy_prompts() {
         let policy_src = r#"prefix_rule(pattern=["rm"], decision="prompt")"#;
-        let mut parser = PolicyParser::new();
-        parser
-            .parse("test.rules", policy_src)
-            .expect("parse policy");
-        let policy = Arc::new(RwLock::new(parser.build()));
+        let parser = PolicyParser::new("test.rules", policy_src);
+        let policy = Arc::new(RwLock::new(parser.parse().expect("parse policy")));
         let command = vec!["rm".to_string()];
 
         let requirement = create_exec_approval_requirement_for_command(
@@ -700,7 +769,9 @@ prefix_rule(pattern=["rm"], decision="forbidden")
             "cargo build && echo ok".to_string(),
         ];
         let requirement = create_exec_approval_requirement_for_command(
-            &Arc::new(RwLock::new(Policy::empty())),
+            &Arc::new(RwLock::new(
+                Policy::new(MultiMap::new(), Vec::new(), Vec::new()).unwrap()
+            )),
             &Features::with_defaults(),
             &command,
             AskForApproval::UnlessTrusted,
@@ -724,11 +795,8 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn proposed_execpolicy_amendment_uses_first_no_match_in_multi_command_scripts() {
         let policy_src = r#"prefix_rule(pattern=["cat"], decision="allow")"#;
-        let mut parser = PolicyParser::new();
-        parser
-            .parse("test.rules", policy_src)
-            .expect("parse policy");
-        let policy = Arc::new(RwLock::new(parser.build()));
+        let parser = PolicyParser::new("test.rules", policy_src);
+        let policy = Arc::new(RwLock::new(parser.parse().expect("parse policy")));
 
         let command = vec![
             "bash".to_string(),
@@ -760,7 +828,9 @@ prefix_rule(pattern=["rm"], decision="forbidden")
         let command = vec!["echo".to_string(), "safe".to_string()];
 
         let requirement = create_exec_approval_requirement_for_command(
-            &Arc::new(RwLock::new(Policy::empty())),
+            &Arc::new(RwLock::new(
+                Policy::new(MultiMap::new(), Vec::new(), Vec::new()).unwrap()
+            )),
             &Features::with_defaults(),
             &command,
             AskForApproval::OnRequest,
@@ -781,11 +851,8 @@ prefix_rule(pattern=["rm"], decision="forbidden")
     #[tokio::test]
     async fn proposed_execpolicy_amendment_is_suppressed_when_policy_matches_allow() {
         let policy_src = r#"prefix_rule(pattern=["echo"], decision="allow")"#;
-        let mut parser = PolicyParser::new();
-        parser
-            .parse("test.rules", policy_src)
-            .expect("parse policy");
-        let policy = Arc::new(RwLock::new(parser.build()));
+        let parser = PolicyParser::new("test.rules", policy_src);
+        let policy = Arc::new(RwLock::new(parser.parse().expect("parse policy")));
         let command = vec!["echo".to_string(), "safe".to_string()];
 
         let requirement = create_exec_approval_requirement_for_command(

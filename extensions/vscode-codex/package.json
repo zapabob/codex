@@ -2,7 +2,7 @@
   "name": "codex-assistant",
   "displayName": "Codex AI Assistant",
   "description": "Autonomous AI coding assistant with sub-agent orchestration and deep research",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "publisher": "zapabob",
   "engines": {
     "vscode": "^1.85.0"

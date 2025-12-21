@@ -2,7 +2,7 @@
   "name": "codex-windsurf",
   "displayName": "Codex Multi-Agent for Windsurf",
   "description": "Sub-Agents & Deep Research for Windsurf IDE",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "publisher": "zapabob",
   "icon": "icon.png",
   "engines": {

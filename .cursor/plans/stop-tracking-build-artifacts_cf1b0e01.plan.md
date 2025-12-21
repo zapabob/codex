@@ -4,16 +4,16 @@ overview: target_locked_backupディレクトリ内のビルド成果物（lib-*
 todos:
   - id: check-status
     content: target_locked_backup内の追跡ファイル数と.gitignoreの内容を確認
-    status: pending
+    status: completed
   - id: remove-tracking
     content: git rm --cached -rでtarget_locked_backupの追跡を停止
-    status: pending
+    status: completed
   - id: update-gitignore
     content: .gitignoreにtarget_locked_backup/を追加
-    status: pending
+    status: completed
   - id: verify
     content: git statusで追跡が停止されたことを確認
-    status: pending
+    status: completed
 ---
 
 # ビルド成果物の追跡停止

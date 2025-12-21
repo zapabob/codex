@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Generate a plan for how an agent should accomplish a complex coding task. Use when a user asks for a plan, and optionally when they want to save, find, read, update, or delete plan files in $CODEX_HOME/plans (default ~/.codex/plans).
+description: Generate a plan for how an agent should accomplish a complex coding task. Use when a user asks for a plan, and optionally when they want to save, find, read, update, or delete plan files. For full Plan Mode features (approval, execution, budgets), use official commands (`/Plan`, `/approve`, `/Plan export`). For simple markdown files, use $CODEX_HOME/plans (default ~/.codex/plans).
 metadata:
   short-description: Generate a plan for a complex task
 ---
@@ -17,7 +17,7 @@ This skill can also be used to draft codebase or system overviews.
 
 ## Core rules
 
-- Resolve the plans directory as `$CODEX_HOME/plans` or `~/.codex/plans` when `CODEX_HOME` is not set.
+- Resolve the plans directory as `$CODEX_HOME/Plans` or `~/.codex/Plans` when `CODEX_HOME` is not set (matches official Plan Mode CLI).
 - Create the plans directory if it does not exist.
 - Never write to the repo; only read files to understand context.
 - Require frontmatter with **only** `name` and `description` (single-line values) for on-disk plans.
@@ -36,8 +36,10 @@ This skill can also be used to draft codebase or system overviews.
 
 ## Plan discovery
 
-- Prefer `scripts/list_plans.py` for quick summaries.
-- Use `scripts/read_plan_frontmatter.py` to validate a specific plan.
+- Use official Plan Mode commands: `codex /Plan export <plan-id>` to view plans
+- For listing plans, use `codex /Plan list` (CLI) or browse in the TUI/GUI
+- Optional: Use `scripts/list_plans.ts` for quick frontmatter summaries (TypeScript helper)
+- Optional: Use `scripts/read_plan_frontmatter.ts` to validate a specific plan (TypeScript helper)
 - If name mismatches filename or frontmatter is missing fields, call it out and ask whether to fix.
 
 ## Plan creation workflow
@@ -46,8 +48,10 @@ This skill can also be used to draft codebase or system overviews.
 2. Ask follow-ups only if blocked: at most 1-2 questions, prefer multiple-choice. If unsure but not blocked, state assumptions and proceed.
 3. Identify scope, constraints, and data model/API implications (or capture existing behavior for an overview).
 4. Draft either an ordered implementation plan or a structured overview plan with diagrams/notes as needed.
-5. Immediately output the plan body only (no frontmatter), then ask the user if they want to 1. Make changes, 2. Implement it, 3. Save it as per plan.
-6. If the user wants to save it, prepend frontmatter and save the plan under the computed plans directory using `scripts/create_plan.py`.
+5. Immediately output the plan body only (no frontmatter), then ask the user if they want to 1. Make changes, 2. Implement it, 3. Save it.
+6. If the user wants to save it:
+   - **Preferred**: Use official Plan Mode: `codex /Plan "<title>"` to create a plan (saves to `~/.codex/Plans` or configured directory)
+   - **Alternative**: Use TypeScript helper `scripts/create_plan.ts` to save to `$CODEX_HOME/plans` (for simple markdown files with frontmatter)
 
 
 ## Plan update workflow
@@ -56,12 +60,37 @@ This skill can also be used to draft codebase or system overviews.
 - Keep the plan name stable unless the user explicitly wants a rename.
 - If renaming, update both frontmatter `name` and filename together.
 
-## Scripts (low-freedom helpers)
+## Official Plan Mode Commands (Preferred)
+
+Use the official Plan Mode commands for creating, managing, and exporting plans:
+
+```bash
+# Create a plan
+codex /Plan "Add request logging" --mode=orchestrated
+
+# List plans
+codex /Plan list
+
+# Export a plan
+codex /Plan export <plan-id> --format=md
+
+# Approve a plan
+codex /approve <plan-id>
+
+# Reject a plan
+codex /reject <plan-id> --reason="..."
+```
+
+See `docs/plan/README.md` and `docs/plan/slash-commands.md` for full documentation.
+
+## Helper Scripts (TypeScript, Optional)
+
+For simple markdown plan files with frontmatter (saved to `$CODEX_HOME/plans`), TypeScript helpers are available:
 
 Create a plan file (body only; frontmatter is written for you). Run from the plan skill directory:
 
 ```bash
-python ./scripts/create_plan.py \
+node ./scripts/create_plan.ts \
   --name codex-rate-limit-overview \
   --description "Scope and update plan for Codex rate limiting" \
   --body-file /tmp/plan-body.md
@@ -70,14 +99,16 @@ python ./scripts/create_plan.py \
 Read frontmatter summary for a plan (run from the plan skill directory):
 
 ```bash
-python ./scripts/read_plan_frontmatter.py ~/.codex/plans/codex-rate-limit-overview.md
+node ./scripts/read_plan_frontmatter.ts ~/.codex/plans/codex-rate-limit-overview.md
 ```
 
 List plan summaries (optional filter; run from the plan skill directory):
 
 ```bash
-python ./scripts/list_plans.py --query "rate limit"
+node ./scripts/list_plans.ts --query "rate limit"
 ```
+
+**Note**: These TypeScript helpers work with simple markdown files in `$CODEX_HOME/plans`. For full Plan Mode features (approval, execution, budgets), use the official commands above.
 
 ## Plan file format
 

@@ -641,6 +641,7 @@ impl Session {
             config.model_reasoning_effort,
             config.model_reasoning_summary,
             config.model_context_window,
+            None, // max_output_tokens
             config.model_auto_compact_token_limit,
             config.approval_policy.value(),
             config.sandbox_policy.get().clone(),

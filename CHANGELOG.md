@@ -5,6 +5,37 @@ All notable changes to Codex will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2025-12-21
+
+### Version Unification & Official Skills/Plan Alignment
+
+This release unifies all package versions to 2.7.0 and aligns Skills/Plan features with official documentation.
+
+### Added
+
+**Version Unification**
+- Unified all `package.json` files to version 2.7.0
+- Updated Rust workspace version to 2.7.0
+- Synchronized all internal dependencies to 2.7.0
+
+**Skills/Plan Alignment**
+- Aligned plan skill with official Plan Mode documentation
+- Replaced Python helpers with Rust/TypeScript implementations
+- Unified plan storage paths with official specifications
+
+### Changed
+
+**Plan Skill**
+- Removed Python script dependencies
+- Updated to use official Plan Mode commands (`/Plan`, `/approve`, `/Plan export`)
+- Replaced `scripts/*.py` with TypeScript/Rust helpers
+
+### Fixed
+
+**Plan Mode**
+- Unified plan storage directory naming (resolved `plans` vs `Plans` inconsistency)
+- Aligned export paths with official documentation
+
 ## [2.6.0] - 2025-12-19
 
 ### Version Unification & Upstream Integration
