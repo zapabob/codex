@@ -132,8 +132,8 @@ pub struct TestResult {
 
 /// Plan executor
 pub struct PlanExecutor {
-    /// Plan orchestrator - disabled, PlanBlock module not available
-    _orchestrator: Arc<PlanOrchestrator>,
+    /// Plan orchestrator
+    orchestrator: Arc<PlanOrchestrator>,
 
     /// Event broadcaster
     event_tx: Arc<RwLock<Option<broadcast::Sender<ExecutionEvent>>>>,
@@ -148,7 +148,7 @@ impl PlanExecutor {
         std::fs::create_dir_all(&log_dir).ok();
 
         Self {
-            _orchestrator: orchestrator,
+            orchestrator,
             event_tx: Arc::new(RwLock::new(None)),
             log_dir,
         }
@@ -319,15 +319,13 @@ impl PlanExecutor {
             .await;
         }
 
-        // Execute via orchestrator - disabled, PlanBlock module not available
-        // let result = self
-        //     .orchestrator
-        //     .execute_plan(plan)
-        //     .await
-        //     .context("Orchestrator execution failed")?;
+        let result = self
+            .orchestrator
+            .execute_plan(plan)
+            .await
+            .context("Orchestrator execution failed")?;
 
-        // Return error since PlanBlock is not available
-        anyhow::bail!("PlanOrchestrator is disabled: PlanBlock module not available");
+        Ok(result)
     }
 
     /// Save execution log to disk

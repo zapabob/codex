@@ -5,8 +5,7 @@
 //! and commit history.
 
 use crate::orchestration::conflict_resolver::MergeStrategy;
-// ExecutionMode module not available
-// use crate::plan::ExecutionMode;
+use crate::plan::ExecutionMode;
 use anyhow::Context;
 use anyhow::Result;
 use chrono::DateTime;
@@ -58,14 +57,12 @@ impl Default for DevelopmentMode {
 }
 
 impl DevelopmentMode {
-    /// Convert to ExecutionMode - disabled, module not available
-    #[allow(dead_code)]
-    pub fn to_execution_mode(&self) {
-        // ExecutionMode module not available
-        // match self {
-        //     Self::Central { .. } => ExecutionMode::Orchestrated,
-        //     Self::Worktree { .. } => ExecutionMode::Competition,
-        // }
+    /// Convert to plan execution mode.
+    pub fn to_execution_mode(&self) -> ExecutionMode {
+        match self {
+            Self::Central { .. } => ExecutionMode::Orchestrated,
+            Self::Worktree { .. } => ExecutionMode::Competition,
+        }
     }
 
     /// Get description
@@ -434,15 +431,13 @@ mod tests {
             dynamic_conflict_detection: true,
             enable_qc: true,
         };
-        // ExecutionMode module not available
-        // assert_eq!(central.to_execution_mode(), ExecutionMode::Orchestrated);
+        assert_eq!(central.to_execution_mode(), ExecutionMode::Orchestrated);
 
         let worktree = DevelopmentMode::Worktree {
             num_worktrees: 3,
             auto_merge_winner: true,
             enable_qc: true,
         };
-        // ExecutionMode module not available
-        // assert_eq!(worktree.to_execution_mode(), ExecutionMode::Competition);
+        assert_eq!(worktree.to_execution_mode(), ExecutionMode::Competition);
     }
 }
