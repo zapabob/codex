@@ -335,6 +335,23 @@ pub enum SandboxPolicy {
     },
 }
 
+/// Risk level for a sandbox command assessment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, JsonSchema, TS)]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
+pub enum SandboxRiskLevel {
+    Low,
+    Medium,
+    High,
+}
+
+/// Assessment of a command's risk level when executed in a sandbox.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+pub struct SandboxCommandAssessment {
+    pub description: String,
+    pub risk_level: SandboxRiskLevel,
+}
+
 /// A writable root path accompanied by a list of subpaths that should remain
 /// read‑only even when the root is writable. This is primarily used to ensure
 /// that folders containing files that could be modified to escalate the

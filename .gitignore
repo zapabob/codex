@@ -12,6 +12,7 @@ dist/
 build/
 out/
 storybook-static/
+target/
 codex-rs/target_locked_backup/
 
 # ignore README for publishing

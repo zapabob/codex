@@ -1,7 +1,7 @@
 //! Models for app server
 
 use codex_app_server_protocol::AuthMode;
-use codex_protocol::config_types::ReasoningEffort;
+use codex_protocol::openai_models::ReasoningEffort;
 use serde::Deserialize;
 use serde::Serialize;
 

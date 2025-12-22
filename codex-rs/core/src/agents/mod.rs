@@ -3,9 +3,9 @@ mod budgeter;
 pub mod competition;
 mod loader;
 mod permission_checker;
-mod runtime;
+pub mod runtime;
 pub mod secure_message;
-mod types;
+pub mod types;
 
 pub use alias_loader::AgentAliases;
 pub use budgeter::TokenBudgeter;

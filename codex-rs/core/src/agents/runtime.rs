@@ -29,16 +29,20 @@ use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::orchestration::CollaborationStore;
-use codex_otel::otel_event_manager::OtelEventManager;
+use codex_otel::otel_manager::OtelManager as OtelEventManager;
 use codex_protocol::ConversationId;
-use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::Verbosity;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::ResponseItem;
+use codex_protocol::openai_models::ReasoningEffort;
+use codex_rmcp_client::Elicitation;
 use codex_rmcp_client::RmcpClient;
+use codex_rmcp_client::SendElicitation;
+use futures::FutureExt;
 use futures::StreamExt;
 use mcp_types::InitializeRequestParams;
+use mcp_types::RequestId;
 
 /// サブエージェントランタイム
 pub struct AgentRuntime {
@@ -252,9 +256,13 @@ Only output the JSON, no explanation."#;
         };
 
         // LLM呼び出し
+        let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
+        let model_family = crate::models_manager::model_family::find_family_for_model(model)
+            .with_config_overrides(&self.config);
         let model_client = ModelClient::new(
             self.config.clone(),
             self.auth_manager.clone(),
+            model_family,
             self.otel_manager.clone(),
             self.provider.clone(),
             Some(ReasoningEffort::Medium),
@@ -611,9 +619,13 @@ Only output the JSON, no explanation."#;
         );
 
         // 3. ModelClient作成
+        let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
+        let model_family = crate::models_manager::model_family::find_family_for_model(model)
+            .with_config_overrides(&self.config);
         let client = ModelClient::new(
             self.config.clone(),
             self.auth_manager.clone(),
+            model_family,
             self.otel_manager.clone(),
             self.provider.clone(),
             Some(ReasoningEffort::Medium),
@@ -826,7 +838,7 @@ mod tests {
         use crate::config::Config;
         use crate::model_provider_info::ModelProviderInfo;
         use crate::model_provider_info::WireApi;
-        use codex_otel::otel_event_manager::OtelEventManager;
+        use codex_otel::otel_manager::OtelManager as OtelEventManager;
         use codex_protocol::ConversationId;
         use uuid::Uuid;
 
@@ -934,7 +946,7 @@ artifacts:
         use crate::config::Config;
         use crate::model_provider_info::ModelProviderInfo;
         use crate::model_provider_info::WireApi;
-        use codex_otel::otel_event_manager::OtelEventManager;
+        use codex_otel::otel_manager::OtelManager as OtelEventManager;
         use codex_protocol::ConversationId;
         use uuid::Uuid;
 
@@ -1045,8 +1057,12 @@ impl AgentRuntime {
             },
         };
 
+        let send_elicitation: SendElicitation =
+            Box::new(|_request_id: RequestId, _elicitation: Elicitation| {
+                async move { anyhow::bail!("Elicitation not supported in AgentRuntime") }.boxed()
+            });
         client
-            .initialize(init_params, Some(Duration::from_secs(10)))
+            .initialize(init_params, Some(Duration::from_secs(10)), send_elicitation)
             .await
             .context("Failed to initialize Codex MCP server")?;
 
@@ -1307,9 +1323,13 @@ impl AgentRuntime {
         };
 
         // ModelClient経由でLLM呼び出し
+        let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
+        let model_family = crate::models_manager::model_family::find_family_for_model(model)
+            .with_config_overrides(&self.config);
         let model_client = ModelClient::new(
             self.config.clone(),
             self.auth_manager.clone(),
+            model_family,
             self.otel_manager.clone(),
             self.provider.clone(),
             Some(ReasoningEffort::Medium),

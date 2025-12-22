@@ -5,6 +5,7 @@ use crate::sandbox_summary::summarize_sandbox_policy;
 
 /// Build a list of key/value pairs summarizing the effective configuration.
 pub fn create_config_summary_entries(config: &Config, model: &str) -> Vec<(&'static str, String)> {
+    let supports_reasoning_summaries = config.model_supports_reasoning_summaries.unwrap_or(false);
     let mut entries = vec![
         ("workdir", config.cwd.display().to_string()),
         ("model", model.to_string()),
@@ -15,9 +16,7 @@ pub fn create_config_summary_entries(config: &Config, model: &str) -> Vec<(&'sta
             summarize_sandbox_policy(config.sandbox_policy.get()),
         ),
     ];
-    if config.model_provider.wire_api == WireApi::Responses
-        && config.model_family.supports_reasoning_summaries
-    {
+    if config.model_provider.wire_api == WireApi::Responses && supports_reasoning_summaries {
         entries.push((
             "reasoning effort",
             config

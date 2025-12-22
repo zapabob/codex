@@ -1,5 +1,5 @@
 use codex_app_server_protocol::AuthMode;
-use codex_core::protocol_config_types::ReasoningEffort;
+use codex_protocol::openai_models::ReasoningEffort;
 
 /// A reasoning effort option that can be surfaced for a model.
 #[derive(Debug, Clone, Copy)]

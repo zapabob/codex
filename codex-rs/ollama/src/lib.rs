@@ -19,10 +19,9 @@ pub const DEFAULT_OSS_MODEL: &str = "gpt-oss:20b";
 /// - Checks if the model exists locally and pulls it if missing.
 pub async fn ensure_oss_ready(config: &Config) -> std::io::Result<()> {
     // Only download when the requested model is the default OSS model (or when -m is not provided).
-    let model = if config.model.is_empty() {
-        DEFAULT_OSS_MODEL
-    } else {
-        &config.model
+    let model = match config.model.as_deref() {
+        Some(m) if !m.is_empty() => m,
+        _ => DEFAULT_OSS_MODEL,
     };
 
     // Verify local Ollama is reachable.

@@ -21,6 +21,10 @@ pub struct Cli {
     #[arg(long = "oss", default_value_t = false)]
     pub oss: bool,
 
+    /// OSS provider to use (lmstudio or ollama)
+    #[arg(long = "oss-provider")]
+    pub oss_provider: Option<String>,
+
     /// Select the sandbox policy to use when executing model-generated shell
     /// commands.
     #[arg(long = "sandbox", short = 's', value_enum)]
@@ -52,6 +56,10 @@ pub struct Cli {
     #[arg(long = "skip-git-repo-check", default_value_t = false)]
     pub skip_git_repo_check: bool,
 
+    /// Additional directories to include in context
+    #[arg(long = "add-dir", value_name = "DIR")]
+    pub add_dir: Vec<PathBuf>,
+
     /// Path to a JSON Schema file describing the model's final response shape.
     #[arg(long = "output-schema", value_name = "FILE")]
     pub output_schema: Option<PathBuf>,
@@ -81,6 +89,31 @@ pub struct Cli {
 pub enum Command {
     /// Resume a previous session by id or pick the most recent with --last.
     Resume(ResumeArgs),
+    /// Request a code review
+    Review(ReviewArgs),
+}
+
+#[derive(Parser, Debug)]
+pub struct ReviewArgs {
+    /// Review uncommitted changes
+    #[arg(long, default_value_t = false)]
+    pub uncommitted: bool,
+
+    /// Base branch to compare against
+    #[arg(long)]
+    pub base: Option<String>,
+
+    /// Specific commit to review
+    #[arg(long)]
+    pub commit: Option<String>,
+
+    /// Title for the commit being reviewed
+    #[arg(long)]
+    pub commit_title: Option<String>,
+
+    /// Custom review instructions
+    #[arg(value_name = "PROMPT", value_hint = clap::ValueHint::Other)]
+    pub prompt: Option<String>,
 }
 
 #[derive(Parser, Debug)]

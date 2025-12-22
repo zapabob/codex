@@ -37,3 +37,6 @@ pub mod model_presets;
 // Shared approval presets (AskForApproval + Sandbox) used by TUI and MCP server
 // Not to be confused with AskForApproval, which we should probably rename to EscalationPolicy.
 pub mod approval_presets;
+
+// OSS provider utilities shared between TUI and exec.
+pub mod oss;

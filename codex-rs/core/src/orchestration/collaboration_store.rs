@@ -3,8 +3,8 @@
 //! Provides a thread-safe shared memory store that allows sub-agents to
 //! communicate and share results during parallel execution.
 
-use crate::agents::AgentResult;
-use crate::agents::AgentStatus;
+use crate::agents::types::AgentResult;
+use crate::agents::types::AgentStatus;
 use dashmap::DashMap;
 use serde::Deserialize;
 use serde::Serialize;
@@ -224,8 +224,8 @@ impl Default for CollaborationStore {
 
 #[cfg(test)]
 mod tests {
+    use super::parallel_execution::AgentStatus;
     use super::*;
-    use crate::agents::AgentStatus;
 
     #[test]
     fn test_context_sharing() {

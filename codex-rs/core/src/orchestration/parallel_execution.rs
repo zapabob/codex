@@ -20,9 +20,9 @@ use super::resource_manager::ResourceGuard;
 use super::resource_manager::ResourceManager;
 use super::worktree_manager::WorktreeInfo;
 use super::worktree_manager::WorktreeManager;
-use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::Verbosity;
+use codex_protocol::openai_models::ReasoningEffort;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "lowercase")]

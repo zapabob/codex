@@ -84,7 +84,7 @@ pub struct ModelFamily {
 }
 
 impl ModelFamily {
-    pub(super) fn with_config_overrides(mut self, config: &Config) -> Self {
+    pub(crate) fn with_config_overrides(mut self, config: &Config) -> Self {
         if let Some(supports_reasoning_summaries) = config.model_supports_reasoning_summaries {
             self.supports_reasoning_summaries = supports_reasoning_summaries;
         }
@@ -200,7 +200,7 @@ macro_rules! model_family {
 /// Internal offline helper for `ModelsManager` that returns a `ModelFamily` for the given
 /// model slug.
 #[allow(clippy::if_same_then_else)]
-pub(super) fn find_family_for_model(slug: &str) -> ModelFamily {
+pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
     if slug.starts_with("o3") {
         model_family!(
             slug, "o3",

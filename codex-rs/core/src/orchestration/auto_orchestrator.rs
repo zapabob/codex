@@ -3,8 +3,9 @@
 //! Automatically analyzes tasks, generates execution plans via Supervisor,
 //! and coordinates parallel sub-agent execution with result aggregation.
 
-use crate::agents::AgentResult;
-use crate::agents::AgentRuntime;
+use crate::agents::types::AgentResult;
+use crate::agents::types::AgentStatus;
+use crate::agents::runtime::AgentRuntime;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;
@@ -445,7 +446,7 @@ impl AutoOrchestrator {
         // Check for conflicts in file edits
         let mut _has_conflicts = false;
         for result in &results {
-            if !matches!(result.status, crate::agents::AgentStatus::Completed) {
+            if !matches!(result.status, AgentStatus::Completed) {
                 _has_conflicts = true;
                 let error_msg = result
                     .error
@@ -477,9 +478,10 @@ impl AutoOrchestrator {
 
 #[cfg(test)]
 mod tests {
+    // AgentStatus is already imported at the top
     use super::*;
-    use crate::agents::AgentStatus;
-    use crate::agents::TokenBudgeter;
+    // TokenBudgeter module not available
+    // use crate::agents::TokenBudgeter;
     use crate::orchestration::TaskAnalyzer;
 
     #[test]

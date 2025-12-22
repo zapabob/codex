@@ -162,7 +162,7 @@ impl EventProcessor for EventProcessorWithHumanOutput {
     fn process_event(&mut self, event: Event) -> CodexStatus {
         let Event { id: _, msg } = event;
         match msg {
-            EventMsg::Error(ErrorEvent { message }) => {
+            EventMsg::Error(ErrorEvent { message, .. }) => {
                 let prefix = "ERROR:".style(self.red);
                 ts_msg!(self, "{prefix} {message}");
             }
@@ -186,7 +186,7 @@ impl EventProcessor for EventProcessorWithHumanOutput {
             EventMsg::BackgroundEvent(BackgroundEventEvent { message }) => {
                 ts_msg!(self, "{}", message.style(self.dimmed));
             }
-            EventMsg::StreamError(StreamErrorEvent { message }) => {
+            EventMsg::StreamError(StreamErrorEvent { message, .. }) => {
                 ts_msg!(self, "{}", message.style(self.dimmed));
             }
             EventMsg::TaskStarted(_) => {
@@ -311,6 +311,7 @@ impl EventProcessor for EventProcessorWithHumanOutput {
                 call_id,
                 auto_approved,
                 changes,
+                ..
             }) => {
                 // Store metadata so we can calculate duration later when we
                 // receive the corresponding PatchApplyEnd event.
@@ -450,6 +451,7 @@ impl EventProcessor for EventProcessorWithHumanOutput {
                     history_entry_count: _,
                     initial_messages: _,
                     rollout_path: _,
+                    ..
                 } = session_configured_event;
 
                 ts_msg!(
@@ -515,28 +517,6 @@ impl EventProcessor for EventProcessorWithHumanOutput {
                 }
             },
             EventMsg::ShutdownComplete => return CodexStatus::Shutdown,
-            EventMsg::ConversationPath(_) => {}
-            EventMsg::SubAgentTaskCompleted(_) => {
-                // サブエージェントタスク完了
-                ts_msg!(self, "{}", "Sub-agent task completed".style(self.green));
-            }
-            EventMsg::SubAgentTaskFailed(_) => {
-                // サブエージェントタスク失敗
-                ts_msg!(self, "{}", "Sub-agent task failed".style(self.red));
-            }
-            EventMsg::SubAgentProgressUpdate(_) => {
-                // サブエージェント進捗更新（デバッグ用）
-            }
-            EventMsg::SubAgentMessage(_) => {
-                // サブエージェントメッセージ
-            }
-            EventMsg::SubAgentError(_) => {
-                // サブエージェントエラー
-                ts_msg!(self, "{}", "Sub-agent error".style(self.red));
-            }
-            EventMsg::SubAgentInfo(_) => {
-                // サブエージェント情報
-            }
             EventMsg::WebSearchBegin(_)
             | EventMsg::ExecApprovalRequest(_)
             | EventMsg::ApplyPatchApprovalRequest(_)

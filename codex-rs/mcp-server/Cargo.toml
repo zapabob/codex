@@ -1,8 +1,8 @@
 [package]
-name = "codex-mcp-server"
-version.workspace = true
 edition.workspace = true
 license.workspace = true
+name = "codex-mcp-server"
+version.workspace = true
 
 [[bin]]
 name = "codex-mcp-server"
@@ -20,6 +20,7 @@ anyhow = { workspace = true }
 codex-arg0 = { workspace = true }
 codex-common = { workspace = true, features = ["cli"] }
 codex-core = { workspace = true }
+codex-deep-research = { path = "../deep-research" }
 codex-protocol = { workspace = true }
 codex-utils-json-to-toml = { workspace = true }
 mcp-types = { workspace = true }

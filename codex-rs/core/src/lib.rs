@@ -5,8 +5,10 @@
 // the TUI or the tracing stack).
 #![deny(clippy::print_stdout, clippy::print_stderr)]
 
+pub mod agents;
 pub mod api_bridge;
 mod apply_patch;
+pub mod audit_log;
 pub mod auth;
 pub mod bash;
 mod client;
@@ -34,6 +36,7 @@ pub mod landlock;
 pub mod mcp;
 mod mcp_connection_manager;
 pub mod models_manager;
+pub mod orchestration;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;
 pub use mcp_connection_manager::SandboxState;
@@ -42,6 +45,7 @@ mod message_history;
 mod model_provider_info;
 pub mod parse_command;
 pub mod path_utils;
+pub mod plan;
 pub mod powershell;
 pub mod sandboxing;
 mod stream_events_utils;
