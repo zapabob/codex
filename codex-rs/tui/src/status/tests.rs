@@ -48,7 +48,7 @@ fn sanitize_directory(lines: Vec<String>) -> Vec<String> {
     lines
         .into_iter()
         .map(|line| {
-            if let (Some(dir_pos), Some(pipe_idx)) = (line.find("Directory: "), line.rfind('━E)) {
+            if let (Some(dir_pos), Some(pipe_idx)) = (line.find("Directory: "), line.rfind('│')) {
                 let prefix = &line[..dir_pos + "Directory: ".len()];
                 let suffix = &line[pipe_idx..];
                 let content_width = pipe_idx.saturating_sub(dir_pos + "Directory: ".len());
