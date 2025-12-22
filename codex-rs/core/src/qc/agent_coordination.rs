@@ -10,7 +10,6 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::sync::mpsc;
-use tokio::sync::oneshot;
 
 /// Coordination message types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -69,7 +68,7 @@ pub enum TaskPriority {
 }
 
 /// Resource types for coordination
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ResourceType {
     CpuCores,
     MemoryMb,
