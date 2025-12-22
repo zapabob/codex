@@ -2,14 +2,11 @@
 // Provides bidirectional communication between GUI and CLI with MCP support
 
 import { EventEmitter } from 'events'
-import { CodexAPIClient } from '../api/client'
-import { MCPRegistry } from './mcp-registry'
-import { WebXRManager } from './webxr-manager'
 
 export interface BridgeMessage {
   id: string
   type: BridgeMessageType
-  payload: any
+  payload: unknown
   timestamp: number
   source: 'gui' | 'cli'
   target: 'gui' | 'cli' | 'mcp'
@@ -52,7 +49,6 @@ export interface BridgeConfig {
 
 export class DualBridge extends EventEmitter {
   private ws: WebSocket | null = null
-  private apiClient: CodexAPIClient
   private mcpRegistry: MCPRegistry
   private webxrManager: WebXRManager
   private config: BridgeConfig
@@ -61,12 +57,12 @@ export class DualBridge extends EventEmitter {
   private messageQueue: BridgeMessage[] = []
   private isConnected = false
   private messageId = 0
+  private retryCount = 0
 
   constructor(config: BridgeConfig) {
     super()
     this.config = config
-    this.apiClient = new CodexAPIClient()
-    this.mcpRegistry = new MCPRegistry()
+    this.mcpRegistry = new MCPRegistry(config.mcpRegistryUrl)
     this.webxrManager = new WebXRManager()
 
     this.initializeEventHandlers()
@@ -74,7 +70,7 @@ export class DualBridge extends EventEmitter {
 
   private initializeEventHandlers() {
     // WebXR events
-    this.webxrManager.on('commitSelected', (commit: any) => {
+    this.webxrManager.on('commitSelected', (commit: unknown) => {
       this.sendMessage({
         type: BridgeMessageType.VR_COMMIT_SELECT,
         payload: { commit },
@@ -82,7 +78,7 @@ export class DualBridge extends EventEmitter {
       })
     })
 
-    this.webxrManager.on('navigation', (position: any) => {
+    this.webxrManager.on('navigation', (position: unknown) => {
       this.sendMessage({
         type: BridgeMessageType.VR_NAVIGATE,
         payload: { position },
@@ -91,7 +87,7 @@ export class DualBridge extends EventEmitter {
     })
 
     // MCP events
-    this.mcpRegistry.on('serverDiscovered', (servers: any[]) => {
+    this.mcpRegistry.on('serverDiscovered', (servers: unknown[]) => {
       this.sendMessage({
         type: BridgeMessageType.MCP_DISCOVER,
         payload: { servers },
@@ -109,12 +105,14 @@ export class DualBridge extends EventEmitter {
   }
 
   async connect(): Promise<void> {
+    if (this.isConnected) return
+
     return new Promise((resolve, reject) => {
       try {
         this.ws = new WebSocket(this.config.websocketUrl)
 
         this.ws.onopen = () => {
-          console.log('Dual Bridge: Connected to CLI server')
+          this.retryCount = 0
           this.isConnected = true
           this.startHeartbeat()
           this.flushMessageQueue()
@@ -132,7 +130,6 @@ export class DualBridge extends EventEmitter {
         }
 
         this.ws.onclose = () => {
-          console.log('Dual Bridge: Connection closed')
           this.isConnected = false
           this.stopHeartbeat()
           this.scheduleReconnect()
@@ -145,9 +142,8 @@ export class DualBridge extends EventEmitter {
 
         // Initialize MCP registry if URL provided
         if (this.config.mcpRegistryUrl) {
-          this.initializeMCPRegistry()
+          void this.initializeMCPRegistry()
         }
-
       } catch (error) {
         reject(error)
       }
@@ -157,13 +153,11 @@ export class DualBridge extends EventEmitter {
   private async initializeMCPRegistry() {
     try {
       await this.mcpRegistry.connect(this.config.mcpRegistryUrl!)
-
-      // Register Windows system servers
-      await this.mcpRegistry.registerSystemServer('filesystem')
-      await this.mcpRegistry.registerSystemServer('windowing')
-      await this.mcpRegistry.registerSystemServer('wsl')
-
-      console.log('Dual Bridge: MCP Registry initialized')
+      await Promise.all([
+        this.mcpRegistry.registerSystemServer('filesystem'),
+        this.mcpRegistry.registerSystemServer('windowing'),
+        this.mcpRegistry.registerSystemServer('wsl')
+      ])
     } catch (error) {
       console.error('Dual Bridge: Failed to initialize MCP Registry', error)
     }
@@ -201,11 +195,11 @@ export class DualBridge extends EventEmitter {
   }
 
   private scheduleReconnect() {
-    if (this.reconnectTimer) return
+    if (this.reconnectTimer || this.retryCount >= this.config.maxRetries) return
 
     this.reconnectTimer = setTimeout(async () => {
-      console.log('Dual Bridge: Attempting reconnection...')
       try {
+        this.retryCount += 1
         await this.connect()
         this.reconnectTimer = null
       } catch (error) {
@@ -215,20 +209,22 @@ export class DualBridge extends EventEmitter {
     }, this.config.reconnectInterval)
   }
 
-  sendMessage(message: Partial<BridgeMessage>): void {
+  sendMessage(message: Partial<BridgeMessage>): string {
     const fullMessage: BridgeMessage = {
       id: this.generateMessageId(),
       timestamp: Date.now(),
       source: 'gui',
-      ...message
+      ...message,
+      target: message.target ?? 'cli'
     }
 
     if (this.isConnected && this.ws) {
       this.ws.send(JSON.stringify(fullMessage))
     } else {
-      // Queue message for later sending
       this.messageQueue.push(fullMessage)
     }
+
+    return fullMessage.id
   }
 
   private flushMessageQueue() {
@@ -239,39 +235,29 @@ export class DualBridge extends EventEmitter {
   }
 
   private handleMessage(message: BridgeMessage) {
-    // Emit message for external listeners
     this.emit('message', message)
 
-    // Handle specific message types
     switch (message.type) {
       case BridgeMessageType.HANDSHAKE:
         this.handleHandshake(message)
         break
-
       case BridgeMessageType.HEARTBEAT:
-        // Heartbeat response - connection is healthy
         break
-
       case BridgeMessageType.COMMAND_RESULT:
         this.handleCommandResult(message)
         break
-
       case BridgeMessageType.STATE_UPDATE:
         this.handleStateUpdate(message)
         break
-
       case BridgeMessageType.ERROR:
         this.handleError(message)
         break
-
       default:
-        // Forward to specific handlers
         this.emit(message.type, message.payload)
     }
   }
 
   private handleHandshake(message: BridgeMessage) {
-    console.log('Dual Bridge: Handshake received', message.payload)
     this.emit('handshake', message.payload)
   }
 
@@ -284,12 +270,10 @@ export class DualBridge extends EventEmitter {
   }
 
   private handleError(message: BridgeMessage) {
-    console.error('Dual Bridge: Error received', message.payload)
     this.emit('error', message.payload)
   }
 
-  // Public API methods
-  async executeCommand(command: string, args: any = {}): Promise<any> {
+  async executeCommand(command: string, args: Record<string, unknown> = {}): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
       const messageId = this.sendMessage({
         type: BridgeMessageType.COMMAND_EXEC,
@@ -297,17 +281,19 @@ export class DualBridge extends EventEmitter {
         target: 'cli'
       })
 
-      // Set up response handler
-      const responseHandler = (result: any) => {
+      const responseHandler = (result: { messageId?: string; exitCode?: number; stdout?: string; stderr?: string }) => {
         if (result.messageId === messageId) {
           this.off('commandResult', responseHandler)
-          resolve(result)
+          resolve({
+            exitCode: result.exitCode ?? 0,
+            stdout: result.stdout ?? '',
+            stderr: result.stderr ?? ''
+          })
         }
       }
 
       this.on('commandResult', responseHandler)
 
-      // Timeout after 30 seconds
       setTimeout(() => {
         this.off('commandResult', responseHandler)
         reject(new Error('Command execution timeout'))
@@ -315,7 +301,7 @@ export class DualBridge extends EventEmitter {
     })
   }
 
-  async discoverMCPServers(capabilities?: string[]): Promise<any[]> {
+  async discoverMCPServers(capabilities?: string[]): Promise<unknown[]> {
     return this.mcpRegistry.discoverServers(capabilities)
   }
 
@@ -341,7 +327,7 @@ export class DualBridge extends EventEmitter {
     })
   }
 
-  syncState(state: any): void {
+  syncState(state: unknown): void {
     this.sendMessage({
       type: BridgeMessageType.STATE_SYNC,
       payload: state,
@@ -372,52 +358,97 @@ export class DualBridge extends EventEmitter {
   }
 }
 
-// MCP Registry wrapper for GUI
-class MCPRegistry {
-  private registryUrl: string = ''
+class MCPRegistry extends EventEmitter {
+  private registryUrl: string | undefined
+  private activeSockets = new Map<string, WebSocket>()
 
-  on(event: string, handler: Function) {
-    // Event handling implementation
+  constructor(registryUrl?: string) {
+    super()
+    this.registryUrl = registryUrl
   }
 
   async connect(url: string) {
     this.registryUrl = url
-    // Connection logic
+    await this.discoverServers()
   }
 
   async registerSystemServer(type: string) {
-    // Register Windows system server
+    if (!this.registryUrl) return
+    const response = await fetch(`${this.registryUrl}/servers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type })
+    })
+
+    if (!response.ok) {
+      throw new Error(`MCP registry rejected system server registration: ${response.statusText}`)
+    }
   }
 
   async discoverServers(capabilities?: string[]) {
-    // Discover MCP servers
-    return []
+    if (!this.registryUrl) return []
+    const query = capabilities?.length ? `?capabilities=${encodeURIComponent(capabilities.join(','))}` : ''
+    const response = await fetch(`${this.registryUrl}/servers${query}`)
+    if (!response.ok) {
+      throw new Error(`Failed to discover MCP servers: ${response.statusText}`)
+    }
+
+    const servers = await response.json()
+    this.emit('serverDiscovered', servers)
+    return servers
   }
 
   async connectToServer(serverId: string) {
-    // Connect to MCP server
+    if (!this.registryUrl) throw new Error('MCP registry URL not configured')
+    const response = await fetch(`${this.registryUrl}/servers/${serverId}/connect`, { method: 'POST' })
+    if (!response.ok) {
+      throw new Error(`Failed to connect to MCP server ${serverId}: ${response.statusText}`)
+    }
+
+    const { wsUrl } = await response.json()
+    if (wsUrl) {
+      const socket = new WebSocket(wsUrl)
+      this.activeSockets.set(serverId, socket)
+      socket.onopen = () => this.emit('serverConnected', serverId)
+      socket.onclose = () => this.activeSockets.delete(serverId)
+    }
   }
 
   disconnect() {
-    // Cleanup connections
+    this.activeSockets.forEach((socket) => socket.close())
+    this.activeSockets.clear()
   }
 }
 
-// WebXR Manager wrapper
-class WebXRManager {
-  on(event: string, handler: Function) {
-    // Event handling implementation
-  }
+class WebXRManager extends EventEmitter {
+  private session: XRSession | null = null
 
   enterVR() {
-    // Enter VR mode
+    if (typeof navigator === 'undefined' || !navigator.xr) {
+      return
+    }
+
+    void navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+      if (!supported) return
+      return navigator.xr?.requestSession('immersive-vr').then((session) => {
+        this.session = session
+        this.emit('enter', session)
+        session.addEventListener('end', () => this.emit('exit'))
+      })
+    })
   }
 
   exitVR() {
-    // Exit VR mode
+    if (this.session) {
+      void this.session.end()
+      this.session = null
+    }
   }
 
   cleanup() {
-    // Cleanup WebXR resources
+    if (this.session) {
+      void this.session.end()
+      this.session = null
+    }
   }
 }

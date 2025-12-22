@@ -319,3 +319,106 @@ export const EVENT_AGENT_STATUS = 'agent.status';
 export const EVENT_TASK_COMPLETED = 'task.completed';
 export const EVENT_TASK_FAILED = 'task.failed';
 
+// ========== Skills ==========
+
+export interface SkillDescriptor {
+  name: string;
+  description: string;
+  version: string;
+  permissions?: string[];
+  tags?: string[];
+}
+
+export interface SkillAuditMetadata {
+  sessionId?: string;
+  requestId?: string;
+  origin?: 'gui' | 'tui' | 'cli' | 'automation';
+  tags?: string[];
+}
+
+export interface SkillsListRequest {
+  version?: string;
+}
+
+export interface SkillsListResponse {
+  skills: SkillDescriptor[];
+  version: string;
+}
+
+export interface SkillsInvokeRequest {
+  name: string;
+  input?: Record<string, unknown>;
+  version?: string;
+  audit?: SkillAuditMetadata;
+}
+
+export interface SkillsInvokeResponse {
+  status: 'ok' | 'error';
+  result?: unknown;
+  error?: string;
+  trace_id?: string;
+  duration_ms?: number;
+  version: string;
+}
+
+// ========== MCP ==========
+
+export interface McpToolSchema {
+  name: string;
+  description?: string;
+  inputSchema: unknown;
+  outputSchema?: unknown;
+  title?: string;
+}
+
+export interface McpResource {
+  uri: string;
+  name: string;
+  description?: string;
+  mimeType?: string;
+}
+
+export interface McpResourceTemplate {
+  uriTemplate: string;
+  name: string;
+  description?: string;
+  mimeType?: string;
+}
+
+export type McpAuthState = 'unauthenticated' | 'authenticated' | 'oauth_pending';
+
+export interface McpAuthStatus {
+  state: McpAuthState;
+  user?: string;
+  scopes?: string[];
+  expiresAt?: string;
+}
+
+export interface ListMcpServersRequest {
+  cursor?: string;
+  limit?: number;
+}
+
+export interface McpServerDescriptor {
+  name: string;
+  tools: Record<string, McpToolSchema>;
+  resources: McpResource[];
+  resourceTemplates: McpResourceTemplate[];
+  authStatus: McpAuthStatus;
+}
+
+export interface ListMcpServersResponse {
+  data: McpServerDescriptor[];
+  nextCursor?: string;
+}
+
+export interface McpServerOauthLoginRequest {
+  name: string;
+  scopes?: string[];
+  timeoutSecs?: number;
+}
+
+export interface McpServerOauthLoginResponse {
+  authorizationUrl: string;
+}
+
