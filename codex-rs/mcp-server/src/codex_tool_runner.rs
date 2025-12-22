@@ -297,6 +297,10 @@ async fn run_codex_tool_session_inner(
                     | EventMsg::ReasoningContentDelta(_)
                     | EventMsg::ReasoningRawContentDelta(_)
                     | EventMsg::SkillsUpdateAvailable
+                    | EventMsg::ContextCompacted(_)
+                    | EventMsg::McpStartupUpdate(_)
+                    | EventMsg::McpStartupComplete(_)
+                    | EventMsg::ElicitationRequest(_)
                     | EventMsg::UndoStarted(_)
                     | EventMsg::UndoCompleted(_)
                     | EventMsg::ExitedReviewMode(_)

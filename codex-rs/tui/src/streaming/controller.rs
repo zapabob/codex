@@ -103,8 +103,7 @@ mod tests {
         let mut lines = Vec::new();
 
         // Exact deltas from the session log (section: Loose vs. tight list items)
-        let deltas = vec![
-            "\n\n",
+        let deltas = ["\n\n",
             "Loose",
             " vs",
             ".",
@@ -170,8 +169,7 @@ mod tests {
             " Another",
             " nested",
             " bullet",
-            "\n\n",
-        ];
+            "\n\n"];
 
         // Simulate streaming with a commit tick attempt after each delta.
         for d in deltas.iter() {
