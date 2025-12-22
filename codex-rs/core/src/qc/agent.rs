@@ -8,7 +8,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
-use std::sync::Arc;
 
 /// Quality Control Agent configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]

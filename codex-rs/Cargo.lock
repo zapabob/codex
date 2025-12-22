@@ -1350,6 +1350,7 @@ dependencies = [
  "maplit",
  "mcp-types",
  "multimap",
+ "num_cpus",
  "once_cell",
  "openssl-sys",
  "os_info",
