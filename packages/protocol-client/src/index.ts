@@ -7,4 +7,6 @@
 export * from './types';
 export * from './transport';
 export * from './client';
+export * from './skills';
+export * from './slash-router';
 

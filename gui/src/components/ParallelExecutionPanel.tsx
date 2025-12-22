@@ -12,14 +12,12 @@ import {
   LinearProgress,
   Alert,
   Collapse,
-  IconButton,
 } from '@mui/material';
 import Grid from '@/mui/Grid2';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Play,
   Square,
-  Settings,
   Cpu,
   HardDrive,
   Thermometer,
@@ -35,7 +33,7 @@ import { useCodex } from '@/lib/context/CodexContext';
 interface AgentConfig {
   id: string;
   name: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size?: number }>;
   color: string;
   description: string;
   maxConcurrent: number;
@@ -163,7 +161,6 @@ export const ParallelExecutionPanel: React.FC = () => {
 
     // Execute tasks in parallel with resource monitoring
     const executionPromises = tasks.map(async (task, index) => {
-      // Check resource limits before starting
       const currentUsage = await getResourceUsage();
       if (currentUsage.memory > 85 || currentUsage.cpu > 90) {
         setExecutionTasks(prev =>
@@ -176,34 +173,25 @@ export const ParallelExecutionPanel: React.FC = () => {
         return;
       }
 
+      const startTime = new Date();
+
       setExecutionTasks(prev =>
         prev.map(t =>
           t.id === task.id
-            ? { ...t, status: 'running', startTime: new Date() }
+            ? { ...t, status: 'running', startTime }
             : t
         )
       );
 
       try {
-        // Simulate execution with progress updates
-        for (let progress = 0; progress <= 100; progress += 10) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          setExecutionTasks(prev =>
-            prev.map(t =>
-              t.id === task.id ? { ...t, progress } : t
-            )
-          );
-        }
-
-        const result = await executeCommand(
-          `${task.agentId} --task "parallel-execution-${index}"`,
-          { agentId: task.agentId, taskIndex: index }
+        await executeCommand(
+          `${task.agentId} --task "parallel-execution-${index}"`
         );
 
         setExecutionTasks(prev =>
           prev.map(t =>
             t.id === task.id
-              ? { ...t, status: 'completed', endTime: new Date() }
+              ? { ...t, status: 'completed', endTime: new Date(), progress: 100 }
               : t
           )
         );
@@ -212,7 +200,7 @@ export const ParallelExecutionPanel: React.FC = () => {
         setExecutionTasks(prev =>
           prev.map(t =>
             t.id === task.id
-              ? { ...t, status: 'failed', error: error.message }
+              ? { ...t, status: 'failed', error: error instanceof Error ? error.message : 'Execution failed' }
               : t
           )
         );
