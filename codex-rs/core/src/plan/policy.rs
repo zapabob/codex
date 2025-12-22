@@ -1,4 +1,4 @@
-﻿//! Plan policy enforcement
+//! Plan policy enforcement
 //!
 //! Defines permission tiers and approval gates for Plan operations.
 //! Ensures that privileged operations (network, install, destructive commands)
@@ -197,11 +197,12 @@ impl PolicyEnforcer {
         // Check domain if network operation
         if operation == PrivilegedOperation::Network
             && let Some(d) = domain
-                && !self.is_domain_allowed(d) {
-                    return Err(PolicyError::DomainNotAllowed {
-                        domain: d.to_string(),
-                    });
-                }
+            && !self.is_domain_allowed(d)
+        {
+            return Err(PolicyError::DomainNotAllowed {
+                domain: d.to_string(),
+            });
+        }
 
         Ok(())
     }

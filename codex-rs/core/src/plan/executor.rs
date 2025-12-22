@@ -171,9 +171,10 @@ impl PlanExecutor {
         let tx_guard = self.event_tx.read().await;
 
         if let Some(tx) = tx_guard.as_ref()
-            && let Err(e) = tx.send(event.clone()) {
-                warn!("Failed to broadcast execution event: {}", e);
-            }
+            && let Err(e) = tx.send(event.clone())
+        {
+            warn!("Failed to broadcast execution event: {}", e);
+        }
 
         debug!("Execution event: {:?}", event);
     }
@@ -373,9 +374,10 @@ impl PlanExecutor {
 
             if path.extension().and_then(|s| s.to_str()) == Some("json")
                 && let Ok(json) = std::fs::read_to_string(&path)
-                    && let Ok(result) = serde_json::from_str::<ExecutionResult>(&json) {
-                        results.push(result);
-                    }
+                && let Ok(result) = serde_json::from_str::<ExecutionResult>(&json)
+            {
+                results.push(result);
+            }
         }
 
         // Sort by start time (newest first)

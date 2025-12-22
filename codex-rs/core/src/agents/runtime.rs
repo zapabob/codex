@@ -835,7 +835,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_agent_runtime_delegate() {
-        use crate::config::Config;
+        use crate::config::ConfigBuilder;
         use crate::model_provider_info::ModelProviderInfo;
         use crate::model_provider_info::WireApi;
         use codex_otel::otel_manager::OtelManager as OtelEventManager;
@@ -875,12 +875,11 @@ artifacts:
         // モックConfig作成
         let codex_home = temp_dir.path().to_path_buf();
         let config = Arc::new(
-            Config::load_from_base_config_with_overrides(
-                crate::config_types::ConfigToml::default(),
-                crate::config_types::ConfigOverrides::default(),
-                codex_home.clone(),
-            )
-            .unwrap(),
+            ConfigBuilder::default()
+                .codex_home(codex_home.clone())
+                .build()
+                .await
+                .unwrap(),
         );
         let provider = ModelProviderInfo {
             name: "Test Provider".to_string(),
@@ -894,6 +893,7 @@ artifacts:
             request_max_retries: Some(4),
             stream_max_retries: Some(10),
             stream_idle_timeout_ms: Some(300_000),
+            experimental_bearer_token: None,
             requires_openai_auth: false,
         };
         let conversation_id = ConversationId::new();
@@ -906,6 +906,7 @@ artifacts:
             None,
             false,
             "test".to_string(),
+            codex_protocol::protocol::SessionSource::Cli,
         );
 
         let runtime = AgentRuntime::new(
@@ -943,7 +944,7 @@ artifacts:
 
     #[tokio::test]
     async fn test_list_agents() {
-        use crate::config::Config;
+        use crate::config::ConfigBuilder;
         use crate::model_provider_info::ModelProviderInfo;
         use crate::model_provider_info::WireApi;
         use codex_otel::otel_manager::OtelManager as OtelEventManager;
@@ -958,7 +959,13 @@ artifacts:
         fs::write(agents_dir.join("agent2.yaml"), "name: Agent2\ngoal: Goal2\ntools: {}\npolicies: {context: {}}\nsuccess_criteria: []\nartifacts: []").unwrap();
 
         let codex_home = temp_dir.path().to_path_buf();
-        let config = Arc::new(Config::load_for_testing(&codex_home).unwrap());
+        let config = Arc::new(
+            ConfigBuilder::default()
+                .codex_home(codex_home.clone())
+                .build()
+                .await
+                .unwrap(),
+        );
         let provider = ModelProviderInfo {
             name: "Test Provider".to_string(),
             base_url: Some("https://api.openai.com/v1".to_string()),
@@ -971,6 +978,7 @@ artifacts:
             request_max_retries: Some(4),
             stream_max_retries: Some(10),
             stream_idle_timeout_ms: Some(300_000),
+            experimental_bearer_token: None,
             requires_openai_auth: false,
         };
         let conversation_id = ConversationId::new();
@@ -983,6 +991,7 @@ artifacts:
             None,
             false,
             "test".to_string(),
+            codex_protocol::protocol::SessionSource::Cli,
         );
 
         let runtime = AgentRuntime::new(

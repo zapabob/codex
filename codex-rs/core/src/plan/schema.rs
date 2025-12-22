@@ -60,15 +60,13 @@ pub struct Risk {
 }
 
 /// Evaluation criteria for the Plan
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct EvalCriteria {
     /// Tests that must pass
     pub tests: Vec<String>,
     /// Performance metrics and thresholds
     pub metrics: HashMap<String, String>,
 }
-
 
 /// Budget constraints for execution
 #[derive(Debug, Clone, Serialize, Deserialize)]

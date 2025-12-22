@@ -66,7 +66,6 @@ impl DevelopmentMode {
         //     Self::Central { .. } => ExecutionMode::Orchestrated,
         //     Self::Worktree { .. } => ExecutionMode::Competition,
         // }
-        
     }
 
     /// Get description
@@ -149,10 +148,12 @@ impl DevelopmentModeSelector {
             let entry = entry.context("Failed to read directory entry")?;
             let path = entry.path();
 
-            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md")
-                && let Some(log) = self.parse_log_file(&path)? {
-                    logs.push(log);
-                }
+            if path.is_file()
+                && path.extension().and_then(|s| s.to_str()) == Some("md")
+                && let Some(log) = self.parse_log_file(&path)?
+            {
+                logs.push(log);
+            }
         }
 
         // Sort by date (newest first)
@@ -164,8 +165,8 @@ impl DevelopmentModeSelector {
 
     /// Parse a log file
     fn parse_log_file(&self, path: &Path) -> Result<Option<ImplementationLog>> {
-        let content = std::fs::read_to_string(path)
-            .context(format!("Failed to read log file: {path:?}"))?;
+        let content =
+            std::fs::read_to_string(path).context(format!("Failed to read log file: {path:?}"))?;
 
         // Extract date and feature from filename (format: yyyy-mm-dd_feature.md)
         let filename = path

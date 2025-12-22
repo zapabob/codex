@@ -1,4 +1,4 @@
-﻿//! Budget enforcement for Plan execution
+//! Budget enforcement for Plan execution
 //!
 //! Tracks and enforces token and time budgets to prevent runaway costs.
 
@@ -72,23 +72,25 @@ impl BudgetTracker {
 
         // Check step limit
         if let Some(max_step) = self.budget.max_step
-            && tokens > max_step {
-                return Err(BudgetError::StepTokensExceeded {
-                    used: tokens,
-                    cap: max_step,
-                }
-                .into());
+            && tokens > max_step
+        {
+            return Err(BudgetError::StepTokensExceeded {
+                used: tokens,
+                cap: max_step,
             }
+            .into());
+        }
 
         // Check session limit
         if let Some(session_cap) = self.budget.session_cap
-            && total > session_cap {
-                return Err(BudgetError::TokensExceeded {
-                    used: total,
-                    cap: session_cap,
-                }
-                .into());
+            && total > session_cap
+        {
+            return Err(BudgetError::TokensExceeded {
+                used: total,
+                cap: session_cap,
             }
+            .into());
+        }
 
         Ok(())
     }
@@ -110,10 +112,7 @@ impl BudgetTracker {
             .cap_min
             .map(|cap| (cap as f64 * 60.0) - elapsed_secs);
 
-        let tokens_exceeded = self
-            .budget
-            .session_cap
-            .is_some_and(|cap| tokens_used > cap);
+        let tokens_exceeded = self.budget.session_cap.is_some_and(|cap| tokens_used > cap);
 
         let time_exceeded = self
             .budget
@@ -135,22 +134,24 @@ impl BudgetTracker {
         let usage = self.usage();
 
         if usage.tokens_exceeded
-            && let Some(cap) = self.budget.session_cap {
-                return Err(BudgetError::TokensExceeded {
-                    used: usage.tokens_used,
-                    cap,
-                }
-                .into());
+            && let Some(cap) = self.budget.session_cap
+        {
+            return Err(BudgetError::TokensExceeded {
+                used: usage.tokens_used,
+                cap,
             }
+            .into());
+        }
 
         if usage.time_exceeded
-            && let Some(cap) = self.budget.cap_min {
-                return Err(BudgetError::TimeExceeded {
-                    elapsed: usage.elapsed_secs / 60.0,
-                    cap: cap as f64,
-                }
-                .into());
+            && let Some(cap) = self.budget.cap_min
+        {
+            return Err(BudgetError::TimeExceeded {
+                elapsed: usage.elapsed_secs / 60.0,
+                cap: cap as f64,
             }
+            .into());
+        }
 
         Ok(())
     }

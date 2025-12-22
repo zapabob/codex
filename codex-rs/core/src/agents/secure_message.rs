@@ -189,6 +189,9 @@ impl SecureAgentChannel {
             message_id: uuid::Uuid::new_v4().to_string(),
             priority: 128,
             message_type: MessageType::TaskRequest,
+            ttl: 0,
+            requires_ack: false,
+            custom_fields: BTreeMap::new(),
         };
 
         // 2. Encrypt content
@@ -354,6 +357,9 @@ mod tests {
             message_id: uuid::Uuid::new_v4().to_string(),
             priority: 128,
             message_type: MessageType::StatusUpdate,
+            ttl: 0,
+            requires_ack: false,
+            custom_fields: BTreeMap::new(),
         };
 
         assert_eq!(metadata.priority, 128);

@@ -160,10 +160,7 @@ impl CollaborationStore {
             priority,
         };
 
-        self.message_queue
-            .entry(to)
-            .or_default()
-            .push(message);
+        self.message_queue.entry(to).or_default().push(message);
     }
 
     /// Broadcast a message to all agents.

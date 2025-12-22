@@ -144,16 +144,17 @@ impl WorktreeManager {
 
             // Only include our managed worktrees
             if let Some(name) = Path::new(path).file_name().and_then(|n| n.to_str())
-                && path.contains(".codex-worktrees") {
-                    let agent = name.split('_').next().unwrap_or("unknown").to_string();
+                && path.contains(".codex-worktrees")
+            {
+                let agent = name.split('_').next().unwrap_or("unknown").to_string();
 
-                    worktrees.push(WorktreeInfo {
-                        name: name.to_string(),
-                        path: PathBuf::from(path),
-                        branch: branch.to_string(),
-                        agent,
-                    });
-                }
+                worktrees.push(WorktreeInfo {
+                    name: name.to_string(),
+                    path: PathBuf::from(path),
+                    branch: branch.to_string(),
+                    agent,
+                });
+            }
         }
 
         Ok(worktrees)

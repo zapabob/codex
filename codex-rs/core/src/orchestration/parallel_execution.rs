@@ -32,14 +32,12 @@ pub enum AgentType {
     Claudecode,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ReasoningConfig {
     pub effort: ReasoningEffort,
     pub summary: ReasoningSummary,
     pub verbosity: Verbosity,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentTask {
@@ -475,11 +473,12 @@ impl Drop for ParallelOrchestrator {
             let worktrees = worktree_cleanup.read().await;
 
             if !worktrees.is_empty()
-                && let Ok(manager) = WorktreeManager::new(&repo_path) {
-                    for worktree in worktrees.iter() {
-                        let _ = manager.remove_worktree(&worktree.name);
-                    }
+                && let Ok(manager) = WorktreeManager::new(&repo_path)
+            {
+                for worktree in worktrees.iter() {
+                    let _ = manager.remove_worktree(&worktree.name);
                 }
+            }
         });
     }
 }

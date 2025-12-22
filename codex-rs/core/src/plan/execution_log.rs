@@ -173,9 +173,10 @@ impl ExecutionLogManager {
 
             if path.extension().and_then(|s| s.to_str()) == Some("json")
                 && let Ok(json) = std::fs::read_to_string(&path)
-                    && let Ok(log) = serde_json::from_str::<ExecutionLog>(&json) {
-                        logs.push(log);
-                    }
+                && let Ok(log) = serde_json::from_str::<ExecutionLog>(&json)
+            {
+                logs.push(log);
+            }
         }
 
         // Sort by start time (newest first)
