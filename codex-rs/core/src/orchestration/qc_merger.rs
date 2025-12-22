@@ -99,7 +99,7 @@ impl QcMerger {
 
         // Select the result with the highest overall score
         qc_reports.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
-        let (best_idx, best_score, best_result) = &qc_reports[0];
+        let (_best_idx, best_score, best_result) = &qc_reports[0];
 
         info!(
             "Selected best result from agent {:?} with quality score {:.3}",

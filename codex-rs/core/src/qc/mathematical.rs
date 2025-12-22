@@ -8,7 +8,6 @@
 
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::HashMap;
 
 /// Resource allocation constraints
 #[derive(Debug, Clone, Serialize, Deserialize)]
