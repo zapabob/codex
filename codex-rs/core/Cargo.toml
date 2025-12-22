@@ -52,6 +52,7 @@ keyring = { workspace = true, features = ["crypto-rust"] }
 libc = { workspace = true }
 mcp-types = { workspace = true }
 multimap = { workspace = true }
+num_cpus = { workspace = true }
 once_cell = { workspace = true }
 os_info = { workspace = true }
 rand = { workspace = true }
