@@ -295,6 +295,54 @@ impl ActionDefinition {
                 let task = self.required_value(values, "task")?;
                 Ok(vec!["audit".to_string(), task])
             }
+            "qc" => {
+                let path = self.value_or_default(values, "path");
+                let path = if path.is_empty() {
+                    ".".to_string()
+                } else {
+                    path
+                };
+                let output_dir = self.value_or_default(values, "output_dir");
+                let output_dir = if output_dir.is_empty() {
+                    "qc_reports".to_string()
+                } else {
+                    output_dir
+                };
+                let visualization = self.value_or_default(values, "visualization");
+                let mut args = vec![
+                    "qc".to_string(),
+                    "--path".to_string(),
+                    path,
+                    "--output-dir".to_string(),
+                    output_dir,
+                ];
+                if visualization == "false" {
+                    args.push("--no-visualization".to_string());
+                }
+                Ok(args)
+            }
+            "dev-mode" => {
+                let mode = self.required_value(values, "mode")?;
+                let task = self.optional_value(values, "task");
+                let agents = self.optional_value(values, "agents");
+                let worktree_base = self.optional_value(values, "worktree_base");
+                let mut args = vec!["dev-mode".to_string(), mode.clone()];
+                if let Some(task) = task {
+                    args.push("--task".to_string());
+                    args.push(task);
+                }
+                if let Some(agents) = agents {
+                    args.push("--agents".to_string());
+                    args.push(agents);
+                }
+                if mode == "parallel" {
+                    if let Some(worktree_base) = worktree_base {
+                        args.push("--worktree-base".to_string());
+                        args.push(worktree_base);
+                    }
+                }
+                Ok(args)
+            }
             other => Err(GuiError::UnknownAction(other.to_string())),
         }
     }
@@ -643,6 +691,70 @@ fn action_definitions() -> Vec<ActionDefinition> {
             fields: vec![
                 ActionFieldDefinition::text_area("task", "Audit focus")
                     .with_placeholder("Inspect dependency updates for high severity CVEs"),
+            ],
+        },
+        ActionDefinition {
+            id: "qc",
+            label: "QC Analysis",
+            description: "Run multi-stage quality control analysis and generate reports.",
+            category: ActionCategory::Quality,
+            cta_label: "Run QC",
+            fields: vec![
+                ActionFieldDefinition::text("path", "Target path")
+                    .optional()
+                    .with_placeholder("."),
+                ActionFieldDefinition::text("output_dir", "Output directory")
+                    .optional()
+                    .with_placeholder("qc_reports"),
+                ActionFieldDefinition::select(
+                    "visualization",
+                    "Visualization outputs",
+                    vec![
+                        FieldOption {
+                            value: "true",
+                            label: "Enabled",
+                        },
+                        FieldOption {
+                            value: "false",
+                            label: "Disabled",
+                        },
+                    ],
+                    Some("true"),
+                )
+                .with_helper_text("Disable visualization for faster runs."),
+            ],
+        },
+        ActionDefinition {
+            id: "dev-mode",
+            label: "Dev Mode Orchestration",
+            description: "Start centralized or parallel dev-mode orchestration.",
+            category: ActionCategory::Launchpad,
+            cta_label: "Start dev mode",
+            fields: vec![
+                ActionFieldDefinition::select(
+                    "mode",
+                    "Mode",
+                    vec![
+                        FieldOption {
+                            value: "central",
+                            label: "Centralized",
+                        },
+                        FieldOption {
+                            value: "parallel",
+                            label: "Parallel",
+                        },
+                    ],
+                    Some("central"),
+                ),
+                ActionFieldDefinition::text_area("task", "Task description")
+                    .optional()
+                    .with_placeholder("Implement QC + orchestration updates"),
+                ActionFieldDefinition::text("agents", "Target agents (comma-separated)")
+                    .optional()
+                    .with_placeholder("architect,code-reviewer,qa"),
+                ActionFieldDefinition::text("worktree_base", "Worktree base path")
+                    .optional()
+                    .with_placeholder(".codex-worktrees"),
             ],
         },
     ]

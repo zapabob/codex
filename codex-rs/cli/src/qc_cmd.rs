@@ -1,5 +1,6 @@
 use anyhow::Context;
 use anyhow::Result;
+use clap::Args;
 use codex_core::qc::QcAgent;
 use codex_core::qc::QcConfig;
 use std::path::Path;
@@ -8,27 +9,65 @@ use walkdir::WalkDir;
 
 const MAX_DEPTH: usize = 6;
 
-pub async fn run_qc_command(
-    path: PathBuf,
-    output_dir: String,
-    no_visualization: bool,
-) -> Result<()> {
-    let resolved_path = if path.is_absolute() {
-        path
+/// Run Quality Control analysis for a file or directory.
+#[derive(Debug, Args)]
+pub struct QcCli {
+    /// Target file or directory
+    #[clap(long, default_value = ".")]
+    pub path: PathBuf,
+
+    /// Output directory for QC reports
+    #[clap(long, default_value = "qc_reports")]
+    pub output_dir: String,
+
+    /// Disable visualization outputs
+    #[clap(long, default_value_t = false)]
+    pub no_visualization: bool,
+
+    /// Disable statistical analysis
+    #[clap(long, default_value_t = false)]
+    pub no_statistical: bool,
+
+    /// Disable quantum optimization analysis
+    #[clap(long, default_value_t = false)]
+    pub no_quantum: bool,
+
+    /// Disable mathematical optimization analysis
+    #[clap(long, default_value_t = false)]
+    pub no_mathematical: bool,
+
+    /// Minimum confidence threshold for recommendations
+    #[clap(long, default_value_t = 0.6)]
+    pub min_confidence: f64,
+
+    /// Enable verbose QC logging
+    #[clap(long, default_value_t = false)]
+    pub verbose: bool,
+}
+
+pub async fn run_qc_command(cli: QcCli) -> Result<()> {
+    let resolved_path = if cli.path.is_absolute() {
+        cli.path
     } else {
-        std::env::current_dir()?.join(path)
+        std::env::current_dir()?.join(cli.path)
     };
 
     let (source, target_name, file_count) =
         load_source(&resolved_path).context("failed to load source for QC analysis")?;
 
     if file_count == 0 {
-        anyhow::bail!("No source files found under {}", resolved_path.display());
+        let display = resolved_path.display();
+        anyhow::bail!("No source files found under {display}");
     }
 
     let mut config = QcConfig::default();
-    config.output_dir = output_dir;
-    config.enable_visualization = !no_visualization;
+    config.output_dir = cli.output_dir;
+    config.enable_visualization = !cli.no_visualization;
+    config.enable_statistical = !cli.no_statistical;
+    config.enable_quantum = !cli.no_quantum;
+    config.enable_mathematical = !cli.no_mathematical;
+    config.min_confidence = cli.min_confidence;
+    config.verbose = cli.verbose;
 
     let qc_agent = QcAgent::with_config(config);
     let report = qc_agent
@@ -71,8 +110,10 @@ pub async fn run_qc_command(
 
 fn load_source(path: &Path) -> Result<(String, String, usize)> {
     if path.is_file() {
-        let content = std::fs::read_to_string(path)
-            .with_context(|| format!("failed to read {}", path.display()))?;
+        let content = std::fs::read_to_string(path).with_context(|| {
+            let display = path.display();
+            format!("failed to read {display}")
+        })?;
         let target_name = path
             .file_name()
             .and_then(|name| name.to_str())
@@ -105,9 +146,12 @@ fn load_source(path: &Path) -> Result<(String, String, usize)> {
             continue;
         }
 
-        let content = std::fs::read_to_string(entry_path)
-            .with_context(|| format!("failed to read {}", entry_path.display()))?;
-        source_content.push_str(&format!("\n// File: {}\n", entry_path.display()));
+        let content = std::fs::read_to_string(entry_path).with_context(|| {
+            let display = entry_path.display();
+            format!("failed to read {display}")
+        })?;
+        let display = entry_path.display();
+        source_content.push_str(&format!("\n// File: {display}\n"));
         source_content.push_str(&content);
         source_content.push('\n');
         file_count += 1;
@@ -128,8 +172,7 @@ fn is_source_file(path: &Path) -> bool {
         .is_some_and(|ext| {
             matches!(
                 ext,
-                "rs"
-                    | "ts"
+                "rs" | "ts"
                     | "tsx"
                     | "js"
                     | "jsx"

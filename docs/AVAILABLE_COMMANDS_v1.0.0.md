@@ -96,6 +96,16 @@ Natural language orchestration - supervisor analyzes task and assigns to appropr
 codex agent-create "Find all TODO comments and create summary"
 ```
 
+### `codex dev-mode` - Development mode orchestration
+
+```bash
+# Centralized orchestration
+codex dev-mode central --task "Implement QC integration"
+
+# Parallel orchestration with worktrees
+codex dev-mode parallel --task "Split refactor work" --worktree-base .codex-worktrees
+```
+
 ### `codex ask` - Ask with @mention
 
 ```bash
@@ -147,6 +157,19 @@ codex test ./src/api/
 ```
 
 Equivalent to: `codex delegate test-gen --scope <path>`
+
+### `codex qc` - Quality control analysis
+
+```bash
+# Analyze current workspace
+codex qc --path .
+
+# Write reports to a custom directory
+codex qc --path ./src --output-dir qc_reports
+
+# Disable visualization outputs
+codex qc --path . --no-visualization
+```
 
 ---
 
@@ -438,5 +461,3 @@ codex research --help
 ---
 
 **Made with ❤️ by zapabob**
-
-

@@ -2,14 +2,17 @@
 //!
 //! Logs QC analysis results and merge decisions to implementation logs.
 
-use crate::qc::{QcReport, QualityScore};
+use crate::qc::QcReport;
+use crate::qc::QualityScore;
 use anyhow::Context;
 use anyhow::Result;
 use chrono::Utc;
 use std::collections::HashMap;
 use std::fs;
-use std::path::{Path, PathBuf};
-use tracing::{debug, info};
+use std::path::Path;
+use std::path::PathBuf;
+use tracing::debug;
+use tracing::info;
 
 /// Quality Control logger
 pub struct QcLogger {

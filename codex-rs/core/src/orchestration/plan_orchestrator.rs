@@ -47,8 +47,11 @@ impl PlanOrchestrator {
         workspace_dir: std::path::PathBuf,
         _webhook_configs: Vec<()>, // Vec<WebhookConfig>,
     ) -> Self {
-        let auto_orchestrator =
-            AutoOrchestrator::new(Arc::clone(&runtime), collaboration_store, workspace_dir.clone());
+        let auto_orchestrator = AutoOrchestrator::new(
+            Arc::clone(&runtime),
+            collaboration_store,
+            workspace_dir.clone(),
+        );
         let parallel_orchestrator = ParallelOrchestrator::with_repo_path(workspace_dir.clone());
         let task_analyzer = TaskAnalyzer::new(0.7);
 
@@ -301,8 +304,9 @@ fn build_competition_summary(
     let total_agents = comparison.total_agents;
     let successful = comparison.successful;
     let failed = comparison.failed;
-    let mut summary =
-        format!("Competition executed {total_agents} agents: {successful} succeeded, {failed} failed.");
+    let mut summary = format!(
+        "Competition executed {total_agents} agents: {successful} succeeded, {failed} failed."
+    );
 
     if let Some(agent) = comparison.fastest_agent {
         if let Some(time) = comparison.fastest_time {

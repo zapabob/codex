@@ -5,13 +5,18 @@
 
 use crate::orchestration::parallel_execution::AgentResult;
 use crate::orchestration::worktree_manager::WorktreeInfo;
-use crate::qc::{QcAgent, QcConfig, QcReport, QualityScore};
+use crate::qc::QcAgent;
+use crate::qc::QcConfig;
+use crate::qc::QcReport;
+use crate::qc::QualityScore;
 use anyhow::Context;
 use anyhow::Result;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tracing::{debug, info, warn};
+use tracing::debug;
+use tracing::info;
+use tracing::warn;
 
 /// Quality Control based merger
 pub struct QcMerger {

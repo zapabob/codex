@@ -1563,6 +1563,12 @@ impl ChatWidget {
             SlashCommand::Review => {
                 self.open_review_popup();
             }
+            SlashCommand::Qc => {
+                self.insert_str("!codex qc --path .");
+            }
+            SlashCommand::DevMode => {
+                self.insert_str("!codex dev-mode central --task \"\"");
+            }
             SlashCommand::Model => {
                 self.open_model_popup();
             }

@@ -30,6 +30,7 @@ mod git_commands;
 mod lock_cmd;
 mod mcp_cmd;
 mod plan_commands;
+mod qc_cmd;
 mod webhook_cmd;
 mod wsl_paths;
 
@@ -37,6 +38,7 @@ use crate::git_commands::GitAnalyzeCli;
 use crate::lock_cmd::LockCli;
 use crate::mcp_cmd::McpCli;
 use crate::plan_commands::PlanCli;
+use crate::qc_cmd::QcCli;
 use crate::webhook_cmd::WebhookCli;
 use crate::wsl_paths::normalize_for_wsl;
 use codex_core::config::Config;
@@ -186,6 +188,9 @@ enum Subcommand {
 
     /// [EXPERIMENTAL] Quick test generation with test-gen agent
     Test(TestCommand),
+
+    /// [EXPERIMENTAL] Quality control analysis and reporting
+    Qc(QcCli),
 
     /// [EXPERIMENTAL] Natural language agent invocation (e.g., "codex agent 'Review with security focus'")
     Agent(AgentCommand),
@@ -1046,6 +1051,9 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 test_cmd.out,
             )
             .await?;
+        }
+        Some(Subcommand::Qc(qc_cli)) => {
+            qc_cmd::run_qc_command(qc_cli).await?;
         }
         Some(Subcommand::Agent(mut agent_cmd)) => {
             prepend_config_flags(
