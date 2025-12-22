@@ -341,6 +341,7 @@ dependencies = [
  "codex-app-server-protocol",
  "codex-core",
  "codex-protocol",
+ "core_test_support",
  "serde",
  "serde_json",
  "tokio",
