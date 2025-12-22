@@ -13,6 +13,7 @@ import {
   LoginForm,
   NewConversationForm,
 } from '../types';
+import { AITool, AISession, DevelopmentTask } from '../types/ai-tools';
 
 class CodexAPIError extends Error {
   constructor(
@@ -552,6 +553,149 @@ export class CodexAPIClient {
     };
   }
 
+  async listAITools(): Promise<AITool[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/ai/tools`, { method: 'GET' });
+      if (response.ok) {
+        const payload = await response.json();
+        const tools = Array.isArray(payload.tools) ? payload.tools : payload;
+        return tools.map((tool: any) => ({
+          id: tool.id,
+          name: tool.name ?? tool.id,
+          status: tool.status ?? 'available',
+          capabilities: tool.capabilities ?? [],
+          activeSessions: tool.activeSessions ?? 0,
+          maxSessions: tool.maxSessions ?? 1,
+          performance: {
+            avgResponseTime: tool.performance?.avgResponseTime ?? 0,
+            successRate: tool.performance?.successRate ?? 0,
+            resourceUsage: tool.performance?.resourceUsage ?? 0,
+          },
+        }));
+      }
+    } catch (error) {
+      console.warn('Backend AI tools endpoint unavailable, trying CLI bridge:', error);
+    }
+
+    try {
+      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());
+      const parsed = JSON.parse(status.stdout || '{}');
+      if (Array.isArray(parsed.tools)) {
+        return parsed.tools.map((tool: any) => ({
+          id: tool.id,
+          name: tool.name ?? tool.id,
+          status: tool.status ?? 'available',
+          capabilities: tool.capabilities ?? [],
+          activeSessions: tool.active_sessions ?? tool.activeSessions ?? 0,
+          maxSessions: tool.max_sessions ?? tool.maxSessions ?? 1,
+          performance: {
+            avgResponseTime: tool.avg_response_time ?? tool.performance?.avgResponseTime ?? 0,
+            successRate: tool.success_rate ?? tool.performance?.successRate ?? 0,
+            resourceUsage: tool.resource_usage ?? tool.performance?.resourceUsage ?? 0,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error('CLI bridge could not provide AI tools:', error);
+    }
+
+    throw new CodexAPIError(-1, 'Failed to list AI tools from GUI');
+  }
+
+  async listAISessions(): Promise<AISession[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/ai/sessions`, { method: 'GET' });
+      if (response.ok) {
+        const payload = await response.json();
+        const sessions = Array.isArray(payload.sessions) ? payload.sessions : payload;
+        return sessions.map((session: any) => ({
+          id: session.id,
+          toolId: session.toolId ?? session.tool_id,
+          taskId: session.taskId ?? session.task_id,
+          status: session.status ?? 'running',
+          startTime: new Date(session.startTime ?? session.start_time ?? Date.now()),
+          endTime: session.endTime ? new Date(session.endTime) : session.end_time ? new Date(session.end_time) : undefined,
+          progress: session.progress ?? 0,
+          output: session.output ?? '',
+          error: session.error,
+        }));
+      }
+    } catch (error) {
+      console.warn('Backend AI sessions endpoint unavailable, falling back to CLI bridge:', error);
+    }
+
+    try {
+      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());
+      const parsed = JSON.parse(status.stdout || '{}');
+      if (Array.isArray(parsed.sessions)) {
+        return parsed.sessions.map((session: any) => ({
+          id: session.id,
+          toolId: session.toolId ?? session.tool_id,
+          taskId: session.taskId ?? session.task_id,
+          status: session.status ?? 'running',
+          startTime: new Date(session.startTime ?? session.start_time ?? Date.now()),
+          endTime: session.endTime ? new Date(session.endTime) : session.end_time ? new Date(session.end_time) : undefined,
+          progress: session.progress ?? 0,
+          output: session.output ?? '',
+          error: session.error,
+        }));
+      }
+    } catch (error) {
+      console.error('CLI bridge could not provide AI sessions:', error);
+    }
+
+    return [];
+  }
+
+  async listDevelopmentTasks(): Promise<DevelopmentTask[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/ai/tasks`, { method: 'GET' });
+      if (response.ok) {
+        const payload = await response.json();
+        const tasks = Array.isArray(payload.tasks) ? payload.tasks : payload;
+        return tasks.map((task: any) => ({
+          id: task.id,
+          title: task.title ?? task.id,
+          description: task.description ?? '',
+          complexity: task.complexity ?? 'medium',
+          priority: task.priority ?? 'medium',
+          requirements: task.requirements ?? [],
+          subtasks: task.subtasks ?? [],
+          status: task.status ?? 'pending',
+          createdAt: new Date(task.createdAt ?? Date.now()),
+          assignedTools: task.assignedTools ?? [],
+          progress: task.progress ?? 0,
+        }));
+      }
+    } catch (error) {
+      console.warn('Backend AI tasks endpoint unavailable, checking CLI bridge:', error);
+    }
+
+    try {
+      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());
+      const parsed = JSON.parse(status.stdout || '{}');
+      if (Array.isArray(parsed.tasks)) {
+        return parsed.tasks.map((task: any) => ({
+          id: task.id,
+          title: task.title ?? task.id,
+          description: task.description ?? '',
+          complexity: task.complexity ?? 'medium',
+          priority: task.priority ?? 'medium',
+          requirements: task.requirements ?? [],
+          subtasks: task.subtasks ?? [],
+          status: task.status ?? 'pending',
+          createdAt: new Date(task.created_at ?? Date.now()),
+          assignedTools: task.assignedTools ?? task.assigned_tools ?? [],
+          progress: task.progress ?? 0,
+        }));
+      }
+    } catch (error) {
+      console.error('CLI bridge could not provide AI tasks:', error);
+    }
+
+    return [];
+  }
+
   // File operations
   async executeCommand(command: string[], cwd?: string): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return this.httpRequest('execOneOffCommand', {
@@ -575,6 +719,13 @@ export class CodexAPIClient {
 
   setBaseUrl(url: string): void {
     this.baseUrl = url;
+  }
+
+  getBridgeWebSocketUrl(path = '/cli/bridge'): string {
+    const endpoint = new URL(this.baseUrl);
+    endpoint.protocol = endpoint.protocol === 'https:' ? 'wss:' : 'ws:';
+    endpoint.pathname = path.startsWith('/') ? path : `/${path}`;
+    return endpoint.toString();
   }
 }
 

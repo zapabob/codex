@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from 'react';
 import {
   Conversation,
   Message,
@@ -15,6 +15,8 @@ import {
 } from '../types';
 import { apiClient } from '../api/client';
 import { getSpecStory } from '../specstory';
+import { DualBridge, BridgeConfig } from '../bridge/dual-bridge';
+import { AITool, AISession, DevelopmentTask } from '../types/ai-tools';
 
 interface CodexState {
   // Authentication
@@ -49,6 +51,7 @@ interface CodexState {
 
   // WebSocket
   isConnected: boolean;
+  cliBridgeConnected: boolean;
 }
 
 type CodexAction =
@@ -70,7 +73,8 @@ type CodexAction =
   | { type: 'MARK_NOTIFICATION_READ'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_CONNECTION_STATUS'; payload: boolean };
+  | { type: 'SET_CONNECTION_STATUS'; payload: boolean }
+  | { type: 'SET_BRIDGE_STATUS'; payload: boolean };
 
 const initialState: CodexState = {
   user: null,
@@ -152,6 +156,7 @@ const initialState: CodexState = {
   isLoading: false,
   error: null,
   isConnected: false,
+  cliBridgeConnected: false,
 };
 
 function codexReducer(state: CodexState, action: CodexAction): CodexState {
@@ -284,6 +289,12 @@ function codexReducer(state: CodexState, action: CodexAction): CodexState {
         isConnected: action.payload,
       };
 
+    case 'SET_BRIDGE_STATUS':
+      return {
+        ...state,
+        cliBridgeConnected: action.payload,
+      };
+
     default:
       return state;
   }
@@ -306,12 +317,16 @@ interface CodexContextType {
   executeCommand: (command: string, cwd?: string) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
   loadMetrics: () => Promise<void>;
   clearError: () => void;
+  loadAITools: () => Promise<AITool[]>;
+  loadAISessions: () => Promise<AISession[]>;
+  loadDevelopmentTasks: () => Promise<DevelopmentTask[]>;
 }
 
 const CodexContext = createContext<CodexContextType | undefined>(undefined);
 
 export function CodexProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(codexReducer, initialState);
+  const cliBridgeRef = useRef<DualBridge | null>(null);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -358,6 +373,40 @@ export function CodexProvider({ children }: { children: ReactNode }) {
       apiClient.disconnectWebSocket();
     };
   }, []);
+
+  // Establish GUI-CLI bridge without requiring manual steps
+  useEffect(() => {
+    const bridgeUrl = process.env.NEXT_PUBLIC_CLI_BRIDGE_URL
+      || apiClient.getBridgeWebSocketUrl('/cli/bridge');
+
+    const config: BridgeConfig = {
+      websocketUrl: bridgeUrl,
+      mcpRegistryUrl: process.env.NEXT_PUBLIC_MCP_REGISTRY_URL,
+      reconnectInterval: 5000,
+      maxRetries: 5,
+      heartbeatInterval: 10000,
+    };
+
+    const bridge = new DualBridge(config);
+    cliBridgeRef.current = bridge;
+
+    const handleHandshake = () => dispatch({ type: 'SET_BRIDGE_STATUS', payload: true });
+    const handleBridgeError = () => dispatch({ type: 'SET_BRIDGE_STATUS', payload: false });
+
+    bridge.on('handshake', handleHandshake);
+    bridge.on('error', handleBridgeError);
+
+    bridge.connect().catch((error) => {
+      console.error('CLI bridge connection failed:', error);
+      dispatch({ type: 'SET_BRIDGE_STATUS', payload: false });
+    });
+
+    return () => {
+      bridge.off('handshake', handleHandshake);
+      bridge.off('error', handleBridgeError);
+      bridge.disconnect();
+    };
+  }, [dispatch]);
 
   // Load initial data
   useEffect(() => {
@@ -587,9 +636,22 @@ export function CodexProvider({ children }: { children: ReactNode }) {
   };
 
   const executeCommand = async (command: string, cwd?: string) => {
+    const bridge = cliBridgeRef.current;
+
+    if (bridge) {
+      try {
+        if (!state.cliBridgeConnected) {
+          await bridge.connect();
+        }
+
+        return await bridge.executeCommand(command, { cwd });
+      } catch (bridgeError) {
+        console.warn('CLI bridge execution failed, falling back to API client:', bridgeError);
+      }
+    }
+
     try {
-      const result = await apiClient.executeCommand(command.split(' '), cwd);
-      return result;
+      return await apiClient.executeCommand(command.split(' '), cwd);
     } catch (error) {
       console.error('Command execution failed:', error);
       throw error;
@@ -604,6 +666,10 @@ export function CodexProvider({ children }: { children: ReactNode }) {
       console.error('Failed to load metrics:', error);
     }
   };
+
+  const loadAITools = async () => apiClient.listAITools();
+  const loadAISessions = async () => apiClient.listAISessions();
+  const loadDevelopmentTasks = async () => apiClient.listDevelopmentTasks();
 
   const clearError = () => {
     dispatch({ type: 'SET_ERROR', payload: null });
@@ -623,6 +689,9 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     runResearch,
     executeCommand,
     loadMetrics,
+    loadAITools,
+    loadAISessions,
+    loadDevelopmentTasks,
     clearError,
   };
 

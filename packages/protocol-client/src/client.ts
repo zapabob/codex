@@ -273,5 +273,27 @@ export class OrchestratorClient extends EventEmitter<ClientEvents> {
   async pubsubUnsubscribe(request: Types.PubSubUnsubscribeRequest): Promise<Types.PubSubUnsubscribeResponse> {
     return this.request('pubsub.unsubscribe', request);
   }
+
+  // ========== MCP Methods ==========
+
+  async mcpServersList(request: Types.ListMcpServersRequest = {}): Promise<Types.ListMcpServersResponse> {
+    return this.request('mcpServers.list', request);
+  }
+
+  async mcpServerOauthLogin(
+    request: Types.McpServerOauthLoginRequest,
+  ): Promise<Types.McpServerOauthLoginResponse> {
+    return this.request('mcpServer.oauth.login', request);
+  }
+
+  // ========== Skills Methods ==========
+
+  async skillsList(request: Types.SkillsListRequest = {}): Promise<Types.SkillsListResponse> {
+    return this.request('skills.list', request);
+  }
+
+  async skillsInvoke(request: Types.SkillsInvokeRequest): Promise<Types.SkillsInvokeResponse> {
+    return this.request('skills.invoke', request);
+  }
 }
 

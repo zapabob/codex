@@ -66,6 +66,46 @@ await client.pubsubSubscribe({ topics: ['lock.changed', 'tokens.updated'] });
 await client.disconnect();
 ```
 
+### Skills Facade with audit logging
+
+```typescript
+import { OrchestratorClient, SkillsClientFacade } from '@zapabob/codex-protocol-client';
+
+const client = new OrchestratorClient();
+const skills = new SkillsClientFacade(client, {
+  apiVersion: process.env.CODEX_SKILLS_API_VERSION,
+  auditLogPath: process.env.CODEX_SKILLS_AUDIT_LOG,
+  defaultAudit: { origin: 'cli' },
+});
+
+await client.connect();
+
+const available = await skills.listSkills();
+console.log('skills', available.skills);
+
+const response = await skills.invokeSkill('security/scan', { path: './' }, { requestId: 'demo-1' });
+console.log(response.status, response.trace_id);
+```
+
+### CLI/TUI slash command routing with MCP helpers
+
+```typescript
+import { OrchestratorClient, SkillsClientFacade, SlashCommandRouter } from '@zapabob/codex-protocol-client';
+
+const client = new OrchestratorClient();
+const skills = new SkillsClientFacade(client, { defaultAudit: { origin: 'cli' } });
+const router = new SlashCommandRouter(client, skills, 'cli');
+
+await client.connect();
+
+// Route normal slash commands through the skills API with audit metadata
+await router.dispatch('/qc/check', { severity: 'high' }, { sessionId: 'sess-1', requestId: 'req-42' });
+
+// Handle MCP-aware commands directly
+await router.dispatch('/mcp/list', { limit: 20 });
+await router.dispatch('/mcp/login', { server: 'github', scopes: ['read:user'] });
+```
+
 ### React Hooks
 
 ```typescript
@@ -140,6 +180,18 @@ function App() {
 #### PubSub Methods
 - `pubsubSubscribe(request)`: Subscribe to topics
 - `pubsubUnsubscribe(request)`: Unsubscribe from topics
+
+#### MCP Methods
+- `mcpServersList(request?)`: List configured MCP servers with pagination
+- `mcpServerOauthLogin(request)`: Start an OAuth login flow for a specific MCP server
+
+#### Skills Methods
+- `skillsList(request?)`: List available skills (defaults to `CODEX_SKILLS_API_VERSION`)
+- `skillsInvoke(request)`: Invoke a skill with optional audit metadata
+- `SkillsClientFacade.listSkills(request?)`: Facade wrapper that injects default version
+- `SkillsClientFacade.invokeSkill(name, input?, audit?)`: Invoke a skill and emit JSONL audit entries
+- `SkillsClientFacade.invokeSlashCommand(command, input?, audit?)`: Normalize `/slash` inputs and dispatch via the skills API
+- `SlashCommandRouter.dispatch(command, input?, context?)`: Route CLI/TUI slash commands; MCP commands (`mcp/list`, `mcp/login`) call orchestrator helpers, everything else flows through the skills facade with audit metadata
 
 ### React Hooks
 
