@@ -119,6 +119,10 @@ impl StatusIndicatorWidget {
         elapsed
     }
 
+    pub fn elapsed_seconds(&self) -> u64 {
+        self.elapsed_duration_at(Instant::now()).as_secs()
+    }
+
     #[cfg(test)]
     fn elapsed_seconds_at(&self, now: Instant) -> u64 {
         self.elapsed_duration_at(now).as_secs()

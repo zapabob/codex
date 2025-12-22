@@ -1170,7 +1170,7 @@ impl HistoryCell for McpToolCallCell {
         let bullet = match status {
             Some(true) => "•".green().bold(),
             Some(false) => "•".red().bold(),
-            None => spinner(Some(self.start_time), self.animations_enabled),
+            None => spinner(Some(self.start_time)),
         };
         let header_text = if status.is_some() {
             "Called"

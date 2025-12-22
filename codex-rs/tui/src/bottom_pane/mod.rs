@@ -333,13 +333,12 @@ impl BottomPane {
 
         if running {
             if !was_running {
-                if self.status.is_none() {
-                    self.status = Some(StatusIndicatorWidget::new(
-                        self.app_event_tx.clone(),
-                        self.frame_requester.clone(),
-                        self.animations_enabled,
-                    ));
-                }
+                    if self.status.is_none() {
+                        self.status = Some(StatusIndicatorWidget::new(
+                            self.app_event_tx.clone(),
+                            self.frame_requester.clone(),
+                        ));
+                    }
                 if let Some(status) = self.status.as_mut() {
                     status.set_interrupt_hint_visible(true);
                 }
@@ -363,7 +362,6 @@ impl BottomPane {
             self.status = Some(StatusIndicatorWidget::new(
                 self.app_event_tx.clone(),
                 self.frame_requester.clone(),
-                self.animations_enabled,
             ));
             self.request_redraw();
         }

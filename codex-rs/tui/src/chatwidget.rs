@@ -1188,9 +1188,7 @@ impl ChatWidget {
                 ev.call_id.clone(),
                 command,
                 parsed,
-                source,
-                ev.interaction_input.clone(),
-                self.config.animations,
+                matches!(source, ExecCommandSource::UserShell),
             )));
         }
 
@@ -1317,7 +1315,7 @@ impl ChatWidget {
             self.suppressed_exec_calls.insert(ev.call_id);
             return;
         }
-        let interaction_input = ev.interaction_input.clone();
+        let is_user_shell_command = matches!(ev.source, ExecCommandSource::UserShell);
         if let Some(cell) = self
             .active_cell
             .as_mut()
@@ -1326,8 +1324,7 @@ impl ChatWidget {
                 ev.call_id.clone(),
                 ev.command.clone(),
                 ev.parsed_cmd.clone(),
-                ev.source,
-                interaction_input.clone(),
+                is_user_shell_command,
             )
         {
             *cell = new_exec;
@@ -1338,9 +1335,7 @@ impl ChatWidget {
                 ev.call_id.clone(),
                 ev.command.clone(),
                 ev.parsed_cmd,
-                ev.source,
-                interaction_input,
-                self.config.animations,
+                is_user_shell_command,
             )));
         }
 
