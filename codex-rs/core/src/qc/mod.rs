@@ -8,17 +8,8 @@
 
 pub mod agent;
 pub mod agent_coordination;
-pub mod gpu_acceleration;
-pub mod gpu_validation;
-pub mod gui_integration;
-pub mod gui_testing;
-pub mod improvement;
 pub mod mathematical;
-pub mod monitoring;
-pub mod multi_ai_orchestration;
-pub mod prediction;
 pub mod quantum;
-pub mod sandboxed_execution;
 pub mod statistical;
 pub mod visualization;
 

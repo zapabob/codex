@@ -148,7 +148,9 @@ impl QuantumOptimizer {
         let mut best_params = Vec::new();
 
         // Classical optimization loop (simplified gradient descent)
+        let mut iterations = 0;
         for iteration in 0..max_iterations {
+            iterations = iteration + 1;
             // Evaluate current parameters
             let energy = self.evaluate_qaoa_energy(&ising, &gamma, &beta);
 
@@ -174,8 +176,8 @@ impl QuantumOptimizer {
             optimal_value: best_energy,
             num_qubits,
             layers,
-            converged: (max_iterations as f64 * 0.8) as usize > iteration, // Simplified convergence check
-            iterations: max_iterations,
+            converged: iterations >= (max_iterations * 4 / 5), // Simplified convergence check
+            iterations,
         }
     }
 

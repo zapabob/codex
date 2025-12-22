@@ -225,7 +225,7 @@ impl QcAgent {
         Self {
             statistical_analyzer: super::statistical::StatisticalAnalyzer,
             quantum_optimizer: super::quantum::QuantumOptimizer,
-            mathematical_optimizer: super::mathematical::MathematicalOptimizer,
+            mathematical_optimizer: super::mathematical::MathematicalOptimizer::new(),
             visualizer: super::visualization::QualityVisualizer::new(),
             config,
             gpu_config,

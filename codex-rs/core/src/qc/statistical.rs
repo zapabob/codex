@@ -217,7 +217,7 @@ impl StatisticalAnalyzer {
         // Use series expansion for small x
         if x < 0.5 {
             let mut sum = 0.0;
-            let mut term = 1.0;
+            let mut term: f64 = 1.0;
             let mut k = 0;
 
             while k < 20 && term.abs() > 1e-10 {
