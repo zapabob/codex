@@ -3,9 +3,9 @@
 //! Automatically analyzes tasks, generates execution plans via Supervisor,
 //! and coordinates parallel sub-agent execution with result aggregation.
 
+use crate::agents::runtime::AgentRuntime;
 use crate::agents::types::AgentResult;
 use crate::agents::types::AgentStatus;
-use crate::agents::runtime::AgentRuntime;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;

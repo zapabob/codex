@@ -225,7 +225,10 @@ impl fmt::Display for Error {
                 )
             }
             Error::ExampleDidMatch { rule, example } => {
-                write!(f, "example did match but should not: rule {rule}, example {example}")
+                write!(
+                    f,
+                    "example did match but should not: rule {rule}, example {example}"
+                )
             }
         }
     }

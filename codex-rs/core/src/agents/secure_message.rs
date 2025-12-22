@@ -8,8 +8,7 @@ use std::collections::BTreeMap;
 #[cfg(feature = "agent_security")]
 /// Placeholder for secure communication
 #[derive(Debug)]
-pub struct SecureAgentCommunicator {
-}
+pub struct SecureAgentCommunicator {}
 
 #[cfg(feature = "agent_security")]
 impl SecureAgentCommunicator {

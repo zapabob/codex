@@ -25,6 +25,7 @@ Control Codex’s behavior during an interactive session with slash commands.
 | `/mcp`          | list configured MCP tools                                                  |
 | `/experimental` | open the experimental menu to enable features from our beta program        |
 | `/skills`       | browse and insert skills (experimental; see [docs/skills.md](./skills.md)) |
+| `/plan`         | manage plan mode (zapabob fork only; non-official)                         |
 | `/logout`       | log out of Codex                                                           |
 | `/quit`         | exit Codex                                                                 |
 | `/exit`         | exit Codex                                                                 |

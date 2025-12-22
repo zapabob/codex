@@ -17,4 +17,5 @@
     "evenBetterToml.formatter.reorderArrays": false,
     "evenBetterToml.formatter.reorderKeys": true,
     "specstory.cloudSync.enabled": "always",
+    "chatgpt.openOnStartup": true,
 }
