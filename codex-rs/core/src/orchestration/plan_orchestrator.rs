@@ -10,6 +10,8 @@ use crate::orchestration::ParallelOrchestrator;
 use crate::orchestration::TaskAnalyzer;
 use crate::orchestration::parallel_execution::AgentTask;
 use crate::orchestration::parallel_execution::AgentType;
+use crate::orchestration::qc_logger::QcLogger;
+use crate::orchestration::qc_merger::QcMerger;
 use crate::plan::ExecutionMode;
 use crate::plan::PlanBlock;
 // Telemetry and webhooks modules not available
@@ -217,8 +219,19 @@ impl PlanOrchestrator {
         ];
 
         let results = self.parallel_orchestrator.execute_parallel(tasks).await?;
-        let summary = build_competition_summary(&results);
+        let qc_merger = QcMerger::new();
+        let (best_result, scores) = qc_merger.select_best_central(results.clone()).await?;
+        let summary = build_competition_summary(&results, &best_result, &scores);
         let agent_results = results.iter().map(map_parallel_result).collect();
+
+        if let Ok(cwd) = std::env::current_dir() {
+            let log_dir = cwd.join("_docs");
+            if let Ok(logger) = QcLogger::new(&log_dir) {
+                let agent = best_result.agent;
+                let best_key = format!("{agent:?}");
+                let _ = logger.log_merge_decision(&best_key, &scores).await;
+            }
+        }
 
         Ok(OrchestratedResult {
             was_orchestrated: true,
@@ -281,6 +294,8 @@ fn build_competition_prompt(plan: &PlanBlock) -> String {
 
 fn build_competition_summary(
     results: &[crate::orchestration::parallel_execution::AgentResult],
+    best_result: &crate::orchestration::parallel_execution::AgentResult,
+    scores: &std::collections::HashMap<String, crate::qc::QualityScore>,
 ) -> String {
     let comparison = crate::orchestration::parallel_execution::compare_results(results);
     let total_agents = comparison.total_agents;
@@ -295,6 +310,18 @@ fn build_competition_summary(
                 " Fastest successful agent: {agent:?} ({time:.2}s)."
             ));
         }
+    }
+
+    let agent = best_result.agent;
+    let best_key = format!("{agent:?}");
+    let best_name = best_key.to_lowercase();
+    if let Some(score) = scores.get(&best_key) {
+        let overall = score.overall;
+        summary.push_str(&format!(
+            " QC selected {best_name} with overall score {overall:.3}."
+        ));
+    } else {
+        summary.push_str(&format!(" QC selected {best_name}."));
     }
 
     summary

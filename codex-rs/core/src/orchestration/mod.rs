@@ -9,6 +9,8 @@ pub mod plan_orchestrator;
 // Collaboration and conflict resolution
 pub mod collaboration_store;
 pub mod conflict_resolver;
+pub mod qc_logger;
+pub mod qc_merger;
 
 // Error handling
 pub mod error_handler;
