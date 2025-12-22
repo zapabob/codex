@@ -4,11 +4,16 @@
 //! leveraging Rust 2024 features: GATs, generic const expressions, and
 //! improved async lifetime capture.
 
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, VecDeque};
-use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, watch};
-use tokio::time::{Duration, Instant};
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::VecDeque;
+use std::sync::Arc;
+use std::sync::Mutex;
+use tokio::sync::mpsc;
+use tokio::sync::watch;
+use tokio::time::Duration;
+use tokio::time::Instant;
 
 /// Quality metric snapshot captured at a specific time
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -80,10 +85,8 @@ pub struct MonitoringConfig<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY
 }
 
 /// Real-time quality monitor using Rust 2024 GATs and advanced async
-pub struct RealTimeQualityMonitor<
-    const ALERT_BUFFER_SIZE: usize,
-    const METRIC_HISTORY_SIZE: usize,
-> {
+pub struct RealTimeQualityMonitor<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
+{
     config: MonitoringConfig<ALERT_BUFFER_SIZE, METRIC_HISTORY_SIZE>,
     metric_history: Arc<Mutex<VecDeque<QualitySnapshot>>>,
     active_alerts: Arc<Mutex<HashMap<String, QualityAlert>>>,
@@ -98,7 +101,11 @@ pub trait MonitoringRule {
     type Context;
 
     /// Evaluate monitoring rule with context
-    async fn evaluate(&self, context: &Self::Context, snapshot: &QualitySnapshot) -> Vec<QualityAlert>;
+    async fn evaluate(
+        &self,
+        context: &Self::Context,
+        snapshot: &QualitySnapshot,
+    ) -> Vec<QualityAlert>;
 
     /// Get rule name
     fn name(&self) -> &'static str;
@@ -122,34 +129,62 @@ pub enum ThresholdComparison {
 impl MonitoringRule for ThresholdRule {
     type Context = ();
 
-    async fn evaluate(&self, _context: &Self::Context, snapshot: &QualitySnapshot) -> Vec<QualityAlert> {
+    async fn evaluate(
+        &self,
+        _context: &Self::Context,
+        snapshot: &QualitySnapshot,
+    ) -> Vec<QualityAlert> {
         let mut alerts = Vec::new();
 
         if let Some(&value) = snapshot.metrics.get(&self.metric_name) {
             let alert_type = match self.comparison {
                 ThresholdComparison::GreaterThan => {
                     if value >= self.critical_threshold {
-                        Some((AlertType::ThresholdExceeded, AlertSeverity::Critical, self.critical_threshold))
+                        Some((
+                            AlertType::ThresholdExceeded,
+                            AlertSeverity::Critical,
+                            self.critical_threshold,
+                        ))
                     } else if value >= self.warning_threshold {
-                        Some((AlertType::ThresholdExceeded, AlertSeverity::Warning, self.warning_threshold))
+                        Some((
+                            AlertType::ThresholdExceeded,
+                            AlertSeverity::Warning,
+                            self.warning_threshold,
+                        ))
                     } else {
                         None
                     }
                 }
                 ThresholdComparison::LessThan => {
                     if value <= self.critical_threshold {
-                        Some((AlertType::ThresholdExceeded, AlertSeverity::Critical, self.critical_threshold))
+                        Some((
+                            AlertType::ThresholdExceeded,
+                            AlertSeverity::Critical,
+                            self.critical_threshold,
+                        ))
                     } else if value <= self.warning_threshold {
-                        Some((AlertType::ThresholdExceeded, AlertSeverity::Warning, self.warning_threshold))
+                        Some((
+                            AlertType::ThresholdExceeded,
+                            AlertSeverity::Warning,
+                            self.warning_threshold,
+                        ))
                     } else {
                         None
                     }
                 }
                 ThresholdComparison::Equal => {
                     if (value - self.critical_threshold).abs() < f64::EPSILON {
-                        Some((AlertType::ThresholdExceeded, AlertSeverity::Critical, self.critical_threshold))
+                        Some((
+                            AlertType::ThresholdExceeded,
+                            AlertSeverity::Critical,
+                            self.critical_threshold,
+                        ))
                     } else if (value - self.warning_threshold).abs() < f64::EPSILON {
-                        Some((AlertType::ThresholdExceeded, AlertSeverity::Warning, self.warning_threshold))
+                        Some((
+                            AlertType::ThresholdExceeded,
+                            AlertSeverity::Warning,
+                            self.warning_threshold,
+                        ))
                     } else {
                         None
                     }
@@ -168,7 +203,8 @@ impl MonitoringRule for ThresholdRule {
                             ThresholdComparison::LessThan => "fell below",
                             ThresholdComparison::Equal => "equals",
                         },
-                        value, threshold
+                        value,
+                        threshold
                     ),
                     metric_name: self.metric_name.clone(),
                     threshold,
@@ -197,17 +233,27 @@ pub struct TrendAnalysisRule {
 impl MonitoringRule for TrendAnalysisRule {
     type Context = VecDeque<QualitySnapshot>;
 
-    async fn evaluate(&self, context: &Self::Context, snapshot: &QualitySnapshot) -> Vec<QualityAlert> {
+    async fn evaluate(
+        &self,
+        context: &Self::Context,
+        snapshot: &QualitySnapshot,
+    ) -> Vec<QualityAlert> {
         let mut alerts = Vec::new();
 
         // Analyze trend over the specified window
         if let Some(trend) = self.analyze_trend(context, snapshot).await {
             let alert_type = if trend.slope <= self.degradation_threshold {
-                Some((AlertType::TrendDeviation, AlertSeverity::Warning,
-                     format!("Degrading trend detected (slope: {:.3})", trend.slope)))
+                Some((
+                    AlertType::TrendDeviation,
+                    AlertSeverity::Warning,
+                    format!("Degrading trend detected (slope: {:.3})", trend.slope),
+                ))
             } else if trend.slope >= self.improvement_threshold {
-                Some((AlertType::Improvement, AlertSeverity::Info,
-                     format!("Improving trend detected (slope: {:.3})", trend.slope)))
+                Some((
+                    AlertType::Improvement,
+                    AlertSeverity::Info,
+                    format!("Improving trend detected (slope: {:.3})", trend.slope),
+                ))
             } else {
                 None
             };
@@ -218,7 +264,11 @@ impl MonitoringRule for TrendAnalysisRule {
                     severity,
                     message,
                     metric_name: self.metric_name.clone(),
-                    threshold: if trend.slope <= self.degradation_threshold { self.degradation_threshold } else { self.improvement_threshold },
+                    threshold: if trend.slope <= self.degradation_threshold {
+                        self.degradation_threshold
+                    } else {
+                        self.improvement_threshold
+                    },
                     actual_value: trend.slope,
                     timestamp: chrono::Utc::now(),
                 });
@@ -235,19 +285,26 @@ impl MonitoringRule for TrendAnalysisRule {
 
 impl TrendAnalysisRule {
     /// Analyze trend using Rust 2024 async improvements
-    async fn analyze_trend(&self, history: &VecDeque<QualitySnapshot>, current: &QualitySnapshot) -> Option<TrendIndicator> {
+    async fn analyze_trend(
+        &self,
+        history: &VecDeque<QualitySnapshot>,
+        current: &QualitySnapshot,
+    ) -> Option<TrendIndicator> {
         if history.len() < 2 {
             return None;
         }
 
         // Filter data points within the analysis window
-        let cutoff_time = current.timestamp - chrono::Duration::minutes(self.analysis_window_minutes as i64);
+        let cutoff_time =
+            current.timestamp - chrono::Duration::minutes(self.analysis_window_minutes as i64);
         let relevant_points: Vec<_> = history
             .iter()
             .chain(std::iter::once(current))
             .filter(|snapshot| snapshot.timestamp >= cutoff_time)
             .filter_map(|snapshot| {
-                snapshot.metrics.get(&self.metric_name)
+                snapshot
+                    .metrics
+                    .get(&self.metric_name)
                     .map(|&value| (snapshot.timestamp.timestamp() as f64, value))
             })
             .collect();
@@ -268,9 +325,19 @@ impl TrendAnalysisRule {
 
         // Calculate R-squared for confidence
         let y_mean = sum_y / n;
-        let ss_tot: f64 = relevant_points.iter().map(|(_, y)| (y - y_mean).powi(2)).sum();
-        let ss_res: f64 = relevant_points.iter().map(|(x, y)| (y - (slope * x + intercept)).powi(2)).sum();
-        let r_squared = if ss_tot > 0.0 { 1.0 - (ss_res / ss_tot) } else { 0.0 };
+        let ss_tot: f64 = relevant_points
+            .iter()
+            .map(|(_, y)| (y - y_mean).powi(2))
+            .sum();
+        let ss_res: f64 = relevant_points
+            .iter()
+            .map(|(x, y)| (y - (slope * x + intercept)).powi(2))
+            .sum();
+        let r_squared = if ss_tot > 0.0 {
+            1.0 - (ss_res / ss_tot)
+        } else {
+            0.0
+        };
 
         let trend = if slope > 0.01 {
             TrendDirection::Improving
@@ -322,7 +389,8 @@ impl<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
 
         // Spawn monitoring task with improved async lifetime capture (Rust 2024)
         let monitoring_handle = tokio::spawn(async move {
-            let mut interval = tokio::time::interval(Duration::from_secs(self.config.monitoring_interval_seconds));
+            let mut interval =
+                tokio::time::interval(Duration::from_secs(self.config.monitoring_interval_seconds));
 
             loop {
                 tokio::select! {
@@ -353,14 +421,21 @@ impl<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
 
                 // Remove expired alerts and add new one
                 active.retain(|_, existing| {
-                    existing.timestamp + chrono::Duration::minutes(self.config.alert_cooldown_minutes as i64)
+                    existing.timestamp
+                        + chrono::Duration::minutes(self.config.alert_cooldown_minutes as i64)
                         > chrono::Utc::now()
                 });
 
-                active.insert(format!("{}_{}", alert.metric_name, alert.alert_type as u8), alert.clone());
+                active.insert(
+                    format!("{}_{}", alert.metric_name, alert.alert_type as u8),
+                    alert.clone(),
+                );
 
                 // Log alert (in real implementation, this would trigger notifications)
-                println!("🚨 Quality Alert: [{}] {}", alert.severity as u8, alert.message);
+                println!(
+                    "🚨 Quality Alert: [{}] {}",
+                    alert.severity as u8, alert.message
+                );
             }
         });
 
@@ -369,7 +444,10 @@ impl<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
     }
 
     /// Add quality snapshot to monitoring system
-    pub async fn add_snapshot(&self, metrics: HashMap<String, f64>) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn add_snapshot(
+        &self,
+        metrics: HashMap<String, f64>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let snapshot = QualitySnapshot {
             timestamp: chrono::Utc::now(),
             metrics,
@@ -459,7 +537,10 @@ impl<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
     }
 
     /// Count alerts by severity
-    fn count_alerts_by_severity(&self, alerts: &HashMap<String, QualityAlert>) -> HashMap<AlertSeverity, usize> {
+    fn count_alerts_by_severity(
+        &self,
+        alerts: &HashMap<String, QualityAlert>,
+    ) -> HashMap<AlertSeverity, usize> {
         let mut counts = HashMap::new();
 
         for alert in alerts.values() {

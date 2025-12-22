@@ -3,10 +3,13 @@
 //! Provides AI-driven automatic code quality improvements using advanced
 //! Rust 2024 features: GATs, async improvements, and const generics.
 
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, VecDeque};
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::VecDeque;
 use std::sync::Arc;
-use tokio::sync::{mpsc, Semaphore};
+use tokio::sync::Semaphore;
+use tokio::sync::mpsc;
 
 /// Automatic improvement action
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -147,34 +150,57 @@ pub struct AutomaticQualityImprover {
 #[async_trait::async_trait]
 pub trait CodeAnalyzer {
     /// Analyze code for improvement opportunities
-    async fn analyze_code(&self, code: &str, file_path: &str) -> Result<Vec<PotentialImprovement>, AnalysisError>;
+    async fn analyze_code(
+        &self,
+        code: &str,
+        file_path: &str,
+    ) -> Result<Vec<PotentialImprovement>, AnalysisError>;
 
     /// Analyze specific code patterns
-    async fn analyze_pattern(&self, code: &str, pattern: &CodePattern) -> Result<Vec<PotentialImprovement>, AnalysisError>;
+    async fn analyze_pattern(
+        &self,
+        code: &str,
+        pattern: &CodePattern,
+    ) -> Result<Vec<PotentialImprovement>, AnalysisError>;
 }
 
 /// Code transformation trait with GATs (Rust 2024)
 #[async_trait::async_trait]
 pub trait CodeTransformer {
     /// Apply code transformation
-    async fn transform_code(&self, code: &str, changes: &[CodeChange]) -> Result<String, TransformationError>;
+    async fn transform_code(
+        &self,
+        code: &str,
+        changes: &[CodeChange],
+    ) -> Result<String, TransformationError>;
 
     /// Validate code changes
-    async fn validate_changes(&self, original: &str, transformed: &str) -> Result<ValidationResult, TransformationError>;
+    async fn validate_changes(
+        &self,
+        original: &str,
+        transformed: &str,
+    ) -> Result<ValidationResult, TransformationError>;
 }
 
 /// Quality prediction trait
 #[async_trait::async_trait]
 pub trait QualityPredictor {
     /// Predict quality impact of changes
-    async fn predict_quality_impact(&self, changes: &[CodeChange]) -> Result<QualityImpact, PredictionError>;
+    async fn predict_quality_impact(
+        &self,
+        changes: &[CodeChange],
+    ) -> Result<QualityImpact, PredictionError>;
 }
 
 /// Risk assessment trait
 #[async_trait::async_trait]
 pub trait RiskAssessor {
     /// Assess risk of changes
-    async fn assess_risk(&self, changes: &[CodeChange], context: &RiskContext) -> Result<RiskAssessmentResult, RiskError>;
+    async fn assess_risk(
+        &self,
+        changes: &[CodeChange],
+        context: &RiskContext,
+    ) -> Result<RiskAssessmentResult, RiskError>;
 }
 
 /// Potential improvement identified by analysis
@@ -320,14 +346,20 @@ impl AutomaticQualityImprover {
     ) -> Result<ImprovementPlan, String> {
         let plan_id = format!("improvement_plan_{}", chrono::Utc::now().timestamp());
 
-        println!("🎯 Generating improvement plan for {} files", codebase_files.len());
+        println!(
+            "🎯 Generating improvement plan for {} files",
+            codebase_files.len()
+        );
 
         // Analyze all files for improvement opportunities
         let mut all_improvements = Vec::new();
 
         for file_path in codebase_files {
             let code = self.load_file(file_path).await?;
-            let improvements = self.analyzer.analyze_code(&code, file_path).await
+            let improvements = self
+                .analyzer
+                .analyze_code(&code, file_path)
+                .await
                 .map_err(|e| format!("Analysis failed for {}: {}", file_path, e))?;
 
             all_improvements.extend(improvements);
@@ -336,20 +368,26 @@ impl AutomaticQualityImprover {
         println!("📊 Found {} potential improvements", all_improvements.len());
 
         // Filter and prioritize improvements
-        let prioritized_actions = self.prioritize_improvements(
-            all_improvements,
-            quality_requirements,
-            risk_tolerance,
-        ).await?;
+        let prioritized_actions = self
+            .prioritize_improvements(all_improvements, quality_requirements, risk_tolerance)
+            .await?;
 
         // Create improvement plan
-        let plan = self.create_improvement_plan(
-            plan_id,
-            codebase_files.first().unwrap_or(&"unknown".to_string()).clone(),
-            prioritized_actions,
-        ).await?;
+        let plan = self
+            .create_improvement_plan(
+                plan_id,
+                codebase_files
+                    .first()
+                    .unwrap_or(&"unknown".to_string())
+                    .clone(),
+                prioritized_actions,
+            )
+            .await?;
 
-        println!("✅ Generated improvement plan with {} actions", plan.actions.len());
+        println!(
+            "✅ Generated improvement plan with {} actions",
+            plan.actions.len()
+        );
 
         Ok(plan)
     }
@@ -373,21 +411,59 @@ impl AutomaticQualityImprover {
         // Execute actions based on strategy
         match plan.execution_strategy {
             ExecutionStrategy::Sequential => {
-                self.execute_sequential(plan, dry_run, &mut executed_actions, &mut successful_actions, &mut failed_actions, &mut errors, &mut rollback_actions).await?;
+                self.execute_sequential(
+                    plan,
+                    dry_run,
+                    &mut executed_actions,
+                    &mut successful_actions,
+                    &mut failed_actions,
+                    &mut errors,
+                    &mut rollback_actions,
+                )
+                .await?;
             }
             ExecutionStrategy::ParallelSafe => {
-                self.execute_parallel_safe(plan, dry_run, &mut executed_actions, &mut successful_actions, &mut failed_actions, &mut errors, &mut rollback_actions).await?;
+                self.execute_parallel_safe(
+                    plan,
+                    dry_run,
+                    &mut executed_actions,
+                    &mut successful_actions,
+                    &mut failed_actions,
+                    &mut errors,
+                    &mut rollback_actions,
+                )
+                .await?;
             }
             ExecutionStrategy::ParallelWithDependencies => {
-                self.execute_parallel_with_dependencies(plan, dry_run, &mut executed_actions, &mut successful_actions, &mut failed_actions, &mut errors, &mut rollback_actions).await?;
+                self.execute_parallel_with_dependencies(
+                    plan,
+                    dry_run,
+                    &mut executed_actions,
+                    &mut successful_actions,
+                    &mut failed_actions,
+                    &mut errors,
+                    &mut rollback_actions,
+                )
+                .await?;
             }
             ExecutionStrategy::Batched => {
-                self.execute_batched(plan, dry_run, &mut executed_actions, &mut successful_actions, &mut failed_actions, &mut errors, &mut rollback_actions).await?;
+                self.execute_batched(
+                    plan,
+                    dry_run,
+                    &mut executed_actions,
+                    &mut successful_actions,
+                    &mut failed_actions,
+                    &mut errors,
+                    &mut rollback_actions,
+                )
+                .await?;
             }
         }
 
         let execution_time = start_time.elapsed().as_millis() as u64;
-        let actual_improvement = self.measure_actual_improvement(plan, successful_actions).await?;
+        let actual_improvement = self
+            .measure_actual_improvement(plan, successful_actions)
+            .await?;
 
         let result = ImprovementResult {
             plan_id: plan.id.clone(),
@@ -400,13 +476,19 @@ impl AutomaticQualityImprover {
             rollback_actions,
         };
 
-        println!("✅ Execution completed: {}/{} actions successful", successful_actions, executed_actions);
+        println!(
+            "✅ Execution completed: {}/{} actions successful",
+            successful_actions, executed_actions
+        );
 
         Ok(result)
     }
 
     /// Validate improvement plan before execution
-    pub async fn validate_plan(&self, plan: &ImprovementPlan) -> Result<PlanValidationResult, String> {
+    pub async fn validate_plan(
+        &self,
+        plan: &ImprovementPlan,
+    ) -> Result<PlanValidationResult, String> {
         let mut validation_results = Vec::new();
         let mut total_risk_score = 0.0;
 
@@ -447,7 +529,8 @@ impl AutomaticQualityImprover {
 
     // Implementation methods
     async fn load_file(&self, file_path: &str) -> Result<String, String> {
-        tokio::fs::read_to_string(file_path).await
+        tokio::fs::read_to_string(file_path)
+            .await
             .map_err(|e| format!("Failed to load file {}: {}", file_path, e))
     }
 
@@ -468,7 +551,8 @@ impl AutomaticQualityImprover {
             // Calculate priority score
             let priority_score = self.calculate_priority_score(&improvement, requirements);
 
-            if priority_score >= 0.6 { // Only include high-priority improvements
+            if priority_score >= 0.6 {
+                // Only include high-priority improvements
                 let action = ImprovementAction {
                     action_type: improvement.improvement_type,
                     target: improvement.location.file_path.clone(),
@@ -488,7 +572,9 @@ impl AutomaticQualityImprover {
         actions.sort_by(|a, b| {
             let score_a = a.expected_improvement * a.confidence;
             let score_b = b.expected_improvement * b.confidence;
-            score_b.partial_cmp(&score_a).unwrap_or(std::cmp::Ordering::Equal)
+            score_b
+                .partial_cmp(&score_a)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         Ok(actions)
@@ -500,9 +586,11 @@ impl AutomaticQualityImprover {
         target_codebase: String,
         actions: Vec<ImprovementAction>,
     ) -> Result<ImprovementPlan, String> {
-        let expected_overall_improvement = actions.iter()
+        let expected_overall_improvement = actions
+            .iter()
             .map(|a| a.expected_improvement * a.confidence)
-            .sum::<f64>() / actions.len() as f64;
+            .sum::<f64>()
+            / actions.len() as f64;
 
         let risk_assessment = self.assess_plan_risks(&actions).await?;
         let execution_strategy = self.determine_execution_strategy(&actions, &risk_assessment);
@@ -559,7 +647,9 @@ impl AutomaticQualityImprover {
         for action in &plan.actions {
             let action_clone = action.clone();
             let rollback_clone = rollback.clone();
-            let permit = Arc::clone(&self.concurrency_limiter).acquire_owned().await
+            let permit = Arc::clone(&self.concurrency_limiter)
+                .acquire_owned()
+                .await
                 .map_err(|e| format!("Failed to acquire execution permit: {}", e))?;
 
             let task = tokio::spawn(async move {
@@ -644,14 +734,16 @@ impl AutomaticQualityImprover {
         let mut file_changes: HashMap<String, Vec<&CodeChange>> = HashMap::new();
 
         for change in &action.code_changes {
-            file_changes.entry(change.file_path.clone())
+            file_changes
+                .entry(change.file_path.clone())
                 .or_insert_with(Vec::new)
                 .push(change);
         }
 
         // Apply changes to each file
         for (file_path, changes) in file_changes {
-            let original_code = tokio::fs::read_to_string(&file_path).await
+            let original_code = tokio::fs::read_to_string(&file_path)
+                .await
                 .map_err(|e| format!("Failed to read file {}: {}", file_path, e))?;
 
             // Store original for rollback
@@ -669,7 +761,8 @@ impl AutomaticQualityImprover {
             let transformed_code = Self::apply_code_changes(&original_code, changes)?;
 
             // Write back to file
-            tokio::fs::write(&file_path, transformed_code).await
+            tokio::fs::write(&file_path, transformed_code)
+                .await
                 .map_err(|e| format!("Failed to write file {}: {}", file_path, e))?;
         }
 
@@ -698,14 +791,20 @@ impl AutomaticQualityImprover {
                     if line_idx <= lines.len() {
                         lines.insert(line_idx, change.new_code.clone());
                     } else {
-                        return Err(format!("Line {} out of bounds for insert", change.line_number));
+                        return Err(format!(
+                            "Line {} out of bounds for insert",
+                            change.line_number
+                        ));
                     }
                 }
                 ChangeType::Delete => {
                     if line_idx < lines.len() {
                         lines.remove(line_idx);
                     } else {
-                        return Err(format!("Line {} out of bounds for delete", change.line_number));
+                        return Err(format!(
+                            "Line {} out of bounds for delete",
+                            change.line_number
+                        ));
                     }
                 }
                 ChangeType::Move => {
@@ -719,7 +818,11 @@ impl AutomaticQualityImprover {
     }
 
     // Helper methods
-    fn calculate_priority_score(&self, improvement: &PotentialImprovement, requirements: &QualityRequirements) -> f64 {
+    fn calculate_priority_score(
+        &self,
+        improvement: &PotentialImprovement,
+        requirements: &QualityRequirements,
+    ) -> f64 {
         let mut score = improvement.confidence * improvement.potential_impact;
 
         // Adjust based on quality requirements
@@ -770,13 +873,27 @@ impl AutomaticQualityImprover {
         }
     }
 
-    async fn assess_plan_risks(&self, actions: &[ImprovementAction]) -> Result<PlanRiskAssessment, String> {
-        let high_risk = actions.iter().filter(|a| matches!(a.risk_level, RiskLevel::High | RiskLevel::VeryHigh)).count();
-        let medium_risk = actions.iter().filter(|a| a.risk_level == RiskLevel::Medium).count();
-        let low_risk = actions.iter().filter(|a| matches!(a.risk_level, RiskLevel::Low | RiskLevel::VeryLow)).count();
+    async fn assess_plan_risks(
+        &self,
+        actions: &[ImprovementAction],
+    ) -> Result<PlanRiskAssessment, String> {
+        let high_risk = actions
+            .iter()
+            .filter(|a| matches!(a.risk_level, RiskLevel::High | RiskLevel::VeryHigh))
+            .count();
+        let medium_risk = actions
+            .iter()
+            .filter(|a| a.risk_level == RiskLevel::Medium)
+            .count();
+        let low_risk = actions
+            .iter()
+            .filter(|a| matches!(a.risk_level, RiskLevel::Low | RiskLevel::VeryLow))
+            .count();
 
         let total_actions = actions.len() as f64;
-        let risk_score = (high_risk as f64 * 2.0 + medium_risk as f64 * 1.0 + low_risk as f64 * 0.5) / total_actions;
+        let risk_score =
+            (high_risk as f64 * 2.0 + medium_risk as f64 * 1.0 + low_risk as f64 * 0.5)
+                / total_actions;
 
         let overall_risk_level = if risk_score >= 1.5 {
             RiskLevel::VeryHigh
@@ -821,7 +938,11 @@ impl AutomaticQualityImprover {
         })
     }
 
-    fn determine_execution_strategy(&self, actions: &[ImprovementAction], risk: &PlanRiskAssessment) -> ExecutionStrategy {
+    fn determine_execution_strategy(
+        &self,
+        actions: &[ImprovementAction],
+        risk: &PlanRiskAssessment,
+    ) -> ExecutionStrategy {
         // Determine strategy based on risk and action dependencies
         if risk.overall_risk_level >= RiskLevel::High || actions.len() > 10 {
             ExecutionStrategy::Sequential
@@ -832,14 +953,21 @@ impl AutomaticQualityImprover {
         }
     }
 
-    async fn measure_actual_improvement(&self, plan: &ImprovementPlan, successful_actions: usize) -> Result<f64, String> {
+    async fn measure_actual_improvement(
+        &self,
+        plan: &ImprovementPlan,
+        successful_actions: usize,
+    ) -> Result<f64, String> {
         // Placeholder - would measure actual quality improvement
         // In real implementation, would re-run quality analysis
         let base_improvement = successful_actions as f64 / plan.actions.len() as f64;
         Ok(base_improvement * plan.expected_overall_improvement)
     }
 
-    async fn validate_single_action(&self, action: &ImprovementAction) -> Result<ActionValidation, String> {
+    async fn validate_single_action(
+        &self,
+        action: &ImprovementAction,
+    ) -> Result<ActionValidation, String> {
         // Placeholder validation - would check prerequisites, syntax, etc.
         Ok(ActionValidation {
             is_valid: true,
@@ -849,7 +977,11 @@ impl AutomaticQualityImprover {
         })
     }
 
-    fn recommend_execution_strategy(&self, plan: &ImprovementPlan, risk_level: RiskLevel) -> ExecutionStrategy {
+    fn recommend_execution_strategy(
+        &self,
+        plan: &ImprovementPlan,
+        risk_level: RiskLevel,
+    ) -> ExecutionStrategy {
         match risk_level {
             RiskLevel::VeryHigh => ExecutionStrategy::Sequential,
             RiskLevel::High => ExecutionStrategy::Batched,
@@ -928,22 +1060,38 @@ mod tests {
 
     #[async_trait::async_trait]
     impl CodeAnalyzer for MockAnalyzer {
-        async fn analyze_code(&self, _code: &str, _file_path: &str) -> Result<Vec<PotentialImprovement>, AnalysisError> {
+        async fn analyze_code(
+            &self,
+            _code: &str,
+            _file_path: &str,
+        ) -> Result<Vec<PotentialImprovement>, AnalysisError> {
             Ok(vec![])
         }
 
-        async fn analyze_pattern(&self, _code: &str, _pattern: &CodePattern) -> Result<Vec<PotentialImprovement>, AnalysisError> {
+        async fn analyze_pattern(
+            &self,
+            _code: &str,
+            _pattern: &CodePattern,
+        ) -> Result<Vec<PotentialImprovement>, AnalysisError> {
             Ok(vec![])
         }
     }
 
     #[async_trait::async_trait]
     impl CodeTransformer for MockTransformer {
-        async fn transform_code(&self, _code: &str, _changes: &[CodeChange]) -> Result<String, TransformationError> {
+        async fn transform_code(
+            &self,
+            _code: &str,
+            _changes: &[CodeChange],
+        ) -> Result<String, TransformationError> {
             Ok("transformed".to_string())
         }
 
-        async fn validate_changes(&self, _original: &str, _transformed: &str) -> Result<ValidationResult, TransformationError> {
+        async fn validate_changes(
+            &self,
+            _original: &str,
+            _transformed: &str,
+        ) -> Result<ValidationResult, TransformationError> {
             Ok(ValidationResult {
                 is_valid: true,
                 syntax_ok: true,
@@ -957,7 +1105,10 @@ mod tests {
 
     #[async_trait::async_trait]
     impl QualityPredictor for MockPredictor {
-        async fn predict_quality_impact(&self, _changes: &[CodeChange]) -> Result<QualityImpact, PredictionError> {
+        async fn predict_quality_impact(
+            &self,
+            _changes: &[CodeChange],
+        ) -> Result<QualityImpact, PredictionError> {
             Ok(QualityImpact {
                 readability_change: 0.1,
                 maintainability_change: 0.05,
@@ -971,7 +1122,11 @@ mod tests {
 
     #[async_trait::async_trait]
     impl RiskAssessor for MockRiskAssessor {
-        async fn assess_risk(&self, _changes: &[CodeChange], _context: &RiskContext) -> Result<RiskAssessmentResult, RiskError> {
+        async fn assess_risk(
+            &self,
+            _changes: &[CodeChange],
+            _context: &RiskContext,
+        ) -> Result<RiskAssessmentResult, RiskError> {
             Ok(RiskAssessmentResult {
                 risk_level: RiskLevel::Low,
                 risk_score: 0.2,

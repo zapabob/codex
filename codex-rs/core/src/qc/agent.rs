@@ -213,15 +213,15 @@ impl QcAgent {
 
     /// Create new QC agent with custom QC configuration
     pub fn with_config(config: QcConfig) -> Self {
-        Self::with_full_config(
-            config,
-            GpuConfig::default(),
-            ParallelConfig::default(),
-        )
+        Self::with_full_config(config, GpuConfig::default(), ParallelConfig::default())
     }
 
     /// Create new QC agent with full configuration
-    pub fn with_full_config(config: QcConfig, gpu_config: GpuConfig, parallel_config: ParallelConfig) -> Self {
+    pub fn with_full_config(
+        config: QcConfig,
+        gpu_config: GpuConfig,
+        parallel_config: ParallelConfig,
+    ) -> Self {
         Self {
             statistical_analyzer: super::statistical::StatisticalAnalyzer,
             quantum_optimizer: super::quantum::QuantumOptimizer,

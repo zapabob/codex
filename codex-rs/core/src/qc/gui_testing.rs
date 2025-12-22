@@ -3,11 +3,13 @@
 //! Comprehensive testing suite for GUI, TUI, and CLI interfaces
 //! with macOS-style UX validation and integration testing.
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tokio::time::{Duration, Instant};
+use tokio::time::Duration;
+use tokio::time::Instant;
 
 /// Testing configuration for different interfaces
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,17 +95,45 @@ pub struct TestStep {
 /// Test actions
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TestAction {
-    Click { selector: String },
-    Type { text: String, selector: Option<String> },
-    Wait { duration_ms: u64 },
-    AssertVisible { selector: String },
-    AssertText { selector: String, expected_text: String },
-    ExecuteCommand { command: String, args: Vec<String> },
-    Navigate { path: String },
-    KeyPress { key: String, modifiers: Vec<String> },
-    MouseMove { x: i32, y: i32 },
-    Scroll { direction: ScrollDirection, amount: i32 },
-    Screenshot { filename: String },
+    Click {
+        selector: String,
+    },
+    Type {
+        text: String,
+        selector: Option<String>,
+    },
+    Wait {
+        duration_ms: u64,
+    },
+    AssertVisible {
+        selector: String,
+    },
+    AssertText {
+        selector: String,
+        expected_text: String,
+    },
+    ExecuteCommand {
+        command: String,
+        args: Vec<String>,
+    },
+    Navigate {
+        path: String,
+    },
+    KeyPress {
+        key: String,
+        modifiers: Vec<String>,
+    },
+    MouseMove {
+        x: i32,
+        y: i32,
+    },
+    Scroll {
+        direction: ScrollDirection,
+        amount: i32,
+    },
+    Screenshot {
+        filename: String,
+    },
 }
 
 /// Scroll directions
@@ -126,12 +156,25 @@ pub struct ExpectedResult {
 /// Test conditions
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TestCondition {
-    ElementVisible { selector: String },
-    TextEquals { selector: String, expected: String },
-    CommandSuccess { exit_code: Option<i32> },
-    PerformanceWithin { metric: String, max_value: f64 },
+    ElementVisible {
+        selector: String,
+    },
+    TextEquals {
+        selector: String,
+        expected: String,
+    },
+    CommandSuccess {
+        exit_code: Option<i32>,
+    },
+    PerformanceWithin {
+        metric: String,
+        max_value: f64,
+    },
     NoErrors,
-    Custom { condition_type: String, parameters: HashMap<String, serde_json::Value> },
+    Custom {
+        condition_type: String,
+        parameters: HashMap<String, serde_json::Value>,
+    },
 }
 
 /// Test execution result
@@ -251,12 +294,16 @@ impl InterfaceTestSuite {
         let mut results = Vec::new();
 
         // Execute tests concurrently up to max_concurrent_tests
-        let semaphore = Arc::new(tokio::sync::Semaphore::new(self.config.max_concurrent_tests));
+        let semaphore = Arc::new(tokio::sync::Semaphore::new(
+            self.config.max_concurrent_tests,
+        ));
 
         let mut tasks = Vec::new();
 
         for test_case in test_cases {
-            let permit = Arc::clone(&semaphore).acquire_owned().await
+            let permit = Arc::clone(&semaphore)
+                .acquire_owned()
+                .await
                 .map_err(|e| format!("Failed to acquire test permit: {}", e))?;
 
             let config = self.config.clone();
@@ -285,10 +332,18 @@ impl InterfaceTestSuite {
         }
 
         // Generate summary
-        let summary = self.generate_test_summary(results, total_execution_time).await;
+        let summary = self
+            .generate_test_summary(results, total_execution_time)
+            .await;
 
-        println!("✅ Interface testing completed in {}ms", total_execution_time);
-        println!("📊 Results: {}/{} tests passed", summary.passed_tests, summary.total_tests);
+        println!(
+            "✅ Interface testing completed in {}ms",
+            total_execution_time
+        );
+        println!(
+            "📊 Results: {}/{} tests passed",
+            summary.passed_tests, summary.total_tests
+        );
 
         Ok(summary)
     }
@@ -296,7 +351,8 @@ impl InterfaceTestSuite {
     /// Run specific test case
     pub async fn run_test_case(&self, test_id: &str) -> Result<TestExecutionResult, String> {
         let test_cases = self.test_cases.read().await;
-        let test_case = test_cases.iter()
+        let test_case = test_cases
+            .iter()
             .find(|tc| tc.id == test_id)
             .ok_or_else(|| format!("Test case '{}' not found", test_id))?
             .clone();
@@ -332,7 +388,9 @@ impl InterfaceTestSuite {
                 TestStep {
                     step_id: "open_window".to_string(),
                     description: "Open application window".to_string(),
-                    action: TestAction::Click { selector: "#app-launcher".to_string() },
+                    action: TestAction::Click {
+                        selector: "#app-launcher".to_string(),
+                    },
                     parameters: HashMap::new(),
                     timeout_seconds: Some(5),
                     screenshot_before: true,
@@ -341,7 +399,9 @@ impl InterfaceTestSuite {
                 TestStep {
                     step_id: "maximize_window".to_string(),
                     description: "Maximize window using green button".to_string(),
-                    action: TestAction::Click { selector: ".window-controls .maximize".to_string() },
+                    action: TestAction::Click {
+                        selector: ".window-controls .maximize".to_string(),
+                    },
                     parameters: HashMap::new(),
                     timeout_seconds: Some(3),
                     screenshot_before: false,
@@ -350,22 +410,28 @@ impl InterfaceTestSuite {
                 TestStep {
                     step_id: "minimize_window".to_string(),
                     description: "Minimize window using yellow button".to_string(),
-                    action: TestAction::Click { selector: ".window-controls .minimize".to_string() },
+                    action: TestAction::Click {
+                        selector: ".window-controls .minimize".to_string(),
+                    },
                     parameters: HashMap::new(),
                     timeout_seconds: Some(3),
                     screenshot_before: false,
                     screenshot_after: true,
                 },
             ],
-            expected_results: vec![
-                ExpectedResult {
-                    condition: TestCondition::ElementVisible { selector: ".main-window".to_string() },
-                    description: "Main window should be visible".to_string(),
-                    required: true,
+            expected_results: vec![ExpectedResult {
+                condition: TestCondition::ElementVisible {
+                    selector: ".main-window".to_string(),
                 },
-            ],
+                description: "Main window should be visible".to_string(),
+                required: true,
+            }],
             prerequisites: vec!["GUI application running".to_string()],
-            tags: vec!["macos".to_string(), "gui".to_string(), "usability".to_string()],
+            tags: vec![
+                "macos".to_string(),
+                "gui".to_string(),
+                "usability".to_string(),
+            ],
         });
 
         // TUI keyboard navigation tests
@@ -380,7 +446,10 @@ impl InterfaceTestSuite {
                 TestStep {
                     step_id: "navigate_menu".to_string(),
                     description: "Navigate through menu using arrow keys".to_string(),
-                    action: TestAction::KeyPress { key: "Down".to_string(), modifiers: vec![] },
+                    action: TestAction::KeyPress {
+                        key: "Down".to_string(),
+                        modifiers: vec![],
+                    },
                     parameters: HashMap::new(),
                     timeout_seconds: Some(2),
                     screenshot_before: false,
@@ -389,7 +458,10 @@ impl InterfaceTestSuite {
                 TestStep {
                     step_id: "select_option".to_string(),
                     description: "Select menu option with Enter".to_string(),
-                    action: TestAction::KeyPress { key: "Enter".to_string(), modifiers: vec![] },
+                    action: TestAction::KeyPress {
+                        key: "Enter".to_string(),
+                        modifiers: vec![],
+                    },
                     parameters: HashMap::new(),
                     timeout_seconds: Some(2),
                     screenshot_before: false,
@@ -398,22 +470,27 @@ impl InterfaceTestSuite {
                 TestStep {
                     step_id: "exit_menu".to_string(),
                     description: "Exit menu with Escape".to_string(),
-                    action: TestAction::KeyPress { key: "Escape".to_string(), modifiers: vec![] },
+                    action: TestAction::KeyPress {
+                        key: "Escape".to_string(),
+                        modifiers: vec![],
+                    },
                     parameters: HashMap::new(),
                     timeout_seconds: Some(2),
                     screenshot_before: false,
                     screenshot_after: false,
                 },
             ],
-            expected_results: vec![
-                ExpectedResult {
-                    condition: TestCondition::NoErrors,
-                    description: "No navigation errors should occur".to_string(),
-                    required: true,
-                },
-            ],
+            expected_results: vec![ExpectedResult {
+                condition: TestCondition::NoErrors,
+                description: "No navigation errors should occur".to_string(),
+                required: true,
+            }],
             prerequisites: vec!["TUI application running".to_string()],
-            tags: vec!["tui".to_string(), "navigation".to_string(), "keyboard".to_string()],
+            tags: vec![
+                "tui".to_string(),
+                "navigation".to_string(),
+                "keyboard".to_string(),
+            ],
         });
 
         // CLI integration tests
@@ -430,7 +507,11 @@ impl InterfaceTestSuite {
                     description: "Execute plan create command".to_string(),
                     action: TestAction::ExecuteCommand {
                         command: "codex".to_string(),
-                        args: vec!["plan".to_string(), "create".to_string(), "Test Plan".to_string()],
+                        args: vec![
+                            "plan".to_string(),
+                            "create".to_string(),
+                            "Test Plan".to_string(),
+                        ],
                     },
                     parameters: HashMap::new(),
                     timeout_seconds: Some(30),
@@ -450,22 +531,27 @@ impl InterfaceTestSuite {
                     screenshot_after: false,
                 },
             ],
-            expected_results: vec![
-                ExpectedResult {
-                    condition: TestCondition::CommandSuccess { exit_code: Some(0) },
-                    description: "Plan creation should succeed".to_string(),
-                    required: true,
-                },
-            ],
+            expected_results: vec![ExpectedResult {
+                condition: TestCondition::CommandSuccess { exit_code: Some(0) },
+                description: "Plan creation should succeed".to_string(),
+                required: true,
+            }],
             prerequisites: vec!["Codex CLI installed".to_string()],
-            tags: vec!["cli".to_string(), "plan".to_string(), "integration".to_string()],
+            tags: vec![
+                "cli".to_string(),
+                "plan".to_string(),
+                "integration".to_string(),
+            ],
         });
 
         scenarios
     }
 
     /// Execute individual test case
-    async fn execute_test_case(test_case: TestCase, config: InterfaceTestConfig) -> TestExecutionResult {
+    async fn execute_test_case(
+        test_case: TestCase,
+        config: InterfaceTestConfig,
+    ) -> TestExecutionResult {
         let start_time = Instant::now();
         let mut steps_executed = 0;
         let mut steps_passed = 0;
@@ -484,12 +570,14 @@ impl InterfaceTestSuite {
             let step_result = Self::execute_test_step(&step, &config).await;
             let step_duration = step_start.elapsed().as_millis() as f64;
 
-            performance_metrics.insert(
-                format!("step_{}_duration_ms", step.step_id),
-                step_duration,
-            );
+            performance_metrics.insert(format!("step_{}_duration_ms", step.step_id), step_duration);
 
-            logs.push(format!("Step {}: {} - {}ms", step_index + 1, step.description, step_duration));
+            logs.push(format!(
+                "Step {}: {} - {}ms",
+                step_index + 1,
+                step.description,
+                step_duration
+            ));
 
             match step_result {
                 Ok(step_success) => {
@@ -530,10 +618,17 @@ impl InterfaceTestSuite {
 
         // Add final performance metrics
         performance_metrics.insert("total_execution_time_ms".to_string(), execution_time as f64);
-        performance_metrics.insert("steps_passed_ratio".to_string(), steps_passed as f64 / steps_executed as f64);
+        performance_metrics.insert(
+            "steps_passed_ratio".to_string(),
+            steps_passed as f64 / steps_executed as f64,
+        );
 
-        logs.push(format!("Test case completed: {} - {}/{} steps passed",
-                         if success { "PASSED" } else { "FAILED" }, steps_passed, steps_executed));
+        logs.push(format!(
+            "Test case completed: {} - {}/{} steps passed",
+            if success { "PASSED" } else { "FAILED" },
+            steps_passed,
+            steps_executed
+        ));
 
         TestExecutionResult {
             test_case_id: test_case.id,
@@ -550,7 +645,10 @@ impl InterfaceTestSuite {
     }
 
     /// Execute individual test step
-    async fn execute_test_step(step: &TestStep, config: &InterfaceTestConfig) -> Result<bool, String> {
+    async fn execute_test_step(
+        step: &TestStep,
+        config: &InterfaceTestConfig,
+    ) -> Result<bool, String> {
         let timeout = step.timeout_seconds.unwrap_or(config.test_timeout_seconds);
 
         // Simulate step execution based on action type
@@ -587,7 +685,11 @@ impl InterfaceTestSuite {
     }
 
     /// Generate test suite summary
-    async fn generate_test_summary(&self, results: Vec<TestExecutionResult>, total_time: u64) -> TestSuiteResults {
+    async fn generate_test_summary(
+        &self,
+        results: Vec<TestExecutionResult>,
+        total_time: u64,
+    ) -> TestSuiteResults {
         let total_tests = results.len();
         let passed_tests = results.iter().filter(|r| r.success).count();
         let failed_tests = total_tests - passed_tests;
@@ -610,15 +712,25 @@ impl InterfaceTestSuite {
         if failed_tests > 0 {
             recommendations.push(format!("Fix {} failing test cases", failed_tests));
         }
-        if performance_summary.average_gui_render_time_ms > self.config.performance_thresholds.gui_render_time_ms as f64 {
+        if performance_summary.average_gui_render_time_ms
+            > self.config.performance_thresholds.gui_render_time_ms as f64
+        {
             recommendations.push("Optimize GUI rendering performance".to_string());
         }
         recommendations.push("Consider adding more integration tests".to_string());
 
         // Identify critical issues
-        let critical_issues = results.iter()
+        let critical_issues = results
+            .iter()
             .filter(|r| !r.success)
-            .filter(|r| r.errors.iter().any(|e| matches!(e.error_type, ErrorType::CommandFailed | ErrorType::PerformanceIssue)))
+            .filter(|r| {
+                r.errors.iter().any(|e| {
+                    matches!(
+                        e.error_type,
+                        ErrorType::CommandFailed | ErrorType::PerformanceIssue
+                    )
+                })
+            })
             .map(|r| format!("Critical failure in test case: {}", r.test_case_id))
             .collect();
 
@@ -637,7 +749,10 @@ impl InterfaceTestSuite {
     }
 
     /// Generate performance summary
-    async fn generate_performance_summary(&self, results: &[TestExecutionResult]) -> PerformanceSummary {
+    async fn generate_performance_summary(
+        &self,
+        results: &[TestExecutionResult],
+    ) -> PerformanceSummary {
         let mut gui_times = Vec::new();
         let mut tui_times = Vec::new();
         let mut cli_times = Vec::new();
@@ -768,27 +883,23 @@ mod tests {
             interface_type: InterfaceType::CLI,
             category: TestCategory::Functionality,
             priority: TestPriority::Medium,
-            steps: vec![
-                TestStep {
-                    step_id: "execute_help".to_string(),
-                    description: "Execute help command".to_string(),
-                    action: TestAction::ExecuteCommand {
-                        command: "codex".to_string(),
-                        args: vec!["--help".to_string()],
-                    },
-                    parameters: HashMap::new(),
-                    timeout_seconds: Some(10),
-                    screenshot_before: false,
-                    screenshot_after: false,
+            steps: vec![TestStep {
+                step_id: "execute_help".to_string(),
+                description: "Execute help command".to_string(),
+                action: TestAction::ExecuteCommand {
+                    command: "codex".to_string(),
+                    args: vec!["--help".to_string()],
                 },
-            ],
-            expected_results: vec![
-                ExpectedResult {
-                    condition: TestCondition::CommandSuccess { exit_code: Some(0) },
-                    description: "Help command should succeed".to_string(),
-                    required: true,
-                },
-            ],
+                parameters: HashMap::new(),
+                timeout_seconds: Some(10),
+                screenshot_before: false,
+                screenshot_after: false,
+            }],
+            expected_results: vec![ExpectedResult {
+                condition: TestCondition::CommandSuccess { exit_code: Some(0) },
+                description: "Help command should succeed".to_string(),
+                required: true,
+            }],
             prerequisites: vec!["Codex CLI available".to_string()],
             tags: vec!["cli".to_string(), "basic".to_string()],
         };

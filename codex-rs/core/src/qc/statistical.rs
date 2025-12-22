@@ -127,10 +127,7 @@ impl StatisticalAnalyzer {
             .iter()
             .map(|group| {
                 let group_mean = group.iter().sum::<f64>() / group.len() as f64;
-                group
-                    .iter()
-                    .map(|&x| (x - group_mean).powi(2))
-                    .sum::<f64>()
+                group.iter().map(|&x| (x - group_mean).powi(2)).sum::<f64>()
             })
             .sum::<f64>();
 
@@ -286,7 +283,8 @@ impl StatisticalAnalyzer {
         let sqrt_2pi = (2.0 * std::f64::consts::PI).sqrt();
         let gamma_a = sqrt_2pi * aa.sqrt() * (aa / std::f64::consts::E).powf(aa);
         let gamma_b = sqrt_2pi * bb.sqrt() * (bb / std::f64::consts::E).powf(bb);
-        let gamma_ab = sqrt_2pi * (aa + bb).sqrt() * ((aa + bb) / std::f64::consts::E).powf(aa + bb);
+        let gamma_ab =
+            sqrt_2pi * (aa + bb).sqrt() * ((aa + bb) / std::f64::consts::E).powf(aa + bb);
 
         result * gamma_a * gamma_b / gamma_ab
     }

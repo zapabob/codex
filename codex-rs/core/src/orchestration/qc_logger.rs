@@ -11,7 +11,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
-use tracing::debug;
 use tracing::info;
 
 /// Quality Control logger
@@ -38,60 +37,55 @@ impl QcLogger {
         let date_str = timestamp.format("%Y-%m-%d").to_string();
         let time_str = timestamp.format("%H-%M-%S").to_string();
 
-        let filename = format!("{}_{}_qc_analysis.md", date_str, time_str);
+        let filename = format!("{date_str}_{time_str}_qc_analysis.md");
         let filepath = self.logs_dir.join(&filename);
+
+        let timestamp_str = timestamp.format("%Y-%m-%d %H:%M:%S").to_string();
+        let target = &report.target;
+        let overall = report.scores.overall;
+        let readability = report.scores.readability;
+        let maintainability = report.scores.maintainability;
+        let performance = report.scores.performance;
+        let security = report.scores.security;
+        let statistical = self.format_statistical_metrics(report);
+        let quantum = self.format_quantum_metrics(report);
+        let mathematical = self.format_mathematical_metrics(report);
+        let recommendations = self.format_recommendations(report);
+        let metrics_json = serde_json::to_string_pretty(&report.metrics).unwrap_or_default();
 
         let content = format!(
             r#"# QC Analysis Report
 
-**日時**: {}
-**対象**: {}
-**マージ決定**: {}
+**Timestamp**: {timestamp_str}
+**Target**: {target}
+**Merge decision**: {merge_decision}
 
-## 品質スコア
+## Quality scores
 
-- **総合スコア**: {:.3}
-- **可読性**: {:.3}
-- **保守性**: {:.3}
-- **パフォーマンス**: {:.3}
-- **セキュリティ**: {:.3}
+- **Overall**: {overall:.3}
+- **Readability**: {readability:.3}
+- **Maintainability**: {maintainability:.3}
+- **Performance**: {performance:.3}
+- **Security**: {security:.3}
 
-## 統計分析
+## Statistical metrics
+{statistical}
+## Quantum optimization
+{quantum}
+## Mathematical optimization
+{mathematical}
+## Recommendations
+{recommendations}
+## Merge decision rationale
 
-{}
-## 量子最適化
+{merge_decision}
 
-{}
-## 数理最適化
-
-{}
-## 推奨事項
-
-{}
-## マージ決定の根拠
-
-{}
-
-## 詳細メトリクス
+## Detailed metrics
 
 ```json
-{}
+{metrics_json}
 ```
 "#,
-            timestamp.format("%Y-%m-%d %H:%M:%S"),
-            report.target,
-            merge_decision,
-            report.scores.overall,
-            report.scores.readability,
-            report.scores.maintainability,
-            report.scores.performance,
-            report.scores.security,
-            self.format_statistical_metrics(&report),
-            self.format_quantum_metrics(&report),
-            self.format_mathematical_metrics(&report),
-            self.format_recommendations(&report),
-            merge_decision,
-            serde_json::to_string_pretty(&report.metrics).unwrap_or_default()
         );
 
         fs::write(&filepath, content).context("Failed to write QC log file")?;
@@ -110,50 +104,47 @@ impl QcLogger {
         let date_str = timestamp.format("%Y-%m-%d").to_string();
         let time_str = timestamp.format("%H-%M-%S").to_string();
 
-        let filename = format!("{}_{}_qc_merge_decision.md", date_str, time_str);
+        let filename = format!("{date_str}_{time_str}_qc_merge_decision.md");
         let filepath = self.logs_dir.join(&filename);
 
         // Build comparison table
         let mut table_rows = String::new();
         for (name, score) in scores {
+            let overall = score.overall;
+            let readability = score.readability;
+            let maintainability = score.maintainability;
+            let performance = score.performance;
+            let security = score.security;
             table_rows.push_str(&format!(
-                "| {} | {:.3} | {:.3} | {:.3} | {:.3} | {:.3} |\n",
-                name,
-                score.overall,
-                score.readability,
-                score.maintainability,
-                score.performance,
-                score.security
+                "| {name} | {overall:.3} | {readability:.3} | {maintainability:.3} | {performance:.3} | {security:.3} |\n"
             ));
         }
+
+        let timestamp_str = timestamp.format("%Y-%m-%d %H:%M:%S").to_string();
+        let selected_score = scores.get(selected).map(|s| s.overall).unwrap_or(0.0);
+        let scores_json = serde_json::to_string_pretty(scores).unwrap_or_default();
 
         let content = format!(
             r#"# QC Merge Decision
 
-**日時**: {}
-**選択された結果**: {}
+**Timestamp**: {timestamp_str}
+**Selected result**: {selected}
 
-## 品質スコア比較
+## Score comparison
+| Agent/Worktree | Overall | Readability | Maintainability | Performance | Security |
+|----------------|---------|-------------|-----------------|-------------|----------|
+{table_rows}
 
-| エージェント/Worktree | 総合 | 可読性 | 保守性 | パフォーマンス | セキュリティ |
-|---------------------|------|--------|--------|---------------|------------|
-{}
+## Selection rationale
 
-## 選択理由
+Selected result has the highest overall score ({selected_score:.3}).
 
-最も高い総合品質スコア ({:.3}) を持つ結果が選択されました。
-
-## 詳細
+## Detailed scores
 
 ```json
-{}
+{scores_json}
 ```
 "#,
-            timestamp.format("%Y-%m-%d %H:%M:%S"),
-            selected,
-            table_rows,
-            scores.get(selected).map(|s| s.overall).unwrap_or(0.0),
-            serde_json::to_string_pretty(scores).unwrap_or_default()
         );
 
         fs::write(&filepath, content).context("Failed to write merge decision log file")?;
@@ -163,45 +154,42 @@ impl QcLogger {
     }
 
     fn format_statistical_metrics(&self, report: &QcReport) -> String {
-        // Format statistical metrics if available
-        "統計分析メトリクスは利用可能です。".to_string()
+        let stats = &report.metrics.statistical.code_stats;
+        let total_lines = stats.total_lines;
+        let code_lines = stats.code_lines;
+        let function_count = stats.function_count;
+        let struct_count = stats.struct_count;
+        format!(
+            "Total lines: {total_lines}\nCode lines: {code_lines}\nFunctions: {function_count}\nStructs: {struct_count}"
+        )
     }
 
     fn format_quantum_metrics(&self, report: &QcReport) -> String {
-        // Format quantum optimization metrics if available
-        if let Some(quantum) = &report.metrics.quantum {
-            format!(
-                "改善ポテンシャル: {:.2}%\n提案数: {}",
-                quantum.total_improvement_potential,
-                quantum.suggestions.len()
-            )
-        } else {
-            "量子最適化メトリクスは利用できません。".to_string()
-        }
+        let quantum = &report.metrics.quantum;
+        let improvement = quantum.total_improvement_potential;
+        let suggestions = quantum.suggestions.len();
+        format!("Improvement potential: {improvement:.2}%\nSuggestions: {suggestions}")
     }
 
     fn format_mathematical_metrics(&self, report: &QcReport) -> String {
-        // Format mathematical optimization metrics if available
-        if let Some(math) = &report.metrics.mathematical {
-            format!(
-                "最適化スコア: {:.3}\nボトルネック数: {}",
-                math.optimization_score,
-                math.bottlenecks.len()
-            )
-        } else {
-            "数理最適化メトリクスは利用できません。".to_string()
-        }
+        let math = &report.metrics.mathematical;
+        let optimization_score = math.optimization_score;
+        let bottlenecks = math.bottlenecks.len();
+        format!("Optimization score: {optimization_score:.3}\nBottlenecks: {bottlenecks}")
     }
 
     fn format_recommendations(&self, report: &QcReport) -> String {
         if report.recommendations.is_empty() {
-            "推奨事項はありません。".to_string()
+            "No recommendations.".to_string()
         } else {
             report
                 .recommendations
                 .iter()
                 .enumerate()
-                .map(|(i, rec)| format!("{}. {}", i + 1, rec))
+                .map(|(i, rec)| {
+                    let index = i + 1;
+                    format!("{index}. {rec}")
+                })
                 .collect::<Vec<_>>()
                 .join("\n")
         }

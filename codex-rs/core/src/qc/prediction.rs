@@ -3,7 +3,8 @@
 //! Provides machine learning-based quality prediction using advanced
 //! Rust 2024 features: GATs, const generics, and improved type system.
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -119,14 +120,8 @@ pub enum TreeNode {
 /// Feature scaling methods
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FeatureScaling {
-    StandardScaler {
-        means: Vec<f64>,
-        stds: Vec<f64>,
-    },
-    MinMaxScaler {
-        mins: Vec<f64>,
-        maxs: Vec<f64>,
-    },
+    StandardScaler { means: Vec<f64>, stds: Vec<f64> },
+    MinMaxScaler { mins: Vec<f64>, maxs: Vec<f64> },
     None,
 }
 
@@ -219,9 +214,11 @@ impl QualityPredictor {
         model_type: ModelType,
         hyperparameters: &Hyperparameters,
     ) -> Result<String, String> {
-        let model_id = format!("quality_model_{}_{}",
-                              model_type as u8,
-                              chrono::Utc::now().timestamp());
+        let model_id = format!(
+            "quality_model_{}_{}",
+            model_type as u8,
+            chrono::Utc::now().timestamp()
+        );
 
         // Prepare training features and targets
         let (features, targets) = self.prepare_training_data(training_data)?;
@@ -229,16 +226,20 @@ impl QualityPredictor {
         // Train model based on type
         let model = match model_type {
             ModelType::LinearRegression => {
-                self.train_linear_regression(&features, &targets, hyperparameters).await?
+                self.train_linear_regression(&features, &targets, hyperparameters)
+                    .await?
             }
             ModelType::RandomForest => {
-                self.train_random_forest(&features, &targets, hyperparameters).await?
+                self.train_random_forest(&features, &targets, hyperparameters)
+                    .await?
             }
             ModelType::NeuralNetwork => {
-                self.train_neural_network(&features, &targets, hyperparameters).await?
+                self.train_neural_network(&features, &targets, hyperparameters)
+                    .await?
             }
             ModelType::GradientBoosting => {
-                self.train_gradient_boosting(&features, &targets, hyperparameters).await?
+                self.train_gradient_boosting(&features, &targets, hyperparameters)
+                    .await?
             }
         };
 
@@ -252,7 +253,9 @@ impl QualityPredictor {
         features: &PredictionFeatures,
         model_id: &str,
     ) -> Result<QualityPrediction, String> {
-        let model = self.models.get(model_id)
+        let model = self
+            .models
+            .get(model_id)
             .ok_or_else(|| format!("Model {} not found", model_id))?;
 
         // Extract feature vector
@@ -301,7 +304,9 @@ impl QualityPredictor {
         model_id: &str,
         new_samples: &[TrainingSample],
     ) -> Result<(), String> {
-        let model = self.models.get_mut(model_id)
+        let model = self
+            .models
+            .get_mut(model_id)
             .ok_or_else(|| format!("Model {} not found", model_id))?;
 
         // Implement online learning update based on model type
@@ -344,9 +349,11 @@ impl QualityPredictor {
         for feature in 0..n_features {
             let values: Vec<f64> = features.iter().map(|sample| sample[feature]).collect();
             feature_means[feature] = values.iter().sum::<f64>() / n_samples as f64;
-            feature_stds[feature] = (values.iter()
+            feature_stds[feature] = (values
+                .iter()
                 .map(|&x| (x - feature_means[feature]).powi(2))
-                .sum::<f64>() / n_samples as f64)
+                .sum::<f64>()
+                / n_samples as f64)
                 .sqrt();
         }
 
@@ -354,23 +361,33 @@ impl QualityPredictor {
         let normalized_features: Vec<Vec<f64>> = features
             .iter()
             .map(|sample| {
-                sample.iter().enumerate()
+                sample
+                    .iter()
+                    .enumerate()
                     .map(|(i, &x)| (x - feature_means[i]) / feature_stds[i].max(1e-10))
                     .collect()
             })
             .collect();
 
         // Train separate models for each quality metric
-        let readability_coeffs = self.train_single_linear_regression(&normalized_features, &targets.readability)?;
-        let maintainability_coeffs = self.train_single_linear_regression(&normalized_features, &targets.maintainability)?;
-        let performance_coeffs = self.train_single_linear_regression(&normalized_features, &targets.performance)?;
-        let security_coeffs = self.train_single_linear_regression(&normalized_features, &targets.security)?;
+        let readability_coeffs =
+            self.train_single_linear_regression(&normalized_features, &targets.readability)?;
+        let maintainability_coeffs =
+            self.train_single_linear_regression(&normalized_features, &targets.maintainability)?;
+        let performance_coeffs =
+            self.train_single_linear_regression(&normalized_features, &targets.performance)?;
+        let security_coeffs =
+            self.train_single_linear_regression(&normalized_features, &targets.security)?;
 
         // Calculate intercepts
-        let readability_intercept = targets.readability.iter().sum::<f64>() / targets.readability.len() as f64;
-        let maintainability_intercept = targets.maintainability.iter().sum::<f64>() / targets.maintainability.len() as f64;
-        let performance_intercept = targets.performance.iter().sum::<f64>() / targets.performance.len() as f64;
-        let security_intercept = targets.security.iter().sum::<f64>() / targets.security.len() as f64;
+        let readability_intercept =
+            targets.readability.iter().sum::<f64>() / targets.readability.len() as f64;
+        let maintainability_intercept =
+            targets.maintainability.iter().sum::<f64>() / targets.maintainability.len() as f64;
+        let performance_intercept =
+            targets.performance.iter().sum::<f64>() / targets.performance.len() as f64;
+        let security_intercept =
+            targets.security.iter().sum::<f64>() / targets.security.len() as f64;
 
         let params = LinearRegressionParams {
             coefficients: vec![
@@ -378,8 +395,13 @@ impl QualityPredictor {
                 maintainability_coeffs,
                 performance_coeffs,
                 security_coeffs,
-            ].concat(),
-            intercept: (readability_intercept + maintainability_intercept + performance_intercept + security_intercept) / 4.0,
+            ]
+            .concat(),
+            intercept: (readability_intercept
+                + maintainability_intercept
+                + performance_intercept
+                + security_intercept)
+                / 4.0,
             feature_scaling: FeatureScaling::StandardScaler {
                 means: feature_means,
                 stds: feature_stds,
@@ -419,7 +441,11 @@ impl QualityPredictor {
         })
     }
 
-    fn train_single_linear_regression(&self, features: &[Vec<f64>], targets: &[f64]) -> Result<Vec<f64>, String> {
+    fn train_single_linear_regression(
+        &self,
+        features: &[Vec<f64>],
+        targets: &[f64],
+    ) -> Result<Vec<f64>, String> {
         let n_features = features[0].len();
         let n_samples = features.len();
 
@@ -430,7 +456,8 @@ impl QualityPredictor {
         let mut xtx = vec![vec![0.0; n_features]; n_features];
         for i in 0..n_features {
             for j in 0..n_features {
-                xtx[i][j] = features.iter()
+                xtx[i][j] = features
+                    .iter()
                     .map(|sample| sample[i] * sample[j])
                     .sum::<f64>();
             }
@@ -439,7 +466,8 @@ impl QualityPredictor {
         // Calculate X^T * y
         let mut xty = vec![0.0; n_features];
         for i in 0..n_features {
-            xty[i] = features.iter()
+            xty[i] = features
+                .iter()
                 .zip(targets.iter())
                 .map(|(sample, &target)| sample[i] * target)
                 .sum::<f64>();
@@ -447,7 +475,9 @@ impl QualityPredictor {
 
         // Solve normal equations (simplified - in production use proper linear algebra library)
         // For now, return mock coefficients
-        Ok(vec![0.1, 0.15, -0.05, -0.08, 0.12, 0.09, 0.06, 0.11, -0.03, 0.07])
+        Ok(vec![
+            0.1, 0.15, -0.05, -0.08, 0.12, 0.09, 0.06, 0.11, -0.03, 0.07,
+        ])
     }
 
     async fn train_random_forest(
@@ -482,7 +512,11 @@ impl QualityPredictor {
     }
 
     // Prediction implementations
-    fn predict_linear_regression(&self, features: &[f64], params: &LinearRegressionParams) -> QualityPredictions {
+    fn predict_linear_regression(
+        &self,
+        features: &[f64],
+        params: &LinearRegressionParams,
+    ) -> QualityPredictions {
         // Predict each quality metric
         let mut predictions = Vec::new();
 
@@ -490,10 +524,12 @@ impl QualityPredictor {
             let chunk_end = (chunk_start + features.len()).min(params.coefficients.len());
             let coeffs = &params.coefficients[chunk_start..chunk_end];
 
-            let prediction: f64 = coeffs.iter()
+            let prediction: f64 = coeffs
+                .iter()
                 .zip(features.iter())
                 .map(|(&c, &f)| c * f)
-                .sum::<f64>() + params.intercept;
+                .sum::<f64>()
+                + params.intercept;
 
             predictions.push(prediction.clamp(0.0, 1.0));
         }
@@ -507,7 +543,11 @@ impl QualityPredictor {
         }
     }
 
-    fn predict_random_forest(&self, _features: &[f64], _params: &RandomForestParams) -> QualityPredictions {
+    fn predict_random_forest(
+        &self,
+        _features: &[f64],
+        _params: &RandomForestParams,
+    ) -> QualityPredictions {
         // Placeholder implementation
         QualityPredictions {
             readability: 0.75,
@@ -518,7 +558,11 @@ impl QualityPredictor {
         }
     }
 
-    async fn predict_neural_network(&self, _features: &[f64], _params: &NeuralNetworkParams<1, 64>) -> QualityPredictions {
+    async fn predict_neural_network(
+        &self,
+        _features: &[f64],
+        _params: &NeuralNetworkParams<1, 64>,
+    ) -> QualityPredictions {
         // Placeholder implementation with Rust 2024 const generics
         QualityPredictions {
             readability: 0.78,
@@ -529,7 +573,11 @@ impl QualityPredictor {
         }
     }
 
-    fn predict_gradient_boosting(&self, _features: &[f64], _params: &GradientBoostingParams) -> QualityPredictions {
+    fn predict_gradient_boosting(
+        &self,
+        _features: &[f64],
+        _params: &GradientBoostingParams,
+    ) -> QualityPredictions {
         // Placeholder implementation
         QualityPredictions {
             readability: 0.76,
@@ -541,7 +589,10 @@ impl QualityPredictor {
     }
 
     // Helper methods
-    fn prepare_training_data(&self, samples: &[TrainingSample]) -> Result<(Vec<Vec<f64>>, QualityTargets), String> {
+    fn prepare_training_data(
+        &self,
+        samples: &[TrainingSample],
+    ) -> Result<(Vec<Vec<f64>>, QualityTargets), String> {
         let mut features = Vec::new();
         let mut targets = QualityTargets {
             readability: Vec::new(),
@@ -553,7 +604,9 @@ impl QualityPredictor {
         for sample in samples {
             features.push(self.extract_features(&sample.features)?);
             targets.readability.push(sample.actual_quality.readability);
-            targets.maintainability.push(sample.actual_quality.maintainability);
+            targets
+                .maintainability
+                .push(sample.actual_quality.maintainability);
             targets.performance.push(sample.actual_quality.performance);
             targets.security.push(sample.actual_quality.security);
         }
@@ -578,23 +631,23 @@ impl QualityPredictor {
 
     fn scale_features(&self, features: &[f64]) -> Result<Vec<f64>, String> {
         match &self.feature_scaler {
-            FeatureScaling::StandardScaler { means, stds } => {
-                Ok(features.iter().enumerate()
-                    .map(|(i, &x)| (x - means[i]) / stds[i].max(1e-10))
-                    .collect())
-            }
-            FeatureScaling::MinMaxScaler { mins, maxs } => {
-                Ok(features.iter().enumerate()
-                    .map(|(i, &x)| {
-                        let range = maxs[i] - mins[i];
-                        if range > 0.0 {
-                            (x - mins[i]) / range
-                        } else {
-                            0.0
-                        }
-                    })
-                    .collect())
-            }
+            FeatureScaling::StandardScaler { means, stds } => Ok(features
+                .iter()
+                .enumerate()
+                .map(|(i, &x)| (x - means[i]) / stds[i].max(1e-10))
+                .collect()),
+            FeatureScaling::MinMaxScaler { mins, maxs } => Ok(features
+                .iter()
+                .enumerate()
+                .map(|(i, &x)| {
+                    let range = maxs[i] - mins[i];
+                    if range > 0.0 {
+                        (x - mins[i]) / range
+                    } else {
+                        0.0
+                    }
+                })
+                .collect()),
             FeatureScaling::None => Ok(features.to_vec()),
         }
     }
@@ -612,9 +665,18 @@ impl QualityPredictor {
         let margin = 2.0 * std_error;
 
         Ok(ConfidenceIntervals {
-            readability_ci: (predictions.readability - margin, predictions.readability + margin),
-            maintainability_ci: (predictions.maintainability - margin, predictions.maintainability + margin),
-            performance_ci: (predictions.performance - margin, predictions.performance + margin),
+            readability_ci: (
+                predictions.readability - margin,
+                predictions.readability + margin,
+            ),
+            maintainability_ci: (
+                predictions.maintainability - margin,
+                predictions.maintainability + margin,
+            ),
+            performance_ci: (
+                predictions.performance - margin,
+                predictions.performance + margin,
+            ),
             security_ci: (predictions.security - margin, predictions.security + margin),
             overall_ci: (predictions.overall - margin, predictions.overall + margin),
         })
@@ -639,7 +701,8 @@ impl QualityPredictor {
         }
 
         // Check confidence interval width (wider = more uncertainty = higher risk)
-        let readability_width = confidence_intervals.readability_ci.1 - confidence_intervals.readability_ci.0;
+        let readability_width =
+            confidence_intervals.readability_ci.1 - confidence_intervals.readability_ci.0;
         if readability_width > 0.3 {
             risk_factors.push("High uncertainty in readability prediction".to_string());
             risk_score += 0.2;
@@ -705,7 +768,9 @@ impl QualityPredictor {
         }
 
         if suggestions.is_empty() {
-            suggestions.push("Code quality predictions are strong. Continue current best practices.".to_string());
+            suggestions.push(
+                "Code quality predictions are strong. Continue current best practices.".to_string(),
+            );
         }
 
         suggestions
@@ -863,7 +928,10 @@ mod tests {
         let risk = predictor.assess_prediction_risk(&predictions, &confidence_intervals);
 
         // Should detect low readability and security as risk factors
-        assert!(matches!(risk.risk_level, RiskLevel::High | RiskLevel::Critical));
+        assert!(matches!(
+            risk.risk_level,
+            RiskLevel::High | RiskLevel::Critical
+        ));
         assert!(risk.risk_factors.len() >= 2); // At least readability and security
         assert!(!risk.mitigation_strategies.is_empty());
     }

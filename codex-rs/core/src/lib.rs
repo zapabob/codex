@@ -37,6 +37,7 @@ pub mod mcp;
 mod mcp_connection_manager;
 pub mod models_manager;
 pub mod orchestration;
+pub mod qc;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;
 pub use mcp_connection_manager::SandboxState;

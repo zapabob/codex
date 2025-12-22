@@ -129,7 +129,12 @@ pub struct QuantumOptimizer;
 
 impl QuantumOptimizer {
     /// Solve Max-Cut problem using QAOA
-    pub fn solve_max_cut_qaoa(&self, problem: &MaxCutProblem, layers: usize, max_iterations: usize) -> QAOASolution {
+    pub fn solve_max_cut_qaoa(
+        &self,
+        problem: &MaxCutProblem,
+        layers: usize,
+        max_iterations: usize,
+    ) -> QAOASolution {
         let num_qubits = problem.num_vertices;
 
         // Convert Max-Cut to Ising model
@@ -175,7 +180,12 @@ impl QuantumOptimizer {
     }
 
     /// Solve eigenvalue problem using VQE
-    pub fn solve_vqe(&self, hamiltonian: &IsingModel, ansatz_depth: usize, max_iterations: usize) -> VQESolution {
+    pub fn solve_vqe(
+        &self,
+        hamiltonian: &IsingModel,
+        ansatz_depth: usize,
+        max_iterations: usize,
+    ) -> VQESolution {
         let num_qubits = hamiltonian.num_spins;
 
         // Initialize random variational parameters
@@ -289,7 +299,14 @@ impl QuantumOptimizer {
     }
 
     /// Compute parameter gradient for QAOA
-    fn compute_parameter_gradient(&self, ising: &IsingModel, gamma: &[f64], beta: &[f64], param_idx: usize, is_gamma: bool) -> f64 {
+    fn compute_parameter_gradient(
+        &self,
+        ising: &IsingModel,
+        gamma: &[f64],
+        beta: &[f64],
+        param_idx: usize,
+        is_gamma: bool,
+    ) -> f64 {
         let epsilon = 1e-5;
 
         // Finite difference approximation
@@ -451,12 +468,15 @@ impl QuantumOptimizer {
             resource_allocation: best_allocation,
             quality_improvements,
             optimization_score: best_score,
-            converged: (best_score - self.evaluate_quality_allocation(
-                &resource_allocation,
-                &problem.quality_metrics,
-                &problem.improvement_targets,
-                &problem.complexity_weights,
-            )).abs() < 0.01,
+            converged: (best_score
+                - self.evaluate_quality_allocation(
+                    &resource_allocation,
+                    &problem.quality_metrics,
+                    &problem.improvement_targets,
+                    &problem.complexity_weights,
+                ))
+            .abs()
+                < 0.01,
             iterations: max_iterations,
         }
     }
@@ -479,8 +499,8 @@ impl QuantumOptimizer {
                 0.5 // Default if no specific allocation
             };
 
-            let predicted_quality = current_metrics[i] +
-                (targets[i] - current_metrics[i]) * resource_factor;
+            let predicted_quality =
+                current_metrics[i] + (targets[i] - current_metrics[i]) * resource_factor;
 
             let improvement_score = predicted_quality.min(1.0);
             total_score += improvement_score * weights[i];

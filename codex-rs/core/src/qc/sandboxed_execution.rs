@@ -3,10 +3,13 @@
 //! Provides secure command execution with AI-powered destructive command detection
 //! and prevention, featuring internet connectivity controls and macOS-style UX.
 
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::sync::Arc;
-use tokio::sync::{mpsc, RwLock};
+use tokio::sync::RwLock;
+use tokio::sync::mpsc;
 use tokio::time::Duration;
 
 /// Sandbox execution mode
@@ -189,13 +192,17 @@ struct ActiveExecution {
 #[async_trait::async_trait]
 pub trait AISecurityAnalyzer {
     /// Analyze command for security risks
-    async fn analyze_command(&self, request: &SandboxExecutionRequest) -> Result<AISecurityAnalysis, String>;
+    async fn analyze_command(
+        &self,
+        request: &SandboxExecutionRequest,
+    ) -> Result<AISecurityAnalysis, String>;
 
     /// Check if command should be blocked
     async fn should_block_command(&self, analysis: &AISecurityAnalysis) -> bool;
 
     /// Generate security recommendations
-    async fn generate_security_recommendations(&self, analysis: &AISecurityAnalysis) -> Vec<String>;
+    async fn generate_security_recommendations(&self, analysis: &AISecurityAnalysis)
+    -> Vec<String>;
 }
 
 /// AI security analyzer implementation
@@ -210,7 +217,10 @@ impl DefaultAISecurityAnalyzer {
 
 #[async_trait::async_trait]
 impl AISecurityAnalyzer for DefaultAISecurityAnalyzer {
-    async fn analyze_command(&self, request: &SandboxExecutionRequest) -> Result<AISecurityAnalysis, String> {
+    async fn analyze_command(
+        &self,
+        request: &SandboxExecutionRequest,
+    ) -> Result<AISecurityAnalysis, String> {
         let mut detected_threats = Vec::new();
         let mut risk_score = 0.0;
         let mut mitigation_suggestions = Vec::new();
@@ -219,19 +229,84 @@ impl AISecurityAnalyzer for DefaultAISecurityAnalyzer {
 
         // Analyze for destructive patterns
         let destructive_patterns = [
-            ("rm -rf", ThreatType::DestructiveFileOperation, 0.9, "Recursive file deletion"),
-            ("sudo", ThreatType::PrivilegeEscalation, 0.8, "Privilege escalation attempt"),
-            ("chmod 777", ThreatType::UnauthorizedAccess, 0.7, "Overly permissive permissions"),
-            ("wget http", ThreatType::NetworkAttack, 0.6, "Unencrypted network download"),
-            ("curl http", ThreatType::NetworkAttack, 0.6, "Unencrypted network request"),
-            ("nc ", ThreatType::NetworkAttack, 0.8, "Network connection tool"),
-            ("ncat ", ThreatType::NetworkAttack, 0.8, "Network connection tool"),
-            ("ssh ", ThreatType::UnauthorizedAccess, 0.5, "Remote shell access"),
-            ("scp ", ThreatType::DataExfiltration, 0.6, "Data transfer tool"),
-            ("dd if=", ThreatType::DestructiveFileOperation, 0.8, "Low-level disk operation"),
-            ("mkfs", ThreatType::DestructiveFileOperation, 0.9, "Filesystem creation"),
-            ("fdisk", ThreatType::DestructiveFileOperation, 0.8, "Disk partitioning"),
-            ("format", ThreatType::DestructiveFileOperation, 0.8, "Disk formatting"),
+            (
+                "rm -rf",
+                ThreatType::DestructiveFileOperation,
+                0.9,
+                "Recursive file deletion",
+            ),
+            (
+                "sudo",
+                ThreatType::PrivilegeEscalation,
+                0.8,
+                "Privilege escalation attempt",
+            ),
+            (
+                "chmod 777",
+                ThreatType::UnauthorizedAccess,
+                0.7,
+                "Overly permissive permissions",
+            ),
+            (
+                "wget http",
+                ThreatType::NetworkAttack,
+                0.6,
+                "Unencrypted network download",
+            ),
+            (
+                "curl http",
+                ThreatType::NetworkAttack,
+                0.6,
+                "Unencrypted network request",
+            ),
+            (
+                "nc ",
+                ThreatType::NetworkAttack,
+                0.8,
+                "Network connection tool",
+            ),
+            (
+                "ncat ",
+                ThreatType::NetworkAttack,
+                0.8,
+                "Network connection tool",
+            ),
+            (
+                "ssh ",
+                ThreatType::UnauthorizedAccess,
+                0.5,
+                "Remote shell access",
+            ),
+            (
+                "scp ",
+                ThreatType::DataExfiltration,
+                0.6,
+                "Data transfer tool",
+            ),
+            (
+                "dd if=",
+                ThreatType::DestructiveFileOperation,
+                0.8,
+                "Low-level disk operation",
+            ),
+            (
+                "mkfs",
+                ThreatType::DestructiveFileOperation,
+                0.9,
+                "Filesystem creation",
+            ),
+            (
+                "fdisk",
+                ThreatType::DestructiveFileOperation,
+                0.8,
+                "Disk partitioning",
+            ),
+            (
+                "format",
+                ThreatType::DestructiveFileOperation,
+                0.8,
+                "Disk formatting",
+            ),
         ];
 
         for (pattern, threat_type, severity_score, description) in destructive_patterns {
@@ -255,18 +330,29 @@ impl AISecurityAnalyzer for DefaultAISecurityAnalyzer {
                 match threat_type {
                     ThreatType::DestructiveFileOperation => {
                         mitigation_suggestions.push("Consider using version control or backups before destructive operations".to_string());
-                        mitigation_suggestions.push("Use --dry-run flag if available to preview changes".to_string());
+                        mitigation_suggestions
+                            .push("Use --dry-run flag if available to preview changes".to_string());
                     }
                     ThreatType::PrivilegeEscalation => {
-                        mitigation_suggestions.push("Verify if elevated privileges are actually required".to_string());
-                        mitigation_suggestions.push("Consider using sudo with specific commands instead of full shell".to_string());
+                        mitigation_suggestions.push(
+                            "Verify if elevated privileges are actually required".to_string(),
+                        );
+                        mitigation_suggestions.push(
+                            "Consider using sudo with specific commands instead of full shell"
+                                .to_string(),
+                        );
                     }
                     ThreatType::NetworkAttack => {
-                        mitigation_suggestions.push("Use HTTPS instead of HTTP for secure communications".to_string());
-                        mitigation_suggestions.push("Verify the authenticity of downloaded content".to_string());
+                        mitigation_suggestions.push(
+                            "Use HTTPS instead of HTTP for secure communications".to_string(),
+                        );
+                        mitigation_suggestions
+                            .push("Verify the authenticity of downloaded content".to_string());
                     }
                     _ => {
-                        mitigation_suggestions.push("Review command parameters and ensure they are correct".to_string());
+                        mitigation_suggestions.push(
+                            "Review command parameters and ensure they are correct".to_string(),
+                        );
                     }
                 }
             }
@@ -276,12 +362,14 @@ impl AISecurityAnalyzer for DefaultAISecurityAnalyzer {
         if request.internet_access && risk_score > 0.3 {
             detected_threats.push(SecurityThreat {
                 threat_type: ThreatType::NetworkAttack,
-                description: "Internet access combined with potentially dangerous command".to_string(),
+                description: "Internet access combined with potentially dangerous command"
+                    .to_string(),
                 severity: SecurityRiskLevel::High,
                 location: None,
                 confidence: 0.7,
             });
-            mitigation_suggestions.push("Consider executing without internet access first".to_string());
+            mitigation_suggestions
+                .push("Consider executing without internet access first".to_string());
             risk_score += 0.3;
         }
 
@@ -299,8 +387,12 @@ impl AISecurityAnalyzer for DefaultAISecurityAnalyzer {
         };
 
         // Determine if execution should be allowed
-        let allow_execution = matches!(risk_level, SecurityRiskLevel::Safe | SecurityRiskLevel::Low);
-        let requires_approval = matches!(risk_level, SecurityRiskLevel::Medium | SecurityRiskLevel::High);
+        let allow_execution =
+            matches!(risk_level, SecurityRiskLevel::Safe | SecurityRiskLevel::Low);
+        let requires_approval = matches!(
+            risk_level,
+            SecurityRiskLevel::Medium | SecurityRiskLevel::High
+        );
 
         Ok(AISecurityAnalysis {
             command_id: request.id.clone(),
@@ -318,18 +410,27 @@ impl AISecurityAnalyzer for DefaultAISecurityAnalyzer {
         matches!(analysis.risk_level, SecurityRiskLevel::Critical)
     }
 
-    async fn generate_security_recommendations(&self, analysis: &AISecurityAnalysis) -> Vec<String> {
+    async fn generate_security_recommendations(
+        &self,
+        analysis: &AISecurityAnalysis,
+    ) -> Vec<String> {
         let mut recommendations = analysis.mitigation_suggestions.clone();
 
         // Add general recommendations based on risk level
         match analysis.risk_level {
             SecurityRiskLevel::Critical => {
-                recommendations.push("🚫 CRITICAL: This command is blocked due to high security risk".to_string());
-                recommendations.push("Consider alternative approaches that don't involve destructive operations".to_string());
+                recommendations.push(
+                    "🚫 CRITICAL: This command is blocked due to high security risk".to_string(),
+                );
+                recommendations.push(
+                    "Consider alternative approaches that don't involve destructive operations"
+                        .to_string(),
+                );
                 recommendations.push("Consult with security team before proceeding".to_string());
             }
             SecurityRiskLevel::High => {
-                recommendations.push("⚠️ HIGH RISK: Manual review required before execution".to_string());
+                recommendations
+                    .push("⚠️ HIGH RISK: Manual review required before execution".to_string());
                 recommendations.push("Execute in isolated environment first".to_string());
                 recommendations.push("Ensure backups are available".to_string());
             }
@@ -369,7 +470,10 @@ impl AISandboxExecutor {
     }
 
     /// Execute command in sandbox with AI security analysis
-    pub async fn execute_sandboxed(&self, request: SandboxExecutionRequest) -> Result<String, String> {
+    pub async fn execute_sandboxed(
+        &self,
+        request: SandboxExecutionRequest,
+    ) -> Result<String, String> {
         // Validate request
         self.validate_request(&request).await?;
 
@@ -382,10 +486,16 @@ impl AISandboxExecutor {
 
         // Check if command should be blocked
         if let Some(ref analysis) = security_analysis {
-            if self.ai_security_analyzer.should_block_command(analysis).await {
+            if self
+                .ai_security_analyzer
+                .should_block_command(analysis)
+                .await
+            {
                 return Err(format!(
                     "Command blocked by AI security analysis: {}",
-                    analysis.detected_threats.iter()
+                    analysis
+                        .detected_threats
+                        .iter()
                         .map(|t| t.description.as_str())
                         .collect::<Vec<_>>()
                         .join(", ")
@@ -406,11 +516,13 @@ impl AISandboxExecutor {
         }
 
         // Send for execution
-        self.execution_sender.send(request.clone())
+        self.execution_sender
+            .send(request.clone())
             .map_err(|e| format!("Failed to queue execution: {}", e))?;
 
         // Start sandboxed execution
-        self.start_sandboxed_execution(request, security_analysis).await;
+        self.start_sandboxed_execution(request, security_analysis)
+            .await;
 
         Ok(request.id)
     }
@@ -438,16 +550,21 @@ impl AISandboxExecutor {
 
         for (id, exec) in active.iter() {
             let elapsed = exec.start_time.elapsed();
-            status_map.insert(id.clone(), ExecutionStatus {
-                id: id.clone(),
-                command: format!("{} {}", exec.request.command, exec.request.args.join(" ")),
-                elapsed_ms: elapsed.as_millis() as u64,
-                sandbox_mode: exec.request.sandbox_mode,
-                risk_level: exec.security_analysis.as_ref()
-                    .map(|a| a.risk_level)
-                    .unwrap_or(SecurityRiskLevel::Safe),
-                internet_access: exec.request.internet_access,
-            });
+            status_map.insert(
+                id.clone(),
+                ExecutionStatus {
+                    id: id.clone(),
+                    command: format!("{} {}", exec.request.command, exec.request.args.join(" ")),
+                    elapsed_ms: elapsed.as_millis() as u64,
+                    sandbox_mode: exec.request.sandbox_mode,
+                    risk_level: exec
+                        .security_analysis
+                        .as_ref()
+                        .map(|a| a.risk_level)
+                        .unwrap_or(SecurityRiskLevel::Safe),
+                    internet_access: exec.request.internet_access,
+                },
+            );
         }
 
         status_map
@@ -491,18 +608,12 @@ impl AISandboxExecutor {
 
             // Execute based on sandbox mode
             let result = match request.sandbox_mode {
-                SandboxMode::Isolated => {
-                    Self::execute_isolated(request, &config).await
-                }
+                SandboxMode::Isolated => Self::execute_isolated(request, &config).await,
                 SandboxMode::NetworkIsolated => {
                     Self::execute_network_isolated(request, &config).await
                 }
-                SandboxMode::Supervised => {
-                    Self::execute_supervised(request, &config).await
-                }
-                SandboxMode::MacOSSandbox => {
-                    Self::execute_macos_sandbox(request, &config).await
-                }
+                SandboxMode::Supervised => Self::execute_supervised(request, &config).await,
+                SandboxMode::MacOSSandbox => Self::execute_macos_sandbox(request, &config).await,
             };
 
             let execution_time = start_time.elapsed().as_millis() as u64;
@@ -529,7 +640,10 @@ impl AISandboxExecutor {
     }
 
     /// Execute in isolated sandbox (no network, limited filesystem)
-    async fn execute_isolated(request: SandboxExecutionRequest, _config: &SandboxConfig) -> ExecutionData {
+    async fn execute_isolated(
+        request: SandboxExecutionRequest,
+        _config: &SandboxConfig,
+    ) -> ExecutionData {
         // Simulate isolated execution
         tokio::time::sleep(Duration::from_millis(200)).await;
 
@@ -553,7 +667,10 @@ impl AISandboxExecutor {
     }
 
     /// Execute in network-isolated sandbox
-    async fn execute_network_isolated(request: SandboxExecutionRequest, _config: &SandboxConfig) -> ExecutionData {
+    async fn execute_network_isolated(
+        request: SandboxExecutionRequest,
+        _config: &SandboxConfig,
+    ) -> ExecutionData {
         // Simulate network-isolated execution
         tokio::time::sleep(Duration::from_millis(300)).await;
 
@@ -590,7 +707,10 @@ impl AISandboxExecutor {
     }
 
     /// Execute in supervised sandbox with monitoring
-    async fn execute_supervised(request: SandboxExecutionRequest, config: &SandboxConfig) -> ExecutionData {
+    async fn execute_supervised(
+        request: SandboxExecutionRequest,
+        config: &SandboxConfig,
+    ) -> ExecutionData {
         // Simulate supervised execution with monitoring
         tokio::time::sleep(Duration::from_millis(400)).await;
 
@@ -627,7 +747,10 @@ impl AISandboxExecutor {
     }
 
     /// Execute in macOS-style sandbox with internet access
-    async fn execute_macos_sandbox(request: SandboxExecutionRequest, config: &SandboxConfig) -> ExecutionData {
+    async fn execute_macos_sandbox(
+        request: SandboxExecutionRequest,
+        config: &SandboxConfig,
+    ) -> ExecutionData {
         // Simulate macOS sandbox execution
         tokio::time::sleep(Duration::from_millis(350)).await;
 
@@ -635,7 +758,10 @@ impl AISandboxExecutor {
             Some(NetworkActivity {
                 connections_attempted: 2,
                 connections_successful: 2,
-                domains_accessed: vec!["api.github.com".to_string(), "registry.npmjs.org".to_string()],
+                domains_accessed: vec![
+                    "api.github.com".to_string(),
+                    "registry.npmjs.org".to_string(),
+                ],
                 ports_used: vec![443, 80],
                 data_transferred_mb: 0.5,
                 suspicious_activity_detected: false,
@@ -730,9 +856,16 @@ mod tests {
         let analysis = analyzer.analyze_command(&request).await.unwrap();
 
         // Should detect destructive file operation
-        assert!(matches!(analysis.risk_level, SecurityRiskLevel::Critical | SecurityRiskLevel::High));
-        assert!(analysis.detected_threats.iter()
-            .any(|t| matches!(t.threat_type, ThreatType::DestructiveFileOperation)));
+        assert!(matches!(
+            analysis.risk_level,
+            SecurityRiskLevel::Critical | SecurityRiskLevel::High
+        ));
+        assert!(
+            analysis
+                .detected_threats
+                .iter()
+                .any(|t| matches!(t.threat_type, ThreatType::DestructiveFileOperation))
+        );
         assert!(!analysis.allow_execution || analysis.requires_approval);
     }
 

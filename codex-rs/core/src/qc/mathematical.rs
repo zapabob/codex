@@ -113,10 +113,10 @@ impl ConvexFunction {
     pub fn dimension(&self) -> usize {
         match self {
             ConvexFunction::Linear(coeffs) => coeffs.len(),
-            ConvexFunction::Quadratic { quadratic_matrix, .. } => quadratic_matrix.len(),
-            ConvexFunction::Sum(functions) => {
-                functions.first().map(|f| f.dimension()).unwrap_or(0)
-            }
+            ConvexFunction::Quadratic {
+                quadratic_matrix, ..
+            } => quadratic_matrix.len(),
+            ConvexFunction::Sum(functions) => functions.first().map(|f| f.dimension()).unwrap_or(0),
         }
     }
 
@@ -129,7 +129,10 @@ impl ConvexFunction {
 /// CUDA-accelerated linear algebra operations for optimization
 #[cfg(feature = "cuda")]
 pub mod cuda_math {
-    use cudarc::driver::{CudaDevice, CudaSlice, LaunchAsync, LaunchConfig};
+    use cudarc::driver::CudaDevice;
+    use cudarc::driver::CudaSlice;
+    use cudarc::driver::LaunchAsync;
+    use cudarc::driver::LaunchConfig;
     use std::sync::Arc;
 
     /// CUDA-accelerated matrix-vector multiplication
@@ -180,7 +183,13 @@ pub mod cuda_math {
             unsafe {
                 self.mat_vec_kernel.launch(
                     config,
-                    (&d_matrix, &d_vector, &mut d_result, rows as i32, cols as i32),
+                    (
+                        &d_matrix,
+                        &d_vector,
+                        &mut d_result,
+                        rows as i32,
+                        cols as i32,
+                    ),
                 )?;
             }
 
@@ -229,18 +238,18 @@ impl MathematicalOptimizer {
 
     /// Create optimizer with explicit CUDA enable/disable
     pub fn with_cuda(cuda_enabled: bool) -> Self {
-            #[cfg(feature = "cuda")]
+        #[cfg(feature = "cuda")]
         {
             Self {
-            cuda_accel: if cuda_enabled {
-                cuda_math::CudaLinearAlgebra::new().ok()
-            } else {
-                None
-            },
+                cuda_accel: if cuda_enabled {
+                    cuda_math::CudaLinearAlgebra::new().ok()
+                } else {
+                    None
+                },
             }
         }
 
-            #[cfg(not(feature = "cuda"))]
+        #[cfg(not(feature = "cuda"))]
         {
             let _ = cuda_enabled;
             Self {}
@@ -258,16 +267,29 @@ impl MathematicalOptimizer {
         // Validate dimensions
         for (i, row) in problem.constraint_matrix.iter().enumerate() {
             if row.len() != n_vars {
-                return Err(format!("Constraint {} has {} variables, expected {}", i, row.len(), n_vars));
+                return Err(format!(
+                    "Constraint {} has {} variables, expected {}",
+                    i,
+                    row.len(),
+                    n_vars
+                ));
             }
         }
 
         if problem.constraint_bounds.len() != n_constraints {
-            return Err(format!("Expected {} constraint bounds, got {}", n_constraints, problem.constraint_bounds.len()));
+            return Err(format!(
+                "Expected {} constraint bounds, got {}",
+                n_constraints,
+                problem.constraint_bounds.len()
+            ));
         }
 
         if problem.variable_bounds.len() != n_vars {
-            return Err(format!("Expected {} variable bounds, got {}", n_vars, problem.variable_bounds.len()));
+            return Err(format!(
+                "Expected {} variable bounds, got {}",
+                n_vars,
+                problem.variable_bounds.len()
+            ));
         }
 
         // Use simplified interior point method approximation
@@ -275,7 +297,12 @@ impl MathematicalOptimizer {
     }
 
     /// Solve convex optimization problem using gradient descent with projections
-    pub fn solve_convex_problem(&self, problem: &ConvexProblem, max_iterations: usize, tolerance: f64) -> Result<ConvexSolution, String> {
+    pub fn solve_convex_problem(
+        &self,
+        problem: &ConvexProblem,
+        max_iterations: usize,
+        tolerance: f64,
+    ) -> Result<ConvexSolution, String> {
         if problem.objective.is_empty() {
             return Err("Objective function cannot be empty".to_string());
         }
@@ -351,7 +378,8 @@ impl MathematicalOptimizer {
             let mut constraint_violations = Vec::new();
 
             for i in 0..n_constraints {
-                let constraint_value: f64 = problem.constraint_matrix[i].iter()
+                let constraint_value: f64 = problem.constraint_matrix[i]
+                    .iter()
                     .zip(&x)
                     .map(|(a, xi)| a * xi)
                     .sum();
@@ -373,7 +401,9 @@ impl MathematicalOptimizer {
 
             if feasible {
                 // Compute objective value
-                let objective_value: f64 = problem.objective_coeffs.iter()
+                let objective_value: f64 = problem
+                    .objective_coeffs
+                    .iter()
                     .zip(&x)
                     .map(|(c, xi)| c * xi)
                     .sum();
@@ -388,7 +418,8 @@ impl MathematicalOptimizer {
 
             // Take step towards feasibility (simplified gradient projection)
             for &violation_idx in &constraint_violations {
-                let constraint_value: f64 = problem.constraint_matrix[violation_idx].iter()
+                let constraint_value: f64 = problem.constraint_matrix[violation_idx]
+                    .iter()
                     .zip(&x)
                     .map(|(a, xi)| a * xi)
                     .sum();
@@ -396,7 +427,12 @@ impl MathematicalOptimizer {
                 let violation = constraint_value - problem.constraint_bounds[violation_idx];
 
                 // Project back onto constraint
-                let step_size = violation / problem.constraint_matrix[violation_idx].iter().map(|a| a * a).sum::<f64>().sqrt();
+                let step_size = violation
+                    / problem.constraint_matrix[violation_idx]
+                        .iter()
+                        .map(|a| a * a)
+                        .sum::<f64>()
+                        .sqrt();
 
                 for j in 0..n_vars {
                     x[j] -= step_size * problem.constraint_matrix[violation_idx][j];
@@ -411,7 +447,9 @@ impl MathematicalOptimizer {
         }
 
         // Maximum iterations reached, return best solution found
-        let objective_value: f64 = problem.objective_coeffs.iter()
+        let objective_value: f64 = problem
+            .objective_coeffs
+            .iter()
             .zip(&x)
             .map(|(c, xi)| c * xi)
             .sum();
@@ -427,10 +465,11 @@ impl MathematicalOptimizer {
     /// Evaluate convex function at given point
     fn evaluate_convex_function(&self, function: &ConvexFunction, x: &[f64]) -> f64 {
         match function {
-            ConvexFunction::Linear(coeffs) => {
-                coeffs.iter().zip(x).map(|(c, xi)| c * xi).sum()
-            }
-            ConvexFunction::Quadratic { quadratic_matrix, linear_coeffs } => {
+            ConvexFunction::Linear(coeffs) => coeffs.iter().zip(x).map(|(c, xi)| c * xi).sum(),
+            ConvexFunction::Quadratic {
+                quadratic_matrix,
+                linear_coeffs,
+            } => {
                 let mut value = 0.0;
 
                 // Quadratic term: (1/2)x^T * Q * x
@@ -447,14 +486,19 @@ impl MathematicalOptimizer {
 
                 value
             }
-            ConvexFunction::Sum(functions) => {
-                functions.iter().map(|f| self.evaluate_convex_function(f, x)).sum()
-            }
+            ConvexFunction::Sum(functions) => functions
+                .iter()
+                .map(|f| self.evaluate_convex_function(f, x))
+                .sum(),
         }
     }
 
     /// Compute gradient of convex function
-    fn compute_convex_gradient(&self, function: &ConvexFunction, x: &[f64]) -> Result<Vec<f64>, String> {
+    fn compute_convex_gradient(
+        &self,
+        function: &ConvexFunction,
+        x: &[f64],
+    ) -> Result<Vec<f64>, String> {
         let n = x.len();
         let mut gradient = vec![0.0; n];
 
@@ -462,7 +506,10 @@ impl MathematicalOptimizer {
             ConvexFunction::Linear(coeffs) => {
                 gradient.copy_from_slice(coeffs);
             }
-            ConvexFunction::Quadratic { quadratic_matrix, linear_coeffs } => {
+            ConvexFunction::Quadratic {
+                quadratic_matrix,
+                linear_coeffs,
+            } => {
                 // Gradient of quadratic: Q * x + c
                 for i in 0..n {
                     gradient[i] += linear_coeffs[i];
@@ -485,7 +532,13 @@ impl MathematicalOptimizer {
     }
 
     /// Compute step size for gradient descent (simplified line search)
-    fn compute_step_size(&self, x: &[f64], gradient: &[f64], constraints: &[ConvexConstraint], initial_step: f64) -> f64 {
+    fn compute_step_size(
+        &self,
+        x: &[f64],
+        gradient: &[f64],
+        constraints: &[ConvexConstraint],
+        initial_step: f64,
+    ) -> f64 {
         let mut step_size = initial_step;
         let mut new_x = x.to_vec();
 
@@ -510,7 +563,11 @@ impl MathematicalOptimizer {
     }
 
     /// Project point onto feasible set (simplified projection)
-    fn project_onto_feasible_set(&self, x: &[f64], constraints: &[ConvexConstraint]) -> Result<Vec<f64>, String> {
+    fn project_onto_feasible_set(
+        &self,
+        x: &[f64],
+        constraints: &[ConvexConstraint],
+    ) -> Result<Vec<f64>, String> {
         let mut projected = x.to_vec();
 
         // For each constraint, project if violated

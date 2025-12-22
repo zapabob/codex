@@ -3,10 +3,14 @@
 //! This module provides coordination mechanisms for parallel execution
 //! of QC agents across multiple worktrees and processes.
 
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, VecDeque};
-use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, oneshot};
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::VecDeque;
+use std::sync::Arc;
+use std::sync::Mutex;
+use tokio::sync::mpsc;
+use tokio::sync::oneshot;
 
 /// Coordination message types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -207,7 +211,12 @@ impl AgentCoordinator {
         // Submit tasks for each code sample and analysis type
         for (sample_idx, code) in code_samples.iter().enumerate() {
             for (type_idx, &analysis_type) in analysis_types.iter().enumerate() {
-                let task_id = format!("qc_analysis_{}_{}_{}", sample_idx, type_idx, chrono::Utc::now().timestamp());
+                let task_id = format!(
+                    "qc_analysis_{}_{}_{}",
+                    sample_idx,
+                    type_idx,
+                    chrono::Utc::now().timestamp()
+                );
 
                 let payload = serde_json::json!({
                     "code": code,
@@ -215,13 +224,16 @@ impl AgentCoordinator {
                     "sample_index": sample_idx
                 });
 
-                match self.submit_task(
-                    task_id.clone(),
-                    analysis_type,
-                    TaskPriority::Medium,
-                    payload,
-                    Some(30000), // 30 second timeout
-                ).await {
+                match self
+                    .submit_task(
+                        task_id.clone(),
+                        analysis_type,
+                        TaskPriority::Medium,
+                        payload,
+                        Some(30000), // 30 second timeout
+                    )
+                    .await
+                {
                     Ok(_) => {
                         tasks.push(task_id);
                     }
@@ -253,8 +265,10 @@ impl AgentCoordinator {
                 for result in completed.iter() {
                     results.push(result.clone());
                     active_tasks = active_tasks.saturating_sub(1);
-                    println!("✅ Completed task: {} (remaining active: {})",
-                            result.task_id, active_tasks);
+                    println!(
+                        "✅ Completed task: {} (remaining active: {})",
+                        result.task_id, active_tasks
+                    );
                 }
                 // Clear completed tasks
                 self.completed_tasks.lock().unwrap().clear();
@@ -280,8 +294,12 @@ impl AgentCoordinator {
             let allocated = requested.min(*available);
             *available -= allocated;
 
-            println!("📊 Allocated {:.2} {} to agent {}",
-                    allocated, self.resource_type_name(resource_type), agent_id);
+            println!(
+                "📊 Allocated {:.2} {} to agent {}",
+                allocated,
+                self.resource_type_name(resource_type),
+                agent_id
+            );
 
             allocated
         } else {
@@ -296,8 +314,12 @@ impl AgentCoordinator {
         if let Some(available) = pools.get_mut(&resource_type) {
             *available += amount;
 
-            println!("🔄 Released {:.2} {} from agent {}",
-                    amount, self.resource_type_name(resource_type), agent_id);
+            println!(
+                "🔄 Released {:.2} {} from agent {}",
+                amount,
+                self.resource_type_name(resource_type),
+                agent_id
+            );
         }
     }
 
@@ -367,13 +389,15 @@ mod tests {
         let coordinator = AgentCoordinator::new();
 
         let payload = serde_json::json!({"test": "data"});
-        let result = coordinator.submit_task(
-            "test_task".to_string(),
-            AgentType::StatisticalAnalyzer,
-            TaskPriority::Medium,
-            payload,
-            Some(5000),
-        ).await;
+        let result = coordinator
+            .submit_task(
+                "test_task".to_string(),
+                AgentType::StatisticalAnalyzer,
+                TaskPriority::Medium,
+                payload,
+                Some(5000),
+            )
+            .await;
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "test_task");
@@ -391,6 +415,9 @@ mod tests {
 
         coordinator.release_resources("test_agent", ResourceType::CpuCores, 2.0);
         let stats_after = coordinator.get_statistics();
-        assert_eq!(stats_after.resource_utilization[&ResourceType::CpuCores], 8.0);
+        assert_eq!(
+            stats_after.resource_utilization[&ResourceType::CpuCores],
+            8.0
+        );
     }
 }

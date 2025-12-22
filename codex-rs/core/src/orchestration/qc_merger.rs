@@ -7,9 +7,7 @@ use crate::orchestration::parallel_execution::AgentResult;
 use crate::orchestration::worktree_manager::WorktreeInfo;
 use crate::qc::QcAgent;
 use crate::qc::QcConfig;
-use crate::qc::QcReport;
 use crate::qc::QualityScore;
-use anyhow::Context;
 use anyhow::Result;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -59,13 +57,14 @@ impl QcMerger {
                 continue;
             }
 
-            let agent_name = format!("{:?}", result.agent);
+            let agent = result.agent;
+            let agent_name = format!("{agent:?}");
             info!("Analyzing result from {}", agent_name);
 
             // Run QC analysis on the output
             match self
                 .qc_agent
-                .analyze(&result.output, &format!("agent_{}", idx))
+                .analyze(&result.output, &format!("agent_{idx}"))
                 .await
             {
                 Ok(report) => {
@@ -188,16 +187,17 @@ impl QcMerger {
         for entry in WalkDir::new(worktree_path)
             .max_depth(5)
             .into_iter()
-            .filter_map(|e| e.ok())
+            .filter_map(Result::ok)
         {
             let path = entry.path();
             if path.is_file() {
                 if let Some(ext) = path.extension() {
                     if ext == "rs" || ext == "ts" || ext == "tsx" || ext == "js" || ext == "jsx" {
                         if let Ok(content) = fs::read_to_string(path) {
-                            source_content.push_str(&format!("\n// File: {}\n", path.display()));
+                            let display = path.display();
+                            source_content.push_str(&format!("\n// File: {display}\n"));
                             source_content.push_str(&content);
-                            source_content.push_str("\n");
+                            source_content.push('\n');
                         }
                     }
                 }

@@ -6,10 +6,10 @@ use crate::agents::runtime::AgentRuntime;
 use crate::orchestration::AutoOrchestrator;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::OrchestratedResult;
-use crate::orchestration::ParallelOrchestrator;
 use crate::orchestration::TaskAnalyzer;
 use crate::orchestration::parallel_execution::AgentTask;
 use crate::orchestration::parallel_execution::AgentType;
+use crate::orchestration::parallel_execution::ParallelOrchestrator;
 use crate::orchestration::qc_logger::QcLogger;
 use crate::orchestration::qc_merger::QcMerger;
 use crate::plan::ExecutionMode;
@@ -173,7 +173,7 @@ impl PlanOrchestrator {
             .delegate(&agent, &plan.goal, inputs, budget, deadline)
             .await?;
 
-        let status = result.status;
+        let status = result.status.clone();
         let duration_secs = result.duration_secs;
         let summary = format!(
             "Single-agent execution finished with status {status:?} in {duration_secs:.2}s."

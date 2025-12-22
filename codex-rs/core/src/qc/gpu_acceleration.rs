@@ -3,7 +3,8 @@
 //! Provides CUDA 12 + RTX 30/40/50 GPU acceleration for QC computations
 //! leveraging Rust 2024 features: const generics, GATs, and advanced async.
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -124,7 +125,10 @@ impl GpuStatisticalAnalyzer {
     }
 
     /// GPU-accelerated ANOVA test
-    pub async fn gpu_anova_test(&self, samples: &[Vec<f64>]) -> Result<super::statistical::AnovaResult, String> {
+    pub async fn gpu_anova_test(
+        &self,
+        samples: &[Vec<f64>],
+    ) -> Result<super::statistical::AnovaResult, String> {
         if samples.is_empty() || samples.iter().any(|s| s.is_empty()) {
             return Err("Invalid input for ANOVA".to_string());
         }
@@ -139,13 +143,17 @@ impl GpuStatisticalAnalyzer {
         }
 
         // GPU computation
-        let gpu_result = self.execute_gpu_computation(
-            GpuComputationType::StatisticalAnalysis,
-            &[all_data, group_sizes.iter().map(|&x| x as f64).collect()],
-        ).await?;
+        let gpu_result = self
+            .execute_gpu_computation(
+                GpuComputationType::StatisticalAnalysis,
+                &[all_data, group_sizes.iter().map(|&x| x as f64).collect()],
+            )
+            .await?;
 
         if !gpu_result.success {
-            return Err(gpu_result.error_message.unwrap_or_else(|| "GPU ANOVA computation failed".to_string()));
+            return Err(gpu_result
+                .error_message
+                .unwrap_or_else(|| "GPU ANOVA computation failed".to_string()));
         }
 
         // Parse GPU results
@@ -166,7 +174,11 @@ impl GpuStatisticalAnalyzer {
     }
 
     /// GPU-accelerated matrix operations for ML
-    pub async fn gpu_matrix_multiply(&self, a: &[Vec<f64>], b: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, String> {
+    pub async fn gpu_matrix_multiply(
+        &self,
+        a: &[Vec<f64>],
+        b: &[Vec<f64>],
+    ) -> Result<Vec<Vec<f64>>, String> {
         if a.is_empty() || b.is_empty() || a[0].len() != b.len() {
             return Err("Invalid matrix dimensions for multiplication".to_string());
         }
@@ -176,18 +188,22 @@ impl GpuStatisticalAnalyzer {
         let b_flat: Vec<f64> = b.iter().flatten().copied().collect();
 
         let dims = vec![
-            a.len() as f64,     // rows A
-            a[0].len() as f64,  // cols A / rows B
-            b[0].len() as f64,  // cols B
+            a.len() as f64,    // rows A
+            a[0].len() as f64, // cols A / rows B
+            b[0].len() as f64, // cols B
         ];
 
-        let gpu_result = self.execute_gpu_computation(
-            GpuComputationType::MatrixMultiplication,
-            &[a_flat, b_flat, dims],
-        ).await?;
+        let gpu_result = self
+            .execute_gpu_computation(
+                GpuComputationType::MatrixMultiplication,
+                &[a_flat, b_flat, dims],
+            )
+            .await?;
 
         if !gpu_result.success {
-            return Err(gpu_result.error_message.unwrap_or_else(|| "GPU matrix multiplication failed".to_string()));
+            return Err(gpu_result
+                .error_message
+                .unwrap_or_else(|| "GPU matrix multiplication failed".to_string()));
         }
 
         // Reshape result back to matrix
@@ -222,7 +238,8 @@ impl GpuStatisticalAnalyzer {
         }
 
         // Add activation function info
-        let activation_codes: Vec<f64> = activations.iter()
+        let activation_codes: Vec<f64> = activations
+            .iter()
             .map(|&act| match act {
                 ActivationFunction::ReLU => 0.0,
                 ActivationFunction::Sigmoid => 1.0,
@@ -232,13 +249,14 @@ impl GpuStatisticalAnalyzer {
             .collect();
         gpu_data.push(activation_codes);
 
-        let gpu_result = self.execute_gpu_computation(
-            GpuComputationType::NeuralNetworkForward,
-            &gpu_data,
-        ).await?;
+        let gpu_result = self
+            .execute_gpu_computation(GpuComputationType::NeuralNetworkForward, &gpu_data)
+            .await?;
 
         if !gpu_result.success {
-            return Err(gpu_result.error_message.unwrap_or_else(|| "GPU neural network forward pass failed".to_string()));
+            return Err(gpu_result
+                .error_message
+                .unwrap_or_else(|| "GPU neural network forward pass failed".to_string()));
         }
 
         Ok(gpu_result.output_data)
@@ -263,15 +281,22 @@ impl GpuStatisticalAnalyzer {
             GpuComputationType::NeuralNetworkForward => {
                 self.execute_nn_forward_kernel(input_data).await
             }
-            _ => Err(format!("GPU computation type {:?} not yet implemented", computation_type)),
-        }.map(|mut result| {
+            _ => Err(format!(
+                "GPU computation type {:?} not yet implemented",
+                computation_type
+            )),
+        }
+        .map(|mut result| {
             result.execution_time_ms = start_time.elapsed().as_millis() as f64;
             result
         })
     }
 
     /// Execute statistical analysis kernel on GPU
-    async fn execute_statistical_kernel(&self, input_data: &[Vec<f64>]) -> Result<GpuComputationResult, String> {
+    async fn execute_statistical_kernel(
+        &self,
+        input_data: &[Vec<f64>],
+    ) -> Result<GpuComputationResult, String> {
         // Placeholder - in real implementation would:
         // 1. Allocate GPU memory
         // 2. Copy data to GPU
@@ -292,7 +317,10 @@ impl GpuStatisticalAnalyzer {
     }
 
     /// Execute matrix multiplication kernel on GPU
-    async fn execute_matrix_kernel(&self, input_data: &[Vec<f64>]) -> Result<GpuComputationResult, String> {
+    async fn execute_matrix_kernel(
+        &self,
+        input_data: &[Vec<f64>],
+    ) -> Result<GpuComputationResult, String> {
         // Placeholder - real implementation would use cuBLAS or custom CUDA kernel
         tokio::time::sleep(std::time::Duration::from_millis(5)).await;
 
@@ -329,7 +357,10 @@ impl GpuStatisticalAnalyzer {
     }
 
     /// Execute neural network forward kernel on GPU
-    async fn execute_nn_forward_kernel(&self, input_data: &[Vec<f64>]) -> Result<GpuComputationResult, String> {
+    async fn execute_nn_forward_kernel(
+        &self,
+        input_data: &[Vec<f64>],
+    ) -> Result<GpuComputationResult, String> {
         // Placeholder - real implementation would use cuDNN or custom CUDA kernels
         tokio::time::sleep(std::time::Duration::from_millis(12)).await;
 
@@ -414,12 +445,17 @@ impl QuantumOptimizer {
     }
 
     /// GPU-accelerated QAOA for MaxCut problem
-    pub async fn gpu_qaoa_maxcut(&self, adjacency_matrix: &[Vec<f64>]) -> Result<super::quantum::QAOASolution, String> {
+    pub async fn gpu_qaoa_maxcut(
+        &self,
+        adjacency_matrix: &[Vec<f64>],
+    ) -> Result<super::quantum::QAOASolution, String> {
         let num_vertices = adjacency_matrix.len();
 
         if num_vertices > self.quantum_config.max_qubits {
-            return Err(format!("Problem too large for quantum optimizer: {} > {} qubits",
-                             num_vertices, self.quantum_config.max_qubits));
+            return Err(format!(
+                "Problem too large for quantum optimizer: {} > {} qubits",
+                num_vertices, self.quantum_config.max_qubits
+            ));
         }
 
         // Prepare problem data for GPU
@@ -427,18 +463,29 @@ impl QuantumOptimizer {
         let problem_data = vec![adj_flat, vec![num_vertices as f64]];
 
         // GPU-accelerated quantum simulation
-        let gpu_result = self.gpu_accelerator.execute_gpu_computation(
-            GpuComputationType::QuantumSimulation,
-            &problem_data,
-        ).await?;
+        let gpu_result = self
+            .gpu_accelerator
+            .execute_gpu_computation(GpuComputationType::QuantumSimulation, &problem_data)
+            .await?;
 
         if !gpu_result.success {
-            return Err(gpu_result.error_message.unwrap_or_else(|| "GPU QAOA computation failed".to_string()));
+            return Err(gpu_result
+                .error_message
+                .unwrap_or_else(|| "GPU QAOA computation failed".to_string()));
         }
 
         // Parse quantum optimization results
-        let optimal_parameters: Vec<f64> = gpu_result.output_data.iter().take(num_vertices * 2).copied().collect();
-        let optimal_value = gpu_result.output_data.get(num_vertices * 2).copied().unwrap_or(0.0);
+        let optimal_parameters: Vec<f64> = gpu_result
+            .output_data
+            .iter()
+            .take(num_vertices * 2)
+            .copied()
+            .collect();
+        let optimal_value = gpu_result
+            .output_data
+            .get(num_vertices * 2)
+            .copied()
+            .unwrap_or(0.0);
 
         Ok(super::quantum::QAOASolution {
             optimal_parameters,
@@ -451,30 +498,46 @@ impl QuantumOptimizer {
     }
 
     /// GPU-accelerated VQE for ground state energy estimation
-    pub async fn gpu_vqe_ground_state(&self, hamiltonian: &[Vec<f64>]) -> Result<super::quantum::VQESolution, String> {
+    pub async fn gpu_vqe_ground_state(
+        &self,
+        hamiltonian: &[Vec<f64>],
+    ) -> Result<super::quantum::VQESolution, String> {
         let num_qubits = hamiltonian.len();
 
         if num_qubits > self.quantum_config.max_qubits {
-            return Err(format!("Hamiltonian too large for quantum optimizer: {} > {} qubits",
-                             num_qubits, self.quantum_config.max_qubits));
+            return Err(format!(
+                "Hamiltonian too large for quantum optimizer: {} > {} qubits",
+                num_qubits, self.quantum_config.max_qubits
+            ));
         }
 
         // GPU quantum simulation
         let ham_flat: Vec<f64> = hamiltonian.iter().flatten().copied().collect();
         let problem_data = vec![ham_flat, vec![num_qubits as f64]];
 
-        let gpu_result = self.gpu_accelerator.execute_gpu_computation(
-            GpuComputationType::QuantumSimulation,
-            &problem_data,
-        ).await?;
+        let gpu_result = self
+            .gpu_accelerator
+            .execute_gpu_computation(GpuComputationType::QuantumSimulation, &problem_data)
+            .await?;
 
         if !gpu_result.success {
-            return Err(gpu_result.error_message.unwrap_or_else(|| "GPU VQE computation failed".to_string()));
+            return Err(gpu_result
+                .error_message
+                .unwrap_or_else(|| "GPU VQE computation failed".to_string()));
         }
 
         // Parse VQE results
-        let optimal_parameters: Vec<f64> = gpu_result.output_data.iter().take(num_qubits * 4).copied().collect();
-        let ground_state_energy = gpu_result.output_data.get(num_qubits * 4).copied().unwrap_or(0.0);
+        let optimal_parameters: Vec<f64> = gpu_result
+            .output_data
+            .iter()
+            .take(num_qubits * 4)
+            .copied()
+            .collect();
+        let ground_state_energy = gpu_result
+            .output_data
+            .get(num_qubits * 4)
+            .copied()
+            .unwrap_or(0.0);
 
         Ok(super::quantum::VQESolution {
             optimal_parameters,
@@ -528,18 +591,26 @@ impl MonteCarloSampler {
         let mut sample_data = vec![input_features.to_vec()];
         sample_data.push(vec![num_samples as f64]);
 
-        let gpu_result = self.gpu_accelerator.execute_gpu_computation(
-            GpuComputationType::MonteCarloSampling,
-            &sample_data,
-        ).await?;
+        let gpu_result = self
+            .gpu_accelerator
+            .execute_gpu_computation(GpuComputationType::MonteCarloSampling, &sample_data)
+            .await?;
 
         if !gpu_result.success {
-            return Err(gpu_result.error_message.unwrap_or_else(|| "GPU Monte Carlo sampling failed".to_string()));
+            return Err(gpu_result
+                .error_message
+                .unwrap_or_else(|| "GPU Monte Carlo sampling failed".to_string()));
         }
 
         // Parse uncertainty results
         let mean_predictions: Vec<f64> = gpu_result.output_data.iter().take(4).copied().collect();
-        let std_predictions: Vec<f64> = gpu_result.output_data.iter().skip(4).take(4).copied().collect();
+        let std_predictions: Vec<f64> = gpu_result
+            .output_data
+            .iter()
+            .skip(4)
+            .take(4)
+            .copied()
+            .collect();
 
         Ok(UncertaintyEstimate {
             readability_mean: mean_predictions[0],
@@ -583,7 +654,10 @@ mod tests {
         // For testing, we just check that the function doesn't panic
         match result {
             Ok(_) => println!("GPU accelerator created successfully"),
-            Err(e) => println!("GPU accelerator creation failed (expected in test env): {}", e),
+            Err(e) => println!(
+                "GPU accelerator creation failed (expected in test env): {}",
+                e
+            ),
         }
     }
 
@@ -592,7 +666,10 @@ mod tests {
         let result = QuantumOptimizer::new();
         match result {
             Ok(_) => println!("Quantum optimizer created successfully"),
-            Err(e) => println!("Quantum optimizer creation failed (expected without CUDA): {}", e),
+            Err(e) => println!(
+                "Quantum optimizer creation failed (expected without CUDA): {}",
+                e
+            ),
         }
     }
 
