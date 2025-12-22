@@ -4,9 +4,7 @@
 //! parallel development modes, with support for analyzing past implementation logs
 //! and commit history.
 
-use crate::orchestration::conflict_resolver::ConflictResolver;
 use crate::orchestration::conflict_resolver::MergeStrategy;
-use crate::orchestration::worktree_manager::WorktreeManager;
 // ExecutionMode module not available
 // use crate::plan::ExecutionMode;
 use anyhow::Context;
@@ -62,13 +60,13 @@ impl Default for DevelopmentMode {
 impl DevelopmentMode {
     /// Convert to ExecutionMode - disabled, module not available
     #[allow(dead_code)]
-    pub fn to_execution_mode(&self) -> () {
+    pub fn to_execution_mode(&self) {
         // ExecutionMode module not available
         // match self {
         //     Self::Central { .. } => ExecutionMode::Orchestrated,
         //     Self::Worktree { .. } => ExecutionMode::Competition,
         // }
-        ()
+        
     }
 
     /// Get description
@@ -151,11 +149,10 @@ impl DevelopmentModeSelector {
             let entry = entry.context("Failed to read directory entry")?;
             let path = entry.path();
 
-            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
-                if let Some(log) = self.parse_log_file(&path)? {
+            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md")
+                && let Some(log) = self.parse_log_file(&path)? {
                     logs.push(log);
                 }
-            }
         }
 
         // Sort by date (newest first)
@@ -168,7 +165,7 @@ impl DevelopmentModeSelector {
     /// Parse a log file
     fn parse_log_file(&self, path: &Path) -> Result<Option<ImplementationLog>> {
         let content = std::fs::read_to_string(path)
-            .context(format!("Failed to read log file: {:?}", path))?;
+            .context(format!("Failed to read log file: {path:?}"))?;
 
         // Extract date and feature from filename (format: yyyy-mm-dd_feature.md)
         let filename = path
@@ -177,7 +174,7 @@ impl DevelopmentModeSelector {
             .context("Invalid filename")?;
 
         let parts: Vec<&str> = filename.splitn(2, '_').collect();
-        let date = parts.get(0).copied().unwrap_or("").to_string();
+        let date = parts.first().copied().unwrap_or("").to_string();
         let feature = parts.get(1).copied().unwrap_or(filename).to_string();
 
         // Extract summary from content (first paragraph or heading)
@@ -396,11 +393,10 @@ impl DevelopmentModeSelector {
             } => {
                 format!(
                     "Central Orchestration Mode\n\
-                    - Merge Strategy: {:?}\n\
-                    - Dynamic Conflict Detection: {}\n\
+                    - Merge Strategy: {merge_strategy:?}\n\
+                    - Dynamic Conflict Detection: {dynamic_conflict_detection}\n\
                     - Uses ConflictResolver for deadlock prevention\n\
-                    - Suitable for: Multi-agent coordination in same repository",
-                    merge_strategy, dynamic_conflict_detection
+                    - Suitable for: Multi-agent coordination in same repository"
                 )
             }
             DevelopmentMode::Worktree {
@@ -410,11 +406,10 @@ impl DevelopmentModeSelector {
             } => {
                 format!(
                     "Git Worktree Parallel Development Mode\n\
-                    - Number of Worktrees: {}\n\
-                    - Auto-merge Winner: {}\n\
+                    - Number of Worktrees: {num_worktrees}\n\
+                    - Auto-merge Winner: {auto_merge_winner}\n\
                     - Uses WorktreeManager for isolated branches\n\
-                    - Suitable for: Parallel variant development",
-                    num_worktrees, auto_merge_winner
+                    - Suitable for: Parallel variant development"
                 )
             }
         }

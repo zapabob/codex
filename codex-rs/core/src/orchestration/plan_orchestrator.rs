@@ -6,7 +6,6 @@ use crate::agents::runtime::AgentRuntime;
 use crate::orchestration::AutoOrchestrator;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::OrchestratedResult;
-use crate::orchestration::TaskAnalyzer;
 // PlanBlock module not available - this orchestrator is disabled
 // use crate::plan::PlanBlock;
 // Telemetry and webhooks modules not available
@@ -14,11 +13,8 @@ use crate::orchestration::TaskAnalyzer;
 // use crate::telemetry::TelemetryEvent;
 // use crate::webhooks::WebhookConfig;
 // use crate::webhooks::WebhookPayload;
-use anyhow::Context;
 use anyhow::Result;
 use std::sync::Arc;
-use tracing::debug;
-use tracing::info;
 
 /// Plan-aware orchestrator
 pub struct PlanOrchestrator {
@@ -41,7 +37,7 @@ impl PlanOrchestrator {
 
         Self {
             auto_orchestrator,
-            _webhook_configs: _webhook_configs,
+            _webhook_configs,
         }
     }
 

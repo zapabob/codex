@@ -43,8 +43,8 @@ impl WorktreeManager {
 
     /// Create a new worktree for an agent
     pub fn create_worktree(&self, agent_name: &str, task_id: &str) -> Result<WorktreeInfo> {
-        let branch_name = format!("codex/{}/{}", agent_name, task_id);
-        let worktree_name = format!("{}_{}", agent_name, task_id);
+        let branch_name = format!("codex/{agent_name}/{task_id}");
+        let worktree_name = format!("{agent_name}_{task_id}");
         let worktree_path = self.worktree_base.join(&worktree_name);
 
         // Remove existing worktree if present
@@ -63,7 +63,7 @@ impl WorktreeManager {
             let stderr = String::from_utf8_lossy(&output.stderr);
             // Ignore "already exists" error
             if !stderr.contains("already exists") {
-                anyhow::bail!("Git branch creation failed: {}", stderr);
+                anyhow::bail!("Git branch creation failed: {stderr}");
             }
         }
 
@@ -81,7 +81,7 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Git worktree creation failed: {}", stderr);
+            anyhow::bail!("Git worktree creation failed: {stderr}");
         }
 
         Ok(WorktreeInfo {
@@ -110,7 +110,7 @@ impl WorktreeManager {
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                eprintln!("Warning: Failed to remove worktree: {}", stderr);
+                eprintln!("Warning: Failed to remove worktree: {stderr}");
             }
         }
 
@@ -127,7 +127,7 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Git worktree list failed: {}", stderr);
+            anyhow::bail!("Git worktree list failed: {stderr}");
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -143,8 +143,8 @@ impl WorktreeManager {
             let branch = lines[1].trim_start_matches("branch ");
 
             // Only include our managed worktrees
-            if let Some(name) = Path::new(path).file_name().and_then(|n| n.to_str()) {
-                if path.contains(".codex-worktrees") {
+            if let Some(name) = Path::new(path).file_name().and_then(|n| n.to_str())
+                && path.contains(".codex-worktrees") {
                     let agent = name.split('_').next().unwrap_or("unknown").to_string();
 
                     worktrees.push(WorktreeInfo {
@@ -154,7 +154,6 @@ impl WorktreeManager {
                         agent,
                     });
                 }
-            }
         }
 
         Ok(worktrees)
@@ -171,7 +170,7 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Git checkout failed: {}", stderr);
+            anyhow::bail!("Git checkout failed: {stderr}");
         }
 
         // Merge worktree branch
@@ -183,7 +182,7 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Git merge failed: {}", stderr);
+            anyhow::bail!("Git merge failed: {stderr}");
         }
 
         Ok(())

@@ -19,7 +19,6 @@ use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
 use async_channel::Sender;
-use codex_async_utils::CancelErr;
 use codex_async_utils::OrCancelExt;
 use codex_protocol::approvals::ElicitationRequestEvent;
 use codex_protocol::protocol::Event;

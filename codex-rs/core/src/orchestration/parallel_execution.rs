@@ -33,21 +33,13 @@ pub enum AgentType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct ReasoningConfig {
     pub effort: ReasoningEffort,
     pub summary: ReasoningSummary,
     pub verbosity: Verbosity,
 }
 
-impl Default for ReasoningConfig {
-    fn default() -> Self {
-        Self {
-            effort: ReasoningEffort::default(),
-            summary: ReasoningSummary::default(),
-            verbosity: Verbosity::default(),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentTask {
@@ -139,7 +131,7 @@ impl ParallelOrchestrator {
                     tracing::warn!("Failed to create worktree for {}: {}", agent_name, e);
                     // Use repo_path as fallback
                     worktrees.push(WorktreeInfo {
-                        name: format!("{}_{}", agent_name, task_id),
+                        name: format!("{agent_name}_{task_id}"),
                         path: self.repo_path.clone(),
                         branch: "main".to_string(),
                         agent: agent_name,
@@ -184,7 +176,7 @@ impl ParallelOrchestrator {
             match handle.await {
                 Ok(result) => results.push(result),
                 Err(e) => {
-                    eprintln!("Agent task panicked: {}", e);
+                    eprintln!("Agent task panicked: {e}");
                 }
             }
         }
@@ -309,7 +301,7 @@ impl ParallelOrchestrator {
             })
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            anyhow::bail!("Codex failed: {}", stderr);
+            anyhow::bail!("Codex failed: {stderr}");
         }
     }
 
@@ -365,7 +357,7 @@ impl ParallelOrchestrator {
             })
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            anyhow::bail!("GeminiCLI failed: {}", stderr);
+            anyhow::bail!("GeminiCLI failed: {stderr}");
         }
     }
 
@@ -421,7 +413,7 @@ impl ParallelOrchestrator {
             })
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            anyhow::bail!("Claudecode failed: {}", stderr);
+            anyhow::bail!("Claudecode failed: {stderr}");
         }
     }
 
@@ -482,13 +474,12 @@ impl Drop for ParallelOrchestrator {
         tokio::spawn(async move {
             let worktrees = worktree_cleanup.read().await;
 
-            if !worktrees.is_empty() {
-                if let Ok(manager) = WorktreeManager::new(&repo_path) {
+            if !worktrees.is_empty()
+                && let Ok(manager) = WorktreeManager::new(&repo_path) {
                     for worktree in worktrees.iter() {
                         let _ = manager.remove_worktree(&worktree.name);
                     }
                 }
-            }
         });
     }
 }

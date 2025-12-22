@@ -74,7 +74,7 @@ impl PlanPersister {
 
     /// Load Plan from JSON
     pub fn load_json(&self, id: &str) -> Result<PlanBlock> {
-        let filename = format!("{}.json", id);
+        let filename = format!("{id}.json");
         let path = self.json_dir.join(&filename);
 
         let content = fs::read_to_string(&path)
@@ -104,11 +104,10 @@ impl PlanPersister {
             let entry = entry?;
             let path = entry.path();
 
-            if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+            if path.extension().and_then(|s| s.to_str()) == Some("json")
+                && let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
                     ids.push(stem.to_string());
                 }
-            }
         }
 
         Ok(ids)
@@ -140,7 +139,7 @@ impl PlanPersister {
         if !bp.assumptions.is_empty() {
             md.push_str("## Assumptions\n\n");
             for assumption in &bp.assumptions {
-                md.push_str(&format!("- {}\n", assumption));
+                md.push_str(&format!("- {assumption}\n"));
             }
             md.push('\n');
         }
@@ -149,7 +148,7 @@ impl PlanPersister {
         if !bp.clarifying_questions.is_empty() {
             md.push_str("## Clarifying Questions\n\n");
             for question in &bp.clarifying_questions {
-                md.push_str(&format!("- {}\n", question));
+                md.push_str(&format!("- {question}\n"));
             }
             md.push('\n');
         }
@@ -188,14 +187,14 @@ impl PlanPersister {
         if !bp.eval.tests.is_empty() {
             md.push_str("**Tests**:\n");
             for test in &bp.eval.tests {
-                md.push_str(&format!("- {}\n", test));
+                md.push_str(&format!("- {test}\n"));
             }
             md.push('\n');
         }
         if !bp.eval.metrics.is_empty() {
             md.push_str("**Metrics**:\n");
             for (key, value) in &bp.eval.metrics {
-                md.push_str(&format!("- {}: {}\n", key, value));
+                md.push_str(&format!("- {key}: {value}\n"));
             }
             md.push('\n');
         }
@@ -203,16 +202,16 @@ impl PlanPersister {
         // Budget
         md.push_str("## Budget\n\n");
         if let Some(max_step) = bp.budget.max_step {
-            md.push_str(&format!("- Max tokens per step: {}\n", max_step));
+            md.push_str(&format!("- Max tokens per step: {max_step}\n"));
         }
         if let Some(session_cap) = bp.budget.session_cap {
-            md.push_str(&format!("- Session token cap: {}\n", session_cap));
+            md.push_str(&format!("- Session token cap: {session_cap}\n"));
         }
         if let Some(estimate) = bp.budget.estimate_min {
-            md.push_str(&format!("- Time estimate: {} minutes\n", estimate));
+            md.push_str(&format!("- Time estimate: {estimate} minutes\n"));
         }
         if let Some(cap) = bp.budget.cap_min {
-            md.push_str(&format!("- Time cap: {} minutes\n", cap));
+            md.push_str(&format!("- Time cap: {cap} minutes\n"));
         }
         md.push('\n');
 
@@ -248,7 +247,7 @@ impl PlanPersister {
         if !bp.artifacts.is_empty() {
             md.push_str("## Artifacts\n\n");
             for artifact in &bp.artifacts {
-                md.push_str(&format!("- {}\n", artifact));
+                md.push_str(&format!("- {artifact}\n"));
             }
             md.push('\n');
         }

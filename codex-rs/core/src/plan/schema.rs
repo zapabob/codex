@@ -61,6 +61,7 @@ pub struct Risk {
 
 /// Evaluation criteria for the Plan
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct EvalCriteria {
     /// Tests that must pass
     pub tests: Vec<String>,
@@ -68,14 +69,6 @@ pub struct EvalCriteria {
     pub metrics: HashMap<String, String>,
 }
 
-impl Default for EvalCriteria {
-    fn default() -> Self {
-        Self {
-            tests: Vec::new(),
-            metrics: HashMap::new(),
-        }
-    }
-}
 
 /// Budget constraints for execution
 #[derive(Debug, Clone, Serialize, Deserialize)]

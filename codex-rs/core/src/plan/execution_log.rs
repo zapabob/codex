@@ -145,10 +145,10 @@ impl ExecutionLogManager {
 
     /// Load execution log
     pub fn load(&self, execution_id: &str) -> Result<ExecutionLog> {
-        let log_file = self.log_dir.join(format!("{}.json", execution_id));
+        let log_file = self.log_dir.join(format!("{execution_id}.json"));
 
         if !log_file.exists() {
-            anyhow::bail!("Execution log not found: {}", execution_id);
+            anyhow::bail!("Execution log not found: {execution_id}");
         }
 
         let json = std::fs::read_to_string(&log_file).context("Failed to read execution log")?;
@@ -171,13 +171,11 @@ impl ExecutionLogManager {
             let entry = entry?;
             let path = entry.path();
 
-            if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                if let Ok(json) = std::fs::read_to_string(&path) {
-                    if let Ok(log) = serde_json::from_str::<ExecutionLog>(&json) {
+            if path.extension().and_then(|s| s.to_str()) == Some("json")
+                && let Ok(json) = std::fs::read_to_string(&path)
+                    && let Ok(log) = serde_json::from_str::<ExecutionLog>(&json) {
                         logs.push(log);
                     }
-                }
-            }
         }
 
         // Sort by start time (newest first)
@@ -191,7 +189,7 @@ impl ExecutionLogManager {
         let mut log = self.load(execution_id)?;
 
         if log.rolled_back {
-            anyhow::bail!("Execution {} has already been rolled back", execution_id);
+            anyhow::bail!("Execution {execution_id} has already been rolled back");
         }
 
         info!("Rolling back execution: {}", execution_id);

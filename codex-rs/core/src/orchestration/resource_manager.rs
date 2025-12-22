@@ -184,7 +184,7 @@ impl ResourceManager {
 
         // Calculate average CPU usage across all cores
         let cpu_usage: f32 =
-            sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>() / sys.cpus().len() as f32;
+            sys.cpus().iter().map(sysinfo::Cpu::cpu_usage).sum::<f32>() / sys.cpus().len() as f32;
 
         let memory_used = sys.used_memory();
         let memory_total = sys.total_memory();

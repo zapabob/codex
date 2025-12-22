@@ -169,7 +169,7 @@ impl PolicyEnforcer {
         self.policy
             .allowed_domains
             .iter()
-            .any(|allowed| domain == allowed || domain.ends_with(&format!(".{}", allowed)))
+            .any(|allowed| domain == allowed || domain.ends_with(&format!(".{allowed}")))
     }
 
     /// Enforce policy for an operation
@@ -195,15 +195,13 @@ impl PolicyEnforcer {
         }
 
         // Check domain if network operation
-        if operation == PrivilegedOperation::Network {
-            if let Some(d) = domain {
-                if !self.is_domain_allowed(d) {
+        if operation == PrivilegedOperation::Network
+            && let Some(d) = domain
+                && !self.is_domain_allowed(d) {
                     return Err(PolicyError::DomainNotAllowed {
                         domain: d.to_string(),
                     });
                 }
-            }
-        }
 
         Ok(())
     }

@@ -170,11 +170,10 @@ impl PlanExecutor {
     async fn emit_event(&self, event: ExecutionEvent) {
         let tx_guard = self.event_tx.read().await;
 
-        if let Some(tx) = tx_guard.as_ref() {
-            if let Err(e) = tx.send(event.clone()) {
+        if let Some(tx) = tx_guard.as_ref()
+            && let Err(e) = tx.send(event.clone()) {
                 warn!("Failed to broadcast execution event: {}", e);
             }
-        }
 
         debug!("Execution event: {:?}", event);
     }
@@ -346,10 +345,10 @@ impl PlanExecutor {
 
     /// Load execution log from disk
     pub fn load_execution_log(&self, execution_id: &str) -> Result<ExecutionResult> {
-        let log_file = self.log_dir.join(format!("{}.json", execution_id));
+        let log_file = self.log_dir.join(format!("{execution_id}.json"));
 
         if !log_file.exists() {
-            anyhow::bail!("Execution log not found: {}", execution_id);
+            anyhow::bail!("Execution log not found: {execution_id}");
         }
 
         let json = std::fs::read_to_string(&log_file).context("Failed to read execution log")?;
@@ -372,13 +371,11 @@ impl PlanExecutor {
             let entry = entry?;
             let path = entry.path();
 
-            if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                if let Ok(json) = std::fs::read_to_string(&path) {
-                    if let Ok(result) = serde_json::from_str::<ExecutionResult>(&json) {
+            if path.extension().and_then(|s| s.to_str()) == Some("json")
+                && let Ok(json) = std::fs::read_to_string(&path)
+                    && let Ok(result) = serde_json::from_str::<ExecutionResult>(&json) {
                         results.push(result);
                     }
-                }
-            }
         }
 
         // Sort by start time (newest first)

@@ -162,7 +162,7 @@ impl CollaborationStore {
 
         self.message_queue
             .entry(to)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(message);
     }
 

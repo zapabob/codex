@@ -161,7 +161,7 @@ impl WorktreeManager {
 
     /// Create a worktree for a variant
     pub fn create_worktree(&self, variant_name: &str) -> Result<PathBuf> {
-        let branch_name = format!("plan-competition-{}", variant_name);
+        let branch_name = format!("plan-competition-{variant_name}");
         let worktree_path = self.worktree_base.join(variant_name);
 
         // Remove existing worktree if present
@@ -193,7 +193,7 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Failed to create worktree: {}", stderr);
+            anyhow::bail!("Failed to create worktree: {stderr}");
         }
 
         info!(
@@ -234,8 +234,8 @@ impl WorktreeManager {
 
     /// Archive a variant (rename branch to archived-)
     pub fn archive_variant(&self, variant_name: &str) -> Result<()> {
-        let branch_name = format!("plan-competition-{}", variant_name);
-        let archived_name = format!("archived-{}", branch_name);
+        let branch_name = format!("plan-competition-{variant_name}");
+        let archived_name = format!("archived-{branch_name}");
 
         let output = Command::new("git")
             .current_dir(&self.repo_root)
@@ -419,7 +419,7 @@ impl CompetitionRunner {
 
             variants.push(CompetitionVariant {
                 name: name.clone(),
-                branch: format!("plan-competition-{}", name),
+                branch: format!("plan-competition-{name}"),
                 worktree_path,
                 score,
             });
@@ -481,7 +481,7 @@ impl CompetitionRunner {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("Failed to merge winner: {}", stderr);
+            anyhow::bail!("Failed to merge winner: {stderr}");
         }
 
         Ok(())
