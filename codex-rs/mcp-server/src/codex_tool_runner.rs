@@ -178,7 +178,6 @@ async fn run_codex_tool_session_inner(
                         cwd,
                         call_id,
                         reason: _,
-                        risk,
                         parsed_cmd,
                         ..
                     }) => {
@@ -212,6 +211,7 @@ async fn run_codex_tool_session_inner(
                         reason,
                         grant_root,
                         changes,
+                        ..
                     }) => {
                         handle_patch_approval_request(
                             call_id,

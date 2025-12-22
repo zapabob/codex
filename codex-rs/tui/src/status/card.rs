@@ -12,7 +12,6 @@ use codex_core::protocol::NetworkAccess;
 use codex_core::protocol::SandboxPolicy;
 use codex_core::protocol::TokenUsage;
 use codex_protocol::ConversationId;
-use codex_protocol::account::PlanType;
 use ratatui::prelude::*;
 use ratatui::style::Stylize;
 use std::collections::BTreeSet;
@@ -36,7 +35,6 @@ use super::rate_limits::format_status_limit_summary;
 use super::rate_limits::render_status_limit_progress_bar;
 use crate::wrapping::RtOptions;
 use crate::wrapping::word_wrap_lines;
-use codex_core::AuthManager;
 
 #[derive(Debug, Clone)]
 struct StatusContextWindowData {
@@ -70,26 +68,22 @@ struct StatusHistoryCell {
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn new_status_output(
     config: &Config,
-    auth_manager: &AuthManager,
     model_family: &ModelFamily,
     total_usage: &TokenUsage,
     context_usage: Option<&TokenUsage>,
     session_id: &Option<ConversationId>,
     rate_limits: Option<&RateLimitSnapshotDisplay>,
-    plan_type: Option<PlanType>,
     now: DateTime<Local>,
     model_name: &str,
 ) -> CompositeHistoryCell {
     let command = PlainHistoryCell::new(vec!["/status".magenta().into()]);
     let card = StatusHistoryCell::new(
         config,
-        auth_manager,
         model_family,
         total_usage,
         context_usage,
         session_id,
         rate_limits,
-        plan_type,
         now,
         model_name,
     );
@@ -101,13 +95,11 @@ impl StatusHistoryCell {
     #[allow(clippy::too_many_arguments)]
     fn new(
         config: &Config,
-        auth_manager: &AuthManager,
         model_family: &ModelFamily,
         total_usage: &TokenUsage,
         context_usage: Option<&TokenUsage>,
         session_id: &Option<ConversationId>,
         rate_limits: Option<&RateLimitSnapshotDisplay>,
-        plan_type: Option<PlanType>,
         now: DateTime<Local>,
         model_name: &str,
     ) -> Self {
@@ -131,7 +123,7 @@ impl StatusHistoryCell {
             }
         };
         let agents_summary = compose_agents_summary(config);
-        let account = compose_account_display(auth_manager, plan_type);
+        let account = compose_account_display(config);
         let session_id = session_id.as_ref().map(std::string::ToString::to_string);
         let context_window = model_family.context_window.and_then(|window| {
             context_usage.map(|usage| StatusContextWindowData {

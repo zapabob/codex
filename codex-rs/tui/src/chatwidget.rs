@@ -2220,13 +2220,11 @@ impl ChatWidget {
         };
         self.add_to_history(crate::status::new_status_output(
             &self.config,
-            self.auth_manager.as_ref(),
             &self.model_family,
             total_usage,
             context_usage,
             &self.conversation_id,
             self.rate_limit_snapshot.as_ref(),
-            self.plan_type,
             Local::now(),
             self.model_family.get_model_slug(),
         ));
