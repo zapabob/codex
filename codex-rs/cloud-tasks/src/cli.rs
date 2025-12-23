@@ -16,6 +16,12 @@ pub struct Cli {
 pub enum Command {
     /// Submit a new Codex Cloud task without launching the TUI.
     Exec(ExecCommand),
+    /// Show status for a Codex Cloud task.
+    Status(StatusCommand),
+    /// Show diff output for a Codex Cloud task.
+    Diff(DiffCommand),
+    /// Apply a Codex Cloud task diff.
+    Apply(ApplyCommand),
 }
 
 #[derive(Debug, Args)]
@@ -39,6 +45,35 @@ pub struct ExecCommand {
     /// Git branch to run in Codex Cloud (defaults to current branch).
     #[arg(long = "branch", value_name = "BRANCH")]
     pub branch: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct StatusCommand {
+    /// Task id or URL to check.
+    #[arg(value_name = "TASK_ID")]
+    pub task_id: String,
+}
+
+#[derive(Debug, Args)]
+pub struct DiffCommand {
+    /// Task id or URL to diff.
+    #[arg(value_name = "TASK_ID")]
+    pub task_id: String,
+
+    /// Attempt number to show (defaults to 1).
+    #[arg(long = "attempt", value_name = "N")]
+    pub attempt: Option<usize>,
+}
+
+#[derive(Debug, Args)]
+pub struct ApplyCommand {
+    /// Task id or URL to apply.
+    #[arg(value_name = "TASK_ID")]
+    pub task_id: String,
+
+    /// Attempt number to apply (defaults to 1).
+    #[arg(long = "attempt", value_name = "N")]
+    pub attempt: Option<usize>,
 }
 
 fn parse_attempts(input: &str) -> Result<usize, String> {

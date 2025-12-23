@@ -224,6 +224,7 @@ fn create_plan(
         rollback: "Revert changes via git reset".to_string(),
         artifacts: vec![],
         research: None,
+        quality_assurance: None,
         state: PlanState::Drafting,
         need_approval: true,
         created_at: now,

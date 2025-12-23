@@ -163,6 +163,7 @@ async fn run_exec_command(args: crate::cli::ExecCommand) -> anyhow::Result<()> {
     let prompt = resolve_query_input(query)?;
     let env_id = resolve_environment_id(&ctx, &environment).await?;
     let git_ref = resolve_git_ref(branch.as_ref()).await;
+    let attempts = i32::try_from(attempts).unwrap_or(1);
     let created = codex_cloud_tasks_client::CloudBackend::create_task(
         &*ctx.backend,
         &env_id,
@@ -273,7 +274,6 @@ fn parse_task_id(raw: &str) -> anyhow::Result<codex_cloud_tasks_client::TaskId> 
 #[derive(Clone, Debug)]
 struct AttemptDiffData {
     placement: Option<i64>,
-    created_at: Option<chrono::DateTime<Utc>>,
     diff: String,
 }
 
@@ -282,12 +282,27 @@ fn cmp_attempt(lhs: &AttemptDiffData, rhs: &AttemptDiffData) -> Ordering {
         (Some(a), Some(b)) => a.cmp(&b),
         (Some(_), None) => Ordering::Less,
         (None, Some(_)) => Ordering::Greater,
-        (None, None) => match (lhs.created_at, rhs.created_at) {
-            (Some(a), Some(b)) => a.cmp(&b),
-            (Some(_), None) => Ordering::Less,
-            (None, Some(_)) => Ordering::Greater,
-            (None, None) => Ordering::Equal,
-        },
+        (None, None) => Ordering::Equal,
+    }
+}
+
+fn parse_attempt_placement_str(value: Option<String>) -> Option<i64> {
+    value.and_then(|raw| raw.parse::<i64>().ok())
+}
+
+fn parse_attempt_placement_i32(value: Option<i32>) -> Option<i64> {
+    value.map(i64::from)
+}
+
+async fn get_task_diff_optional(
+    backend: &dyn codex_cloud_tasks_client::CloudBackend,
+    task_id: &codex_cloud_tasks_client::TaskId,
+) -> anyhow::Result<Option<String>> {
+    let diff = codex_cloud_tasks_client::CloudBackend::get_task_diff(backend, task_id).await?;
+    if diff.trim().is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(diff))
     }
 }
 
@@ -295,31 +310,24 @@ async fn collect_attempt_diffs(
     backend: &dyn codex_cloud_tasks_client::CloudBackend,
     task_id: &codex_cloud_tasks_client::TaskId,
 ) -> anyhow::Result<Vec<AttemptDiffData>> {
-    let text =
-        codex_cloud_tasks_client::CloudBackend::get_task_text(backend, task_id.clone()).await?;
+    let text = codex_cloud_tasks_client::CloudBackend::get_task_text(backend, task_id).await?;
     let mut attempts = Vec::new();
-    if let Some(diff) =
-        codex_cloud_tasks_client::CloudBackend::get_task_diff(backend, task_id.clone()).await?
-    {
+    if let Some(diff) = get_task_diff_optional(backend, task_id).await? {
         attempts.push(AttemptDiffData {
-            placement: text.attempt_placement,
-            created_at: None,
+            placement: parse_attempt_placement_i32(text.attempt_placement),
             diff,
         });
     }
     if let Some(turn_id) = text.turn_id {
         let siblings = codex_cloud_tasks_client::CloudBackend::list_sibling_attempts(
-            backend,
-            task_id.clone(),
-            turn_id,
+            backend, task_id, &turn_id,
         )
         .await?;
         for sibling in siblings {
-            if let Some(diff) = sibling.diff {
+            if !sibling.diff.is_empty() {
                 attempts.push(AttemptDiffData {
-                    placement: sibling.attempt_placement,
-                    created_at: sibling.created_at,
-                    diff,
+                    placement: parse_attempt_placement_str(sibling.attempt_placement),
+                    diff: sibling.diff,
                 });
             }
         }
@@ -358,6 +366,7 @@ fn task_status_label(status: &TaskStatus) -> &'static str {
     match status {
         TaskStatus::Pending => "PENDING",
         TaskStatus::Ready => "READY",
+        TaskStatus::Running => "RUNNING",
         TaskStatus::Applied => "APPLIED",
         TaskStatus::Error => "ERROR",
     }
@@ -418,6 +427,9 @@ fn format_task_status_lines(
             TaskStatus::Pending => status
                 .if_supports_color(Stream::Stdout, |t| t.magenta())
                 .to_string(),
+            TaskStatus::Running => status
+                .if_supports_color(Stream::Stdout, |t| t.cyan())
+                .to_string(),
             TaskStatus::Applied => status
                 .if_supports_color(Stream::Stdout, |t| t.blue())
                 .to_string(),
@@ -473,8 +485,7 @@ fn format_task_status_lines(
 async fn run_status_command(args: crate::cli::StatusCommand) -> anyhow::Result<()> {
     let ctx = init_backend("codex_cloud_tasks_status").await?;
     let task_id = parse_task_id(&args.task_id)?;
-    let summary =
-        codex_cloud_tasks_client::CloudBackend::get_task_summary(&*ctx.backend, task_id).await?;
+    let summary = fetch_task_summary(&*ctx.backend, &task_id).await?;
     let now = Utc::now();
     let colorize = supports_color::on(SupportStream::Stdout).is_some();
     for line in format_task_status_lines(&summary, now, colorize) {
@@ -484,6 +495,17 @@ async fn run_status_command(args: crate::cli::StatusCommand) -> anyhow::Result<(
         std::process::exit(1);
     }
     Ok(())
+}
+
+async fn fetch_task_summary(
+    backend: &dyn codex_cloud_tasks_client::CloudBackend,
+    task_id: &codex_cloud_tasks_client::TaskId,
+) -> anyhow::Result<codex_cloud_tasks_client::TaskSummary> {
+    let tasks = codex_cloud_tasks_client::CloudBackend::list_tasks(backend, None).await?;
+    tasks
+        .into_iter()
+        .find(|task| task.id == *task_id)
+        .ok_or_else(|| anyhow!("task {} not found", task_id.0))
 }
 
 async fn run_diff_command(args: crate::cli::DiffCommand) -> anyhow::Result<()> {
@@ -502,7 +524,7 @@ async fn run_apply_command(args: crate::cli::ApplyCommand) -> anyhow::Result<()>
     let selected = select_attempt(&attempts, args.attempt)?;
     let outcome = codex_cloud_tasks_client::CloudBackend::apply_task(
         &*ctx.backend,
-        task_id,
+        &task_id,
         Some(selected.diff.clone()),
     )
     .await?;
@@ -553,7 +575,7 @@ fn spawn_preflight(
         } = job;
         let result = codex_cloud_tasks_client::CloudBackend::apply_task_preflight(
             &*backend,
-            task_id.clone(),
+            &task_id,
             diff_override,
         )
         .await;
@@ -612,12 +634,9 @@ fn spawn_apply(
             task_id,
             diff_override,
         } = job;
-        let result = codex_cloud_tasks_client::CloudBackend::apply_task(
-            &*backend,
-            task_id.clone(),
-            diff_override,
-        )
-        .await;
+        let result =
+            codex_cloud_tasks_client::CloudBackend::apply_task(&*backend, &task_id, diff_override)
+                .await;
 
         let event = match result {
             Ok(outcome) => app::AppEvent::ApplyFinished {
@@ -1071,8 +1090,8 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         tokio::spawn(async move {
                                             match codex_cloud_tasks_client::CloudBackend::list_sibling_attempts(
                                                 &*backend,
-                                                task_id.clone(),
-                                                turn_id,
+                                                &task_id,
+                                                &turn_id,
                                             )
                                             .await
                                             {
@@ -1124,18 +1143,20 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     }
                                     let diff_lines = attempt
                                         .diff
-                                        .as_ref()
-                                        .map(|d| d.lines().map(str::to_string).collect())
-                                        .unwrap_or_default();
+                                        .lines()
+                                        .map(str::to_string)
+                                        .collect();
                                     let text_lines = conversation_lines(None, &attempt.messages);
                                     ov.attempts.push(app::AttemptView {
                                         turn_id: Some(attempt.turn_id.clone()),
                                         status: attempt.status,
-                                        attempt_placement: attempt.attempt_placement,
+                                        attempt_placement: parse_attempt_placement_str(
+                                            attempt.attempt_placement,
+                                        ),
                                         diff_lines,
                                         text_lines,
                                         prompt: None,
-                                        diff_raw: attempt.diff.clone(),
+                                        diff_raw: Some(attempt.diff.clone()),
                                     });
                                 }
                                 if ov.attempts.len() > 1 {
@@ -1413,6 +1434,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                 tokio::spawn(async move {
                                                     let git_ref = resolve_git_ref(None).await;
 
+                                                    let best_of_n = i32::try_from(best_of_n).unwrap_or(1);
                                                     let result = codex_cloud_tasks_client::CloudBackend::create_task(&*backend, &env, &text, &git_ref, false, best_of_n).await;
                                                     let evt = match result {
                                                         Ok(ok) => app::AppEvent::NewTaskSubmitted(Ok(ok)),
@@ -1753,7 +1775,8 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         let overlay = app::DiffOverlay::new(
                                             task.id.clone(),
                                             task.title.clone(),
-                                            task.attempt_total,
+                                            task.attempt_total
+                                                .and_then(|value| usize::try_from(value).ok()),
                                         );
                                         app.diff_overlay = Some(overlay);
                                         needs_redraw = true;
@@ -1766,12 +1789,12 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                             let diff_id = id.clone();
                                             let diff_title = title.clone();
                                             tokio::spawn(async move {
-                                                match codex_cloud_tasks_client::CloudBackend::get_task_diff(&*backend, diff_id.clone()).await {
+                                                match get_task_diff_optional(&*backend, &diff_id).await {
                                                     Ok(Some(diff)) => {
                                                         let _ = tx.send(app::AppEvent::DetailsDiffLoaded { id: diff_id, title: diff_title, diff });
                                                     }
                                                     Ok(None) => {
-                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, diff_id.clone()).await {
+                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, &diff_id).await {
                                                             Ok(text) => {
                                                                 let evt = app::AppEvent::DetailsMessagesLoaded {
                                                                     id: diff_id,
@@ -1780,7 +1803,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                                     prompt: text.prompt,
                                                                     turn_id: text.turn_id,
                                                                     sibling_turn_ids: text.sibling_turn_ids,
-                                                                    attempt_placement: text.attempt_placement,
+                                                                    attempt_placement: parse_attempt_placement_i32(text.attempt_placement),
                                                                     attempt_status: text.attempt_status,
                                                                 };
                                                                 let _ = tx.send(evt);
@@ -1792,7 +1815,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                     }
                                                     Err(e) => {
                                                         append_error_log(format!("get_task_diff failed for {}: {e}", diff_id.0));
-                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, diff_id.clone()).await {
+                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, &diff_id).await {
                                                             Ok(text) => {
                                                                 let evt = app::AppEvent::DetailsMessagesLoaded {
                                                                     id: diff_id,
@@ -1801,7 +1824,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                                     prompt: text.prompt,
                                                                     turn_id: text.turn_id,
                                                                     sibling_turn_ids: text.sibling_turn_ids,
-                                                                    attempt_placement: text.attempt_placement,
+                                                                    attempt_placement: parse_attempt_placement_i32(text.attempt_placement),
                                                                     attempt_status: text.attempt_status,
                                                                 };
                                                                 let _ = tx.send(evt);
@@ -1821,7 +1844,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                             let msg_id = id;
                                             let msg_title = title;
                                             tokio::spawn(async move {
-                                                if let Ok(text) = codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, msg_id.clone()).await {
+                                                if let Ok(text) = codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, &msg_id).await {
                                                     let evt = app::AppEvent::DetailsMessagesLoaded {
                                                         id: msg_id,
                                                         title: msg_title,
@@ -1829,7 +1852,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                         prompt: text.prompt,
                                                         turn_id: text.turn_id,
                                                         sibling_turn_ids: text.sibling_turn_ids,
-                                                        attempt_placement: text.attempt_placement,
+                                                        attempt_placement: parse_attempt_placement_i32(text.attempt_placement),
                                                         attempt_status: text.attempt_status,
                                                     };
                                                     let _ = tx.send(evt);
@@ -1848,7 +1871,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     }
 
                                     if let Some(task) = app.tasks.get(app.selected).cloned() {
-                                        match codex_cloud_tasks_client::CloudBackend::get_task_diff(&*backend, task.id.clone()).await {
+                                        match get_task_diff_optional(&*backend, &task.id).await {
                                             Ok(Some(diff)) => {
                                                 let diff_override = Some(diff.clone());
                                                 let task_id = task.id.clone();

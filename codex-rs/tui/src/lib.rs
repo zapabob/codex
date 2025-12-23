@@ -368,11 +368,22 @@ async fn run_ratatui_app(
             match update_prompt::run_update_prompt_if_needed(&mut tui, &initial_config).await? {
                 UpdatePromptOutcome::Continue => {}
                 UpdatePromptOutcome::RunUpdate(action) => {
+                    let mapped_action = match action {
+                        crate::updates::UpdateAction::NpmGlobalLatest => {
+                            crate::update_action::UpdateAction::NpmGlobalLatest
+                        }
+                        crate::updates::UpdateAction::BunGlobalLatest => {
+                            crate::update_action::UpdateAction::BunGlobalLatest
+                        }
+                        crate::updates::UpdateAction::BrewUpgrade => {
+                            crate::update_action::UpdateAction::BrewUpgrade
+                        }
+                    };
                     crate::tui::restore()?;
                     return Ok(AppExitInfo {
                         token_usage: codex_core::protocol::TokenUsage::default(),
                         conversation_id: None,
-                        update_action: Some(action),
+                        update_action: Some(mapped_action),
                     });
                 }
             }

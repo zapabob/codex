@@ -34,6 +34,7 @@ impl MessageProcessor {
         outgoing: OutgoingMessageSender,
         codex_linux_sandbox_exe: Option<PathBuf>,
         config: Arc<Config>,
+        cli_overrides: Vec<(String, toml::Value)>,
         feedback: CodexFeedback,
     ) -> Self {
         let outgoing = Arc::new(outgoing);
@@ -52,6 +53,7 @@ impl MessageProcessor {
             outgoing.clone(),
             codex_linux_sandbox_exe,
             config,
+            cli_overrides,
             feedback,
         );
 

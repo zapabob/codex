@@ -18,7 +18,7 @@ use codex_protocol::config_types::SandboxMode;
 use crate::LandlockCommand;
 use crate::SeatbeltCommand;
 use crate::WindowsCommand;
-use crate::exit_status::handle_exit_status;
+use crate::exit_status::handle_process_exit_status;
 
 #[cfg(target_os = "macos")]
 use seatbelt::DenialLogger;
@@ -264,7 +264,8 @@ async fn run_command_under_sandbox(
         }
     }
 
-    handle_exit_status(status);
+    let exit_code = handle_process_exit_status(status);
+    std::process::exit(exit_code.into());
 }
 
 pub fn create_sandbox_mode(full_auto: bool) -> SandboxMode {

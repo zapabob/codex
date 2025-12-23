@@ -20,7 +20,8 @@ use codex_exec::Cli as ExecCli;
 use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;
 use codex_tui::AppExitInfo;
 use codex_tui::Cli as TuiCli;
-use codex_tui::updates::UpdateAction;
+use codex_tui::update_action::UpdateAction;
+use codex_tui2 as tui2;
 use owo_colors::OwoColorize;
 use std::path::PathBuf;
 use supports_color::Stream;
@@ -644,11 +645,7 @@ fn run_update_action(action: UpdateAction) -> anyhow::Result<()> {
     let command_path = normalize_for_wsl(std::path::Path::new(cmd));
     let normalized_args: Vec<String> = args
         .iter()
-        .map(|arg| {
-            normalize_for_wsl(std::path::Path::new(arg))
-                .to_string_lossy()
-                .to_string()
-        })
+        .map(|arg| normalize_for_wsl(std::path::Path::new(arg)))
         .collect();
     let status = std::process::Command::new(&command_path)
         .args(&normalized_args)

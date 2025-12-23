@@ -3,16 +3,22 @@
 //! This module provides centralized task orchestration capabilities,
 //! coordinating multiple sub-agents for complex development tasks.
 
-use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, VecDeque};
-use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, oneshot};
-use crate::git_lock_manager::GitLockManager;
 use crate::conflict_detector::AstConflictDetector;
-use crate::git_lock_manager::ConflictDetectorTrait;
-use crate::qc::QcAgent;
-use crate::qc::agent_coordination::{AgentCoordinator, AgentType, TaskPriority};
 use crate::error::Result;
+use crate::git_lock_manager::ConflictDetectorTrait;
+use crate::git_lock_manager::GitLockManager;
+use crate::qc::QcAgent;
+use crate::qc::agent_coordination::AgentCoordinator;
+use crate::qc::agent_coordination::AgentType;
+use crate::qc::agent_coordination::TaskPriority;
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::BTreeMap;
+use std::collections::VecDeque;
+use std::sync::Arc;
+use std::sync::Mutex;
+use tokio::sync::mpsc;
+use tokio::sync::oneshot;
 
 /// Task priority levels
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -291,20 +297,27 @@ impl AIOrchestrator {
         });
 
         let worktree_manager = if mode == DevelopmentMode::Parallel {
-            Some(Arc::new(crate::orchestration::worktree_manager::WorktreeManager::new(".").unwrap()))
+            Some(Arc::new(
+                crate::orchestration::worktree_manager::WorktreeManager::new(".").unwrap(),
+            ))
         } else {
             None
         };
 
         // Initialize Git lock manager if in parallel mode
         let git_lock_manager = if mode == DevelopmentMode::Parallel {
-            Some(Arc::new(GitLockManager::new(".").unwrap().with_concurrency_limit(5)))
+            Some(Arc::new(
+                GitLockManager::new(".").unwrap().with_concurrency_limit(5),
+            ))
         } else {
             None
         };
 
         let conflict_detector = if mode == DevelopmentMode::Parallel {
-            Some(Arc::new(Mutex::new(Box::new(AstConflictDetector::new(std::path::PathBuf::from("."))) as Box<dyn ConflictDetectorTrait + Send + Sync>)))
+            Some(Arc::new(Mutex::new(
+                Box::new(AstConflictDetector::new(std::path::PathBuf::from(".")))
+                    as Box<dyn ConflictDetectorTrait + Send + Sync>,
+            )))
         } else {
             None
         };
@@ -410,7 +423,10 @@ impl AIOrchestrator {
                 OrchestrationCommand::SetDevelopmentMode { mode, response } => {
                     self.development_mode = mode;
                     self.worktree_manager = if mode == DevelopmentMode::Parallel {
-                        Some(Arc::new(crate::orchestration::worktree_manager::WorktreeManager::new(".").unwrap()))
+                        Some(Arc::new(
+                            crate::orchestration::worktree_manager::WorktreeManager::new(".")
+                                .unwrap(),
+                        ))
                     } else {
                         None
                     };
@@ -579,20 +595,29 @@ mod tests {
         quality_requirements: QualityRequirements,
         max_concurrent_agents: usize,
     ) -> Result<QcQualityAssuranceResult, String> {
-        println!("🔍 Starting QC Quality Assurance workflow for: {}", codebase_path);
+        println!(
+            "🔍 Starting QC Quality Assurance workflow for: {}",
+            codebase_path
+        );
 
         // Initialize QC agent coordinator
         let coordinator = AgentCoordinator::new();
 
         // Register QC agents
         if quality_requirements.enable_statistical_analysis {
-            coordinator.register_agent("statistical_agent".to_string(), AgentType::StatisticalAnalyzer);
+            coordinator.register_agent(
+                "statistical_agent".to_string(),
+                AgentType::StatisticalAnalyzer,
+            );
         }
         if quality_requirements.enable_quantum_optimization {
             coordinator.register_agent("quantum_agent".to_string(), AgentType::QuantumOptimizer);
         }
         if quality_requirements.enable_mathematical_optimization {
-            coordinator.register_agent("mathematical_agent".to_string(), AgentType::MathematicalOptimizer);
+            coordinator.register_agent(
+                "mathematical_agent".to_string(),
+                AgentType::MathematicalOptimizer,
+            );
         }
 
         // Discover code files to analyze
@@ -608,26 +633,20 @@ mod tests {
         let analysis_types = self.get_enabled_analysis_types(&quality_requirements);
 
         // Execute parallel QC analysis
-        let parallel_results = coordinator.execute_parallel_qc_analysis(
-            &code_files,
-            &analysis_types,
-            max_concurrent_agents,
-        ).await?;
+        let parallel_results = coordinator
+            .execute_parallel_qc_analysis(&code_files, &analysis_types, max_concurrent_agents)
+            .await?;
 
         // Aggregate results
         let aggregated_results = self.aggregate_qc_results(&parallel_results)?;
 
         // Evaluate against quality requirements
-        let compliance_result = self.evaluate_quality_compliance(
-            &aggregated_results,
-            &quality_requirements,
-        );
+        let compliance_result =
+            self.evaluate_quality_compliance(&aggregated_results, &quality_requirements);
 
         // Generate improvement recommendations
-        let recommendations = self.generate_qc_improvement_plan(
-            &aggregated_results,
-            &quality_requirements,
-        );
+        let recommendations =
+            self.generate_qc_improvement_plan(&aggregated_results, &quality_requirements);
 
         let result = QcQualityAssuranceResult {
             codebase_path: codebase_path.to_string(),
@@ -641,7 +660,10 @@ mod tests {
         };
 
         println!("✅ QC Quality Assurance completed");
-        println!("📊 Overall compliance: {:.1}%", compliance_result.overall_compliance * 100.0);
+        println!(
+            "📊 Overall compliance: {:.1}%",
+            compliance_result.overall_compliance * 100.0
+        );
 
         Ok(result)
     }
@@ -666,19 +688,36 @@ mod tests {
 
                     if path.is_dir() {
                         // Skip common non-code directories
-                        let dir_name = path.file_name()
-                            .and_then(|n| n.to_str())
-                            .unwrap_or("");
+                        let dir_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
-                        if !matches!(dir_name, "target" | "node_modules" | ".git" | "build" | "dist") {
+                        if !matches!(
+                            dir_name,
+                            "target" | "node_modules" | ".git" | "build" | "dist"
+                        ) {
                             visit_dirs(&path, files)?;
                         }
                     } else if let Some(extension) = path.extension() {
                         // Include common programming language files
                         let ext_str = extension.to_string_lossy().to_lowercase();
-                        if matches!(ext_str.as_str(),
-                            "rs" | "py" | "js" | "ts" | "java" | "cpp" | "c" | "h" | "hpp" |
-                            "go" | "rb" | "php" | "cs" | "swift" | "kt" | "scala" | "clj") {
+                        if matches!(
+                            ext_str.as_str(),
+                            "rs" | "py"
+                                | "js"
+                                | "ts"
+                                | "java"
+                                | "cpp"
+                                | "c"
+                                | "h"
+                                | "hpp"
+                                | "go"
+                                | "rb"
+                                | "php"
+                                | "cs"
+                                | "swift"
+                                | "kt"
+                                | "scala"
+                                | "clj"
+                        ) {
                             if let Ok(content) = fs::read_to_string(&path) {
                                 files.push(content);
                             }
@@ -797,10 +836,16 @@ mod tests {
         let security_ok = scores.security >= requirements.min_security_score;
         let complexity_ok = scores.overall <= requirements.max_complexity_score; // Note: using overall as complexity proxy
 
-        let compliant_categories = [readability_ok, maintainability_ok, performance_ok, security_ok, complexity_ok]
-            .iter()
-            .filter(|&&ok| ok)
-            .count();
+        let compliant_categories = [
+            readability_ok,
+            maintainability_ok,
+            performance_ok,
+            security_ok,
+            complexity_ok,
+        ]
+        .iter()
+        .filter(|&&ok| ok)
+        .count();
 
         let overall_compliance = compliant_categories as f64 / 5.0;
 

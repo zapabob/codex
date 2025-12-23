@@ -3,7 +3,6 @@ use anyhow::Result;
 use anyhow::anyhow;
 use codex_common::CliConfigOverrides;
 use codex_core::config::Config;
-use codex_core::config::ConfigOverrides;
 use codex_supervisor::CoordinationStrategy;
 use codex_supervisor::MergeStrategy;
 use codex_supervisor::MultiAgentEvaluationConfig;
@@ -34,7 +33,7 @@ pub async fn run_pair_program_command(
 
     // We currently load the config mainly to honour overrides/env selection; the supervisor
     // pipeline is self-contained but future hooks may pull additional defaults from here.
-    let _config = Config::load_with_cli_overrides(cli_overrides, ConfigOverrides::default())
+    let _config = Config::load_with_cli_overrides(cli_overrides)
         .await
         .context("failed to load configuration")?;
 

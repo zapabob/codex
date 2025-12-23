@@ -496,7 +496,19 @@ impl CodexMessageProcessor {
                 self.exec_one_off_command(request_id, params).await;
             }
             ClientRequest::ExecOneOffCommand { request_id, params } => {
-                self.exec_one_off_command(request_id, params.into()).await;
+                let timeout_ms = params
+                    .timeout_ms
+                    .map(|timeout| i64::try_from(timeout).unwrap_or(60_000));
+                self.exec_one_off_command(
+                    request_id,
+                    CommandExecParams {
+                        command: params.command,
+                        timeout_ms,
+                        cwd: params.cwd,
+                        sandbox_policy: params.sandbox_policy.map(std::convert::Into::into),
+                    },
+                )
+                .await;
             }
             ClientRequest::ConfigRead { .. }
             | ClientRequest::ConfigValueWrite { .. }
@@ -1925,7 +1937,7 @@ impl CodexMessageProcessor {
         let ModelListParams { limit, cursor } = params;
         let mut config = (*config).clone();
         config.features.enable(Feature::RemoteModels);
-        let models = supported_models(conversation_manager, &config).await;
+        let models = supported_models(None);
         let total = models.len();
 
         if total == 0 {
@@ -3258,8 +3270,6 @@ impl CodexMessageProcessor {
         } else {
             None
         };
-        let session_source = self.conversation_manager.session_source();
-
         let upload_result = tokio::task::spawn_blocking(move || {
             let rollout_path_ref = validated_rollout_path.as_deref();
             snapshot.upload_feedback(
@@ -3267,7 +3277,6 @@ impl CodexMessageProcessor {
                 reason.as_deref(),
                 include_logs,
                 rollout_path_ref,
-                Some(session_source),
             )
         })
         .await;

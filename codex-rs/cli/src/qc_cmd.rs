@@ -1,4 +1,5 @@
 use anyhow::Context;
+use anyhow::Error;
 use anyhow::Result;
 use clap::Args;
 use codex_core::qc::QcAgent;
@@ -73,6 +74,7 @@ pub async fn run_qc_command(cli: QcCli) -> Result<()> {
     let report = qc_agent
         .analyze(&source, &target_name)
         .await
+        .map_err(Error::msg)
         .context("QC analysis failed")?;
 
     let overall = report.scores.overall;

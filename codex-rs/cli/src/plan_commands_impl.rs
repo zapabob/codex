@@ -13,6 +13,8 @@ use codex_core::plan::ExecutionEvent;
 use codex_core::orchestration::CollaborationStore;
 use codex_core::orchestration::PlanOrchestrator;
 use codex_core::config::Config;
+use codex_core::protocol::SessionSource;
+use codex_core::terminal;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
 use std::path::PathBuf;
@@ -43,7 +45,7 @@ pub async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
         false,
         config.cli_auth_credentials_store_mode,
     );
-    let otel_manager = OtelEventManager::new_noop();
+    let otel_manager = build_otel_manager(&config, conversation_id);
     let conversation_id = ConversationId::new();
 
     let runtime = Arc::new(AgentRuntime::new(
@@ -141,7 +143,7 @@ pub async fn rollback_execution(execution_id: &str, Plan_dir: &PathBuf) -> Resul
 
     let config = Arc::new(Config::load_from_disk_or_default()?);
     let auth_manager = AuthManager::shared(config.codex_home.clone(), false, config.cli_auth_credentials_store_mode);
-    let otel_manager = OtelEventManager::new_noop();
+    let otel_manager = build_otel_manager(&config, conversation_id);
     let conversation_id = ConversationId::new();
     
     let runtime = Arc::new(AgentRuntime::new(
@@ -185,7 +187,7 @@ pub async fn list_executions(
 ) -> Result<()> {
     let config = Arc::new(Config::load_from_disk_or_default()?);
     let auth_manager = AuthManager::shared(config.codex_home.clone(), false, config.cli_auth_credentials_store_mode);
-    let otel_manager = OtelEventManager::new_noop();
+    let otel_manager = build_otel_manager(&config, conversation_id);
     let conversation_id = ConversationId::new();
     
     let runtime = Arc::new(AgentRuntime::new(
@@ -248,4 +250,19 @@ pub async fn list_executions(
     }
 
     Ok(())
+}
+
+fn build_otel_manager(config: &Config, conversation_id: ConversationId) -> OtelEventManager {
+    let model = config.model.as_deref().unwrap_or(config.review_model.as_str());
+    OtelEventManager::new(
+        conversation_id,
+        model,
+        model,
+        None,
+        None,
+        None,
+        config.otel.log_user_prompt,
+        terminal::user_agent(),
+        SessionSource::Cli,
+    )
 }

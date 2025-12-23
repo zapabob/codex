@@ -5,7 +5,9 @@
 // the TUI or the tracing stack).
 #![deny(clippy::print_stdout, clippy::print_stderr)]
 
+pub mod agent_interpreter;
 pub mod agents;
+pub mod ai_orchestrator;
 pub mod api_bridge;
 mod apply_patch;
 pub mod audit_log;
@@ -32,9 +34,12 @@ mod exec_policy;
 pub mod features;
 mod flags;
 pub mod git_info;
+pub mod integrations;
 pub mod landlock;
+pub mod lock;
 pub mod mcp;
 mod mcp_connection_manager;
+pub mod mcp_integration_manager;
 pub mod models_manager;
 pub mod orchestration;
 pub mod qc;

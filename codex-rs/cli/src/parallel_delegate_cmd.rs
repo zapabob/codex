@@ -11,7 +11,7 @@ use codex_core::agents::AgentStatus;
 use codex_core::auth::CODEX_API_KEY_ENV_VAR;
 use codex_core::auth::OPENAI_API_KEY_ENV_VAR;
 use codex_core::config::Config;
-use codex_core::config::ConfigOverrides;
+use codex_core::protocol::SessionSource;
 use codex_core::terminal;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
@@ -51,7 +51,7 @@ pub async fn run_parallel_delegate_command(
         .parse_overrides()
         .map_err(|err| anyhow!("failed to parse -c overrides: {err}"))?;
 
-    let config = Config::load_with_cli_overrides(cli_overrides, ConfigOverrides::default())
+    let config = Config::load_with_cli_overrides(cli_overrides)
         .await
         .context("failed to load configuration")?;
     let config = Arc::new(config);
@@ -78,10 +78,14 @@ pub async fn run_parallel_delegate_command(
 
     // Runtime初期化
     let conversation_id = ConversationId::default();
+    let model = config
+        .model
+        .as_deref()
+        .unwrap_or(config.review_model.as_str());
     let otel_manager = OtelEventManager::new(
         conversation_id,
-        config.model.as_str(),
-        config.model_family.slug.as_str(),
+        model,
+        model,
         auth_snapshot
             .as_ref()
             .and_then(|auth| auth.get_account_id()),
@@ -91,6 +95,7 @@ pub async fn run_parallel_delegate_command(
         auth_snapshot.as_ref().map(|auth| auth.mode),
         config.otel.log_user_prompt,
         terminal::user_agent(),
+        SessionSource::Cli,
     );
 
     let runtime_budget = resolve_runtime_budget(&config, DEFAULT_SUBAGENT_RUNTIME_BUDGET);

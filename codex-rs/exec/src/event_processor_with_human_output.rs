@@ -202,6 +202,12 @@ impl EventProcessor for EventProcessorWithHumanOutput {
 
                 return CodexStatus::InitiateShutdown;
             }
+            EventMsg::ContextCompacted(_)
+            | EventMsg::McpStartupUpdate(_)
+            | EventMsg::McpStartupComplete(_)
+            | EventMsg::ElicitationRequest(_) => {
+                // Ignore.
+            }
             EventMsg::TokenCount(ev) => {
                 self.last_total_token_usage = ev.info;
             }
