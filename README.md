@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![Codex v2.5.0](./architecture-v2.5.0.svg)
+![Codex v2.7.0](./architecture-v2.7.0.svg)
 
-**v2.5.0 "Official Integration" - The World's First AI-Native Operating System**
+**v2.7.0 "Version Unification & Skills/Plan Alignment" - The World's First AI-Native Operating System**
 
-[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.7.0-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -23,12 +23,20 @@
 <a name="english"></a>
 ## 📖 English
 
-### 🎉 What's New in v2.5.0 "Official Integration"
+### 🎉 What's New in v2.7.0 "Version Unification & Skills/Plan Alignment"
 
-**Release Date**: December 11, 2025
-**Milestone**: Official OpenAI/codex Repository Integration & Major Updates
+**Release Date**: December 21, 2025
+**Milestone**: Version Unification & Official Skills/Plan Alignment
 
-**🎁 New in v2.5.0**:
+**🎁 New in v2.7.0**:
+- ✅ **Version Unification**: Unified all package.json files and Rust workspace to version 2.7.0
+- ✅ **Skills/Plan Alignment**: Aligned plan skill with official Plan Mode documentation
+- ✅ **Dependency Modernization**: Replaced Python helpers with Rust/TypeScript implementations
+- ✅ **Plan Storage Unification**: Unified plan storage directory naming (resolved `plans` vs `Plans` inconsistency)
+- ✅ **Official Command Integration**: Updated to use official Plan Mode commands (`/Plan`, `/approve`, `/Plan export`)
+- ✅ **Zero Python Dependencies**: Removed all Python script dependencies from plan skill
+
+**📋 Previous Updates (v2.5.0 - v2.6.0)**:
 - ✅ **Official Repository Integration**: Merged latest features, security fixes, and bug fixes from OpenAI/codex
 - ✅ **Unified Exec System**: Enhanced execution environment with async watchers and improved session management
 - ✅ **Security Enhancements**: Updated MCP SDK to v1.24.0, improved sandboxing and permission management
@@ -496,7 +504,7 @@ npm run dev
 
 ### 🏗️ Architecture Overview
 
-![Codex v2.5.0 Architecture](./architecture-v2.5.0.svg)
+![Codex v2.7.0 Architecture](./architecture-v2.7.0.svg)
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -686,12 +694,20 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 <a name="japanese"></a>
 ## 📖 日本語
 
-### 🎉 v2.5.0 "Official Integration" の新機能
+### 🎉 v2.7.0 "Version Unification & Skills/Plan Alignment" の新機能
 
-**リリース日**: 2025年12月11日
-**マイルストーン**: OpenAI/codex公式リポジトリ統合 & メジャーアップデート
+**リリース日**: 2025年12月21日
+**マイルストーン**: バージョン統一 & 公式Skills/Plan整合
 
-**🎁 v2.5.0の新機能**:
+**🎁 v2.7.0の新機能**:
+- ✅ **バージョン統一**: すべてのpackage.jsonファイルとRustワークスペースをバージョン2.7.0に統一
+- ✅ **Skills/Plan整合**: 公式Plan Modeドキュメントに合わせてplan skillを調整
+- ✅ **依存関係のモダン化**: PythonヘルパーをRust/TypeScript実装に置き換え
+- ✅ **Planストレージ統一**: planストレージディレクトリ名を統一（`plans` vs `Plans`の不一致を解決）
+- ✅ **公式コマンド統合**: 公式Plan Modeコマンド（`/Plan`、`/approve`、`/Plan export`）を使用するように更新
+- ✅ **Python依存関係の削除**: plan skillからすべてのPythonスクリプト依存関係を削除
+
+**📋 以前のアップデート（v2.5.0 - v2.6.0）**:
 - ✅ **公式リポジトリ統合**: OpenAI/codexの最新機能、セキュリティ修正、バグ修正を統合
 - ✅ **Unified Execシステム**: 非同期ウォッチャーと改善されたセッション管理による実行環境強化
 - ✅ **セキュリティ強化**: MCP SDK v1.24.0更新、サンドボックスと権限管理の改善
@@ -1084,6 +1100,32 @@ npm run dev
 ---
 
 ### 📅 変更履歴（時系列）
+
+#### v2.7.0 (2025-12-21) - "Version Unification & Skills/Plan Alignment"
+
+**🎁 Major Changes**:
+- **Version Unification**: Unified all package.json files and Rust workspace to version 2.7.0
+- **Skills/Plan Alignment**: Aligned plan skill with official Plan Mode documentation
+- **Dependency Modernization**: Replaced Python helpers with Rust/TypeScript implementations
+- **Plan Storage Unification**: Unified plan storage directory naming (resolved `plans` vs `Plans` inconsistency)
+- **Official Command Integration**: Updated to use official Plan Mode commands (`/Plan`, `/approve`, `/Plan export`)
+- **Zero Python Dependencies**: Removed all Python script dependencies from plan skill
+
+**Breaking Changes**: None (backward compatible)
+
+**詳細**: [CHANGELOG.md](./CHANGELOG.md#270)
+
+#### v2.6.0 (2025-12-19) - "Version Unification & Upstream Integration"
+
+**🎁 Major Changes**:
+- **Version Unification**: Unified all package.json files to version 2.6.0
+- **Upstream Integration**: Integrated latest upstream features for plan and skill systems
+- **Import Path Alignment**: Updated ReasoningEffort import paths to match upstream conventions
+- **Enhanced TUI**: Improved input and slash command handling
+
+**Breaking Changes**: None (backward compatible)
+
+**詳細**: [CHANGELOG.md](./CHANGELOG.md#260)
 
 #### v2.5.0 (2025-12-11) - "Official Integration"
 
