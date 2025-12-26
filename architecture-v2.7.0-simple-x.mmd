@@ -1,0 +1,31 @@
+graph LR
+    subgraph Client["🖥️ Client"]
+        CLI["CLI"]
+        TUI["TUI<br/>22 commands"]
+        IDE["IDE"]
+    end
+    
+    subgraph Core["⚙️ Core v2.7.0"]
+        TokenBudget["Token Budget<br/>Thread-safe"]
+        MultiAgent["Multi-Agent<br/>2.6x faster"]
+        Exec["Unified Exec"]
+    end
+    
+    subgraph LLM["🤖 LLM"]
+        OpenAI["OpenAI"]
+        Gemini["Gemini"]
+        Anthropic["Anthropic"]
+    end
+    
+    subgraph Obs["📊 Observability"]
+        Otel["OpenTelemetry"]
+    end
+    
+    Client -->|"RPC"| Core
+    Core -->|"API"| LLM
+    Core -->|"Metrics"| Obs
+    
+    style Client fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style Core fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
+    style LLM fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style Obs fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
