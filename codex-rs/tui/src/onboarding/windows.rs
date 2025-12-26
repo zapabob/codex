@@ -19,6 +19,7 @@ use crate::onboarding::onboarding_screen::StepStateProvider;
 
 use super::onboarding_screen::StepState;
 
+#[allow(dead_code)]
 pub(crate) const WSL_INSTRUCTIONS: &str = r#"Install WSL2 by opening PowerShell as Administrator and running:
     # Install WSL using the default Linux distribution (Ubuntu).
     # See https://learn.microsoft.com/en-us/windows/wsl/install for more info
@@ -54,6 +55,7 @@ pub enum WindowsSetupSelection {
 }
 
 impl WindowsSetupWidget {
+    #[allow(dead_code)]
     pub fn new(codex_home: PathBuf) -> Self {
         Self {
             codex_home,
@@ -89,6 +91,7 @@ impl WindowsSetupWidget {
         self.exit_requested = true;
     }
 
+    #[allow(dead_code)]
     pub fn exit_requested(&self) -> bool {
         self.exit_requested
     }

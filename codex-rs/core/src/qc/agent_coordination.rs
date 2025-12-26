@@ -102,6 +102,7 @@ pub struct ParallelExecutionResult {
 pub struct AgentCoordinator {
     /// Message channel for coordination
     message_tx: mpsc::UnboundedSender<CoordinationMessage>,
+    #[allow(dead_code)]
     message_rx: Arc<Mutex<mpsc::UnboundedReceiver<CoordinationMessage>>>,
 
     /// Active agents and their status
@@ -119,6 +120,7 @@ pub struct AgentCoordinator {
 
 /// Queued task with metadata
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct QueuedTask {
     id: String,
     agent_type: AgentType,

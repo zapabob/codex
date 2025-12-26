@@ -64,6 +64,7 @@ pub fn spawn_response_stream(
 
 #[derive(Debug, Deserialize)]
 struct Error {
+    #[allow(dead_code)]
     r#type: Option<String>,
     code: Option<String>,
     message: Option<String>,
@@ -73,6 +74,7 @@ struct Error {
     resets_at: Option<i64>,
 }
 
+#[allow(dead_code)]
 impl Error {
     /// Get the error type
     pub fn error_type(&self) -> Option<&str> {

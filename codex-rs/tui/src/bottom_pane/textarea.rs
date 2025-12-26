@@ -262,9 +262,10 @@ impl TextArea {
             } => self.delete_backward_word(),
             KeyEvent {
                 code: KeyCode::Backspace,
+                modifiers,
                 ..
-            }
-            | KeyEvent {
+            } if modifiers.is_empty() => self.delete_backward(1),
+            KeyEvent {
                 code: KeyCode::Char('h'),
                 modifiers: KeyModifiers::CONTROL,
                 ..
@@ -276,9 +277,10 @@ impl TextArea {
             }  => self.delete_forward_word(),
             KeyEvent {
                 code: KeyCode::Delete,
+                modifiers,
                 ..
-            }
-            | KeyEvent {
+            } if modifiers.is_empty() => self.delete_forward(1),
+            KeyEvent {
                 code: KeyCode::Char('d'),
                 modifiers: KeyModifiers::CONTROL,
                 ..

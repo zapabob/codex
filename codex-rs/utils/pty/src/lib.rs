@@ -98,12 +98,12 @@ impl ExecCommandSession {
         {
             handle.abort();
         }
+    }
+}
 
-        impl Drop for ExecCommandSession {
-            fn drop(&mut self) {
-                self.terminate();
-            }
-        }
+impl Drop for ExecCommandSession {
+    fn drop(&mut self) {
+        self.terminate();
     }
 }
 

@@ -192,7 +192,9 @@ pub enum LoadBalancingStrategy {
 /// Main Quality Control Agent
 pub struct QcAgent {
     config: QcConfig,
+    #[allow(dead_code)]
     gpu_config: GpuConfig,
+    #[allow(dead_code)]
     parallel_config: ParallelConfig,
     statistical_analyzer: super::statistical::StatisticalAnalyzer,
     quantum_optimizer: super::quantum::QuantumOptimizer,

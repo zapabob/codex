@@ -4,13 +4,10 @@
 //! coordinating multiple sub-agents for complex development tasks.
 
 use crate::conflict_detector::AstConflictDetector;
+use crate::error::CodexErr;
 use crate::error::Result;
 use crate::git_lock_manager::ConflictDetectorTrait;
 use crate::git_lock_manager::GitLockManager;
-use crate::qc::QcAgent;
-use crate::qc::agent_coordination::AgentCoordinator;
-use crate::qc::agent_coordination::AgentType;
-use crate::qc::agent_coordination::TaskPriority;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -97,7 +94,9 @@ pub struct AIOrchestrator {
     qc_optimizer: Arc<QCOptimizer>,
     development_mode: DevelopmentMode,
     worktree_manager: Option<Arc<crate::orchestration::worktree_manager::WorktreeManager>>,
+    #[allow(dead_code)]
     git_lock_manager: Option<Arc<GitLockManager>>,
+    #[allow(dead_code)]
     conflict_detector: Option<Arc<Mutex<Box<dyn ConflictDetectorTrait + Send + Sync>>>>,
 }
 
@@ -134,6 +133,7 @@ pub enum OrchestrationCommand {
 /// Quality Control and Optimization Engine
 pub struct QCOptimizer {
     optimization_algorithms: Vec<Box<dyn OptimizationAlgorithm>>,
+    #[allow(dead_code)]
     quality_metrics: BTreeMap<String, f64>,
 }
 
@@ -341,9 +341,10 @@ impl AIOrchestrator {
         let (tx, rx) = oneshot::channel();
 
         self.command_tx
-            .send(OrchestrationCommand::SetDevelopmentMode { mode, response: tx })?;
+            .send(OrchestrationCommand::SetDevelopmentMode { mode, response: tx })
+            .map_err(|_| CodexErr::InternalAgentDied)?;
 
-        rx.await?
+        rx.await.map_err(|_| CodexErr::InternalAgentDied)?
     }
 
     /// Submit a new task for orchestration
@@ -351,15 +352,17 @@ impl AIOrchestrator {
         let (tx, rx) = oneshot::channel();
 
         self.command_tx
-            .send(OrchestrationCommand::SubmitTask { task, response: tx })?;
+            .send(OrchestrationCommand::SubmitTask { task, response: tx })
+            .map_err(|_| CodexErr::InternalAgentDied)?;
 
-        rx.await?
+        rx.await.map_err(|_| CodexErr::InternalAgentDied)?
     }
 
     /// Register a new agent
     pub async fn register_agent(&self, name: String, capability: AgentCapability) -> Result<()> {
         self.command_tx
-            .send(OrchestrationCommand::RegisterAgent { name, capability })?;
+            .send(OrchestrationCommand::RegisterAgent { name, capability })
+            .map_err(|_| CodexErr::InternalAgentDied)?;
         Ok(())
     }
 
@@ -368,9 +371,10 @@ impl AIOrchestrator {
         let (tx, rx) = oneshot::channel();
 
         self.command_tx
-            .send(OrchestrationCommand::OptimizeAssignment { response: tx })?;
+            .send(OrchestrationCommand::OptimizeAssignment { response: tx })
+            .map_err(|_| CodexErr::InternalAgentDied)?;
 
-        rx.await?
+        rx.await.map_err(|_| CodexErr::InternalAgentDied)?
     }
 
     /// Run the orchestration engine

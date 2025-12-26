@@ -26,6 +26,7 @@ pub struct AstConflictDetector {
     /// Repository path
     repo_path: std::path::PathBuf,
     /// Cached AST analysis results
+    #[allow(dead_code)]
     ast_cache: Arc<parking_lot::Mutex<BTreeMap<String, AstAnalysis>>>,
 }
 
@@ -89,6 +90,7 @@ impl AstConflictDetector {
     }
 
     /// Analyze file using AST parsing
+    #[allow(dead_code)]
     fn analyze_file(&self, _file_path: &Path, content: &str) -> Result<AstAnalysis> {
         let mut functions = Vec::new();
         let mut structs = Vec::new();
@@ -297,7 +299,7 @@ impl MLConflictPredictor {
     /// Extract features from operations
     fn extract_features(
         &self,
-        repo_path: &std::path::Path,
+        _repo_path: &std::path::Path,
         op1: &GitOperation,
         op2: &GitOperation,
     ) -> BTreeMap<String, f64> {

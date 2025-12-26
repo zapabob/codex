@@ -1,4 +1,5 @@
 //! Models for app server
+#![allow(dead_code)]
 
 use codex_app_server_protocol::AuthMode;
 use codex_protocol::openai_models::ReasoningEffort;

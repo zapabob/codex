@@ -1929,7 +1929,7 @@ impl CodexMessageProcessor {
 
     async fn list_models(
         outgoing: Arc<OutgoingMessageSender>,
-        conversation_manager: Arc<ConversationManager>,
+        _conversation_manager: Arc<ConversationManager>,
         config: Arc<Config>,
         request_id: RequestId,
         params: ModelListParams,

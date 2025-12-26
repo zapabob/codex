@@ -162,7 +162,7 @@ impl GitLockManager {
         operation: GitOperation,
         owner: String,
         timeout: Option<Duration>,
-    ) -> Result<LockGuard> {
+    ) -> Result<LockGuard<'_>> {
         let timeout = timeout.unwrap_or(self.default_timeout);
 
         // Check for conflicts before acquiring permit
@@ -207,6 +207,7 @@ impl GitLockManager {
     }
 
     /// Check for conflicts with existing locks
+    #[allow(dead_code)]
     async fn check_conflicts(&self, operation: &GitOperation) -> Result<Vec<LockConflict>> {
         let locks = {
             let locks = self.locks.lock();

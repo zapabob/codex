@@ -1093,6 +1093,7 @@ pub(crate) struct McpToolCallCell {
     start_time: Instant,
     duration: Option<Duration>,
     result: Option<Result<mcp_types::CallToolResult, String>>,
+    #[allow(dead_code)]
     animations_enabled: bool,
 }
 

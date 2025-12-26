@@ -7,7 +7,6 @@ use clap::Subcommand;
 use codex_core::ai_orchestrator::AIOrchestrator;
 use codex_core::ai_orchestrator::DevelopmentMode;
 use codex_core::mcp_integration_manager::McpIntegrationManager;
-use std::collections::HashMap;
 
 /// Development mode CLI commands
 #[derive(Debug, Args)]
@@ -117,6 +116,7 @@ async fn run_centralized_dev(
                     "researcher".to_string(),
                 ]
             }),
+            quality_requirements: None,
         };
 
         let task_id = orchestrator.submit_task(task).await?;
@@ -176,6 +176,7 @@ async fn run_parallel_dev(
                     "qc-optimizer".to_string(),
                 ]
             }),
+            quality_requirements: None,
         };
 
         let task_id = orchestrator.submit_task(task).await?;

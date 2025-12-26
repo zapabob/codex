@@ -77,6 +77,7 @@ pub(crate) struct BottomPane {
     is_task_running: bool,
     ctrl_c_quit_hint: bool,
     esc_backtrack_hint: bool,
+    #[allow(dead_code)]
     animations_enabled: bool,
 
     /// Inline status indicator shown above the composer while a task is running.

@@ -44,7 +44,9 @@ dunce = { workspace = true }
 encoding_rs = { workspace = true }
 env-flags = { workspace = true }
 eventsource-stream = { workspace = true }
+fastrand = "2.0"
 futures = { workspace = true }
+git2 = "0.19"
 hostname = "0.4"
 http = { workspace = true }
 include_dir = { workspace = true }
@@ -56,6 +58,7 @@ multimap = { workspace = true }
 num_cpus = { workspace = true }
 once_cell = { workspace = true }
 os_info = { workspace = true }
+parking_lot = "0.12"
 rand = { workspace = true }
 regex = { workspace = true }
 regex-lite = { workspace = true }
@@ -100,6 +103,9 @@ wildmatch = { workspace = true }
 [features]
 deterministic_process_ids = []
 test-support = []
+agent_security = []
+windows-ai = []
+cuda = []
 
 
 [target.'cfg(target_os = "linux")'.dependencies]

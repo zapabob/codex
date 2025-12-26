@@ -18,6 +18,8 @@ mod client_common;
 pub mod codex;
 mod codex_conversation;
 mod compact_remote;
+pub mod conflict_detector;
+pub mod git_lock_manager;
 pub use codex_conversation::CodexConversation;
 mod codex_delegate;
 mod command_safety;

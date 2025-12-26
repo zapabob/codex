@@ -28,6 +28,7 @@ impl From<ExitCode> for std::process::ExitCode {
 }
 
 /// Handle exit status from a command execution
+#[allow(dead_code)]
 pub fn handle_exit_status(exit_code: Option<i32>) -> ExitCode {
     match exit_code {
         Some(0) => ExitCode::Success,

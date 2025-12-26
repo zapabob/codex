@@ -29,6 +29,7 @@ pub struct VisualizationConfig {
 
 /// Code quality visualization generator
 pub struct QualityVisualizer {
+    #[allow(dead_code)]
     config: VisualizationConfig,
 }
 

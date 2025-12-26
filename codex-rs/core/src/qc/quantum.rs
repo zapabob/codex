@@ -196,7 +196,7 @@ impl QuantumOptimizer {
         let mut best_params = Vec::new();
 
         // Variational optimization loop
-        for iteration in 0..max_iterations {
+        for _iteration in 0..max_iterations {
             // Evaluate energy expectation value
             let energy = self.evaluate_vqe_energy(hamiltonian, &parameters);
 
@@ -227,7 +227,7 @@ impl QuantumOptimizer {
     fn max_cut_to_ising(&self, problem: &MaxCutProblem) -> IsingModel {
         let n = problem.num_vertices;
         let mut couplings = vec![vec![0.0; n]; n];
-        let mut fields = vec![0.0; n];
+        let fields = vec![0.0; n];
 
         // Convert adjacency matrix to Ising couplings
         // Max-Cut: maximize sum_{<i,j>} w_{ij} * (1 - z_i*z_j)/2
@@ -365,7 +365,7 @@ impl QuantumOptimizer {
     }
 
     /// Compute single spin expectation for QAOA (simplified)
-    fn compute_spin_expectation(&self, i: usize, gamma: &[f64], beta: &[f64]) -> f64 {
+    fn compute_spin_expectation(&self, i: usize, gamma: &[f64], _beta: &[f64]) -> f64 {
         let phase = gamma.iter().sum::<f64>() * 0.1 * (i as f64 + 1.0).sqrt();
         phase.sin()
     }
@@ -518,7 +518,7 @@ impl QuantumOptimizer {
     /// Predict quality improvement based on resource allocation
     fn predict_quality_improvement(
         &self,
-        current_quality: f64,
+        _current_quality: f64,
         resource_allocation: f64,
         complexity_weight: f64,
     ) -> f64 {

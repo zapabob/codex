@@ -1,4 +1,5 @@
 //! Error codes for app server
+#![allow(dead_code)]
 
 /// Error code type
 pub type ErrorCode = i64;

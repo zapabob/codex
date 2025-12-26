@@ -5,7 +5,9 @@ use anyhow::Result;
 
 /// HTTP Client for cloud tasks
 pub struct HttpClient {
+    #[allow(dead_code)]
     client: reqwest::Client,
+    #[allow(dead_code)]
     base_url: String,
     bearer_token: Option<String>,
     chatgpt_account_id: Option<String>,
@@ -217,6 +219,7 @@ impl CloudBackend for MockClient {
 
 /// Cloud Tasks Client
 pub struct CloudTasksClient {
+    #[allow(dead_code)]
     base_url: String,
 }
 
