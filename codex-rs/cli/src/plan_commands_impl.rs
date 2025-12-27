@@ -104,6 +104,18 @@ pub async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
                 } => {
                     println!("❌ Test failed: {} - {}", test_name, error);
                 }
+                ExecutionEvent::OrchestrationLog { entry, .. } => {
+                    println!(
+                        "🧭 [{}] {} | Agents: {:?} | Strategy: {:?}",
+                        entry.timestamp.format("%H:%M:%S"),
+                        entry.message,
+                        entry.selected_agents,
+                        entry.strategy
+                    );
+                    if !entry.fallback_chain.is_empty() {
+                        println!("   Fallback chain: {:?}", entry.fallback_chain);
+                    }
+                }
                 ExecutionEvent::Completed { timestamp, .. } => {
                     println!();
                     println!("🎉 Execution completed at {}", timestamp.format("%H:%M:%S"));

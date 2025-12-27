@@ -15,6 +15,9 @@ pub struct TaskAnalysis {
     /// Keywords detected in the input
     pub detected_keywords: Vec<String>,
 
+    /// Skill tags derived from the input
+    pub skill_tags: Vec<String>,
+
     /// Recommended agents for this task
     pub recommended_agents: Vec<String>,
 
@@ -34,9 +37,10 @@ impl TaskAnalysis {
     /// Get a human-readable summary of the analysis.
     pub fn summary(&self) -> String {
         format!(
-            "Complexity: {:.2} | Agents: {} | Subtasks: {}",
+            "Complexity: {:.2} | Agents: {} | Skills: {} | Subtasks: {}",
             self.complexity_score,
             self.recommended_agents.join(", "),
+            self.skill_tags.join(", "),
             self.subtasks.len()
         )
     }
@@ -59,12 +63,14 @@ impl TaskAnalyzer {
     pub fn analyze(&self, user_input: &str) -> TaskAnalysis {
         let complexity_score = self.calculate_complexity(user_input);
         let detected_keywords = self.extract_keywords(user_input);
+        let skill_tags = self.derive_skill_tags(user_input, &detected_keywords);
         let recommended_agents = self.recommend_agents(user_input, &detected_keywords);
         let subtasks = self.decompose_into_subtasks(user_input, &detected_keywords);
 
         TaskAnalysis {
             complexity_score,
             detected_keywords,
+            skill_tags,
             recommended_agents,
             subtasks,
             original_input: user_input.to_string(),
@@ -201,6 +207,54 @@ impl TaskAnalyzer {
             .collect()
     }
 
+    fn derive_skill_tags(&self, input: &str, keywords: &[String]) -> Vec<String> {
+        let mut tags = HashSet::new();
+        let lower = input.to_lowercase();
+
+        if keywords
+            .iter()
+            .any(|k| ["security", "auth", "authentication", "oauth", "jwt"].contains(&k.as_str()))
+        {
+            tags.insert("security".to_string());
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["test", "testing"].contains(&k.as_str()))
+            || lower.contains("qa")
+        {
+            tags.insert("testing".to_string());
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["refactor", "rewrite", "migrate"].contains(&k.as_str()))
+        {
+            tags.insert("rewriter".to_string());
+        }
+
+        if lower.contains("dependency") || lower.contains("supply chain") {
+            tags.insert("dependency-analysis".to_string());
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["documentation", "docs", "readme"].contains(&k.as_str()))
+        {
+            tags.insert("documentation".to_string());
+        }
+
+        if lower.contains("research") {
+            tags.insert("research".to_string());
+        }
+
+        if tags.is_empty() {
+            tags.insert("general".to_string());
+        }
+
+        tags.into_iter().collect()
+    }
+
     /// Recommend agents based on detected keywords.
     fn recommend_agents(&self, _input: &str, keywords: &[String]) -> Vec<String> {
         let mut agents = HashSet::new();
@@ -326,6 +380,8 @@ mod tests {
                 .recommended_agents
                 .contains(&"test-gen".to_string())
         );
+        assert!(analysis.skill_tags.contains(&"security".to_string()));
+        assert!(analysis.skill_tags.contains(&"testing".to_string()));
     }
 
     #[test]
@@ -340,6 +396,8 @@ mod tests {
         );
         assert!(analysis.detected_keywords.contains(&"auth".to_string()));
         assert!(analysis.detected_keywords.contains(&"test".to_string()));
+        assert!(analysis.skill_tags.contains(&"security".to_string()));
+        assert!(analysis.skill_tags.contains(&"testing".to_string()));
     }
 
     #[test]
@@ -369,5 +427,17 @@ mod tests {
         let analysis = analyzer.analyze("Implement feature, write tests, update docs");
 
         assert!(analysis.subtasks.len() >= 3);
+    }
+
+    #[test]
+    fn test_dependency_skill_tag_is_added() {
+        let analyzer = TaskAnalyzer::new(0.7);
+        let analysis = analyzer.analyze("Run dependency audit and report issues");
+
+        assert!(
+            analysis
+                .skill_tags
+                .contains(&"dependency-analysis".to_string())
+        );
     }
 }

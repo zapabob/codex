@@ -86,6 +86,12 @@ pub enum ExecutionEvent {
         error: String,
         timestamp: DateTime<Utc>,
     },
+
+    /// Orchestration log entry
+    OrchestrationLog {
+        execution_id: String,
+        entry: crate::orchestration::OrchestrationLogEntry,
+    },
 }
 
 /// Execution result
@@ -324,6 +330,14 @@ impl PlanExecutor {
             .execute_plan(plan)
             .await
             .context("Orchestrator execution failed")?;
+
+        for entry in &result.orchestration_log {
+            self.emit_event(ExecutionEvent::OrchestrationLog {
+                execution_id: execution_id.to_string(),
+                entry: entry.clone(),
+            })
+            .await;
+        }
 
         Ok(result)
     }
