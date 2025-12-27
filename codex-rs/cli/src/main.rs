@@ -1311,15 +1311,27 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
     println!("   Frontend: http://localhost:{}", cmd.port);
     println!("   Backend API: http://localhost:{}", cmd.backend_port);
 
-    // Check if GUI directory exists
-    let gui_dir = std::env::current_dir()?
-        .parent()
-        .and_then(|p| p.parent())
-        .map(|p| p.join("gui"))
+    // Find GUI directory - try multiple locations
+    let current_dir = std::env::current_dir()?;
+    let gui_dir = current_dir
+        .join("gui")
+        .canonicalize()
+        .ok()
+        .or_else(|| {
+            current_dir
+                .parent()
+                .and_then(|p| p.join("gui").canonicalize().ok())
+        })
+        .or_else(|| {
+            // Try from codex-rs directory
+            current_dir
+                .parent()
+                .and_then(|p| p.parent().and_then(|pp| pp.join("gui").canonicalize().ok()))
+        })
         .ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::NotFound,
-                "GUI directory not found. Please run from codex-main directory.",
+                "GUI directory not found. Please run from codex-main or codex-rs directory.",
             )
         })?;
 
@@ -1341,7 +1353,14 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
             .or_else(|| {
                 // Try common locations
                 let home = std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")).ok()?;
-                Some(PathBuf::from(home).join(".cargo").join("bin").join("codex-gui.exe"))
+                #[cfg(target_os = "windows")]
+                {
+                    Some(PathBuf::from(home).join(".cargo").join("bin").join("codex-gui.exe"))
+                }
+                #[cfg(not(target_os = "windows"))]
+                {
+                    Some(PathBuf::from(home).join(".cargo").join("bin").join("codex-gui"))
+                }
             });
 
         if let Some(binary) = gui_binary {
@@ -1372,16 +1391,35 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
     println!("🎨 Starting frontend dev server on port {}...", cmd.port);
     let frontend_port = cmd.port;
     let no_browser = cmd.no_browser;
+    let gui_dir_clone = gui_dir.clone();
     let frontend_handle = tokio::spawn(async move {
+        // Check if node_modules exists, if not run npm install
+        let node_modules = gui_dir_clone.join("node_modules");
+        if !node_modules.exists() {
+            println!("📦 Installing dependencies...");
+            let install_result = Command::new("npm")
+                .args(["install"])
+                .current_dir(&gui_dir_clone)
+                .output();
+            
+            if let Ok(output) = install_result {
+                if !output.status.success() {
+                    eprintln!("⚠️  npm install failed, but continuing...");
+                } else {
+                    println!("✅ Dependencies installed");
+                }
+            }
+        }
+
         let mut child = Command::new("npm")
             .args(["run", "dev"])
             .env("PORT", frontend_port.to_string())
-            .current_dir(&gui_dir)
+            .current_dir(&gui_dir_clone)
             .spawn()
             .ok()?;
 
         // Wait a bit for server to start
-        sleep(Duration::from_secs(3)).await;
+        sleep(Duration::from_secs(5)).await;
 
         // Open browser if not disabled
         if !no_browser {
@@ -1412,12 +1450,19 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
     if !cmd.no_browser {
         println!("   Browser will open automatically");
     }
-    println!("\nPress Ctrl+C to stop the servers.\n");
+    println!("\n💡 Tips:");
+    println!("   - Use Ctrl+B to toggle sidebar");
+    println!("   - Use Ctrl+D, Ctrl+C, Ctrl+A, etc. for quick navigation");
+    println!("   - Press Ctrl+C here to stop the servers\n");
 
     // Wait for both servers
     tokio::select! {
-        _ = backend_handle => {},
-        _ = frontend_handle => {},
+        _ = backend_handle => {
+            println!("\n⚠️  Backend server stopped");
+        },
+        _ = frontend_handle => {
+            println!("\n⚠️  Frontend server stopped");
+        },
         _ = tokio::signal::ctrl_c() => {
             println!("\n🛑 Stopping GUI servers...");
         }
