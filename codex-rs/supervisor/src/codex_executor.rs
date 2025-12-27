@@ -9,7 +9,6 @@ use codex_core::protocol::Op;
 use codex_core::protocol::SessionSource;
 use codex_core::AuthManager;
 use codex_core::Codex;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::timeout;
@@ -243,18 +242,13 @@ impl CodexExecutor {
 /// Create default CodexExecutor for testing
 impl Default for CodexExecutor {
     fn default() -> Self {
-        let config = Config {
-            model_provider: codex_core::config_types::ModelProvider::OpenAI,
-            model: "gpt-4o-mini".to_string(),
-            cwd: PathBuf::from("."),
-            codex_home: dirs::home_dir()
-                .unwrap_or_else(|| PathBuf::from("."))
-                .join(".codex"),
-            ..Default::default()
-        };
-
-        let auth_manager = AuthManager::shared(config.codex_home.clone(), false);
-
+        let config = Config::load_from_disk_or_default()
+            .expect("Failed to load default config for CodexExecutor");
+        let auth_manager = AuthManager::shared(
+            config.codex_home.clone(),
+            false,
+            config.cli_auth_credentials_store_mode,
+        );
         Self::new(config, auth_manager)
     }
 }

@@ -15,6 +15,7 @@ use codex_core::plan::policy::ApprovalRole;
 use git2::{Repository, DiffOptions};
 use serde_json::json;
 use std::collections::HashMap;
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
@@ -243,6 +244,7 @@ impl OrchestratorServer {
                             &active_tasks,
                             &token_budget,
                             &active_sessions,
+                            &queue_size,
                             &config,
                         )
                         .await
@@ -269,6 +271,7 @@ impl OrchestratorServer {
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
         active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
+        queue_size: &Arc<RwLock<usize>>,
         config: &OrchestratorConfig,
     ) -> Result<()> {
         loop {
@@ -472,7 +475,11 @@ impl OrchestratorServer {
                             path
                         } else {
                             // Use codex_dir's parent as repository root
-                            config.codex_dir.parent().unwrap_or_else(|| PathBuf::from(".")).to_path_buf()
+                            config
+                                .codex_dir
+                                .parent()
+                                .unwrap_or_else(|| Path::new("."))
+                                .to_path_buf()
                         };
 
                         // Create lock manager for the repository
@@ -618,7 +625,10 @@ impl OrchestratorServer {
             }
             "vcs.diff" => {
                 // Find repository root from codex_dir
-                let repo_root = config.codex_dir.parent().unwrap_or_else(|| PathBuf::from("."));
+                let repo_root = config
+                    .codex_dir
+                    .parent()
+                    .unwrap_or_else(|| Path::new("."));
                 
                 match Repository::open(repo_root) {
                     Ok(repo) => {
@@ -1325,7 +1335,10 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Find repository root from codex_dir
-                        let repo_root = config.codex_dir.parent().unwrap_or_else(|| PathBuf::from("."));
+                        let repo_root = config
+                            .codex_dir
+                            .parent()
+                            .unwrap_or_else(|| Path::new("."));
                         
                         match Repository::open(repo_root) {
                             Ok(repo) => {
@@ -1490,7 +1503,10 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Find repository root from codex_dir
-                        let repo_root = config.codex_dir.parent().unwrap_or_else(|| PathBuf::from("."));
+                        let repo_root = config
+                            .codex_dir
+                            .parent()
+                            .unwrap_or_else(|| Path::new("."));
                         
                         match Repository::open(repo_root) {
                             Ok(repo) => {
@@ -1629,7 +1645,6 @@ impl OrchestratorServer {
                     Ok(params) => {
                         // Generate a connection ID for this subscription
                         // In a real implementation, this would be tied to the actual connection
-                        use rand::Rng;
                         let connection_id = format!("conn_{}", rand::random::<u64>());
 
                         let mut subscribers = subscribers.write().await;

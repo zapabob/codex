@@ -12,9 +12,9 @@ use codex_deep_research::ResearchPlanner;
 use codex_deep_research::ResearchStrategy;
 use codex_otel::otel_event_manager::OtelEventManager;
 use codex_protocol::ConversationId;
-use codex_protocol::config_types::ReasoningEffort;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::Verbosity;
+use codex_protocol::openai_models::ReasoningEffort;
 use pretty_assertions::assert_eq;
 use std::collections::HashMap;
 use std::fs;
@@ -24,8 +24,8 @@ use std::time::Instant;
 use tempfile::TempDir;
 
 // Test helper
-fn create_test_runtime(workspace_dir: PathBuf, budget: usize) -> AgentRuntime {
-    let config = Arc::new(Config::load_from_disk_or_default().unwrap());
+async fn create_test_runtime(workspace_dir: PathBuf, budget: usize) -> AgentRuntime {
+    let config = Arc::new(Config::load_with_cli_overrides(Vec::new()).await.unwrap());
     let auth_manager = AuthManager::shared(
         config.codex_home.clone(),
         false,
@@ -67,7 +67,7 @@ artifacts:
 
     fs::write(agents_dir.join("perf-test.yaml"), agent_yaml).unwrap();
 
-    let runtime = create_test_runtime(temp_dir.path().to_path_buf(), 10000);
+    let runtime = create_test_runtime(temp_dir.path().to_path_buf(), 10000).await;
 
     let start = Instant::now();
 
@@ -105,7 +105,7 @@ artifacts:
 
     fs::write(agents_dir.join("throughput-test.yaml"), agent_yaml).unwrap();
 
-    let runtime = create_test_runtime(temp_dir.path().to_path_buf(), 50000);
+    let runtime = create_test_runtime(temp_dir.path().to_path_buf(), 50000).await;
 
     let start = Instant::now();
 
@@ -233,7 +233,7 @@ artifacts: []
 #[tokio::test]
 async fn test_perf_memory_usage_baseline() {
     // Baseline memory measurement
-    let runtime = create_test_runtime(std::env::current_dir().unwrap(), 100000);
+    let runtime = create_test_runtime(std::env::current_dir().unwrap(), 100000).await;
 
     // Get baseline stats
     let (used, remaining, utilization) = runtime.get_budget_status();

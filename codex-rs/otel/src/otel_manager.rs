@@ -96,6 +96,20 @@ impl OtelManager {
         manager
     }
 
+    pub fn new_noop() -> Self {
+        Self::new(
+            ConversationId::new(),
+            "unknown",
+            "noop",
+            None,
+            None,
+            None,
+            false,
+            "unknown".to_string(),
+            SessionSource::Unknown,
+        )
+    }
+
     pub fn current_span(&self) -> &Span {
         &self.session_span
     }

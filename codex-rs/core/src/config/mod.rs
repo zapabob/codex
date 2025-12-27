@@ -431,6 +431,22 @@ impl Config {
             .await
     }
 
+    pub fn load_from_disk_or_default() -> std::io::Result<Self> {
+        let load = || Self::load_with_cli_overrides(Vec::new());
+
+        if tokio::runtime::Handle::try_current().is_ok() {
+            std::thread::spawn(|| {
+                let runtime = tokio::runtime::Runtime::new()?;
+                runtime.block_on(load())
+            })
+            .join()
+            .map_err(|_| std::io::Error::other("default config thread panicked"))?
+        } else {
+            let runtime = tokio::runtime::Runtime::new()?;
+            runtime.block_on(load())
+        }
+    }
+
     /// This is a secondary way of creating [Config], which is appropriate when
     /// the harness is meant to be used with a specific configuration that
     /// ignores user settings. For example, the `codex exec` subcommand is

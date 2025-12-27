@@ -16,24 +16,19 @@ fn test_codex_executor_creation() {
     assert_eq!(metrics.average_latency_ms, 0);
 }
 
-#[test]
-fn test_codex_executor_with_custom_config() {
+#[tokio::test]
+async fn test_codex_executor_with_custom_config() {
     use codex_core::AuthManager;
     use codex_core::config::Config;
-    use std::path::PathBuf;
-    use std::sync::Arc;
 
-    let config = Config {
-        model_provider: codex_core::config_types::ModelProvider::OpenAI,
-        model: "gpt-4o-mini".to_string(),
-        cwd: PathBuf::from("."),
-        codex_home: dirs::home_dir()
-            .unwrap_or_else(|| PathBuf::from("."))
-            .join(".codex"),
-        ..Default::default()
-    };
+    let mut config = Config::load_with_cli_overrides(Vec::new()).await.unwrap();
+    config.model = Some("gpt-4o-mini".to_string());
 
-    let auth_manager = AuthManager::shared(config.codex_home.clone(), false);
+    let auth_manager = AuthManager::shared(
+        config.codex_home.clone(),
+        false,
+        config.cli_auth_credentials_store_mode,
+    );
     let executor = CodexExecutor::new(config, auth_manager);
 
     let metrics = executor.get_metrics();
