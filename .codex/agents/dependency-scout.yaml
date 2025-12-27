@@ -1,0 +1,33 @@
+name: "dependency-scout"
+goal: "Lightweight dependency insight agent for quick manifest scans, transitive surfacing, and license notes."
+tools:
+  mcp:
+    - read_file
+    - grep
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+      - "./dependency-reports"
+  net:
+    allow:
+      - "https://crates.io/*"
+      - "https://registry.npmjs.org/*"
+  shell:
+    exec:
+      - jq
+policies:
+  context:
+    max_tokens: 20000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Summarize direct dependencies and notable transitive packages"
+  - "Capture license or compliance flags visible from metadata"
+  - "Call out version skew or obvious pinning gaps"
+  - "Prepare concise follow-up tasks for deeper audits"
+artifacts:
+  - "artifacts/dependency-scout-summary.md"
+  - "dependency-reports/quick-scan.json"

@@ -191,6 +191,18 @@ impl TaskAnalyzer {
             "documentation",
             "docs",
             "readme",
+            "dependency",
+            "dependencies",
+            "manifest",
+            "lockfile",
+            "package",
+            "version",
+            "performance",
+            "latency",
+            "throughput",
+            "profiling",
+            "benchmark",
+            "optimize",
         ];
 
         let lower_input = input.to_lowercase();
@@ -204,6 +216,38 @@ impl TaskAnalyzer {
     /// Recommend agents based on detected keywords.
     fn recommend_agents(&self, _input: &str, keywords: &[String]) -> Vec<String> {
         let mut agents = HashSet::new();
+
+        // Dependency analysis
+        if keywords.iter().any(|k| {
+            [
+                "dependency",
+                "dependencies",
+                "manifest",
+                "lockfile",
+                "package",
+                "version",
+            ]
+            .contains(&k.as_str())
+        }) {
+            agents.insert("dependency-analyst".to_string());
+            agents.insert("dependency-scout".to_string());
+        }
+
+        // Performance analysis
+        if keywords.iter().any(|k| {
+            [
+                "performance",
+                "latency",
+                "throughput",
+                "profiling",
+                "benchmark",
+                "optimize",
+            ]
+            .contains(&k.as_str())
+        }) {
+            agents.insert("performance-analyst".to_string());
+            agents.insert("performance-scout".to_string());
+        }
 
         // Security-related
         if keywords
@@ -369,5 +413,41 @@ mod tests {
         let analysis = analyzer.analyze("Implement feature, write tests, update docs");
 
         assert!(analysis.subtasks.len() >= 3);
+    }
+
+    #[test]
+    fn test_dependency_agent_recommendation() {
+        let analyzer = TaskAnalyzer::new(0.7);
+        let analysis =
+            analyzer.analyze("Audit dependencies in Cargo.toml and package-lock for risks");
+
+        assert!(
+            analysis
+                .recommended_agents
+                .contains(&"dependency-analyst".to_string())
+        );
+        assert!(
+            analysis
+                .recommended_agents
+                .contains(&"dependency-scout".to_string())
+        );
+    }
+
+    #[test]
+    fn test_performance_agent_recommendation() {
+        let analyzer = TaskAnalyzer::new(0.7);
+        let analysis =
+            analyzer.analyze("Profile the API latency and optimize throughput bottlenecks");
+
+        assert!(
+            analysis
+                .recommended_agents
+                .contains(&"performance-analyst".to_string())
+        );
+        assert!(
+            analysis
+                .recommended_agents
+                .contains(&"performance-scout".to_string())
+        );
     }
 }

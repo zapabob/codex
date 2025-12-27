@@ -285,7 +285,29 @@ inputs.insert("previous_results", previous_results.summary());
   "complexity_score": 0.85,
   "threshold": 0.7,
   "recommended_agents": ["sec-audit", "test-gen", "code-reviewer"],
+  "skills_used": ["security-review", "testing", "code-quality"],
   "strategy": "parallel",
+  "fallbacks": [
+    "retry_failed_agents_sequentially",
+    "reduce_scope_and_rerun",
+    "fallback_to_single_agent_execution"
+  ],
+  "agent_configs": [
+    {
+      "agent": "sec-audit",
+      "skill_tag": "security-review",
+      "scope": "specialist",
+      "config_path": ".codex/agents/sec-audit.yaml",
+      "capabilities": ["Threat modeling", "Static security scan", "Secrets and credential review"]
+    },
+    {
+      "agent": "test-gen",
+      "skill_tag": "testing",
+      "scope": "specialist",
+      "config_path": ".codex/agents/test-gen.yaml",
+      "capabilities": ["Unit/integration test authoring", "Edge case discovery", "Snapshot verification"]
+    }
+  ],
   "execution_summary": "Task complexity (0.85) exceeds threshold (0.7). Orchestrating 3 specialized agents using parallel strategy."
 }
 ```
@@ -315,6 +337,16 @@ inputs.insert("previous_results", previous_results.summary());
 2. test-gen
 3. code-reviewer
 ```
+
+### エージェント権限サンプル（スキル別）
+
+- 依存解析（専用/汎用）  
+  - `.codex/agents/dependency-analyst.yaml`: manifest/lockfile 読み取り、バージョン差分、サプライチェーンリスク評価  
+  - `.codex/agents/dependency-scout.yaml`: 軽量な依存スキャン、ライセンスメモ、トランジティブ依存のサーフェス
+- パフォーマンス（専用/汎用）  
+  - `.codex/agents/performance-analyst.yaml`: プロファイル/フレームグラフ読解、ボトルネック特定、最適化案提示  
+  - `.codex/agents/performance-scout.yaml`: ログ/ベンチ結果の即時トリアージ、設定確認、追加計測の提案
+- 共通: MCPレスポンスの `structured_content` に `skills_used`, `strategy`, `fallbacks`, `agent_configs` が入るため、クライアントはスキルタグとテンプレートパスをそのまま表示可能。
 
 ---
 

@@ -52,6 +52,8 @@ pub fn create_auto_orchestrator_tool() -> Tool {
              - Task appears complex with multiple domains\n\
              - Multiple specialized agents would benefit the task\n\
              - User wants ClaudeCode-style transparent orchestration\n\n\
+             Responses include structured metadata (skills_used, strategy, fallbacks, agent_configs) \
+             so clients can surface skill tags and .codex/agents templates alongside the textual summary.\n\n\
              Example: 'Implement user authentication with JWT, write tests, and security review'"
                 .to_string(),
         ),

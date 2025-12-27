@@ -441,6 +441,13 @@ pub struct McpHandle {
 }
 
 async fn create_mcp_process(responses: Vec<String>) -> anyhow::Result<McpHandle> {
+    // Ensure local wiremock calls bypass any configured proxy, otherwise loopback requests fail.
+    // SAFETY: environment variables are scoped to this process; setting them avoids proxying local mock calls.
+    unsafe {
+        std::env::set_var("NO_PROXY", "127.0.0.1,localhost");
+        std::env::set_var("no_proxy", "127.0.0.1,localhost");
+    }
+
     let server = create_mock_chat_completions_server(responses).await;
     let codex_home = TempDir::new()?;
     create_config_toml(codex_home.path(), &server.uri())?;

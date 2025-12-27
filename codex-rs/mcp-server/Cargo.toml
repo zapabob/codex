@@ -16,7 +16,7 @@ path = "src/lib.rs"
 workspace = true
 
 [features]
-cuda = []
+cuda = ["dep:codex-cuda-runtime"]
 
 [dependencies]
 anyhow = { workspace = true }
@@ -26,6 +26,7 @@ codex-core = { workspace = true }
 codex-deep-research = { path = "../deep-research" }
 codex-protocol = { workspace = true }
 codex-utils-json-to-toml = { workspace = true }
+codex-cuda-runtime = { workspace = true, optional = true }
 mcp-types = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
