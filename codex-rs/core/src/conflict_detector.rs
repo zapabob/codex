@@ -7,7 +7,6 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
-
 use anyhow::Result;
 use git2::Repository;
 use serde::Deserialize;

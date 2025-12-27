@@ -12,7 +12,8 @@ use anyhow::Result;
 use codex_core::lock::RepositoryLock;
 use codex_core::plan::manager::PlanManager;
 use codex_core::plan::policy::ApprovalRole;
-use git2::{Repository, DiffOptions};
+use git2::DiffOptions;
+use git2::Repository;
 use serde_json::json;
 use std::collections::HashMap;
 use std::path::Path;
@@ -145,9 +146,7 @@ impl OrchestratorServer {
             per_agent_usage: HashMap::new(),
         }));
 
-        let plan_manager = Arc::new(
-            PlanManager::new().context("Failed to create PlanManager")?
-        );
+        let plan_manager = Arc::new(PlanManager::new().context("Failed to create PlanManager")?);
 
         Ok(Self {
             config,
@@ -334,13 +333,13 @@ impl OrchestratorServer {
                                 let mut size = queue_size.write().await;
                                 *size = size.saturating_sub(1);
                                 RpcResponse {
-                                id: request.id.clone(),
-                                result: None,
-                                error: Some(RpcError {
-                                    code: ERROR_INTERNAL,
-                                    message: "Write queue processing failed".to_string(),
-                                    data: None,
-                                }),
+                                    id: request.id.clone(),
+                                    result: None,
+                                    error: Some(RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: "Write queue processing failed".to_string(),
+                                        data: None,
+                                    }),
                                 }
                             }
                         }
@@ -424,7 +423,11 @@ impl OrchestratorServer {
         if let Some(connection_ids) = subscribers.get(topic) {
             // In a real implementation, we would send events to these connections
             // For now, we just log that an event would be sent
-            tracing::debug!("Publishing event to topic '{}' for {} subscribers", topic, connection_ids.len());
+            tracing::debug!(
+                "Publishing event to topic '{}' for {} subscribers",
+                topic,
+                connection_ids.len()
+            );
         }
     }
 
@@ -484,39 +487,33 @@ impl OrchestratorServer {
 
                         // Create lock manager for the repository
                         match RepositoryLock::new(&repo_path) {
-                            Ok(lock) => {
-                                match lock.status() {
-                                    Ok(Some(metadata)) => {
-                                        RpcResponse {
-                                            id: request.id.clone(),
-                                            result: Some(json!({
-                                                "locked": true,
-                                                "holder": format!("PID {}", metadata.pid),
-                                                "acquired_at": metadata.started_at.to_string(),
-                                            })),
-                                            error: None,
-                                        }
-                                    }
-                                    Ok(None) => {
-                RpcResponse {
-                    id: request.id.clone(),
-                    result: Some(json!({
-                        "locked": false,
-                    })),
-                    error: None,
-                                        }
-                                    }
-                                    Err(e) => RpcResponse {
-                                        id: request.id.clone(),
-                                        result: None,
-                                        error: Some(RpcError {
-                                            code: ERROR_INTERNAL,
-                                            message: format!("Failed to check lock status: {e}"),
-                                            data: None,
-                                        }),
-                                    },
-                                }
-                            }
+                            Ok(lock) => match lock.status() {
+                                Ok(Some(metadata)) => RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "locked": true,
+                                        "holder": format!("PID {}", metadata.pid),
+                                        "acquired_at": metadata.started_at.to_string(),
+                                    })),
+                                    error: None,
+                                },
+                                Ok(None) => RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "locked": false,
+                                    })),
+                                    error: None,
+                                },
+                                Err(e) => RpcResponse {
+                                    id: request.id.clone(),
+                                    result: None,
+                                    error: Some(RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Failed to check lock status: {e}"),
+                                        data: None,
+                                    }),
+                                },
+                            },
                             Err(e) => RpcResponse {
                                 id: request.id.clone(),
                                 result: None,
@@ -592,15 +589,13 @@ impl OrchestratorServer {
 
                         // Read file
                         match tokio::fs::read_to_string(&path).await {
-                            Ok(content) => {
-                                RpcResponse {
-                                    id: request.id.clone(),
-                                    result: Some(json!({
-                                        "content": content,
-                                    })),
-                                    error: None,
-                                }
-                            }
+                            Ok(content) => RpcResponse {
+                                id: request.id.clone(),
+                                result: Some(json!({
+                                    "content": content,
+                                })),
+                                error: None,
+                            },
                             Err(e) => RpcResponse {
                                 id: request.id.clone(),
                                 result: None,
@@ -625,11 +620,8 @@ impl OrchestratorServer {
             }
             "vcs.diff" => {
                 // Find repository root from codex_dir
-                let repo_root = config
-                    .codex_dir
-                    .parent()
-                    .unwrap_or_else(|| Path::new("."));
-                
+                let repo_root = config.codex_dir.parent().unwrap_or_else(|| Path::new("."));
+
                 match Repository::open(repo_root) {
                     Ok(repo) => {
                         // Get working directory diff
@@ -662,30 +654,28 @@ impl OrchestratorServer {
                                 Some(&mut diff_options),
                             )
                         } else {
-                            repo.diff_tree_to_workdir(
-                                None,
-                                Some(&mut diff_options),
-                            )
+                            repo.diff_tree_to_workdir(None, Some(&mut diff_options))
                         };
 
                         match diff {
                             Ok(diff) => {
                                 let mut diff_text = String::new();
-                                if let Err(e) = diff.print(
-                                    git2::DiffFormat::Patch,
-                                    |_delta, _hunk, line| {
+                                if let Err(e) =
+                                    diff.print(git2::DiffFormat::Patch, |_delta, _hunk, line| {
                                         match line.origin() {
                                             ' ' | '+' | '-' | 'F' | 'H' | 'B' => {
                                                 diff_text.push(line.origin());
-                                                if let Ok(content) = std::str::from_utf8(line.content()) {
+                                                if let Ok(content) =
+                                                    std::str::from_utf8(line.content())
+                                                {
                                                     diff_text.push_str(content);
                                                 }
                                             }
                                             _ => {}
                                         }
                                         true
-                                    },
-                                ) {
+                                    })
+                                {
                                     return RpcResponse {
                                         id: request.id.clone(),
                                         result: None,
@@ -798,7 +788,9 @@ impl OrchestratorServer {
                                             result: None,
                                             error: Some(RpcError {
                                                 code: ERROR_INTERNAL,
-                                                message: format!("Failed to force remove lock: {e}"),
+                                                message: format!(
+                                                    "Failed to force remove lock: {e}"
+                                                ),
                                                 data: None,
                                             }),
                                         };
@@ -817,7 +809,8 @@ impl OrchestratorServer {
                                                 "path": params.path.to_string_lossy().to_string(),
                                             }),
                                             subscribers,
-                                        ).await;
+                                        )
+                                        .await;
 
                                         RpcResponse {
                                             id: request.id.clone(),
@@ -882,7 +875,8 @@ impl OrchestratorServer {
                                                 "path": params.path.to_string_lossy().to_string(),
                                             }),
                                             subscribers,
-                                        ).await;
+                                        )
+                                        .await;
 
                                         RpcResponse {
                                             id: request.id.clone(),
@@ -895,11 +889,12 @@ impl OrchestratorServer {
                                     Err(e) => {
                                         // Check if it's a permission error (not owner)
                                         let error_msg = e.to_string();
-                                        let code = if error_msg.contains("Cannot release lock owned by") {
-                                            ERROR_CONFLICT
-                                        } else {
-                                            ERROR_INTERNAL
-                                        };
+                                        let code =
+                                            if error_msg.contains("Cannot release lock owned by") {
+                                                ERROR_CONFLICT
+                                            } else {
+                                                ERROR_INTERNAL
+                                            };
 
                                         RpcResponse {
                                             id: request.id.clone(),
@@ -961,7 +956,8 @@ impl OrchestratorServer {
                             if path.exists() {
                                 match tokio::fs::read_to_string(&path).await {
                                     Ok(existing_content) => {
-                                        use sha2::{Sha256, Digest};
+                                        use sha2::Digest;
+                                        use sha2::Sha256;
                                         let mut hasher = Sha256::new();
                                         hasher.update(existing_content.as_bytes());
                                         let current_sha = format!("{:x}", hasher.finalize());
@@ -987,7 +983,9 @@ impl OrchestratorServer {
                                             result: None,
                                             error: Some(RpcError {
                                                 code: ERROR_INTERNAL,
-                                                message: format!("Failed to read existing file: {e}"),
+                                                message: format!(
+                                                    "Failed to read existing file: {e}"
+                                                ),
                                                 data: None,
                                             }),
                                         };
@@ -1004,7 +1002,8 @@ impl OrchestratorServer {
                                 match tokio::fs::rename(&temp_path, &path).await {
                                     Ok(_) => {
                                         // Calculate new SHA256
-                                        use sha2::{Sha256, Digest};
+                                        use sha2::Digest;
+                                        use sha2::Sha256;
                                         let mut hasher = Sha256::new();
                                         hasher.update(params.content.as_bytes());
                                         let new_sha = format!("{:x}", hasher.finalize());
@@ -1110,7 +1109,10 @@ impl OrchestratorServer {
                                                 result: None,
                                                 error: Some(RpcError {
                                                     code: ERROR_INTERNAL,
-                                                    message: format!("Failed to apply patch to {}: {e}", file_path.display()),
+                                                    message: format!(
+                                                        "Failed to apply patch to {}: {e}",
+                                                        file_path.display()
+                                                    ),
                                                     data: None,
                                                 }),
                                             };
@@ -1307,7 +1309,8 @@ impl OrchestratorServer {
                                 "agent_id": params.agent_id,
                             }),
                             subscribers,
-                        ).await;
+                        )
+                        .await;
 
                         RpcResponse {
                             id: request.id.clone(),
@@ -1335,11 +1338,8 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Find repository root from codex_dir
-                        let repo_root = config
-                            .codex_dir
-                            .parent()
-                            .unwrap_or_else(|| Path::new("."));
-                        
+                        let repo_root = config.codex_dir.parent().unwrap_or_else(|| Path::new("."));
+
                         match Repository::open(repo_root) {
                             Ok(repo) => {
                                 // Get signature
@@ -1351,7 +1351,9 @@ impl OrchestratorServer {
                                             result: None,
                                             error: Some(RpcError {
                                                 code: ERROR_INTERNAL,
-                                                message: format!("Failed to get git signature: {e}"),
+                                                message: format!(
+                                                    "Failed to get git signature: {e}"
+                                                ),
                                                 data: None,
                                             }),
                                         };
@@ -1375,7 +1377,9 @@ impl OrchestratorServer {
                                 };
 
                                 // Add all modified and new files
-                                if let Err(e) = index.add_all(["*"], git2::IndexAddOption::DEFAULT, None) {
+                                if let Err(e) =
+                                    index.add_all(["*"], git2::IndexAddOption::DEFAULT, None)
+                                {
                                     return RpcResponse {
                                         id: request.id.clone(),
                                         result: None,
@@ -1430,8 +1434,8 @@ impl OrchestratorServer {
                                 };
 
                                 // Get parent commit if exists
-                                let parent_commit = repo.head().ok()
-                                    .and_then(|head| head.peel_to_commit().ok());
+                                let parent_commit =
+                                    repo.head().ok().and_then(|head| head.peel_to_commit().ok());
 
                                 let commit_id = if let Some(parent) = parent_commit {
                                     repo.commit(
@@ -1454,16 +1458,14 @@ impl OrchestratorServer {
                                 };
 
                                 match commit_id {
-                                    Ok(oid) => {
-                                        RpcResponse {
-                                            id: request.id.clone(),
-                                            result: Some(json!({
-                                                "success": true,
-                                                "commit_sha": oid.to_string(),
-                                            })),
-                                            error: None,
-                                        }
-                                    }
+                                    Ok(oid) => RpcResponse {
+                                        id: request.id.clone(),
+                                        result: Some(json!({
+                                            "success": true,
+                                            "commit_sha": oid.to_string(),
+                                        })),
+                                        error: None,
+                                    },
                                     Err(e) => RpcResponse {
                                         id: request.id.clone(),
                                         result: None,
@@ -1503,11 +1505,8 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Find repository root from codex_dir
-                        let repo_root = config
-                            .codex_dir
-                            .parent()
-                            .unwrap_or_else(|| Path::new("."));
-                        
+                        let repo_root = config.codex_dir.parent().unwrap_or_else(|| Path::new("."));
+
                         match Repository::open(repo_root) {
                             Ok(repo) => {
                                 // Find remote
@@ -1519,7 +1518,10 @@ impl OrchestratorServer {
                                             result: None,
                                             error: Some(RpcError {
                                                 code: ERROR_INTERNAL,
-                                                message: format!("Remote '{}' not found: {e}", params.remote),
+                                                message: format!(
+                                                    "Remote '{}' not found: {e}",
+                                                    params.remote
+                                                ),
                                                 data: None,
                                             }),
                                         };
@@ -1527,17 +1529,18 @@ impl OrchestratorServer {
                                 };
 
                                 // Push to remote
-                                let refspec = format!("refs/heads/{}:refs/heads/{}", params.branch, params.branch);
+                                let refspec = format!(
+                                    "refs/heads/{}:refs/heads/{}",
+                                    params.branch, params.branch
+                                );
                                 match remote.push(&[&refspec], None) {
-                                    Ok(_) => {
-                                        RpcResponse {
-                                            id: request.id.clone(),
-                                            result: Some(json!({
-                                                "success": true,
-                                            })),
-                                            error: None,
-                                        }
-                                    }
+                                    Ok(_) => RpcResponse {
+                                        id: request.id.clone(),
+                                        result: Some(json!({
+                                            "success": true,
+                                        })),
+                                        error: None,
+                                    },
                                     Err(e) => RpcResponse {
                                         id: request.id.clone(),
                                         result: None,
@@ -1649,7 +1652,10 @@ impl OrchestratorServer {
 
                         let mut subscribers = subscribers.write().await;
                         for topic in params.topics {
-                            subscribers.entry(topic).or_insert_with(Vec::new).push(connection_id.clone());
+                            subscribers
+                                .entry(topic)
+                                .or_insert_with(Vec::new)
+                                .push(connection_id.clone());
                         }
 
                         RpcResponse {
@@ -1704,11 +1710,8 @@ impl OrchestratorServer {
                     serde_json::from_value(request.params.clone());
                 match params {
                     Ok(params) => {
-                        match plan_manager.create_Plan(
-                            params.goal,
-                            params.title,
-                            params.created_by,
-                        ) {
+                        match plan_manager.create_Plan(params.goal, params.title, params.created_by)
+                        {
                             Ok(blueprint_id) => {
                                 // Publish blueprint.created event
                                 Self::publish_event(
@@ -1718,15 +1721,16 @@ impl OrchestratorServer {
                                         "title": params.title,
                                     }),
                                     subscribers,
-                                ).await;
+                                )
+                                .await;
 
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({
-                                "success": true,
-                                        "blueprint_id": blueprint_id,
-                            })),
-                            error: None,
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "success": true,
+                                                "blueprint_id": blueprint_id,
+                                    })),
+                                    error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -1791,7 +1795,11 @@ impl OrchestratorServer {
                             _ => ApprovalRole::User,
                         };
 
-                        match plan_manager.approve_Plan(&params.blueprint_id, params.approver.clone(), role) {
+                        match plan_manager.approve_Plan(
+                            &params.blueprint_id,
+                            params.approver.clone(),
+                            role,
+                        ) {
                             Ok(_) => {
                                 // Publish blueprint.approved event
                                 Self::publish_event(
@@ -1801,12 +1809,13 @@ impl OrchestratorServer {
                                         "approver": params.approver,
                                     }),
                                     subscribers,
-                                ).await;
+                                )
+                                .await;
 
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({ "success": true })),
+                                    error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -1851,12 +1860,13 @@ impl OrchestratorServer {
                                         "rejector": params.rejector,
                                     }),
                                     subscribers,
-                                ).await;
+                                )
+                                .await;
 
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({ "success": true })),
+                                    error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -1885,37 +1895,37 @@ impl OrchestratorServer {
                 let params: Result<BlueprintExportRequest, _> =
                     serde_json::from_value(request.params.clone());
                 match params {
-                    Ok(params) => {
-                        match plan_manager.export_Plan(&params.blueprint_id) {
-                            Ok((md_path, json_path)) => {
-                                let mut result = json!({
-                                    "success": true,
-                                });
+                    Ok(params) => match plan_manager.export_Plan(&params.blueprint_id) {
+                        Ok((md_path, json_path)) => {
+                            let mut result = json!({
+                                "success": true,
+                            });
 
-                                if params.format == "md" || params.format == "both" {
-                                    result["markdown_path"] = json!(md_path.to_string_lossy().to_string());
-                                }
-                                if params.format == "json" || params.format == "both" {
-                                    result["json_path"] = json!(json_path.to_string_lossy().to_string());
-                                }
-
-                        RpcResponse {
-                            id: request.id.clone(),
-                                    result: Some(result),
-                            error: None,
-                                }
+                            if params.format == "md" || params.format == "both" {
+                                result["markdown_path"] =
+                                    json!(md_path.to_string_lossy().to_string());
                             }
-                            Err(e) => RpcResponse {
+                            if params.format == "json" || params.format == "both" {
+                                result["json_path"] =
+                                    json!(json_path.to_string_lossy().to_string());
+                            }
+
+                            RpcResponse {
                                 id: request.id.clone(),
-                                result: None,
-                                error: Some(RpcError {
-                                    code: ERROR_INTERNAL,
-                                    message: format!("Failed to export blueprint: {e}"),
-                                    data: None,
-                                }),
-                            },
+                                result: Some(result),
+                                error: None,
+                            }
                         }
-                    }
+                        Err(e) => RpcResponse {
+                            id: request.id.clone(),
+                            result: None,
+                            error: Some(RpcError {
+                                code: ERROR_INTERNAL,
+                                message: format!("Failed to export blueprint: {e}"),
+                                data: None,
+                            }),
+                        },
+                    },
                     Err(e) => RpcResponse {
                         id: request.id.clone(),
                         result: None,
@@ -1961,19 +1971,25 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Convert BlueprintResearch to ResearchBlock
-                        use codex_core::plan::schema::{ResearchBlock, ResearchSource};
                         use chrono::Utc;
+                        use codex_core::plan::schema::ResearchBlock;
+                        use codex_core::plan::schema::ResearchSource;
                         let research = ResearchBlock {
                             query: params.research.query,
                             depth: params.research.depth,
                             strategy: params.research.strategy,
-                            sources: params.research.sources.into_iter().map(|s| ResearchSource {
-                                title: s.title,
-                                url: s.url,
-                                date: s.date,
-                                key_finding: s.key_finding,
-                                confidence: s.confidence,
-                            }).collect(),
+                            sources: params
+                                .research
+                                .sources
+                                .into_iter()
+                                .map(|s| ResearchSource {
+                                    title: s.title,
+                                    url: s.url,
+                                    date: s.date,
+                                    key_finding: s.key_finding,
+                                    confidence: s.confidence,
+                                })
+                                .collect(),
                             synthesis: params.research.synthesis,
                             confidence: params.research.confidence,
                             needs_approval: params.research.needs_approval,
@@ -1981,13 +1997,11 @@ impl OrchestratorServer {
                         };
 
                         match plan_manager.add_research(&params.blueprint_id, research) {
-                            Ok(_) => {
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
-                                }
-                            }
+                            Ok(_) => RpcResponse {
+                                id: request.id.clone(),
+                                result: Some(json!({ "success": true })),
+                                error: None,
+                            },
                             Err(e) => RpcResponse {
                                 id: request.id.clone(),
                                 result: None,

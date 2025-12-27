@@ -40,13 +40,13 @@ pub async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
 
     // Create runtime and executor
     let config = Arc::new(Config::load_from_disk_or_default()?);
+    let conversation_id = ConversationId::new();
     let auth_manager = AuthManager::shared(
         config.codex_home.clone(),
         false,
         config.cli_auth_credentials_store_mode,
     );
     let otel_manager = build_otel_manager(&config, conversation_id);
-    let conversation_id = ConversationId::new();
 
     let runtime = Arc::new(AgentRuntime::new(
         std::env::current_dir()?,

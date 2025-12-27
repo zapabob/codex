@@ -60,15 +60,16 @@ async fn rmcp_client_can_list_and_read_resources() -> anyhow::Result<()> {
     // Create a simple send_elicitation callback for testing
     let send_elicitation: SendElicitation = Box::new(
         |_request_id: RequestId, _elicitation: codex_rmcp_client::Elicitation| {
-            async move {
-                anyhow::bail!("Elicitation not supported in test")
-            }
-            .boxed()
+            async move { anyhow::bail!("Elicitation not supported in test") }.boxed()
         },
     );
 
     client
-        .initialize(init_params(), Some(Duration::from_secs(5)), send_elicitation)
+        .initialize(
+            init_params(),
+            Some(Duration::from_secs(5)),
+            send_elicitation,
+        )
         .await?;
 
     let list = client

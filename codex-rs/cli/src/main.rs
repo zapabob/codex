@@ -1361,7 +1361,10 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
     }
 
     // Start backend API server in background
-    println!("📡 Starting backend API server on port {}...", cmd.backend_port);
+    println!(
+        "📡 Starting backend API server on port {}...",
+        cmd.backend_port
+    );
     let backend_port = cmd.backend_port;
     let backend_handle = tokio::spawn(async move {
         // Try to run codex-gui binary first
@@ -1370,14 +1373,26 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
             .map(PathBuf::from)
             .or_else(|| {
                 // Try common locations
-                let home = std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")).ok()?;
+                let home = std::env::var("HOME")
+                    .or_else(|_| std::env::var("USERPROFILE"))
+                    .ok()?;
                 #[cfg(target_os = "windows")]
                 {
-                    Some(PathBuf::from(home).join(".cargo").join("bin").join("codex-gui.exe"))
+                    Some(
+                        PathBuf::from(home)
+                            .join(".cargo")
+                            .join("bin")
+                            .join("codex-gui.exe"),
+                    )
                 }
                 #[cfg(not(target_os = "windows"))]
                 {
-                    Some(PathBuf::from(home).join(".cargo").join("bin").join("codex-gui"))
+                    Some(
+                        PathBuf::from(home)
+                            .join(".cargo")
+                            .join("bin")
+                            .join("codex-gui"),
+                    )
                 }
             });
 
@@ -1419,7 +1434,7 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
                 .args(["install"])
                 .current_dir(&gui_dir_clone)
                 .output();
-            
+
             if let Ok(output) = install_result {
                 if !output.status.success() {
                     eprintln!("⚠️  npm install failed, but continuing...");
@@ -1444,9 +1459,7 @@ async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
             let url = format!("http://localhost:{}", frontend_port);
             #[cfg(target_os = "windows")]
             {
-                let _ = Command::new("cmd")
-                    .args(["/C", "start", &url])
-                    .spawn();
+                let _ = Command::new("cmd").args(["/C", "start", &url]).spawn();
             }
             #[cfg(target_os = "macos")]
             {

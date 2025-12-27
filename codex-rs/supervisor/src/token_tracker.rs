@@ -410,27 +410,31 @@ mod tests {
 
         // 制限以下
         let usage1 = TokenUsage::new(200, 100);
-        assert!(tracker
-            .record_usage(
-                "agent-1",
-                "task-1".to_string(),
-                "Test 1".to_string(),
-                usage1
-            )
-            .await
-            .is_ok());
+        assert!(
+            tracker
+                .record_usage(
+                    "agent-1",
+                    "task-1".to_string(),
+                    "Test 1".to_string(),
+                    usage1
+                )
+                .await
+                .is_ok()
+        );
 
         // 制限超過
         let usage2 = TokenUsage::new(300, 200);
-        assert!(tracker
-            .record_usage(
-                "agent-1",
-                "task-2".to_string(),
-                "Test 2".to_string(),
-                usage2
-            )
-            .await
-            .is_err());
+        assert!(
+            tracker
+                .record_usage(
+                    "agent-1",
+                    "task-2".to_string(),
+                    "Test 2".to_string(),
+                    usage2
+                )
+                .await
+                .is_err()
+        );
     }
 
     #[tokio::test]

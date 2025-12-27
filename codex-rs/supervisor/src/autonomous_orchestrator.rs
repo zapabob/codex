@@ -1,5 +1,3 @@
-use crate::subagent::AgentStatus;
-use crate::subagent::AgentType;
 use crate::AutonomousDispatcher;
 use crate::SubAgentManager;
 use crate::Supervisor;
@@ -7,6 +5,8 @@ use crate::TaskClassification;
 use crate::TokenAllocationStrategy;
 use crate::TokenTracker;
 use crate::TokenUsage;
+use crate::subagent::AgentStatus;
+use crate::subagent::AgentType;
 use crate::types::SupervisorConfig;
 use crate::types::SupervisorResult;
 use anyhow::Result;
@@ -161,8 +161,7 @@ impl AutonomousOrchestrator {
             agent_manager.register_agent(agent_type.clone());
         }
 
-        let token_tracker =
-            TokenTracker::new(Default::default(), TokenAllocationStrategy::Dynamic);
+        let token_tracker = TokenTracker::new(Default::default(), TokenAllocationStrategy::Dynamic);
         for agent_type in &agent_types {
             token_tracker
                 .register_agent(agent_type.clone(), agent_type.to_string())
@@ -189,7 +188,11 @@ impl AutonomousOrchestrator {
     ) -> Result<AutonomousOrchestrationResult> {
         let task_id = Uuid::new_v4().to_string();
         self.register_task(&task_id, description);
-        self.append_event(&task_id, None, "Queued task for autonomous orchestration run");
+        self.append_event(
+            &task_id,
+            None,
+            "Queued task for autonomous orchestration run",
+        );
 
         let classification = self.dispatcher.classify_task(description);
         self.append_event(
@@ -295,11 +298,7 @@ impl AutonomousOrchestrator {
 
             match self.supervisor.coordinate_goal(description, None).await {
                 Ok(plan) => {
-                    self.append_event(
-                        &task_id,
-                        None,
-                        "Supervisor produced follow-up plan",
-                    );
+                    self.append_event(&task_id, None, "Supervisor produced follow-up plan");
                     Some(plan)
                 }
                 Err(error) => {
@@ -326,8 +325,7 @@ impl AutonomousOrchestrator {
             .map(|record| record.status.clone())
             .unwrap_or(TaskStatus::Completed);
 
-        let conflict_prevented =
-            selection.used_fallback || selection.wait_attempts > 0;
+        let conflict_prevented = selection.used_fallback || selection.wait_attempts > 0;
 
         Ok(AutonomousOrchestrationResult {
             task_id,
@@ -564,10 +562,12 @@ mod tests {
         assert_eq!(result.task_status, TaskStatus::Completed);
         assert!(!result.task_log.is_empty());
         assert!(!result.conflict_prevented);
-        assert!(orchestrator
-            .recent_events()
-            .iter()
-            .any(|entry| entry.message.contains("completed task successfully")));
+        assert!(
+            orchestrator
+                .recent_events()
+                .iter()
+                .any(|entry| entry.message.contains("completed task successfully"))
+        );
     }
 
     #[tokio::test]
@@ -576,9 +576,7 @@ mod tests {
             .await
             .unwrap();
 
-        orchestrator
-            .active_agents
-            .insert(AgentType::CodeExpert);
+        orchestrator.active_agents.insert(AgentType::CodeExpert);
 
         let result = orchestrator
             .execute_task("Implement and test the new authentication feature")
@@ -588,10 +586,12 @@ mod tests {
         assert_eq!(result.assigned_agent, AgentType::TestingExpert);
         assert!(result.used_fallback_agent);
         assert!(result.conflict_prevented);
-        assert!(result
-            .task_log
-            .iter()
-            .any(|entry| entry.message.contains("Fallback agent")));
+        assert!(
+            result
+                .task_log
+                .iter()
+                .any(|entry| entry.message.contains("Fallback agent"))
+        );
     }
 
     #[tokio::test]
@@ -600,16 +600,15 @@ mod tests {
             .await
             .unwrap();
 
-        let result = orchestrator
-            .execute_task("Hello world")
-            .await
-            .unwrap();
+        let result = orchestrator.execute_task("Hello world").await.unwrap();
 
         assert!(result.supervisor_plan.is_some());
-        assert!(result
-            .task_log
-            .iter()
-            .any(|entry| entry.message.contains("Supervisor")));
+        assert!(
+            result
+                .task_log
+                .iter()
+                .any(|entry| entry.message.contains("Supervisor"))
+        );
     }
 
     #[tokio::test]
@@ -627,15 +626,15 @@ mod tests {
         assert!(record.is_some());
         let record = record.unwrap();
         assert_eq!(record.status, TaskStatus::Completed);
-        assert!(record
-            .events
-            .iter()
-            .any(|entry| entry.message.contains("Recorded token usage")));
+        assert!(
+            record
+                .events
+                .iter()
+                .any(|entry| entry.message.contains("Recorded token usage"))
+        );
 
         let events = orchestrator.recent_events();
         assert!(!events.is_empty());
-        assert!(events
-            .iter()
-            .any(|entry| entry.task_id == result.task_id));
+        assert!(events.iter().any(|entry| entry.task_id == result.task_id));
     }
 }
