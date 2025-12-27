@@ -11,6 +11,11 @@ const LINUX_SANDBOX_ARG0: &str = "codex-linux-sandbox";
 const APPLY_PATCH_ARG0: &str = "apply_patch";
 const MISSPELLED_APPLY_PATCH_ARG0: &str = "applypatch";
 
+pub fn arg0_dispatch() -> anyhow::Result<TempDir> {
+    load_dotenv();
+    Ok(prepend_path_entry_for_apply_patch()?)
+}
+
 /// While we want to deploy the Codex CLI as a single executable for simplicity,
 /// we also want to expose some of its functionality as distinct CLIs, so we use
 /// the "arg0 trick" to determine which CLI to dispatch. This effectively allows
