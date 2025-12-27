@@ -7,9 +7,9 @@ use codex_deep_research::MockProvider;
 use codex_deep_research::ResearchStrategy;
 use criterion::BenchmarkId;
 use criterion::Criterion;
-use criterion::black_box;
 use criterion::criterion_group;
 use criterion::criterion_main;
+use std::hint::black_box;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -42,8 +42,6 @@ fn bench_deep_research_by_depth(c: &mut Criterion) {
     group.measurement_time(Duration::from_secs(30));
 
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let provider = Arc::new(MockProvider);
-
     for depth in [1, 2, 3].iter() {
         let provider = Arc::new(MockProvider);
         group.bench_with_input(BenchmarkId::from_parameter(depth), depth, |b, &depth| {
