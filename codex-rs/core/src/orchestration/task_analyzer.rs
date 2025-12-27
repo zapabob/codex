@@ -97,10 +97,12 @@ impl TaskAnalyzer {
 
     /// Analyze user input and return task analysis.
     pub fn analyze(&self, user_input: &str) -> TaskAnalysis {
-        let complexity_score = self.calculate_complexity(user_input);
-        let detected_keywords = self.extract_keywords(user_input);
-        let skill_tags = self.derive_skill_tags(user_input, &detected_keywords);
+        let lower_input = user_input.to_lowercase();
+        let detected_keywords = self.extract_keywords(&lower_input);
         let recommended_skill_tags = self.derive_recommended_skill_tags(user_input, &detected_keywords);
+        let skill_score = recommended_skill_tags.len() as f64 * 0.1;
+        let complexity_score = self.calculate_complexity(user_input, &lower_input, skill_score);
+        let skill_tags = self.derive_skill_tags(user_input, &detected_keywords);
         let recommended_agents = self.recommend_agents(user_input, &detected_keywords, &recommended_skill_tags);
         let subtasks = self.decompose_into_subtasks(user_input, &detected_keywords);
 

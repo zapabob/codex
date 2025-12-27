@@ -9,7 +9,6 @@ use crate::agents::types::AgentStatus;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;
-use crate::orchestration::SkillTag;
 use crate::orchestration::TaskAnalysis;
 use crate::orchestration::collaboration_store::OrchestrationMetrics;
 use anyhow::Result;
@@ -401,7 +400,7 @@ impl AutoOrchestrator {
 
         let metrics = OrchestrationMetrics {
             skills: analysis.detected_keywords.clone(),
-            strategy: plan.strategy.clone(),
+            strategy: format!("{:?}", plan.strategy),
             fallback_used,
             agent_count: results.len(),
             execution_time_ms,
@@ -582,7 +581,7 @@ impl AutoOrchestrator {
         match plan.strategy {
             ExecutionStrategy::Sequential => {
                 for task in &plan.tasks {
-                    let mut task_results = self
+                    let (mut task_results, task_fallback_used) = self
                         .execute_task_sequence(
                             task,
                             timeout,
@@ -592,7 +591,7 @@ impl AutoOrchestrator {
                             plan.strategy,
                         )
                         .await;
-                    if !task_results.is_empty() {
+                    if task_fallback_used {
                         fallback_used = true;
                     }
                     results.append(&mut task_results);
@@ -643,7 +642,7 @@ impl AutoOrchestrator {
                             .iter()
                             .find(|task| task.agent == result.agent_name)
                         {
-                            let (retry_results, retry_fallback_used) = self
+                            let (mut retry_results, retry_fallback_used) = self
                                 .execute_task_sequence(
                                     task,
                                     timeout,
@@ -663,7 +662,7 @@ impl AutoOrchestrator {
 
                 if initial_results.is_empty() {
                     for task in &plan.tasks {
-                        let (task_results, task_fallback_used) = self
+                        let (mut task_results, task_fallback_used) = self
                             .execute_task_sequence(
                                 task,
                                 timeout,
@@ -930,7 +929,7 @@ impl AutoOrchestrator {
     pub fn determine_execution_strategy(
         &self,
         task: &PlannedTask,
-        analysis: Option<&TaskAnalysis>,
+        _analysis: Option<&TaskAnalysis>,
     ) -> ExecutionStrategy {
         debug!(
             "Determining execution strategy for task: {}",
