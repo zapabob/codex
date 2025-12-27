@@ -303,6 +303,23 @@ export class DualBridge extends EventEmitter {
     })
   }
 
+  // Execute codex command to get system metrics
+  async getSystemMetrics(): Promise<any> {
+    try {
+      const result = await this.executeCommand('codex', {
+        args: ['system', 'metrics', '--json'],
+      })
+      
+      if (result.exitCode === 0 && result.stdout) {
+        return JSON.parse(result.stdout)
+      }
+      return null
+    } catch (error) {
+      console.error('Failed to get system metrics via CLI:', error)
+      return null
+    }
+  }
+
   async discoverMCPServers(capabilities?: string[]): Promise<unknown[]> {
     return this.mcpRegistry.discoverServers(capabilities)
   }
