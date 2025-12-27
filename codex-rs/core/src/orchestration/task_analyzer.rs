@@ -99,11 +99,13 @@ impl TaskAnalyzer {
     pub fn analyze(&self, user_input: &str) -> TaskAnalysis {
         let lower_input = user_input.to_lowercase();
         let detected_keywords = self.extract_keywords(&lower_input);
-        let recommended_skill_tags = self.derive_recommended_skill_tags(user_input, &detected_keywords);
+        let recommended_skill_tags =
+            self.derive_recommended_skill_tags(user_input, &detected_keywords);
         let skill_score = recommended_skill_tags.len() as f64 * 0.1;
         let complexity_score = self.calculate_complexity(user_input, &lower_input, skill_score);
         let skill_tags = self.derive_skill_tags(user_input, &detected_keywords);
-        let recommended_agents = self.recommend_agents(user_input, &detected_keywords, &recommended_skill_tags);
+        let recommended_agents =
+            self.recommend_agents(user_input, &detected_keywords, &recommended_skill_tags);
         let subtasks = self.decompose_into_subtasks(user_input, &detected_keywords);
 
         TaskAnalysis {
@@ -313,25 +315,46 @@ impl TaskAnalyzer {
         let mut tags = Vec::new();
         let lower = input.to_lowercase();
 
-        if keywords
-            .iter()
-            .any(|k| ["dependency", "dependencies", "manifest", "lockfile", "package", "version"].contains(&k.as_str()))
-            || lower.contains("dependency")
+        if keywords.iter().any(|k| {
+            [
+                "dependency",
+                "dependencies",
+                "manifest",
+                "lockfile",
+                "package",
+                "version",
+            ]
+            .contains(&k.as_str())
+        }) || lower.contains("dependency")
         {
             tags.push(SkillTag::DependencySetup);
         }
 
-        if keywords
-            .iter()
-            .any(|k| ["security", "auth", "authentication", "oauth", "jwt", "vulnerability"].contains(&k.as_str()))
-        {
+        if keywords.iter().any(|k| {
+            [
+                "security",
+                "auth",
+                "authentication",
+                "oauth",
+                "jwt",
+                "vulnerability",
+            ]
+            .contains(&k.as_str())
+        }) {
             tags.push(SkillTag::SecurityVulnerability);
         }
 
-        if keywords
-            .iter()
-            .any(|k| ["performance", "latency", "throughput", "profiling", "benchmark", "optimize"].contains(&k.as_str()))
-        {
+        if keywords.iter().any(|k| {
+            [
+                "performance",
+                "latency",
+                "throughput",
+                "profiling",
+                "benchmark",
+                "optimize",
+            ]
+            .contains(&k.as_str())
+        }) {
             tags.push(SkillTag::PerformanceProfiling);
         }
 

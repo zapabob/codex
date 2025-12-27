@@ -108,7 +108,7 @@ async fn execute_auto_orchestration(
     let subtasks = analysis.subtasks.clone();
     let (agent_configs, skills_used) = collect_agent_metadata(&recommended_agents);
     let fallbacks = fallbacks_for_strategy(
-        &params.strategy,
+        params.strategy.as_str(),
         analysis.should_orchestrate(params.auto_threshold),
     );
     let skills_text = display_comma_list(&skills_used);
@@ -164,7 +164,6 @@ async fn execute_auto_orchestration(
                  **Recommended Agents**: {}\n\n\
                  **Execution Strategy**: {}\n\n\
                  **Detected Keywords**: {}\n\n\
-                 {}\n\
                  **Subtasks**:\n{}\n\n\
                  **Agent Configs**:\n{}\n\n\
                  **Summary**: {}",
