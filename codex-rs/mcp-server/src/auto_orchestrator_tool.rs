@@ -8,6 +8,30 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum OrchestrationStrategy {
+    Sequential,
+    Parallel,
+    Hybrid,
+}
+
+impl OrchestrationStrategy {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            OrchestrationStrategy::Sequential => "sequential",
+            OrchestrationStrategy::Parallel => "parallel",
+            OrchestrationStrategy::Hybrid => "hybrid",
+        }
+    }
+}
+
+impl std::fmt::Display for OrchestrationStrategy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// Parameters for the auto-orchestrator tool call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AutoOrchestratorToolParam {
@@ -20,19 +44,23 @@ pub struct AutoOrchestratorToolParam {
 
     /// Execution strategy: "sequential", "parallel", or "hybrid"
     #[serde(default = "default_strategy")]
-    pub strategy: String,
+    pub strategy: OrchestrationStrategy,
 
     /// Output format: "text" or "json"
     #[serde(default = "default_format")]
     pub format: String,
+
+    /// Optional skill hints to seed agent selection
+    #[serde(default)]
+    pub skills: Vec<String>,
 }
 
 fn default_threshold() -> f64 {
     0.7
 }
 
-fn default_strategy() -> String {
-    "hybrid".to_string()
+fn default_strategy() -> OrchestrationStrategy {
+    OrchestrationStrategy::Hybrid
 }
 
 fn default_format() -> String {
@@ -82,6 +110,12 @@ pub fn create_auto_orchestrator_tool() -> Tool {
                     "description": "Output format: 'text' (human-readable) or 'json' (structured)",
                     "enum": ["text", "json"],
                     "default": "text"
+                },
+                "skills": {
+                    "type": "array",
+                    "description": "Optional skill hints (e.g., security, testing, performance) to bias agent selection",
+                    "items": {"type": "string"},
+                    "minItems": 0
                 }
             })),
             required: Some(vec!["goal".to_string()]),

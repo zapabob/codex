@@ -92,7 +92,15 @@ async fn execute_auto_orchestration(
 
     // 1. Create TaskAnalyzer and analyze the goal
     let analyzer = TaskAnalyzer::new(params.auto_threshold);
-    let analysis = analyzer.analyze(&params.goal);
+    let mut analysis = analyzer.analyze(&params.goal);
+    let (skill_warnings, mapped_agents) = validate_and_map_skills(&params.skills);
+    if !mapped_agents.is_empty() {
+        for agent in mapped_agents {
+            if !analysis.recommended_agents.contains(&agent) {
+                analysis.recommended_agents.push(agent);
+            }
+        }
+    }
 
     let complexity = analysis.complexity_score;
     let recommended_agents = analysis.recommended_agents.clone();
@@ -156,6 +164,7 @@ async fn execute_auto_orchestration(
                  **Recommended Agents**: {}\n\n\
                  **Execution Strategy**: {}\n\n\
                  **Detected Keywords**: {}\n\n\
+                 {}\n\
                  **Subtasks**:\n{}\n\n\
                  **Agent Configs**:\n{}\n\n\
                  **Summary**: {}",
@@ -396,4 +405,29 @@ fn agent_config_lines(agent_configs: &[AgentConfigMetadata]) -> String {
             .collect::<Vec<_>>()
             .join("\n")
     }
+}
+
+fn validate_and_map_skills(skills: &[String]) -> (Vec<String>, Vec<String>) {
+    if skills.is_empty() {
+        return (Vec::new(), Vec::new());
+    }
+
+    let mut warnings = Vec::new();
+    let mut agents = Vec::new();
+
+    for skill in skills {
+        let normalized = skill.trim().to_lowercase();
+        match normalized.as_str() {
+            "security" | "sec" | "auth" => agents.push("sec-audit".to_string()),
+            "testing" | "qa" | "test" => agents.push("test-gen".to_string()),
+            "performance" | "perf" => agents.push("code-reviewer".to_string()),
+            "docs" | "documentation" | "doc" => agents.push("researcher".to_string()),
+            "" => {}
+            _ => warnings.push(format!(
+                "Unknown skill '{skill}', using TaskAnalyzer suggestions."
+            )),
+        }
+    }
+
+    (warnings, agents)
 }
