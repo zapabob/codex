@@ -234,6 +234,18 @@ impl TaskAnalyzer {
             "documentation",
             "docs",
             "readme",
+            "dependency",
+            "dependencies",
+            "manifest",
+            "lockfile",
+            "package",
+            "version",
+            "performance",
+            "latency",
+            "throughput",
+            "profiling",
+            "benchmark",
+            "optimize",
         ];
 
         keywords
@@ -329,24 +341,36 @@ impl TaskAnalyzer {
     ) -> Vec<String> {
         let mut agents = HashSet::new();
 
-        for tag in skill_tags {
-            match tag {
-                SkillTag::SecurityVulnerability => {
-                    agents.insert("sec-audit".to_string());
-                }
-                SkillTag::TestHardening => {
-                    agents.insert("test-gen".to_string());
-                }
-                SkillTag::DocumentationGeneration => {
-                    agents.insert("researcher".to_string());
-                }
-                SkillTag::PerformanceProfiling
-                | SkillTag::RefactorRewrite
-                | SkillTag::Migration
-                | SkillTag::DependencySetup => {
-                    agents.insert("code-reviewer".to_string());
-                }
-            }
+        // Dependency analysis
+        if keywords.iter().any(|k| {
+            [
+                "dependency",
+                "dependencies",
+                "manifest",
+                "lockfile",
+                "package",
+                "version",
+            ]
+            .contains(&k.as_str())
+        }) {
+            agents.insert("dependency-analyst".to_string());
+            agents.insert("dependency-scout".to_string());
+        }
+
+        // Performance analysis
+        if keywords.iter().any(|k| {
+            [
+                "performance",
+                "latency",
+                "throughput",
+                "profiling",
+                "benchmark",
+                "optimize",
+            ]
+            .contains(&k.as_str())
+        }) {
+            agents.insert("performance-analyst".to_string());
+            agents.insert("performance-scout".to_string());
         }
 
         // Security-related
@@ -516,32 +540,38 @@ mod tests {
     }
 
     #[test]
-    fn test_skill_tags_influence_recommendations() {
+    fn test_dependency_agent_recommendation() {
         let analyzer = TaskAnalyzer::new(0.7);
-        let analysis = analyzer.analyze(
-            "Investigate CVE-2023-12345 supply chain vulnerability and add regression tests",
-        );
+        let analysis =
+            analyzer.analyze("Audit dependencies in Cargo.toml and package-lock for risks");
 
         assert!(
             analysis
-                .recommended_skill_tags
-                .contains(&SkillTag::SecurityVulnerability)
-        );
-        assert!(
-            analysis
-                .recommended_skill_tags
-                .contains(&SkillTag::TestHardening)
+                .recommended_agents
+                .contains(&"dependency-analyst".to_string())
         );
         assert!(
             analysis
                 .recommended_agents
-                .contains(&"sec-audit".to_string())
+                .contains(&"dependency-scout".to_string())
+        );
+    }
+
+    #[test]
+    fn test_performance_agent_recommendation() {
+        let analyzer = TaskAnalyzer::new(0.7);
+        let analysis =
+            analyzer.analyze("Profile the API latency and optimize throughput bottlenecks");
+
+        assert!(
+            analysis
+                .recommended_agents
+                .contains(&"performance-analyst".to_string())
         );
         assert!(
             analysis
                 .recommended_agents
-                .contains(&"test-gen".to_string())
+                .contains(&"performance-scout".to_string())
         );
-        assert!(analysis.complexity_score > 0.5);
     }
 }

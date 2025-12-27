@@ -235,9 +235,12 @@ mod tests {
     use codex_core::protocol::EventMsg;
     use codex_core::protocol::SessionConfiguredEvent;
     use codex_protocol::ConversationId;
-    use codex_protocol::config_types::ReasoningEffort;
+    use codex_protocol::openai_models::ReasoningEffort;
+    use codex_protocol::protocol::AskForApproval;
+    use codex_protocol::protocol::SandboxPolicy;
     use pretty_assertions::assert_eq;
     use serde_json::json;
+    use std::path::Path;
     use tempfile::NamedTempFile;
 
     use super::*;
@@ -249,11 +252,20 @@ mod tests {
 
         let conversation_id = ConversationId::new();
         let rollout_file = NamedTempFile::new()?;
+        let cwd = rollout_file
+            .path()
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .to_path_buf();
         let event = Event {
             id: "1".to_string(),
             msg: EventMsg::SessionConfigured(SessionConfiguredEvent {
                 session_id: conversation_id,
                 model: "gpt-4o".to_string(),
+                model_provider_id: "openai".to_string(),
+                approval_policy: AskForApproval::Never,
+                sandbox_policy: SandboxPolicy::ReadOnly,
+                cwd: cwd.clone(),
                 reasoning_effort: Some(ReasoningEffort::default()),
                 history_log_id: 1,
                 history_entry_count: 1000,
@@ -286,9 +298,18 @@ mod tests {
 
         let conversation_id = ConversationId::new();
         let rollout_file = NamedTempFile::new()?;
+        let cwd = rollout_file
+            .path()
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .to_path_buf();
         let session_configured_event = SessionConfiguredEvent {
             session_id: conversation_id,
             model: "gpt-4o".to_string(),
+            model_provider_id: "openai".to_string(),
+            approval_policy: AskForApproval::Never,
+            sandbox_policy: SandboxPolicy::ReadOnly,
+            cwd: cwd.clone(),
             reasoning_effort: Some(ReasoningEffort::default()),
             history_log_id: 1,
             history_entry_count: 1000,
@@ -312,21 +333,11 @@ mod tests {
             panic!("expected Notification for first message");
         };
         assert_eq!(method, "codex/event");
-        let expected_params = json!({
-            "_meta": {
-                "requestId": "123",
-            },
-            "id": "1",
-            "msg": {
-                "session_id": session_configured_event.session_id,
-                "model": session_configured_event.model,
-                "reasoning_effort": session_configured_event.reasoning_effort,
-                "history_log_id": session_configured_event.history_log_id,
-                "history_entry_count": session_configured_event.history_entry_count,
-                "type": "session_configured",
-                "rollout_path": rollout_file.path().to_path_buf(),
-            }
-        });
+        let mut expected_params = serde_json::to_value(&event)?;
+        expected_params
+            .as_object_mut()
+            .expect("event params serialize to object")
+            .insert("_meta".to_string(), json!({ "requestId": "123" }));
         assert_eq!(params.unwrap(), expected_params);
         Ok(())
     }

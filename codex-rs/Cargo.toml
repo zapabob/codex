@@ -20,6 +20,7 @@ members = [
     "execpolicy",
     "execpolicy-legacy",
     "keyring-store",
+    "cuda-runtime",
     "file-search",
     "linux-sandbox",
     "lmstudio",
@@ -72,6 +73,7 @@ codex-chatgpt = { path = "chatgpt" }
 codex-client = { path = "codex-client" }
 codex-common = { path = "common" }
 codex-core = { path = "core" }
+codex-cuda-runtime = { path = "cuda-runtime" }
 codex-exec = { path = "exec" }
 codex-execpolicy = { path = "execpolicy" }
 codex-feedback = { path = "feedback" }

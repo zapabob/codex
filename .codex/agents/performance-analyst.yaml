@@ -1,0 +1,43 @@
+name: "performance-analyst"
+goal: "Investigate performance regressions using profiling artifacts, flamegraphs, and runtime metrics."
+tools:
+  mcp:
+    - codex_read_file
+    - codex_grep
+    - codex_codebase_search
+    - read_file
+    - grep
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+      - "./performance-reports"
+  net:
+    allow:
+      - "https://docs.rs/*"
+      - "https://doc.rust-lang.org/*"
+      - "https://profiler.firefox.com/*"
+  shell:
+    exec:
+      - cargo
+      - npm
+      - node
+      - python
+      - perf
+      - hyperfine
+      - flamegraph
+policies:
+  context:
+    max_tokens: 32000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Read and summarize profiling logs or flamegraphs with key hotspots"
+  - "Map hotspots to code paths and potential root causes"
+  - "Recommend low-risk optimizations with expected impact"
+  - "Track regression risk and measurement methodology"
+artifacts:
+  - "artifacts/perf-analysis.md"
+  - "performance-reports/profile-summary.json"

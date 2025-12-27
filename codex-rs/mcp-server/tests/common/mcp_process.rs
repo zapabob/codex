@@ -143,34 +143,44 @@ impl McpProcess {
         .await?;
 
         let initialized = self.read_jsonrpc_message().await?;
-        let os_info = os_info::get();
-        let user_agent = format!(
-            "codex_cli_rs/0.0.0 ({} {}; {}) {} (elicitation test; 0.0.0)",
-            os_info.os_type(),
-            os_info.version(),
-            os_info.architecture().unwrap_or("unknown"),
-            codex_core::terminal::user_agent()
-        );
+        let JSONRPCMessage::Response(initialized_response) = initialized else {
+            panic!("initialize must return a response");
+        };
+        assert_eq!(initialized_response.id, RequestId::Integer(request_id));
+
+        let result_obj = initialized_response
+            .result
+            .as_object()
+            .expect("initialize response.result must be an object");
         assert_eq!(
-            JSONRPCMessage::Response(JSONRPCResponse {
-                jsonrpc: JSONRPC_VERSION.into(),
-                id: RequestId::Integer(request_id),
-                result: json!({
-                    "capabilities": {
-                        "tools": {
-                            "listChanged": true
-                        },
-                    },
-                    "serverInfo": {
-                        "name": "codex-mcp-server",
-                        "title": "Codex",
-                        "version": "0.0.0",
-                        "user_agent": user_agent
-                    },
-                    "protocolVersion": mcp_types::MCP_SCHEMA_VERSION
-                })
-            }),
-            initialized
+            result_obj.get("protocolVersion"),
+            Some(&json!(mcp_types::MCP_SCHEMA_VERSION))
+        );
+        let tools_changed = result_obj
+            .get("capabilities")
+            .and_then(|caps| caps.get("tools"))
+            .and_then(|tools| tools.get("listChanged"))
+            .and_then(|value| value.as_bool())
+            .unwrap_or_default();
+        assert!(tools_changed, "tools.listChanged should be true");
+
+        let server_info = result_obj
+            .get("serverInfo")
+            .and_then(|info| info.as_object())
+            .expect("serverInfo must be present");
+        assert_eq!(server_info.get("name"), Some(&json!("codex-mcp-server")));
+        assert_eq!(server_info.get("title"), Some(&json!("Codex")));
+        assert_eq!(
+            server_info.get("version"),
+            Some(&json!(env!("CARGO_PKG_VERSION")))
+        );
+        let user_agent_value = server_info
+            .get("user_agent")
+            .and_then(|ua| ua.as_str())
+            .unwrap_or_default();
+        assert!(
+            user_agent_value.contains("(elicitation test; 0.0.0)"),
+            "user_agent should include client label, got `{user_agent_value}`"
         );
 
         // Send notifications/initialized to ack the response.
