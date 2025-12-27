@@ -589,6 +589,24 @@ struct LogoutCommand {
 }
 
 #[derive(Debug, Parser)]
+struct GuiCommand {
+    #[clap(flatten)]
+    config_overrides: CliConfigOverrides,
+
+    /// Port for the GUI frontend server (default: 3000)
+    #[arg(long, default_value = "3000")]
+    port: u16,
+
+    /// Port for the backend API server (default: 8787)
+    #[arg(long, default_value = "8787")]
+    backend_port: u16,
+
+    /// Don't open the browser automatically
+    #[arg(long)]
+    no_browser: bool,
+}
+
+#[derive(Debug, Parser)]
 struct GenerateTsCommand {
     /// Output directory where .ts files will be written
     #[arg(short = 'o', long = "out", value_name = "DIR")]
