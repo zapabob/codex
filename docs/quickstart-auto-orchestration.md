@@ -16,6 +16,15 @@ Codex が **ClaudeCode 風の自律オーケストレーション**機能を獲�
 - ✅ Node.js と Rust の MCP 統合
 - ✅ 透過的な UX（ユーザーは意識不要）
 
+### ClaudeCode 最新リリース要約（主要スキル）
+
+- **セキュリティ監査強化**: セキュリティ修正パッチ生成、脆弱性スキャン、秘密情報検出の自動化。
+- **コードリライタ / 大規模リファクタ**: 変更意図を守った差分生成、複数ファイルの安全な一括書き換え、スタイル準拠の自動整形。
+- **テスト / ドキュメント生成**: ユニット・統合テストの雛形生成、カバレッジ不足の補完、変更点に基づく README / ADR / API docs 更新。
+- **依存解析とアップグレード支援**: 依存グラフの可視化、脆弱・古いライブラリの検出、更新手順とブレークチェンジ警告の提示。
+- **プロジェクトセットアップ / ブートストラップ**: 新規リポジトリの初期構成、ビルド・CI 設定の雛形化、ランブック生成。
+- **開発ループ最適化**: エージェント間の自動調整、差分プレビュー、計画 ↔ 実行 ↔ 検証の短縮。
+
 ---
 
 ## ⚡ 3分でわかる使い方
@@ -39,6 +48,18 @@ codex "Implement user authentication with JWT, write tests, and security review"
 codex "Fix typo in README"
 # → 複雑度: 0.15
 # → 通常実行（オーケストレーションなし）
+```
+
+**スキルと戦略を指定したい場合**
+
+```bash
+codex "Implement OAuth 2.0 with perf hardening" \
+  --skills security,perf \
+  --strategy hybrid \
+  --auto-threshold 0.7
+
+# → security/perf を優先した推奨エージェントを生成
+# → 閾値を下回る場合は警告を表示
 ```
 
 ### 2. Node.js SDK で使用
@@ -205,7 +226,22 @@ const result = await orchestrator.execute(goal, {
 });
 ```
 
-### Example 5: シーケンシャル実行
+### Example 5: Skill ヒントを渡す
+
+```typescript
+const result = await orchestrator.execute(
+  "Run auth hardening with perf checks",
+  {
+    skills: ["security", "performance"],
+    strategy: "hybrid",
+    complexityThreshold: 0.7,
+  }
+);
+
+console.log(result.taskAnalysis?.skillWarnings);
+```
+
+### Example 6: シーケンシャル実行
 
 ```typescript
 // 依存関係がある場合は順次実行
@@ -319,11 +355,11 @@ where codex  # Windows
 - MCP Tool（codex-auto-orchestrate）
 - Node.js SDK（CodexOrchestrator）
 - ドキュメント完全整備
+- CLI フラグ（`--skills`, `--strategy`, `--auto-threshold`）
 
 ### 🚧 今後の拡張
 
 - Config.toml での閾値カスタマイズ
-- CLI フラグ `--auto-orchestrate` `--auto-threshold`
 - ストリーミング進捗表示の強化
 - エージェント実行履歴の可視化
 
@@ -367,3 +403,21 @@ where codex  # Windows
 **更新日**: 2025-10-15
 
 **なんJ風まとめ**: よっしゃ！ClaudeCode 風の自律オーケストレーションが完成したで！🔥 タスク分析から並列実行まで全自動や！Node.js と Rust が MCP で完璧に連携して、透過的に専門エージェントが協調するで！これで Codex も ClaudeCode に負けへんわ！💪✨
+
+---
+
+## 🤖 ClaudeCodeスキル対応表（実装前ドラフト）
+
+> TaskAnalyzer のキーワード辞書に反映するための仕様ドラフト。キーワード → エージェント/戦略 → 期待出力の関係を明記し、`codex-rs/core/src/orchestration/task_analyzer.rs` 実装前に合意するためのメモ。
+
+| キーワード/テーマ                                        | エージェント / 推奨戦略                           | 期待出力例                                                                                     |
+| -------------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| security, auth, oauth, jwt, compliance, secrets          | `sec-audit` / **hybrid**（初動評価→並列対処）       | 脅威モデル、脆弱性リスト、修正パッチ、再発防止チェックリスト                                   |
+| test, coverage, qa, ci, review                           | `test-gen` / **parallel**（他タスクと同時実行）     | テスト雛形、実行コマンド、カバレッジ目標、失敗時の修正提案                                     |
+| refactor, migrate, cleanup, optimize, performance        | `code-reviewer` / **hybrid**（計画→差分生成）      | 変更計画、差分パッチ、リスク/互換性メモ、ロールバック手順                                     |
+| docs, documentation, readme, guide, spec, adr            | `researcher` / **sequential**（変更確認→文書生成） | 更新済み README/ADR、変更点サマリー、API/CLI リファレンス差分                                  |
+| dependency, package, upgrade, license, supply chain      | `code-reviewer`（将来 `dep-audit` 追加予定） / **sequential** | 依存グラフ、影響範囲、アップグレード手順、ライセンス注意点                                     |
+| scaffold, bootstrap, project setup, init, env, config    | `code-reviewer` + `researcher` / **sequential**    | 初期ディレクトリ構成、設定テンプレート、手順書、CI/ビルド設定のドラフト                        |
+| （デフォルト / マッチなし）                             | `code-reviewer` / **sequential**                  | 軽量レビュー、最小限の差分提案、追加エージェント不要時の単独実行                               |
+
+※ ドキュメントのみのドラフト。実装変更は `task_analyzer.rs` 更新時に行う。

@@ -67,6 +67,7 @@ async execute(
 - `goal`: The task goal to execute
 - `options.complexityThreshold`: Threshold for triggering orchestration (0.0-1.0, default: 0.7)
 - `options.strategy`: Execution strategy ('sequential' | 'parallel' | 'hybrid', default: 'hybrid')
+- `options.skills`: Skill hints to bias agent selection (e.g., ['security', 'performance'])
 - `options.format`: Output format ('text' | 'json', default: 'json')
 
 **Returns**: `OrchestratedResult` with execution details
@@ -113,6 +114,7 @@ interface OrchestratedResult {
 interface OrchestrateOptions {
   complexityThreshold?: number;  // 0.0-1.0
   strategy?: 'sequential' | 'parallel' | 'hybrid';
+  skills?: string[];
   format?: 'text' | 'json';
 }
 ```
@@ -154,6 +156,19 @@ const result = await orchestrator.execute(
 const result = await orchestrator.execute(
   "Migrate database schema and update API",
   { strategy: 'sequential' }
+);
+```
+
+### Skill Hints
+
+```typescript
+const result = await orchestrator.execute(
+  "Harden authentication with load testing",
+  {
+    skills: ['security', 'performance'],
+    complexityThreshold: 0.75,
+    strategy: 'hybrid',
+  }
 );
 ```
 

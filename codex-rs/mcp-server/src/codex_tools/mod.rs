@@ -30,7 +30,7 @@ impl CodexMcpTool {
 
     /// Get all tools (including write/shell)
     pub fn all_tools() -> Vec<Self> {
-        let tools = vec![
+        let base_tools = vec![
             Self::read_file(),
             Self::grep(),
             Self::codebase_search(),
@@ -40,10 +40,15 @@ impl CodexMcpTool {
 
         #[cfg(feature = "cuda")]
         {
+            let mut tools = base_tools;
             tools.push(Self::cuda_execute());
+            tools
         }
 
-        tools
+        #[cfg(not(feature = "cuda"))]
+        {
+            base_tools
+        }
     }
 
     /// CUDA GPU acceleration tool
@@ -89,6 +94,7 @@ mod tests {
         assert_eq!(safe_tools[0].name, "codex_read_file");
 
         let all_tools = CodexMcpTool::all_tools();
-        assert_eq!(all_tools.len(), 5);
+        let expected_len = if cfg!(feature = "cuda") { 6 } else { 5 };
+        assert_eq!(all_tools.len(), expected_len);
     }
 }

@@ -10,6 +10,15 @@
 
 Codex の自動オーケストレーション機能は、ClaudeCode のような透過的なサブエージェント協調を実現します。ユーザーが明示的に `delegate` コマンドを実行しなくても、タスクの複雑度を自動分析し、必要に応じて専門サブエージェントを並列起動します。
 
+### ClaudeCode 最新リリース要約（主要スキル）
+
+- **セキュリティ監査強化**: セキュリティ修正パッチ生成、脆弱性スキャン、秘密情報検出の自動化。
+- **コードリライタ / 大規模リファクタ**: 変更意図を守った差分生成、複数ファイルの安全な一括書き換え、スタイル準拠の自動整形。
+- **テスト / ドキュメント生成**: ユニット・統合テストの雛形生成、カバレッジ不足の補完、変更点に基づく README / ADR / API docs 更新。
+- **依存解析とアップグレード支援**: 依存グラフの可視化、脆弱・古いライブラリの検出、更新手順とブレークチェンジ警告の提示。
+- **プロジェクトセットアップ / ブートストラップ**: 新規リポジトリの初期構成、ビルド・CI 設定の雛形化、ランブック生成。
+- **開発ループ最適化**: エージェント間の自動調整、差分プレビュー、計画 ↔ 実行 ↔ 検証の短縮。
+
 ---
 
 ## 🏗️ アーキテクチャ
@@ -81,6 +90,22 @@ TaskAnalyzer
 | refactor, migrate, update, fix | `code-reviewer`              |
 | documentation, docs, readme    | `researcher`                 |
 | （該当なし）                   | `code-reviewer` (デフォルト) |
+
+### ClaudeCodeスキル対応表（`codex-rs/core/src/orchestration/task_analyzer.rs` 用ドラフト）
+
+> **目的**: TaskAnalyzer のキーワード辞書を拡張する際の仕様メモ（まだ実装しない）。キーワード群 → 推奨エージェント/戦略 → 期待出力を明示し、ClaudeCode スキルのマッピングを固定化する。
+
+| キーワード/テーマ                                                | 対応エージェント / 推奨戦略                           | 期待出力例                                                                                     |
+| ---------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| security, auth, oauth, jwt, compliance, secrets                  | `sec-audit` / **hybrid**（最初に脅威評価→並列対処）     | 脅威モデル、脆弱性リスト、修正パッチ、再発防止チェックリスト                                   |
+| test, coverage, qa, ci, review                                   | `test-gen` / **parallel**（他タスクと同時実行）         | ユニット/統合テスト雛形、実行コマンド、カバレッジ目標、失敗時の修正提案                       |
+| refactor, migrate, cleanup, optimize, performance                | `code-reviewer` / **hybrid**（計画→差分生成）          | 変更計画、差分パッチ、リスク/互換性メモ、ロールバック手順                                     |
+| docs, documentation, readme, guide, spec, adr                    | `researcher` / **sequential**（変更確認→文書生成）     | 更新済み README/ADR、変更点サマリー、API/CLI リファレンス差分                                  |
+| dependency, package, upgrade, license, supply chain              | `code-reviewer`（将来 `dep-audit` を追加予定） / **sequential** | 依存グラフ、影響範囲、アップグレード手順、ライセンス注意点                                     |
+| scaffold, bootstrap, project setup, init, env, config            | `code-reviewer` + `researcher` / **sequential**        | 初期ディレクトリ構成、設定テンプレート、手順書、CI/ビルド設定のドラフト                        |
+| （デフォルト / マッチなし）                                     | `code-reviewer` / **sequential**                      | 軽量レビュー、最小限の差分提案、追加エージェント不要時の単独実行                               |
+
+※ 上記は実装前のドラフトであり、実際のキーワードリストや戦略は `task_analyzer.rs` への反映時に確定する。
 
 ---
 
@@ -285,7 +310,29 @@ inputs.insert("previous_results", previous_results.summary());
   "complexity_score": 0.85,
   "threshold": 0.7,
   "recommended_agents": ["sec-audit", "test-gen", "code-reviewer"],
+  "skills_used": ["security-review", "testing", "code-quality"],
   "strategy": "parallel",
+  "fallbacks": [
+    "retry_failed_agents_sequentially",
+    "reduce_scope_and_rerun",
+    "fallback_to_single_agent_execution"
+  ],
+  "agent_configs": [
+    {
+      "agent": "sec-audit",
+      "skill_tag": "security-review",
+      "scope": "specialist",
+      "config_path": ".codex/agents/sec-audit.yaml",
+      "capabilities": ["Threat modeling", "Static security scan", "Secrets and credential review"]
+    },
+    {
+      "agent": "test-gen",
+      "skill_tag": "testing",
+      "scope": "specialist",
+      "config_path": ".codex/agents/test-gen.yaml",
+      "capabilities": ["Unit/integration test authoring", "Edge case discovery", "Snapshot verification"]
+    }
+  ],
   "execution_summary": "Task complexity (0.85) exceeds threshold (0.7). Orchestrating 3 specialized agents using parallel strategy."
 }
 ```
@@ -315,6 +362,32 @@ inputs.insert("previous_results", previous_results.summary());
 2. test-gen
 3. code-reviewer
 ```
+
+### エージェント権限サンプル（スキル別）
+
+- 依存解析（専用/汎用）  
+  - `.codex/agents/dependency-analyst.yaml`: manifest/lockfile 読み取り、バージョン差分、サプライチェーンリスク評価  
+  - `.codex/agents/dependency-scout.yaml`: 軽量な依存スキャン、ライセンスメモ、トランジティブ依存のサーフェス
+- パフォーマンス（専用/汎用）  
+  - `.codex/agents/performance-analyst.yaml`: プロファイル/フレームグラフ読解、ボトルネック特定、最適化案提示  
+  - `.codex/agents/performance-scout.yaml`: ログ/ベンチ結果の即時トリアージ、設定確認、追加計測の提案
+- 共通: MCPレスポンスの `structured_content` に `skills_used`, `strategy`, `fallbacks`, `agent_configs` が入るため、クライアントはスキルタグとテンプレートパスをそのまま表示可能。
+
+---
+
+## 📡 モニタリング
+
+### 収集メトリクス
+
+- イベント: `codex.auto_orchestration.metrics`（既存ロガー/OTel エクスポーター経由）
+- タグ: `skill`（検出スキルのCSV）、`strategy`、`fallback_used`、`agent_count`、`execution_time_ms`、`agents`（構成リスト）
+- 状態参照: `CollaborationStore::latest_metrics()` で直近のスナップショットを取得可能
+
+### 推奨ダッシュボード例
+
+1. **フォールバック率ヒートマップ**: `fallback_used=true` をカウントし、`skill` × `strategy` で集計（過剰並列や設定ミスを検知）。
+2. **実行時間の p95/p99**: `execution_time_ms` の分位数を `agent_count` 別に可視化（スケール時のボトルネック把握）。
+3. **エージェント構成トップN**: `agents`/`skill` 別の実行回数ランキングと平均所要時間（標準パターンと異常構成を早期発見）。
 
 ---
 

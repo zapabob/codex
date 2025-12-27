@@ -1,0 +1,44 @@
+name: "dependency-analyst"
+goal: "Perform deep dependency analysis, manifest auditing, and supply-chain risk assessment across language ecosystems."
+tools:
+  mcp:
+    - codex_read_file
+    - codex_grep
+    - codex_codebase_search
+    - read_file
+    - grep
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+      - "./dependency-reports"
+  net:
+    allow:
+      - "https://crates.io/*"
+      - "https://docs.rs/*"
+      - "https://registry.npmjs.org/*"
+      - "https://pypi.org/pypi/*"
+  shell:
+    exec:
+      - cargo
+      - npm
+      - pnpm
+      - pip
+      - poetry
+      - uv
+      - jq
+policies:
+  context:
+    max_tokens: 30000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Identify outdated or vulnerable dependencies across manifests and lockfiles"
+  - "Detect version drift between manifests and resolved lockfiles"
+  - "Highlight potential license or supply-chain risks"
+  - "Provide upgrade and pinning recommendations with justifications"
+artifacts:
+  - "artifacts/dependency-audit.md"
+  - "dependency-reports/lockfile-diff.json"

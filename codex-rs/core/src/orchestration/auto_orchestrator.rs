@@ -11,6 +11,7 @@ use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;
 use crate::orchestration::SkillTag;
 use crate::orchestration::TaskAnalysis;
+use crate::orchestration::collaboration_store::OrchestrationMetrics;
 use anyhow::Result;
 use chrono::DateTime;
 use chrono::Utc;
@@ -150,6 +151,12 @@ pub struct AutoOrchestrator {
 
     /// Workspace directory
     workspace_dir: std::path::PathBuf,
+}
+
+#[derive(Debug)]
+struct AgentExecutionOutcome {
+    results: Vec<AgentResult>,
+    fallback_used: bool,
 }
 
 impl AutoOrchestrator {
@@ -385,7 +392,19 @@ impl AutoOrchestrator {
         // 3. Merge results
         let execution_summary = self.merge_results(&results);
 
-        let total_time = start_time.elapsed().as_secs_f64();
+        let elapsed = start_time.elapsed();
+        let total_time = elapsed.as_secs_f64();
+        let execution_time_ms = elapsed.as_millis() as u64;
+
+        let metrics = OrchestrationMetrics {
+            skills: analysis.detected_keywords.clone(),
+            strategy: plan.strategy.clone(),
+            fallback_used,
+            agent_count: results.len(),
+            execution_time_ms,
+            agents: results.iter().map(|r| r.agent_name.clone()).collect(),
+        };
+        self.collaboration_store.record_metrics(metrics);
 
         Ok(OrchestratedResult {
             was_orchestrated: true,
@@ -659,7 +678,10 @@ impl AutoOrchestrator {
             results.len()
         );
 
-        Ok(results)
+        Ok(AgentExecutionOutcome {
+            results,
+            fallback_used,
+        })
     }
 
     async fn execute_task_sequence(

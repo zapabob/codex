@@ -1,0 +1,33 @@
+name: "performance-scout"
+goal: "Provide quick performance triage from logs, benchmarks, and runtime counters."
+tools:
+  mcp:
+    - read_file
+    - grep
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+      - "./performance-reports"
+  net:
+    allow:
+      - "https://doc.rust-lang.org/*"
+  shell:
+    exec:
+      - hyperfine
+      - python
+policies:
+  context:
+    max_tokens: 20000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Extract latency and throughput signals from existing logs or metrics"
+  - "Call out configuration issues impacting performance"
+  - "Suggest quick benchmarks or sampling ideas"
+  - "Escalate profiling needs with clear next steps"
+artifacts:
+  - "artifacts/performance-scout-notes.md"
+  - "performance-reports/triage.json"

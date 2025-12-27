@@ -237,6 +237,18 @@ impl TaskAnalyzer {
             "documentation",
             "docs",
             "readme",
+            "dependency",
+            "dependencies",
+            "manifest",
+            "lockfile",
+            "package",
+            "version",
+            "performance",
+            "latency",
+            "throughput",
+            "profiling",
+            "benchmark",
+            "optimize",
         ];
 
         keywords
@@ -303,24 +315,36 @@ impl TaskAnalyzer {
     ) -> Vec<String> {
         let mut agents = HashSet::new();
 
-        for tag in skill_tags {
-            match tag {
-                SkillTag::SecurityVulnerability => {
-                    agents.insert("sec-audit".to_string());
-                }
-                SkillTag::TestHardening => {
-                    agents.insert("test-gen".to_string());
-                }
-                SkillTag::DocumentationGeneration => {
-                    agents.insert("researcher".to_string());
-                }
-                SkillTag::PerformanceProfiling
-                | SkillTag::RefactorRewrite
-                | SkillTag::Migration
-                | SkillTag::DependencySetup => {
-                    agents.insert("code-reviewer".to_string());
-                }
-            }
+        // Dependency analysis
+        if keywords.iter().any(|k| {
+            [
+                "dependency",
+                "dependencies",
+                "manifest",
+                "lockfile",
+                "package",
+                "version",
+            ]
+            .contains(&k.as_str())
+        }) {
+            agents.insert("dependency-analyst".to_string());
+            agents.insert("dependency-scout".to_string());
+        }
+
+        // Performance analysis
+        if keywords.iter().any(|k| {
+            [
+                "performance",
+                "latency",
+                "throughput",
+                "profiling",
+                "benchmark",
+                "optimize",
+            ]
+            .contains(&k.as_str())
+        }) {
+            agents.insert("performance-analyst".to_string());
+            agents.insert("performance-scout".to_string());
         }
 
         // Security-related

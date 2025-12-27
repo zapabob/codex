@@ -25,6 +25,7 @@ pub use auto_orchestrator::AutoOrchestrator;
 pub use auto_orchestrator::OrchestratedResult;
 pub use auto_orchestrator::OrchestrationLogEntry;
 pub use collaboration_store::CollaborationStore;
+pub use collaboration_store::OrchestrationMetrics;
 pub use conflict_resolver::ConflictResolver;
 pub use conflict_resolver::MergeStrategy;
 pub use error_handler::AgentError;
