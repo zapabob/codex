@@ -16,6 +16,9 @@ export interface OrchestrateOptions {
     
     /** Execution strategy: sequential, parallel, or hybrid */
     strategy?: 'sequential' | 'parallel' | 'hybrid';
+
+    /** Skills to bias orchestrator selection */
+    skills?: string[];
     
     /** Output format: text or json */
     format?: 'text' | 'json';
@@ -65,6 +68,10 @@ export interface TaskAnalysis {
     recommendedAgents: string[];
     subtasks: string[];
     originalInput: string;
+    skills?: string[];
+    skillWarnings?: string[];
+    thresholdWarning?: string;
+    strategy?: string;
 }
 
 /**
@@ -274,6 +281,7 @@ export class CodexOrchestrator extends EventEmitter {
                 goal,
                 auto_threshold: options?.complexityThreshold ?? 0.7,
                 strategy: options?.strategy ?? 'hybrid',
+                skills: options?.skills,
                 format: options?.format ?? 'json',
             },
         });
@@ -314,13 +322,14 @@ export class CodexOrchestrator extends EventEmitter {
         // Try to parse as JSON first
         try {
             const jsonData = JSON.parse(textContent);
+            const taskAnalysis = this.buildTaskAnalysis(jsonData.task_analysis);
             return {
                 wasOrchestrated: jsonData.was_orchestrated ?? false,
                 agentsUsed: jsonData.recommended_agents || [],
                 executionSummary: jsonData.execution_summary || textContent,
                 agentResults: jsonData.agent_results,
                 totalExecutionTimeSecs: jsonData.total_execution_time_secs,
-                taskAnalysis: jsonData.task_analysis,
+                taskAnalysis,
             };
         } catch {
             // If not JSON, return as text summary
@@ -330,6 +339,24 @@ export class CodexOrchestrator extends EventEmitter {
                 executionSummary: textContent,
             };
         }
+    }
+
+    private buildTaskAnalysis(raw: any): TaskAnalysis | undefined {
+        if (!raw) {
+            return undefined;
+        }
+
+        return {
+            complexityScore: raw.complexity_score ?? raw.complexityScore ?? 0,
+            detectedKeywords: raw.detected_keywords ?? raw.detectedKeywords ?? [],
+            recommendedAgents: raw.recommended_agents ?? raw.recommendedAgents ?? [],
+            subtasks: raw.subtasks ?? [],
+            originalInput: raw.original_input ?? raw.originalInput ?? '',
+            skills: raw.skills,
+            skillWarnings: raw.skill_warnings ?? raw.skillWarnings,
+            thresholdWarning: raw.threshold_warning ?? raw.thresholdWarning,
+            strategy: raw.strategy,
+        };
     }
 
     /**
@@ -362,4 +389,3 @@ export class CodexOrchestrator extends EventEmitter {
 export function createOrchestrator(codexCommand?: string): CodexOrchestrator {
     return new CodexOrchestrator(codexCommand);
 }
-

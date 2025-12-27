@@ -90,7 +90,10 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         sandbox_mode: sandbox_mode_cli_arg,
         prompt,
         output_schema: output_schema_path,
-        config_overrides,
+        auto_threshold,
+        strategy,
+        skills,
+        mut config_overrides,
     } = cli;
 
     let (stdout_with_ansi, stderr_with_ansi) = match color {
@@ -122,6 +125,23 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
     } else {
         sandbox_mode_cli_arg.map(Into::<SandboxMode>::into)
     };
+
+    config_overrides
+        .raw_overrides
+        .push(format!("orchestration.auto_threshold={auto_threshold}"));
+    let strategy_override = match strategy {
+        crate::cli::OrchestrationStrategy::Sequential => "sequential",
+        crate::cli::OrchestrationStrategy::Parallel => "parallel",
+        crate::cli::OrchestrationStrategy::Hybrid => "hybrid",
+    };
+    config_overrides
+        .raw_overrides
+        .push(format!("orchestration.strategy={strategy_override}"));
+    if !skills.is_empty() {
+        config_overrides
+            .raw_overrides
+            .push(format!("orchestration.skills={}", skills.join(",")));
+    }
 
     // Parse `-c` overrides from the CLI.
     let cli_kv_overrides = match config_overrides.parse_overrides() {

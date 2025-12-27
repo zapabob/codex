@@ -64,6 +64,18 @@ pub struct Cli {
     #[arg(long = "output-schema", value_name = "FILE")]
     pub output_schema: Option<PathBuf>,
 
+    /// Complexity threshold for triggering auto-orchestration (0.0-1.0).
+    #[arg(long = "auto-threshold", default_value_t = 0.7)]
+    pub auto_threshold: f64,
+
+    /// Auto-orchestration strategy when threshold is met.
+    #[arg(long = "strategy", value_enum, default_value = "hybrid")]
+    pub strategy: OrchestrationStrategy,
+
+    /// Explicit skills to bias orchestrator selection (comma-separated).
+    #[arg(long = "skills", value_delimiter = ',', value_name = "SKILL,SKILL")]
+    pub skills: Vec<String>,
+
     #[clap(skip)]
     pub config_overrides: CliConfigOverrides,
 
@@ -139,4 +151,13 @@ pub enum Color {
     Never,
     #[default]
     Auto,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
+pub enum OrchestrationStrategy {
+    Sequential,
+    Parallel,
+    #[default]
+    Hybrid,
 }

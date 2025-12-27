@@ -121,6 +121,24 @@ pub async fn run_main(
         )
     };
 
+    cli.config_overrides.raw_overrides.push(format!(
+        "orchestration.auto_threshold={}",
+        cli.auto_threshold
+    ));
+    let strategy_override = match cli.strategy {
+        crate::cli::OrchestrationStrategy::Sequential => "sequential",
+        crate::cli::OrchestrationStrategy::Parallel => "parallel",
+        crate::cli::OrchestrationStrategy::Hybrid => "hybrid",
+    };
+    cli.config_overrides
+        .raw_overrides
+        .push(format!("orchestration.strategy={strategy_override}"));
+    if !cli.skills.is_empty() {
+        cli.config_overrides
+            .raw_overrides
+            .push(format!("orchestration.skills={}", cli.skills.join(",")));
+    }
+
     // Map the legacy --search flag to the new feature toggle.
     if cli.web_search {
         cli.config_overrides
