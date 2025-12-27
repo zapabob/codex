@@ -385,9 +385,12 @@ impl AutoOrchestrator {
         info!("📋 Execution plan created: {} tasks", plan.tasks.len());
 
         // 2. Execute agents from plan
-        let results = self
+        let outcome = self
             .execute_agents_from_plan(&plan, &analysis, &mut log_entries)
             .await?;
+
+        let results = outcome.results;
+        let fallback_used = outcome.fallback_used;
 
         // 3. Merge results
         let execution_summary = self.merge_results(&results);
@@ -557,8 +560,9 @@ impl AutoOrchestrator {
         plan: &ExecutionPlan,
         _analysis: &TaskAnalysis,
         log_entries: &mut Vec<OrchestrationLogEntry>,
-    ) -> Result<Vec<AgentResult>> {
+    ) -> Result<AgentExecutionOutcome> {
         let mut results = Vec::new();
+        let mut fallback_used = false;
         self.record_log(
             log_entries,
             format!("Using {:?} strategy", plan.strategy),
@@ -588,6 +592,9 @@ impl AutoOrchestrator {
                             plan.strategy,
                         )
                         .await;
+                    if !task_results.is_empty() {
+                        fallback_used = true;
+                    }
                     results.append(&mut task_results);
                 }
             }
@@ -636,7 +643,7 @@ impl AutoOrchestrator {
                             .iter()
                             .find(|task| task.agent == result.agent_name)
                         {
-                            let mut retry_results = self
+                            let (retry_results, retry_fallback_used) = self
                                 .execute_task_sequence(
                                     task,
                                     timeout,
@@ -646,6 +653,9 @@ impl AutoOrchestrator {
                                     plan.strategy,
                                 )
                                 .await;
+                            if retry_fallback_used {
+                                fallback_used = true;
+                            }
                             results.append(&mut retry_results);
                         }
                     }
@@ -653,7 +663,7 @@ impl AutoOrchestrator {
 
                 if initial_results.is_empty() {
                     for task in &plan.tasks {
-                        let mut task_results = self
+                        let (task_results, task_fallback_used) = self
                             .execute_task_sequence(
                                 task,
                                 timeout,
@@ -663,6 +673,9 @@ impl AutoOrchestrator {
                                 ExecutionStrategy::Sequential,
                             )
                             .await;
+                        if task_fallback_used {
+                            fallback_used = true;
+                        }
                         results.append(&mut task_results);
                     }
                 }
@@ -692,8 +705,9 @@ impl AutoOrchestrator {
         fallback_table: &HashMap<String, Vec<String>>,
         log_entries: &mut Vec<OrchestrationLogEntry>,
         strategy: ExecutionStrategy,
-    ) -> Vec<AgentResult> {
+    ) -> (Vec<AgentResult>, bool) {
         let mut collected = Vec::new();
+        let mut fallback_used = false;
         let timeout = task.timeout_secs.or(plan_timeout);
         let retry_limit = task.retry_limit.max(plan_retry_limit);
         let mut attempt = 0;
@@ -724,7 +738,7 @@ impl AutoOrchestrator {
                                 vec![],
                             );
                         }
-                        return collected;
+                        return (collected, fallback_used);
                     }
                 }
                 Err(err) => {
@@ -761,6 +775,10 @@ impl AutoOrchestrator {
         } else {
             fallback_table.get(&task.agent).cloned().unwrap_or_default()
         };
+
+        if !fallback_chain.is_empty() {
+            fallback_used = true;
+        }
 
         for fallback_agent in fallback_chain {
             attempted_chain.push(fallback_agent.clone());
@@ -818,7 +836,7 @@ impl AutoOrchestrator {
                 .set_metadata("fallback_history".to_string(), json!(attempted_chain));
         }
 
-        collected
+        (collected, fallback_used)
     }
 
     /// Merge results from multiple agents into a summary.

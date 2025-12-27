@@ -75,9 +75,8 @@ impl TaskAnalysis {
         format!(
             "Complexity: {:.2} | Agents: {} | Skills: {} | Subtasks: {}",
             self.complexity_score,
-            skills,
             self.recommended_agents.join(", "),
-            self.skill_tags.join(", "),
+            skills,
             self.subtasks.len()
         )
     }
@@ -101,7 +100,8 @@ impl TaskAnalyzer {
         let complexity_score = self.calculate_complexity(user_input);
         let detected_keywords = self.extract_keywords(user_input);
         let skill_tags = self.derive_skill_tags(user_input, &detected_keywords);
-        let recommended_agents = self.recommend_agents(user_input, &detected_keywords);
+        let recommended_skill_tags = self.derive_recommended_skill_tags(user_input, &detected_keywords);
+        let recommended_agents = self.recommend_agents(user_input, &detected_keywords, &recommended_skill_tags);
         let subtasks = self.decompose_into_subtasks(user_input, &detected_keywords);
 
         TaskAnalysis {
@@ -306,12 +306,68 @@ impl TaskAnalyzer {
         tags.into_iter().collect()
     }
 
+    /// Derive recommended skill tags from input and keywords.
+    fn derive_recommended_skill_tags(&self, input: &str, keywords: &[String]) -> Vec<SkillTag> {
+        let mut tags = Vec::new();
+        let lower = input.to_lowercase();
+
+        if keywords
+            .iter()
+            .any(|k| ["dependency", "dependencies", "manifest", "lockfile", "package", "version"].contains(&k.as_str()))
+            || lower.contains("dependency")
+        {
+            tags.push(SkillTag::DependencySetup);
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["security", "auth", "authentication", "oauth", "jwt", "vulnerability"].contains(&k.as_str()))
+        {
+            tags.push(SkillTag::SecurityVulnerability);
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["performance", "latency", "throughput", "profiling", "benchmark", "optimize"].contains(&k.as_str()))
+        {
+            tags.push(SkillTag::PerformanceProfiling);
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["refactor", "rewrite", "migrate"].contains(&k.as_str()))
+        {
+            tags.push(SkillTag::RefactorRewrite);
+        }
+
+        if lower.contains("migrate") || lower.contains("migration") {
+            tags.push(SkillTag::Migration);
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["test", "testing", "qa"].contains(&k.as_str()))
+            || lower.contains("test")
+        {
+            tags.push(SkillTag::TestHardening);
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["documentation", "docs", "readme"].contains(&k.as_str()))
+        {
+            tags.push(SkillTag::DocumentationGeneration);
+        }
+
+        tags
+    }
+
     /// Recommend agents based on detected keywords.
     fn recommend_agents(
         &self,
         _input: &str,
         keywords: &[String],
-        skill_tags: &[SkillTag],
+        _skill_tags: &[SkillTag],
     ) -> Vec<String> {
         let mut agents = HashSet::new();
 

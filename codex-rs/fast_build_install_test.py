@@ -200,16 +200,18 @@ def install_binary(source_path, install_path):
 def get_worktree_name(script_dir):
     """git worktreeから現在のワークツリー名を取得"""
     try:
+        # プロジェクトルートを取得
+        project_root = os.path.dirname(os.path.dirname(script_dir))
         result = subprocess.run(
             ["git", "worktree", "list"],
             capture_output=True,
             text=True,
-            cwd=script_dir,
+            cwd=project_root,
             timeout=5
         )
         if result.returncode == 0:
             for line in result.stdout.split('\n'):
-                if script_dir.replace('\\', '/') in line.replace('\\', '/'):
+                if project_root.replace('\\', '/') in line.replace('\\', '/'):
                     match = re.search(r'\[([^\]]+)\]', line)
                     if match:
                         return match.group(1)
@@ -217,10 +219,30 @@ def get_worktree_name(script_dir):
         pass
     return "main"
 
+def get_current_datetime():
+    """現在日時を取得（PowerShell経由）"""
+    try:
+        # PowerShellで現在日時を取得
+        result = subprocess.run(
+            ["powershell", "-Command", "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            encoding='utf-8',
+            errors='replace'
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except:
+        pass
+    # フォールバック: Pythonのdatetimeを使用
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 def create_implementation_log(script_dir, summary, build_duration=0):
     """実装ログを作成"""
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # 現在日時を取得（PowerShell経由）
+    current_datetime = get_current_datetime()
+    current_date = current_datetime.split()[0]  # yyyy-MM-dd部分を抽出
     
     # ワークツリー名を取得
     worktree_name = get_worktree_name(script_dir)
@@ -367,6 +389,136 @@ def test_binary(binary_path="codex"):
     
     return results
 
+def run_gui_playwright_tests(script_dir):
+    """GUIのPlaywrightテストを実行（Cursorブラウザで）"""
+    print(f"\n🎭 GUI Playwrightテストを実行中...")
+    
+    # gui-testsディレクトリのパス
+    project_root = os.path.dirname(os.path.dirname(script_dir))
+    gui_tests_dir = os.path.join(project_root, "gui-tests")
+    
+    if not os.path.exists(gui_tests_dir):
+        print(f"   ⚠️  gui-testsディレクトリが見つかりません: {gui_tests_dir}")
+        return {
+            "test": "GUI Playwrightテスト",
+            "status": "skipped",
+            "elapsed": 0,
+            "error": "gui-testsディレクトリが見つかりません"
+        }
+    
+    # package.jsonの確認
+    package_json = os.path.join(gui_tests_dir, "package.json")
+    if not os.path.exists(package_json):
+        print(f"   ⚠️  package.jsonが見つかりません: {package_json}")
+        return {
+            "test": "GUI Playwrightテスト",
+            "status": "skipped",
+            "elapsed": 0,
+            "error": "package.jsonが見つかりません"
+        }
+    
+    # npm installが必要か確認
+    node_modules = os.path.join(gui_tests_dir, "node_modules")
+    if not os.path.exists(node_modules):
+        print(f"   📦 node_modulesが見つかりません。npm installを実行します...")
+        try:
+            install_result = subprocess.run(
+                ["npm", "install"],
+                cwd=gui_tests_dir,
+                capture_output=True,
+                text=True,
+                timeout=300,
+                encoding='utf-8',
+                errors='replace'
+            )
+            if install_result.returncode != 0:
+                print(f"   ❌ npm installに失敗しました")
+                print(f"   エラー: {install_result.stderr[:500]}")
+                return {
+                    "test": "GUI Playwrightテスト",
+                    "status": "failed",
+                    "elapsed": 0,
+                    "error": f"npm install失敗: {install_result.stderr[:200]}"
+                }
+            print(f"   ✅ npm install完了")
+        except Exception as e:
+            print(f"   ❌ npm install中にエラー: {e}")
+            return {
+                "test": "GUI Playwrightテスト",
+                "status": "error",
+                "elapsed": 0,
+                "error": str(e)
+            }
+    
+    # Playwrightテストを実行
+    print(f"   🎭 Playwrightテストを実行中（Cursorブラウザ）...")
+    try:
+        start_time = time.time()
+        
+        # Playwrightテストを実行（headedモードでCursorブラウザを使用）
+        test_result = subprocess.run(
+            ["npx", "playwright", "test", "--project=chromium-cursor"],
+            cwd=gui_tests_dir,
+            capture_output=True,
+            text=True,
+            timeout=600,  # 10分のタイムアウト
+            encoding='utf-8',
+            errors='replace'
+        )
+        
+        elapsed = time.time() - start_time
+        
+        if test_result.returncode == 0:
+            print(f"   ✅ GUIテスト成功 (経過: {elapsed:.2f}秒)")
+            
+            # テスト結果のサマリーを抽出
+            output_lines = test_result.stdout.split('\n')
+            passed_count = 0
+            failed_count = 0
+            
+            for line in output_lines:
+                if 'passed' in line.lower() or '✓' in line:
+                    passed_count += line.count('passed') + line.count('✓')
+                if 'failed' in line.lower() or '✘' in line:
+                    failed_count += line.count('failed') + line.count('✘')
+            
+            return {
+                "test": "GUI Playwrightテスト",
+                "status": "success",
+                "elapsed": elapsed,
+                "passed": passed_count,
+                "failed": failed_count,
+                "output": test_result.stdout[-500:] if len(test_result.stdout) > 500 else test_result.stdout
+            }
+        else:
+            print(f"   ❌ GUIテスト失敗 (終了コード: {test_result.returncode}, 経過: {elapsed:.2f}秒)")
+            print(f"   エラー出力: {test_result.stderr[:500]}")
+            
+            return {
+                "test": "GUI Playwrightテスト",
+                "status": "failed",
+                "elapsed": elapsed,
+                "error": test_result.stderr[:500] if test_result.stderr else "テスト失敗",
+                "output": test_result.stdout[-500:] if len(test_result.stdout) > 500 else test_result.stdout
+            }
+            
+    except subprocess.TimeoutExpired:
+        print(f"   ⏱️  GUIテストタイムアウト（10分）")
+        return {
+            "test": "GUI Playwrightテスト",
+            "status": "timeout",
+            "elapsed": 600.0,
+            "error": "テストが10分でタイムアウトしました"
+        }
+    except Exception as e:
+        print(f"   ❌ GUIテスト実行中にエラー: {e}")
+        return {
+            "test": "GUI Playwrightテスト",
+            "status": "error",
+            "elapsed": 0,
+            "error": str(e)
+        }
+
 def main():
     """メイン処理"""
     # 作業ディレクトリをcodex-rsに変更
@@ -445,14 +597,22 @@ def main():
         print("\n❌ インストールに失敗しました")
         sys.exit(1)
     
-    # 4. 実機テスト
+    # 4. 実機テスト（CLI）
     print("\n" + "="*70)
-    print("🧪 Phase 3: 実機テスト")
+    print("🧪 Phase 3: 実機テスト (CLI)")
     print("="*70)
     
     test_results = test_binary("codex")
     
-    # 5. 結果サマリー
+    # 5. GUI Playwrightテスト
+    print("\n" + "="*70)
+    print("🎭 Phase 4: GUI Playwrightテスト (Cursorブラウザ)")
+    print("="*70)
+    
+    gui_test_result = run_gui_playwright_tests(script_dir)
+    test_results.append(gui_test_result)
+    
+    # 6. 結果サマリー
     print("\n" + "="*70)
     print("📊 実行結果サマリー")
     print("="*70)
@@ -505,17 +665,36 @@ def main():
     
     # 完了音声を再生（Windows環境）
     if sys.platform == 'win32':
-        audio_path = r"C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav"
-        if os.path.exists(audio_path):
+        audio_paths = [
+            r"C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav",
+            r"C:\Users\downl\Desktop\新しいフォルダー (4)\marisa_owattaze.wav",
+            os.path.join(os.path.dirname(os.path.dirname(script_dir)), ".codex", "marisa_owattaze.wav")
+        ]
+        
+        audio_played = False
+        for audio_path in audio_paths:
+            if os.path.exists(audio_path):
+                try:
+                    import winsound
+                    print(f"\n🔊 完了音声を再生中: {audio_path}")
+                    # PlaySync()で同期的に再生（確実に聞こえる）
+                    winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_SYNC)
+                    print("✅ 音声を再生しました: 終わったぜ！")
+                    audio_played = True
+                    break
+                except Exception as e:
+                    print(f"⚠️  音声ファイルの再生に失敗しました: {e}")
+                    continue
+        
+        if not audio_played:
+            # フォールバック: ピープ音を再生
             try:
                 import winsound
-                print(f"\n🔊 完了音声を再生中...")
-                winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
-                print("✅ 音声を再生しました")
+                print(f"\n🔊 ピープ音を再生中...")
+                winsound.Beep(1000, 500)
+                print("✅ ピープ音を再生しました")
             except Exception as e:
-                print(f"⚠️  音声ファイルの再生に失敗しました: {e}")
-        else:
-            print(f"\n⚠️  音声ファイルが見つかりません: {audio_path}")
+                print(f"⚠️  音声の再生に失敗しました: {e}")
     
     # 全て成功した場合のみ終了コード0
     if build_success and success_count == len(test_results):
