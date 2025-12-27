@@ -527,7 +527,6 @@ export class CodexAPIClient {
   async getSystemMetrics(): Promise<SystemMetrics> {
     try {
       // Try to fetch system metrics from backend API
-      // Note: This endpoint may not exist yet, so we'll use a fallback
       const response = await fetch(`${this.baseUrl}/api/system/metrics`, {
         method: 'GET',
         headers: {
@@ -536,14 +535,40 @@ export class CodexAPIClient {
       });
 
       if (response.ok) {
-        const metrics = await response.json() as SystemMetrics;
+        const data = await response.json();
+        // Map backend response to SystemMetrics interface
+        const metrics: SystemMetrics = {
+          cpuUsage: data.cpu_usage || data.cpuUsage || 0,
+          memoryUsage: data.memory_usage || data.memoryUsage || 0,
+          diskUsage: data.disk_usage || data.diskUsage || 0,
+          networkUsage: data.network_usage || data.networkUsage,
+          activeProcesses: data.active_processes || data.activeProcesses || 0,
+          uptime: data.uptime || 0,
+          gpuUsage: data.gpu_usage || data.gpuUsage,
+          gpuMemoryUsed: data.gpu_memory_used || data.gpuMemoryUsed,
+          gpuMemoryTotal: data.gpu_memory_total || data.gpuMemoryTotal,
+          gpuMemoryUsage: data.gpu_memory_usage || data.gpuMemoryUsage,
+          gpuTemperature: data.gpu_temperature || data.gpuTemperature,
+          gpuName: data.gpu_name || data.gpuName,
+          gpuVendor: data.gpu_vendor || data.gpuVendor,
+        };
         return metrics;
       }
     } catch (error) {
-      console.warn('System metrics endpoint not available, using defaults:', error);
+      console.warn('System metrics endpoint not available, trying CLI fallback:', error);
+      
+      // Fallback: Try to get metrics from CLI/TUI via codex command
+      try {
+        const cliResponse = await this.getSystemMetricsFromCLI();
+        if (cliResponse) {
+          return cliResponse;
+        }
+      } catch (cliError) {
+        console.warn('CLI fallback also failed:', cliError);
+      }
     }
 
-    // Fallback to default metrics (will be updated by WebSocket if available)
+    // Final fallback to default metrics (will be updated by WebSocket if available)
     return {
       cpuUsage: 0,
       memoryUsage: 0,
@@ -551,6 +576,70 @@ export class CodexAPIClient {
       activeProcesses: 0,
       uptime: 0,
     };
+  }
+
+  // Get system metrics from CLI/TUI via codex command
+  private async getSystemMetricsFromCLI(): Promise<SystemMetrics | null> {
+    try {
+      // Try to use DualBridge if available (via CodexContext)
+      // This will be called from components that have access to the bridge
+      // For now, we'll use a direct API call to the mock server or Rust backend
+      
+      // Option 1: Try Rust backend API endpoint
+      const response = await fetch(`${this.baseUrl}/api/system/metrics`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          cpuUsage: data.cpu_usage || data.cpuUsage || 0,
+          memoryUsage: data.memory_usage || data.memoryUsage || 0,
+          diskUsage: data.disk_usage || data.diskUsage || 0,
+          activeProcesses: data.active_processes || data.activeProcesses || 0,
+          uptime: data.uptime || 0,
+          gpuUsage: data.gpu_usage || data.gpuUsage,
+          gpuMemoryUsed: data.gpu_memory_used || data.gpuMemoryUsed,
+          gpuMemoryTotal: data.gpu_memory_total || data.gpuMemoryTotal,
+          gpuMemoryUsage: data.gpu_memory_usage || data.gpuMemoryUsage,
+          gpuTemperature: data.gpu_temperature || data.gpuTemperature,
+          gpuName: data.gpu_name || data.gpuName,
+          gpuVendor: data.gpu_vendor || data.gpuVendor,
+        };
+      }
+    } catch (error) {
+      console.warn('CLI system metrics fetch failed:', error);
+    }
+    return null;
+  }
+
+  // Execute codex CLI command via bridge
+  async executeCodexCommand(args: string[]): Promise<any> {
+    try {
+      // This method can be used by components with access to DualBridge
+      // For components without bridge access, we'll use HTTP API
+      const response = await fetch(`${this.baseUrl}/api/cli/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          command: 'codex',
+          args: args,
+        }),
+      });
+
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Failed to execute codex command:', error);
+      throw error;
+    }
+    return null;
   }
 
   async listAITools(): Promise<AITool[]> {

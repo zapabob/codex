@@ -11,8 +11,10 @@ import {
   Typography,
   SxProps,
   Theme,
+  Tooltip,
+  Chip,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
   Code,
@@ -36,6 +38,8 @@ export interface NavigationItem {
   icon: React.ComponentType<any>;
   path?: string;
   badge?: string | number;
+  shortcut?: string;
+  description?: string;
 }
 
 export interface SidebarProps {
@@ -48,24 +52,107 @@ export interface SidebarProps {
 }
 
 const navigationItems: NavigationItem[] = [
-  { id: 'dashboard', label: 'ダッシュボード', icon: Home },
-  { id: 'code', label: 'コード実行', icon: Code },
-  { id: 'agents', label: 'エージェント', icon: Users },
-  { id: 'tasks', label: 'タスク管理', icon: CheckSquare },
-  { id: 'qc', label: 'QC管理', icon: TrendingUp },
-  { id: 'security', label: 'セキュリティ', icon: Shield },
-  { id: 'virtual-os', label: '仮想OS', icon: Monitor },
-  { id: 'ai-tools', label: 'AIツール統合', icon: Bot },
-  { id: 'research', label: 'Deep Research', icon: Search },
-  { id: 'security', label: 'セキュリティ', icon: Shield },
-  { id: 'mcp', label: 'MCPサーバー', icon: Server },
-  { id: 'analytics', label: '分析', icon: BarChart3 },
-  { id: 'docs', label: 'ドキュメント', icon: FileText },
-  { id: 'performance', label: 'パフォーマンス', icon: Zap },
+  { 
+    id: 'dashboard', 
+    label: 'ダッシュボード', 
+    icon: Home, 
+    shortcut: 'Ctrl+D',
+    description: 'システム概要とメトリクス'
+  },
+  { 
+    id: 'code', 
+    label: 'コード実行', 
+    icon: Code,
+    shortcut: 'Ctrl+C',
+    description: 'コードを実行して結果を確認'
+  },
+  { 
+    id: 'agents', 
+    label: 'エージェント', 
+    icon: Users,
+    shortcut: 'Ctrl+A',
+    description: 'AIエージェントの管理と実行'
+  },
+  { 
+    id: 'tasks', 
+    label: 'タスク管理', 
+    icon: CheckSquare,
+    shortcut: 'Ctrl+T',
+    description: 'タスクの作成と管理'
+  },
+  { 
+    id: 'qc', 
+    label: 'QC管理', 
+    icon: TrendingUp,
+    shortcut: 'Ctrl+Q',
+    description: '品質管理と分析'
+  },
+  { 
+    id: 'security', 
+    label: 'セキュリティ', 
+    icon: Shield,
+    shortcut: 'Ctrl+S',
+    description: 'セキュリティ監視とスキャン'
+  },
+  { 
+    id: 'virtual-os', 
+    label: '仮想OS', 
+    icon: Monitor,
+    shortcut: 'Ctrl+V',
+    description: '仮想OS環境とリソース監視'
+  },
+  { 
+    id: 'ai-tools', 
+    label: 'AIツール統合', 
+    icon: Bot,
+    shortcut: 'Ctrl+I',
+    description: 'AIツールの統合と管理'
+  },
+  { 
+    id: 'research', 
+    label: 'Deep Research', 
+    icon: Search,
+    shortcut: 'Ctrl+R',
+    description: '深い調査と研究'
+  },
+  { 
+    id: 'mcp', 
+    label: 'MCPサーバー', 
+    icon: Server,
+    shortcut: 'Ctrl+M',
+    description: 'MCPサーバーの管理'
+  },
+  { 
+    id: 'analytics', 
+    label: '分析', 
+    icon: BarChart3,
+    shortcut: 'Ctrl+L',
+    description: 'データ分析と可視化'
+  },
+  { 
+    id: 'docs', 
+    label: 'ドキュメント', 
+    icon: FileText,
+    shortcut: 'Ctrl+O',
+    description: 'ドキュメントの閲覧'
+  },
+  { 
+    id: 'performance', 
+    label: 'パフォーマンス', 
+    icon: Zap,
+    shortcut: 'Ctrl+P',
+    description: 'パフォーマンス監視'
+  },
 ];
 
 const settingsItems: NavigationItem[] = [
-  { id: 'settings', label: '設定', icon: Settings },
+  { 
+    id: 'settings', 
+    label: '設定', 
+    icon: Settings,
+    shortcut: 'Ctrl+,',
+    description: 'アプリケーション設定'
+  },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -136,66 +223,130 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
+                whileHover={{ x: 4 }}
               >
-                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton
-                    onClick={() => handleItemClick(item)}
-                    sx={{
-                      borderRadius: 2,
-                      mx: 1,
-                      py: 1.5,
-                      position: 'relative',
-                      backgroundColor: isActive
-                        ? 'primary.main'
-                        : 'transparent',
-                      color: isActive
-                        ? 'primary.contrastText'
-                        : 'text.primary',
-                      '&:hover': {
-                        backgroundColor: isActive
-                          ? 'primary.dark'
-                          : 'action.hover',
-                      },
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    }}
-                  >
-                    <ListItemIcon
+                <Tooltip
+                  title={
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                        {item.label}
+                      </Typography>
+                      {item.description && (
+                        <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
+                          {item.description}
+                        </Typography>
+                      )}
+                      {item.shortcut && (
+                        <Chip
+                          label={item.shortcut}
+                          size="small"
+                          sx={{
+                            mt: 0.5,
+                            height: 18,
+                            fontSize: '0.65rem',
+                            bgcolor: 'rgba(255, 255, 255, 0.15)',
+                          }}
+                        />
+                      )}
+                    </Box>
+                  }
+                  placement="right"
+                  arrow
+                  enterDelay={300}
+                  leaveDelay={0}
+                >
+                  <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      onClick={() => handleItemClick(item)}
                       sx={{
-                        minWidth: 40,
-                        color: 'inherit',
+                        borderRadius: 2,
+                        mx: 1,
+                        py: 1.5,
+                        position: 'relative',
+                        backgroundColor: isActive
+                          ? 'primary.main'
+                          : 'transparent',
+                        color: isActive
+                          ? 'primary.contrastText'
+                          : 'text.primary',
+                        '&:hover': {
+                          backgroundColor: isActive
+                            ? 'primary.dark'
+                            : 'action.hover',
+                          },
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          left: 0,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: isActive ? 4 : 0,
+                          height: '60%',
+                          backgroundColor: 'primary.main',
+                          borderRadius: '0 4px 4px 0',
+                          transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        },
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       }}
                     >
-                      <Icon size={20} />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.label}
-                      primaryTypographyProps={{
-                        fontSize: '0.875rem',
-                        fontWeight: isActive ? 600 : 500,
-                      }}
-                    />
-                    {item.badge && (
-                      <Box
+                      <ListItemIcon
                         sx={{
-                          ml: 'auto',
-                          px: 1,
-                          py: 0.25,
-                          borderRadius: 1,
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          backgroundColor: isActive
-                            ? 'rgba(255, 255, 255, 0.2)'
-                            : 'primary.main',
-                          color: isActive
-                            ? 'inherit'
-                            : 'primary.contrastText',
+                          minWidth: 40,
+                          color: 'inherit',
+                          transition: 'transform 0.2s',
+                          '&:hover': {
+                            transform: 'scale(1.1)',
+                          },
                         }}
                       >
-                        {item.badge}
+                        <Icon size={20} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.label}
+                        primaryTypographyProps={{
+                          fontSize: '0.875rem',
+                          fontWeight: isActive ? 600 : 500,
+                        }}
+                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
+                        {item.shortcut && (
+                          <Chip
+                            label={item.shortcut}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: '0.7rem',
+                              bgcolor: isActive
+                                ? 'rgba(255, 255, 255, 0.2)'
+                                : 'rgba(0, 0, 0, 0.05)',
+                              color: 'inherit',
+                              display: { xs: 'none', md: 'flex' },
+                            }}
+                          />
+                        )}
+                        {item.badge && (
+                          <Box
+                            sx={{
+                              px: 1,
+                              py: 0.25,
+                              borderRadius: 1,
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              backgroundColor: isActive
+                                ? 'rgba(255, 255, 255, 0.2)'
+                                : 'primary.main',
+                              color: isActive
+                                ? 'inherit'
+                                : 'primary.contrastText',
+                            }}
+                          >
+                            {item.badge}
+                          </Box>
+                        )}
                       </Box>
-                    )}
-                  </ListItemButton>
-                </ListItem>
+                    </ListItemButton>
+                  </ListItem>
+                </Tooltip>
               </motion.div>
             );
           })}
@@ -214,44 +365,110 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: (navigationItems.length + index) * 0.05 }}
+                whileHover={{ x: 4 }}
               >
-                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton
-                    onClick={() => handleItemClick(item)}
-                    sx={{
-                      borderRadius: 2,
-                      mx: 1,
-                      py: 1.5,
-                      backgroundColor: isActive
-                        ? 'primary.main'
-                        : 'transparent',
-                      color: isActive
-                        ? 'primary.contrastText'
-                        : 'text.secondary',
-                      '&:hover': {
-                        backgroundColor: isActive
-                          ? 'primary.dark'
-                          : 'action.hover',
-                      },
-                    }}
-                  >
-                    <ListItemIcon
+                <Tooltip
+                  title={
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                        {item.label}
+                      </Typography>
+                      {item.description && (
+                        <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
+                          {item.description}
+                        </Typography>
+                      )}
+                      {item.shortcut && (
+                        <Chip
+                          label={item.shortcut}
+                          size="small"
+                          sx={{
+                            mt: 0.5,
+                            height: 18,
+                            fontSize: '0.65rem',
+                            bgcolor: 'rgba(255, 255, 255, 0.15)',
+                          }}
+                        />
+                      )}
+                    </Box>
+                  }
+                  placement="right"
+                  arrow
+                  enterDelay={300}
+                  leaveDelay={0}
+                >
+                  <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      onClick={() => handleItemClick(item)}
                       sx={{
-                        minWidth: 40,
-                        color: 'inherit',
+                        borderRadius: 2,
+                        mx: 1,
+                        py: 1.5,
+                        position: 'relative',
+                        backgroundColor: isActive
+                          ? 'primary.main'
+                          : 'transparent',
+                        color: isActive
+                          ? 'primary.contrastText'
+                          : 'text.secondary',
+                        '&:hover': {
+                          backgroundColor: isActive
+                            ? 'primary.dark'
+                            : 'action.hover',
+                        },
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          left: 0,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: isActive ? 4 : 0,
+                          height: '60%',
+                          backgroundColor: 'primary.main',
+                          borderRadius: '0 4px 4px 0',
+                          transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        },
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       }}
                     >
-                      <Icon size={20} />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.label}
-                      primaryTypographyProps={{
-                        fontSize: '0.875rem',
-                        fontWeight: isActive ? 600 : 500,
-                      }}
-                    />
-                  </ListItemButton>
-                </ListItem>
+                      <ListItemIcon
+                        sx={{
+                          minWidth: 40,
+                          color: 'inherit',
+                          transition: 'transform 0.2s',
+                          '&:hover': {
+                            transform: 'scale(1.1)',
+                          },
+                        }}
+                      >
+                        <Icon size={20} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.label}
+                        primaryTypographyProps={{
+                          fontSize: '0.875rem',
+                          fontWeight: isActive ? 600 : 500,
+                        }}
+                      />
+                      {item.shortcut && (
+                        <Chip
+                          label={item.shortcut}
+                          size="small"
+                          sx={{
+                            ml: 'auto',
+                            height: 20,
+                            fontSize: '0.7rem',
+                            bgcolor: isActive
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : 'rgba(0, 0, 0, 0.05)',
+                            color: 'inherit',
+                            display: { xs: 'none', md: 'flex' },
+                          }}
+                        />
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                </Tooltip>
               </motion.div>
             );
           })}

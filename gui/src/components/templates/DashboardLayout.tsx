@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Box,
   Container,
@@ -11,6 +12,7 @@ import { Header } from '@/components/organisms/Header';
 import { Sidebar } from '@/components/organisms/Sidebar';
 import { NavigationItem } from '@/components/organisms/Sidebar';
 import { AppThemeProvider } from './ThemeProvider';
+import { useKeyboardShortcuts, ShortcutConfig } from '@/hooks/useKeyboardShortcuts';
 
 export interface DashboardLayoutProps {
   children: React.ReactNode;

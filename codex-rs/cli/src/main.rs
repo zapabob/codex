@@ -132,6 +132,18 @@ enum Subcommand {
     /// [experimental] Run the app server.
     AppServer,
 
+    /// Launch the Codex GUI web interface.
+    ///
+    /// Starts the GUI server and opens it in your default browser.
+    /// The GUI provides a modern web-based interface for managing agents,
+    /// monitoring system resources, and interacting with Codex features.
+    ///
+    /// Options:
+    ///   --port <PORT>     Set the port for the GUI server (default: 3000)
+    ///   --no-browser      Don't open the browser automatically
+    ///   --backend-port    Set the backend API port (default: 8787)
+    Gui(GuiCommand),
+
     /// Generate shell completion scripts.
     Completion(CompletionCommand),
 
@@ -809,6 +821,9 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
         Some(Subcommand::AppServer) => {
             codex_app_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;
         }
+        Some(Subcommand::Gui(gui_cmd)) => {
+            launch_gui(gui_cmd).await?;
+        }
         Some(Subcommand::Resume(ResumeCommand {
             session_id,
             last,
@@ -1285,6 +1300,130 @@ fn print_completion(cmd: CompletionCommand) {
     let mut app = MultitoolCli::command();
     let name = "codex";
     generate(cmd.shell, &mut app, name, &mut std::io::stdout());
+}
+
+async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
+    use std::process::Command;
+    use std::time::Duration;
+    use tokio::time::sleep;
+
+    println!("🚀 Launching Codex GUI...");
+    println!("   Frontend: http://localhost:{}", cmd.port);
+    println!("   Backend API: http://localhost:{}", cmd.backend_port);
+
+    // Check if GUI directory exists
+    let gui_dir = std::env::current_dir()?
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|p| p.join("gui"))
+        .ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "GUI directory not found. Please run from codex-main directory.",
+            )
+        })?;
+
+    if !gui_dir.exists() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("GUI directory not found: {}", gui_dir.display()),
+        ));
+    }
+
+    // Start backend API server in background
+    println!("📡 Starting backend API server on port {}...", cmd.backend_port);
+    let backend_port = cmd.backend_port;
+    let backend_handle = tokio::spawn(async move {
+        // Try to run codex-gui binary first
+        let gui_binary = std::env::var("CODEX_GUI_PATH")
+            .ok()
+            .map(PathBuf::from)
+            .or_else(|| {
+                // Try common locations
+                let home = std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")).ok()?;
+                Some(PathBuf::from(home).join(".cargo").join("bin").join("codex-gui.exe"))
+            });
+
+        if let Some(binary) = gui_binary {
+            if binary.exists() {
+                let mut child = Command::new(&binary)
+                    .env("CODEX_GUI_PORT", backend_port.to_string())
+                    .spawn()
+                    .ok()?;
+                let _ = child.wait();
+                return Some(());
+            }
+        }
+
+        // Fallback: try to run via cargo
+        let mut child = Command::new("cargo")
+            .args(["run", "-p", "codex-gui", "--release"])
+            .env("CODEX_GUI_PORT", backend_port.to_string())
+            .spawn()
+            .ok()?;
+        let _ = child.wait();
+        Some(())
+    });
+
+    // Wait a bit for backend to start
+    sleep(Duration::from_secs(2)).await;
+
+    // Start frontend dev server
+    println!("🎨 Starting frontend dev server on port {}...", cmd.port);
+    let frontend_port = cmd.port;
+    let no_browser = cmd.no_browser;
+    let frontend_handle = tokio::spawn(async move {
+        let mut child = Command::new("npm")
+            .args(["run", "dev"])
+            .env("PORT", frontend_port.to_string())
+            .current_dir(&gui_dir)
+            .spawn()
+            .ok()?;
+
+        // Wait a bit for server to start
+        sleep(Duration::from_secs(3)).await;
+
+        // Open browser if not disabled
+        if !no_browser {
+            let url = format!("http://localhost:{}", frontend_port);
+            #[cfg(target_os = "windows")]
+            {
+                let _ = Command::new("cmd")
+                    .args(["/C", "start", &url])
+                    .spawn();
+            }
+            #[cfg(target_os = "macos")]
+            {
+                let _ = Command::new("open").arg(&url).spawn();
+            }
+            #[cfg(target_os = "linux")]
+            {
+                let _ = Command::new("xdg-open").arg(&url).spawn();
+            }
+        }
+
+        let _ = child.wait();
+        Some(())
+    });
+
+    println!("\n✅ Codex GUI is starting...");
+    println!("   Frontend: http://localhost:{}", cmd.port);
+    println!("   Backend: http://localhost:{}", cmd.backend_port);
+    if !cmd.no_browser {
+        println!("   Browser will open automatically");
+    }
+    println!("\nPress Ctrl+C to stop the servers.\n");
+
+    // Wait for both servers
+    tokio::select! {
+        _ = backend_handle => {},
+        _ = frontend_handle => {},
+        _ = tokio::signal::ctrl_c() => {
+            println!("\n🛑 Stopping GUI servers...");
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

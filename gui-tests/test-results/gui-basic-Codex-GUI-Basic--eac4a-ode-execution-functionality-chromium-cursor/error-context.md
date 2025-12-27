@@ -1,0 +1,130 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]:
+        - heading "Codex Control" [level=6] [ref=e8]
+        - text: AI Assistant Platform
+      - generic [ref=e9]:
+        - list [ref=e10]:
+          - listitem [ref=e12]:
+            - button "ダッシュボード" [ref=e13] [cursor=pointer]:
+              - img [ref=e15]
+              - generic [ref=e19]: ダッシュボード
+          - listitem [ref=e21]:
+            - button "コード実行" [ref=e22] [cursor=pointer]:
+              - img [ref=e24]
+              - generic [ref=e28]: コード実行
+          - listitem [ref=e30]:
+            - button "エージェント" [ref=e31] [cursor=pointer]:
+              - img [ref=e33]
+              - generic [ref=e39]: エージェント
+          - listitem [ref=e41]:
+            - button "タスク管理" [ref=e42] [cursor=pointer]:
+              - img [ref=e44]
+              - generic [ref=e48]: タスク管理
+          - listitem [ref=e50]:
+            - button "QC管理" [ref=e51] [cursor=pointer]:
+              - img [ref=e53]
+              - generic [ref=e57]: QC管理
+          - listitem [ref=e59]:
+            - button "セキュリティ" [ref=e60] [cursor=pointer]:
+              - img [ref=e62]
+              - generic [ref=e65]: セキュリティ
+          - listitem [ref=e67]:
+            - button "仮想OS" [ref=e68] [cursor=pointer]:
+              - img [ref=e70]
+              - generic [ref=e73]: 仮想OS
+          - listitem [ref=e75]:
+            - button "AIツール統合" [ref=e76] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e82]: AIツール統合
+          - listitem [ref=e84]:
+            - button "Deep Research" [ref=e85] [cursor=pointer]:
+              - img [ref=e87]
+              - generic [ref=e91]: Deep Research
+          - listitem [ref=e93]:
+            - button "セキュリティ" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+              - generic [ref=e99]: セキュリティ
+          - listitem [ref=e101]:
+            - button "MCPサーバー" [ref=e102] [cursor=pointer]:
+              - img [ref=e104]
+              - generic [ref=e108]: MCPサーバー
+          - listitem [ref=e110]:
+            - button "分析" [ref=e111] [cursor=pointer]:
+              - img [ref=e113]
+              - generic [ref=e116]: 分析
+          - listitem [ref=e118]:
+            - button "ドキュメント" [ref=e119] [cursor=pointer]:
+              - img [ref=e121]
+              - generic [ref=e125]: ドキュメント
+          - listitem [ref=e127]:
+            - button "パフォーマンス" [ref=e128] [cursor=pointer]:
+              - img [ref=e130]
+              - generic [ref=e133]: パフォーマンス
+        - separator [ref=e134]
+        - list [ref=e135]:
+          - listitem [ref=e137]:
+            - button "設定" [ref=e138] [cursor=pointer]:
+              - img [ref=e140]
+              - generic [ref=e144]: 設定
+    - main [ref=e145]:
+      - generic [ref=e147]:
+        - generic [ref=e149]: コード実行
+        - generic [ref=e150]:
+          - 'generic "Codexサーバー: 未接続" [ref=e152]':
+            - img [ref=e153]
+            - generic [ref=e160]: オフライン
+          - 'button "HTTP 404: Not Found" [ref=e162] [cursor=pointer]':
+            - img [ref=e163]
+          - button "テーマ切り替え (system)" [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+          - button "設定" [ref=e170] [cursor=pointer]:
+            - img [ref=e171]
+          - button "プロフィール" [ref=e175] [cursor=pointer]:
+            - img [ref=e176]
+      - generic [ref=e180]:
+        - generic [ref=e181]:
+          - generic [ref=e184]: コード実行設定
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - generic [ref=e188]:
+                - generic [ref=e189]: 言語
+                - generic [ref=e190]:
+                  - combobox [ref=e191] [cursor=pointer]: JavaScript
+                  - textbox: javascript
+                  - img
+                  - group:
+                    - generic: 言語
+              - generic [ref=e193]:
+                - generic [ref=e194]: ファイル名
+                - generic [ref=e195]:
+                  - textbox "ファイル名" [ref=e196]:
+                    - /placeholder: script.js
+                    - text: script.js
+                  - group:
+                    - generic: ファイル名
+              - generic [ref=e198]:
+                - button "実行" [disabled]:
+                  - generic:
+                    - img
+                  - text: 実行
+                - button "保存" [ref=e199] [cursor=pointer]:
+                  - img [ref=e201]
+                  - text: 保存
+                - button "読み込み" [ref=e205] [cursor=pointer]:
+                  - img [ref=e207]
+                  - text: 読み込み
+                - button "クイック実行" [disabled]:
+                  - img
+            - alert [ref=e209]:
+              - img [ref=e211]
+              - generic [ref=e213]: Codexサーバーに接続されていません。コード実行にはサーバー接続が必要です。
+        - generic [ref=e218]:
+          - textbox "ここにコードを入力してください..." [active] [ref=e219]: console.log("Hello from Playwright!");
+          - group
+```

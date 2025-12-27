@@ -1,0 +1,163 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]:
+        - heading "Codex Control" [level=6] [ref=e8]
+        - text: AI Assistant Platform
+      - generic [ref=e9]:
+        - list [ref=e10]:
+          - listitem [ref=e12]:
+            - button "ダッシュボード" [ref=e13] [cursor=pointer]:
+              - img [ref=e15]
+              - generic [ref=e19]: ダッシュボード
+          - listitem [ref=e21]:
+            - button "コード実行" [ref=e22] [cursor=pointer]:
+              - img [ref=e24]
+              - generic [ref=e28]: コード実行
+          - listitem [ref=e30]:
+            - button "エージェント" [ref=e31] [cursor=pointer]:
+              - img [ref=e33]
+              - generic [ref=e39]: エージェント
+          - listitem [ref=e41]:
+            - button "タスク管理" [ref=e42] [cursor=pointer]:
+              - img [ref=e44]
+              - generic [ref=e48]: タスク管理
+          - listitem [ref=e50]:
+            - button "QC管理" [ref=e51] [cursor=pointer]:
+              - img [ref=e53]
+              - generic [ref=e57]: QC管理
+          - listitem [ref=e59]:
+            - button "セキュリティ" [ref=e60] [cursor=pointer]:
+              - img [ref=e62]
+              - generic [ref=e65]: セキュリティ
+          - listitem [ref=e67]:
+            - button "仮想OS" [active] [ref=e68] [cursor=pointer]:
+              - img [ref=e70]
+              - generic [ref=e73]: 仮想OS
+          - listitem [ref=e75]:
+            - button "AIツール統合" [ref=e76] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e82]: AIツール統合
+          - listitem [ref=e84]:
+            - button "Deep Research" [ref=e85] [cursor=pointer]:
+              - img [ref=e87]
+              - generic [ref=e91]: Deep Research
+          - listitem [ref=e93]:
+            - button "セキュリティ" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+              - generic [ref=e99]: セキュリティ
+          - listitem [ref=e101]:
+            - button "MCPサーバー" [ref=e102] [cursor=pointer]:
+              - img [ref=e104]
+              - generic [ref=e108]: MCPサーバー
+          - listitem [ref=e110]:
+            - button "分析" [ref=e111] [cursor=pointer]:
+              - img [ref=e113]
+              - generic [ref=e116]: 分析
+          - listitem [ref=e118]:
+            - button "ドキュメント" [ref=e119] [cursor=pointer]:
+              - img [ref=e121]
+              - generic [ref=e125]: ドキュメント
+          - listitem [ref=e127]:
+            - button "パフォーマンス" [ref=e128] [cursor=pointer]:
+              - img [ref=e130]
+              - generic [ref=e133]: パフォーマンス
+        - separator [ref=e134]
+        - list [ref=e135]:
+          - listitem [ref=e137]:
+            - button "設定" [ref=e138] [cursor=pointer]:
+              - img [ref=e140]
+              - generic [ref=e144]: 設定
+    - main [ref=e145]:
+      - generic [ref=e147]:
+        - generic [ref=e149]: Codex Dashboard
+        - generic [ref=e150]:
+          - 'generic "Codexサーバー: 未接続" [ref=e152]':
+            - img [ref=e153]
+            - generic [ref=e160]: オフライン
+          - 'button "HTTP 404: Not Found" [ref=e162] [cursor=pointer]':
+            - img [ref=e163]
+          - button "テーマ切り替え (system)" [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+          - button "設定" [ref=e170] [cursor=pointer]:
+            - img [ref=e171]
+          - button "プロフィール" [ref=e175] [cursor=pointer]:
+            - img [ref=e176]
+      - generic [ref=e179]:
+        - generic [ref=e181]:
+          - heading "ようこそ、Codexへ" [level=4] [ref=e182]
+          - paragraph [ref=e183]: AIアシスタントプラットフォームで、効率的な開発と自動化を実現しましょう。
+        - generic [ref=e184]:
+          - generic [ref=e190] [cursor=pointer]:
+            - img [ref=e192]
+            - generic [ref=e194]:
+              - heading "0" [level=4] [ref=e195]
+              - paragraph [ref=e196]: 実行中のタスク
+              - generic [ref=e198]: "+2"
+          - generic [ref=e204] [cursor=pointer]:
+            - img [ref=e206]
+            - generic [ref=e211]:
+              - heading "4" [level=4] [ref=e212]
+              - paragraph [ref=e213]: アクティブエージェント
+              - generic [ref=e215]: "+0"
+          - generic [ref=e221] [cursor=pointer]:
+            - img [ref=e223]
+            - generic [ref=e225]:
+              - heading "98%" [level=4] [ref=e226]
+              - paragraph [ref=e227]: セキュリティスコア
+              - generic [ref=e229]: +5%
+          - generic [ref=e235] [cursor=pointer]:
+            - img [ref=e237]
+            - generic [ref=e239]:
+              - heading "オフライン" [level=4] [ref=e240]
+              - paragraph [ref=e241]: 接続状態
+              - generic [ref=e243]: 再接続中
+        - generic [ref=e244]:
+          - generic [ref=e247]:
+            - generic [ref=e250]: クイックアクション
+            - generic [ref=e252]:
+              - button "コードレビュー開始" [ref=e253] [cursor=pointer]:
+                - img [ref=e255]
+                - text: コードレビュー開始
+              - button "Deep Research実行" [ref=e258] [cursor=pointer]:
+                - img [ref=e260]
+                - text: Deep Research実行
+              - button "セキュリティスキャン" [ref=e268] [cursor=pointer]:
+                - img [ref=e270]
+                - text: セキュリティスキャン
+              - button "エージェント設定" [ref=e272] [cursor=pointer]:
+                - img [ref=e274]
+                - text: エージェント設定
+              - button "VR/ARモード開始" [ref=e277] [cursor=pointer]:
+                - img [ref=e279]
+                - text: VR/ARモード開始
+              - button "仮想OS起動" [ref=e282] [cursor=pointer]:
+                - img [ref=e284]
+                - text: 仮想OS起動
+              - button "Git4D可視化" [ref=e286] [cursor=pointer]:
+                - img [ref=e288]
+                - text: Git4D可視化
+          - generic [ref=e297]: 最近のアクティビティ
+          - generic [ref=e301]:
+            - generic [ref=e304]: パフォーマンス概要
+            - generic [ref=e306]:
+              - generic [ref=e307]:
+                - generic [ref=e308]:
+                  - paragraph [ref=e309]: CPU使用率
+                  - paragraph [ref=e310]: 45%
+                - progressbar [ref=e311]
+              - generic [ref=e313]:
+                - generic [ref=e314]:
+                  - paragraph [ref=e315]: メモリ使用率
+                  - paragraph [ref=e316]: 67%
+                - progressbar [ref=e317]
+              - generic [ref=e319]:
+                - generic [ref=e320]:
+                  - paragraph [ref=e321]: ディスク使用率
+                  - paragraph [ref=e322]: 23%
+                - progressbar [ref=e323]
+```

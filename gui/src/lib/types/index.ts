@@ -109,6 +109,13 @@ export interface SystemMetrics {
   networkUsage?: number;
   activeProcesses: number;
   uptime: number;
+  gpuUsage?: number;
+  gpuMemoryUsed?: number;
+  gpuMemoryTotal?: number;
+  gpuMemoryUsage?: number;
+  gpuTemperature?: number;
+  gpuName?: string;
+  gpuVendor?: 'nvidia' | 'amd' | 'intel' | 'unknown';
 }
 
 export interface NotificationItem {

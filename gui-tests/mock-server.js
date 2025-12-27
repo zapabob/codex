@@ -24,11 +24,39 @@ async function getRealSystemMetrics() {
     const diskInfo = await si.fsSize();
     const diskUsage = diskInfo.length > 0 ? Math.round(diskInfo[0].use) : 50;
 
-    // Get GPU information
+    // Get GPU information with detailed metrics
     const gpuInfo = await si.graphics();
-    const gpuUsage = gpuInfo.controllers && gpuInfo.controllers.length > 0
-      ? (gpuInfo.controllers[0].utilizationGpu || 0)
-      : 0;
+    let gpuUsage = 0;
+    let gpuMemoryUsed = 0;
+    let gpuMemoryTotal = 0;
+    let gpuMemoryUsage = 0;
+    let gpuTemperature = null;
+    let gpuName = null;
+    let gpuVendor = 'unknown';
+
+    if (gpuInfo.controllers && gpuInfo.controllers.length > 0) {
+      const gpu = gpuInfo.controllers[0];
+      gpuUsage = gpu.utilizationGpu || gpu.utilizationGpu || 0;
+      gpuMemoryUsed = gpu.memoryUsed || gpu.memoryUsed || 0;
+      gpuMemoryTotal = gpu.memoryTotal || gpu.memoryTotal || 0;
+      gpuMemoryUsage = gpuMemoryTotal > 0 
+        ? Math.round((gpuMemoryUsed / gpuMemoryTotal) * 100) 
+        : 0;
+      gpuTemperature = gpu.temperatureGpu || gpu.temperatureGpu || null;
+      gpuName = gpu.name || gpu.model || null;
+      
+      // Determine vendor from name/model
+      if (gpuName) {
+        const nameLower = gpuName.toLowerCase();
+        if (nameLower.includes('nvidia') || nameLower.includes('geforce') || nameLower.includes('rtx') || nameLower.includes('gtx')) {
+          gpuVendor = 'nvidia';
+        } else if (nameLower.includes('amd') || nameLower.includes('radeon') || nameLower.includes('rx')) {
+          gpuVendor = 'amd';
+        } else if (nameLower.includes('intel') || nameLower.includes('iris') || nameLower.includes('uhd')) {
+          gpuVendor = 'intel';
+        }
+      }
+    }
 
     // Get active processes
     const processes = await si.processes();
@@ -42,6 +70,12 @@ async function getRealSystemMetrics() {
       memory_usage: memoryUsage,
       disk_usage: diskUsage,
       gpu_usage: gpuUsage,
+      gpu_memory_used: gpuMemoryUsed,
+      gpu_memory_total: gpuMemoryTotal,
+      gpu_memory_usage: gpuMemoryUsage,
+      gpu_temperature: gpuTemperature,
+      gpu_name: gpuName,
+      gpu_vendor: gpuVendor,
       active_processes: activeProcesses,
       uptime: uptime
     };
@@ -255,6 +289,12 @@ wss.on('connection', (ws) => {
           memory_usage: Math.floor(Math.random() * 100),
           disk_usage: Math.floor(Math.random() * 100),
           gpu_usage: Math.floor(Math.random() * 100),
+          gpu_memory_used: Math.floor(Math.random() * 8000) + 1000,
+          gpu_memory_total: 8192,
+          gpu_memory_usage: Math.floor(Math.random() * 100),
+          gpu_temperature: Math.floor(Math.random() * 30) + 50,
+          gpu_name: 'Mock GPU',
+          gpu_vendor: 'unknown',
           active_processes: Math.floor(Math.random() * 500) + 50,
           uptime: Math.floor(Math.random() * 86400)
         }

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/atoms/Button'
 import { VirtualEnvironment, CodeExecution } from '@/app/virtual-os/page'
+import { CodexAPIClient } from '@/lib/api/client'
+import { SystemMetrics } from '@/lib/types'
 import {
   Activity,
   Cpu,
@@ -55,6 +57,7 @@ interface ResourceMetrics {
 
 export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {
   const [metrics, setMetrics] = useState<ResourceMetrics[]>([])
+  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null)
   const [selectedTimeframe, setSelectedTimeframe] = useState<'1m' | '5m' | '15m' | '1h'>('5m')
   const [alerts, setAlerts] = useState<Array<{
     id: string
@@ -63,45 +66,130 @@ export function ResourceMonitor({ environments, executions }: ResourceMonitorPro
     environmentId: string
     timestamp: Date
   }>>([])
+  const apiClient = useRef(new CodexAPIClient())
+  const wsRef = useRef<WebSocket | null>(null)
+  const previousMetricsRef = useRef<SystemMetrics | null>(null)
 
-  // Generate mock metrics data
+  // Fetch real system metrics from API
   useEffect(() => {
+    const fetchSystemMetrics = async () => {
+      try {
+        const metrics = await apiClient.current.getSystemMetrics()
+        setSystemMetrics(metrics)
+        previousMetricsRef.current = metrics
+      } catch (error) {
+        console.error('Failed to fetch system metrics:', error)
+      }
+    }
+
+    // Initial fetch
+    fetchSystemMetrics()
+
+    // Set up polling every 5 seconds
+    const interval = setInterval(fetchSystemMetrics, 5000)
+
+    // Set up WebSocket connection for real-time updates
+    try {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const wsUrl = `${wsProtocol}//${window.location.hostname}:8787`
+      const ws = new WebSocket(wsUrl)
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          if (data.type === 'system_metrics' && data.data) {
+            const metrics: SystemMetrics = {
+              cpuUsage: data.data.cpu_usage || data.data.cpuUsage || 0,
+              memoryUsage: data.data.memory_usage || data.data.memoryUsage || 0,
+              diskUsage: data.data.disk_usage || data.data.diskUsage || 0,
+              networkUsage: data.data.network_usage || data.data.networkUsage,
+              activeProcesses: data.data.active_processes || data.data.activeProcesses || 0,
+              uptime: data.data.uptime || 0,
+              gpuUsage: data.data.gpu_usage || data.data.gpuUsage,
+              gpuMemoryUsed: data.data.gpu_memory_used || data.data.gpuMemoryUsed,
+              gpuMemoryTotal: data.data.gpu_memory_total || data.data.gpuMemoryTotal,
+              gpuMemoryUsage: data.data.gpu_memory_usage || data.data.gpuMemoryUsage,
+              gpuTemperature: data.data.gpu_temperature || data.data.gpuTemperature,
+              gpuName: data.data.gpu_name || data.data.gpuName,
+              gpuVendor: data.data.gpu_vendor || data.data.gpuVendor,
+            }
+            setSystemMetrics(metrics)
+            previousMetricsRef.current = metrics
+          }
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error)
+        }
+      }
+
+      ws.onerror = (error) => {
+        console.warn('WebSocket error, falling back to polling:', error)
+      }
+
+      ws.onclose = () => {
+        console.log('WebSocket closed, using polling only')
+      }
+
+      wsRef.current = ws
+    } catch (error) {
+      console.warn('WebSocket connection failed, using polling only:', error)
+    }
+
+    return () => {
+      clearInterval(interval)
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
+    }
+  }, [])
+
+  // Generate environment metrics based on real system metrics
+  useEffect(() => {
+    if (!systemMetrics) return
+
     const generateMetrics = () => {
       const newMetrics: ResourceMetrics[] = environments.map(env => {
+        // Use real system metrics as base, scaled for environment
+        const cpuUsage = env.status === 'running' 
+          ? (systemMetrics.cpuUsage * (env.resources.cpu / 100))
+          : 0
+        const memoryUsage = env.status === 'running'
+          ? (systemMetrics.memoryUsage / 100) * env.resources.memory
+          : 0
+
+        // Calculate trends based on previous metrics
+        const prev = previousMetricsRef.current
+        const cpuTrend = prev 
+          ? (cpuUsage > prev.cpuUsage ? 'up' : cpuUsage < prev.cpuUsage ? 'down' : 'stable')
+          : 'stable'
+        const memoryTrend = prev
+          ? (memoryUsage > (prev.memoryUsage / 100) * env.resources.memory ? 'up' : 'down')
+          : 'stable'
+
         const baseMetrics: ResourceMetrics = {
           environmentId: env.id,
           environmentName: env.name,
           cpu: {
-            usage: Math.random() * 100,
+            usage: Math.min(cpuUsage, env.resources.cpu * 100),
             limit: env.resources.cpu * 100,
-            trend: Math.random() > 0.5 ? 'up' : 'down'
+            trend: cpuTrend
           },
           memory: {
-            usage: Math.random() * env.resources.memory,
+            usage: Math.min(memoryUsage, env.resources.memory),
             limit: env.resources.memory,
-            trend: Math.random() > 0.5 ? 'up' : 'down'
+            trend: memoryTrend
           },
           disk: {
-            usage: Math.random() * env.resources.disk * 0.8,
+            usage: (systemMetrics.diskUsage / 100) * env.resources.disk * 0.8,
             limit: env.resources.disk,
             trend: 'stable'
           },
           network: {
-            bytesIn: Math.floor(Math.random() * 1000000),
+            bytesIn: Math.floor(Math.random() * 1000000), // Network stats would need separate API
             bytesOut: Math.floor(Math.random() * 500000),
-            connections: Math.floor(Math.random() * 20)
+            connections: systemMetrics.activeProcesses || 0
           },
           uptime: Date.now() - env.createdAt.getTime(),
           lastUpdated: new Date()
-        }
-
-        // Add some realistic variations based on environment status
-        if (env.status === 'running') {
-          baseMetrics.cpu.usage = Math.min(baseMetrics.cpu.limit, baseMetrics.cpu.usage * 1.2)
-          baseMetrics.memory.usage = Math.min(baseMetrics.memory.limit, baseMetrics.memory.usage * 1.1)
-        } else {
-          baseMetrics.cpu.usage = 0
-          baseMetrics.memory.usage = 0
         }
 
         return baseMetrics
@@ -109,7 +197,7 @@ export function ResourceMonitor({ environments, executions }: ResourceMonitorPro
 
       setMetrics(newMetrics)
 
-      // Generate alerts based on metrics
+      // Generate alerts based on real metrics
       const newAlerts = []
       for (const metric of newMetrics) {
         if (metric.cpu.usage > metric.cpu.limit * 0.9) {
@@ -147,10 +235,7 @@ export function ResourceMonitor({ environments, executions }: ResourceMonitorPro
     }
 
     generateMetrics()
-    const interval = setInterval(generateMetrics, 5000) // Update every 5 seconds
-
-    return () => clearInterval(interval)
-  }, [environments])
+  }, [environments, systemMetrics])
 
   const formatBytes = (bytes: number): string => {
     const units = ['B', 'KB', 'MB', 'GB']
@@ -218,17 +303,19 @@ export function ResourceMonitor({ environments, executions }: ResourceMonitorPro
   return (
     <div className="h-full p-6 space-y-6 overflow-y-auto">
       {/* System Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <Cpu className="w-8 h-8 text-blue-500" />
             <div>
-              <div className="text-2xl font-bold">{(usedResources.cpu / totalResources.cpu * 100).toFixed(1)}%</div>
+              <div className="text-2xl font-bold">
+                {systemMetrics ? systemMetrics.cpuUsage.toFixed(1) : (usedResources.cpu / totalResources.cpu * 100).toFixed(1)}%
+              </div>
               <div className="text-sm text-gray-600">CPU Usage</div>
             </div>
           </div>
           <div className="mt-2 text-xs text-gray-500">
-            {usedResources.cpu.toFixed(1)} / {totalResources.cpu} cores
+            {systemMetrics ? `Real-time from system` : `${usedResources.cpu.toFixed(1)} / ${totalResources.cpu} cores`}
           </div>
         </Card>
 
@@ -236,25 +323,46 @@ export function ResourceMonitor({ environments, executions }: ResourceMonitorPro
           <div className="flex items-center gap-3">
             <HardDrive className="w-8 h-8 text-green-500" />
             <div>
-              <div className="text-2xl font-bold">{(usedResources.memory / totalResources.memory * 100).toFixed(1)}%</div>
+              <div className="text-2xl font-bold">
+                {systemMetrics ? systemMetrics.memoryUsage.toFixed(1) : (usedResources.memory / totalResources.memory * 100).toFixed(1)}%
+              </div>
               <div className="text-sm text-gray-600">Memory</div>
             </div>
           </div>
           <div className="mt-2 text-xs text-gray-500">
-            {usedResources.memory.toFixed(1)} / {totalResources.memory} MB
+            {systemMetrics ? `Real-time from system` : `${usedResources.memory.toFixed(1)} / ${totalResources.memory} MB`}
           </div>
         </Card>
+
+        {systemMetrics?.gpuUsage !== undefined && (
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Zap className="w-8 h-8 text-yellow-500" />
+              <div>
+                <div className="text-2xl font-bold">{systemMetrics.gpuUsage.toFixed(1)}%</div>
+                <div className="text-sm text-gray-600">GPU Usage</div>
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              {systemMetrics.gpuName || 'GPU'}
+              {systemMetrics.gpuMemoryUsage !== undefined && ` | ${systemMetrics.gpuMemoryUsage.toFixed(1)}% mem`}
+              {systemMetrics.gpuTemperature !== undefined && ` | ${systemMetrics.gpuTemperature}°C`}
+            </div>
+          </Card>
+        )}
 
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <Activity className="w-8 h-8 text-purple-500" />
             <div>
-              <div className="text-2xl font-bold">{(usedResources.disk / totalResources.disk * 100).toFixed(1)}%</div>
+              <div className="text-2xl font-bold">
+                {systemMetrics ? systemMetrics.diskUsage.toFixed(1) : (usedResources.disk / totalResources.disk * 100).toFixed(1)}%
+              </div>
               <div className="text-sm text-gray-600">Disk Usage</div>
             </div>
           </div>
           <div className="mt-2 text-xs text-gray-500">
-            {usedResources.disk.toFixed(1)} / {totalResources.disk} GB
+            {systemMetrics ? `Real-time from system` : `${usedResources.disk.toFixed(1)} / ${totalResources.disk} GB`}
           </div>
         </Card>
 
