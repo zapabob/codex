@@ -660,6 +660,35 @@ export function CodexProvider({ children }: { children: ReactNode }) {
 
   const loadMetrics = async () => {
     try {
+      // Try CLI/TUI bridge first for real-time metrics
+      const bridge = cliBridgeRef.current;
+      if (bridge && state.cliBridgeConnected) {
+        try {
+          const cliMetrics = await bridge.getSystemMetrics();
+          if (cliMetrics) {
+            const metrics = {
+              cpuUsage: cliMetrics.cpu_usage || cliMetrics.cpuUsage || 0,
+              memoryUsage: cliMetrics.memory_usage || cliMetrics.memoryUsage || 0,
+              diskUsage: cliMetrics.disk_usage || cliMetrics.diskUsage || 0,
+              activeProcesses: cliMetrics.active_processes || cliMetrics.activeProcesses || 0,
+              uptime: cliMetrics.uptime || 0,
+              gpuUsage: cliMetrics.gpu_usage || cliMetrics.gpuUsage,
+              gpuMemoryUsed: cliMetrics.gpu_memory_used || cliMetrics.gpuMemoryUsed,
+              gpuMemoryTotal: cliMetrics.gpu_memory_total || cliMetrics.gpuMemoryTotal,
+              gpuMemoryUsage: cliMetrics.gpu_memory_usage || cliMetrics.gpuMemoryUsage,
+              gpuTemperature: cliMetrics.gpu_temperature || cliMetrics.gpuTemperature,
+              gpuName: cliMetrics.gpu_name || cliMetrics.gpuName,
+              gpuVendor: cliMetrics.gpu_vendor || cliMetrics.gpuVendor,
+            };
+            dispatch({ type: 'SET_METRICS', payload: metrics });
+            return;
+          }
+        } catch (bridgeError) {
+          console.warn('CLI bridge metrics failed, falling back to API:', bridgeError);
+        }
+      }
+
+      // Fallback to API
       const metrics = await apiClient.getSystemMetrics();
       dispatch({ type: 'SET_METRICS', payload: metrics });
     } catch (error) {
