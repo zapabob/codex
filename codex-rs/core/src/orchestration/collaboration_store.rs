@@ -11,6 +11,25 @@ use serde::Serialize;
 use serde_json::Value;
 use std::sync::Arc;
 use std::time::SystemTime;
+use tracing::Level;
+use tracing::event;
+
+/// Metrics emitted for orchestration runs.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct OrchestrationMetrics {
+    /// Skills detected for the run
+    pub skills: Vec<String>,
+    /// Strategy requested or used
+    pub strategy: String,
+    /// Whether the orchestrator fell back to a sequential path
+    pub fallback_used: bool,
+    /// Number of agents executed
+    pub agent_count: usize,
+    /// Total execution time in milliseconds
+    pub execution_time_ms: u64,
+    /// Agent configuration for the run
+    pub agents: Vec<String>,
+}
 
 /// Message passed between agents.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,6 +60,9 @@ pub struct CollaborationStore {
 
     /// Message queue for inter-agent communication
     message_queue: Arc<DashMap<String, Vec<AgentMessage>>>,
+
+    /// Last recorded orchestration metrics
+    metrics_state: Arc<DashMap<String, OrchestrationMetrics>>,
 }
 
 impl CollaborationStore {
@@ -51,6 +73,7 @@ impl CollaborationStore {
             agent_results: Arc::new(DashMap::new()),
             task_metadata: Arc::new(DashMap::new()),
             message_queue: Arc::new(DashMap::new()),
+            metrics_state: Arc::new(DashMap::new()),
         }
     }
 
@@ -136,6 +159,7 @@ impl CollaborationStore {
         self.agent_results.clear();
         self.task_metadata.clear();
         self.message_queue.clear();
+        self.metrics_state.clear();
     }
 
     /// Get the number of completed agents.
@@ -211,6 +235,50 @@ impl CollaborationStore {
 
         count
     }
+
+    /// Record orchestration metrics for observability pipelines.
+    pub fn record_metrics(&self, metrics: OrchestrationMetrics) {
+        if let Ok(serialized) = serde_json::to_value(&metrics) {
+            self.task_metadata
+                .insert("orchestration_metrics".to_string(), serialized);
+        }
+
+        let skills = if metrics.skills.is_empty() {
+            "unspecified".to_string()
+        } else {
+            metrics.skills.join(",")
+        };
+
+        let agents = if metrics.agents.is_empty() {
+            "none".to_string()
+        } else {
+            metrics.agents.join(",")
+        };
+
+        event!(
+            Level::INFO,
+            event.name = "codex.auto_orchestration.metrics",
+            skill = %skills,
+            strategy = %metrics.strategy,
+            fallback_used = metrics.fallback_used,
+            agent_count = metrics.agent_count as u64,
+            execution_time_ms = metrics.execution_time_ms,
+            agents = %agents
+        );
+
+        self.metrics_state.insert("latest".to_string(), metrics);
+    }
+
+    /// Retrieve the last recorded orchestration metrics, if any.
+    pub fn latest_metrics(&self) -> Option<OrchestrationMetrics> {
+        if let Some(entry) = self.metrics_state.get("latest") {
+            return Some(entry.value().clone());
+        }
+
+        self.task_metadata
+            .get("orchestration_metrics")
+            .and_then(|value| serde_json::from_value(value.value().clone()).ok())
+    }
 }
 
 impl Default for CollaborationStore {
@@ -221,8 +289,11 @@ impl Default for CollaborationStore {
 
 #[cfg(test)]
 mod tests {
-    use super::parallel_execution::AgentStatus;
     use super::*;
+    use pretty_assertions::assert_eq;
+    use std::io::Write;
+    use std::sync::Arc;
+    use std::sync::Mutex;
 
     #[test]
     fn test_context_sharing() {
@@ -297,5 +368,92 @@ mod tests {
 
         store.clear();
         assert!(store.get_context("key1").is_none());
+    }
+
+    #[test]
+    fn record_metrics_logs_and_persists_snapshot() {
+        let store = CollaborationStore::new();
+        let metrics = OrchestrationMetrics {
+            skills: vec!["security".to_string(), "testing".to_string()],
+            strategy: "parallel".to_string(),
+            fallback_used: false,
+            agent_count: 3,
+            execution_time_ms: 1250,
+            agents: vec![
+                "sec-audit".to_string(),
+                "test-gen".to_string(),
+                "code-reviewer".to_string(),
+            ],
+        };
+
+        #[derive(Clone)]
+        struct BufferWriter(Arc<Mutex<Vec<u8>>>);
+
+        impl Write for BufferWriter {
+            fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+                let mut guard = self.0.lock().expect("lock poisoned");
+                guard.write(buf)
+            }
+
+            fn flush(&mut self) -> std::io::Result<()> {
+                let mut guard = self.0.lock().expect("lock poisoned");
+                guard.flush()
+            }
+        }
+
+        let buffer = Arc::new(Mutex::new(Vec::new()));
+        let writer = buffer.clone();
+        let subscriber = tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::INFO)
+            .json()
+            .with_writer(move || BufferWriter(writer.clone()))
+            .finish();
+        let _guard = tracing::subscriber::set_default(subscriber);
+
+        store.record_metrics(metrics.clone());
+
+        let stored = store.latest_metrics().expect("metrics are stored");
+        assert_eq!(stored, metrics);
+
+        let output = buffer.lock().expect("lock poisoned").clone();
+        let log: serde_json::Value =
+            serde_json::from_slice(&output).expect("log output is valid json");
+        let fields = log.get("fields").expect("fields present in log payload");
+        assert_eq!(
+            fields
+                .get("event.name")
+                .expect("event name exists")
+                .as_str(),
+            Some("codex.auto_orchestration.metrics")
+        );
+        assert_eq!(
+            fields.get("skill").expect("skill tag exists").as_str(),
+            Some("security,testing")
+        );
+        assert_eq!(
+            fields
+                .get("strategy")
+                .expect("strategy tag exists")
+                .as_str(),
+            Some("parallel")
+        );
+        assert_eq!(
+            fields
+                .get("agent_count")
+                .expect("agent count tag exists")
+                .as_u64(),
+            Some(3)
+        );
+        assert_eq!(
+            fields
+                .get("execution_time_ms")
+                .expect("execution time tag exists")
+                .as_u64(),
+            Some(1250)
+        );
+        assert_eq!(
+            fields.get("agents").expect("agents tag exists").as_str(),
+            Some("sec-audit,test-gen,code-reviewer")
+        );
     }
 }

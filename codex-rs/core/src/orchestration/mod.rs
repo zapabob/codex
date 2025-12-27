@@ -24,6 +24,7 @@ pub mod worktree_manager;
 pub use auto_orchestrator::AutoOrchestrator;
 pub use auto_orchestrator::OrchestratedResult;
 pub use collaboration_store::CollaborationStore;
+pub use collaboration_store::OrchestrationMetrics;
 pub use conflict_resolver::ConflictResolver;
 pub use conflict_resolver::MergeStrategy;
 pub use plan_orchestrator::PlanOrchestrator;
