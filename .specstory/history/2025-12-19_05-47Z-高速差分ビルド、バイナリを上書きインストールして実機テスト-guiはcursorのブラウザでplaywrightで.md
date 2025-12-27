@@ -194096,3 +194096,15955 @@ GUIを簡単に呼び出せるようにしてCLITUIと連接して使えるよ�
 
 ---
 
+_**Agent (model default, mode Agent)**_
+
+
+GUIの起動を簡素化し、CLI/TUIとの連接を強化し、サイドバーとホバーのUXを改善します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/app/layout.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "GUI launch command shortcut CLI TUI integration",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\README.md",
+        "range": {
+          "startPosition": {
+            "line": 472
+          },
+          "endPosition": {
+            "line": 528
+          }
+        },
+        "contents": "# VR mode (Quest 2/3/Pro)\n# Open in browser and click \"Enter VR\"\nopen http://localhost:3000/git-vr\n&#96;&#96;&#96;\n\n#### 5. Deep Research\n\n&#96;&#96;&#96;bash\n# Research with citations\ncodex research \"Rust async best practices\" \\\n  --depth 3 \\\n  --strategy comprehensive\n\n# Output: Markdown report with sources\n&#96;&#96;&#96;\n\n#### 6. GUI (Web Interface) / GUI（Webインターフェース）\n\n**English**: Modern web-based GUI for Codex with dashboard, agent management, and real-time monitoring. Accessible via desktop shortcut or manual startup.\n\n**日本語**: ダッシュボード、エージェント管理、リアルタイムモニタリング機能を持つモダンなWebベースのGUI。デスクトップショートカットまたは手動起動でアクセス可能。\n\n##### Desktop Shortcut / デスクトップショートカット\n\n**English**: Double-click the \"Codex GUI\" shortcut on your desktop. The GUI server will start automatically and your browser will open to &#96;http://localhost:3000&#96;.\n\n**日本語**: デスクトップの「Codex GUI」ショートカットをダブルクリックしてください。GUIサーバーが自動的に起動し、ブラウザが &#96;http://localhost:3000&#96; で開きます。\n\n##### Manual Startup / 手動起動\n\n**English**: Start both the backend API server and frontend separately:\n\n**日本語**: バックエンドAPIサーバーとフロントエンドを別々に起動します：\n\n&#96;&#96;&#96;bash\n# 1. Start backend API server (port 8787)\n# バックエンドAPIサーバーを起動（ポート8787）\ncd codex-rs\ncargo run -p codex-gui\n\n# 2. In another terminal, start frontend (port 3000)\n# 別のターミナルでフロントエンドを起動（ポート3000）\ncd gui\nnpm install  # First time only / 初回のみ\nnpm run dev\n&#96;&#96;&#96;\n\n**English**: Then open your browser to &#96;http://localhost:3000&#96;.\n\n**日本語**: その後、ブラウザで &#96;http://localhost:3000&#96; にアクセスしてください。\n\n##### GUI Features / GUI機能\n\n**English**:\n- **Dashboard**: Overview of agents, tasks, and system metrics\n- **Agent Management**: Start, stop, and monitor specialized agents",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# VR mode (Quest 2/3/Pro)",
+            "lineNumber": 473
+          },
+          {
+            "text": "# Open in browser and click \"Enter VR\"",
+            "lineNumber": 474
+          },
+          {
+            "text": "open http://localhost:3000/git-vr",
+            "lineNumber": 475
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 476
+          },
+          {
+            "lineNumber": 477
+          },
+          {
+            "text": "#### 5. Deep Research",
+            "lineNumber": 478
+          },
+          {
+            "lineNumber": 479
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 480
+          },
+          {
+            "text": "# Research with citations",
+            "lineNumber": 481
+          },
+          {
+            "text": "codex research \"Rust async best practices\" \\",
+            "lineNumber": 482
+          },
+          {
+            "text": "  --depth 3 \\",
+            "lineNumber": 483
+          },
+          {
+            "text": "  --strategy comprehensive",
+            "lineNumber": 484
+          },
+          {
+            "lineNumber": 485
+          },
+          {
+            "text": "# Output: Markdown report with sources",
+            "lineNumber": 486
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 487
+          },
+          {
+            "lineNumber": 488
+          },
+          {
+            "text": "#### 6. GUI (Web Interface) / GUI（Webインターフェース）",
+            "lineNumber": 489
+          },
+          {
+            "lineNumber": 490
+          },
+          {
+            "text": "**English**: Modern web-based GUI for Codex with dashboard, agent management, and real-time monitoring. Accessible via desktop shortcut or manual startup.",
+            "lineNumber": 491
+          },
+          {
+            "lineNumber": 492
+          },
+          {
+            "text": "**日本語**: ダッシュボード、エージェント管理、リアルタイムモニタリング機能を持つモダンなWebベースのGUI。デスクトップショートカットまたは手動起動でアクセス可能。",
+            "lineNumber": 493
+          },
+          {
+            "lineNumber": 494
+          },
+          {
+            "text": "##### Desktop Shortcut / デスクトップショートカット",
+            "lineNumber": 495
+          },
+          {
+            "lineNumber": 496
+          },
+          {
+            "text": "**English**: Double-click the \"Codex GUI\" shortcut on your desktop. The GUI server will start automatically and your browser will open to &#96;http://localhost:3000&#96;.",
+            "lineNumber": 497
+          },
+          {
+            "lineNumber": 498
+          },
+          {
+            "text": "**日本語**: デスクトップの「Codex GUI」ショートカットをダブルクリックしてください。GUIサーバーが自動的に起動し、ブラウザが &#96;http://localhost:3000&#96; で開きます。",
+            "lineNumber": 499
+          },
+          {
+            "lineNumber": 500
+          },
+          {
+            "text": "##### Manual Startup / 手動起動",
+            "lineNumber": 501
+          },
+          {
+            "lineNumber": 502
+          },
+          {
+            "text": "**English**: Start both the backend API server and frontend separately:",
+            "lineNumber": 503
+          },
+          {
+            "lineNumber": 504
+          },
+          {
+            "text": "**日本語**: バックエンドAPIサーバーとフロントエンドを別々に起動します：",
+            "lineNumber": 505
+          },
+          {
+            "lineNumber": 506
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 507
+          },
+          {
+            "text": "# 1. Start backend API server (port 8787)",
+            "lineNumber": 508
+          },
+          {
+            "text": "# バックエンドAPIサーバーを起動（ポート8787）",
+            "lineNumber": 509
+          },
+          {
+            "text": "cd codex-rs",
+            "lineNumber": 510
+          },
+          {
+            "text": "cargo run -p codex-gui",
+            "lineNumber": 511
+          },
+          {
+            "lineNumber": 512
+          },
+          {
+            "text": "# 2. In another terminal, start frontend (port 3000)",
+            "lineNumber": 513
+          },
+          {
+            "text": "# 別のターミナルでフロントエンドを起動（ポート3000）",
+            "lineNumber": 514
+          },
+          {
+            "text": "cd gui",
+            "lineNumber": 515
+          },
+          {
+            "text": "npm install  # First time only / 初回のみ",
+            "lineNumber": 516
+          },
+          {
+            "text": "npm run dev",
+            "lineNumber": 517
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 518
+          },
+          {
+            "lineNumber": 519
+          },
+          {
+            "text": "**English**: Then open your browser to &#96;http://localhost:3000&#96;.",
+            "lineNumber": 520
+          },
+          {
+            "lineNumber": 521
+          },
+          {
+            "text": "**日本語**: その後、ブラウザで &#96;http://localhost:3000&#96; にアクセスしてください。",
+            "lineNumber": 522
+          },
+          {
+            "lineNumber": 523
+          },
+          {
+            "text": "##### GUI Features / GUI機能",
+            "lineNumber": 524
+          },
+          {
+            "lineNumber": 525
+          },
+          {
+            "text": "**English**:",
+            "lineNumber": 526
+          },
+          {
+            "text": "- **Dashboard**: Overview of agents, tasks, and system metrics",
+            "lineNumber": 527
+          },
+          {
+            "text": "- **Agent Management**: Start, stop, and monitor specialized agents",
+            "lineNumber": 528
+          }
+        ]
+      },
+      "score": 0.45884209871292114
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 1162
+          },
+          "endPosition": {
+            "line": 1193,
+            "column": 75
+          }
+        },
+        "contents": "/// CLI-specific ones specified after the subcommand (if any).\nfn prepend_config_flags(\n    subcommand_config_overrides: &amp;mut CliConfigOverrides,\n    cli_config_overrides: CliConfigOverrides,\n) {\n    subcommand_config_overrides\n        .raw_overrides\n        .splice(0..0, cli_config_overrides.raw_overrides);\n}\n\n/// Run the interactive Codex TUI, dispatching to either the legacy implementation or the\n/// experimental TUI v2 shim based on feature flags resolved from config.\nasync fn run_interactive_tui(\n    interactive: TuiCli,\n    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,\n) -&gt; std::io::Result&lt;AppExitInfo&gt; {\n    if is_tui2_enabled(&amp;interactive).await? {\n        let result = tui2::run_main(interactive.into(), codex_linux_sandbox_exe).await?;\n        Ok(result.into())\n    } else {\n        codex_tui::run_main(interactive, codex_linux_sandbox_exe).await\n    }\n}\n\n/// Returns &#96;Ok(true)&#96; when the resolved configuration enables the &#96;tui2&#96; feature flag.\n///\n/// This performs a lightweight config load (honoring the same precedence as the lower-level TUI\n/// bootstrap: &#96;$CODEX_HOME&#96;, config.toml, profile, and CLI &#96;-c&#96; overrides) solely to decide which\n/// TUI frontend to launch. The full configuration is still loaded later by the interactive TUI.\nasync fn is_tui2_enabled(cli: &amp;TuiCli) -&gt; std::io::Result&lt;bool&gt; {\n    let raw_overrides = cli.config_overrides.raw_overrides.clone();\n    let overrides_cli = codex_common::CliConfigOverrides { raw_overrides };",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/// CLI-specific ones specified after the subcommand (if any).",
+            "lineNumber": 1163
+          },
+          {
+            "text": "fn prepend_config_flags(",
+            "lineNumber": 1164
+          },
+          {
+            "text": "    subcommand_config_overrides: &amp;mut CliConfigOverrides,",
+            "lineNumber": 1165
+          },
+          {
+            "text": "    cli_config_overrides: CliConfigOverrides,",
+            "lineNumber": 1166
+          },
+          {
+            "text": ") {",
+            "lineNumber": 1167
+          },
+          {
+            "text": "    subcommand_config_overrides",
+            "lineNumber": 1168
+          },
+          {
+            "text": "        .raw_overrides",
+            "lineNumber": 1169
+          },
+          {
+            "text": "        .splice(0..0, cli_config_overrides.raw_overrides);",
+            "lineNumber": 1170
+          },
+          {
+            "text": "}",
+            "lineNumber": 1171
+          },
+          {
+            "lineNumber": 1172
+          },
+          {
+            "text": "/// Run the interactive Codex TUI, dispatching to either the legacy implementation or the",
+            "lineNumber": 1173
+          },
+          {
+            "text": "/// experimental TUI v2 shim based on feature flags resolved from config.",
+            "lineNumber": 1174
+          },
+          {
+            "text": "async fn run_interactive_tui(",
+            "lineNumber": 1175
+          },
+          {
+            "text": "    interactive: TuiCli,",
+            "lineNumber": 1176
+          },
+          {
+            "text": "    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,",
+            "lineNumber": 1177
+          },
+          {
+            "text": ") -&gt; std::io::Result&lt;AppExitInfo&gt; {",
+            "lineNumber": 1178
+          },
+          {
+            "text": "    if is_tui2_enabled(&amp;interactive).await? {",
+            "lineNumber": 1179
+          },
+          {
+            "text": "        let result = tui2::run_main(interactive.into(), codex_linux_sandbox_exe).await?;",
+            "lineNumber": 1180
+          },
+          {
+            "text": "        Ok(result.into())",
+            "lineNumber": 1181
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 1182
+          },
+          {
+            "text": "        codex_tui::run_main(interactive, codex_linux_sandbox_exe).await",
+            "lineNumber": 1183
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1184
+          },
+          {
+            "text": "}",
+            "lineNumber": 1185
+          },
+          {
+            "lineNumber": 1186
+          },
+          {
+            "text": "/// Returns &#96;Ok(true)&#96; when the resolved configuration enables the &#96;tui2&#96; feature flag.",
+            "lineNumber": 1187
+          },
+          {
+            "text": "///",
+            "lineNumber": 1188
+          },
+          {
+            "text": "/// This performs a lightweight config load (honoring the same precedence as the lower-level TUI",
+            "lineNumber": 1189
+          },
+          {
+            "text": "/// bootstrap: &#96;$CODEX_HOME&#96;, config.toml, profile, and CLI &#96;-c&#96; overrides) solely to decide which",
+            "lineNumber": 1190
+          },
+          {
+            "text": "/// TUI frontend to launch. The full configuration is still loaded later by the interactive TUI.",
+            "lineNumber": 1191
+          },
+          {
+            "text": "async fn is_tui2_enabled(cli: &amp;TuiCli) -&gt; std::io::Result&lt;bool&gt; {",
+            "lineNumber": 1192
+          },
+          {
+            "text": "    let raw_overrides = cli.config_overrides.raw_overrides.clone();",
+            "lineNumber": 1193
+          },
+          {
+            "text": "    let overrides_cli = codex_common::CliConfigOverrides { raw_overrides };",
+            "lineNumber": 1194
+          }
+        ]
+      },
+      "score": 0.4477123022079468
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tauri-gui\\src-tauri\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 157,
+            "column": 6
+          },
+          "endPosition": {
+            "line": 213,
+            "column": 1
+          }
+        },
+        "contents": "    tauri::Builder::default()\n        .plugin(tauri_plugin_shell::init())\n        .plugin(tauri_plugin_notification::init())\n        .manage(app_state)\n        .manage(orchestrator_state)\n        .setup(|app| {\n            // Setup system tray\n            tray::create_tray(app.handle())?;\n\n            // Setup global shortcuts\n            shortcuts::setup_shortcuts(app.handle())?;\n\n            // Check for updates (async)\n            let app_handle = app.handle().clone();\n            tokio::spawn(async move {\n                updater::check_for_updates(&amp;app_handle).await;\n            });\n\n            info!(\"Application initialized successfully\");\n            Ok(())\n        })\n        .invoke_handler(tauri::generate_handler![\n            greet,\n            get_status,\n            get_gpu_stats,\n            start_file_watcher,\n            stop_file_watcher,\n            get_recent_changes,\n            enable_autostart,\n            codex_bridge::codex_create_plan,\n            codex_bridge::codex_execute_plan,\n            codex_bridge::codex_list_plans,\n            codex_bridge::codex_research,\n            codex_bridge::codex_list_mcp_tools,\n            codex_bridge::codex_invoke_mcp_tool,\n            updater::manual_update_check,\n            kernel_bridge::kernel_get_status,\n            kernel_bridge::kernel_optimize_process,\n            kernel_bridge::kernel_allocate_memory,\n            kernel_bridge::kernel_free_memory,\n            commit_quality::analyze_commit_quality,\n            commit_quality::analyze_commits_batch,\n            orchestration::orchestrate_parallel,\n            orchestration::get_orchestration_progress,\n            orchestration::compare_agent_results,\n            orchestration::create_worktree,\n            orchestration::list_worktrees,\n            orchestration::remove_worktree,\n            orchestration::merge_worktree,\n            orchestration::get_resource_capacity,\n            orchestration::get_system_stats,\n        ])\n        .run(tauri::generate_context!())\n        .expect(\"error while running tauri application\");\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    tauri::Builder::default()",
+            "lineNumber": 160
+          },
+          {
+            "text": "        .plugin(tauri_plugin_shell::init())",
+            "lineNumber": 161
+          },
+          {
+            "text": "        .plugin(tauri_plugin_notification::init())",
+            "lineNumber": 162
+          },
+          {
+            "text": "        .manage(app_state)",
+            "lineNumber": 163
+          },
+          {
+            "text": "        .manage(orchestrator_state)",
+            "lineNumber": 164
+          },
+          {
+            "text": "        .setup(|app| {",
+            "lineNumber": 165
+          },
+          {
+            "text": "            // Setup system tray",
+            "lineNumber": 166
+          },
+          {
+            "text": "            tray::create_tray(app.handle())?;",
+            "lineNumber": 167
+          },
+          {
+            "lineNumber": 168
+          },
+          {
+            "text": "            // Setup global shortcuts",
+            "lineNumber": 169
+          },
+          {
+            "text": "            shortcuts::setup_shortcuts(app.handle())?;",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 171
+          },
+          {
+            "text": "            // Check for updates (async)",
+            "lineNumber": 172
+          },
+          {
+            "text": "            let app_handle = app.handle().clone();",
+            "lineNumber": 173
+          },
+          {
+            "text": "            tokio::spawn(async move {",
+            "lineNumber": 174
+          },
+          {
+            "text": "                updater::check_for_updates(&amp;app_handle).await;",
+            "lineNumber": 175
+          },
+          {
+            "text": "            });",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "            info!(\"Application initialized successfully\");",
+            "lineNumber": 178
+          },
+          {
+            "text": "            Ok(())",
+            "lineNumber": 179
+          },
+          {
+            "text": "        })",
+            "lineNumber": 180
+          },
+          {
+            "text": "        .invoke_handler(tauri::generate_handler![",
+            "lineNumber": 181
+          },
+          {
+            "text": "            greet,",
+            "lineNumber": 182
+          },
+          {
+            "text": "            get_status,",
+            "lineNumber": 183
+          },
+          {
+            "text": "            get_gpu_stats,",
+            "lineNumber": 184
+          },
+          {
+            "text": "            start_file_watcher,",
+            "lineNumber": 185
+          },
+          {
+            "text": "            stop_file_watcher,",
+            "lineNumber": 186
+          },
+          {
+            "text": "            get_recent_changes,",
+            "lineNumber": 187
+          },
+          {
+            "text": "            enable_autostart,",
+            "lineNumber": 188
+          },
+          {
+            "text": "            codex_bridge::codex_create_plan,",
+            "lineNumber": 189
+          },
+          {
+            "text": "            codex_bridge::codex_execute_plan,",
+            "lineNumber": 190
+          },
+          {
+            "text": "            codex_bridge::codex_list_plans,",
+            "lineNumber": 191
+          },
+          {
+            "text": "            codex_bridge::codex_research,",
+            "lineNumber": 192
+          },
+          {
+            "text": "            codex_bridge::codex_list_mcp_tools,",
+            "lineNumber": 193
+          },
+          {
+            "text": "            codex_bridge::codex_invoke_mcp_tool,",
+            "lineNumber": 194
+          },
+          {
+            "text": "            updater::manual_update_check,",
+            "lineNumber": 195
+          },
+          {
+            "text": "            kernel_bridge::kernel_get_status,",
+            "lineNumber": 196
+          },
+          {
+            "text": "            kernel_bridge::kernel_optimize_process,",
+            "lineNumber": 197
+          },
+          {
+            "text": "            kernel_bridge::kernel_allocate_memory,",
+            "lineNumber": 198
+          },
+          {
+            "text": "            kernel_bridge::kernel_free_memory,",
+            "lineNumber": 199
+          },
+          {
+            "text": "            commit_quality::analyze_commit_quality,",
+            "lineNumber": 200
+          },
+          {
+            "text": "            commit_quality::analyze_commits_batch,",
+            "lineNumber": 201
+          },
+          {
+            "text": "            orchestration::orchestrate_parallel,",
+            "lineNumber": 202
+          },
+          {
+            "text": "            orchestration::get_orchestration_progress,",
+            "lineNumber": 203
+          },
+          {
+            "text": "            orchestration::compare_agent_results,",
+            "lineNumber": 204
+          },
+          {
+            "text": "            orchestration::create_worktree,",
+            "lineNumber": 205
+          },
+          {
+            "text": "            orchestration::list_worktrees,",
+            "lineNumber": 206
+          },
+          {
+            "text": "            orchestration::remove_worktree,",
+            "lineNumber": 207
+          },
+          {
+            "text": "            orchestration::merge_worktree,",
+            "lineNumber": 208
+          },
+          {
+            "text": "            orchestration::get_resource_capacity,",
+            "lineNumber": 209
+          },
+          {
+            "text": "            orchestration::get_system_stats,",
+            "lineNumber": 210
+          },
+          {
+            "text": "        ])",
+            "lineNumber": 211
+          },
+          {
+            "text": "        .run(tauri::generate_context!())",
+            "lineNumber": 212
+          },
+          {
+            "text": "        .expect(\"error while running tauri application\");",
+            "lineNumber": 213
+          },
+          {
+            "text": "}",
+            "lineNumber": 214
+          }
+        ]
+      },
+      "score": 0.446111798286438
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tauri-gui\\src-tauri\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 157,
+            "column": 6
+          },
+          "endPosition": {
+            "line": 213,
+            "column": 1
+          }
+        },
+        "contents": "    tauri::Builder::default()\n        .plugin(tauri_plugin_shell::init())\n        .plugin(tauri_plugin_notification::init())\n        .manage(app_state)\n        .manage(orchestrator_state)\n        .setup(|app| {\n            // Setup system tray\n            tray::create_tray(app.handle())?;\n\n            // Setup global shortcuts\n            shortcuts::setup_shortcuts(app.handle())?;\n\n            // Check for updates (async)\n            let app_handle = app.handle().clone();\n            tokio::spawn(async move {\n                updater::check_for_updates(&amp;app_handle).await;\n            });\n\n            info!(\"Application initialized successfully\");\n            Ok(())\n        })\n        .invoke_handler(tauri::generate_handler![\n            greet,\n            get_status,\n            get_gpu_stats,\n            start_file_watcher,\n            stop_file_watcher,\n            get_recent_changes,\n            enable_autostart,\n            codex_bridge::codex_create_plan,\n            codex_bridge::codex_execute_plan,\n            codex_bridge::codex_list_plans,\n            codex_bridge::codex_research,\n            codex_bridge::codex_list_mcp_tools,\n            codex_bridge::codex_invoke_mcp_tool,\n            updater::manual_update_check,\n            kernel_bridge::kernel_get_status,\n            kernel_bridge::kernel_optimize_process,\n            kernel_bridge::kernel_allocate_memory,\n            kernel_bridge::kernel_free_memory,\n            commit_quality::analyze_commit_quality,\n            commit_quality::analyze_commits_batch,\n            orchestration::orchestrate_parallel,\n            orchestration::get_orchestration_progress,\n            orchestration::compare_agent_results,\n            orchestration::create_worktree,\n            orchestration::list_worktrees,\n            orchestration::remove_worktree,\n            orchestration::merge_worktree,\n            orchestration::get_resource_capacity,\n            orchestration::get_system_stats,\n        ])\n        .run(tauri::generate_context!())\n        .expect(\"error while running tauri application\");\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    tauri::Builder::default()",
+            "lineNumber": 160
+          },
+          {
+            "text": "        .plugin(tauri_plugin_shell::init())",
+            "lineNumber": 161
+          },
+          {
+            "text": "        .plugin(tauri_plugin_notification::init())",
+            "lineNumber": 162
+          },
+          {
+            "text": "        .manage(app_state)",
+            "lineNumber": 163
+          },
+          {
+            "text": "        .manage(orchestrator_state)",
+            "lineNumber": 164
+          },
+          {
+            "text": "        .setup(|app| {",
+            "lineNumber": 165
+          },
+          {
+            "text": "            // Setup system tray",
+            "lineNumber": 166
+          },
+          {
+            "text": "            tray::create_tray(app.handle())?;",
+            "lineNumber": 167
+          },
+          {
+            "lineNumber": 168
+          },
+          {
+            "text": "            // Setup global shortcuts",
+            "lineNumber": 169
+          },
+          {
+            "text": "            shortcuts::setup_shortcuts(app.handle())?;",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 171
+          },
+          {
+            "text": "            // Check for updates (async)",
+            "lineNumber": 172
+          },
+          {
+            "text": "            let app_handle = app.handle().clone();",
+            "lineNumber": 173
+          },
+          {
+            "text": "            tokio::spawn(async move {",
+            "lineNumber": 174
+          },
+          {
+            "text": "                updater::check_for_updates(&amp;app_handle).await;",
+            "lineNumber": 175
+          },
+          {
+            "text": "            });",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "            info!(\"Application initialized successfully\");",
+            "lineNumber": 178
+          },
+          {
+            "text": "            Ok(())",
+            "lineNumber": 179
+          },
+          {
+            "text": "        })",
+            "lineNumber": 180
+          },
+          {
+            "text": "        .invoke_handler(tauri::generate_handler![",
+            "lineNumber": 181
+          },
+          {
+            "text": "            greet,",
+            "lineNumber": 182
+          },
+          {
+            "text": "            get_status,",
+            "lineNumber": 183
+          },
+          {
+            "text": "            get_gpu_stats,",
+            "lineNumber": 184
+          },
+          {
+            "text": "            start_file_watcher,",
+            "lineNumber": 185
+          },
+          {
+            "text": "            stop_file_watcher,",
+            "lineNumber": 186
+          },
+          {
+            "text": "            get_recent_changes,",
+            "lineNumber": 187
+          },
+          {
+            "text": "            enable_autostart,",
+            "lineNumber": 188
+          },
+          {
+            "text": "            codex_bridge::codex_create_plan,",
+            "lineNumber": 189
+          },
+          {
+            "text": "            codex_bridge::codex_execute_plan,",
+            "lineNumber": 190
+          },
+          {
+            "text": "            codex_bridge::codex_list_plans,",
+            "lineNumber": 191
+          },
+          {
+            "text": "            codex_bridge::codex_research,",
+            "lineNumber": 192
+          },
+          {
+            "text": "            codex_bridge::codex_list_mcp_tools,",
+            "lineNumber": 193
+          },
+          {
+            "text": "            codex_bridge::codex_invoke_mcp_tool,",
+            "lineNumber": 194
+          },
+          {
+            "text": "            updater::manual_update_check,",
+            "lineNumber": 195
+          },
+          {
+            "text": "            kernel_bridge::kernel_get_status,",
+            "lineNumber": 196
+          },
+          {
+            "text": "            kernel_bridge::kernel_optimize_process,",
+            "lineNumber": 197
+          },
+          {
+            "text": "            kernel_bridge::kernel_allocate_memory,",
+            "lineNumber": 198
+          },
+          {
+            "text": "            kernel_bridge::kernel_free_memory,",
+            "lineNumber": 199
+          },
+          {
+            "text": "            commit_quality::analyze_commit_quality,",
+            "lineNumber": 200
+          },
+          {
+            "text": "            commit_quality::analyze_commits_batch,",
+            "lineNumber": 201
+          },
+          {
+            "text": "            orchestration::orchestrate_parallel,",
+            "lineNumber": 202
+          },
+          {
+            "text": "            orchestration::get_orchestration_progress,",
+            "lineNumber": 203
+          },
+          {
+            "text": "            orchestration::compare_agent_results,",
+            "lineNumber": 204
+          },
+          {
+            "text": "            orchestration::create_worktree,",
+            "lineNumber": 205
+          },
+          {
+            "text": "            orchestration::list_worktrees,",
+            "lineNumber": 206
+          },
+          {
+            "text": "            orchestration::remove_worktree,",
+            "lineNumber": 207
+          },
+          {
+            "text": "            orchestration::merge_worktree,",
+            "lineNumber": 208
+          },
+          {
+            "text": "            orchestration::get_resource_capacity,",
+            "lineNumber": 209
+          },
+          {
+            "text": "            orchestration::get_system_stats,",
+            "lineNumber": 210
+          },
+          {
+            "text": "        ])",
+            "lineNumber": 211
+          },
+          {
+            "text": "        .run(tauri::generate_context!())",
+            "lineNumber": 212
+          },
+          {
+            "text": "        .expect(\"error while running tauri application\");",
+            "lineNumber": 213
+          },
+          {
+            "text": "}",
+            "lineNumber": 214
+          }
+        ]
+      },
+      "score": 0.446111798286438
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\_docs\\2025-11-25_GUI本番実装とCLI同期・TUI起動・高速ビルド実装完了.md",
+        "range": {
+          "startPosition": {
+            "line": 178
+          },
+          "endPosition": {
+            "line": 252
+          }
+        },
+        "contents": "foreach ($ProcName in $Processes) {\n    $Procs = Get-Process -Name $ProcName -ErrorAction SilentlyContinue\n    if ($Procs) {\n        Write-Status \"   Stopping $ProcName processes...\"\n        $Procs | Stop-Process -Force -ErrorAction SilentlyContinue\n        Start-Sleep -Milliseconds 500\n        $KilledProcesses += $ProcName\n        Write-Success \"   Stopped $ProcName\"\n        Log \"Stopped $ProcName processes\"\n    }\n}\n&#96;&#96;&#96;\n\n## Phase 3: TUI正常起動の実装\n\n### Phase 3.1: TUI起動ロジックの改善\n\n**ファイル**: &#96;codex-rs/cli/src/main.rs&#96;\n\n**変更内容**:\n- &#96;launch_tui&#96;関数を大幅に改善\n- 複数の検索パスを順番に試行：\n  1. 環境変数&#96;CODEX_TUI_PATH&#96;\n  2. PATH内の&#96;codex-tui&#96;\n  3. PATH内の&#96;codex-tui.exe&#96;\n  4. &#96;~/.cargo/bin/codex-tui.exe&#96;\n  5. 実行ファイルと同じディレクトリ\n  6. &#96;target/release/codex-tui.exe&#96;と&#96;target/debug/codex-tui.exe&#96;\n- 見つからない場合は、エラーメッセージとインストール手順を表示して終了\n\n**実装詳細**:\n&#96;&#96;&#96;rust\nfn launch_tui() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {\n    println!(\"Launching Terminal User Interface...\");\n\n    // Search paths in order of priority\n    let mut tui_paths = Vec::new();\n    \n    // 1. Check environment variable\n    if let Ok(env_path) = std::env::var(\"CODEX_TUI_PATH\") {\n        tui_paths.push(PathBuf::from(env_path));\n    }\n    \n    // 2-6. Check various paths...\n    \n    // Find first existing path\n    let tui_path = tui_paths.iter().find(|p| {\n        if p.is_absolute() {\n            p.exists()\n        } else {\n            which::which(p).is_ok()\n        }\n    });\n\n    match tui_path {\n        Some(path) =&gt; {\n            // Launch TUI...\n        }\n        None =&gt; {\n            // Show error and installation instructions...\n            std::process::exit(1);\n        }\n    }\n}\n&#96;&#96;&#96;\n\n### Phase 3.2: TUIビルドとインストールの統合\n\n**ファイル**: &#96;codex-rs/justfile&#96;\n\n**変更内容**:\n- &#96;build-tui&#96;: TUIのビルドコマンドを追加\n- &#96;install-tui&#96;: TUIのインストールコマンドを追加",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "foreach ($ProcName in $Processes) {",
+            "lineNumber": 180
+          },
+          {
+            "text": "    $Procs = Get-Process -Name $ProcName -ErrorAction SilentlyContinue",
+            "lineNumber": 181
+          },
+          {
+            "text": "    if ($Procs) {",
+            "lineNumber": 182
+          },
+          {
+            "text": "        Write-Status \"   Stopping $ProcName processes...\"",
+            "lineNumber": 183
+          },
+          {
+            "text": "        $Procs | Stop-Process -Force -ErrorAction SilentlyContinue",
+            "lineNumber": 184
+          },
+          {
+            "text": "        Start-Sleep -Milliseconds 500",
+            "lineNumber": 185
+          },
+          {
+            "text": "        $KilledProcesses += $ProcName",
+            "lineNumber": 186
+          },
+          {
+            "text": "        Write-Success \"   Stopped $ProcName\"",
+            "lineNumber": 187
+          },
+          {
+            "text": "        Log \"Stopped $ProcName processes\"",
+            "lineNumber": 188
+          },
+          {
+            "text": "    }",
+            "lineNumber": 189
+          },
+          {
+            "text": "}",
+            "lineNumber": 190
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "## Phase 3: TUI正常起動の実装",
+            "lineNumber": 193
+          },
+          {
+            "lineNumber": 194
+          },
+          {
+            "text": "### Phase 3.1: TUI起動ロジックの改善",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "**ファイル**: &#96;codex-rs/cli/src/main.rs&#96;",
+            "lineNumber": 197
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "text": "**変更内容**:",
+            "lineNumber": 199
+          },
+          {
+            "text": "- &#96;launch_tui&#96;関数を大幅に改善",
+            "lineNumber": 200
+          },
+          {
+            "text": "- 複数の検索パスを順番に試行：",
+            "lineNumber": 201
+          },
+          {
+            "text": "  1. 環境変数&#96;CODEX_TUI_PATH&#96;",
+            "lineNumber": 202
+          },
+          {
+            "text": "  2. PATH内の&#96;codex-tui&#96;",
+            "lineNumber": 203
+          },
+          {
+            "text": "  3. PATH内の&#96;codex-tui.exe&#96;",
+            "lineNumber": 204
+          },
+          {
+            "text": "  4. &#96;~/.cargo/bin/codex-tui.exe&#96;",
+            "lineNumber": 205
+          },
+          {
+            "text": "  5. 実行ファイルと同じディレクトリ",
+            "lineNumber": 206
+          },
+          {
+            "text": "  6. &#96;target/release/codex-tui.exe&#96;と&#96;target/debug/codex-tui.exe&#96;",
+            "lineNumber": 207
+          },
+          {
+            "text": "- 見つからない場合は、エラーメッセージとインストール手順を表示して終了",
+            "lineNumber": 208
+          },
+          {
+            "lineNumber": 209
+          },
+          {
+            "text": "**実装詳細**:",
+            "lineNumber": 210
+          },
+          {
+            "text": "&#96;&#96;&#96;rust",
+            "lineNumber": 211
+          },
+          {
+            "text": "fn launch_tui() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {",
+            "lineNumber": 212
+          },
+          {
+            "text": "    println!(\"Launching Terminal User Interface...\");",
+            "lineNumber": 213
+          },
+          {
+            "lineNumber": 214
+          },
+          {
+            "text": "    // Search paths in order of priority",
+            "lineNumber": 215
+          },
+          {
+            "text": "    let mut tui_paths = Vec::new();",
+            "lineNumber": 216
+          },
+          {
+            "text": "    ",
+            "lineNumber": 217
+          },
+          {
+            "text": "    // 1. Check environment variable",
+            "lineNumber": 218
+          },
+          {
+            "text": "    if let Ok(env_path) = std::env::var(\"CODEX_TUI_PATH\") {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        tui_paths.push(PathBuf::from(env_path));",
+            "lineNumber": 220
+          },
+          {
+            "text": "    }",
+            "lineNumber": 221
+          },
+          {
+            "text": "    ",
+            "lineNumber": 222
+          },
+          {
+            "text": "    // 2-6. Check various paths...",
+            "lineNumber": 223
+          },
+          {
+            "text": "    ",
+            "lineNumber": 224
+          },
+          {
+            "text": "    // Find first existing path",
+            "lineNumber": 225
+          },
+          {
+            "text": "    let tui_path = tui_paths.iter().find(|p| {",
+            "lineNumber": 226
+          },
+          {
+            "text": "        if p.is_absolute() {",
+            "lineNumber": 227
+          },
+          {
+            "text": "            p.exists()",
+            "lineNumber": 228
+          },
+          {
+            "text": "        } else {",
+            "lineNumber": 229
+          },
+          {
+            "text": "            which::which(p).is_ok()",
+            "lineNumber": 230
+          },
+          {
+            "text": "        }",
+            "lineNumber": 231
+          },
+          {
+            "text": "    });",
+            "lineNumber": 232
+          },
+          {
+            "lineNumber": 233
+          },
+          {
+            "text": "    match tui_path {",
+            "lineNumber": 234
+          },
+          {
+            "text": "        Some(path) =&gt; {",
+            "lineNumber": 235
+          },
+          {
+            "text": "            // Launch TUI...",
+            "lineNumber": 236
+          },
+          {
+            "text": "        }",
+            "lineNumber": 237
+          },
+          {
+            "text": "        None =&gt; {",
+            "lineNumber": 238
+          },
+          {
+            "text": "            // Show error and installation instructions...",
+            "lineNumber": 239
+          },
+          {
+            "text": "            std::process::exit(1);",
+            "lineNumber": 240
+          },
+          {
+            "text": "        }",
+            "lineNumber": 241
+          },
+          {
+            "text": "    }",
+            "lineNumber": 242
+          },
+          {
+            "text": "}",
+            "lineNumber": 243
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 244
+          },
+          {
+            "lineNumber": 245
+          },
+          {
+            "text": "### Phase 3.2: TUIビルドとインストールの統合",
+            "lineNumber": 246
+          },
+          {
+            "lineNumber": 247
+          },
+          {
+            "text": "**ファイル**: &#96;codex-rs/justfile&#96;",
+            "lineNumber": 248
+          },
+          {
+            "lineNumber": 249
+          },
+          {
+            "text": "**変更内容**:",
+            "lineNumber": 250
+          },
+          {
+            "text": "- &#96;build-tui&#96;: TUIのビルドコマンドを追加",
+            "lineNumber": 251
+          },
+          {
+            "text": "- &#96;install-tui&#96;: TUIのインストールコマンドを追加",
+            "lineNumber": 252
+          }
+        ]
+      },
+      "score": 0.4427640438079834
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\scripts\\launch-codex-gui.ps1",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 57
+          }
+        },
+        "contents": "# Codex GUI Launcher Script\n# Starts the GUI server and opens browser\n\n$ErrorActionPreference = \"Stop\"\n\n$codexGuiPath = Join-Path $env:USERPROFILE \".cargo\\bin\\codex-gui.exe\"\n$port = 8787\n$url = \"http://localhost:$port\"\n\nWrite-Host \"Starting Codex GUI...\" -ForegroundColor Cyan\n\n# Check if GUI executable exists\nif (-not (Test-Path $codexGuiPath)) {\n    Write-Host \"Error: codex-gui.exe not found: $codexGuiPath\" -ForegroundColor Red\n    Write-Host \"Please build and install GUI first.\" -ForegroundColor Yellow\n    exit 1\n}\n\n# Check if port is already in use\n$portInUse = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue\nif ($portInUse) {\n    Write-Host \"Port $port is already in use. GUI may already be running.\" -ForegroundColor Yellow\n    Write-Host \"Opening browser to: $url\" -ForegroundColor Cyan\n    Start-Process $url\n    exit 0\n}\n\n# Start GUI server in background\nWrite-Host \"Starting GUI server on port $port...\" -ForegroundColor Yellow\n$guiProcess = Start-Process -FilePath $codexGuiPath -NoNewWindow -PassThru\n\n# Wait a moment for server to start\nStart-Sleep -Seconds 2\n\n# Check if process is still running\nif ($guiProcess.HasExited) {\n    Write-Host \"Error: GUI server failed to start\" -ForegroundColor Red\n    exit 1\n}\n\nWrite-Host \"GUI server started (PID: $($guiProcess.Id))\" -ForegroundColor Green\nWrite-Host \"Opening browser to: $url\" -ForegroundColor Cyan\n\n# Open browser\nStart-Process $url\n\nWrite-Host \"\"\nWrite-Host \"Codex GUI is running. Press Ctrl+C to stop the server.\" -ForegroundColor Yellow\nWrite-Host \"To stop: Get-Process | Where-Object { &#96;$_.Id -eq $($guiProcess.Id) } | Stop-Process\" -ForegroundColor Gray\n\n# Wait for process to exit\ntry {\n    $guiProcess.WaitForExit()\n} catch {\n    Write-Host \"GUI server stopped.\" -ForegroundColor Yellow\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codex GUI Launcher Script",
+            "lineNumber": 1
+          },
+          {
+            "text": "# Starts the GUI server and opens browser",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "$ErrorActionPreference = \"Stop\"",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "$codexGuiPath = Join-Path $env:USERPROFILE \".cargo\\bin\\codex-gui.exe\"",
+            "lineNumber": 6
+          },
+          {
+            "text": "$port = 8787",
+            "lineNumber": 7
+          },
+          {
+            "text": "$url = \"http://localhost:$port\"",
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9
+          },
+          {
+            "text": "Write-Host \"Starting Codex GUI...\" -ForegroundColor Cyan",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "# Check if GUI executable exists",
+            "lineNumber": 12
+          },
+          {
+            "text": "if (-not (Test-Path $codexGuiPath)) {",
+            "lineNumber": 13
+          },
+          {
+            "text": "    Write-Host \"Error: codex-gui.exe not found: $codexGuiPath\" -ForegroundColor Red",
+            "lineNumber": 14
+          },
+          {
+            "text": "    Write-Host \"Please build and install GUI first.\" -ForegroundColor Yellow",
+            "lineNumber": 15
+          },
+          {
+            "text": "    exit 1",
+            "lineNumber": 16
+          },
+          {
+            "text": "}",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "# Check if port is already in use",
+            "lineNumber": 19
+          },
+          {
+            "text": "$portInUse = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue",
+            "lineNumber": 20
+          },
+          {
+            "text": "if ($portInUse) {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    Write-Host \"Port $port is already in use. GUI may already be running.\" -ForegroundColor Yellow",
+            "lineNumber": 22
+          },
+          {
+            "text": "    Write-Host \"Opening browser to: $url\" -ForegroundColor Cyan",
+            "lineNumber": 23
+          },
+          {
+            "text": "    Start-Process $url",
+            "lineNumber": 24
+          },
+          {
+            "text": "    exit 0",
+            "lineNumber": 25
+          },
+          {
+            "text": "}",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "# Start GUI server in background",
+            "lineNumber": 28
+          },
+          {
+            "text": "Write-Host \"Starting GUI server on port $port...\" -ForegroundColor Yellow",
+            "lineNumber": 29
+          },
+          {
+            "text": "$guiProcess = Start-Process -FilePath $codexGuiPath -NoNewWindow -PassThru",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "# Wait a moment for server to start",
+            "lineNumber": 32
+          },
+          {
+            "text": "Start-Sleep -Seconds 2",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "# Check if process is still running",
+            "lineNumber": 35
+          },
+          {
+            "text": "if ($guiProcess.HasExited) {",
+            "lineNumber": 36
+          },
+          {
+            "text": "    Write-Host \"Error: GUI server failed to start\" -ForegroundColor Red",
+            "lineNumber": 37
+          },
+          {
+            "text": "    exit 1",
+            "lineNumber": 38
+          },
+          {
+            "text": "}",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "Write-Host \"GUI server started (PID: $($guiProcess.Id))\" -ForegroundColor Green",
+            "lineNumber": 41
+          },
+          {
+            "text": "Write-Host \"Opening browser to: $url\" -ForegroundColor Cyan",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "# Open browser",
+            "lineNumber": 44
+          },
+          {
+            "text": "Start-Process $url",
+            "lineNumber": 45
+          },
+          {
+            "lineNumber": 46
+          },
+          {
+            "text": "Write-Host \"\"",
+            "lineNumber": 47
+          },
+          {
+            "text": "Write-Host \"Codex GUI is running. Press Ctrl+C to stop the server.\" -ForegroundColor Yellow",
+            "lineNumber": 48
+          },
+          {
+            "text": "Write-Host \"To stop: Get-Process | Where-Object { &#96;$_.Id -eq $($guiProcess.Id) } | Stop-Process\" -ForegroundColor Gray",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "# Wait for process to exit",
+            "lineNumber": 51
+          },
+          {
+            "text": "try {",
+            "lineNumber": 52
+          },
+          {
+            "text": "    $guiProcess.WaitForExit()",
+            "lineNumber": 53
+          },
+          {
+            "text": "} catch {",
+            "lineNumber": 54
+          },
+          {
+            "text": "    Write-Host \"GUI server stopped.\" -ForegroundColor Yellow",
+            "lineNumber": 55
+          },
+          {
+            "text": "}",
+            "lineNumber": 56
+          }
+        ]
+      },
+      "score": 0.4389762878417969
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\README.md",
+        "range": {
+          "startPosition": {
+            "line": 1052
+          },
+          "endPosition": {
+            "line": 1148
+          }
+        },
+        "contents": "max_commits = 100000  # 最大コミット数\ncuda_acceleration = true\nfps_target = 60\nnode_detail_level = \"high\"  # low, medium, high\n\n# Plan mode\n[plan]\ndata_directory = \"~/.codex/plans/\"\ndefault_mode = \"orchestrated\"\ndefault_budget_tokens = 100000\ndefault_budget_time_minutes = 30\n&#96;&#96;&#96;\n\n---\n\n### 📖 使用例\n\n#### 例1: コードレビュー\n\n&#96;&#96;&#96;bash\n# サブエージェントに委任\ncodex delegate code-reviewer \\\n  --scope ./src \\\n  --output ./review-report.md\n\n# マルチエージェント並列実行\ncodex delegate-parallel \\\n  code-reviewer,sec-audit,test-gen \\\n  --scopes ./src,./src,./tests\n&#96;&#96;&#96;\n\n#### 例2: Git 4D可視化\n\n&#96;&#96;&#96;bash\n# TUI（ターミナル）\ncodex git-analyze \\\n  --cuda \\\n  --commits 100000 \\\n  --time-range \"2024-01-01..2025-11-06\"\n\n# GUI（Tauri）\ncodex-gui\n# → Git Visualizationタブ選択\n\n# VR（Quest 3）\n# ブラウザで http://PC_IP:3000/git-vr\n# → Enter VRボタン\n&#96;&#96;&#96;\n\n#### 例3: プラン実行\n\n&#96;&#96;&#96;bash\n# プラン作成\ncodex plan create \"Add authentication system\" \\\n  --mode=competition \\\n  --budget-tokens=200000\n\n# 出力: plan-abc123.json\n\n# 承認\ncodex plan approve plan-abc123\n\n# 実行（3つのworktreeで並列）\ncodex plan execute plan-abc123\n\n# 進捗確認\ncodex plan status plan-abc123\n\n# 実行ログ\ncodex plan executions --plan-id plan-abc123\n&#96;&#96;&#96;\n\n#### 例4: GUI（Webインターフェース）の使用\n\n**デスクトップショートカットから起動**:\n1. デスクトップの「Codex GUI」ショートカットをダブルクリック\n2. 自動的にブラウザが開き、GUIが表示されます\n3. ダッシュボードでエージェントやタスクを管理\n\n**手動起動**:\n&#96;&#96;&#96;bash\n# 1. バックエンドAPIサーバー起動（ポート8787）\ncd codex-rs\ncargo run -p codex-gui\n\n# 2. 別ターミナルでフロントエンド起動（ポート3000）\ncd gui\nnpm install  # 初回のみ\nnpm run dev\n\n# 3. ブラウザで http://localhost:3000 にアクセス\n&#96;&#96;&#96;\n\n**GUIの主な機能**:\n- **ダッシュボード**: エージェント、タスク、システムメトリクスの一覧表示\n- **エージェント管理**: code-reviewer、test-gen、sec-audit、researcherなどの起動・監視",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "max_commits = 100000  # 最大コミット数",
+            "lineNumber": 1053
+          },
+          {
+            "text": "cuda_acceleration = true",
+            "lineNumber": 1054
+          },
+          {
+            "text": "fps_target = 60",
+            "lineNumber": 1055
+          },
+          {
+            "text": "node_detail_level = \"high\"  # low, medium, high",
+            "lineNumber": 1056
+          },
+          {
+            "lineNumber": 1057
+          },
+          {
+            "text": "# Plan mode",
+            "lineNumber": 1058
+          },
+          {
+            "text": "[plan]",
+            "lineNumber": 1059
+          },
+          {
+            "text": "data_directory = \"~/.codex/plans/\"",
+            "lineNumber": 1060
+          },
+          {
+            "text": "default_mode = \"orchestrated\"",
+            "lineNumber": 1061
+          },
+          {
+            "text": "default_budget_tokens = 100000",
+            "lineNumber": 1062
+          },
+          {
+            "text": "default_budget_time_minutes = 30",
+            "lineNumber": 1063
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 1064
+          },
+          {
+            "lineNumber": 1065
+          },
+          {
+            "text": "---",
+            "lineNumber": 1066
+          },
+          {
+            "lineNumber": 1067
+          },
+          {
+            "text": "### 📖 使用例",
+            "lineNumber": 1068
+          },
+          {
+            "lineNumber": 1069
+          },
+          {
+            "text": "#### 例1: コードレビュー",
+            "lineNumber": 1070
+          },
+          {
+            "lineNumber": 1071
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 1072
+          },
+          {
+            "text": "# サブエージェントに委任",
+            "lineNumber": 1073
+          },
+          {
+            "text": "codex delegate code-reviewer \\",
+            "lineNumber": 1074
+          },
+          {
+            "text": "  --scope ./src \\",
+            "lineNumber": 1075
+          },
+          {
+            "text": "  --output ./review-report.md",
+            "lineNumber": 1076
+          },
+          {
+            "lineNumber": 1077
+          },
+          {
+            "text": "# マルチエージェント並列実行",
+            "lineNumber": 1078
+          },
+          {
+            "text": "codex delegate-parallel \\",
+            "lineNumber": 1079
+          },
+          {
+            "text": "  code-reviewer,sec-audit,test-gen \\",
+            "lineNumber": 1080
+          },
+          {
+            "text": "  --scopes ./src,./src,./tests",
+            "lineNumber": 1081
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 1082
+          },
+          {
+            "lineNumber": 1083
+          },
+          {
+            "text": "#### 例2: Git 4D可視化",
+            "lineNumber": 1084
+          },
+          {
+            "lineNumber": 1085
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 1086
+          },
+          {
+            "text": "# TUI（ターミナル）",
+            "lineNumber": 1087
+          },
+          {
+            "text": "codex git-analyze \\",
+            "lineNumber": 1088
+          },
+          {
+            "text": "  --cuda \\",
+            "lineNumber": 1089
+          },
+          {
+            "text": "  --commits 100000 \\",
+            "lineNumber": 1090
+          },
+          {
+            "text": "  --time-range \"2024-01-01..2025-11-06\"",
+            "lineNumber": 1091
+          },
+          {
+            "lineNumber": 1092
+          },
+          {
+            "text": "# GUI（Tauri）",
+            "lineNumber": 1093
+          },
+          {
+            "text": "codex-gui",
+            "lineNumber": 1094
+          },
+          {
+            "text": "# → Git Visualizationタブ選択",
+            "lineNumber": 1095
+          },
+          {
+            "lineNumber": 1096
+          },
+          {
+            "text": "# VR（Quest 3）",
+            "lineNumber": 1097
+          },
+          {
+            "text": "# ブラウザで http://PC_IP:3000/git-vr",
+            "lineNumber": 1098
+          },
+          {
+            "text": "# → Enter VRボタン",
+            "lineNumber": 1099
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 1100
+          },
+          {
+            "lineNumber": 1101
+          },
+          {
+            "text": "#### 例3: プラン実行",
+            "lineNumber": 1102
+          },
+          {
+            "lineNumber": 1103
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 1104
+          },
+          {
+            "text": "# プラン作成",
+            "lineNumber": 1105
+          },
+          {
+            "text": "codex plan create \"Add authentication system\" \\",
+            "lineNumber": 1106
+          },
+          {
+            "text": "  --mode=competition \\",
+            "lineNumber": 1107
+          },
+          {
+            "text": "  --budget-tokens=200000",
+            "lineNumber": 1108
+          },
+          {
+            "lineNumber": 1109
+          },
+          {
+            "text": "# 出力: plan-abc123.json",
+            "lineNumber": 1110
+          },
+          {
+            "lineNumber": 1111
+          },
+          {
+            "text": "# 承認",
+            "lineNumber": 1112
+          },
+          {
+            "text": "codex plan approve plan-abc123",
+            "lineNumber": 1113
+          },
+          {
+            "lineNumber": 1114
+          },
+          {
+            "text": "# 実行（3つのworktreeで並列）",
+            "lineNumber": 1115
+          },
+          {
+            "text": "codex plan execute plan-abc123",
+            "lineNumber": 1116
+          },
+          {
+            "lineNumber": 1117
+          },
+          {
+            "text": "# 進捗確認",
+            "lineNumber": 1118
+          },
+          {
+            "text": "codex plan status plan-abc123",
+            "lineNumber": 1119
+          },
+          {
+            "lineNumber": 1120
+          },
+          {
+            "text": "# 実行ログ",
+            "lineNumber": 1121
+          },
+          {
+            "text": "codex plan executions --plan-id plan-abc123",
+            "lineNumber": 1122
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 1123
+          },
+          {
+            "lineNumber": 1124
+          },
+          {
+            "text": "#### 例4: GUI（Webインターフェース）の使用",
+            "lineNumber": 1125
+          },
+          {
+            "lineNumber": 1126
+          },
+          {
+            "text": "**デスクトップショートカットから起動**:",
+            "lineNumber": 1127
+          },
+          {
+            "text": "1. デスクトップの「Codex GUI」ショートカットをダブルクリック",
+            "lineNumber": 1128
+          },
+          {
+            "text": "2. 自動的にブラウザが開き、GUIが表示されます",
+            "lineNumber": 1129
+          },
+          {
+            "text": "3. ダッシュボードでエージェントやタスクを管理",
+            "lineNumber": 1130
+          },
+          {
+            "lineNumber": 1131
+          },
+          {
+            "text": "**手動起動**:",
+            "lineNumber": 1132
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 1133
+          },
+          {
+            "text": "# 1. バックエンドAPIサーバー起動（ポート8787）",
+            "lineNumber": 1134
+          },
+          {
+            "text": "cd codex-rs",
+            "lineNumber": 1135
+          },
+          {
+            "text": "cargo run -p codex-gui",
+            "lineNumber": 1136
+          },
+          {
+            "lineNumber": 1137
+          },
+          {
+            "text": "# 2. 別ターミナルでフロントエンド起動（ポート3000）",
+            "lineNumber": 1138
+          },
+          {
+            "text": "cd gui",
+            "lineNumber": 1139
+          },
+          {
+            "text": "npm install  # 初回のみ",
+            "lineNumber": 1140
+          },
+          {
+            "text": "npm run dev",
+            "lineNumber": 1141
+          },
+          {
+            "lineNumber": 1142
+          },
+          {
+            "text": "# 3. ブラウザで http://localhost:3000 にアクセス",
+            "lineNumber": 1143
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 1144
+          },
+          {
+            "lineNumber": 1145
+          },
+          {
+            "text": "**GUIの主な機能**:",
+            "lineNumber": 1146
+          },
+          {
+            "text": "- **ダッシュボード**: エージェント、タスク、システムメトリクスの一覧表示",
+            "lineNumber": 1147
+          },
+          {
+            "text": "- **エージェント管理**: code-reviewer、test-gen、sec-audit、researcherなどの起動・監視",
+            "lineNumber": 1148
+          }
+        ]
+      },
+      "score": 0.43725109100341797
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\scripts\\verify-all.ps1",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 64
+          }
+        },
+        "contents": "# Verify All Script\n# Verifies CLI, TUI, and GUI functionality\n\nparam(\n    [switch]$SkipCLI,\n    [switch]$SkipTUI,\n    [switch]$SkipGUI\n)\n\n$ErrorActionPreference = \"Stop\"\n\nWrite-Host \"🔍 Verification Started...\" -ForegroundColor Cyan\n\n# 1. CLI Verification\nif (-not $SkipCLI) {\n    Write-Host \"Testing CLI...\" -ForegroundColor Yellow\n    try {\n        $version = codex --version\n        Write-Host \"  ✅ CLI Version: $version\" -ForegroundColor Green\n    } catch {\n        Write-Host \"  ❌ CLI Failed\" -ForegroundColor Red\n        exit 1\n    }\n}\n\n# 2. TUI Verification\nif (-not $SkipTUI) {\n    Write-Host \"Testing TUI...\" -ForegroundColor Yellow\n    Write-Host \"  ⚠️  TUI test requires manual interaction or visual check.\" -ForegroundColor Gray\n    # We can try running help or a non-interactive command if available\n    try {\n        codex tui --help | Out-Null\n        Write-Host \"  ✅ TUI Help command works\" -ForegroundColor Green\n    } catch {\n        Write-Host \"  ❌ TUI Failed\" -ForegroundColor Red\n    }\n}\n\n# 3. GUI Verification\nif (-not $SkipGUI) {\n    Write-Host \"Testing GUI...\" -ForegroundColor Yellow\n    $guiProc = Get-Process -Name \"codex-gui\" -ErrorAction SilentlyContinue\n    if ($guiProc) {\n        Write-Host \"  ✅ GUI Process Running (ID: $($guiProc.Id))\" -ForegroundColor Green\n    } else {\n        Write-Host \"  ⚠️  GUI Process NOT found. Attempting to launch...\" -ForegroundColor Yellow\n        # Launch logic here if needed, or just warn\n    }\n    \n    # Run Playwright Tests\n    Write-Host \"  Running Playwright Tests...\" -ForegroundColor Cyan\n    Push-Location \"$PSScriptRoot/../gui\"\n    try {\n        pnpm exec playwright test\n        Write-Host \"  ✅ Playwright Tests Passed\" -ForegroundColor Green\n    } catch {\n        Write-Host \"  ❌ Playwright Tests Failed\" -ForegroundColor Red\n        # Don't exit, just report\n    } finally {\n        Pop-Location\n    }\n}\n\nWrite-Host \"🏁 Verification Complete!\" -ForegroundColor Green",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Verify All Script",
+            "lineNumber": 1
+          },
+          {
+            "text": "# Verifies CLI, TUI, and GUI functionality",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "param(",
+            "lineNumber": 4
+          },
+          {
+            "text": "    [switch]$SkipCLI,",
+            "lineNumber": 5
+          },
+          {
+            "text": "    [switch]$SkipTUI,",
+            "lineNumber": 6
+          },
+          {
+            "text": "    [switch]$SkipGUI",
+            "lineNumber": 7
+          },
+          {
+            "text": ")",
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9
+          },
+          {
+            "text": "$ErrorActionPreference = \"Stop\"",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "Write-Host \"🔍 Verification Started...\" -ForegroundColor Cyan",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "# 1. CLI Verification",
+            "lineNumber": 14
+          },
+          {
+            "text": "if (-not $SkipCLI) {",
+            "lineNumber": 15
+          },
+          {
+            "text": "    Write-Host \"Testing CLI...\" -ForegroundColor Yellow",
+            "lineNumber": 16
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 17
+          },
+          {
+            "text": "        $version = codex --version",
+            "lineNumber": 18
+          },
+          {
+            "text": "        Write-Host \"  ✅ CLI Version: $version\" -ForegroundColor Green",
+            "lineNumber": 19
+          },
+          {
+            "text": "    } catch {",
+            "lineNumber": 20
+          },
+          {
+            "text": "        Write-Host \"  ❌ CLI Failed\" -ForegroundColor Red",
+            "lineNumber": 21
+          },
+          {
+            "text": "        exit 1",
+            "lineNumber": 22
+          },
+          {
+            "text": "    }",
+            "lineNumber": 23
+          },
+          {
+            "text": "}",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "# 2. TUI Verification",
+            "lineNumber": 26
+          },
+          {
+            "text": "if (-not $SkipTUI) {",
+            "lineNumber": 27
+          },
+          {
+            "text": "    Write-Host \"Testing TUI...\" -ForegroundColor Yellow",
+            "lineNumber": 28
+          },
+          {
+            "text": "    Write-Host \"  ⚠️  TUI test requires manual interaction or visual check.\" -ForegroundColor Gray",
+            "lineNumber": 29
+          },
+          {
+            "text": "    # We can try running help or a non-interactive command if available",
+            "lineNumber": 30
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 31
+          },
+          {
+            "text": "        codex tui --help | Out-Null",
+            "lineNumber": 32
+          },
+          {
+            "text": "        Write-Host \"  ✅ TUI Help command works\" -ForegroundColor Green",
+            "lineNumber": 33
+          },
+          {
+            "text": "    } catch {",
+            "lineNumber": 34
+          },
+          {
+            "text": "        Write-Host \"  ❌ TUI Failed\" -ForegroundColor Red",
+            "lineNumber": 35
+          },
+          {
+            "text": "    }",
+            "lineNumber": 36
+          },
+          {
+            "text": "}",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "# 3. GUI Verification",
+            "lineNumber": 39
+          },
+          {
+            "text": "if (-not $SkipGUI) {",
+            "lineNumber": 40
+          },
+          {
+            "text": "    Write-Host \"Testing GUI...\" -ForegroundColor Yellow",
+            "lineNumber": 41
+          },
+          {
+            "text": "    $guiProc = Get-Process -Name \"codex-gui\" -ErrorAction SilentlyContinue",
+            "lineNumber": 42
+          },
+          {
+            "text": "    if ($guiProc) {",
+            "lineNumber": 43
+          },
+          {
+            "text": "        Write-Host \"  ✅ GUI Process Running (ID: $($guiProc.Id))\" -ForegroundColor Green",
+            "lineNumber": 44
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 45
+          },
+          {
+            "text": "        Write-Host \"  ⚠️  GUI Process NOT found. Attempting to launch...\" -ForegroundColor Yellow",
+            "lineNumber": 46
+          },
+          {
+            "text": "        # Launch logic here if needed, or just warn",
+            "lineNumber": 47
+          },
+          {
+            "text": "    }",
+            "lineNumber": 48
+          },
+          {
+            "text": "    ",
+            "lineNumber": 49
+          },
+          {
+            "text": "    # Run Playwright Tests",
+            "lineNumber": 50
+          },
+          {
+            "text": "    Write-Host \"  Running Playwright Tests...\" -ForegroundColor Cyan",
+            "lineNumber": 51
+          },
+          {
+            "text": "    Push-Location \"$PSScriptRoot/../gui\"",
+            "lineNumber": 52
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 53
+          },
+          {
+            "text": "        pnpm exec playwright test",
+            "lineNumber": 54
+          },
+          {
+            "text": "        Write-Host \"  ✅ Playwright Tests Passed\" -ForegroundColor Green",
+            "lineNumber": 55
+          },
+          {
+            "text": "    } catch {",
+            "lineNumber": 56
+          },
+          {
+            "text": "        Write-Host \"  ❌ Playwright Tests Failed\" -ForegroundColor Red",
+            "lineNumber": 57
+          },
+          {
+            "text": "        # Don't exit, just report",
+            "lineNumber": 58
+          },
+          {
+            "text": "    } finally {",
+            "lineNumber": 59
+          },
+          {
+            "text": "        Pop-Location",
+            "lineNumber": 60
+          },
+          {
+            "text": "    }",
+            "lineNumber": 61
+          },
+          {
+            "text": "}",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "Write-Host \"🏁 Verification Complete!\" -ForegroundColor Green",
+            "lineNumber": 64
+          }
+        ]
+      },
+      "score": 0.4342993497848511
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tauri-gui\\README.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 68
+          }
+        },
+        "contents": "# Codex Tauri GUI - AI-Native OS with VR/AR Support\n\n**Version**: 1.2.0  \n**Status**: ✅ Production Ready  \n**Platform**: Windows (Primary), macOS/Linux (Experimental)\n\n---\n\n## 🎯 Overview\n\nCodex Tauri GUI is a **system tray resident AI-native desktop application** with advanced **VR/AR capabilities** for 4D Git visualization. Built with Tauri 2.0, React, and Rust, it integrates directly with the Codex core engine and provides kernel-level AI optimization.\n\n### 🌟 Key Features\n\n- **🖥️ System Tray Resident** - Always available, minimal resource usage\n- **🎮 VR/AR Ready** - Full support for Quest 2/3/Pro, SteamVR, VRChat\n- **📊 4D Git Visualization** - Time-series commit visualization in VR space\n- **🤖 AI-Native OS** - Kernel-level AI inference optimization\n- **📁 File System Monitoring** - Real-time code change detection\n- **🔧 Codex Core Integration** - Direct Rust crate dependency for maximum performance\n\n---\n\n## 🚀 Quick Start\n\n### Prerequisites\n\n- **Windows 10/11** (Primary platform)\n- **Rust 2024 Edition** or later\n- **Node.js 18+** and npm\n- **(Optional)** Meta Quest 2/3/Pro or compatible VR headset\n\n### Installation\n\n&#96;&#96;&#96;powershell\n# From codex-rs directory\ncd codex-rs\n\n# Build (Release mode)\n.\\build-unified.ps1 -Release\n\n# Install\n.\\install-unified.ps1\n\n# Or build + install in one command\n.\\watch-build-v2.ps1\n&#96;&#96;&#96;\n\n### Launch\n\nAfter installation, find the **Codex icon** in your system tray (task tray). Click it to open the GUI.\n\n---\n\n## 🎮 VR/AR Setup\n\n### Supported Devices\n\n| Device | Status | Refresh Rate | Notes |\n|--------|--------|--------------|-------|\n| Meta Quest 2 | ✅ Optimized | 90Hz | Best with Virtual Desktop |\n| Meta Quest 3 | ✅ Supported | 120Hz | Full features |\n| Meta Quest Pro | ✅ Supported | 90Hz | Eye tracking ready |\n| Valve Index | ✅ Supported | 144Hz | High-fidelity mode |\n| HTC Vive | ✅ Supported | 90Hz | SteamVR |\n| SteamVR | ✅ Compatible | Varies | Any SteamVR device |\n| VRChat | 🔜 Coming Soon | - | v1.3.0 |",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codex Tauri GUI - AI-Native OS with VR/AR Support",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**Version**: 1.2.0  ",
+            "lineNumber": 3
+          },
+          {
+            "text": "**Status**: ✅ Production Ready  ",
+            "lineNumber": 4
+          },
+          {
+            "text": "**Platform**: Windows (Primary), macOS/Linux (Experimental)",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "---",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "## 🎯 Overview",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "Codex Tauri GUI is a **system tray resident AI-native desktop application** with advanced **VR/AR capabilities** for 4D Git visualization. Built with Tauri 2.0, React, and Rust, it integrates directly with the Codex core engine and provides kernel-level AI optimization.",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "### 🌟 Key Features",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "- **🖥️ System Tray Resident** - Always available, minimal resource usage",
+            "lineNumber": 15
+          },
+          {
+            "text": "- **🎮 VR/AR Ready** - Full support for Quest 2/3/Pro, SteamVR, VRChat",
+            "lineNumber": 16
+          },
+          {
+            "text": "- **📊 4D Git Visualization** - Time-series commit visualization in VR space",
+            "lineNumber": 17
+          },
+          {
+            "text": "- **🤖 AI-Native OS** - Kernel-level AI inference optimization",
+            "lineNumber": 18
+          },
+          {
+            "text": "- **📁 File System Monitoring** - Real-time code change detection",
+            "lineNumber": 19
+          },
+          {
+            "text": "- **🔧 Codex Core Integration** - Direct Rust crate dependency for maximum performance",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "---",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "## 🚀 Quick Start",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "### Prerequisites",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "- **Windows 10/11** (Primary platform)",
+            "lineNumber": 28
+          },
+          {
+            "text": "- **Rust 2024 Edition** or later",
+            "lineNumber": 29
+          },
+          {
+            "text": "- **Node.js 18+** and npm",
+            "lineNumber": 30
+          },
+          {
+            "text": "- **(Optional)** Meta Quest 2/3/Pro or compatible VR headset",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "### Installation",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "&#96;&#96;&#96;powershell",
+            "lineNumber": 35
+          },
+          {
+            "text": "# From codex-rs directory",
+            "lineNumber": 36
+          },
+          {
+            "text": "cd codex-rs",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "# Build (Release mode)",
+            "lineNumber": 39
+          },
+          {
+            "text": ".\\build-unified.ps1 -Release",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "# Install",
+            "lineNumber": 42
+          },
+          {
+            "text": ".\\install-unified.ps1",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "# Or build + install in one command",
+            "lineNumber": 45
+          },
+          {
+            "text": ".\\watch-build-v2.ps1",
+            "lineNumber": 46
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "### Launch",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "After installation, find the **Codex icon** in your system tray (task tray). Click it to open the GUI.",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "---",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "## 🎮 VR/AR Setup",
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "text": "### Supported Devices",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "| Device | Status | Refresh Rate | Notes |",
+            "lineNumber": 59
+          },
+          {
+            "text": "|--------|--------|--------------|-------|",
+            "lineNumber": 60
+          },
+          {
+            "text": "| Meta Quest 2 | ✅ Optimized | 90Hz | Best with Virtual Desktop |",
+            "lineNumber": 61
+          },
+          {
+            "text": "| Meta Quest 3 | ✅ Supported | 120Hz | Full features |",
+            "lineNumber": 62
+          },
+          {
+            "text": "| Meta Quest Pro | ✅ Supported | 90Hz | Eye tracking ready |",
+            "lineNumber": 63
+          },
+          {
+            "text": "| Valve Index | ✅ Supported | 144Hz | High-fidelity mode |",
+            "lineNumber": 64
+          },
+          {
+            "text": "| HTC Vive | ✅ Supported | 90Hz | SteamVR |",
+            "lineNumber": 65
+          },
+          {
+            "text": "| SteamVR | ✅ Compatible | Varies | Any SteamVR device |",
+            "lineNumber": 66
+          },
+          {
+            "text": "| VRChat | 🔜 Coming Soon | - | v1.3.0 |",
+            "lineNumber": 67
+          }
+        ]
+      },
+      "score": 0.4287607669830322
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tauri-gui\\README.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 68
+          }
+        },
+        "contents": "# Codex Tauri GUI - AI-Native OS with VR/AR Support\n\n**Version**: 1.2.0  \n**Status**: ✅ Production Ready  \n**Platform**: Windows (Primary), macOS/Linux (Experimental)\n\n---\n\n## 🎯 Overview\n\nCodex Tauri GUI is a **system tray resident AI-native desktop application** with advanced **VR/AR capabilities** for 4D Git visualization. Built with Tauri 2.0, React, and Rust, it integrates directly with the Codex core engine and provides kernel-level AI optimization.\n\n### 🌟 Key Features\n\n- **🖥️ System Tray Resident** - Always available, minimal resource usage\n- **🎮 VR/AR Ready** - Full support for Quest 2/3/Pro, SteamVR, VRChat\n- **📊 4D Git Visualization** - Time-series commit visualization in VR space\n- **🤖 AI-Native OS** - Kernel-level AI inference optimization\n- **📁 File System Monitoring** - Real-time code change detection\n- **🔧 Codex Core Integration** - Direct Rust crate dependency for maximum performance\n\n---\n\n## 🚀 Quick Start\n\n### Prerequisites\n\n- **Windows 10/11** (Primary platform)\n- **Rust 2024 Edition** or later\n- **Node.js 18+** and npm\n- **(Optional)** Meta Quest 2/3/Pro or compatible VR headset\n\n### Installation\n\n&#96;&#96;&#96;powershell\n# From codex-rs directory\ncd codex-rs\n\n# Build (Release mode)\n.\\build-unified.ps1 -Release\n\n# Install\n.\\install-unified.ps1\n\n# Or build + install in one command\n.\\watch-build-v2.ps1\n&#96;&#96;&#96;\n\n### Launch\n\nAfter installation, find the **Codex icon** in your system tray (task tray). Click it to open the GUI.\n\n---\n\n## 🎮 VR/AR Setup\n\n### Supported Devices\n\n| Device | Status | Refresh Rate | Notes |\n|--------|--------|--------------|-------|\n| Meta Quest 2 | ✅ Optimized | 90Hz | Best with Virtual Desktop |\n| Meta Quest 3 | ✅ Supported | 120Hz | Full features |\n| Meta Quest Pro | ✅ Supported | 90Hz | Eye tracking ready |\n| Valve Index | ✅ Supported | 144Hz | High-fidelity mode |\n| HTC Vive | ✅ Supported | 90Hz | SteamVR |\n| SteamVR | ✅ Compatible | Varies | Any SteamVR device |\n| VRChat | 🔜 Coming Soon | - | v1.3.0 |",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codex Tauri GUI - AI-Native OS with VR/AR Support",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**Version**: 1.2.0  ",
+            "lineNumber": 3
+          },
+          {
+            "text": "**Status**: ✅ Production Ready  ",
+            "lineNumber": 4
+          },
+          {
+            "text": "**Platform**: Windows (Primary), macOS/Linux (Experimental)",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "---",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "## 🎯 Overview",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "Codex Tauri GUI is a **system tray resident AI-native desktop application** with advanced **VR/AR capabilities** for 4D Git visualization. Built with Tauri 2.0, React, and Rust, it integrates directly with the Codex core engine and provides kernel-level AI optimization.",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "### 🌟 Key Features",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "- **🖥️ System Tray Resident** - Always available, minimal resource usage",
+            "lineNumber": 15
+          },
+          {
+            "text": "- **🎮 VR/AR Ready** - Full support for Quest 2/3/Pro, SteamVR, VRChat",
+            "lineNumber": 16
+          },
+          {
+            "text": "- **📊 4D Git Visualization** - Time-series commit visualization in VR space",
+            "lineNumber": 17
+          },
+          {
+            "text": "- **🤖 AI-Native OS** - Kernel-level AI inference optimization",
+            "lineNumber": 18
+          },
+          {
+            "text": "- **📁 File System Monitoring** - Real-time code change detection",
+            "lineNumber": 19
+          },
+          {
+            "text": "- **🔧 Codex Core Integration** - Direct Rust crate dependency for maximum performance",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "---",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "## 🚀 Quick Start",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "### Prerequisites",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "- **Windows 10/11** (Primary platform)",
+            "lineNumber": 28
+          },
+          {
+            "text": "- **Rust 2024 Edition** or later",
+            "lineNumber": 29
+          },
+          {
+            "text": "- **Node.js 18+** and npm",
+            "lineNumber": 30
+          },
+          {
+            "text": "- **(Optional)** Meta Quest 2/3/Pro or compatible VR headset",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "### Installation",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "&#96;&#96;&#96;powershell",
+            "lineNumber": 35
+          },
+          {
+            "text": "# From codex-rs directory",
+            "lineNumber": 36
+          },
+          {
+            "text": "cd codex-rs",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "# Build (Release mode)",
+            "lineNumber": 39
+          },
+          {
+            "text": ".\\build-unified.ps1 -Release",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "# Install",
+            "lineNumber": 42
+          },
+          {
+            "text": ".\\install-unified.ps1",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "# Or build + install in one command",
+            "lineNumber": 45
+          },
+          {
+            "text": ".\\watch-build-v2.ps1",
+            "lineNumber": 46
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "### Launch",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "After installation, find the **Codex icon** in your system tray (task tray). Click it to open the GUI.",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "---",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "## 🎮 VR/AR Setup",
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "text": "### Supported Devices",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "| Device | Status | Refresh Rate | Notes |",
+            "lineNumber": 59
+          },
+          {
+            "text": "|--------|--------|--------------|-------|",
+            "lineNumber": 60
+          },
+          {
+            "text": "| Meta Quest 2 | ✅ Optimized | 90Hz | Best with Virtual Desktop |",
+            "lineNumber": 61
+          },
+          {
+            "text": "| Meta Quest 3 | ✅ Supported | 120Hz | Full features |",
+            "lineNumber": 62
+          },
+          {
+            "text": "| Meta Quest Pro | ✅ Supported | 90Hz | Eye tracking ready |",
+            "lineNumber": 63
+          },
+          {
+            "text": "| Valve Index | ✅ Supported | 144Hz | High-fidelity mode |",
+            "lineNumber": 64
+          },
+          {
+            "text": "| HTC Vive | ✅ Supported | 90Hz | SteamVR |",
+            "lineNumber": 65
+          },
+          {
+            "text": "| SteamVR | ✅ Compatible | Varies | Any SteamVR device |",
+            "lineNumber": 66
+          },
+          {
+            "text": "| VRChat | 🔜 Coming Soon | - | v1.3.0 |",
+            "lineNumber": 67
+          }
+        ]
+      },
+      "score": 0.4287607669830322
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\zapabob\\codex-feature-integration-spec-ja.md",
+        "range": {
+          "startPosition": {
+            "line": 84
+          },
+          "endPosition": {
+            "line": 93
+          }
+        },
+        "contents": "- CLIモードとの両立: GUI提供後も、従来通りターミナル上で動作するCLIモードは引き続きサポートされます。すなわちGUIはオプション機能として実装し、ユーザが望まない場合やサーバ環境で画面のない場合でも、CodexをCLIとして利用できること（GUIは起動しない設定が可能）。内部実装的には、GUIはCodexの出力を受け取って描画し、ユーザ入力をCodexエンジンに渡す一種のフロントエンドとして動作します。このアーキテクチャにより、GUI追加によるCodexコアロジックへの影響を最小限に抑え、CLIモードとGUIモードが同じエンジン・APIを共有できるようにします。\n- アップストリーム親和性: GUI部分の実装は、本家Codexプロジェクトに大規模な依存関係を追加したり、既存コードに大幅な改変を加えない方針で行います。可能であればGUIはCodex本体とは別のモジュールやクレートとして実装し、Codex本体とは明確なAPIインタフェースで通信する形を取ります。例えばCodexコアをRPCサーバー（MCPサーバーとして）起動し、GUIはクライアントとしてそのAPIを叩く構成も検討します 。こうすることで、本家への提案時にもGUI部分を分離可能なオプション機能として提示し、受け入れられやすくします。\n\n### 2. ショートカットキーによる操作\n\nGUIおよびCLI上でのキーボードショートカット対応についての要件を示します。ショートカットはユーザが素早くCodexを操作するのに不可欠であり、特にエディタに手を置いたままAIを制御したい開発者にとって有用です。本仕様では、一般的な開発ツールの慣習に倣いつつ、Codex特有の操作に合ったキー割り当てを提案します。\n\n- 基本送信操作:\n  - Enterキー: チャット入力フィールドでのメッセージ送信。ユーザが入力したプロンプトやコマンドをエージェントに送ります（GUI上では送信ボタンをクリックする代わりにEnterキーが使える）。",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "- CLIモードとの両立: GUI提供後も、従来通りターミナル上で動作するCLIモードは引き続きサポートされます。すなわちGUIはオプション機能として実装し、ユーザが望まない場合やサーバ環境で画面のない場合でも、CodexをCLIとして利用できること（GUIは起動しない設定が可能）。内部実装的には、GUIはCodexの出力を受け取って描画し、ユーザ入力をCodexエンジンに渡す一種のフロントエンドとして動作します。このアーキテクチャにより、GUI追加によるCodexコアロジックへの影響を最小限に抑え、CLIモードとGUIモードが同じエンジン・APIを共有できるようにします。",
+            "lineNumber": 85
+          },
+          {
+            "text": "- アップストリーム親和性: GUI部分の実装は、本家Codexプロジェクトに大規模な依存関係を追加したり、既存コードに大幅な改変を加えない方針で行います。可能であればGUIはCodex本体とは別のモジュールやクレートとして実装し、Codex本体とは明確なAPIインタフェースで通信する形を取ります。例えばCodexコアをRPCサーバー（MCPサーバーとして）起動し、GUIはクライアントとしてそのAPIを叩く構成も検討します 。こうすることで、本家への提案時にもGUI部分を分離可能なオプション機能として提示し、受け入れられやすくします。",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "### 2. ショートカットキーによる操作",
+            "lineNumber": 88
+          },
+          {
+            "lineNumber": 89
+          },
+          {
+            "text": "GUIおよびCLI上でのキーボードショートカット対応についての要件を示します。ショートカットはユーザが素早くCodexを操作するのに不可欠であり、特にエディタに手を置いたままAIを制御したい開発者にとって有用です。本仕様では、一般的な開発ツールの慣習に倣いつつ、Codex特有の操作に合ったキー割り当てを提案します。",
+            "lineNumber": 90
+          },
+          {
+            "lineNumber": 91
+          },
+          {
+            "text": "- 基本送信操作:",
+            "lineNumber": 92
+          },
+          {
+            "text": "  - Enterキー: チャット入力フィールドでのメッセージ送信。ユーザが入力したプロンプトやコマンドをエージェントに送ります（GUI上では送信ボタンをクリックする代わりにEnterキーが使える）。",
+            "lineNumber": 93
+          }
+        ]
+      },
+      "score": 0.4262321889400482
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\zapabob\\codex-feature-integration-spec-ja.md",
+        "range": {
+          "startPosition": {
+            "line": 84
+          },
+          "endPosition": {
+            "line": 93
+          }
+        },
+        "contents": "- CLIモードとの両立: GUI提供後も、従来通りターミナル上で動作するCLIモードは引き続きサポートされます。すなわちGUIはオプション機能として実装し、ユーザが望まない場合やサーバ環境で画面のない場合でも、CodexをCLIとして利用できること（GUIは起動しない設定が可能）。内部実装的には、GUIはCodexの出力を受け取って描画し、ユーザ入力をCodexエンジンに渡す一種のフロントエンドとして動作します。このアーキテクチャにより、GUI追加によるCodexコアロジックへの影響を最小限に抑え、CLIモードとGUIモードが同じエンジン・APIを共有できるようにします。\n- アップストリーム親和性: GUI部分の実装は、本家Codexプロジェクトに大規模な依存関係を追加したり、既存コードに大幅な改変を加えない方針で行います。可能であればGUIはCodex本体とは別のモジュールやクレートとして実装し、Codex本体とは明確なAPIインタフェースで通信する形を取ります。例えばCodexコアをRPCサーバー（MCPサーバーとして）起動し、GUIはクライアントとしてそのAPIを叩く構成も検討します 。こうすることで、本家への提案時にもGUI部分を分離可能なオプション機能として提示し、受け入れられやすくします。\n\n### 2. ショートカットキーによる操作\n\nGUIおよびCLI上でのキーボードショートカット対応についての要件を示します。ショートカットはユーザが素早くCodexを操作するのに不可欠であり、特にエディタに手を置いたままAIを制御したい開発者にとって有用です。本仕様では、一般的な開発ツールの慣習に倣いつつ、Codex特有の操作に合ったキー割り当てを提案します。\n\n- 基本送信操作:\n  - Enterキー: チャット入力フィールドでのメッセージ送信。ユーザが入力したプロンプトやコマンドをエージェントに送ります（GUI上では送信ボタンをクリックする代わりにEnterキーが使える）。",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "- CLIモードとの両立: GUI提供後も、従来通りターミナル上で動作するCLIモードは引き続きサポートされます。すなわちGUIはオプション機能として実装し、ユーザが望まない場合やサーバ環境で画面のない場合でも、CodexをCLIとして利用できること（GUIは起動しない設定が可能）。内部実装的には、GUIはCodexの出力を受け取って描画し、ユーザ入力をCodexエンジンに渡す一種のフロントエンドとして動作します。このアーキテクチャにより、GUI追加によるCodexコアロジックへの影響を最小限に抑え、CLIモードとGUIモードが同じエンジン・APIを共有できるようにします。",
+            "lineNumber": 85
+          },
+          {
+            "text": "- アップストリーム親和性: GUI部分の実装は、本家Codexプロジェクトに大規模な依存関係を追加したり、既存コードに大幅な改変を加えない方針で行います。可能であればGUIはCodex本体とは別のモジュールやクレートとして実装し、Codex本体とは明確なAPIインタフェースで通信する形を取ります。例えばCodexコアをRPCサーバー（MCPサーバーとして）起動し、GUIはクライアントとしてそのAPIを叩く構成も検討します 。こうすることで、本家への提案時にもGUI部分を分離可能なオプション機能として提示し、受け入れられやすくします。",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "### 2. ショートカットキーによる操作",
+            "lineNumber": 88
+          },
+          {
+            "lineNumber": 89
+          },
+          {
+            "text": "GUIおよびCLI上でのキーボードショートカット対応についての要件を示します。ショートカットはユーザが素早くCodexを操作するのに不可欠であり、特にエディタに手を置いたままAIを制御したい開発者にとって有用です。本仕様では、一般的な開発ツールの慣習に倣いつつ、Codex特有の操作に合ったキー割り当てを提案します。",
+            "lineNumber": 90
+          },
+          {
+            "lineNumber": 91
+          },
+          {
+            "text": "- 基本送信操作:",
+            "lineNumber": 92
+          },
+          {
+            "text": "  - Enterキー: チャット入力フィールドでのメッセージ送信。ユーザが入力したプロンプトやコマンドをエージェントに送ります（GUI上では送信ボタンをクリックする代わりにEnterキーが使える）。",
+            "lineNumber": 93
+          }
+        ]
+      },
+      "score": 0.4262321889400482
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 60,
+            "column": 12
+          }
+        },
+        "contents": "use clap::CommandFactory;\nuse clap::Parser;\nuse clap_complete::Shell;\nuse clap_complete::generate;\nuse codex_arg0::arg0_dispatch_or_else;\nuse codex_chatgpt::apply_command::ApplyCommand;\nuse codex_chatgpt::apply_command::run_apply_command;\nuse codex_cli::LandlockCommand;\nuse codex_cli::SeatbeltCommand;\nuse codex_cli::WindowsCommand;\nuse codex_cli::login::read_api_key_from_stdin;\nuse codex_cli::login::run_login_status;\nuse codex_cli::login::run_login_with_api_key;\nuse codex_cli::login::run_login_with_chatgpt;\nuse codex_cli::login::run_login_with_device_code;\nuse codex_cli::login::run_logout;\nuse codex_cloud_tasks::Cli as CloudTasksCli;\nuse codex_common::CliConfigOverrides;\nuse codex_exec::Cli as ExecCli;\nuse codex_responses_api_proxy::Args as ResponsesApiProxyArgs;\nuse codex_tui::AppExitInfo;\nuse codex_tui::Cli as TuiCli;\nuse codex_tui::update_action::UpdateAction;\nuse codex_tui2 as tui2;\nuse owo_colors::OwoColorize;\nuse std::path::PathBuf;\nuse supports_color::Stream;\n\nmod dev_mode_cmd;\nmod git_commands;\nmod lock_cmd;\nmod mcp_cmd;\nmod plan_commands;\nmod qc_cmd;\nmod webhook_cmd;\nmod wsl_paths;\n\nuse crate::git_commands::GitAnalyzeCli;\nuse crate::lock_cmd::LockCli;\nuse crate::mcp_cmd::McpCli;\nuse crate::plan_commands::PlanCli;\nuse crate::qc_cmd::QcCli;\nuse crate::webhook_cmd::WebhookCli;\nuse crate::wsl_paths::normalize_for_wsl;\nuse codex_core::config::Config;\nuse codex_core::config::ConfigOverrides;\nuse codex_core::config::find_codex_home;\nuse codex_core::config::load_config_as_toml_with_cli_overrides;\nuse codex_core::features::Feature;\nuse codex_core::features::FeatureOverrides;\nuse codex_core::features::Features;\nuse codex_core::features::is_known_feature_key;\nuse codex_utils_absolute_path::AbsolutePathBuf;\n\n/// Codex CLI\n///\n/// If no subcommand is specified, options will be forwarded to the interactive CLI.\n#[derive(Debug, Parser)]\n#[clap(\n    author,\n    version,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use clap::CommandFactory;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use clap::Parser;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use clap_complete::Shell;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use clap_complete::generate;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use codex_arg0::arg0_dispatch_or_else;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use codex_chatgpt::apply_command::ApplyCommand;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use codex_chatgpt::apply_command::run_apply_command;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use codex_cli::LandlockCommand;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use codex_cli::SeatbeltCommand;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use codex_cli::WindowsCommand;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use codex_cli::login::read_api_key_from_stdin;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use codex_cli::login::run_login_status;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_api_key;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_chatgpt;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_device_code;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use codex_cli::login::run_logout;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use codex_cloud_tasks::Cli as CloudTasksCli;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_exec::Cli as ExecCli;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use codex_tui::AppExitInfo;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use codex_tui::Cli as TuiCli;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use codex_tui::update_action::UpdateAction;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use codex_tui2 as tui2;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use owo_colors::OwoColorize;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use supports_color::Stream;",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "mod dev_mode_cmd;",
+            "lineNumber": 29
+          },
+          {
+            "text": "mod git_commands;",
+            "lineNumber": 30
+          },
+          {
+            "text": "mod lock_cmd;",
+            "lineNumber": 31
+          },
+          {
+            "text": "mod mcp_cmd;",
+            "lineNumber": 32
+          },
+          {
+            "text": "mod plan_commands;",
+            "lineNumber": 33
+          },
+          {
+            "text": "mod qc_cmd;",
+            "lineNumber": 34
+          },
+          {
+            "text": "mod webhook_cmd;",
+            "lineNumber": 35
+          },
+          {
+            "text": "mod wsl_paths;",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "text": "use crate::git_commands::GitAnalyzeCli;",
+            "lineNumber": 38
+          },
+          {
+            "text": "use crate::lock_cmd::LockCli;",
+            "lineNumber": 39
+          },
+          {
+            "text": "use crate::mcp_cmd::McpCli;",
+            "lineNumber": 40
+          },
+          {
+            "text": "use crate::plan_commands::PlanCli;",
+            "lineNumber": 41
+          },
+          {
+            "text": "use crate::qc_cmd::QcCli;",
+            "lineNumber": 42
+          },
+          {
+            "text": "use crate::webhook_cmd::WebhookCli;",
+            "lineNumber": 43
+          },
+          {
+            "text": "use crate::wsl_paths::normalize_for_wsl;",
+            "lineNumber": 44
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use codex_core::config::ConfigOverrides;",
+            "lineNumber": 46
+          },
+          {
+            "text": "use codex_core::config::find_codex_home;",
+            "lineNumber": 47
+          },
+          {
+            "text": "use codex_core::config::load_config_as_toml_with_cli_overrides;",
+            "lineNumber": 48
+          },
+          {
+            "text": "use codex_core::features::Feature;",
+            "lineNumber": 49
+          },
+          {
+            "text": "use codex_core::features::FeatureOverrides;",
+            "lineNumber": 50
+          },
+          {
+            "text": "use codex_core::features::Features;",
+            "lineNumber": 51
+          },
+          {
+            "text": "use codex_core::features::is_known_feature_key;",
+            "lineNumber": 52
+          },
+          {
+            "text": "use codex_utils_absolute_path::AbsolutePathBuf;",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "/// Codex CLI",
+            "lineNumber": 55
+          },
+          {
+            "text": "///",
+            "lineNumber": 56
+          },
+          {
+            "text": "/// If no subcommand is specified, options will be forwarded to the interactive CLI.",
+            "lineNumber": 57
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 58
+          },
+          {
+            "text": "#[clap(",
+            "lineNumber": 59
+          },
+          {
+            "text": "    author,",
+            "lineNumber": 60
+          },
+          {
+            "text": "    version,",
+            "lineNumber": 61
+          }
+        ]
+      },
+      "score": 0.4214746057987213
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\_docs\\2025-11-25_GUI統合と仮想OS環境実装_Phase1-7.1完了.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 70
+          }
+        },
+        "contents": "# GUI統合と仮想OS環境実装 - Phase 1 &amp; 7.1 完了レポート\n\n**日時**: 2025-11-25 18:30:00  \n**タスク**: GUIとCodex/GeminiCLI/ClaudeCodeのCLI統合、動的リソース管理、GeminiCLI MCP化拡張  \n**バージョン**: 2.3.0  \n**ステータス**: ✅ Phase 1 &amp; 7.1 実装完了\n\n---\n\n## 🎯 実装概要\n\nGUIとCLIの統合、動的リソース管理、GeminiCLI MCP化拡張を実装しました。\n\n---\n\n## ✅ Phase 1: GUI-CLI統合と動的リソース管理\n\n### 1.1 Codex/GeminiCLI/ClaudeCode CLI統合 ✅\n\n**ファイル**: &#96;codex-rs/cli/src/main.rs&#96;\n\n**実装内容**:\n- RPCメソッド追加:\n  - &#96;cli.codex.execute&#96; - Codex CLI実行\n  - &#96;cli.gemini.execute&#96; - GeminiCLI実行\n  - &#96;cli.claude.execute&#96; - ClaudeCode実行\n\n**実装詳細**:\n&#96;&#96;&#96;rust\n// RPCメソッドハンドラーに追加\n\"cli.codex.execute\" =&gt; {\n    let prompt = params.get(\"prompt\")...;\n    let output = tokio::process::Command::new(\"codex\")\n        .arg(\"exec\")\n        .arg(prompt)\n        .output().await?;\n    // 結果を返す\n}\n\n\"cli.gemini.execute\" =&gt; {\n    // gemini-cli → gemini フォールバック対応\n}\n\n\"cli.claude.execute\" =&gt; {\n    // claudecode → claude フォールバック対応\n}\n&#96;&#96;&#96;\n\n### 1.2 GUI動的リソース管理統合 ✅\n\n**新規ファイル**: &#96;gui/src/components/dynamic/ResourceManagedButton.tsx&#96;\n\n**実装内容**:\n- リソース使用状況に応じたボタン有効/無効制御\n- リソース不足時の警告表示\n- リアルタイムリソース監視（ポーリング間隔: 2秒）\n- リソース取得の自動試行\n\n**主要機能**:\n- &#96;minAvailableSlots&#96; - 最小利用可能スロット数\n- &#96;maxCpuUsage&#96; - 最大CPU使用率（デフォルト: 90%）\n- &#96;maxMemoryUsage&#96; - 最大メモリ使用率（デフォルト: 90%）\n- リソースステータスのツールチップ表示\n\n**新規ファイル**: &#96;gui/src/components/dynamic/ResourceManagedInput.tsx&#96;\n\n**実装内容**:\n- 数値入力のリソース制限チェック\n- リアルタイムバリデーション\n- リソースベースの最大値制限",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# GUI統合と仮想OS環境実装 - Phase 1 &amp; 7.1 完了レポート",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**日時**: 2025-11-25 18:30:00  ",
+            "lineNumber": 3
+          },
+          {
+            "text": "**タスク**: GUIとCodex/GeminiCLI/ClaudeCodeのCLI統合、動的リソース管理、GeminiCLI MCP化拡張  ",
+            "lineNumber": 4
+          },
+          {
+            "text": "**バージョン**: 2.3.0  ",
+            "lineNumber": 5
+          },
+          {
+            "text": "**ステータス**: ✅ Phase 1 &amp; 7.1 実装完了",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "---",
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9
+          },
+          {
+            "text": "## 🎯 実装概要",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "GUIとCLIの統合、動的リソース管理、GeminiCLI MCP化拡張を実装しました。",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "---",
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 15
+          },
+          {
+            "text": "## ✅ Phase 1: GUI-CLI統合と動的リソース管理",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "### 1.1 Codex/GeminiCLI/ClaudeCode CLI統合 ✅",
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "**ファイル**: &#96;codex-rs/cli/src/main.rs&#96;",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "**実装内容**:",
+            "lineNumber": 22
+          },
+          {
+            "text": "- RPCメソッド追加:",
+            "lineNumber": 23
+          },
+          {
+            "text": "  - &#96;cli.codex.execute&#96; - Codex CLI実行",
+            "lineNumber": 24
+          },
+          {
+            "text": "  - &#96;cli.gemini.execute&#96; - GeminiCLI実行",
+            "lineNumber": 25
+          },
+          {
+            "text": "  - &#96;cli.claude.execute&#96; - ClaudeCode実行",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "**実装詳細**:",
+            "lineNumber": 28
+          },
+          {
+            "text": "&#96;&#96;&#96;rust",
+            "lineNumber": 29
+          },
+          {
+            "text": "// RPCメソッドハンドラーに追加",
+            "lineNumber": 30
+          },
+          {
+            "text": "\"cli.codex.execute\" =&gt; {",
+            "lineNumber": 31
+          },
+          {
+            "text": "    let prompt = params.get(\"prompt\")...;",
+            "lineNumber": 32
+          },
+          {
+            "text": "    let output = tokio::process::Command::new(\"codex\")",
+            "lineNumber": 33
+          },
+          {
+            "text": "        .arg(\"exec\")",
+            "lineNumber": 34
+          },
+          {
+            "text": "        .arg(prompt)",
+            "lineNumber": 35
+          },
+          {
+            "text": "        .output().await?;",
+            "lineNumber": 36
+          },
+          {
+            "text": "    // 結果を返す",
+            "lineNumber": 37
+          },
+          {
+            "text": "}",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "\"cli.gemini.execute\" =&gt; {",
+            "lineNumber": 40
+          },
+          {
+            "text": "    // gemini-cli → gemini フォールバック対応",
+            "lineNumber": 41
+          },
+          {
+            "text": "}",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "\"cli.claude.execute\" =&gt; {",
+            "lineNumber": 44
+          },
+          {
+            "text": "    // claudecode → claude フォールバック対応",
+            "lineNumber": 45
+          },
+          {
+            "text": "}",
+            "lineNumber": 46
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "### 1.2 GUI動的リソース管理統合 ✅",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "**新規ファイル**: &#96;gui/src/components/dynamic/ResourceManagedButton.tsx&#96;",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "**実装内容**:",
+            "lineNumber": 53
+          },
+          {
+            "text": "- リソース使用状況に応じたボタン有効/無効制御",
+            "lineNumber": 54
+          },
+          {
+            "text": "- リソース不足時の警告表示",
+            "lineNumber": 55
+          },
+          {
+            "text": "- リアルタイムリソース監視（ポーリング間隔: 2秒）",
+            "lineNumber": 56
+          },
+          {
+            "text": "- リソース取得の自動試行",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "**主要機能**:",
+            "lineNumber": 59
+          },
+          {
+            "text": "- &#96;minAvailableSlots&#96; - 最小利用可能スロット数",
+            "lineNumber": 60
+          },
+          {
+            "text": "- &#96;maxCpuUsage&#96; - 最大CPU使用率（デフォルト: 90%）",
+            "lineNumber": 61
+          },
+          {
+            "text": "- &#96;maxMemoryUsage&#96; - 最大メモリ使用率（デフォルト: 90%）",
+            "lineNumber": 62
+          },
+          {
+            "text": "- リソースステータスのツールチップ表示",
+            "lineNumber": 63
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "text": "**新規ファイル**: &#96;gui/src/components/dynamic/ResourceManagedInput.tsx&#96;",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "**実装内容**:",
+            "lineNumber": 67
+          },
+          {
+            "text": "- 数値入力のリソース制限チェック",
+            "lineNumber": 68
+          },
+          {
+            "text": "- リアルタイムバリデーション",
+            "lineNumber": 69
+          },
+          {
+            "text": "- リソースベースの最大値制限",
+            "lineNumber": 70
+          }
+        ]
+      },
+      "score": 0.40873590111732483
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\scripts\\integration-test.ps1",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 48
+          }
+        },
+        "contents": "# CLI/TUI/GUI Integration Test Script\n# Test component communication\n\nWrite-Host \"Starting CLI/TUI/GUI integration tests...\" -ForegroundColor Cyan\n$currentDateTime = Get-Date -Format \"yyyy-MM-dd HH:mm:ss\"\nWrite-Host \"Start time: $currentDateTime\" -ForegroundColor Gray\n\n# Test result function\nfunction Write-TestResult {\n    param([string]$testName, [bool]$success, [string]$message)\n    $status = if ($success) { \"PASS\" } else { \"FAIL\" }\n    $color = if ($success) { \"Green\" } else { \"Red\" }\n    Write-Host \"$status $testName\" -ForegroundColor $color\n    if ($message) {\n        Write-Host \"   $message\" -ForegroundColor Gray\n    }\n}\n\n# Test 1: GUI Server Test\nWrite-Host \"&#96;nTest 1: GUI Server Test\" -ForegroundColor Yellow\ntry {\n    $response = Invoke-WebRequest -Uri \"http://localhost:1919\" -TimeoutSec 5 -ErrorAction Stop\n    Write-TestResult \"GUI Server HTTP Connection\" $true \"Status: $($response.StatusCode)\"\n} catch {\n    Write-TestResult \"GUI Server HTTP Connection\" $false \"Error: $($_.Exception.Message)\"\n}\n\n# Test 2: WebSocket Connection Test\nWrite-Host \"&#96;nTest 2: WebSocket Connection Test\" -ForegroundColor Yellow\nWrite-TestResult \"WebSocket Connection Test\" $true \"Test passes even if WebSocket server is not running (by design)\"\n\n# Test 3: Playwright GUI Test Execution\nWrite-Host \"&#96;nTest 3: Playwright GUI Test Execution\" -ForegroundColor Yellow\ntry {\n    Push-Location \"C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\gui\"\n    $env:SKIP_WEBSERVER = \"1\"\n    $env:GUI_URL = \"http://localhost:1919\"\n\n    $testOutput = &amp; npx playwright test tests/gui-cursor.spec.ts --reporter=json 2&gt;$null\n    if ($LASTEXITCODE -eq 0) {\n        Write-TestResult \"Playwright GUI Test\" $true \"Test execution successful\"\n    } else {\n        Write-TestResult \"Playwright GUI Test\" $false \"Test execution failed (exit code: $LASTEXITCODE)\"\n    }\n\n    Pop-Location\n} catch {\n    Write-TestResult \"Playwright GUI Test\" $false \"Error: $($_.Exception.Message)\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# CLI/TUI/GUI Integration Test Script",
+            "lineNumber": 1
+          },
+          {
+            "text": "# Test component communication",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "Write-Host \"Starting CLI/TUI/GUI integration tests...\" -ForegroundColor Cyan",
+            "lineNumber": 4
+          },
+          {
+            "text": "$currentDateTime = Get-Date -Format \"yyyy-MM-dd HH:mm:ss\"",
+            "lineNumber": 5
+          },
+          {
+            "text": "Write-Host \"Start time: $currentDateTime\" -ForegroundColor Gray",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "# Test result function",
+            "lineNumber": 8
+          },
+          {
+            "text": "function Write-TestResult {",
+            "lineNumber": 9
+          },
+          {
+            "text": "    param([string]$testName, [bool]$success, [string]$message)",
+            "lineNumber": 10
+          },
+          {
+            "text": "    $status = if ($success) { \"PASS\" } else { \"FAIL\" }",
+            "lineNumber": 11
+          },
+          {
+            "text": "    $color = if ($success) { \"Green\" } else { \"Red\" }",
+            "lineNumber": 12
+          },
+          {
+            "text": "    Write-Host \"$status $testName\" -ForegroundColor $color",
+            "lineNumber": 13
+          },
+          {
+            "text": "    if ($message) {",
+            "lineNumber": 14
+          },
+          {
+            "text": "        Write-Host \"   $message\" -ForegroundColor Gray",
+            "lineNumber": 15
+          },
+          {
+            "text": "    }",
+            "lineNumber": 16
+          },
+          {
+            "text": "}",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "# Test 1: GUI Server Test",
+            "lineNumber": 19
+          },
+          {
+            "text": "Write-Host \"&#96;nTest 1: GUI Server Test\" -ForegroundColor Yellow",
+            "lineNumber": 20
+          },
+          {
+            "text": "try {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    $response = Invoke-WebRequest -Uri \"http://localhost:1919\" -TimeoutSec 5 -ErrorAction Stop",
+            "lineNumber": 22
+          },
+          {
+            "text": "    Write-TestResult \"GUI Server HTTP Connection\" $true \"Status: $($response.StatusCode)\"",
+            "lineNumber": 23
+          },
+          {
+            "text": "} catch {",
+            "lineNumber": 24
+          },
+          {
+            "text": "    Write-TestResult \"GUI Server HTTP Connection\" $false \"Error: $($_.Exception.Message)\"",
+            "lineNumber": 25
+          },
+          {
+            "text": "}",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "# Test 2: WebSocket Connection Test",
+            "lineNumber": 28
+          },
+          {
+            "text": "Write-Host \"&#96;nTest 2: WebSocket Connection Test\" -ForegroundColor Yellow",
+            "lineNumber": 29
+          },
+          {
+            "text": "Write-TestResult \"WebSocket Connection Test\" $true \"Test passes even if WebSocket server is not running (by design)\"",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "# Test 3: Playwright GUI Test Execution",
+            "lineNumber": 32
+          },
+          {
+            "text": "Write-Host \"&#96;nTest 3: Playwright GUI Test Execution\" -ForegroundColor Yellow",
+            "lineNumber": 33
+          },
+          {
+            "text": "try {",
+            "lineNumber": 34
+          },
+          {
+            "text": "    Push-Location \"C:\\Users\\downl\\Desktop\\codex-main\\codex-main\\gui\"",
+            "lineNumber": 35
+          },
+          {
+            "text": "    $env:SKIP_WEBSERVER = \"1\"",
+            "lineNumber": 36
+          },
+          {
+            "text": "    $env:GUI_URL = \"http://localhost:1919\"",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "    $testOutput = &amp; npx playwright test tests/gui-cursor.spec.ts --reporter=json 2&gt;$null",
+            "lineNumber": 39
+          },
+          {
+            "text": "    if ($LASTEXITCODE -eq 0) {",
+            "lineNumber": 40
+          },
+          {
+            "text": "        Write-TestResult \"Playwright GUI Test\" $true \"Test execution successful\"",
+            "lineNumber": 41
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 42
+          },
+          {
+            "text": "        Write-TestResult \"Playwright GUI Test\" $false \"Test execution failed (exit code: $LASTEXITCODE)\"",
+            "lineNumber": 43
+          },
+          {
+            "text": "    }",
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "    Pop-Location",
+            "lineNumber": 46
+          },
+          {
+            "text": "} catch {",
+            "lineNumber": 47
+          },
+          {
+            "text": "    Write-TestResult \"Playwright GUI Test\" $false \"Error: $($_.Exception.Message)\"",
+            "lineNumber": 48
+          }
+        ]
+      },
+      "score": 0.40755951404571533
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\cli.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 60
+          }
+        },
+        "contents": "use clap::Parser;\nuse clap::ValueEnum;\nuse clap::ValueHint;\nuse codex_common::ApprovalModeCliArg;\nuse codex_common::CliConfigOverrides;\nuse std::path::PathBuf;\n\n#[derive(Parser, Debug)]\n#[command(version)]\npub struct Cli {\n    /// Optional user prompt to start the session.\n    #[arg(value_name = \"PROMPT\", value_hint = clap::ValueHint::Other)]\n    pub prompt: Option&lt;String&gt;,\n\n    /// Optional image(s) to attach to the initial prompt.\n    #[arg(long = \"image\", short = 'i', value_name = \"FILE\", value_delimiter = ',', num_args = 1..)]\n    pub images: Vec&lt;PathBuf&gt;,\n\n    // Internal controls set by the top-level &#96;codex resume&#96; subcommand.\n    // These are not exposed as user flags on the base &#96;codex&#96; command.\n    #[clap(skip)]\n    pub resume_picker: bool,\n\n    #[clap(skip)]\n    pub resume_last: bool,\n\n    /// Internal: resume a specific recorded session by id (UUID). Set by the\n    /// top-level &#96;codex resume &lt;SESSION_ID&gt;&#96; wrapper; not exposed as a public flag.\n    #[clap(skip)]\n    pub resume_session_id: Option&lt;String&gt;,\n\n    /// Internal: show all sessions (disables cwd filtering and shows CWD column).\n    #[clap(skip)]\n    pub resume_show_all: bool,\n\n    /// Model the agent should use.\n    #[arg(long, short = 'm')]\n    pub model: Option&lt;String&gt;,\n\n    /// Convenience flag to select the local open source model provider.\n    /// Equivalent to -c model_provider=oss; verifies a local Ollama server is\n    /// running.\n    #[arg(long = \"oss\", default_value_t = false)]\n    pub oss: bool,\n\n    /// Specify which local provider to use (lmstudio or ollama).\n    /// If not specified with --oss, will use config default or show selection.\n    #[arg(long = \"local-provider\")]\n    pub oss_provider: Option&lt;String&gt;,\n\n    /// Configuration profile from config.toml to specify default options.\n    #[arg(long = \"profile\", short = 'p')]\n    pub config_profile: Option&lt;String&gt;,\n\n    /// Select the sandbox policy to use when executing model-generated shell\n    /// commands.\n    #[arg(long = \"sandbox\", short = 's')]\n    pub sandbox_mode: Option&lt;codex_common::SandboxModeCliArg&gt;,\n\n    /// Configure when the model requires human approval before executing a command.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use clap::Parser;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use clap::ValueEnum;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use clap::ValueHint;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use codex_common::ApprovalModeCliArg;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "#[derive(Parser, Debug)]",
+            "lineNumber": 8
+          },
+          {
+            "text": "#[command(version)]",
+            "lineNumber": 9
+          },
+          {
+            "text": "pub struct Cli {",
+            "lineNumber": 10
+          },
+          {
+            "text": "    /// Optional user prompt to start the session.",
+            "lineNumber": 11
+          },
+          {
+            "text": "    #[arg(value_name = \"PROMPT\", value_hint = clap::ValueHint::Other)]",
+            "lineNumber": 12
+          },
+          {
+            "text": "    pub prompt: Option&lt;String&gt;,",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "    /// Optional image(s) to attach to the initial prompt.",
+            "lineNumber": 15
+          },
+          {
+            "text": "    #[arg(long = \"image\", short = 'i', value_name = \"FILE\", value_delimiter = ',', num_args = 1..)]",
+            "lineNumber": 16
+          },
+          {
+            "text": "    pub images: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "    // Internal controls set by the top-level &#96;codex resume&#96; subcommand.",
+            "lineNumber": 19
+          },
+          {
+            "text": "    // These are not exposed as user flags on the base &#96;codex&#96; command.",
+            "lineNumber": 20
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 21
+          },
+          {
+            "text": "    pub resume_picker: bool,",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 24
+          },
+          {
+            "text": "    pub resume_last: bool,",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "text": "    /// Internal: resume a specific recorded session by id (UUID). Set by the",
+            "lineNumber": 27
+          },
+          {
+            "text": "    /// top-level &#96;codex resume &lt;SESSION_ID&gt;&#96; wrapper; not exposed as a public flag.",
+            "lineNumber": 28
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 29
+          },
+          {
+            "text": "    pub resume_session_id: Option&lt;String&gt;,",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "    /// Internal: show all sessions (disables cwd filtering and shows CWD column).",
+            "lineNumber": 32
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 33
+          },
+          {
+            "text": "    pub resume_show_all: bool,",
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "text": "    /// Model the agent should use.",
+            "lineNumber": 36
+          },
+          {
+            "text": "    #[arg(long, short = 'm')]",
+            "lineNumber": 37
+          },
+          {
+            "text": "    pub model: Option&lt;String&gt;,",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "    /// Convenience flag to select the local open source model provider.",
+            "lineNumber": 40
+          },
+          {
+            "text": "    /// Equivalent to -c model_provider=oss; verifies a local Ollama server is",
+            "lineNumber": 41
+          },
+          {
+            "text": "    /// running.",
+            "lineNumber": 42
+          },
+          {
+            "text": "    #[arg(long = \"oss\", default_value_t = false)]",
+            "lineNumber": 43
+          },
+          {
+            "text": "    pub oss: bool,",
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "    /// Specify which local provider to use (lmstudio or ollama).",
+            "lineNumber": 46
+          },
+          {
+            "text": "    /// If not specified with --oss, will use config default or show selection.",
+            "lineNumber": 47
+          },
+          {
+            "text": "    #[arg(long = \"local-provider\")]",
+            "lineNumber": 48
+          },
+          {
+            "text": "    pub oss_provider: Option&lt;String&gt;,",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "    /// Configuration profile from config.toml to specify default options.",
+            "lineNumber": 51
+          },
+          {
+            "text": "    #[arg(long = \"profile\", short = 'p')]",
+            "lineNumber": 52
+          },
+          {
+            "text": "    pub config_profile: Option&lt;String&gt;,",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "    /// Select the sandbox policy to use when executing model-generated shell",
+            "lineNumber": 55
+          },
+          {
+            "text": "    /// commands.",
+            "lineNumber": 56
+          },
+          {
+            "text": "    #[arg(long = \"sandbox\", short = 's')]",
+            "lineNumber": 57
+          },
+          {
+            "text": "    pub sandbox_mode: Option&lt;codex_common::SandboxModeCliArg&gt;,",
+            "lineNumber": 58
+          },
+          {
+            "lineNumber": 59
+          },
+          {
+            "text": "    /// Configure when the model requires human approval before executing a command.",
+            "lineNumber": 60
+          }
+        ]
+      },
+      "score": 0.3980571925640106
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/package.json</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+GUIの起動を簡素化し、CLI/TUIとの連接を強化し、サイドバーとホバーのUXを改善します。
+
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] CLIにGUI起動コマンドを追加（codex gui）
+- [ ] サイドバーのホバー効果とツールチップを改善
+- [ ] キーボードショートカットのサポートを追加
+- [ ] CLI/TUIとの連接を強化（DualBridge改善）
+- [ ] システムトレイからのGUI起動を実装
+
+</details>
+</tool-use>
+
+---
+
+rg: regex parse error:
+    (?:#[derive.*Command|Subcommand)
+        ^
+error: unclosed character class
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+CLIにGUI起動コマンドを追加し、サイドバーとホバーのUXを改善します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "AppServer|McpServer",
+  "path": "codex-rs/cli/src/main.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "AppServer|McpServer",
+    "path": "codex-rs/cli/src/main.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\cli\\src\\main.rs",
+              "matches": [
+                {
+                  "lineNumber": 130,
+                  "content": "    McpServer,"
+                },
+                {
+                  "lineNumber": 133,
+                  "content": "    AppServer,"
+                },
+                {
+                  "lineNumber": 801,
+                  "content": "        Some(Subcommand::McpServer) =&gt; {"
+                },
+                {
+                  "lineNumber": 809,
+                  "content": "        Some(Subcommand::AppServer) =&gt; {"
+                }
+              ]
+            }
+          ],
+          "totalLines": 4,
+          "totalMatchedLines": 4
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+AppServerの実装を確認し、GUI起動コマンドを追加します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "AppServer implementation launch GUI web interface",
+  "includePattern": "codex-rs",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\gui\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 85,
+            "column": 14
+          },
+          "endPosition": {
+            "line": 143,
+            "column": 16
+          }
+        },
+        "contents": "async fn main() -&gt; Result&lt;(), GuiError&gt; {\n    init_tracing();\n\n    let port = std::env::var(\"CODEX_GUI_PORT\")\n        .ok()\n        .and_then(|raw| raw.parse::&lt;u16&gt;().ok())\n        .unwrap_or(8787);\n\n    let cli_path = std::env::var(\"CODEX_GUI_CLI_PATH\").unwrap_or_else(|_| \"codex\".to_string());\n\n    let state = AppState::new(cli_path, action_definitions());\n    let cli_path_for_log = state.cli_path.clone();\n\n    let app = Router::new()\n        .route(\"/api/actions\", get(list_actions))\n        .route(\"/api/actions/{id}/execute\", post(execute_action))\n        .route(\"/api/mcp/connections\", get(list_mcp_connections))\n        .route(\"/api/system/metrics\", get(get_system_metrics))\n        .route(\"/api/conversations\", get(list_conversations))\n        .route(\"/api/conversations\", post(create_conversation))\n        .route(\"/api/conversations/{id}/messages\", get(get_messages))\n        .route(\"/api/conversations/{id}/messages\", post(send_message))\n        .route(\"/api/user\", get(get_current_user))\n        .with_state(state)\n        .layer(\n            CorsLayer::new()\n                .allow_methods([Method::GET, Method::POST])\n                .allow_headers(Any)\n                .allow_origin(Any),\n        )\n        .layer(TraceLayer::new_for_http());\n\n    let addr = SocketAddr::from(([0, 0, 0, 0], port));\n    let listener = TcpListener::bind(addr).await.map_err(GuiError::from)?;\n\n    info!(\n        port,\n        cli_path = cli_path_for_log.as_str(),\n        \"listening on http://0.0.0.0:{port}\"\n    );\n\n    let server = axum::serve(listener, app).with_graceful_shutdown(shutdown_signal());\n\n    server.await.map_err(GuiError::from)\n}\n\nfn init_tracing() {\n    let filter = std::env::var(\"RUST_LOG\").unwrap_or_else(|_| \"info\".to_string());\n\n    tracing_subscriber::fmt()\n        .with_env_filter(filter)\n        .with_target(false)\n        .compact()\n        .init();\n}\n\nasync fn shutdown_signal() {\n    let ctrl_c =",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "async fn main() -&gt; Result&lt;(), GuiError&gt; {",
+            "lineNumber": 87
+          },
+          {
+            "text": "    init_tracing();",
+            "lineNumber": 88
+          },
+          {
+            "lineNumber": 89
+          },
+          {
+            "text": "    let port = std::env::var(\"CODEX_GUI_PORT\")",
+            "lineNumber": 90
+          },
+          {
+            "text": "        .ok()",
+            "lineNumber": 91
+          },
+          {
+            "text": "        .and_then(|raw| raw.parse::&lt;u16&gt;().ok())",
+            "lineNumber": 92
+          },
+          {
+            "text": "        .unwrap_or(8787);",
+            "lineNumber": 93
+          },
+          {
+            "lineNumber": 94
+          },
+          {
+            "text": "    let cli_path = std::env::var(\"CODEX_GUI_CLI_PATH\").unwrap_or_else(|_| \"codex\".to_string());",
+            "lineNumber": 95
+          },
+          {
+            "lineNumber": 96
+          },
+          {
+            "text": "    let state = AppState::new(cli_path, action_definitions());",
+            "lineNumber": 97
+          },
+          {
+            "text": "    let cli_path_for_log = state.cli_path.clone();",
+            "lineNumber": 98
+          },
+          {
+            "lineNumber": 99
+          },
+          {
+            "text": "    let app = Router::new()",
+            "lineNumber": 100
+          },
+          {
+            "text": "        .route(\"/api/actions\", get(list_actions))",
+            "lineNumber": 101
+          },
+          {
+            "text": "        .route(\"/api/actions/{id}/execute\", post(execute_action))",
+            "lineNumber": 102
+          },
+          {
+            "text": "        .route(\"/api/mcp/connections\", get(list_mcp_connections))",
+            "lineNumber": 103
+          },
+          {
+            "text": "        .route(\"/api/system/metrics\", get(get_system_metrics))",
+            "lineNumber": 104
+          },
+          {
+            "text": "        .route(\"/api/conversations\", get(list_conversations))",
+            "lineNumber": 105
+          },
+          {
+            "text": "        .route(\"/api/conversations\", post(create_conversation))",
+            "lineNumber": 106
+          },
+          {
+            "text": "        .route(\"/api/conversations/{id}/messages\", get(get_messages))",
+            "lineNumber": 107
+          },
+          {
+            "text": "        .route(\"/api/conversations/{id}/messages\", post(send_message))",
+            "lineNumber": 108
+          },
+          {
+            "text": "        .route(\"/api/user\", get(get_current_user))",
+            "lineNumber": 109
+          },
+          {
+            "text": "        .with_state(state)",
+            "lineNumber": 110
+          },
+          {
+            "text": "        .layer(",
+            "lineNumber": 111
+          },
+          {
+            "text": "            CorsLayer::new()",
+            "lineNumber": 112
+          },
+          {
+            "text": "                .allow_methods([Method::GET, Method::POST])",
+            "lineNumber": 113
+          },
+          {
+            "text": "                .allow_headers(Any)",
+            "lineNumber": 114
+          },
+          {
+            "text": "                .allow_origin(Any),",
+            "lineNumber": 115
+          },
+          {
+            "text": "        )",
+            "lineNumber": 116
+          },
+          {
+            "text": "        .layer(TraceLayer::new_for_http());",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "text": "    let addr = SocketAddr::from(([0, 0, 0, 0], port));",
+            "lineNumber": 119
+          },
+          {
+            "text": "    let listener = TcpListener::bind(addr).await.map_err(GuiError::from)?;",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "    info!(",
+            "lineNumber": 122
+          },
+          {
+            "text": "        port,",
+            "lineNumber": 123
+          },
+          {
+            "text": "        cli_path = cli_path_for_log.as_str(),",
+            "lineNumber": 124
+          },
+          {
+            "text": "        \"listening on http://0.0.0.0:{port}\"",
+            "lineNumber": 125
+          },
+          {
+            "text": "    );",
+            "lineNumber": 126
+          },
+          {
+            "lineNumber": 127
+          },
+          {
+            "text": "    let server = axum::serve(listener, app).with_graceful_shutdown(shutdown_signal());",
+            "lineNumber": 128
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "text": "    server.await.map_err(GuiError::from)",
+            "lineNumber": 130
+          },
+          {
+            "text": "}",
+            "lineNumber": 131
+          },
+          {
+            "lineNumber": 132
+          },
+          {
+            "text": "fn init_tracing() {",
+            "lineNumber": 133
+          },
+          {
+            "text": "    let filter = std::env::var(\"RUST_LOG\").unwrap_or_else(|_| \"info\".to_string());",
+            "lineNumber": 134
+          },
+          {
+            "lineNumber": 135
+          },
+          {
+            "text": "    tracing_subscriber::fmt()",
+            "lineNumber": 136
+          },
+          {
+            "text": "        .with_env_filter(filter)",
+            "lineNumber": 137
+          },
+          {
+            "text": "        .with_target(false)",
+            "lineNumber": 138
+          },
+          {
+            "text": "        .compact()",
+            "lineNumber": 139
+          },
+          {
+            "text": "        .init();",
+            "lineNumber": 140
+          },
+          {
+            "text": "}",
+            "lineNumber": 141
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "text": "async fn shutdown_signal() {",
+            "lineNumber": 143
+          },
+          {
+            "text": "    let ctrl_c =",
+            "lineNumber": 144
+          }
+        ]
+      },
+      "score": 0.4276750981807709
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 782,
+            "column": 5
+          },
+          "endPosition": {
+            "line": 828,
+            "column": 47
+          }
+        },
+        "contents": "    match subcommand {\n        None =&gt; {\n            prepend_config_flags(\n                &amp;mut interactive.config_overrides,\n                root_config_overrides.clone(),\n            );\n            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;\n            handle_app_exit(exit_info)?;\n        }\n        Some(Subcommand::Exec(mut exec_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut exec_cli.config_overrides,\n                root_config_overrides.clone(),\n            );\n            codex_exec::run_main(exec_cli, codex_linux_sandbox_exe).await?;\n        }\n        Some(Subcommand::McpServer) =&gt; {\n            codex_mcp_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;\n        }\n        Some(Subcommand::Mcp(mut mcp_cli)) =&gt; {\n            // Propagate any root-level config overrides (e.g. &#96;-c key=value&#96;).\n            prepend_config_flags(&amp;mut mcp_cli.config_overrides, root_config_overrides.clone());\n            mcp_cli.run().await?;\n        }\n        Some(Subcommand::AppServer) =&gt; {\n            codex_app_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;\n        }\n        Some(Subcommand::Resume(ResumeCommand {\n            session_id,\n            last,\n            config_overrides,\n        })) =&gt; {\n            interactive = finalize_resume_interactive(\n                interactive,\n                root_config_overrides.clone(),\n                session_id,\n                last,\n                config_overrides,\n            );\n            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;\n            handle_app_exit(exit_info)?;\n        }\n        Some(Subcommand::Login(mut login_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut login_cli.config_overrides",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    match subcommand {",
+            "lineNumber": 785
+          },
+          {
+            "text": "        None =&gt; {",
+            "lineNumber": 786
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 787
+          },
+          {
+            "text": "                &amp;mut interactive.config_overrides,",
+            "lineNumber": 788
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 789
+          },
+          {
+            "text": "            );",
+            "lineNumber": 790
+          },
+          {
+            "text": "            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;",
+            "lineNumber": 791
+          },
+          {
+            "text": "            handle_app_exit(exit_info)?;",
+            "lineNumber": 792
+          },
+          {
+            "text": "        }",
+            "lineNumber": 793
+          },
+          {
+            "text": "        Some(Subcommand::Exec(mut exec_cli)) =&gt; {",
+            "lineNumber": 794
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 795
+          },
+          {
+            "text": "                &amp;mut exec_cli.config_overrides,",
+            "lineNumber": 796
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 797
+          },
+          {
+            "text": "            );",
+            "lineNumber": 798
+          },
+          {
+            "text": "            codex_exec::run_main(exec_cli, codex_linux_sandbox_exe).await?;",
+            "lineNumber": 799
+          },
+          {
+            "text": "        }",
+            "lineNumber": 800
+          },
+          {
+            "text": "        Some(Subcommand::McpServer) =&gt; {",
+            "lineNumber": 801
+          },
+          {
+            "text": "            codex_mcp_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;",
+            "lineNumber": 802
+          },
+          {
+            "text": "        }",
+            "lineNumber": 803
+          },
+          {
+            "text": "        Some(Subcommand::Mcp(mut mcp_cli)) =&gt; {",
+            "lineNumber": 804
+          },
+          {
+            "text": "            // Propagate any root-level config overrides (e.g. &#96;-c key=value&#96;).",
+            "lineNumber": 805
+          },
+          {
+            "text": "            prepend_config_flags(&amp;mut mcp_cli.config_overrides, root_config_overrides.clone());",
+            "lineNumber": 806
+          },
+          {
+            "text": "            mcp_cli.run().await?;",
+            "lineNumber": 807
+          },
+          {
+            "text": "        }",
+            "lineNumber": 808
+          },
+          {
+            "text": "        Some(Subcommand::AppServer) =&gt; {",
+            "lineNumber": 809
+          },
+          {
+            "text": "            codex_app_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;",
+            "lineNumber": 810
+          },
+          {
+            "text": "        }",
+            "lineNumber": 811
+          },
+          {
+            "text": "        Some(Subcommand::Resume(ResumeCommand {",
+            "lineNumber": 812
+          },
+          {
+            "text": "            session_id,",
+            "lineNumber": 813
+          },
+          {
+            "text": "            last,",
+            "lineNumber": 814
+          },
+          {
+            "text": "            config_overrides,",
+            "lineNumber": 815
+          },
+          {
+            "text": "        })) =&gt; {",
+            "lineNumber": 816
+          },
+          {
+            "text": "            interactive = finalize_resume_interactive(",
+            "lineNumber": 817
+          },
+          {
+            "text": "                interactive,",
+            "lineNumber": 818
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 819
+          },
+          {
+            "text": "                session_id,",
+            "lineNumber": 820
+          },
+          {
+            "text": "                last,",
+            "lineNumber": 821
+          },
+          {
+            "text": "                config_overrides,",
+            "lineNumber": 822
+          },
+          {
+            "text": "            );",
+            "lineNumber": 823
+          },
+          {
+            "text": "            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;",
+            "lineNumber": 824
+          },
+          {
+            "text": "            handle_app_exit(exit_info)?;",
+            "lineNumber": 825
+          },
+          {
+            "text": "        }",
+            "lineNumber": 826
+          },
+          {
+            "text": "        Some(Subcommand::Login(mut login_cli)) =&gt; {",
+            "lineNumber": 827
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 828
+          },
+          {
+            "text": "                &amp;mut login_cli.config_overrides",
+            "lineNumber": 829
+          }
+        ]
+      },
+      "score": 0.35781633853912354
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\app-server\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 41,
+            "column": 36
+          },
+          "endPosition": {
+            "line": 91,
+            "column": 45
+          }
+        },
+        "contents": "pub async fn run_main(\n    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,\n    cli_config_overrides: CliConfigOverrides,\n) -&gt; IoResult&lt;()&gt; {\n    // Set up channels.\n    let (incoming_tx, mut incoming_rx) = mpsc::channel::&lt;JSONRPCMessage&gt;(CHANNEL_CAPACITY);\n    let (outgoing_tx, mut outgoing_rx) = mpsc::unbounded_channel::&lt;OutgoingMessage&gt;();\n\n    // Task: read from stdin, push to &#96;incoming_tx&#96;.\n    let stdin_reader_handle = tokio::spawn({\n        async move {\n            let stdin = io::stdin();\n            let reader = BufReader::new(stdin);\n            let mut lines = reader.lines();\n\n            while let Some(line) = lines.next_line().await.unwrap_or_default() {\n                match serde_json::from_str::&lt;JSONRPCMessage&gt;(&amp;line) {\n                    Ok(msg) =&gt; {\n                        if incoming_tx.send(msg).await.is_err() {\n                            // Receiver gone – nothing left to do.\n                            break;\n                        }\n                    }\n                    Err(e) =&gt; error!(\"Failed to deserialize JSONRPCMessage: {e}\"),\n                }\n            }\n\n            debug!(\"stdin reader finished (EOF)\");\n        }\n    });\n\n    // Parse CLI overrides once and derive the base Config eagerly so later\n    // components do not need to work with raw TOML values.\n    let cli_kv_overrides = cli_config_overrides.parse_overrides().map_err(|e| {\n        std::io::Error::new(\n            ErrorKind::InvalidInput,\n            format!(\"error parsing -c overrides: {e}\"),\n        )\n    })?;\n    let config = Config::load_with_cli_overrides(cli_kv_overrides.clone())\n        .await\n        .map_err(|e| {\n            std::io::Error::new(ErrorKind::InvalidData, format!(\"error loading config: {e}\"))\n        })?;\n\n    let feedback = CodexFeedback::new();\n\n    let otel =\n        codex_core::otel_init::build_provider",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub async fn run_main(",
+            "lineNumber": 44
+          },
+          {
+            "text": "    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,",
+            "lineNumber": 45
+          },
+          {
+            "text": "    cli_config_overrides: CliConfigOverrides,",
+            "lineNumber": 46
+          },
+          {
+            "text": ") -&gt; IoResult&lt;()&gt; {",
+            "lineNumber": 47
+          },
+          {
+            "text": "    // Set up channels.",
+            "lineNumber": 48
+          },
+          {
+            "text": "    let (incoming_tx, mut incoming_rx) = mpsc::channel::&lt;JSONRPCMessage&gt;(CHANNEL_CAPACITY);",
+            "lineNumber": 49
+          },
+          {
+            "text": "    let (outgoing_tx, mut outgoing_rx) = mpsc::unbounded_channel::&lt;OutgoingMessage&gt;();",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "    // Task: read from stdin, push to &#96;incoming_tx&#96;.",
+            "lineNumber": 52
+          },
+          {
+            "text": "    let stdin_reader_handle = tokio::spawn({",
+            "lineNumber": 53
+          },
+          {
+            "text": "        async move {",
+            "lineNumber": 54
+          },
+          {
+            "text": "            let stdin = io::stdin();",
+            "lineNumber": 55
+          },
+          {
+            "text": "            let reader = BufReader::new(stdin);",
+            "lineNumber": 56
+          },
+          {
+            "text": "            let mut lines = reader.lines();",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "            while let Some(line) = lines.next_line().await.unwrap_or_default() {",
+            "lineNumber": 59
+          },
+          {
+            "text": "                match serde_json::from_str::&lt;JSONRPCMessage&gt;(&amp;line) {",
+            "lineNumber": 60
+          },
+          {
+            "text": "                    Ok(msg) =&gt; {",
+            "lineNumber": 61
+          },
+          {
+            "text": "                        if incoming_tx.send(msg).await.is_err() {",
+            "lineNumber": 62
+          },
+          {
+            "text": "                            // Receiver gone – nothing left to do.",
+            "lineNumber": 63
+          },
+          {
+            "text": "                            break;",
+            "lineNumber": 64
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 65
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 66
+          },
+          {
+            "text": "                    Err(e) =&gt; error!(\"Failed to deserialize JSONRPCMessage: {e}\"),",
+            "lineNumber": 67
+          },
+          {
+            "text": "                }",
+            "lineNumber": 68
+          },
+          {
+            "text": "            }",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "            debug!(\"stdin reader finished (EOF)\");",
+            "lineNumber": 71
+          },
+          {
+            "text": "        }",
+            "lineNumber": 72
+          },
+          {
+            "text": "    });",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "    // Parse CLI overrides once and derive the base Config eagerly so later",
+            "lineNumber": 75
+          },
+          {
+            "text": "    // components do not need to work with raw TOML values.",
+            "lineNumber": 76
+          },
+          {
+            "text": "    let cli_kv_overrides = cli_config_overrides.parse_overrides().map_err(|e| {",
+            "lineNumber": 77
+          },
+          {
+            "text": "        std::io::Error::new(",
+            "lineNumber": 78
+          },
+          {
+            "text": "            ErrorKind::InvalidInput,",
+            "lineNumber": 79
+          },
+          {
+            "text": "            format!(\"error parsing -c overrides: {e}\"),",
+            "lineNumber": 80
+          },
+          {
+            "text": "        )",
+            "lineNumber": 81
+          },
+          {
+            "text": "    })?;",
+            "lineNumber": 82
+          },
+          {
+            "text": "    let config = Config::load_with_cli_overrides(cli_kv_overrides.clone())",
+            "lineNumber": 83
+          },
+          {
+            "text": "        .await",
+            "lineNumber": 84
+          },
+          {
+            "text": "        .map_err(|e| {",
+            "lineNumber": 85
+          },
+          {
+            "text": "            std::io::Error::new(ErrorKind::InvalidData, format!(\"error loading config: {e}\"))",
+            "lineNumber": 86
+          },
+          {
+            "text": "        })?;",
+            "lineNumber": 87
+          },
+          {
+            "lineNumber": 88
+          },
+          {
+            "text": "    let feedback = CodexFeedback::new();",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "    let otel =",
+            "lineNumber": 91
+          },
+          {
+            "text": "        codex_core::otel_init::build_provider",
+            "lineNumber": 92
+          }
+        ]
+      },
+      "score": 0.34455451369285583
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\gui\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 140,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 201,
+            "column": 27
+          }
+        },
+        "contents": "async fn shutdown_signal() {\n    let ctrl_c = async {\n        signal::ctrl_c()\n            .await\n            .expect(\"failed to install CTRL+C signal handler\");\n    };\n\n    #[cfg(unix)]\n    let terminate = async {\n        signal::unix::signal(signal::unix::SignalKind::terminate())\n            .expect(\"failed to install signal handler\")\n            .recv()\n            .await;\n    };\n\n    #[cfg(not(unix))]\n    let terminate = std::future::pending::&lt;()&gt;();\n\n    tokio::select! {\n        _ = ctrl_c =&gt; {},\n        _ = terminate =&gt; {},\n    }\n}\n\n#[derive(Clone)]\nstruct AppState {\n    cli_path: Arc&lt;String&gt;,\n    actions: Arc&lt;Vec&lt;ActionDefinition&gt;&gt;,\n    conversations: Arc&lt;tokio::sync::RwLock&lt;Vec&lt;Conversation&gt;&gt;&gt;,\n    messages: Arc&lt;tokio::sync::RwLock&lt;HashMap&lt;String, Vec&lt;Message&gt;&gt;&gt;&gt;,\n    current_user: Arc&lt;tokio::sync::RwLock&lt;Option&lt;User&gt;&gt;&gt;,\n}\n\nimpl AppState {\n    fn new(cli_path: String, actions: Vec&lt;ActionDefinition&gt;) -&gt; Self {\n        Self {\n            cli_path: Arc::new(cli_path),\n            actions: Arc::new(actions),\n            conversations: Arc::new(tokio::sync::RwLock::new(Vec::new())),\n            messages: Arc::new(tokio::sync::RwLock::new(HashMap::new())),\n            current_user: Arc::new(tokio::sync::RwLock::new(None)),\n        }\n    }\n\n    fn find_action(&amp;self, id: &amp;str) -&gt; Option&lt;ActionDefinition&gt; {\n        self.actions.iter().cloned().find(|action| action.id == id)\n    }\n}\n\n#[axum::debug_handler]\nasync fn list_actions(State(state): State&lt;AppState&gt;) -&gt; Json&lt;Vec&lt;ActionMetadata&gt;&gt; {\n    let payload = state.actions.iter().map(ActionMetadata::from).collect();\n\n    Json(payload)\n}\n\n#[axum::debug_handler]\nasync fn execute_action(\n    State(state): State&lt;AppState&gt;,\n    Path(id): Path&lt;String&gt;,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "async fn shutdown_signal() {",
+            "lineNumber": 143
+          },
+          {
+            "text": "    let ctrl_c = async {",
+            "lineNumber": 144
+          },
+          {
+            "text": "        signal::ctrl_c()",
+            "lineNumber": 145
+          },
+          {
+            "text": "            .await",
+            "lineNumber": 146
+          },
+          {
+            "text": "            .expect(\"failed to install CTRL+C signal handler\");",
+            "lineNumber": 147
+          },
+          {
+            "text": "    };",
+            "lineNumber": 148
+          },
+          {
+            "lineNumber": 149
+          },
+          {
+            "text": "    #[cfg(unix)]",
+            "lineNumber": 150
+          },
+          {
+            "text": "    let terminate = async {",
+            "lineNumber": 151
+          },
+          {
+            "text": "        signal::unix::signal(signal::unix::SignalKind::terminate())",
+            "lineNumber": 152
+          },
+          {
+            "text": "            .expect(\"failed to install signal handler\")",
+            "lineNumber": 153
+          },
+          {
+            "text": "            .recv()",
+            "lineNumber": 154
+          },
+          {
+            "text": "            .await;",
+            "lineNumber": 155
+          },
+          {
+            "text": "    };",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "    #[cfg(not(unix))]",
+            "lineNumber": 158
+          },
+          {
+            "text": "    let terminate = std::future::pending::&lt;()&gt;();",
+            "lineNumber": 159
+          },
+          {
+            "lineNumber": 160
+          },
+          {
+            "text": "    tokio::select! {",
+            "lineNumber": 161
+          },
+          {
+            "text": "        _ = ctrl_c =&gt; {},",
+            "lineNumber": 162
+          },
+          {
+            "text": "        _ = terminate =&gt; {},",
+            "lineNumber": 163
+          },
+          {
+            "text": "    }",
+            "lineNumber": 164
+          },
+          {
+            "text": "}",
+            "lineNumber": 165
+          },
+          {
+            "lineNumber": 166
+          },
+          {
+            "text": "#[derive(Clone)]",
+            "lineNumber": 167
+          },
+          {
+            "text": "struct AppState {",
+            "lineNumber": 168
+          },
+          {
+            "text": "    cli_path: Arc&lt;String&gt;,",
+            "lineNumber": 169
+          },
+          {
+            "text": "    actions: Arc&lt;Vec&lt;ActionDefinition&gt;&gt;,",
+            "lineNumber": 170
+          },
+          {
+            "text": "    conversations: Arc&lt;tokio::sync::RwLock&lt;Vec&lt;Conversation&gt;&gt;&gt;,",
+            "lineNumber": 171
+          },
+          {
+            "text": "    messages: Arc&lt;tokio::sync::RwLock&lt;HashMap&lt;String, Vec&lt;Message&gt;&gt;&gt;&gt;,",
+            "lineNumber": 172
+          },
+          {
+            "text": "    current_user: Arc&lt;tokio::sync::RwLock&lt;Option&lt;User&gt;&gt;&gt;,",
+            "lineNumber": 173
+          },
+          {
+            "text": "}",
+            "lineNumber": 174
+          },
+          {
+            "lineNumber": 175
+          },
+          {
+            "text": "impl AppState {",
+            "lineNumber": 176
+          },
+          {
+            "text": "    fn new(cli_path: String, actions: Vec&lt;ActionDefinition&gt;) -&gt; Self {",
+            "lineNumber": 177
+          },
+          {
+            "text": "        Self {",
+            "lineNumber": 178
+          },
+          {
+            "text": "            cli_path: Arc::new(cli_path),",
+            "lineNumber": 179
+          },
+          {
+            "text": "            actions: Arc::new(actions),",
+            "lineNumber": 180
+          },
+          {
+            "text": "            conversations: Arc::new(tokio::sync::RwLock::new(Vec::new())),",
+            "lineNumber": 181
+          },
+          {
+            "text": "            messages: Arc::new(tokio::sync::RwLock::new(HashMap::new())),",
+            "lineNumber": 182
+          },
+          {
+            "text": "            current_user: Arc::new(tokio::sync::RwLock::new(None)),",
+            "lineNumber": 183
+          },
+          {
+            "text": "        }",
+            "lineNumber": 184
+          },
+          {
+            "text": "    }",
+            "lineNumber": 185
+          },
+          {
+            "lineNumber": 186
+          },
+          {
+            "text": "    fn find_action(&amp;self, id: &amp;str) -&gt; Option&lt;ActionDefinition&gt; {",
+            "lineNumber": 187
+          },
+          {
+            "text": "        self.actions.iter().cloned().find(|action| action.id == id)",
+            "lineNumber": 188
+          },
+          {
+            "text": "    }",
+            "lineNumber": 189
+          },
+          {
+            "text": "}",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "#[axum::debug_handler]",
+            "lineNumber": 192
+          },
+          {
+            "text": "async fn list_actions(State(state): State&lt;AppState&gt;) -&gt; Json&lt;Vec&lt;ActionMetadata&gt;&gt; {",
+            "lineNumber": 193
+          },
+          {
+            "text": "    let payload = state.actions.iter().map(ActionMetadata::from).collect();",
+            "lineNumber": 194
+          },
+          {
+            "lineNumber": 195
+          },
+          {
+            "text": "    Json(payload)",
+            "lineNumber": 196
+          },
+          {
+            "text": "}",
+            "lineNumber": 197
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "text": "#[axum::debug_handler]",
+            "lineNumber": 199
+          },
+          {
+            "text": "async fn execute_action(",
+            "lineNumber": 200
+          },
+          {
+            "text": "    State(state): State&lt;AppState&gt;,",
+            "lineNumber": 201
+          },
+          {
+            "text": "    Path(id): Path&lt;String&gt;,",
+            "lineNumber": 202
+          }
+        ]
+      },
+      "score": 0.3127402067184448
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\app-server\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 122,
+            "column": 39
+          },
+          "endPosition": {
+            "line": 172,
+            "column": 49
+          }
+        },
+        "contents": "    let processor_handle = tokio::spawn({\n        let outgoing_message_sender = OutgoingMessageSender::new(outgoing_tx);\n        let cli_overrides: Vec&lt;(String, TomlValue)&gt; = cli_kv_overrides.clone();\n        let mut processor = MessageProcessor::new(\n            outgoing_message_sender,\n            codex_linux_sandbox_exe,\n            std::sync::Arc::new(config),\n            cli_overrides,\n            feedback.clone(),\n        );\n        async move {\n            while let Some(msg) = incoming_rx.recv().await {\n                match msg {\n                    JSONRPCMessage::Request(r) =&gt; processor.process_request(r).await,\n                    JSONRPCMessage::Response(r) =&gt; processor.process_response(r).await,\n                    JSONRPCMessage::Notification(n) =&gt; processor.process_notification(n).await,\n                    JSONRPCMessage::Error(e) =&gt; processor.process_error(e),\n                }\n            }\n\n            info!(\"processor task exited (channel closed)\");\n        }\n    });\n\n    // Task: write outgoing messages to stdout.\n    let stdout_writer_handle = tokio::spawn(async move {\n        let mut stdout = io::stdout();\n        while let Some(outgoing_message) = outgoing_rx.recv().await {\n            let Ok(value) = serde_json::to_value(outgoing_message) else {\n                error!(\"Failed to convert OutgoingMessage to JSON value\");\n                continue;\n            };\n            match serde_json::to_string(&amp;value) {\n                Ok(mut json) =&gt; {\n                    json.push('\\n');\n                    if let Err(e) = stdout.write_all(json.as_bytes()).await {\n                        error!(\"Failed to write to stdout: {e}\");\n                        break;\n                    }\n                }\n                Err(e) =&gt; error!(\"Failed to serialize JSONRPCMessage: {e}\"),\n            }\n        }\n\n        info!(\"stdout writer exited (channel closed)\");\n    });\n\n    // Wait for all tasks to finish.  The typical exit path is the stdin reader\n    // hitting EOF which, once it drops &#96;incoming_tx&#96;, propagates shutdown to\n    // the processor and then to the stdout task.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    let processor_handle = tokio::spawn({",
+            "lineNumber": 124
+          },
+          {
+            "text": "        let outgoing_message_sender = OutgoingMessageSender::new(outgoing_tx);",
+            "lineNumber": 125
+          },
+          {
+            "text": "        let cli_overrides: Vec&lt;(String, TomlValue)&gt; = cli_kv_overrides.clone();",
+            "lineNumber": 126
+          },
+          {
+            "text": "        let mut processor = MessageProcessor::new(",
+            "lineNumber": 127
+          },
+          {
+            "text": "            outgoing_message_sender,",
+            "lineNumber": 128
+          },
+          {
+            "text": "            codex_linux_sandbox_exe,",
+            "lineNumber": 129
+          },
+          {
+            "text": "            std::sync::Arc::new(config),",
+            "lineNumber": 130
+          },
+          {
+            "text": "            cli_overrides,",
+            "lineNumber": 131
+          },
+          {
+            "text": "            feedback.clone(),",
+            "lineNumber": 132
+          },
+          {
+            "text": "        );",
+            "lineNumber": 133
+          },
+          {
+            "text": "        async move {",
+            "lineNumber": 134
+          },
+          {
+            "text": "            while let Some(msg) = incoming_rx.recv().await {",
+            "lineNumber": 135
+          },
+          {
+            "text": "                match msg {",
+            "lineNumber": 136
+          },
+          {
+            "text": "                    JSONRPCMessage::Request(r) =&gt; processor.process_request(r).await,",
+            "lineNumber": 137
+          },
+          {
+            "text": "                    JSONRPCMessage::Response(r) =&gt; processor.process_response(r).await,",
+            "lineNumber": 138
+          },
+          {
+            "text": "                    JSONRPCMessage::Notification(n) =&gt; processor.process_notification(n).await,",
+            "lineNumber": 139
+          },
+          {
+            "text": "                    JSONRPCMessage::Error(e) =&gt; processor.process_error(e),",
+            "lineNumber": 140
+          },
+          {
+            "text": "                }",
+            "lineNumber": 141
+          },
+          {
+            "text": "            }",
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "            info!(\"processor task exited (channel closed)\");",
+            "lineNumber": 144
+          },
+          {
+            "text": "        }",
+            "lineNumber": 145
+          },
+          {
+            "text": "    });",
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 147
+          },
+          {
+            "text": "    // Task: write outgoing messages to stdout.",
+            "lineNumber": 148
+          },
+          {
+            "text": "    let stdout_writer_handle = tokio::spawn(async move {",
+            "lineNumber": 149
+          },
+          {
+            "text": "        let mut stdout = io::stdout();",
+            "lineNumber": 150
+          },
+          {
+            "text": "        while let Some(outgoing_message) = outgoing_rx.recv().await {",
+            "lineNumber": 151
+          },
+          {
+            "text": "            let Ok(value) = serde_json::to_value(outgoing_message) else {",
+            "lineNumber": 152
+          },
+          {
+            "text": "                error!(\"Failed to convert OutgoingMessage to JSON value\");",
+            "lineNumber": 153
+          },
+          {
+            "text": "                continue;",
+            "lineNumber": 154
+          },
+          {
+            "text": "            };",
+            "lineNumber": 155
+          },
+          {
+            "text": "            match serde_json::to_string(&amp;value) {",
+            "lineNumber": 156
+          },
+          {
+            "text": "                Ok(mut json) =&gt; {",
+            "lineNumber": 157
+          },
+          {
+            "text": "                    json.push('\\n');",
+            "lineNumber": 158
+          },
+          {
+            "text": "                    if let Err(e) = stdout.write_all(json.as_bytes()).await {",
+            "lineNumber": 159
+          },
+          {
+            "text": "                        error!(\"Failed to write to stdout: {e}\");",
+            "lineNumber": 160
+          },
+          {
+            "text": "                        break;",
+            "lineNumber": 161
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 162
+          },
+          {
+            "text": "                }",
+            "lineNumber": 163
+          },
+          {
+            "text": "                Err(e) =&gt; error!(\"Failed to serialize JSONRPCMessage: {e}\"),",
+            "lineNumber": 164
+          },
+          {
+            "text": "            }",
+            "lineNumber": 165
+          },
+          {
+            "text": "        }",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "        info!(\"stdout writer exited (channel closed)\");",
+            "lineNumber": 168
+          },
+          {
+            "text": "    });",
+            "lineNumber": 169
+          },
+          {
+            "lineNumber": 170
+          },
+          {
+            "text": "    // Wait for all tasks to finish.  The typical exit path is the stdin reader",
+            "lineNumber": 171
+          },
+          {
+            "text": "    // hitting EOF which, once it drops &#96;incoming_tx&#96;, propagates shutdown to",
+            "lineNumber": 172
+          },
+          {
+            "text": "    // the processor and then to the stdout task.",
+            "lineNumber": 173
+          }
+        ]
+      },
+      "score": 0.30864715576171875
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 361,
+            "column": 43
+          },
+          "endPosition": {
+            "line": 410,
+            "column": 65
+          }
+        },
+        "contents": ",\n) -&gt; color_eyre::Result&lt;AppExitInfo&gt; {\n    color_eyre::install()?;\n\n    // Forward panic reports through tracing so they appear in the UI status\n    // line, but do not swallow the default/color-eyre panic handler.\n    // Chain to the previous hook so users still get a rich panic report\n    // (including backtraces) after we restore the terminal.\n    let prev_hook = std::panic::take_hook();\n    std::panic::set_hook(Box::new(move |info| {\n        tracing::error!(\"panic: {info}\");\n        prev_hook(info);\n    }));\n    let mut terminal = tui::init()?;\n    terminal.clear()?;\n\n    let mut tui = Tui::new(terminal);\n\n    #[cfg(not(debug_assertions))]\n    {\n        use crate::update_prompt::UpdatePromptOutcome;\n\n        let skip_update_prompt = cli.prompt.as_ref().is_some_and(|prompt| !prompt.is_empty());\n        if !skip_update_prompt {\n            match update_prompt::run_update_prompt_if_needed(&amp;mut tui, &amp;initial_config).await? {\n                UpdatePromptOutcome::Continue =&gt; {}\n                UpdatePromptOutcome::RunUpdate(action) =&gt; {\n                    let mapped_action = match action {\n                        crate::updates::UpdateAction::NpmGlobalLatest =&gt; {\n                            crate::update_action::UpdateAction::NpmGlobalLatest\n                        }\n                        crate::updates::UpdateAction::BunGlobalLatest =&gt; {\n                            crate::update_action::UpdateAction::BunGlobalLatest\n                        }\n                        crate::updates::UpdateAction::BrewUpgrade =&gt; {\n                            crate::update_action::UpdateAction::BrewUpgrade\n                        }\n                    };\n                    crate::tui::restore()?;\n                    return Ok(AppExitInfo {\n                        token_usage: codex_core::protocol::TokenUsage::default(),\n                        conversation_id: None,\n                        update_action: Some(mapped_action),\n                    });\n                }\n            }\n        }\n    }\n\n    // Initialize high-fidelity session event logging if enabled.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": ",",
+            "lineNumber": 362
+          },
+          {
+            "text": ") -&gt; color_eyre::Result&lt;AppExitInfo&gt; {",
+            "lineNumber": 363
+          },
+          {
+            "text": "    color_eyre::install()?;",
+            "lineNumber": 364
+          },
+          {
+            "lineNumber": 365
+          },
+          {
+            "text": "    // Forward panic reports through tracing so they appear in the UI status",
+            "lineNumber": 366
+          },
+          {
+            "text": "    // line, but do not swallow the default/color-eyre panic handler.",
+            "lineNumber": 367
+          },
+          {
+            "text": "    // Chain to the previous hook so users still get a rich panic report",
+            "lineNumber": 368
+          },
+          {
+            "text": "    // (including backtraces) after we restore the terminal.",
+            "lineNumber": 369
+          },
+          {
+            "text": "    let prev_hook = std::panic::take_hook();",
+            "lineNumber": 370
+          },
+          {
+            "text": "    std::panic::set_hook(Box::new(move |info| {",
+            "lineNumber": 371
+          },
+          {
+            "text": "        tracing::error!(\"panic: {info}\");",
+            "lineNumber": 372
+          },
+          {
+            "text": "        prev_hook(info);",
+            "lineNumber": 373
+          },
+          {
+            "text": "    }));",
+            "lineNumber": 374
+          },
+          {
+            "text": "    let mut terminal = tui::init()?;",
+            "lineNumber": 375
+          },
+          {
+            "text": "    terminal.clear()?;",
+            "lineNumber": 376
+          },
+          {
+            "lineNumber": 377
+          },
+          {
+            "text": "    let mut tui = Tui::new(terminal);",
+            "lineNumber": 378
+          },
+          {
+            "lineNumber": 379
+          },
+          {
+            "text": "    #[cfg(not(debug_assertions))]",
+            "lineNumber": 380
+          },
+          {
+            "text": "    {",
+            "lineNumber": 381
+          },
+          {
+            "text": "        use crate::update_prompt::UpdatePromptOutcome;",
+            "lineNumber": 382
+          },
+          {
+            "lineNumber": 383
+          },
+          {
+            "text": "        let skip_update_prompt = cli.prompt.as_ref().is_some_and(|prompt| !prompt.is_empty());",
+            "lineNumber": 384
+          },
+          {
+            "text": "        if !skip_update_prompt {",
+            "lineNumber": 385
+          },
+          {
+            "text": "            match update_prompt::run_update_prompt_if_needed(&amp;mut tui, &amp;initial_config).await? {",
+            "lineNumber": 386
+          },
+          {
+            "text": "                UpdatePromptOutcome::Continue =&gt; {}",
+            "lineNumber": 387
+          },
+          {
+            "text": "                UpdatePromptOutcome::RunUpdate(action) =&gt; {",
+            "lineNumber": 388
+          },
+          {
+            "text": "                    let mapped_action = match action {",
+            "lineNumber": 389
+          },
+          {
+            "text": "                        crate::updates::UpdateAction::NpmGlobalLatest =&gt; {",
+            "lineNumber": 390
+          },
+          {
+            "text": "                            crate::update_action::UpdateAction::NpmGlobalLatest",
+            "lineNumber": 391
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 392
+          },
+          {
+            "text": "                        crate::updates::UpdateAction::BunGlobalLatest =&gt; {",
+            "lineNumber": 393
+          },
+          {
+            "text": "                            crate::update_action::UpdateAction::BunGlobalLatest",
+            "lineNumber": 394
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 395
+          },
+          {
+            "text": "                        crate::updates::UpdateAction::BrewUpgrade =&gt; {",
+            "lineNumber": 396
+          },
+          {
+            "text": "                            crate::update_action::UpdateAction::BrewUpgrade",
+            "lineNumber": 397
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 398
+          },
+          {
+            "text": "                    };",
+            "lineNumber": 399
+          },
+          {
+            "text": "                    crate::tui::restore()?;",
+            "lineNumber": 400
+          },
+          {
+            "text": "                    return Ok(AppExitInfo {",
+            "lineNumber": 401
+          },
+          {
+            "text": "                        token_usage: codex_core::protocol::TokenUsage::default(),",
+            "lineNumber": 402
+          },
+          {
+            "text": "                        conversation_id: None,",
+            "lineNumber": 403
+          },
+          {
+            "text": "                        update_action: Some(mapped_action),",
+            "lineNumber": 404
+          },
+          {
+            "text": "                    });",
+            "lineNumber": 405
+          },
+          {
+            "text": "                }",
+            "lineNumber": 406
+          },
+          {
+            "text": "            }",
+            "lineNumber": 407
+          },
+          {
+            "text": "        }",
+            "lineNumber": 408
+          },
+          {
+            "text": "    }",
+            "lineNumber": 409
+          },
+          {
+            "lineNumber": 410
+          },
+          {
+            "text": "    // Initialize high-fidelity session event logging if enabled.",
+            "lineNumber": 411
+          }
+        ]
+      },
+      "score": 0.30751264095306396
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 113,
+            "column": 34
+          },
+          "endPosition": {
+            "line": 178
+          }
+        },
+        "contents": "enum Subcommand {\n    /// Run Codex non-interactively.\n    #[clap(visible_alias = \"e\")]\n    Exec(ExecCli),\n\n    /// Manage login.\n    Login(LoginCommand),\n\n    /// Remove stored authentication credentials.\n    Logout(LogoutCommand),\n\n    /// [experimental] Run Codex as an MCP server and manage MCP servers.\n    Mcp(McpCli),\n\n    /// [experimental] Run the Codex MCP server (stdio transport).\n    McpServer,\n\n    /// [experimental] Run the app server.\n    AppServer,\n\n    /// Generate shell completion scripts.\n    Completion(CompletionCommand),\n\n    /// Run commands within a Codex-provided sandbox.\n    #[clap(visible_alias = \"debug\")]\n    Sandbox(SandboxArgs),\n\n    /// Apply the latest diff produced by Codex agent as a &#96;git apply&#96; to your local working tree.\n    #[clap(visible_alias = \"a\")]\n    Apply(ApplyCommand),\n\n    /// Resume a previous interactive session (picker by default; use --last to continue the most recent).\n    Resume(ResumeCommand),\n\n    /// Internal: generate TypeScript protocol bindings.\n    #[clap(hide = true)]\n    GenerateTs(GenerateTsCommand),\n    /// [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally.\n    #[clap(name = \"cloud\", alias = \"cloud-tasks\")]\n    Cloud(CloudTasksCli),\n\n    /// [EXPERIMENTAL] Delegate task to a sub-agent.\n    Delegate(DelegateCommand),\n\n    /// [EXPERIMENTAL] Delegate tasks to multiple agents in parallel\n    #[clap(name = \"delegate-parallel\")]\n    DelegateParallel(DelegateParallelCommand),\n\n    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor\n    #[clap(name = \"pair\", alias = \"pair-program\")]\n    PairProgram(PairProgramCommand),\n\n    /// [EXPERIMENTAL] Create and run a custom agent from a prompt\n    #[clap(name = \"agent-create\")]\n    AgentCreate(AgentCreateCommand),\n\n    /// [EXPERIMENTAL] Development mode orchestration (centralized/parallel)\n    #[clap(name = \"dev-mode\")]\n    DevMode(crate::dev_mode_cmd::DevModeCli),\n\n    /// [EXPERIMENTAL] Conduct deep research on a topic.\n    Research(ResearchCommand),\n\n    /// [EXPERIMENTAL] Ask a sub-agent with @mention support (e.g., \"codex ask '@code-reviewer review this'\")",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "enum Subcommand {",
+            "lineNumber": 115
+          },
+          {
+            "text": "    /// Run Codex non-interactively.",
+            "lineNumber": 116
+          },
+          {
+            "text": "    #[clap(visible_alias = \"e\")]",
+            "lineNumber": 117
+          },
+          {
+            "text": "    Exec(ExecCli),",
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "    /// Manage login.",
+            "lineNumber": 120
+          },
+          {
+            "text": "    Login(LoginCommand),",
+            "lineNumber": 121
+          },
+          {
+            "lineNumber": 122
+          },
+          {
+            "text": "    /// Remove stored authentication credentials.",
+            "lineNumber": 123
+          },
+          {
+            "text": "    Logout(LogoutCommand),",
+            "lineNumber": 124
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "    /// [experimental] Run Codex as an MCP server and manage MCP servers.",
+            "lineNumber": 126
+          },
+          {
+            "text": "    Mcp(McpCli),",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "    /// [experimental] Run the Codex MCP server (stdio transport).",
+            "lineNumber": 129
+          },
+          {
+            "text": "    McpServer,",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "    /// [experimental] Run the app server.",
+            "lineNumber": 132
+          },
+          {
+            "text": "    AppServer,",
+            "lineNumber": 133
+          },
+          {
+            "lineNumber": 134
+          },
+          {
+            "text": "    /// Generate shell completion scripts.",
+            "lineNumber": 135
+          },
+          {
+            "text": "    Completion(CompletionCommand),",
+            "lineNumber": 136
+          },
+          {
+            "lineNumber": 137
+          },
+          {
+            "text": "    /// Run commands within a Codex-provided sandbox.",
+            "lineNumber": 138
+          },
+          {
+            "text": "    #[clap(visible_alias = \"debug\")]",
+            "lineNumber": 139
+          },
+          {
+            "text": "    Sandbox(SandboxArgs),",
+            "lineNumber": 140
+          },
+          {
+            "lineNumber": 141
+          },
+          {
+            "text": "    /// Apply the latest diff produced by Codex agent as a &#96;git apply&#96; to your local working tree.",
+            "lineNumber": 142
+          },
+          {
+            "text": "    #[clap(visible_alias = \"a\")]",
+            "lineNumber": 143
+          },
+          {
+            "text": "    Apply(ApplyCommand),",
+            "lineNumber": 144
+          },
+          {
+            "lineNumber": 145
+          },
+          {
+            "text": "    /// Resume a previous interactive session (picker by default; use --last to continue the most recent).",
+            "lineNumber": 146
+          },
+          {
+            "text": "    Resume(ResumeCommand),",
+            "lineNumber": 147
+          },
+          {
+            "lineNumber": 148
+          },
+          {
+            "text": "    /// Internal: generate TypeScript protocol bindings.",
+            "lineNumber": 149
+          },
+          {
+            "text": "    #[clap(hide = true)]",
+            "lineNumber": 150
+          },
+          {
+            "text": "    GenerateTs(GenerateTsCommand),",
+            "lineNumber": 151
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally.",
+            "lineNumber": 152
+          },
+          {
+            "text": "    #[clap(name = \"cloud\", alias = \"cloud-tasks\")]",
+            "lineNumber": 153
+          },
+          {
+            "text": "    Cloud(CloudTasksCli),",
+            "lineNumber": 154
+          },
+          {
+            "lineNumber": 155
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Delegate task to a sub-agent.",
+            "lineNumber": 156
+          },
+          {
+            "text": "    Delegate(DelegateCommand),",
+            "lineNumber": 157
+          },
+          {
+            "lineNumber": 158
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Delegate tasks to multiple agents in parallel",
+            "lineNumber": 159
+          },
+          {
+            "text": "    #[clap(name = \"delegate-parallel\")]",
+            "lineNumber": 160
+          },
+          {
+            "text": "    DelegateParallel(DelegateParallelCommand),",
+            "lineNumber": 161
+          },
+          {
+            "lineNumber": 162
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor",
+            "lineNumber": 163
+          },
+          {
+            "text": "    #[clap(name = \"pair\", alias = \"pair-program\")]",
+            "lineNumber": 164
+          },
+          {
+            "text": "    PairProgram(PairProgramCommand),",
+            "lineNumber": 165
+          },
+          {
+            "lineNumber": 166
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Create and run a custom agent from a prompt",
+            "lineNumber": 167
+          },
+          {
+            "text": "    #[clap(name = \"agent-create\")]",
+            "lineNumber": 168
+          },
+          {
+            "text": "    AgentCreate(AgentCreateCommand),",
+            "lineNumber": 169
+          },
+          {
+            "lineNumber": 170
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Development mode orchestration (centralized/parallel)",
+            "lineNumber": 171
+          },
+          {
+            "text": "    #[clap(name = \"dev-mode\")]",
+            "lineNumber": 172
+          },
+          {
+            "text": "    DevMode(crate::dev_mode_cmd::DevModeCli),",
+            "lineNumber": 173
+          },
+          {
+            "lineNumber": 174
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Conduct deep research on a topic.",
+            "lineNumber": 175
+          },
+          {
+            "text": "    Research(ResearchCommand),",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Ask a sub-agent with @mention support (e.g., \"codex ask '@code-reviewer review this'\")",
+            "lineNumber": 178
+          }
+        ]
+      },
+      "score": 0.3054555058479309
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "column": 78
+          },
+          "endPosition": {
+            "line": 71,
+            "column": 11
+          }
+        },
+        "contents": "// The standalone &#96;codex-tui&#96; binary prints a short help message before the\n// alternate‑screen mode starts; that file opts‑out locally via &#96;allow&#96;.\n#![deny(clippy::print_stdout, clippy::print_stderr)]\n#![deny(clippy::disallowed_methods)]\nuse additional_dirs::add_dir_warning_message;\nuse app::App;\npub use app::AppExitInfo;\nuse codex_app_server_protocol::AuthMode;\nuse codex_common::oss::ensure_oss_provider_ready;\nuse codex_common::oss::get_default_model_for_oss_provider;\nuse codex_core::AuthManager;\nuse codex_core::CodexAuth;\nuse codex_core::INTERACTIVE_SESSION_SOURCES;\nuse codex_core::RolloutRecorder;\nuse codex_core::auth::enforce_login_restrictions;\nuse codex_core::config::Config;\nuse codex_core::config::ConfigOverrides;\nuse codex_core::config::find_codex_home;\nuse codex_core::config::load_config_as_toml_with_cli_overrides;\nuse codex_core::config::resolve_oss_provider;\nuse codex_core::find_conversation_path_by_id_str;\nuse codex_core::get_platform_sandbox;\nuse codex_core::protocol::AskForApproval;\nuse codex_protocol::config_types::SandboxMode;\nuse codex_utils_absolute_path::AbsolutePathBuf;\nuse std::fs::OpenOptions;\nuse std::path::PathBuf;\nuse tracing::error;\nuse tracing_appender::non_blocking;\nuse tracing_subscriber::EnvFilter;\nuse tracing_subscriber::filter::Targets;\nuse tracing_subscriber::prelude::*;\n\nmod additional_dirs;\nmod app;\nmod app_backtrack;\nmod app_event;\nmod app_event_sender;\nmod ascii_animation;\nmod bottom_pane;\nmod chatwidget;\nmod cli;\nmod clipboard_paste;\nmod color;\npub mod custom_terminal;\nmod diff_render;\nmod exec_cell;\nmod exec_command;\nmod file_search;\nmod frames;\nmod get_git_diff;\nmod history_cell;\npub mod insert_history;\nmod key_hint;\npub mod live_wrap;\nmod markdown;\nmod markdown_render;\nmod markdown_stream;\nmod model_migration;\nmod notifications;\npub mod onboarding;\nmod oss_selection;\nmod pager_overlay;\npub mod public_widgets;\nmod render;\nmod resume_picker;\nmod selection_list;\nmod session_log;\nmod shimmer;\nmod slash_command;\nmod status;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// The standalone &#96;codex-tui&#96; binary prints a short help message before the",
+            "lineNumber": 2
+          },
+          {
+            "text": "// alternate‑screen mode starts; that file opts‑out locally via &#96;allow&#96;.",
+            "lineNumber": 3
+          },
+          {
+            "text": "#![deny(clippy::print_stdout, clippy::print_stderr)]",
+            "lineNumber": 4
+          },
+          {
+            "text": "#![deny(clippy::disallowed_methods)]",
+            "lineNumber": 5
+          },
+          {
+            "text": "use additional_dirs::add_dir_warning_message;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use app::App;",
+            "lineNumber": 7
+          },
+          {
+            "text": "pub use app::AppExitInfo;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use codex_app_server_protocol::AuthMode;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use codex_common::oss::ensure_oss_provider_ready;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use codex_common::oss::get_default_model_for_oss_provider;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use codex_core::AuthManager;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_core::CodexAuth;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use codex_core::INTERACTIVE_SESSION_SOURCES;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use codex_core::RolloutRecorder;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use codex_core::auth::enforce_login_restrictions;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_core::config::ConfigOverrides;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_core::config::find_codex_home;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use codex_core::config::load_config_as_toml_with_cli_overrides;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use codex_core::config::resolve_oss_provider;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use codex_core::find_conversation_path_by_id_str;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use codex_core::get_platform_sandbox;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use codex_core::protocol::AskForApproval;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use codex_protocol::config_types::SandboxMode;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use codex_utils_absolute_path::AbsolutePathBuf;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use std::fs::OpenOptions;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 28
+          },
+          {
+            "text": "use tracing::error;",
+            "lineNumber": 29
+          },
+          {
+            "text": "use tracing_appender::non_blocking;",
+            "lineNumber": 30
+          },
+          {
+            "text": "use tracing_subscriber::EnvFilter;",
+            "lineNumber": 31
+          },
+          {
+            "text": "use tracing_subscriber::filter::Targets;",
+            "lineNumber": 32
+          },
+          {
+            "text": "use tracing_subscriber::prelude::*;",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "mod additional_dirs;",
+            "lineNumber": 35
+          },
+          {
+            "text": "mod app;",
+            "lineNumber": 36
+          },
+          {
+            "text": "mod app_backtrack;",
+            "lineNumber": 37
+          },
+          {
+            "text": "mod app_event;",
+            "lineNumber": 38
+          },
+          {
+            "text": "mod app_event_sender;",
+            "lineNumber": 39
+          },
+          {
+            "text": "mod ascii_animation;",
+            "lineNumber": 40
+          },
+          {
+            "text": "mod bottom_pane;",
+            "lineNumber": 41
+          },
+          {
+            "text": "mod chatwidget;",
+            "lineNumber": 42
+          },
+          {
+            "text": "mod cli;",
+            "lineNumber": 43
+          },
+          {
+            "text": "mod clipboard_paste;",
+            "lineNumber": 44
+          },
+          {
+            "text": "mod color;",
+            "lineNumber": 45
+          },
+          {
+            "text": "pub mod custom_terminal;",
+            "lineNumber": 46
+          },
+          {
+            "text": "mod diff_render;",
+            "lineNumber": 47
+          },
+          {
+            "text": "mod exec_cell;",
+            "lineNumber": 48
+          },
+          {
+            "text": "mod exec_command;",
+            "lineNumber": 49
+          },
+          {
+            "text": "mod file_search;",
+            "lineNumber": 50
+          },
+          {
+            "text": "mod frames;",
+            "lineNumber": 51
+          },
+          {
+            "text": "mod get_git_diff;",
+            "lineNumber": 52
+          },
+          {
+            "text": "mod history_cell;",
+            "lineNumber": 53
+          },
+          {
+            "text": "pub mod insert_history;",
+            "lineNumber": 54
+          },
+          {
+            "text": "mod key_hint;",
+            "lineNumber": 55
+          },
+          {
+            "text": "pub mod live_wrap;",
+            "lineNumber": 56
+          },
+          {
+            "text": "mod markdown;",
+            "lineNumber": 57
+          },
+          {
+            "text": "mod markdown_render;",
+            "lineNumber": 58
+          },
+          {
+            "text": "mod markdown_stream;",
+            "lineNumber": 59
+          },
+          {
+            "text": "mod model_migration;",
+            "lineNumber": 60
+          },
+          {
+            "text": "mod notifications;",
+            "lineNumber": 61
+          },
+          {
+            "text": "pub mod onboarding;",
+            "lineNumber": 62
+          },
+          {
+            "text": "mod oss_selection;",
+            "lineNumber": 63
+          },
+          {
+            "text": "mod pager_overlay;",
+            "lineNumber": 64
+          },
+          {
+            "text": "pub mod public_widgets;",
+            "lineNumber": 65
+          },
+          {
+            "text": "mod render;",
+            "lineNumber": 66
+          },
+          {
+            "text": "mod resume_picker;",
+            "lineNumber": 67
+          },
+          {
+            "text": "mod selection_list;",
+            "lineNumber": 68
+          },
+          {
+            "text": "mod session_log;",
+            "lineNumber": 69
+          },
+          {
+            "text": "mod shimmer;",
+            "lineNumber": 70
+          },
+          {
+            "text": "mod slash_command;",
+            "lineNumber": 71
+          },
+          {
+            "text": "mod status;",
+            "lineNumber": 72
+          }
+        ]
+      },
+      "score": 0.30142784118652344
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cloud-tasks\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 706,
+            "column": 82
+          },
+          "endPosition": {
+            "line": 757,
+            "column": 28
+          }
+        },
+        "contents": "    // Some terminals may not support these flags; ignore errors if enabling fails.\n    let _ = crossterm::execute!(\n        std::io::stdout(),\n        PushKeyboardEnhancementFlags(\n            KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES\n                | KeyboardEnhancementFlags::REPORT_EVENT_TYPES\n                | KeyboardEnhancementFlags::REPORT_ALTERNATE_KEYS\n        )\n    );\n    let backend_ui = CrosstermBackend::new(stdout);\n    let mut terminal = Terminal::new(backend_ui)?;\n    terminal.clear()?;\n\n    // App state\n    let mut app = app::App::new();\n    // Initial load\n    let force_internal = matches!(\n        std::env::var(\"CODEX_CLOUD_TASKS_FORCE_INTERNAL\")\n            .ok()\n            .as_deref(),\n        Some(\"1\") | Some(\"true\") | Some(\"TRUE\")\n    );\n    append_error_log(format!(\n        \"startup: wham_force_internal={} ua={}\",\n        force_internal,\n        codex_core::default_client::get_codex_user_agent()\n    ));\n    // Non-blocking initial load so the in-box spinner can animate\n    app.status = \"Loading tasks…\".to_string();\n    app.refresh_inflight = true;\n    // New list generation; reset background enrichment coordination\n    app.list_generation = app.list_generation.saturating_add(1);\n    app.in_flight.clear();\n    // reset any in-flight enrichment state\n\n    // Event stream\n    use crossterm::event::Event;\n    use crossterm::event::EventStream;\n    use crossterm::event::KeyCode;\n    use crossterm::event::KeyEventKind;\n    use crossterm::event::KeyModifiers;\n    use tokio_stream::StreamExt;\n    let mut events = EventStream::new();\n\n    // Channel for non-blocking background loads\n    use tokio::sync::mpsc::unbounded_channel;\n    let (tx, mut rx) = unbounded_channel::&lt;app::AppEvent&gt;();\n    // Kick off the initial load in background\n    {\n        let backend = Arc::clone(&amp;backend);\n        let tx = tx.clone();",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    // Some terminals may not support these flags; ignore errors if enabling fails.",
+            "lineNumber": 708
+          },
+          {
+            "text": "    let _ = crossterm::execute!(",
+            "lineNumber": 709
+          },
+          {
+            "text": "        std::io::stdout(),",
+            "lineNumber": 710
+          },
+          {
+            "text": "        PushKeyboardEnhancementFlags(",
+            "lineNumber": 711
+          },
+          {
+            "text": "            KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES",
+            "lineNumber": 712
+          },
+          {
+            "text": "                | KeyboardEnhancementFlags::REPORT_EVENT_TYPES",
+            "lineNumber": 713
+          },
+          {
+            "text": "                | KeyboardEnhancementFlags::REPORT_ALTERNATE_KEYS",
+            "lineNumber": 714
+          },
+          {
+            "text": "        )",
+            "lineNumber": 715
+          },
+          {
+            "text": "    );",
+            "lineNumber": 716
+          },
+          {
+            "text": "    let backend_ui = CrosstermBackend::new(stdout);",
+            "lineNumber": 717
+          },
+          {
+            "text": "    let mut terminal = Terminal::new(backend_ui)?;",
+            "lineNumber": 718
+          },
+          {
+            "text": "    terminal.clear()?;",
+            "lineNumber": 719
+          },
+          {
+            "lineNumber": 720
+          },
+          {
+            "text": "    // App state",
+            "lineNumber": 721
+          },
+          {
+            "text": "    let mut app = app::App::new();",
+            "lineNumber": 722
+          },
+          {
+            "text": "    // Initial load",
+            "lineNumber": 723
+          },
+          {
+            "text": "    let force_internal = matches!(",
+            "lineNumber": 724
+          },
+          {
+            "text": "        std::env::var(\"CODEX_CLOUD_TASKS_FORCE_INTERNAL\")",
+            "lineNumber": 725
+          },
+          {
+            "text": "            .ok()",
+            "lineNumber": 726
+          },
+          {
+            "text": "            .as_deref(),",
+            "lineNumber": 727
+          },
+          {
+            "text": "        Some(\"1\") | Some(\"true\") | Some(\"TRUE\")",
+            "lineNumber": 728
+          },
+          {
+            "text": "    );",
+            "lineNumber": 729
+          },
+          {
+            "text": "    append_error_log(format!(",
+            "lineNumber": 730
+          },
+          {
+            "text": "        \"startup: wham_force_internal={} ua={}\",",
+            "lineNumber": 731
+          },
+          {
+            "text": "        force_internal,",
+            "lineNumber": 732
+          },
+          {
+            "text": "        codex_core::default_client::get_codex_user_agent()",
+            "lineNumber": 733
+          },
+          {
+            "text": "    ));",
+            "lineNumber": 734
+          },
+          {
+            "text": "    // Non-blocking initial load so the in-box spinner can animate",
+            "lineNumber": 735
+          },
+          {
+            "text": "    app.status = \"Loading tasks…\".to_string();",
+            "lineNumber": 736
+          },
+          {
+            "text": "    app.refresh_inflight = true;",
+            "lineNumber": 737
+          },
+          {
+            "text": "    // New list generation; reset background enrichment coordination",
+            "lineNumber": 738
+          },
+          {
+            "text": "    app.list_generation = app.list_generation.saturating_add(1);",
+            "lineNumber": 739
+          },
+          {
+            "text": "    app.in_flight.clear();",
+            "lineNumber": 740
+          },
+          {
+            "text": "    // reset any in-flight enrichment state",
+            "lineNumber": 741
+          },
+          {
+            "lineNumber": 742
+          },
+          {
+            "text": "    // Event stream",
+            "lineNumber": 743
+          },
+          {
+            "text": "    use crossterm::event::Event;",
+            "lineNumber": 744
+          },
+          {
+            "text": "    use crossterm::event::EventStream;",
+            "lineNumber": 745
+          },
+          {
+            "text": "    use crossterm::event::KeyCode;",
+            "lineNumber": 746
+          },
+          {
+            "text": "    use crossterm::event::KeyEventKind;",
+            "lineNumber": 747
+          },
+          {
+            "text": "    use crossterm::event::KeyModifiers;",
+            "lineNumber": 748
+          },
+          {
+            "text": "    use tokio_stream::StreamExt;",
+            "lineNumber": 749
+          },
+          {
+            "text": "    let mut events = EventStream::new();",
+            "lineNumber": 750
+          },
+          {
+            "lineNumber": 751
+          },
+          {
+            "text": "    // Channel for non-blocking background loads",
+            "lineNumber": 752
+          },
+          {
+            "text": "    use tokio::sync::mpsc::unbounded_channel;",
+            "lineNumber": 753
+          },
+          {
+            "text": "    let (tx, mut rx) = unbounded_channel::&lt;app::AppEvent&gt;();",
+            "lineNumber": 754
+          },
+          {
+            "text": "    // Kick off the initial load in background",
+            "lineNumber": 755
+          },
+          {
+            "text": "    {",
+            "lineNumber": 756
+          },
+          {
+            "text": "        let backend = Arc::clone(&amp;backend);",
+            "lineNumber": 757
+          },
+          {
+            "text": "        let tx = tx.clone();",
+            "lineNumber": 758
+          }
+        ]
+      },
+      "score": 0.30047351121902466
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 481,
+            "column": 5
+          },
+          "endPosition": {
+            "line": 548,
+            "column": 12
+          }
+        },
+        "contents": " else if cli.resume_last {\n        let provider_filter = vec![config.model_provider_id.clone()];\n        match RolloutRecorder::list_conversations(\n            &amp;config.codex_home,\n            1,\n            None,\n            INTERACTIVE_SESSION_SOURCES,\n            Some(provider_filter.as_slice()),\n            &amp;config.model_provider_id,\n        )\n        .await\n        {\n            Ok(page) =&gt; page\n                .items\n                .first()\n                .map(|it| resume_picker::ResumeSelection::Resume(it.path.clone()))\n                .unwrap_or(resume_picker::ResumeSelection::StartFresh),\n            Err(_) =&gt; resume_picker::ResumeSelection::StartFresh,\n        }\n    } else if cli.resume_picker {\n        match resume_picker::run_resume_picker(\n            &amp;mut tui,\n            &amp;config.codex_home,\n            &amp;config.model_provider_id,\n            cli.resume_show_all,\n        )\n        .await?\n        {\n            resume_picker::ResumeSelection::Exit =&gt; {\n                restore();\n                session_log::log_session_end();\n                return Ok(AppExitInfo {\n                    token_usage: codex_core::protocol::TokenUsage::default(),\n                    conversation_id: None,\n                    update_action: None,\n                });\n            }\n            other =&gt; other,\n        }\n    } else {\n        resume_picker::ResumeSelection::StartFresh\n    };\n\n    let Cli { prompt, images, .. } = cli;\n\n    let app_result = App::run(\n        &amp;mut tui,\n        auth_manager,\n        config,\n        active_profile,\n        prompt,\n        images,\n        resume_selection,\n        feedback,\n        should_show_trust_screen, // Proxy to: is it a first run in this directory?\n    )\n    .await;\n\n    restore();\n    // Mark the end of the recorded session.\n    session_log::log_session_end();\n    // ignore error when collecting usage – report underlying error instead\n    app_result\n}\n\n#[expect(\n    clippy::print_stderr,\n    reason =",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " else if cli.resume_last {",
+            "lineNumber": 482
+          },
+          {
+            "text": "        let provider_filter = vec![config.model_provider_id.clone()];",
+            "lineNumber": 483
+          },
+          {
+            "text": "        match RolloutRecorder::list_conversations(",
+            "lineNumber": 484
+          },
+          {
+            "text": "            &amp;config.codex_home,",
+            "lineNumber": 485
+          },
+          {
+            "text": "            1,",
+            "lineNumber": 486
+          },
+          {
+            "text": "            None,",
+            "lineNumber": 487
+          },
+          {
+            "text": "            INTERACTIVE_SESSION_SOURCES,",
+            "lineNumber": 488
+          },
+          {
+            "text": "            Some(provider_filter.as_slice()),",
+            "lineNumber": 489
+          },
+          {
+            "text": "            &amp;config.model_provider_id,",
+            "lineNumber": 490
+          },
+          {
+            "text": "        )",
+            "lineNumber": 491
+          },
+          {
+            "text": "        .await",
+            "lineNumber": 492
+          },
+          {
+            "text": "        {",
+            "lineNumber": 493
+          },
+          {
+            "text": "            Ok(page) =&gt; page",
+            "lineNumber": 494
+          },
+          {
+            "text": "                .items",
+            "lineNumber": 495
+          },
+          {
+            "text": "                .first()",
+            "lineNumber": 496
+          },
+          {
+            "text": "                .map(|it| resume_picker::ResumeSelection::Resume(it.path.clone()))",
+            "lineNumber": 497
+          },
+          {
+            "text": "                .unwrap_or(resume_picker::ResumeSelection::StartFresh),",
+            "lineNumber": 498
+          },
+          {
+            "text": "            Err(_) =&gt; resume_picker::ResumeSelection::StartFresh,",
+            "lineNumber": 499
+          },
+          {
+            "text": "        }",
+            "lineNumber": 500
+          },
+          {
+            "text": "    } else if cli.resume_picker {",
+            "lineNumber": 501
+          },
+          {
+            "text": "        match resume_picker::run_resume_picker(",
+            "lineNumber": 502
+          },
+          {
+            "text": "            &amp;mut tui,",
+            "lineNumber": 503
+          },
+          {
+            "text": "            &amp;config.codex_home,",
+            "lineNumber": 504
+          },
+          {
+            "text": "            &amp;config.model_provider_id,",
+            "lineNumber": 505
+          },
+          {
+            "text": "            cli.resume_show_all,",
+            "lineNumber": 506
+          },
+          {
+            "text": "        )",
+            "lineNumber": 507
+          },
+          {
+            "text": "        .await?",
+            "lineNumber": 508
+          },
+          {
+            "text": "        {",
+            "lineNumber": 509
+          },
+          {
+            "text": "            resume_picker::ResumeSelection::Exit =&gt; {",
+            "lineNumber": 510
+          },
+          {
+            "text": "                restore();",
+            "lineNumber": 511
+          },
+          {
+            "text": "                session_log::log_session_end();",
+            "lineNumber": 512
+          },
+          {
+            "text": "                return Ok(AppExitInfo {",
+            "lineNumber": 513
+          },
+          {
+            "text": "                    token_usage: codex_core::protocol::TokenUsage::default(),",
+            "lineNumber": 514
+          },
+          {
+            "text": "                    conversation_id: None,",
+            "lineNumber": 515
+          },
+          {
+            "text": "                    update_action: None,",
+            "lineNumber": 516
+          },
+          {
+            "text": "                });",
+            "lineNumber": 517
+          },
+          {
+            "text": "            }",
+            "lineNumber": 518
+          },
+          {
+            "text": "            other =&gt; other,",
+            "lineNumber": 519
+          },
+          {
+            "text": "        }",
+            "lineNumber": 520
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 521
+          },
+          {
+            "text": "        resume_picker::ResumeSelection::StartFresh",
+            "lineNumber": 522
+          },
+          {
+            "text": "    };",
+            "lineNumber": 523
+          },
+          {
+            "lineNumber": 524
+          },
+          {
+            "text": "    let Cli { prompt, images, .. } = cli;",
+            "lineNumber": 525
+          },
+          {
+            "lineNumber": 526
+          },
+          {
+            "text": "    let app_result = App::run(",
+            "lineNumber": 527
+          },
+          {
+            "text": "        &amp;mut tui,",
+            "lineNumber": 528
+          },
+          {
+            "text": "        auth_manager,",
+            "lineNumber": 529
+          },
+          {
+            "text": "        config,",
+            "lineNumber": 530
+          },
+          {
+            "text": "        active_profile,",
+            "lineNumber": 531
+          },
+          {
+            "text": "        prompt,",
+            "lineNumber": 532
+          },
+          {
+            "text": "        images,",
+            "lineNumber": 533
+          },
+          {
+            "text": "        resume_selection,",
+            "lineNumber": 534
+          },
+          {
+            "text": "        feedback,",
+            "lineNumber": 535
+          },
+          {
+            "text": "        should_show_trust_screen, // Proxy to: is it a first run in this directory?",
+            "lineNumber": 536
+          },
+          {
+            "text": "    )",
+            "lineNumber": 537
+          },
+          {
+            "text": "    .await;",
+            "lineNumber": 538
+          },
+          {
+            "lineNumber": 539
+          },
+          {
+            "text": "    restore();",
+            "lineNumber": 540
+          },
+          {
+            "text": "    // Mark the end of the recorded session.",
+            "lineNumber": 541
+          },
+          {
+            "text": "    session_log::log_session_end();",
+            "lineNumber": 542
+          },
+          {
+            "text": "    // ignore error when collecting usage – report underlying error instead",
+            "lineNumber": 543
+          },
+          {
+            "text": "    app_result",
+            "lineNumber": 544
+          },
+          {
+            "text": "}",
+            "lineNumber": 545
+          },
+          {
+            "lineNumber": 546
+          },
+          {
+            "text": "#[expect(",
+            "lineNumber": 547
+          },
+          {
+            "text": "    clippy::print_stderr,",
+            "lineNumber": 548
+          },
+          {
+            "text": "    reason =",
+            "lineNumber": 549
+          }
+        ]
+      },
+      "score": 0.29728376865386963
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cloud-tasks\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 662,
+            "column": 77
+          },
+          "endPosition": {
+            "line": 709,
+            "column": 26
+          }
+        },
+        "contents": " anyhow::Result&lt;()&gt; {\n    if let Some(command) = cli.command {\n        return match command {\n            crate::cli::Command::Exec(args) =&gt; run_exec_command(args).await,\n            crate::cli::Command::Status(args) =&gt; run_status_command(args).await,\n            crate::cli::Command::Apply(args) =&gt; run_apply_command(args).await,\n            crate::cli::Command::Diff(args) =&gt; run_diff_command(args).await,\n        };\n    }\n    let Cli { .. } = cli;\n\n    // Very minimal logging setup; mirrors other crates' pattern.\n    let default_level = \"error\";\n    let _ = tracing_subscriber::fmt()\n        .with_env_filter(\n            EnvFilter::try_from_default_env()\n                .or_else(|_| EnvFilter::try_new(default_level))\n                .unwrap_or_else(|_| EnvFilter::new(default_level)),\n        )\n        .with_ansi(std::io::stderr().is_terminal())\n        .with_writer(std::io::stderr)\n        .try_init();\n\n    info!(\"Launching Cloud Tasks list UI\");\n    let BackendContext { backend, .. } = init_backend(\"codex_cloud_tasks_tui\").await?;\n    let backend = backend;\n\n    // Terminal setup\n    use crossterm::ExecutableCommand;\n    use crossterm::event::DisableBracketedPaste;\n    use crossterm::event::EnableBracketedPaste;\n    use crossterm::event::KeyboardEnhancementFlags;\n    use crossterm::event::PopKeyboardEnhancementFlags;\n    use crossterm::event::PushKeyboardEnhancementFlags;\n    use crossterm::terminal::EnterAlternateScreen;\n    use crossterm::terminal::LeaveAlternateScreen;\n    use crossterm::terminal::disable_raw_mode;\n    use crossterm::terminal::enable_raw_mode;\n    use ratatui::Terminal;\n    use ratatui::backend::CrosstermBackend;\n    let mut stdout = std::io::stdout();\n    enable_raw_mode()?;\n    stdout.execute(EnterAlternateScreen)?;\n    stdout.execute(EnableBracketedPaste)?;\n    // Enable enhanced key reporting so Shift+Enter is distinguishable from Enter.\n    // Some terminals may not support these flags; ignore errors if enabling fails.\n    let _ = crossterm::execute!(\n        std::io::stdout(),",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " anyhow::Result&lt;()&gt; {",
+            "lineNumber": 663
+          },
+          {
+            "text": "    if let Some(command) = cli.command {",
+            "lineNumber": 664
+          },
+          {
+            "text": "        return match command {",
+            "lineNumber": 665
+          },
+          {
+            "text": "            crate::cli::Command::Exec(args) =&gt; run_exec_command(args).await,",
+            "lineNumber": 666
+          },
+          {
+            "text": "            crate::cli::Command::Status(args) =&gt; run_status_command(args).await,",
+            "lineNumber": 667
+          },
+          {
+            "text": "            crate::cli::Command::Apply(args) =&gt; run_apply_command(args).await,",
+            "lineNumber": 668
+          },
+          {
+            "text": "            crate::cli::Command::Diff(args) =&gt; run_diff_command(args).await,",
+            "lineNumber": 669
+          },
+          {
+            "text": "        };",
+            "lineNumber": 670
+          },
+          {
+            "text": "    }",
+            "lineNumber": 671
+          },
+          {
+            "text": "    let Cli { .. } = cli;",
+            "lineNumber": 672
+          },
+          {
+            "lineNumber": 673
+          },
+          {
+            "text": "    // Very minimal logging setup; mirrors other crates' pattern.",
+            "lineNumber": 674
+          },
+          {
+            "text": "    let default_level = \"error\";",
+            "lineNumber": 675
+          },
+          {
+            "text": "    let _ = tracing_subscriber::fmt()",
+            "lineNumber": 676
+          },
+          {
+            "text": "        .with_env_filter(",
+            "lineNumber": 677
+          },
+          {
+            "text": "            EnvFilter::try_from_default_env()",
+            "lineNumber": 678
+          },
+          {
+            "text": "                .or_else(|_| EnvFilter::try_new(default_level))",
+            "lineNumber": 679
+          },
+          {
+            "text": "                .unwrap_or_else(|_| EnvFilter::new(default_level)),",
+            "lineNumber": 680
+          },
+          {
+            "text": "        )",
+            "lineNumber": 681
+          },
+          {
+            "text": "        .with_ansi(std::io::stderr().is_terminal())",
+            "lineNumber": 682
+          },
+          {
+            "text": "        .with_writer(std::io::stderr)",
+            "lineNumber": 683
+          },
+          {
+            "text": "        .try_init();",
+            "lineNumber": 684
+          },
+          {
+            "lineNumber": 685
+          },
+          {
+            "text": "    info!(\"Launching Cloud Tasks list UI\");",
+            "lineNumber": 686
+          },
+          {
+            "text": "    let BackendContext { backend, .. } = init_backend(\"codex_cloud_tasks_tui\").await?;",
+            "lineNumber": 687
+          },
+          {
+            "text": "    let backend = backend;",
+            "lineNumber": 688
+          },
+          {
+            "lineNumber": 689
+          },
+          {
+            "text": "    // Terminal setup",
+            "lineNumber": 690
+          },
+          {
+            "text": "    use crossterm::ExecutableCommand;",
+            "lineNumber": 691
+          },
+          {
+            "text": "    use crossterm::event::DisableBracketedPaste;",
+            "lineNumber": 692
+          },
+          {
+            "text": "    use crossterm::event::EnableBracketedPaste;",
+            "lineNumber": 693
+          },
+          {
+            "text": "    use crossterm::event::KeyboardEnhancementFlags;",
+            "lineNumber": 694
+          },
+          {
+            "text": "    use crossterm::event::PopKeyboardEnhancementFlags;",
+            "lineNumber": 695
+          },
+          {
+            "text": "    use crossterm::event::PushKeyboardEnhancementFlags;",
+            "lineNumber": 696
+          },
+          {
+            "text": "    use crossterm::terminal::EnterAlternateScreen;",
+            "lineNumber": 697
+          },
+          {
+            "text": "    use crossterm::terminal::LeaveAlternateScreen;",
+            "lineNumber": 698
+          },
+          {
+            "text": "    use crossterm::terminal::disable_raw_mode;",
+            "lineNumber": 699
+          },
+          {
+            "text": "    use crossterm::terminal::enable_raw_mode;",
+            "lineNumber": 700
+          },
+          {
+            "text": "    use ratatui::Terminal;",
+            "lineNumber": 701
+          },
+          {
+            "text": "    use ratatui::backend::CrosstermBackend;",
+            "lineNumber": 702
+          },
+          {
+            "text": "    let mut stdout = std::io::stdout();",
+            "lineNumber": 703
+          },
+          {
+            "text": "    enable_raw_mode()?;",
+            "lineNumber": 704
+          },
+          {
+            "text": "    stdout.execute(EnterAlternateScreen)?;",
+            "lineNumber": 705
+          },
+          {
+            "text": "    stdout.execute(EnableBracketedPaste)?;",
+            "lineNumber": 706
+          },
+          {
+            "text": "    // Enable enhanced key reporting so Shift+Enter is distinguishable from Enter.",
+            "lineNumber": 707
+          },
+          {
+            "text": "    // Some terminals may not support these flags; ignore errors if enabling fails.",
+            "lineNumber": 708
+          },
+          {
+            "text": "    let _ = crossterm::execute!(",
+            "lineNumber": 709
+          },
+          {
+            "text": "        std::io::stdout(),",
+            "lineNumber": 710
+          }
+        ]
+      },
+      "score": 0.288909912109375
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 1162
+          },
+          "endPosition": {
+            "line": 1193,
+            "column": 75
+          }
+        },
+        "contents": "/// CLI-specific ones specified after the subcommand (if any).\nfn prepend_config_flags(\n    subcommand_config_overrides: &amp;mut CliConfigOverrides,\n    cli_config_overrides: CliConfigOverrides,\n) {\n    subcommand_config_overrides\n        .raw_overrides\n        .splice(0..0, cli_config_overrides.raw_overrides);\n}\n\n/// Run the interactive Codex TUI, dispatching to either the legacy implementation or the\n/// experimental TUI v2 shim based on feature flags resolved from config.\nasync fn run_interactive_tui(\n    interactive: TuiCli,\n    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,\n) -&gt; std::io::Result&lt;AppExitInfo&gt; {\n    if is_tui2_enabled(&amp;interactive).await? {\n        let result = tui2::run_main(interactive.into(), codex_linux_sandbox_exe).await?;\n        Ok(result.into())\n    } else {\n        codex_tui::run_main(interactive, codex_linux_sandbox_exe).await\n    }\n}\n\n/// Returns &#96;Ok(true)&#96; when the resolved configuration enables the &#96;tui2&#96; feature flag.\n///\n/// This performs a lightweight config load (honoring the same precedence as the lower-level TUI\n/// bootstrap: &#96;$CODEX_HOME&#96;, config.toml, profile, and CLI &#96;-c&#96; overrides) solely to decide which\n/// TUI frontend to launch. The full configuration is still loaded later by the interactive TUI.\nasync fn is_tui2_enabled(cli: &amp;TuiCli) -&gt; std::io::Result&lt;bool&gt; {\n    let raw_overrides = cli.config_overrides.raw_overrides.clone();\n    let overrides_cli = codex_common::CliConfigOverrides { raw_overrides };",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/// CLI-specific ones specified after the subcommand (if any).",
+            "lineNumber": 1163
+          },
+          {
+            "text": "fn prepend_config_flags(",
+            "lineNumber": 1164
+          },
+          {
+            "text": "    subcommand_config_overrides: &amp;mut CliConfigOverrides,",
+            "lineNumber": 1165
+          },
+          {
+            "text": "    cli_config_overrides: CliConfigOverrides,",
+            "lineNumber": 1166
+          },
+          {
+            "text": ") {",
+            "lineNumber": 1167
+          },
+          {
+            "text": "    subcommand_config_overrides",
+            "lineNumber": 1168
+          },
+          {
+            "text": "        .raw_overrides",
+            "lineNumber": 1169
+          },
+          {
+            "text": "        .splice(0..0, cli_config_overrides.raw_overrides);",
+            "lineNumber": 1170
+          },
+          {
+            "text": "}",
+            "lineNumber": 1171
+          },
+          {
+            "lineNumber": 1172
+          },
+          {
+            "text": "/// Run the interactive Codex TUI, dispatching to either the legacy implementation or the",
+            "lineNumber": 1173
+          },
+          {
+            "text": "/// experimental TUI v2 shim based on feature flags resolved from config.",
+            "lineNumber": 1174
+          },
+          {
+            "text": "async fn run_interactive_tui(",
+            "lineNumber": 1175
+          },
+          {
+            "text": "    interactive: TuiCli,",
+            "lineNumber": 1176
+          },
+          {
+            "text": "    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,",
+            "lineNumber": 1177
+          },
+          {
+            "text": ") -&gt; std::io::Result&lt;AppExitInfo&gt; {",
+            "lineNumber": 1178
+          },
+          {
+            "text": "    if is_tui2_enabled(&amp;interactive).await? {",
+            "lineNumber": 1179
+          },
+          {
+            "text": "        let result = tui2::run_main(interactive.into(), codex_linux_sandbox_exe).await?;",
+            "lineNumber": 1180
+          },
+          {
+            "text": "        Ok(result.into())",
+            "lineNumber": 1181
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 1182
+          },
+          {
+            "text": "        codex_tui::run_main(interactive, codex_linux_sandbox_exe).await",
+            "lineNumber": 1183
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1184
+          },
+          {
+            "text": "}",
+            "lineNumber": 1185
+          },
+          {
+            "lineNumber": 1186
+          },
+          {
+            "text": "/// Returns &#96;Ok(true)&#96; when the resolved configuration enables the &#96;tui2&#96; feature flag.",
+            "lineNumber": 1187
+          },
+          {
+            "text": "///",
+            "lineNumber": 1188
+          },
+          {
+            "text": "/// This performs a lightweight config load (honoring the same precedence as the lower-level TUI",
+            "lineNumber": 1189
+          },
+          {
+            "text": "/// bootstrap: &#96;$CODEX_HOME&#96;, config.toml, profile, and CLI &#96;-c&#96; overrides) solely to decide which",
+            "lineNumber": 1190
+          },
+          {
+            "text": "/// TUI frontend to launch. The full configuration is still loaded later by the interactive TUI.",
+            "lineNumber": 1191
+          },
+          {
+            "text": "async fn is_tui2_enabled(cli: &amp;TuiCli) -&gt; std::io::Result&lt;bool&gt; {",
+            "lineNumber": 1192
+          },
+          {
+            "text": "    let raw_overrides = cli.config_overrides.raw_overrides.clone();",
+            "lineNumber": 1193
+          },
+          {
+            "text": "    let overrides_cli = codex_common::CliConfigOverrides { raw_overrides };",
+            "lineNumber": 1194
+          }
+        ]
+      },
+      "score": 0.287375807762146
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 408,
+            "column": 5
+          },
+          "endPosition": {
+            "line": 461,
+            "column": 13
+          }
+        },
+        "contents": "    // Initialize high-fidelity session event logging if enabled.\n    session_log::maybe_init(&amp;initial_config);\n\n    let auth_manager = AuthManager::shared(\n        initial_config.codex_home.clone(),\n        false,\n        initial_config.cli_auth_credentials_store_mode,\n    );\n    let login_status = get_login_status(&amp;initial_config);\n    let should_show_trust_screen = should_show_trust_screen(&amp;initial_config);\n    let should_show_onboarding =\n        should_show_onboarding(login_status, &amp;initial_config, should_show_trust_screen);\n\n    let config = if should_show_onboarding {\n        let onboarding_result = run_onboarding_app(\n            OnboardingScreenArgs {\n                show_login_screen: should_show_login_screen(login_status, &amp;initial_config),\n                show_trust_screen: should_show_trust_screen,\n                login_status,\n                auth_manager: auth_manager.clone(),\n                config: initial_config.clone(),\n            },\n            &amp;mut tui,\n        )\n        .await?;\n        if onboarding_result.should_exit {\n            restore();\n            session_log::log_session_end();\n            let _ = tui.terminal.clear();\n            return Ok(AppExitInfo {\n                token_usage: codex_core::protocol::TokenUsage::default(),\n                conversation_id: None,\n                update_action: None,\n            });\n        }\n        // if the user acknowledged windows or made an explicit decision ato trust the directory, reload the config accordingly\n        if onboarding_result\n            .directory_trust_decision\n            .map(|d| d == TrustDirectorySelection::Trust)\n            .unwrap_or(false)\n        {\n            load_config_or_exit(cli_kv_overrides, overrides).await\n        } else {\n            initial_config\n        }\n    } else {\n        initial_config\n    };\n\n    // Determine resume behavior: explicit id, then resume last, then picker.\n    let resume_selection = if let Some(id_str) = cli.resume_session_id.as_deref() {\n        match",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    // Initialize high-fidelity session event logging if enabled.",
+            "lineNumber": 411
+          },
+          {
+            "text": "    session_log::maybe_init(&amp;initial_config);",
+            "lineNumber": 412
+          },
+          {
+            "lineNumber": 413
+          },
+          {
+            "text": "    let auth_manager = AuthManager::shared(",
+            "lineNumber": 414
+          },
+          {
+            "text": "        initial_config.codex_home.clone(),",
+            "lineNumber": 415
+          },
+          {
+            "text": "        false,",
+            "lineNumber": 416
+          },
+          {
+            "text": "        initial_config.cli_auth_credentials_store_mode,",
+            "lineNumber": 417
+          },
+          {
+            "text": "    );",
+            "lineNumber": 418
+          },
+          {
+            "text": "    let login_status = get_login_status(&amp;initial_config);",
+            "lineNumber": 419
+          },
+          {
+            "text": "    let should_show_trust_screen = should_show_trust_screen(&amp;initial_config);",
+            "lineNumber": 420
+          },
+          {
+            "text": "    let should_show_onboarding =",
+            "lineNumber": 421
+          },
+          {
+            "text": "        should_show_onboarding(login_status, &amp;initial_config, should_show_trust_screen);",
+            "lineNumber": 422
+          },
+          {
+            "lineNumber": 423
+          },
+          {
+            "text": "    let config = if should_show_onboarding {",
+            "lineNumber": 424
+          },
+          {
+            "text": "        let onboarding_result = run_onboarding_app(",
+            "lineNumber": 425
+          },
+          {
+            "text": "            OnboardingScreenArgs {",
+            "lineNumber": 426
+          },
+          {
+            "text": "                show_login_screen: should_show_login_screen(login_status, &amp;initial_config),",
+            "lineNumber": 427
+          },
+          {
+            "text": "                show_trust_screen: should_show_trust_screen,",
+            "lineNumber": 428
+          },
+          {
+            "text": "                login_status,",
+            "lineNumber": 429
+          },
+          {
+            "text": "                auth_manager: auth_manager.clone(),",
+            "lineNumber": 430
+          },
+          {
+            "text": "                config: initial_config.clone(),",
+            "lineNumber": 431
+          },
+          {
+            "text": "            },",
+            "lineNumber": 432
+          },
+          {
+            "text": "            &amp;mut tui,",
+            "lineNumber": 433
+          },
+          {
+            "text": "        )",
+            "lineNumber": 434
+          },
+          {
+            "text": "        .await?;",
+            "lineNumber": 435
+          },
+          {
+            "text": "        if onboarding_result.should_exit {",
+            "lineNumber": 436
+          },
+          {
+            "text": "            restore();",
+            "lineNumber": 437
+          },
+          {
+            "text": "            session_log::log_session_end();",
+            "lineNumber": 438
+          },
+          {
+            "text": "            let _ = tui.terminal.clear();",
+            "lineNumber": 439
+          },
+          {
+            "text": "            return Ok(AppExitInfo {",
+            "lineNumber": 440
+          },
+          {
+            "text": "                token_usage: codex_core::protocol::TokenUsage::default(),",
+            "lineNumber": 441
+          },
+          {
+            "text": "                conversation_id: None,",
+            "lineNumber": 442
+          },
+          {
+            "text": "                update_action: None,",
+            "lineNumber": 443
+          },
+          {
+            "text": "            });",
+            "lineNumber": 444
+          },
+          {
+            "text": "        }",
+            "lineNumber": 445
+          },
+          {
+            "text": "        // if the user acknowledged windows or made an explicit decision ato trust the directory, reload the config accordingly",
+            "lineNumber": 446
+          },
+          {
+            "text": "        if onboarding_result",
+            "lineNumber": 447
+          },
+          {
+            "text": "            .directory_trust_decision",
+            "lineNumber": 448
+          },
+          {
+            "text": "            .map(|d| d == TrustDirectorySelection::Trust)",
+            "lineNumber": 449
+          },
+          {
+            "text": "            .unwrap_or(false)",
+            "lineNumber": 450
+          },
+          {
+            "text": "        {",
+            "lineNumber": 451
+          },
+          {
+            "text": "            load_config_or_exit(cli_kv_overrides, overrides).await",
+            "lineNumber": 452
+          },
+          {
+            "text": "        } else {",
+            "lineNumber": 453
+          },
+          {
+            "text": "            initial_config",
+            "lineNumber": 454
+          },
+          {
+            "text": "        }",
+            "lineNumber": 455
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 456
+          },
+          {
+            "text": "        initial_config",
+            "lineNumber": 457
+          },
+          {
+            "text": "    };",
+            "lineNumber": 458
+          },
+          {
+            "lineNumber": 459
+          },
+          {
+            "text": "    // Determine resume behavior: explicit id, then resume last, then picker.",
+            "lineNumber": 460
+          },
+          {
+            "text": "    let resume_selection = if let Some(id_str) = cli.resume_session_id.as_deref() {",
+            "lineNumber": 461
+          },
+          {
+            "text": "        match",
+            "lineNumber": 462
+          }
+        ]
+      },
+      "score": 0.28735995292663574
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 723,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 785,
+            "column": 17
+          }
+        },
+        "contents": "fn main() -&gt; anyhow::Result&lt;()&gt; {\n    arg0_dispatch_or_else(|codex_linux_sandbox_exe| async move {\n        cli_main(codex_linux_sandbox_exe).await?;\n        Ok(())\n    })\n}\n\nasync fn cli_main(codex_linux_sandbox_exe: Option&lt;PathBuf&gt;) -&gt; anyhow::Result&lt;()&gt; {\n    let MultitoolCli {\n        config_overrides: mut root_config_overrides,\n        feature_toggles,\n        #[cfg(target_os = \"windows\")]\n        use_windows_ai,\n        #[cfg(target_os = \"windows\")]\n        kernel_accelerated,\n        mut interactive,\n        subcommand,\n        ..\n    } = MultitoolCli::parse();\n\n    // Fold --enable/--disable into config overrides so they flow to all subcommands.\n    let toggle_overrides = feature_toggles.to_overrides()?;\n    root_config_overrides.raw_overrides.extend(toggle_overrides);\n\n    // Add Windows AI flags to config overrides\n    #[cfg(target_os = \"windows\")]\n    {\n        if use_windows_ai {\n            root_config_overrides\n                .raw_overrides\n                .push(\"windows_ai.enabled=true\".to_string());\n\n            if kernel_accelerated {\n                root_config_overrides\n                    .raw_overrides\n                    .push(\"windows_ai.kernel_accelerated=true\".to_string());\n            }\n\n            // Log Windows AI usage\n            #[cfg(feature = \"windows-ai\")]\n            {\n                if codex_windows_ai::check_windows_ai_available() {\n                    eprintln!(\"🚀 Windows AI enabled (kernel_accelerated: {kernel_accelerated})\");\n                } else {\n                    eprintln!(\n                        \"⚠️  Windows AI requested but not available (requires Windows 11 25H2+)\"\n                    );\n                }\n            }\n\n            #[cfg(not(feature = \"windows-ai\"))]\n            {\n                eprintln!(\n                    \"⚠️  Windows AI requested but not compiled (compile with --features windows-ai)\"\n                );\n            }\n        }\n    }\n\n    match subcommand {\n        None =&gt; {",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "fn main() -&gt; anyhow::Result&lt;()&gt; {",
+            "lineNumber": 726
+          },
+          {
+            "text": "    arg0_dispatch_or_else(|codex_linux_sandbox_exe| async move {",
+            "lineNumber": 727
+          },
+          {
+            "text": "        cli_main(codex_linux_sandbox_exe).await?;",
+            "lineNumber": 728
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 729
+          },
+          {
+            "text": "    })",
+            "lineNumber": 730
+          },
+          {
+            "text": "}",
+            "lineNumber": 731
+          },
+          {
+            "lineNumber": 732
+          },
+          {
+            "text": "async fn cli_main(codex_linux_sandbox_exe: Option&lt;PathBuf&gt;) -&gt; anyhow::Result&lt;()&gt; {",
+            "lineNumber": 733
+          },
+          {
+            "text": "    let MultitoolCli {",
+            "lineNumber": 734
+          },
+          {
+            "text": "        config_overrides: mut root_config_overrides,",
+            "lineNumber": 735
+          },
+          {
+            "text": "        feature_toggles,",
+            "lineNumber": 736
+          },
+          {
+            "text": "        #[cfg(target_os = \"windows\")]",
+            "lineNumber": 737
+          },
+          {
+            "text": "        use_windows_ai,",
+            "lineNumber": 738
+          },
+          {
+            "text": "        #[cfg(target_os = \"windows\")]",
+            "lineNumber": 739
+          },
+          {
+            "text": "        kernel_accelerated,",
+            "lineNumber": 740
+          },
+          {
+            "text": "        mut interactive,",
+            "lineNumber": 741
+          },
+          {
+            "text": "        subcommand,",
+            "lineNumber": 742
+          },
+          {
+            "text": "        ..",
+            "lineNumber": 743
+          },
+          {
+            "text": "    } = MultitoolCli::parse();",
+            "lineNumber": 744
+          },
+          {
+            "lineNumber": 745
+          },
+          {
+            "text": "    // Fold --enable/--disable into config overrides so they flow to all subcommands.",
+            "lineNumber": 746
+          },
+          {
+            "text": "    let toggle_overrides = feature_toggles.to_overrides()?;",
+            "lineNumber": 747
+          },
+          {
+            "text": "    root_config_overrides.raw_overrides.extend(toggle_overrides);",
+            "lineNumber": 748
+          },
+          {
+            "lineNumber": 749
+          },
+          {
+            "text": "    // Add Windows AI flags to config overrides",
+            "lineNumber": 750
+          },
+          {
+            "text": "    #[cfg(target_os = \"windows\")]",
+            "lineNumber": 751
+          },
+          {
+            "text": "    {",
+            "lineNumber": 752
+          },
+          {
+            "text": "        if use_windows_ai {",
+            "lineNumber": 753
+          },
+          {
+            "text": "            root_config_overrides",
+            "lineNumber": 754
+          },
+          {
+            "text": "                .raw_overrides",
+            "lineNumber": 755
+          },
+          {
+            "text": "                .push(\"windows_ai.enabled=true\".to_string());",
+            "lineNumber": 756
+          },
+          {
+            "lineNumber": 757
+          },
+          {
+            "text": "            if kernel_accelerated {",
+            "lineNumber": 758
+          },
+          {
+            "text": "                root_config_overrides",
+            "lineNumber": 759
+          },
+          {
+            "text": "                    .raw_overrides",
+            "lineNumber": 760
+          },
+          {
+            "text": "                    .push(\"windows_ai.kernel_accelerated=true\".to_string());",
+            "lineNumber": 761
+          },
+          {
+            "text": "            }",
+            "lineNumber": 762
+          },
+          {
+            "lineNumber": 763
+          },
+          {
+            "text": "            // Log Windows AI usage",
+            "lineNumber": 764
+          },
+          {
+            "text": "            #[cfg(feature = \"windows-ai\")]",
+            "lineNumber": 765
+          },
+          {
+            "text": "            {",
+            "lineNumber": 766
+          },
+          {
+            "text": "                if codex_windows_ai::check_windows_ai_available() {",
+            "lineNumber": 767
+          },
+          {
+            "text": "                    eprintln!(\"🚀 Windows AI enabled (kernel_accelerated: {kernel_accelerated})\");",
+            "lineNumber": 768
+          },
+          {
+            "text": "                } else {",
+            "lineNumber": 769
+          },
+          {
+            "text": "                    eprintln!(",
+            "lineNumber": 770
+          },
+          {
+            "text": "                        \"⚠️  Windows AI requested but not available (requires Windows 11 25H2+)\"",
+            "lineNumber": 771
+          },
+          {
+            "text": "                    );",
+            "lineNumber": 772
+          },
+          {
+            "text": "                }",
+            "lineNumber": 773
+          },
+          {
+            "text": "            }",
+            "lineNumber": 774
+          },
+          {
+            "lineNumber": 775
+          },
+          {
+            "text": "            #[cfg(not(feature = \"windows-ai\"))]",
+            "lineNumber": 776
+          },
+          {
+            "text": "            {",
+            "lineNumber": 777
+          },
+          {
+            "text": "                eprintln!(",
+            "lineNumber": 778
+          },
+          {
+            "text": "                    \"⚠️  Windows AI requested but not compiled (compile with --features windows-ai)\"",
+            "lineNumber": 779
+          },
+          {
+            "text": "                );",
+            "lineNumber": 780
+          },
+          {
+            "text": "            }",
+            "lineNumber": 781
+          },
+          {
+            "text": "        }",
+            "lineNumber": 782
+          },
+          {
+            "text": "    }",
+            "lineNumber": 783
+          },
+          {
+            "lineNumber": 784
+          },
+          {
+            "text": "    match subcommand {",
+            "lineNumber": 785
+          },
+          {
+            "text": "        None =&gt; {",
+            "lineNumber": 786
+          }
+        ]
+      },
+      "score": 0.27254414558410645
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\gui\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 196,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 262,
+            "column": 17
+          }
+        },
+        "contents": "#[axum::debug_handler]\nasync fn execute_action(\n    State(state): State&lt;AppState&gt;,\n    Path(id): Path&lt;String&gt;,\n    Json(payload): Json&lt;ExecuteRequest&gt;,\n) -&gt; Result&lt;Json&lt;ExecutionResponse&gt;, GuiError&gt; {\n    let action = state\n        .find_action(&amp;id)\n        .ok_or_else(|| GuiError::ActionNotFound(id.clone()))?;\n\n    let args = action.build_args(&amp;payload.values)?;\n\n    let started_at = Instant::now();\n    let output = Command::new(state.cli_path.as_str())\n        .args(&amp;args)\n        .output()\n        .await\n        .map_err(GuiError::CommandIo)?;\n    let duration_ms = started_at.elapsed().as_millis();\n\n    let status = if output.status.success() {\n        ExecutionStatus::Completed\n    } else {\n        warn!(action = action.id, status = ?output.status, \"action failed\");\n        ExecutionStatus::Failed\n    };\n\n    let stdout = String::from_utf8_lossy(&amp;output.stdout).trim().to_string();\n    let stderr = String::from_utf8_lossy(&amp;output.stderr).trim().to_string();\n\n    let response = ExecutionResponse {\n        id: Uuid::new_v4(),\n        action_id: action.id.to_string(),\n        command: std::iter::once(state.cli_path.as_str().to_string())\n            .chain(args.into_iter())\n            .collect(),\n        executed_at: Utc::now(),\n        duration_ms,\n        status,\n        exit_code: output.status.code(),\n        stdout,\n        stderr,\n    };\n\n    Ok(Json(response))\n}\n\n#[derive(Debug, Deserialize)]\n#[serde(rename_all = \"camelCase\")]\nstruct ExecuteRequest {\n    values: HashMap&lt;String, String&gt;,\n}\n\n#[derive(Clone)]\nstruct ActionDefinition {\n    id: &amp;'static str,\n    label: &amp;'static str,\n    description: &amp;'static str,\n    category: ActionCategory,\n    cta_label: &amp;'static str,\n    fields: Vec&lt;ActionFieldDefinition&gt;,\n}\n\nimpl ActionDefinition {\n    fn build_args",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "#[axum::debug_handler]",
+            "lineNumber": 199
+          },
+          {
+            "text": "async fn execute_action(",
+            "lineNumber": 200
+          },
+          {
+            "text": "    State(state): State&lt;AppState&gt;,",
+            "lineNumber": 201
+          },
+          {
+            "text": "    Path(id): Path&lt;String&gt;,",
+            "lineNumber": 202
+          },
+          {
+            "text": "    Json(payload): Json&lt;ExecuteRequest&gt;,",
+            "lineNumber": 203
+          },
+          {
+            "text": ") -&gt; Result&lt;Json&lt;ExecutionResponse&gt;, GuiError&gt; {",
+            "lineNumber": 204
+          },
+          {
+            "text": "    let action = state",
+            "lineNumber": 205
+          },
+          {
+            "text": "        .find_action(&amp;id)",
+            "lineNumber": 206
+          },
+          {
+            "text": "        .ok_or_else(|| GuiError::ActionNotFound(id.clone()))?;",
+            "lineNumber": 207
+          },
+          {
+            "lineNumber": 208
+          },
+          {
+            "text": "    let args = action.build_args(&amp;payload.values)?;",
+            "lineNumber": 209
+          },
+          {
+            "lineNumber": 210
+          },
+          {
+            "text": "    let started_at = Instant::now();",
+            "lineNumber": 211
+          },
+          {
+            "text": "    let output = Command::new(state.cli_path.as_str())",
+            "lineNumber": 212
+          },
+          {
+            "text": "        .args(&amp;args)",
+            "lineNumber": 213
+          },
+          {
+            "text": "        .output()",
+            "lineNumber": 214
+          },
+          {
+            "text": "        .await",
+            "lineNumber": 215
+          },
+          {
+            "text": "        .map_err(GuiError::CommandIo)?;",
+            "lineNumber": 216
+          },
+          {
+            "text": "    let duration_ms = started_at.elapsed().as_millis();",
+            "lineNumber": 217
+          },
+          {
+            "lineNumber": 218
+          },
+          {
+            "text": "    let status = if output.status.success() {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        ExecutionStatus::Completed",
+            "lineNumber": 220
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 221
+          },
+          {
+            "text": "        warn!(action = action.id, status = ?output.status, \"action failed\");",
+            "lineNumber": 222
+          },
+          {
+            "text": "        ExecutionStatus::Failed",
+            "lineNumber": 223
+          },
+          {
+            "text": "    };",
+            "lineNumber": 224
+          },
+          {
+            "lineNumber": 225
+          },
+          {
+            "text": "    let stdout = String::from_utf8_lossy(&amp;output.stdout).trim().to_string();",
+            "lineNumber": 226
+          },
+          {
+            "text": "    let stderr = String::from_utf8_lossy(&amp;output.stderr).trim().to_string();",
+            "lineNumber": 227
+          },
+          {
+            "lineNumber": 228
+          },
+          {
+            "text": "    let response = ExecutionResponse {",
+            "lineNumber": 229
+          },
+          {
+            "text": "        id: Uuid::new_v4(),",
+            "lineNumber": 230
+          },
+          {
+            "text": "        action_id: action.id.to_string(),",
+            "lineNumber": 231
+          },
+          {
+            "text": "        command: std::iter::once(state.cli_path.as_str().to_string())",
+            "lineNumber": 232
+          },
+          {
+            "text": "            .chain(args.into_iter())",
+            "lineNumber": 233
+          },
+          {
+            "text": "            .collect(),",
+            "lineNumber": 234
+          },
+          {
+            "text": "        executed_at: Utc::now(),",
+            "lineNumber": 235
+          },
+          {
+            "text": "        duration_ms,",
+            "lineNumber": 236
+          },
+          {
+            "text": "        status,",
+            "lineNumber": 237
+          },
+          {
+            "text": "        exit_code: output.status.code(),",
+            "lineNumber": 238
+          },
+          {
+            "text": "        stdout,",
+            "lineNumber": 239
+          },
+          {
+            "text": "        stderr,",
+            "lineNumber": 240
+          },
+          {
+            "text": "    };",
+            "lineNumber": 241
+          },
+          {
+            "lineNumber": 242
+          },
+          {
+            "text": "    Ok(Json(response))",
+            "lineNumber": 243
+          },
+          {
+            "text": "}",
+            "lineNumber": 244
+          },
+          {
+            "lineNumber": 245
+          },
+          {
+            "text": "#[derive(Debug, Deserialize)]",
+            "lineNumber": 246
+          },
+          {
+            "text": "#[serde(rename_all = \"camelCase\")]",
+            "lineNumber": 247
+          },
+          {
+            "text": "struct ExecuteRequest {",
+            "lineNumber": 248
+          },
+          {
+            "text": "    values: HashMap&lt;String, String&gt;,",
+            "lineNumber": 249
+          },
+          {
+            "text": "}",
+            "lineNumber": 250
+          },
+          {
+            "lineNumber": 251
+          },
+          {
+            "text": "#[derive(Clone)]",
+            "lineNumber": 252
+          },
+          {
+            "text": "struct ActionDefinition {",
+            "lineNumber": 253
+          },
+          {
+            "text": "    id: &amp;'static str,",
+            "lineNumber": 254
+          },
+          {
+            "text": "    label: &amp;'static str,",
+            "lineNumber": 255
+          },
+          {
+            "text": "    description: &amp;'static str,",
+            "lineNumber": 256
+          },
+          {
+            "text": "    category: ActionCategory,",
+            "lineNumber": 257
+          },
+          {
+            "text": "    cta_label: &amp;'static str,",
+            "lineNumber": 258
+          },
+          {
+            "text": "    fields: Vec&lt;ActionFieldDefinition&gt;,",
+            "lineNumber": 259
+          },
+          {
+            "text": "}",
+            "lineNumber": 260
+          },
+          {
+            "lineNumber": 261
+          },
+          {
+            "text": "impl ActionDefinition {",
+            "lineNumber": 262
+          },
+          {
+            "text": "    fn build_args",
+            "lineNumber": 263
+          }
+        ]
+      },
+      "score": 0.2658514082431793
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 60,
+            "column": 12
+          }
+        },
+        "contents": "use clap::CommandFactory;\nuse clap::Parser;\nuse clap_complete::Shell;\nuse clap_complete::generate;\nuse codex_arg0::arg0_dispatch_or_else;\nuse codex_chatgpt::apply_command::ApplyCommand;\nuse codex_chatgpt::apply_command::run_apply_command;\nuse codex_cli::LandlockCommand;\nuse codex_cli::SeatbeltCommand;\nuse codex_cli::WindowsCommand;\nuse codex_cli::login::read_api_key_from_stdin;\nuse codex_cli::login::run_login_status;\nuse codex_cli::login::run_login_with_api_key;\nuse codex_cli::login::run_login_with_chatgpt;\nuse codex_cli::login::run_login_with_device_code;\nuse codex_cli::login::run_logout;\nuse codex_cloud_tasks::Cli as CloudTasksCli;\nuse codex_common::CliConfigOverrides;\nuse codex_exec::Cli as ExecCli;\nuse codex_responses_api_proxy::Args as ResponsesApiProxyArgs;\nuse codex_tui::AppExitInfo;\nuse codex_tui::Cli as TuiCli;\nuse codex_tui::update_action::UpdateAction;\nuse codex_tui2 as tui2;\nuse owo_colors::OwoColorize;\nuse std::path::PathBuf;\nuse supports_color::Stream;\n\nmod dev_mode_cmd;\nmod git_commands;\nmod lock_cmd;\nmod mcp_cmd;\nmod plan_commands;\nmod qc_cmd;\nmod webhook_cmd;\nmod wsl_paths;\n\nuse crate::git_commands::GitAnalyzeCli;\nuse crate::lock_cmd::LockCli;\nuse crate::mcp_cmd::McpCli;\nuse crate::plan_commands::PlanCli;\nuse crate::qc_cmd::QcCli;\nuse crate::webhook_cmd::WebhookCli;\nuse crate::wsl_paths::normalize_for_wsl;\nuse codex_core::config::Config;\nuse codex_core::config::ConfigOverrides;\nuse codex_core::config::find_codex_home;\nuse codex_core::config::load_config_as_toml_with_cli_overrides;\nuse codex_core::features::Feature;\nuse codex_core::features::FeatureOverrides;\nuse codex_core::features::Features;\nuse codex_core::features::is_known_feature_key;\nuse codex_utils_absolute_path::AbsolutePathBuf;\n\n/// Codex CLI\n///\n/// If no subcommand is specified, options will be forwarded to the interactive CLI.\n#[derive(Debug, Parser)]\n#[clap(\n    author,\n    version,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use clap::CommandFactory;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use clap::Parser;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use clap_complete::Shell;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use clap_complete::generate;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use codex_arg0::arg0_dispatch_or_else;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use codex_chatgpt::apply_command::ApplyCommand;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use codex_chatgpt::apply_command::run_apply_command;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use codex_cli::LandlockCommand;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use codex_cli::SeatbeltCommand;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use codex_cli::WindowsCommand;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use codex_cli::login::read_api_key_from_stdin;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use codex_cli::login::run_login_status;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_api_key;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_chatgpt;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_device_code;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use codex_cli::login::run_logout;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use codex_cloud_tasks::Cli as CloudTasksCli;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_exec::Cli as ExecCli;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use codex_tui::AppExitInfo;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use codex_tui::Cli as TuiCli;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use codex_tui::update_action::UpdateAction;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use codex_tui2 as tui2;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use owo_colors::OwoColorize;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use supports_color::Stream;",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "mod dev_mode_cmd;",
+            "lineNumber": 29
+          },
+          {
+            "text": "mod git_commands;",
+            "lineNumber": 30
+          },
+          {
+            "text": "mod lock_cmd;",
+            "lineNumber": 31
+          },
+          {
+            "text": "mod mcp_cmd;",
+            "lineNumber": 32
+          },
+          {
+            "text": "mod plan_commands;",
+            "lineNumber": 33
+          },
+          {
+            "text": "mod qc_cmd;",
+            "lineNumber": 34
+          },
+          {
+            "text": "mod webhook_cmd;",
+            "lineNumber": 35
+          },
+          {
+            "text": "mod wsl_paths;",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "text": "use crate::git_commands::GitAnalyzeCli;",
+            "lineNumber": 38
+          },
+          {
+            "text": "use crate::lock_cmd::LockCli;",
+            "lineNumber": 39
+          },
+          {
+            "text": "use crate::mcp_cmd::McpCli;",
+            "lineNumber": 40
+          },
+          {
+            "text": "use crate::plan_commands::PlanCli;",
+            "lineNumber": 41
+          },
+          {
+            "text": "use crate::qc_cmd::QcCli;",
+            "lineNumber": 42
+          },
+          {
+            "text": "use crate::webhook_cmd::WebhookCli;",
+            "lineNumber": 43
+          },
+          {
+            "text": "use crate::wsl_paths::normalize_for_wsl;",
+            "lineNumber": 44
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use codex_core::config::ConfigOverrides;",
+            "lineNumber": 46
+          },
+          {
+            "text": "use codex_core::config::find_codex_home;",
+            "lineNumber": 47
+          },
+          {
+            "text": "use codex_core::config::load_config_as_toml_with_cli_overrides;",
+            "lineNumber": 48
+          },
+          {
+            "text": "use codex_core::features::Feature;",
+            "lineNumber": 49
+          },
+          {
+            "text": "use codex_core::features::FeatureOverrides;",
+            "lineNumber": 50
+          },
+          {
+            "text": "use codex_core::features::Features;",
+            "lineNumber": 51
+          },
+          {
+            "text": "use codex_core::features::is_known_feature_key;",
+            "lineNumber": 52
+          },
+          {
+            "text": "use codex_utils_absolute_path::AbsolutePathBuf;",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "/// Codex CLI",
+            "lineNumber": 55
+          },
+          {
+            "text": "///",
+            "lineNumber": 56
+          },
+          {
+            "text": "/// If no subcommand is specified, options will be forwarded to the interactive CLI.",
+            "lineNumber": 57
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 58
+          },
+          {
+            "text": "#[clap(",
+            "lineNumber": 59
+          },
+          {
+            "text": "    author,",
+            "lineNumber": 60
+          },
+          {
+            "text": "    version,",
+            "lineNumber": 61
+          }
+        ]
+      },
+      "score": 0.26290610432624817
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 323,
+            "column": 34
+          },
+          "endPosition": {
+            "line": 365,
+            "column": 76
+          }
+        },
+        "contents": "    let otel = match otel {\n        Ok(otel) =&gt; otel,\n        Err(e) =&gt; {\n            eprintln!(\"Could not create otel exporter: {e}\");\n            std::process::exit(1);\n        }\n    };\n\n    let otel_logger_layer = otel.as_ref().and_then(|o| o.logger_layer());\n\n    let otel_tracing_layer = otel.as_ref().and_then(|o| o.tracing_layer());\n\n    let _ = tracing_subscriber::registry()\n        .with(file_layer)\n        .with(feedback_layer)\n        .with(otel_logger_layer)\n        .with(otel_tracing_layer)\n        .try_init();\n\n    run_ratatui_app(\n        cli,\n        config,\n        overrides,\n        cli_kv_overrides,\n        active_profile,\n        feedback,\n    )\n    .await\n    .map_err(|err| std::io::Error::other(err.to_string()))\n}\n\nasync fn run_ratatui_app(\n    cli: Cli,\n    initial_config: Config,\n    overrides: ConfigOverrides,\n    cli_kv_overrides: Vec&lt;(String, toml::Value)&gt;,\n    active_profile: Option&lt;String&gt;,\n    feedback: codex_feedback::CodexFeedback,\n) -&gt; color_eyre::Result&lt;AppExitInfo&gt; {\n    color_eyre::install()?;\n\n    // Forward panic reports through tracing so they appear in the UI status",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    let otel = match otel {",
+            "lineNumber": 325
+          },
+          {
+            "text": "        Ok(otel) =&gt; otel,",
+            "lineNumber": 326
+          },
+          {
+            "text": "        Err(e) =&gt; {",
+            "lineNumber": 327
+          },
+          {
+            "text": "            eprintln!(\"Could not create otel exporter: {e}\");",
+            "lineNumber": 328
+          },
+          {
+            "text": "            std::process::exit(1);",
+            "lineNumber": 329
+          },
+          {
+            "text": "        }",
+            "lineNumber": 330
+          },
+          {
+            "text": "    };",
+            "lineNumber": 331
+          },
+          {
+            "lineNumber": 332
+          },
+          {
+            "text": "    let otel_logger_layer = otel.as_ref().and_then(|o| o.logger_layer());",
+            "lineNumber": 333
+          },
+          {
+            "lineNumber": 334
+          },
+          {
+            "text": "    let otel_tracing_layer = otel.as_ref().and_then(|o| o.tracing_layer());",
+            "lineNumber": 335
+          },
+          {
+            "lineNumber": 336
+          },
+          {
+            "text": "    let _ = tracing_subscriber::registry()",
+            "lineNumber": 337
+          },
+          {
+            "text": "        .with(file_layer)",
+            "lineNumber": 338
+          },
+          {
+            "text": "        .with(feedback_layer)",
+            "lineNumber": 339
+          },
+          {
+            "text": "        .with(otel_logger_layer)",
+            "lineNumber": 340
+          },
+          {
+            "text": "        .with(otel_tracing_layer)",
+            "lineNumber": 341
+          },
+          {
+            "text": "        .try_init();",
+            "lineNumber": 342
+          },
+          {
+            "lineNumber": 343
+          },
+          {
+            "text": "    run_ratatui_app(",
+            "lineNumber": 344
+          },
+          {
+            "text": "        cli,",
+            "lineNumber": 345
+          },
+          {
+            "text": "        config,",
+            "lineNumber": 346
+          },
+          {
+            "text": "        overrides,",
+            "lineNumber": 347
+          },
+          {
+            "text": "        cli_kv_overrides,",
+            "lineNumber": 348
+          },
+          {
+            "text": "        active_profile,",
+            "lineNumber": 349
+          },
+          {
+            "text": "        feedback,",
+            "lineNumber": 350
+          },
+          {
+            "text": "    )",
+            "lineNumber": 351
+          },
+          {
+            "text": "    .await",
+            "lineNumber": 352
+          },
+          {
+            "text": "    .map_err(|err| std::io::Error::other(err.to_string()))",
+            "lineNumber": 353
+          },
+          {
+            "text": "}",
+            "lineNumber": 354
+          },
+          {
+            "lineNumber": 355
+          },
+          {
+            "text": "async fn run_ratatui_app(",
+            "lineNumber": 356
+          },
+          {
+            "text": "    cli: Cli,",
+            "lineNumber": 357
+          },
+          {
+            "text": "    initial_config: Config,",
+            "lineNumber": 358
+          },
+          {
+            "text": "    overrides: ConfigOverrides,",
+            "lineNumber": 359
+          },
+          {
+            "text": "    cli_kv_overrides: Vec&lt;(String, toml::Value)&gt;,",
+            "lineNumber": 360
+          },
+          {
+            "text": "    active_profile: Option&lt;String&gt;,",
+            "lineNumber": 361
+          },
+          {
+            "text": "    feedback: codex_feedback::CodexFeedback,",
+            "lineNumber": 362
+          },
+          {
+            "text": ") -&gt; color_eyre::Result&lt;AppExitInfo&gt; {",
+            "lineNumber": 363
+          },
+          {
+            "text": "    color_eyre::install()?;",
+            "lineNumber": 364
+          },
+          {
+            "lineNumber": 365
+          },
+          {
+            "text": "    // Forward panic reports through tracing so they appear in the UI status",
+            "lineNumber": 366
+          }
+        ]
+      },
+      "score": 0.2613235116004944
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\app-server\\src\\codex_message_processor.rs",
+        "range": {
+          "startPosition": {
+            "line": 378,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 421,
+            "column": 13
+          }
+        },
+        "contents": "            ClientRequest::ReviewStart { request_id, params } =&gt; {\n                self.review_start(request_id, params).await;\n            }\n            ClientRequest::NewConversation { request_id, params } =&gt; {\n                // Do not tokio::spawn() to process new_conversation()\n                // asynchronously because we need to ensure the conversation is\n                // created before processing any subsequent messages.\n                self.process_new_conversation(request_id, params).await;\n            }\n            ClientRequest::GetConversationSummary { request_id, params } =&gt; {\n                self.get_conversation_summary(request_id, params).await;\n            }\n            ClientRequest::ListConversations { request_id, params } =&gt; {\n                self.handle_list_conversations(request_id, params).await;\n            }\n            ClientRequest::ModelList { request_id, params } =&gt; {\n                let outgoing = self.outgoing.clone();\n                let conversation_manager = self.conversation_manager.clone();\n                let config = self.config.clone();\n\n                tokio::spawn(async move {\n                    Self::list_models(outgoing, conversation_manager, config, request_id, params)\n                        .await;\n                });\n            }\n            ClientRequest::McpServerOauthLogin { request_id, params } =&gt; {\n                self.mcp_server_oauth_login(request_id, params).await;\n            }\n            ClientRequest::McpServerStatusList { request_id, params } =&gt; {\n                self.list_mcp_server_status(request_id, params).await;\n            }\n            ClientRequest::LoginAccount { request_id, params } =&gt; {\n                self.login_v2(request_id, params).await;\n            }\n            ClientRequest::LogoutAccount {\n                request_id,\n                params: _,\n            } =&gt; {\n                self.logout_v2(request_id).await;\n            }\n            ClientRequest::CancelLoginAccount { request_id, params } =&gt; {\n                self.cancel_login_v2(request_id, params).await;\n            }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            ClientRequest::ReviewStart { request_id, params } =&gt; {",
+            "lineNumber": 380
+          },
+          {
+            "text": "                self.review_start(request_id, params).await;",
+            "lineNumber": 381
+          },
+          {
+            "text": "            }",
+            "lineNumber": 382
+          },
+          {
+            "text": "            ClientRequest::NewConversation { request_id, params } =&gt; {",
+            "lineNumber": 383
+          },
+          {
+            "text": "                // Do not tokio::spawn() to process new_conversation()",
+            "lineNumber": 384
+          },
+          {
+            "text": "                // asynchronously because we need to ensure the conversation is",
+            "lineNumber": 385
+          },
+          {
+            "text": "                // created before processing any subsequent messages.",
+            "lineNumber": 386
+          },
+          {
+            "text": "                self.process_new_conversation(request_id, params).await;",
+            "lineNumber": 387
+          },
+          {
+            "text": "            }",
+            "lineNumber": 388
+          },
+          {
+            "text": "            ClientRequest::GetConversationSummary { request_id, params } =&gt; {",
+            "lineNumber": 389
+          },
+          {
+            "text": "                self.get_conversation_summary(request_id, params).await;",
+            "lineNumber": 390
+          },
+          {
+            "text": "            }",
+            "lineNumber": 391
+          },
+          {
+            "text": "            ClientRequest::ListConversations { request_id, params } =&gt; {",
+            "lineNumber": 392
+          },
+          {
+            "text": "                self.handle_list_conversations(request_id, params).await;",
+            "lineNumber": 393
+          },
+          {
+            "text": "            }",
+            "lineNumber": 394
+          },
+          {
+            "text": "            ClientRequest::ModelList { request_id, params } =&gt; {",
+            "lineNumber": 395
+          },
+          {
+            "text": "                let outgoing = self.outgoing.clone();",
+            "lineNumber": 396
+          },
+          {
+            "text": "                let conversation_manager = self.conversation_manager.clone();",
+            "lineNumber": 397
+          },
+          {
+            "text": "                let config = self.config.clone();",
+            "lineNumber": 398
+          },
+          {
+            "lineNumber": 399
+          },
+          {
+            "text": "                tokio::spawn(async move {",
+            "lineNumber": 400
+          },
+          {
+            "text": "                    Self::list_models(outgoing, conversation_manager, config, request_id, params)",
+            "lineNumber": 401
+          },
+          {
+            "text": "                        .await;",
+            "lineNumber": 402
+          },
+          {
+            "text": "                });",
+            "lineNumber": 403
+          },
+          {
+            "text": "            }",
+            "lineNumber": 404
+          },
+          {
+            "text": "            ClientRequest::McpServerOauthLogin { request_id, params } =&gt; {",
+            "lineNumber": 405
+          },
+          {
+            "text": "                self.mcp_server_oauth_login(request_id, params).await;",
+            "lineNumber": 406
+          },
+          {
+            "text": "            }",
+            "lineNumber": 407
+          },
+          {
+            "text": "            ClientRequest::McpServerStatusList { request_id, params } =&gt; {",
+            "lineNumber": 408
+          },
+          {
+            "text": "                self.list_mcp_server_status(request_id, params).await;",
+            "lineNumber": 409
+          },
+          {
+            "text": "            }",
+            "lineNumber": 410
+          },
+          {
+            "text": "            ClientRequest::LoginAccount { request_id, params } =&gt; {",
+            "lineNumber": 411
+          },
+          {
+            "text": "                self.login_v2(request_id, params).await;",
+            "lineNumber": 412
+          },
+          {
+            "text": "            }",
+            "lineNumber": 413
+          },
+          {
+            "text": "            ClientRequest::LogoutAccount {",
+            "lineNumber": 414
+          },
+          {
+            "text": "                request_id,",
+            "lineNumber": 415
+          },
+          {
+            "text": "                params: _,",
+            "lineNumber": 416
+          },
+          {
+            "text": "            } =&gt; {",
+            "lineNumber": 417
+          },
+          {
+            "text": "                self.logout_v2(request_id).await;",
+            "lineNumber": 418
+          },
+          {
+            "text": "            }",
+            "lineNumber": 419
+          },
+          {
+            "text": "            ClientRequest::CancelLoginAccount { request_id, params } =&gt; {",
+            "lineNumber": 420
+          },
+          {
+            "text": "                self.cancel_login_v2(request_id, params).await;",
+            "lineNumber": 421
+          },
+          {
+            "text": "            }",
+            "lineNumber": 422
+          }
+        ]
+      },
+      "score": 0.25644099712371826
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\gui\\src\\main.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 87,
+            "column": 19
+          }
+        },
+        "contents": "use std::collections::HashMap;\nuse std::net::SocketAddr;\nuse std::sync::Arc;\nuse std::time::Instant;\n\nuse axum::Json;\nuse axum::Router;\nuse axum::extract::Path;\nuse axum::extract::State;\nuse axum::http::StatusCode;\nuse axum::response::IntoResponse;\nuse axum::response::Response;\nuse axum::routing::get;\nuse axum::routing::post;\nuse chrono::DateTime;\nuse chrono::Utc;\nuse http::Method;\nuse serde::Deserialize;\nuse serde::Serialize;\nuse thiserror::Error;\nuse tokio::net::TcpListener;\nuse tokio::process::Command;\nuse tokio::signal;\nuse tower_http::cors::Any;\nuse tower_http::cors::CorsLayer;\nuse tower_http::trace::TraceLayer;\nuse tracing::info;\nuse tracing::warn;\nuse uuid::Uuid;\n\n// MCP Connection structures\n#[derive(Serialize)]\nstruct MCPConnection {\n    id: String,\n    name: String,\n    #[serde(rename = \"type\")]\n    connection_type: String,\n    status: String,\n    url: Option&lt;String&gt;,\n    last_connected: Option&lt;DateTime&lt;Utc&gt;&gt;,\n    request_count: Option&lt;u32&gt;,\n    avg_response_time: Option&lt;f64&gt;,\n}\n\n// System Metrics structures\n#[derive(Serialize)]\nstruct SystemMetrics {\n    cpu_usage: f64,\n    memory_usage: f64,\n    disk_usage: f64,\n    network_usage: Option&lt;f64&gt;,\n    active_processes: u32,\n    uptime: u64,\n}\n\n// Conversation structures\n#[derive(Serialize, Clone)]\nstruct Conversation {\n    id: String,\n    model: String,\n    status: String,\n    created_at: DateTime&lt;Utc&gt;,\n    last_activity: DateTime&lt;Utc&gt;,\n    message_count: u32,\n    summary: Option&lt;String&gt;,\n}\n\n// Message structures\n#[derive(Serialize, Clone)]\nstruct Message {\n    id: String,\n    role: String,\n    content: String,\n    timestamp: DateTime&lt;Utc&gt;,\n}\n\n// User structures\n#[derive(Serialize, Clone)]\nstruct User {\n    id: String,\n    name: String,\n    email: String,\n    avatar_url: Option&lt;String&gt;,\n}\n\n#[tokio::main]\nasync fn main() -&gt; Result&lt;(), GuiError&gt; {\n    init_tracing();",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use std::net::SocketAddr;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use std::time::Instant;",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "use axum::Json;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use axum::Router;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use axum::extract::Path;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use axum::extract::State;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use axum::http::StatusCode;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use axum::response::IntoResponse;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use axum::response::Response;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use axum::routing::get;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use axum::routing::post;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use chrono::DateTime;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use chrono::Utc;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use http::Method;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use thiserror::Error;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use tokio::net::TcpListener;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use tokio::process::Command;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use tokio::signal;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use tower_http::cors::Any;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use tower_http::cors::CorsLayer;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use tower_http::trace::TraceLayer;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use tracing::info;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use tracing::warn;",
+            "lineNumber": 28
+          },
+          {
+            "text": "use uuid::Uuid;",
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "text": "// MCP Connection structures",
+            "lineNumber": 31
+          },
+          {
+            "text": "#[derive(Serialize)]",
+            "lineNumber": 32
+          },
+          {
+            "text": "struct MCPConnection {",
+            "lineNumber": 33
+          },
+          {
+            "text": "    id: String,",
+            "lineNumber": 34
+          },
+          {
+            "text": "    name: String,",
+            "lineNumber": 35
+          },
+          {
+            "text": "    #[serde(rename = \"type\")]",
+            "lineNumber": 36
+          },
+          {
+            "text": "    connection_type: String,",
+            "lineNumber": 37
+          },
+          {
+            "text": "    status: String,",
+            "lineNumber": 38
+          },
+          {
+            "text": "    url: Option&lt;String&gt;,",
+            "lineNumber": 39
+          },
+          {
+            "text": "    last_connected: Option&lt;DateTime&lt;Utc&gt;&gt;,",
+            "lineNumber": 40
+          },
+          {
+            "text": "    request_count: Option&lt;u32&gt;,",
+            "lineNumber": 41
+          },
+          {
+            "text": "    avg_response_time: Option&lt;f64&gt;,",
+            "lineNumber": 42
+          },
+          {
+            "text": "}",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "// System Metrics structures",
+            "lineNumber": 45
+          },
+          {
+            "text": "#[derive(Serialize)]",
+            "lineNumber": 46
+          },
+          {
+            "text": "struct SystemMetrics {",
+            "lineNumber": 47
+          },
+          {
+            "text": "    cpu_usage: f64,",
+            "lineNumber": 48
+          },
+          {
+            "text": "    memory_usage: f64,",
+            "lineNumber": 49
+          },
+          {
+            "text": "    disk_usage: f64,",
+            "lineNumber": 50
+          },
+          {
+            "text": "    network_usage: Option&lt;f64&gt;,",
+            "lineNumber": 51
+          },
+          {
+            "text": "    active_processes: u32,",
+            "lineNumber": 52
+          },
+          {
+            "text": "    uptime: u64,",
+            "lineNumber": 53
+          },
+          {
+            "text": "}",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "// Conversation structures",
+            "lineNumber": 56
+          },
+          {
+            "text": "#[derive(Serialize, Clone)]",
+            "lineNumber": 57
+          },
+          {
+            "text": "struct Conversation {",
+            "lineNumber": 58
+          },
+          {
+            "text": "    id: String,",
+            "lineNumber": 59
+          },
+          {
+            "text": "    model: String,",
+            "lineNumber": 60
+          },
+          {
+            "text": "    status: String,",
+            "lineNumber": 61
+          },
+          {
+            "text": "    created_at: DateTime&lt;Utc&gt;,",
+            "lineNumber": 62
+          },
+          {
+            "text": "    last_activity: DateTime&lt;Utc&gt;,",
+            "lineNumber": 63
+          },
+          {
+            "text": "    message_count: u32,",
+            "lineNumber": 64
+          },
+          {
+            "text": "    summary: Option&lt;String&gt;,",
+            "lineNumber": 65
+          },
+          {
+            "text": "}",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "// Message structures",
+            "lineNumber": 68
+          },
+          {
+            "text": "#[derive(Serialize, Clone)]",
+            "lineNumber": 69
+          },
+          {
+            "text": "struct Message {",
+            "lineNumber": 70
+          },
+          {
+            "text": "    id: String,",
+            "lineNumber": 71
+          },
+          {
+            "text": "    role: String,",
+            "lineNumber": 72
+          },
+          {
+            "text": "    content: String,",
+            "lineNumber": 73
+          },
+          {
+            "text": "    timestamp: DateTime&lt;Utc&gt;,",
+            "lineNumber": 74
+          },
+          {
+            "text": "}",
+            "lineNumber": 75
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "text": "// User structures",
+            "lineNumber": 77
+          },
+          {
+            "text": "#[derive(Serialize, Clone)]",
+            "lineNumber": 78
+          },
+          {
+            "text": "struct User {",
+            "lineNumber": 79
+          },
+          {
+            "text": "    id: String,",
+            "lineNumber": 80
+          },
+          {
+            "text": "    name: String,",
+            "lineNumber": 81
+          },
+          {
+            "text": "    email: String,",
+            "lineNumber": 82
+          },
+          {
+            "text": "    avatar_url: Option&lt;String&gt;,",
+            "lineNumber": 83
+          },
+          {
+            "text": "}",
+            "lineNumber": 84
+          },
+          {
+            "lineNumber": 85
+          },
+          {
+            "text": "#[tokio::main]",
+            "lineNumber": 86
+          },
+          {
+            "text": "async fn main() -&gt; Result&lt;(), GuiError&gt; {",
+            "lineNumber": 87
+          },
+          {
+            "text": "    init_tracing();",
+            "lineNumber": 88
+          }
+        ]
+      },
+      "score": 0.25541025400161743
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\app-server\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "column": 52
+          },
+          "endPosition": {
+            "line": 44,
+            "column": 45
+          }
+        },
+        "contents": "use codex_common::CliConfigOverrides;\nuse codex_core::config::Config;\nuse std::io::ErrorKind;\nuse std::io::Result as IoResult;\nuse std::path::PathBuf;\n\nuse crate::message_processor::MessageProcessor;\nuse crate::outgoing_message::OutgoingMessage;\nuse crate::outgoing_message::OutgoingMessageSender;\nuse codex_app_server_protocol::JSONRPCMessage;\nuse codex_feedback::CodexFeedback;\nuse tokio::io::AsyncBufReadExt;\nuse tokio::io::AsyncWriteExt;\nuse tokio::io::BufReader;\nuse tokio::io::{self};\nuse tokio::sync::mpsc;\nuse toml::Value as TomlValue;\nuse tracing::Level;\nuse tracing::debug;\nuse tracing::error;\nuse tracing::info;\nuse tracing_subscriber::EnvFilter;\nuse tracing_subscriber::Layer;\nuse tracing_subscriber::filter::Targets;\nuse tracing_subscriber::layer::SubscriberExt;\nuse tracing_subscriber::util::SubscriberInitExt;\n\nmod bespoke_event_handling;\nmod codex_message_processor;\nmod config_api;\nmod error_code;\nmod fuzzy_file_search;\nmod message_processor;\nmod models;\nmod outgoing_message;\n\n/// Size of the bounded channels used to communicate between tasks. The value\n/// is a balance between throughput and memory usage – 128 messages should be\n/// plenty for an interactive CLI.\nconst CHANNEL_CAPACITY: usize = 128;\n\npub async fn run_main(\n    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use std::io::ErrorKind;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use std::io::Result as IoResult;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "use crate::message_processor::MessageProcessor;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use crate::outgoing_message::OutgoingMessage;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use crate::outgoing_message::OutgoingMessageSender;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use codex_app_server_protocol::JSONRPCMessage;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_feedback::CodexFeedback;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use tokio::io::AsyncBufReadExt;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use tokio::io::AsyncWriteExt;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use tokio::io::BufReader;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use tokio::io::{self};",
+            "lineNumber": 17
+          },
+          {
+            "text": "use tokio::sync::mpsc;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use toml::Value as TomlValue;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use tracing::Level;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use tracing::debug;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use tracing::error;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use tracing::info;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use tracing_subscriber::EnvFilter;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use tracing_subscriber::Layer;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use tracing_subscriber::filter::Targets;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use tracing_subscriber::layer::SubscriberExt;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use tracing_subscriber::util::SubscriberInitExt;",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "mod bespoke_event_handling;",
+            "lineNumber": 30
+          },
+          {
+            "text": "mod codex_message_processor;",
+            "lineNumber": 31
+          },
+          {
+            "text": "mod config_api;",
+            "lineNumber": 32
+          },
+          {
+            "text": "mod error_code;",
+            "lineNumber": 33
+          },
+          {
+            "text": "mod fuzzy_file_search;",
+            "lineNumber": 34
+          },
+          {
+            "text": "mod message_processor;",
+            "lineNumber": 35
+          },
+          {
+            "text": "mod models;",
+            "lineNumber": 36
+          },
+          {
+            "text": "mod outgoing_message;",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "/// Size of the bounded channels used to communicate between tasks. The value",
+            "lineNumber": 39
+          },
+          {
+            "text": "/// is a balance between throughput and memory usage – 128 messages should be",
+            "lineNumber": 40
+          },
+          {
+            "text": "/// plenty for an interactive CLI.",
+            "lineNumber": 41
+          },
+          {
+            "text": "const CHANNEL_CAPACITY: usize = 128;",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "pub async fn run_main(",
+            "lineNumber": 44
+          },
+          {
+            "text": "    codex_linux_sandbox_exe: Option&lt;PathBuf&gt;,",
+            "lineNumber": 45
+          }
+        ]
+      },
+      "score": 0.251711368560791
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\app-server\\src\\codex_message_processor.rs",
+        "range": {
+          "startPosition": {
+            "line": 418,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 459,
+            "column": 77
+          }
+        },
+        "contents": "            ClientRequest::CancelLoginAccount { request_id, params } =&gt; {\n                self.cancel_login_v2(request_id, params).await;\n            }\n            ClientRequest::GetAccount { request_id, params } =&gt; {\n                self.get_account(request_id, params).await;\n            }\n            ClientRequest::ResumeConversation { request_id, params } =&gt; {\n                self.handle_resume_conversation(request_id, params).await;\n            }\n            ClientRequest::ArchiveConversation { request_id, params } =&gt; {\n                self.archive_conversation(request_id, params).await;\n            }\n            ClientRequest::SendUserMessage { request_id, params } =&gt; {\n                self.send_user_message(request_id, params).await;\n            }\n            ClientRequest::SendUserTurn { request_id, params } =&gt; {\n                self.send_user_turn(request_id, params).await;\n            }\n            ClientRequest::InterruptConversation { request_id, params } =&gt; {\n                self.interrupt_conversation(request_id, params).await;\n            }\n            ClientRequest::AddConversationListener { request_id, params } =&gt; {\n                self.add_conversation_listener(request_id, params).await;\n            }\n            ClientRequest::RemoveConversationListener { request_id, params } =&gt; {\n                self.remove_conversation_listener(request_id, params).await;\n            }\n            ClientRequest::GitDiffToRemote { request_id, params } =&gt; {\n                self.git_diff_to_origin(request_id, params.cwd).await;\n            }\n            ClientRequest::LoginApiKey { request_id, params } =&gt; {\n                self.login_api_key_v1(request_id, params).await;\n            }\n            ClientRequest::LoginChatGpt {\n                request_id,\n                params: _,\n            } =&gt; {\n                self.login_chatgpt_v1(request_id).await;\n            }\n            ClientRequest::CancelLoginChatGpt { request_id, params } =&gt; {\n                self.cancel_login_chatgpt(request_id, params.login_id).await;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            ClientRequest::CancelLoginAccount { request_id, params } =&gt; {",
+            "lineNumber": 420
+          },
+          {
+            "text": "                self.cancel_login_v2(request_id, params).await;",
+            "lineNumber": 421
+          },
+          {
+            "text": "            }",
+            "lineNumber": 422
+          },
+          {
+            "text": "            ClientRequest::GetAccount { request_id, params } =&gt; {",
+            "lineNumber": 423
+          },
+          {
+            "text": "                self.get_account(request_id, params).await;",
+            "lineNumber": 424
+          },
+          {
+            "text": "            }",
+            "lineNumber": 425
+          },
+          {
+            "text": "            ClientRequest::ResumeConversation { request_id, params } =&gt; {",
+            "lineNumber": 426
+          },
+          {
+            "text": "                self.handle_resume_conversation(request_id, params).await;",
+            "lineNumber": 427
+          },
+          {
+            "text": "            }",
+            "lineNumber": 428
+          },
+          {
+            "text": "            ClientRequest::ArchiveConversation { request_id, params } =&gt; {",
+            "lineNumber": 429
+          },
+          {
+            "text": "                self.archive_conversation(request_id, params).await;",
+            "lineNumber": 430
+          },
+          {
+            "text": "            }",
+            "lineNumber": 431
+          },
+          {
+            "text": "            ClientRequest::SendUserMessage { request_id, params } =&gt; {",
+            "lineNumber": 432
+          },
+          {
+            "text": "                self.send_user_message(request_id, params).await;",
+            "lineNumber": 433
+          },
+          {
+            "text": "            }",
+            "lineNumber": 434
+          },
+          {
+            "text": "            ClientRequest::SendUserTurn { request_id, params } =&gt; {",
+            "lineNumber": 435
+          },
+          {
+            "text": "                self.send_user_turn(request_id, params).await;",
+            "lineNumber": 436
+          },
+          {
+            "text": "            }",
+            "lineNumber": 437
+          },
+          {
+            "text": "            ClientRequest::InterruptConversation { request_id, params } =&gt; {",
+            "lineNumber": 438
+          },
+          {
+            "text": "                self.interrupt_conversation(request_id, params).await;",
+            "lineNumber": 439
+          },
+          {
+            "text": "            }",
+            "lineNumber": 440
+          },
+          {
+            "text": "            ClientRequest::AddConversationListener { request_id, params } =&gt; {",
+            "lineNumber": 441
+          },
+          {
+            "text": "                self.add_conversation_listener(request_id, params).await;",
+            "lineNumber": 442
+          },
+          {
+            "text": "            }",
+            "lineNumber": 443
+          },
+          {
+            "text": "            ClientRequest::RemoveConversationListener { request_id, params } =&gt; {",
+            "lineNumber": 444
+          },
+          {
+            "text": "                self.remove_conversation_listener(request_id, params).await;",
+            "lineNumber": 445
+          },
+          {
+            "text": "            }",
+            "lineNumber": 446
+          },
+          {
+            "text": "            ClientRequest::GitDiffToRemote { request_id, params } =&gt; {",
+            "lineNumber": 447
+          },
+          {
+            "text": "                self.git_diff_to_origin(request_id, params.cwd).await;",
+            "lineNumber": 448
+          },
+          {
+            "text": "            }",
+            "lineNumber": 449
+          },
+          {
+            "text": "            ClientRequest::LoginApiKey { request_id, params } =&gt; {",
+            "lineNumber": 450
+          },
+          {
+            "text": "                self.login_api_key_v1(request_id, params).await;",
+            "lineNumber": 451
+          },
+          {
+            "text": "            }",
+            "lineNumber": 452
+          },
+          {
+            "text": "            ClientRequest::LoginChatGpt {",
+            "lineNumber": 453
+          },
+          {
+            "text": "                request_id,",
+            "lineNumber": 454
+          },
+          {
+            "text": "                params: _,",
+            "lineNumber": 455
+          },
+          {
+            "text": "            } =&gt; {",
+            "lineNumber": 456
+          },
+          {
+            "text": "                self.login_chatgpt_v1(request_id).await;",
+            "lineNumber": 457
+          },
+          {
+            "text": "            }",
+            "lineNumber": 458
+          },
+          {
+            "text": "            ClientRequest::CancelLoginChatGpt { request_id, params } =&gt; {",
+            "lineNumber": 459
+          },
+          {
+            "text": "                self.cancel_login_chatgpt(request_id, params.login_id).await;",
+            "lineNumber": 460
+          }
+        ]
+      },
+      "score": 0.24992483854293823
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\exec\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 217,
+            "column": 55
+          },
+          "endPosition": {
+            "line": 276,
+            "column": 10
+          }
+        },
+        "contents": "    let overrides = ConfigOverrides {\n        model,\n        review_model: None,\n        config_profile,\n        // Default to never ask for approvals in headless mode. Feature flags can override.\n        approval_policy: Some(AskForApproval::Never),\n        sandbox_mode,\n        cwd: resolved_cwd,\n        model_provider: model_provider.clone(),\n        codex_linux_sandbox_exe,\n        base_instructions: None,\n        developer_instructions: None,\n        compact_prompt: None,\n        include_apply_patch_tool: None,\n        show_raw_agent_reasoning: oss.then_some(true),\n        tools_web_search_request: None,\n        additional_writable_roots: add_dir,\n    };\n\n    let config =\n        Config::load_with_cli_overrides_and_harness_overrides(cli_kv_overrides, overrides).await?;\n\n    if let Err(err) = enforce_login_restrictions(&amp;config).await {\n        eprintln!(\"{err}\");\n        std::process::exit(1);\n    }\n\n    let otel = codex_core::otel_init::build_provider(&amp;config, env!(\"CARGO_PKG_VERSION\"));\n\n    #[allow(clippy::print_stderr)]\n    let otel = match otel {\n        Ok(otel) =&gt; otel,\n        Err(e) =&gt; {\n            eprintln!(\"Could not create otel exporter: {e}\");\n            std::process::exit(1);\n        }\n    };\n\n    let otel_logger_layer = otel.as_ref().and_then(|o| o.logger_layer());\n\n    let otel_tracing_layer = otel.as_ref().and_then(|o| o.tracing_layer());\n\n    let _ = tracing_subscriber::registry()\n        .with(fmt_layer)\n        .with(otel_tracing_layer)\n        .with(otel_logger_layer)\n        .try_init();\n\n    let mut event_processor: Box&lt;dyn EventProcessor&gt; = match json_mode {\n        true =&gt; Box::new(EventProcessorWithJsonOutput::new(last_message_file.clone())),\n        _ =&gt; Box::new(EventProcessorWithHumanOutput::create_with_ansi(\n            stdout_with_ansi,\n            &amp;config,\n            last_message_file.clone(),\n        )),\n    };\n\n    if oss {\n        //",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    let overrides = ConfigOverrides {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        model,",
+            "lineNumber": 220
+          },
+          {
+            "text": "        review_model: None,",
+            "lineNumber": 221
+          },
+          {
+            "text": "        config_profile,",
+            "lineNumber": 222
+          },
+          {
+            "text": "        // Default to never ask for approvals in headless mode. Feature flags can override.",
+            "lineNumber": 223
+          },
+          {
+            "text": "        approval_policy: Some(AskForApproval::Never),",
+            "lineNumber": 224
+          },
+          {
+            "text": "        sandbox_mode,",
+            "lineNumber": 225
+          },
+          {
+            "text": "        cwd: resolved_cwd,",
+            "lineNumber": 226
+          },
+          {
+            "text": "        model_provider: model_provider.clone(),",
+            "lineNumber": 227
+          },
+          {
+            "text": "        codex_linux_sandbox_exe,",
+            "lineNumber": 228
+          },
+          {
+            "text": "        base_instructions: None,",
+            "lineNumber": 229
+          },
+          {
+            "text": "        developer_instructions: None,",
+            "lineNumber": 230
+          },
+          {
+            "text": "        compact_prompt: None,",
+            "lineNumber": 231
+          },
+          {
+            "text": "        include_apply_patch_tool: None,",
+            "lineNumber": 232
+          },
+          {
+            "text": "        show_raw_agent_reasoning: oss.then_some(true),",
+            "lineNumber": 233
+          },
+          {
+            "text": "        tools_web_search_request: None,",
+            "lineNumber": 234
+          },
+          {
+            "text": "        additional_writable_roots: add_dir,",
+            "lineNumber": 235
+          },
+          {
+            "text": "    };",
+            "lineNumber": 236
+          },
+          {
+            "lineNumber": 237
+          },
+          {
+            "text": "    let config =",
+            "lineNumber": 238
+          },
+          {
+            "text": "        Config::load_with_cli_overrides_and_harness_overrides(cli_kv_overrides, overrides).await?;",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "    if let Err(err) = enforce_login_restrictions(&amp;config).await {",
+            "lineNumber": 241
+          },
+          {
+            "text": "        eprintln!(\"{err}\");",
+            "lineNumber": 242
+          },
+          {
+            "text": "        std::process::exit(1);",
+            "lineNumber": 243
+          },
+          {
+            "text": "    }",
+            "lineNumber": 244
+          },
+          {
+            "lineNumber": 245
+          },
+          {
+            "text": "    let otel = codex_core::otel_init::build_provider(&amp;config, env!(\"CARGO_PKG_VERSION\"));",
+            "lineNumber": 246
+          },
+          {
+            "lineNumber": 247
+          },
+          {
+            "text": "    #[allow(clippy::print_stderr)]",
+            "lineNumber": 248
+          },
+          {
+            "text": "    let otel = match otel {",
+            "lineNumber": 249
+          },
+          {
+            "text": "        Ok(otel) =&gt; otel,",
+            "lineNumber": 250
+          },
+          {
+            "text": "        Err(e) =&gt; {",
+            "lineNumber": 251
+          },
+          {
+            "text": "            eprintln!(\"Could not create otel exporter: {e}\");",
+            "lineNumber": 252
+          },
+          {
+            "text": "            std::process::exit(1);",
+            "lineNumber": 253
+          },
+          {
+            "text": "        }",
+            "lineNumber": 254
+          },
+          {
+            "text": "    };",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "    let otel_logger_layer = otel.as_ref().and_then(|o| o.logger_layer());",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "    let otel_tracing_layer = otel.as_ref().and_then(|o| o.tracing_layer());",
+            "lineNumber": 259
+          },
+          {
+            "lineNumber": 260
+          },
+          {
+            "text": "    let _ = tracing_subscriber::registry()",
+            "lineNumber": 261
+          },
+          {
+            "text": "        .with(fmt_layer)",
+            "lineNumber": 262
+          },
+          {
+            "text": "        .with(otel_tracing_layer)",
+            "lineNumber": 263
+          },
+          {
+            "text": "        .with(otel_logger_layer)",
+            "lineNumber": 264
+          },
+          {
+            "text": "        .try_init();",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "    let mut event_processor: Box&lt;dyn EventProcessor&gt; = match json_mode {",
+            "lineNumber": 267
+          },
+          {
+            "text": "        true =&gt; Box::new(EventProcessorWithJsonOutput::new(last_message_file.clone())),",
+            "lineNumber": 268
+          },
+          {
+            "text": "        _ =&gt; Box::new(EventProcessorWithHumanOutput::create_with_ansi(",
+            "lineNumber": 269
+          },
+          {
+            "text": "            stdout_with_ansi,",
+            "lineNumber": 270
+          },
+          {
+            "text": "            &amp;config,",
+            "lineNumber": 271
+          },
+          {
+            "text": "            last_message_file.clone(),",
+            "lineNumber": 272
+          },
+          {
+            "text": "        )),",
+            "lineNumber": 273
+          },
+          {
+            "text": "    };",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "    if oss {",
+            "lineNumber": 276
+          },
+          {
+            "text": "        //",
+            "lineNumber": 277
+          }
+        ]
+      },
+      "score": 0.24947834014892578
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\Cargo.toml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 75
+          }
+        },
+        "contents": "[package]\nname = \"codex-cli\"\nversion.workspace = true\nedition.workspace = true\nlicense.workspace = true\n\n[[bin]]\nname = \"codex\"\npath = \"src/main.rs\"\n\n[lib]\nname = \"codex_cli\"\npath = \"src/lib.rs\"\n\n[lints]\nworkspace = true\n\n[features]\ncuda = []\nwindows-ai = []\n\n[dependencies]\nanyhow = { workspace = true }\nchrono = { workspace = true }\nclap = { workspace = true, features = [\"derive\"] }\nclap_complete = { workspace = true }\ncodex-app-server = { workspace = true }\ncodex-app-server-protocol = { workspace = true }\ncodex-arg0 = { workspace = true }\ncodex-chatgpt = { workspace = true }\ncodex-cloud-tasks = { path = \"../cloud-tasks\" }\ncodex-common = { workspace = true, features = [\"cli\"] }\ncodex-core = { workspace = true }\ncodex-deep-research = { path = \"../deep-research\" }\ncodex-exec = { workspace = true }\ncodex-execpolicy = { workspace = true }\ncodex-login = { workspace = true }\ncodex-mcp-server = { workspace = true }\ncodex-otel = { workspace = true }\ncodex-process-hardening = { workspace = true }\ncodex-protocol = { workspace = true }\ncodex-protocol-ts = { path = \"../protocol-ts\" }\ncodex-responses-api-proxy = { workspace = true }\ncodex-rmcp-client = { workspace = true }\ncodex-supervisor = { path = \"../supervisor\" }\ncodex-stdio-to-uds = { workspace = true }\ncodex-tui = { workspace = true }\ncodex-tui2 = { workspace = true }\ncodex-utils-absolute-path = { workspace = true }\nctor = { workspace = true }\ndirs = { workspace = true }\ngit2 = \"0.19\"\nlibc = { workspace = true }\nowo-colors = { workspace = true }\nregex-lite = { workspace = true }\nserde = { workspace = true, features = [\"derive\"] }\nserde_json = { workspace = true }\nslug = \"0.1.4\"\nsupports-color = { workspace = true }\ntokio = { workspace = true, features = [\n    \"io-std\",\n    \"macros\",\n    \"process\",\n    \"rt-multi-thread\",\n    \"signal\",\n] }\ntoml = { workspace = true }\ntracing = { workspace = true }\nwalkdir = { workspace = true }\n\n[target.'cfg(target_os = \"windows\")'.dependencies]\ncodex_windows_sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }\n\n[dev-dependencies]\nassert_cmd = { workspace = true }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "[package]",
+            "lineNumber": 1
+          },
+          {
+            "text": "name = \"codex-cli\"",
+            "lineNumber": 2
+          },
+          {
+            "text": "version.workspace = true",
+            "lineNumber": 3
+          },
+          {
+            "text": "edition.workspace = true",
+            "lineNumber": 4
+          },
+          {
+            "text": "license.workspace = true",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "[[bin]]",
+            "lineNumber": 7
+          },
+          {
+            "text": "name = \"codex\"",
+            "lineNumber": 8
+          },
+          {
+            "text": "path = \"src/main.rs\"",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "[lib]",
+            "lineNumber": 11
+          },
+          {
+            "text": "name = \"codex_cli\"",
+            "lineNumber": 12
+          },
+          {
+            "text": "path = \"src/lib.rs\"",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "[lints]",
+            "lineNumber": 15
+          },
+          {
+            "text": "workspace = true",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "[features]",
+            "lineNumber": 18
+          },
+          {
+            "text": "cuda = []",
+            "lineNumber": 19
+          },
+          {
+            "text": "windows-ai = []",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "[dependencies]",
+            "lineNumber": 22
+          },
+          {
+            "text": "anyhow = { workspace = true }",
+            "lineNumber": 23
+          },
+          {
+            "text": "chrono = { workspace = true }",
+            "lineNumber": 24
+          },
+          {
+            "text": "clap = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 25
+          },
+          {
+            "text": "clap_complete = { workspace = true }",
+            "lineNumber": 26
+          },
+          {
+            "text": "codex-app-server = { workspace = true }",
+            "lineNumber": 27
+          },
+          {
+            "text": "codex-app-server-protocol = { workspace = true }",
+            "lineNumber": 28
+          },
+          {
+            "text": "codex-arg0 = { workspace = true }",
+            "lineNumber": 29
+          },
+          {
+            "text": "codex-chatgpt = { workspace = true }",
+            "lineNumber": 30
+          },
+          {
+            "text": "codex-cloud-tasks = { path = \"../cloud-tasks\" }",
+            "lineNumber": 31
+          },
+          {
+            "text": "codex-common = { workspace = true, features = [\"cli\"] }",
+            "lineNumber": 32
+          },
+          {
+            "text": "codex-core = { workspace = true }",
+            "lineNumber": 33
+          },
+          {
+            "text": "codex-deep-research = { path = \"../deep-research\" }",
+            "lineNumber": 34
+          },
+          {
+            "text": "codex-exec = { workspace = true }",
+            "lineNumber": 35
+          },
+          {
+            "text": "codex-execpolicy = { workspace = true }",
+            "lineNumber": 36
+          },
+          {
+            "text": "codex-login = { workspace = true }",
+            "lineNumber": 37
+          },
+          {
+            "text": "codex-mcp-server = { workspace = true }",
+            "lineNumber": 38
+          },
+          {
+            "text": "codex-otel = { workspace = true }",
+            "lineNumber": 39
+          },
+          {
+            "text": "codex-process-hardening = { workspace = true }",
+            "lineNumber": 40
+          },
+          {
+            "text": "codex-protocol = { workspace = true }",
+            "lineNumber": 41
+          },
+          {
+            "text": "codex-protocol-ts = { path = \"../protocol-ts\" }",
+            "lineNumber": 42
+          },
+          {
+            "text": "codex-responses-api-proxy = { workspace = true }",
+            "lineNumber": 43
+          },
+          {
+            "text": "codex-rmcp-client = { workspace = true }",
+            "lineNumber": 44
+          },
+          {
+            "text": "codex-supervisor = { path = \"../supervisor\" }",
+            "lineNumber": 45
+          },
+          {
+            "text": "codex-stdio-to-uds = { workspace = true }",
+            "lineNumber": 46
+          },
+          {
+            "text": "codex-tui = { workspace = true }",
+            "lineNumber": 47
+          },
+          {
+            "text": "codex-tui2 = { workspace = true }",
+            "lineNumber": 48
+          },
+          {
+            "text": "codex-utils-absolute-path = { workspace = true }",
+            "lineNumber": 49
+          },
+          {
+            "text": "ctor = { workspace = true }",
+            "lineNumber": 50
+          },
+          {
+            "text": "dirs = { workspace = true }",
+            "lineNumber": 51
+          },
+          {
+            "text": "git2 = \"0.19\"",
+            "lineNumber": 52
+          },
+          {
+            "text": "libc = { workspace = true }",
+            "lineNumber": 53
+          },
+          {
+            "text": "owo-colors = { workspace = true }",
+            "lineNumber": 54
+          },
+          {
+            "text": "regex-lite = { workspace = true }",
+            "lineNumber": 55
+          },
+          {
+            "text": "serde = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 56
+          },
+          {
+            "text": "serde_json = { workspace = true }",
+            "lineNumber": 57
+          },
+          {
+            "text": "slug = \"0.1.4\"",
+            "lineNumber": 58
+          },
+          {
+            "text": "supports-color = { workspace = true }",
+            "lineNumber": 59
+          },
+          {
+            "text": "tokio = { workspace = true, features = [",
+            "lineNumber": 60
+          },
+          {
+            "text": "    \"io-std\",",
+            "lineNumber": 61
+          },
+          {
+            "text": "    \"macros\",",
+            "lineNumber": 62
+          },
+          {
+            "text": "    \"process\",",
+            "lineNumber": 63
+          },
+          {
+            "text": "    \"rt-multi-thread\",",
+            "lineNumber": 64
+          },
+          {
+            "text": "    \"signal\",",
+            "lineNumber": 65
+          },
+          {
+            "text": "] }",
+            "lineNumber": 66
+          },
+          {
+            "text": "toml = { workspace = true }",
+            "lineNumber": 67
+          },
+          {
+            "text": "tracing = { workspace = true }",
+            "lineNumber": 68
+          },
+          {
+            "text": "walkdir = { workspace = true }",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "[target.'cfg(target_os = \"windows\")'.dependencies]",
+            "lineNumber": 71
+          },
+          {
+            "text": "codex_windows_sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "[dev-dependencies]",
+            "lineNumber": 74
+          },
+          {
+            "text": "assert_cmd = { workspace = true }",
+            "lineNumber": 75
+          }
+        ]
+      },
+      "score": 0.2484966516494751
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\gui\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 724,
+            "column": 14
+          },
+          "endPosition": {
+            "line": 775,
+            "column": 38
+          }
+        },
+        "contents": "        },\n        ActionDefinition {\n            id: \"dev-mode\",\n            label: \"Dev Mode Orchestration\",\n            description: \"Start centralized or parallel dev-mode orchestration.\",\n            category: ActionCategory::Launchpad,\n            cta_label: \"Start dev mode\",\n            fields: vec![\n                ActionFieldDefinition::select(\n                    \"mode\",\n                    \"Mode\",\n                    vec![\n                        FieldOption {\n                            value: \"central\",\n                            label: \"Centralized\",\n                        },\n                        FieldOption {\n                            value: \"parallel\",\n                            label: \"Parallel\",\n                        },\n                    ],\n                    Some(\"central\"),\n                ),\n                ActionFieldDefinition::text_area(\"task\", \"Task description\")\n                    .optional()\n                    .with_placeholder(\"Implement QC + orchestration updates\"),\n                ActionFieldDefinition::text(\"agents\", \"Target agents (comma-separated)\")\n                    .optional()\n                    .with_placeholder(\"architect,code-reviewer,qa\"),\n                ActionFieldDefinition::text(\"worktree_base\", \"Worktree base path\")\n                    .optional()\n                    .with_placeholder(\".codex-worktrees\"),\n            ],\n        },\n    ]\n}\n\n#[derive(Debug, Error)]\nenum GuiError {\n    #[error(\"action &#96;{0}&#96; not found\")]\n    ActionNotFound(String),\n    #[error(\"{message}\")]\n    Validation { field: String, message: String },\n    #[error(\"action &#96;{0}&#96; is not supported\")]\n    UnknownAction(String),\n    #[error(\"failed to run command: {0}\")]\n    CommandIo(#[from] std::io::Error),\n}\n\nimpl IntoResponse for GuiError {\n    fn into_response(self) -&gt; Response",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        },",
+            "lineNumber": 726
+          },
+          {
+            "text": "        ActionDefinition {",
+            "lineNumber": 727
+          },
+          {
+            "text": "            id: \"dev-mode\",",
+            "lineNumber": 728
+          },
+          {
+            "text": "            label: \"Dev Mode Orchestration\",",
+            "lineNumber": 729
+          },
+          {
+            "text": "            description: \"Start centralized or parallel dev-mode orchestration.\",",
+            "lineNumber": 730
+          },
+          {
+            "text": "            category: ActionCategory::Launchpad,",
+            "lineNumber": 731
+          },
+          {
+            "text": "            cta_label: \"Start dev mode\",",
+            "lineNumber": 732
+          },
+          {
+            "text": "            fields: vec![",
+            "lineNumber": 733
+          },
+          {
+            "text": "                ActionFieldDefinition::select(",
+            "lineNumber": 734
+          },
+          {
+            "text": "                    \"mode\",",
+            "lineNumber": 735
+          },
+          {
+            "text": "                    \"Mode\",",
+            "lineNumber": 736
+          },
+          {
+            "text": "                    vec![",
+            "lineNumber": 737
+          },
+          {
+            "text": "                        FieldOption {",
+            "lineNumber": 738
+          },
+          {
+            "text": "                            value: \"central\",",
+            "lineNumber": 739
+          },
+          {
+            "text": "                            label: \"Centralized\",",
+            "lineNumber": 740
+          },
+          {
+            "text": "                        },",
+            "lineNumber": 741
+          },
+          {
+            "text": "                        FieldOption {",
+            "lineNumber": 742
+          },
+          {
+            "text": "                            value: \"parallel\",",
+            "lineNumber": 743
+          },
+          {
+            "text": "                            label: \"Parallel\",",
+            "lineNumber": 744
+          },
+          {
+            "text": "                        },",
+            "lineNumber": 745
+          },
+          {
+            "text": "                    ],",
+            "lineNumber": 746
+          },
+          {
+            "text": "                    Some(\"central\"),",
+            "lineNumber": 747
+          },
+          {
+            "text": "                ),",
+            "lineNumber": 748
+          },
+          {
+            "text": "                ActionFieldDefinition::text_area(\"task\", \"Task description\")",
+            "lineNumber": 749
+          },
+          {
+            "text": "                    .optional()",
+            "lineNumber": 750
+          },
+          {
+            "text": "                    .with_placeholder(\"Implement QC + orchestration updates\"),",
+            "lineNumber": 751
+          },
+          {
+            "text": "                ActionFieldDefinition::text(\"agents\", \"Target agents (comma-separated)\")",
+            "lineNumber": 752
+          },
+          {
+            "text": "                    .optional()",
+            "lineNumber": 753
+          },
+          {
+            "text": "                    .with_placeholder(\"architect,code-reviewer,qa\"),",
+            "lineNumber": 754
+          },
+          {
+            "text": "                ActionFieldDefinition::text(\"worktree_base\", \"Worktree base path\")",
+            "lineNumber": 755
+          },
+          {
+            "text": "                    .optional()",
+            "lineNumber": 756
+          },
+          {
+            "text": "                    .with_placeholder(\".codex-worktrees\"),",
+            "lineNumber": 757
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 758
+          },
+          {
+            "text": "        },",
+            "lineNumber": 759
+          },
+          {
+            "text": "    ]",
+            "lineNumber": 760
+          },
+          {
+            "text": "}",
+            "lineNumber": 761
+          },
+          {
+            "lineNumber": 762
+          },
+          {
+            "text": "#[derive(Debug, Error)]",
+            "lineNumber": 763
+          },
+          {
+            "text": "enum GuiError {",
+            "lineNumber": 764
+          },
+          {
+            "text": "    #[error(\"action &#96;{0}&#96; not found\")]",
+            "lineNumber": 765
+          },
+          {
+            "text": "    ActionNotFound(String),",
+            "lineNumber": 766
+          },
+          {
+            "text": "    #[error(\"{message}\")]",
+            "lineNumber": 767
+          },
+          {
+            "text": "    Validation { field: String, message: String },",
+            "lineNumber": 768
+          },
+          {
+            "text": "    #[error(\"action &#96;{0}&#96; is not supported\")]",
+            "lineNumber": 769
+          },
+          {
+            "text": "    UnknownAction(String),",
+            "lineNumber": 770
+          },
+          {
+            "text": "    #[error(\"failed to run command: {0}\")]",
+            "lineNumber": 771
+          },
+          {
+            "text": "    CommandIo(#[from] std::io::Error),",
+            "lineNumber": 772
+          },
+          {
+            "text": "}",
+            "lineNumber": 773
+          },
+          {
+            "lineNumber": 774
+          },
+          {
+            "text": "impl IntoResponse for GuiError {",
+            "lineNumber": 775
+          },
+          {
+            "text": "    fn into_response(self) -&gt; Response",
+            "lineNumber": 776
+          }
+        ]
+      },
+      "score": 0.24691087007522583
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\app-server\\src\\plan_ws.rs",
+        "range": {
+          "startPosition": {
+            "line": 63,
+            "column": 83
+          },
+          "endPosition": {
+            "line": 111,
+            "column": 44
+          }
+        },
+        "contents": " {\n    let (mut sender, mut receiver) = socket.split();\n    \n    // Subscribe to execution events\n    let mut event_rx = state.subscribe();\n    \n    info!(\"WebSocket connected for Plan: {}\", Plan_id);\n    \n    // Send initial connection confirmation\n    let init_message = serde_json::json!({\n        \"type\": \"connected\",\n        \"Plan_id\": Plan_id,\n        \"timestamp\": chrono::Utc::now().to_rfc3339(),\n    });\n    \n    if let Ok(json) = serde_json::to_string(&amp;init_message) {\n        if sender.send(Message::Text(json)).await.is_err() {\n            error!(\"Failed to send initial message\");\n            return;\n        }\n    }\n    \n    // Spawn task to forward events to WebSocket\n    let mut send_task = tokio::spawn(async move {\n        while let Ok(event) = event_rx.recv().await {\n            // Filter events for this Plan only\n            let event_Plan_id = match &amp;event {\n                ExecutionEvent::Started { Plan_id, .. } =&gt; Plan_id.clone(),\n                ExecutionEvent::StepCompleted { .. } =&gt; \"\".to_string(), // Need to track\n                ExecutionEvent::FileChanged { .. } =&gt; \"\".to_string(),\n                ExecutionEvent::TestPassed { .. } =&gt; \"\".to_string(),\n                ExecutionEvent::TestFailed { .. } =&gt; \"\".to_string(),\n                ExecutionEvent::Progress { .. } =&gt; \"\".to_string(),\n                ExecutionEvent::Completed { .. } =&gt; \"\".to_string(),\n                ExecutionEvent::Failed { .. } =&gt; \"\".to_string(),\n                ExecutionEvent::OrchestrationLog { .. } =&gt; \"\".to_string(),\n            };\n            \n            // For now, broadcast all events (TODO: filter by Plan_id)\n            if let Ok(json) = serde_json::to_string(&amp;event) {\n                if sender.send(Message::Text(json)).await.is_err() {\n                    warn!(\"Client disconnected\");\n                    break;\n                }\n            }\n        }\n    });\n    \n    // Receive task (handle client messages)",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 64
+          },
+          {
+            "text": "    let (mut sender, mut receiver) = socket.split();",
+            "lineNumber": 65
+          },
+          {
+            "text": "    ",
+            "lineNumber": 66
+          },
+          {
+            "text": "    // Subscribe to execution events",
+            "lineNumber": 67
+          },
+          {
+            "text": "    let mut event_rx = state.subscribe();",
+            "lineNumber": 68
+          },
+          {
+            "text": "    ",
+            "lineNumber": 69
+          },
+          {
+            "text": "    info!(\"WebSocket connected for Plan: {}\", Plan_id);",
+            "lineNumber": 70
+          },
+          {
+            "text": "    ",
+            "lineNumber": 71
+          },
+          {
+            "text": "    // Send initial connection confirmation",
+            "lineNumber": 72
+          },
+          {
+            "text": "    let init_message = serde_json::json!({",
+            "lineNumber": 73
+          },
+          {
+            "text": "        \"type\": \"connected\",",
+            "lineNumber": 74
+          },
+          {
+            "text": "        \"Plan_id\": Plan_id,",
+            "lineNumber": 75
+          },
+          {
+            "text": "        \"timestamp\": chrono::Utc::now().to_rfc3339(),",
+            "lineNumber": 76
+          },
+          {
+            "text": "    });",
+            "lineNumber": 77
+          },
+          {
+            "text": "    ",
+            "lineNumber": 78
+          },
+          {
+            "text": "    if let Ok(json) = serde_json::to_string(&amp;init_message) {",
+            "lineNumber": 79
+          },
+          {
+            "text": "        if sender.send(Message::Text(json)).await.is_err() {",
+            "lineNumber": 80
+          },
+          {
+            "text": "            error!(\"Failed to send initial message\");",
+            "lineNumber": 81
+          },
+          {
+            "text": "            return;",
+            "lineNumber": 82
+          },
+          {
+            "text": "        }",
+            "lineNumber": 83
+          },
+          {
+            "text": "    }",
+            "lineNumber": 84
+          },
+          {
+            "text": "    ",
+            "lineNumber": 85
+          },
+          {
+            "text": "    // Spawn task to forward events to WebSocket",
+            "lineNumber": 86
+          },
+          {
+            "text": "    let mut send_task = tokio::spawn(async move {",
+            "lineNumber": 87
+          },
+          {
+            "text": "        while let Ok(event) = event_rx.recv().await {",
+            "lineNumber": 88
+          },
+          {
+            "text": "            // Filter events for this Plan only",
+            "lineNumber": 89
+          },
+          {
+            "text": "            let event_Plan_id = match &amp;event {",
+            "lineNumber": 90
+          },
+          {
+            "text": "                ExecutionEvent::Started { Plan_id, .. } =&gt; Plan_id.clone(),",
+            "lineNumber": 91
+          },
+          {
+            "text": "                ExecutionEvent::StepCompleted { .. } =&gt; \"\".to_string(), // Need to track",
+            "lineNumber": 92
+          },
+          {
+            "text": "                ExecutionEvent::FileChanged { .. } =&gt; \"\".to_string(),",
+            "lineNumber": 93
+          },
+          {
+            "text": "                ExecutionEvent::TestPassed { .. } =&gt; \"\".to_string(),",
+            "lineNumber": 94
+          },
+          {
+            "text": "                ExecutionEvent::TestFailed { .. } =&gt; \"\".to_string(),",
+            "lineNumber": 95
+          },
+          {
+            "text": "                ExecutionEvent::Progress { .. } =&gt; \"\".to_string(),",
+            "lineNumber": 96
+          },
+          {
+            "text": "                ExecutionEvent::Completed { .. } =&gt; \"\".to_string(),",
+            "lineNumber": 97
+          },
+          {
+            "text": "                ExecutionEvent::Failed { .. } =&gt; \"\".to_string(),",
+            "lineNumber": 98
+          },
+          {
+            "text": "                ExecutionEvent::OrchestrationLog { .. } =&gt; \"\".to_string(),",
+            "lineNumber": 99
+          },
+          {
+            "text": "            };",
+            "lineNumber": 100
+          },
+          {
+            "text": "            ",
+            "lineNumber": 101
+          },
+          {
+            "text": "            // For now, broadcast all events (TODO: filter by Plan_id)",
+            "lineNumber": 102
+          },
+          {
+            "text": "            if let Ok(json) = serde_json::to_string(&amp;event) {",
+            "lineNumber": 103
+          },
+          {
+            "text": "                if sender.send(Message::Text(json)).await.is_err() {",
+            "lineNumber": 104
+          },
+          {
+            "text": "                    warn!(\"Client disconnected\");",
+            "lineNumber": 105
+          },
+          {
+            "text": "                    break;",
+            "lineNumber": 106
+          },
+          {
+            "text": "                }",
+            "lineNumber": 107
+          },
+          {
+            "text": "            }",
+            "lineNumber": 108
+          },
+          {
+            "text": "        }",
+            "lineNumber": 109
+          },
+          {
+            "text": "    });",
+            "lineNumber": 110
+          },
+          {
+            "text": "    ",
+            "lineNumber": 111
+          },
+          {
+            "text": "    // Receive task (handle client messages)",
+            "lineNumber": 112
+          }
+        ]
+      },
+      "score": 0.24642854928970337
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "codex-gui|gui|GUI",
+  "path": "codex-rs/cli/src",
+  "caseInsensitive": true
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "codex-gui|gui|GUI",
+    "path": "codex-rs/cli/src",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\cli\\src\\main.rs",
+              "matches": [
+                {
+                  "lineNumber": 546,
+                  "content": "        help = \"(deprecated) Previously accepted the API key directly; now exits with guidance to use --with-api-key\","
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\cli\\src\\git_commands.rs",
+              "matches": [
+                {
+                  "lineNumber": 564,
+                  "content": "    println!(\"\\n💡 Tip: Use --export-json to save 3D data for GUI visualization\");"
+                }
+              ]
+            }
+          ],
+          "totalLines": 2,
+          "totalMatchedLines": 2
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+CLIにGUI起動コマンドを追加し、サイドバーとホバーのUXを改善します。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "struct.*Command|LoginCommand|LogoutCommand",
+  "path": "codex-rs/cli/src/main.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "struct.*Command|LoginCommand|LogoutCommand",
+    "path": "codex-rs/cli/src/main.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\cli\\src\\main.rs",
+              "matches": [
+                {
+                  "lineNumber": 121,
+                  "content": "    Login(LoginCommand),"
+                },
+                {
+                  "lineNumber": 124,
+                  "content": "    Logout(LogoutCommand),"
+                },
+                {
+                  "lineNumber": 222,
+                  "content": "struct CompletionCommand {"
+                },
+                {
+                  "lineNumber": 229,
+                  "content": "struct ResumeCommand {"
+                },
+                {
+                  "lineNumber": 244,
+                  "content": "struct DelegateCommand {"
+                },
+                {
+                  "lineNumber": 274,
+                  "content": "struct DelegateParallelCommand {"
+                },
+                {
+                  "lineNumber": 304,
+                  "content": "struct PairProgramCommand {"
+                },
+                {
+                  "lineNumber": 338,
+                  "content": "struct AgentCreateCommand {"
+                },
+                {
+                  "lineNumber": 360,
+                  "content": "struct ResearchCommand {"
+                },
+                {
+                  "lineNumber": 403,
+                  "content": "struct AskCommand {"
+                },
+                {
+                  "lineNumber": 425,
+                  "content": "struct ReviewCommand {"
+                },
+                {
+                  "lineNumber": 447,
+                  "content": "struct AuditCommand {"
+                },
+                {
+                  "lineNumber": 469,
+                  "content": "struct TestCommand {"
+                },
+                {
+                  "lineNumber": 491,
+                  "content": "struct AgentCommand {"
+                },
+                {
+                  "lineNumber": 533,
+                  "content": "struct LoginCommand {"
+                },
+                {
+                  "lineNumber": 574,
+                  "content": "struct LogoutCommand {"
+                },
+                {
+                  "lineNumber": 580,
+                  "content": "struct GenerateTsCommand {"
+                },
+                {
+                  "lineNumber": 591,
+                  "content": "struct StdioToUdsCommand {"
+                }
+              ]
+            }
+          ],
+          "totalLines": 18,
+          "totalMatchedLines": 18
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+GuiCommand構造体を追加し、GUI起動処理を実装します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+The string to replace was not found in the file.
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+launch_gui関数を実装し、サイドバーのUXを改善します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+サイドバーのUXを改善中: ホバー効果、ツールチップ、キーボードショートカット表示を追加。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/organisms/Sidebar.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+キーボードショートカットの実装とCLI/TUIとの連接を強化中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/hooks/useKeyboardShortcuts.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/app/page.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "keyboard shortcuts navigation sidebar routing",
+  "includePattern": "gui/src",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\types\\index.ts",
+        "range": {
+          "startPosition": {
+            "line": 151,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 177,
+            "column": 1
+          }
+        },
+        "contents": "// Configuration Types\nexport interface AppConfig {\n  theme: \"light\" | \"dark\" | \"system\";\n  language: \"ja\" | \"en\";\n  notifications: {\n    enabled: boolean;\n    sound: boolean;\n    desktop: boolean;\n  };\n  shortcuts: {\n    [key: string]: string;\n  };\n  api: {\n    timeout: number;\n    retryAttempts: number;\n    baseUrl?: string;\n  };\n}\n\n// Form Types\nexport interface LoginForm {\n  method: \"api-key\" | \"oauth\";\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// Configuration Types",
+            "lineNumber": 154
+          },
+          {
+            "text": "export interface AppConfig {",
+            "lineNumber": 155,
+            "isSignature": true
+          },
+          {
+            "text": "  theme: \"light\" | \"dark\" | \"system\";",
+            "lineNumber": 156
+          },
+          {
+            "text": "  language: \"ja\" | \"en\";",
+            "lineNumber": 157
+          },
+          {
+            "text": "  notifications: {",
+            "lineNumber": 158
+          },
+          {
+            "text": "    enabled: boolean;",
+            "lineNumber": 159
+          },
+          {
+            "text": "    sound: boolean;",
+            "lineNumber": 160
+          },
+          {
+            "text": "    desktop: boolean;",
+            "lineNumber": 161
+          },
+          {
+            "text": "  };",
+            "lineNumber": 162
+          },
+          {
+            "text": "  shortcuts: {",
+            "lineNumber": 163
+          },
+          {
+            "text": "    [key: string]: string;",
+            "lineNumber": 164
+          },
+          {
+            "text": "  };",
+            "lineNumber": 165
+          },
+          {
+            "text": "  api: {",
+            "lineNumber": 166
+          },
+          {
+            "text": "    timeout: number;",
+            "lineNumber": 167
+          },
+          {
+            "text": "    retryAttempts: number;",
+            "lineNumber": 168
+          },
+          {
+            "text": "    baseUrl?: string;",
+            "lineNumber": 169
+          },
+          {
+            "text": "  };",
+            "lineNumber": 170,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 171,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 172
+          },
+          {
+            "text": "// Form Types",
+            "lineNumber": 173
+          },
+          {
+            "text": "export interface LoginForm {",
+            "lineNumber": 174,
+            "isSignature": true
+          },
+          {
+            "text": "  method: \"api-key\" | \"oauth\";",
+            "lineNumber": 175
+          },
+          {
+            "text": ";",
+            "lineNumber": 177,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 178,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.1985986977815628
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  async runAgent(agentId: string, context: any): Promise&lt;any&gt; {\n    try {\n      // Map agent context to action values\n      const values: Record&lt;string, string&gt; = {};\n      \n      // Map context to action-specific fields\n      if (agentId === 'review') {\n        values.task = context.code || context.path || context.task || '';\n      } else if (agentId === 'audit') {\n        values.task = context.path || context.task || '';\n      } else if (agentId === 'research') {\n        values.topic = context.query || context.topic || '';\n        values.depth = context.depth?.toString() || '3';\n        values.breadth = context.breadth?.toString() || '8';\n      } else if (agentId === 'delegate') {\n        values.agent = context.agent || 'code-reviewer';\n        values.goal = context.goal || context.code || context.task || '';\n        if (context.scope) {\n          values.scope = context.scope;\n        }\n      } else if (agentId === 'ask') {\n        values.prompt = context.prompt || context.code || context.query || '';\n      } else {\n        // Fallback: try to map common fields\n        if (context.code) values.code = context.code;\n        if (context.task) values.task = context.task;\n        if (context.query) values.query = context.query;\n        if (context.prompt) values.prompt = context.prompt;\n      }\n\n      // Call backend API to execute action\n      const response = await fetch(&#96;${this.baseUrl}/api/actions/${agentId}/execute&#96;, {\n        method: 'POST',\n        headers: {\n          'Content-Type': 'application/json',\n        },\n        body: JSON.stringify({ values }),\n      });\n\n      if (!response.ok) {\n        const errorData = await response.json().catch(() =&gt; ({}));\n        throw new CodexAPIError(\n          response.status,\n          errorData.message || &#96;Failed to execute action: ${response.statusText}&#96;\n        );\n    }\n\n      const result = await response.json() as\n;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 253
+          },
+          {
+            "lineNumber": 254
+          },
+          {
+            "text": "  async runAgent(agentId: string, context: any): Promise&lt;any&gt; {",
+            "lineNumber": 255
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 256
+          },
+          {
+            "text": "      // Map agent context to action values",
+            "lineNumber": 257
+          },
+          {
+            "text": "      const values: Record&lt;string, string&gt; = {};",
+            "lineNumber": 258
+          },
+          {
+            "text": "      ",
+            "lineNumber": 259
+          },
+          {
+            "text": "      // Map context to action-specific fields",
+            "lineNumber": 260
+          },
+          {
+            "text": "      if (agentId === 'review') {",
+            "lineNumber": 261
+          },
+          {
+            "text": "        values.task = context.code || context.path || context.task || '';",
+            "lineNumber": 262
+          },
+          {
+            "text": "      } else if (agentId === 'audit') {",
+            "lineNumber": 263
+          },
+          {
+            "text": "        values.task = context.path || context.task || '';",
+            "lineNumber": 264
+          },
+          {
+            "text": "      } else if (agentId === 'research') {",
+            "lineNumber": 265
+          },
+          {
+            "text": "        values.topic = context.query || context.topic || '';",
+            "lineNumber": 266
+          },
+          {
+            "text": "        values.depth = context.depth?.toString() || '3';",
+            "lineNumber": 267
+          },
+          {
+            "text": "        values.breadth = context.breadth?.toString() || '8';",
+            "lineNumber": 268
+          },
+          {
+            "text": "      } else if (agentId === 'delegate') {",
+            "lineNumber": 269
+          },
+          {
+            "text": "        values.agent = context.agent || 'code-reviewer';",
+            "lineNumber": 270
+          },
+          {
+            "text": "        values.goal = context.goal || context.code || context.task || '';",
+            "lineNumber": 271
+          },
+          {
+            "text": "        if (context.scope) {",
+            "lineNumber": 272
+          },
+          {
+            "text": "          values.scope = context.scope;",
+            "lineNumber": 273
+          },
+          {
+            "text": "        }",
+            "lineNumber": 274
+          },
+          {
+            "text": "      } else if (agentId === 'ask') {",
+            "lineNumber": 275
+          },
+          {
+            "text": "        values.prompt = context.prompt || context.code || context.query || '';",
+            "lineNumber": 276
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 277
+          },
+          {
+            "text": "        // Fallback: try to map common fields",
+            "lineNumber": 278
+          },
+          {
+            "text": "        if (context.code) values.code = context.code;",
+            "lineNumber": 279
+          },
+          {
+            "text": "        if (context.task) values.task = context.task;",
+            "lineNumber": 280
+          },
+          {
+            "text": "        if (context.query) values.query = context.query;",
+            "lineNumber": 281
+          },
+          {
+            "text": "        if (context.prompt) values.prompt = context.prompt;",
+            "lineNumber": 282
+          },
+          {
+            "text": "      }",
+            "lineNumber": 283
+          },
+          {
+            "lineNumber": 284
+          },
+          {
+            "text": "      // Call backend API to execute action",
+            "lineNumber": 285
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/actions/${agentId}/execute&#96;, {",
+            "lineNumber": 286
+          },
+          {
+            "text": "        method: 'POST',",
+            "lineNumber": 287
+          },
+          {
+            "text": "        headers: {",
+            "lineNumber": 288
+          },
+          {
+            "text": "          'Content-Type': 'application/json',",
+            "lineNumber": 289
+          },
+          {
+            "text": "        },",
+            "lineNumber": 290
+          },
+          {
+            "text": "        body: JSON.stringify({ values }),",
+            "lineNumber": 291
+          },
+          {
+            "text": "      });",
+            "lineNumber": 292
+          },
+          {
+            "lineNumber": 293
+          },
+          {
+            "text": "      if (!response.ok) {",
+            "lineNumber": 294
+          },
+          {
+            "text": "        const errorData = await response.json().catch(() =&gt; ({}));",
+            "lineNumber": 295
+          },
+          {
+            "text": "        throw new CodexAPIError(",
+            "lineNumber": 296
+          },
+          {
+            "text": "          response.status,",
+            "lineNumber": 297
+          },
+          {
+            "text": "          errorData.message || &#96;Failed to execute action: ${response.statusText}&#96;",
+            "lineNumber": 298
+          },
+          {
+            "text": "        );",
+            "lineNumber": 299
+          },
+          {
+            "text": "    }",
+            "lineNumber": 300
+          },
+          {
+            "lineNumber": 301
+          },
+          {
+            "text": "      const result = await response.json() as",
+            "lineNumber": 302
+          },
+          {
+            "text": ";",
+            "lineNumber": 312
+          },
+          {
+            "text": "  }",
+            "lineNumber": 349
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.08172719925642014
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\components\\virtual-os\\ResourceMonitor.tsx",
+        "range": {
+          "startPosition": {
+            "line": 57
+          },
+          "endPosition": {
+            "line": 632,
+            "column": 1
+          }
+        },
+        "contents": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {\n() =&gt; {\nconst interval = (fetchSystemMetrics, 5000)\n\n    // Set up WebSocket connection for real-time updates\n    try {\n      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'\n      const wsUrl = &#96;${wsProtocol}//${window.location.hostname}:8787&#96;\n      const ws = new WebSocket(wsUrl)\n      \n      ws.onmessage = (event) =&gt; {\n        try {\n          const data = JSON.parse(event.data)\n          if (data.type === 'system_metrics' &amp;&amp; data.data) {\n            const metrics: SystemMetrics = {\n              cpuUsage: data.data.cpu_usage || data.data.cpuUsage || 0,\n              memoryUsage: data.data.memory_usage || data.data.memoryUsage || 0,\n              diskUsage: data.data.disk_usage || data.data.diskUsage || 0,\n              networkUsage: data.data.network_usage || data.data.networkUsage,\n              activeProcesses: data.data.active_processes || data.data.activeProcesses || 0,\n              uptime: data.data.uptime || 0,\n              gpuUsage: data.data.gpu_usage || data.data.gpuUsage,\n              gpuMemoryUsed: data.data.gpu_memory_used || data.data.gpuMemoryUsed,\n              gpuMemoryTotal: data.data.gpu_memory_total || data.data.gpuMemoryTotal,\n              gpuMemoryUsage: data.data.gpu_memory_usage || data.data.gpuMemoryUsage,\n              gpuTemperature: data.data.gpu_temperature || data.data.gpuTemperature,\n              gpuName: data.data.gpu_name || data.data.gpuName,\n              gpuVendor: data.data.gpu_vendor || data.data.gpuVendor,\n            }\n            setSystemMetrics(metrics)\n            previousMetricsRef.current = metrics\n          }\n        } catch (error) {\n          console.error('Failed to parse WebSocket message:', error)\n        }\n      }\n\n      ws.onerror = (error) =&gt; {\n        console.warn('WebSocket error, falling back to polling:', error)\n      }\n\n      ws.onclose = () =&gt; {\n        console.log('WebSocket closed, using polling only')\n      }\n\n      wsRef.current = ws\n    } catch (error) {\n      console.warn('WebSocket connection failed, using polling only:', error)\n    }\n\n    return () =&gt; {\n      clearInterval(interval)\n    }\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 59,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 74,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 74,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 74,
+                "column": 13
+              },
+              "endPosition": {
+                "line": 75,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {",
+            "lineNumber": 58,
+            "isSignature": true
+          },
+          {
+            "text": "() =&gt; {",
+            "lineNumber": 74
+          },
+          {
+            "text": "const interval = (fetchSystemMetrics, 5000)",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "    // Set up WebSocket connection for real-time updates",
+            "lineNumber": 91
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 92
+          },
+          {
+            "text": "      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'",
+            "lineNumber": 93
+          },
+          {
+            "text": "      const wsUrl = &#96;${wsProtocol}//${window.location.hostname}:8787&#96;",
+            "lineNumber": 94
+          },
+          {
+            "text": "      const ws = new WebSocket(wsUrl)",
+            "lineNumber": 95
+          },
+          {
+            "text": "      ",
+            "lineNumber": 96
+          },
+          {
+            "text": "      ws.onmessage = (event) =&gt; {",
+            "lineNumber": 97
+          },
+          {
+            "text": "        try {",
+            "lineNumber": 98
+          },
+          {
+            "text": "          const data = JSON.parse(event.data)",
+            "lineNumber": 99
+          },
+          {
+            "text": "          if (data.type === 'system_metrics' &amp;&amp; data.data) {",
+            "lineNumber": 100
+          },
+          {
+            "text": "            const metrics: SystemMetrics = {",
+            "lineNumber": 101
+          },
+          {
+            "text": "              cpuUsage: data.data.cpu_usage || data.data.cpuUsage || 0,",
+            "lineNumber": 102
+          },
+          {
+            "text": "              memoryUsage: data.data.memory_usage || data.data.memoryUsage || 0,",
+            "lineNumber": 103
+          },
+          {
+            "text": "              diskUsage: data.data.disk_usage || data.data.diskUsage || 0,",
+            "lineNumber": 104
+          },
+          {
+            "text": "              networkUsage: data.data.network_usage || data.data.networkUsage,",
+            "lineNumber": 105
+          },
+          {
+            "text": "              activeProcesses: data.data.active_processes || data.data.activeProcesses || 0,",
+            "lineNumber": 106
+          },
+          {
+            "text": "              uptime: data.data.uptime || 0,",
+            "lineNumber": 107
+          },
+          {
+            "text": "              gpuUsage: data.data.gpu_usage || data.data.gpuUsage,",
+            "lineNumber": 108
+          },
+          {
+            "text": "              gpuMemoryUsed: data.data.gpu_memory_used || data.data.gpuMemoryUsed,",
+            "lineNumber": 109
+          },
+          {
+            "text": "              gpuMemoryTotal: data.data.gpu_memory_total || data.data.gpuMemoryTotal,",
+            "lineNumber": 110
+          },
+          {
+            "text": "              gpuMemoryUsage: data.data.gpu_memory_usage || data.data.gpuMemoryUsage,",
+            "lineNumber": 111
+          },
+          {
+            "text": "              gpuTemperature: data.data.gpu_temperature || data.data.gpuTemperature,",
+            "lineNumber": 112
+          },
+          {
+            "text": "              gpuName: data.data.gpu_name || data.data.gpuName,",
+            "lineNumber": 113
+          },
+          {
+            "text": "              gpuVendor: data.data.gpu_vendor || data.data.gpuVendor,",
+            "lineNumber": 114
+          },
+          {
+            "text": "            }",
+            "lineNumber": 115
+          },
+          {
+            "text": "            setSystemMetrics(metrics)",
+            "lineNumber": 116
+          },
+          {
+            "text": "            previousMetricsRef.current = metrics",
+            "lineNumber": 117
+          },
+          {
+            "text": "          }",
+            "lineNumber": 118
+          },
+          {
+            "text": "        } catch (error) {",
+            "lineNumber": 119
+          },
+          {
+            "text": "          console.error('Failed to parse WebSocket message:', error)",
+            "lineNumber": 120
+          },
+          {
+            "text": "        }",
+            "lineNumber": 121
+          },
+          {
+            "text": "      }",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "      ws.onerror = (error) =&gt; {",
+            "lineNumber": 124
+          },
+          {
+            "text": "        console.warn('WebSocket error, falling back to polling:', error)",
+            "lineNumber": 125
+          },
+          {
+            "text": "      }",
+            "lineNumber": 126
+          },
+          {
+            "lineNumber": 127
+          },
+          {
+            "text": "      ws.onclose = () =&gt; {",
+            "lineNumber": 128
+          },
+          {
+            "text": "        console.log('WebSocket closed, using polling only')",
+            "lineNumber": 129
+          },
+          {
+            "text": "      }",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "      wsRef.current = ws",
+            "lineNumber": 132
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 133
+          },
+          {
+            "text": "      console.warn('WebSocket connection failed, using polling only:', error)",
+            "lineNumber": 134
+          },
+          {
+            "text": "    }",
+            "lineNumber": 135
+          },
+          {
+            "lineNumber": 136
+          },
+          {
+            "text": "    return () =&gt; {",
+            "lineNumber": 137
+          },
+          {
+            "text": "      clearInterval(interval)",
+            "lineNumber": 138
+          },
+          {
+            "text": "    }",
+            "lineNumber": 142
+          },
+          {
+            "text": "  }",
+            "lineNumber": 143
+          },
+          {
+            "text": "}",
+            "lineNumber": 633,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.07655615359544754
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // WebSocket connection for real-time updates\n  connectWebSocket(onMessage: (message: any) =&gt; void): void {\n    try {\n      this.wsConnection = new WebSocket(&#96;ws://localhost:8787&#96;);\n\n      this.wsConnection.onopen = () =&gt; {\n        console.log('WebSocket connected');\n      };\n\n      this.wsConnection.onmessage = (event) =&gt; {\n        try {\n          const message = JSON.parse(event.data);\n          onMessage(message);\n        } catch (error) {\n          console.error('Failed to parse WebSocket message:', error);\n        }\n      };\n\n      this.wsConnection.onclose = () =&gt; {\n        console.log('WebSocket disconnected');\n        // Auto-reconnect after 5 seconds\n        setTimeout(() =&gt; this.connectWebSocket(onMessage), 5000);\n      };\n\n      this.wsConnection.onerror = (error) =&gt; {\n        console.error('WebSocket error:', error);\n      };\n    } catch (error) {\n      console.error('Failed to connect WebSocket:', error);\n    }\n  }\n\n  disconnectWebSocket(): void {\n    if (this.wsConnection)\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "lineNumber": 85
+          },
+          {
+            "text": "  // WebSocket connection for real-time updates",
+            "lineNumber": 86
+          },
+          {
+            "text": "  connectWebSocket(onMessage: (message: any) =&gt; void): void {",
+            "lineNumber": 87
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 88
+          },
+          {
+            "text": "      this.wsConnection = new WebSocket(&#96;ws://localhost:8787&#96;);",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "      this.wsConnection.onopen = () =&gt; {",
+            "lineNumber": 91
+          },
+          {
+            "text": "        console.log('WebSocket connected');",
+            "lineNumber": 92
+          },
+          {
+            "text": "      };",
+            "lineNumber": 93
+          },
+          {
+            "lineNumber": 94
+          },
+          {
+            "text": "      this.wsConnection.onmessage = (event) =&gt; {",
+            "lineNumber": 95
+          },
+          {
+            "text": "        try {",
+            "lineNumber": 96
+          },
+          {
+            "text": "          const message = JSON.parse(event.data);",
+            "lineNumber": 97
+          },
+          {
+            "text": "          onMessage(message);",
+            "lineNumber": 98
+          },
+          {
+            "text": "        } catch (error) {",
+            "lineNumber": 99
+          },
+          {
+            "text": "          console.error('Failed to parse WebSocket message:', error);",
+            "lineNumber": 100
+          },
+          {
+            "text": "        }",
+            "lineNumber": 101
+          },
+          {
+            "text": "      };",
+            "lineNumber": 102
+          },
+          {
+            "lineNumber": 103
+          },
+          {
+            "text": "      this.wsConnection.onclose = () =&gt; {",
+            "lineNumber": 104
+          },
+          {
+            "text": "        console.log('WebSocket disconnected');",
+            "lineNumber": 105
+          },
+          {
+            "text": "        // Auto-reconnect after 5 seconds",
+            "lineNumber": 106
+          },
+          {
+            "text": "        setTimeout(() =&gt; this.connectWebSocket(onMessage), 5000);",
+            "lineNumber": 107
+          },
+          {
+            "text": "      };",
+            "lineNumber": 108
+          },
+          {
+            "lineNumber": 109
+          },
+          {
+            "text": "      this.wsConnection.onerror = (error) =&gt; {",
+            "lineNumber": 110
+          },
+          {
+            "text": "        console.error('WebSocket error:', error);",
+            "lineNumber": 111
+          },
+          {
+            "text": "      };",
+            "lineNumber": 112
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 113
+          },
+          {
+            "text": "      console.error('Failed to connect WebSocket:', error);",
+            "lineNumber": 114
+          },
+          {
+            "text": "    }",
+            "lineNumber": 115
+          },
+          {
+            "text": "  }",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "  disconnectWebSocket(): void {",
+            "lineNumber": 118
+          },
+          {
+            "text": "    if (this.wsConnection)",
+            "lineNumber": 119
+          },
+          {
+            "text": "  }",
+            "lineNumber": 123
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.06557255983352661
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\types\\index.ts",
+        "range": {
+          "startPosition": {
+            "line": 190,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 207,
+            "column": 1
+          }
+        },
+        "contents": "// Component Props Types\nexport interface DashboardProps {\n  user: User | null;\n  conversations: Conversation[];\n  agents: Agent[];\n  metrics: SystemMetrics;\n  notifications: NotificationItem[];\n}\n\nexport interface User {\n  id: string;\n  email?: string;\n  name?: string;\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// Component Props Types",
+            "lineNumber": 193
+          },
+          {
+            "text": "export interface DashboardProps {",
+            "lineNumber": 194,
+            "isSignature": true
+          },
+          {
+            "text": "  user: User | null;",
+            "lineNumber": 195
+          },
+          {
+            "text": "  conversations: Conversation[];",
+            "lineNumber": 196
+          },
+          {
+            "text": "  agents: Agent[];",
+            "lineNumber": 197
+          },
+          {
+            "text": "  metrics: SystemMetrics;",
+            "lineNumber": 198
+          },
+          {
+            "text": "  notifications: NotificationItem[];",
+            "lineNumber": 199,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 200,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 201
+          },
+          {
+            "text": "export interface User {",
+            "lineNumber": 202,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;",
+            "lineNumber": 203
+          },
+          {
+            "text": "  email?: string;",
+            "lineNumber": 204
+          },
+          {
+            "text": "  name?: string;",
+            "lineNumber": 205
+          },
+          {
+            "text": ";",
+            "lineNumber": 207,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 208,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.0601234994828701
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\components\\virtual-os\\ResourceMonitor.tsx",
+        "range": {
+          "startPosition": {
+            "line": 57
+          },
+          "endPosition": {
+            "line": 632,
+            "column": 1
+          }
+        },
+        "contents": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {\n\n      &lt;Card className=\"p-6\"&gt;\n        &lt;h2 className=\"text-xl font-bold mb-4\"&gt;Resource Management&lt;/h2&gt;\n\n        &lt;div className=\"grid grid-cols-1 md:grid-cols-3 gap-4\"&gt;\n          &lt;Button variant=\"outline\" className=\"p-4 h-auto\"&gt;\n            &lt;div className=\"text-center\"&gt;\n              &lt;Settings className=\"w-6 h-6 mx-auto mb-2\" /&gt;\n              &lt;div className=\"font-medium\"&gt;Auto Scaling&lt;/div&gt;\n              &lt;div className=\"text-sm text-gray-600\"&gt;Automatically adjust resources&lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/Button&gt;\n\n          &lt;Button variant=\"outline\" className=\"p-4 h-auto\"&gt;\n            &lt;div className=\"text-center\"&gt;\n              &lt;Network className=\"w-6 h-6 mx-auto mb-2\" /&gt;\n              &lt;div className=\"font-medium\"&gt;Network Limits&lt;/div&gt;\n              &lt;div className=\"text-sm text-gray-600\"&gt;Set bandwidth restrictions&lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/Button&gt;\n\n          &lt;Button variant=\"outline\" className=\"p-4 h-auto\"&gt;\n            &lt;div className=\"text-center\"&gt;\n              &lt;Clock className=\"w-6 h-6 mx-auto mb-2\" /&gt;\n              &lt;div className=\"font-medium\"&gt;Scheduled Cleanup&lt;/div&gt;\n              &lt;div className=\"text-sm text-gray-600\"&gt;Automatic resource cleanup&lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/Button&gt;\n        &lt;/div&gt;\n      &lt;/Card&gt;\n    &lt;/div&gt;\n  )\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 59,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {",
+            "lineNumber": 58,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 601
+          },
+          {
+            "text": "      &lt;Card className=\"p-6\"&gt;",
+            "lineNumber": 602
+          },
+          {
+            "text": "        &lt;h2 className=\"text-xl font-bold mb-4\"&gt;Resource Management&lt;/h2&gt;",
+            "lineNumber": 603
+          },
+          {
+            "lineNumber": 604
+          },
+          {
+            "text": "        &lt;div className=\"grid grid-cols-1 md:grid-cols-3 gap-4\"&gt;",
+            "lineNumber": 605
+          },
+          {
+            "text": "          &lt;Button variant=\"outline\" className=\"p-4 h-auto\"&gt;",
+            "lineNumber": 606
+          },
+          {
+            "text": "            &lt;div className=\"text-center\"&gt;",
+            "lineNumber": 607
+          },
+          {
+            "text": "              &lt;Settings className=\"w-6 h-6 mx-auto mb-2\" /&gt;",
+            "lineNumber": 608
+          },
+          {
+            "text": "              &lt;div className=\"font-medium\"&gt;Auto Scaling&lt;/div&gt;",
+            "lineNumber": 609
+          },
+          {
+            "text": "              &lt;div className=\"text-sm text-gray-600\"&gt;Automatically adjust resources&lt;/div&gt;",
+            "lineNumber": 610
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 611
+          },
+          {
+            "text": "          &lt;/Button&gt;",
+            "lineNumber": 612
+          },
+          {
+            "lineNumber": 613
+          },
+          {
+            "text": "          &lt;Button variant=\"outline\" className=\"p-4 h-auto\"&gt;",
+            "lineNumber": 614
+          },
+          {
+            "text": "            &lt;div className=\"text-center\"&gt;",
+            "lineNumber": 615
+          },
+          {
+            "text": "              &lt;Network className=\"w-6 h-6 mx-auto mb-2\" /&gt;",
+            "lineNumber": 616
+          },
+          {
+            "text": "              &lt;div className=\"font-medium\"&gt;Network Limits&lt;/div&gt;",
+            "lineNumber": 617
+          },
+          {
+            "text": "              &lt;div className=\"text-sm text-gray-600\"&gt;Set bandwidth restrictions&lt;/div&gt;",
+            "lineNumber": 618
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 619
+          },
+          {
+            "text": "          &lt;/Button&gt;",
+            "lineNumber": 620
+          },
+          {
+            "lineNumber": 621
+          },
+          {
+            "text": "          &lt;Button variant=\"outline\" className=\"p-4 h-auto\"&gt;",
+            "lineNumber": 622
+          },
+          {
+            "text": "            &lt;div className=\"text-center\"&gt;",
+            "lineNumber": 623
+          },
+          {
+            "text": "              &lt;Clock className=\"w-6 h-6 mx-auto mb-2\" /&gt;",
+            "lineNumber": 624
+          },
+          {
+            "text": "              &lt;div className=\"font-medium\"&gt;Scheduled Cleanup&lt;/div&gt;",
+            "lineNumber": 625
+          },
+          {
+            "text": "              &lt;div className=\"text-sm text-gray-600\"&gt;Automatic resource cleanup&lt;/div&gt;",
+            "lineNumber": 626
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 627
+          },
+          {
+            "text": "          &lt;/Button&gt;",
+            "lineNumber": 628
+          },
+          {
+            "text": "        &lt;/div&gt;",
+            "lineNumber": 629
+          },
+          {
+            "text": "      &lt;/Card&gt;",
+            "lineNumber": 630
+          },
+          {
+            "text": "    &lt;/div&gt;",
+            "lineNumber": 631
+          },
+          {
+            "text": "  )",
+            "lineNumber": 632
+          },
+          {
+            "text": "}",
+            "lineNumber": 633,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.05628729984164238
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\types\\index.ts",
+        "range": {
+          "startPosition": {
+            "line": 154
+          },
+          "endPosition": {
+            "line": 183,
+            "column": 1
+          }
+        },
+        "contents": ";\n}\n\n// Form Types\nexport interface LoginForm {\n  method: \"api-key\" | \"oauth\";\n  apiKey?: string;\n  email?: string;\n}\n\nexport interface NewConversationForm {\n  model: string;\n  initialMessage: string\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": ";",
+            "lineNumber": 170,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 171,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 172
+          },
+          {
+            "text": "// Form Types",
+            "lineNumber": 173
+          },
+          {
+            "text": "export interface LoginForm {",
+            "lineNumber": 174,
+            "isSignature": true
+          },
+          {
+            "text": "  method: \"api-key\" | \"oauth\";",
+            "lineNumber": 175
+          },
+          {
+            "text": "  apiKey?: string;",
+            "lineNumber": 176
+          },
+          {
+            "text": "  email?: string;",
+            "lineNumber": 177,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 178,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 179
+          },
+          {
+            "text": "export interface NewConversationForm {",
+            "lineNumber": 180,
+            "isSignature": true
+          },
+          {
+            "text": "  model: string;",
+            "lineNumber": 181
+          },
+          {
+            "text": "  initialMessage: string",
+            "lineNumber": 182
+          },
+          {
+            "text": ";",
+            "lineNumber": 183,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 184,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.04709697142243385
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // Agents - Get from backend API\n  async getAgents(): Promise&lt;Agent[]&gt; {\n    try {\n      // Fetch actions from backend API\n      const response = await fetch(&#96;${this.baseUrl}/api/actions&#96;, {\n        method: 'GET',\n        headers: {\n          'Content-Type': 'application/json',\n        },\n      });\n\n      if (!response.ok) {\n        throw new CodexAPIError(\n          response.status,\n          &#96;Failed to fetch actions: ${response.statusText}&#96;\n        );\n      }\n\n      const actions = await response.json() as Array&lt;{\n        id: string;\n        label: string;\n        description: string;\n        category: string;\n      }&gt;;\n\n      // Map actions to agents\n      return actions.map(action =&gt; ({\n        id: action.id,\n        name: action.label,\n        type: action.id,\n        status: 'idle' as const,\n        description: action.description,\n      }));\n    } catch (error) {\n      console.error('Failed to fetch agents from backend:', error);\n      // Fallback to default agents if backend is unavailable\n    return [\n      {\n        id: 'code-reviewer',\n        name: 'Code Reviewer',\n        type: 'code-reviewer',\n        status: 'idle',\n        description: 'コードの品質とセキュリティをレビューします',\n      },\n      {\n        id: 'test-gen',\n        name: 'Test Generator',\n        type: 'test-gen',\n        status: 'idle',\n        description: '自動的にテストコードを生成します',\n      },\n      {\n        id: 'sec-audit',\n        name: 'Security Auditor',\n        type: 'sec-audit',\n        status: 'idle',\n        description: 'セキュリティ脆弱性をスキャンします',\n      },\n      {\n        id: 'researcher',\n        name: 'Deep Researcher',\n        type: 'researcher',\n        status: 'idle',\n        description: '高度な研究と分析を行います',\n      },\n    ];\n    }\n  }\n\n  async runAgent(agentId: string, context: any): Promise&lt;any&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "  // Agents - Get from backend API",
+            "lineNumber": 186
+          },
+          {
+            "text": "  async getAgents(): Promise&lt;Agent[]&gt; {",
+            "lineNumber": 187
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 188
+          },
+          {
+            "text": "      // Fetch actions from backend API",
+            "lineNumber": 189
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/actions&#96;, {",
+            "lineNumber": 190
+          },
+          {
+            "text": "        method: 'GET',",
+            "lineNumber": 191
+          },
+          {
+            "text": "        headers: {",
+            "lineNumber": 192
+          },
+          {
+            "text": "          'Content-Type': 'application/json',",
+            "lineNumber": 193
+          },
+          {
+            "text": "        },",
+            "lineNumber": 194
+          },
+          {
+            "text": "      });",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "      if (!response.ok) {",
+            "lineNumber": 197
+          },
+          {
+            "text": "        throw new CodexAPIError(",
+            "lineNumber": 198
+          },
+          {
+            "text": "          response.status,",
+            "lineNumber": 199
+          },
+          {
+            "text": "          &#96;Failed to fetch actions: ${response.statusText}&#96;",
+            "lineNumber": 200
+          },
+          {
+            "text": "        );",
+            "lineNumber": 201
+          },
+          {
+            "text": "      }",
+            "lineNumber": 202
+          },
+          {
+            "lineNumber": 203
+          },
+          {
+            "text": "      const actions = await response.json() as Array&lt;{",
+            "lineNumber": 204
+          },
+          {
+            "text": "        id: string;",
+            "lineNumber": 205
+          },
+          {
+            "text": "        label: string;",
+            "lineNumber": 206
+          },
+          {
+            "text": "        description: string;",
+            "lineNumber": 207
+          },
+          {
+            "text": "        category: string;",
+            "lineNumber": 208
+          },
+          {
+            "text": "      }&gt;;",
+            "lineNumber": 209
+          },
+          {
+            "lineNumber": 210
+          },
+          {
+            "text": "      // Map actions to agents",
+            "lineNumber": 211
+          },
+          {
+            "text": "      return actions.map(action =&gt; ({",
+            "lineNumber": 212
+          },
+          {
+            "text": "        id: action.id,",
+            "lineNumber": 213
+          },
+          {
+            "text": "        name: action.label,",
+            "lineNumber": 214
+          },
+          {
+            "text": "        type: action.id,",
+            "lineNumber": 215
+          },
+          {
+            "text": "        status: 'idle' as const,",
+            "lineNumber": 216
+          },
+          {
+            "text": "        description: action.description,",
+            "lineNumber": 217
+          },
+          {
+            "text": "      }));",
+            "lineNumber": 218
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 219
+          },
+          {
+            "text": "      console.error('Failed to fetch agents from backend:', error);",
+            "lineNumber": 220
+          },
+          {
+            "text": "      // Fallback to default agents if backend is unavailable",
+            "lineNumber": 221
+          },
+          {
+            "text": "    return [",
+            "lineNumber": 222
+          },
+          {
+            "text": "      {",
+            "lineNumber": 223
+          },
+          {
+            "text": "        id: 'code-reviewer',",
+            "lineNumber": 224
+          },
+          {
+            "text": "        name: 'Code Reviewer',",
+            "lineNumber": 225
+          },
+          {
+            "text": "        type: 'code-reviewer',",
+            "lineNumber": 226
+          },
+          {
+            "text": "        status: 'idle',",
+            "lineNumber": 227
+          },
+          {
+            "text": "        description: 'コードの品質とセキュリティをレビューします',",
+            "lineNumber": 228
+          },
+          {
+            "text": "      },",
+            "lineNumber": 229
+          },
+          {
+            "text": "      {",
+            "lineNumber": 230
+          },
+          {
+            "text": "        id: 'test-gen',",
+            "lineNumber": 231
+          },
+          {
+            "text": "        name: 'Test Generator',",
+            "lineNumber": 232
+          },
+          {
+            "text": "        type: 'test-gen',",
+            "lineNumber": 233
+          },
+          {
+            "text": "        status: 'idle',",
+            "lineNumber": 234
+          },
+          {
+            "text": "        description: '自動的にテストコードを生成します',",
+            "lineNumber": 235
+          },
+          {
+            "text": "      },",
+            "lineNumber": 236
+          },
+          {
+            "text": "      {",
+            "lineNumber": 237
+          },
+          {
+            "text": "        id: 'sec-audit',",
+            "lineNumber": 238
+          },
+          {
+            "text": "        name: 'Security Auditor',",
+            "lineNumber": 239
+          },
+          {
+            "text": "        type: 'sec-audit',",
+            "lineNumber": 240
+          },
+          {
+            "text": "        status: 'idle',",
+            "lineNumber": 241
+          },
+          {
+            "text": "        description: 'セキュリティ脆弱性をスキャンします',",
+            "lineNumber": 242
+          },
+          {
+            "text": "      },",
+            "lineNumber": 243
+          },
+          {
+            "text": "      {",
+            "lineNumber": 244
+          },
+          {
+            "text": "        id: 'researcher',",
+            "lineNumber": 245
+          },
+          {
+            "text": "        name: 'Deep Researcher',",
+            "lineNumber": 246
+          },
+          {
+            "text": "        type: 'researcher',",
+            "lineNumber": 247
+          },
+          {
+            "text": "        status: 'idle',",
+            "lineNumber": 248
+          },
+          {
+            "text": "        description: '高度な研究と分析を行います',",
+            "lineNumber": 249
+          },
+          {
+            "text": "      },",
+            "lineNumber": 250
+          },
+          {
+            "text": "    ];",
+            "lineNumber": 251
+          },
+          {
+            "text": "    }",
+            "lineNumber": 252
+          },
+          {
+            "text": "  }",
+            "lineNumber": 253
+          },
+          {
+            "lineNumber": 254
+          },
+          {
+            "text": "  async runAgent(agentId: string, context: any): Promise&lt;any&gt; {",
+            "lineNumber": 255
+          },
+          {
+            "text": "    try",
+            "lineNumber": 256
+          },
+          {
+            "text": "  }",
+            "lineNumber": 349
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.0435246005654335
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\types\\index.ts",
+        "range": {
+          "startPosition": {
+            "line": 146,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 170,
+            "column": 1
+          }
+        },
+        "contents": "export interface WebSocketMessage {\n  type: \"conversation_update\" | \"agent_status\" | \"system_metrics\" | \"notification\";\n  data: any;\n}\n\n// Configuration Types\nexport interface AppConfig {\n  theme: \"light\" | \"dark\" | \"system\"\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export interface WebSocketMessage {",
+            "lineNumber": 149,
+            "isSignature": true
+          },
+          {
+            "text": "  type: \"conversation_update\" | \"agent_status\" | \"system_metrics\" | \"notification\";",
+            "lineNumber": 150
+          },
+          {
+            "text": "  data: any;",
+            "lineNumber": 151,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 152,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 153
+          },
+          {
+            "text": "// Configuration Types",
+            "lineNumber": 154
+          },
+          {
+            "text": "export interface AppConfig {",
+            "lineNumber": 155,
+            "isSignature": true
+          },
+          {
+            "text": "  theme: \"light\" | \"dark\" | \"system\"",
+            "lineNumber": 156
+          },
+          {
+            "text": ";",
+            "lineNumber": 170,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 171,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.034185200929641724
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 821,
+            "column": 46
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  getBridgeWebSocketUrl(path = '/cli/bridge'): string {\n    const endpoint = new URL(this.baseUrl);\n    endpoint.protocol = endpoint.protocol === 'https:' ? 'wss:' : 'ws:';\n    endpoint.pathname = path.startsWith('/') ? path : &#96;/${path}&#96;;\n    return endpoint.toString();\n  }\n}\n\n// Singleton instance\nexport const apiClient = new CodexAPIClient();",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 811
+          },
+          {
+            "lineNumber": 812
+          },
+          {
+            "text": "  getBridgeWebSocketUrl(path = '/cli/bridge'): string {",
+            "lineNumber": 813
+          },
+          {
+            "text": "    const endpoint = new URL(this.baseUrl);",
+            "lineNumber": 814
+          },
+          {
+            "text": "    endpoint.protocol = endpoint.protocol === 'https:' ? 'wss:' : 'ws:';",
+            "lineNumber": 815
+          },
+          {
+            "text": "    endpoint.pathname = path.startsWith('/') ? path : &#96;/${path}&#96;;",
+            "lineNumber": 816
+          },
+          {
+            "text": "    return endpoint.toString();",
+            "lineNumber": 817
+          },
+          {
+            "text": "  }",
+            "lineNumber": 818
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 820
+          },
+          {
+            "text": "// Singleton instance",
+            "lineNumber": 821
+          },
+          {
+            "text": "export const apiClient = new CodexAPIClient();",
+            "lineNumber": 822
+          }
+        ]
+      },
+      "score": 0.024196859449148178
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // Get system metrics from CLI/TUI via codex command\n  private async getSystemMetricsFromCLI(): Promise&lt;SystemMetrics | null&gt; {\n    try {\n      // Try to use DualBridge if available (via CodexContext)\n      // This will be called from components that have access to the bridge\n      // For now, we'll use a direct API call to the mock server or Rust backend\n      \n      // Option 1: Try Rust backend API endpoint\n      const response = await fetch(&#96;${this.baseUrl}/api/system/metrics&#96;, {\n        method: 'GET',\n        headers: {\n          'Content-Type': 'application/json',\n        },\n      });\n\n      if (response.ok) {\n        const data = await response.json();\n        return {\n          cpuUsage: data.cpu_usage || data.cpuUsage || 0,\n          memoryUsage: data.memory_usage || data.memoryUsage || 0,\n          diskUsage: data.disk_usage || data.diskUsage || 0,\n          activeProcesses: data.active_processes || data.activeProcesses || 0,\n          uptime: data.uptime || 0,\n          gpuUsage: data.gpu_usage || data.gpuUsage,\n          gpuMemoryUsed: data.gpu_memory_used || data.gpuMemoryUsed,\n          gpuMemoryTotal: data.gpu_memory_total || data.gpuMemoryTotal,\n          gpuMemoryUsage: data.gpu_memory_usage || data.gpuMemoryUsage,\n          gpuTemperature: data.gpu_temperature || data.gpuTemperature,\n          gpuName: data.gpu_name || data.gpuName,\n          gpuVendor: data.gpu_vendor || data.gpuVendor,\n        };\n      }\n    } catch (error) {\n      console.warn('CLI system metrics fetch failed:', error);\n    }\n    return null;\n  }\n\n  // Execute codex CLI command via bridge\n  async executeCodexCommand(args: string[]): Promise&lt;any&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 579
+          },
+          {
+            "lineNumber": 580
+          },
+          {
+            "text": "  // Get system metrics from CLI/TUI via codex command",
+            "lineNumber": 581
+          },
+          {
+            "text": "  private async getSystemMetricsFromCLI(): Promise&lt;SystemMetrics | null&gt; {",
+            "lineNumber": 582
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 583
+          },
+          {
+            "text": "      // Try to use DualBridge if available (via CodexContext)",
+            "lineNumber": 584
+          },
+          {
+            "text": "      // This will be called from components that have access to the bridge",
+            "lineNumber": 585
+          },
+          {
+            "text": "      // For now, we'll use a direct API call to the mock server or Rust backend",
+            "lineNumber": 586
+          },
+          {
+            "text": "      ",
+            "lineNumber": 587
+          },
+          {
+            "text": "      // Option 1: Try Rust backend API endpoint",
+            "lineNumber": 588
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/system/metrics&#96;, {",
+            "lineNumber": 589
+          },
+          {
+            "text": "        method: 'GET',",
+            "lineNumber": 590
+          },
+          {
+            "text": "        headers: {",
+            "lineNumber": 591
+          },
+          {
+            "text": "          'Content-Type': 'application/json',",
+            "lineNumber": 592
+          },
+          {
+            "text": "        },",
+            "lineNumber": 593
+          },
+          {
+            "text": "      });",
+            "lineNumber": 594
+          },
+          {
+            "lineNumber": 595
+          },
+          {
+            "text": "      if (response.ok) {",
+            "lineNumber": 596
+          },
+          {
+            "text": "        const data = await response.json();",
+            "lineNumber": 597
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 598
+          },
+          {
+            "text": "          cpuUsage: data.cpu_usage || data.cpuUsage || 0,",
+            "lineNumber": 599
+          },
+          {
+            "text": "          memoryUsage: data.memory_usage || data.memoryUsage || 0,",
+            "lineNumber": 600
+          },
+          {
+            "text": "          diskUsage: data.disk_usage || data.diskUsage || 0,",
+            "lineNumber": 601
+          },
+          {
+            "text": "          activeProcesses: data.active_processes || data.activeProcesses || 0,",
+            "lineNumber": 602
+          },
+          {
+            "text": "          uptime: data.uptime || 0,",
+            "lineNumber": 603
+          },
+          {
+            "text": "          gpuUsage: data.gpu_usage || data.gpuUsage,",
+            "lineNumber": 604
+          },
+          {
+            "text": "          gpuMemoryUsed: data.gpu_memory_used || data.gpuMemoryUsed,",
+            "lineNumber": 605
+          },
+          {
+            "text": "          gpuMemoryTotal: data.gpu_memory_total || data.gpuMemoryTotal,",
+            "lineNumber": 606
+          },
+          {
+            "text": "          gpuMemoryUsage: data.gpu_memory_usage || data.gpuMemoryUsage,",
+            "lineNumber": 607
+          },
+          {
+            "text": "          gpuTemperature: data.gpu_temperature || data.gpuTemperature,",
+            "lineNumber": 608
+          },
+          {
+            "text": "          gpuName: data.gpu_name || data.gpuName,",
+            "lineNumber": 609
+          },
+          {
+            "text": "          gpuVendor: data.gpu_vendor || data.gpuVendor,",
+            "lineNumber": 610
+          },
+          {
+            "text": "        };",
+            "lineNumber": 611
+          },
+          {
+            "text": "      }",
+            "lineNumber": 612
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 613
+          },
+          {
+            "text": "      console.warn('CLI system metrics fetch failed:', error);",
+            "lineNumber": 614
+          },
+          {
+            "text": "    }",
+            "lineNumber": 615
+          },
+          {
+            "text": "    return null;",
+            "lineNumber": 616
+          },
+          {
+            "text": "  }",
+            "lineNumber": 617
+          },
+          {
+            "lineNumber": 618
+          },
+          {
+            "text": "  // Execute codex CLI command via bridge",
+            "lineNumber": 619
+          },
+          {
+            "text": "  async executeCodexCommand(args: string[]): Promise&lt;any&gt; {",
+            "lineNumber": 620
+          },
+          {
+            "text": "    try",
+            "lineNumber": 621
+          },
+          {
+            "text": "  }",
+            "lineNumber": 643
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.023198099806904793
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // File operations\n  async executeCommand(command: string[], cwd?: string): Promise&lt;{ exitCode: number; stdout: string; stderr: string }&gt; {\n    return this.httpRequest('execOneOffCommand', {\n      command,\n      cwd: cwd || process.cwd(),\n    });\n  }\n\n  async fuzzyFileSearch(query: string, roots: string[]): Promise&lt;any[]&gt; {\n    return this.httpRequest('fuzzyFileSearch', { query, roots });\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 786
+          },
+          {
+            "lineNumber": 787
+          },
+          {
+            "text": "  // File operations",
+            "lineNumber": 788
+          },
+          {
+            "text": "  async executeCommand(command: string[], cwd?: string): Promise&lt;{ exitCode: number; stdout: string; stderr: string }&gt; {",
+            "lineNumber": 789
+          },
+          {
+            "text": "    return this.httpRequest('execOneOffCommand', {",
+            "lineNumber": 790
+          },
+          {
+            "text": "      command,",
+            "lineNumber": 791
+          },
+          {
+            "text": "      cwd: cwd || process.cwd(),",
+            "lineNumber": 792
+          },
+          {
+            "text": "    });",
+            "lineNumber": 793
+          },
+          {
+            "text": "  }",
+            "lineNumber": 794
+          },
+          {
+            "lineNumber": 795
+          },
+          {
+            "text": "  async fuzzyFileSearch(query: string, roots: string[]): Promise&lt;any[]&gt; {",
+            "lineNumber": 796
+          },
+          {
+            "text": "    return this.httpRequest('fuzzyFileSearch', { query, roots });",
+            "lineNumber": 797
+          },
+          {
+            "text": "  }",
+            "lineNumber": 798
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.022666800767183304
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\components\\virtual-os\\ResourceMonitor.tsx",
+        "range": {
+          "startPosition": {
+            "line": 57
+          },
+          "endPosition": {
+            "line": 632,
+            "column": 1
+          }
+        },
+        "contents": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {\n\n\n  return (\n    &lt;div className=\"h-full p-6 space-y-6 overflow-y-auto\"&gt;\n      {/* System Overview */}\n      &lt;div className=\"grid grid-cols-1 md:grid-cols-5 gap-4\"&gt;\n        &lt;Card className=\"p-4\"&gt;\n          &lt;div className=\"flex items-center gap-3\"&gt;\n            &lt;Cpu className=\"w-8 h-8 text-blue-500\" /&gt;\n            &lt;div&gt;\n              &lt;div className=\"text-2xl font-bold\"&gt;\n                {systemMetrics ? systemMetrics.cpuUsage.toFixed(1) : (usedResources.cpu / totalResources.cpu * 100).toFixed(1)}%\n              &lt;/div&gt;\n              &lt;div className=\"text-sm text-gray-600\"&gt;CPU Usage&lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/div&gt;\n          &lt;div className=\"mt-2 text-xs text-gray-500\"&gt;\n            {systemMetrics ? &#96;Real-time from system&#96; : &#96;${usedResources.cpu.toFixed(1)} / ${totalResources.cpu} cores&#96;}\n          &lt;/div&gt;\n        &lt;/Card&gt;\n\n        &lt;Card className=\"p-4\"&gt;\n          &lt;div className=\"flex items-center gap-3\"&gt;\n            &lt;HardDrive className=\"w-8 h-8 text-green-500\" /&gt;\n            &lt;div&gt;\n              &lt;div className=\"text-2xl font-bold\"&gt;\n                {systemMetrics ? systemMetrics.memoryUsage.toFixed(1) : (usedResources.memory / totalResources.memory * 100).toFixed(1)}%\n              &lt;/div&gt;\n              &lt;div className=\"text-sm text-gray-600\"&gt;Memory&lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/div&gt;\n          &lt;div className=\"mt-2 text-xs text-gray-500\"&gt;\n            {systemMetrics ? &#96;Real-time from system&#96; : &#96;${usedResources.memory.toFixed(1)} / ${totalResources.memory} MB&#96;}\n          &lt;/div&gt;\n        &lt;/Card&gt;\n\n        {systemMetrics?.gpuUsage !== undefined &amp;&amp;\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 59,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {",
+            "lineNumber": 58,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 301
+          },
+          {
+            "lineNumber": 302
+          },
+          {
+            "text": "  return (",
+            "lineNumber": 303
+          },
+          {
+            "text": "    &lt;div className=\"h-full p-6 space-y-6 overflow-y-auto\"&gt;",
+            "lineNumber": 304
+          },
+          {
+            "text": "      {/* System Overview */}",
+            "lineNumber": 305
+          },
+          {
+            "text": "      &lt;div className=\"grid grid-cols-1 md:grid-cols-5 gap-4\"&gt;",
+            "lineNumber": 306
+          },
+          {
+            "text": "        &lt;Card className=\"p-4\"&gt;",
+            "lineNumber": 307
+          },
+          {
+            "text": "          &lt;div className=\"flex items-center gap-3\"&gt;",
+            "lineNumber": 308
+          },
+          {
+            "text": "            &lt;Cpu className=\"w-8 h-8 text-blue-500\" /&gt;",
+            "lineNumber": 309
+          },
+          {
+            "text": "            &lt;div&gt;",
+            "lineNumber": 310
+          },
+          {
+            "text": "              &lt;div className=\"text-2xl font-bold\"&gt;",
+            "lineNumber": 311
+          },
+          {
+            "text": "                {systemMetrics ? systemMetrics.cpuUsage.toFixed(1) : (usedResources.cpu / totalResources.cpu * 100).toFixed(1)}%",
+            "lineNumber": 312
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 313
+          },
+          {
+            "text": "              &lt;div className=\"text-sm text-gray-600\"&gt;CPU Usage&lt;/div&gt;",
+            "lineNumber": 314
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 315
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 316
+          },
+          {
+            "text": "          &lt;div className=\"mt-2 text-xs text-gray-500\"&gt;",
+            "lineNumber": 317
+          },
+          {
+            "text": "            {systemMetrics ? &#96;Real-time from system&#96; : &#96;${usedResources.cpu.toFixed(1)} / ${totalResources.cpu} cores&#96;}",
+            "lineNumber": 318
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 319
+          },
+          {
+            "text": "        &lt;/Card&gt;",
+            "lineNumber": 320
+          },
+          {
+            "lineNumber": 321
+          },
+          {
+            "text": "        &lt;Card className=\"p-4\"&gt;",
+            "lineNumber": 322
+          },
+          {
+            "text": "          &lt;div className=\"flex items-center gap-3\"&gt;",
+            "lineNumber": 323
+          },
+          {
+            "text": "            &lt;HardDrive className=\"w-8 h-8 text-green-500\" /&gt;",
+            "lineNumber": 324
+          },
+          {
+            "text": "            &lt;div&gt;",
+            "lineNumber": 325
+          },
+          {
+            "text": "              &lt;div className=\"text-2xl font-bold\"&gt;",
+            "lineNumber": 326
+          },
+          {
+            "text": "                {systemMetrics ? systemMetrics.memoryUsage.toFixed(1) : (usedResources.memory / totalResources.memory * 100).toFixed(1)}%",
+            "lineNumber": 327
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 328
+          },
+          {
+            "text": "              &lt;div className=\"text-sm text-gray-600\"&gt;Memory&lt;/div&gt;",
+            "lineNumber": 329
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 330
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 331
+          },
+          {
+            "text": "          &lt;div className=\"mt-2 text-xs text-gray-500\"&gt;",
+            "lineNumber": 332
+          },
+          {
+            "text": "            {systemMetrics ? &#96;Real-time from system&#96; : &#96;${usedResources.memory.toFixed(1)} / ${totalResources.memory} MB&#96;}",
+            "lineNumber": 333
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 334
+          },
+          {
+            "text": "        &lt;/Card&gt;",
+            "lineNumber": 335
+          },
+          {
+            "lineNumber": 336
+          },
+          {
+            "text": "        {systemMetrics?.gpuUsage !== undefined &amp;&amp;",
+            "lineNumber": 337
+          },
+          {
+            "text": "}",
+            "lineNumber": 633,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.020576700568199158
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // Execute codex CLI command via bridge\n  async executeCodexCommand(args: string[]): Promise&lt;any&gt; {\n    try {\n      // This method can be used by components with access to DualBridge\n      // For components without bridge access, we'll use HTTP API\n      const response = await fetch(&#96;${this.baseUrl}/api/cli/execute&#96;, {\n        method: 'POST',\n        headers: {\n          'Content-Type': 'application/json',\n        },\n        body: JSON.stringify({\n          command: 'codex',\n          args: args,\n        }),\n      });\n\n      if (response.ok) {\n        return await response.json();\n      }\n    } catch (error) {\n      console.error('Failed to execute codex command:', error);\n      throw error;\n    }\n    return null;\n  }\n\n  async listAITools(): Promise&lt;AITool[]&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 617
+          },
+          {
+            "lineNumber": 618
+          },
+          {
+            "text": "  // Execute codex CLI command via bridge",
+            "lineNumber": 619
+          },
+          {
+            "text": "  async executeCodexCommand(args: string[]): Promise&lt;any&gt; {",
+            "lineNumber": 620
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 621
+          },
+          {
+            "text": "      // This method can be used by components with access to DualBridge",
+            "lineNumber": 622
+          },
+          {
+            "text": "      // For components without bridge access, we'll use HTTP API",
+            "lineNumber": 623
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/cli/execute&#96;, {",
+            "lineNumber": 624
+          },
+          {
+            "text": "        method: 'POST',",
+            "lineNumber": 625
+          },
+          {
+            "text": "        headers: {",
+            "lineNumber": 626
+          },
+          {
+            "text": "          'Content-Type': 'application/json',",
+            "lineNumber": 627
+          },
+          {
+            "text": "        },",
+            "lineNumber": 628
+          },
+          {
+            "text": "        body: JSON.stringify({",
+            "lineNumber": 629
+          },
+          {
+            "text": "          command: 'codex',",
+            "lineNumber": 630
+          },
+          {
+            "text": "          args: args,",
+            "lineNumber": 631
+          },
+          {
+            "text": "        }),",
+            "lineNumber": 632
+          },
+          {
+            "text": "      });",
+            "lineNumber": 633
+          },
+          {
+            "lineNumber": 634
+          },
+          {
+            "text": "      if (response.ok) {",
+            "lineNumber": 635
+          },
+          {
+            "text": "        return await response.json();",
+            "lineNumber": 636
+          },
+          {
+            "text": "      }",
+            "lineNumber": 637
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 638
+          },
+          {
+            "text": "      console.error('Failed to execute codex command:', error);",
+            "lineNumber": 639
+          },
+          {
+            "text": "      throw error;",
+            "lineNumber": 640
+          },
+          {
+            "text": "    }",
+            "lineNumber": 641
+          },
+          {
+            "text": "    return null;",
+            "lineNumber": 642
+          },
+          {
+            "text": "  }",
+            "lineNumber": 643
+          },
+          {
+            "lineNumber": 644
+          },
+          {
+            "text": "  async listAITools(): Promise&lt;AITool[]&gt; {",
+            "lineNumber": 645
+          },
+          {
+            "text": "    try",
+            "lineNumber": 646
+          },
+          {
+            "text": "  }",
+            "lineNumber": 692
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.019933899864554405
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // System metrics - Get from backend (if available) or return default metrics\n  async getSystemMetrics(): Promise&lt;SystemMetrics&gt; {\n    try {\n      // Try to fetch system metrics from backend API\n      const response = await fetch(&#96;${this.baseUrl}/api/system/metrics&#96;, {\n        method: 'GET',\n        headers: {\n          'Content-Type': 'application/json',\n        },\n      });\n\n      if (response.ok) {\n        const data = await response.json();\n        // Map backend response to SystemMetrics interface\n        const metrics: SystemMetrics = {\n          cpuUsage: data.cpu_usage || data.cpuUsage || 0,\n          memoryUsage: data.memory_usage || data.memoryUsage || 0,\n          diskUsage: data.disk_usage || data.diskUsage || 0,\n          networkUsage: data.network_usage || data.networkUsage,\n          activeProcesses: data.active_processes || data.activeProcesses || 0,\n          uptime: data.uptime || 0,\n          gpuUsage: data.gpu_usage || data.gpuUsage,\n          gpuMemoryUsed: data.gpu_memory_used || data.gpuMemoryUsed,\n          gpuMemoryTotal: data.gpu_memory_total || data.gpuMemoryTotal,\n          gpuMemoryUsage: data.gpu_memory_usage || data.gpuMemoryUsage,\n          gpuTemperature: data.gpu_temperature || data.gpuTemperature,\n          gpuName: data.gpu_name || data.gpuName,\n          gpuVendor: data.gpu_vendor || data.gpuVendor,\n        };\n        return metrics;\n      }\n    } catch (error) {\n      console.warn('System metrics endpoint not available, trying CLI fallback:', error);\n      \n      // Fallback: Try to get metrics from CLI/TUI via codex command\n      try {\n        const cliResponse = await this.getSystemMetricsFromCLI();\n        if (cliResponse) {\n          return cliResponse;\n        }\n      } catch (cliError) {\n        console.warn('CLI fallback also failed:', cliError);\n      }\n    }\n\n    // Final fallback to default metrics (will be updated by WebSocket if available)\n    return {\n      cpuUsage: 0,\n      memoryUsage: 0,\n      diskUsage: 0,\n      activeProcesses: 0,\n      uptime: 0,\n    };\n  }\n\n  // Get system metrics from CLI/TUI via codex command\n  private async getSystemMetricsFromCLI(): Promise&lt;SystemMetrics | null&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 524
+          },
+          {
+            "lineNumber": 525
+          },
+          {
+            "text": "  // System metrics - Get from backend (if available) or return default metrics",
+            "lineNumber": 526
+          },
+          {
+            "text": "  async getSystemMetrics(): Promise&lt;SystemMetrics&gt; {",
+            "lineNumber": 527
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 528
+          },
+          {
+            "text": "      // Try to fetch system metrics from backend API",
+            "lineNumber": 529
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/system/metrics&#96;, {",
+            "lineNumber": 530
+          },
+          {
+            "text": "        method: 'GET',",
+            "lineNumber": 531
+          },
+          {
+            "text": "        headers: {",
+            "lineNumber": 532
+          },
+          {
+            "text": "          'Content-Type': 'application/json',",
+            "lineNumber": 533
+          },
+          {
+            "text": "        },",
+            "lineNumber": 534
+          },
+          {
+            "text": "      });",
+            "lineNumber": 535
+          },
+          {
+            "lineNumber": 536
+          },
+          {
+            "text": "      if (response.ok) {",
+            "lineNumber": 537
+          },
+          {
+            "text": "        const data = await response.json();",
+            "lineNumber": 538
+          },
+          {
+            "text": "        // Map backend response to SystemMetrics interface",
+            "lineNumber": 539
+          },
+          {
+            "text": "        const metrics: SystemMetrics = {",
+            "lineNumber": 540
+          },
+          {
+            "text": "          cpuUsage: data.cpu_usage || data.cpuUsage || 0,",
+            "lineNumber": 541
+          },
+          {
+            "text": "          memoryUsage: data.memory_usage || data.memoryUsage || 0,",
+            "lineNumber": 542
+          },
+          {
+            "text": "          diskUsage: data.disk_usage || data.diskUsage || 0,",
+            "lineNumber": 543
+          },
+          {
+            "text": "          networkUsage: data.network_usage || data.networkUsage,",
+            "lineNumber": 544
+          },
+          {
+            "text": "          activeProcesses: data.active_processes || data.activeProcesses || 0,",
+            "lineNumber": 545
+          },
+          {
+            "text": "          uptime: data.uptime || 0,",
+            "lineNumber": 546
+          },
+          {
+            "text": "          gpuUsage: data.gpu_usage || data.gpuUsage,",
+            "lineNumber": 547
+          },
+          {
+            "text": "          gpuMemoryUsed: data.gpu_memory_used || data.gpuMemoryUsed,",
+            "lineNumber": 548
+          },
+          {
+            "text": "          gpuMemoryTotal: data.gpu_memory_total || data.gpuMemoryTotal,",
+            "lineNumber": 549
+          },
+          {
+            "text": "          gpuMemoryUsage: data.gpu_memory_usage || data.gpuMemoryUsage,",
+            "lineNumber": 550
+          },
+          {
+            "text": "          gpuTemperature: data.gpu_temperature || data.gpuTemperature,",
+            "lineNumber": 551
+          },
+          {
+            "text": "          gpuName: data.gpu_name || data.gpuName,",
+            "lineNumber": 552
+          },
+          {
+            "text": "          gpuVendor: data.gpu_vendor || data.gpuVendor,",
+            "lineNumber": 553
+          },
+          {
+            "text": "        };",
+            "lineNumber": 554
+          },
+          {
+            "text": "        return metrics;",
+            "lineNumber": 555
+          },
+          {
+            "text": "      }",
+            "lineNumber": 556
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 557
+          },
+          {
+            "text": "      console.warn('System metrics endpoint not available, trying CLI fallback:', error);",
+            "lineNumber": 558
+          },
+          {
+            "text": "      ",
+            "lineNumber": 559
+          },
+          {
+            "text": "      // Fallback: Try to get metrics from CLI/TUI via codex command",
+            "lineNumber": 560
+          },
+          {
+            "text": "      try {",
+            "lineNumber": 561
+          },
+          {
+            "text": "        const cliResponse = await this.getSystemMetricsFromCLI();",
+            "lineNumber": 562
+          },
+          {
+            "text": "        if (cliResponse) {",
+            "lineNumber": 563
+          },
+          {
+            "text": "          return cliResponse;",
+            "lineNumber": 564
+          },
+          {
+            "text": "        }",
+            "lineNumber": 565
+          },
+          {
+            "text": "      } catch (cliError) {",
+            "lineNumber": 566
+          },
+          {
+            "text": "        console.warn('CLI fallback also failed:', cliError);",
+            "lineNumber": 567
+          },
+          {
+            "text": "      }",
+            "lineNumber": 568
+          },
+          {
+            "text": "    }",
+            "lineNumber": 569
+          },
+          {
+            "lineNumber": 570
+          },
+          {
+            "text": "    // Final fallback to default metrics (will be updated by WebSocket if available)",
+            "lineNumber": 571
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 572
+          },
+          {
+            "text": "      cpuUsage: 0,",
+            "lineNumber": 573
+          },
+          {
+            "text": "      memoryUsage: 0,",
+            "lineNumber": 574
+          },
+          {
+            "text": "      diskUsage: 0,",
+            "lineNumber": 575
+          },
+          {
+            "text": "      activeProcesses: 0,",
+            "lineNumber": 576
+          },
+          {
+            "text": "      uptime: 0,",
+            "lineNumber": 577
+          },
+          {
+            "text": "    };",
+            "lineNumber": 578
+          },
+          {
+            "text": "  }",
+            "lineNumber": 579
+          },
+          {
+            "lineNumber": 580
+          },
+          {
+            "text": "  // Get system metrics from CLI/TUI via codex command",
+            "lineNumber": 581
+          },
+          {
+            "text": "  private async getSystemMetricsFromCLI(): Promise&lt;SystemMetrics | null&gt; {",
+            "lineNumber": 582
+          },
+          {
+            "text": "    try",
+            "lineNumber": 583
+          },
+          {
+            "text": "  }",
+            "lineNumber": 617
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.017242899164557457
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // Authentication\n  async login(credentials: LoginForm): Promise&lt;{ token?: string; authUrl?: string }&gt; {\n    const params = credentials.method === 'api-key'\n      ? { type: 'apiKey', apiKey: credentials.apiKey }\n      : { type: 'chatgpt' };\n\n    return this.httpRequest('account/login', params);\n  }\n\n  async logout(): Promise&lt;void&gt; {\n    return this.httpRequest('account/logout');\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "  // Authentication",
+            "lineNumber": 125
+          },
+          {
+            "text": "  async login(credentials: LoginForm): Promise&lt;{ token?: string; authUrl?: string }&gt; {",
+            "lineNumber": 126
+          },
+          {
+            "text": "    const params = credentials.method === 'api-key'",
+            "lineNumber": 127
+          },
+          {
+            "text": "      ? { type: 'apiKey', apiKey: credentials.apiKey }",
+            "lineNumber": 128
+          },
+          {
+            "text": "      : { type: 'chatgpt' };",
+            "lineNumber": 129
+          },
+          {
+            "lineNumber": 130
+          },
+          {
+            "text": "    return this.httpRequest('account/login', params);",
+            "lineNumber": 131
+          },
+          {
+            "text": "  }",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "  async logout(): Promise&lt;void&gt; {",
+            "lineNumber": 134
+          },
+          {
+            "text": "    return this.httpRequest('account/logout');",
+            "lineNumber": 135
+          },
+          {
+            "text": "  }",
+            "lineNumber": 136
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.016451599076390266
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  async listDevelopmentTasks(): Promise&lt;DevelopmentTask[]&gt; {\n    try {\n      const response = await fetch(&#96;${this.baseUrl}/api/ai/tasks&#96;, { method: 'GET' });\n      if (response.ok) {\n        const payload = await response.json();\n        const tasks = Array.isArray(payload.tasks) ? payload.tasks : payload;\n        return tasks.map((task: any) =&gt; ({\n          id: task.id,\n          title: task.title ?? task.id,\n          description: task.description ?? '',\n          complexity: task.complexity ?? 'medium',\n          priority: task.priority ?? 'medium',\n          requirements: task.requirements ?? [],\n          subtasks: task.subtasks ?? [],\n          status: task.status ?? 'pending',\n          createdAt: new Date(task.createdAt ?? Date.now()),\n          assignedTools: task.assignedTools ?? [],\n          progress: task.progress ?? 0,\n        }));\n      }\n    } catch (error) {\n      console.warn('Backend AI tasks endpoint unavailable, checking CLI bridge:', error);\n    }\n\n    try {\n      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());\n      const parsed = JSON.parse(status.stdout || '{}');\n      if (Array.isArray(parsed.tasks)) {\n        return parsed.tasks.map((task: any) =&gt; ({\n          id: task.id,\n          title: task.title ?? task.id,\n          description: task.description ?? '',\n          complexity: task.complexity ?? 'medium',\n          priority: task.priority ?? 'medium',\n          requirements: task.requirements ?? [],\n          subtasks: task.subtasks ?? [],\n          status: task.status ?? 'pending',\n          createdAt: new Date(task.created_at ?? Date.now()),\n          assignedTools: task.assignedTools ?? task.assigned_tools ?? [],\n          progress: task.progress ?? 0,\n        }));\n      }\n    } catch (error) {\n      console.error('CLI bridge could not provide AI tasks:', error);\n    }\n\n    return [];\n  }\n\n  // File operations\n  async executeCommand(command: string[], cwd?: string): Promise&lt;{ exitCode: number; stdout: string; stderr: string }&gt; {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 737
+          },
+          {
+            "lineNumber": 738
+          },
+          {
+            "text": "  async listDevelopmentTasks(): Promise&lt;DevelopmentTask[]&gt; {",
+            "lineNumber": 739
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 740
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/ai/tasks&#96;, { method: 'GET' });",
+            "lineNumber": 741
+          },
+          {
+            "text": "      if (response.ok) {",
+            "lineNumber": 742
+          },
+          {
+            "text": "        const payload = await response.json();",
+            "lineNumber": 743
+          },
+          {
+            "text": "        const tasks = Array.isArray(payload.tasks) ? payload.tasks : payload;",
+            "lineNumber": 744
+          },
+          {
+            "text": "        return tasks.map((task: any) =&gt; ({",
+            "lineNumber": 745
+          },
+          {
+            "text": "          id: task.id,",
+            "lineNumber": 746
+          },
+          {
+            "text": "          title: task.title ?? task.id,",
+            "lineNumber": 747
+          },
+          {
+            "text": "          description: task.description ?? '',",
+            "lineNumber": 748
+          },
+          {
+            "text": "          complexity: task.complexity ?? 'medium',",
+            "lineNumber": 749
+          },
+          {
+            "text": "          priority: task.priority ?? 'medium',",
+            "lineNumber": 750
+          },
+          {
+            "text": "          requirements: task.requirements ?? [],",
+            "lineNumber": 751
+          },
+          {
+            "text": "          subtasks: task.subtasks ?? [],",
+            "lineNumber": 752
+          },
+          {
+            "text": "          status: task.status ?? 'pending',",
+            "lineNumber": 753
+          },
+          {
+            "text": "          createdAt: new Date(task.createdAt ?? Date.now()),",
+            "lineNumber": 754
+          },
+          {
+            "text": "          assignedTools: task.assignedTools ?? [],",
+            "lineNumber": 755
+          },
+          {
+            "text": "          progress: task.progress ?? 0,",
+            "lineNumber": 756
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 757
+          },
+          {
+            "text": "      }",
+            "lineNumber": 758
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 759
+          },
+          {
+            "text": "      console.warn('Backend AI tasks endpoint unavailable, checking CLI bridge:', error);",
+            "lineNumber": 760
+          },
+          {
+            "text": "    }",
+            "lineNumber": 761
+          },
+          {
+            "lineNumber": 762
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 763
+          },
+          {
+            "text": "      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());",
+            "lineNumber": 764
+          },
+          {
+            "text": "      const parsed = JSON.parse(status.stdout || '{}');",
+            "lineNumber": 765
+          },
+          {
+            "text": "      if (Array.isArray(parsed.tasks)) {",
+            "lineNumber": 766
+          },
+          {
+            "text": "        return parsed.tasks.map((task: any) =&gt; ({",
+            "lineNumber": 767
+          },
+          {
+            "text": "          id: task.id,",
+            "lineNumber": 768
+          },
+          {
+            "text": "          title: task.title ?? task.id,",
+            "lineNumber": 769
+          },
+          {
+            "text": "          description: task.description ?? '',",
+            "lineNumber": 770
+          },
+          {
+            "text": "          complexity: task.complexity ?? 'medium',",
+            "lineNumber": 771
+          },
+          {
+            "text": "          priority: task.priority ?? 'medium',",
+            "lineNumber": 772
+          },
+          {
+            "text": "          requirements: task.requirements ?? [],",
+            "lineNumber": 773
+          },
+          {
+            "text": "          subtasks: task.subtasks ?? [],",
+            "lineNumber": 774
+          },
+          {
+            "text": "          status: task.status ?? 'pending',",
+            "lineNumber": 775
+          },
+          {
+            "text": "          createdAt: new Date(task.created_at ?? Date.now()),",
+            "lineNumber": 776
+          },
+          {
+            "text": "          assignedTools: task.assignedTools ?? task.assigned_tools ?? [],",
+            "lineNumber": 777
+          },
+          {
+            "text": "          progress: task.progress ?? 0,",
+            "lineNumber": 778
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 779
+          },
+          {
+            "text": "      }",
+            "lineNumber": 780
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 781
+          },
+          {
+            "text": "      console.error('CLI bridge could not provide AI tasks:', error);",
+            "lineNumber": 782
+          },
+          {
+            "text": "    }",
+            "lineNumber": 783
+          },
+          {
+            "lineNumber": 784
+          },
+          {
+            "text": "    return [];",
+            "lineNumber": 785
+          },
+          {
+            "text": "  }",
+            "lineNumber": 786
+          },
+          {
+            "lineNumber": 787
+          },
+          {
+            "text": "  // File operations",
+            "lineNumber": 788
+          },
+          {
+            "text": "  async executeCommand(command: string[], cwd?: string): Promise&lt;{ exitCode: number; stdout: string; stderr: string }&gt; {",
+            "lineNumber": 789
+          },
+          {
+            "text": "    ",
+            "lineNumber": 790
+          },
+          {
+            "text": "  }",
+            "lineNumber": 794
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.012288150377571583
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  async listAITools(): Promise&lt;AITool[]&gt; {\n    try {\n      const response = await fetch(&#96;${this.baseUrl}/api/ai/tools&#96;, { method: 'GET' });\n      if (response.ok) {\n        const payload = await response.json();\n        const tools = Array.isArray(payload.tools) ? payload.tools : payload;\n        return tools.map((tool: any) =&gt; ({\n          id: tool.id,\n          name: tool.name ?? tool.id,\n          status: tool.status ?? 'available',\n          capabilities: tool.capabilities ?? [],\n          activeSessions: tool.activeSessions ?? 0,\n          maxSessions: tool.maxSessions ?? 1,\n          performance: {\n            avgResponseTime: tool.performance?.avgResponseTime ?? 0,\n            successRate: tool.performance?.successRate ?? 0,\n            resourceUsage: tool.performance?.resourceUsage ?? 0,\n          },\n        }));\n      }\n    } catch (error) {\n      console.warn('Backend AI tools endpoint unavailable, trying CLI bridge:', error);\n    }\n\n    try {\n      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());\n      const parsed = JSON.parse(status.stdout || '{}');\n      if (Array.isArray(parsed.tools)) {\n        return parsed.tools.map((tool: any) =&gt; ({\n          id: tool.id,\n          name: tool.name ?? tool.id,\n          status: tool.status ?? 'available',\n          capabilities: tool.capabilities ?? [],\n          activeSessions: tool.active_sessions ?? tool.activeSessions ?? 0,\n          maxSessions: tool.max_sessions ?? tool.maxSessions ?? 1,\n          performance: {\n            avgResponseTime: tool.avg_response_time ?? tool.performance?.avgResponseTime ?? 0,\n            successRate: tool.success_rate ?? tool.performance?.successRate ?? 0,\n            resourceUsage: tool.resource_usage ?? tool.performance?.resourceUsage ?? 0,\n          },\n        }));\n      }\n    } catch (error) {\n      console.error('CLI bridge could not provide AI tools:', error);\n    }\n\n    throw new CodexAPIError(-1, 'Failed to list AI tools from GUI');\n  }\n\n  async listAISessions(): Promise&lt;AISession[]&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 643
+          },
+          {
+            "lineNumber": 644
+          },
+          {
+            "text": "  async listAITools(): Promise&lt;AITool[]&gt; {",
+            "lineNumber": 645
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 646
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/ai/tools&#96;, { method: 'GET' });",
+            "lineNumber": 647
+          },
+          {
+            "text": "      if (response.ok) {",
+            "lineNumber": 648
+          },
+          {
+            "text": "        const payload = await response.json();",
+            "lineNumber": 649
+          },
+          {
+            "text": "        const tools = Array.isArray(payload.tools) ? payload.tools : payload;",
+            "lineNumber": 650
+          },
+          {
+            "text": "        return tools.map((tool: any) =&gt; ({",
+            "lineNumber": 651
+          },
+          {
+            "text": "          id: tool.id,",
+            "lineNumber": 652
+          },
+          {
+            "text": "          name: tool.name ?? tool.id,",
+            "lineNumber": 653
+          },
+          {
+            "text": "          status: tool.status ?? 'available',",
+            "lineNumber": 654
+          },
+          {
+            "text": "          capabilities: tool.capabilities ?? [],",
+            "lineNumber": 655
+          },
+          {
+            "text": "          activeSessions: tool.activeSessions ?? 0,",
+            "lineNumber": 656
+          },
+          {
+            "text": "          maxSessions: tool.maxSessions ?? 1,",
+            "lineNumber": 657
+          },
+          {
+            "text": "          performance: {",
+            "lineNumber": 658
+          },
+          {
+            "text": "            avgResponseTime: tool.performance?.avgResponseTime ?? 0,",
+            "lineNumber": 659
+          },
+          {
+            "text": "            successRate: tool.performance?.successRate ?? 0,",
+            "lineNumber": 660
+          },
+          {
+            "text": "            resourceUsage: tool.performance?.resourceUsage ?? 0,",
+            "lineNumber": 661
+          },
+          {
+            "text": "          },",
+            "lineNumber": 662
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 663
+          },
+          {
+            "text": "      }",
+            "lineNumber": 664
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 665
+          },
+          {
+            "text": "      console.warn('Backend AI tools endpoint unavailable, trying CLI bridge:', error);",
+            "lineNumber": 666
+          },
+          {
+            "text": "    }",
+            "lineNumber": 667
+          },
+          {
+            "lineNumber": 668
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 669
+          },
+          {
+            "text": "      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());",
+            "lineNumber": 670
+          },
+          {
+            "text": "      const parsed = JSON.parse(status.stdout || '{}');",
+            "lineNumber": 671
+          },
+          {
+            "text": "      if (Array.isArray(parsed.tools)) {",
+            "lineNumber": 672
+          },
+          {
+            "text": "        return parsed.tools.map((tool: any) =&gt; ({",
+            "lineNumber": 673
+          },
+          {
+            "text": "          id: tool.id,",
+            "lineNumber": 674
+          },
+          {
+            "text": "          name: tool.name ?? tool.id,",
+            "lineNumber": 675
+          },
+          {
+            "text": "          status: tool.status ?? 'available',",
+            "lineNumber": 676
+          },
+          {
+            "text": "          capabilities: tool.capabilities ?? [],",
+            "lineNumber": 677
+          },
+          {
+            "text": "          activeSessions: tool.active_sessions ?? tool.activeSessions ?? 0,",
+            "lineNumber": 678
+          },
+          {
+            "text": "          maxSessions: tool.max_sessions ?? tool.maxSessions ?? 1,",
+            "lineNumber": 679
+          },
+          {
+            "text": "          performance: {",
+            "lineNumber": 680
+          },
+          {
+            "text": "            avgResponseTime: tool.avg_response_time ?? tool.performance?.avgResponseTime ?? 0,",
+            "lineNumber": 681
+          },
+          {
+            "text": "            successRate: tool.success_rate ?? tool.performance?.successRate ?? 0,",
+            "lineNumber": 682
+          },
+          {
+            "text": "            resourceUsage: tool.resource_usage ?? tool.performance?.resourceUsage ?? 0,",
+            "lineNumber": 683
+          },
+          {
+            "text": "          },",
+            "lineNumber": 684
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 685
+          },
+          {
+            "text": "      }",
+            "lineNumber": 686
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 687
+          },
+          {
+            "text": "      console.error('CLI bridge could not provide AI tools:', error);",
+            "lineNumber": 688
+          },
+          {
+            "text": "    }",
+            "lineNumber": 689
+          },
+          {
+            "lineNumber": 690
+          },
+          {
+            "text": "    throw new CodexAPIError(-1, 'Failed to list AI tools from GUI');",
+            "lineNumber": 691
+          },
+          {
+            "text": "  }",
+            "lineNumber": 692
+          },
+          {
+            "lineNumber": 693
+          },
+          {
+            "text": "  async listAISessions(): Promise&lt;AISession[]&gt; {",
+            "lineNumber": 694
+          },
+          {
+            "text": "    try",
+            "lineNumber": 695
+          },
+          {
+            "text": "  }",
+            "lineNumber": 737
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.010297699831426144
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 818,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 824,
+            "column": 25
+          }
+        },
+        "contents": "// Singleton instance\nexport const apiClient = new CodexAPIClient();\n\n// Export types\nexport { CodexAPIError };",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// Singleton instance",
+            "lineNumber": 821
+          },
+          {
+            "text": "export const apiClient = new CodexAPIClient();",
+            "lineNumber": 822
+          },
+          {
+            "lineNumber": 823
+          },
+          {
+            "text": "// Export types",
+            "lineNumber": 824
+          },
+          {
+            "text": "export { CodexAPIError };",
+            "lineNumber": 825
+          }
+        ]
+      },
+      "score": 0.010224499739706516
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\components\\virtual-os\\ResourceMonitor.tsx",
+        "range": {
+          "startPosition": {
+            "line": 55,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 632,
+            "column": 1
+          }
+        },
+        "contents": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {\n  const [metrics, setMetrics] = useState&lt;ResourceMetrics[]&gt;([])\n  const [systemMetrics, setSystemMetrics] = useState&lt;SystemMetrics | null&gt;(null)\n  const [selectedTimeframe, setSelectedTimeframe] = useState&lt;'1m' | '5m' | '15m' | '1h'&gt;('5m')\n  const [alerts, setAlerts] = useState&lt;Array&lt;{\n    id: string\n    type: 'warning' | 'critical'\n    message: string\n    environmentId: string\n    timestamp: Date\n  }&gt;&gt;([])\n  const apiClient = useRef(new CodexAPIClient())\n  const wsRef = useRef&lt;WebSocket | null&gt;(null)\n  const previousMetricsRef = useRef&lt;SystemMetrics | null&gt;(null)\n\n  // Fetch real system metrics from API\n  useEffect(() =&gt; {\n    const fetchSystemMetrics = async () =&gt; {\n      try {\n        const metrics = await apiClient.current.getSystemMetrics()\n        setSystemMetrics(metrics)\n        previousMetricsRef.current = metrics\n      } catch (error) {\n        console.error('Failed to fetch system metrics:', error)\n      }\n    }\n\n    // Initial fetch\n    fetchSystemMetrics()\n\n    // Set up polling every 5 seconds\n    const interval = setInterval(fetchSystemMetrics, 5000)\n\n    // Set up WebSocket connection for real-time updates\n    try\n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {",
+            "lineNumber": 58,
+            "isSignature": true
+          },
+          {
+            "text": "  const [metrics, setMetrics] = useState&lt;ResourceMetrics[]&gt;([])",
+            "lineNumber": 59
+          },
+          {
+            "text": "  const [systemMetrics, setSystemMetrics] = useState&lt;SystemMetrics | null&gt;(null)",
+            "lineNumber": 60
+          },
+          {
+            "text": "  const [selectedTimeframe, setSelectedTimeframe] = useState&lt;'1m' | '5m' | '15m' | '1h'&gt;('5m')",
+            "lineNumber": 61
+          },
+          {
+            "text": "  const [alerts, setAlerts] = useState&lt;Array&lt;{",
+            "lineNumber": 62
+          },
+          {
+            "text": "    id: string",
+            "lineNumber": 63
+          },
+          {
+            "text": "    type: 'warning' | 'critical'",
+            "lineNumber": 64
+          },
+          {
+            "text": "    message: string",
+            "lineNumber": 65
+          },
+          {
+            "text": "    environmentId: string",
+            "lineNumber": 66
+          },
+          {
+            "text": "    timestamp: Date",
+            "lineNumber": 67
+          },
+          {
+            "text": "  }&gt;&gt;([])",
+            "lineNumber": 68
+          },
+          {
+            "text": "  const apiClient = useRef(new CodexAPIClient())",
+            "lineNumber": 69
+          },
+          {
+            "text": "  const wsRef = useRef&lt;WebSocket | null&gt;(null)",
+            "lineNumber": 70
+          },
+          {
+            "text": "  const previousMetricsRef = useRef&lt;SystemMetrics | null&gt;(null)",
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "text": "  // Fetch real system metrics from API",
+            "lineNumber": 73
+          },
+          {
+            "text": "  useEffect(() =&gt; {",
+            "lineNumber": 74
+          },
+          {
+            "text": "    const fetchSystemMetrics = async () =&gt; {",
+            "lineNumber": 75
+          },
+          {
+            "text": "      try {",
+            "lineNumber": 76
+          },
+          {
+            "text": "        const metrics = await apiClient.current.getSystemMetrics()",
+            "lineNumber": 77
+          },
+          {
+            "text": "        setSystemMetrics(metrics)",
+            "lineNumber": 78
+          },
+          {
+            "text": "        previousMetricsRef.current = metrics",
+            "lineNumber": 79
+          },
+          {
+            "text": "      } catch (error) {",
+            "lineNumber": 80
+          },
+          {
+            "text": "        console.error('Failed to fetch system metrics:', error)",
+            "lineNumber": 81
+          },
+          {
+            "text": "      }",
+            "lineNumber": 82
+          },
+          {
+            "text": "    }",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "    // Initial fetch",
+            "lineNumber": 85
+          },
+          {
+            "text": "    fetchSystemMetrics()",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "    // Set up polling every 5 seconds",
+            "lineNumber": 88
+          },
+          {
+            "text": "    const interval = setInterval(fetchSystemMetrics, 5000)",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "    // Set up WebSocket connection for real-time updates",
+            "lineNumber": 91
+          },
+          {
+            "text": "    try",
+            "lineNumber": 92
+          },
+          {
+            "text": "  }",
+            "lineNumber": 143
+          },
+          {
+            "text": "}",
+            "lineNumber": 633,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.009271999821066856
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n\n\n  // MCP Connections - Get from backend (if available) or return default connections\n  async getMCPConnections(): Promise&lt;MCPConnection[]&gt; {\n    try {\n      // Try to fetch MCP connections from backend API\n      // Note: This endpoint may not exist yet, so we'll use a fallback\n      const response = await fetch(&#96;${this.baseUrl}/api/mcp/connections&#96;, {\n        method: 'GET',\n        headers: {\n          'Content-Type': 'application/json',\n        },\n      });\n\n      if (response.ok) {\n        const connections = await response.json() as MCPConnection[];\n        return connections;\n      }\n    } catch (error) {\n      console.warn('MCP connections endpoint not available, using defaults:', error);\n    }\n\n    // Fallback to default MCP connections\n    return [\n      {\n        id: 'filesystem',\n        name: 'File System',\n        type: 'filesystem',\n        status: 'connected',\n        lastConnected: new Date(),\n      },\n      {\n        id: 'github',\n        name: 'GitHub',\n        type: 'github',\n        status: 'connected',\n        lastConnected: new Date(),\n      },\n      {\n        id: 'gemini',\n        name: 'Gemini AI',\n        type: 'gemini',\n        status: 'connected',\n        lastConnected: new Date(),\n      },\n    ];\n  }\n\n  // System metrics - Get from backend (if available) or return default metrics\n  async getSystemMetrics(): Promise&lt;SystemMetrics&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 478
+          },
+          {
+            "lineNumber": 479
+          },
+          {
+            "text": "  // MCP Connections - Get from backend (if available) or return default connections",
+            "lineNumber": 480
+          },
+          {
+            "text": "  async getMCPConnections(): Promise&lt;MCPConnection[]&gt; {",
+            "lineNumber": 481
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 482
+          },
+          {
+            "text": "      // Try to fetch MCP connections from backend API",
+            "lineNumber": 483
+          },
+          {
+            "text": "      // Note: This endpoint may not exist yet, so we'll use a fallback",
+            "lineNumber": 484
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/mcp/connections&#96;, {",
+            "lineNumber": 485
+          },
+          {
+            "text": "        method: 'GET',",
+            "lineNumber": 486
+          },
+          {
+            "text": "        headers: {",
+            "lineNumber": 487
+          },
+          {
+            "text": "          'Content-Type': 'application/json',",
+            "lineNumber": 488
+          },
+          {
+            "text": "        },",
+            "lineNumber": 489
+          },
+          {
+            "text": "      });",
+            "lineNumber": 490
+          },
+          {
+            "lineNumber": 491
+          },
+          {
+            "text": "      if (response.ok) {",
+            "lineNumber": 492
+          },
+          {
+            "text": "        const connections = await response.json() as MCPConnection[];",
+            "lineNumber": 493
+          },
+          {
+            "text": "        return connections;",
+            "lineNumber": 494
+          },
+          {
+            "text": "      }",
+            "lineNumber": 495
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 496
+          },
+          {
+            "text": "      console.warn('MCP connections endpoint not available, using defaults:', error);",
+            "lineNumber": 497
+          },
+          {
+            "text": "    }",
+            "lineNumber": 498
+          },
+          {
+            "lineNumber": 499
+          },
+          {
+            "text": "    // Fallback to default MCP connections",
+            "lineNumber": 500
+          },
+          {
+            "text": "    return [",
+            "lineNumber": 501
+          },
+          {
+            "text": "      {",
+            "lineNumber": 502
+          },
+          {
+            "text": "        id: 'filesystem',",
+            "lineNumber": 503
+          },
+          {
+            "text": "        name: 'File System',",
+            "lineNumber": 504
+          },
+          {
+            "text": "        type: 'filesystem',",
+            "lineNumber": 505
+          },
+          {
+            "text": "        status: 'connected',",
+            "lineNumber": 506
+          },
+          {
+            "text": "        lastConnected: new Date(),",
+            "lineNumber": 507
+          },
+          {
+            "text": "      },",
+            "lineNumber": 508
+          },
+          {
+            "text": "      {",
+            "lineNumber": 509
+          },
+          {
+            "text": "        id: 'github',",
+            "lineNumber": 510
+          },
+          {
+            "text": "        name: 'GitHub',",
+            "lineNumber": 511
+          },
+          {
+            "text": "        type: 'github',",
+            "lineNumber": 512
+          },
+          {
+            "text": "        status: 'connected',",
+            "lineNumber": 513
+          },
+          {
+            "text": "        lastConnected: new Date(),",
+            "lineNumber": 514
+          },
+          {
+            "text": "      },",
+            "lineNumber": 515
+          },
+          {
+            "text": "      {",
+            "lineNumber": 516
+          },
+          {
+            "text": "        id: 'gemini',",
+            "lineNumber": 517
+          },
+          {
+            "text": "        name: 'Gemini AI',",
+            "lineNumber": 518
+          },
+          {
+            "text": "        type: 'gemini',",
+            "lineNumber": 519
+          },
+          {
+            "text": "        status: 'connected',",
+            "lineNumber": 520
+          },
+          {
+            "text": "        lastConnected: new Date(),",
+            "lineNumber": 521
+          },
+          {
+            "text": "      },",
+            "lineNumber": 522
+          },
+          {
+            "text": "    ];",
+            "lineNumber": 523
+          },
+          {
+            "text": "  }",
+            "lineNumber": 524
+          },
+          {
+            "lineNumber": 525
+          },
+          {
+            "text": "  // System metrics - Get from backend (if available) or return default metrics",
+            "lineNumber": 526
+          },
+          {
+            "text": "  async getSystemMetrics(): Promise&lt;SystemMetrics&gt; {",
+            "lineNumber": 527
+          },
+          {
+            "text": "    try",
+            "lineNumber": 528
+          },
+          {
+            "text": "  }",
+            "lineNumber": 579
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.006496670190244913
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 26,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\n  private baseUrl: string;\n  private wsConnection?: WebSocket;\n  private requestId = 0;\n  private pendingRequests = new Map&lt;string | number, {\n    resolve: (value: any) =&gt; void;\n    reject: (error: Error) =&gt; void;\n  }&gt;();\n\n  constructor(baseUrl = 'http://localhost:8787') {\n    this.baseUrl = baseUrl;\n  }\n\n  // HTTP Request helper\n  private async httpRequest&lt;T&gt;(\n    method: string,\n    params?: any,\n    endpoint?: string\n  ): Promise&lt;T&gt; {\n    \n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "text": "  private baseUrl: string;",
+            "lineNumber": 30
+          },
+          {
+            "text": "  private wsConnection?: WebSocket;",
+            "lineNumber": 31
+          },
+          {
+            "text": "  private requestId = 0;",
+            "lineNumber": 32
+          },
+          {
+            "text": "  private pendingRequests = new Map&lt;string | number, {",
+            "lineNumber": 33
+          },
+          {
+            "text": "    resolve: (value: any) =&gt; void;",
+            "lineNumber": 34
+          },
+          {
+            "text": "    reject: (error: Error) =&gt; void;",
+            "lineNumber": 35
+          },
+          {
+            "text": "  }&gt;();",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "text": "  constructor(baseUrl = 'http://localhost:8787') {",
+            "lineNumber": 38
+          },
+          {
+            "text": "    this.baseUrl = baseUrl;",
+            "lineNumber": 39
+          },
+          {
+            "text": "  }",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "  // HTTP Request helper",
+            "lineNumber": 42
+          },
+          {
+            "text": "  private async httpRequest&lt;T&gt;(",
+            "lineNumber": 43
+          },
+          {
+            "text": "    method: string,",
+            "lineNumber": 44
+          },
+          {
+            "text": "    params?: any,",
+            "lineNumber": 45
+          },
+          {
+            "text": "    endpoint?: string",
+            "lineNumber": 46
+          },
+          {
+            "text": "  ): Promise&lt;T&gt; {",
+            "lineNumber": 47
+          },
+          {
+            "text": "    ",
+            "lineNumber": 48
+          },
+          {
+            "text": "  }",
+            "lineNumber": 84
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.005064900033175945
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\components\\virtual-os\\ResourceMonitor.tsx",
+        "range": {
+          "startPosition": {
+            "line": 57
+          },
+          "endPosition": {
+            "line": 632,
+            "column": 1
+          }
+        },
+        "contents": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {\n\n      &lt;div className=\"grid grid-cols-1 lg:grid-cols-2 gap-6\"&gt;\n        {/* Recent Alerts */}\n        &lt;Card className=\"p-6\"&gt;\n          &lt;h2 className=\"text-xl font-bold mb-4\"&gt;Recent Alerts&lt;/h2&gt;\n\n          {alerts.length === 0 ? (\n            &lt;div className=\"text-center py-8 text-gray-500\"&gt;\n              &lt;CheckCircle className=\"w-8 h-8 mx-auto mb-2\" /&gt;\n              &lt;p&gt;No alerts&lt;/p&gt;\n              &lt;p className=\"text-sm\"&gt;All systems operating normally&lt;/p&gt;\n            &lt;/div&gt;\n          ) : (\n            &lt;div className=\"space-y-3\"&gt;\n              {alerts.slice(0, 5).map((alert) =&gt; (\n                &lt;div key={alert.id} className=\"flex items-start gap-3 p-3 bg-gray-50 rounded\"&gt;\n                  &lt;AlertTriangle className={&#96;w-4 h-4 mt-0.5 ${\n                    alert.type === 'critical' ? 'text-red-500' : 'text-yellow-500'\n                  }&#96;} /&gt;\n                  &lt;div className=\"flex-1\"&gt;\n                    &lt;div className=\"font-medium text-sm\"&gt;{alert.message}&lt;/div&gt;\n                    &lt;div className=\"text-xs text-gray-500 mt-1\"&gt;\n                      {alert.timestamp.toLocaleTimeString()}\n                    &lt;/div&gt;\n                  &lt;/div&gt;\n                  &lt;Badge variant={alert.type === 'critical' ? 'destructive' : 'secondary'} className=\"text-xs\"&gt;\n                    {alert.type.toUpperCase()}\n                  &lt;/Badge&gt;\n                &lt;/div&gt;\n              ))}\n            &lt;/div&gt;\n          )}\n        &lt;/Card&gt;\n\n        {/* Execution Performance */}\n        &lt;Card className=\"p-6\"&gt;\n          &lt;h2 className=\"text-xl font-bold mb-4\"&gt;\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 58,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 59,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export function ResourceMonitor({ environments, executions }: ResourceMonitorProps) {",
+            "lineNumber": 58,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 499
+          },
+          {
+            "text": "      &lt;div className=\"grid grid-cols-1 lg:grid-cols-2 gap-6\"&gt;",
+            "lineNumber": 500
+          },
+          {
+            "text": "        {/* Recent Alerts */}",
+            "lineNumber": 501
+          },
+          {
+            "text": "        &lt;Card className=\"p-6\"&gt;",
+            "lineNumber": 502
+          },
+          {
+            "text": "          &lt;h2 className=\"text-xl font-bold mb-4\"&gt;Recent Alerts&lt;/h2&gt;",
+            "lineNumber": 503
+          },
+          {
+            "lineNumber": 504
+          },
+          {
+            "text": "          {alerts.length === 0 ? (",
+            "lineNumber": 505
+          },
+          {
+            "text": "            &lt;div className=\"text-center py-8 text-gray-500\"&gt;",
+            "lineNumber": 506
+          },
+          {
+            "text": "              &lt;CheckCircle className=\"w-8 h-8 mx-auto mb-2\" /&gt;",
+            "lineNumber": 507
+          },
+          {
+            "text": "              &lt;p&gt;No alerts&lt;/p&gt;",
+            "lineNumber": 508
+          },
+          {
+            "text": "              &lt;p className=\"text-sm\"&gt;All systems operating normally&lt;/p&gt;",
+            "lineNumber": 509
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 510
+          },
+          {
+            "text": "          ) : (",
+            "lineNumber": 511
+          },
+          {
+            "text": "            &lt;div className=\"space-y-3\"&gt;",
+            "lineNumber": 512
+          },
+          {
+            "text": "              {alerts.slice(0, 5).map((alert) =&gt; (",
+            "lineNumber": 513
+          },
+          {
+            "text": "                &lt;div key={alert.id} className=\"flex items-start gap-3 p-3 bg-gray-50 rounded\"&gt;",
+            "lineNumber": 514
+          },
+          {
+            "text": "                  &lt;AlertTriangle className={&#96;w-4 h-4 mt-0.5 ${",
+            "lineNumber": 515
+          },
+          {
+            "text": "                    alert.type === 'critical' ? 'text-red-500' : 'text-yellow-500'",
+            "lineNumber": 516
+          },
+          {
+            "text": "                  }&#96;} /&gt;",
+            "lineNumber": 517
+          },
+          {
+            "text": "                  &lt;div className=\"flex-1\"&gt;",
+            "lineNumber": 518
+          },
+          {
+            "text": "                    &lt;div className=\"font-medium text-sm\"&gt;{alert.message}&lt;/div&gt;",
+            "lineNumber": 519
+          },
+          {
+            "text": "                    &lt;div className=\"text-xs text-gray-500 mt-1\"&gt;",
+            "lineNumber": 520
+          },
+          {
+            "text": "                      {alert.timestamp.toLocaleTimeString()}",
+            "lineNumber": 521
+          },
+          {
+            "text": "                    &lt;/div&gt;",
+            "lineNumber": 522
+          },
+          {
+            "text": "                  &lt;/div&gt;",
+            "lineNumber": 523
+          },
+          {
+            "text": "                  &lt;Badge variant={alert.type === 'critical' ? 'destructive' : 'secondary'} className=\"text-xs\"&gt;",
+            "lineNumber": 524
+          },
+          {
+            "text": "                    {alert.type.toUpperCase()}",
+            "lineNumber": 525
+          },
+          {
+            "text": "                  &lt;/Badge&gt;",
+            "lineNumber": 526
+          },
+          {
+            "text": "                &lt;/div&gt;",
+            "lineNumber": 527
+          },
+          {
+            "text": "              ))}",
+            "lineNumber": 528
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 529
+          },
+          {
+            "text": "          )}",
+            "lineNumber": 530
+          },
+          {
+            "text": "        &lt;/Card&gt;",
+            "lineNumber": 531
+          },
+          {
+            "lineNumber": 532
+          },
+          {
+            "text": "        {/* Execution Performance */}",
+            "lineNumber": 533
+          },
+          {
+            "text": "        &lt;Card className=\"p-6\"&gt;",
+            "lineNumber": 534
+          },
+          {
+            "text": "          &lt;h2 className=\"text-xl font-bold mb-4\"&gt;",
+            "lineNumber": 535
+          },
+          {
+            "text": "}",
+            "lineNumber": 633,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.004515700042247772
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\types\\index.ts",
+        "range": {
+          "startPosition": {
+            "line": 43,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 63,
+            "column": 1
+          }
+        },
+        "contents": "export interface Agent {\n  id: string;\n  name: string;\n  type: \"code-reviewer\" | \"test-gen\" | \"sec-audit\" | \"researcher\" | \"performance\" | \"debug\" | \"docs\";\n  status: \"idle\" | \"working\" | \"completed\" | \"error\";\n  description: string;\n  lastUsed?: Date;\n}\n\nexport interface MCPConnection {\n  id: string;\n  name: string;\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export interface Agent {",
+            "lineNumber": 46,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;",
+            "lineNumber": 47
+          },
+          {
+            "text": "  name: string;",
+            "lineNumber": 48
+          },
+          {
+            "text": "  type: \"code-reviewer\" | \"test-gen\" | \"sec-audit\" | \"researcher\" | \"performance\" | \"debug\" | \"docs\";",
+            "lineNumber": 49
+          },
+          {
+            "text": "  status: \"idle\" | \"working\" | \"completed\" | \"error\";",
+            "lineNumber": 50
+          },
+          {
+            "text": "  description: string;",
+            "lineNumber": 51
+          },
+          {
+            "text": "  lastUsed?: Date;",
+            "lineNumber": 52,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 53,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "export interface MCPConnection {",
+            "lineNumber": 55,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;",
+            "lineNumber": 56
+          },
+          {
+            "text": "  name: string;",
+            "lineNumber": 57
+          },
+          {
+            "text": ";",
+            "lineNumber": 63,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 64,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.00388472992926836
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\gui\\src\\lib\\api\\client.ts",
+        "range": {
+          "startPosition": {
+            "line": 28
+          },
+          "endPosition": {
+            "line": 818,
+            "column": 1
+          }
+        },
+        "contents": "export class CodexAPIClient {\nasync listAITools(): Promise&lt;AITool[]&gt; {\n\n\n    throw new CodexAPIError(-1, 'Failed to list AI tools from GUI');\n  }\n\n  async listAISessions(): Promise&lt;AISession[]&gt; {\n    try {\n      const response = await fetch(&#96;${this.baseUrl}/api/ai/sessions&#96;, { method: 'GET' });\n      if (response.ok) {\n        const payload = await response.json();\n        const sessions = Array.isArray(payload.sessions) ? payload.sessions : payload;\n        return sessions.map((session: any) =&gt; ({\n          id: session.id,\n          toolId: session.toolId ?? session.tool_id,\n          taskId: session.taskId ?? session.task_id,\n          status: session.status ?? 'running',\n          startTime: new Date(session.startTime ?? session.start_time ?? Date.now()),\n          endTime: session.endTime ? new Date(session.endTime) : session.end_time ? new Date(session.end_time) : undefined,\n          progress: session.progress ?? 0,\n          output: session.output ?? '',\n          error: session.error,\n        }));\n      }\n    } catch (error) {\n      console.warn('Backend AI sessions endpoint unavailable, falling back to CLI bridge:', error);\n    }\n\n    try {\n      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());\n      const parsed = JSON.parse(status.stdout || '{}');\n      if (Array.isArray(parsed.sessions)) {\n        return parsed.sessions.map((session: any) =&gt; ({\n          id: session.id,\n          toolId: session.toolId ?? session.tool_id,\n          taskId: session.taskId ?? session.task_id,\n          status: session.status ?? 'running',\n          startTime: new Date(session.startTime ?? session.start_time ?? Date.now()),\n          endTime: session.endTime ? new Date(session.endTime) : session.end_time ? new Date(session.end_time) : undefined,\n          progress: session.progress ?? 0,\n          output: session.output ?? '',\n          error: session.error,\n        }));\n      }\n    } catch (error) {\n      console.error('CLI bridge could not provide AI sessions:', error);\n    }\n\n    return [];\n  }\n\n  async listDevelopmentTasks(): Promise&lt;DevelopmentTask[]&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 29,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 645,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 646,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class CodexAPIClient {",
+            "lineNumber": 29,
+            "isSignature": true
+          },
+          {
+            "text": "async listAITools(): Promise&lt;AITool[]&gt; {",
+            "lineNumber": 645
+          },
+          {
+            "lineNumber": 689
+          },
+          {
+            "lineNumber": 690
+          },
+          {
+            "text": "    throw new CodexAPIError(-1, 'Failed to list AI tools from GUI');",
+            "lineNumber": 691
+          },
+          {
+            "text": "  }",
+            "lineNumber": 692
+          },
+          {
+            "lineNumber": 693
+          },
+          {
+            "text": "  async listAISessions(): Promise&lt;AISession[]&gt; {",
+            "lineNumber": 694
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 695
+          },
+          {
+            "text": "      const response = await fetch(&#96;${this.baseUrl}/api/ai/sessions&#96;, { method: 'GET' });",
+            "lineNumber": 696
+          },
+          {
+            "text": "      if (response.ok) {",
+            "lineNumber": 697
+          },
+          {
+            "text": "        const payload = await response.json();",
+            "lineNumber": 698
+          },
+          {
+            "text": "        const sessions = Array.isArray(payload.sessions) ? payload.sessions : payload;",
+            "lineNumber": 699
+          },
+          {
+            "text": "        return sessions.map((session: any) =&gt; ({",
+            "lineNumber": 700
+          },
+          {
+            "text": "          id: session.id,",
+            "lineNumber": 701
+          },
+          {
+            "text": "          toolId: session.toolId ?? session.tool_id,",
+            "lineNumber": 702
+          },
+          {
+            "text": "          taskId: session.taskId ?? session.task_id,",
+            "lineNumber": 703
+          },
+          {
+            "text": "          status: session.status ?? 'running',",
+            "lineNumber": 704
+          },
+          {
+            "text": "          startTime: new Date(session.startTime ?? session.start_time ?? Date.now()),",
+            "lineNumber": 705
+          },
+          {
+            "text": "          endTime: session.endTime ? new Date(session.endTime) : session.end_time ? new Date(session.end_time) : undefined,",
+            "lineNumber": 706
+          },
+          {
+            "text": "          progress: session.progress ?? 0,",
+            "lineNumber": 707
+          },
+          {
+            "text": "          output: session.output ?? '',",
+            "lineNumber": 708
+          },
+          {
+            "text": "          error: session.error,",
+            "lineNumber": 709
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 710
+          },
+          {
+            "text": "      }",
+            "lineNumber": 711
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 712
+          },
+          {
+            "text": "      console.warn('Backend AI sessions endpoint unavailable, falling back to CLI bridge:', error);",
+            "lineNumber": 713
+          },
+          {
+            "text": "    }",
+            "lineNumber": 714
+          },
+          {
+            "lineNumber": 715
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 716
+          },
+          {
+            "text": "      const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());",
+            "lineNumber": 717
+          },
+          {
+            "text": "      const parsed = JSON.parse(status.stdout || '{}');",
+            "lineNumber": 718
+          },
+          {
+            "text": "      if (Array.isArray(parsed.sessions)) {",
+            "lineNumber": 719
+          },
+          {
+            "text": "        return parsed.sessions.map((session: any) =&gt; ({",
+            "lineNumber": 720
+          },
+          {
+            "text": "          id: session.id,",
+            "lineNumber": 721
+          },
+          {
+            "text": "          toolId: session.toolId ?? session.tool_id,",
+            "lineNumber": 722
+          },
+          {
+            "text": "          taskId: session.taskId ?? session.task_id,",
+            "lineNumber": 723
+          },
+          {
+            "text": "          status: session.status ?? 'running',",
+            "lineNumber": 724
+          },
+          {
+            "text": "          startTime: new Date(session.startTime ?? session.start_time ?? Date.now()),",
+            "lineNumber": 725
+          },
+          {
+            "text": "          endTime: session.endTime ? new Date(session.endTime) : session.end_time ? new Date(session.end_time) : undefined,",
+            "lineNumber": 726
+          },
+          {
+            "text": "          progress: session.progress ?? 0,",
+            "lineNumber": 727
+          },
+          {
+            "text": "          output: session.output ?? '',",
+            "lineNumber": 728
+          },
+          {
+            "text": "          error: session.error,",
+            "lineNumber": 729
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 730
+          },
+          {
+            "text": "      }",
+            "lineNumber": 731
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 732
+          },
+          {
+            "text": "      console.error('CLI bridge could not provide AI sessions:', error);",
+            "lineNumber": 733
+          },
+          {
+            "text": "    }",
+            "lineNumber": 734
+          },
+          {
+            "lineNumber": 735
+          },
+          {
+            "text": "    return [];",
+            "lineNumber": 736
+          },
+          {
+            "text": "  }",
+            "lineNumber": 737
+          },
+          {
+            "lineNumber": 738
+          },
+          {
+            "text": "  async listDevelopmentTasks(): Promise&lt;DevelopmentTask[]&gt; {",
+            "lineNumber": 739
+          },
+          {
+            "text": "    try",
+            "lineNumber": 740
+          },
+          {
+            "text": "  }",
+            "lineNumber": 786
+          },
+          {
+            "text": "}",
+            "lineNumber": 819,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.00016384999617002904
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+キーボードショートカットをサイドバーと統合し、CLI/TUIとの連接を強化中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/components/templates/DashboardLayout.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "useRouter|usePathname|next/navigation",
+  "path": "gui/src",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "useRouter|usePathname|next/navigation",
+    "path": "gui/src",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/components/organisms/Header.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+キーボードショートカットを実装し、サイドバーと統合中。CLI/TUIとの連接も強化中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/app/page.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "useRouter|router\\.push|navigation",
+  "path": "gui/src/app",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "useRouter|router\\.push|navigation",
+    "path": "gui/src/app",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "gui\\src\\app\\globals.css",
+              "matches": [
+                {
+                  "lineNumber": 114,
+                  "content": "/* Keyboard navigation indicators */"
+                },
+                {
+                  "lineNumber": 115,
+                  "content": ".keyboard-navigation *:focus-visible {"
+                }
+              ]
+            }
+          ],
+          "totalLines": 2,
+          "totalMatchedLines": 2
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/components/templates/DashboardLayout.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+キーボードショートカットを実装し、サイドバーと統合中。CLI/TUIとの連接も強化中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/templates/DashboardLayout.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/components/templates/DashboardLayout.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+launch_gui関数を改善し、CLI/TUIとの連接を強化中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/lib/bridge/dual-bridge.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+DualBridgeを改善し、CLI/TUIとの連接を強化中。システム情報取得コマンドを追加中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/lib/bridge/dual-bridge.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/lib/bridge/dual-bridge.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+The string to replace was not found in the file.
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] CLIにGUI起動コマンドを追加（codex gui）
+- [x] サイドバーのホバー効果とツールチップを改善
+- [x] キーボードショートカットのサポートを追加
+- [-] CLI/TUIとの連接を強化（DualBridge改善）
+- [ ] システムトレイからのGUI起動を実装
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/lib/context/CodexContext.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+CodexContextでDualBridgeのgetSystemMetricsを使用するように改善中。システムトレイからのGUI起動も実装中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/lib/context/CodexContext.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/components/tray/TraySettings.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: scripts/launch-gui-simple.ps1</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] CLIにGUI起動コマンドを追加（codex gui）
+- [x] サイドバーのホバー効果とツールチップを改善
+- [x] キーボードショートカットのサポートを追加
+- [x] CLI/TUIとの連接を強化（DualBridge改善）
+- [x] システムトレイからのGUI起動を実装
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: powershell -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"</summary>
+
+```bash
+powershell -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"
+```
+
+```
+2025-12-27 19:30:58
+
+```
+</details>
+</tool-use>
+
+---
+
+
+実装ログを作成中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: gui/src/lib/bridge/dual-bridge.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+The string to replace was not found in the file.
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: _docs/2025-12-27_GUI簡単起動とCLITUI連接_UX改善{main}.md</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cargo check -p codex-cli 2>&1 | Select-Object -Last 20</summary>
+
+```bash
+cargo check -p codex-cli 2>&1 | Select-Object -Last 20
+```
+
+```
+cargo : error: could not find &#96;Cargo.toml&#96; in &#96;C:\Users\downl\Desktop\codex-main&#96; or any parent directory
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-a367c65f-26bc-4b15-ae15-9bd833a488b0.ps1:97 ����:1
++ cargo check -p codex-cli 2&gt;&amp;1 | Select-Object -Last 20
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: could no...arent directory:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+```
+</details>
+</tool-use>
+
+---
+
+
+getSystemMetricsメソッドを追加し、ビルドエラーを確認中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: gui/src/lib/bridge/dual-bridge.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Set-Location codex-rs; cargo check -p codex-cli 2>&1 | Select-Object -Last 25</summary>
+
+```bash
+Set-Location codex-rs; cargo check -p codex-cli 2>&1 | Select-Object -Last 25
+```
+
+```
+warning: &#96;codex-tui&#96; (lib) generated 14 warnings
+    Checking codex-tui2 v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tui2)
+    Checking codex-cloud-tasks v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\cloud-tasks)
+    Checking codex-cli v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\cli)
+error[E0412]: cannot find type &#96;GuiCommand&#96; in this scope
+   --&gt; cli\src\main.rs:145:9
+    |
+145 |     Gui(GuiCommand),
+    |         ^^^^^^^^^^ help: a struct with a similar name exists: &#96;AskCommand&#96;
+...
+415 | struct AskCommand {
+    | ----------------- similarly named struct &#96;AskCommand&#96; defined here
+error[E0412]: cannot find type &#96;GuiCommand&#96; in this scope
+    --&gt; cli\src\main.rs:1305:26
+     |
+ 415 | struct AskCommand {
+     | ----------------- similarly named struct &#96;AskCommand&#96; defined here
+...
+1305 | async fn launch_gui(cmd: GuiCommand) -&gt; std::io::Result&lt;()&gt; {
+     |                          ^^^^^^^^^^ help: a struct with a similar name exists: &#96;AskCommand&#96;
+For more information about this error, try &#96;rustc --explain E0412&#96;.
+error: could not compile &#96;codex-cli&#96; (bin "codex") due to 2 previous errors
+
+```
+</details>
+</tool-use>
+
+---
+
+
+GuiCommand構造体の定義を追加中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/cli/src/main.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Set-Location codex-rs; cargo check -p codex-cli 2>&1 | Select-Object -Last 15</summary>
+
+```bash
+Set-Location codex-rs; cargo check -p codex-cli 2>&1 | Select-Object -Last 15
+```
+
+```
+Set-Location : �p�X 'C:\Users\downl\Desktop\codex-main\codex-rs\codex-rs' �����݂��Ȃ����ߌ��o�ł��܂���B
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-e5d1e20f-6e35-4093-93a3-eb112049235a.ps1:97 ����:1
++ Set-Location codex-rs; cargo check -p codex-cli 2&gt;&amp;1 | Select-Object  ...
++ ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\downl\...dex-rs\codex-rs:String) [Set-Location], ItemNotFoundE 
+   xception
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SetLocationCommand
+ 
+    |
+172 | impl UpdateAction {
+    | ----------------- methods in this implementation
+173 |     /// Returns the list of command-line arguments for invoking the update.
+174 |     pub fn command_args(self) -&gt; (&amp;'static str, &amp;'static [&amp;'static str]) {
+    |            ^^^^^^^^^^^^
+...
+183 |     pub fn command_str(self) -&gt; String {
+    |            ^^^^^^^^^^^
+warning: &#96;codex-tui&#96; (lib) generated 14 warnings
+    Checking codex-cloud-tasks v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\cloud-tasks)
+    Checking codex-tui2 v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tui2)
+    Checking codex-cli v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\cli)
+    Finished &#96;dev&#96; profile [unoptimized + debuginfo] target(s) in 18.21s
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドエラーは解消されました。実装を完了しました。
+
+## 実装完了サマリー
+
+### 完了した改善
+
+1. **CLIにGUI起動コマンドを追加**
+   - `codex gui`コマンドを実装
+   - バックエンドとフロントエンドを自動起動
+   - `npm install`を自動実行
+   - ブラウザを自動で開く
+
+2. **サイドバーのUX改善**
+   - ホバー効果: スムーズなアニメーション、アイコンスケール
+   - ツールチップ: 詳細情報とショートカット表示
+   - キーボードショートカット表示: 各アイテムに表示
+   - アクティブ状態の視覚的フィードバック
+
+3. **キーボードショートカットの実装**
+   - 全主要ページにショートカットを割り当て
+   - Next.jsルーターと統合
+   - 入力フィールド保護
+
+4. **CLI/TUIとの連接強化**
+   - DualBridgeに`getSystemMetrics()`メソッドを追加
+   - CodexContextでCLI/TUI経由の取得を優先
+   - フォールバック機能を実装
+
+5. **簡単起動スクリプト**
+   - `scripts/launch-gui-simple.ps1`を追加
+
+### 使用方法
+
+```bash
+# GUI起動（最も簡単）
+codex gui
+
+# カスタムポート
+codex gui --port 3001 --backend-port 8788
+
+# ブラウザを開かない
+codex gui --no-browser
+```
+
+### キーボードショートカット
+
+- `Ctrl+D`: ダッシュボード
+- `Ctrl+C`: コード実行
+- `Ctrl+A`: エージェント
+- `Ctrl+T`: タスク管理
+- `Ctrl+B`: サイドバー表示/非表示
+- その他: サイドバーのツールチップを参照
+
+実装ログは`_docs/2025-12-27_GUI簡単起動とCLITUI連接_UX改善{main}.md`に保存しました。
+
+GUIは簡単に起動でき、CLI/TUIと連接し、サイドバーとホバーのUXが改善されました。
+
+---
+
+_**User**_
+
+高速差分ビルド、バイナリを上書きインストールして実機テスト　GUIをCursorのブラウザでplaywright
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+高速差分ビルド、バイナリの上書きインストール、GUIのPlaywrightテスト（Cursorブラウザ）を実行します。
+
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Rust高速差分ビルドを実行
+- [ ] バイナリを上書きインストール
+- [ ] GUIのPlaywrightテストを実行（Cursorブラウザ）
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/fast_build_install_test.py</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/install_and_test.py</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="list_dir_v2">
+<details>
+<summary>Tool use: **list_dir_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "targetDirectory": "gui-tests"
+}
+```
+Result:
+
+```json
+{
+  "directoryTreeRoot": {
+    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests",
+    "childrenDirs": [
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\playwright-report",
+        "childrenFiles": [
+          {
+            "name": "index.html"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\test-results",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\test-results\\gui-basic-Codex-GUI-API-In-9e491-PI-data---system-monitoring-chromium-cursor",
+            "childrenFiles": [
+              {
+                "name": "error-context.md"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\test-results\\gui-basic-Codex-GUI-Basic--576f2-d-navigate-to-security-page-chromium-cursor",
+            "childrenFiles": [
+              {
+                "name": "error-context.md"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\test-results\\gui-basic-Codex-GUI-Basic--64a3e-navigate-to-virtual-OS-page-chromium-cursor",
+            "childrenFiles": [
+              {
+                "name": "error-context.md"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\test-results\\gui-basic-Codex-GUI-Basic--e4c9c-ate-to-task-management-page-chromium-cursor",
+            "childrenFiles": [
+              {
+                "name": "error-context.md"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\test-results\\gui-basic-Codex-GUI-Basic--eac4a-ode-execution-functionality-chromium-cursor",
+            "childrenFiles": [
+              {
+                "name": "error-context.md"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\test-results\\gui-basic-Codex-GUI-Basic--ff38a--test-MCP-server-management-chromium-cursor",
+            "childrenFiles": [
+              {
+                "name": "error-context.md"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\gui-tests\\tests",
+        "childrenFiles": [
+          {
+            "name": "gui-basic.spec.js"
+          }
+        ],
+        "childrenWereProcessed": true
+      }
+    ],
+    "childrenFiles": [
+      {
+        "name": "global-setup.js"
+      },
+      {
+        "name": "global-teardown.js"
+      },
+      {
+        "name": "mock-server.js"
+      },
+      {
+        "name": "package-lock.json"
+      },
+      {
+        "name": "package.json"
+      },
+      {
+        "name": "playwright.config.js"
+      }
+    ],
+    "childrenWereProcessed": true
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+高速差分ビルド、バイナリの上書きインストール、GUIのPlaywrightテスト（Cursorブラウザ）を実行します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Process cargo -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Get-Process codex -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Write-Host "既存プロセスを停止しました"</summary>
+
+```bash
+Get-Process cargo -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Get-Process codex -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Write-Host "既存プロセスを停止しました"
+```
+
+```
+既存�Eロセスを停止しました
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Set-Location codex-rs; py -3 fast_build_install_test.py</summary>
+
+```bash
+Set-Location codex-rs; py -3 fast_build_install_test.py
+```
+
+```
+======================================================================
+🚀 高速差分ビルド・上書きインストール・実機テスト
+======================================================================
+
+📁 ビルドディレクトリ: target
+
+======================================================================
+📦 Phase 1: 高速差分ビルド (codex-cli)
+======================================================================
+
+======================================================================
+🚀 codex-cli (リリースビルド)を開始します...
+======================================================================
+
+[░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 1% | codex-execpolicy                    | 経過: 3.2秒 | 残り: 4分16秒[█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 2% | codex-core                          | 経過: 5.6秒 | 残り: 3分39秒[█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 3% | codex-ollama                        | 経過: 9.7秒 | 残り: 4分10秒[██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 5% | codex-lmstudio                      | 経過: 9.7秒 | 残り: 3分5秒[███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 6% | codex-arg0                          | 経過: 9.7秒 | 残り: 2分26秒[███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 7% | codex-backend-client                | 経過: 9.7秒 | 残り: 2分0秒[████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 8% | codex-login                         | 経過: 9.7秒 | 残り: 1分41秒[█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 10% | codex-supervisor                    | 経過: 9.7秒 | 残り: 1分27秒[█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 11% | codex-cloud-tasks-client            | 経過: 10.4秒 | 残り: 1分22秒[██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 12% | codex-common                        | 経過: 10.4秒 | 残り: 1分12秒[██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 13% | codex-tui                           | 経過: 10.9秒 | 残り: 1分8秒[███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 15% | codex-exec                          | 経過: 10.9秒 | 残り: 1分2秒[████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 16% | codex-app-server                    | 経過: 10.9秒 | 残り: 56.4秒[████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 17% | codex-chatgpt                       | 経過: 10.9秒 | 残り: 51.6秒[█████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 18% | codex-mcp-server                    | 経過: 10.9秒 | 残り: 47.4秒[██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 20% | codex-tui2                          | 経過: 12.8秒 | 残り: 51.4秒[██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 21% | codex-cloud-tasks                   | 経過: 12.8秒 | 残り: 47.6秒[███████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 22% | codex-cli                           | 経過: 14.6秒 | 残り: 50.2秒Set-Location : �p�X 'C:\Users\downl\Desktop\codex-main\codex-rs\codex-rs' �����݂��Ȃ����ߌ��o�ł��܂���B
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-0ea50041-f702-417f-b54e-63e07538a26b.ps1:97 ����:1
++ Set-Location codex-rs; py -3 fast_build_install_test.py
++ ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\downl\...dex-rs\codex-rs:String) [Set-Location], ItemNotFoundE 
+   xception
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SetLocationCommand
+ 
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドを再実行中。正しいディレクトリで実行します。
+
+
+---
+
+path should be a `path.relative()`d string, but got "C:/Users/downl/Desktop/codex-main/codex-rs"
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Rust高速差分ビルドを実行
+- [ ] バイナリを上書きインストール
+- [ ] GUIのPlaywrightテストを実行（Cursorブラウザ）
+
+</details>
+</tool-use>
+
+---
+
+
+相対パスで実行中。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Location; Set-Location codex-rs; Get-Location; py -3 fast_build_install_test.py</summary>
+
+```bash
+Get-Location; Set-Location codex-rs; Get-Location; py -3 fast_build_install_test.py
+```
+</details>
+</tool-use>
+
+---
+
+
+バックグラウンドでビルドを開始しました。進行状況を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Start-Sleep -Seconds 10; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\349039.txt -Tail 30 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Start-Sleep -Seconds 10; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\349039.txt -Tail 30 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 349039 ===
+Command: Get-Location; Set-Location codex-rs; Get-Location; py -3 fast_build_install_test.py
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:41:19.273Z
+============================================================
+
+
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドはバックグラウンドで実行中です。進行状況を定期的に確認します。完了まで時間がかかる場合があります。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Start-Sleep -Seconds 30; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\349039.txt -Tail 50 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Start-Sleep -Seconds 30; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\349039.txt -Tail 50 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 349039 ===
+Command: Get-Location; Set-Location codex-rs; Get-Location; py -3 fast_build_install_test.py
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:41:19.273Z
+============================================================
+
+
+
+```
+</details>
+</tool-use>
+
+---
+
+
+出力がまだ見えません。プロセスを確認し、必要に応じて再実行します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Process python,py -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime | Format-Table</summary>
+
+```bash
+Get-Process python,py -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime | Format-Table
+```
+
+```
+
+   Id ProcessName StartTime          
+   -- ----------- ---------          
+14192 py          2025/12/27 19:36:07
+29772 py          2025/12/27 19:41:20
+ 5396 python      2025/12/27 19:41:20
+ 9064 python      2025/12/27 19:24:53
+11600 python      2025/12/27 19:24:53
+13384 python      2025/12/27 19:36:07
+18296 python      2025/12/27 19:22:30
+18860 python      2025/12/27 19:23:14
+18904 python      2025/12/27 19:23:13
+23768 python      2025/12/27 19:24:28
+23792 python      2025/12/27 19:24:28
+
+
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd codex-rs; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました"; py -3 fast_build_install_test.py } else { Write-Host "スクリプトが見つかりません" }</summary>
+
+```bash
+cd codex-rs; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました"; py -3 fast_build_install_test.py } else { Write-Host "スクリプトが見つかりません" }
+```
+</details>
+</tool-use>
+
+---
+
+
+Pythonプロセスは実行中です。進行状況を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Start-Sleep -Seconds 20; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\297200.txt -Tail 50 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Start-Sleep -Seconds 20; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\297200.txt -Tail 50 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 297200 ===
+Command: cd codex-rs; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました"; py -3 fast_build_install_test.py } else { Write-Host "スクリプトが見つかりません" }
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:42:10.714Z
+============================================================
+
+cd : �E�p�E�X 'C:\Users\downl\Desktop\codex-main\codex-rs\codex-rs' �E��E��E��E��E�݂��E�Ȃ��E��E��E�ߌ��E�o�E�ł��E�܂��E��E�B
+�E��E��E��E��E�ꏁEC:\Users\downl\AppData\Local\Temp\ps-script-75f7c42d-18c3-4f86-a334-4590c1a2d937.ps1:97 �E��E��E��E�:1
++ cd codex-rs; if (Test-Path fast_build_install_test.py) { Write-Host " ...
++ ~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\downl\...dex-rs\codex-rs:String) [Set-Location], ItemNotFoundE 
+   xception
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SetLocationCommand
+ 
+スクリプトが見つかりました
+
+```
+</details>
+</tool-use>
+
+---
+
+
+スクリプトは見つかりました。現在のディレクトリを確認してから実行します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行します..."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsディレクトリに移動します..."; Set-Location codex-rs; py -3 fast_build_install_test.py }</summary>
+
+```bash
+Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行します..."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsディレクトリに移動します..."; Set-Location codex-rs; py -3 fast_build_install_test.py }
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドを開始しました。進行状況を確認中です。完了まで時間がかかる場合があります。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Start-Sleep -Seconds 15; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 60 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Start-Sleep -Seconds 15; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 60 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 845372 ===
+Command: Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行しまぁE.."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsチE��レクトリに移動しまぁE.."; Set-Location codex-rs; py -3 fast_build_install_test.py }
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:42:36.972Z
+============================================================
+
+
+スクリプトが見つかりました。実行しまぁE..
+
+```
+</details>
+</tool-use>
+
+---
+
+
+スクリプトは実行中です。ビルドには時間がかかるため、進行状況を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Start-Sleep -Seconds 30; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 80 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Start-Sleep -Seconds 30; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 80 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 845372 ===
+Command: Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行しまぁE.."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsチE��レクトリに移動しまぁE.."; Set-Location codex-rs; py -3 fast_build_install_test.py }
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:42:36.972Z
+============================================================
+
+
+スクリプトが見つかりました。実行しまぁE..
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドは実行中です。完了まで時間がかかります（通常5-15分）。進行状況を確認中です。完了次第、バイナリのインストールとGUIのPlaywrightテスト（Cursorブラウザ）を実行します。
+
+現在の状況:
+- 高速差分ビルド: 実行中
+- バイナリ上書きインストール: ビルド完了後に実行
+- GUI Playwrightテスト: インストール完了後に実行
+
+進行状況を定期的に確認します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Process cargo,python,py -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -gt (Get-Date).AddMinutes(-10) } | Select-Object ProcessName,Id,StartTime,CPU | Format-Table</summary>
+
+```bash
+Get-Process cargo,python,py -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -gt (Get-Date).AddMinutes(-10) } | Select-Object ProcessName,Id,StartTime,CPU | Format-Table
+```
+
+```
+
+ProcessName    Id StartTime                CPU
+-----------    -- ---------                ---
+cargo        5380 2025/12/27 19:41:20 0.078125
+cargo        6324 2025/12/27 19:42:11   0.0625
+cargo       10848 2025/12/27 19:42:37    0.875
+cargo       15640 2025/12/27 19:36:08 2.765625
+cargo       22336 2025/12/27 19:42:11  0.90625
+cargo       22500 2025/12/27 19:42:37 0.078125
+cargo       22884 2025/12/27 19:41:20   1.1875
+cargo       30564 2025/12/27 19:36:08 0.078125
+py           3644 2025/12/27 19:42:11  0.03125
+py          14192 2025/12/27 19:36:07 0.046875
+py          29772 2025/12/27 19:41:20  0.03125
+py          33584 2025/12/27 19:42:37 0.015625
+python       5396 2025/12/27 19:41:20  0.15625
+python       8544 2025/12/27 19:42:11 0.140625
+python      13384 2025/12/27 19:36:07   0.1875
+python      24728 2025/12/27 19:42:37 0.140625
+
+
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Start-Sleep -Seconds 60; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Start-Sleep -Seconds 60; Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 845372 ===
+Command: Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行しまぁE.."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsチE��レクトリに移動しまぁE.."; Set-Location codex-rs; py -3 fast_build_install_test.py }
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:42:36.972Z
+============================================================
+
+
+スクリプトが見つかりました。実行しまぁE..
+
+```
+</details>
+</tool-use>
+
+---
+
+
+cargoプロセスが複数実行中で、ビルドは進行中です。完了まで時間がかかります。進行状況を定期的に確認します。
+
+## 現在の状況
+
+- **高速差分ビルド**: 実行中（cargoプロセスが複数動作中）
+- **バイナリ上書きインストール**: ビルド完了後に実行予定
+- **GUI Playwrightテスト**: インストール完了後に実行予定（Cursorブラウザ）
+
+ビルド完了後、自動で以下を実行します：
+1. バイナリの上書きインストール
+2. CLI実機テスト（`codex --version`, `codex --help`）
+3. GUI Playwrightテスト（Cursorブラウザプロジェクト）
+
+進行状況を定期的に確認し、完了次第結果を報告します。
+
+---
+
+_**User**_
+
+進捗は
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+バックグラウンドで実行中のビルドの進捗を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 845372 ===
+Command: Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行しまぁE.."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsチE��レクトリに移動しまぁE.."; Set-Location codex-rs; py -3 fast_build_install_test.py }
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:42:36.972Z
+============================================================
+
+
+スクリプトが見つかりました。実行しまぁE..
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Process cargo -ErrorAction SilentlyContinue | Select-Object Id,CPU,WorkingSet,StartTime | Format-Table -AutoSize</summary>
+
+```bash
+Get-Process cargo -ErrorAction SilentlyContinue | Select-Object Id,CPU,WorkingSet,StartTime | Format-Table -AutoSize
+```
+
+```
+
+   Id      CPU WorkingSet StartTime          
+   --      --- ---------- ---------          
+ 5380 0.078125   13340672 2025/12/27 19:41:20
+ 6324   0.0625   13459456 2025/12/27 19:42:11
+10848    0.875  136265728 2025/12/27 19:42:37
+22336  0.90625  136851456 2025/12/27 19:42:11
+22500 0.078125   13688832 2025/12/27 19:42:37
+22884 2.109375  141041664 2025/12/27 19:41:20
+
+
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: if (Test-Path codex-rs\target\release\codex.exe) { $size = (Get-Item codex-rs\target\release\codex.exe).Length / 1MB; Write-Host "✅ ビルド完了！バイナリサイズ: $([math]::Round($size, 2)) MB" } else { Write-Host "⏳ ビルド進行中..." }</summary>
+
+```bash
+if (Test-Path codex-rs\target\release\codex.exe) { $size = (Get-Item codex-rs\target\release\codex.exe).Length / 1MB; Write-Host "✅ ビルド完了！バイナリサイズ: $([math]::Round($size, 2)) MB" } else { Write-Host "⏳ ビルド進行中..." }
+```
+
+```
+⏳ ビルド進行中...
+
+```
+</details>
+</tool-use>
+
+---
+
+
+バックグラウンドで実行中のビルドの進捗を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 845372 ===
+Command: Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行しまぁE.."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsチE��レクトリに移動しまぁE.."; Set-Location codex-rs; py -3 fast_build_install_test.py }
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:42:36.972Z
+============================================================
+
+
+スクリプトが見つかりました。実行しまぁE..
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Process cargo -ErrorAction SilentlyContinue | Select-Object Id,CPU,WorkingSet,StartTime | Format-Table -AutoSize</summary>
+
+```bash
+Get-Process cargo -ErrorAction SilentlyContinue | Select-Object Id,CPU,WorkingSet,StartTime | Format-Table -AutoSize
+```
+
+```
+
+   Id      CPU WorkingSet StartTime          
+   --      --- ---------- ---------          
+ 5380 0.078125   13340672 2025/12/27 19:41:20
+ 6324   0.0625   13459456 2025/12/27 19:42:11
+10848    0.875  136224768 2025/12/27 19:42:37
+22336  0.90625  136851456 2025/12/27 19:42:11
+22500 0.078125   13647872 2025/12/27 19:42:37
+22884 2.109375  141041664 2025/12/27 19:41:20
+
+
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: if (Test-Path codex-rs\target\release\codex.exe) { $size = (Get-Item codex-rs\target\release\codex.exe).Length / 1MB; Write-Host "✅ ビルド完了！ファイルサイズ: $([math]::Round($size, 2)) MB" } else { Write-Host "⏳ ビルド進行中..." }</summary>
+
+```bash
+if (Test-Path codex-rs\target\release\codex.exe) { $size = (Get-Item codex-rs\target\release\codex.exe).Length / 1MB; Write-Host "✅ ビルド完了！ファイルサイズ: $([math]::Round($size, 2)) MB" } else { Write-Host "⏳ ビルド進行中..." }
+```
+
+```
+⏳ ビルド進行中...
+
+```
+</details>
+</tool-use>
+
+---
+
+
+バックグラウンドのビルド進捗を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Get-Content C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\845372.txt -Tail 100 -ErrorAction SilentlyContinue
+```
+
+```
+=== Background Shell 845372 ===
+Command: Get-Location; if (Test-Path fast_build_install_test.py) { Write-Host "スクリプトが見つかりました。実行しまぁE.."; py -3 fast_build_install_test.py } else { Write-Host "codex-rsチE��レクトリに移動しまぁE.."; Set-Location codex-rs; py -3 fast_build_install_test.py }
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-27T10:42:36.972Z
+============================================================
+
+
+スクリプトが見つかりました。実行しまぁE..
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Process cargo -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,CPU,WorkingSet | Format-Table -AutoSize</summary>
+
+```bash
+Get-Process cargo -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,CPU,WorkingSet | Format-Table -AutoSize
+```
+
+```
+
+   Id ProcessName      CPU WorkingSet
+   -- -----------      --- ----------
+ 5380 cargo       0.078125   13340672
+ 6324 cargo         0.0625   13459456
+10848 cargo          0.875  136224768
+22336 cargo        0.90625  136851456
+22500 cargo       0.078125   13647872
+22884 cargo          2.125  141041664
+
+
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: if (Test-Path codex-rs\target\release\codex.exe) { $size = (Get-Item codex-rs\target\release\codex.exe).Length / 1MB; Write-Host "✅ ビルド完了: codex.exe ($([math]::Round($size, 2)) MB)"; Get-Item codex-rs\target\release\codex.exe | Select-Object Name,Length,LastWriteTime } else { Write-Host "⏳ ビルド進行中..." }</summary>
+
+```bash
+if (Test-Path codex-rs\target\release\codex.exe) { $size = (Get-Item codex-rs\target\release\codex.exe).Length / 1MB; Write-Host "✅ ビルド完了: codex.exe ($([math]::Round($size, 2)) MB)"; Get-Item codex-rs\target\release\codex.exe | Select-Object Name,Length,LastWriteTime } else { Write-Host "⏳ ビルド進行中..." }
+```
+
+```
+⏳ ビルド進行中...
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドは進行中です。詳細を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-ChildItem codex-rs\target\release -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize</summary>
+
+```bash
+Get-ChildItem codex-rs\target\release -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: $cargoProcs = Get-Process cargo -ErrorAction SilentlyContinue; Write-Host "実行中のcargoプロセス: $($cargoProcs.Count)個"; $cargoProcs | ForEach-Object { $cpu = $_.CPU; $mem = [math]::Round($_.WorkingSet / 1MB, 2); Write-Host "  PID $($_.Id): CPU=${cpu}s, メモリ=${mem}MB" }</summary>
+
+```bash
+$cargoProcs = Get-Process cargo -ErrorAction SilentlyContinue; Write-Host "実行中のcargoプロセス: $($cargoProcs.Count)個"; $cargoProcs | ForEach-Object { $cpu = $_.CPU; $mem = [math]::Round($_.WorkingSet / 1MB, 2); Write-Host "  PID $($_.Id): CPU=${cpu}s, メモリ=${mem}MB" }
+```
+
+```
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-0f5aba5d-2bea-4e96-945d-7231daa75890.ps1:146 ����:122
++ ... ata\Local\Temp\ps-state-out-a1d1b6b4-1d6d-4a84-b17c-a61402b4059d.txt"
++                                                                         ~
+������ɏI�[�L�� " ������܂���B
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : TerminatorExpectedAtEndOfString
+ 
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: if (Test-Path codex-rs\target\release\.cargo-lock) { Write-Host "✅ ビルドロックファイルが存在します（ビルド中）" } else { Write-Host "ℹ️  ビルドロックファイルが見つかりません" }</summary>
+
+```bash
+if (Test-Path codex-rs\target\release\.cargo-lock) { Write-Host "✅ ビルドロックファイルが存在します（ビルド中）" } else { Write-Host "ℹ️  ビルドロックファイルが見つかりません" }
+```
+
+```
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-6348bccd-35e7-455a-8064-bebb7b16eb0b.ps1:146 ����:122
++ ... ata\Local\Temp\ps-state-out-a53dde9e-feac-47eb-9712-5bd5ced8b997.txt"
++                                                                         ~
+������ɏI�[�L�� " ������܂���B
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-6348bccd-35e7-455a-8064-bebb7b16eb0b.ps1:97 ����:52
++ if (Test-Path codex-rs\target\release\.cargo-lock) { Write-Host "✁Eビ� ...
++                                                    ~
+�X�e�[�g�����g �u���b�N�܂��͌^��&#96;�ɏI���� '}' �����݂��܂���B
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : TerminatorExpectedAtEndOfString
+ 
+
+```
+</details>
+</tool-use>
+
+---
+
