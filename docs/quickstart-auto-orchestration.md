@@ -50,6 +50,18 @@ codex "Fix typo in README"
 # → 通常実行（オーケストレーションなし）
 ```
 
+**スキルと戦略を指定したい場合**
+
+```bash
+codex "Implement OAuth 2.0 with perf hardening" \
+  --skills security,perf \
+  --strategy hybrid \
+  --auto-threshold 0.7
+
+# → security/perf を優先した推奨エージェントを生成
+# → 閾値を下回る場合は警告を表示
+```
+
 ### 2. Node.js SDK で使用
 
 ```typescript
@@ -214,7 +226,22 @@ const result = await orchestrator.execute(goal, {
 });
 ```
 
-### Example 5: シーケンシャル実行
+### Example 5: Skill ヒントを渡す
+
+```typescript
+const result = await orchestrator.execute(
+  "Run auth hardening with perf checks",
+  {
+    skills: ["security", "performance"],
+    strategy: "hybrid",
+    complexityThreshold: 0.7,
+  }
+);
+
+console.log(result.taskAnalysis?.skillWarnings);
+```
+
+### Example 6: シーケンシャル実行
 
 ```typescript
 // 依存関係がある場合は順次実行
@@ -328,11 +355,11 @@ where codex  # Windows
 - MCP Tool（codex-auto-orchestrate）
 - Node.js SDK（CodexOrchestrator）
 - ドキュメント完全整備
+- CLI フラグ（`--skills`, `--strategy`, `--auto-threshold`）
 
 ### 🚧 今後の拡張
 
 - Config.toml での閾値カスタマイズ
-- CLI フラグ `--auto-orchestrate` `--auto-threshold`
 - ストリーミング進捗表示の強化
 - エージェント実行履歴の可視化
 
