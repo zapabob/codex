@@ -186,6 +186,7 @@ impl PlanOrchestrator {
             agent_results: vec![result.clone()],
             total_execution_time_secs: start.elapsed().as_secs_f64(),
             task_analysis: analysis,
+            orchestration_log: Vec::new(),
         })
     }
 
@@ -249,6 +250,7 @@ impl PlanOrchestrator {
             agent_results,
             total_execution_time_secs: start.elapsed().as_secs_f64(),
             task_analysis: analysis,
+            orchestration_log: Vec::new(),
         })
     }
 }

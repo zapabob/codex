@@ -96,6 +96,7 @@ async fn handle_socket(socket: WebSocket, Plan_id: String, state: Arc<PlanWsStat
                 ExecutionEvent::Progress { .. } => "".to_string(),
                 ExecutionEvent::Completed { .. } => "".to_string(),
                 ExecutionEvent::Failed { .. } => "".to_string(),
+                ExecutionEvent::OrchestrationLog { .. } => "".to_string(),
             };
             
             // For now, broadcast all events (TODO: filter by Plan_id)

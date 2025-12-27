@@ -23,6 +23,7 @@ pub mod worktree_manager;
 // Re-export common types
 pub use auto_orchestrator::AutoOrchestrator;
 pub use auto_orchestrator::OrchestratedResult;
+pub use auto_orchestrator::OrchestrationLogEntry;
 pub use collaboration_store::CollaborationStore;
 pub use collaboration_store::OrchestrationMetrics;
 pub use conflict_resolver::ConflictResolver;

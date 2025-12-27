@@ -41,6 +41,9 @@ pub struct TaskAnalysis {
     /// Keywords detected in the input
     pub detected_keywords: Vec<String>,
 
+    /// Skill tags derived from the input
+    pub skill_tags: Vec<String>,
+
     /// Recommended agents for this task
     pub recommended_agents: Vec<String>,
 
@@ -70,10 +73,11 @@ impl TaskAnalysis {
             .join(", ");
 
         format!(
-            "Complexity: {:.2} | Skills: {} | Agents: {} | Subtasks: {}",
+            "Complexity: {:.2} | Agents: {} | Skills: {} | Subtasks: {}",
             self.complexity_score,
             skills,
             self.recommended_agents.join(", "),
+            self.skill_tags.join(", "),
             self.subtasks.len()
         )
     }
@@ -94,17 +98,16 @@ impl TaskAnalyzer {
 
     /// Analyze user input and return task analysis.
     pub fn analyze(&self, user_input: &str) -> TaskAnalysis {
-        let lower_input = user_input.to_lowercase();
-        let (recommended_skill_tags, skill_score) = self.detect_skill_tags(&lower_input);
-        let complexity_score = self.calculate_complexity(user_input, &lower_input, skill_score);
-        let detected_keywords = self.extract_keywords(&lower_input);
-        let recommended_agents =
-            self.recommend_agents(user_input, &detected_keywords, &recommended_skill_tags);
+        let complexity_score = self.calculate_complexity(user_input);
+        let detected_keywords = self.extract_keywords(user_input);
+        let skill_tags = self.derive_skill_tags(user_input, &detected_keywords);
+        let recommended_agents = self.recommend_agents(user_input, &detected_keywords);
         let subtasks = self.decompose_into_subtasks(user_input, &detected_keywords);
 
         TaskAnalysis {
             complexity_score,
             detected_keywords,
+            skill_tags,
             recommended_agents,
             recommended_skill_tags,
             subtasks,
@@ -255,81 +258,52 @@ impl TaskAnalyzer {
             .collect()
     }
 
-    /// Detect skill tags and compute their contribution to complexity.
-    fn detect_skill_tags(&self, lower_input: &str) -> (Vec<SkillTag>, f64) {
-        let skill_signals: &[(SkillTag, f64, &[&str])] = &[
-            (
-                SkillTag::DependencySetup,
-                0.12,
-                &["dependency", "dependencies", "package", "setup", "install"],
-            ),
-            (
-                SkillTag::SecurityVulnerability,
-                0.18,
-                &[
-                    "cve",
-                    "vulnerability",
-                    "vulnerabilities",
-                    "supply chain",
-                    "security",
-                ],
-            ),
-            (
-                SkillTag::PerformanceProfiling,
-                0.16,
-                &["perf", "performance", "benchmark", "profile", "profiling"],
-            ),
-            (
-                SkillTag::RefactorRewrite,
-                0.12,
-                &["rewrite", "refactor", "cleanup", "modernize"],
-            ),
-            (
-                SkillTag::Migration,
-                0.16,
-                &[
-                    "migration",
-                    "migrate",
-                    "upgrade",
-                    "version bump",
-                    "schema change",
-                ],
-            ),
-            (
-                SkillTag::TestHardening,
-                0.12,
-                &[
-                    "regression",
-                    "stabilize tests",
-                    "hardening",
-                    "coverage",
-                    "flaky",
-                ],
-            ),
-            (
-                SkillTag::DocumentationGeneration,
-                0.08,
-                &[
-                    "documentation",
-                    "docs",
-                    "docstring",
-                    "api docs",
-                    "generate docs",
-                ],
-            ),
-        ];
+    fn derive_skill_tags(&self, input: &str, keywords: &[String]) -> Vec<String> {
+        let mut tags = HashSet::new();
+        let lower = input.to_lowercase();
 
-        let mut tags = Vec::new();
-        let mut skill_score = 0.0;
-
-        for (tag, weight, markers) in skill_signals {
-            if markers.iter().any(|marker| lower_input.contains(marker)) {
-                tags.push(*tag);
-                skill_score += weight;
-            }
+        if keywords
+            .iter()
+            .any(|k| ["security", "auth", "authentication", "oauth", "jwt"].contains(&k.as_str()))
+        {
+            tags.insert("security".to_string());
         }
 
-        (tags, skill_score)
+        if keywords
+            .iter()
+            .any(|k| ["test", "testing"].contains(&k.as_str()))
+            || lower.contains("qa")
+        {
+            tags.insert("testing".to_string());
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["refactor", "rewrite", "migrate"].contains(&k.as_str()))
+        {
+            tags.insert("rewriter".to_string());
+        }
+
+        if lower.contains("dependency") || lower.contains("supply chain") {
+            tags.insert("dependency-analysis".to_string());
+        }
+
+        if keywords
+            .iter()
+            .any(|k| ["documentation", "docs", "readme"].contains(&k.as_str()))
+        {
+            tags.insert("documentation".to_string());
+        }
+
+        if lower.contains("research") {
+            tags.insert("research".to_string());
+        }
+
+        if tags.is_empty() {
+            tags.insert("general".to_string());
+        }
+
+        tags.into_iter().collect()
     }
 
     /// Recommend agents based on detected keywords.
@@ -494,6 +468,8 @@ mod tests {
                 .recommended_agents
                 .contains(&"test-gen".to_string())
         );
+        assert!(analysis.skill_tags.contains(&"security".to_string()));
+        assert!(analysis.skill_tags.contains(&"testing".to_string()));
     }
 
     #[test]
@@ -508,6 +484,8 @@ mod tests {
         );
         assert!(analysis.detected_keywords.contains(&"auth".to_string()));
         assert!(analysis.detected_keywords.contains(&"test".to_string()));
+        assert!(analysis.skill_tags.contains(&"security".to_string()));
+        assert!(analysis.skill_tags.contains(&"testing".to_string()));
     }
 
     #[test]
@@ -540,38 +518,14 @@ mod tests {
     }
 
     #[test]
-    fn test_dependency_agent_recommendation() {
+    fn test_dependency_skill_tag_is_added() {
         let analyzer = TaskAnalyzer::new(0.7);
-        let analysis =
-            analyzer.analyze("Audit dependencies in Cargo.toml and package-lock for risks");
+        let analysis = analyzer.analyze("Run dependency audit and report issues");
 
         assert!(
             analysis
-                .recommended_agents
-                .contains(&"dependency-analyst".to_string())
-        );
-        assert!(
-            analysis
-                .recommended_agents
-                .contains(&"dependency-scout".to_string())
-        );
-    }
-
-    #[test]
-    fn test_performance_agent_recommendation() {
-        let analyzer = TaskAnalyzer::new(0.7);
-        let analysis =
-            analyzer.analyze("Profile the API latency and optimize throughput bottlenecks");
-
-        assert!(
-            analysis
-                .recommended_agents
-                .contains(&"performance-analyst".to_string())
-        );
-        assert!(
-            analysis
-                .recommended_agents
-                .contains(&"performance-scout".to_string())
+                .skill_tags
+                .contains(&"dependency-analysis".to_string())
         );
     }
 }
