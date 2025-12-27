@@ -294,9 +294,11 @@ export class DualBridge extends EventEmitter {
 
       this.on('commandResult', responseHandler)
 
+      // Increased timeout for system commands
+      const timeout = 30000; // 30 seconds
       setTimeout(() => {
         this.off('commandResult', responseHandler)
-        reject(new Error('Command execution timeout'))
+        reject(new Error(`Command execution timeout after ${timeout}ms`))
       }, 30000)
     })
   }
