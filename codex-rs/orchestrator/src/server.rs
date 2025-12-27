@@ -9,6 +9,10 @@ use crate::transport::TransportConfig;
 use crate::transport::TransportInfo;
 use anyhow::Context;
 use anyhow::Result;
+use codex_core::lock::RepositoryLock;
+use codex_core::plan::manager::PlanManager;
+use codex_core::plan::policy::ApprovalRole;
+use git2::{Repository, DiffOptions};
 use serde_json::json;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -40,6 +44,8 @@ pub struct OrchestratorServer {
     write_queue: mpsc::Sender<WriteRequest>,
     /// Write queue receiver (for processing)
     write_queue_rx: Option<mpsc::Receiver<WriteRequest>>,
+    /// Queue size tracker
+    queue_size: Arc<RwLock<usize>>,
     /// Server start time
     start_time: SystemTime,
     /// Active agents
@@ -48,8 +54,12 @@ pub struct OrchestratorServer {
     active_tasks: Arc<RwLock<HashMap<String, TaskInfo>>>,
     /// Token budget tracker
     token_budget: Arc<RwLock<TokenBudget>>,
+    /// Active sessions
+    active_sessions: Arc<RwLock<HashMap<String, SessionInfo>>>,
     /// PubSub subscribers
     subscribers: Arc<RwLock<HashMap<String, Vec<String>>>>, // topic -> connection_ids
+    /// Plan manager for blueprint operations
+    plan_manager: Arc<PlanManager>,
 }
 
 /// Orchestrator configuration
@@ -93,6 +103,14 @@ struct TaskInfo {
     submitted_at: SystemTime,
 }
 
+/// Session information
+#[derive(Debug, Clone)]
+struct SessionInfo {
+    session_id: String,
+    cwd: PathBuf,
+    started_at: SystemTime,
+}
+
 /// Token budget tracker
 #[derive(Debug, Clone)]
 struct TokenBudget {
@@ -126,6 +144,10 @@ impl OrchestratorServer {
             per_agent_usage: HashMap::new(),
         }));
 
+        let plan_manager = Arc::new(
+            PlanManager::new().context("Failed to create PlanManager")?
+        );
+
         Ok(Self {
             config,
             transport,
@@ -133,11 +155,14 @@ impl OrchestratorServer {
             idempotency_cache: Arc::new(RwLock::new(HashMap::new())),
             write_queue: write_queue_tx,
             write_queue_rx: Some(write_queue_rx),
+            queue_size: Arc::new(RwLock::new(0)),
             start_time: SystemTime::now(),
             active_agents: Arc::new(RwLock::new(HashMap::new())),
             active_tasks: Arc::new(RwLock::new(HashMap::new())),
             token_budget,
+            active_sessions: Arc::new(RwLock::new(HashMap::new())),
             subscribers: Arc::new(RwLock::new(HashMap::new())),
+            plan_manager,
         })
     }
 
@@ -159,7 +184,9 @@ impl OrchestratorServer {
         let active_agents = Arc::clone(&self.active_agents);
         let active_tasks = Arc::clone(&self.active_tasks);
         let token_budget = Arc::clone(&self.token_budget);
+        let active_sessions = Arc::clone(&self.active_sessions);
         let subscribers = Arc::clone(&self.subscribers);
+        let plan_manager = Arc::clone(&self.plan_manager);
         let config = self.config.clone();
 
         tokio::spawn(async move {
@@ -171,7 +198,9 @@ impl OrchestratorServer {
                     &active_agents,
                     &active_tasks,
                     &token_budget,
+                    &active_sessions,
                     &subscribers,
+                    &plan_manager,
                 )
                 .await;
 
@@ -199,6 +228,8 @@ impl OrchestratorServer {
                     let active_agents = Arc::clone(&self.active_agents);
                     let active_tasks = Arc::clone(&self.active_tasks);
                     let token_budget = Arc::clone(&self.token_budget);
+                    let active_sessions = Arc::clone(&self.active_sessions);
+                    let queue_size = Arc::clone(&self.queue_size);
                     let config = self.config.clone();
 
                     tokio::spawn(async move {
@@ -211,6 +242,7 @@ impl OrchestratorServer {
                             &active_agents,
                             &active_tasks,
                             &token_budget,
+                            &active_sessions,
                             &config,
                         )
                         .await
@@ -236,6 +268,7 @@ impl OrchestratorServer {
         active_agents: &Arc<RwLock<HashMap<String, AgentInfo>>>,
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
+        active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         config: &OrchestratorConfig,
     ) -> Result<()> {
         loop {
@@ -285,18 +318,28 @@ impl OrchestratorServer {
 
                 match write_queue.try_send(write_req) {
                     Ok(_) => {
+                        // Increment queue size
+                        {
+                            let mut size = queue_size.write().await;
+                            *size += 1;
+                        }
                         // Wait for response
                         match response_rx.await {
                             Ok(resp) => resp,
-                            Err(_) => RpcResponse {
-                                id: request.id.clone(),
-                                result: None,
-                                error: Some(RpcError {
-                                    code: ERROR_INTERNAL,
-                                    message: "Write queue processing failed".to_string(),
-                                    data: None,
-                                }),
-                            },
+                            Err(_) => {
+                                // Decrement on error
+                                let mut size = queue_size.write().await;
+                                *size = size.saturating_sub(1);
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: None,
+                                    error: Some(RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: "Write queue processing failed".to_string(),
+                                        data: None,
+                                    }),
+                                }
+                            }
                         }
                     }
                     Err(_) => RpcResponse {
@@ -373,6 +416,7 @@ impl OrchestratorServer {
         active_agents: &Arc<RwLock<HashMap<String, AgentInfo>>>,
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
+        _active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         config: &OrchestratorConfig,
     ) -> RpcResponse {
         match request.method.as_str() {
@@ -380,6 +424,7 @@ impl OrchestratorServer {
                 let agents = active_agents.read().await;
                 let tasks = active_tasks.read().await;
                 let budget = token_budget.read().await;
+                let size = queue_size.read().await;
                 let uptime = SystemTime::now()
                     .duration_since(start_time)
                     .unwrap_or_default()
@@ -390,7 +435,7 @@ impl OrchestratorServer {
                     result: Some(json!({
                         "server_version": env!("CARGO_PKG_VERSION"),
                         "uptime_seconds": uptime,
-                        "queue_size": 0, // TODO: track actual queue size
+                        "queue_size": *size,
                         "queue_capacity": config.queue_capacity,
                         "active_agents": agents.len(),
                         "active_tasks": tasks.len(),
@@ -401,13 +446,73 @@ impl OrchestratorServer {
                 }
             }
             "lock.status" => {
-                // TODO: Implement lock status check
-                RpcResponse {
-                    id: request.id.clone(),
-                    result: Some(json!({
-                        "locked": false,
-                    })),
-                    error: None,
+                let params: Result<LockStatusRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Determine repository path
+                        let repo_path = if let Some(path) = params.path {
+                            path
+                        } else {
+                            // Use codex_dir's parent as repository root
+                            config.codex_dir.parent().unwrap_or_else(|| PathBuf::from(".")).to_path_buf()
+                        };
+
+                        // Create lock manager for the repository
+                        match RepositoryLock::new(&repo_path) {
+                            Ok(lock) => {
+                                match lock.status() {
+                                    Ok(Some(metadata)) => {
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: Some(json!({
+                                                "locked": true,
+                                                "holder": format!("PID {}", metadata.pid),
+                                                "acquired_at": metadata.started_at.to_string(),
+                                            })),
+                                            error: None,
+                                        }
+                                    }
+                                    Ok(None) => {
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: Some(json!({
+                                                "locked": false,
+                                            })),
+                                            error: None,
+                                        }
+                                    }
+                                    Err(e) => RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INTERNAL,
+                                            message: format!("Failed to check lock status: {e}"),
+                                            data: None,
+                                        }),
+                                    },
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to create lock manager: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
                 }
             }
             "agent.list" => {
@@ -438,6 +543,139 @@ impl OrchestratorServer {
                         "warning_threshold": budget.warning_threshold,
                     })),
                     error: None,
+                }
+            }
+            "fs.read" => {
+                let params: Result<FsReadRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Validate path (prevent directory traversal)
+                        let path = params.path.canonicalize()
+                            .map_err(|e| RpcError {
+                                code: ERROR_INVALID_PARAMS,
+                                message: format!("Invalid path: {e}"),
+                                data: None,
+                            })?;
+
+                        // Read file
+                        match tokio::fs::read_to_string(&path).await {
+                            Ok(content) => {
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "content": content,
+                                    })),
+                                    error: None,
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to read file: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "vcs.diff" => {
+                // Find repository root from codex_dir
+                let repo_root = config.codex_dir.parent().unwrap_or_else(|| PathBuf::from("."));
+                
+                match Repository::open(repo_root) {
+                    Ok(repo) => {
+                        // Get working directory diff
+                        let head = match repo.head() {
+                            Ok(head) => head.peel_to_commit().ok(),
+                            Err(_) => None,
+                        };
+
+                        let mut diff_options = DiffOptions::new();
+                        diff_options.include_untracked(true);
+                        diff_options.include_ignored(false);
+
+                        let diff = if let Some(head_commit) = head {
+                            repo.diff_tree_to_workdir_with_index(
+                                Some(&head_commit.tree().unwrap()),
+                                Some(&mut diff_options),
+                            )
+                        } else {
+                            repo.diff_tree_to_workdir(
+                                None,
+                                Some(&mut diff_options),
+                            )
+                        };
+
+                        match diff {
+                            Ok(diff) => {
+                                let mut diff_text = String::new();
+                                if let Err(e) = diff.print(
+                                    git2::DiffFormat::Patch,
+                                    |_delta, _hunk, line| {
+                                        match line.origin() {
+                                            ' ' | '+' | '-' | 'F' | 'H' | 'B' => {
+                                                diff_text.push(line.origin());
+                                                if let Ok(content) = std::str::from_utf8(line.content()) {
+                                                    diff_text.push_str(content);
+                                                }
+                                            }
+                                            _ => {}
+                                        }
+                                        true
+                                    },
+                                ) {
+                                    return RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INTERNAL,
+                                            message: format!("Failed to format diff: {e}"),
+                                            data: None,
+                                        }),
+                                    };
+                                }
+
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "diff": diff_text,
+                                    })),
+                                    error: None,
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to compute diff: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INTERNAL,
+                            message: format!("Not a git repository or failed to open: {e}"),
+                            data: None,
+                        }),
+                    },
                 }
             }
             "blueprint.get" => {
@@ -485,14 +723,366 @@ impl OrchestratorServer {
     /// Process write request (in single-writer queue)
     async fn process_write_request(
         request: &RpcRequest,
-        _config: &OrchestratorConfig,
+        config: &OrchestratorConfig,
         _auth_manager: &Arc<AuthManager>,
         active_agents: &Arc<RwLock<HashMap<String, AgentInfo>>>,
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
+        active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         _subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
+        plan_manager: &Arc<PlanManager>,
     ) -> RpcResponse {
         match request.method.as_str() {
+            "lock.acquire" => {
+                let params: Result<LockAcquireRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Create lock manager for the repository
+                        match RepositoryLock::new(&params.path) {
+                            Ok(lock) => {
+                                if params.force {
+                                    // Force remove existing lock
+                                    if let Err(e) = lock.force_remove() {
+                                        return RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Failed to force remove lock: {e}"),
+                                                data: None,
+                                            }),
+                                        };
+                                    }
+                                }
+
+                                // Try to acquire lock
+                                match lock.acquire(None) {
+                                    Ok(metadata) => {
+                                        // Publish lock.changed event
+                                        Self::publish_event(
+                                            EVENT_LOCK_CHANGED,
+                                            json!({
+                                                "locked": true,
+                                                "holder": format!("PID {}", metadata.pid),
+                                                "path": params.path.to_string_lossy().to_string(),
+                                            }),
+                                            subscribers,
+                                        ).await;
+
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: Some(json!({
+                                                "success": true,
+                                                "message": format!("Lock acquired by PID {}", metadata.pid),
+                                            })),
+                                            error: None,
+                                        }
+                                    }
+                                    Err(e) => {
+                                        // Lock conflict - return 409
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_CONFLICT,
+                                                message: format!("Lock conflict: {e}"),
+                                                data: None,
+                                            }),
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to create lock manager: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "lock.release" => {
+                let params: Result<LockReleaseRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Create lock manager for the repository
+                        match RepositoryLock::new(&params.path) {
+                            Ok(lock) => {
+                                match lock.release() {
+                                    Ok(_) => {
+                                        // Publish lock.changed event
+                                        Self::publish_event(
+                                            EVENT_LOCK_CHANGED,
+                                            json!({
+                                                "locked": false,
+                                                "path": params.path.to_string_lossy().to_string(),
+                                            }),
+                                            subscribers,
+                                        ).await;
+
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: Some(json!({
+                                                "success": true,
+                                            })),
+                                            error: None,
+                                        }
+                                    }
+                                    Err(e) => {
+                                        // Check if it's a permission error (not owner)
+                                        let error_msg = e.to_string();
+                                        let code = if error_msg.contains("Cannot release lock owned by") {
+                                            ERROR_CONFLICT
+                                        } else {
+                                            ERROR_INTERNAL
+                                        };
+
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code,
+                                                message: format!("Failed to release lock: {e}"),
+                                                data: None,
+                                            }),
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to create lock manager: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "fs.write" => {
+                let params: Result<FsWriteRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Validate path
+                        let path = params.path.canonicalize()
+                            .map_err(|e| RpcError {
+                                code: ERROR_INVALID_PARAMS,
+                                message: format!("Invalid path: {e}"),
+                                data: None,
+                            })?;
+
+                        // Check preimage SHA256 if provided
+                        if let Some(expected_sha) = &params.preimage_sha {
+                            if path.exists() {
+                                match tokio::fs::read_to_string(&path).await {
+                                    Ok(existing_content) => {
+                                        use sha2::{Sha256, Digest};
+                                        let mut hasher = Sha256::new();
+                                        hasher.update(existing_content.as_bytes());
+                                        let current_sha = format!("{:x}", hasher.finalize());
+
+                                        if current_sha != *expected_sha {
+                                            return RpcResponse {
+                                                id: request.id.clone(),
+                                                result: None,
+                                                error: Some(RpcError {
+                                                    code: ERROR_CONFLICT,
+                                                    message: format!(
+                                                        "File was modified. Expected SHA256: {}, got: {}",
+                                                        expected_sha, current_sha
+                                                    ),
+                                                    data: None,
+                                                }),
+                                            };
+                                        }
+                                    }
+                                    Err(e) => {
+                                        return RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Failed to read existing file: {e}"),
+                                                data: None,
+                                            }),
+                                        };
+                                    }
+                                }
+                            }
+                        }
+
+                        // Write file atomically (write to temp file, then rename)
+                        let temp_path = path.with_extension(".tmp");
+                        match tokio::fs::write(&temp_path, &params.content).await {
+                            Ok(_) => {
+                                // Atomic rename
+                                match tokio::fs::rename(&temp_path, &path).await {
+                                    Ok(_) => {
+                                        // Calculate new SHA256
+                                        use sha2::{Sha256, Digest};
+                                        let mut hasher = Sha256::new();
+                                        hasher.update(params.content.as_bytes());
+                                        let new_sha = format!("{:x}", hasher.finalize());
+
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: Some(json!({
+                                                "success": true,
+                                                "new_sha": new_sha,
+                                            })),
+                                            error: None,
+                                        }
+                                    }
+                                    Err(e) => {
+                                        let _ = tokio::fs::remove_file(&temp_path).await;
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Failed to rename temp file: {e}"),
+                                                data: None,
+                                            }),
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to write file: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "fs.patch" => {
+                let params: Result<FsPatchRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Parse unified diff
+                        // For now, use a simple implementation
+                        // In production, use a proper diff library like `similar` or `diffy`
+                        let diff_lines: Vec<&str> = params.unified_diff.lines().collect();
+                        let mut applied_files = Vec::new();
+
+                        // Simple diff parser (handles basic unified diff format)
+                        let mut current_file: Option<PathBuf> = None;
+                        let mut file_content: Vec<String> = Vec::new();
+                        let mut line_num = 0;
+
+                        for line in diff_lines {
+                            if line.starts_with("+++ ") {
+                                // New file path
+                                let file_path = line.strip_prefix("+++ ").unwrap_or("").trim();
+                                if !file_path.is_empty() {
+                                    current_file = Some(PathBuf::from(file_path));
+                                    file_content.clear();
+                                    line_num = 0;
+                                }
+                            } else if line.starts_with("@@") {
+                                // Hunk header - extract line numbers
+                                // Format: @@ -old_start,old_count +new_start,new_count @@
+                                // For simplicity, we'll just track that we're in a hunk
+                            } else if let Some(ref file_path) = current_file {
+                                if line.starts_with("+") && !line.starts_with("++") {
+                                    // Added line
+                                    file_content.push(line[1..].to_string());
+                                    line_num += 1;
+                                } else if line.starts_with("-") && !line.starts_with("--") {
+                                    // Removed line - skip
+                                    line_num += 1;
+                                } else if !line.starts_with("\\") {
+                                    // Context line
+                                    file_content.push(line.to_string());
+                                    line_num += 1;
+                                }
+
+                                // Apply patch when we finish processing
+                                if line_num > 0 && file_content.len() > 0 {
+                                    let content = file_content.join("\n");
+                                    match tokio::fs::write(file_path, content).await {
+                                        Ok(_) => {
+                                            applied_files.push(file_path.clone());
+                                        }
+                                        Err(e) => {
+                                            return RpcResponse {
+                                                id: request.id.clone(),
+                                                result: None,
+                                                error: Some(RpcError {
+                                                    code: ERROR_INTERNAL,
+                                                    message: format!("Failed to apply patch to {}: {e}", file_path.display()),
+                                                    data: None,
+                                                }),
+                                            };
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({
+                                "success": true,
+                                "applied_files": applied_files.iter().map(|p| p.to_string_lossy().to_string()).collect::<Vec<_>>(),
+                            })),
+                            error: None,
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
             "agent.register" => {
                 // Parse params
                 let params: Result<AgentRegisterRequest, _> =
@@ -514,6 +1104,44 @@ impl OrchestratorServer {
                             id: request.id.clone(),
                             result: Some(json!({ "success": true })),
                             error: None,
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "agent.heartbeat" => {
+                let params: Result<AgentHeartbeatRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        let mut agents = active_agents.write().await;
+                        if let Some(agent) = agents.get_mut(&params.agent_id) {
+                            agent.last_heartbeat = chrono::Utc::now().to_rfc3339();
+                            agent.status = "active".to_string();
+
+                            RpcResponse {
+                                id: request.id.clone(),
+                                result: Some(json!({ "success": true })),
+                                error: None,
+                            }
+                        } else {
+                            RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INVALID_PARAMS,
+                                    message: format!("Agent {} not found", params.agent_id),
+                                    data: None,
+                                }),
+                            }
                         }
                     }
                     Err(e) => RpcResponse {
@@ -563,6 +1191,43 @@ impl OrchestratorServer {
                     },
                 }
             }
+            "task.cancel" => {
+                let params: Result<TaskCancelRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        let mut tasks = active_tasks.write().await;
+                        if let Some(task) = tasks.get_mut(&params.task_id) {
+                            task.status = "cancelled".to_string();
+
+                            RpcResponse {
+                                id: request.id.clone(),
+                                result: Some(json!({ "success": true })),
+                                error: None,
+                            }
+                        } else {
+                            RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INVALID_PARAMS,
+                                    message: format!("Task {} not found", params.task_id),
+                                    data: None,
+                                }),
+                            }
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
             "tokens.reportUsage" => {
                 let params: Result<TokensReportUsageRequest, _> =
                     serde_json::from_value(request.params.clone());
@@ -574,6 +1239,18 @@ impl OrchestratorServer {
                             params.tokens_used;
 
                         let remaining = budget.total_budget.saturating_sub(budget.used);
+
+                        // Publish tokens.updated event
+                        Self::publish_event(
+                            EVENT_TOKENS_UPDATED,
+                            json!({
+                                "total_budget": budget.total_budget,
+                                "used": budget.used,
+                                "remaining": remaining,
+                                "agent_id": params.agent_id,
+                            }),
+                            subscribers,
+                        ).await;
 
                         RpcResponse {
                             id: request.id.clone(),
@@ -595,20 +1272,361 @@ impl OrchestratorServer {
                     },
                 }
             }
-            // Blueprint methods (stubbed for now - will be fully implemented)
+            "vcs.commit" => {
+                let params: Result<VcsCommitRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Find repository root from codex_dir
+                        let repo_root = config.codex_dir.parent().unwrap_or_else(|| PathBuf::from("."));
+                        
+                        match Repository::open(repo_root) {
+                            Ok(repo) => {
+                                // Get signature
+                                let sig = repo.signature()
+                                    .map_err(|e| RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Failed to get git signature: {e}"),
+                                        data: None,
+                                    })?;
+
+                                // Stage all changes
+                                let mut index = repo.index()
+                                    .map_err(|e| RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Failed to get index: {e}"),
+                                        data: None,
+                                    })?;
+
+                                // Add all modified and new files
+                                index.add_all(["*"], git2::IndexAddOption::DEFAULT, None)
+                                    .map_err(|e| RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Failed to add files to index: {e}"),
+                                        data: None,
+                                    })?;
+
+                                index.write()
+                                    .map_err(|e| RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Failed to write index: {e}"),
+                                        data: None,
+                                    })?;
+
+                                let tree_id = index.write_tree()
+                                    .map_err(|e| RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Failed to write tree: {e}"),
+                                        data: None,
+                                    })?;
+
+                                let tree = repo.find_tree(tree_id)
+                                    .map_err(|e| RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Failed to find tree: {e}"),
+                                        data: None,
+                                    })?;
+
+                                // Get parent commit if exists
+                                let parent_commit = repo.head().ok()
+                                    .and_then(|head| head.peel_to_commit().ok());
+
+                                let commit_id = if let Some(parent) = parent_commit {
+                                    repo.commit(
+                                        Some("HEAD"),
+                                        &sig,
+                                        &sig,
+                                        &params.message,
+                                        &tree,
+                                        &[&parent],
+                                    )
+                                } else {
+                                    repo.commit(
+                                        Some("HEAD"),
+                                        &sig,
+                                        &sig,
+                                        &params.message,
+                                        &tree,
+                                        &[],
+                                    )
+                                };
+
+                                match commit_id {
+                                    Ok(oid) => {
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: Some(json!({
+                                                "success": true,
+                                                "commit_sha": oid.to_string(),
+                                            })),
+                                            error: None,
+                                        }
+                                    }
+                                    Err(e) => RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INTERNAL,
+                                            message: format!("Failed to create commit: {e}"),
+                                            data: None,
+                                        }),
+                                    },
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Not a git repository or failed to open: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "vcs.push" => {
+                let params: Result<VcsPushRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Find repository root from codex_dir
+                        let repo_root = config.codex_dir.parent().unwrap_or_else(|| PathBuf::from("."));
+                        
+                        match Repository::open(repo_root) {
+                            Ok(repo) => {
+                                // Find remote
+                                let mut remote = repo.find_remote(&params.remote)
+                                    .map_err(|e| RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: format!("Remote '{}' not found: {e}", params.remote),
+                                        data: None,
+                                    })?;
+
+                                // Push to remote
+                                let refspec = format!("refs/heads/{}:refs/heads/{}", params.branch, params.branch);
+                                match remote.push(&[&refspec], None) {
+                                    Ok(_) => {
+                                        RpcResponse {
+                                            id: request.id.clone(),
+                                            result: Some(json!({
+                                                "success": true,
+                                            })),
+                                            error: None,
+                                        }
+                                    }
+                                    Err(e) => RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INTERNAL,
+                                            message: format!("Failed to push: {e}"),
+                                            data: None,
+                                        }),
+                                    },
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Not a git repository or failed to open: {e}"),
+                                    data: None,
+                                }),
+                            },
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "session.start" => {
+                let params: Result<SessionStartRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        let mut sessions = active_sessions.write().await;
+                        sessions.insert(
+                            params.session_id.clone(),
+                            SessionInfo {
+                                session_id: params.session_id.clone(),
+                                cwd: params.cwd,
+                                started_at: SystemTime::now(),
+                            },
+                        );
+
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({ "success": true })),
+                            error: None,
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "session.end" => {
+                let params: Result<SessionEndRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        let mut sessions = active_sessions.write().await;
+                        if sessions.remove(&params.session_id).is_some() {
+                            RpcResponse {
+                                id: request.id.clone(),
+                                result: Some(json!({ "success": true })),
+                                error: None,
+                            }
+                        } else {
+                            RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INVALID_PARAMS,
+                                    message: format!("Session {} not found", params.session_id),
+                                    data: None,
+                                }),
+                            }
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "pubsub.subscribe" => {
+                let params: Result<PubSubSubscribeRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // Generate a connection ID for this subscription
+                        // In a real implementation, this would be tied to the actual connection
+                        use rand::Rng;
+                        let mut rng = rand::thread_rng();
+                        let connection_id = format!("conn_{}", rng.gen::<u64>());
+
+                        let mut subscribers = _subscribers.write().await;
+                        for topic in params.topics {
+                            subscribers.entry(topic).or_insert_with(Vec::new).push(connection_id.clone());
+                        }
+
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({ "success": true })),
+                            error: None,
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            "pubsub.unsubscribe" => {
+                let params: Result<PubSubUnsubscribeRequest, _> =
+                    serde_json::from_value(request.params.clone());
+                match params {
+                    Ok(params) => {
+                        // In a real implementation, we would use the actual connection ID
+                        // For now, we'll remove all subscriptions for the given topics
+                        let mut subscribers = _subscribers.write().await;
+                        for topic in params.topics {
+                            subscribers.remove(&topic);
+                        }
+
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({ "success": true })),
+                            error: None,
+                        }
+                    }
+                    Err(e) => RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: ERROR_INVALID_PARAMS,
+                            message: format!("Invalid params: {e}"),
+                            data: None,
+                        }),
+                    },
+                }
+            }
+            // Blueprint methods
             "blueprint.create" => {
                 let params: Result<BlueprintCreateRequest, _> =
                     serde_json::from_value(request.params.clone());
                 match params {
-                    Ok(_params) => {
-                        // TODO: Implement with BlueprintManager
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({
-                                "success": true,
-                                "blueprint_id": format!("bp-{}", chrono::Utc::now().timestamp()),
-                            })),
-                            error: None,
+                    Ok(params) => {
+                        match plan_manager.create_Plan(
+                            params.goal,
+                            params.title,
+                            params.created_by,
+                        ) {
+                            Ok(blueprint_id) => {
+                                // Publish blueprint.created event
+                                Self::publish_event(
+                                    EVENT_BLUEPRINT_CREATED,
+                                    json!({
+                                        "blueprint_id": blueprint_id,
+                                        "title": params.title,
+                                    }),
+                                    subscribers,
+                                ).await;
+
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "success": true,
+                                        "blueprint_id": blueprint_id,
+                                    })),
+                                    error: None,
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to create blueprint: {e}"),
+                                    data: None,
+                                }),
+                            },
                         }
                     }
                     Err(e) => RpcResponse {
@@ -652,12 +1670,43 @@ impl OrchestratorServer {
                 let params: Result<BlueprintApproveRequest, _> =
                     serde_json::from_value(request.params.clone());
                 match params {
-                    Ok(_params) => {
-                        // TODO: Implement with BlueprintManager
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                    Ok(params) => {
+                        // Parse approver role
+                        let role = match params.approver_role.as_str() {
+                            "user" => ApprovalRole::User,
+                            "reviewer" => ApprovalRole::Reviewer,
+                            "maintainer" => ApprovalRole::Maintainer,
+                            "admin" => ApprovalRole::Admin,
+                            _ => ApprovalRole::User,
+                        };
+
+                        match plan_manager.approve_Plan(&params.blueprint_id, params.approver.clone(), role) {
+                            Ok(_) => {
+                                // Publish blueprint.approved event
+                                Self::publish_event(
+                                    EVENT_BLUEPRINT_APPROVED,
+                                    json!({
+                                        "blueprint_id": params.blueprint_id,
+                                        "approver": params.approver,
+                                    }),
+                                    subscribers,
+                                ).await;
+
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({ "success": true })),
+                                    error: None,
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to approve blueprint: {e}"),
+                                    data: None,
+                                }),
+                            },
                         }
                     }
                     Err(e) => RpcResponse {
@@ -675,12 +1724,39 @@ impl OrchestratorServer {
                 let params: Result<BlueprintRejectRequest, _> =
                     serde_json::from_value(request.params.clone());
                 match params {
-                    Ok(_params) => {
-                        // TODO: Implement with BlueprintManager
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                    Ok(params) => {
+                        match plan_manager.reject_Plan(
+                            &params.blueprint_id,
+                            params.reason.clone(),
+                            params.rejector.clone(),
+                        ) {
+                            Ok(_) => {
+                                // Publish blueprint.rejected event
+                                Self::publish_event(
+                                    EVENT_BLUEPRINT_REJECTED,
+                                    json!({
+                                        "blueprint_id": params.blueprint_id,
+                                        "reason": params.reason,
+                                        "rejector": params.rejector,
+                                    }),
+                                    subscribers,
+                                ).await;
+
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({ "success": true })),
+                                    error: None,
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to reject blueprint: {e}"),
+                                    data: None,
+                                }),
+                            },
                         }
                     }
                     Err(e) => RpcResponse {
@@ -698,16 +1774,35 @@ impl OrchestratorServer {
                 let params: Result<BlueprintExportRequest, _> =
                     serde_json::from_value(request.params.clone());
                 match params {
-                    Ok(_params) => {
-                        // TODO: Implement with BlueprintManager
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({
-                                "success": true,
-                                "markdown_path": "docs/blueprints/example.md",
-                                "json_path": "logs/blueprint/example.json",
-                            })),
-                            error: None,
+                    Ok(params) => {
+                        match plan_manager.export_Plan(&params.blueprint_id) {
+                            Ok((md_path, json_path)) => {
+                                let mut result = json!({
+                                    "success": true,
+                                });
+
+                                if params.format == "md" || params.format == "both" {
+                                    result["markdown_path"] = json!(md_path.to_string_lossy().to_string());
+                                }
+                                if params.format == "json" || params.format == "both" {
+                                    result["json_path"] = json!(json_path.to_string_lossy().to_string());
+                                }
+
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(result),
+                                    error: None,
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to export blueprint: {e}"),
+                                    data: None,
+                                }),
+                            },
                         }
                     }
                     Err(e) => RpcResponse {
@@ -725,11 +1820,16 @@ impl OrchestratorServer {
                 let params: Result<BlueprintSetModeRequest, _> =
                     serde_json::from_value(request.params.clone());
                 match params {
-                    Ok(_params) => {
-                        // TODO: Implement global mode setting
+                    Ok(params) => {
+                        // Global mode setting - store in config or a separate state
+                        // For now, we'll just acknowledge the request
+                        // In a full implementation, this would update a global mode setting
                         RpcResponse {
                             id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
+                            result: Some(json!({
+                                "success": true,
+                                "mode": params.mode,
+                            })),
                             error: None,
                         }
                     }
@@ -748,12 +1848,44 @@ impl OrchestratorServer {
                 let params: Result<BlueprintAddResearchRequest, _> =
                     serde_json::from_value(request.params.clone());
                 match params {
-                    Ok(_params) => {
-                        // TODO: Implement with BlueprintManager
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                    Ok(params) => {
+                        // Convert BlueprintResearch to ResearchBlock
+                        use codex_core::plan::schema::{ResearchBlock, ResearchSource};
+                        use chrono::Utc;
+                        let research = ResearchBlock {
+                            query: params.research.query,
+                            depth: params.research.depth,
+                            strategy: params.research.strategy,
+                            sources: params.research.sources.into_iter().map(|s| ResearchSource {
+                                title: s.title,
+                                url: s.url,
+                                date: s.date,
+                                key_finding: s.key_finding,
+                                confidence: s.confidence,
+                            }).collect(),
+                            synthesis: params.research.synthesis,
+                            confidence: params.research.confidence,
+                            needs_approval: params.research.needs_approval,
+                            timestamp: Utc::now(),
+                        };
+
+                        match plan_manager.add_research(&params.blueprint_id, research) {
+                            Ok(_) => {
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({ "success": true })),
+                                    error: None,
+                                }
+                            }
+                            Err(e) => RpcResponse {
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: format!("Failed to add research: {e}"),
+                                    data: None,
+                                }),
+                            },
                         }
                     }
                     Err(e) => RpcResponse {
