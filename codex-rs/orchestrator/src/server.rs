@@ -331,13 +331,13 @@ impl OrchestratorServer {
                                 let mut size = queue_size.write().await;
                                 *size = size.saturating_sub(1);
                                 RpcResponse {
-                                    id: request.id.clone(),
-                                    result: None,
-                                    error: Some(RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: "Write queue processing failed".to_string(),
-                                        data: None,
-                                    }),
+                                id: request.id.clone(),
+                                result: None,
+                                error: Some(RpcError {
+                                    code: ERROR_INTERNAL,
+                                    message: "Write queue processing failed".to_string(),
+                                    data: None,
+                                }),
                                 }
                             }
                         }
@@ -360,6 +360,8 @@ impl OrchestratorServer {
                     active_agents,
                     active_tasks,
                     token_budget,
+                    active_sessions,
+                    queue_size,
                     config,
                 )
                 .await
@@ -409,6 +411,20 @@ impl OrchestratorServer {
         )
     }
 
+    /// Publish event to subscribers
+    async fn publish_event(
+        topic: &str,
+        data: serde_json::Value,
+        subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
+    ) {
+        let subscribers = subscribers.read().await;
+        if let Some(connection_ids) = subscribers.get(topic) {
+            // In a real implementation, we would send events to these connections
+            // For now, we just log that an event would be sent
+            tracing::debug!("Publishing event to topic '{}' for {} subscribers", topic, connection_ids.len());
+        }
+    }
+
     /// Process read-only request
     async fn process_read_request(
         request: &RpcRequest,
@@ -417,6 +433,7 @@ impl OrchestratorServer {
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
         _active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
+        queue_size: &Arc<RwLock<usize>>,
         config: &OrchestratorConfig,
     ) -> RpcResponse {
         match request.method.as_str() {
@@ -474,12 +491,12 @@ impl OrchestratorServer {
                                         }
                                     }
                                     Ok(None) => {
-                                        RpcResponse {
-                                            id: request.id.clone(),
-                                            result: Some(json!({
-                                                "locked": false,
-                                            })),
-                                            error: None,
+                RpcResponse {
+                    id: request.id.clone(),
+                    result: Some(json!({
+                        "locked": false,
+                    })),
+                    error: None,
                                         }
                                     }
                                     Err(e) => RpcResponse {
@@ -551,12 +568,20 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Validate path (prevent directory traversal)
-                        let path = params.path.canonicalize()
-                            .map_err(|e| RpcError {
-                                code: ERROR_INVALID_PARAMS,
-                                message: format!("Invalid path: {e}"),
-                                data: None,
-                            })?;
+                        let path = match params.path.canonicalize() {
+                            Ok(p) => p,
+                            Err(e) => {
+                                return RpcResponse {
+                                    id: request.id.clone(),
+                                    result: None,
+                                    error: Some(RpcError {
+                                        code: ERROR_INVALID_PARAMS,
+                                        message: format!("Invalid path: {e}"),
+                                        data: None,
+                                    }),
+                                };
+                            }
+                        };
 
                         // Read file
                         match tokio::fs::read_to_string(&path).await {
@@ -608,8 +633,22 @@ impl OrchestratorServer {
                         diff_options.include_ignored(false);
 
                         let diff = if let Some(head_commit) = head {
+                            let tree = match head_commit.tree() {
+                                Ok(t) => t,
+                                Err(e) => {
+                                    return RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INTERNAL,
+                                            message: format!("Failed to get tree: {e}"),
+                                            data: None,
+                                        }),
+                                    };
+                                }
+                            };
                             repo.diff_tree_to_workdir_with_index(
-                                Some(&head_commit.tree().unwrap()),
+                                Some(&tree),
                                 Some(&mut diff_options),
                             )
                         } else {
@@ -729,7 +768,7 @@ impl OrchestratorServer {
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
         active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
-        _subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
+        subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
         plan_manager: &Arc<PlanManager>,
     ) -> RpcResponse {
         match request.method.as_str() {
@@ -739,7 +778,7 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Create lock manager for the repository
-                        match RepositoryLock::new(&params.path) {
+                        match RepositoryLock::new(params.path.as_path()) {
                             Ok(lock) => {
                                 if params.force {
                                     // Force remove existing lock
@@ -821,7 +860,7 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Create lock manager for the repository
-                        match RepositoryLock::new(&params.path) {
+                        match RepositoryLock::new(params.path.as_path()) {
                             Ok(lock) => {
                                 match lock.release() {
                                     Ok(_) => {
@@ -892,12 +931,20 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Validate path
-                        let path = params.path.canonicalize()
-                            .map_err(|e| RpcError {
-                                code: ERROR_INVALID_PARAMS,
-                                message: format!("Invalid path: {e}"),
-                                data: None,
-                            })?;
+                        let path = match params.path.canonicalize() {
+                            Ok(p) => p,
+                            Err(e) => {
+                                return RpcResponse {
+                                    id: request.id.clone(),
+                                    result: None,
+                                    error: Some(RpcError {
+                                        code: ERROR_INVALID_PARAMS,
+                                        message: format!("Invalid path: {e}"),
+                                        data: None,
+                                    }),
+                                };
+                            }
+                        };
 
                         // Check preimage SHA256 if provided
                         if let Some(expected_sha) = &params.preimage_sha {
@@ -1283,49 +1330,91 @@ impl OrchestratorServer {
                         match Repository::open(repo_root) {
                             Ok(repo) => {
                                 // Get signature
-                                let sig = repo.signature()
-                                    .map_err(|e| RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: format!("Failed to get git signature: {e}"),
-                                        data: None,
-                                    })?;
+                                let sig = match repo.signature() {
+                                    Ok(s) => s,
+                                    Err(e) => {
+                                        return RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Failed to get git signature: {e}"),
+                                                data: None,
+                                            }),
+                                        };
+                                    }
+                                };
 
                                 // Stage all changes
-                                let mut index = repo.index()
-                                    .map_err(|e| RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: format!("Failed to get index: {e}"),
-                                        data: None,
-                                    })?;
+                                let mut index = match repo.index() {
+                                    Ok(i) => i,
+                                    Err(e) => {
+                                        return RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Failed to get index: {e}"),
+                                                data: None,
+                                            }),
+                                        };
+                                    }
+                                };
 
                                 // Add all modified and new files
-                                index.add_all(["*"], git2::IndexAddOption::DEFAULT, None)
-                                    .map_err(|e| RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: format!("Failed to add files to index: {e}"),
-                                        data: None,
-                                    })?;
+                                if let Err(e) = index.add_all(["*"], git2::IndexAddOption::DEFAULT, None) {
+                                    return RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INTERNAL,
+                                            message: format!("Failed to add files to index: {e}"),
+                                            data: None,
+                                        }),
+                                    };
+                                }
 
-                                index.write()
-                                    .map_err(|e| RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: format!("Failed to write index: {e}"),
-                                        data: None,
-                                    })?;
+                                if let Err(e) = index.write() {
+                                    return RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INTERNAL,
+                                            message: format!("Failed to write index: {e}"),
+                                            data: None,
+                                        }),
+                                    };
+                                }
 
-                                let tree_id = index.write_tree()
-                                    .map_err(|e| RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: format!("Failed to write tree: {e}"),
-                                        data: None,
-                                    })?;
+                                let tree_id = match index.write_tree() {
+                                    Ok(id) => id,
+                                    Err(e) => {
+                                        return RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Failed to write tree: {e}"),
+                                                data: None,
+                                            }),
+                                        };
+                                    }
+                                };
 
-                                let tree = repo.find_tree(tree_id)
-                                    .map_err(|e| RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: format!("Failed to find tree: {e}"),
-                                        data: None,
-                                    })?;
+                                let tree = match repo.find_tree(tree_id) {
+                                    Ok(t) => t,
+                                    Err(e) => {
+                                        return RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Failed to find tree: {e}"),
+                                                data: None,
+                                            }),
+                                        };
+                                    }
+                                };
 
                                 // Get parent commit if exists
                                 let parent_commit = repo.head().ok()
@@ -1406,12 +1495,20 @@ impl OrchestratorServer {
                         match Repository::open(repo_root) {
                             Ok(repo) => {
                                 // Find remote
-                                let mut remote = repo.find_remote(&params.remote)
-                                    .map_err(|e| RpcError {
-                                        code: ERROR_INTERNAL,
-                                        message: format!("Remote '{}' not found: {e}", params.remote),
-                                        data: None,
-                                    })?;
+                                let mut remote = match repo.find_remote(&params.remote) {
+                                    Ok(r) => r,
+                                    Err(e) => {
+                                        return RpcResponse {
+                                            id: request.id.clone(),
+                                            result: None,
+                                            error: Some(RpcError {
+                                                code: ERROR_INTERNAL,
+                                                message: format!("Remote '{}' not found: {e}", params.remote),
+                                                data: None,
+                                            }),
+                                        };
+                                    }
+                                };
 
                                 // Push to remote
                                 let refspec = format!("refs/heads/{}:refs/heads/{}", params.branch, params.branch);
@@ -1533,10 +1630,9 @@ impl OrchestratorServer {
                         // Generate a connection ID for this subscription
                         // In a real implementation, this would be tied to the actual connection
                         use rand::Rng;
-                        let mut rng = rand::thread_rng();
-                        let connection_id = format!("conn_{}", rng.gen::<u64>());
+                        let connection_id = format!("conn_{}", rand::random::<u64>());
 
-                        let mut subscribers = _subscribers.write().await;
+                        let mut subscribers = subscribers.write().await;
                         for topic in params.topics {
                             subscribers.entry(topic).or_insert_with(Vec::new).push(connection_id.clone());
                         }
@@ -1565,7 +1661,7 @@ impl OrchestratorServer {
                     Ok(params) => {
                         // In a real implementation, we would use the actual connection ID
                         // For now, we'll remove all subscriptions for the given topics
-                        let mut subscribers = _subscribers.write().await;
+                        let mut subscribers = subscribers.write().await;
                         for topic in params.topics {
                             subscribers.remove(&topic);
                         }
@@ -1609,13 +1705,13 @@ impl OrchestratorServer {
                                     subscribers,
                                 ).await;
 
-                                RpcResponse {
-                                    id: request.id.clone(),
-                                    result: Some(json!({
-                                        "success": true,
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({
+                                "success": true,
                                         "blueprint_id": blueprint_id,
-                                    })),
-                                    error: None,
+                            })),
+                            error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -1692,10 +1788,10 @@ impl OrchestratorServer {
                                     subscribers,
                                 ).await;
 
-                                RpcResponse {
-                                    id: request.id.clone(),
-                                    result: Some(json!({ "success": true })),
-                                    error: None,
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({ "success": true })),
+                            error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -1742,10 +1838,10 @@ impl OrchestratorServer {
                                     subscribers,
                                 ).await;
 
-                                RpcResponse {
-                                    id: request.id.clone(),
-                                    result: Some(json!({ "success": true })),
-                                    error: None,
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({ "success": true })),
+                            error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -1788,10 +1884,10 @@ impl OrchestratorServer {
                                     result["json_path"] = json!(json_path.to_string_lossy().to_string());
                                 }
 
-                                RpcResponse {
-                                    id: request.id.clone(),
+                        RpcResponse {
+                            id: request.id.clone(),
                                     result: Some(result),
-                                    error: None,
+                            error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -1871,10 +1967,10 @@ impl OrchestratorServer {
 
                         match plan_manager.add_research(&params.blueprint_id, research) {
                             Ok(_) => {
-                                RpcResponse {
-                                    id: request.id.clone(),
-                                    result: Some(json!({ "success": true })),
-                                    error: None,
+                        RpcResponse {
+                            id: request.id.clone(),
+                            result: Some(json!({ "success": true })),
+                            error: None,
                                 }
                             }
                             Err(e) => RpcResponse {

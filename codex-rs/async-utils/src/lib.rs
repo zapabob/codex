@@ -63,9 +63,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
     use std::time::Duration;
-    use tokio::task;
     use tokio::time::sleep;
 
     #[tokio::test]

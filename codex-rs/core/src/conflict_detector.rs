@@ -7,8 +7,6 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
-#[cfg(debug_assertions)]
-use std::path::Path as StdPath;
 
 use anyhow::Result;
 use git2::Repository;

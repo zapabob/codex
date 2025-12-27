@@ -3,13 +3,16 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use codex_rmcp_client::RmcpClient;
+use codex_rmcp_client::SendElicitation;
 use escargot::CargoBuild;
+use futures::FutureExt;
 use mcp_types::ClientCapabilities;
 use mcp_types::Implementation;
 use mcp_types::InitializeRequestParams;
 use mcp_types::ListResourceTemplatesResult;
 use mcp_types::ReadResourceRequestParams;
 use mcp_types::ReadResourceResultContents;
+use mcp_types::RequestId;
 use mcp_types::Resource;
 use mcp_types::ResourceTemplate;
 use mcp_types::TextResourceContents;
@@ -54,8 +57,18 @@ async fn rmcp_client_can_list_and_read_resources() -> anyhow::Result<()> {
     )
     .await?;
 
+    // Create a simple send_elicitation callback for testing
+    let send_elicitation: SendElicitation = Box::new(
+        |_request_id: RequestId, _elicitation: codex_rmcp_client::Elicitation| {
+            async move {
+                anyhow::bail!("Elicitation not supported in test")
+            }
+            .boxed()
+        },
+    );
+
     client
-        .initialize(init_params(), Some(Duration::from_secs(5)))
+        .initialize(init_params(), Some(Duration::from_secs(5)), send_elicitation)
         .await?;
 
     let list = client

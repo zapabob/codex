@@ -28,6 +28,7 @@ members = [
     "mcp-server",
     "mcp-types",
     "ollama",
+    "orchestrator",
     "process-hardening",
     "protocol",
     "rmcp-client",
