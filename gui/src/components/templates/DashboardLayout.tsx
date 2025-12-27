@@ -34,6 +34,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   sx,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
 
@@ -46,16 +48,119 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   const handleNavigate = (item: NavigationItem) => {
+    // Navigate using Next.js router
+    const pathMap: Record<string, string> = {
+      'dashboard': '/',
+      'code': '/code',
+      'agents': '/agents',
+      'tasks': '/tasks',
+      'qc': '/qc',
+      'security': '/security',
+      'virtual-os': '/virtual-os',
+      'ai-tools': '/ai-tools',
+      'research': '/research',
+      'mcp': '/mcp',
+      'analytics': '/analytics',
+      'docs': '/docs',
+      'performance': '/performance',
+      'settings': '/settings',
+    };
+
+    const path = pathMap[item.id] || '/';
+    router.push(path);
     onNavigate?.(item);
   };
 
   const handleSettingsClick = () => {
+    router.push('/settings');
     onSettingsClick?.();
   };
 
   const handleProfileClick = () => {
     onProfileClick?.();
   };
+
+  // Keyboard shortcuts for navigation
+  const navigationShortcuts: ShortcutConfig[] = [
+    {
+      key: 'd',
+      ctrl: true,
+      description: 'ダッシュボードに移動',
+      action: () => handleNavigate({ id: 'dashboard', label: 'ダッシュボード', icon: () => null }),
+    },
+    {
+      key: 'c',
+      ctrl: true,
+      description: 'コード実行ページに移動',
+      action: () => handleNavigate({ id: 'code', label: 'コード実行', icon: () => null }),
+    },
+    {
+      key: 'a',
+      ctrl: true,
+      description: 'エージェントページに移動',
+      action: () => handleNavigate({ id: 'agents', label: 'エージェント', icon: () => null }),
+    },
+    {
+      key: 't',
+      ctrl: true,
+      description: 'タスク管理ページに移動',
+      action: () => handleNavigate({ id: 'tasks', label: 'タスク管理', icon: () => null }),
+    },
+    {
+      key: 'q',
+      ctrl: true,
+      description: 'QC管理ページに移動',
+      action: () => handleNavigate({ id: 'qc', label: 'QC管理', icon: () => null }),
+    },
+    {
+      key: 's',
+      ctrl: true,
+      description: 'セキュリティページに移動',
+      action: () => handleNavigate({ id: 'security', label: 'セキュリティ', icon: () => null }),
+    },
+    {
+      key: 'v',
+      ctrl: true,
+      description: '仮想OSページに移動',
+      action: () => handleNavigate({ id: 'virtual-os', label: '仮想OS', icon: () => null }),
+    },
+    {
+      key: 'i',
+      ctrl: true,
+      description: 'AIツール統合ページに移動',
+      action: () => handleNavigate({ id: 'ai-tools', label: 'AIツール統合', icon: () => null }),
+    },
+    {
+      key: 'r',
+      ctrl: true,
+      description: 'Deep Researchページに移動',
+      action: () => handleNavigate({ id: 'research', label: 'Deep Research', icon: () => null }),
+    },
+    {
+      key: 'm',
+      ctrl: true,
+      description: 'MCPサーバーページに移動',
+      action: () => handleNavigate({ id: 'mcp', label: 'MCPサーバー', icon: () => null }),
+    },
+    {
+      key: ',',
+      ctrl: true,
+      description: '設定ページに移動',
+      action: () => handleSettingsClick(),
+    },
+    {
+      key: 'b',
+      ctrl: true,
+      description: 'サイドバーの表示/非表示',
+      action: () => handleMenuClick(),
+    },
+  ];
+
+  useKeyboardShortcuts({
+    shortcuts: navigationShortcuts,
+    enabled: true,
+    ignoreWhenInputFocused: true,
+  });
 
   return (
     <AppThemeProvider>
