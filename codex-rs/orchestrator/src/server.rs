@@ -417,7 +417,7 @@ impl OrchestratorServer {
     /// Publish event to subscribers
     async fn publish_event(
         topic: &str,
-        data: serde_json::Value,
+        _data: serde_json::Value,
         subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
     ) {
         let subscribers = subscribers.read().await;
