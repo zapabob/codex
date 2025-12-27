@@ -9,6 +9,7 @@ use crate::agents::types::AgentStatus;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;
+use crate::orchestration::SkillTag;
 use crate::orchestration::TaskAnalysis;
 use anyhow::Result;
 use serde::Deserialize;
@@ -398,11 +399,45 @@ impl AutoOrchestrator {
     /// Determine execution strategy based on task characteristics.
     ///
     /// Analyzes task to decide whether parallel, sequential, or hybrid execution is best.
-    pub fn determine_execution_strategy(&self, task: &PlannedTask) -> ExecutionStrategy {
+    pub fn determine_execution_strategy(
+        &self,
+        task: &PlannedTask,
+        analysis: Option<&TaskAnalysis>,
+    ) -> ExecutionStrategy {
         debug!(
             "Determining execution strategy for task: {}",
             task.description
         );
+
+        if let Some(analysis) = analysis {
+            if analysis
+                .recommended_skill_tags
+                .iter()
+                .any(|tag| matches!(tag, SkillTag::Migration | SkillTag::DependencySetup))
+            {
+                debug!("Detected migration/dependency setup skill, using Sequential strategy");
+                return ExecutionStrategy::Sequential;
+            }
+
+            if analysis.recommended_skill_tags.iter().any(|tag| {
+                matches!(
+                    tag,
+                    SkillTag::SecurityVulnerability | SkillTag::RefactorRewrite
+                )
+            }) {
+                debug!("Detected high-risk skill, using Hybrid strategy");
+                return ExecutionStrategy::Hybrid;
+            }
+
+            if analysis
+                .recommended_skill_tags
+                .iter()
+                .any(|tag| matches!(tag, SkillTag::PerformanceProfiling))
+            {
+                debug!("Detected performance profiling skill, preferring Parallel strategy");
+                return ExecutionStrategy::Parallel;
+            }
+        }
 
         // Check for keywords indicating sequential dependencies
         let description_lower = task.description.to_lowercase();
@@ -461,6 +496,7 @@ impl AutoOrchestrator {
             complexity_score: 0.5,
             detected_keywords: vec![],
             recommended_agents: agents_used.clone(),
+            recommended_skill_tags: vec![],
             subtasks: vec![],
             original_input: String::new(),
         };
