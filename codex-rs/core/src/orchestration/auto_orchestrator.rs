@@ -9,6 +9,7 @@ use crate::agents::types::AgentStatus;
 use crate::orchestration::CollaborationStore;
 use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;
+use crate::orchestration::SkillTag;
 use crate::orchestration::TaskAnalysis;
 use anyhow::Result;
 use chrono::DateTime;
@@ -886,7 +887,11 @@ impl AutoOrchestrator {
     /// Determine execution strategy based on task characteristics.
     ///
     /// Analyzes task to decide whether parallel, sequential, or hybrid execution is best.
-    pub fn determine_execution_strategy(&self, task: &PlannedTask) -> ExecutionStrategy {
+    pub fn determine_execution_strategy(
+        &self,
+        task: &PlannedTask,
+        analysis: Option<&TaskAnalysis>,
+    ) -> ExecutionStrategy {
         debug!(
             "Determining execution strategy for task: {}",
             task.description
@@ -955,6 +960,7 @@ impl AutoOrchestrator {
             complexity_score: 0.5,
             detected_keywords: vec![],
             recommended_agents: agents_used.clone(),
+            recommended_skill_tags: vec![],
             subtasks: vec![],
             original_input: String::new(),
             skill_tags: vec![],
