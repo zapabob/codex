@@ -10,6 +10,15 @@
 
 Codex の自動オーケストレーション機能は、ClaudeCode のような透過的なサブエージェント協調を実現します。ユーザーが明示的に `delegate` コマンドを実行しなくても、タスクの複雑度を自動分析し、必要に応じて専門サブエージェントを並列起動します。
 
+### ClaudeCode 最新リリース要約（主要スキル）
+
+- **セキュリティ監査強化**: セキュリティ修正パッチ生成、脆弱性スキャン、秘密情報検出の自動化。
+- **コードリライタ / 大規模リファクタ**: 変更意図を守った差分生成、複数ファイルの安全な一括書き換え、スタイル準拠の自動整形。
+- **テスト / ドキュメント生成**: ユニット・統合テストの雛形生成、カバレッジ不足の補完、変更点に基づく README / ADR / API docs 更新。
+- **依存解析とアップグレード支援**: 依存グラフの可視化、脆弱・古いライブラリの検出、更新手順とブレークチェンジ警告の提示。
+- **プロジェクトセットアップ / ブートストラップ**: 新規リポジトリの初期構成、ビルド・CI 設定の雛形化、ランブック生成。
+- **開発ループ最適化**: エージェント間の自動調整、差分プレビュー、計画 ↔ 実行 ↔ 検証の短縮。
+
 ---
 
 ## 🏗️ アーキテクチャ
@@ -81,6 +90,22 @@ TaskAnalyzer
 | refactor, migrate, update, fix | `code-reviewer`              |
 | documentation, docs, readme    | `researcher`                 |
 | （該当なし）                   | `code-reviewer` (デフォルト) |
+
+### ClaudeCodeスキル対応表（`codex-rs/core/src/orchestration/task_analyzer.rs` 用ドラフト）
+
+> **目的**: TaskAnalyzer のキーワード辞書を拡張する際の仕様メモ（まだ実装しない）。キーワード群 → 推奨エージェント/戦略 → 期待出力を明示し、ClaudeCode スキルのマッピングを固定化する。
+
+| キーワード/テーマ                                                | 対応エージェント / 推奨戦略                           | 期待出力例                                                                                     |
+| ---------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| security, auth, oauth, jwt, compliance, secrets                  | `sec-audit` / **hybrid**（最初に脅威評価→並列対処）     | 脅威モデル、脆弱性リスト、修正パッチ、再発防止チェックリスト                                   |
+| test, coverage, qa, ci, review                                   | `test-gen` / **parallel**（他タスクと同時実行）         | ユニット/統合テスト雛形、実行コマンド、カバレッジ目標、失敗時の修正提案                       |
+| refactor, migrate, cleanup, optimize, performance                | `code-reviewer` / **hybrid**（計画→差分生成）          | 変更計画、差分パッチ、リスク/互換性メモ、ロールバック手順                                     |
+| docs, documentation, readme, guide, spec, adr                    | `researcher` / **sequential**（変更確認→文書生成）     | 更新済み README/ADR、変更点サマリー、API/CLI リファレンス差分                                  |
+| dependency, package, upgrade, license, supply chain              | `code-reviewer`（将来 `dep-audit` を追加予定） / **sequential** | 依存グラフ、影響範囲、アップグレード手順、ライセンス注意点                                     |
+| scaffold, bootstrap, project setup, init, env, config            | `code-reviewer` + `researcher` / **sequential**        | 初期ディレクトリ構成、設定テンプレート、手順書、CI/ビルド設定のドラフト                        |
+| （デフォルト / マッチなし）                                     | `code-reviewer` / **sequential**                      | 軽量レビュー、最小限の差分提案、追加エージェント不要時の単独実行                               |
+
+※ 上記は実装前のドラフトであり、実際のキーワードリストや戦略は `task_analyzer.rs` への反映時に確定する。
 
 ---
 
