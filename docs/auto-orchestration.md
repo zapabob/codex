@@ -375,6 +375,22 @@ inputs.insert("previous_results", previous_results.summary());
 
 ---
 
+## 📡 モニタリング
+
+### 収集メトリクス
+
+- イベント: `codex.auto_orchestration.metrics`（既存ロガー/OTel エクスポーター経由）
+- タグ: `skill`（検出スキルのCSV）、`strategy`、`fallback_used`、`agent_count`、`execution_time_ms`、`agents`（構成リスト）
+- 状態参照: `CollaborationStore::latest_metrics()` で直近のスナップショットを取得可能
+
+### 推奨ダッシュボード例
+
+1. **フォールバック率ヒートマップ**: `fallback_used=true` をカウントし、`skill` × `strategy` で集計（過剰並列や設定ミスを検知）。
+2. **実行時間の p95/p99**: `execution_time_ms` の分位数を `agent_count` 別に可視化（スケール時のボトルネック把握）。
+3. **エージェント構成トップN**: `agents`/`skill` 別の実行回数ランキングと平均所要時間（標準パターンと異常構成を早期発見）。
+
+---
+
 ## 🧪 テスト
 
 ### Unit Tests

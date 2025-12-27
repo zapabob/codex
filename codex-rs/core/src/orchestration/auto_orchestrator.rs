@@ -11,6 +11,7 @@ use crate::orchestration::ConflictResolver;
 use crate::orchestration::MergeStrategy;
 use crate::orchestration::SkillTag;
 use crate::orchestration::TaskAnalysis;
+use crate::orchestration::collaboration_store::OrchestrationMetrics;
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
@@ -98,6 +99,12 @@ pub struct AutoOrchestrator {
     workspace_dir: std::path::PathBuf,
 }
 
+#[derive(Debug)]
+struct AgentExecutionOutcome {
+    results: Vec<AgentResult>,
+    fallback_used: bool,
+}
+
 impl AutoOrchestrator {
     /// Create a new auto-orchestrator.
     pub fn new(
@@ -155,12 +162,27 @@ impl AutoOrchestrator {
         info!("📋 Execution plan created: {} tasks", plan.tasks.len());
 
         // 2. Execute agents from plan
-        let results = self.execute_agents_from_plan(&plan, &analysis).await?;
+        let AgentExecutionOutcome {
+            results,
+            fallback_used,
+        } = self.execute_agents_from_plan(&plan, &analysis).await?;
 
         // 3. Merge results
         let execution_summary = self.merge_results(&results);
 
-        let total_time = start_time.elapsed().as_secs_f64();
+        let elapsed = start_time.elapsed();
+        let total_time = elapsed.as_secs_f64();
+        let execution_time_ms = elapsed.as_millis() as u64;
+
+        let metrics = OrchestrationMetrics {
+            skills: analysis.detected_keywords.clone(),
+            strategy: plan.strategy.clone(),
+            fallback_used,
+            agent_count: results.len(),
+            execution_time_ms,
+            agents: results.iter().map(|r| r.agent_name.clone()).collect(),
+        };
+        self.collaboration_store.record_metrics(metrics);
 
         Ok(OrchestratedResult {
             was_orchestrated: true,
@@ -210,8 +232,9 @@ impl AutoOrchestrator {
         &self,
         plan: &ExecutionPlan,
         _analysis: &TaskAnalysis,
-    ) -> Result<Vec<AgentResult>> {
+    ) -> Result<AgentExecutionOutcome> {
         let mut results = Vec::new();
+        let mut fallback_used = false;
 
         // Prepare agent tasks for parallel execution
         let mut agent_configs = Vec::new();
@@ -253,6 +276,7 @@ impl AutoOrchestrator {
             Err(e) => {
                 warn!("⚠️  Parallel execution failed: {}", e);
                 // Fallback: execute sequentially
+                fallback_used = true;
                 for (agent_name, goal, inputs, budget) in agent_configs {
                     match self
                         .runtime
@@ -281,7 +305,10 @@ impl AutoOrchestrator {
             results.len()
         );
 
-        Ok(results)
+        Ok(AgentExecutionOutcome {
+            results,
+            fallback_used,
+        })
     }
 
     /// Merge results from multiple agents into a summary.
