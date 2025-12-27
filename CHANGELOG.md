@@ -5,6 +5,45 @@ All notable changes to Codex will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2025-12-26
+
+### Architecture Evaluation & Claude Code Research
+
+This release adds comprehensive architecture evaluation and Claude Code feature research to guide future development.
+
+### Added
+
+**Architecture Evaluation**
+- Comprehensive software engineering and LLMOps evaluation report
+- Overall score: 4.25/5.0 (Software Engineering: 4.3/5.0, LLMOps: 4.2/5.0)
+- Detailed analysis of strengths and improvement areas
+- Performance benchmarks and recommendations
+
+**Claude Code Research**
+- Deep research on latest Claude Code features (2024-2025)
+- Feature comparison and gap analysis
+- Implementation roadmap for future enhancements
+- Priority matrix for feature adoption
+
+**Documentation & Tools**
+- X (Twitter) posting templates for LLMOps engineers
+- Simplified architecture diagram for social media
+- Fast build, install, and test automation scripts
+
+### Changed
+
+**Documentation**
+- Updated architecture evaluation methodology
+- Enhanced feature comparison documentation
+- Improved roadmap planning
+
+### Fixed
+
+**Build & Test**
+- Fast differential build improvements
+- Binary overwrite installation process
+- Real device testing automation
+
 ## [2.7.0] - 2025-12-21
 
 ### Version Unification & Official Skills/Plan Alignment

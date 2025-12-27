@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![Codex v2.7.0](./architecture-v2.7.0.svg)
+![Codex v2.8.0](./architecture-v2.8.0.svg)
 
-**v2.7.0 "Version Unification & Skills/Plan Alignment" - The World's First AI-Native Operating System**
+**v2.8.0 "Architecture Evaluation & Claude Code Research" - The World's First AI-Native Operating System**
 
-[![Version](https://img.shields.io/badge/version-2.7.0-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -23,12 +23,27 @@
 <a name="english"></a>
 ## 📖 English
 
-### 🎉 What's New in v2.7.0 "Version Unification & Skills/Plan Alignment"
+### 🎉 What's New in v2.8.0 "Architecture Evaluation & Claude Code Research"
 
-**Release Date**: December 21, 2025
-**Milestone**: Version Unification & Official Skills/Plan Alignment
+**Release Date**: December 26, 2025
+**Milestone**: Architecture Evaluation & Claude Code Research
 
-**🎁 New in v2.7.0**:
+**🎁 New in v2.8.0**:
+- ✅ **Architecture Evaluation**: Comprehensive software engineering and LLMOps evaluation report (Overall: 4.25/5.0)
+- ✅ **Claude Code Research**: Deep research on latest Claude Code features (2024-2025) with implementation roadmap
+- ✅ **X Posting Templates**: LLMOps engineer-focused social media templates
+- ✅ **Simplified Architecture Diagram**: X (Twitter) posting optimized diagram
+- ✅ **Fast Build Automation**: Improved differential build, install, and test scripts
+
+**📋 Previous Updates (v2.7.0)**:
+- ✅ **Version Unification**: Unified all package.json files and Rust workspace to version 2.7.0
+- ✅ **Skills/Plan Alignment**: Aligned plan skill with official Plan Mode documentation
+- ✅ **Dependency Modernization**: Replaced Python helpers with Rust/TypeScript implementations
+- ✅ **Plan Storage Unification**: Unified plan storage directory naming (resolved `plans` vs `Plans` inconsistency)
+- ✅ **Official Command Integration**: Updated to use official Plan Mode commands (`/Plan`, `/approve`, `/Plan export`)
+- ✅ **Zero Python Dependencies**: Removed all Python script dependencies from plan skill
+
+**📋 Previous Updates (v2.5.0 - v2.6.0)**:
 - ✅ **Version Unification**: Unified all package.json files and Rust workspace to version 2.7.0
 - ✅ **Skills/Plan Alignment**: Aligned plan skill with official Plan Mode documentation
 - ✅ **Dependency Modernization**: Replaced Python helpers with Rust/TypeScript implementations
@@ -45,6 +60,83 @@
 - ✅ **Cross-platform Compatibility**: Improved Windows, macOS, and Linux support
 - ✅ **CI/CD Pipeline Updates**: Updated GitHub Actions workflows (actions/checkout@v6)
 - ✅ **Zero Error Policy**: All code passes with zero errors/warnings (Rust 2024 edition)
+
+---
+
+## 📊 Architecture Evaluation Summary / アーキテクチャ評価サマリー
+
+**Overall Score / 総合評価**: ⭐⭐⭐⭐☆ (4.25/5.0)
+
+**Software Engineering / ソフトウェア工学**: ⭐⭐⭐⭐☆ (4.3/5.0)
+- ✅ Excellent layered architecture and separation of concerns
+- ✅ Robust error handling and retry strategies
+- ✅ High cohesion and low coupling
+- ⚠️ Dependency Injection could be enhanced
+
+**LLMOps / LLMOps**: ⭐⭐⭐⭐☆ (4.2/5.0)
+- ✅ Multi-provider LLM integration
+- ✅ Comprehensive token budget management
+- ✅ Advanced multi-agent orchestration
+- ✅ OpenTelemetry integration
+- ⚠️ Real-time dashboard and model versioning needed
+
+**Key Strengths / 主要な強み**:
+- Layered architecture with clear separation of concerns
+- Thread-safe token budget management
+- Multi-agent parallel execution (2.6x speedup)
+- Comprehensive observability (OpenTelemetry)
+- Security-first design (sandboxing, audit logs)
+
+**Improvement Areas / 改善の余地**:
+- Distributed system patterns (currently mostly single-process)
+- LLM inference optimization (caching, batching)
+- Cost management visualization (real-time dashboard)
+- Model versioning and A/B testing
+
+For detailed analysis, see: [`_docs/2025-12-26_アーキテクチャ評価_ソフトウェア工学・LLMOps観点.md`](_docs/2025-12-26_アーキテクチャ評価_ソフトウェア工学・LLMOps観点.md)
+
+---
+
+## 🗺️ Future Roadmap / 将来のロードマップ
+
+Based on comprehensive Claude Code research, the following features are planned for future releases:
+
+### Phase 1: Short-term (1-2 months) / 短期（1-2ヶ月）
+
+1. **Memory Feature** ⭐⭐⭐⭐⭐ (Highest Priority)
+   - Session-to-session context retention
+   - Project-specific memory
+   - Privacy protection (opt-in)
+
+2. **Claude Sonnet 4.5 / Opus 4.5 Support** ⭐⭐⭐⭐☆
+   - Explicit support for latest models
+   - Performance optimization
+
+3. **Auto-Accept Mode UI** ⭐⭐⭐⭐☆
+   - Mode switching UI
+   - Approval policy configuration
+
+4. **Diagnostic Sharing** ⭐⭐⭐☆☆
+   - Automatic IDE diagnostic error sharing
+   - Enhanced context for agents
+
+### Phase 2: Mid-term (3-6 months) / 中期（3-6ヶ月）
+
+1. **Agent Skills Enhancement** ⭐⭐⭐⭐⭐
+   - Skill-based architecture migration
+   - Improved reusability and flexibility
+
+2. **Enterprise Governance** ⭐⭐⭐⭐☆
+   - Compliance API
+   - RBAC (Role-Based Access Control)
+   - Enhanced audit logging
+
+3. **Plan Mode Editing** ⭐⭐⭐⭐☆
+   - Plan editing functionality
+   - Diff display
+   - Staged approval process
+
+For detailed roadmap, see: [`_docs/2025-12-26_最新ClaudeCode調査_取り入れるべき機能まとめ.md`](_docs/2025-12-26_最新ClaudeCode調査_取り入れるべき機能まとめ.md)
 
 ---
 
@@ -504,7 +596,7 @@ npm run dev
 
 ### 🏗️ Architecture Overview
 
-![Codex v2.7.0 Architecture](./architecture-v2.7.0.svg)
+![Codex v2.8.0 Architecture](./architecture-v2.8.0.svg)
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -694,12 +786,19 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 <a name="japanese"></a>
 ## 📖 日本語
 
-### 🎉 v2.7.0 "Version Unification & Skills/Plan Alignment" の新機能
+### 🎉 v2.8.0 "Architecture Evaluation & Claude Code Research" の新機能
 
-**リリース日**: 2025年12月21日
-**マイルストーン**: バージョン統一 & 公式Skills/Plan整合
+**リリース日**: 2025年12月26日
+**マイルストーン**: アーキテクチャ評価 & Claude Code調査
 
-**🎁 v2.7.0の新機能**:
+**🎁 v2.8.0の新機能**:
+- ✅ **アーキテクチャ評価**: ソフトウェア工学・LLMOps観点からの包括的分析レポート（総合評価: 4.25/5.0）
+- ✅ **Claude Code調査**: 最新Claude Code機能（2024-2025）の深い調査と実装ロードマップ
+- ✅ **X投稿テンプレート**: LLMOpsエンジニア向けソーシャルメディア投稿テンプレート
+- ✅ **簡易アーキテクチャ図**: X（Twitter）投稿最適化アーキテクチャ図
+- ✅ **高速ビルド自動化**: 改善された差分ビルド、インストール、テストスクリプト
+
+**📋 以前のアップデート（v2.7.0）**:
 - ✅ **バージョン統一**: すべてのpackage.jsonファイルとRustワークスペースをバージョン2.7.0に統一
 - ✅ **Skills/Plan整合**: 公式Plan Modeドキュメントに合わせてplan skillを調整
 - ✅ **依存関係のモダン化**: PythonヘルパーをRust/TypeScript実装に置き換え
@@ -1100,6 +1199,19 @@ npm run dev
 ---
 
 ### 📅 変更履歴（時系列）
+
+#### v2.8.0 (2025-12-26) - "Architecture Evaluation & Claude Code Research"
+
+**🎁 Major Changes**:
+- **Architecture Evaluation**: Comprehensive software engineering and LLMOps evaluation report (Overall: 4.25/5.0)
+- **Claude Code Research**: Deep research on latest Claude Code features (2024-2025) with implementation roadmap
+- **X Posting Templates**: LLMOps engineer-focused social media templates
+- **Simplified Architecture Diagram**: X (Twitter) posting optimized diagram
+- **Fast Build Automation**: Improved differential build, install, and test scripts
+
+**Breaking Changes**: None (backward compatible)
+
+**詳細**: [CHANGELOG.md](./CHANGELOG.md#280)
 
 #### v2.7.0 (2025-12-21) - "Version Unification & Skills/Plan Alignment"
 
