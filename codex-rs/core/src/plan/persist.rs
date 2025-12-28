@@ -301,7 +301,7 @@ mod tests {
         let json_dir = temp_dir.path().join("json");
 
         let persister = PlanPersister::with_dirs(markdown_dir, json_dir).unwrap();
-        let bp = create_test_Plan();
+        let bp = create_test_plan();
 
         let md_path = persister.save_markdown(&bp).unwrap();
         assert!(md_path.exists());
@@ -323,7 +323,7 @@ mod tests {
         assert_eq!(persister.list_plans().unwrap().len(), 0);
 
         // Save a Plan
-        let bp = create_test_Plan();
+        let bp = create_test_plan();
         persister.save_json(&bp).unwrap();
 
         // Should list one Plan

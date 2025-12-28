@@ -21,6 +21,9 @@ criterion = { version = "0.5", features = ["async_tokio"] }
 pretty_assertions.workspace = true
 tokio-test.workspace = true
 
+[features]
+integration_tests = []
+
 [[bench]]
 harness = false
 name = "agent_parallel"

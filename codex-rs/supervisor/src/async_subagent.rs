@@ -395,7 +395,7 @@ mod tests {
     #[tokio::test]
     async fn test_async_task_processing() {
         let agent = AsyncSubAgent::new(AgentType::CodeExpert);
-        let agent_id = agent.id.clone();
+        let _agent_id = agent.id.clone();
 
         // タスクを開始
         agent

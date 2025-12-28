@@ -840,7 +840,6 @@ mod tests {
         use crate::model_provider_info::WireApi;
         use codex_otel::otel_manager::OtelManager as OtelEventManager;
         use codex_protocol::ConversationId;
-        use uuid::Uuid;
 
         let temp_dir = TempDir::new().unwrap();
         let agents_dir = temp_dir.path().join(".codex/agents");
@@ -949,7 +948,6 @@ artifacts:
         use crate::model_provider_info::WireApi;
         use codex_otel::otel_manager::OtelManager as OtelEventManager;
         use codex_protocol::ConversationId;
-        use uuid::Uuid;
 
         let temp_dir = TempDir::new().unwrap();
         let agents_dir = temp_dir.path().join(".codex/agents");
@@ -1456,67 +1454,64 @@ impl AgentRuntime {
 mod mcp_tests {
     use super::*;
     use pretty_assertions::assert_eq;
-}
-#[tokio::test]
-async fn test_filter_codex_mcp_tools() {
-    use crate::agents::types::ContextPolicy;
-    use crate::agents::types::ToolPermissions;
-    use crate::model_provider_info::WireApi;
-    use uuid::Uuid;
-
-    let agent_def = AgentDefinition {
-        name: "test-agent".to_string(),
-        goal: "Test".to_string(),
-        instructions: None,
-        tools: ToolPermissions {
-            mcp: vec![
-                "codex_read_file".to_string(),
-                "codex-subagent".to_string(),
-                "mcp__server__codex-deep-research".to_string(),
-                "some_other_tool".to_string(), // 非Codexツール
-            ],
-            fs: Default::default(),
-            net: Default::default(),
-            shell: Default::default(),
-        },
-        policies: crate::agents::types::AgentPolicies {
-            shell: None,
-            net: None,
-            context: ContextPolicy {
-                max_tokens: 1000,
-                retention: "job".to_string(),
+    #[tokio::test]
+    async fn test_filter_codex_mcp_tools() {
+        use crate::agents::types::ContextPolicy;
+        use crate::agents::types::ToolPermissions;
+        let agent_def = AgentDefinition {
+            name: "test-agent".to_string(),
+            goal: "Test".to_string(),
+            instructions: None,
+            tools: ToolPermissions {
+                mcp: vec![
+                    "codex_read_file".to_string(),
+                    "codex-subagent".to_string(),
+                    "mcp__server__codex-deep-research".to_string(),
+                    "some_other_tool".to_string(), // 非Codexツール
+                ],
+                fs: Default::default(),
+                net: Default::default(),
+                shell: Default::default(),
             },
-            secrets: Default::default(),
-        },
-        success_criteria: vec![],
-        artifacts: vec![],
-        extra: Default::default(),
-    };
+            policies: crate::agents::types::AgentPolicies {
+                shell: None,
+                net: None,
+                context: ContextPolicy {
+                    max_tokens: 1000,
+                    retention: "job".to_string(),
+                },
+                secrets: Default::default(),
+            },
+            success_criteria: vec![],
+            artifacts: vec![],
+            extra: Default::default(),
+        };
 
-    let filtered = AgentRuntime::filter_codex_mcp_tools(&agent_def);
+        let filtered = AgentRuntime::filter_codex_mcp_tools(&agent_def);
 
-    assert_eq!(filtered.len(), 3);
-    assert!(filtered.contains(&"codex_read_file".to_string()));
-    assert!(filtered.contains(&"codex-subagent".to_string()));
-    assert!(filtered.contains(&"mcp__server__codex-deep-research".to_string()));
-    assert!(!filtered.contains(&"some_other_tool".to_string()));
-}
+        assert_eq!(filtered.len(), 3);
+        assert!(filtered.contains(&"codex_read_file".to_string()));
+        assert!(filtered.contains(&"codex-subagent".to_string()));
+        assert!(filtered.contains(&"mcp__server__codex-deep-research".to_string()));
+        assert!(!filtered.contains(&"some_other_tool".to_string()));
+    }
 
-#[tokio::test]
-async fn test_build_codex_mcp_tools_description() {
-    let tools = vec![
-        "codex_read_file".to_string(),
-        "codex-subagent".to_string(),
-        "codex-deep-research".to_string(),
-        "codex-auto-orchestrate".to_string(),
-    ];
-    let desc = AgentRuntime::build_codex_mcp_tools_description(&tools);
+    #[tokio::test]
+    async fn test_build_codex_mcp_tools_description() {
+        let tools = vec![
+            "codex_read_file".to_string(),
+            "codex-subagent".to_string(),
+            "codex-deep-research".to_string(),
+            "codex-auto-orchestrate".to_string(),
+        ];
+        let desc = AgentRuntime::build_codex_mcp_tools_description(&tools);
 
-    assert!(desc.contains("codex_read_file"));
-    assert!(desc.contains("codex-subagent"));
-    assert!(desc.contains("Manage Codex subagents"));
-    assert!(desc.contains("codex-deep-research"));
-    assert!(desc.contains("DeepResearcher"));
-    assert!(desc.contains("codex-auto-orchestrate"));
-    assert!(desc.contains("Safe, read-only operation"));
+        assert!(desc.contains("codex_read_file"));
+        assert!(desc.contains("codex-subagent"));
+        assert!(desc.contains("Manage Codex subagents"));
+        assert!(desc.contains("codex-deep-research"));
+        assert!(desc.contains("DeepResearcher"));
+        assert!(desc.contains("codex-auto-orchestrate"));
+        assert!(desc.contains("Safe, read-only operation"));
+    }
 }
