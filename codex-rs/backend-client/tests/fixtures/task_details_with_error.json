@@ -1,0 +1,5 @@
+{
+  "task_id": "test-task-2",
+  "status": "error",
+  "error": "Test error message"
+}
