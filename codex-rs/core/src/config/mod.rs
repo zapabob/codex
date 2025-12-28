@@ -435,7 +435,7 @@ impl Config {
         let load = || Self::load_with_cli_overrides(Vec::new());
 
         if tokio::runtime::Handle::try_current().is_ok() {
-            std::thread::spawn(|| {
+            std::thread::spawn(move || {
                 let runtime = tokio::runtime::Runtime::new()?;
                 runtime.block_on(load())
             })

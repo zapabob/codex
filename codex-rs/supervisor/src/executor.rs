@@ -130,10 +130,7 @@ fn enqueue_ready(assignment: Assignment, ready: &mut HashMap<String, VecDeque<As
         .map(|value| value.to_lowercase())
         .unwrap_or_else(|| "__unscoped".to_string());
 
-    ready
-        .entry(domain)
-        .or_insert_with(VecDeque::new)
-        .push_back(assignment);
+    ready.entry(domain).or_default().push_back(assignment);
 }
 
 fn pop_next_ready(

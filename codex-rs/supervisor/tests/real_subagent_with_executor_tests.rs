@@ -1,5 +1,4 @@
 // Comprehensive tests for RealSubAgentWithExecutor
-use anyhow::Result;
 use codex_supervisor::AgentType;
 use codex_supervisor::CodexExecutor;
 use codex_supervisor::RealSubAgentManagerWithExecutor;
@@ -72,6 +71,8 @@ async fn test_real_subagent_message_sender() {
 
     let sender = agent.get_sender();
     let message = codex_supervisor::subagent::AgentMessage {
+        from: AgentType::CodeExpert,
+        to: None,
         content: "Test message".to_string(),
         metadata: std::collections::HashMap::new(),
     };

@@ -33,9 +33,6 @@ pub use stub::*;
 #[cfg(any(feature = "glam", feature = "cuda"))]
 pub mod math;
 
-#[cfg(any(feature = "glam", feature = "cuda"))]
-pub use math::*;
-
 /// CUDA device information
 #[derive(Debug, Clone)]
 pub struct CudaDeviceInfo {

@@ -1360,7 +1360,7 @@ mod tests {
     async fn test_handle_turn_complete_emits_completed_without_error() -> Result<()> {
         let conversation_id = ConversationId::new();
         let event_turn_id = "complete1".to_string();
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let turn_summary_store = new_turn_summary_store();
 
@@ -1402,7 +1402,7 @@ mod tests {
             &turn_summary_store,
         )
         .await;
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
 
         handle_turn_interrupted(
@@ -1443,7 +1443,7 @@ mod tests {
             &turn_summary_store,
         )
         .await;
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
 
         handle_turn_complete(
@@ -1478,7 +1478,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_turn_plan_update_emits_notification_for_v2() -> Result<()> {
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = OutgoingMessageSender::new(tx);
         let update = UpdatePlanArgs {
             explanation: Some("need plan".to_string()),
@@ -1530,7 +1530,7 @@ mod tests {
     async fn test_handle_token_count_event_emits_usage_and_rate_limits() -> Result<()> {
         let conversation_id = ConversationId::new();
         let turn_id = "turn-123".to_string();
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
 
         let info = TokenUsageInfo {
@@ -1615,7 +1615,7 @@ mod tests {
     async fn test_handle_token_count_event_without_usage_info() -> Result<()> {
         let conversation_id = ConversationId::new();
         let turn_id = "turn-456".to_string();
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
 
         handle_token_count_event(
@@ -1681,7 +1681,7 @@ mod tests {
         let conversation_b = ConversationId::new();
         let turn_summary_store = new_turn_summary_store();
 
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
 
         // Turn 1 on conversation A
@@ -1926,7 +1926,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_turn_diff_emits_v2_notification() -> Result<()> {
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = OutgoingMessageSender::new(tx);
         let unified_diff = "--- a\n+++ b\n".to_string();
         let conversation_id = ConversationId::new();
@@ -1962,7 +1962,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_turn_diff_is_noop_for_v1() -> Result<()> {
-        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let outgoing = OutgoingMessageSender::new(tx);
         let conversation_id = ConversationId::new();
 

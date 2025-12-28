@@ -254,7 +254,7 @@ mod tests {
         These are great resources for Rust programming.
         "#;
 
-        let results = provider.parse_text_response(text);
+        let results = provider.parse_text_response(text).unwrap();
         assert_eq!(results.len(), 2);
         assert_eq!(
             results[0].title,

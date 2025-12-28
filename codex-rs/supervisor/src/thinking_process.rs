@@ -1,5 +1,4 @@
 // サブエージェントの思考プロセス明示化システム
-use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::VecDeque;

@@ -1,5 +1,4 @@
 // Integration tests for the complete SubAgent system
-use anyhow::Result;
 use codex_supervisor::AgentType;
 use codex_supervisor::AutonomousDispatcher;
 use codex_supervisor::CodexExecutor;
@@ -25,7 +24,7 @@ async fn test_complete_subagent_system_initialization() {
 
 #[tokio::test]
 async fn test_autonomous_dispatcher_classification() {
-    let dispatcher = AutonomousDispatcher::new();
+    let mut dispatcher = AutonomousDispatcher::new();
 
     // Test security-related task
     let classification = dispatcher.classify_task("Review code for security vulnerabilities");

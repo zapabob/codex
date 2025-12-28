@@ -250,7 +250,7 @@ impl TokenTracker {
 
         // 全体使用量
         let total = self.get_total_usage().await;
-        report.push_str(&format!("Total Usage:\n"));
+        report.push_str("Total Usage:\n");
         report.push_str(&format!("  Prompt Tokens: {}\n", total.prompt_tokens));
         report.push_str(&format!(
             "  Completion Tokens: {}\n",

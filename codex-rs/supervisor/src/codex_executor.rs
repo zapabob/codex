@@ -2,13 +2,15 @@
 use anyhow::Context;
 use anyhow::Result;
 use codex_core::AuthManager;
-use codex_core::Codex;
+use codex_core::codex::Codex;
 use codex_core::config::Config;
-use codex_core::protocol::Event;
+use codex_core::models_manager::manager::ModelsManager;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::InitialHistory;
 use codex_core::protocol::Op;
 use codex_core::protocol::SessionSource;
+use codex_core::skills::SkillsManager;
+use codex_protocol::user_input::UserInput;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::timeout;
@@ -30,6 +32,8 @@ use crate::subagent::AgentType;
 pub struct CodexExecutor {
     config: Arc<Config>,
     auth_manager: Arc<AuthManager>,
+    models_manager: Arc<ModelsManager>,
+    skills_manager: Arc<SkillsManager>,
     metrics: ExecutionMetrics,
 }
 
@@ -46,9 +50,13 @@ pub struct ExecutionMetrics {
 impl CodexExecutor {
     /// Create a new CodexExecutor with configuration
     pub fn new(config: Config, auth_manager: Arc<AuthManager>) -> Self {
+        let models_manager = Arc::new(ModelsManager::new(Arc::clone(&auth_manager)));
+        let skills_manager = Arc::new(SkillsManager::new(config.codex_home.clone()));
         Self {
             config: Arc::new(config),
             auth_manager,
+            models_manager,
+            skills_manager,
             metrics: ExecutionMetrics::default(),
         }
     }
@@ -57,11 +65,11 @@ impl CodexExecutor {
     /// Best Practice: 段階的な実装 - シンプルな呼び出しから開始
     pub async fn execute_task(&mut self, agent_type: &AgentType, task: &str) -> Result<String> {
         let start_time = std::time::Instant::now();
+        let task_preview: String = task.chars().take(50).collect();
 
         info!(
             "🚀 Starting Codex execution for {} agent: {}",
-            agent_type,
-            task.chars().take(50).collect::<String>()
+            agent_type, task_preview
         );
 
         // Best Practice: 環境認識能力 - 専門プロンプトを使用
@@ -94,6 +102,8 @@ impl CodexExecutor {
         let codex_spawn = Codex::spawn(
             (*self.config).clone(),
             Arc::clone(&self.auth_manager),
+            Arc::clone(&self.models_manager),
+            Arc::clone(&self.skills_manager),
             InitialHistory::New,
             SessionSource::Exec,
         )
@@ -107,8 +117,10 @@ impl CodexExecutor {
 
         // Submit user turn with specialized prompt
         let submission_id = codex
-            .submit(Op::UserTurn {
-                input: prompt.to_string(),
+            .submit(Op::UserInput {
+                items: vec![UserInput::Text {
+                    text: prompt.to_string(),
+                }],
             })
             .await
             .context("Failed to submit user turn")?;
@@ -153,31 +165,44 @@ impl CodexExecutor {
                 EventMsg::SessionConfigured(_) => {
                     debug!("Session configured");
                 }
-                EventMsg::Text(text_event) => {
-                    debug!(
-                        "Received text: {}",
-                        text_event.text.chars().take(50).collect::<String>()
-                    );
-                    response_text.push_str(&text_event.text);
+                EventMsg::AgentMessageDelta(delta_event) => {
+                    response_text.push_str(&delta_event.delta);
+                    let preview: String = delta_event.delta.chars().take(50).collect();
+                    debug!("Received message delta: {preview}");
                 }
-                EventMsg::TurnComplete(_) => {
-                    info!("Turn completed");
-                    turn_completed = true;
+                EventMsg::AgentMessageContentDelta(delta_event) => {
+                    response_text.push_str(&delta_event.delta);
+                    let preview: String = delta_event.delta.chars().take(50).collect();
+                    debug!("Received content delta: {preview}");
                 }
                 EventMsg::AgentMessage(msg) => {
-                    debug!(
-                        "Agent message: {}",
-                        msg.content.chars().take(50).collect::<String>()
-                    );
-                    response_text.push_str(&msg.content);
+                    let preview: String = msg.message.chars().take(50).collect();
+                    debug!("Agent message: {preview}");
+                    if response_text.is_empty() {
+                        response_text = msg.message;
+                    }
+                }
+                EventMsg::TaskComplete(task_complete) => {
+                    info!("Task completed");
+                    if response_text.is_empty()
+                        && let Some(message) = task_complete.last_agent_message
+                    {
+                        response_text = message;
+                    }
+                    turn_completed = true;
+                }
+                EventMsg::TurnAborted(_) => {
+                    warn!("Turn aborted");
+                    turn_completed = true;
                 }
                 EventMsg::Error(err) => {
-                    error!("Codex error: {}", err.error);
-                    return Err(anyhow::anyhow!("Codex error: {}", err.error));
+                    let message = err.message;
+                    error!("Codex error: {message}");
+                    return Err(anyhow::anyhow!("Codex error: {message}"));
                 }
-                _ => {
+                other => {
                     // Handle other event types
-                    debug!("Other event received: {:?}", event.msg);
+                    debug!("Other event received: {other:?}");
                 }
             }
         }
@@ -223,18 +248,18 @@ impl CodexExecutor {
 
         format!(
             "📊 Codex Executor Metrics\n\n\
-            Total Calls: {}\n\
-            Successful: {}\n\
-            Failed: {}\n\
-            Success Rate: {:.2}%\n\
-            Average Latency: {}ms\n\
-            Total Tokens: {}",
-            self.metrics.total_calls,
-            self.metrics.successful_calls,
-            self.metrics.failed_calls,
-            success_rate,
-            self.metrics.average_latency_ms,
-            self.metrics.total_tokens
+            Total Calls: {total_calls}\n\
+            Successful: {successful_calls}\n\
+            Failed: {failed_calls}\n\
+            Success Rate: {success_rate:.2}%\n\
+            Average Latency: {average_latency_ms}ms\n\
+            Total Tokens: {total_tokens}",
+            total_calls = self.metrics.total_calls,
+            successful_calls = self.metrics.successful_calls,
+            failed_calls = self.metrics.failed_calls,
+            success_rate = success_rate,
+            average_latency_ms = self.metrics.average_latency_ms,
+            total_tokens = self.metrics.total_tokens
         )
     }
 }

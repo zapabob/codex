@@ -1292,9 +1292,10 @@ impl OrchestratorServer {
                     serde_json::from_value(request.params.clone());
                 match params {
                     Ok(params) => {
+                        let agent_id = params.agent_id.clone();
                         let mut budget = token_budget.write().await;
                         budget.used += params.tokens_used;
-                        *budget.per_agent_usage.entry(params.agent_id).or_insert(0) +=
+                        *budget.per_agent_usage.entry(agent_id.clone()).or_insert(0) +=
                             params.tokens_used;
 
                         let remaining = budget.total_budget.saturating_sub(budget.used);
@@ -1306,7 +1307,7 @@ impl OrchestratorServer {
                                 "total_budget": budget.total_budget,
                                 "used": budget.used,
                                 "remaining": remaining,
-                                "agent_id": params.agent_id,
+                                "agent_id": agent_id,
                             }),
                             subscribers,
                         )
@@ -1710,6 +1711,7 @@ impl OrchestratorServer {
                     serde_json::from_value(request.params.clone());
                 match params {
                     Ok(params) => {
+                        let title = params.title.clone();
                         match plan_manager.create_Plan(params.goal, params.title, params.created_by)
                         {
                             Ok(blueprint_id) => {
@@ -1718,7 +1720,7 @@ impl OrchestratorServer {
                                     EVENT_BLUEPRINT_CREATED,
                                     json!({
                                         "blueprint_id": blueprint_id,
-                                        "title": params.title,
+                                        "title": title,
                                     }),
                                     subscribers,
                                 )

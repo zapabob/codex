@@ -215,6 +215,8 @@ mod tests {
                         resets_at: Some(123),
                     }),
                     secondary: None,
+                    credits: None,
+                    plan_type: None,
                 },
             });
 

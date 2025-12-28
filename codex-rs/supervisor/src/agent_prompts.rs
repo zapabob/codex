@@ -231,7 +231,6 @@ You are a versatile general-purpose agent capable of handling a wide variety of 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_agent_prompts() {

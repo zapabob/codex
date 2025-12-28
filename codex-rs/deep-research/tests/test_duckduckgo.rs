@@ -14,10 +14,12 @@ async fn test_duckduckgo_search_real() {
     }
 
     // APIキーを削除してDuckDuckGoを強制使用
-    env::remove_var("BRAVE_API_KEY");
-    env::remove_var("GOOGLE_API_KEY");
-    env::remove_var("GOOGLE_CSE_ID");
-    env::remove_var("BING_API_KEY");
+    unsafe {
+        env::remove_var("BRAVE_API_KEY");
+        env::remove_var("GOOGLE_API_KEY");
+        env::remove_var("GOOGLE_CSE_ID");
+        env::remove_var("BING_API_KEY");
+    }
 
     let provider = WebSearchProvider::default();
 
@@ -66,10 +68,12 @@ async fn test_web_search_fallback_chain() {
     }
 
     // APIキーを削除
-    env::remove_var("BRAVE_API_KEY");
-    env::remove_var("GOOGLE_API_KEY");
-    env::remove_var("GOOGLE_CSE_ID");
-    env::remove_var("BING_API_KEY");
+    unsafe {
+        env::remove_var("BRAVE_API_KEY");
+        env::remove_var("GOOGLE_API_KEY");
+        env::remove_var("GOOGLE_CSE_ID");
+        env::remove_var("BING_API_KEY");
+    }
 
     let provider = WebSearchProvider::default();
 
@@ -107,10 +111,12 @@ async fn test_multiple_queries() {
         return;
     }
 
-    env::remove_var("BRAVE_API_KEY");
-    env::remove_var("GOOGLE_API_KEY");
-    env::remove_var("GOOGLE_CSE_ID");
-    env::remove_var("BING_API_KEY");
+    unsafe {
+        env::remove_var("BRAVE_API_KEY");
+        env::remove_var("GOOGLE_API_KEY");
+        env::remove_var("GOOGLE_CSE_ID");
+        env::remove_var("BING_API_KEY");
+    }
 
     let provider = WebSearchProvider::default();
 

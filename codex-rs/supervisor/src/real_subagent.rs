@@ -1,9 +1,6 @@
 // Real SubAgent implementation with actual LLM calls
 use anyhow::Context;
 use anyhow::Result;
-use serde::Deserialize;
-use serde::Serialize;
-use std::sync::Arc;
 use tokio::sync::mpsc;
 
 use crate::agent_prompts::get_agent_prompt;
@@ -349,12 +346,9 @@ fn extract_task_from_prompt(prompt: &str) -> String {
         let task_section = &prompt[task_start..];
         if let Some(task_content_start) = task_section.find('\n') {
             let task_content = &task_section[task_content_start + 1..];
-            return task_content
-                .lines()
-                .next()
-                .unwrap_or("Unknown task")
-                .trim()
-                .to_string();
+            if let Some(line) = task_content.lines().find(|line| !line.trim().is_empty()) {
+                return line.trim().to_string();
+            }
         }
     }
     "Unknown task".to_string()

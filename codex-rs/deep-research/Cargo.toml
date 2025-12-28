@@ -23,6 +23,7 @@ urlencoding = { workspace = true }
 codex-core = { path = "../core" }
 criterion = { version = "0.7", features = ["async_tokio"] }
 pretty_assertions.workspace = true
+tempfile = "3"
 tokio-test.workspace = true
 
 [[bench]]

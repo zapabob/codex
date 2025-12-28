@@ -45,7 +45,7 @@ async fn test_end_to_end_async_subagent_workflow() {
 
     // 6. 通知確認
     let notifications = agent.get_inbox().get_unread_notifications().await;
-    assert!(notifications.len() > 0);
+    assert!(!notifications.is_empty());
 
     // タスク完了通知があることを確認
     let completion_notification = notifications
@@ -514,7 +514,7 @@ async fn test_concurrent_subagent_operations() {
     let perf_id = manager.register_agent(AgentType::PerformanceExpert);
     let general_id = manager.register_agent(AgentType::General);
 
-    let agent_ids = vec![
+    let agent_ids = [
         code_id,
         security_id,
         testing_id,

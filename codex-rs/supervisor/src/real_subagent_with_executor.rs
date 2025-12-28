@@ -3,14 +3,10 @@
 
 use anyhow::Context;
 use anyhow::Result;
-use serde::Deserialize;
-use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::sync::mpsc;
-use tracing::debug;
 use tracing::info;
-use tracing::warn;
 
 use crate::codex_executor::CodexExecutor;
 use crate::subagent::AgentMessage;
@@ -171,10 +167,9 @@ impl RealSubAgentManagerWithExecutor {
 
 impl Default for RealSubAgentManagerWithExecutor {
     fn default() -> Self {
-        let manager = Self::new(CodexExecutor::default());
         // Note: register_all_agents is async, so it can't be called here
         // Callers should call it manually after construction
-        manager
+        Self::new(CodexExecutor::default())
     }
 }
 

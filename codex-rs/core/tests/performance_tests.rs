@@ -110,17 +110,10 @@ artifacts:
     let start = Instant::now();
 
     // Execute 10 agents in parallel
-    let mut tasks = Vec::new();
-    for i in 0..10 {
-        let task = runtime.delegate(
-            "throughput-test",
-            &format!("Task {}", i),
-            HashMap::new(),
-            Some(3000),
-            None,
-        );
-        tasks.push(task);
-    }
+    let goals: Vec<String> = (0..10).map(|i| format!("Task {i}")).collect();
+    let tasks = goals
+        .iter()
+        .map(|goal| runtime.delegate("throughput-test", goal, HashMap::new(), Some(3000), None));
 
     let results = futures::future::join_all(tasks).await;
 

@@ -109,7 +109,7 @@ impl EvaluationStrategy for SimpleEvaluationStrategy {
         for result in results {
             let base_score = result
                 .score
-                .unwrap_or_else(|| if result.success { 1.0 } else { 0.0 });
+                .unwrap_or(if result.success { 1.0 } else { 0.0 });
             let risk = if result.success { 0.0 } else { 1.0 };
             let entry = score_accumulator
                 .entry(result.agent_name.clone())
@@ -238,6 +238,7 @@ impl<S: EvaluationStrategy> MultiAgentEvaluator<S> {
                     Some(current) => (current - previous) <= threshold,
                     None => true,
                 },
+                (None, Some(threshold)) => threshold <= 0.0 && top_average.is_some(),
                 _ => false,
             };
 
@@ -282,7 +283,7 @@ impl<S: EvaluationStrategy> MultiAgentEvaluator<S> {
             .filter(|score| {
                 self.config
                     .max_risk_score
-                    .map_or(true, |limit| score.risk.map_or(true, |risk| risk <= limit))
+                    .is_none_or(|limit| score.risk.is_none_or(|risk| risk <= limit))
             })
             .collect();
 
@@ -353,7 +354,7 @@ mod tests {
 
         let evaluator = MultiAgentEvaluator::new(
             supervisor_config,
-            SimpleEvaluationStrategy::default(),
+            SimpleEvaluationStrategy,
             MultiAgentEvaluationConfig {
                 max_rounds: 2,
                 top_k: 2,
@@ -395,7 +396,7 @@ mod tests {
 
         let evaluator = MultiAgentEvaluator::new(
             supervisor_config,
-            SimpleEvaluationStrategy::default(),
+            SimpleEvaluationStrategy,
             MultiAgentEvaluationConfig {
                 max_rounds: 5,
                 top_k: 1,

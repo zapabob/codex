@@ -102,7 +102,7 @@ impl OtelProvider {
             .map(|provider| provider.tracer(settings.service_name.clone()));
 
         if let Some(provider) = tracer_provider.clone() {
-            let _ = global::set_tracer_provider(provider);
+            global::set_tracer_provider(provider);
             global::set_text_map_propagator(TraceContextPropagator::new());
         }
         if tracer.is_some() {

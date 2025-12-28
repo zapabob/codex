@@ -7,10 +7,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio::sync::mpsc;
-use tokio::time::Duration;
 use uuid::Uuid;
 
-use crate::subagent::AgentMessage;
 use crate::subagent::AgentState;
 use crate::subagent::AgentStatus;
 use crate::subagent::AgentType;

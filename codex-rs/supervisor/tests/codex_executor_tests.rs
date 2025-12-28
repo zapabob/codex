@@ -1,5 +1,4 @@
 // Comprehensive tests for CodexExecutor
-use anyhow::Result;
 use codex_supervisor::AgentType;
 use codex_supervisor::CodexExecutor;
 use codex_supervisor::ExecutionMetrics;

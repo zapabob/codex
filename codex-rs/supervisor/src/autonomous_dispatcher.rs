@@ -1,5 +1,4 @@
 // メインエージェントによる自律的サブエージェント呼び出しシステム
-use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -31,6 +30,24 @@ pub struct AutonomousDispatcher {
     classification_cache: HashMap<String, TaskClassification>,
 }
 
+fn keyword_matches(task_lower: &str, keyword_lower: &str) -> bool {
+    if !keyword_lower.contains(' ') {
+        return task_lower.contains(keyword_lower);
+    }
+
+    let mut remainder = task_lower;
+    for part in keyword_lower.split_whitespace() {
+        match remainder.find(part) {
+            Some(index) => {
+                remainder = &remainder[index + part.len()..];
+            }
+            None => return false,
+        }
+    }
+
+    true
+}
+
 impl AutonomousDispatcher {
     pub fn new() -> Self {
         let mut triggers = Vec::new();
@@ -52,6 +69,7 @@ impl AutonomousDispatcher {
                 keywords: vec![
                     "security".to_string(),
                     "vulnerability".to_string(),
+                    "vulnerabilities".to_string(),
                     "exploit".to_string(),
                     "CVE".to_string(),
                 ],
@@ -136,7 +154,8 @@ impl AutonomousDispatcher {
         for trigger in &self.triggers {
             let mut matched_keywords = Vec::new();
             for keyword in &trigger.keywords {
-                if task_lower.contains(&keyword.to_lowercase()) {
+                let keyword_lower = keyword.to_lowercase();
+                if keyword_matches(&task_lower, &keyword_lower) {
                     matched_keywords.push(keyword.clone());
                 }
             }
@@ -164,7 +183,7 @@ impl AutonomousDispatcher {
         }
 
         // 優先度順にソート
-        matches.sort_by(|a, b| b.1.cmp(&a.1));
+        matches.sort_by(|a, b| b.2.len().cmp(&a.2.len()).then_with(|| b.1.cmp(&a.1)));
 
         let best_match = &matches[0];
         let confidence = (best_match.2.len() as f32 / 3.0).min(1.0); // 最大3キーワードで100%
@@ -211,22 +230,37 @@ impl AutonomousDispatcher {
     /// 自動呼び出しが必要か判断
     pub fn should_auto_call(&self, task: &str, threshold: f32) -> Option<AgentType> {
         let task_lower = task.to_lowercase();
+        let mut candidates: Vec<(AgentType, u8, usize)> = Vec::new();
 
         for trigger in &self.triggers {
             let match_count = trigger
                 .keywords
                 .iter()
-                .filter(|k| task_lower.contains(&k.to_lowercase()))
+                .filter(|keyword| {
+                    let keyword_lower = keyword.to_lowercase();
+                    keyword_matches(&task_lower, &keyword_lower)
+                })
                 .count();
 
-            let confidence = (match_count as f32 / trigger.keywords.len() as f32).min(1.0);
-
-            if confidence >= threshold {
-                return Some(trigger.agent_type.clone());
+            if match_count > 0 {
+                candidates.push((trigger.agent_type.clone(), trigger.priority, match_count));
             }
         }
 
-        None
+        if candidates.is_empty() {
+            return None;
+        }
+
+        candidates.sort_by(|a, b| b.2.cmp(&a.2).then_with(|| b.1.cmp(&a.1)));
+
+        let (agent_type, _priority, match_count) = &candidates[0];
+        let confidence = (*match_count as f32 / 3.0).min(1.0);
+
+        if confidence >= threshold {
+            Some(agent_type.clone())
+        } else {
+            None
+        }
     }
 
     /// キャッシュをクリア
