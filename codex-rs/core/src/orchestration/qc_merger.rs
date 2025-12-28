@@ -221,7 +221,6 @@ impl Default for QcMerger {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::orchestration::parallel_execution::AgentType;
 
     #[tokio::test]
     async fn test_select_best_central_empty() {

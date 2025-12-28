@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use chrono::DateTime;
 use chrono::Duration;
 use chrono::Utc;

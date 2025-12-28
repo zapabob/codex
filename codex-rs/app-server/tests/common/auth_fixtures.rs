@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 // Test authentication fixtures
 use serde::Deserialize;
 use serde::Serialize;

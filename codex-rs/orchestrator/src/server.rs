@@ -107,6 +107,7 @@ struct TaskInfo {
 
 /// Session information
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct SessionInfo {
     session_id: String,
     cwd: PathBuf,

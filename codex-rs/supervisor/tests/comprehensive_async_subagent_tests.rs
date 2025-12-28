@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 async fn test_end_to_end_async_subagent_workflow() {
     // 1. エージェント作成
     let agent = AsyncSubAgent::new(AgentType::CodeExpert);
-    let agent_id = agent.id.clone();
+    let _agent_id = agent.id.clone();
 
     // 2. タスク開始
     agent

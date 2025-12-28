@@ -294,7 +294,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_and_get_Plan() {
+    fn test_create_and_get_plan() {
         let (manager, _temp) = create_test_manager();
 
         let id = manager
@@ -399,7 +399,7 @@ mod tests {
     }
 
     #[test]
-    fn test_list_Plans() {
+    fn test_list_plans() {
         let (manager, _temp) = create_test_manager();
 
         let id1 = manager

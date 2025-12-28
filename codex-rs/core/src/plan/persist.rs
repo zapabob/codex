@@ -268,7 +268,7 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
-    fn create_test_Plan() -> PlanBlock {
+    fn create_test_plan() -> PlanBlock {
         let mut bp = PlanBlock::new("Test Plan".to_string(), "test-bp".to_string());
         bp.assumptions.push("Test assumption".to_string());
         bp.approach = "Test approach".to_string();
@@ -282,7 +282,7 @@ mod tests {
         let json_dir = temp_dir.path().join("json");
 
         let persister = PlanPersister::with_dirs(markdown_dir, json_dir).unwrap();
-        let bp = create_test_Plan();
+        let bp = create_test_plan();
 
         // Save
         let json_path = persister.save_json(&bp).unwrap();

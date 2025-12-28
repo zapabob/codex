@@ -328,7 +328,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_Plan_creation() {
+    fn test_plan_creation() {
         let bp = PlanBlock::new("Add telemetry".to_string(), "feat-telemetry".to_string());
 
         assert!(bp.id.contains("feat-telemetry"));

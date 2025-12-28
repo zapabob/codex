@@ -409,7 +409,7 @@ mod tests {
     #[test]
     fn test_operation_conflicts() {
         let op1 = GitOperation::ModifyFiles(vec!["file1.txt".into()]);
-        let op2 = GitOperation::ModifyFiles(vec!["file1.txt".into()]);
+        let _op2 = GitOperation::ModifyFiles(vec!["file1.txt".into()]);
 
         // Same file operations should conflict
         assert!(op1.conflicts_with(&LockEntry {

@@ -254,6 +254,7 @@ impl AsyncSubAgent {
 pub struct AsyncSubAgentManager {
     agents: HashMap<String, AsyncSubAgent>,
     global_inbox: Inbox,
+    #[allow(dead_code)]
     notification_tx: mpsc::UnboundedSender<AsyncSubAgentNotification>,
     notification_rx: mpsc::UnboundedReceiver<AsyncSubAgentNotification>,
 }

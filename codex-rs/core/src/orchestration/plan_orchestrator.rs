@@ -257,7 +257,6 @@ impl PlanOrchestrator {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     // Coverage exercised through plan executor integration tests.
 }
 
