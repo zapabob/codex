@@ -2219,7 +2219,6 @@ mod tests {
     fn select_attempt_validates_bounds() {
         let attempts = vec![AttemptDiffData {
             placement: Some(0),
-            created_at: None,
             diff: "diff --git a/file b/file\n".to_string(),
         }];
         let first = select_attempt(&attempts, Some(1)).expect("attempt 1");

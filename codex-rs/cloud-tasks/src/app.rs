@@ -349,6 +349,7 @@ pub enum AppEvent {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use anyhow::Result;
     use chrono::Utc;
 
     struct FakeBackend {
@@ -358,10 +359,7 @@ mod tests {
 
     #[async_trait::async_trait]
     impl codex_cloud_tasks_client::CloudBackend for FakeBackend {
-        async fn list_tasks(
-            &self,
-            env: Option<&str>,
-        ) -> codex_cloud_tasks_client::Result<Vec<TaskSummary>> {
+        async fn list_tasks(&self, env: Option<&str>) -> Result<Vec<TaskSummary>> {
             let key = env.map(str::to_string);
             let titles = self
                 .by_env
@@ -385,25 +383,11 @@ mod tests {
             Ok(out)
         }
 
-        async fn get_task_diff(
-            &self,
-            _id: TaskId,
-        ) -> codex_cloud_tasks_client::Result<Option<String>> {
-            Err(codex_cloud_tasks_client::CloudTaskError::Unimplemented(
-                "not used in test",
-            ))
+        async fn get_task_diff(&self, _id: &TaskId) -> Result<String> {
+            Ok(String::new())
         }
 
-        async fn get_task_messages(
-            &self,
-            _id: TaskId,
-        ) -> codex_cloud_tasks_client::Result<Vec<String>> {
-            Ok(vec![])
-        }
-        async fn get_task_text(
-            &self,
-            _id: TaskId,
-        ) -> codex_cloud_tasks_client::Result<codex_cloud_tasks_client::TaskText> {
+        async fn get_task_text(&self, _id: &TaskId) -> Result<codex_cloud_tasks_client::TaskText> {
             Ok(codex_cloud_tasks_client::TaskText {
                 prompt: Some("Example prompt".to_string()),
                 messages: Vec::new(),
@@ -416,43 +400,50 @@ mod tests {
 
         async fn list_sibling_attempts(
             &self,
-            _task: TaskId,
-            _turn_id: String,
-        ) -> codex_cloud_tasks_client::Result<Vec<codex_cloud_tasks_client::TurnAttempt>> {
+            _task_id: &TaskId,
+            _turn_id: &str,
+        ) -> Result<Vec<codex_cloud_tasks_client::TurnAttempt>> {
             Ok(Vec::new())
         }
 
         async fn apply_task(
             &self,
-            _id: TaskId,
+            _id: &TaskId,
             _diff_override: Option<String>,
-        ) -> codex_cloud_tasks_client::Result<codex_cloud_tasks_client::ApplyOutcome> {
-            Err(codex_cloud_tasks_client::CloudTaskError::Unimplemented(
-                "not used in test",
-            ))
+        ) -> Result<codex_cloud_tasks_client::ApplyOutcome> {
+            Ok(codex_cloud_tasks_client::ApplyOutcome {
+                status: codex_cloud_tasks_client::ApplyStatus::Success,
+                message: "not used in test".to_string(),
+                conflict_paths: Vec::new(),
+                skipped_paths: Vec::new(),
+            })
         }
 
         async fn apply_task_preflight(
             &self,
-            _id: TaskId,
+            _id: &TaskId,
             _diff_override: Option<String>,
-        ) -> codex_cloud_tasks_client::Result<codex_cloud_tasks_client::ApplyOutcome> {
-            Err(codex_cloud_tasks_client::CloudTaskError::Unimplemented(
-                "not used in test",
-            ))
+        ) -> Result<codex_cloud_tasks_client::ApplyOutcome> {
+            Ok(codex_cloud_tasks_client::ApplyOutcome {
+                status: codex_cloud_tasks_client::ApplyStatus::Success,
+                message: "not used in test".to_string(),
+                conflict_paths: Vec::new(),
+                skipped_paths: Vec::new(),
+            })
         }
 
         async fn create_task(
             &self,
             _env_id: &str,
-            _prompt: &str,
+            _text: &str,
             _git_ref: &str,
-            _qa_mode: bool,
-            _best_of_n: usize,
-        ) -> codex_cloud_tasks_client::Result<codex_cloud_tasks_client::CreatedTask> {
-            Err(codex_cloud_tasks_client::CloudTaskError::Unimplemented(
-                "not used in test",
-            ))
+            _is_public: bool,
+            _best_of_n: i32,
+        ) -> Result<codex_cloud_tasks_client::CreatedTask> {
+            Ok(codex_cloud_tasks_client::CreatedTask {
+                id: TaskId("test-task".to_string()),
+                name: "test task".to_string(),
+            })
         }
     }
 

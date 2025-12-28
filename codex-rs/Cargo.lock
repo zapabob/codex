@@ -1274,6 +1274,7 @@ dependencies = [
  "codex-tui",
  "crossterm",
  "owo-colors",
+ "pretty_assertions",
  "ratatui",
  "reqwest",
  "serde",
