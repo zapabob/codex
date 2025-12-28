@@ -405,7 +405,7 @@ mod tests {
         let writer = buffer.clone();
         let subscriber = tracing_subscriber::fmt()
             .with_max_level(tracing::Level::INFO)
-            .json()
+            .with_ansi(false)
             .with_writer(move || BufferWriter(writer.clone()))
             .finish();
         let _guard = tracing::subscriber::set_default(subscriber);
@@ -416,44 +416,12 @@ mod tests {
         assert_eq!(stored, metrics);
 
         let output = buffer.lock().expect("lock poisoned").clone();
-        let log: serde_json::Value =
-            serde_json::from_slice(&output).expect("log output is valid json");
-        let fields = log.get("fields").expect("fields present in log payload");
-        assert_eq!(
-            fields
-                .get("event.name")
-                .expect("event name exists")
-                .as_str(),
-            Some("codex.auto_orchestration.metrics")
-        );
-        assert_eq!(
-            fields.get("skill").expect("skill tag exists").as_str(),
-            Some("security,testing")
-        );
-        assert_eq!(
-            fields
-                .get("strategy")
-                .expect("strategy tag exists")
-                .as_str(),
-            Some("parallel")
-        );
-        assert_eq!(
-            fields
-                .get("agent_count")
-                .expect("agent count tag exists")
-                .as_u64(),
-            Some(3)
-        );
-        assert_eq!(
-            fields
-                .get("execution_time_ms")
-                .expect("execution time tag exists")
-                .as_u64(),
-            Some(1250)
-        );
-        assert_eq!(
-            fields.get("agents").expect("agents tag exists").as_str(),
-            Some("sec-audit,test-gen,code-reviewer")
-        );
+        let log = String::from_utf8(output).expect("log output is valid utf-8");
+        assert!(log.contains("codex.auto_orchestration.metrics"));
+        assert!(log.contains("skill=security,testing"));
+        assert!(log.contains("strategy=parallel"));
+        assert!(log.contains("agent_count=3"));
+        assert!(log.contains("execution_time_ms=1250"));
+        assert!(log.contains("agents=sec-audit,test-gen,code-reviewer"));
     }
 }

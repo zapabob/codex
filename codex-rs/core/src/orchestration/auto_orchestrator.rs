@@ -1055,6 +1055,7 @@ mod tests {
             detected_keywords: vec!["dependency".to_string()],
             skill_tags: vec!["dependency-analysis".to_string()],
             recommended_agents: vec![],
+            recommended_skill_tags: vec![],
             subtasks: vec!["audit dependencies".to_string()],
             original_input: "audit dependencies".to_string(),
         };

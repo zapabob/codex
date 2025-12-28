@@ -222,7 +222,8 @@ impl PermissionChecker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
+    use crate::agents::types::FsPermissions;
+    use crate::agents::types::NetPermissions;
 
     fn create_test_permissions() -> ToolPermissions {
         ToolPermissions {

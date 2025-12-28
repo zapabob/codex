@@ -397,7 +397,7 @@ mod tests {
 
     #[test]
     fn test_ast_analysis() {
-        let detector = AstConflictDetector::new();
+        let detector = AstConflictDetector::new(std::path::PathBuf::from("."));
 
         let content = r#"
         use std::collections::HashMap;
@@ -443,7 +443,7 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let _repo = Repository::init(&temp_dir).unwrap();
 
-        let detector = AstConflictDetector::new();
+        let detector = AstConflictDetector::new(temp_dir.path().to_path_buf());
         let operation = GitOperation::ModifyFiles(vec!["user.rs".into()]);
         let locks = vec![LockEntry {
             id: "test".to_string(),
@@ -454,9 +454,8 @@ mod tests {
             resources: vec!["user.rs".to_string()],
         }];
 
-        let repo = Repository::open(&temp_dir).unwrap();
         let conflicts = detector
-            .detect_conflicts(&repo, &operation, &locks)
+            .detect_conflicts(temp_dir.path(), &operation, &locks)
             .await
             .unwrap();
 

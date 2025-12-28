@@ -8,6 +8,9 @@ use crate::error::CodexErr;
 use crate::error::Result;
 use crate::git_lock_manager::ConflictDetectorTrait;
 use crate::git_lock_manager::GitLockManager;
+use crate::qc::agent_coordination::AgentCoordinator;
+use crate::qc::agent_coordination::AgentType;
+use crate::qc::agent_coordination::ParallelExecutionResult;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -525,6 +528,7 @@ mod tests {
             created_at: chrono::Utc::now(),
             estimated_complexity: 5.0,
             tags: vec!["test".to_string()],
+            quality_requirements: None,
         };
 
         let result = orchestrator.submit_task(task).await;
@@ -545,6 +549,7 @@ mod tests {
             created_at: chrono::Utc::now(),
             estimated_complexity: 5.0,
             tags: vec!["rust".to_string()],
+            quality_requirements: None,
         }];
 
         let agents = vec![AgentCapability {
@@ -559,7 +564,9 @@ mod tests {
         assert_eq!(assignments.len(), 1);
         assert_eq!(assignments[0], ("task1".to_string(), "agent1".to_string()));
     }
+}
 
+impl AIOrchestrator {
     /// Execute QC quality assurance workflow
     ///
     /// # Arguments
@@ -571,11 +578,11 @@ mod tests {
     /// Quality assurance results
     ///
     /// # Example
-    /// ```
-    /// use codex_core::ai_orchestrator::AiOrchestrator;
-    /// use codex_core::qc::agent_coordination::AgentType;
+    /// ```no_run
+    /// use codex_core::ai_orchestrator::{AIOrchestrator, QualityRequirements};
     ///
-    /// let orchestrator = AiOrchestrator::new();
+    /// # async fn example() {
+    /// let orchestrator = AIOrchestrator::new();
     /// let requirements = QualityRequirements {
     ///     min_readability_score: 0.8,
     ///     min_maintainability_score: 0.75,
@@ -587,18 +594,17 @@ mod tests {
     ///     enable_mathematical_optimization: true,
     /// };
     ///
-    /// let result = orchestrator.execute_qc_quality_assurance(
-    ///     "/path/to/codebase",
-    ///     requirements,
-    ///     4
-    /// ).await;
+    /// let _result = orchestrator
+    ///     .execute_qc_quality_assurance("/path/to/codebase", requirements, 4)
+    ///     .await;
+    /// # }
     /// ```
     pub async fn execute_qc_quality_assurance(
         &self,
         codebase_path: &str,
         quality_requirements: QualityRequirements,
         max_concurrent_agents: usize,
-    ) -> Result<QcQualityAssuranceResult, String> {
+    ) -> std::result::Result<QcQualityAssuranceResult, String> {
         println!(
             "🔍 Starting QC Quality Assurance workflow for: {}",
             codebase_path
@@ -652,6 +658,7 @@ mod tests {
         let recommendations =
             self.generate_qc_improvement_plan(&aggregated_results, &quality_requirements);
 
+        let overall_compliance = compliance_result.overall_compliance;
         let result = QcQualityAssuranceResult {
             codebase_path: codebase_path.to_string(),
             total_files_analyzed: code_files.len(),
@@ -664,22 +671,20 @@ mod tests {
         };
 
         println!("✅ QC Quality Assurance completed");
-        println!(
-            "📊 Overall compliance: {:.1}%",
-            compliance_result.overall_compliance * 100.0
-        );
+        println!("📊 Overall compliance: {:.1}%", overall_compliance * 100.0);
 
         Ok(result)
     }
 
     /// Discover code files in the codebase
-    fn discover_code_files(&self, path: &str) -> Result<Vec<String>, String> {
+    fn discover_code_files(&self, path: &str) -> std::result::Result<Vec<String>, String> {
         use std::fs;
         use std::path::Path;
 
         let path = Path::new(path);
         if !path.exists() {
-            return Err(format!("Path does not exist: {}", path.display()));
+            let path_display = path.display();
+            return Err(format!("Path does not exist: {path_display}"));
         }
 
         let mut code_files = Vec::new();
@@ -733,7 +738,7 @@ mod tests {
         }
 
         visit_dirs(path, &mut code_files)
-            .map_err(|e| format!("Failed to discover code files: {}", e))?;
+            .map_err(|e| format!("Failed to discover code files: {e}"))?;
 
         Ok(code_files)
     }
@@ -758,8 +763,8 @@ mod tests {
     /// Aggregate parallel QC results
     fn aggregate_qc_results(
         &self,
-        parallel_results: &[crate::qc::agent_coordination::ParallelExecutionResult],
-    ) -> Result<QcAggregatedResults, String> {
+        parallel_results: &[ParallelExecutionResult],
+    ) -> std::result::Result<QcAggregatedResults, String> {
         let mut total_files = 0;
         let mut successful_analyses = 0;
         let mut average_scores = QcQualityScores {
@@ -876,37 +881,42 @@ mod tests {
         let scores = &results.average_quality_scores;
 
         if scores.readability < requirements.min_readability_score {
+            let readability = scores.readability;
+            let target = requirements.min_readability_score;
             recommendations.push(format!(
-                "Improve code readability (current: {:.2}, target: {:.2}). Consider using consistent formatting and meaningful variable names.",
-                scores.readability, requirements.min_readability_score
+                "Improve code readability (current: {readability:.2}, target: {target:.2}). Consider using consistent formatting and meaningful variable names.",
             ));
         }
 
         if scores.maintainability < requirements.min_maintainability_score {
+            let maintainability = scores.maintainability;
+            let target = requirements.min_maintainability_score;
             recommendations.push(format!(
-                "Enhance code maintainability (current: {:.2}, target: {:.2}). Focus on reducing code duplication and improving modularity.",
-                scores.maintainability, requirements.min_maintainability_score
+                "Enhance code maintainability (current: {maintainability:.2}, target: {target:.2}). Focus on reducing code duplication and improving modularity.",
             ));
         }
 
         if scores.performance < requirements.min_performance_score {
+            let performance = scores.performance;
+            let target = requirements.min_performance_score;
             recommendations.push(format!(
-                "Optimize code performance (current: {:.2}, target: {:.2}). Consider algorithmic improvements and resource utilization optimization.",
-                scores.performance, requirements.min_performance_score
+                "Optimize code performance (current: {performance:.2}, target: {target:.2}). Consider algorithmic improvements and resource utilization optimization.",
             ));
         }
 
         if scores.security < requirements.min_security_score {
+            let security = scores.security;
+            let target = requirements.min_security_score;
             recommendations.push(format!(
-                "Strengthen security measures (current: {:.2}, target: {:.2}). Implement input validation and secure coding practices.",
-                scores.security, requirements.min_security_score
+                "Strengthen security measures (current: {security:.2}, target: {target:.2}). Implement input validation and secure coding practices.",
             ));
         }
 
         if scores.overall > requirements.max_complexity_score {
+            let overall = scores.overall;
+            let max_allowed = requirements.max_complexity_score;
             recommendations.push(format!(
-                "Reduce code complexity (current: {:.2}, max allowed: {:.2}). Break down complex functions and improve code structure.",
-                scores.overall, requirements.max_complexity_score
+                "Reduce code complexity (current: {overall:.2}, max allowed: {max_allowed:.2}). Break down complex functions and improve code structure.",
             ));
         }
 
