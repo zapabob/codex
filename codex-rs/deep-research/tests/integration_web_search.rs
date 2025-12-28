@@ -12,9 +12,7 @@ async fn test_brave_search_integration() {
     let provider = WebSearchProvider::new(3, 30);
 
     // Set environment variable for test
-    unsafe {
-        env::set_var("BRAVE_API_KEY", &api_key);
-    }
+    env::set_var("BRAVE_API_KEY", &api_key);
 
     let query = "Rust async patterns";
     let results = provider.brave_search_real(query, 5).await;
@@ -34,10 +32,8 @@ async fn test_google_search_integration() {
     let provider = WebSearchProvider::new(3, 30);
 
     // Set environment variables for test
-    unsafe {
-        env::set_var("GOOGLE_API_KEY", &api_key);
-        env::set_var("GOOGLE_CSE_ID", &cse_id);
-    }
+    env::set_var("GOOGLE_API_KEY", &api_key);
+    env::set_var("GOOGLE_CSE_ID", &cse_id);
 
     let query = "Rust concurrency";
     let results = provider.google_search_real(query, 5).await;
@@ -55,9 +51,7 @@ async fn test_bing_search_integration() {
     let provider = WebSearchProvider::new(3, 30);
 
     // Set environment variable for test
-    unsafe {
-        env::set_var("BING_API_KEY", &api_key);
-    }
+    env::set_var("BING_API_KEY", &api_key);
 
     let query = "Rust error handling";
     let results = provider.bing_search_real(query, 5).await;
@@ -88,12 +82,10 @@ async fn test_duckduckgo_search_integration() {
 #[tokio::test]
 async fn test_web_search_fallback_chain() {
     // API Key未設定時のフォールバックチェーン確認
-    unsafe {
-        env::remove_var("BRAVE_API_KEY");
-        env::remove_var("GOOGLE_API_KEY");
-        env::remove_var("GOOGLE_CSE_ID");
-        env::remove_var("BING_API_KEY");
-    }
+    env::remove_var("BRAVE_API_KEY");
+    env::remove_var("GOOGLE_API_KEY");
+    env::remove_var("GOOGLE_CSE_ID");
+    env::remove_var("BING_API_KEY");
 
     let provider = WebSearchProvider::new(3, 30);
 
@@ -118,9 +110,7 @@ async fn test_web_search_error_handling() {
     let provider = WebSearchProvider::new(3, 30);
 
     // 無効なAPI Keyでテスト
-    unsafe {
-        env::set_var("BRAVE_API_KEY", "invalid_api_key_12345");
-    }
+    env::set_var("BRAVE_API_KEY", "invalid_api_key_12345");
     let result = provider.brave_search_real("test", 5).await;
 
     // エラーハンドリング確認（フォールバックに成功するはず）

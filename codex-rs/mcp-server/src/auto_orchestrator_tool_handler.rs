@@ -93,7 +93,7 @@ async fn execute_auto_orchestration(
     // 1. Create TaskAnalyzer and analyze the goal
     let analyzer = TaskAnalyzer::new(params.auto_threshold);
     let mut analysis = analyzer.analyze(&params.goal);
-    let (_skill_warnings, mapped_agents) = validate_and_map_skills(&params.skills);
+    let (skill_warnings, mapped_agents) = validate_and_map_skills(&params.skills);
     if !mapped_agents.is_empty() {
         for agent in mapped_agents {
             if !analysis.recommended_agents.contains(&agent) {
