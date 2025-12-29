@@ -13,6 +13,7 @@ members = [
     "cloud-tasks",
     "cloud-tasks-client",
     "cli",
+    "gui",
     "common",
     "core",
     "exec",
