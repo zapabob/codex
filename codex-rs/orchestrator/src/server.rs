@@ -90,6 +90,9 @@ impl Default for OrchestratorConfig {
             total_token_budget: 100_000,
             warning_threshold: 80_000,
             per_agent_limit: 20_000,
+            rate_limit_config: Some(RateLimitConfig::default()),
+            replay_protection_config: Some(ReplayProtectionConfig::default()),
+            audit_logger_config: Some(AuditLoggerConfig::default()),
         }
     }
 }
@@ -198,6 +201,25 @@ impl OrchestratorServer {
 
         let plan_manager = Arc::new(PlanManager::new().context("Failed to create PlanManager")?);
 
+        // Initialize rate limiter
+        let rate_limit_config = config.rate_limit_config.clone().unwrap_or_default();
+        let rate_limiter = Arc::new(RateLimiter::new(rate_limit_config));
+
+        // Initialize replay protection
+        let replay_protection_config = config.replay_protection_config.clone().unwrap_or_default();
+        let replay_protection = Arc::new(ReplayProtection::new(replay_protection_config));
+
+        // Initialize audit logger
+        let audit_logger = if let Some(audit_config) = config.audit_logger_config.clone() {
+            Arc::new(Some(
+                AuditLogger::new(audit_config)
+                    .await
+                    .context("Failed to initialize audit logger")?,
+            ))
+        } else {
+            Arc::new(None)
+        };
+
         Ok(Self {
             config,
             transport,
@@ -213,6 +235,9 @@ impl OrchestratorServer {
             active_sessions: Arc::new(RwLock::new(HashMap::new())),
             subscribers: Arc::new(RwLock::new(HashMap::new())),
             plan_manager,
+            rate_limiter,
+            replay_protection,
+            audit_logger,
         })
     }
 
@@ -390,6 +415,9 @@ impl OrchestratorServer {
         active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         queue_size: &Arc<RwLock<usize>>,
         config: &OrchestratorConfig,
+        rate_limiter: &Arc<RateLimiter>,
+        replay_protection: &Arc<ReplayProtection>,
+        audit_logger: &Arc<Option<AuditLogger>>,
     ) -> Result<()> {
         loop {
             // Read request
@@ -414,6 +442,82 @@ impl OrchestratorServer {
                 }
             };
 
+            // Get client ID for rate limiting (use auth token or API key as identifier)
+            let client_id = request
+                .auth_token
+                .as_ref()
+                .or(request.api_key.as_ref())
+                .map(|s| s.as_str())
+                .unwrap_or("anonymous");
+
+            // Check rate limiting
+            if let Err(rate_limit_error) = rate_limiter.check(client_id).await {
+                // Log rate limit exceeded
+                if let Some(ref logger) = **audit_logger {
+                    let _ = logger
+                        .log_security_event(
+                            "rate_limit_exceeded".to_string(),
+                            serde_json::json!({
+                                "client_id": client_id,
+                                "error": format!("{}", rate_limit_error)
+                            }),
+                            None,
+                            None,
+                        )
+                        .await;
+                }
+
+                let error_response = RpcResponse {
+                    id: request.id.clone(),
+                    result: None,
+                    error: Some(RpcError {
+                        code: 429, // Too Many Requests
+                        message: format!("Rate limit exceeded: {}", rate_limit_error),
+                        data: Some(serde_json::json!({
+                            "retry_after": 1
+                        })),
+                    }),
+                };
+                let response_data = serde_json::to_vec(&error_response)?;
+                conn.write_message(&response_data).await?;
+                continue;
+            }
+
+            // Check replay protection (if nonce is provided in params)
+            // Note: In a real implementation, nonce should be in request headers or a separate field
+            if let Some(nonce) = request.params.get("nonce").and_then(|v| v.as_str()) {
+                let timestamp = SystemTime::now(); // In real implementation, get from request
+                if let Err(replay_error) = replay_protection.verify(nonce, timestamp).await {
+                    // Log replay attack
+                    if let Some(ref logger) = **audit_logger {
+                        let _ = logger
+                            .log_security_event(
+                                "replay_attack".to_string(),
+                                serde_json::json!({
+                                    "nonce": nonce,
+                                    "error": format!("{}", replay_error)
+                                }),
+                                None,
+                                None,
+                            )
+                            .await;
+                    }
+
+                    let error_response = RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(RpcError {
+                            code: 400,
+                            message: format!("Replay attack detected: {}", replay_error),
+                            data: None,
+                        }),
+                    };
+                    let response_data = serde_json::to_vec(&error_response)?;
+                    conn.write_message(&response_data).await?;
+                    continue;
+                }
+            }
+
             // Check idempotency cache
             if let Some(idem_key) = &request.idem_key {
                 let cache = idempotency_cache.read().await;
@@ -425,6 +529,23 @@ impl OrchestratorServer {
                     conn.write_message(&response_data).await?;
                     continue;
                 }
+            }
+
+            // Log RPC request
+            if let Some(ref logger) = **audit_logger {
+                let _ = logger
+                    .log_rpc_request(
+                        request.id.clone(),
+                        request.method.clone(),
+                        request
+                            .auth_token
+                            .as_ref()
+                            .or(request.api_key.as_ref())
+                            .map(|_| "authenticated".to_string()),
+                        request.params.clone(),
+                        None, // IP address not available in current transport
+                    )
+                    .await;
             }
 
             // Verify authentication for methods that require it

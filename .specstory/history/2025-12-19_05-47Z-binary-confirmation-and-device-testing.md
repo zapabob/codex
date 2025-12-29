@@ -256576,3 +256576,16871 @@ _**User**_
 
 ---
 
+_**Agent (model default, mode Plan)**_
+
+
+本番向けの追加対策を特定するため、現状を確認中です。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\orchestrator\src\server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\orchestrator\src\auth.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "How is authentication implemented for production environments in the codebase?",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\business\\CODEX_CLOUD_API_DESIGN.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 100
+          }
+        },
+        "contents": "# Codex Cloud API設計書\n\n**バージョン**: v1.0.0  \n**最終更新**: 2025年11月2日  \n**目的**: Codex Cloud SaaS APIの完全な設計仕様\n\n---\n\n## 📋 目次\n\n1. [アーキテクチャ概要](#architecture)\n2. [認証 &amp; 認可](#auth)\n3. [エージェント実行](#agents)\n4. [可視化エンドポイント](#visualization)\n5. [サブスクリプション管理](#subscription)\n6. [WebSocket](#websocket)\n7. [Rate Limiting](#rate-limiting)\n8. [エラーハンドリング](#errors)\n\n---\n\n## &lt;a name=\"architecture\"&gt;&lt;/a&gt;🏗️ アーキテクチャ概要\n\n### スタック\n\n&#96;&#96;&#96;\nClient (Browser/IDE/CLI)\n    ↓ HTTPS/WSS\n[ API Gateway - AWS ALB/CloudFlare ]\n    ↓\n[ Rust Backend - axum ]\n    ├── Authentication (JWT + Auth0)\n    ├── Agent Orchestrator\n    ├── Visualization Service\n    └── Subscription Manager\n    ↓\n[ GPU Cluster - Kubernetes ]\n[ PostgreSQL - User data ]\n[ Redis - Session/Cache ]\n[ S3 - Artifacts ]\n&#96;&#96;&#96;\n\n### Base URL\n\n- **Production**: &#96;https://api.codex.ai&#96;\n- **Staging**: &#96;https://api-staging.codex.ai&#96;\n- **Development**: &#96;http://localhost:8080&#96;\n\n### API Versioning\n\n&#96;&#96;&#96;\nhttps://api.codex.ai/v1/{endpoint}\n&#96;&#96;&#96;\n\n### Content Type\n\n&#96;&#96;&#96;\nContent-Type: application/json\nAccept: application/json\n&#96;&#96;&#96;\n\n---\n\n## &lt;a name=\"auth\"&gt;&lt;/a&gt;🔐 認証 &amp; 認可\n\n### 認証フロー\n\n&#96;&#96;&#96;mermaid\nsequenceDiagram\n    Client-&gt;&gt;+Auth0: Login (email/password)\n    Auth0-&gt;&gt;+Client: ID Token (JWT)\n    Client-&gt;&gt;+Codex API: Request + Authorization header\n    Codex API-&gt;&gt;+Auth0: Validate token\n    Auth0-&gt;&gt;+Codex API: User info\n    Codex API-&gt;&gt;+Client: Response\n&#96;&#96;&#96;\n\n### JWT Structure\n\n&#96;&#96;&#96;json\n{\n  \"sub\": \"auth0|507f1f77bcf86cd799439011\",\n  \"email\": \"user@example.com\",\n  \"email_verified\": true,\n  \"iss\": \"https://codex.auth0.com/\",\n  \"aud\": \"https://api.codex.ai\",\n  \"iat\": 1699999999,\n  \"exp\": 1700086399,\n  \"azp\": \"CLIENT_ID\",\n  \"scope\": \"openid profile email\",\n  \"codex_tier\": \"pro\",\n  \"codex_subscription_id\": \"sub_1ABC...\"\n}\n&#96;&#96;&#96;\n\n### API Key (Alternative)\n\nFor CLI/automation:\n\n&#96;&#96;&#96;bash",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codex Cloud API設計書",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**バージョン**: v1.0.0  ",
+            "lineNumber": 3
+          },
+          {
+            "text": "**最終更新**: 2025年11月2日  ",
+            "lineNumber": 4
+          },
+          {
+            "text": "**目的**: Codex Cloud SaaS APIの完全な設計仕様",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "---",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "## 📋 目次",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "1. [アーキテクチャ概要](#architecture)",
+            "lineNumber": 11
+          },
+          {
+            "text": "2. [認証 &amp; 認可](#auth)",
+            "lineNumber": 12
+          },
+          {
+            "text": "3. [エージェント実行](#agents)",
+            "lineNumber": 13
+          },
+          {
+            "text": "4. [可視化エンドポイント](#visualization)",
+            "lineNumber": 14
+          },
+          {
+            "text": "5. [サブスクリプション管理](#subscription)",
+            "lineNumber": 15
+          },
+          {
+            "text": "6. [WebSocket](#websocket)",
+            "lineNumber": 16
+          },
+          {
+            "text": "7. [Rate Limiting](#rate-limiting)",
+            "lineNumber": 17
+          },
+          {
+            "text": "8. [エラーハンドリング](#errors)",
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "---",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "## &lt;a name=\"architecture\"&gt;&lt;/a&gt;🏗️ アーキテクチャ概要",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "### スタック",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 26
+          },
+          {
+            "text": "Client (Browser/IDE/CLI)",
+            "lineNumber": 27
+          },
+          {
+            "text": "    ↓ HTTPS/WSS",
+            "lineNumber": 28
+          },
+          {
+            "text": "[ API Gateway - AWS ALB/CloudFlare ]",
+            "lineNumber": 29
+          },
+          {
+            "text": "    ↓",
+            "lineNumber": 30
+          },
+          {
+            "text": "[ Rust Backend - axum ]",
+            "lineNumber": 31
+          },
+          {
+            "text": "    ├── Authentication (JWT + Auth0)",
+            "lineNumber": 32
+          },
+          {
+            "text": "    ├── Agent Orchestrator",
+            "lineNumber": 33
+          },
+          {
+            "text": "    ├── Visualization Service",
+            "lineNumber": 34
+          },
+          {
+            "text": "    └── Subscription Manager",
+            "lineNumber": 35
+          },
+          {
+            "text": "    ↓",
+            "lineNumber": 36
+          },
+          {
+            "text": "[ GPU Cluster - Kubernetes ]",
+            "lineNumber": 37
+          },
+          {
+            "text": "[ PostgreSQL - User data ]",
+            "lineNumber": 38
+          },
+          {
+            "text": "[ Redis - Session/Cache ]",
+            "lineNumber": 39
+          },
+          {
+            "text": "[ S3 - Artifacts ]",
+            "lineNumber": 40
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "text": "### Base URL",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "- **Production**: &#96;https://api.codex.ai&#96;",
+            "lineNumber": 45
+          },
+          {
+            "text": "- **Staging**: &#96;https://api-staging.codex.ai&#96;",
+            "lineNumber": 46
+          },
+          {
+            "text": "- **Development**: &#96;http://localhost:8080&#96;",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "### API Versioning",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 51
+          },
+          {
+            "text": "https://api.codex.ai/v1/{endpoint}",
+            "lineNumber": 52
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "### Content Type",
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 57
+          },
+          {
+            "text": "Content-Type: application/json",
+            "lineNumber": 58
+          },
+          {
+            "text": "Accept: application/json",
+            "lineNumber": 59
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "---",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "## &lt;a name=\"auth\"&gt;&lt;/a&gt;🔐 認証 &amp; 認可",
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "### 認証フロー",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "&#96;&#96;&#96;mermaid",
+            "lineNumber": 68
+          },
+          {
+            "text": "sequenceDiagram",
+            "lineNumber": 69
+          },
+          {
+            "text": "    Client-&gt;&gt;+Auth0: Login (email/password)",
+            "lineNumber": 70
+          },
+          {
+            "text": "    Auth0-&gt;&gt;+Client: ID Token (JWT)",
+            "lineNumber": 71
+          },
+          {
+            "text": "    Client-&gt;&gt;+Codex API: Request + Authorization header",
+            "lineNumber": 72
+          },
+          {
+            "text": "    Codex API-&gt;&gt;+Auth0: Validate token",
+            "lineNumber": 73
+          },
+          {
+            "text": "    Auth0-&gt;&gt;+Codex API: User info",
+            "lineNumber": 74
+          },
+          {
+            "text": "    Codex API-&gt;&gt;+Client: Response",
+            "lineNumber": 75
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "### JWT Structure",
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79
+          },
+          {
+            "text": "&#96;&#96;&#96;json",
+            "lineNumber": 80
+          },
+          {
+            "text": "{",
+            "lineNumber": 81
+          },
+          {
+            "text": "  \"sub\": \"auth0|507f1f77bcf86cd799439011\",",
+            "lineNumber": 82
+          },
+          {
+            "text": "  \"email\": \"user@example.com\",",
+            "lineNumber": 83
+          },
+          {
+            "text": "  \"email_verified\": true,",
+            "lineNumber": 84
+          },
+          {
+            "text": "  \"iss\": \"https://codex.auth0.com/\",",
+            "lineNumber": 85
+          },
+          {
+            "text": "  \"aud\": \"https://api.codex.ai\",",
+            "lineNumber": 86
+          },
+          {
+            "text": "  \"iat\": 1699999999,",
+            "lineNumber": 87
+          },
+          {
+            "text": "  \"exp\": 1700086399,",
+            "lineNumber": 88
+          },
+          {
+            "text": "  \"azp\": \"CLIENT_ID\",",
+            "lineNumber": 89
+          },
+          {
+            "text": "  \"scope\": \"openid profile email\",",
+            "lineNumber": 90
+          },
+          {
+            "text": "  \"codex_tier\": \"pro\",",
+            "lineNumber": 91
+          },
+          {
+            "text": "  \"codex_subscription_id\": \"sub_1ABC...\"",
+            "lineNumber": 92
+          },
+          {
+            "text": "}",
+            "lineNumber": 93
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 94
+          },
+          {
+            "lineNumber": 95
+          },
+          {
+            "text": "### API Key (Alternative)",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "For CLI/automation:",
+            "lineNumber": 98
+          },
+          {
+            "lineNumber": 99
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 100
+          }
+        ]
+      },
+      "score": 0.4115084409713745
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\business\\CODEX_CLOUD_API_DESIGN.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 100
+          }
+        },
+        "contents": "# Codex Cloud API設計書\n\n**バージョン**: v1.0.0  \n**最終更新**: 2025年11月2日  \n**目的**: Codex Cloud SaaS APIの完全な設計仕様\n\n---\n\n## 📋 目次\n\n1. [アーキテクチャ概要](#architecture)\n2. [認証 &amp; 認可](#auth)\n3. [エージェント実行](#agents)\n4. [可視化エンドポイント](#visualization)\n5. [サブスクリプション管理](#subscription)\n6. [WebSocket](#websocket)\n7. [Rate Limiting](#rate-limiting)\n8. [エラーハンドリング](#errors)\n\n---\n\n## &lt;a name=\"architecture\"&gt;&lt;/a&gt;🏗️ アーキテクチャ概要\n\n### スタック\n\n&#96;&#96;&#96;\nClient (Browser/IDE/CLI)\n    ↓ HTTPS/WSS\n[ API Gateway - AWS ALB/CloudFlare ]\n    ↓\n[ Rust Backend - axum ]\n    ├── Authentication (JWT + Auth0)\n    ├── Agent Orchestrator\n    ├── Visualization Service\n    └── Subscription Manager\n    ↓\n[ GPU Cluster - Kubernetes ]\n[ PostgreSQL - User data ]\n[ Redis - Session/Cache ]\n[ S3 - Artifacts ]\n&#96;&#96;&#96;\n\n### Base URL\n\n- **Production**: &#96;https://api.codex.ai&#96;\n- **Staging**: &#96;https://api-staging.codex.ai&#96;\n- **Development**: &#96;http://localhost:8080&#96;\n\n### API Versioning\n\n&#96;&#96;&#96;\nhttps://api.codex.ai/v1/{endpoint}\n&#96;&#96;&#96;\n\n### Content Type\n\n&#96;&#96;&#96;\nContent-Type: application/json\nAccept: application/json\n&#96;&#96;&#96;\n\n---\n\n## &lt;a name=\"auth\"&gt;&lt;/a&gt;🔐 認証 &amp; 認可\n\n### 認証フロー\n\n&#96;&#96;&#96;mermaid\nsequenceDiagram\n    Client-&gt;&gt;+Auth0: Login (email/password)\n    Auth0-&gt;&gt;+Client: ID Token (JWT)\n    Client-&gt;&gt;+Codex API: Request + Authorization header\n    Codex API-&gt;&gt;+Auth0: Validate token\n    Auth0-&gt;&gt;+Codex API: User info\n    Codex API-&gt;&gt;+Client: Response\n&#96;&#96;&#96;\n\n### JWT Structure\n\n&#96;&#96;&#96;json\n{\n  \"sub\": \"auth0|507f1f77bcf86cd799439011\",\n  \"email\": \"user@example.com\",\n  \"email_verified\": true,\n  \"iss\": \"https://codex.auth0.com/\",\n  \"aud\": \"https://api.codex.ai\",\n  \"iat\": 1699999999,\n  \"exp\": 1700086399,\n  \"azp\": \"CLIENT_ID\",\n  \"scope\": \"openid profile email\",\n  \"codex_tier\": \"pro\",\n  \"codex_subscription_id\": \"sub_1ABC...\"\n}\n&#96;&#96;&#96;\n\n### API Key (Alternative)\n\nFor CLI/automation:\n\n&#96;&#96;&#96;bash",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codex Cloud API設計書",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**バージョン**: v1.0.0  ",
+            "lineNumber": 3
+          },
+          {
+            "text": "**最終更新**: 2025年11月2日  ",
+            "lineNumber": 4
+          },
+          {
+            "text": "**目的**: Codex Cloud SaaS APIの完全な設計仕様",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "---",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "## 📋 目次",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "1. [アーキテクチャ概要](#architecture)",
+            "lineNumber": 11
+          },
+          {
+            "text": "2. [認証 &amp; 認可](#auth)",
+            "lineNumber": 12
+          },
+          {
+            "text": "3. [エージェント実行](#agents)",
+            "lineNumber": 13
+          },
+          {
+            "text": "4. [可視化エンドポイント](#visualization)",
+            "lineNumber": 14
+          },
+          {
+            "text": "5. [サブスクリプション管理](#subscription)",
+            "lineNumber": 15
+          },
+          {
+            "text": "6. [WebSocket](#websocket)",
+            "lineNumber": 16
+          },
+          {
+            "text": "7. [Rate Limiting](#rate-limiting)",
+            "lineNumber": 17
+          },
+          {
+            "text": "8. [エラーハンドリング](#errors)",
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "---",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "## &lt;a name=\"architecture\"&gt;&lt;/a&gt;🏗️ アーキテクチャ概要",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "### スタック",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 26
+          },
+          {
+            "text": "Client (Browser/IDE/CLI)",
+            "lineNumber": 27
+          },
+          {
+            "text": "    ↓ HTTPS/WSS",
+            "lineNumber": 28
+          },
+          {
+            "text": "[ API Gateway - AWS ALB/CloudFlare ]",
+            "lineNumber": 29
+          },
+          {
+            "text": "    ↓",
+            "lineNumber": 30
+          },
+          {
+            "text": "[ Rust Backend - axum ]",
+            "lineNumber": 31
+          },
+          {
+            "text": "    ├── Authentication (JWT + Auth0)",
+            "lineNumber": 32
+          },
+          {
+            "text": "    ├── Agent Orchestrator",
+            "lineNumber": 33
+          },
+          {
+            "text": "    ├── Visualization Service",
+            "lineNumber": 34
+          },
+          {
+            "text": "    └── Subscription Manager",
+            "lineNumber": 35
+          },
+          {
+            "text": "    ↓",
+            "lineNumber": 36
+          },
+          {
+            "text": "[ GPU Cluster - Kubernetes ]",
+            "lineNumber": 37
+          },
+          {
+            "text": "[ PostgreSQL - User data ]",
+            "lineNumber": 38
+          },
+          {
+            "text": "[ Redis - Session/Cache ]",
+            "lineNumber": 39
+          },
+          {
+            "text": "[ S3 - Artifacts ]",
+            "lineNumber": 40
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "text": "### Base URL",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "- **Production**: &#96;https://api.codex.ai&#96;",
+            "lineNumber": 45
+          },
+          {
+            "text": "- **Staging**: &#96;https://api-staging.codex.ai&#96;",
+            "lineNumber": 46
+          },
+          {
+            "text": "- **Development**: &#96;http://localhost:8080&#96;",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "### API Versioning",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 51
+          },
+          {
+            "text": "https://api.codex.ai/v1/{endpoint}",
+            "lineNumber": 52
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "### Content Type",
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 57
+          },
+          {
+            "text": "Content-Type: application/json",
+            "lineNumber": 58
+          },
+          {
+            "text": "Accept: application/json",
+            "lineNumber": 59
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "---",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "## &lt;a name=\"auth\"&gt;&lt;/a&gt;🔐 認証 &amp; 認可",
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "### 認証フロー",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "&#96;&#96;&#96;mermaid",
+            "lineNumber": 68
+          },
+          {
+            "text": "sequenceDiagram",
+            "lineNumber": 69
+          },
+          {
+            "text": "    Client-&gt;&gt;+Auth0: Login (email/password)",
+            "lineNumber": 70
+          },
+          {
+            "text": "    Auth0-&gt;&gt;+Client: ID Token (JWT)",
+            "lineNumber": 71
+          },
+          {
+            "text": "    Client-&gt;&gt;+Codex API: Request + Authorization header",
+            "lineNumber": 72
+          },
+          {
+            "text": "    Codex API-&gt;&gt;+Auth0: Validate token",
+            "lineNumber": 73
+          },
+          {
+            "text": "    Auth0-&gt;&gt;+Codex API: User info",
+            "lineNumber": 74
+          },
+          {
+            "text": "    Codex API-&gt;&gt;+Client: Response",
+            "lineNumber": 75
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "### JWT Structure",
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79
+          },
+          {
+            "text": "&#96;&#96;&#96;json",
+            "lineNumber": 80
+          },
+          {
+            "text": "{",
+            "lineNumber": 81
+          },
+          {
+            "text": "  \"sub\": \"auth0|507f1f77bcf86cd799439011\",",
+            "lineNumber": 82
+          },
+          {
+            "text": "  \"email\": \"user@example.com\",",
+            "lineNumber": 83
+          },
+          {
+            "text": "  \"email_verified\": true,",
+            "lineNumber": 84
+          },
+          {
+            "text": "  \"iss\": \"https://codex.auth0.com/\",",
+            "lineNumber": 85
+          },
+          {
+            "text": "  \"aud\": \"https://api.codex.ai\",",
+            "lineNumber": 86
+          },
+          {
+            "text": "  \"iat\": 1699999999,",
+            "lineNumber": 87
+          },
+          {
+            "text": "  \"exp\": 1700086399,",
+            "lineNumber": 88
+          },
+          {
+            "text": "  \"azp\": \"CLIENT_ID\",",
+            "lineNumber": 89
+          },
+          {
+            "text": "  \"scope\": \"openid profile email\",",
+            "lineNumber": 90
+          },
+          {
+            "text": "  \"codex_tier\": \"pro\",",
+            "lineNumber": 91
+          },
+          {
+            "text": "  \"codex_subscription_id\": \"sub_1ABC...\"",
+            "lineNumber": 92
+          },
+          {
+            "text": "}",
+            "lineNumber": 93
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 94
+          },
+          {
+            "lineNumber": 95
+          },
+          {
+            "text": "### API Key (Alternative)",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "For CLI/automation:",
+            "lineNumber": 98
+          },
+          {
+            "lineNumber": 99
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 100
+          }
+        ]
+      },
+      "score": 0.4115084409713745
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\supabase\\functions\\get-api-key\\index.ts",
+        "range": {
+          "startPosition": {
+            "line": 33,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 97,
+            "column": 2
+          }
+        },
+        "contents": "serve(async (req: Request) =&gt; {\n  // Handle CORS preflight\n  if (req.method === 'OPTIONS') {\n    return new Response(null, { headers: corsHeaders })\n  }\n\n  try {\n    const { provider } = await req.json()\n\n    // Get authorization header\n    const authHeader = req.headers.get('Authorization')\n    if (!authHeader) {\n      throw new Error('No authorization header')\n    }\n\n    // Create Supabase client\n    const supabase = createClient(\n      Deno.env.get('SUPABASE_URL') ?? '',\n      Deno.env.get('SUPABASE_ANON_KEY') ?? '',\n      { global: { headers: { Authorization: authHeader } } }\n    )\n\n    // Get user\n    const {\n      data: { user },\n    } = await supabase.auth.getUser()\n\n    if (!user) {\n      throw new Error('Unauthorized')\n    }\n\n    // Query API key\n    const { data, error } = await supabase\n      .from('api_keys')\n      .select('encrypted_key')\n      .eq('user_id', user.id)\n      .eq('provider', provider)\n      .single()\n\n    if (error) {\n      throw error\n    }\n\n    // Decrypt API key\n    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') ?? 'default-key-change-in-prod'\n    const decryptedKey = await decrypt(data.encrypted_key, encryptionKey)\n\n    return new Response(\n      JSON.stringify({ api_key: decryptedKey }),\n      {\n        headers: { ...corsHeaders, 'Content-Type': 'application/json' },\n      }\n    )\n  } catch (error) {\n    return new Response(\n      JSON.stringify({ error: error.message }),\n      {\n        status: 400,\n        headers: { ...corsHeaders, 'Content-Type': 'application/json' },\n      }\n    )\n  }\n})",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "serve(async (req: Request) =&gt; {",
+            "lineNumber": 36
+          },
+          {
+            "text": "  // Handle CORS preflight",
+            "lineNumber": 37
+          },
+          {
+            "text": "  if (req.method === 'OPTIONS') {",
+            "lineNumber": 38
+          },
+          {
+            "text": "    return new Response(null, { headers: corsHeaders })",
+            "lineNumber": 39
+          },
+          {
+            "text": "  }",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "  try {",
+            "lineNumber": 42
+          },
+          {
+            "text": "    const { provider } = await req.json()",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "    // Get authorization header",
+            "lineNumber": 45
+          },
+          {
+            "text": "    const authHeader = req.headers.get('Authorization')",
+            "lineNumber": 46
+          },
+          {
+            "text": "    if (!authHeader) {",
+            "lineNumber": 47
+          },
+          {
+            "text": "      throw new Error('No authorization header')",
+            "lineNumber": 48
+          },
+          {
+            "text": "    }",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "    // Create Supabase client",
+            "lineNumber": 51
+          },
+          {
+            "text": "    const supabase = createClient(",
+            "lineNumber": 52
+          },
+          {
+            "text": "      Deno.env.get('SUPABASE_URL') ?? '',",
+            "lineNumber": 53
+          },
+          {
+            "text": "      Deno.env.get('SUPABASE_ANON_KEY') ?? '',",
+            "lineNumber": 54
+          },
+          {
+            "text": "      { global: { headers: { Authorization: authHeader } } }",
+            "lineNumber": 55
+          },
+          {
+            "text": "    )",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "    // Get user",
+            "lineNumber": 58
+          },
+          {
+            "text": "    const {",
+            "lineNumber": 59
+          },
+          {
+            "text": "      data: { user },",
+            "lineNumber": 60
+          },
+          {
+            "text": "    } = await supabase.auth.getUser()",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "    if (!user) {",
+            "lineNumber": 63
+          },
+          {
+            "text": "      throw new Error('Unauthorized')",
+            "lineNumber": 64
+          },
+          {
+            "text": "    }",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "    // Query API key",
+            "lineNumber": 67
+          },
+          {
+            "text": "    const { data, error } = await supabase",
+            "lineNumber": 68
+          },
+          {
+            "text": "      .from('api_keys')",
+            "lineNumber": 69
+          },
+          {
+            "text": "      .select('encrypted_key')",
+            "lineNumber": 70
+          },
+          {
+            "text": "      .eq('user_id', user.id)",
+            "lineNumber": 71
+          },
+          {
+            "text": "      .eq('provider', provider)",
+            "lineNumber": 72
+          },
+          {
+            "text": "      .single()",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "    if (error) {",
+            "lineNumber": 75
+          },
+          {
+            "text": "      throw error",
+            "lineNumber": 76
+          },
+          {
+            "text": "    }",
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "text": "    // Decrypt API key",
+            "lineNumber": 79
+          },
+          {
+            "text": "    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') ?? 'default-key-change-in-prod'",
+            "lineNumber": 80
+          },
+          {
+            "text": "    const decryptedKey = await decrypt(data.encrypted_key, encryptionKey)",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "    return new Response(",
+            "lineNumber": 83
+          },
+          {
+            "text": "      JSON.stringify({ api_key: decryptedKey }),",
+            "lineNumber": 84
+          },
+          {
+            "text": "      {",
+            "lineNumber": 85
+          },
+          {
+            "text": "        headers: { ...corsHeaders, 'Content-Type': 'application/json' },",
+            "lineNumber": 86
+          },
+          {
+            "text": "      }",
+            "lineNumber": 87
+          },
+          {
+            "text": "    )",
+            "lineNumber": 88
+          },
+          {
+            "text": "  } catch (error) {",
+            "lineNumber": 89
+          },
+          {
+            "text": "    return new Response(",
+            "lineNumber": 90
+          },
+          {
+            "text": "      JSON.stringify({ error: error.message }),",
+            "lineNumber": 91
+          },
+          {
+            "text": "      {",
+            "lineNumber": 92
+          },
+          {
+            "text": "        status: 400,",
+            "lineNumber": 93
+          },
+          {
+            "text": "        headers: { ...corsHeaders, 'Content-Type': 'application/json' },",
+            "lineNumber": 94
+          },
+          {
+            "text": "      }",
+            "lineNumber": 95
+          },
+          {
+            "text": "    )",
+            "lineNumber": 96
+          },
+          {
+            "text": "  }",
+            "lineNumber": 97
+          },
+          {
+            "text": "})",
+            "lineNumber": 98
+          }
+        ]
+      },
+      "score": 0.3928399085998535
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\supabase\\functions\\get-api-key\\index.ts",
+        "range": {
+          "startPosition": {
+            "line": 33,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 97,
+            "column": 2
+          }
+        },
+        "contents": "serve(async (req: Request) =&gt; {\n  // Handle CORS preflight\n  if (req.method === 'OPTIONS') {\n    return new Response(null, { headers: corsHeaders })\n  }\n\n  try {\n    const { provider } = await req.json()\n\n    // Get authorization header\n    const authHeader = req.headers.get('Authorization')\n    if (!authHeader) {\n      throw new Error('No authorization header')\n    }\n\n    // Create Supabase client\n    const supabase = createClient(\n      Deno.env.get('SUPABASE_URL') ?? '',\n      Deno.env.get('SUPABASE_ANON_KEY') ?? '',\n      { global: { headers: { Authorization: authHeader } } }\n    )\n\n    // Get user\n    const {\n      data: { user },\n    } = await supabase.auth.getUser()\n\n    if (!user) {\n      throw new Error('Unauthorized')\n    }\n\n    // Query API key\n    const { data, error } = await supabase\n      .from('api_keys')\n      .select('encrypted_key')\n      .eq('user_id', user.id)\n      .eq('provider', provider)\n      .single()\n\n    if (error) {\n      throw error\n    }\n\n    // Decrypt API key\n    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') ?? 'default-key-change-in-prod'\n    const decryptedKey = await decrypt(data.encrypted_key, encryptionKey)\n\n    return new Response(\n      JSON.stringify({ api_key: decryptedKey }),\n      {\n        headers: { ...corsHeaders, 'Content-Type': 'application/json' },\n      }\n    )\n  } catch (error) {\n    return new Response(\n      JSON.stringify({ error: error.message }),\n      {\n        status: 400,\n        headers: { ...corsHeaders, 'Content-Type': 'application/json' },\n      }\n    )\n  }\n})",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "serve(async (req: Request) =&gt; {",
+            "lineNumber": 36
+          },
+          {
+            "text": "  // Handle CORS preflight",
+            "lineNumber": 37
+          },
+          {
+            "text": "  if (req.method === 'OPTIONS') {",
+            "lineNumber": 38
+          },
+          {
+            "text": "    return new Response(null, { headers: corsHeaders })",
+            "lineNumber": 39
+          },
+          {
+            "text": "  }",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "  try {",
+            "lineNumber": 42
+          },
+          {
+            "text": "    const { provider } = await req.json()",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "    // Get authorization header",
+            "lineNumber": 45
+          },
+          {
+            "text": "    const authHeader = req.headers.get('Authorization')",
+            "lineNumber": 46
+          },
+          {
+            "text": "    if (!authHeader) {",
+            "lineNumber": 47
+          },
+          {
+            "text": "      throw new Error('No authorization header')",
+            "lineNumber": 48
+          },
+          {
+            "text": "    }",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "    // Create Supabase client",
+            "lineNumber": 51
+          },
+          {
+            "text": "    const supabase = createClient(",
+            "lineNumber": 52
+          },
+          {
+            "text": "      Deno.env.get('SUPABASE_URL') ?? '',",
+            "lineNumber": 53
+          },
+          {
+            "text": "      Deno.env.get('SUPABASE_ANON_KEY') ?? '',",
+            "lineNumber": 54
+          },
+          {
+            "text": "      { global: { headers: { Authorization: authHeader } } }",
+            "lineNumber": 55
+          },
+          {
+            "text": "    )",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "    // Get user",
+            "lineNumber": 58
+          },
+          {
+            "text": "    const {",
+            "lineNumber": 59
+          },
+          {
+            "text": "      data: { user },",
+            "lineNumber": 60
+          },
+          {
+            "text": "    } = await supabase.auth.getUser()",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "    if (!user) {",
+            "lineNumber": 63
+          },
+          {
+            "text": "      throw new Error('Unauthorized')",
+            "lineNumber": 64
+          },
+          {
+            "text": "    }",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "    // Query API key",
+            "lineNumber": 67
+          },
+          {
+            "text": "    const { data, error } = await supabase",
+            "lineNumber": 68
+          },
+          {
+            "text": "      .from('api_keys')",
+            "lineNumber": 69
+          },
+          {
+            "text": "      .select('encrypted_key')",
+            "lineNumber": 70
+          },
+          {
+            "text": "      .eq('user_id', user.id)",
+            "lineNumber": 71
+          },
+          {
+            "text": "      .eq('provider', provider)",
+            "lineNumber": 72
+          },
+          {
+            "text": "      .single()",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "    if (error) {",
+            "lineNumber": 75
+          },
+          {
+            "text": "      throw error",
+            "lineNumber": 76
+          },
+          {
+            "text": "    }",
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "text": "    // Decrypt API key",
+            "lineNumber": 79
+          },
+          {
+            "text": "    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') ?? 'default-key-change-in-prod'",
+            "lineNumber": 80
+          },
+          {
+            "text": "    const decryptedKey = await decrypt(data.encrypted_key, encryptionKey)",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "    return new Response(",
+            "lineNumber": 83
+          },
+          {
+            "text": "      JSON.stringify({ api_key: decryptedKey }),",
+            "lineNumber": 84
+          },
+          {
+            "text": "      {",
+            "lineNumber": 85
+          },
+          {
+            "text": "        headers: { ...corsHeaders, 'Content-Type': 'application/json' },",
+            "lineNumber": 86
+          },
+          {
+            "text": "      }",
+            "lineNumber": 87
+          },
+          {
+            "text": "    )",
+            "lineNumber": 88
+          },
+          {
+            "text": "  } catch (error) {",
+            "lineNumber": 89
+          },
+          {
+            "text": "    return new Response(",
+            "lineNumber": 90
+          },
+          {
+            "text": "      JSON.stringify({ error: error.message }),",
+            "lineNumber": 91
+          },
+          {
+            "text": "      {",
+            "lineNumber": 92
+          },
+          {
+            "text": "        status: 400,",
+            "lineNumber": 93
+          },
+          {
+            "text": "        headers: { ...corsHeaders, 'Content-Type': 'application/json' },",
+            "lineNumber": 94
+          },
+          {
+            "text": "      }",
+            "lineNumber": 95
+          },
+          {
+            "text": "    )",
+            "lineNumber": 96
+          },
+          {
+            "text": "  }",
+            "lineNumber": 97
+          },
+          {
+            "text": "})",
+            "lineNumber": 98
+          }
+        ]
+      },
+      "score": 0.3928399085998535
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\middleware.ts",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 42,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * Next.js Middleware\n * \n * Handles authentication and session management\n */\n\nimport { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'\nimport { NextResponse } from 'next/server'\nimport type { NextRequest } from 'next/server'\n\nexport async function middleware(req: NextRequest) {\n  const res = NextResponse.next()\n  const supabase = createMiddlewareClient({ req, res })\n\n  const {\n    data: { session },\n  } = await supabase.auth.getSession()\n\n  // Protected routes\n  const protectedPaths = ['/dashboard', '/Plans', '/visualization', '/settings', '/usage']\n  const isProtectedPath = protectedPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))\n\n  // Redirect to login if accessing protected route without session\n  if (isProtectedPath &amp;&amp; !session) {\n    return NextResponse.redirect(new URL('/login', req.url))\n  }\n\n  // Redirect to dashboard if accessing auth pages with session\n  const authPaths = ['/login', '/signup']\n  const isAuthPath = authPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))\n\n  if (isAuthPath &amp;&amp; session) {\n    return NextResponse.redirect(new URL('/dashboard', req.url))\n  }\n\n  return res\n}\n\nexport const config = {\n  matcher: [\n    '/((?!_next/static|_next/image|favicon.ico|api).*)',\n  ],\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 1
+          },
+          {
+            "text": " * Next.js Middleware",
+            "lineNumber": 2
+          },
+          {
+            "text": " * ",
+            "lineNumber": 3
+          },
+          {
+            "text": " * Handles authentication and session management",
+            "lineNumber": 4
+          },
+          {
+            "text": " */",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'",
+            "lineNumber": 7
+          },
+          {
+            "text": "import { NextResponse } from 'next/server'",
+            "lineNumber": 8
+          },
+          {
+            "text": "import type { NextRequest } from 'next/server'",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "export async function middleware(req: NextRequest) {",
+            "lineNumber": 11,
+            "isSignature": true
+          },
+          {
+            "text": "  const res = NextResponse.next()",
+            "lineNumber": 12
+          },
+          {
+            "text": "  const supabase = createMiddlewareClient({ req, res })",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "  const {",
+            "lineNumber": 15
+          },
+          {
+            "text": "    data: { session },",
+            "lineNumber": 16
+          },
+          {
+            "text": "  } = await supabase.auth.getSession()",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "  // Protected routes",
+            "lineNumber": 19
+          },
+          {
+            "text": "  const protectedPaths = ['/dashboard', '/Plans', '/visualization', '/settings', '/usage']",
+            "lineNumber": 20
+          },
+          {
+            "text": "  const isProtectedPath = protectedPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))",
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "text": "  // Redirect to login if accessing protected route without session",
+            "lineNumber": 23
+          },
+          {
+            "text": "  if (isProtectedPath &amp;&amp; !session) {",
+            "lineNumber": 24
+          },
+          {
+            "text": "    return NextResponse.redirect(new URL('/login', req.url))",
+            "lineNumber": 25
+          },
+          {
+            "text": "  }",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "  // Redirect to dashboard if accessing auth pages with session",
+            "lineNumber": 28
+          },
+          {
+            "text": "  const authPaths = ['/login', '/signup']",
+            "lineNumber": 29
+          },
+          {
+            "text": "  const isAuthPath = authPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "  if (isAuthPath &amp;&amp; session) {",
+            "lineNumber": 32
+          },
+          {
+            "text": "    return NextResponse.redirect(new URL('/dashboard', req.url))",
+            "lineNumber": 33
+          },
+          {
+            "text": "  }",
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "text": "  return res",
+            "lineNumber": 36
+          },
+          {
+            "text": "}",
+            "lineNumber": 37,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "export const config = {",
+            "lineNumber": 39
+          },
+          {
+            "text": "  matcher: [",
+            "lineNumber": 40
+          },
+          {
+            "text": "    '/((?!_next/static|_next/image|favicon.ico|api).*)',",
+            "lineNumber": 41
+          },
+          {
+            "text": "  ],",
+            "lineNumber": 42
+          },
+          {
+            "text": "}",
+            "lineNumber": 43
+          }
+        ]
+      },
+      "score": 0.3849624991416931
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\middleware.ts",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 42,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * Next.js Middleware\n * \n * Handles authentication and session management\n */\n\nimport { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'\nimport { NextResponse } from 'next/server'\nimport type { NextRequest } from 'next/server'\n\nexport async function middleware(req: NextRequest) {\n  const res = NextResponse.next()\n  const supabase = createMiddlewareClient({ req, res })\n\n  const {\n    data: { session },\n  } = await supabase.auth.getSession()\n\n  // Protected routes\n  const protectedPaths = ['/dashboard', '/Plans', '/visualization', '/settings', '/usage']\n  const isProtectedPath = protectedPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))\n\n  // Redirect to login if accessing protected route without session\n  if (isProtectedPath &amp;&amp; !session) {\n    return NextResponse.redirect(new URL('/login', req.url))\n  }\n\n  // Redirect to dashboard if accessing auth pages with session\n  const authPaths = ['/login', '/signup']\n  const isAuthPath = authPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))\n\n  if (isAuthPath &amp;&amp; session) {\n    return NextResponse.redirect(new URL('/dashboard', req.url))\n  }\n\n  return res\n}\n\nexport const config = {\n  matcher: [\n    '/((?!_next/static|_next/image|favicon.ico|api).*)',\n  ],\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 1
+          },
+          {
+            "text": " * Next.js Middleware",
+            "lineNumber": 2
+          },
+          {
+            "text": " * ",
+            "lineNumber": 3
+          },
+          {
+            "text": " * Handles authentication and session management",
+            "lineNumber": 4
+          },
+          {
+            "text": " */",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'",
+            "lineNumber": 7
+          },
+          {
+            "text": "import { NextResponse } from 'next/server'",
+            "lineNumber": 8
+          },
+          {
+            "text": "import type { NextRequest } from 'next/server'",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "export async function middleware(req: NextRequest) {",
+            "lineNumber": 11,
+            "isSignature": true
+          },
+          {
+            "text": "  const res = NextResponse.next()",
+            "lineNumber": 12
+          },
+          {
+            "text": "  const supabase = createMiddlewareClient({ req, res })",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "  const {",
+            "lineNumber": 15
+          },
+          {
+            "text": "    data: { session },",
+            "lineNumber": 16
+          },
+          {
+            "text": "  } = await supabase.auth.getSession()",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "  // Protected routes",
+            "lineNumber": 19
+          },
+          {
+            "text": "  const protectedPaths = ['/dashboard', '/Plans', '/visualization', '/settings', '/usage']",
+            "lineNumber": 20
+          },
+          {
+            "text": "  const isProtectedPath = protectedPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))",
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "text": "  // Redirect to login if accessing protected route without session",
+            "lineNumber": 23
+          },
+          {
+            "text": "  if (isProtectedPath &amp;&amp; !session) {",
+            "lineNumber": 24
+          },
+          {
+            "text": "    return NextResponse.redirect(new URL('/login', req.url))",
+            "lineNumber": 25
+          },
+          {
+            "text": "  }",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "  // Redirect to dashboard if accessing auth pages with session",
+            "lineNumber": 28
+          },
+          {
+            "text": "  const authPaths = ['/login', '/signup']",
+            "lineNumber": 29
+          },
+          {
+            "text": "  const isAuthPath = authPaths.some((path) =&gt; req.nextUrl.pathname.startsWith(path))",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "  if (isAuthPath &amp;&amp; session) {",
+            "lineNumber": 32
+          },
+          {
+            "text": "    return NextResponse.redirect(new URL('/dashboard', req.url))",
+            "lineNumber": 33
+          },
+          {
+            "text": "  }",
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "text": "  return res",
+            "lineNumber": 36
+          },
+          {
+            "text": "}",
+            "lineNumber": 37,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "export const config = {",
+            "lineNumber": 39
+          },
+          {
+            "text": "  matcher: [",
+            "lineNumber": 40
+          },
+          {
+            "text": "    '/((?!_next/static|_next/image|favicon.ico|api).*)',",
+            "lineNumber": 41
+          },
+          {
+            "text": "  ],",
+            "lineNumber": 42
+          },
+          {
+            "text": "}",
+            "lineNumber": 43
+          }
+        ]
+      },
+      "score": 0.3849624991416931
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 306,
+            "column": 42
+          },
+          "endPosition": {
+            "line": 335,
+            "column": 40
+          }
+        },
+        "contents": " {\n        // Read-only methods that don't require auth\n        let read_only_methods = [\n            \"status.get\",\n            \"tokens.getBudget\",\n        ];\n        \n        !read_only_methods.contains(&amp;method)\n    }\n\n    /// Verify authentication for RPC request\n    /// Currently a placeholder - should be implemented with actual auth logic\n    fn verify_auth(\n        _auth_manager: &amp;Arc&lt;AuthManager&gt;,\n        _request: &amp;RpcRequest,\n        _conn_info: Option&lt;&amp;TransportInfo&gt;,\n    ) -&gt; Result&lt;(), RpcError&gt; {\n        // TODO: Implement actual authentication verification\n        // For now, allow all requests (local development)\n        // In production, this should verify:\n        // - API token from request headers or params\n        // - Session token validation\n        // - Role-based access control\n        Ok(())\n    }\n\n    /// Handle a client connection\n    async fn handle_connection(\n        conn: &amp;mut dyn Connection,\n        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 307
+          },
+          {
+            "text": "        // Read-only methods that don't require auth",
+            "lineNumber": 308
+          },
+          {
+            "text": "        let read_only_methods = [",
+            "lineNumber": 309
+          },
+          {
+            "text": "            \"status.get\",",
+            "lineNumber": 310
+          },
+          {
+            "text": "            \"tokens.getBudget\",",
+            "lineNumber": 311
+          },
+          {
+            "text": "        ];",
+            "lineNumber": 312
+          },
+          {
+            "text": "        ",
+            "lineNumber": 313
+          },
+          {
+            "text": "        !read_only_methods.contains(&amp;method)",
+            "lineNumber": 314
+          },
+          {
+            "text": "    }",
+            "lineNumber": 315
+          },
+          {
+            "lineNumber": 316
+          },
+          {
+            "text": "    /// Verify authentication for RPC request",
+            "lineNumber": 317
+          },
+          {
+            "text": "    /// Currently a placeholder - should be implemented with actual auth logic",
+            "lineNumber": 318
+          },
+          {
+            "text": "    fn verify_auth(",
+            "lineNumber": 319
+          },
+          {
+            "text": "        _auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+            "lineNumber": 320
+          },
+          {
+            "text": "        _request: &amp;RpcRequest,",
+            "lineNumber": 321
+          },
+          {
+            "text": "        _conn_info: Option&lt;&amp;TransportInfo&gt;,",
+            "lineNumber": 322
+          },
+          {
+            "text": "    ) -&gt; Result&lt;(), RpcError&gt; {",
+            "lineNumber": 323
+          },
+          {
+            "text": "        // TODO: Implement actual authentication verification",
+            "lineNumber": 324
+          },
+          {
+            "text": "        // For now, allow all requests (local development)",
+            "lineNumber": 325
+          },
+          {
+            "text": "        // In production, this should verify:",
+            "lineNumber": 326
+          },
+          {
+            "text": "        // - API token from request headers or params",
+            "lineNumber": 327
+          },
+          {
+            "text": "        // - Session token validation",
+            "lineNumber": 328
+          },
+          {
+            "text": "        // - Role-based access control",
+            "lineNumber": 329
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 330
+          },
+          {
+            "text": "    }",
+            "lineNumber": 331
+          },
+          {
+            "lineNumber": 332
+          },
+          {
+            "text": "    /// Handle a client connection",
+            "lineNumber": 333
+          },
+          {
+            "text": "    async fn handle_connection(",
+            "lineNumber": 334
+          },
+          {
+            "text": "        conn: &amp;mut dyn Connection,",
+            "lineNumber": 335
+          },
+          {
+            "text": "        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+            "lineNumber": 336
+          }
+        ]
+      },
+      "score": 0.38384339213371277
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\auth-gemini.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 85
+          }
+        },
+        "contents": "# Gemini Authentication Guide\n\n## Overview\n\nCodex supports two authentication methods for Google's Gemini models:\n1. **API Key** (Google AI Studio) - Simple, recommended for development\n2. **OAuth 2.0** (Vertex AI) - Enterprise, supports Google Account authentication\n\n## Authentication Modes\n\n### API Key Mode (Google AI Studio)\n\n**Best for**: Development, testing, personal use\n\n**Setup**:\n\n1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)\n\n2. Set environment variable:\n   &#96;&#96;&#96;bash\n   export GEMINI_API_KEY=your-api-key-here\n   # or\n   export GOOGLE_AI_STUDIO_API_KEY=your-api-key-here\n   &#96;&#96;&#96;\n\n3. Or add to &#96;.codex/config.toml&#96;:\n   &#96;&#96;&#96;toml\n   [auth.gemini]\n   mode = \"api-key\"\n   provider = \"ai_studio\"\n   &#96;&#96;&#96;\n\n**Usage**:\n- API key is attached as &#96;x-goog-api-key&#96; header\n- Direct access to Generative Language API\n- No additional authentication steps required\n\n### OAuth 2.0 Mode (Vertex AI)\n\n**Best for**: Production, enterprise, team use\n\n**Requirements**:\n- Google Cloud Project with Vertex AI API enabled\n- OAuth 2.0 Client ID configured\n- Appropriate IAM permissions\n\n**Setup**:\n\n1. **Create Google Cloud Project**:\n   - Go to [Google Cloud Console](https://console.cloud.google.com/)\n   - Create or select a project\n   - Enable Vertex AI API\n\n2. **Configure OAuth 2.0**:\n   - Navigate to APIs &amp; Services &gt; Credentials\n   - Create OAuth 2.0 Client ID (Desktop application)\n   - Download credentials or note Client ID\n\n3. **Set environment variables**:\n   &#96;&#96;&#96;bash\n   export GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com\n   export GCP_PROJECT_ID=your-gcp-project-id\n   export VERTEX_REGION=us-central1\n   &#96;&#96;&#96;\n\n4. **Or configure in &#96;.codex/config.toml&#96;**:\n   &#96;&#96;&#96;toml\n   [auth.gemini]\n   mode = \"oauth\"\n   provider = \"vertex\"\n   project = \"your-gcp-project-id\"\n   region = \"us-central1\"\n   prefer_cli = true  # Use geminicli if available\n   &#96;&#96;&#96;\n\n**Authentication Flow**:\n\n&#96;&#96;&#96;bash\n# Login (opens browser for Google Account authentication)\ncodex auth gemini login\n\n# Check status\ncodex auth gemini status\n\n# Logout",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Gemini Authentication Guide",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "## Overview",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "Codex supports two authentication methods for Google's Gemini models:",
+            "lineNumber": 5
+          },
+          {
+            "text": "1. **API Key** (Google AI Studio) - Simple, recommended for development",
+            "lineNumber": 6
+          },
+          {
+            "text": "2. **OAuth 2.0** (Vertex AI) - Enterprise, supports Google Account authentication",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "## Authentication Modes",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "### API Key Mode (Google AI Studio)",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "**Best for**: Development, testing, personal use",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "**Setup**:",
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "2. Set environment variable:",
+            "lineNumber": 19
+          },
+          {
+            "text": "   &#96;&#96;&#96;bash",
+            "lineNumber": 20
+          },
+          {
+            "text": "   export GEMINI_API_KEY=your-api-key-here",
+            "lineNumber": 21
+          },
+          {
+            "text": "   # or",
+            "lineNumber": 22
+          },
+          {
+            "text": "   export GOOGLE_AI_STUDIO_API_KEY=your-api-key-here",
+            "lineNumber": 23
+          },
+          {
+            "text": "   &#96;&#96;&#96;",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "3. Or add to &#96;.codex/config.toml&#96;:",
+            "lineNumber": 26
+          },
+          {
+            "text": "   &#96;&#96;&#96;toml",
+            "lineNumber": 27
+          },
+          {
+            "text": "   [auth.gemini]",
+            "lineNumber": 28
+          },
+          {
+            "text": "   mode = \"api-key\"",
+            "lineNumber": 29
+          },
+          {
+            "text": "   provider = \"ai_studio\"",
+            "lineNumber": 30
+          },
+          {
+            "text": "   &#96;&#96;&#96;",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "**Usage**:",
+            "lineNumber": 33
+          },
+          {
+            "text": "- API key is attached as &#96;x-goog-api-key&#96; header",
+            "lineNumber": 34
+          },
+          {
+            "text": "- Direct access to Generative Language API",
+            "lineNumber": 35
+          },
+          {
+            "text": "- No additional authentication steps required",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "text": "### OAuth 2.0 Mode (Vertex AI)",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "**Best for**: Production, enterprise, team use",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "**Requirements**:",
+            "lineNumber": 42
+          },
+          {
+            "text": "- Google Cloud Project with Vertex AI API enabled",
+            "lineNumber": 43
+          },
+          {
+            "text": "- OAuth 2.0 Client ID configured",
+            "lineNumber": 44
+          },
+          {
+            "text": "- Appropriate IAM permissions",
+            "lineNumber": 45
+          },
+          {
+            "lineNumber": 46
+          },
+          {
+            "text": "**Setup**:",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "1. **Create Google Cloud Project**:",
+            "lineNumber": 49
+          },
+          {
+            "text": "   - Go to [Google Cloud Console](https://console.cloud.google.com/)",
+            "lineNumber": 50
+          },
+          {
+            "text": "   - Create or select a project",
+            "lineNumber": 51
+          },
+          {
+            "text": "   - Enable Vertex AI API",
+            "lineNumber": 52
+          },
+          {
+            "lineNumber": 53
+          },
+          {
+            "text": "2. **Configure OAuth 2.0**:",
+            "lineNumber": 54
+          },
+          {
+            "text": "   - Navigate to APIs &amp; Services &gt; Credentials",
+            "lineNumber": 55
+          },
+          {
+            "text": "   - Create OAuth 2.0 Client ID (Desktop application)",
+            "lineNumber": 56
+          },
+          {
+            "text": "   - Download credentials or note Client ID",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "3. **Set environment variables**:",
+            "lineNumber": 59
+          },
+          {
+            "text": "   &#96;&#96;&#96;bash",
+            "lineNumber": 60
+          },
+          {
+            "text": "   export GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com",
+            "lineNumber": 61
+          },
+          {
+            "text": "   export GCP_PROJECT_ID=your-gcp-project-id",
+            "lineNumber": 62
+          },
+          {
+            "text": "   export VERTEX_REGION=us-central1",
+            "lineNumber": 63
+          },
+          {
+            "text": "   &#96;&#96;&#96;",
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "4. **Or configure in &#96;.codex/config.toml&#96;**:",
+            "lineNumber": 66
+          },
+          {
+            "text": "   &#96;&#96;&#96;toml",
+            "lineNumber": 67
+          },
+          {
+            "text": "   [auth.gemini]",
+            "lineNumber": 68
+          },
+          {
+            "text": "   mode = \"oauth\"",
+            "lineNumber": 69
+          },
+          {
+            "text": "   provider = \"vertex\"",
+            "lineNumber": 70
+          },
+          {
+            "text": "   project = \"your-gcp-project-id\"",
+            "lineNumber": 71
+          },
+          {
+            "text": "   region = \"us-central1\"",
+            "lineNumber": 72
+          },
+          {
+            "text": "   prefer_cli = true  # Use geminicli if available",
+            "lineNumber": 73
+          },
+          {
+            "text": "   &#96;&#96;&#96;",
+            "lineNumber": 74
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "text": "**Authentication Flow**:",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 78
+          },
+          {
+            "text": "# Login (opens browser for Google Account authentication)",
+            "lineNumber": 79
+          },
+          {
+            "text": "codex auth gemini login",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "# Check status",
+            "lineNumber": 82
+          },
+          {
+            "text": "codex auth gemini status",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "# Logout",
+            "lineNumber": 85
+          }
+        ]
+      },
+      "score": 0.38069039583206177
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 191
+          },
+          "endPosition": {
+            "line": 255
+          }
+        },
+        "contents": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"\nenv.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"\nenv.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"\nstartup_timeout_sec = 60\n\n# 🔒 TLS/mTLS設定\ntransport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）\nbind_address = \"127.0.0.1:8001\"\ntls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"\nrequire_client_cert = true  # mTLS必須\n\n# 🔐 認証設定\nauth_method = \"mtls\"  # mTLS認証\ntrusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"\n\n# Serena - AIオーケストレーション（TLS/mTLS）\n[mcp_servers.serena]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-everything\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8002\"\ntls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Gemini CLI - Google Gemini AI統合（TLS/mTLS）\n[mcp_servers.codex-gemini-mcp]\ncommand = \"codex-gemini-mcp\"\nargs = []\ntransport = \"https\"\nbind_address = \"127.0.0.1:8003\"\ntls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Filesystem - ファイル操作（TLS/mTLS）\n[mcp_servers.filesystem]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8004\"\ntls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# GitHub - GitHub API（TLS/mTLS）\n[mcp_servers.github]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-github\"]\nenv.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"\ntransport = \"https\"\nbind_address = \"127.0.0.1:8005\"\ntls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Chrome DevTools - ブラウザ自動化（TLS/mTLS）\n[mcp_servers.chrome-devtools]\ncommand = \"npx\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"",
+            "lineNumber": 192
+          },
+          {
+            "text": "env.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 193
+          },
+          {
+            "text": "env.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"",
+            "lineNumber": 194
+          },
+          {
+            "text": "startup_timeout_sec = 60",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "# 🔒 TLS/mTLS設定",
+            "lineNumber": 197
+          },
+          {
+            "text": "transport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）",
+            "lineNumber": 198
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8001\"",
+            "lineNumber": 199
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"",
+            "lineNumber": 200
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"",
+            "lineNumber": 201
+          },
+          {
+            "text": "require_client_cert = true  # mTLS必須",
+            "lineNumber": 202
+          },
+          {
+            "lineNumber": 203
+          },
+          {
+            "text": "# 🔐 認証設定",
+            "lineNumber": 204
+          },
+          {
+            "text": "auth_method = \"mtls\"  # mTLS認証",
+            "lineNumber": 205
+          },
+          {
+            "text": "trusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"",
+            "lineNumber": 206
+          },
+          {
+            "lineNumber": 207
+          },
+          {
+            "text": "# Serena - AIオーケストレーション（TLS/mTLS）",
+            "lineNumber": 208
+          },
+          {
+            "text": "[mcp_servers.serena]",
+            "lineNumber": 209
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 210
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-everything\"]",
+            "lineNumber": 211
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 212
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8002\"",
+            "lineNumber": 213
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"",
+            "lineNumber": 214
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"",
+            "lineNumber": 215
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 216
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 217
+          },
+          {
+            "lineNumber": 218
+          },
+          {
+            "text": "# Gemini CLI - Google Gemini AI統合（TLS/mTLS）",
+            "lineNumber": 219
+          },
+          {
+            "text": "[mcp_servers.codex-gemini-mcp]",
+            "lineNumber": 220
+          },
+          {
+            "text": "command = \"codex-gemini-mcp\"",
+            "lineNumber": 221
+          },
+          {
+            "text": "args = []",
+            "lineNumber": 222
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 223
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8003\"",
+            "lineNumber": 224
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"",
+            "lineNumber": 225
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"",
+            "lineNumber": 226
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 227
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 228
+          },
+          {
+            "lineNumber": 229
+          },
+          {
+            "text": "# Filesystem - ファイル操作（TLS/mTLS）",
+            "lineNumber": 230
+          },
+          {
+            "text": "[mcp_servers.filesystem]",
+            "lineNumber": 231
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 232
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]",
+            "lineNumber": 233
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 234
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8004\"",
+            "lineNumber": 235
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"",
+            "lineNumber": 236
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"",
+            "lineNumber": 237
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 238
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "# GitHub - GitHub API（TLS/mTLS）",
+            "lineNumber": 241
+          },
+          {
+            "text": "[mcp_servers.github]",
+            "lineNumber": 242
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 243
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-github\"]",
+            "lineNumber": 244
+          },
+          {
+            "text": "env.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 245
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 246
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8005\"",
+            "lineNumber": 247
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"",
+            "lineNumber": 248
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"",
+            "lineNumber": 249
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 250
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 251
+          },
+          {
+            "lineNumber": 252
+          },
+          {
+            "text": "# Chrome DevTools - ブラウザ自動化（TLS/mTLS）",
+            "lineNumber": 253
+          },
+          {
+            "text": "[mcp_servers.chrome-devtools]",
+            "lineNumber": 254
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 255
+          }
+        ]
+      },
+      "score": 0.3644235134124756
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\DEPLOYMENT.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 86
+          }
+        },
+        "contents": "# Prism デプロイメントガイド\n\n**最終更新**: 2025年11月2日\n\n---\n\n## 🚀 完全無料デプロイ手順\n\n### Phase 1: Supabase セットアップ\n\n&#96;&#96;&#96;bash\n# 1. Supabaseアカウント作成\nhttps://supabase.com にアクセス → Sign Up\n\n# 2. 新規プロジェクト作成\nOrganization: Personal\nProject name: prism-production\nDatabase Password: (強力なパスワード生成)\nRegion: Northeast Asia (Tokyo)\nPricing: Free Tier ✅\n\n# 3. SQL Editorでスキーマ実行\nDashboard → SQL Editor → New query\n→ supabase/schema.sql の内容を貼り付け → Run\n\n# 4. Storage Buckets作成\nDashboard → Storage → New bucket\n  - visualizations (public)\n  - avatars (public)\n  - artifacts (private)\n\n# 5. 認証設定\nDashboard → Authentication → Providers\n  ✅ Email (enabled)\n  ✅ GitHub OAuth (設定: https://github.com/settings/developers)\n\n# 6. APIキー取得\nDashboard → Settings → API\n  → Copy: Project URL, anon/public key\n&#96;&#96;&#96;\n\n### Phase 2: GitHub リポジトリ\n\n&#96;&#96;&#96;bash\n# 1. GitHubで新規リポジトリ作成\nhttps://github.com/new\nRepository name: prism\nDescription: AI-Native Code Intelligence Platform\nPublic ✅\n\n# 2. ローカルからpush\ncd prism-web\ngit init\ngit add .\ngit commit -m \"feat: Initial Prism implementation\"\ngit branch -M main\ngit remote add origin https://github.com/YOUR_USERNAME/prism.git\ngit push -u origin main\n&#96;&#96;&#96;\n\n### Phase 3: Vercel デプロイ\n\n&#96;&#96;&#96;bash\n# 1. Vercelアカウント作成\nhttps://vercel.com → Sign up with GitHub\n\n# 2. プロジェクトインポート\nDashboard → Add New → Project\n→ GitHubリポジトリ選択: prism\n\n# 3. 環境変数設定\nEnvironment Variables:\n  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)\n  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)\n  ENCRYPTION_SECRET = (32文字以上のランダム文字列)\n\n# 4. デプロイ設定\nFramework Preset: Next.js\nBuild Command: npm run build\nOutput Directory: .next\nInstall Command: npm install\n\n→ Deploy\n\n# 5. デプロイ完了\nYour project is live at: https://prism-xxx.vercel.app",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Prism デプロイメントガイド",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**最終更新**: 2025年11月2日",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "---",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "## 🚀 完全無料デプロイ手順",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "### Phase 1: Supabase セットアップ",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 11
+          },
+          {
+            "text": "# 1. Supabaseアカウント作成",
+            "lineNumber": 12
+          },
+          {
+            "text": "https://supabase.com にアクセス → Sign Up",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "# 2. 新規プロジェクト作成",
+            "lineNumber": 15
+          },
+          {
+            "text": "Organization: Personal",
+            "lineNumber": 16
+          },
+          {
+            "text": "Project name: prism-production",
+            "lineNumber": 17
+          },
+          {
+            "text": "Database Password: (強力なパスワード生成)",
+            "lineNumber": 18
+          },
+          {
+            "text": "Region: Northeast Asia (Tokyo)",
+            "lineNumber": 19
+          },
+          {
+            "text": "Pricing: Free Tier ✅",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "# 3. SQL Editorでスキーマ実行",
+            "lineNumber": 22
+          },
+          {
+            "text": "Dashboard → SQL Editor → New query",
+            "lineNumber": 23
+          },
+          {
+            "text": "→ supabase/schema.sql の内容を貼り付け → Run",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "# 4. Storage Buckets作成",
+            "lineNumber": 26
+          },
+          {
+            "text": "Dashboard → Storage → New bucket",
+            "lineNumber": 27
+          },
+          {
+            "text": "  - visualizations (public)",
+            "lineNumber": 28
+          },
+          {
+            "text": "  - avatars (public)",
+            "lineNumber": 29
+          },
+          {
+            "text": "  - artifacts (private)",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "# 5. 認証設定",
+            "lineNumber": 32
+          },
+          {
+            "text": "Dashboard → Authentication → Providers",
+            "lineNumber": 33
+          },
+          {
+            "text": "  ✅ Email (enabled)",
+            "lineNumber": 34
+          },
+          {
+            "text": "  ✅ GitHub OAuth (設定: https://github.com/settings/developers)",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "# 6. APIキー取得",
+            "lineNumber": 37
+          },
+          {
+            "text": "Dashboard → Settings → API",
+            "lineNumber": 38
+          },
+          {
+            "text": "  → Copy: Project URL, anon/public key",
+            "lineNumber": 39
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "### Phase 2: GitHub リポジトリ",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 44
+          },
+          {
+            "text": "# 1. GitHubで新規リポジトリ作成",
+            "lineNumber": 45
+          },
+          {
+            "text": "https://github.com/new",
+            "lineNumber": 46
+          },
+          {
+            "text": "Repository name: prism",
+            "lineNumber": 47
+          },
+          {
+            "text": "Description: AI-Native Code Intelligence Platform",
+            "lineNumber": 48
+          },
+          {
+            "text": "Public ✅",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "# 2. ローカルからpush",
+            "lineNumber": 51
+          },
+          {
+            "text": "cd prism-web",
+            "lineNumber": 52
+          },
+          {
+            "text": "git init",
+            "lineNumber": 53
+          },
+          {
+            "text": "git add .",
+            "lineNumber": 54
+          },
+          {
+            "text": "git commit -m \"feat: Initial Prism implementation\"",
+            "lineNumber": 55
+          },
+          {
+            "text": "git branch -M main",
+            "lineNumber": 56
+          },
+          {
+            "text": "git remote add origin https://github.com/YOUR_USERNAME/prism.git",
+            "lineNumber": 57
+          },
+          {
+            "text": "git push -u origin main",
+            "lineNumber": 58
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "### Phase 3: Vercel デプロイ",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 63
+          },
+          {
+            "text": "# 1. Vercelアカウント作成",
+            "lineNumber": 64
+          },
+          {
+            "text": "https://vercel.com → Sign up with GitHub",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "# 2. プロジェクトインポート",
+            "lineNumber": 67
+          },
+          {
+            "text": "Dashboard → Add New → Project",
+            "lineNumber": 68
+          },
+          {
+            "text": "→ GitHubリポジトリ選択: prism",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "# 3. 環境変数設定",
+            "lineNumber": 71
+          },
+          {
+            "text": "Environment Variables:",
+            "lineNumber": 72
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)",
+            "lineNumber": 73
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)",
+            "lineNumber": 74
+          },
+          {
+            "text": "  ENCRYPTION_SECRET = (32文字以上のランダム文字列)",
+            "lineNumber": 75
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "text": "# 4. デプロイ設定",
+            "lineNumber": 77
+          },
+          {
+            "text": "Framework Preset: Next.js",
+            "lineNumber": 78
+          },
+          {
+            "text": "Build Command: npm run build",
+            "lineNumber": 79
+          },
+          {
+            "text": "Output Directory: .next",
+            "lineNumber": 80
+          },
+          {
+            "text": "Install Command: npm install",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "→ Deploy",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "# 5. デプロイ完了",
+            "lineNumber": 85
+          },
+          {
+            "text": "Your project is live at: https://prism-xxx.vercel.app",
+            "lineNumber": 86
+          }
+        ]
+      },
+      "score": 0.3636164665222168
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\DEPLOYMENT.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 86
+          }
+        },
+        "contents": "# Prism デプロイメントガイド\n\n**最終更新**: 2025年11月2日\n\n---\n\n## 🚀 完全無料デプロイ手順\n\n### Phase 1: Supabase セットアップ\n\n&#96;&#96;&#96;bash\n# 1. Supabaseアカウント作成\nhttps://supabase.com にアクセス → Sign Up\n\n# 2. 新規プロジェクト作成\nOrganization: Personal\nProject name: prism-production\nDatabase Password: (強力なパスワード生成)\nRegion: Northeast Asia (Tokyo)\nPricing: Free Tier ✅\n\n# 3. SQL Editorでスキーマ実行\nDashboard → SQL Editor → New query\n→ supabase/schema.sql の内容を貼り付け → Run\n\n# 4. Storage Buckets作成\nDashboard → Storage → New bucket\n  - visualizations (public)\n  - avatars (public)\n  - artifacts (private)\n\n# 5. 認証設定\nDashboard → Authentication → Providers\n  ✅ Email (enabled)\n  ✅ GitHub OAuth (設定: https://github.com/settings/developers)\n\n# 6. APIキー取得\nDashboard → Settings → API\n  → Copy: Project URL, anon/public key\n&#96;&#96;&#96;\n\n### Phase 2: GitHub リポジトリ\n\n&#96;&#96;&#96;bash\n# 1. GitHubで新規リポジトリ作成\nhttps://github.com/new\nRepository name: prism\nDescription: AI-Native Code Intelligence Platform\nPublic ✅\n\n# 2. ローカルからpush\ncd prism-web\ngit init\ngit add .\ngit commit -m \"feat: Initial Prism implementation\"\ngit branch -M main\ngit remote add origin https://github.com/YOUR_USERNAME/prism.git\ngit push -u origin main\n&#96;&#96;&#96;\n\n### Phase 3: Vercel デプロイ\n\n&#96;&#96;&#96;bash\n# 1. Vercelアカウント作成\nhttps://vercel.com → Sign up with GitHub\n\n# 2. プロジェクトインポート\nDashboard → Add New → Project\n→ GitHubリポジトリ選択: prism\n\n# 3. 環境変数設定\nEnvironment Variables:\n  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)\n  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)\n  ENCRYPTION_SECRET = (32文字以上のランダム文字列)\n\n# 4. デプロイ設定\nFramework Preset: Next.js\nBuild Command: npm run build\nOutput Directory: .next\nInstall Command: npm install\n\n→ Deploy\n\n# 5. デプロイ完了\nYour project is live at: https://prism-xxx.vercel.app",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Prism デプロイメントガイド",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**最終更新**: 2025年11月2日",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "---",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "## 🚀 完全無料デプロイ手順",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "### Phase 1: Supabase セットアップ",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 11
+          },
+          {
+            "text": "# 1. Supabaseアカウント作成",
+            "lineNumber": 12
+          },
+          {
+            "text": "https://supabase.com にアクセス → Sign Up",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "# 2. 新規プロジェクト作成",
+            "lineNumber": 15
+          },
+          {
+            "text": "Organization: Personal",
+            "lineNumber": 16
+          },
+          {
+            "text": "Project name: prism-production",
+            "lineNumber": 17
+          },
+          {
+            "text": "Database Password: (強力なパスワード生成)",
+            "lineNumber": 18
+          },
+          {
+            "text": "Region: Northeast Asia (Tokyo)",
+            "lineNumber": 19
+          },
+          {
+            "text": "Pricing: Free Tier ✅",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "# 3. SQL Editorでスキーマ実行",
+            "lineNumber": 22
+          },
+          {
+            "text": "Dashboard → SQL Editor → New query",
+            "lineNumber": 23
+          },
+          {
+            "text": "→ supabase/schema.sql の内容を貼り付け → Run",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "# 4. Storage Buckets作成",
+            "lineNumber": 26
+          },
+          {
+            "text": "Dashboard → Storage → New bucket",
+            "lineNumber": 27
+          },
+          {
+            "text": "  - visualizations (public)",
+            "lineNumber": 28
+          },
+          {
+            "text": "  - avatars (public)",
+            "lineNumber": 29
+          },
+          {
+            "text": "  - artifacts (private)",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "# 5. 認証設定",
+            "lineNumber": 32
+          },
+          {
+            "text": "Dashboard → Authentication → Providers",
+            "lineNumber": 33
+          },
+          {
+            "text": "  ✅ Email (enabled)",
+            "lineNumber": 34
+          },
+          {
+            "text": "  ✅ GitHub OAuth (設定: https://github.com/settings/developers)",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "# 6. APIキー取得",
+            "lineNumber": 37
+          },
+          {
+            "text": "Dashboard → Settings → API",
+            "lineNumber": 38
+          },
+          {
+            "text": "  → Copy: Project URL, anon/public key",
+            "lineNumber": 39
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "### Phase 2: GitHub リポジトリ",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 44
+          },
+          {
+            "text": "# 1. GitHubで新規リポジトリ作成",
+            "lineNumber": 45
+          },
+          {
+            "text": "https://github.com/new",
+            "lineNumber": 46
+          },
+          {
+            "text": "Repository name: prism",
+            "lineNumber": 47
+          },
+          {
+            "text": "Description: AI-Native Code Intelligence Platform",
+            "lineNumber": 48
+          },
+          {
+            "text": "Public ✅",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "# 2. ローカルからpush",
+            "lineNumber": 51
+          },
+          {
+            "text": "cd prism-web",
+            "lineNumber": 52
+          },
+          {
+            "text": "git init",
+            "lineNumber": 53
+          },
+          {
+            "text": "git add .",
+            "lineNumber": 54
+          },
+          {
+            "text": "git commit -m \"feat: Initial Prism implementation\"",
+            "lineNumber": 55
+          },
+          {
+            "text": "git branch -M main",
+            "lineNumber": 56
+          },
+          {
+            "text": "git remote add origin https://github.com/YOUR_USERNAME/prism.git",
+            "lineNumber": 57
+          },
+          {
+            "text": "git push -u origin main",
+            "lineNumber": 58
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "### Phase 3: Vercel デプロイ",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 63
+          },
+          {
+            "text": "# 1. Vercelアカウント作成",
+            "lineNumber": 64
+          },
+          {
+            "text": "https://vercel.com → Sign up with GitHub",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "# 2. プロジェクトインポート",
+            "lineNumber": 67
+          },
+          {
+            "text": "Dashboard → Add New → Project",
+            "lineNumber": 68
+          },
+          {
+            "text": "→ GitHubリポジトリ選択: prism",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "# 3. 環境変数設定",
+            "lineNumber": 71
+          },
+          {
+            "text": "Environment Variables:",
+            "lineNumber": 72
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)",
+            "lineNumber": 73
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)",
+            "lineNumber": 74
+          },
+          {
+            "text": "  ENCRYPTION_SECRET = (32文字以上のランダム文字列)",
+            "lineNumber": 75
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "text": "# 4. デプロイ設定",
+            "lineNumber": 77
+          },
+          {
+            "text": "Framework Preset: Next.js",
+            "lineNumber": 78
+          },
+          {
+            "text": "Build Command: npm run build",
+            "lineNumber": 79
+          },
+          {
+            "text": "Output Directory: .next",
+            "lineNumber": 80
+          },
+          {
+            "text": "Install Command: npm install",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "→ Deploy",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "# 5. デプロイ完了",
+            "lineNumber": 85
+          },
+          {
+            "text": "Your project is live at: https://prism-xxx.vercel.app",
+            "lineNumber": 86
+          }
+        ]
+      },
+      "score": 0.3636164665222168
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\auth.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 62,
+            "column": 47
+          }
+        },
+        "contents": "mod storage;\n\nuse chrono::Utc;\nuse reqwest::StatusCode;\nuse serde::Deserialize;\nuse serde::Serialize;\n#[cfg(test)]\nuse serial_test::serial;\nuse std::env;\nuse std::fmt::Debug;\nuse std::io::ErrorKind;\nuse std::path::Path;\nuse std::path::PathBuf;\nuse std::sync::Arc;\nuse std::sync::Mutex;\nuse std::time::Duration;\n\nuse codex_app_server_protocol::AuthMode;\nuse codex_protocol::config_types::ForcedLoginMethod;\n\npub use crate::auth::storage::AuthCredentialsStoreMode;\npub use crate::auth::storage::AuthDotJson;\nuse crate::auth::storage::AuthStorageBackend;\nuse crate::auth::storage::create_auth_storage;\nuse crate::config::Config;\nuse crate::error::RefreshTokenFailedError;\nuse crate::error::RefreshTokenFailedReason;\nuse crate::token_data::KnownPlan as InternalKnownPlan;\nuse crate::token_data::PlanType as InternalPlanType;\nuse crate::token_data::TokenData;\nuse crate::token_data::parse_id_token;\nuse crate::util::try_parse_error_message;\nuse codex_client::CodexHttpClient;\nuse codex_protocol::account::PlanType as AccountPlanType;\n#[cfg(any(test, feature = \"test-support\"))]\nuse once_cell::sync::Lazy;\nuse serde_json::Value;\n#[cfg(any(test, feature = \"test-support\"))]\nuse tempfile::TempDir;\nuse thiserror::Error;\n\n#[derive(Debug, Clone)]\npub struct CodexAuth {\n    pub mode: AuthMode,\n\n    pub(crate) api_key: Option&lt;String&gt;,\n    pub(crate) auth_dot_json: Arc&lt;Mutex&lt;Option&lt;AuthDotJson&gt;&gt;&gt;,\n    storage: Arc&lt;dyn AuthStorageBackend&gt;,\n    pub(crate) client: CodexHttpClient,\n}\n\nimpl PartialEq for CodexAuth {\n    fn eq(&amp;self, other: &amp;Self) -&gt; bool {\n        self.mode == other.mode\n    }\n}\n\n// TODO(pakrym): use token exp field to check for expiration instead\nconst TOKEN_REFRESH_INTERVAL: i64 = 8;\n\nconst REFRESH_TOKEN_EXPIRED_MESSAGE: &amp;str = \"Your access token could not be refreshed because your refresh token has expired. Please log out and sign in again.\";\nconst REFRESH_TOKEN_REUSED_MESSAGE: &amp;str = \"Your access token could not be refreshed because your refresh token was already used. Please log out and sign in again.\";\nconst REFRESH_TOKEN_INVALIDATED_MESSAGE: &amp;str =",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "mod storage;",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "use chrono::Utc;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use reqwest::StatusCode;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 6
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 7
+          },
+          {
+            "text": "use serial_test::serial;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use std::env;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use std::fmt::Debug;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use std::io::ErrorKind;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use std::path::Path;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use std::sync::Mutex;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use std::time::Duration;",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_app_server_protocol::AuthMode;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_protocol::config_types::ForcedLoginMethod;",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "pub use crate::auth::storage::AuthCredentialsStoreMode;",
+            "lineNumber": 21
+          },
+          {
+            "text": "pub use crate::auth::storage::AuthDotJson;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use crate::auth::storage::AuthStorageBackend;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use crate::auth::storage::create_auth_storage;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use crate::config::Config;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use crate::error::RefreshTokenFailedError;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use crate::error::RefreshTokenFailedReason;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use crate::token_data::KnownPlan as InternalKnownPlan;",
+            "lineNumber": 28
+          },
+          {
+            "text": "use crate::token_data::PlanType as InternalPlanType;",
+            "lineNumber": 29
+          },
+          {
+            "text": "use crate::token_data::TokenData;",
+            "lineNumber": 30
+          },
+          {
+            "text": "use crate::token_data::parse_id_token;",
+            "lineNumber": 31
+          },
+          {
+            "text": "use crate::util::try_parse_error_message;",
+            "lineNumber": 32
+          },
+          {
+            "text": "use codex_client::CodexHttpClient;",
+            "lineNumber": 33
+          },
+          {
+            "text": "use codex_protocol::account::PlanType as AccountPlanType;",
+            "lineNumber": 34
+          },
+          {
+            "text": "#[cfg(any(test, feature = \"test-support\"))]",
+            "lineNumber": 35
+          },
+          {
+            "text": "use once_cell::sync::Lazy;",
+            "lineNumber": 36
+          },
+          {
+            "text": "use serde_json::Value;",
+            "lineNumber": 37
+          },
+          {
+            "text": "#[cfg(any(test, feature = \"test-support\"))]",
+            "lineNumber": 38
+          },
+          {
+            "text": "use tempfile::TempDir;",
+            "lineNumber": 39
+          },
+          {
+            "text": "use thiserror::Error;",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "#[derive(Debug, Clone)]",
+            "lineNumber": 42
+          },
+          {
+            "text": "pub struct CodexAuth {",
+            "lineNumber": 43
+          },
+          {
+            "text": "    pub mode: AuthMode,",
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "    pub(crate) api_key: Option&lt;String&gt;,",
+            "lineNumber": 46
+          },
+          {
+            "text": "    pub(crate) auth_dot_json: Arc&lt;Mutex&lt;Option&lt;AuthDotJson&gt;&gt;&gt;,",
+            "lineNumber": 47
+          },
+          {
+            "text": "    storage: Arc&lt;dyn AuthStorageBackend&gt;,",
+            "lineNumber": 48
+          },
+          {
+            "text": "    pub(crate) client: CodexHttpClient,",
+            "lineNumber": 49
+          },
+          {
+            "text": "}",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "impl PartialEq for CodexAuth {",
+            "lineNumber": 52
+          },
+          {
+            "text": "    fn eq(&amp;self, other: &amp;Self) -&gt; bool {",
+            "lineNumber": 53
+          },
+          {
+            "text": "        self.mode == other.mode",
+            "lineNumber": 54
+          },
+          {
+            "text": "    }",
+            "lineNumber": 55
+          },
+          {
+            "text": "}",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "// TODO(pakrym): use token exp field to check for expiration instead",
+            "lineNumber": 58
+          },
+          {
+            "text": "const TOKEN_REFRESH_INTERVAL: i64 = 8;",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "const REFRESH_TOKEN_EXPIRED_MESSAGE: &amp;str = \"Your access token could not be refreshed because your refresh token has expired. Please log out and sign in again.\";",
+            "lineNumber": 61
+          },
+          {
+            "text": "const REFRESH_TOKEN_REUSED_MESSAGE: &amp;str = \"Your access token could not be refreshed because your refresh token was already used. Please log out and sign in again.\";",
+            "lineNumber": 62
+          },
+          {
+            "text": "const REFRESH_TOKEN_INVALIDATED_MESSAGE: &amp;str =",
+            "lineNumber": 63
+          }
+        ]
+      },
+      "score": 0.3522498905658722
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\login\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 616,
+            "column": 51
+          },
+          "endPosition": {
+            "line": 673,
+            "column": 6
+          }
+        },
+        "contents": "}\n\nfn jwt_auth_claims(jwt: &amp;str) -&gt; serde_json::Map&lt;String, serde_json::Value&gt; {\n    let mut parts = jwt.split('.');\n    let (_h, payload_b64, _s) = match (parts.next(), parts.next(), parts.next()) {\n        (Some(h), Some(p), Some(s)) if !h.is_empty() &amp;&amp; !p.is_empty() &amp;&amp; !s.is_empty() =&gt; (h, p, s),\n        _ =&gt; {\n            eprintln!(\"Invalid JWT format while extracting claims\");\n            return serde_json::Map::new();\n        }\n    };\n    match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(payload_b64) {\n        Ok(bytes) =&gt; match serde_json::from_slice::&lt;serde_json::Value&gt;(&amp;bytes) {\n            Ok(mut v) =&gt; {\n                if let Some(obj) = v\n                    .get_mut(\"https://api.openai.com/auth\")\n                    .and_then(|x| x.as_object_mut())\n                {\n                    return obj.clone();\n                }\n                eprintln!(\"JWT payload missing expected 'https://api.openai.com/auth' object\");\n            }\n            Err(e) =&gt; {\n                eprintln!(\"Failed to parse JWT JSON payload: {e}\");\n            }\n        },\n        Err(e) =&gt; {\n            eprintln!(\"Failed to base64url-decode JWT payload: {e}\");\n        }\n    }\n    serde_json::Map::new()\n}\n\npub(crate) fn ensure_workspace_allowed(\n    expected: Option&lt;&amp;str&gt;,\n    id_token: &amp;str,\n) -&gt; Result&lt;(), String&gt; {\n    let Some(expected) = expected else {\n        return Ok(());\n    };\n\n    let claims = jwt_auth_claims(id_token);\n    let Some(actual) = claims.get(\"chatgpt_account_id\").and_then(JsonValue::as_str) else {\n        return Err(\"Login is restricted to a specific workspace, but the token did not include an chatgpt_account_id claim.\".to_string());\n    };\n\n    if actual == expected {\n        Ok(())\n    } else {\n        Err(format!(\"Login is restricted to workspace id {expected}.\"))\n    }\n}\n\n// Respond to the oauth server with an error so the code becomes unusable by anybody else.\nfn login_error_response(message: &amp;str) -&gt; HandledRequest {\n    let mut headers = Vec::new();\n    if",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "}",
+            "lineNumber": 618
+          },
+          {
+            "lineNumber": 619
+          },
+          {
+            "text": "fn jwt_auth_claims(jwt: &amp;str) -&gt; serde_json::Map&lt;String, serde_json::Value&gt; {",
+            "lineNumber": 620
+          },
+          {
+            "text": "    let mut parts = jwt.split('.');",
+            "lineNumber": 621
+          },
+          {
+            "text": "    let (_h, payload_b64, _s) = match (parts.next(), parts.next(), parts.next()) {",
+            "lineNumber": 622
+          },
+          {
+            "text": "        (Some(h), Some(p), Some(s)) if !h.is_empty() &amp;&amp; !p.is_empty() &amp;&amp; !s.is_empty() =&gt; (h, p, s),",
+            "lineNumber": 623
+          },
+          {
+            "text": "        _ =&gt; {",
+            "lineNumber": 624
+          },
+          {
+            "text": "            eprintln!(\"Invalid JWT format while extracting claims\");",
+            "lineNumber": 625
+          },
+          {
+            "text": "            return serde_json::Map::new();",
+            "lineNumber": 626
+          },
+          {
+            "text": "        }",
+            "lineNumber": 627
+          },
+          {
+            "text": "    };",
+            "lineNumber": 628
+          },
+          {
+            "text": "    match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(payload_b64) {",
+            "lineNumber": 629
+          },
+          {
+            "text": "        Ok(bytes) =&gt; match serde_json::from_slice::&lt;serde_json::Value&gt;(&amp;bytes) {",
+            "lineNumber": 630
+          },
+          {
+            "text": "            Ok(mut v) =&gt; {",
+            "lineNumber": 631
+          },
+          {
+            "text": "                if let Some(obj) = v",
+            "lineNumber": 632
+          },
+          {
+            "text": "                    .get_mut(\"https://api.openai.com/auth\")",
+            "lineNumber": 633
+          },
+          {
+            "text": "                    .and_then(|x| x.as_object_mut())",
+            "lineNumber": 634
+          },
+          {
+            "text": "                {",
+            "lineNumber": 635
+          },
+          {
+            "text": "                    return obj.clone();",
+            "lineNumber": 636
+          },
+          {
+            "text": "                }",
+            "lineNumber": 637
+          },
+          {
+            "text": "                eprintln!(\"JWT payload missing expected 'https://api.openai.com/auth' object\");",
+            "lineNumber": 638
+          },
+          {
+            "text": "            }",
+            "lineNumber": 639
+          },
+          {
+            "text": "            Err(e) =&gt; {",
+            "lineNumber": 640
+          },
+          {
+            "text": "                eprintln!(\"Failed to parse JWT JSON payload: {e}\");",
+            "lineNumber": 641
+          },
+          {
+            "text": "            }",
+            "lineNumber": 642
+          },
+          {
+            "text": "        },",
+            "lineNumber": 643
+          },
+          {
+            "text": "        Err(e) =&gt; {",
+            "lineNumber": 644
+          },
+          {
+            "text": "            eprintln!(\"Failed to base64url-decode JWT payload: {e}\");",
+            "lineNumber": 645
+          },
+          {
+            "text": "        }",
+            "lineNumber": 646
+          },
+          {
+            "text": "    }",
+            "lineNumber": 647
+          },
+          {
+            "text": "    serde_json::Map::new()",
+            "lineNumber": 648
+          },
+          {
+            "text": "}",
+            "lineNumber": 649
+          },
+          {
+            "lineNumber": 650
+          },
+          {
+            "text": "pub(crate) fn ensure_workspace_allowed(",
+            "lineNumber": 651
+          },
+          {
+            "text": "    expected: Option&lt;&amp;str&gt;,",
+            "lineNumber": 652
+          },
+          {
+            "text": "    id_token: &amp;str,",
+            "lineNumber": 653
+          },
+          {
+            "text": ") -&gt; Result&lt;(), String&gt; {",
+            "lineNumber": 654
+          },
+          {
+            "text": "    let Some(expected) = expected else {",
+            "lineNumber": 655
+          },
+          {
+            "text": "        return Ok(());",
+            "lineNumber": 656
+          },
+          {
+            "text": "    };",
+            "lineNumber": 657
+          },
+          {
+            "lineNumber": 658
+          },
+          {
+            "text": "    let claims = jwt_auth_claims(id_token);",
+            "lineNumber": 659
+          },
+          {
+            "text": "    let Some(actual) = claims.get(\"chatgpt_account_id\").and_then(JsonValue::as_str) else {",
+            "lineNumber": 660
+          },
+          {
+            "text": "        return Err(\"Login is restricted to a specific workspace, but the token did not include an chatgpt_account_id claim.\".to_string());",
+            "lineNumber": 661
+          },
+          {
+            "text": "    };",
+            "lineNumber": 662
+          },
+          {
+            "lineNumber": 663
+          },
+          {
+            "text": "    if actual == expected {",
+            "lineNumber": 664
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 665
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 666
+          },
+          {
+            "text": "        Err(format!(\"Login is restricted to workspace id {expected}.\"))",
+            "lineNumber": 667
+          },
+          {
+            "text": "    }",
+            "lineNumber": 668
+          },
+          {
+            "text": "}",
+            "lineNumber": 669
+          },
+          {
+            "lineNumber": 670
+          },
+          {
+            "text": "// Respond to the oauth server with an error so the code becomes unusable by anybody else.",
+            "lineNumber": 671
+          },
+          {
+            "text": "fn login_error_response(message: &amp;str) -&gt; HandledRequest {",
+            "lineNumber": 672
+          },
+          {
+            "text": "    let mut headers = Vec::new();",
+            "lineNumber": 673
+          },
+          {
+            "text": "    if",
+            "lineNumber": 674
+          }
+        ]
+      },
+      "score": 0.35042211413383484
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\lib\\auth\\context.tsx",
+        "range": {
+          "startPosition": {
+            "line": 23,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 129,
+            "column": 1
+          }
+        },
+        "contents": "const AuthContext = createContext&lt;AuthContextType | undefined&gt;(undefined)\n\nexport function AuthProvider({ children }: { children: React.ReactNode }) {\n  const [user, setUser] = useState&lt;User | null&gt;(null)\n  const [session, setSession] = useState&lt;Session | null&gt;(null)\n  const [loading, setLoading] = useState(true)\n  const router = useRouter()\n  const supabase = createClientComponentClient()\n\n  useEffect(() =&gt; {\n    // Get initial session\n    supabase.auth.getSession().then(({ data: { session } }) =&gt; {\n      setSession(session)\n      setUser(session?.user ?? null)\n      setLoading(false)\n    })\n\n    // Listen for auth changes\n    const {\n      data: { subscription },\n    } = supabase.auth.onAuthStateChange((_event, session) =&gt; {\n      setSession(session)\n      setUser(session?.user ?? null)\n      setLoading(false)\n    })\n\n    return () =&gt; subscription.unsubscribe()\n  }, [supabase])\n\n  const signIn = async (email: string, password: string) =&gt; {\n    const { error } = await supabase.auth.signInWithPassword({\n      email,\n      password,\n    })\n\n    if (error) throw error\n    router.push('/dashboard')\n  }\n\n  const signUp = async (email: string, password: string) =&gt; {\n    const { error } = await supabase.auth.signUp({\n      email,\n      password,\n    })\n\n    if (error) throw error\n  }\n\n  const signInWithGithub = async () =&gt; {\n    const { error } = await supabase.auth.signInWithOAuth({\n      provider: 'github',\n      options: {\n        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,\n      },\n    })\n\n    if (error) throw error\n  }\n\n  const signInWithGoogle = async () =&gt; {\n    const { error } = await supabase.auth.signInWithOAuth({\n      provider: 'google',\n      options: {\n        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,\n      },\n    })\n\n    if (error) throw error\n  }\n\n  const signInWithMagicLink = async (email: string)\n\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "const AuthContext = createContext&lt;AuthContextType | undefined&gt;(undefined)",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "export function AuthProvider({ children }: { children: React.ReactNode }) {",
+            "lineNumber": 28,
+            "isSignature": true
+          },
+          {
+            "text": "  const [user, setUser] = useState&lt;User | null&gt;(null)",
+            "lineNumber": 29
+          },
+          {
+            "text": "  const [session, setSession] = useState&lt;Session | null&gt;(null)",
+            "lineNumber": 30
+          },
+          {
+            "text": "  const [loading, setLoading] = useState(true)",
+            "lineNumber": 31
+          },
+          {
+            "text": "  const router = useRouter()",
+            "lineNumber": 32
+          },
+          {
+            "text": "  const supabase = createClientComponentClient()",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "  useEffect(() =&gt; {",
+            "lineNumber": 35
+          },
+          {
+            "text": "    // Get initial session",
+            "lineNumber": 36
+          },
+          {
+            "text": "    supabase.auth.getSession().then(({ data: { session } }) =&gt; {",
+            "lineNumber": 37
+          },
+          {
+            "text": "      setSession(session)",
+            "lineNumber": 38
+          },
+          {
+            "text": "      setUser(session?.user ?? null)",
+            "lineNumber": 39
+          },
+          {
+            "text": "      setLoading(false)",
+            "lineNumber": 40
+          },
+          {
+            "text": "    })",
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "text": "    // Listen for auth changes",
+            "lineNumber": 43
+          },
+          {
+            "text": "    const {",
+            "lineNumber": 44
+          },
+          {
+            "text": "      data: { subscription },",
+            "lineNumber": 45
+          },
+          {
+            "text": "    } = supabase.auth.onAuthStateChange((_event, session) =&gt; {",
+            "lineNumber": 46
+          },
+          {
+            "text": "      setSession(session)",
+            "lineNumber": 47
+          },
+          {
+            "text": "      setUser(session?.user ?? null)",
+            "lineNumber": 48
+          },
+          {
+            "text": "      setLoading(false)",
+            "lineNumber": 49
+          },
+          {
+            "text": "    })",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "    return () =&gt; subscription.unsubscribe()",
+            "lineNumber": 52
+          },
+          {
+            "text": "  }, [supabase])",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "  const signIn = async (email: string, password: string) =&gt; {",
+            "lineNumber": 55
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signInWithPassword({",
+            "lineNumber": 56
+          },
+          {
+            "text": "      email,",
+            "lineNumber": 57
+          },
+          {
+            "text": "      password,",
+            "lineNumber": 58
+          },
+          {
+            "text": "    })",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 61
+          },
+          {
+            "text": "    router.push('/dashboard')",
+            "lineNumber": 62
+          },
+          {
+            "text": "  }",
+            "lineNumber": 63
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "text": "  const signUp = async (email: string, password: string) =&gt; {",
+            "lineNumber": 65
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signUp({",
+            "lineNumber": 66
+          },
+          {
+            "text": "      email,",
+            "lineNumber": 67
+          },
+          {
+            "text": "      password,",
+            "lineNumber": 68
+          },
+          {
+            "text": "    })",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 71
+          },
+          {
+            "text": "  }",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "  const signInWithGithub = async () =&gt; {",
+            "lineNumber": 74
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signInWithOAuth({",
+            "lineNumber": 75
+          },
+          {
+            "text": "      provider: 'github',",
+            "lineNumber": 76
+          },
+          {
+            "text": "      options: {",
+            "lineNumber": 77
+          },
+          {
+            "text": "        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,",
+            "lineNumber": 78
+          },
+          {
+            "text": "      },",
+            "lineNumber": 79
+          },
+          {
+            "text": "    })",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 82
+          },
+          {
+            "text": "  }",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "  const signInWithGoogle = async () =&gt; {",
+            "lineNumber": 85
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signInWithOAuth({",
+            "lineNumber": 86
+          },
+          {
+            "text": "      provider: 'google',",
+            "lineNumber": 87
+          },
+          {
+            "text": "      options: {",
+            "lineNumber": 88
+          },
+          {
+            "text": "        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,",
+            "lineNumber": 89
+          },
+          {
+            "text": "      },",
+            "lineNumber": 90
+          },
+          {
+            "text": "    })",
+            "lineNumber": 91
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 93
+          },
+          {
+            "text": "  }",
+            "lineNumber": 94
+          },
+          {
+            "lineNumber": 95
+          },
+          {
+            "text": "  const signInWithMagicLink = async (email: string)",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 105
+          },
+          {
+            "text": "}",
+            "lineNumber": 130,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3422847390174866
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\lib\\auth\\context.tsx",
+        "range": {
+          "startPosition": {
+            "line": 23,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 129,
+            "column": 1
+          }
+        },
+        "contents": "const AuthContext = createContext&lt;AuthContextType | undefined&gt;(undefined)\n\nexport function AuthProvider({ children }: { children: React.ReactNode }) {\n  const [user, setUser] = useState&lt;User | null&gt;(null)\n  const [session, setSession] = useState&lt;Session | null&gt;(null)\n  const [loading, setLoading] = useState(true)\n  const router = useRouter()\n  const supabase = createClientComponentClient()\n\n  useEffect(() =&gt; {\n    // Get initial session\n    supabase.auth.getSession().then(({ data: { session } }) =&gt; {\n      setSession(session)\n      setUser(session?.user ?? null)\n      setLoading(false)\n    })\n\n    // Listen for auth changes\n    const {\n      data: { subscription },\n    } = supabase.auth.onAuthStateChange((_event, session) =&gt; {\n      setSession(session)\n      setUser(session?.user ?? null)\n      setLoading(false)\n    })\n\n    return () =&gt; subscription.unsubscribe()\n  }, [supabase])\n\n  const signIn = async (email: string, password: string) =&gt; {\n    const { error } = await supabase.auth.signInWithPassword({\n      email,\n      password,\n    })\n\n    if (error) throw error\n    router.push('/dashboard')\n  }\n\n  const signUp = async (email: string, password: string) =&gt; {\n    const { error } = await supabase.auth.signUp({\n      email,\n      password,\n    })\n\n    if (error) throw error\n  }\n\n  const signInWithGithub = async () =&gt; {\n    const { error } = await supabase.auth.signInWithOAuth({\n      provider: 'github',\n      options: {\n        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,\n      },\n    })\n\n    if (error) throw error\n  }\n\n  const signInWithGoogle = async () =&gt; {\n    const { error } = await supabase.auth.signInWithOAuth({\n      provider: 'google',\n      options: {\n        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,\n      },\n    })\n\n    if (error) throw error\n  }\n\n  const signInWithMagicLink = async (email: string)\n\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "const AuthContext = createContext&lt;AuthContextType | undefined&gt;(undefined)",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "export function AuthProvider({ children }: { children: React.ReactNode }) {",
+            "lineNumber": 28,
+            "isSignature": true
+          },
+          {
+            "text": "  const [user, setUser] = useState&lt;User | null&gt;(null)",
+            "lineNumber": 29
+          },
+          {
+            "text": "  const [session, setSession] = useState&lt;Session | null&gt;(null)",
+            "lineNumber": 30
+          },
+          {
+            "text": "  const [loading, setLoading] = useState(true)",
+            "lineNumber": 31
+          },
+          {
+            "text": "  const router = useRouter()",
+            "lineNumber": 32
+          },
+          {
+            "text": "  const supabase = createClientComponentClient()",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "  useEffect(() =&gt; {",
+            "lineNumber": 35
+          },
+          {
+            "text": "    // Get initial session",
+            "lineNumber": 36
+          },
+          {
+            "text": "    supabase.auth.getSession().then(({ data: { session } }) =&gt; {",
+            "lineNumber": 37
+          },
+          {
+            "text": "      setSession(session)",
+            "lineNumber": 38
+          },
+          {
+            "text": "      setUser(session?.user ?? null)",
+            "lineNumber": 39
+          },
+          {
+            "text": "      setLoading(false)",
+            "lineNumber": 40
+          },
+          {
+            "text": "    })",
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "text": "    // Listen for auth changes",
+            "lineNumber": 43
+          },
+          {
+            "text": "    const {",
+            "lineNumber": 44
+          },
+          {
+            "text": "      data: { subscription },",
+            "lineNumber": 45
+          },
+          {
+            "text": "    } = supabase.auth.onAuthStateChange((_event, session) =&gt; {",
+            "lineNumber": 46
+          },
+          {
+            "text": "      setSession(session)",
+            "lineNumber": 47
+          },
+          {
+            "text": "      setUser(session?.user ?? null)",
+            "lineNumber": 48
+          },
+          {
+            "text": "      setLoading(false)",
+            "lineNumber": 49
+          },
+          {
+            "text": "    })",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "    return () =&gt; subscription.unsubscribe()",
+            "lineNumber": 52
+          },
+          {
+            "text": "  }, [supabase])",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "  const signIn = async (email: string, password: string) =&gt; {",
+            "lineNumber": 55
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signInWithPassword({",
+            "lineNumber": 56
+          },
+          {
+            "text": "      email,",
+            "lineNumber": 57
+          },
+          {
+            "text": "      password,",
+            "lineNumber": 58
+          },
+          {
+            "text": "    })",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 61
+          },
+          {
+            "text": "    router.push('/dashboard')",
+            "lineNumber": 62
+          },
+          {
+            "text": "  }",
+            "lineNumber": 63
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "text": "  const signUp = async (email: string, password: string) =&gt; {",
+            "lineNumber": 65
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signUp({",
+            "lineNumber": 66
+          },
+          {
+            "text": "      email,",
+            "lineNumber": 67
+          },
+          {
+            "text": "      password,",
+            "lineNumber": 68
+          },
+          {
+            "text": "    })",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 71
+          },
+          {
+            "text": "  }",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "  const signInWithGithub = async () =&gt; {",
+            "lineNumber": 74
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signInWithOAuth({",
+            "lineNumber": 75
+          },
+          {
+            "text": "      provider: 'github',",
+            "lineNumber": 76
+          },
+          {
+            "text": "      options: {",
+            "lineNumber": 77
+          },
+          {
+            "text": "        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,",
+            "lineNumber": 78
+          },
+          {
+            "text": "      },",
+            "lineNumber": 79
+          },
+          {
+            "text": "    })",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 82
+          },
+          {
+            "text": "  }",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "  const signInWithGoogle = async () =&gt; {",
+            "lineNumber": 85
+          },
+          {
+            "text": "    const { error } = await supabase.auth.signInWithOAuth({",
+            "lineNumber": 86
+          },
+          {
+            "text": "      provider: 'google',",
+            "lineNumber": 87
+          },
+          {
+            "text": "      options: {",
+            "lineNumber": 88
+          },
+          {
+            "text": "        redirectTo: &#96;${window.location.origin}/auth/callback&#96;,",
+            "lineNumber": 89
+          },
+          {
+            "text": "      },",
+            "lineNumber": 90
+          },
+          {
+            "text": "    })",
+            "lineNumber": 91
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "text": "    if (error) throw error",
+            "lineNumber": 93
+          },
+          {
+            "text": "  }",
+            "lineNumber": 94
+          },
+          {
+            "lineNumber": 95
+          },
+          {
+            "text": "  const signInWithMagicLink = async (email: string)",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 105
+          },
+          {
+            "text": "}",
+            "lineNumber": 130,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3422847390174866
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 59
+          },
+          "endPosition": {
+            "line": 127
+          }
+        },
+        "contents": "warn_before_expiry_days = 14  # 14日前に警告\n\n[security.signing]\n# Ed25519署名鍵（メッセージ署名用）\nalgorithm = \"Ed25519\"\nsigning_key = \"~/.codex/keys/ed25519-signing\"\nsigning_public_key = \"~/.codex/keys/ed25519-signing.pub\"\n\n[security.encryption]\n# ペイロード暗号化\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\nkey_rotation_days = 90\n\n[security.replay_protection]\n# リプレイ攻撃対策\nenabled = true\nnonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)\nredis_url = \"redis://localhost:6379\"\ntimestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ\n\n[security.rate_limiting]\n# Rate Limiting（DDoS対策）\nenabled = true\nmax_requests_per_sec = 10.0\nburst_size = 20\n\n# ==================== Sandbox ====================\n[sandbox]\ndefault_mode = \"read-only\"  # デフォルトは読み取り専用\n\n[approval]\npolicy = \"on-request\"  # 危険な操作は都度承認\n\n# ==================== エージェント通信セキュリティ ====================\n[agent_security]\nencryption_enabled = true\nsigning_enabled = true\n\n[agent_security.encryption]\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\n\n[agent_security.signing]\nalgorithm = \"Ed25519\"\nkeys_directory = \"~/.codex/keys/agents\"\n\n# エージェント信頼関係（RBAC: Role-Based Access Control）\n[agent_security.trust]\n# 特権エージェント（すべてのエージェントと通信可能）\nprivileged_agents = [\"SecurityExpert\"]\n\n# CodeExpert: 限定的な通信\n[agent_security.trust.CodeExpert]\ncan_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]\npermissions = [\"read\", \"write\"]\n\n# SecurityExpert: すべてのエージェントと通信可能（特権）\n[agent_security.trust.SecurityExpert]\ncan_communicate_with = [\"*\"]  # ワイルドカード\npermissions = [\"read\", \"write\", \"execute\", \"admin\"]\n\n# TestingExpert: 制限あり\n[agent_security.trust.TestingExpert]\ncan_communicate_with = [\"CodeExpert\", \"General\"]\npermissions = [\"read\", \"write\"]\n\n# DeepResearcher: 外部アクセス可能",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "warn_before_expiry_days = 14  # 14日前に警告",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "[security.signing]",
+            "lineNumber": 62
+          },
+          {
+            "text": "# Ed25519署名鍵（メッセージ署名用）",
+            "lineNumber": 63
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 64
+          },
+          {
+            "text": "signing_key = \"~/.codex/keys/ed25519-signing\"",
+            "lineNumber": 65
+          },
+          {
+            "text": "signing_public_key = \"~/.codex/keys/ed25519-signing.pub\"",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "[security.encryption]",
+            "lineNumber": 68
+          },
+          {
+            "text": "# ペイロード暗号化",
+            "lineNumber": 69
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 70
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 71
+          },
+          {
+            "text": "key_rotation_days = 90",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "[security.replay_protection]",
+            "lineNumber": 74
+          },
+          {
+            "text": "# リプレイ攻撃対策",
+            "lineNumber": 75
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 76
+          },
+          {
+            "text": "nonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)",
+            "lineNumber": 77
+          },
+          {
+            "text": "redis_url = \"redis://localhost:6379\"",
+            "lineNumber": 78
+          },
+          {
+            "text": "timestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ",
+            "lineNumber": 79
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "text": "[security.rate_limiting]",
+            "lineNumber": 81
+          },
+          {
+            "text": "# Rate Limiting（DDoS対策）",
+            "lineNumber": 82
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 83
+          },
+          {
+            "text": "max_requests_per_sec = 10.0",
+            "lineNumber": 84
+          },
+          {
+            "text": "burst_size = 20",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "# ==================== Sandbox ====================",
+            "lineNumber": 87
+          },
+          {
+            "text": "[sandbox]",
+            "lineNumber": 88
+          },
+          {
+            "text": "default_mode = \"read-only\"  # デフォルトは読み取り専用",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "[approval]",
+            "lineNumber": 91
+          },
+          {
+            "text": "policy = \"on-request\"  # 危険な操作は都度承認",
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93
+          },
+          {
+            "text": "# ==================== エージェント通信セキュリティ ====================",
+            "lineNumber": 94
+          },
+          {
+            "text": "[agent_security]",
+            "lineNumber": 95
+          },
+          {
+            "text": "encryption_enabled = true",
+            "lineNumber": 96
+          },
+          {
+            "text": "signing_enabled = true",
+            "lineNumber": 97
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "text": "[agent_security.encryption]",
+            "lineNumber": 99
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 100
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "[agent_security.signing]",
+            "lineNumber": 103
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 104
+          },
+          {
+            "text": "keys_directory = \"~/.codex/keys/agents\"",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "# エージェント信頼関係（RBAC: Role-Based Access Control）",
+            "lineNumber": 107
+          },
+          {
+            "text": "[agent_security.trust]",
+            "lineNumber": 108
+          },
+          {
+            "text": "# 特権エージェント（すべてのエージェントと通信可能）",
+            "lineNumber": 109
+          },
+          {
+            "text": "privileged_agents = [\"SecurityExpert\"]",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "# CodeExpert: 限定的な通信",
+            "lineNumber": 112
+          },
+          {
+            "text": "[agent_security.trust.CodeExpert]",
+            "lineNumber": 113
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]",
+            "lineNumber": 114
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "# SecurityExpert: すべてのエージェントと通信可能（特権）",
+            "lineNumber": 117
+          },
+          {
+            "text": "[agent_security.trust.SecurityExpert]",
+            "lineNumber": 118
+          },
+          {
+            "text": "can_communicate_with = [\"*\"]  # ワイルドカード",
+            "lineNumber": 119
+          },
+          {
+            "text": "permissions = [\"read\", \"write\", \"execute\", \"admin\"]",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "# TestingExpert: 制限あり",
+            "lineNumber": 122
+          },
+          {
+            "text": "[agent_security.trust.TestingExpert]",
+            "lineNumber": 123
+          },
+          {
+            "text": "can_communicate_with = [\"CodeExpert\", \"General\"]",
+            "lineNumber": 124
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "# DeepResearcher: 外部アクセス可能",
+            "lineNumber": 127
+          }
+        ]
+      },
+      "score": 0.3364450931549072
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cloud-tasks\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 36,
+            "column": 61
+          },
+          "endPosition": {
+            "line": 94,
+            "column": 16
+          }
+        },
+        "contents": "    base_url: String,\n}\n\nasync fn init_backend(user_agent_suffix: &amp;str) -&gt; anyhow::Result&lt;BackendContext&gt; {\n    let use_mock = matches!(\n        std::env::var(\"CODEX_CLOUD_TASKS_MODE\").ok().as_deref(),\n        Some(\"mock\") | Some(\"MOCK\")\n    );\n    let base_url = std::env::var(\"CODEX_CLOUD_TASKS_BASE_URL\")\n        .unwrap_or_else(|_| \"https://chatgpt.com/backend-api\".to_string());\n\n    set_user_agent_suffix(user_agent_suffix);\n\n    if use_mock {\n        return Ok(BackendContext {\n            backend: Arc::new(codex_cloud_tasks_client::MockClient),\n            base_url,\n        });\n    }\n\n    let ua = codex_core::default_client::get_codex_user_agent();\n    let mut http = codex_cloud_tasks_client::HttpClient::new(base_url.clone())?.with_user_agent(ua);\n    let style = if base_url.contains(\"/backend-api\") {\n        \"wham\"\n    } else {\n        \"codex-api\"\n    };\n    append_error_log(format!(\"startup: base_url={base_url} path_style={style}\"));\n\n    let auth_manager = util::load_auth_manager().await;\n    let auth = match auth_manager.as_ref().and_then(AuthManager::auth) {\n        Some(auth) =&gt; auth,\n        None =&gt; {\n            eprintln!(\n                \"Not signed in. Please run 'codex login' to sign in with ChatGPT, then re-run 'codex cloud'.\"\n            );\n            std::process::exit(1);\n        }\n    };\n\n    if let Some(acc) = auth.get_account_id() {\n        append_error_log(format!(\"auth: mode=ChatGPT account_id={acc}\"));\n    }\n\n    let token = match auth.get_token().await {\n        Ok(t) if !t.is_empty() =&gt; t,\n        _ =&gt; {\n            eprintln!(\n                \"Not signed in. Please run 'codex login' to sign in with ChatGPT, then re-run 'codex cloud'.\"\n            );\n            std::process::exit(1);\n        }\n    };\n\n    http = http.with_bearer_token(token.clone());\n    if let Some(acc) = auth\n        .get_account_id()\n        .or_else",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    base_url: String,",
+            "lineNumber": 38
+          },
+          {
+            "text": "}",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "async fn init_backend(user_agent_suffix: &amp;str) -&gt; anyhow::Result&lt;BackendContext&gt; {",
+            "lineNumber": 41
+          },
+          {
+            "text": "    let use_mock = matches!(",
+            "lineNumber": 42
+          },
+          {
+            "text": "        std::env::var(\"CODEX_CLOUD_TASKS_MODE\").ok().as_deref(),",
+            "lineNumber": 43
+          },
+          {
+            "text": "        Some(\"mock\") | Some(\"MOCK\")",
+            "lineNumber": 44
+          },
+          {
+            "text": "    );",
+            "lineNumber": 45
+          },
+          {
+            "text": "    let base_url = std::env::var(\"CODEX_CLOUD_TASKS_BASE_URL\")",
+            "lineNumber": 46
+          },
+          {
+            "text": "        .unwrap_or_else(|_| \"https://chatgpt.com/backend-api\".to_string());",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "    set_user_agent_suffix(user_agent_suffix);",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "    if use_mock {",
+            "lineNumber": 51
+          },
+          {
+            "text": "        return Ok(BackendContext {",
+            "lineNumber": 52
+          },
+          {
+            "text": "            backend: Arc::new(codex_cloud_tasks_client::MockClient),",
+            "lineNumber": 53
+          },
+          {
+            "text": "            base_url,",
+            "lineNumber": 54
+          },
+          {
+            "text": "        });",
+            "lineNumber": 55
+          },
+          {
+            "text": "    }",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "    let ua = codex_core::default_client::get_codex_user_agent();",
+            "lineNumber": 58
+          },
+          {
+            "text": "    let mut http = codex_cloud_tasks_client::HttpClient::new(base_url.clone())?.with_user_agent(ua);",
+            "lineNumber": 59
+          },
+          {
+            "text": "    let style = if base_url.contains(\"/backend-api\") {",
+            "lineNumber": 60
+          },
+          {
+            "text": "        \"wham\"",
+            "lineNumber": 61
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 62
+          },
+          {
+            "text": "        \"codex-api\"",
+            "lineNumber": 63
+          },
+          {
+            "text": "    };",
+            "lineNumber": 64
+          },
+          {
+            "text": "    append_error_log(format!(\"startup: base_url={base_url} path_style={style}\"));",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "    let auth_manager = util::load_auth_manager().await;",
+            "lineNumber": 67
+          },
+          {
+            "text": "    let auth = match auth_manager.as_ref().and_then(AuthManager::auth) {",
+            "lineNumber": 68
+          },
+          {
+            "text": "        Some(auth) =&gt; auth,",
+            "lineNumber": 69
+          },
+          {
+            "text": "        None =&gt; {",
+            "lineNumber": 70
+          },
+          {
+            "text": "            eprintln!(",
+            "lineNumber": 71
+          },
+          {
+            "text": "                \"Not signed in. Please run 'codex login' to sign in with ChatGPT, then re-run 'codex cloud'.\"",
+            "lineNumber": 72
+          },
+          {
+            "text": "            );",
+            "lineNumber": 73
+          },
+          {
+            "text": "            std::process::exit(1);",
+            "lineNumber": 74
+          },
+          {
+            "text": "        }",
+            "lineNumber": 75
+          },
+          {
+            "text": "    };",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "    if let Some(acc) = auth.get_account_id() {",
+            "lineNumber": 78
+          },
+          {
+            "text": "        append_error_log(format!(\"auth: mode=ChatGPT account_id={acc}\"));",
+            "lineNumber": 79
+          },
+          {
+            "text": "    }",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "    let token = match auth.get_token().await {",
+            "lineNumber": 82
+          },
+          {
+            "text": "        Ok(t) if !t.is_empty() =&gt; t,",
+            "lineNumber": 83
+          },
+          {
+            "text": "        _ =&gt; {",
+            "lineNumber": 84
+          },
+          {
+            "text": "            eprintln!(",
+            "lineNumber": 85
+          },
+          {
+            "text": "                \"Not signed in. Please run 'codex login' to sign in with ChatGPT, then re-run 'codex cloud'.\"",
+            "lineNumber": 86
+          },
+          {
+            "text": "            );",
+            "lineNumber": 87
+          },
+          {
+            "text": "            std::process::exit(1);",
+            "lineNumber": 88
+          },
+          {
+            "text": "        }",
+            "lineNumber": 89
+          },
+          {
+            "text": "    };",
+            "lineNumber": 90
+          },
+          {
+            "lineNumber": 91
+          },
+          {
+            "text": "    http = http.with_bearer_token(token.clone());",
+            "lineNumber": 92
+          },
+          {
+            "text": "    if let Some(acc) = auth",
+            "lineNumber": 93
+          },
+          {
+            "text": "        .get_account_id()",
+            "lineNumber": 94
+          },
+          {
+            "text": "        .or_else",
+            "lineNumber": 95
+          }
+        ]
+      },
+      "score": 0.33503395318984985
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "TODO|FIXME|XXX|HACK|PLACEHOLDER",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\orchestrator\\src\\server.rs",
+  "caseInsensitive": true
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "TODO|FIXME|XXX|HACK|PLACEHOLDER",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\orchestrator\\src\\server.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 318,
+                  "content": "    /// Currently a placeholder - should be implemented with actual auth logic"
+                },
+                {
+                  "lineNumber": 324,
+                  "content": "        // TODO: Implement actual authentication verification"
+                },
+                {
+                  "lineNumber": 823,
+                  "content": "                        // TODO: Implement with BlueprintManager"
+                },
+                {
+                  "lineNumber": 1872,
+                  "content": "                        // TODO: Implement with BlueprintManager"
+                }
+              ]
+            }
+          ],
+          "totalLines": 4,
+          "totalMatchedLines": 4
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\scripts\install-binary.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "What security configurations exist for production deployment?",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 59
+          },
+          "endPosition": {
+            "line": 127
+          }
+        },
+        "contents": "warn_before_expiry_days = 14  # 14日前に警告\n\n[security.signing]\n# Ed25519署名鍵（メッセージ署名用）\nalgorithm = \"Ed25519\"\nsigning_key = \"~/.codex/keys/ed25519-signing\"\nsigning_public_key = \"~/.codex/keys/ed25519-signing.pub\"\n\n[security.encryption]\n# ペイロード暗号化\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\nkey_rotation_days = 90\n\n[security.replay_protection]\n# リプレイ攻撃対策\nenabled = true\nnonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)\nredis_url = \"redis://localhost:6379\"\ntimestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ\n\n[security.rate_limiting]\n# Rate Limiting（DDoS対策）\nenabled = true\nmax_requests_per_sec = 10.0\nburst_size = 20\n\n# ==================== Sandbox ====================\n[sandbox]\ndefault_mode = \"read-only\"  # デフォルトは読み取り専用\n\n[approval]\npolicy = \"on-request\"  # 危険な操作は都度承認\n\n# ==================== エージェント通信セキュリティ ====================\n[agent_security]\nencryption_enabled = true\nsigning_enabled = true\n\n[agent_security.encryption]\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\n\n[agent_security.signing]\nalgorithm = \"Ed25519\"\nkeys_directory = \"~/.codex/keys/agents\"\n\n# エージェント信頼関係（RBAC: Role-Based Access Control）\n[agent_security.trust]\n# 特権エージェント（すべてのエージェントと通信可能）\nprivileged_agents = [\"SecurityExpert\"]\n\n# CodeExpert: 限定的な通信\n[agent_security.trust.CodeExpert]\ncan_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]\npermissions = [\"read\", \"write\"]\n\n# SecurityExpert: すべてのエージェントと通信可能（特権）\n[agent_security.trust.SecurityExpert]\ncan_communicate_with = [\"*\"]  # ワイルドカード\npermissions = [\"read\", \"write\", \"execute\", \"admin\"]\n\n# TestingExpert: 制限あり\n[agent_security.trust.TestingExpert]\ncan_communicate_with = [\"CodeExpert\", \"General\"]\npermissions = [\"read\", \"write\"]\n\n# DeepResearcher: 外部アクセス可能",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "warn_before_expiry_days = 14  # 14日前に警告",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "[security.signing]",
+            "lineNumber": 62
+          },
+          {
+            "text": "# Ed25519署名鍵（メッセージ署名用）",
+            "lineNumber": 63
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 64
+          },
+          {
+            "text": "signing_key = \"~/.codex/keys/ed25519-signing\"",
+            "lineNumber": 65
+          },
+          {
+            "text": "signing_public_key = \"~/.codex/keys/ed25519-signing.pub\"",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "[security.encryption]",
+            "lineNumber": 68
+          },
+          {
+            "text": "# ペイロード暗号化",
+            "lineNumber": 69
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 70
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 71
+          },
+          {
+            "text": "key_rotation_days = 90",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "[security.replay_protection]",
+            "lineNumber": 74
+          },
+          {
+            "text": "# リプレイ攻撃対策",
+            "lineNumber": 75
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 76
+          },
+          {
+            "text": "nonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)",
+            "lineNumber": 77
+          },
+          {
+            "text": "redis_url = \"redis://localhost:6379\"",
+            "lineNumber": 78
+          },
+          {
+            "text": "timestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ",
+            "lineNumber": 79
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "text": "[security.rate_limiting]",
+            "lineNumber": 81
+          },
+          {
+            "text": "# Rate Limiting（DDoS対策）",
+            "lineNumber": 82
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 83
+          },
+          {
+            "text": "max_requests_per_sec = 10.0",
+            "lineNumber": 84
+          },
+          {
+            "text": "burst_size = 20",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "# ==================== Sandbox ====================",
+            "lineNumber": 87
+          },
+          {
+            "text": "[sandbox]",
+            "lineNumber": 88
+          },
+          {
+            "text": "default_mode = \"read-only\"  # デフォルトは読み取り専用",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "[approval]",
+            "lineNumber": 91
+          },
+          {
+            "text": "policy = \"on-request\"  # 危険な操作は都度承認",
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93
+          },
+          {
+            "text": "# ==================== エージェント通信セキュリティ ====================",
+            "lineNumber": 94
+          },
+          {
+            "text": "[agent_security]",
+            "lineNumber": 95
+          },
+          {
+            "text": "encryption_enabled = true",
+            "lineNumber": 96
+          },
+          {
+            "text": "signing_enabled = true",
+            "lineNumber": 97
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "text": "[agent_security.encryption]",
+            "lineNumber": 99
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 100
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "[agent_security.signing]",
+            "lineNumber": 103
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 104
+          },
+          {
+            "text": "keys_directory = \"~/.codex/keys/agents\"",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "# エージェント信頼関係（RBAC: Role-Based Access Control）",
+            "lineNumber": 107
+          },
+          {
+            "text": "[agent_security.trust]",
+            "lineNumber": 108
+          },
+          {
+            "text": "# 特権エージェント（すべてのエージェントと通信可能）",
+            "lineNumber": 109
+          },
+          {
+            "text": "privileged_agents = [\"SecurityExpert\"]",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "# CodeExpert: 限定的な通信",
+            "lineNumber": 112
+          },
+          {
+            "text": "[agent_security.trust.CodeExpert]",
+            "lineNumber": 113
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]",
+            "lineNumber": 114
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "# SecurityExpert: すべてのエージェントと通信可能（特権）",
+            "lineNumber": 117
+          },
+          {
+            "text": "[agent_security.trust.SecurityExpert]",
+            "lineNumber": 118
+          },
+          {
+            "text": "can_communicate_with = [\"*\"]  # ワイルドカード",
+            "lineNumber": 119
+          },
+          {
+            "text": "permissions = [\"read\", \"write\", \"execute\", \"admin\"]",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "# TestingExpert: 制限あり",
+            "lineNumber": 122
+          },
+          {
+            "text": "[agent_security.trust.TestingExpert]",
+            "lineNumber": 123
+          },
+          {
+            "text": "can_communicate_with = [\"CodeExpert\", \"General\"]",
+            "lineNumber": 124
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "# DeepResearcher: 外部アクセス可能",
+            "lineNumber": 127
+          }
+        ]
+      },
+      "score": 0.46641576290130615
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 191
+          },
+          "endPosition": {
+            "line": 255
+          }
+        },
+        "contents": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"\nenv.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"\nenv.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"\nstartup_timeout_sec = 60\n\n# 🔒 TLS/mTLS設定\ntransport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）\nbind_address = \"127.0.0.1:8001\"\ntls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"\nrequire_client_cert = true  # mTLS必須\n\n# 🔐 認証設定\nauth_method = \"mtls\"  # mTLS認証\ntrusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"\n\n# Serena - AIオーケストレーション（TLS/mTLS）\n[mcp_servers.serena]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-everything\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8002\"\ntls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Gemini CLI - Google Gemini AI統合（TLS/mTLS）\n[mcp_servers.codex-gemini-mcp]\ncommand = \"codex-gemini-mcp\"\nargs = []\ntransport = \"https\"\nbind_address = \"127.0.0.1:8003\"\ntls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Filesystem - ファイル操作（TLS/mTLS）\n[mcp_servers.filesystem]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8004\"\ntls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# GitHub - GitHub API（TLS/mTLS）\n[mcp_servers.github]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-github\"]\nenv.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"\ntransport = \"https\"\nbind_address = \"127.0.0.1:8005\"\ntls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Chrome DevTools - ブラウザ自動化（TLS/mTLS）\n[mcp_servers.chrome-devtools]\ncommand = \"npx\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"",
+            "lineNumber": 192
+          },
+          {
+            "text": "env.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 193
+          },
+          {
+            "text": "env.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"",
+            "lineNumber": 194
+          },
+          {
+            "text": "startup_timeout_sec = 60",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "# 🔒 TLS/mTLS設定",
+            "lineNumber": 197
+          },
+          {
+            "text": "transport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）",
+            "lineNumber": 198
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8001\"",
+            "lineNumber": 199
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"",
+            "lineNumber": 200
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"",
+            "lineNumber": 201
+          },
+          {
+            "text": "require_client_cert = true  # mTLS必須",
+            "lineNumber": 202
+          },
+          {
+            "lineNumber": 203
+          },
+          {
+            "text": "# 🔐 認証設定",
+            "lineNumber": 204
+          },
+          {
+            "text": "auth_method = \"mtls\"  # mTLS認証",
+            "lineNumber": 205
+          },
+          {
+            "text": "trusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"",
+            "lineNumber": 206
+          },
+          {
+            "lineNumber": 207
+          },
+          {
+            "text": "# Serena - AIオーケストレーション（TLS/mTLS）",
+            "lineNumber": 208
+          },
+          {
+            "text": "[mcp_servers.serena]",
+            "lineNumber": 209
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 210
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-everything\"]",
+            "lineNumber": 211
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 212
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8002\"",
+            "lineNumber": 213
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"",
+            "lineNumber": 214
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"",
+            "lineNumber": 215
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 216
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 217
+          },
+          {
+            "lineNumber": 218
+          },
+          {
+            "text": "# Gemini CLI - Google Gemini AI統合（TLS/mTLS）",
+            "lineNumber": 219
+          },
+          {
+            "text": "[mcp_servers.codex-gemini-mcp]",
+            "lineNumber": 220
+          },
+          {
+            "text": "command = \"codex-gemini-mcp\"",
+            "lineNumber": 221
+          },
+          {
+            "text": "args = []",
+            "lineNumber": 222
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 223
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8003\"",
+            "lineNumber": 224
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"",
+            "lineNumber": 225
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"",
+            "lineNumber": 226
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 227
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 228
+          },
+          {
+            "lineNumber": 229
+          },
+          {
+            "text": "# Filesystem - ファイル操作（TLS/mTLS）",
+            "lineNumber": 230
+          },
+          {
+            "text": "[mcp_servers.filesystem]",
+            "lineNumber": 231
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 232
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]",
+            "lineNumber": 233
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 234
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8004\"",
+            "lineNumber": 235
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"",
+            "lineNumber": 236
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"",
+            "lineNumber": 237
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 238
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "# GitHub - GitHub API（TLS/mTLS）",
+            "lineNumber": 241
+          },
+          {
+            "text": "[mcp_servers.github]",
+            "lineNumber": 242
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 243
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-github\"]",
+            "lineNumber": 244
+          },
+          {
+            "text": "env.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 245
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 246
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8005\"",
+            "lineNumber": 247
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"",
+            "lineNumber": 248
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"",
+            "lineNumber": 249
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 250
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 251
+          },
+          {
+            "lineNumber": 252
+          },
+          {
+            "text": "# Chrome DevTools - ブラウザ自動化（TLS/mTLS）",
+            "lineNumber": 253
+          },
+          {
+            "text": "[mcp_servers.chrome-devtools]",
+            "lineNumber": 254
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 255
+          }
+        ]
+      },
+      "score": 0.4389236867427826
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 124
+          },
+          "endPosition": {
+            "line": 196
+          }
+        },
+        "contents": "permissions = [\"read\", \"write\"]\n\n# DeepResearcher: 外部アクセス可能\n[agent_security.trust.DeepResearcher]\ncan_communicate_with = [\"General\"]\npermissions = [\"read\", \"network\"]\n\n# DocsExpert: ドキュメント生成のみ\n[agent_security.trust.DocsExpert]\ncan_communicate_with = [\"General\", \"CodeExpert\"]\npermissions = [\"read\", \"write\"]\n\n# DebugExpert: デバッグ権限\n[agent_security.trust.DebugExpert]\ncan_communicate_with = [\"General\", \"CodeExpert\"]\npermissions = [\"read\", \"write\", \"execute\"]\n\n# PerformanceExpert: パフォーマンス測定\n[agent_security.trust.PerformanceExpert]\ncan_communicate_with = [\"General\"]\npermissions = [\"read\"]\n\n# General: 汎用エージェント\n[agent_security.trust.General]\ncan_communicate_with = [\"*\"]\npermissions = [\"read\"]\n\n[agent_security.rate_limiting]\nenabled = true\nmax_messages_per_sec = 5.0\n\n# ==================== 監査ログ ====================\n[audit]\nenabled = true\nlog_dir = \"~/.codex/audit-logs\"\ninclude_mcp_calls = true\ninclude_agent_messages = true\ninclude_security_events = true\ninclude_tool_args = true\nformat = \"json\"\nrotation = \"daily\"\nretention_days = 90\n\n# セキュリティイベントの即時通知\n[audit.alerts]\nenabled = true\nalert_on_security_events = true\nalert_email = \"security@example.com\"\nalert_slack_webhook = \"${SLACK_SECURITY_WEBHOOK}\"\n\n# 重要イベントの閾値\n[audit.thresholds]\n# mTLS認証失敗が5分間に10回以上でアラート\nmtls_auth_failures_per_5min = 10\n# 署名検証失敗が5分間に5回以上でアラート\nsignature_failures_per_5min = 5\n# Rate Limit超過が5分間に100回以上でアラート\nrate_limit_exceeded_per_5min = 100\n\n# ==================== MCP サーバー（セキュア版） ====================\n# 🔒 すべてのMCPサーバーでTLS/mTLS有効化\n\n# Codex MCP Server - メインサーバー（TLS/mTLS）\n[mcp_servers.codex]\ncommand = \"codex\"\nargs = [\"mcp-server\"]\nenv.RUST_LOG = \"info\"\nenv.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"\nenv.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"\nenv.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"\nstartup_timeout_sec = 60",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "# DeepResearcher: 外部アクセス可能",
+            "lineNumber": 127
+          },
+          {
+            "text": "[agent_security.trust.DeepResearcher]",
+            "lineNumber": 128
+          },
+          {
+            "text": "can_communicate_with = [\"General\"]",
+            "lineNumber": 129
+          },
+          {
+            "text": "permissions = [\"read\", \"network\"]",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "# DocsExpert: ドキュメント生成のみ",
+            "lineNumber": 132
+          },
+          {
+            "text": "[agent_security.trust.DocsExpert]",
+            "lineNumber": 133
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"CodeExpert\"]",
+            "lineNumber": 134
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 135
+          },
+          {
+            "lineNumber": 136
+          },
+          {
+            "text": "# DebugExpert: デバッグ権限",
+            "lineNumber": 137
+          },
+          {
+            "text": "[agent_security.trust.DebugExpert]",
+            "lineNumber": 138
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"CodeExpert\"]",
+            "lineNumber": 139
+          },
+          {
+            "text": "permissions = [\"read\", \"write\", \"execute\"]",
+            "lineNumber": 140
+          },
+          {
+            "lineNumber": 141
+          },
+          {
+            "text": "# PerformanceExpert: パフォーマンス測定",
+            "lineNumber": 142
+          },
+          {
+            "text": "[agent_security.trust.PerformanceExpert]",
+            "lineNumber": 143
+          },
+          {
+            "text": "can_communicate_with = [\"General\"]",
+            "lineNumber": 144
+          },
+          {
+            "text": "permissions = [\"read\"]",
+            "lineNumber": 145
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "text": "# General: 汎用エージェント",
+            "lineNumber": 147
+          },
+          {
+            "text": "[agent_security.trust.General]",
+            "lineNumber": 148
+          },
+          {
+            "text": "can_communicate_with = [\"*\"]",
+            "lineNumber": 149
+          },
+          {
+            "text": "permissions = [\"read\"]",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "[agent_security.rate_limiting]",
+            "lineNumber": 152
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 153
+          },
+          {
+            "text": "max_messages_per_sec = 5.0",
+            "lineNumber": 154
+          },
+          {
+            "lineNumber": 155
+          },
+          {
+            "text": "# ==================== 監査ログ ====================",
+            "lineNumber": 156
+          },
+          {
+            "text": "[audit]",
+            "lineNumber": 157
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 158
+          },
+          {
+            "text": "log_dir = \"~/.codex/audit-logs\"",
+            "lineNumber": 159
+          },
+          {
+            "text": "include_mcp_calls = true",
+            "lineNumber": 160
+          },
+          {
+            "text": "include_agent_messages = true",
+            "lineNumber": 161
+          },
+          {
+            "text": "include_security_events = true",
+            "lineNumber": 162
+          },
+          {
+            "text": "include_tool_args = true",
+            "lineNumber": 163
+          },
+          {
+            "text": "format = \"json\"",
+            "lineNumber": 164
+          },
+          {
+            "text": "rotation = \"daily\"",
+            "lineNumber": 165
+          },
+          {
+            "text": "retention_days = 90",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "# セキュリティイベントの即時通知",
+            "lineNumber": 168
+          },
+          {
+            "text": "[audit.alerts]",
+            "lineNumber": 169
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 170
+          },
+          {
+            "text": "alert_on_security_events = true",
+            "lineNumber": 171
+          },
+          {
+            "text": "alert_email = \"security@example.com\"",
+            "lineNumber": 172
+          },
+          {
+            "text": "alert_slack_webhook = \"${SLACK_SECURITY_WEBHOOK}\"",
+            "lineNumber": 173
+          },
+          {
+            "lineNumber": 174
+          },
+          {
+            "text": "# 重要イベントの閾値",
+            "lineNumber": 175
+          },
+          {
+            "text": "[audit.thresholds]",
+            "lineNumber": 176
+          },
+          {
+            "text": "# mTLS認証失敗が5分間に10回以上でアラート",
+            "lineNumber": 177
+          },
+          {
+            "text": "mtls_auth_failures_per_5min = 10",
+            "lineNumber": 178
+          },
+          {
+            "text": "# 署名検証失敗が5分間に5回以上でアラート",
+            "lineNumber": 179
+          },
+          {
+            "text": "signature_failures_per_5min = 5",
+            "lineNumber": 180
+          },
+          {
+            "text": "# Rate Limit超過が5分間に100回以上でアラート",
+            "lineNumber": 181
+          },
+          {
+            "text": "rate_limit_exceeded_per_5min = 100",
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "# ==================== MCP サーバー（セキュア版） ====================",
+            "lineNumber": 184
+          },
+          {
+            "text": "# 🔒 すべてのMCPサーバーでTLS/mTLS有効化",
+            "lineNumber": 185
+          },
+          {
+            "lineNumber": 186
+          },
+          {
+            "text": "# Codex MCP Server - メインサーバー（TLS/mTLS）",
+            "lineNumber": 187
+          },
+          {
+            "text": "[mcp_servers.codex]",
+            "lineNumber": 188
+          },
+          {
+            "text": "command = \"codex\"",
+            "lineNumber": 189
+          },
+          {
+            "text": "args = [\"mcp-server\"]",
+            "lineNumber": 190
+          },
+          {
+            "text": "env.RUST_LOG = \"info\"",
+            "lineNumber": 191
+          },
+          {
+            "text": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"",
+            "lineNumber": 192
+          },
+          {
+            "text": "env.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 193
+          },
+          {
+            "text": "env.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"",
+            "lineNumber": 194
+          },
+          {
+            "text": "startup_timeout_sec = 60",
+            "lineNumber": 195
+          }
+        ]
+      },
+      "score": 0.429559588432312
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 252
+          },
+          "endPosition": {
+            "line": 323
+          }
+        },
+        "contents": "# Chrome DevTools - ブラウザ自動化（TLS/mTLS）\n[mcp_servers.chrome-devtools]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-chrome\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8006\"\ntls_cert = \"~/.codex/certs/mcp-servers/chrome-devtools-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/chrome-devtools-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Sequential Thinking - 段階的思考（TLS/mTLS）\n[mcp_servers.sequential-thinking]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-sequential-thinking\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8007\"\ntls_cert = \"~/.codex/certs/mcp-servers/sequential-thinking-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/sequential-thinking-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# ... (他のMCPサーバーも同様にTLS/mTLS設定)\n\n# ==================== サブエージェント ====================\n[subagents]\nenabled = true\nmax_parallel = 4\ntoken_budget = 40000\ninherit_model = true\nuse_codex_mcp = true\n\n# 🔐 セキュア通信有効化\nsecure_channel = true\nencryption_enabled = true\nsigning_enabled = true\n\n# ==================== Deep Research ====================\n[deep_research]\nenabled = true\ndefault_backend = \"gemini\"  # Gemini Search Grounding\nfallback_backends = [\"duckduckgo\", \"google\", \"bing\"]\nmax_sources = 10\ncitation_style = \"academic\"\n\n# ==================== セキュリティモニタリング ====================\n[monitoring]\nenabled = true\nprometheus_endpoint = \"http://localhost:9090\"\ngrafana_dashboard_url = \"http://localhost:3000/d/codex-security\"\n\n[monitoring.metrics]\n# 収集するメトリクス\ncollect_tls_metrics = true\ncollect_auth_metrics = true\ncollect_rate_limit_metrics = true\ncollect_agent_metrics = true\n\n[monitoring.export]\n# メトリクスのエクスポート\nformat = \"prometheus\"\nexport_interval_sec = 30\n\n# ==================== バックアップ ====================\n[backup]\nenabled = true\nbackup_dir = \"~/.codex/backups\"\nbackup_interval_hours = 24\nretention_days = 30\n\n# バックアップ対象",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Chrome DevTools - ブラウザ自動化（TLS/mTLS）",
+            "lineNumber": 253
+          },
+          {
+            "text": "[mcp_servers.chrome-devtools]",
+            "lineNumber": 254
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 255
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-chrome\"]",
+            "lineNumber": 256
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 257
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8006\"",
+            "lineNumber": 258
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/chrome-devtools-cert.pem\"",
+            "lineNumber": 259
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/chrome-devtools-key.pem\"",
+            "lineNumber": 260
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 261
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 262
+          },
+          {
+            "lineNumber": 263
+          },
+          {
+            "text": "# Sequential Thinking - 段階的思考（TLS/mTLS）",
+            "lineNumber": 264
+          },
+          {
+            "text": "[mcp_servers.sequential-thinking]",
+            "lineNumber": 265
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 266
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-sequential-thinking\"]",
+            "lineNumber": 267
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 268
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8007\"",
+            "lineNumber": 269
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/sequential-thinking-cert.pem\"",
+            "lineNumber": 270
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/sequential-thinking-key.pem\"",
+            "lineNumber": 271
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 272
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 273
+          },
+          {
+            "lineNumber": 274
+          },
+          {
+            "text": "# ... (他のMCPサーバーも同様にTLS/mTLS設定)",
+            "lineNumber": 275
+          },
+          {
+            "lineNumber": 276
+          },
+          {
+            "text": "# ==================== サブエージェント ====================",
+            "lineNumber": 277
+          },
+          {
+            "text": "[subagents]",
+            "lineNumber": 278
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 279
+          },
+          {
+            "text": "max_parallel = 4",
+            "lineNumber": 280
+          },
+          {
+            "text": "token_budget = 40000",
+            "lineNumber": 281
+          },
+          {
+            "text": "inherit_model = true",
+            "lineNumber": 282
+          },
+          {
+            "text": "use_codex_mcp = true",
+            "lineNumber": 283
+          },
+          {
+            "lineNumber": 284
+          },
+          {
+            "text": "# 🔐 セキュア通信有効化",
+            "lineNumber": 285
+          },
+          {
+            "text": "secure_channel = true",
+            "lineNumber": 286
+          },
+          {
+            "text": "encryption_enabled = true",
+            "lineNumber": 287
+          },
+          {
+            "text": "signing_enabled = true",
+            "lineNumber": 288
+          },
+          {
+            "lineNumber": 289
+          },
+          {
+            "text": "# ==================== Deep Research ====================",
+            "lineNumber": 290
+          },
+          {
+            "text": "[deep_research]",
+            "lineNumber": 291
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 292
+          },
+          {
+            "text": "default_backend = \"gemini\"  # Gemini Search Grounding",
+            "lineNumber": 293
+          },
+          {
+            "text": "fallback_backends = [\"duckduckgo\", \"google\", \"bing\"]",
+            "lineNumber": 294
+          },
+          {
+            "text": "max_sources = 10",
+            "lineNumber": 295
+          },
+          {
+            "text": "citation_style = \"academic\"",
+            "lineNumber": 296
+          },
+          {
+            "lineNumber": 297
+          },
+          {
+            "text": "# ==================== セキュリティモニタリング ====================",
+            "lineNumber": 298
+          },
+          {
+            "text": "[monitoring]",
+            "lineNumber": 299
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 300
+          },
+          {
+            "text": "prometheus_endpoint = \"http://localhost:9090\"",
+            "lineNumber": 301
+          },
+          {
+            "text": "grafana_dashboard_url = \"http://localhost:3000/d/codex-security\"",
+            "lineNumber": 302
+          },
+          {
+            "lineNumber": 303
+          },
+          {
+            "text": "[monitoring.metrics]",
+            "lineNumber": 304
+          },
+          {
+            "text": "# 収集するメトリクス",
+            "lineNumber": 305
+          },
+          {
+            "text": "collect_tls_metrics = true",
+            "lineNumber": 306
+          },
+          {
+            "text": "collect_auth_metrics = true",
+            "lineNumber": 307
+          },
+          {
+            "text": "collect_rate_limit_metrics = true",
+            "lineNumber": 308
+          },
+          {
+            "text": "collect_agent_metrics = true",
+            "lineNumber": 309
+          },
+          {
+            "lineNumber": 310
+          },
+          {
+            "text": "[monitoring.export]",
+            "lineNumber": 311
+          },
+          {
+            "text": "# メトリクスのエクスポート",
+            "lineNumber": 312
+          },
+          {
+            "text": "format = \"prometheus\"",
+            "lineNumber": 313
+          },
+          {
+            "text": "export_interval_sec = 30",
+            "lineNumber": 314
+          },
+          {
+            "lineNumber": 315
+          },
+          {
+            "text": "# ==================== バックアップ ====================",
+            "lineNumber": 316
+          },
+          {
+            "text": "[backup]",
+            "lineNumber": 317
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 318
+          },
+          {
+            "text": "backup_dir = \"~/.codex/backups\"",
+            "lineNumber": 319
+          },
+          {
+            "text": "backup_interval_hours = 24",
+            "lineNumber": 320
+          },
+          {
+            "text": "retention_days = 30",
+            "lineNumber": 321
+          },
+          {
+            "lineNumber": 322
+          },
+          {
+            "text": "# バックアップ対象",
+            "lineNumber": 323
+          }
+        ]
+      },
+      "score": 0.4219847321510315
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\README.md",
+        "range": {
+          "startPosition": {
+            "line": 159
+          },
+          "endPosition": {
+            "line": 291
+          }
+        },
+        "contents": "You: @prism analyze this code for security issues\n\nClaude: [Uses Prism's AI analysis]\nFound 2 potential security issues:\n1. SQL injection risk in line 42\n2. Missing input validation in line 67\n&#96;&#96;&#96;\n\n---\n\n## 💻 開発\n\n### ローカル開発\n\n&#96;&#96;&#96;bash\n# Frontend\nnpm run dev         # http://localhost:3000\n\n# MCP Server\ncd prism-mcp-server\nnpm run dev         # Watch mode\n\n# Supabase local (optional)\nnpx supabase start  # Requires Docker\n&#96;&#96;&#96;\n\n### テスト\n\n&#96;&#96;&#96;bash\n# Frontend tests\nnpm run test\n\n# Type check\nnpm run type-check\n\n# Lint\nnpm run lint\n&#96;&#96;&#96;\n\n### ビルド\n\n&#96;&#96;&#96;bash\n# Production build\nnpm run build\n\n# Start production server\nnpm start\n&#96;&#96;&#96;\n\n---\n\n## 🌐 デプロイ\n\n### Vercel（推奨）\n\n&#96;&#96;&#96;bash\n# Install Vercel CLI\nnpm i -g vercel\n\n# Deploy\nvercel\n\n# Add environment variables\nvercel env add NEXT_PUBLIC_SUPABASE_URL\nvercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY\nvercel env add ENCRYPTION_SECRET\n\n# Deploy to production\nvercel --prod\n&#96;&#96;&#96;\n\n### カスタムドメイン\n\n1. Vercel Dashboard → Settings → Domains\n2. Add &#96;prism.dev&#96;\n3. Cloudflare DNSにCNAME追加\n\n---\n\n## 🔐 セキュリティ\n\n### APIキー保護\n\n- ✅ AES-256暗号化\n- ✅ Supabase Edge Functionsでサーバー側のみ処理\n- ✅ Row Level Security (RLS)\n- ✅ HTTPS必須\n\n### 環境変数\n\n**絶対にコミットしない**:\n- &#96;.env.local&#96;\n- &#96;ENCRYPTION_SECRET&#96;\n- API Keys\n\n---\n\n## 📊 Supabase無料枠制限\n\n| 項目 | 制限 |\n|------|-----|\n| Database | 500 MB |\n| Storage | 1 GB |\n| Bandwidth | 2 GB/月 |\n| Edge Functions | 500K呼び出し/月 |\n| Realtime | 同時接続200 |\n\n**対策**:\n- 大規模リポジトリは圧縮\n- 画像最適化\n- CDN使用（Vercel標準）\n\n---\n\n## 🤝 コントリビューション\n\nPRs welcome! See [CONTRIBUTING.md](../CONTRIBUTING.md)\n\n---\n\n## 📄 ライセンス\n\nApache 2.0 - See [LICENSE](../LICENSE)\n\n---\n\n## 🆘 サポート\n\n- Discord: https://discord.gg/prism\n- GitHub Issues: https://github.com/zapabob/prism/issues\n- Email: support@prism.dev",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "You: @prism analyze this code for security issues",
+            "lineNumber": 160
+          },
+          {
+            "lineNumber": 161
+          },
+          {
+            "text": "Claude: [Uses Prism's AI analysis]",
+            "lineNumber": 162
+          },
+          {
+            "text": "Found 2 potential security issues:",
+            "lineNumber": 163
+          },
+          {
+            "text": "1. SQL injection risk in line 42",
+            "lineNumber": 164
+          },
+          {
+            "text": "2. Missing input validation in line 67",
+            "lineNumber": 165
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "---",
+            "lineNumber": 168
+          },
+          {
+            "lineNumber": 169
+          },
+          {
+            "text": "## 💻 開発",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 171
+          },
+          {
+            "text": "### ローカル開発",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 174
+          },
+          {
+            "text": "# Frontend",
+            "lineNumber": 175
+          },
+          {
+            "text": "npm run dev         # http://localhost:3000",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "# MCP Server",
+            "lineNumber": 178
+          },
+          {
+            "text": "cd prism-mcp-server",
+            "lineNumber": 179
+          },
+          {
+            "text": "npm run dev         # Watch mode",
+            "lineNumber": 180
+          },
+          {
+            "lineNumber": 181
+          },
+          {
+            "text": "# Supabase local (optional)",
+            "lineNumber": 182
+          },
+          {
+            "text": "npx supabase start  # Requires Docker",
+            "lineNumber": 183
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "### テスト",
+            "lineNumber": 186
+          },
+          {
+            "lineNumber": 187
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 188
+          },
+          {
+            "text": "# Frontend tests",
+            "lineNumber": 189
+          },
+          {
+            "text": "npm run test",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "# Type check",
+            "lineNumber": 192
+          },
+          {
+            "text": "npm run type-check",
+            "lineNumber": 193
+          },
+          {
+            "lineNumber": 194
+          },
+          {
+            "text": "# Lint",
+            "lineNumber": 195
+          },
+          {
+            "text": "npm run lint",
+            "lineNumber": 196
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 197
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "text": "### ビルド",
+            "lineNumber": 199
+          },
+          {
+            "lineNumber": 200
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 201
+          },
+          {
+            "text": "# Production build",
+            "lineNumber": 202
+          },
+          {
+            "text": "npm run build",
+            "lineNumber": 203
+          },
+          {
+            "lineNumber": 204
+          },
+          {
+            "text": "# Start production server",
+            "lineNumber": 205
+          },
+          {
+            "text": "npm start",
+            "lineNumber": 206
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 207
+          },
+          {
+            "lineNumber": 208
+          },
+          {
+            "text": "---",
+            "lineNumber": 209
+          },
+          {
+            "lineNumber": 210
+          },
+          {
+            "text": "## 🌐 デプロイ",
+            "lineNumber": 211
+          },
+          {
+            "lineNumber": 212
+          },
+          {
+            "text": "### Vercel（推奨）",
+            "lineNumber": 213
+          },
+          {
+            "lineNumber": 214
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 215
+          },
+          {
+            "text": "# Install Vercel CLI",
+            "lineNumber": 216
+          },
+          {
+            "text": "npm i -g vercel",
+            "lineNumber": 217
+          },
+          {
+            "lineNumber": 218
+          },
+          {
+            "text": "# Deploy",
+            "lineNumber": 219
+          },
+          {
+            "text": "vercel",
+            "lineNumber": 220
+          },
+          {
+            "lineNumber": 221
+          },
+          {
+            "text": "# Add environment variables",
+            "lineNumber": 222
+          },
+          {
+            "text": "vercel env add NEXT_PUBLIC_SUPABASE_URL",
+            "lineNumber": 223
+          },
+          {
+            "text": "vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY",
+            "lineNumber": 224
+          },
+          {
+            "text": "vercel env add ENCRYPTION_SECRET",
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "# Deploy to production",
+            "lineNumber": 227
+          },
+          {
+            "text": "vercel --prod",
+            "lineNumber": 228
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 229
+          },
+          {
+            "lineNumber": 230
+          },
+          {
+            "text": "### カスタムドメイン",
+            "lineNumber": 231
+          },
+          {
+            "lineNumber": 232
+          },
+          {
+            "text": "1. Vercel Dashboard → Settings → Domains",
+            "lineNumber": 233
+          },
+          {
+            "text": "2. Add &#96;prism.dev&#96;",
+            "lineNumber": 234
+          },
+          {
+            "text": "3. Cloudflare DNSにCNAME追加",
+            "lineNumber": 235
+          },
+          {
+            "lineNumber": 236
+          },
+          {
+            "text": "---",
+            "lineNumber": 237
+          },
+          {
+            "lineNumber": 238
+          },
+          {
+            "text": "## 🔐 セキュリティ",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "### APIキー保護",
+            "lineNumber": 241
+          },
+          {
+            "lineNumber": 242
+          },
+          {
+            "text": "- ✅ AES-256暗号化",
+            "lineNumber": 243
+          },
+          {
+            "text": "- ✅ Supabase Edge Functionsでサーバー側のみ処理",
+            "lineNumber": 244
+          },
+          {
+            "text": "- ✅ Row Level Security (RLS)",
+            "lineNumber": 245
+          },
+          {
+            "text": "- ✅ HTTPS必須",
+            "lineNumber": 246
+          },
+          {
+            "lineNumber": 247
+          },
+          {
+            "text": "### 環境変数",
+            "lineNumber": 248
+          },
+          {
+            "lineNumber": 249
+          },
+          {
+            "text": "**絶対にコミットしない**:",
+            "lineNumber": 250
+          },
+          {
+            "text": "- &#96;.env.local&#96;",
+            "lineNumber": 251
+          },
+          {
+            "text": "- &#96;ENCRYPTION_SECRET&#96;",
+            "lineNumber": 252
+          },
+          {
+            "text": "- API Keys",
+            "lineNumber": 253
+          },
+          {
+            "lineNumber": 254
+          },
+          {
+            "text": "---",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "## 📊 Supabase無料枠制限",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "| 項目 | 制限 |",
+            "lineNumber": 259
+          },
+          {
+            "text": "|------|-----|",
+            "lineNumber": 260
+          },
+          {
+            "text": "| Database | 500 MB |",
+            "lineNumber": 261
+          },
+          {
+            "text": "| Storage | 1 GB |",
+            "lineNumber": 262
+          },
+          {
+            "text": "| Bandwidth | 2 GB/月 |",
+            "lineNumber": 263
+          },
+          {
+            "text": "| Edge Functions | 500K呼び出し/月 |",
+            "lineNumber": 264
+          },
+          {
+            "text": "| Realtime | 同時接続200 |",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "**対策**:",
+            "lineNumber": 267
+          },
+          {
+            "text": "- 大規模リポジトリは圧縮",
+            "lineNumber": 268
+          },
+          {
+            "text": "- 画像最適化",
+            "lineNumber": 269
+          },
+          {
+            "text": "- CDN使用（Vercel標準）",
+            "lineNumber": 270
+          },
+          {
+            "lineNumber": 271
+          },
+          {
+            "text": "---",
+            "lineNumber": 272
+          },
+          {
+            "lineNumber": 273
+          },
+          {
+            "text": "## 🤝 コントリビューション",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "PRs welcome! See [CONTRIBUTING.md](../CONTRIBUTING.md)",
+            "lineNumber": 276
+          },
+          {
+            "lineNumber": 277
+          },
+          {
+            "text": "---",
+            "lineNumber": 278
+          },
+          {
+            "lineNumber": 279
+          },
+          {
+            "text": "## 📄 ライセンス",
+            "lineNumber": 280
+          },
+          {
+            "lineNumber": 281
+          },
+          {
+            "text": "Apache 2.0 - See [LICENSE](../LICENSE)",
+            "lineNumber": 282
+          },
+          {
+            "lineNumber": 283
+          },
+          {
+            "text": "---",
+            "lineNumber": 284
+          },
+          {
+            "lineNumber": 285
+          },
+          {
+            "text": "## 🆘 サポート",
+            "lineNumber": 286
+          },
+          {
+            "lineNumber": 287
+          },
+          {
+            "text": "- Discord: https://discord.gg/prism",
+            "lineNumber": 288
+          },
+          {
+            "text": "- GitHub Issues: https://github.com/zapabob/prism/issues",
+            "lineNumber": 289
+          },
+          {
+            "text": "- Email: support@prism.dev",
+            "lineNumber": 290
+          }
+        ]
+      },
+      "score": 0.41840696334838867
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\README.md",
+        "range": {
+          "startPosition": {
+            "line": 159
+          },
+          "endPosition": {
+            "line": 291
+          }
+        },
+        "contents": "You: @prism analyze this code for security issues\n\nClaude: [Uses Prism's AI analysis]\nFound 2 potential security issues:\n1. SQL injection risk in line 42\n2. Missing input validation in line 67\n&#96;&#96;&#96;\n\n---\n\n## 💻 開発\n\n### ローカル開発\n\n&#96;&#96;&#96;bash\n# Frontend\nnpm run dev         # http://localhost:3000\n\n# MCP Server\ncd prism-mcp-server\nnpm run dev         # Watch mode\n\n# Supabase local (optional)\nnpx supabase start  # Requires Docker\n&#96;&#96;&#96;\n\n### テスト\n\n&#96;&#96;&#96;bash\n# Frontend tests\nnpm run test\n\n# Type check\nnpm run type-check\n\n# Lint\nnpm run lint\n&#96;&#96;&#96;\n\n### ビルド\n\n&#96;&#96;&#96;bash\n# Production build\nnpm run build\n\n# Start production server\nnpm start\n&#96;&#96;&#96;\n\n---\n\n## 🌐 デプロイ\n\n### Vercel（推奨）\n\n&#96;&#96;&#96;bash\n# Install Vercel CLI\nnpm i -g vercel\n\n# Deploy\nvercel\n\n# Add environment variables\nvercel env add NEXT_PUBLIC_SUPABASE_URL\nvercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY\nvercel env add ENCRYPTION_SECRET\n\n# Deploy to production\nvercel --prod\n&#96;&#96;&#96;\n\n### カスタムドメイン\n\n1. Vercel Dashboard → Settings → Domains\n2. Add &#96;prism.dev&#96;\n3. Cloudflare DNSにCNAME追加\n\n---\n\n## 🔐 セキュリティ\n\n### APIキー保護\n\n- ✅ AES-256暗号化\n- ✅ Supabase Edge Functionsでサーバー側のみ処理\n- ✅ Row Level Security (RLS)\n- ✅ HTTPS必須\n\n### 環境変数\n\n**絶対にコミットしない**:\n- &#96;.env.local&#96;\n- &#96;ENCRYPTION_SECRET&#96;\n- API Keys\n\n---\n\n## 📊 Supabase無料枠制限\n\n| 項目 | 制限 |\n|------|-----|\n| Database | 500 MB |\n| Storage | 1 GB |\n| Bandwidth | 2 GB/月 |\n| Edge Functions | 500K呼び出し/月 |\n| Realtime | 同時接続200 |\n\n**対策**:\n- 大規模リポジトリは圧縮\n- 画像最適化\n- CDN使用（Vercel標準）\n\n---\n\n## 🤝 コントリビューション\n\nPRs welcome! See [CONTRIBUTING.md](../CONTRIBUTING.md)\n\n---\n\n## 📄 ライセンス\n\nApache 2.0 - See [LICENSE](../LICENSE)\n\n---\n\n## 🆘 サポート\n\n- Discord: https://discord.gg/prism\n- GitHub Issues: https://github.com/zapabob/prism/issues\n- Email: support@prism.dev",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "You: @prism analyze this code for security issues",
+            "lineNumber": 160
+          },
+          {
+            "lineNumber": 161
+          },
+          {
+            "text": "Claude: [Uses Prism's AI analysis]",
+            "lineNumber": 162
+          },
+          {
+            "text": "Found 2 potential security issues:",
+            "lineNumber": 163
+          },
+          {
+            "text": "1. SQL injection risk in line 42",
+            "lineNumber": 164
+          },
+          {
+            "text": "2. Missing input validation in line 67",
+            "lineNumber": 165
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "---",
+            "lineNumber": 168
+          },
+          {
+            "lineNumber": 169
+          },
+          {
+            "text": "## 💻 開発",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 171
+          },
+          {
+            "text": "### ローカル開発",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 174
+          },
+          {
+            "text": "# Frontend",
+            "lineNumber": 175
+          },
+          {
+            "text": "npm run dev         # http://localhost:3000",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "# MCP Server",
+            "lineNumber": 178
+          },
+          {
+            "text": "cd prism-mcp-server",
+            "lineNumber": 179
+          },
+          {
+            "text": "npm run dev         # Watch mode",
+            "lineNumber": 180
+          },
+          {
+            "lineNumber": 181
+          },
+          {
+            "text": "# Supabase local (optional)",
+            "lineNumber": 182
+          },
+          {
+            "text": "npx supabase start  # Requires Docker",
+            "lineNumber": 183
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "### テスト",
+            "lineNumber": 186
+          },
+          {
+            "lineNumber": 187
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 188
+          },
+          {
+            "text": "# Frontend tests",
+            "lineNumber": 189
+          },
+          {
+            "text": "npm run test",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "# Type check",
+            "lineNumber": 192
+          },
+          {
+            "text": "npm run type-check",
+            "lineNumber": 193
+          },
+          {
+            "lineNumber": 194
+          },
+          {
+            "text": "# Lint",
+            "lineNumber": 195
+          },
+          {
+            "text": "npm run lint",
+            "lineNumber": 196
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 197
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "text": "### ビルド",
+            "lineNumber": 199
+          },
+          {
+            "lineNumber": 200
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 201
+          },
+          {
+            "text": "# Production build",
+            "lineNumber": 202
+          },
+          {
+            "text": "npm run build",
+            "lineNumber": 203
+          },
+          {
+            "lineNumber": 204
+          },
+          {
+            "text": "# Start production server",
+            "lineNumber": 205
+          },
+          {
+            "text": "npm start",
+            "lineNumber": 206
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 207
+          },
+          {
+            "lineNumber": 208
+          },
+          {
+            "text": "---",
+            "lineNumber": 209
+          },
+          {
+            "lineNumber": 210
+          },
+          {
+            "text": "## 🌐 デプロイ",
+            "lineNumber": 211
+          },
+          {
+            "lineNumber": 212
+          },
+          {
+            "text": "### Vercel（推奨）",
+            "lineNumber": 213
+          },
+          {
+            "lineNumber": 214
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 215
+          },
+          {
+            "text": "# Install Vercel CLI",
+            "lineNumber": 216
+          },
+          {
+            "text": "npm i -g vercel",
+            "lineNumber": 217
+          },
+          {
+            "lineNumber": 218
+          },
+          {
+            "text": "# Deploy",
+            "lineNumber": 219
+          },
+          {
+            "text": "vercel",
+            "lineNumber": 220
+          },
+          {
+            "lineNumber": 221
+          },
+          {
+            "text": "# Add environment variables",
+            "lineNumber": 222
+          },
+          {
+            "text": "vercel env add NEXT_PUBLIC_SUPABASE_URL",
+            "lineNumber": 223
+          },
+          {
+            "text": "vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY",
+            "lineNumber": 224
+          },
+          {
+            "text": "vercel env add ENCRYPTION_SECRET",
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "# Deploy to production",
+            "lineNumber": 227
+          },
+          {
+            "text": "vercel --prod",
+            "lineNumber": 228
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 229
+          },
+          {
+            "lineNumber": 230
+          },
+          {
+            "text": "### カスタムドメイン",
+            "lineNumber": 231
+          },
+          {
+            "lineNumber": 232
+          },
+          {
+            "text": "1. Vercel Dashboard → Settings → Domains",
+            "lineNumber": 233
+          },
+          {
+            "text": "2. Add &#96;prism.dev&#96;",
+            "lineNumber": 234
+          },
+          {
+            "text": "3. Cloudflare DNSにCNAME追加",
+            "lineNumber": 235
+          },
+          {
+            "lineNumber": 236
+          },
+          {
+            "text": "---",
+            "lineNumber": 237
+          },
+          {
+            "lineNumber": 238
+          },
+          {
+            "text": "## 🔐 セキュリティ",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "### APIキー保護",
+            "lineNumber": 241
+          },
+          {
+            "lineNumber": 242
+          },
+          {
+            "text": "- ✅ AES-256暗号化",
+            "lineNumber": 243
+          },
+          {
+            "text": "- ✅ Supabase Edge Functionsでサーバー側のみ処理",
+            "lineNumber": 244
+          },
+          {
+            "text": "- ✅ Row Level Security (RLS)",
+            "lineNumber": 245
+          },
+          {
+            "text": "- ✅ HTTPS必須",
+            "lineNumber": 246
+          },
+          {
+            "lineNumber": 247
+          },
+          {
+            "text": "### 環境変数",
+            "lineNumber": 248
+          },
+          {
+            "lineNumber": 249
+          },
+          {
+            "text": "**絶対にコミットしない**:",
+            "lineNumber": 250
+          },
+          {
+            "text": "- &#96;.env.local&#96;",
+            "lineNumber": 251
+          },
+          {
+            "text": "- &#96;ENCRYPTION_SECRET&#96;",
+            "lineNumber": 252
+          },
+          {
+            "text": "- API Keys",
+            "lineNumber": 253
+          },
+          {
+            "lineNumber": 254
+          },
+          {
+            "text": "---",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "## 📊 Supabase無料枠制限",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "| 項目 | 制限 |",
+            "lineNumber": 259
+          },
+          {
+            "text": "|------|-----|",
+            "lineNumber": 260
+          },
+          {
+            "text": "| Database | 500 MB |",
+            "lineNumber": 261
+          },
+          {
+            "text": "| Storage | 1 GB |",
+            "lineNumber": 262
+          },
+          {
+            "text": "| Bandwidth | 2 GB/月 |",
+            "lineNumber": 263
+          },
+          {
+            "text": "| Edge Functions | 500K呼び出し/月 |",
+            "lineNumber": 264
+          },
+          {
+            "text": "| Realtime | 同時接続200 |",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "**対策**:",
+            "lineNumber": 267
+          },
+          {
+            "text": "- 大規模リポジトリは圧縮",
+            "lineNumber": 268
+          },
+          {
+            "text": "- 画像最適化",
+            "lineNumber": 269
+          },
+          {
+            "text": "- CDN使用（Vercel標準）",
+            "lineNumber": 270
+          },
+          {
+            "lineNumber": 271
+          },
+          {
+            "text": "---",
+            "lineNumber": 272
+          },
+          {
+            "lineNumber": 273
+          },
+          {
+            "text": "## 🤝 コントリビューション",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "PRs welcome! See [CONTRIBUTING.md](../CONTRIBUTING.md)",
+            "lineNumber": 276
+          },
+          {
+            "lineNumber": 277
+          },
+          {
+            "text": "---",
+            "lineNumber": 278
+          },
+          {
+            "lineNumber": 279
+          },
+          {
+            "text": "## 📄 ライセンス",
+            "lineNumber": 280
+          },
+          {
+            "lineNumber": 281
+          },
+          {
+            "text": "Apache 2.0 - See [LICENSE](../LICENSE)",
+            "lineNumber": 282
+          },
+          {
+            "lineNumber": 283
+          },
+          {
+            "text": "---",
+            "lineNumber": 284
+          },
+          {
+            "lineNumber": 285
+          },
+          {
+            "text": "## 🆘 サポート",
+            "lineNumber": 286
+          },
+          {
+            "lineNumber": 287
+          },
+          {
+            "text": "- Discord: https://discord.gg/prism",
+            "lineNumber": 288
+          },
+          {
+            "text": "- GitHub Issues: https://github.com/zapabob/prism/issues",
+            "lineNumber": 289
+          },
+          {
+            "text": "- Email: support@prism.dev",
+            "lineNumber": 290
+          }
+        ]
+      },
+      "score": 0.41840696334838867
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\config-examples\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 59
+          },
+          "endPosition": {
+            "line": 127
+          }
+        },
+        "contents": "warn_before_expiry_days = 14  # 14日前に警告\n\n[security.signing]\n# Ed25519署名鍵（メッセージ署名用）\nalgorithm = \"Ed25519\"\nsigning_key = \"~/.codex/keys/ed25519-signing\"\nsigning_public_key = \"~/.codex/keys/ed25519-signing.pub\"\n\n[security.encryption]\n# ペイロード暗号化\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\nkey_rotation_days = 90\n\n[security.replay_protection]\n# リプレイ攻撃対策\nenabled = true\nnonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)\nredis_url = \"redis://localhost:6379\"\ntimestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ\n\n[security.rate_limiting]\n# Rate Limiting（DDoS対策）\nenabled = true\nmax_requests_per_sec = 10.0\nburst_size = 20\n\n# ==================== Sandbox ====================\n[sandbox]\ndefault_mode = \"read-only\"  # デフォルトは読み取り専用\n\n[approval]\npolicy = \"on-request\"  # 危険な操作は都度承認\n\n# ==================== エージェント通信セキュリティ ====================\n[agent_security]\nencryption_enabled = true\nsigning_enabled = true\n\n[agent_security.encryption]\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\n\n[agent_security.signing]\nalgorithm = \"Ed25519\"\nkeys_directory = \"~/.codex/keys/agents\"\n\n# エージェント信頼関係（RBAC: Role-Based Access Control）\n[agent_security.trust]\n# 特権エージェント（すべてのエージェントと通信可能）\nprivileged_agents = [\"SecurityExpert\"]\n\n# CodeExpert: 限定的な通信\n[agent_security.trust.CodeExpert]\ncan_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]\npermissions = [\"read\", \"write\"]\n\n# SecurityExpert: すべてのエージェントと通信可能（特権）\n[agent_security.trust.SecurityExpert]\ncan_communicate_with = [\"*\"]  # ワイルドカード\npermissions = [\"read\", \"write\", \"execute\", \"admin\"]\n\n# TestingExpert: 制限あり\n[agent_security.trust.TestingExpert]\ncan_communicate_with = [\"CodeExpert\", \"General\"]\npermissions = [\"read\", \"write\"]\n\n# DeepResearcher: 外部アクセス可能",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "warn_before_expiry_days = 14  # 14日前に警告",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "[security.signing]",
+            "lineNumber": 62
+          },
+          {
+            "text": "# Ed25519署名鍵（メッセージ署名用）",
+            "lineNumber": 63
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 64
+          },
+          {
+            "text": "signing_key = \"~/.codex/keys/ed25519-signing\"",
+            "lineNumber": 65
+          },
+          {
+            "text": "signing_public_key = \"~/.codex/keys/ed25519-signing.pub\"",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "[security.encryption]",
+            "lineNumber": 68
+          },
+          {
+            "text": "# ペイロード暗号化",
+            "lineNumber": 69
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 70
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 71
+          },
+          {
+            "text": "key_rotation_days = 90",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "[security.replay_protection]",
+            "lineNumber": 74
+          },
+          {
+            "text": "# リプレイ攻撃対策",
+            "lineNumber": 75
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 76
+          },
+          {
+            "text": "nonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)",
+            "lineNumber": 77
+          },
+          {
+            "text": "redis_url = \"redis://localhost:6379\"",
+            "lineNumber": 78
+          },
+          {
+            "text": "timestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ",
+            "lineNumber": 79
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "text": "[security.rate_limiting]",
+            "lineNumber": 81
+          },
+          {
+            "text": "# Rate Limiting（DDoS対策）",
+            "lineNumber": 82
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 83
+          },
+          {
+            "text": "max_requests_per_sec = 10.0",
+            "lineNumber": 84
+          },
+          {
+            "text": "burst_size = 20",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "# ==================== Sandbox ====================",
+            "lineNumber": 87
+          },
+          {
+            "text": "[sandbox]",
+            "lineNumber": 88
+          },
+          {
+            "text": "default_mode = \"read-only\"  # デフォルトは読み取り専用",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "[approval]",
+            "lineNumber": 91
+          },
+          {
+            "text": "policy = \"on-request\"  # 危険な操作は都度承認",
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93
+          },
+          {
+            "text": "# ==================== エージェント通信セキュリティ ====================",
+            "lineNumber": 94
+          },
+          {
+            "text": "[agent_security]",
+            "lineNumber": 95
+          },
+          {
+            "text": "encryption_enabled = true",
+            "lineNumber": 96
+          },
+          {
+            "text": "signing_enabled = true",
+            "lineNumber": 97
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "text": "[agent_security.encryption]",
+            "lineNumber": 99
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 100
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "[agent_security.signing]",
+            "lineNumber": 103
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 104
+          },
+          {
+            "text": "keys_directory = \"~/.codex/keys/agents\"",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "# エージェント信頼関係（RBAC: Role-Based Access Control）",
+            "lineNumber": 107
+          },
+          {
+            "text": "[agent_security.trust]",
+            "lineNumber": 108
+          },
+          {
+            "text": "# 特権エージェント（すべてのエージェントと通信可能）",
+            "lineNumber": 109
+          },
+          {
+            "text": "privileged_agents = [\"SecurityExpert\"]",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "# CodeExpert: 限定的な通信",
+            "lineNumber": 112
+          },
+          {
+            "text": "[agent_security.trust.CodeExpert]",
+            "lineNumber": 113
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]",
+            "lineNumber": 114
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "# SecurityExpert: すべてのエージェントと通信可能（特権）",
+            "lineNumber": 117
+          },
+          {
+            "text": "[agent_security.trust.SecurityExpert]",
+            "lineNumber": 118
+          },
+          {
+            "text": "can_communicate_with = [\"*\"]  # ワイルドカード",
+            "lineNumber": 119
+          },
+          {
+            "text": "permissions = [\"read\", \"write\", \"execute\", \"admin\"]",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "# TestingExpert: 制限あり",
+            "lineNumber": 122
+          },
+          {
+            "text": "[agent_security.trust.TestingExpert]",
+            "lineNumber": 123
+          },
+          {
+            "text": "can_communicate_with = [\"CodeExpert\", \"General\"]",
+            "lineNumber": 124
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "# DeepResearcher: 外部アクセス可能",
+            "lineNumber": 127
+          }
+        ]
+      },
+      "score": 0.4135558605194092
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\config-examples\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 59
+          },
+          "endPosition": {
+            "line": 127
+          }
+        },
+        "contents": "warn_before_expiry_days = 14  # 14日前に警告\n\n[security.signing]\n# Ed25519署名鍵（メッセージ署名用）\nalgorithm = \"Ed25519\"\nsigning_key = \"~/.codex/keys/ed25519-signing\"\nsigning_public_key = \"~/.codex/keys/ed25519-signing.pub\"\n\n[security.encryption]\n# ペイロード暗号化\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\nkey_rotation_days = 90\n\n[security.replay_protection]\n# リプレイ攻撃対策\nenabled = true\nnonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)\nredis_url = \"redis://localhost:6379\"\ntimestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ\n\n[security.rate_limiting]\n# Rate Limiting（DDoS対策）\nenabled = true\nmax_requests_per_sec = 10.0\nburst_size = 20\n\n# ==================== Sandbox ====================\n[sandbox]\ndefault_mode = \"read-only\"  # デフォルトは読み取り専用\n\n[approval]\npolicy = \"on-request\"  # 危険な操作は都度承認\n\n# ==================== エージェント通信セキュリティ ====================\n[agent_security]\nencryption_enabled = true\nsigning_enabled = true\n\n[agent_security.encryption]\nalgorithm = \"AES-256-GCM\"\nkey_derivation = \"HKDF-SHA256\"\n\n[agent_security.signing]\nalgorithm = \"Ed25519\"\nkeys_directory = \"~/.codex/keys/agents\"\n\n# エージェント信頼関係（RBAC: Role-Based Access Control）\n[agent_security.trust]\n# 特権エージェント（すべてのエージェントと通信可能）\nprivileged_agents = [\"SecurityExpert\"]\n\n# CodeExpert: 限定的な通信\n[agent_security.trust.CodeExpert]\ncan_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]\npermissions = [\"read\", \"write\"]\n\n# SecurityExpert: すべてのエージェントと通信可能（特権）\n[agent_security.trust.SecurityExpert]\ncan_communicate_with = [\"*\"]  # ワイルドカード\npermissions = [\"read\", \"write\", \"execute\", \"admin\"]\n\n# TestingExpert: 制限あり\n[agent_security.trust.TestingExpert]\ncan_communicate_with = [\"CodeExpert\", \"General\"]\npermissions = [\"read\", \"write\"]\n\n# DeepResearcher: 外部アクセス可能",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "warn_before_expiry_days = 14  # 14日前に警告",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "[security.signing]",
+            "lineNumber": 62
+          },
+          {
+            "text": "# Ed25519署名鍵（メッセージ署名用）",
+            "lineNumber": 63
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 64
+          },
+          {
+            "text": "signing_key = \"~/.codex/keys/ed25519-signing\"",
+            "lineNumber": 65
+          },
+          {
+            "text": "signing_public_key = \"~/.codex/keys/ed25519-signing.pub\"",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "[security.encryption]",
+            "lineNumber": 68
+          },
+          {
+            "text": "# ペイロード暗号化",
+            "lineNumber": 69
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 70
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 71
+          },
+          {
+            "text": "key_rotation_days = 90",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "[security.replay_protection]",
+            "lineNumber": 74
+          },
+          {
+            "text": "# リプレイ攻撃対策",
+            "lineNumber": 75
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 76
+          },
+          {
+            "text": "nonce_store = \"redis\"  # \"redis\" or \"memory\" (for testing)",
+            "lineNumber": 77
+          },
+          {
+            "text": "redis_url = \"redis://localhost:6379\"",
+            "lineNumber": 78
+          },
+          {
+            "text": "timestamp_tolerance_sec = 300  # 5分以内のメッセージのみ受け入れ",
+            "lineNumber": 79
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "text": "[security.rate_limiting]",
+            "lineNumber": 81
+          },
+          {
+            "text": "# Rate Limiting（DDoS対策）",
+            "lineNumber": 82
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 83
+          },
+          {
+            "text": "max_requests_per_sec = 10.0",
+            "lineNumber": 84
+          },
+          {
+            "text": "burst_size = 20",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "# ==================== Sandbox ====================",
+            "lineNumber": 87
+          },
+          {
+            "text": "[sandbox]",
+            "lineNumber": 88
+          },
+          {
+            "text": "default_mode = \"read-only\"  # デフォルトは読み取り専用",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "[approval]",
+            "lineNumber": 91
+          },
+          {
+            "text": "policy = \"on-request\"  # 危険な操作は都度承認",
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93
+          },
+          {
+            "text": "# ==================== エージェント通信セキュリティ ====================",
+            "lineNumber": 94
+          },
+          {
+            "text": "[agent_security]",
+            "lineNumber": 95
+          },
+          {
+            "text": "encryption_enabled = true",
+            "lineNumber": 96
+          },
+          {
+            "text": "signing_enabled = true",
+            "lineNumber": 97
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "text": "[agent_security.encryption]",
+            "lineNumber": 99
+          },
+          {
+            "text": "algorithm = \"AES-256-GCM\"",
+            "lineNumber": 100
+          },
+          {
+            "text": "key_derivation = \"HKDF-SHA256\"",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "[agent_security.signing]",
+            "lineNumber": 103
+          },
+          {
+            "text": "algorithm = \"Ed25519\"",
+            "lineNumber": 104
+          },
+          {
+            "text": "keys_directory = \"~/.codex/keys/agents\"",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "# エージェント信頼関係（RBAC: Role-Based Access Control）",
+            "lineNumber": 107
+          },
+          {
+            "text": "[agent_security.trust]",
+            "lineNumber": 108
+          },
+          {
+            "text": "# 特権エージェント（すべてのエージェントと通信可能）",
+            "lineNumber": 109
+          },
+          {
+            "text": "privileged_agents = [\"SecurityExpert\"]",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "# CodeExpert: 限定的な通信",
+            "lineNumber": 112
+          },
+          {
+            "text": "[agent_security.trust.CodeExpert]",
+            "lineNumber": 113
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"TestingExpert\", \"DocsExpert\"]",
+            "lineNumber": 114
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "# SecurityExpert: すべてのエージェントと通信可能（特権）",
+            "lineNumber": 117
+          },
+          {
+            "text": "[agent_security.trust.SecurityExpert]",
+            "lineNumber": 118
+          },
+          {
+            "text": "can_communicate_with = [\"*\"]  # ワイルドカード",
+            "lineNumber": 119
+          },
+          {
+            "text": "permissions = [\"read\", \"write\", \"execute\", \"admin\"]",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "# TestingExpert: 制限あり",
+            "lineNumber": 122
+          },
+          {
+            "text": "[agent_security.trust.TestingExpert]",
+            "lineNumber": 123
+          },
+          {
+            "text": "can_communicate_with = [\"CodeExpert\", \"General\"]",
+            "lineNumber": 124
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "# DeepResearcher: 外部アクセス可能",
+            "lineNumber": 127
+          }
+        ]
+      },
+      "score": 0.4135558605194092
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\config-secure.toml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 62
+          }
+        },
+        "contents": "# Codex Secure Configuration (TLS/mTLS + Encrypted Agents)\n# バージョン: v0.51.0-zapabob.1 (Secure Edition)\n# 作成日: 2025-10-28\n# 設計書: _docs/2025-10-28_セキュア通信アーキテクチャ設計書.md\n#\n# 📋 使用方法:\n#   1. zapabob/scripts/generate-mcp-certs.ps1 を実行して証明書生成\n#   2. config.toml をこのファイルで置き換えるか、設定をマージ\n#   3. codex --config config-secure.toml で起動\n\n# ==================== 基本設定 ====================\nmodel = \"gpt-5-codex\"\n\n# 🆕 MCP Client機能を有効化\nexperimental_use_rmcp_client = true\n\n# 🔍 Web検索機能を有効化（モデル組み込み検索）\nenable_web_search = true\n\n# ==================== 機能フラグ ====================\n[features]\n# Web検索機能（モデル組み込み）\nweb_search = true\n# MCP統合\nmcp_integration = true\n# 🔐 セキュアモード（TLS/mTLS + 暗号化）\nsecure_mode = true\n\n# ==================== OpenAI Provider ====================\n[model_providers.openai]\nbase_url = \"https://api.openai.com/v1\"\nenv_key = \"OPENAI_API_KEY\"\nname = \"OpenAI (Chat Completions API)\"\nrequires_openai_auth = true\nwire_api = \"chat\"\nenable_web_search = true\nweb_search_grounding = true\n\n# ==================== セキュリティ ====================\n[security]\n# ゼロトラストモード\nzero_trust_mode = true\n\n# TLS/mTLS設定\ntls_enabled = true\ntls_version = \"1.3\"  # TLS 1.3のみ許可（TLS 1.2以下は拒否）\nmtls_enabled = true  # 相互TLS認証（クライアント証明書必須）\n\n[security.certificates]\n# 証明書パス（~/.codex/certs/）\nca_cert = \"~/.codex/certs/ca/ca-cert.pem\"\nclient_cert = \"~/.codex/certs/codex/codex-cert.pem\"\nclient_key = \"~/.codex/certs/codex/codex-key.pem\"\nverify_peer = true  # ピア証明書の検証を強制\n\n# 証明書ローテーション\n[security.certificates.rotation]\nenabled = true\nrotation_days = 90  # 90日ごとに自動ローテーション\nwarn_before_expiry_days = 14  # 14日前に警告\n\n[security.signing]",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codex Secure Configuration (TLS/mTLS + Encrypted Agents)",
+            "lineNumber": 1
+          },
+          {
+            "text": "# バージョン: v0.51.0-zapabob.1 (Secure Edition)",
+            "lineNumber": 2
+          },
+          {
+            "text": "# 作成日: 2025-10-28",
+            "lineNumber": 3
+          },
+          {
+            "text": "# 設計書: _docs/2025-10-28_セキュア通信アーキテクチャ設計書.md",
+            "lineNumber": 4
+          },
+          {
+            "text": "#",
+            "lineNumber": 5
+          },
+          {
+            "text": "# 📋 使用方法:",
+            "lineNumber": 6
+          },
+          {
+            "text": "#   1. zapabob/scripts/generate-mcp-certs.ps1 を実行して証明書生成",
+            "lineNumber": 7
+          },
+          {
+            "text": "#   2. config.toml をこのファイルで置き換えるか、設定をマージ",
+            "lineNumber": 8
+          },
+          {
+            "text": "#   3. codex --config config-secure.toml で起動",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "# ==================== 基本設定 ====================",
+            "lineNumber": 11
+          },
+          {
+            "text": "model = \"gpt-5-codex\"",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "# 🆕 MCP Client機能を有効化",
+            "lineNumber": 14
+          },
+          {
+            "text": "experimental_use_rmcp_client = true",
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "# 🔍 Web検索機能を有効化（モデル組み込み検索）",
+            "lineNumber": 17
+          },
+          {
+            "text": "enable_web_search = true",
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "# ==================== 機能フラグ ====================",
+            "lineNumber": 20
+          },
+          {
+            "text": "[features]",
+            "lineNumber": 21
+          },
+          {
+            "text": "# Web検索機能（モデル組み込み）",
+            "lineNumber": 22
+          },
+          {
+            "text": "web_search = true",
+            "lineNumber": 23
+          },
+          {
+            "text": "# MCP統合",
+            "lineNumber": 24
+          },
+          {
+            "text": "mcp_integration = true",
+            "lineNumber": 25
+          },
+          {
+            "text": "# 🔐 セキュアモード（TLS/mTLS + 暗号化）",
+            "lineNumber": 26
+          },
+          {
+            "text": "secure_mode = true",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "# ==================== OpenAI Provider ====================",
+            "lineNumber": 29
+          },
+          {
+            "text": "[model_providers.openai]",
+            "lineNumber": 30
+          },
+          {
+            "text": "base_url = \"https://api.openai.com/v1\"",
+            "lineNumber": 31
+          },
+          {
+            "text": "env_key = \"OPENAI_API_KEY\"",
+            "lineNumber": 32
+          },
+          {
+            "text": "name = \"OpenAI (Chat Completions API)\"",
+            "lineNumber": 33
+          },
+          {
+            "text": "requires_openai_auth = true",
+            "lineNumber": 34
+          },
+          {
+            "text": "wire_api = \"chat\"",
+            "lineNumber": 35
+          },
+          {
+            "text": "enable_web_search = true",
+            "lineNumber": 36
+          },
+          {
+            "text": "web_search_grounding = true",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "# ==================== セキュリティ ====================",
+            "lineNumber": 39
+          },
+          {
+            "text": "[security]",
+            "lineNumber": 40
+          },
+          {
+            "text": "# ゼロトラストモード",
+            "lineNumber": 41
+          },
+          {
+            "text": "zero_trust_mode = true",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "# TLS/mTLS設定",
+            "lineNumber": 44
+          },
+          {
+            "text": "tls_enabled = true",
+            "lineNumber": 45
+          },
+          {
+            "text": "tls_version = \"1.3\"  # TLS 1.3のみ許可（TLS 1.2以下は拒否）",
+            "lineNumber": 46
+          },
+          {
+            "text": "mtls_enabled = true  # 相互TLS認証（クライアント証明書必須）",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "[security.certificates]",
+            "lineNumber": 49
+          },
+          {
+            "text": "# 証明書パス（~/.codex/certs/）",
+            "lineNumber": 50
+          },
+          {
+            "text": "ca_cert = \"~/.codex/certs/ca/ca-cert.pem\"",
+            "lineNumber": 51
+          },
+          {
+            "text": "client_cert = \"~/.codex/certs/codex/codex-cert.pem\"",
+            "lineNumber": 52
+          },
+          {
+            "text": "client_key = \"~/.codex/certs/codex/codex-key.pem\"",
+            "lineNumber": 53
+          },
+          {
+            "text": "verify_peer = true  # ピア証明書の検証を強制",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "# 証明書ローテーション",
+            "lineNumber": 56
+          },
+          {
+            "text": "[security.certificates.rotation]",
+            "lineNumber": 57
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 58
+          },
+          {
+            "text": "rotation_days = 90  # 90日ごとに自動ローテーション",
+            "lineNumber": 59
+          },
+          {
+            "text": "warn_before_expiry_days = 14  # 14日前に警告",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "[security.signing]",
+            "lineNumber": 62
+          }
+        ]
+      },
+      "score": 0.4099465012550354
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\config-examples\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 191
+          },
+          "endPosition": {
+            "line": 255
+          }
+        },
+        "contents": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"\nenv.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"\nenv.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"\nstartup_timeout_sec = 60\n\n# 🔒 TLS/mTLS設定\ntransport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）\nbind_address = \"127.0.0.1:8001\"\ntls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"\nrequire_client_cert = true  # mTLS必須\n\n# 🔐 認証設定\nauth_method = \"mtls\"  # mTLS認証\ntrusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"\n\n# Serena - AIオーケストレーション（TLS/mTLS）\n[mcp_servers.serena]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-everything\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8002\"\ntls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Gemini CLI - Google Gemini AI統合（TLS/mTLS）\n[mcp_servers.codex-gemini-mcp]\ncommand = \"codex-gemini-mcp\"\nargs = []\ntransport = \"https\"\nbind_address = \"127.0.0.1:8003\"\ntls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Filesystem - ファイル操作（TLS/mTLS）\n[mcp_servers.filesystem]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8004\"\ntls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# GitHub - GitHub API（TLS/mTLS）\n[mcp_servers.github]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-github\"]\nenv.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"\ntransport = \"https\"\nbind_address = \"127.0.0.1:8005\"\ntls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Chrome DevTools - ブラウザ自動化（TLS/mTLS）\n[mcp_servers.chrome-devtools]\ncommand = \"npx\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"",
+            "lineNumber": 192
+          },
+          {
+            "text": "env.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 193
+          },
+          {
+            "text": "env.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"",
+            "lineNumber": 194
+          },
+          {
+            "text": "startup_timeout_sec = 60",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "# 🔒 TLS/mTLS設定",
+            "lineNumber": 197
+          },
+          {
+            "text": "transport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）",
+            "lineNumber": 198
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8001\"",
+            "lineNumber": 199
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"",
+            "lineNumber": 200
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"",
+            "lineNumber": 201
+          },
+          {
+            "text": "require_client_cert = true  # mTLS必須",
+            "lineNumber": 202
+          },
+          {
+            "lineNumber": 203
+          },
+          {
+            "text": "# 🔐 認証設定",
+            "lineNumber": 204
+          },
+          {
+            "text": "auth_method = \"mtls\"  # mTLS認証",
+            "lineNumber": 205
+          },
+          {
+            "text": "trusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"",
+            "lineNumber": 206
+          },
+          {
+            "lineNumber": 207
+          },
+          {
+            "text": "# Serena - AIオーケストレーション（TLS/mTLS）",
+            "lineNumber": 208
+          },
+          {
+            "text": "[mcp_servers.serena]",
+            "lineNumber": 209
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 210
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-everything\"]",
+            "lineNumber": 211
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 212
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8002\"",
+            "lineNumber": 213
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"",
+            "lineNumber": 214
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"",
+            "lineNumber": 215
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 216
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 217
+          },
+          {
+            "lineNumber": 218
+          },
+          {
+            "text": "# Gemini CLI - Google Gemini AI統合（TLS/mTLS）",
+            "lineNumber": 219
+          },
+          {
+            "text": "[mcp_servers.codex-gemini-mcp]",
+            "lineNumber": 220
+          },
+          {
+            "text": "command = \"codex-gemini-mcp\"",
+            "lineNumber": 221
+          },
+          {
+            "text": "args = []",
+            "lineNumber": 222
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 223
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8003\"",
+            "lineNumber": 224
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"",
+            "lineNumber": 225
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"",
+            "lineNumber": 226
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 227
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 228
+          },
+          {
+            "lineNumber": 229
+          },
+          {
+            "text": "# Filesystem - ファイル操作（TLS/mTLS）",
+            "lineNumber": 230
+          },
+          {
+            "text": "[mcp_servers.filesystem]",
+            "lineNumber": 231
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 232
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]",
+            "lineNumber": 233
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 234
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8004\"",
+            "lineNumber": 235
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"",
+            "lineNumber": 236
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"",
+            "lineNumber": 237
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 238
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "# GitHub - GitHub API（TLS/mTLS）",
+            "lineNumber": 241
+          },
+          {
+            "text": "[mcp_servers.github]",
+            "lineNumber": 242
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 243
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-github\"]",
+            "lineNumber": 244
+          },
+          {
+            "text": "env.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 245
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 246
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8005\"",
+            "lineNumber": 247
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"",
+            "lineNumber": 248
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"",
+            "lineNumber": 249
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 250
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 251
+          },
+          {
+            "lineNumber": 252
+          },
+          {
+            "text": "# Chrome DevTools - ブラウザ自動化（TLS/mTLS）",
+            "lineNumber": 253
+          },
+          {
+            "text": "[mcp_servers.chrome-devtools]",
+            "lineNumber": 254
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 255
+          }
+        ]
+      },
+      "score": 0.40329694747924805
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\config-examples\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 191
+          },
+          "endPosition": {
+            "line": 255
+          }
+        },
+        "contents": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"\nenv.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"\nenv.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"\nstartup_timeout_sec = 60\n\n# 🔒 TLS/mTLS設定\ntransport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）\nbind_address = \"127.0.0.1:8001\"\ntls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"\nrequire_client_cert = true  # mTLS必須\n\n# 🔐 認証設定\nauth_method = \"mtls\"  # mTLS認証\ntrusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"\n\n# Serena - AIオーケストレーション（TLS/mTLS）\n[mcp_servers.serena]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-everything\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8002\"\ntls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Gemini CLI - Google Gemini AI統合（TLS/mTLS）\n[mcp_servers.codex-gemini-mcp]\ncommand = \"codex-gemini-mcp\"\nargs = []\ntransport = \"https\"\nbind_address = \"127.0.0.1:8003\"\ntls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Filesystem - ファイル操作（TLS/mTLS）\n[mcp_servers.filesystem]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]\ntransport = \"https\"\nbind_address = \"127.0.0.1:8004\"\ntls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# GitHub - GitHub API（TLS/mTLS）\n[mcp_servers.github]\ncommand = \"npx\"\nargs = [\"-y\", \"@modelcontextprotocol/server-github\"]\nenv.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"\ntransport = \"https\"\nbind_address = \"127.0.0.1:8005\"\ntls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"\ntls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"\nrequire_client_cert = true\nauth_method = \"mtls\"\n\n# Chrome DevTools - ブラウザ自動化（TLS/mTLS）\n[mcp_servers.chrome-devtools]\ncommand = \"npx\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"",
+            "lineNumber": 192
+          },
+          {
+            "text": "env.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 193
+          },
+          {
+            "text": "env.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"",
+            "lineNumber": 194
+          },
+          {
+            "text": "startup_timeout_sec = 60",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "# 🔒 TLS/mTLS設定",
+            "lineNumber": 197
+          },
+          {
+            "text": "transport = \"https\"  # 🆕 HTTPSに変更（stdio→TCP+TLS）",
+            "lineNumber": 198
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8001\"",
+            "lineNumber": 199
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/codex-cert.pem\"",
+            "lineNumber": 200
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/codex-key.pem\"",
+            "lineNumber": 201
+          },
+          {
+            "text": "require_client_cert = true  # mTLS必須",
+            "lineNumber": 202
+          },
+          {
+            "lineNumber": 203
+          },
+          {
+            "text": "# 🔐 認証設定",
+            "lineNumber": 204
+          },
+          {
+            "text": "auth_method = \"mtls\"  # mTLS認証",
+            "lineNumber": 205
+          },
+          {
+            "text": "trusted_ca = \"~/.codex/certs/ca/ca-cert.pem\"",
+            "lineNumber": 206
+          },
+          {
+            "lineNumber": 207
+          },
+          {
+            "text": "# Serena - AIオーケストレーション（TLS/mTLS）",
+            "lineNumber": 208
+          },
+          {
+            "text": "[mcp_servers.serena]",
+            "lineNumber": 209
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 210
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-everything\"]",
+            "lineNumber": 211
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 212
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8002\"",
+            "lineNumber": 213
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/serena-cert.pem\"",
+            "lineNumber": 214
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/serena-key.pem\"",
+            "lineNumber": 215
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 216
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 217
+          },
+          {
+            "lineNumber": 218
+          },
+          {
+            "text": "# Gemini CLI - Google Gemini AI統合（TLS/mTLS）",
+            "lineNumber": 219
+          },
+          {
+            "text": "[mcp_servers.codex-gemini-mcp]",
+            "lineNumber": 220
+          },
+          {
+            "text": "command = \"codex-gemini-mcp\"",
+            "lineNumber": 221
+          },
+          {
+            "text": "args = []",
+            "lineNumber": 222
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 223
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8003\"",
+            "lineNumber": 224
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/gemini-cli-cert.pem\"",
+            "lineNumber": 225
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/gemini-cli-key.pem\"",
+            "lineNumber": 226
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 227
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 228
+          },
+          {
+            "lineNumber": 229
+          },
+          {
+            "text": "# Filesystem - ファイル操作（TLS/mTLS）",
+            "lineNumber": 230
+          },
+          {
+            "text": "[mcp_servers.filesystem]",
+            "lineNumber": 231
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 232
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\Users\\\\downl\\\\Desktop\\\\codex\"]",
+            "lineNumber": 233
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 234
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8004\"",
+            "lineNumber": 235
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/filesystem-cert.pem\"",
+            "lineNumber": 236
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/filesystem-key.pem\"",
+            "lineNumber": 237
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 238
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "# GitHub - GitHub API（TLS/mTLS）",
+            "lineNumber": 241
+          },
+          {
+            "text": "[mcp_servers.github]",
+            "lineNumber": 242
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 243
+          },
+          {
+            "text": "args = [\"-y\", \"@modelcontextprotocol/server-github\"]",
+            "lineNumber": 244
+          },
+          {
+            "text": "env.GITHUB_PERSONAL_ACCESS_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 245
+          },
+          {
+            "text": "transport = \"https\"",
+            "lineNumber": 246
+          },
+          {
+            "text": "bind_address = \"127.0.0.1:8005\"",
+            "lineNumber": 247
+          },
+          {
+            "text": "tls_cert = \"~/.codex/certs/mcp-servers/github-cert.pem\"",
+            "lineNumber": 248
+          },
+          {
+            "text": "tls_key = \"~/.codex/certs/mcp-servers/github-key.pem\"",
+            "lineNumber": 249
+          },
+          {
+            "text": "require_client_cert = true",
+            "lineNumber": 250
+          },
+          {
+            "text": "auth_method = \"mtls\"",
+            "lineNumber": 251
+          },
+          {
+            "lineNumber": 252
+          },
+          {
+            "text": "# Chrome DevTools - ブラウザ自動化（TLS/mTLS）",
+            "lineNumber": 253
+          },
+          {
+            "text": "[mcp_servers.chrome-devtools]",
+            "lineNumber": 254
+          },
+          {
+            "text": "command = \"npx\"",
+            "lineNumber": 255
+          }
+        ]
+      },
+      "score": 0.40329694747924805
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\vercel.json",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 43
+          }
+        },
+        "contents": "{\n  \"version\": 2,\n  \"buildCommand\": \"npm run build\",\n  \"devCommand\": \"npm run dev\",\n  \"installCommand\": \"npm install\",\n  \"framework\": \"nextjs\",\n  \"regions\": [\"iad1\"],\n  \"env\": {\n    \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",\n    \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\",\n    \"ENCRYPTION_SECRET\": \"@encryption-secret\"\n  },\n  \"build\": {\n    \"env\": {\n      \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",\n      \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\"\n    }\n  },\n  \"headers\": [\n    {\n      \"source\": \"/(.*)\",\n      \"headers\": [\n        {\n          \"key\": \"X-Frame-Options\",\n          \"value\": \"DENY\"\n        },\n        {\n          \"key\": \"X-Content-Type-Options\",\n          \"value\": \"nosniff\"\n        },\n        {\n          \"key\": \"Referrer-Policy\",\n          \"value\": \"strict-origin-when-cross-origin\"\n        },\n        {\n          \"key\": \"Permissions-Policy\",\n          \"value\": \"camera=(), microphone=(), geolocation=()\"\n        }\n      ]\n    }\n  ]\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "{",
+            "lineNumber": 1
+          },
+          {
+            "text": "  \"version\": 2,",
+            "lineNumber": 2
+          },
+          {
+            "text": "  \"buildCommand\": \"npm run build\",",
+            "lineNumber": 3
+          },
+          {
+            "text": "  \"devCommand\": \"npm run dev\",",
+            "lineNumber": 4
+          },
+          {
+            "text": "  \"installCommand\": \"npm install\",",
+            "lineNumber": 5
+          },
+          {
+            "text": "  \"framework\": \"nextjs\",",
+            "lineNumber": 6
+          },
+          {
+            "text": "  \"regions\": [\"iad1\"],",
+            "lineNumber": 7
+          },
+          {
+            "text": "  \"env\": {",
+            "lineNumber": 8
+          },
+          {
+            "text": "    \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",",
+            "lineNumber": 9
+          },
+          {
+            "text": "    \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\",",
+            "lineNumber": 10
+          },
+          {
+            "text": "    \"ENCRYPTION_SECRET\": \"@encryption-secret\"",
+            "lineNumber": 11
+          },
+          {
+            "text": "  },",
+            "lineNumber": 12
+          },
+          {
+            "text": "  \"build\": {",
+            "lineNumber": 13
+          },
+          {
+            "text": "    \"env\": {",
+            "lineNumber": 14
+          },
+          {
+            "text": "      \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",",
+            "lineNumber": 15
+          },
+          {
+            "text": "      \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\"",
+            "lineNumber": 16
+          },
+          {
+            "text": "    }",
+            "lineNumber": 17
+          },
+          {
+            "text": "  },",
+            "lineNumber": 18
+          },
+          {
+            "text": "  \"headers\": [",
+            "lineNumber": 19
+          },
+          {
+            "text": "    {",
+            "lineNumber": 20
+          },
+          {
+            "text": "      \"source\": \"/(.*)\",",
+            "lineNumber": 21
+          },
+          {
+            "text": "      \"headers\": [",
+            "lineNumber": 22
+          },
+          {
+            "text": "        {",
+            "lineNumber": 23
+          },
+          {
+            "text": "          \"key\": \"X-Frame-Options\",",
+            "lineNumber": 24
+          },
+          {
+            "text": "          \"value\": \"DENY\"",
+            "lineNumber": 25
+          },
+          {
+            "text": "        },",
+            "lineNumber": 26
+          },
+          {
+            "text": "        {",
+            "lineNumber": 27
+          },
+          {
+            "text": "          \"key\": \"X-Content-Type-Options\",",
+            "lineNumber": 28
+          },
+          {
+            "text": "          \"value\": \"nosniff\"",
+            "lineNumber": 29
+          },
+          {
+            "text": "        },",
+            "lineNumber": 30
+          },
+          {
+            "text": "        {",
+            "lineNumber": 31
+          },
+          {
+            "text": "          \"key\": \"Referrer-Policy\",",
+            "lineNumber": 32
+          },
+          {
+            "text": "          \"value\": \"strict-origin-when-cross-origin\"",
+            "lineNumber": 33
+          },
+          {
+            "text": "        },",
+            "lineNumber": 34
+          },
+          {
+            "text": "        {",
+            "lineNumber": 35
+          },
+          {
+            "text": "          \"key\": \"Permissions-Policy\",",
+            "lineNumber": 36
+          },
+          {
+            "text": "          \"value\": \"camera=(), microphone=(), geolocation=()\"",
+            "lineNumber": 37
+          },
+          {
+            "text": "        }",
+            "lineNumber": 38
+          },
+          {
+            "text": "      ]",
+            "lineNumber": 39
+          },
+          {
+            "text": "    }",
+            "lineNumber": 40
+          },
+          {
+            "text": "  ]",
+            "lineNumber": 41
+          },
+          {
+            "text": "}",
+            "lineNumber": 42
+          }
+        ]
+      },
+      "score": 0.3940522074699402
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\vercel.json",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 43
+          }
+        },
+        "contents": "{\n  \"version\": 2,\n  \"buildCommand\": \"npm run build\",\n  \"devCommand\": \"npm run dev\",\n  \"installCommand\": \"npm install\",\n  \"framework\": \"nextjs\",\n  \"regions\": [\"iad1\"],\n  \"env\": {\n    \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",\n    \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\",\n    \"ENCRYPTION_SECRET\": \"@encryption-secret\"\n  },\n  \"build\": {\n    \"env\": {\n      \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",\n      \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\"\n    }\n  },\n  \"headers\": [\n    {\n      \"source\": \"/(.*)\",\n      \"headers\": [\n        {\n          \"key\": \"X-Frame-Options\",\n          \"value\": \"DENY\"\n        },\n        {\n          \"key\": \"X-Content-Type-Options\",\n          \"value\": \"nosniff\"\n        },\n        {\n          \"key\": \"Referrer-Policy\",\n          \"value\": \"strict-origin-when-cross-origin\"\n        },\n        {\n          \"key\": \"Permissions-Policy\",\n          \"value\": \"camera=(), microphone=(), geolocation=()\"\n        }\n      ]\n    }\n  ]\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "{",
+            "lineNumber": 1
+          },
+          {
+            "text": "  \"version\": 2,",
+            "lineNumber": 2
+          },
+          {
+            "text": "  \"buildCommand\": \"npm run build\",",
+            "lineNumber": 3
+          },
+          {
+            "text": "  \"devCommand\": \"npm run dev\",",
+            "lineNumber": 4
+          },
+          {
+            "text": "  \"installCommand\": \"npm install\",",
+            "lineNumber": 5
+          },
+          {
+            "text": "  \"framework\": \"nextjs\",",
+            "lineNumber": 6
+          },
+          {
+            "text": "  \"regions\": [\"iad1\"],",
+            "lineNumber": 7
+          },
+          {
+            "text": "  \"env\": {",
+            "lineNumber": 8
+          },
+          {
+            "text": "    \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",",
+            "lineNumber": 9
+          },
+          {
+            "text": "    \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\",",
+            "lineNumber": 10
+          },
+          {
+            "text": "    \"ENCRYPTION_SECRET\": \"@encryption-secret\"",
+            "lineNumber": 11
+          },
+          {
+            "text": "  },",
+            "lineNumber": 12
+          },
+          {
+            "text": "  \"build\": {",
+            "lineNumber": 13
+          },
+          {
+            "text": "    \"env\": {",
+            "lineNumber": 14
+          },
+          {
+            "text": "      \"NEXT_PUBLIC_SUPABASE_URL\": \"@supabase-url\",",
+            "lineNumber": 15
+          },
+          {
+            "text": "      \"NEXT_PUBLIC_SUPABASE_ANON_KEY\": \"@supabase-anon-key\"",
+            "lineNumber": 16
+          },
+          {
+            "text": "    }",
+            "lineNumber": 17
+          },
+          {
+            "text": "  },",
+            "lineNumber": 18
+          },
+          {
+            "text": "  \"headers\": [",
+            "lineNumber": 19
+          },
+          {
+            "text": "    {",
+            "lineNumber": 20
+          },
+          {
+            "text": "      \"source\": \"/(.*)\",",
+            "lineNumber": 21
+          },
+          {
+            "text": "      \"headers\": [",
+            "lineNumber": 22
+          },
+          {
+            "text": "        {",
+            "lineNumber": 23
+          },
+          {
+            "text": "          \"key\": \"X-Frame-Options\",",
+            "lineNumber": 24
+          },
+          {
+            "text": "          \"value\": \"DENY\"",
+            "lineNumber": 25
+          },
+          {
+            "text": "        },",
+            "lineNumber": 26
+          },
+          {
+            "text": "        {",
+            "lineNumber": 27
+          },
+          {
+            "text": "          \"key\": \"X-Content-Type-Options\",",
+            "lineNumber": 28
+          },
+          {
+            "text": "          \"value\": \"nosniff\"",
+            "lineNumber": 29
+          },
+          {
+            "text": "        },",
+            "lineNumber": 30
+          },
+          {
+            "text": "        {",
+            "lineNumber": 31
+          },
+          {
+            "text": "          \"key\": \"Referrer-Policy\",",
+            "lineNumber": 32
+          },
+          {
+            "text": "          \"value\": \"strict-origin-when-cross-origin\"",
+            "lineNumber": 33
+          },
+          {
+            "text": "        },",
+            "lineNumber": 34
+          },
+          {
+            "text": "        {",
+            "lineNumber": 35
+          },
+          {
+            "text": "          \"key\": \"Permissions-Policy\",",
+            "lineNumber": 36
+          },
+          {
+            "text": "          \"value\": \"camera=(), microphone=(), geolocation=()\"",
+            "lineNumber": 37
+          },
+          {
+            "text": "        }",
+            "lineNumber": 38
+          },
+          {
+            "text": "      ]",
+            "lineNumber": 39
+          },
+          {
+            "text": "    }",
+            "lineNumber": 40
+          },
+          {
+            "text": "  ]",
+            "lineNumber": 41
+          },
+          {
+            "text": "}",
+            "lineNumber": 42
+          }
+        ]
+      },
+      "score": 0.3940522074699402
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\DEPLOYMENT.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 86
+          }
+        },
+        "contents": "# Prism デプロイメントガイド\n\n**最終更新**: 2025年11月2日\n\n---\n\n## 🚀 完全無料デプロイ手順\n\n### Phase 1: Supabase セットアップ\n\n&#96;&#96;&#96;bash\n# 1. Supabaseアカウント作成\nhttps://supabase.com にアクセス → Sign Up\n\n# 2. 新規プロジェクト作成\nOrganization: Personal\nProject name: prism-production\nDatabase Password: (強力なパスワード生成)\nRegion: Northeast Asia (Tokyo)\nPricing: Free Tier ✅\n\n# 3. SQL Editorでスキーマ実行\nDashboard → SQL Editor → New query\n→ supabase/schema.sql の内容を貼り付け → Run\n\n# 4. Storage Buckets作成\nDashboard → Storage → New bucket\n  - visualizations (public)\n  - avatars (public)\n  - artifacts (private)\n\n# 5. 認証設定\nDashboard → Authentication → Providers\n  ✅ Email (enabled)\n  ✅ GitHub OAuth (設定: https://github.com/settings/developers)\n\n# 6. APIキー取得\nDashboard → Settings → API\n  → Copy: Project URL, anon/public key\n&#96;&#96;&#96;\n\n### Phase 2: GitHub リポジトリ\n\n&#96;&#96;&#96;bash\n# 1. GitHubで新規リポジトリ作成\nhttps://github.com/new\nRepository name: prism\nDescription: AI-Native Code Intelligence Platform\nPublic ✅\n\n# 2. ローカルからpush\ncd prism-web\ngit init\ngit add .\ngit commit -m \"feat: Initial Prism implementation\"\ngit branch -M main\ngit remote add origin https://github.com/YOUR_USERNAME/prism.git\ngit push -u origin main\n&#96;&#96;&#96;\n\n### Phase 3: Vercel デプロイ\n\n&#96;&#96;&#96;bash\n# 1. Vercelアカウント作成\nhttps://vercel.com → Sign up with GitHub\n\n# 2. プロジェクトインポート\nDashboard → Add New → Project\n→ GitHubリポジトリ選択: prism\n\n# 3. 環境変数設定\nEnvironment Variables:\n  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)\n  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)\n  ENCRYPTION_SECRET = (32文字以上のランダム文字列)\n\n# 4. デプロイ設定\nFramework Preset: Next.js\nBuild Command: npm run build\nOutput Directory: .next\nInstall Command: npm install\n\n→ Deploy\n\n# 5. デプロイ完了\nYour project is live at: https://prism-xxx.vercel.app",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Prism デプロイメントガイド",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**最終更新**: 2025年11月2日",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "---",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "## 🚀 完全無料デプロイ手順",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "### Phase 1: Supabase セットアップ",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 11
+          },
+          {
+            "text": "# 1. Supabaseアカウント作成",
+            "lineNumber": 12
+          },
+          {
+            "text": "https://supabase.com にアクセス → Sign Up",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "# 2. 新規プロジェクト作成",
+            "lineNumber": 15
+          },
+          {
+            "text": "Organization: Personal",
+            "lineNumber": 16
+          },
+          {
+            "text": "Project name: prism-production",
+            "lineNumber": 17
+          },
+          {
+            "text": "Database Password: (強力なパスワード生成)",
+            "lineNumber": 18
+          },
+          {
+            "text": "Region: Northeast Asia (Tokyo)",
+            "lineNumber": 19
+          },
+          {
+            "text": "Pricing: Free Tier ✅",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "# 3. SQL Editorでスキーマ実行",
+            "lineNumber": 22
+          },
+          {
+            "text": "Dashboard → SQL Editor → New query",
+            "lineNumber": 23
+          },
+          {
+            "text": "→ supabase/schema.sql の内容を貼り付け → Run",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "# 4. Storage Buckets作成",
+            "lineNumber": 26
+          },
+          {
+            "text": "Dashboard → Storage → New bucket",
+            "lineNumber": 27
+          },
+          {
+            "text": "  - visualizations (public)",
+            "lineNumber": 28
+          },
+          {
+            "text": "  - avatars (public)",
+            "lineNumber": 29
+          },
+          {
+            "text": "  - artifacts (private)",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "# 5. 認証設定",
+            "lineNumber": 32
+          },
+          {
+            "text": "Dashboard → Authentication → Providers",
+            "lineNumber": 33
+          },
+          {
+            "text": "  ✅ Email (enabled)",
+            "lineNumber": 34
+          },
+          {
+            "text": "  ✅ GitHub OAuth (設定: https://github.com/settings/developers)",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "# 6. APIキー取得",
+            "lineNumber": 37
+          },
+          {
+            "text": "Dashboard → Settings → API",
+            "lineNumber": 38
+          },
+          {
+            "text": "  → Copy: Project URL, anon/public key",
+            "lineNumber": 39
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "### Phase 2: GitHub リポジトリ",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 44
+          },
+          {
+            "text": "# 1. GitHubで新規リポジトリ作成",
+            "lineNumber": 45
+          },
+          {
+            "text": "https://github.com/new",
+            "lineNumber": 46
+          },
+          {
+            "text": "Repository name: prism",
+            "lineNumber": 47
+          },
+          {
+            "text": "Description: AI-Native Code Intelligence Platform",
+            "lineNumber": 48
+          },
+          {
+            "text": "Public ✅",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "# 2. ローカルからpush",
+            "lineNumber": 51
+          },
+          {
+            "text": "cd prism-web",
+            "lineNumber": 52
+          },
+          {
+            "text": "git init",
+            "lineNumber": 53
+          },
+          {
+            "text": "git add .",
+            "lineNumber": 54
+          },
+          {
+            "text": "git commit -m \"feat: Initial Prism implementation\"",
+            "lineNumber": 55
+          },
+          {
+            "text": "git branch -M main",
+            "lineNumber": 56
+          },
+          {
+            "text": "git remote add origin https://github.com/YOUR_USERNAME/prism.git",
+            "lineNumber": 57
+          },
+          {
+            "text": "git push -u origin main",
+            "lineNumber": 58
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "### Phase 3: Vercel デプロイ",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 63
+          },
+          {
+            "text": "# 1. Vercelアカウント作成",
+            "lineNumber": 64
+          },
+          {
+            "text": "https://vercel.com → Sign up with GitHub",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "# 2. プロジェクトインポート",
+            "lineNumber": 67
+          },
+          {
+            "text": "Dashboard → Add New → Project",
+            "lineNumber": 68
+          },
+          {
+            "text": "→ GitHubリポジトリ選択: prism",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "# 3. 環境変数設定",
+            "lineNumber": 71
+          },
+          {
+            "text": "Environment Variables:",
+            "lineNumber": 72
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)",
+            "lineNumber": 73
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)",
+            "lineNumber": 74
+          },
+          {
+            "text": "  ENCRYPTION_SECRET = (32文字以上のランダム文字列)",
+            "lineNumber": 75
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "text": "# 4. デプロイ設定",
+            "lineNumber": 77
+          },
+          {
+            "text": "Framework Preset: Next.js",
+            "lineNumber": 78
+          },
+          {
+            "text": "Build Command: npm run build",
+            "lineNumber": 79
+          },
+          {
+            "text": "Output Directory: .next",
+            "lineNumber": 80
+          },
+          {
+            "text": "Install Command: npm install",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "→ Deploy",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "# 5. デプロイ完了",
+            "lineNumber": 85
+          },
+          {
+            "text": "Your project is live at: https://prism-xxx.vercel.app",
+            "lineNumber": 86
+          }
+        ]
+      },
+      "score": 0.3908286690711975
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\prism-web\\DEPLOYMENT.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 86
+          }
+        },
+        "contents": "# Prism デプロイメントガイド\n\n**最終更新**: 2025年11月2日\n\n---\n\n## 🚀 完全無料デプロイ手順\n\n### Phase 1: Supabase セットアップ\n\n&#96;&#96;&#96;bash\n# 1. Supabaseアカウント作成\nhttps://supabase.com にアクセス → Sign Up\n\n# 2. 新規プロジェクト作成\nOrganization: Personal\nProject name: prism-production\nDatabase Password: (強力なパスワード生成)\nRegion: Northeast Asia (Tokyo)\nPricing: Free Tier ✅\n\n# 3. SQL Editorでスキーマ実行\nDashboard → SQL Editor → New query\n→ supabase/schema.sql の内容を貼り付け → Run\n\n# 4. Storage Buckets作成\nDashboard → Storage → New bucket\n  - visualizations (public)\n  - avatars (public)\n  - artifacts (private)\n\n# 5. 認証設定\nDashboard → Authentication → Providers\n  ✅ Email (enabled)\n  ✅ GitHub OAuth (設定: https://github.com/settings/developers)\n\n# 6. APIキー取得\nDashboard → Settings → API\n  → Copy: Project URL, anon/public key\n&#96;&#96;&#96;\n\n### Phase 2: GitHub リポジトリ\n\n&#96;&#96;&#96;bash\n# 1. GitHubで新規リポジトリ作成\nhttps://github.com/new\nRepository name: prism\nDescription: AI-Native Code Intelligence Platform\nPublic ✅\n\n# 2. ローカルからpush\ncd prism-web\ngit init\ngit add .\ngit commit -m \"feat: Initial Prism implementation\"\ngit branch -M main\ngit remote add origin https://github.com/YOUR_USERNAME/prism.git\ngit push -u origin main\n&#96;&#96;&#96;\n\n### Phase 3: Vercel デプロイ\n\n&#96;&#96;&#96;bash\n# 1. Vercelアカウント作成\nhttps://vercel.com → Sign up with GitHub\n\n# 2. プロジェクトインポート\nDashboard → Add New → Project\n→ GitHubリポジトリ選択: prism\n\n# 3. 環境変数設定\nEnvironment Variables:\n  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)\n  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)\n  ENCRYPTION_SECRET = (32文字以上のランダム文字列)\n\n# 4. デプロイ設定\nFramework Preset: Next.js\nBuild Command: npm run build\nOutput Directory: .next\nInstall Command: npm install\n\n→ Deploy\n\n# 5. デプロイ完了\nYour project is live at: https://prism-xxx.vercel.app",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Prism デプロイメントガイド",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "**最終更新**: 2025年11月2日",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "---",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "## 🚀 完全無料デプロイ手順",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "### Phase 1: Supabase セットアップ",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 11
+          },
+          {
+            "text": "# 1. Supabaseアカウント作成",
+            "lineNumber": 12
+          },
+          {
+            "text": "https://supabase.com にアクセス → Sign Up",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "# 2. 新規プロジェクト作成",
+            "lineNumber": 15
+          },
+          {
+            "text": "Organization: Personal",
+            "lineNumber": 16
+          },
+          {
+            "text": "Project name: prism-production",
+            "lineNumber": 17
+          },
+          {
+            "text": "Database Password: (強力なパスワード生成)",
+            "lineNumber": 18
+          },
+          {
+            "text": "Region: Northeast Asia (Tokyo)",
+            "lineNumber": 19
+          },
+          {
+            "text": "Pricing: Free Tier ✅",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "# 3. SQL Editorでスキーマ実行",
+            "lineNumber": 22
+          },
+          {
+            "text": "Dashboard → SQL Editor → New query",
+            "lineNumber": 23
+          },
+          {
+            "text": "→ supabase/schema.sql の内容を貼り付け → Run",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "# 4. Storage Buckets作成",
+            "lineNumber": 26
+          },
+          {
+            "text": "Dashboard → Storage → New bucket",
+            "lineNumber": 27
+          },
+          {
+            "text": "  - visualizations (public)",
+            "lineNumber": 28
+          },
+          {
+            "text": "  - avatars (public)",
+            "lineNumber": 29
+          },
+          {
+            "text": "  - artifacts (private)",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "# 5. 認証設定",
+            "lineNumber": 32
+          },
+          {
+            "text": "Dashboard → Authentication → Providers",
+            "lineNumber": 33
+          },
+          {
+            "text": "  ✅ Email (enabled)",
+            "lineNumber": 34
+          },
+          {
+            "text": "  ✅ GitHub OAuth (設定: https://github.com/settings/developers)",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "# 6. APIキー取得",
+            "lineNumber": 37
+          },
+          {
+            "text": "Dashboard → Settings → API",
+            "lineNumber": 38
+          },
+          {
+            "text": "  → Copy: Project URL, anon/public key",
+            "lineNumber": 39
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "### Phase 2: GitHub リポジトリ",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 44
+          },
+          {
+            "text": "# 1. GitHubで新規リポジトリ作成",
+            "lineNumber": 45
+          },
+          {
+            "text": "https://github.com/new",
+            "lineNumber": 46
+          },
+          {
+            "text": "Repository name: prism",
+            "lineNumber": 47
+          },
+          {
+            "text": "Description: AI-Native Code Intelligence Platform",
+            "lineNumber": 48
+          },
+          {
+            "text": "Public ✅",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "# 2. ローカルからpush",
+            "lineNumber": 51
+          },
+          {
+            "text": "cd prism-web",
+            "lineNumber": 52
+          },
+          {
+            "text": "git init",
+            "lineNumber": 53
+          },
+          {
+            "text": "git add .",
+            "lineNumber": 54
+          },
+          {
+            "text": "git commit -m \"feat: Initial Prism implementation\"",
+            "lineNumber": 55
+          },
+          {
+            "text": "git branch -M main",
+            "lineNumber": 56
+          },
+          {
+            "text": "git remote add origin https://github.com/YOUR_USERNAME/prism.git",
+            "lineNumber": 57
+          },
+          {
+            "text": "git push -u origin main",
+            "lineNumber": 58
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "### Phase 3: Vercel デプロイ",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "&#96;&#96;&#96;bash",
+            "lineNumber": 63
+          },
+          {
+            "text": "# 1. Vercelアカウント作成",
+            "lineNumber": 64
+          },
+          {
+            "text": "https://vercel.com → Sign up with GitHub",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "# 2. プロジェクトインポート",
+            "lineNumber": 67
+          },
+          {
+            "text": "Dashboard → Add New → Project",
+            "lineNumber": 68
+          },
+          {
+            "text": "→ GitHubリポジトリ選択: prism",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "# 3. 環境変数設定",
+            "lineNumber": 71
+          },
+          {
+            "text": "Environment Variables:",
+            "lineNumber": 72
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_URL = (Supabaseから取得)",
+            "lineNumber": 73
+          },
+          {
+            "text": "  NEXT_PUBLIC_SUPABASE_ANON_KEY = (Supabaseから取得)",
+            "lineNumber": 74
+          },
+          {
+            "text": "  ENCRYPTION_SECRET = (32文字以上のランダム文字列)",
+            "lineNumber": 75
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "text": "# 4. デプロイ設定",
+            "lineNumber": 77
+          },
+          {
+            "text": "Framework Preset: Next.js",
+            "lineNumber": 78
+          },
+          {
+            "text": "Build Command: npm run build",
+            "lineNumber": 79
+          },
+          {
+            "text": "Output Directory: .next",
+            "lineNumber": 80
+          },
+          {
+            "text": "Install Command: npm install",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "→ Deploy",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "# 5. デプロイ完了",
+            "lineNumber": 85
+          },
+          {
+            "text": "Your project is live at: https://prism-xxx.vercel.app",
+            "lineNumber": 86
+          }
+        ]
+      },
+      "score": 0.3908286690711975
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\docs\\config-examples\\config-secure.toml",
+        "range": {
+          "startPosition": {
+            "line": 124
+          },
+          "endPosition": {
+            "line": 196
+          }
+        },
+        "contents": "permissions = [\"read\", \"write\"]\n\n# DeepResearcher: 外部アクセス可能\n[agent_security.trust.DeepResearcher]\ncan_communicate_with = [\"General\"]\npermissions = [\"read\", \"network\"]\n\n# DocsExpert: ドキュメント生成のみ\n[agent_security.trust.DocsExpert]\ncan_communicate_with = [\"General\", \"CodeExpert\"]\npermissions = [\"read\", \"write\"]\n\n# DebugExpert: デバッグ権限\n[agent_security.trust.DebugExpert]\ncan_communicate_with = [\"General\", \"CodeExpert\"]\npermissions = [\"read\", \"write\", \"execute\"]\n\n# PerformanceExpert: パフォーマンス測定\n[agent_security.trust.PerformanceExpert]\ncan_communicate_with = [\"General\"]\npermissions = [\"read\"]\n\n# General: 汎用エージェント\n[agent_security.trust.General]\ncan_communicate_with = [\"*\"]\npermissions = [\"read\"]\n\n[agent_security.rate_limiting]\nenabled = true\nmax_messages_per_sec = 5.0\n\n# ==================== 監査ログ ====================\n[audit]\nenabled = true\nlog_dir = \"~/.codex/audit-logs\"\ninclude_mcp_calls = true\ninclude_agent_messages = true\ninclude_security_events = true\ninclude_tool_args = true\nformat = \"json\"\nrotation = \"daily\"\nretention_days = 90\n\n# セキュリティイベントの即時通知\n[audit.alerts]\nenabled = true\nalert_on_security_events = true\nalert_email = \"security@example.com\"\nalert_slack_webhook = \"${SLACK_SECURITY_WEBHOOK}\"\n\n# 重要イベントの閾値\n[audit.thresholds]\n# mTLS認証失敗が5分間に10回以上でアラート\nmtls_auth_failures_per_5min = 10\n# 署名検証失敗が5分間に5回以上でアラート\nsignature_failures_per_5min = 5\n# Rate Limit超過が5分間に100回以上でアラート\nrate_limit_exceeded_per_5min = 100\n\n# ==================== MCP サーバー（セキュア版） ====================\n# 🔒 すべてのMCPサーバーでTLS/mTLS有効化\n\n# Codex MCP Server - メインサーバー（TLS/mTLS）\n[mcp_servers.codex]\ncommand = \"codex\"\nargs = [\"mcp-server\"]\nenv.RUST_LOG = \"info\"\nenv.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"\nenv.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"\nenv.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"\nstartup_timeout_sec = 60",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "# DeepResearcher: 外部アクセス可能",
+            "lineNumber": 127
+          },
+          {
+            "text": "[agent_security.trust.DeepResearcher]",
+            "lineNumber": 128
+          },
+          {
+            "text": "can_communicate_with = [\"General\"]",
+            "lineNumber": 129
+          },
+          {
+            "text": "permissions = [\"read\", \"network\"]",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "# DocsExpert: ドキュメント生成のみ",
+            "lineNumber": 132
+          },
+          {
+            "text": "[agent_security.trust.DocsExpert]",
+            "lineNumber": 133
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"CodeExpert\"]",
+            "lineNumber": 134
+          },
+          {
+            "text": "permissions = [\"read\", \"write\"]",
+            "lineNumber": 135
+          },
+          {
+            "lineNumber": 136
+          },
+          {
+            "text": "# DebugExpert: デバッグ権限",
+            "lineNumber": 137
+          },
+          {
+            "text": "[agent_security.trust.DebugExpert]",
+            "lineNumber": 138
+          },
+          {
+            "text": "can_communicate_with = [\"General\", \"CodeExpert\"]",
+            "lineNumber": 139
+          },
+          {
+            "text": "permissions = [\"read\", \"write\", \"execute\"]",
+            "lineNumber": 140
+          },
+          {
+            "lineNumber": 141
+          },
+          {
+            "text": "# PerformanceExpert: パフォーマンス測定",
+            "lineNumber": 142
+          },
+          {
+            "text": "[agent_security.trust.PerformanceExpert]",
+            "lineNumber": 143
+          },
+          {
+            "text": "can_communicate_with = [\"General\"]",
+            "lineNumber": 144
+          },
+          {
+            "text": "permissions = [\"read\"]",
+            "lineNumber": 145
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "text": "# General: 汎用エージェント",
+            "lineNumber": 147
+          },
+          {
+            "text": "[agent_security.trust.General]",
+            "lineNumber": 148
+          },
+          {
+            "text": "can_communicate_with = [\"*\"]",
+            "lineNumber": 149
+          },
+          {
+            "text": "permissions = [\"read\"]",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "[agent_security.rate_limiting]",
+            "lineNumber": 152
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 153
+          },
+          {
+            "text": "max_messages_per_sec = 5.0",
+            "lineNumber": 154
+          },
+          {
+            "lineNumber": 155
+          },
+          {
+            "text": "# ==================== 監査ログ ====================",
+            "lineNumber": 156
+          },
+          {
+            "text": "[audit]",
+            "lineNumber": 157
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 158
+          },
+          {
+            "text": "log_dir = \"~/.codex/audit-logs\"",
+            "lineNumber": 159
+          },
+          {
+            "text": "include_mcp_calls = true",
+            "lineNumber": 160
+          },
+          {
+            "text": "include_agent_messages = true",
+            "lineNumber": 161
+          },
+          {
+            "text": "include_security_events = true",
+            "lineNumber": 162
+          },
+          {
+            "text": "include_tool_args = true",
+            "lineNumber": 163
+          },
+          {
+            "text": "format = \"json\"",
+            "lineNumber": 164
+          },
+          {
+            "text": "rotation = \"daily\"",
+            "lineNumber": 165
+          },
+          {
+            "text": "retention_days = 90",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "# セキュリティイベントの即時通知",
+            "lineNumber": 168
+          },
+          {
+            "text": "[audit.alerts]",
+            "lineNumber": 169
+          },
+          {
+            "text": "enabled = true",
+            "lineNumber": 170
+          },
+          {
+            "text": "alert_on_security_events = true",
+            "lineNumber": 171
+          },
+          {
+            "text": "alert_email = \"security@example.com\"",
+            "lineNumber": 172
+          },
+          {
+            "text": "alert_slack_webhook = \"${SLACK_SECURITY_WEBHOOK}\"",
+            "lineNumber": 173
+          },
+          {
+            "lineNumber": 174
+          },
+          {
+            "text": "# 重要イベントの閾値",
+            "lineNumber": 175
+          },
+          {
+            "text": "[audit.thresholds]",
+            "lineNumber": 176
+          },
+          {
+            "text": "# mTLS認証失敗が5分間に10回以上でアラート",
+            "lineNumber": 177
+          },
+          {
+            "text": "mtls_auth_failures_per_5min = 10",
+            "lineNumber": 178
+          },
+          {
+            "text": "# 署名検証失敗が5分間に5回以上でアラート",
+            "lineNumber": 179
+          },
+          {
+            "text": "signature_failures_per_5min = 5",
+            "lineNumber": 180
+          },
+          {
+            "text": "# Rate Limit超過が5分間に100回以上でアラート",
+            "lineNumber": 181
+          },
+          {
+            "text": "rate_limit_exceeded_per_5min = 100",
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "# ==================== MCP サーバー（セキュア版） ====================",
+            "lineNumber": 184
+          },
+          {
+            "text": "# 🔒 すべてのMCPサーバーでTLS/mTLS有効化",
+            "lineNumber": 185
+          },
+          {
+            "lineNumber": 186
+          },
+          {
+            "text": "# Codex MCP Server - メインサーバー（TLS/mTLS）",
+            "lineNumber": 187
+          },
+          {
+            "text": "[mcp_servers.codex]",
+            "lineNumber": 188
+          },
+          {
+            "text": "command = \"codex\"",
+            "lineNumber": 189
+          },
+          {
+            "text": "args = [\"mcp-server\"]",
+            "lineNumber": 190
+          },
+          {
+            "text": "env.RUST_LOG = \"info\"",
+            "lineNumber": 191
+          },
+          {
+            "text": "env.OPENAI_API_KEY = \"${OPENAI_API_KEY}\"",
+            "lineNumber": 192
+          },
+          {
+            "text": "env.GITHUB_TOKEN = \"${GITHUB_TOKEN}\"",
+            "lineNumber": 193
+          },
+          {
+            "text": "env.SLACK_WEBHOOK_URL = \"${SLACK_WEBHOOK_URL}\"",
+            "lineNumber": 194
+          },
+          {
+            "text": "startup_timeout_sec = 60",
+            "lineNumber": 195
+          }
+        ]
+      },
+      "score": 0.38950470089912415
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+本番向けの追加対策を特定するため、いくつか確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question">
+<details>
+<summary>Tool use: **ask_question**</summary>
+
+
+Parameters:
+
+```json
+{
+  "questions": [
+    {
+      "id": "auth_method",
+      "prompt": "本番環境で使用する認証方式を選択してください",
+      "options": [
+        {
+          "id": "jwt",
+          "label": "JWT (JSON Web Token) - シンプルで標準的"
+        },
+        {
+          "id": "api_key",
+          "label": "APIキー認証 - CLI/自動化向け"
+        },
+        {
+          "id": "oauth2",
+          "label": "OAuth 2.0 - エンタープライズ向け"
+        },
+        {
+          "id": "mtls",
+          "label": "mTLS (相互TLS) - 最高レベルのセキュリティ"
+        },
+        {
+          "id": "hybrid",
+          "label": "ハイブリッド（複数方式の組み合わせ）"
+        }
+      ]
+    },
+    {
+      "id": "deployment_target",
+      "prompt": "本番環境のデプロイ先は？",
+      "options": [
+        {
+          "id": "on_premise",
+          "label": "オンプレミス"
+        },
+        {
+          "id": "cloud",
+          "label": "クラウド（AWS/GCP/Azure）"
+        },
+        {
+          "id": "hybrid_cloud",
+          "label": "ハイブリッドクラウド"
+        },
+        {
+          "id": "edge",
+          "label": "エッジデプロイ（CDN/Edge Functions）"
+        }
+      ]
+    }
+  ]
+}
+```
+Additional data:
+
+```json
+{
+  "status": "submitted",
+  "currentSelections": {
+    "auth_method": [
+      "oauth2"
+    ],
+    "deployment_target": [
+      "on_premise"
+    ]
+  }
+}
+```
+Result:
+
+```json
+{
+  "answers": [
+    {
+      "questionId": "auth_method",
+      "selectedOptionIds": [
+        "oauth2"
+      ]
+    },
+    {
+      "questionId": "deployment_target",
+      "selectedOptionIds": [
+        "on_premise"
+      ]
+    }
+  ]
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+OAuth 2.0とオンプレミス環境を前提に、本番向けセキュリティ対策の実装計画を作成中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\orchestrator\src\rpc.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\config-secure.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan">
+<details>
+<summary>Tool use: **create_plan**</summary>
+
+
+Parameters:
+
+```json
+{
+  "plan": "# 本番環境向け攻撃者視点セキュリティ対策実装計画\n\n## 実装範囲\n\nオンプレミス環境でのOAuth 2.0認証を中心とした本番レベルのセキュリティ対策を実装します。\n\n## 1. 認証・認可システムの実装\n\n### 1.1 OAuth 2.0認証の実装\n\n**ファイル**: &#96;codex-rs/orchestrator/src/auth.rs&#96;\n\n- **現状**: ダミー実装のみ\n- **実装内容**:\n  - OAuth 2.0トークン検証（JWT検証）\n  - トークンキャッシュ（Redisまたはメモリ）\n  - リフレッシュトークン処理\n  - トークン失効チェック\n  - スコープ検証\n\n**ファイル**: &#96;codex-rs/orchestrator/src/server.rs&#96;\n\n- **現状**: &#96;verify_auth()&#96;がプレースホルダー\n- **実装内容**:\n  - &#96;verify_auth()&#96;の実装\n    - AuthorizationヘッダーからBearerトークンを抽出\n    - OAuth 2.0トークンの検証\n    - スコープベースのアクセス制御\n    - ロールベースアクセス制御（RBAC）\n  - トークン検証エラーの適切な処理\n  - セッション管理\n\n### 1.2 APIキー認証（CLI/自動化向け）\n\n**ファイル**: &#96;codex-rs/orchestrator/src/auth.rs&#96;\n\n- APIキーの生成・管理\n- APIキーのハッシュ化保存\n- APIキーの有効期限管理\n- レート制限の適用\n\n### 1.3 RPCリクエストへの認証情報追加\n\n**ファイル**: &#96;codex-rs/orchestrator/src/rpc.rs&#96;\n\n- &#96;RpcRequest&#96;に認証情報フィールドを追加（オプショナル）\n  &#96;&#96;&#96;rust\n  pub struct RpcRequest {\n      // ... 既存フィールド\n      #[serde(skip_serializing_if = \"Option::is_none\")]\n      pub auth_token: Option&lt;String&gt;,  // Bearer token\n      #[serde(skip_serializing_if = \"Option::is_none\")]\n      pub api_key: Option&lt;String&gt;,     // API key for CLI\n  }\n  &#96;&#96;&#96;\n\n## 2. 証明書ピニングの実装\n\n**ファイル**: &#96;scripts/install-binary.js&#96;\n\n- **現状**: &#96;GITHUB_CERT_PIN&#96;がプレースホルダー\n- **実装内容**:\n  - GitHubの実際の証明書フィンガープリントを取得\n  - 証明書ピニング検証の実装\n  - 証明書チェーンの検証\n  - 証明書の有効期限チェック\n\n**実装方法**:\n&#96;&#96;&#96;javascript\n// GitHub証明書のSHA256フィンガープリントを取得\n// openssl s_client -connect github.com:443 -showcerts | openssl x509 -fingerprint -sha256 -noout\nconst GITHUB_CERT_PIN = 'sha256//実際のフィンガープリント';\n&#96;&#96;&#96;\n\n## 3. Rate Limitingの実装\n\n**ファイル**: &#96;codex-rs/orchestrator/src/server.rs&#96;\n\n- **実装内容**:\n  - クライアントIPベースのRate Limiting\n  - 認証トークンベースのRate Limiting\n  - スライディングウィンドウアルゴリズム\n  - バースト許容\n  - Rate Limit超過時の適切なエラーレスポンス（429 Too Many Requests）\n\n**設定**: &#96;config-secure.toml&#96;の&#96;[security.rate_limiting]&#96;セクションを使用\n\n## 4. リプレイ攻撃対策\n\n**ファイル**: &#96;codex-rs/orchestrator/src/server.rs&#96;\n\n- **実装内容**:\n  - リクエストにnonce（ナンス）を追加\n  - nonceの一意性チェック（Redisまたはメモリストア）\n  - タイムスタンプ検証（5分以内のリクエストのみ受け入れ）\n  - nonceの有効期限管理\n\n**設定**: &#96;config-secure.toml&#96;の&#96;[security.replay_protection]&#96;セクションを使用\n\n## 5. 監査ログの実装\n\n**ファイル**: &#96;codex-rs/orchestrator/src/audit.rs&#96;（新規作成）\n\n- **実装内容**:\n  - すべてのRPCリクエストのログ記録\n  - 認証成功/失敗の記録\n  - セキュリティイベントの記録\n  - 構造化ログ（JSON形式）\n  - ログローテーション\n  - 機密情報の自動マスキング（&#96;mask_secrets()&#96;を使用）\n\n**設定**: &#96;config-secure.toml&#96;の&#96;[audit]&#96;セクションを使用\n\n## 6. セキュリティヘッダーの追加\n\n**ファイル**: &#96;codex-rs/orchestrator/src/server.rs&#96;\n\n- HTTPレスポンスにセキュリティヘッダーを追加:\n  - &#96;Strict-Transport-Security&#96; (HSTS)\n  - &#96;X-Content-Type-Options: nosniff&#96;\n  - &#96;X-Frame-Options: DENY&#96;\n  - &#96;X-XSS-Protection: 1; mode=block&#96;\n  - &#96;Content-Security-Policy&#96;\n  - &#96;Referrer-Policy: strict-origin-when-cross-origin&#96;\n\n## 7. 入力検証の強化\n\n**ファイル**: &#96;codex-rs/orchestrator/src/server.rs&#96;\n\n- **実装内容**:\n  - すべてのRPCパラメータの検証\n  - 文字列長の制限\n  - 不正な文字のサニタイゼーション\n  - パスの正規化と検証（既存実装を強化）\n  - SQLインジェクション対策（該当する場合）\n\n## 8. セッション管理の実装\n\n**ファイル**: &#96;codex-rs/orchestrator/src/server.rs&#96;\n\n- **実装内容**:\n  - セッションIDの生成（暗号学的に安全な乱数）\n  - セッションの有効期限管理\n  - セッション固定攻撃対策（ログイン時にセッションIDを再生成）\n  - セッションの無効化（ログアウト時）\n\n## 9. エラーハンドリングの改善\n\n**ファイル**: &#96;codex-rs/orchestrator/src/server.rs&#96;\n\n- **実装内容**:\n  - 詳細なエラーメッセージの非表示（本番環境）\n  - エラーログへの機密情報の記録防止（&#96;mask_secrets()&#96;を使用）\n  - 適切なHTTPステータスコードの返却\n  - エラーレスポンスの統一フォーマット\n\n## 10. 設定ファイルの統合\n\n**ファイル**: &#96;codex-rs/orchestrator/src/config.rs&#96;（新規作成または既存を拡張）\n\n- **実装内容**:\n  - &#96;config-secure.toml&#96;の読み込み\n  - セキュリティ設定の検証\n  - デフォルト値の設定\n  - 環境変数による上書き\n\n## 実装順序\n\n1. **Phase 1: 認証基盤**\n   - OAuth 2.0認証の実装\n   - &#96;verify_auth()&#96;の実装\n   - APIキー認証の実装\n\n2. **Phase 2: セキュリティ強化**\n   - Rate Limiting\n   - リプレイ攻撃対策\n   - 証明書ピニング\n\n3. **Phase 3: 監視・ログ**\n   - 監査ログ\n   - セキュリティヘッダー\n   - エラーハンドリング改善\n\n4. **Phase 4: 最終調整**\n   - 入力検証の強化\n   - セッション管理\n   - 設定ファイル統合\n\n## 依存関係の追加\n\n**ファイル**: &#96;codex-rs/orchestrator/Cargo.toml&#96;\n\n- &#96;jsonwebtoken&#96;: JWT検証\n- &#96;oauth2&#96;: OAuth 2.0クライアント\n- &#96;redis&#96;: セッション/キャッシュストア（オプション）\n- &#96;ring&#96;: 暗号化操作\n- &#96;chrono&#96;: タイムスタンプ処理\n\n## テスト要件\n\n- 認証成功/失敗のテスト\n- Rate Limitingのテスト\n- リプレイ攻撃のテスト\n- 証明書ピニングのテスト\n- 監査ログのテスト\n- セキュリティヘッダーのテスト\n\n## 注意事項\n\n- 本番環境では必ずHTTPSを使用\n- 機密情報（APIキー、トークン）は環境変数または安全な設定ファイルから読み込む\n- ログには機密情報を含めない（&#96;mask_secrets()&#96;を使用）\n- 証明書ピニングは定期的に更新が必要（GitHubが証明書を更新した場合）",
+  "name": "本番環境向け攻撃者視点セキュリティ対策実装",
+  "todos": [
+    {
+      "content": "OAuth 2.0認証の実装（JWT検証、トークンキャッシュ、リフレッシュトークン処理）",
+      "status": "pending",
+      "id": "oauth2_auth"
+    },
+    {
+      "content": "APIキー認証の実装（CLI/自動化向け）",
+      "status": "pending",
+      "id": "api_key_auth"
+    },
+    {
+      "content": "verify_auth()関数の実装（OAuth 2.0トークン検証、RBAC）",
+      "status": "pending",
+      "id": "verify_auth_impl"
+    },
+    {
+      "content": "RpcRequestに認証情報フィールドを追加",
+      "status": "pending",
+      "id": "rpc_auth_fields"
+    },
+    {
+      "content": "証明書ピニングの実装（GitHub証明書フィンガープリント）",
+      "status": "pending",
+      "id": "cert_pinning"
+    },
+    {
+      "content": "Rate Limitingの実装（IP/トークンベース、スライディングウィンドウ）",
+      "status": "pending",
+      "id": "rate_limiting"
+    },
+    {
+      "content": "リプレイ攻撃対策（nonce検証、タイムスタンプ検証）",
+      "status": "pending",
+      "id": "replay_protection"
+    },
+    {
+      "content": "監査ログの実装（構造化ログ、ローテーション、機密情報マスキング）",
+      "status": "pending",
+      "id": "audit_logging"
+    },
+    {
+      "content": "セキュリティヘッダーの追加（HSTS、CSP、X-Frame-Optionsなど）",
+      "status": "pending",
+      "id": "security_headers"
+    },
+    {
+      "content": "入力検証の強化（パラメータ検証、サニタイゼーション）",
+      "status": "pending",
+      "id": "input_validation"
+    },
+    {
+      "content": "セッション管理の実装（セッションID生成、有効期限管理、固定攻撃対策）",
+      "status": "pending",
+      "id": "session_management"
+    },
+    {
+      "content": "エラーハンドリングの改善（機密情報の非表示、適切なステータスコード）",
+      "status": "pending",
+      "id": "error_handling"
+    },
+    {
+      "content": "config-secure.tomlの統合（設定読み込み、検証、デフォルト値）",
+      "status": "pending",
+      "id": "config_integration"
+    }
+  ],
+  "overview": "オンプレミス環境でのOAuth 2.0認証を中心とした本番レベルのセキュリティ対策を実装。認証・認可、証明書ピニング、Rate Limiting、監査ログ、リプレイ攻撃対策などを追加。"
+}
+```
+Additional data:
+
+```json
+{
+  "reviewData": {
+    "status": "Requested",
+    "selectedOption": "none",
+    "isShowingInput": false
+  },
+  "planUri": "c:\\Users\\downl\\.cursor\\plans\\本番環境向け攻撃者視点セキュリティ対策実装_86c94c40.plan.md",
+  "hasOpenedEditor": true
+}
+```
+Result:
+
+```json
+{
+  "rejected": {}
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+実装を開始します。まず現状を把握するため、関連ファイルを確認します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/auth.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/rpc.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "undefined" • **0** result in **1** directory</summary>
+
+Directory: **codex-rs/orchestrator** (0 file)
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/Cargo.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "undefined" • **2** results in **1** directory</summary>
+
+Directory: **undefined** (2 files)
+
+| File |
+|------|
+| `.\docs\config-examples\config-secure.toml` |
+| `.\config-secure.toml` |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: scripts/install-binary.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`server.rs`が大きいため、必要な部分を確認します。`config-secure.toml`も確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "verify_auth",
+  "path": "codex-rs/orchestrator/src/server.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "verify_auth",
+    "path": "codex-rs/orchestrator/src/server.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 319,
+                  "content": "    fn verify_auth("
+                },
+                {
+                  "lineNumber": 385,
+                  "content": "                if let Err(auth_error) = Self::verify_auth(auth_manager, &amp;request, None) {"
+                },
+                {
+                  "lineNumber": 534,
+                  "content": "            if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {"
+                },
+                {
+                  "lineNumber": 873,
+                  "content": "        if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {"
+                }
+              ]
+            }
+          ],
+          "totalLines": 4,
+          "totalMatchedLines": 4
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: config-secure.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/core/src/security/secret_masking.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="list_dir_v2">
+<details>
+<summary>Tool use: **list_dir_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "targetDirectory": "codex-rs/orchestrator/src"
+}
+```
+Result:
+
+```json
+{
+  "directoryTreeRoot": {
+    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\orchestrator\\src",
+    "childrenDirs": [
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\orchestrator\\src\\transport",
+        "childrenFiles": [
+          {
+            "name": "mod.rs"
+          },
+          {
+            "name": "named_pipe.rs"
+          },
+          {
+            "name": "tcp.rs"
+          },
+          {
+            "name": "uds.rs"
+          }
+        ],
+        "childrenWereProcessed": true
+      }
+    ],
+    "childrenFiles": [
+      {
+        "name": "auth.rs"
+      },
+      {
+        "name": "lib.rs"
+      },
+      {
+        "name": "rpc.rs"
+      },
+      {
+        "name": "server.rs"
+      }
+    ],
+    "childrenWereProcessed": true
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`server.rs`の`verify_auth`周辺を確認します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "How is the orchestrator server structured? What HTTP framework is used?",
+  "includePattern": "codex-rs/orchestrator",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 35,
+            "column": 29
+          },
+          "endPosition": {
+            "line": 93,
+            "column": 24
+          }
+        },
+        "contents": " {\n    /// Server configuration\n    config: OrchestratorConfig,\n    /// Transport layer\n    transport: Box&lt;dyn Transport&gt;,\n    /// Authentication manager\n    auth_manager: Arc&lt;AuthManager&gt;,\n    /// Idempotency cache (idem_key -&gt; response)\n    idempotency_cache: Arc&lt;RwLock&lt;HashMap&lt;String, IdempotencyEntry&gt;&gt;&gt;,\n    /// Single-writer queue\n    write_queue: mpsc::Sender&lt;WriteRequest&gt;,\n    /// Write queue receiver (for processing)\n    write_queue_rx: Option&lt;mpsc::Receiver&lt;WriteRequest&gt;&gt;,\n    /// Queue size tracker\n    queue_size: Arc&lt;RwLock&lt;usize&gt;&gt;,\n    /// Server start time\n    start_time: SystemTime,\n    /// Active agents\n    active_agents: Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,\n    /// Active tasks\n    active_tasks: Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,\n    /// Token budget tracker\n    token_budget: Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,\n    /// Active sessions\n    active_sessions: Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,\n    /// PubSub subscribers\n    subscribers: Arc&lt;RwLock&lt;HashMap&lt;String, Vec&lt;String&gt;&gt;&gt;&gt;, // topic -&gt; connection_ids\n    /// Plan manager for blueprint operations\n    plan_manager: Arc&lt;PlanManager&gt;,\n}\n\n/// Orchestrator configuration\n#[derive(Debug, Clone)]\npub struct OrchestratorConfig {\n    pub queue_capacity: usize,\n    pub transport_config: TransportConfig,\n    pub codex_dir: PathBuf,\n    pub total_token_budget: u64,\n    pub warning_threshold: u64,\n    pub per_agent_limit: u64,\n}\n\nimpl Default for OrchestratorConfig {\n    fn default() -&gt; Self {\n        Self {\n            queue_capacity: 1024,\n            transport_config: TransportConfig::default(),\n            codex_dir: dirs::home_dir().unwrap_or_default().join(\".codex\"),\n            total_token_budget: 100_000,\n            warning_threshold: 80_000,\n            per_agent_limit: 20_000,\n        }\n    }\n}\n\n/// Write request (queued for single-writer processing)\n#[derive(Debug)]\nstruct WriteRequest {\n    request: RpcRequest,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 36
+          },
+          {
+            "text": "    /// Server configuration",
+            "lineNumber": 37
+          },
+          {
+            "text": "    config: OrchestratorConfig,",
+            "lineNumber": 38
+          },
+          {
+            "text": "    /// Transport layer",
+            "lineNumber": 39
+          },
+          {
+            "text": "    transport: Box&lt;dyn Transport&gt;,",
+            "lineNumber": 40
+          },
+          {
+            "text": "    /// Authentication manager",
+            "lineNumber": 41
+          },
+          {
+            "text": "    auth_manager: Arc&lt;AuthManager&gt;,",
+            "lineNumber": 42
+          },
+          {
+            "text": "    /// Idempotency cache (idem_key -&gt; response)",
+            "lineNumber": 43
+          },
+          {
+            "text": "    idempotency_cache: Arc&lt;RwLock&lt;HashMap&lt;String, IdempotencyEntry&gt;&gt;&gt;,",
+            "lineNumber": 44
+          },
+          {
+            "text": "    /// Single-writer queue",
+            "lineNumber": 45
+          },
+          {
+            "text": "    write_queue: mpsc::Sender&lt;WriteRequest&gt;,",
+            "lineNumber": 46
+          },
+          {
+            "text": "    /// Write queue receiver (for processing)",
+            "lineNumber": 47
+          },
+          {
+            "text": "    write_queue_rx: Option&lt;mpsc::Receiver&lt;WriteRequest&gt;&gt;,",
+            "lineNumber": 48
+          },
+          {
+            "text": "    /// Queue size tracker",
+            "lineNumber": 49
+          },
+          {
+            "text": "    queue_size: Arc&lt;RwLock&lt;usize&gt;&gt;,",
+            "lineNumber": 50
+          },
+          {
+            "text": "    /// Server start time",
+            "lineNumber": 51
+          },
+          {
+            "text": "    start_time: SystemTime,",
+            "lineNumber": 52
+          },
+          {
+            "text": "    /// Active agents",
+            "lineNumber": 53
+          },
+          {
+            "text": "    active_agents: Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    /// Active tasks",
+            "lineNumber": 55
+          },
+          {
+            "text": "    active_tasks: Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,",
+            "lineNumber": 56
+          },
+          {
+            "text": "    /// Token budget tracker",
+            "lineNumber": 57
+          },
+          {
+            "text": "    token_budget: Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,",
+            "lineNumber": 58
+          },
+          {
+            "text": "    /// Active sessions",
+            "lineNumber": 59
+          },
+          {
+            "text": "    active_sessions: Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,",
+            "lineNumber": 60
+          },
+          {
+            "text": "    /// PubSub subscribers",
+            "lineNumber": 61
+          },
+          {
+            "text": "    subscribers: Arc&lt;RwLock&lt;HashMap&lt;String, Vec&lt;String&gt;&gt;&gt;&gt;, // topic -&gt; connection_ids",
+            "lineNumber": 62
+          },
+          {
+            "text": "    /// Plan manager for blueprint operations",
+            "lineNumber": 63
+          },
+          {
+            "text": "    plan_manager: Arc&lt;PlanManager&gt;,",
+            "lineNumber": 64
+          },
+          {
+            "text": "}",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "/// Orchestrator configuration",
+            "lineNumber": 67
+          },
+          {
+            "text": "#[derive(Debug, Clone)]",
+            "lineNumber": 68
+          },
+          {
+            "text": "pub struct OrchestratorConfig {",
+            "lineNumber": 69
+          },
+          {
+            "text": "    pub queue_capacity: usize,",
+            "lineNumber": 70
+          },
+          {
+            "text": "    pub transport_config: TransportConfig,",
+            "lineNumber": 71
+          },
+          {
+            "text": "    pub codex_dir: PathBuf,",
+            "lineNumber": 72
+          },
+          {
+            "text": "    pub total_token_budget: u64,",
+            "lineNumber": 73
+          },
+          {
+            "text": "    pub warning_threshold: u64,",
+            "lineNumber": 74
+          },
+          {
+            "text": "    pub per_agent_limit: u64,",
+            "lineNumber": 75
+          },
+          {
+            "text": "}",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "impl Default for OrchestratorConfig {",
+            "lineNumber": 78
+          },
+          {
+            "text": "    fn default() -&gt; Self {",
+            "lineNumber": 79
+          },
+          {
+            "text": "        Self {",
+            "lineNumber": 80
+          },
+          {
+            "text": "            queue_capacity: 1024,",
+            "lineNumber": 81
+          },
+          {
+            "text": "            transport_config: TransportConfig::default(),",
+            "lineNumber": 82
+          },
+          {
+            "text": "            codex_dir: dirs::home_dir().unwrap_or_default().join(\".codex\"),",
+            "lineNumber": 83
+          },
+          {
+            "text": "            total_token_budget: 100_000,",
+            "lineNumber": 84
+          },
+          {
+            "text": "            warning_threshold: 80_000,",
+            "lineNumber": 85
+          },
+          {
+            "text": "            per_agent_limit: 20_000,",
+            "lineNumber": 86
+          },
+          {
+            "text": "        }",
+            "lineNumber": 87
+          },
+          {
+            "text": "    }",
+            "lineNumber": 88
+          },
+          {
+            "text": "}",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "/// Write request (queued for single-writer processing)",
+            "lineNumber": 91
+          },
+          {
+            "text": "#[derive(Debug)]",
+            "lineNumber": 92
+          },
+          {
+            "text": "struct WriteRequest {",
+            "lineNumber": 93
+          },
+          {
+            "text": "    request: RpcRequest,",
+            "lineNumber": 94
+          }
+        ]
+      },
+      "score": 0.42703795433044434
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 37,
+            "column": 31
+          }
+        },
+        "contents": "/// Orchestrator RPC server\n///\n/// Single-Writer Queue architecture with idempotency cache\nuse crate::auth::AuthManager;\nuse crate::rpc::*;\nuse crate::transport::Connection;\nuse crate::transport::Transport;\nuse crate::transport::TransportConfig;\nuse crate::transport::TransportInfo;\nuse anyhow::Context;\nuse anyhow::Result;\nuse codex_core::lock::RepositoryLock;\nuse codex_core::plan::manager::PlanManager;\nuse codex_core::plan::policy::ApprovalRole;\nuse git2::DiffOptions;\nuse git2::Repository;\nuse serde_json::json;\nuse std::collections::HashMap;\nuse std::path::Path;\nuse std::path::PathBuf;\nuse std::sync::Arc;\nuse std::time::Duration;\nuse std::time::SystemTime;\nuse tokio::sync::RwLock;\nuse tokio::sync::mpsc;\nuse tokio::time::sleep;\n\n/// Idempotency cache entry\n#[derive(Debug, Clone)]\nstruct IdempotencyEntry {\n    response: RpcResponse,\n    expires_at: SystemTime,\n}\n\n/// Orchestrator server state\npub struct OrchestratorServer {\n    /// Server configuration\n    config: OrchestratorConfig,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/// Orchestrator RPC server",
+            "lineNumber": 1
+          },
+          {
+            "text": "///",
+            "lineNumber": 2
+          },
+          {
+            "text": "/// Single-Writer Queue architecture with idempotency cache",
+            "lineNumber": 3
+          },
+          {
+            "text": "use crate::auth::AuthManager;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use crate::rpc::*;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use crate::transport::Connection;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use crate::transport::Transport;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use crate::transport::TransportConfig;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use crate::transport::TransportInfo;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use anyhow::Context;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use codex_core::lock::RepositoryLock;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_core::plan::manager::PlanManager;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use codex_core::plan::policy::ApprovalRole;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use git2::DiffOptions;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use git2::Repository;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use serde_json::json;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use std::path::Path;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use std::time::Duration;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use std::time::SystemTime;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use tokio::sync::RwLock;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use tokio::sync::mpsc;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use tokio::time::sleep;",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "/// Idempotency cache entry",
+            "lineNumber": 28
+          },
+          {
+            "text": "#[derive(Debug, Clone)]",
+            "lineNumber": 29
+          },
+          {
+            "text": "struct IdempotencyEntry {",
+            "lineNumber": 30
+          },
+          {
+            "text": "    response: RpcResponse,",
+            "lineNumber": 31
+          },
+          {
+            "text": "    expires_at: SystemTime,",
+            "lineNumber": 32
+          },
+          {
+            "text": "}",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "/// Orchestrator server state",
+            "lineNumber": 35
+          },
+          {
+            "text": "pub struct OrchestratorServer {",
+            "lineNumber": 36
+          },
+          {
+            "text": "    /// Server configuration",
+            "lineNumber": 37
+          },
+          {
+            "text": "    config: OrchestratorConfig,",
+            "lineNumber": 38
+          }
+        ]
+      },
+      "score": 0.3962163031101227
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 218,
+            "column": 45
+          },
+          "endPosition": {
+            "line": 265,
+            "column": 47
+          }
+        },
+        "contents": " {\n        // Take ownership of write_queue_rx\n        let mut write_queue_rx = self\n            .write_queue_rx\n            .take()\n            .context(\"Server already running\")?;\n\n        // Spawn write queue processor\n        let auth_manager = Arc::clone(&amp;self.auth_manager);\n        let active_agents = Arc::clone(&amp;self.active_agents);\n        let active_tasks = Arc::clone(&amp;self.active_tasks);\n        let token_budget = Arc::clone(&amp;self.token_budget);\n        let active_sessions = Arc::clone(&amp;self.active_sessions);\n        let subscribers = Arc::clone(&amp;self.subscribers);\n        let plan_manager = Arc::clone(&amp;self.plan_manager);\n        let config = self.config.clone();\n\n        tokio::spawn(async move {\n            while let Some(write_req) = write_queue_rx.recv().await {\n                let response = Self::process_write_request(\n                    &amp;write_req.request,\n                    &amp;config,\n                    &amp;auth_manager,\n                    &amp;active_agents,\n                    &amp;active_tasks,\n                    &amp;token_budget,\n                    &amp;active_sessions,\n                    &amp;subscribers,\n                    &amp;plan_manager,\n                )\n                .await;\n\n                let _ = write_req.response_tx.send(response);\n            }\n        });\n\n        // Spawn idempotency cache cleanup task\n        let idempotency_cache = Arc::clone(&amp;self.idempotency_cache);\n        tokio::spawn(async move {\n            loop {\n                sleep(Duration::from_secs(60)).await;\n                Self::cleanup_idempotency_cache(&amp;idempotency_cache).await;\n            }\n        });\n\n        // Accept connections\n        loop {\n            match self.transport.accept().await",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        // Take ownership of write_queue_rx",
+            "lineNumber": 220
+          },
+          {
+            "text": "        let mut write_queue_rx = self",
+            "lineNumber": 221
+          },
+          {
+            "text": "            .write_queue_rx",
+            "lineNumber": 222
+          },
+          {
+            "text": "            .take()",
+            "lineNumber": 223
+          },
+          {
+            "text": "            .context(\"Server already running\")?;",
+            "lineNumber": 224
+          },
+          {
+            "lineNumber": 225
+          },
+          {
+            "text": "        // Spawn write queue processor",
+            "lineNumber": 226
+          },
+          {
+            "text": "        let auth_manager = Arc::clone(&amp;self.auth_manager);",
+            "lineNumber": 227
+          },
+          {
+            "text": "        let active_agents = Arc::clone(&amp;self.active_agents);",
+            "lineNumber": 228
+          },
+          {
+            "text": "        let active_tasks = Arc::clone(&amp;self.active_tasks);",
+            "lineNumber": 229
+          },
+          {
+            "text": "        let token_budget = Arc::clone(&amp;self.token_budget);",
+            "lineNumber": 230
+          },
+          {
+            "text": "        let active_sessions = Arc::clone(&amp;self.active_sessions);",
+            "lineNumber": 231
+          },
+          {
+            "text": "        let subscribers = Arc::clone(&amp;self.subscribers);",
+            "lineNumber": 232
+          },
+          {
+            "text": "        let plan_manager = Arc::clone(&amp;self.plan_manager);",
+            "lineNumber": 233
+          },
+          {
+            "text": "        let config = self.config.clone();",
+            "lineNumber": 234
+          },
+          {
+            "lineNumber": 235
+          },
+          {
+            "text": "        tokio::spawn(async move {",
+            "lineNumber": 236
+          },
+          {
+            "text": "            while let Some(write_req) = write_queue_rx.recv().await {",
+            "lineNumber": 237
+          },
+          {
+            "text": "                let response = Self::process_write_request(",
+            "lineNumber": 238
+          },
+          {
+            "text": "                    &amp;write_req.request,",
+            "lineNumber": 239
+          },
+          {
+            "text": "                    &amp;config,",
+            "lineNumber": 240
+          },
+          {
+            "text": "                    &amp;auth_manager,",
+            "lineNumber": 241
+          },
+          {
+            "text": "                    &amp;active_agents,",
+            "lineNumber": 242
+          },
+          {
+            "text": "                    &amp;active_tasks,",
+            "lineNumber": 243
+          },
+          {
+            "text": "                    &amp;token_budget,",
+            "lineNumber": 244
+          },
+          {
+            "text": "                    &amp;active_sessions,",
+            "lineNumber": 245
+          },
+          {
+            "text": "                    &amp;subscribers,",
+            "lineNumber": 246
+          },
+          {
+            "text": "                    &amp;plan_manager,",
+            "lineNumber": 247
+          },
+          {
+            "text": "                )",
+            "lineNumber": 248
+          },
+          {
+            "text": "                .await;",
+            "lineNumber": 249
+          },
+          {
+            "lineNumber": 250
+          },
+          {
+            "text": "                let _ = write_req.response_tx.send(response);",
+            "lineNumber": 251
+          },
+          {
+            "text": "            }",
+            "lineNumber": 252
+          },
+          {
+            "text": "        });",
+            "lineNumber": 253
+          },
+          {
+            "lineNumber": 254
+          },
+          {
+            "text": "        // Spawn idempotency cache cleanup task",
+            "lineNumber": 255
+          },
+          {
+            "text": "        let idempotency_cache = Arc::clone(&amp;self.idempotency_cache);",
+            "lineNumber": 256
+          },
+          {
+            "text": "        tokio::spawn(async move {",
+            "lineNumber": 257
+          },
+          {
+            "text": "            loop {",
+            "lineNumber": 258
+          },
+          {
+            "text": "                sleep(Duration::from_secs(60)).await;",
+            "lineNumber": 259
+          },
+          {
+            "text": "                Self::cleanup_idempotency_cache(&amp;idempotency_cache).await;",
+            "lineNumber": 260
+          },
+          {
+            "text": "            }",
+            "lineNumber": 261
+          },
+          {
+            "text": "        });",
+            "lineNumber": 262
+          },
+          {
+            "lineNumber": 263
+          },
+          {
+            "text": "        // Accept connections",
+            "lineNumber": 264
+          },
+          {
+            "text": "        loop {",
+            "lineNumber": 265
+          },
+          {
+            "text": "            match self.transport.accept().await",
+            "lineNumber": 266
+          }
+        ]
+      },
+      "score": 0.37712526321411133
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 333
+          },
+          "endPosition": {
+            "line": 382,
+            "column": 64
+          }
+        },
+        "contents": "    async fn handle_connection(\n        conn: &amp;mut dyn Connection,\n        auth_manager: &amp;Arc&lt;AuthManager&gt;,\n        idempotency_cache: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, IdempotencyEntry&gt;&gt;&gt;,\n        write_queue: &amp;mpsc::Sender&lt;WriteRequest&gt;,\n        start_time: SystemTime,\n        active_agents: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,\n        active_tasks: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,\n        token_budget: &amp;Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,\n        active_sessions: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,\n        queue_size: &amp;Arc&lt;RwLock&lt;usize&gt;&gt;,\n        config: &amp;OrchestratorConfig,\n    ) -&gt; Result&lt;()&gt; {\n        loop {\n            // Read request\n            let data = conn.read_message().await?;\n\n            // Parse request\n            let request: RpcRequest = match serde_json::from_slice(&amp;data) {\n                Ok(req) =&gt; req,\n                Err(e) =&gt; {\n                    let error_response = RpcResponse {\n                        id: \"\".to_string(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_PARSE,\n                            message: format!(\"Parse error: {e}\"),\n                            data: None,\n                        }),\n                    };\n                    let response_data = serde_json::to_vec(&amp;error_response)?;\n                    conn.write_message(&amp;response_data).await?;\n                    continue;\n                }\n            };\n\n            // Check idempotency cache\n            if let Some(idem_key) = &amp;request.idem_key {\n                let cache = idempotency_cache.read().await;\n                if let Some(entry) = cache.get(idem_key)\n                    &amp;&amp; entry.expires_at &gt; SystemTime::now()\n                {\n                    // Return cached response\n                    let response_data = serde_json::to_vec(&amp;entry.response)?;\n                    conn.write_message(&amp;response_data).await?;\n                    continue;\n                }\n            }\n\n            // Verify authentication for methods that require it",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    async fn handle_connection(",
+            "lineNumber": 334
+          },
+          {
+            "text": "        conn: &amp;mut dyn Connection,",
+            "lineNumber": 335
+          },
+          {
+            "text": "        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+            "lineNumber": 336
+          },
+          {
+            "text": "        idempotency_cache: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, IdempotencyEntry&gt;&gt;&gt;,",
+            "lineNumber": 337
+          },
+          {
+            "text": "        write_queue: &amp;mpsc::Sender&lt;WriteRequest&gt;,",
+            "lineNumber": 338
+          },
+          {
+            "text": "        start_time: SystemTime,",
+            "lineNumber": 339
+          },
+          {
+            "text": "        active_agents: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,",
+            "lineNumber": 340
+          },
+          {
+            "text": "        active_tasks: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,",
+            "lineNumber": 341
+          },
+          {
+            "text": "        token_budget: &amp;Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,",
+            "lineNumber": 342
+          },
+          {
+            "text": "        active_sessions: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,",
+            "lineNumber": 343
+          },
+          {
+            "text": "        queue_size: &amp;Arc&lt;RwLock&lt;usize&gt;&gt;,",
+            "lineNumber": 344
+          },
+          {
+            "text": "        config: &amp;OrchestratorConfig,",
+            "lineNumber": 345
+          },
+          {
+            "text": "    ) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 346
+          },
+          {
+            "text": "        loop {",
+            "lineNumber": 347
+          },
+          {
+            "text": "            // Read request",
+            "lineNumber": 348
+          },
+          {
+            "text": "            let data = conn.read_message().await?;",
+            "lineNumber": 349
+          },
+          {
+            "lineNumber": 350
+          },
+          {
+            "text": "            // Parse request",
+            "lineNumber": 351
+          },
+          {
+            "text": "            let request: RpcRequest = match serde_json::from_slice(&amp;data) {",
+            "lineNumber": 352
+          },
+          {
+            "text": "                Ok(req) =&gt; req,",
+            "lineNumber": 353
+          },
+          {
+            "text": "                Err(e) =&gt; {",
+            "lineNumber": 354
+          },
+          {
+            "text": "                    let error_response = RpcResponse {",
+            "lineNumber": 355
+          },
+          {
+            "text": "                        id: \"\".to_string(),",
+            "lineNumber": 356
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 357
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 358
+          },
+          {
+            "text": "                            code: ERROR_PARSE,",
+            "lineNumber": 359
+          },
+          {
+            "text": "                            message: format!(\"Parse error: {e}\"),",
+            "lineNumber": 360
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 361
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 362
+          },
+          {
+            "text": "                    };",
+            "lineNumber": 363
+          },
+          {
+            "text": "                    let response_data = serde_json::to_vec(&amp;error_response)?;",
+            "lineNumber": 364
+          },
+          {
+            "text": "                    conn.write_message(&amp;response_data).await?;",
+            "lineNumber": 365
+          },
+          {
+            "text": "                    continue;",
+            "lineNumber": 366
+          },
+          {
+            "text": "                }",
+            "lineNumber": 367
+          },
+          {
+            "text": "            };",
+            "lineNumber": 368
+          },
+          {
+            "lineNumber": 369
+          },
+          {
+            "text": "            // Check idempotency cache",
+            "lineNumber": 370
+          },
+          {
+            "text": "            if let Some(idem_key) = &amp;request.idem_key {",
+            "lineNumber": 371
+          },
+          {
+            "text": "                let cache = idempotency_cache.read().await;",
+            "lineNumber": 372
+          },
+          {
+            "text": "                if let Some(entry) = cache.get(idem_key)",
+            "lineNumber": 373
+          },
+          {
+            "text": "                    &amp;&amp; entry.expires_at &gt; SystemTime::now()",
+            "lineNumber": 374
+          },
+          {
+            "text": "                {",
+            "lineNumber": 375
+          },
+          {
+            "text": "                    // Return cached response",
+            "lineNumber": 376
+          },
+          {
+            "text": "                    let response_data = serde_json::to_vec(&amp;entry.response)?;",
+            "lineNumber": 377
+          },
+          {
+            "text": "                    conn.write_message(&amp;response_data).await?;",
+            "lineNumber": 378
+          },
+          {
+            "text": "                    continue;",
+            "lineNumber": 379
+          },
+          {
+            "text": "                }",
+            "lineNumber": 380
+          },
+          {
+            "text": "            }",
+            "lineNumber": 381
+          },
+          {
+            "lineNumber": 382
+          },
+          {
+            "text": "            // Verify authentication for methods that require it",
+            "lineNumber": 383
+          }
+        ]
+      },
+      "score": 0.3588433861732483
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 153,
+            "column": 80
+          },
+          "endPosition": {
+            "line": 194,
+            "column": 10
+          }
+        },
+        "contents": " {\n        let mut allowed = vec![config.codex_dir.clone()];\n        \n        // Add current working directory if available\n        if let Ok(cwd) = std::env::current_dir() {\n            allowed.push(cwd);\n        }\n        \n        // Add home directory\n        if let Some(home) = dirs::home_dir() {\n            allowed.push(home);\n        }\n        \n        allowed\n    }\n\n    /// Create a new orchestrator server\n    pub async fn new(config: OrchestratorConfig) -&gt; Result&lt;Self&gt; {\n        // Create transport\n        let transport =\n            crate::transport::create_transport(config.transport_config.clone(), &amp;config.codex_dir)\n                .await\n                .context(\"Failed to create transport\")?;\n\n        // Load or create authentication manager\n        let auth_manager = Arc::new(\n            AuthManager::new(&amp;config.codex_dir).context(\"Failed to initialize auth manager\")?,\n        );\n\n        // Create single-writer queue\n        let (write_queue_tx, write_queue_rx) = mpsc::channel::&lt;WriteRequest&gt;(config.queue_capacity);\n\n        let token_budget = Arc::new(RwLock::new(TokenBudget {\n            total_budget: config.total_token_budget,\n            used: 0,\n            warning_threshold: config.warning_threshold,\n            per_agent_usage: HashMap::new(),\n        }));\n\n        let plan_manager = Arc::new(PlanManager::new().context(\"Failed to create PlanManager\")?);\n\n        Ok",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 154
+          },
+          {
+            "text": "        let mut allowed = vec![config.codex_dir.clone()];",
+            "lineNumber": 155
+          },
+          {
+            "text": "        ",
+            "lineNumber": 156
+          },
+          {
+            "text": "        // Add current working directory if available",
+            "lineNumber": 157
+          },
+          {
+            "text": "        if let Ok(cwd) = std::env::current_dir() {",
+            "lineNumber": 158
+          },
+          {
+            "text": "            allowed.push(cwd);",
+            "lineNumber": 159
+          },
+          {
+            "text": "        }",
+            "lineNumber": 160
+          },
+          {
+            "text": "        ",
+            "lineNumber": 161
+          },
+          {
+            "text": "        // Add home directory",
+            "lineNumber": 162
+          },
+          {
+            "text": "        if let Some(home) = dirs::home_dir() {",
+            "lineNumber": 163
+          },
+          {
+            "text": "            allowed.push(home);",
+            "lineNumber": 164
+          },
+          {
+            "text": "        }",
+            "lineNumber": 165
+          },
+          {
+            "text": "        ",
+            "lineNumber": 166
+          },
+          {
+            "text": "        allowed",
+            "lineNumber": 167
+          },
+          {
+            "text": "    }",
+            "lineNumber": 168
+          },
+          {
+            "lineNumber": 169
+          },
+          {
+            "text": "    /// Create a new orchestrator server",
+            "lineNumber": 170
+          },
+          {
+            "text": "    pub async fn new(config: OrchestratorConfig) -&gt; Result&lt;Self&gt; {",
+            "lineNumber": 171
+          },
+          {
+            "text": "        // Create transport",
+            "lineNumber": 172
+          },
+          {
+            "text": "        let transport =",
+            "lineNumber": 173
+          },
+          {
+            "text": "            crate::transport::create_transport(config.transport_config.clone(), &amp;config.codex_dir)",
+            "lineNumber": 174
+          },
+          {
+            "text": "                .await",
+            "lineNumber": 175
+          },
+          {
+            "text": "                .context(\"Failed to create transport\")?;",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "        // Load or create authentication manager",
+            "lineNumber": 178
+          },
+          {
+            "text": "        let auth_manager = Arc::new(",
+            "lineNumber": 179
+          },
+          {
+            "text": "            AuthManager::new(&amp;config.codex_dir).context(\"Failed to initialize auth manager\")?,",
+            "lineNumber": 180
+          },
+          {
+            "text": "        );",
+            "lineNumber": 181
+          },
+          {
+            "lineNumber": 182
+          },
+          {
+            "text": "        // Create single-writer queue",
+            "lineNumber": 183
+          },
+          {
+            "text": "        let (write_queue_tx, write_queue_rx) = mpsc::channel::&lt;WriteRequest&gt;(config.queue_capacity);",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "        let token_budget = Arc::new(RwLock::new(TokenBudget {",
+            "lineNumber": 186
+          },
+          {
+            "text": "            total_budget: config.total_token_budget,",
+            "lineNumber": 187
+          },
+          {
+            "text": "            used: 0,",
+            "lineNumber": 188
+          },
+          {
+            "text": "            warning_threshold: config.warning_threshold,",
+            "lineNumber": 189
+          },
+          {
+            "text": "            per_agent_usage: HashMap::new(),",
+            "lineNumber": 190
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "        let plan_manager = Arc::new(PlanManager::new().context(\"Failed to create PlanManager\")?);",
+            "lineNumber": 193
+          },
+          {
+            "lineNumber": 194
+          },
+          {
+            "text": "        Ok",
+            "lineNumber": 195
+          }
+        ]
+      },
+      "score": 0.3572331666946411
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\Cargo.toml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 36
+          }
+        },
+        "contents": "[package]\nedition.workspace = true\nname = \"codex-orchestrator\"\nversion.workspace = true\n\n[lints]\nworkspace = true\n\n[dependencies]\nanyhow = { workspace = true }\nasync-channel = { workspace = true }\nasync-trait = { workspace = true }\nbase64 = { workspace = true }\nchrono = { workspace = true, features = [\"serde\"] }\ncodex-core = { workspace = true }\ndirs = { workspace = true }\ngit2 = \"0.19\"\nhostname = \"0.4\"\nrand = { workspace = true }\nserde = { workspace = true, features = [\"derive\"] }\nserde_json = { workspace = true }\nsha2 = { workspace = true }\nthiserror = { workspace = true }\ntokio = { workspace = true, features = [\"full\"] }\ntracing = { workspace = true }\n\n# Platform-specific dependencies\n[target.'cfg(unix)'.dependencies]\ntokio = { workspace = true, features = [\"net\"] }\n\n[target.'cfg(windows)'.dependencies]\ntokio = { workspace = true, features = [\"net\"] }\n\n[dev-dependencies]\npretty_assertions = { workspace = true }\ntempfile = { workspace = true }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "[package]",
+            "lineNumber": 1
+          },
+          {
+            "text": "edition.workspace = true",
+            "lineNumber": 2
+          },
+          {
+            "text": "name = \"codex-orchestrator\"",
+            "lineNumber": 3
+          },
+          {
+            "text": "version.workspace = true",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "[lints]",
+            "lineNumber": 6
+          },
+          {
+            "text": "workspace = true",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "[dependencies]",
+            "lineNumber": 9
+          },
+          {
+            "text": "anyhow = { workspace = true }",
+            "lineNumber": 10
+          },
+          {
+            "text": "async-channel = { workspace = true }",
+            "lineNumber": 11
+          },
+          {
+            "text": "async-trait = { workspace = true }",
+            "lineNumber": 12
+          },
+          {
+            "text": "base64 = { workspace = true }",
+            "lineNumber": 13
+          },
+          {
+            "text": "chrono = { workspace = true, features = [\"serde\"] }",
+            "lineNumber": 14
+          },
+          {
+            "text": "codex-core = { workspace = true }",
+            "lineNumber": 15
+          },
+          {
+            "text": "dirs = { workspace = true }",
+            "lineNumber": 16
+          },
+          {
+            "text": "git2 = \"0.19\"",
+            "lineNumber": 17
+          },
+          {
+            "text": "hostname = \"0.4\"",
+            "lineNumber": 18
+          },
+          {
+            "text": "rand = { workspace = true }",
+            "lineNumber": 19
+          },
+          {
+            "text": "serde = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 20
+          },
+          {
+            "text": "serde_json = { workspace = true }",
+            "lineNumber": 21
+          },
+          {
+            "text": "sha2 = { workspace = true }",
+            "lineNumber": 22
+          },
+          {
+            "text": "thiserror = { workspace = true }",
+            "lineNumber": 23
+          },
+          {
+            "text": "tokio = { workspace = true, features = [\"full\"] }",
+            "lineNumber": 24
+          },
+          {
+            "text": "tracing = { workspace = true }",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "text": "# Platform-specific dependencies",
+            "lineNumber": 27
+          },
+          {
+            "text": "[target.'cfg(unix)'.dependencies]",
+            "lineNumber": 28
+          },
+          {
+            "text": "tokio = { workspace = true, features = [\"net\"] }",
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "text": "[target.'cfg(windows)'.dependencies]",
+            "lineNumber": 31
+          },
+          {
+            "text": "tokio = { workspace = true, features = [\"net\"] }",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "[dev-dependencies]",
+            "lineNumber": 34
+          },
+          {
+            "text": "pretty_assertions = { workspace = true }",
+            "lineNumber": 35
+          },
+          {
+            "text": "tempfile = { workspace = true }",
+            "lineNumber": 36
+          }
+        ]
+      },
+      "score": 0.3506458103656769
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 263,
+            "column": 29
+          },
+          "endPosition": {
+            "line": 310,
+            "column": 30
+          }
+        },
+        "contents": "        loop {\n            match self.transport.accept().await {\n                Ok(mut conn) =&gt; {\n                    let auth_manager = Arc::clone(&amp;self.auth_manager);\n                    let idempotency_cache = Arc::clone(&amp;self.idempotency_cache);\n                    let write_queue = self.write_queue.clone();\n                    let start_time = self.start_time;\n                    let active_agents = Arc::clone(&amp;self.active_agents);\n                    let active_tasks = Arc::clone(&amp;self.active_tasks);\n                    let token_budget = Arc::clone(&amp;self.token_budget);\n                    let active_sessions = Arc::clone(&amp;self.active_sessions);\n                    let queue_size = Arc::clone(&amp;self.queue_size);\n                    let config = self.config.clone();\n\n                    tokio::spawn(async move {\n                        if let Err(e) = Self::handle_connection(\n                            conn.as_mut(),\n                            &amp;auth_manager,\n                            &amp;idempotency_cache,\n                            &amp;write_queue,\n                            start_time,\n                            &amp;active_agents,\n                            &amp;active_tasks,\n                            &amp;token_budget,\n                            &amp;active_sessions,\n                            &amp;queue_size,\n                            &amp;config,\n                        )\n                        .await\n                        {\n                            eprintln!(\"Connection error: {e}\");\n                        }\n                    });\n                }\n                Err(e) =&gt; {\n                    eprintln!(\"Accept error: {e}\");\n                }\n            }\n        }\n    }\n\n    /// Check if a method requires authentication\n    fn requires_auth(method: &amp;str) -&gt; bool {\n        // Read-only methods that don't require auth\n        let read_only_methods = [\n            \"status.get\",\n            \"tokens.getBudget\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        loop {",
+            "lineNumber": 265
+          },
+          {
+            "text": "            match self.transport.accept().await {",
+            "lineNumber": 266
+          },
+          {
+            "text": "                Ok(mut conn) =&gt; {",
+            "lineNumber": 267
+          },
+          {
+            "text": "                    let auth_manager = Arc::clone(&amp;self.auth_manager);",
+            "lineNumber": 268
+          },
+          {
+            "text": "                    let idempotency_cache = Arc::clone(&amp;self.idempotency_cache);",
+            "lineNumber": 269
+          },
+          {
+            "text": "                    let write_queue = self.write_queue.clone();",
+            "lineNumber": 270
+          },
+          {
+            "text": "                    let start_time = self.start_time;",
+            "lineNumber": 271
+          },
+          {
+            "text": "                    let active_agents = Arc::clone(&amp;self.active_agents);",
+            "lineNumber": 272
+          },
+          {
+            "text": "                    let active_tasks = Arc::clone(&amp;self.active_tasks);",
+            "lineNumber": 273
+          },
+          {
+            "text": "                    let token_budget = Arc::clone(&amp;self.token_budget);",
+            "lineNumber": 274
+          },
+          {
+            "text": "                    let active_sessions = Arc::clone(&amp;self.active_sessions);",
+            "lineNumber": 275
+          },
+          {
+            "text": "                    let queue_size = Arc::clone(&amp;self.queue_size);",
+            "lineNumber": 276
+          },
+          {
+            "text": "                    let config = self.config.clone();",
+            "lineNumber": 277
+          },
+          {
+            "lineNumber": 278
+          },
+          {
+            "text": "                    tokio::spawn(async move {",
+            "lineNumber": 279
+          },
+          {
+            "text": "                        if let Err(e) = Self::handle_connection(",
+            "lineNumber": 280
+          },
+          {
+            "text": "                            conn.as_mut(),",
+            "lineNumber": 281
+          },
+          {
+            "text": "                            &amp;auth_manager,",
+            "lineNumber": 282
+          },
+          {
+            "text": "                            &amp;idempotency_cache,",
+            "lineNumber": 283
+          },
+          {
+            "text": "                            &amp;write_queue,",
+            "lineNumber": 284
+          },
+          {
+            "text": "                            start_time,",
+            "lineNumber": 285
+          },
+          {
+            "text": "                            &amp;active_agents,",
+            "lineNumber": 286
+          },
+          {
+            "text": "                            &amp;active_tasks,",
+            "lineNumber": 287
+          },
+          {
+            "text": "                            &amp;token_budget,",
+            "lineNumber": 288
+          },
+          {
+            "text": "                            &amp;active_sessions,",
+            "lineNumber": 289
+          },
+          {
+            "text": "                            &amp;queue_size,",
+            "lineNumber": 290
+          },
+          {
+            "text": "                            &amp;config,",
+            "lineNumber": 291
+          },
+          {
+            "text": "                        )",
+            "lineNumber": 292
+          },
+          {
+            "text": "                        .await",
+            "lineNumber": 293
+          },
+          {
+            "text": "                        {",
+            "lineNumber": 294
+          },
+          {
+            "text": "                            eprintln!(\"Connection error: {e}\");",
+            "lineNumber": 295
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 296
+          },
+          {
+            "text": "                    });",
+            "lineNumber": 297
+          },
+          {
+            "text": "                }",
+            "lineNumber": 298
+          },
+          {
+            "text": "                Err(e) =&gt; {",
+            "lineNumber": 299
+          },
+          {
+            "text": "                    eprintln!(\"Accept error: {e}\");",
+            "lineNumber": 300
+          },
+          {
+            "text": "                }",
+            "lineNumber": 301
+          },
+          {
+            "text": "            }",
+            "lineNumber": 302
+          },
+          {
+            "text": "        }",
+            "lineNumber": 303
+          },
+          {
+            "text": "    }",
+            "lineNumber": 304
+          },
+          {
+            "lineNumber": 305
+          },
+          {
+            "text": "    /// Check if a method requires authentication",
+            "lineNumber": 306
+          },
+          {
+            "text": "    fn requires_auth(method: &amp;str) -&gt; bool {",
+            "lineNumber": 307
+          },
+          {
+            "text": "        // Read-only methods that don't require auth",
+            "lineNumber": 308
+          },
+          {
+            "text": "        let read_only_methods = [",
+            "lineNumber": 309
+          },
+          {
+            "text": "            \"status.get\",",
+            "lineNumber": 310
+          },
+          {
+            "text": "            \"tokens.getBudget\"",
+            "lineNumber": 311
+          }
+        ]
+      },
+      "score": 0.3370225429534912
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 192,
+            "column": 62
+          },
+          "endPosition": {
+            "line": 222,
+            "column": 13
+          }
+        },
+        "contents": "(\"Failed to create PlanManager\")?);\n\n        Ok(Self {\n            config,\n            transport,\n            auth_manager,\n            idempotency_cache: Arc::new(RwLock::new(HashMap::new())),\n            write_queue: write_queue_tx,\n            write_queue_rx: Some(write_queue_rx),\n            queue_size: Arc::new(RwLock::new(0)),\n            start_time: SystemTime::now(),\n            active_agents: Arc::new(RwLock::new(HashMap::new())),\n            active_tasks: Arc::new(RwLock::new(HashMap::new())),\n            token_budget,\n            active_sessions: Arc::new(RwLock::new(HashMap::new())),\n            subscribers: Arc::new(RwLock::new(HashMap::new())),\n            plan_manager,\n        })\n    }\n\n    /// Get transport info\n    pub fn transport_info(&amp;self) -&gt; TransportInfo {\n        self.transport.info()\n    }\n\n    /// Start the orchestrator server\n    pub async fn run(&amp;mut self) -&gt; Result&lt;()&gt; {\n        // Take ownership of write_queue_rx\n        let mut write_queue_rx = self\n            .write_queue_rx\n            .",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "(\"Failed to create PlanManager\")?);",
+            "lineNumber": 193
+          },
+          {
+            "lineNumber": 194
+          },
+          {
+            "text": "        Ok(Self {",
+            "lineNumber": 195
+          },
+          {
+            "text": "            config,",
+            "lineNumber": 196
+          },
+          {
+            "text": "            transport,",
+            "lineNumber": 197
+          },
+          {
+            "text": "            auth_manager,",
+            "lineNumber": 198
+          },
+          {
+            "text": "            idempotency_cache: Arc::new(RwLock::new(HashMap::new())),",
+            "lineNumber": 199
+          },
+          {
+            "text": "            write_queue: write_queue_tx,",
+            "lineNumber": 200
+          },
+          {
+            "text": "            write_queue_rx: Some(write_queue_rx),",
+            "lineNumber": 201
+          },
+          {
+            "text": "            queue_size: Arc::new(RwLock::new(0)),",
+            "lineNumber": 202
+          },
+          {
+            "text": "            start_time: SystemTime::now(),",
+            "lineNumber": 203
+          },
+          {
+            "text": "            active_agents: Arc::new(RwLock::new(HashMap::new())),",
+            "lineNumber": 204
+          },
+          {
+            "text": "            active_tasks: Arc::new(RwLock::new(HashMap::new())),",
+            "lineNumber": 205
+          },
+          {
+            "text": "            token_budget,",
+            "lineNumber": 206
+          },
+          {
+            "text": "            active_sessions: Arc::new(RwLock::new(HashMap::new())),",
+            "lineNumber": 207
+          },
+          {
+            "text": "            subscribers: Arc::new(RwLock::new(HashMap::new())),",
+            "lineNumber": 208
+          },
+          {
+            "text": "            plan_manager,",
+            "lineNumber": 209
+          },
+          {
+            "text": "        })",
+            "lineNumber": 210
+          },
+          {
+            "text": "    }",
+            "lineNumber": 211
+          },
+          {
+            "lineNumber": 212
+          },
+          {
+            "text": "    /// Get transport info",
+            "lineNumber": 213
+          },
+          {
+            "text": "    pub fn transport_info(&amp;self) -&gt; TransportInfo {",
+            "lineNumber": 214
+          },
+          {
+            "text": "        self.transport.info()",
+            "lineNumber": 215
+          },
+          {
+            "text": "    }",
+            "lineNumber": 216
+          },
+          {
+            "lineNumber": 217
+          },
+          {
+            "text": "    /// Start the orchestrator server",
+            "lineNumber": 218
+          },
+          {
+            "text": "    pub async fn run(&amp;mut self) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        // Take ownership of write_queue_rx",
+            "lineNumber": 220
+          },
+          {
+            "text": "        let mut write_queue_rx = self",
+            "lineNumber": 221
+          },
+          {
+            "text": "            .write_queue_rx",
+            "lineNumber": 222
+          },
+          {
+            "text": "            .",
+            "lineNumber": 223
+          }
+        ]
+      },
+      "score": 0.31365248560905457
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 530,
+            "column": 20
+          },
+          "endPosition": {
+            "line": 568,
+            "column": 58
+          }
+        },
+        "contents": " {\n        // Verify authentication for read requests that require it\n        if Self::requires_auth(&amp;request.method) {\n            if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {\n                return RpcResponse {\n                    id: request.id.clone(),\n                    result: None,\n                    error: Some(auth_error),\n                };\n            }\n        }\n        match request.method.as_str() {\n            \"status.get\" =&gt; {\n                let agents = active_agents.read().await;\n                let tasks = active_tasks.read().await;\n                let budget = token_budget.read().await;\n                let size = queue_size.read().await;\n                let uptime = SystemTime::now()\n                    .duration_since(start_time)\n                    .unwrap_or_default()\n                    .as_secs();\n\n                RpcResponse {\n                    id: request.id.clone(),\n                    result: Some(json!({\n                        \"server_version\": env!(\"CARGO_PKG_VERSION\"),\n                        \"uptime_seconds\": uptime,\n                        \"queue_size\": *size,\n                        \"queue_capacity\": config.queue_capacity,\n                        \"active_agents\": agents.len(),\n                        \"active_tasks\": tasks.len(),\n                        \"total_tokens_used\": budget.used,\n                        \"total_tokens_budget\": budget.total_budget,\n                    })),\n                    error: None,\n                }\n            }\n            \"lock.status\" =&gt; {\n                let params: Result&lt;LockStatusRequest, _&gt; =",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 531
+          },
+          {
+            "text": "        // Verify authentication for read requests that require it",
+            "lineNumber": 532
+          },
+          {
+            "text": "        if Self::requires_auth(&amp;request.method) {",
+            "lineNumber": 533
+          },
+          {
+            "text": "            if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {",
+            "lineNumber": 534
+          },
+          {
+            "text": "                return RpcResponse {",
+            "lineNumber": 535
+          },
+          {
+            "text": "                    id: request.id.clone(),",
+            "lineNumber": 536
+          },
+          {
+            "text": "                    result: None,",
+            "lineNumber": 537
+          },
+          {
+            "text": "                    error: Some(auth_error),",
+            "lineNumber": 538
+          },
+          {
+            "text": "                };",
+            "lineNumber": 539
+          },
+          {
+            "text": "            }",
+            "lineNumber": 540
+          },
+          {
+            "text": "        }",
+            "lineNumber": 541
+          },
+          {
+            "text": "        match request.method.as_str() {",
+            "lineNumber": 542
+          },
+          {
+            "text": "            \"status.get\" =&gt; {",
+            "lineNumber": 543
+          },
+          {
+            "text": "                let agents = active_agents.read().await;",
+            "lineNumber": 544
+          },
+          {
+            "text": "                let tasks = active_tasks.read().await;",
+            "lineNumber": 545
+          },
+          {
+            "text": "                let budget = token_budget.read().await;",
+            "lineNumber": 546
+          },
+          {
+            "text": "                let size = queue_size.read().await;",
+            "lineNumber": 547
+          },
+          {
+            "text": "                let uptime = SystemTime::now()",
+            "lineNumber": 548
+          },
+          {
+            "text": "                    .duration_since(start_time)",
+            "lineNumber": 549
+          },
+          {
+            "text": "                    .unwrap_or_default()",
+            "lineNumber": 550
+          },
+          {
+            "text": "                    .as_secs();",
+            "lineNumber": 551
+          },
+          {
+            "lineNumber": 552
+          },
+          {
+            "text": "                RpcResponse {",
+            "lineNumber": 553
+          },
+          {
+            "text": "                    id: request.id.clone(),",
+            "lineNumber": 554
+          },
+          {
+            "text": "                    result: Some(json!({",
+            "lineNumber": 555
+          },
+          {
+            "text": "                        \"server_version\": env!(\"CARGO_PKG_VERSION\"),",
+            "lineNumber": 556
+          },
+          {
+            "text": "                        \"uptime_seconds\": uptime,",
+            "lineNumber": 557
+          },
+          {
+            "text": "                        \"queue_size\": *size,",
+            "lineNumber": 558
+          },
+          {
+            "text": "                        \"queue_capacity\": config.queue_capacity,",
+            "lineNumber": 559
+          },
+          {
+            "text": "                        \"active_agents\": agents.len(),",
+            "lineNumber": 560
+          },
+          {
+            "text": "                        \"active_tasks\": tasks.len(),",
+            "lineNumber": 561
+          },
+          {
+            "text": "                        \"total_tokens_used\": budget.used,",
+            "lineNumber": 562
+          },
+          {
+            "text": "                        \"total_tokens_budget\": budget.total_budget,",
+            "lineNumber": 563
+          },
+          {
+            "text": "                    })),",
+            "lineNumber": 564
+          },
+          {
+            "text": "                    error: None,",
+            "lineNumber": 565
+          },
+          {
+            "text": "                }",
+            "lineNumber": 566
+          },
+          {
+            "text": "            }",
+            "lineNumber": 567
+          },
+          {
+            "text": "            \"lock.status\" =&gt; {",
+            "lineNumber": 568
+          },
+          {
+            "text": "                let params: Result&lt;LockStatusRequest, _&gt; =",
+            "lineNumber": 569
+          }
+        ]
+      },
+      "score": 0.3091427981853485
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 91,
+            "column": 16
+          },
+          "endPosition": {
+            "line": 156,
+            "column": 53
+          }
+        },
+        "contents": "struct WriteRequest {\n    request: RpcRequest,\n    response_tx: tokio::sync::oneshot::Sender&lt;RpcResponse&gt;,\n}\n\n/// Task information\n#[derive(Debug, Clone)]\n#[allow(dead_code)]\nstruct TaskInfo {\n    task_id: String,\n    agent_type: String,\n    status: String,\n    submitted_at: SystemTime,\n}\n\n/// Session information\n#[derive(Debug, Clone)]\nstruct SessionInfo {\n    session_id: String,\n    cwd: PathBuf,\n    started_at: SystemTime,\n}\n\n/// Token budget tracker\n#[derive(Debug, Clone)]\nstruct TokenBudget {\n    total_budget: u64,\n    used: u64,\n    warning_threshold: u64,\n    per_agent_usage: HashMap&lt;String, u64&gt;,\n}\n\nimpl OrchestratorServer {\n    /// Validate path to prevent directory traversal attacks\n    /// Ensures the path is within allowed base directories\n    fn validate_path_against_base(\n        path: &amp;Path,\n        base_dirs: &amp;[PathBuf],\n    ) -&gt; Result&lt;PathBuf, String&gt; {\n        // Canonicalize to resolve symlinks and normalize\n        let canonical = path\n            .canonicalize()\n            .map_err(|e| format!(\"Failed to canonicalize path: {e}\"))?;\n\n        // Check if path is within any allowed base directory\n        for base_dir in base_dirs {\n            if let Ok(base_canonical) = base_dir.canonicalize() {\n                if canonical.starts_with(&amp;base_canonical) {\n                    return Ok(canonical);\n                }\n            }\n        }\n\n        Err(format!(\n            \"Path access denied: path must be within allowed base directories. Requested: {:?}, Allowed bases: {:?}\",\n            canonical,\n            base_dirs\n        ))\n    }\n\n    /// Get allowed base directories for file operations\n    fn get_allowed_base_directories(config: &amp;OrchestratorConfig) -&gt; Vec&lt;PathBuf&gt; {\n        let mut allowed = vec![config.codex_dir.clone()];\n        \n        // Add current working directory if available",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "struct WriteRequest {",
+            "lineNumber": 93
+          },
+          {
+            "text": "    request: RpcRequest,",
+            "lineNumber": 94
+          },
+          {
+            "text": "    response_tx: tokio::sync::oneshot::Sender&lt;RpcResponse&gt;,",
+            "lineNumber": 95
+          },
+          {
+            "text": "}",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "/// Task information",
+            "lineNumber": 98
+          },
+          {
+            "text": "#[derive(Debug, Clone)]",
+            "lineNumber": 99
+          },
+          {
+            "text": "#[allow(dead_code)]",
+            "lineNumber": 100
+          },
+          {
+            "text": "struct TaskInfo {",
+            "lineNumber": 101
+          },
+          {
+            "text": "    task_id: String,",
+            "lineNumber": 102
+          },
+          {
+            "text": "    agent_type: String,",
+            "lineNumber": 103
+          },
+          {
+            "text": "    status: String,",
+            "lineNumber": 104
+          },
+          {
+            "text": "    submitted_at: SystemTime,",
+            "lineNumber": 105
+          },
+          {
+            "text": "}",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "/// Session information",
+            "lineNumber": 108
+          },
+          {
+            "text": "#[derive(Debug, Clone)]",
+            "lineNumber": 109
+          },
+          {
+            "text": "struct SessionInfo {",
+            "lineNumber": 110
+          },
+          {
+            "text": "    session_id: String,",
+            "lineNumber": 111
+          },
+          {
+            "text": "    cwd: PathBuf,",
+            "lineNumber": 112
+          },
+          {
+            "text": "    started_at: SystemTime,",
+            "lineNumber": 113
+          },
+          {
+            "text": "}",
+            "lineNumber": 114
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "text": "/// Token budget tracker",
+            "lineNumber": 116
+          },
+          {
+            "text": "#[derive(Debug, Clone)]",
+            "lineNumber": 117
+          },
+          {
+            "text": "struct TokenBudget {",
+            "lineNumber": 118
+          },
+          {
+            "text": "    total_budget: u64,",
+            "lineNumber": 119
+          },
+          {
+            "text": "    used: u64,",
+            "lineNumber": 120
+          },
+          {
+            "text": "    warning_threshold: u64,",
+            "lineNumber": 121
+          },
+          {
+            "text": "    per_agent_usage: HashMap&lt;String, u64&gt;,",
+            "lineNumber": 122
+          },
+          {
+            "text": "}",
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "impl OrchestratorServer {",
+            "lineNumber": 125
+          },
+          {
+            "text": "    /// Validate path to prevent directory traversal attacks",
+            "lineNumber": 126
+          },
+          {
+            "text": "    /// Ensures the path is within allowed base directories",
+            "lineNumber": 127
+          },
+          {
+            "text": "    fn validate_path_against_base(",
+            "lineNumber": 128
+          },
+          {
+            "text": "        path: &amp;Path,",
+            "lineNumber": 129
+          },
+          {
+            "text": "        base_dirs: &amp;[PathBuf],",
+            "lineNumber": 130
+          },
+          {
+            "text": "    ) -&gt; Result&lt;PathBuf, String&gt; {",
+            "lineNumber": 131
+          },
+          {
+            "text": "        // Canonicalize to resolve symlinks and normalize",
+            "lineNumber": 132
+          },
+          {
+            "text": "        let canonical = path",
+            "lineNumber": 133
+          },
+          {
+            "text": "            .canonicalize()",
+            "lineNumber": 134
+          },
+          {
+            "text": "            .map_err(|e| format!(\"Failed to canonicalize path: {e}\"))?;",
+            "lineNumber": 135
+          },
+          {
+            "lineNumber": 136
+          },
+          {
+            "text": "        // Check if path is within any allowed base directory",
+            "lineNumber": 137
+          },
+          {
+            "text": "        for base_dir in base_dirs {",
+            "lineNumber": 138
+          },
+          {
+            "text": "            if let Ok(base_canonical) = base_dir.canonicalize() {",
+            "lineNumber": 139
+          },
+          {
+            "text": "                if canonical.starts_with(&amp;base_canonical) {",
+            "lineNumber": 140
+          },
+          {
+            "text": "                    return Ok(canonical);",
+            "lineNumber": 141
+          },
+          {
+            "text": "                }",
+            "lineNumber": 142
+          },
+          {
+            "text": "            }",
+            "lineNumber": 143
+          },
+          {
+            "text": "        }",
+            "lineNumber": 144
+          },
+          {
+            "lineNumber": 145
+          },
+          {
+            "text": "        Err(format!(",
+            "lineNumber": 146
+          },
+          {
+            "text": "            \"Path access denied: path must be within allowed base directories. Requested: {:?}, Allowed bases: {:?}\",",
+            "lineNumber": 147
+          },
+          {
+            "text": "            canonical,",
+            "lineNumber": 148
+          },
+          {
+            "text": "            base_dirs",
+            "lineNumber": 149
+          },
+          {
+            "text": "        ))",
+            "lineNumber": 150
+          },
+          {
+            "text": "    }",
+            "lineNumber": 151
+          },
+          {
+            "lineNumber": 152
+          },
+          {
+            "text": "    /// Get allowed base directories for file operations",
+            "lineNumber": 153
+          },
+          {
+            "text": "    fn get_allowed_base_directories(config: &amp;OrchestratorConfig) -&gt; Vec&lt;PathBuf&gt; {",
+            "lineNumber": 154
+          },
+          {
+            "text": "        let mut allowed = vec![config.codex_dir.clone()];",
+            "lineNumber": 155
+          },
+          {
+            "text": "        ",
+            "lineNumber": 156
+          },
+          {
+            "text": "        // Add current working directory if available",
+            "lineNumber": 157
+          }
+        ]
+      },
+      "score": 0.2895916700363159
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 306,
+            "column": 42
+          },
+          "endPosition": {
+            "line": 335,
+            "column": 40
+          }
+        },
+        "contents": " {\n        // Read-only methods that don't require auth\n        let read_only_methods = [\n            \"status.get\",\n            \"tokens.getBudget\",\n        ];\n        \n        !read_only_methods.contains(&amp;method)\n    }\n\n    /// Verify authentication for RPC request\n    /// Currently a placeholder - should be implemented with actual auth logic\n    fn verify_auth(\n        _auth_manager: &amp;Arc&lt;AuthManager&gt;,\n        _request: &amp;RpcRequest,\n        _conn_info: Option&lt;&amp;TransportInfo&gt;,\n    ) -&gt; Result&lt;(), RpcError&gt; {\n        // TODO: Implement actual authentication verification\n        // For now, allow all requests (local development)\n        // In production, this should verify:\n        // - API token from request headers or params\n        // - Session token validation\n        // - Role-based access control\n        Ok(())\n    }\n\n    /// Handle a client connection\n    async fn handle_connection(\n        conn: &amp;mut dyn Connection,\n        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 307
+          },
+          {
+            "text": "        // Read-only methods that don't require auth",
+            "lineNumber": 308
+          },
+          {
+            "text": "        let read_only_methods = [",
+            "lineNumber": 309
+          },
+          {
+            "text": "            \"status.get\",",
+            "lineNumber": 310
+          },
+          {
+            "text": "            \"tokens.getBudget\",",
+            "lineNumber": 311
+          },
+          {
+            "text": "        ];",
+            "lineNumber": 312
+          },
+          {
+            "text": "        ",
+            "lineNumber": 313
+          },
+          {
+            "text": "        !read_only_methods.contains(&amp;method)",
+            "lineNumber": 314
+          },
+          {
+            "text": "    }",
+            "lineNumber": 315
+          },
+          {
+            "lineNumber": 316
+          },
+          {
+            "text": "    /// Verify authentication for RPC request",
+            "lineNumber": 317
+          },
+          {
+            "text": "    /// Currently a placeholder - should be implemented with actual auth logic",
+            "lineNumber": 318
+          },
+          {
+            "text": "    fn verify_auth(",
+            "lineNumber": 319
+          },
+          {
+            "text": "        _auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+            "lineNumber": 320
+          },
+          {
+            "text": "        _request: &amp;RpcRequest,",
+            "lineNumber": 321
+          },
+          {
+            "text": "        _conn_info: Option&lt;&amp;TransportInfo&gt;,",
+            "lineNumber": 322
+          },
+          {
+            "text": "    ) -&gt; Result&lt;(), RpcError&gt; {",
+            "lineNumber": 323
+          },
+          {
+            "text": "        // TODO: Implement actual authentication verification",
+            "lineNumber": 324
+          },
+          {
+            "text": "        // For now, allow all requests (local development)",
+            "lineNumber": 325
+          },
+          {
+            "text": "        // In production, this should verify:",
+            "lineNumber": 326
+          },
+          {
+            "text": "        // - API token from request headers or params",
+            "lineNumber": 327
+          },
+          {
+            "text": "        // - Session token validation",
+            "lineNumber": 328
+          },
+          {
+            "text": "        // - Role-based access control",
+            "lineNumber": 329
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 330
+          },
+          {
+            "text": "    }",
+            "lineNumber": 331
+          },
+          {
+            "lineNumber": 332
+          },
+          {
+            "text": "    /// Handle a client connection",
+            "lineNumber": 333
+          },
+          {
+            "text": "    async fn handle_connection(",
+            "lineNumber": 334
+          },
+          {
+            "text": "        conn: &amp;mut dyn Connection,",
+            "lineNumber": 335
+          },
+          {
+            "text": "        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+            "lineNumber": 336
+          }
+        ]
+      },
+      "score": 0.286465048789978
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 815,
+            "column": 17
+          },
+          "endPosition": {
+            "line": 863,
+            "column": 40
+          }
+        },
+        "contents": "            }\n            \"blueprint.get\" =&gt; {\n                let params: Result&lt;BlueprintGetRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(_params) =&gt; {\n                        // TODO: Implement with BlueprintManager\n                        RpcResponse {\n                            id: request.id.clone(),\n                            result: Some(json!({\n                                \"blueprint\": {\n                                    \"id\": \"example-bp\",\n                                    \"title\": \"Example Blueprint\",\n                                    \"goal\": \"Demonstrate blueprint structure\",\n                                    \"state\": \"drafting\",\n                                }\n                            })),\n                            error: None,\n                        }\n                    }\n                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_INVALID_PARAMS,\n                            message: format!(\"Invalid params: {e}\"),\n                            data: None,\n                        }),\n                    },\n                }\n            }\n            _ =&gt; RpcResponse {\n                id: request.id.clone(),\n                result: None,\n                error: Some(RpcError {\n                    code: ERROR_METHOD_NOT_FOUND,\n                    message: format!(\"Method not found: {}\", request.method),\n                    data: None,\n                }),\n            },\n        }\n    }\n\n    /// Process write request (in single-writer queue)\n    async fn process_write_request(\n        request: &amp;RpcRequest,\n        config: &amp;OrchestratorConfig,\n        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            }",
+            "lineNumber": 817
+          },
+          {
+            "text": "            \"blueprint.get\" =&gt; {",
+            "lineNumber": 818
+          },
+          {
+            "text": "                let params: Result&lt;BlueprintGetRequest, _&gt; =",
+            "lineNumber": 819
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 820
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 821
+          },
+          {
+            "text": "                    Ok(_params) =&gt; {",
+            "lineNumber": 822
+          },
+          {
+            "text": "                        // TODO: Implement with BlueprintManager",
+            "lineNumber": 823
+          },
+          {
+            "text": "                        RpcResponse {",
+            "lineNumber": 824
+          },
+          {
+            "text": "                            id: request.id.clone(),",
+            "lineNumber": 825
+          },
+          {
+            "text": "                            result: Some(json!({",
+            "lineNumber": 826
+          },
+          {
+            "text": "                                \"blueprint\": {",
+            "lineNumber": 827
+          },
+          {
+            "text": "                                    \"id\": \"example-bp\",",
+            "lineNumber": 828
+          },
+          {
+            "text": "                                    \"title\": \"Example Blueprint\",",
+            "lineNumber": 829
+          },
+          {
+            "text": "                                    \"goal\": \"Demonstrate blueprint structure\",",
+            "lineNumber": 830
+          },
+          {
+            "text": "                                    \"state\": \"drafting\",",
+            "lineNumber": 831
+          },
+          {
+            "text": "                                }",
+            "lineNumber": 832
+          },
+          {
+            "text": "                            })),",
+            "lineNumber": 833
+          },
+          {
+            "text": "                            error: None,",
+            "lineNumber": 834
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 835
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 836
+          },
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 837
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 838
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 839
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 840
+          },
+          {
+            "text": "                            code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 841
+          },
+          {
+            "text": "                            message: format!(\"Invalid params: {e}\"),",
+            "lineNumber": 842
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 843
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 844
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 845
+          },
+          {
+            "text": "                }",
+            "lineNumber": 846
+          },
+          {
+            "text": "            }",
+            "lineNumber": 847
+          },
+          {
+            "text": "            _ =&gt; RpcResponse {",
+            "lineNumber": 848
+          },
+          {
+            "text": "                id: request.id.clone(),",
+            "lineNumber": 849
+          },
+          {
+            "text": "                result: None,",
+            "lineNumber": 850
+          },
+          {
+            "text": "                error: Some(RpcError {",
+            "lineNumber": 851
+          },
+          {
+            "text": "                    code: ERROR_METHOD_NOT_FOUND,",
+            "lineNumber": 852
+          },
+          {
+            "text": "                    message: format!(\"Method not found: {}\", request.method),",
+            "lineNumber": 853
+          },
+          {
+            "text": "                    data: None,",
+            "lineNumber": 854
+          },
+          {
+            "text": "                }),",
+            "lineNumber": 855
+          },
+          {
+            "text": "            },",
+            "lineNumber": 856
+          },
+          {
+            "text": "        }",
+            "lineNumber": 857
+          },
+          {
+            "text": "    }",
+            "lineNumber": 858
+          },
+          {
+            "lineNumber": 859
+          },
+          {
+            "text": "    /// Process write request (in single-writer queue)",
+            "lineNumber": 860
+          },
+          {
+            "text": "    async fn process_write_request(",
+            "lineNumber": 861
+          },
+          {
+            "text": "        request: &amp;RpcRequest,",
+            "lineNumber": 862
+          },
+          {
+            "text": "        config: &amp;OrchestratorConfig,",
+            "lineNumber": 863
+          },
+          {
+            "text": "        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+            "lineNumber": 864
+          }
+        ]
+      },
+      "score": 0.28192079067230225
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 441,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 504,
+            "column": 33
+          }
+        },
+        "contents": " else {\n                // Handle read-only request directly\n                Self::process_read_request(\n                    &amp;request,\n                    start_time,\n                    active_agents,\n                    active_tasks,\n                    token_budget,\n                    active_sessions,\n                    queue_size,\n                    config,\n                    auth_manager,\n                )\n                .await\n            };\n\n            // Cache response if idempotency key provided\n            if let Some(idem_key) = &amp;request.idem_key {\n                let mut cache = idempotency_cache.write().await;\n                cache.insert(\n                    idem_key.clone(),\n                    IdempotencyEntry {\n                        response: response.clone(),\n                        expires_at: SystemTime::now() + Duration::from_secs(600), // 10 min TTL\n                    },\n                );\n            }\n\n            // Send response\n            let response_data = serde_json::to_vec(&amp;response)?;\n            conn.write_message(&amp;response_data).await?;\n        }\n    }\n\n    /// Check if method is a write operation\n    fn is_write_method(method: &amp;str) -&gt; bool {\n        matches!(\n            method,\n            \"lock.acquire\"\n                | \"lock.release\"\n                | \"fs.write\"\n                | \"fs.patch\"\n                | \"vcs.commit\"\n                | \"vcs.push\"\n                | \"agent.register\"\n                | \"task.submit\"\n                | \"task.cancel\"\n                | \"tokens.reportUsage\"\n                | \"session.start\"\n                | \"session.end\"\n                | \"blueprint.create\"\n                | \"blueprint.update\"\n                | \"blueprint.approve\"\n                | \"blueprint.reject\"\n                | \"blueprint.export\"\n                | \"blueprint.setMode\"\n                | \"blueprint.addResearch\"\n        )\n    }\n\n    /// Publish event to subscribers\n    async fn publish_event(\n        topic: &amp;str,\n        _data: serde_json::Value,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " else {",
+            "lineNumber": 442
+          },
+          {
+            "text": "                // Handle read-only request directly",
+            "lineNumber": 443
+          },
+          {
+            "text": "                Self::process_read_request(",
+            "lineNumber": 444
+          },
+          {
+            "text": "                    &amp;request,",
+            "lineNumber": 445
+          },
+          {
+            "text": "                    start_time,",
+            "lineNumber": 446
+          },
+          {
+            "text": "                    active_agents,",
+            "lineNumber": 447
+          },
+          {
+            "text": "                    active_tasks,",
+            "lineNumber": 448
+          },
+          {
+            "text": "                    token_budget,",
+            "lineNumber": 449
+          },
+          {
+            "text": "                    active_sessions,",
+            "lineNumber": 450
+          },
+          {
+            "text": "                    queue_size,",
+            "lineNumber": 451
+          },
+          {
+            "text": "                    config,",
+            "lineNumber": 452
+          },
+          {
+            "text": "                    auth_manager,",
+            "lineNumber": 453
+          },
+          {
+            "text": "                )",
+            "lineNumber": 454
+          },
+          {
+            "text": "                .await",
+            "lineNumber": 455
+          },
+          {
+            "text": "            };",
+            "lineNumber": 456
+          },
+          {
+            "lineNumber": 457
+          },
+          {
+            "text": "            // Cache response if idempotency key provided",
+            "lineNumber": 458
+          },
+          {
+            "text": "            if let Some(idem_key) = &amp;request.idem_key {",
+            "lineNumber": 459
+          },
+          {
+            "text": "                let mut cache = idempotency_cache.write().await;",
+            "lineNumber": 460
+          },
+          {
+            "text": "                cache.insert(",
+            "lineNumber": 461
+          },
+          {
+            "text": "                    idem_key.clone(),",
+            "lineNumber": 462
+          },
+          {
+            "text": "                    IdempotencyEntry {",
+            "lineNumber": 463
+          },
+          {
+            "text": "                        response: response.clone(),",
+            "lineNumber": 464
+          },
+          {
+            "text": "                        expires_at: SystemTime::now() + Duration::from_secs(600), // 10 min TTL",
+            "lineNumber": 465
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 466
+          },
+          {
+            "text": "                );",
+            "lineNumber": 467
+          },
+          {
+            "text": "            }",
+            "lineNumber": 468
+          },
+          {
+            "lineNumber": 469
+          },
+          {
+            "text": "            // Send response",
+            "lineNumber": 470
+          },
+          {
+            "text": "            let response_data = serde_json::to_vec(&amp;response)?;",
+            "lineNumber": 471
+          },
+          {
+            "text": "            conn.write_message(&amp;response_data).await?;",
+            "lineNumber": 472
+          },
+          {
+            "text": "        }",
+            "lineNumber": 473
+          },
+          {
+            "text": "    }",
+            "lineNumber": 474
+          },
+          {
+            "lineNumber": 475
+          },
+          {
+            "text": "    /// Check if method is a write operation",
+            "lineNumber": 476
+          },
+          {
+            "text": "    fn is_write_method(method: &amp;str) -&gt; bool {",
+            "lineNumber": 477
+          },
+          {
+            "text": "        matches!(",
+            "lineNumber": 478
+          },
+          {
+            "text": "            method,",
+            "lineNumber": 479
+          },
+          {
+            "text": "            \"lock.acquire\"",
+            "lineNumber": 480
+          },
+          {
+            "text": "                | \"lock.release\"",
+            "lineNumber": 481
+          },
+          {
+            "text": "                | \"fs.write\"",
+            "lineNumber": 482
+          },
+          {
+            "text": "                | \"fs.patch\"",
+            "lineNumber": 483
+          },
+          {
+            "text": "                | \"vcs.commit\"",
+            "lineNumber": 484
+          },
+          {
+            "text": "                | \"vcs.push\"",
+            "lineNumber": 485
+          },
+          {
+            "text": "                | \"agent.register\"",
+            "lineNumber": 486
+          },
+          {
+            "text": "                | \"task.submit\"",
+            "lineNumber": 487
+          },
+          {
+            "text": "                | \"task.cancel\"",
+            "lineNumber": 488
+          },
+          {
+            "text": "                | \"tokens.reportUsage\"",
+            "lineNumber": 489
+          },
+          {
+            "text": "                | \"session.start\"",
+            "lineNumber": 490
+          },
+          {
+            "text": "                | \"session.end\"",
+            "lineNumber": 491
+          },
+          {
+            "text": "                | \"blueprint.create\"",
+            "lineNumber": 492
+          },
+          {
+            "text": "                | \"blueprint.update\"",
+            "lineNumber": 493
+          },
+          {
+            "text": "                | \"blueprint.approve\"",
+            "lineNumber": 494
+          },
+          {
+            "text": "                | \"blueprint.reject\"",
+            "lineNumber": 495
+          },
+          {
+            "text": "                | \"blueprint.export\"",
+            "lineNumber": 496
+          },
+          {
+            "text": "                | \"blueprint.setMode\"",
+            "lineNumber": 497
+          },
+          {
+            "text": "                | \"blueprint.addResearch\"",
+            "lineNumber": 498
+          },
+          {
+            "text": "        )",
+            "lineNumber": 499
+          },
+          {
+            "text": "    }",
+            "lineNumber": 500
+          },
+          {
+            "lineNumber": 501
+          },
+          {
+            "text": "    /// Publish event to subscribers",
+            "lineNumber": 502
+          },
+          {
+            "text": "    async fn publish_event(",
+            "lineNumber": 503
+          },
+          {
+            "text": "        topic: &amp;str,",
+            "lineNumber": 504
+          },
+          {
+            "text": "        _data: serde_json::Value,",
+            "lineNumber": 505
+          }
+        ]
+      },
+      "score": 0.2780822515487671
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 380,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 405,
+            "column": 53
+          }
+        },
+        "contents": "            // Verify authentication for methods that require it\n            if Self::requires_auth(&amp;request.method) {\n                if let Err(auth_error) = Self::verify_auth(auth_manager, &amp;request, None) {\n                    let error_response = RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(auth_error),\n                    };\n                    let response_data = serde_json::to_vec(&amp;error_response)?;\n                    conn.write_message(&amp;response_data).await?;\n                    continue;\n                }\n            }\n\n            // Process request\n            let response = if Self::is_write_method(&amp;request.method) {\n                // Queue write request\n                let (response_tx, response_rx) = tokio::sync::oneshot::channel();\n                let write_req = WriteRequest {\n                    request: request.clone(),\n                    response_tx,\n                };\n\n                match write_queue.try_send(write_req)",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            // Verify authentication for methods that require it",
+            "lineNumber": 383
+          },
+          {
+            "text": "            if Self::requires_auth(&amp;request.method) {",
+            "lineNumber": 384
+          },
+          {
+            "text": "                if let Err(auth_error) = Self::verify_auth(auth_manager, &amp;request, None) {",
+            "lineNumber": 385
+          },
+          {
+            "text": "                    let error_response = RpcResponse {",
+            "lineNumber": 386
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 387
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 388
+          },
+          {
+            "text": "                        error: Some(auth_error),",
+            "lineNumber": 389
+          },
+          {
+            "text": "                    };",
+            "lineNumber": 390
+          },
+          {
+            "text": "                    let response_data = serde_json::to_vec(&amp;error_response)?;",
+            "lineNumber": 391
+          },
+          {
+            "text": "                    conn.write_message(&amp;response_data).await?;",
+            "lineNumber": 392
+          },
+          {
+            "text": "                    continue;",
+            "lineNumber": 393
+          },
+          {
+            "text": "                }",
+            "lineNumber": 394
+          },
+          {
+            "text": "            }",
+            "lineNumber": 395
+          },
+          {
+            "lineNumber": 396
+          },
+          {
+            "text": "            // Process request",
+            "lineNumber": 397
+          },
+          {
+            "text": "            let response = if Self::is_write_method(&amp;request.method) {",
+            "lineNumber": 398
+          },
+          {
+            "text": "                // Queue write request",
+            "lineNumber": 399
+          },
+          {
+            "text": "                let (response_tx, response_rx) = tokio::sync::oneshot::channel();",
+            "lineNumber": 400
+          },
+          {
+            "text": "                let write_req = WriteRequest {",
+            "lineNumber": 401
+          },
+          {
+            "text": "                    request: request.clone(),",
+            "lineNumber": 402
+          },
+          {
+            "text": "                    response_tx,",
+            "lineNumber": 403
+          },
+          {
+            "text": "                };",
+            "lineNumber": 404
+          },
+          {
+            "lineNumber": 405
+          },
+          {
+            "text": "                match write_queue.try_send(write_req)",
+            "lineNumber": 406
+          }
+        ]
+      },
+      "score": 0.26956430077552795
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 1680,
+            "column": 27
+          },
+          "endPosition": {
+            "line": 1717,
+            "column": 27
+          }
+        },
+        "contents": "                    },\n                }\n            }\n            \"session.start\" =&gt; {\n                let params: Result&lt;SessionStartRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        let mut sessions = active_sessions.write().await;\n                        sessions.insert(\n                            params.session_id.clone(),\n                            SessionInfo {\n                                session_id: params.session_id.clone(),\n                                cwd: params.cwd,\n                                started_at: SystemTime::now(),\n                            },\n                        );\n\n                        RpcResponse {\n                            id: request.id.clone(),\n                            result: Some(json!({ \"success\": true })),\n                            error: None,\n                        }\n                    }\n                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_INVALID_PARAMS,\n                            message: format!(\"Invalid params: {e}\"),\n                            data: None,\n                        }),\n                    },\n                }\n            }\n            \"session.end\" =&gt; {\n                let params:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "                    },",
+            "lineNumber": 1682
+          },
+          {
+            "text": "                }",
+            "lineNumber": 1683
+          },
+          {
+            "text": "            }",
+            "lineNumber": 1684
+          },
+          {
+            "text": "            \"session.start\" =&gt; {",
+            "lineNumber": 1685
+          },
+          {
+            "text": "                let params: Result&lt;SessionStartRequest, _&gt; =",
+            "lineNumber": 1686
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 1687
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 1688
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 1689
+          },
+          {
+            "text": "                        let mut sessions = active_sessions.write().await;",
+            "lineNumber": 1690
+          },
+          {
+            "text": "                        sessions.insert(",
+            "lineNumber": 1691
+          },
+          {
+            "text": "                            params.session_id.clone(),",
+            "lineNumber": 1692
+          },
+          {
+            "text": "                            SessionInfo {",
+            "lineNumber": 1693
+          },
+          {
+            "text": "                                session_id: params.session_id.clone(),",
+            "lineNumber": 1694
+          },
+          {
+            "text": "                                cwd: params.cwd,",
+            "lineNumber": 1695
+          },
+          {
+            "text": "                                started_at: SystemTime::now(),",
+            "lineNumber": 1696
+          },
+          {
+            "text": "                            },",
+            "lineNumber": 1697
+          },
+          {
+            "text": "                        );",
+            "lineNumber": 1698
+          },
+          {
+            "lineNumber": 1699
+          },
+          {
+            "text": "                        RpcResponse {",
+            "lineNumber": 1700
+          },
+          {
+            "text": "                            id: request.id.clone(),",
+            "lineNumber": 1701
+          },
+          {
+            "text": "                            result: Some(json!({ \"success\": true })),",
+            "lineNumber": 1702
+          },
+          {
+            "text": "                            error: None,",
+            "lineNumber": 1703
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 1704
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 1705
+          },
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 1706
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 1707
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 1708
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 1709
+          },
+          {
+            "text": "                            code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 1710
+          },
+          {
+            "text": "                            message: format!(\"Invalid params: {e}\"),",
+            "lineNumber": 1711
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 1712
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 1713
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 1714
+          },
+          {
+            "text": "                }",
+            "lineNumber": 1715
+          },
+          {
+            "text": "            }",
+            "lineNumber": 1716
+          },
+          {
+            "text": "            \"session.end\" =&gt; {",
+            "lineNumber": 1717
+          },
+          {
+            "text": "                let params:",
+            "lineNumber": 1718
+          }
+        ]
+      },
+      "score": 0.2501102685928345
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 1814,
+            "column": 32
+          },
+          "endPosition": {
+            "line": 1857,
+            "column": 36
+          }
+        },
+        "contents": "            \"blueprint.create\" =&gt; {\n                let params: Result&lt;BlueprintCreateRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        let title = params.title.clone();\n                        match plan_manager.create_Plan(params.goal, params.title, params.created_by)\n                        {\n                            Ok(blueprint_id) =&gt; {\n                                // Publish blueprint.created event\n                                Self::publish_event(\n                                    EVENT_BLUEPRINT_CREATED,\n                                    json!({\n                                        \"blueprint_id\": blueprint_id,\n                                        \"title\": title,\n                                    }),\n                                    subscribers,\n                                )\n                                .await;\n\n                                RpcResponse {\n                                    id: request.id.clone(),\n                                    result: Some(json!({\n                                        \"success\": true,\n                                                \"blueprint_id\": blueprint_id,\n                                    })),\n                                    error: None,\n                                }\n                            }\n                            Err(e) =&gt; RpcResponse {\n                                id: request.id.clone(),\n                                result: None,\n                                error: Some(RpcError {\n                                    code: ERROR_INTERNAL,\n                                    message: format!(\"Failed to create blueprint: {e}\"),\n                                    data: None,\n                                }),\n                            },\n                        }\n                    }\n                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            \"blueprint.create\" =&gt; {",
+            "lineNumber": 1816
+          },
+          {
+            "text": "                let params: Result&lt;BlueprintCreateRequest, _&gt; =",
+            "lineNumber": 1817
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 1818
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 1819
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 1820
+          },
+          {
+            "text": "                        let title = params.title.clone();",
+            "lineNumber": 1821
+          },
+          {
+            "text": "                        match plan_manager.create_Plan(params.goal, params.title, params.created_by)",
+            "lineNumber": 1822
+          },
+          {
+            "text": "                        {",
+            "lineNumber": 1823
+          },
+          {
+            "text": "                            Ok(blueprint_id) =&gt; {",
+            "lineNumber": 1824
+          },
+          {
+            "text": "                                // Publish blueprint.created event",
+            "lineNumber": 1825
+          },
+          {
+            "text": "                                Self::publish_event(",
+            "lineNumber": 1826
+          },
+          {
+            "text": "                                    EVENT_BLUEPRINT_CREATED,",
+            "lineNumber": 1827
+          },
+          {
+            "text": "                                    json!({",
+            "lineNumber": 1828
+          },
+          {
+            "text": "                                        \"blueprint_id\": blueprint_id,",
+            "lineNumber": 1829
+          },
+          {
+            "text": "                                        \"title\": title,",
+            "lineNumber": 1830
+          },
+          {
+            "text": "                                    }),",
+            "lineNumber": 1831
+          },
+          {
+            "text": "                                    subscribers,",
+            "lineNumber": 1832
+          },
+          {
+            "text": "                                )",
+            "lineNumber": 1833
+          },
+          {
+            "text": "                                .await;",
+            "lineNumber": 1834
+          },
+          {
+            "lineNumber": 1835
+          },
+          {
+            "text": "                                RpcResponse {",
+            "lineNumber": 1836
+          },
+          {
+            "text": "                                    id: request.id.clone(),",
+            "lineNumber": 1837
+          },
+          {
+            "text": "                                    result: Some(json!({",
+            "lineNumber": 1838
+          },
+          {
+            "text": "                                        \"success\": true,",
+            "lineNumber": 1839
+          },
+          {
+            "text": "                                                \"blueprint_id\": blueprint_id,",
+            "lineNumber": 1840
+          },
+          {
+            "text": "                                    })),",
+            "lineNumber": 1841
+          },
+          {
+            "text": "                                    error: None,",
+            "lineNumber": 1842
+          },
+          {
+            "text": "                                }",
+            "lineNumber": 1843
+          },
+          {
+            "text": "                            }",
+            "lineNumber": 1844
+          },
+          {
+            "text": "                            Err(e) =&gt; RpcResponse {",
+            "lineNumber": 1845
+          },
+          {
+            "text": "                                id: request.id.clone(),",
+            "lineNumber": 1846
+          },
+          {
+            "text": "                                result: None,",
+            "lineNumber": 1847
+          },
+          {
+            "text": "                                error: Some(RpcError {",
+            "lineNumber": 1848
+          },
+          {
+            "text": "                                    code: ERROR_INTERNAL,",
+            "lineNumber": 1849
+          },
+          {
+            "text": "                                    message: format!(\"Failed to create blueprint: {e}\"),",
+            "lineNumber": 1850
+          },
+          {
+            "text": "                                    data: None,",
+            "lineNumber": 1851
+          },
+          {
+            "text": "                                }),",
+            "lineNumber": 1852
+          },
+          {
+            "text": "                            },",
+            "lineNumber": 1853
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 1854
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 1855
+          },
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 1856
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 1857
+          },
+          {
+            "text": "                        result: None",
+            "lineNumber": 1858
+          }
+        ]
+      },
+      "score": 0.2482345700263977
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 649,
+            "column": 31
+          },
+          "endPosition": {
+            "line": 689,
+            "column": 42
+          }
+        },
+        "contents": ",\n                }\n            }\n            \"tokens.getBudget\" =&gt; {\n                let budget = token_budget.read().await;\n                RpcResponse {\n                    id: request.id.clone(),\n                    result: Some(json!({\n                        \"total_budget\": budget.total_budget,\n                        \"used\": budget.used,\n                        \"remaining\": budget.total_budget.saturating_sub(budget.used),\n                        \"warning_threshold\": budget.warning_threshold,\n                    })),\n                    error: None,\n                }\n            }\n            \"fs.read\" =&gt; {\n                let params: Result&lt;FsReadRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        // Validate path (prevent directory traversal)\n                        let allowed_bases = Self::get_allowed_base_directories(&amp;config);\n                        let path = match Self::validate_path_against_base(&amp;params.path, &amp;allowed_bases) {\n                            Ok(p) =&gt; p,\n                            Err(e) =&gt; {\n                                return RpcResponse {\n                                    id: request.id.clone(),\n                                    result: None,\n                                    error: Some(RpcError {\n                                        code: ERROR_INVALID_PARAMS,\n                                        message: e,\n                                        data: None,\n                                    }),\n                                };\n                            }\n                        };\n\n                        // Read file\n                        match tokio::fs::read_to_string(&amp;path).await {\n                            Ok(content) =&gt;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": ",",
+            "lineNumber": 650
+          },
+          {
+            "text": "                }",
+            "lineNumber": 651
+          },
+          {
+            "text": "            }",
+            "lineNumber": 652
+          },
+          {
+            "text": "            \"tokens.getBudget\" =&gt; {",
+            "lineNumber": 653
+          },
+          {
+            "text": "                let budget = token_budget.read().await;",
+            "lineNumber": 654
+          },
+          {
+            "text": "                RpcResponse {",
+            "lineNumber": 655
+          },
+          {
+            "text": "                    id: request.id.clone(),",
+            "lineNumber": 656
+          },
+          {
+            "text": "                    result: Some(json!({",
+            "lineNumber": 657
+          },
+          {
+            "text": "                        \"total_budget\": budget.total_budget,",
+            "lineNumber": 658
+          },
+          {
+            "text": "                        \"used\": budget.used,",
+            "lineNumber": 659
+          },
+          {
+            "text": "                        \"remaining\": budget.total_budget.saturating_sub(budget.used),",
+            "lineNumber": 660
+          },
+          {
+            "text": "                        \"warning_threshold\": budget.warning_threshold,",
+            "lineNumber": 661
+          },
+          {
+            "text": "                    })),",
+            "lineNumber": 662
+          },
+          {
+            "text": "                    error: None,",
+            "lineNumber": 663
+          },
+          {
+            "text": "                }",
+            "lineNumber": 664
+          },
+          {
+            "text": "            }",
+            "lineNumber": 665
+          },
+          {
+            "text": "            \"fs.read\" =&gt; {",
+            "lineNumber": 666
+          },
+          {
+            "text": "                let params: Result&lt;FsReadRequest, _&gt; =",
+            "lineNumber": 667
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 668
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 669
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 670
+          },
+          {
+            "text": "                        // Validate path (prevent directory traversal)",
+            "lineNumber": 671
+          },
+          {
+            "text": "                        let allowed_bases = Self::get_allowed_base_directories(&amp;config);",
+            "lineNumber": 672
+          },
+          {
+            "text": "                        let path = match Self::validate_path_against_base(&amp;params.path, &amp;allowed_bases) {",
+            "lineNumber": 673
+          },
+          {
+            "text": "                            Ok(p) =&gt; p,",
+            "lineNumber": 674
+          },
+          {
+            "text": "                            Err(e) =&gt; {",
+            "lineNumber": 675
+          },
+          {
+            "text": "                                return RpcResponse {",
+            "lineNumber": 676
+          },
+          {
+            "text": "                                    id: request.id.clone(),",
+            "lineNumber": 677
+          },
+          {
+            "text": "                                    result: None,",
+            "lineNumber": 678
+          },
+          {
+            "text": "                                    error: Some(RpcError {",
+            "lineNumber": 679
+          },
+          {
+            "text": "                                        code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 680
+          },
+          {
+            "text": "                                        message: e,",
+            "lineNumber": 681
+          },
+          {
+            "text": "                                        data: None,",
+            "lineNumber": 682
+          },
+          {
+            "text": "                                    }),",
+            "lineNumber": 683
+          },
+          {
+            "text": "                                };",
+            "lineNumber": 684
+          },
+          {
+            "text": "                            }",
+            "lineNumber": 685
+          },
+          {
+            "text": "                        };",
+            "lineNumber": 686
+          },
+          {
+            "lineNumber": 687
+          },
+          {
+            "text": "                        // Read file",
+            "lineNumber": 688
+          },
+          {
+            "text": "                        match tokio::fs::read_to_string(&amp;path).await {",
+            "lineNumber": 689
+          },
+          {
+            "text": "                            Ok(content) =&gt;",
+            "lineNumber": 690
+          }
+        ]
+      },
+      "score": 0.2446049004793167
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 502,
+            "column": 26
+          },
+          "endPosition": {
+            "line": 532,
+            "column": 47
+          }
+        },
+        "contents": "(\n        topic: &amp;str,\n        _data: serde_json::Value,\n        subscribers: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, Vec&lt;String&gt;&gt;&gt;&gt;,\n    ) {\n        let subscribers = subscribers.read().await;\n        if let Some(connection_ids) = subscribers.get(topic) {\n            // In a real implementation, we would send events to these connections\n            // For now, we just log that an event would be sent\n            tracing::debug!(\n                \"Publishing event to topic '{}' for {} subscribers\",\n                topic,\n                connection_ids.len()\n            );\n        }\n    }\n\n    /// Process read-only request\n    async fn process_read_request(\n        request: &amp;RpcRequest,\n        start_time: SystemTime,\n        active_agents: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,\n        active_tasks: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,\n        token_budget: &amp;Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,\n        _active_sessions: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,\n        queue_size: &amp;Arc&lt;RwLock&lt;usize&gt;&gt;,\n        config: &amp;OrchestratorConfig,\n        auth_manager: &amp;Arc&lt;AuthManager&gt;,\n    ) -&gt; RpcResponse {\n        // Verify authentication for read requests that require it\n        if Self::requires_auth(&amp;request.method)",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "(",
+            "lineNumber": 503
+          },
+          {
+            "text": "        topic: &amp;str,",
+            "lineNumber": 504
+          },
+          {
+            "text": "        _data: serde_json::Value,",
+            "lineNumber": 505
+          },
+          {
+            "text": "        subscribers: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, Vec&lt;String&gt;&gt;&gt;&gt;,",
+            "lineNumber": 506
+          },
+          {
+            "text": "    ) {",
+            "lineNumber": 507
+          },
+          {
+            "text": "        let subscribers = subscribers.read().await;",
+            "lineNumber": 508
+          },
+          {
+            "text": "        if let Some(connection_ids) = subscribers.get(topic) {",
+            "lineNumber": 509
+          },
+          {
+            "text": "            // In a real implementation, we would send events to these connections",
+            "lineNumber": 510
+          },
+          {
+            "text": "            // For now, we just log that an event would be sent",
+            "lineNumber": 511
+          },
+          {
+            "text": "            tracing::debug!(",
+            "lineNumber": 512
+          },
+          {
+            "text": "                \"Publishing event to topic '{}' for {} subscribers\",",
+            "lineNumber": 513
+          },
+          {
+            "text": "                topic,",
+            "lineNumber": 514
+          },
+          {
+            "text": "                connection_ids.len()",
+            "lineNumber": 515
+          },
+          {
+            "text": "            );",
+            "lineNumber": 516
+          },
+          {
+            "text": "        }",
+            "lineNumber": 517
+          },
+          {
+            "text": "    }",
+            "lineNumber": 518
+          },
+          {
+            "lineNumber": 519
+          },
+          {
+            "text": "    /// Process read-only request",
+            "lineNumber": 520
+          },
+          {
+            "text": "    async fn process_read_request(",
+            "lineNumber": 521
+          },
+          {
+            "text": "        request: &amp;RpcRequest,",
+            "lineNumber": 522
+          },
+          {
+            "text": "        start_time: SystemTime,",
+            "lineNumber": 523
+          },
+          {
+            "text": "        active_agents: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,",
+            "lineNumber": 524
+          },
+          {
+            "text": "        active_tasks: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,",
+            "lineNumber": 525
+          },
+          {
+            "text": "        token_budget: &amp;Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,",
+            "lineNumber": 526
+          },
+          {
+            "text": "        _active_sessions: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,",
+            "lineNumber": 527
+          },
+          {
+            "text": "        queue_size: &amp;Arc&lt;RwLock&lt;usize&gt;&gt;,",
+            "lineNumber": 528
+          },
+          {
+            "text": "        config: &amp;OrchestratorConfig,",
+            "lineNumber": 529
+          },
+          {
+            "text": "        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+            "lineNumber": 530
+          },
+          {
+            "text": "    ) -&gt; RpcResponse {",
+            "lineNumber": 531
+          },
+          {
+            "text": "        // Verify authentication for read requests that require it",
+            "lineNumber": 532
+          },
+          {
+            "text": "        if Self::requires_auth(&amp;request.method)",
+            "lineNumber": 533
+          }
+        ]
+      },
+      "score": 0.2389732003211975
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 1284,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 1324,
+            "column": 27
+          }
+        },
+        "contents": "            \"agent.heartbeat\" =&gt; {\n                let params: Result&lt;AgentHeartbeatRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        let mut agents = active_agents.write().await;\n                        if let Some(agent) = agents.get_mut(&amp;params.agent_id) {\n                            agent.last_heartbeat = chrono::Utc::now().to_rfc3339();\n                            agent.status = \"active\".to_string();\n\n                            RpcResponse {\n                                id: request.id.clone(),\n                                result: Some(json!({ \"success\": true })),\n                                error: None,\n                            }\n                        } else {\n                            RpcResponse {\n                                id: request.id.clone(),\n                                result: None,\n                                error: Some(RpcError {\n                                    code: ERROR_INVALID_PARAMS,\n                                    message: format!(\"Agent {} not found\", params.agent_id),\n                                    data: None,\n                                }),\n                            }\n                        }\n                    }\n                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_INVALID_PARAMS,\n                            message: format!(\"Invalid params: {e}\"),\n                            data: None,\n                        }),\n                    },\n                }\n            }\n            \"task.submit\" =&gt; {\n                let params:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            \"agent.heartbeat\" =&gt; {",
+            "lineNumber": 1286
+          },
+          {
+            "text": "                let params: Result&lt;AgentHeartbeatRequest, _&gt; =",
+            "lineNumber": 1287
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 1288
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 1289
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 1290
+          },
+          {
+            "text": "                        let mut agents = active_agents.write().await;",
+            "lineNumber": 1291
+          },
+          {
+            "text": "                        if let Some(agent) = agents.get_mut(&amp;params.agent_id) {",
+            "lineNumber": 1292
+          },
+          {
+            "text": "                            agent.last_heartbeat = chrono::Utc::now().to_rfc3339();",
+            "lineNumber": 1293
+          },
+          {
+            "text": "                            agent.status = \"active\".to_string();",
+            "lineNumber": 1294
+          },
+          {
+            "lineNumber": 1295
+          },
+          {
+            "text": "                            RpcResponse {",
+            "lineNumber": 1296
+          },
+          {
+            "text": "                                id: request.id.clone(),",
+            "lineNumber": 1297
+          },
+          {
+            "text": "                                result: Some(json!({ \"success\": true })),",
+            "lineNumber": 1298
+          },
+          {
+            "text": "                                error: None,",
+            "lineNumber": 1299
+          },
+          {
+            "text": "                            }",
+            "lineNumber": 1300
+          },
+          {
+            "text": "                        } else {",
+            "lineNumber": 1301
+          },
+          {
+            "text": "                            RpcResponse {",
+            "lineNumber": 1302
+          },
+          {
+            "text": "                                id: request.id.clone(),",
+            "lineNumber": 1303
+          },
+          {
+            "text": "                                result: None,",
+            "lineNumber": 1304
+          },
+          {
+            "text": "                                error: Some(RpcError {",
+            "lineNumber": 1305
+          },
+          {
+            "text": "                                    code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 1306
+          },
+          {
+            "text": "                                    message: format!(\"Agent {} not found\", params.agent_id),",
+            "lineNumber": 1307
+          },
+          {
+            "text": "                                    data: None,",
+            "lineNumber": 1308
+          },
+          {
+            "text": "                                }),",
+            "lineNumber": 1309
+          },
+          {
+            "text": "                            }",
+            "lineNumber": 1310
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 1311
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 1312
+          },
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 1313
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 1314
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 1315
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 1316
+          },
+          {
+            "text": "                            code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 1317
+          },
+          {
+            "text": "                            message: format!(\"Invalid params: {e}\"),",
+            "lineNumber": 1318
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 1319
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 1320
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 1321
+          },
+          {
+            "text": "                }",
+            "lineNumber": 1322
+          },
+          {
+            "text": "            }",
+            "lineNumber": 1323
+          },
+          {
+            "text": "            \"task.submit\" =&gt; {",
+            "lineNumber": 1324
+          },
+          {
+            "text": "                let params:",
+            "lineNumber": 1325
+          }
+        ]
+      },
+      "score": 0.23869970440864563
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 1322,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 1360,
+            "column": 27
+          }
+        },
+        "contents": "            \"task.submit\" =&gt; {\n                let params: Result&lt;TaskSubmitRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        let mut tasks = active_tasks.write().await;\n                        tasks.insert(\n                            params.task_id.clone(),\n                            TaskInfo {\n                                task_id: params.task_id.clone(),\n                                agent_type: params.agent_type.clone(),\n                                status: \"pending\".to_string(),\n                                submitted_at: SystemTime::now(),\n                            },\n                        );\n\n                        RpcResponse {\n                            id: request.id.clone(),\n                            result: Some(json!({\n                                \"success\": true,\n                                \"task_id\": params.task_id,\n                            })),\n                            error: None,\n                        }\n                    }\n                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_INVALID_PARAMS,\n                            message: format!(\"Invalid params: {e}\"),\n                            data: None,\n                        }),\n                    },\n                }\n            }\n            \"task.cancel\" =&gt; {\n                let params:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            \"task.submit\" =&gt; {",
+            "lineNumber": 1324
+          },
+          {
+            "text": "                let params: Result&lt;TaskSubmitRequest, _&gt; =",
+            "lineNumber": 1325
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 1326
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 1327
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 1328
+          },
+          {
+            "text": "                        let mut tasks = active_tasks.write().await;",
+            "lineNumber": 1329
+          },
+          {
+            "text": "                        tasks.insert(",
+            "lineNumber": 1330
+          },
+          {
+            "text": "                            params.task_id.clone(),",
+            "lineNumber": 1331
+          },
+          {
+            "text": "                            TaskInfo {",
+            "lineNumber": 1332
+          },
+          {
+            "text": "                                task_id: params.task_id.clone(),",
+            "lineNumber": 1333
+          },
+          {
+            "text": "                                agent_type: params.agent_type.clone(),",
+            "lineNumber": 1334
+          },
+          {
+            "text": "                                status: \"pending\".to_string(),",
+            "lineNumber": 1335
+          },
+          {
+            "text": "                                submitted_at: SystemTime::now(),",
+            "lineNumber": 1336
+          },
+          {
+            "text": "                            },",
+            "lineNumber": 1337
+          },
+          {
+            "text": "                        );",
+            "lineNumber": 1338
+          },
+          {
+            "lineNumber": 1339
+          },
+          {
+            "text": "                        RpcResponse {",
+            "lineNumber": 1340
+          },
+          {
+            "text": "                            id: request.id.clone(),",
+            "lineNumber": 1341
+          },
+          {
+            "text": "                            result: Some(json!({",
+            "lineNumber": 1342
+          },
+          {
+            "text": "                                \"success\": true,",
+            "lineNumber": 1343
+          },
+          {
+            "text": "                                \"task_id\": params.task_id,",
+            "lineNumber": 1344
+          },
+          {
+            "text": "                            })),",
+            "lineNumber": 1345
+          },
+          {
+            "text": "                            error: None,",
+            "lineNumber": 1346
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 1347
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 1348
+          },
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 1349
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 1350
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 1351
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 1352
+          },
+          {
+            "text": "                            code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 1353
+          },
+          {
+            "text": "                            message: format!(\"Invalid params: {e}\"),",
+            "lineNumber": 1354
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 1355
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 1356
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 1357
+          },
+          {
+            "text": "                }",
+            "lineNumber": 1358
+          },
+          {
+            "text": "            }",
+            "lineNumber": 1359
+          },
+          {
+            "text": "            \"task.cancel\" =&gt; {",
+            "lineNumber": 1360
+          },
+          {
+            "text": "                let params:",
+            "lineNumber": 1361
+          }
+        ]
+      },
+      "score": 0.2382275015115738
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 1161,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 1178,
+            "column": 46
+          }
+        },
+        "contents": "            \"fs.patch\" =&gt; {\n                let params: Result&lt;FsPatchRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        // Parse unified diff\n                        // For now, use a simple implementation\n                        // In production, use a proper diff library like &#96;similar&#96; or &#96;diffy&#96;\n                        let diff_lines: Vec&lt;&amp;str&gt; = params.unified_diff.lines().collect();\n                        let mut applied_files = Vec::new();\n\n                        // Simple diff parser (handles basic unified diff format)\n                        let mut current_file: Option&lt;PathBuf&gt; = None;\n                        let mut file_content: Vec&lt;String&gt; = Vec::new();\n                        let mut line_num = 0;\n\n                        for line in diff_lines",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            \"fs.patch\" =&gt; {",
+            "lineNumber": 1163
+          },
+          {
+            "text": "                let params: Result&lt;FsPatchRequest, _&gt; =",
+            "lineNumber": 1164
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 1165
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 1166
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 1167
+          },
+          {
+            "text": "                        // Parse unified diff",
+            "lineNumber": 1168
+          },
+          {
+            "text": "                        // For now, use a simple implementation",
+            "lineNumber": 1169
+          },
+          {
+            "text": "                        // In production, use a proper diff library like &#96;similar&#96; or &#96;diffy&#96;",
+            "lineNumber": 1170
+          },
+          {
+            "text": "                        let diff_lines: Vec&lt;&amp;str&gt; = params.unified_diff.lines().collect();",
+            "lineNumber": 1171
+          },
+          {
+            "text": "                        let mut applied_files = Vec::new();",
+            "lineNumber": 1172
+          },
+          {
+            "lineNumber": 1173
+          },
+          {
+            "text": "                        // Simple diff parser (handles basic unified diff format)",
+            "lineNumber": 1174
+          },
+          {
+            "text": "                        let mut current_file: Option&lt;PathBuf&gt; = None;",
+            "lineNumber": 1175
+          },
+          {
+            "text": "                        let mut file_content: Vec&lt;String&gt; = Vec::new();",
+            "lineNumber": 1176
+          },
+          {
+            "text": "                        let mut line_num = 0;",
+            "lineNumber": 1177
+          },
+          {
+            "lineNumber": 1178
+          },
+          {
+            "text": "                        for line in diff_lines",
+            "lineNumber": 1179
+          }
+        ]
+      },
+      "score": 0.233269602060318
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 1239,
+            "column": 21
+          },
+          "endPosition": {
+            "line": 1286,
+            "column": 27
+          }
+        },
+        "contents": "                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_INVALID_PARAMS,\n                            message: format!(\"Invalid params: {e}\"),\n                            data: None,\n                        }),\n                    },\n                }\n            }\n            \"agent.register\" =&gt; {\n                // Parse params\n                let params: Result&lt;AgentRegisterRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        let mut agents = active_agents.write().await;\n                        agents.insert(\n                            params.agent_id.clone(),\n                            AgentInfo {\n                                agent_id: params.agent_id.clone(),\n                                agent_type: params.agent_type.clone(),\n                                status: \"active\".to_string(),\n                                last_heartbeat: chrono::Utc::now().to_rfc3339(),\n                            },\n                        );\n\n                        RpcResponse {\n                            id: request.id.clone(),\n                            result: Some(json!({ \"success\": true })),\n                            error: None,\n                        }\n                    }\n                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_INVALID_PARAMS,\n                            message: format!(\"Invalid params: {e}\"),\n                            data: None,\n                        }),\n                    },\n                }\n            }\n            \"agent.heartbeat\" =&gt; {\n                let params:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 1241
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 1242
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 1243
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 1244
+          },
+          {
+            "text": "                            code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 1245
+          },
+          {
+            "text": "                            message: format!(\"Invalid params: {e}\"),",
+            "lineNumber": 1246
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 1247
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 1248
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 1249
+          },
+          {
+            "text": "                }",
+            "lineNumber": 1250
+          },
+          {
+            "text": "            }",
+            "lineNumber": 1251
+          },
+          {
+            "text": "            \"agent.register\" =&gt; {",
+            "lineNumber": 1252
+          },
+          {
+            "text": "                // Parse params",
+            "lineNumber": 1253
+          },
+          {
+            "text": "                let params: Result&lt;AgentRegisterRequest, _&gt; =",
+            "lineNumber": 1254
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 1255
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 1256
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 1257
+          },
+          {
+            "text": "                        let mut agents = active_agents.write().await;",
+            "lineNumber": 1258
+          },
+          {
+            "text": "                        agents.insert(",
+            "lineNumber": 1259
+          },
+          {
+            "text": "                            params.agent_id.clone(),",
+            "lineNumber": 1260
+          },
+          {
+            "text": "                            AgentInfo {",
+            "lineNumber": 1261
+          },
+          {
+            "text": "                                agent_id: params.agent_id.clone(),",
+            "lineNumber": 1262
+          },
+          {
+            "text": "                                agent_type: params.agent_type.clone(),",
+            "lineNumber": 1263
+          },
+          {
+            "text": "                                status: \"active\".to_string(),",
+            "lineNumber": 1264
+          },
+          {
+            "text": "                                last_heartbeat: chrono::Utc::now().to_rfc3339(),",
+            "lineNumber": 1265
+          },
+          {
+            "text": "                            },",
+            "lineNumber": 1266
+          },
+          {
+            "text": "                        );",
+            "lineNumber": 1267
+          },
+          {
+            "lineNumber": 1268
+          },
+          {
+            "text": "                        RpcResponse {",
+            "lineNumber": 1269
+          },
+          {
+            "text": "                            id: request.id.clone(),",
+            "lineNumber": 1270
+          },
+          {
+            "text": "                            result: Some(json!({ \"success\": true })),",
+            "lineNumber": 1271
+          },
+          {
+            "text": "                            error: None,",
+            "lineNumber": 1272
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 1273
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 1274
+          },
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 1275
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 1276
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 1277
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 1278
+          },
+          {
+            "text": "                            code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 1279
+          },
+          {
+            "text": "                            message: format!(\"Invalid params: {e}\"),",
+            "lineNumber": 1280
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 1281
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 1282
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 1283
+          },
+          {
+            "text": "                }",
+            "lineNumber": 1284
+          },
+          {
+            "text": "            }",
+            "lineNumber": 1285
+          },
+          {
+            "text": "            \"agent.heartbeat\" =&gt; {",
+            "lineNumber": 1286
+          },
+          {
+            "text": "                let params:",
+            "lineNumber": 1287
+          }
+        ]
+      },
+      "score": 0.2249038964509964
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 2047,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 2077,
+            "column": 68
+          }
+        },
+        "contents": "            \"blueprint.setMode\" =&gt; {\n                let params: Result&lt;BlueprintSetModeRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        // Global mode setting - store in config or a separate state\n                        // For now, we'll just acknowledge the request\n                        // In a full implementation, this would update a global mode setting\n                        RpcResponse {\n                            id: request.id.clone(),\n                            result: Some(json!({\n                                \"success\": true,\n                                \"mode\": params.mode,\n                            })),\n                            error: None,\n                        }\n                    }\n                    Err(e) =&gt; RpcResponse {\n                        id: request.id.clone(),\n                        result: None,\n                        error: Some(RpcError {\n                            code: ERROR_INVALID_PARAMS,\n                            message: format!(\"Invalid params: {e}\"),\n                            data: None,\n                        }),\n                    },\n                }\n            }\n            \"blueprint.addResearch\" =&gt; {\n                let params: Result&lt;BlueprintAddResearchRequest, _&gt; =",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            \"blueprint.setMode\" =&gt; {",
+            "lineNumber": 2049
+          },
+          {
+            "text": "                let params: Result&lt;BlueprintSetModeRequest, _&gt; =",
+            "lineNumber": 2050
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 2051
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 2052
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 2053
+          },
+          {
+            "text": "                        // Global mode setting - store in config or a separate state",
+            "lineNumber": 2054
+          },
+          {
+            "text": "                        // For now, we'll just acknowledge the request",
+            "lineNumber": 2055
+          },
+          {
+            "text": "                        // In a full implementation, this would update a global mode setting",
+            "lineNumber": 2056
+          },
+          {
+            "text": "                        RpcResponse {",
+            "lineNumber": 2057
+          },
+          {
+            "text": "                            id: request.id.clone(),",
+            "lineNumber": 2058
+          },
+          {
+            "text": "                            result: Some(json!({",
+            "lineNumber": 2059
+          },
+          {
+            "text": "                                \"success\": true,",
+            "lineNumber": 2060
+          },
+          {
+            "text": "                                \"mode\": params.mode,",
+            "lineNumber": 2061
+          },
+          {
+            "text": "                            })),",
+            "lineNumber": 2062
+          },
+          {
+            "text": "                            error: None,",
+            "lineNumber": 2063
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 2064
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 2065
+          },
+          {
+            "text": "                    Err(e) =&gt; RpcResponse {",
+            "lineNumber": 2066
+          },
+          {
+            "text": "                        id: request.id.clone(),",
+            "lineNumber": 2067
+          },
+          {
+            "text": "                        result: None,",
+            "lineNumber": 2068
+          },
+          {
+            "text": "                        error: Some(RpcError {",
+            "lineNumber": 2069
+          },
+          {
+            "text": "                            code: ERROR_INVALID_PARAMS,",
+            "lineNumber": 2070
+          },
+          {
+            "text": "                            message: format!(\"Invalid params: {e}\"),",
+            "lineNumber": 2071
+          },
+          {
+            "text": "                            data: None,",
+            "lineNumber": 2072
+          },
+          {
+            "text": "                        }),",
+            "lineNumber": 2073
+          },
+          {
+            "text": "                    },",
+            "lineNumber": 2074
+          },
+          {
+            "text": "                }",
+            "lineNumber": 2075
+          },
+          {
+            "text": "            }",
+            "lineNumber": 2076
+          },
+          {
+            "text": "            \"blueprint.addResearch\" =&gt; {",
+            "lineNumber": 2077
+          },
+          {
+            "text": "                let params: Result&lt;BlueprintAddResearchRequest, _&gt; =",
+            "lineNumber": 2078
+          }
+        ]
+      },
+      "score": 0.2208617925643921
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 2155,
+            "column": 12
+          },
+          "endPosition": {
+            "line": 2203,
+            "column": 36
+          }
+        },
+        "contents": "mod tests {\n    use super::*;\n    use tokio::time::Duration;\n\n    #[test]\n    fn test_is_write_method() {\n        assert!(OrchestratorServer::is_write_method(\"lock.acquire\"));\n        assert!(OrchestratorServer::is_write_method(\"fs.write\"));\n        assert!(!OrchestratorServer::is_write_method(\"status.get\"));\n        assert!(!OrchestratorServer::is_write_method(\"lock.status\"));\n    }\n\n    #[tokio::test]\n    async fn test_orchestrator_config_defaults() {\n        let config = OrchestratorConfig {\n            queue_capacity: 1024,\n            transport_config: TransportConfig::default(),\n            codex_dir: dirs::home_dir().unwrap_or_default().join(\".codex\"),\n            total_token_budget: 100_000,\n            warning_threshold: 80_000,\n            per_agent_limit: 20_000,\n        };\n\n        assert_eq!(config.queue_capacity, 1024);\n        assert_eq!(config.total_token_budget, 100_000);\n        assert_eq!(config.warning_threshold, 80_000);\n        assert_eq!(config.per_agent_limit, 20_000);\n    }\n\n    #[tokio::test]\n    async fn test_token_budget_initialization() {\n        let budget = TokenBudget {\n            total_budget: 1_000_000,\n            used: 0,\n            warning_threshold: 800_000,\n            per_agent_usage: HashMap::new(),\n        };\n\n        assert_eq!(budget.total_budget, 1_000_000);\n        assert_eq!(budget.used, 0);\n        assert_eq!(budget.warning_threshold, 800_000);\n        assert!(budget.per_agent_usage.is_empty());\n    }\n\n    #[tokio::test]\n    async fn test_token_budget_usage() {\n        let mut budget = TokenBudget {\n            total_budget: 1_000_000,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "mod tests {",
+            "lineNumber": 2157
+          },
+          {
+            "text": "    use super::*;",
+            "lineNumber": 2158
+          },
+          {
+            "text": "    use tokio::time::Duration;",
+            "lineNumber": 2159
+          },
+          {
+            "lineNumber": 2160
+          },
+          {
+            "text": "    #[test]",
+            "lineNumber": 2161
+          },
+          {
+            "text": "    fn test_is_write_method() {",
+            "lineNumber": 2162
+          },
+          {
+            "text": "        assert!(OrchestratorServer::is_write_method(\"lock.acquire\"));",
+            "lineNumber": 2163
+          },
+          {
+            "text": "        assert!(OrchestratorServer::is_write_method(\"fs.write\"));",
+            "lineNumber": 2164
+          },
+          {
+            "text": "        assert!(!OrchestratorServer::is_write_method(\"status.get\"));",
+            "lineNumber": 2165
+          },
+          {
+            "text": "        assert!(!OrchestratorServer::is_write_method(\"lock.status\"));",
+            "lineNumber": 2166
+          },
+          {
+            "text": "    }",
+            "lineNumber": 2167
+          },
+          {
+            "lineNumber": 2168
+          },
+          {
+            "text": "    #[tokio::test]",
+            "lineNumber": 2169
+          },
+          {
+            "text": "    async fn test_orchestrator_config_defaults() {",
+            "lineNumber": 2170
+          },
+          {
+            "text": "        let config = OrchestratorConfig {",
+            "lineNumber": 2171
+          },
+          {
+            "text": "            queue_capacity: 1024,",
+            "lineNumber": 2172
+          },
+          {
+            "text": "            transport_config: TransportConfig::default(),",
+            "lineNumber": 2173
+          },
+          {
+            "text": "            codex_dir: dirs::home_dir().unwrap_or_default().join(\".codex\"),",
+            "lineNumber": 2174
+          },
+          {
+            "text": "            total_token_budget: 100_000,",
+            "lineNumber": 2175
+          },
+          {
+            "text": "            warning_threshold: 80_000,",
+            "lineNumber": 2176
+          },
+          {
+            "text": "            per_agent_limit: 20_000,",
+            "lineNumber": 2177
+          },
+          {
+            "text": "        };",
+            "lineNumber": 2178
+          },
+          {
+            "lineNumber": 2179
+          },
+          {
+            "text": "        assert_eq!(config.queue_capacity, 1024);",
+            "lineNumber": 2180
+          },
+          {
+            "text": "        assert_eq!(config.total_token_budget, 100_000);",
+            "lineNumber": 2181
+          },
+          {
+            "text": "        assert_eq!(config.warning_threshold, 80_000);",
+            "lineNumber": 2182
+          },
+          {
+            "text": "        assert_eq!(config.per_agent_limit, 20_000);",
+            "lineNumber": 2183
+          },
+          {
+            "text": "    }",
+            "lineNumber": 2184
+          },
+          {
+            "lineNumber": 2185
+          },
+          {
+            "text": "    #[tokio::test]",
+            "lineNumber": 2186
+          },
+          {
+            "text": "    async fn test_token_budget_initialization() {",
+            "lineNumber": 2187
+          },
+          {
+            "text": "        let budget = TokenBudget {",
+            "lineNumber": 2188
+          },
+          {
+            "text": "            total_budget: 1_000_000,",
+            "lineNumber": 2189
+          },
+          {
+            "text": "            used: 0,",
+            "lineNumber": 2190
+          },
+          {
+            "text": "            warning_threshold: 800_000,",
+            "lineNumber": 2191
+          },
+          {
+            "text": "            per_agent_usage: HashMap::new(),",
+            "lineNumber": 2192
+          },
+          {
+            "text": "        };",
+            "lineNumber": 2193
+          },
+          {
+            "lineNumber": 2194
+          },
+          {
+            "text": "        assert_eq!(budget.total_budget, 1_000_000);",
+            "lineNumber": 2195
+          },
+          {
+            "text": "        assert_eq!(budget.used, 0);",
+            "lineNumber": 2196
+          },
+          {
+            "text": "        assert_eq!(budget.warning_threshold, 800_000);",
+            "lineNumber": 2197
+          },
+          {
+            "text": "        assert!(budget.per_agent_usage.is_empty());",
+            "lineNumber": 2198
+          },
+          {
+            "text": "    }",
+            "lineNumber": 2199
+          },
+          {
+            "lineNumber": 2200
+          },
+          {
+            "text": "    #[tokio::test]",
+            "lineNumber": 2201
+          },
+          {
+            "text": "    async fn test_token_budget_usage() {",
+            "lineNumber": 2202
+          },
+          {
+            "text": "        let mut budget = TokenBudget {",
+            "lineNumber": 2203
+          },
+          {
+            "text": "            total_budget: 1_000_000,",
+            "lineNumber": 2204
+          }
+        ]
+      },
+      "score": 0.21542930603027344
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\orchestrator\\src\\server.rs",
+        "range": {
+          "startPosition": {
+            "line": 876,
+            "column": 40
+          },
+          "endPosition": {
+            "line": 907,
+            "column": 51
+          }
+        },
+        "contents": "            };\n        }\n        match request.method.as_str() {\n            \"lock.acquire\" =&gt; {\n                let params: Result&lt;LockAcquireRequest, _&gt; =\n                    serde_json::from_value(request.params.clone());\n                match params {\n                    Ok(params) =&gt; {\n                        // Create lock manager for the repository\n                        match RepositoryLock::new(params.path.as_path()) {\n                            Ok(lock) =&gt; {\n                                if params.force {\n                                    // Force remove existing lock\n                                    if let Err(e) = lock.force_remove() {\n                                        return RpcResponse {\n                                            id: request.id.clone(),\n                                            result: None,\n                                            error: Some(RpcError {\n                                                code: ERROR_INTERNAL,\n                                                message: format!(\n                                                    \"Failed to force remove lock: {e}\"\n                                                ),\n                                                data: None,\n                                            }),\n                                        };\n                                    }\n                                }\n\n                                // Try to acquire lock\n                                match lock.acquire(None) {\n                                    Ok(metadata) =&gt;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            };",
+            "lineNumber": 878
+          },
+          {
+            "text": "        }",
+            "lineNumber": 879
+          },
+          {
+            "text": "        match request.method.as_str() {",
+            "lineNumber": 880
+          },
+          {
+            "text": "            \"lock.acquire\" =&gt; {",
+            "lineNumber": 881
+          },
+          {
+            "text": "                let params: Result&lt;LockAcquireRequest, _&gt; =",
+            "lineNumber": 882
+          },
+          {
+            "text": "                    serde_json::from_value(request.params.clone());",
+            "lineNumber": 883
+          },
+          {
+            "text": "                match params {",
+            "lineNumber": 884
+          },
+          {
+            "text": "                    Ok(params) =&gt; {",
+            "lineNumber": 885
+          },
+          {
+            "text": "                        // Create lock manager for the repository",
+            "lineNumber": 886
+          },
+          {
+            "text": "                        match RepositoryLock::new(params.path.as_path()) {",
+            "lineNumber": 887
+          },
+          {
+            "text": "                            Ok(lock) =&gt; {",
+            "lineNumber": 888
+          },
+          {
+            "text": "                                if params.force {",
+            "lineNumber": 889
+          },
+          {
+            "text": "                                    // Force remove existing lock",
+            "lineNumber": 890
+          },
+          {
+            "text": "                                    if let Err(e) = lock.force_remove() {",
+            "lineNumber": 891
+          },
+          {
+            "text": "                                        return RpcResponse {",
+            "lineNumber": 892
+          },
+          {
+            "text": "                                            id: request.id.clone(),",
+            "lineNumber": 893
+          },
+          {
+            "text": "                                            result: None,",
+            "lineNumber": 894
+          },
+          {
+            "text": "                                            error: Some(RpcError {",
+            "lineNumber": 895
+          },
+          {
+            "text": "                                                code: ERROR_INTERNAL,",
+            "lineNumber": 896
+          },
+          {
+            "text": "                                                message: format!(",
+            "lineNumber": 897
+          },
+          {
+            "text": "                                                    \"Failed to force remove lock: {e}\"",
+            "lineNumber": 898
+          },
+          {
+            "text": "                                                ),",
+            "lineNumber": 899
+          },
+          {
+            "text": "                                                data: None,",
+            "lineNumber": 900
+          },
+          {
+            "text": "                                            }),",
+            "lineNumber": 901
+          },
+          {
+            "text": "                                        };",
+            "lineNumber": 902
+          },
+          {
+            "text": "                                    }",
+            "lineNumber": 903
+          },
+          {
+            "text": "                                }",
+            "lineNumber": 904
+          },
+          {
+            "lineNumber": 905
+          },
+          {
+            "text": "                                // Try to acquire lock",
+            "lineNumber": 906
+          },
+          {
+            "text": "                                match lock.acquire(None) {",
+            "lineNumber": 907
+          },
+          {
+            "text": "                                    Ok(metadata) =&gt;",
+            "lineNumber": 908
+          }
+        ]
+      },
+      "score": 0.2079917937517166
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/lib.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+実装を開始します。まずタスクリストを作成し、段階的に進めます。
+
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Phase 1: 認証基盤 - OAuth 2.0認証とJWT検証の実装
+- [ ] Phase 1: APIキー認証の実装（生成・管理・ハッシュ化）
+- [ ] Phase 1: RpcRequestに認証情報フィールドを追加
+- [ ] Phase 1: verify_auth()の実装（Bearer token/API key検証）
+- [ ] Phase 2: Rate Limitingの実装（スライディングウィンドウ）
+- [ ] Phase 2: リプレイ攻撃対策（nonce検証）
+- [ ] Phase 2: 証明書ピニングの実装（install-binary.js）
+- [ ] Phase 3: 監査ログモジュールの実装
+- [ ] Phase 3: セキュリティヘッダーの追加
+- [ ] Phase 3: エラーハンドリング改善（機密情報マスキング）
+- [ ] Phase 4: 入力検証の強化
+- [ ] Phase 4: セッション管理の実装
+- [ ] Phase 4: 設定ファイル統合（config.rs作成）
+- [ ] 依存関係の追加（Cargo.toml）
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/Cargo.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pub struct RpcRequest",
+  "path": "codex-rs/orchestrator/src/rpc.rs",
+  "contextAfter": 10,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pub struct RpcRequest",
+    "path": "codex-rs/orchestrator/src/rpc.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\rpc.rs",
+              "matches": [
+                {
+                  "lineNumber": 14,
+                  "content": "pub struct RpcRequest {"
+                },
+                {
+                  "lineNumber": 15,
+                  "content": "    /// Request ID (for response matching)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 16,
+                  "content": "    pub id: String,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 17,
+                  "content": "    /// Idempotency key (10 min TTL)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 18,
+                  "content": "    #[serde(skip_serializing_if = \"Option::is_none\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 19,
+                  "content": "    pub idem_key: Option&lt;String&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 20,
+                  "content": "    /// Method name",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 21,
+                  "content": "    pub method: String,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 22,
+                  "content": "    /// Method parameters (JSON object)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 23,
+                  "content": "    #[serde(default)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 24,
+                  "content": "    pub params: serde_json::Value,",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 11,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+依存関係を追加し、実装を開始します。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/Cargo.toml</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/core/Cargo.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pub mod security",
+  "path": "codex-rs/core/src",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pub mod security",
+    "path": "codex-rs/core/src",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`codex-core`の`security`モジュールのエクスポートを確認中。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pub mod security|pub use.*security",
+  "path": "codex-rs/core/src/lib.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pub mod security|pub use.*security",
+    "path": "codex-rs/core/src/lib.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="list_dir_v2">
+<details>
+<summary>Tool use: **list_dir_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "targetDirectory": "codex-rs/core/src/security"
+}
+```
+Result:
+
+```json
+{
+  "directoryTreeRoot": {
+    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\security",
+    "childrenFiles": [
+      {
+        "name": "malware_detector.rs"
+      },
+      {
+        "name": "mod.rs"
+      },
+      {
+        "name": "quarantine.rs"
+      },
+      {
+        "name": "secret_masking.rs"
+      }
+    ],
+    "childrenWereProcessed": true
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/core/src/lib.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`security`モジュールの構造を確認中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/core/src/security/mod.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+実装を開始。まず`RpcRequest`に認証情報フィールドを追加します。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/rpc.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+`auth.rs`にOAuth 2.0認証とAPIキー認証を実装中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/auth.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "How does codex-core auth module work? What authentication methods are available?",
+  "includePattern": "codex-rs/core/src/auth",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`codex-core`の`auth`モジュールを確認中。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="list_dir_v2">
+<details>
+<summary>Tool use: **list_dir_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "targetDirectory": "codex-rs/core/src/auth"
+}
+```
+Result:
+
+```json
+{
+  "directoryTreeRoot": {
+    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\auth",
+    "childrenFiles": [
+      {
+        "name": "gemini.rs"
+      },
+      {
+        "name": "storage.rs"
+      }
+    ],
+    "childrenWereProcessed": true
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+File not found
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "undefined" • **2** results in **1** directory</summary>
+
+Directory: **codex-rs/core/src** (2 files)
+
+| File |
+|------|
+| `../../../codex-rs\core\src\mcp\auth.rs` |
+| `../../../codex-rs\core\src\auth.rs` |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pub struct AuthManager|pub use.*AuthManager",
+  "path": "codex-rs/core/src",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pub struct AuthManager|pub use.*AuthManager",
+    "path": "codex-rs/core/src",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\core\\src\\lib.rs",
+              "matches": [
+                {
+                  "lineNumber": 83,
+                  "content": "pub use auth::AuthManager;"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\auth.rs",
+              "matches": [
+                {
+                  "lineNumber": 1064,
+                  "content": "pub struct AuthManager {"
+                }
+              ]
+            }
+          ],
+          "totalLines": 2,
+          "totalMatchedLines": 2
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`codex-core`の`AuthManager`を確認中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/core/src/auth.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pub fn new|pub fn verify",
+  "path": "codex-rs/core/src/auth.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pub fn new|pub fn verify",
+    "path": "codex-rs/core/src/auth.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\core\\src\\auth.rs",
+              "matches": [
+                {
+                  "lineNumber": 1076,
+                  "content": "    pub fn new("
+                }
+              ]
+            }
+          ],
+          "totalLines": 1,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`orchestrator/src/auth.rs`を実装中。OAuth 2.0認証とAPIキー認証を追加します。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/auth.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+`server.rs`の`verify_auth`を実装中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "use.*TransportInfo|struct TransportInfo",
+  "path": "codex-rs/orchestrator/src",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "use.*TransportInfo|struct TransportInfo",
+    "path": "codex-rs/orchestrator/src",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 9,
+                  "content": "use crate::transport::TransportInfo;"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\orchestrator\\src\\transport\\uds.rs",
+              "matches": [
+                {
+                  "lineNumber": 6,
+                  "content": "use super::TransportInfo;"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\orchestrator\\src\\transport\\tcp.rs",
+              "matches": [
+                {
+                  "lineNumber": 7,
+                  "content": "use super::TransportInfo;"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\orchestrator\\src\\transport\\named_pipe.rs",
+              "matches": [
+                {
+                  "lineNumber": 6,
+                  "content": "use super::TransportInfo;"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\orchestrator\\src\\lib.rs",
+              "matches": [
+                {
+                  "lineNumber": 20,
+                  "content": "pub use transport::TransportInfo;"
+                }
+              ]
+            }
+          ],
+          "totalLines": 5,
+          "totalMatchedLines": 5
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`verify_auth`を実装中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+`verify_auth`の呼び出し箇所を`async`対応に修正中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "verify_auth\\(",
+  "path": "codex-rs/orchestrator/src/server.rs",
+  "contextAfter": 5,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "verify_auth\\(",
+    "path": "codex-rs/orchestrator/src/server.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 318,
+                  "content": "    async fn verify_auth("
+                },
+                {
+                  "lineNumber": 319,
+                  "content": "        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 320,
+                  "content": "        request: &amp;RpcRequest,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 321,
+                  "content": "        _conn_info: Option&lt;&amp;TransportInfo&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 322,
+                  "content": "    ) -&gt; Result&lt;(), RpcError&gt; {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 323,
+                  "content": "        use crate::auth::{AuthError, AuthManager};",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 426,
+                  "content": "                if let Err(auth_error) = Self::verify_auth(auth_manager, &amp;request, None) {"
+                },
+                {
+                  "lineNumber": 427,
+                  "content": "                    let error_response = RpcResponse {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 428,
+                  "content": "                        id: request.id.clone(),",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 429,
+                  "content": "                        result: None,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 430,
+                  "content": "                        error: Some(auth_error),",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 431,
+                  "content": "                    };",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 575,
+                  "content": "            if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {"
+                },
+                {
+                  "lineNumber": 576,
+                  "content": "                return RpcResponse {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 577,
+                  "content": "                    id: request.id.clone(),",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 578,
+                  "content": "                    result: None,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 579,
+                  "content": "                    error: Some(auth_error),",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 580,
+                  "content": "                };",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 914,
+                  "content": "        if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {"
+                },
+                {
+                  "lineNumber": 915,
+                  "content": "            return RpcResponse {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 916,
+                  "content": "                id: request.id.clone(),",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 917,
+                  "content": "                result: None,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 918,
+                  "content": "                error: Some(auth_error),",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 919,
+                  "content": "            };",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 24,
+          "totalMatchedLines": 4
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`verify_auth`の呼び出し箇所を`await`対応に修正中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`process_read_request`と`process_write_request`のシグネチャを確認中。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "async fn process_read_request|fn process_read_request",
+  "path": "codex-rs/orchestrator/src/server.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "async fn process_read_request|fn process_read_request",
+    "path": "codex-rs/orchestrator/src/server.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 562,
+                  "content": "    async fn process_read_request("
+                }
+              ]
+            }
+          ],
+          "totalLines": 1,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "async fn process_write_request|fn process_write_request",
+  "path": "codex-rs/orchestrator/src/server.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "async fn process_write_request|fn process_write_request",
+    "path": "codex-rs/orchestrator/src/server.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 902,
+                  "content": "    async fn process_write_request("
+                }
+              ]
+            }
+          ],
+          "totalLines": 1,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`verify_auth`の呼び出しに`await`を追加中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+`auth.rs`のコンパイルエラーを修正中。`base64`の使い方を確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "base64::",
+  "path": "codex-rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "base64::",
+    "path": "codex-rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\auth.rs",
+              "matches": [
+                {
+                  "lineNumber": 277,
+                  "content": "        let api_key = base64::encode(key_bytes);"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui\\src\\history_cell.rs",
+              "matches": [
+                {
+                  "lineNumber": 27,
+                  "content": "use base64::Engine;"
+                },
+                {
+                  "lineNumber": 1280,
+                  "content": "                let raw_data = match base64::engine::general_purpose::STANDARD.decode(&amp;image.data) {"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\setup_orchestrator.rs",
+              "matches": [
+                {
+                  "lineNumber": 19,
+                  "content": "use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;"
+                },
+                {
+                  "lineNumber": 20,
+                  "content": "use base64::Engine;"
+                }
+              ]
+            }
+          ],
+          "totalLines": 5,
+          "totalMatchedLines": 5
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/Cargo.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`base64`の使い方を新しいAPIに更新中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/auth.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "codex-rs/orchestrator/src/auth.rs"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "codex-rs/orchestrator/src/auth.rs"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+Rate Limitingとリプレイ攻撃対策を実装中。まずRate Limitingモジュールを作成します。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/rate_limit.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/lib.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`rate_limit`モジュールを`lib.rs`に追加中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/lib.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/replay_protection.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/lib.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+監査ログモジュールを実装中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/audit.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/lib.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pub mod security|pub use.*security",
+  "path": "codex-rs/core/src/lib.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pub mod security|pub use.*security",
+    "path": "codex-rs/core/src/lib.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`codex-core`の`security`モジュールを公開するため、`core/src/lib.rs`を確認中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/core/src/lib.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/core/src/lib.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/audit.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/audit.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/Cargo.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+証明書ピニングを`install-binary.js`に実装中。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: scripts/install-binary.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="web_search">
+<details>
+            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
+        
+| Title | URL | Chunk |
+|-------|-----|-------|
+| Web Search Results |  | As of December 2025, GitHub's SSH host key fingerprints are:<br/><br/>- **RSA**: `SHA256:uNiVztksCsDhcc0u9e8BujQXVUpKZIDTMczCvj3tD2s`<br/>- **DSA** (deprecated): `SHA256:br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ`<br/>- **ECDSA**: `SHA256:p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM`<br/>- **Ed25519**: `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`<br/><br/>These fingerprints are used to verify the authenticity of GitHub's SSH servers. When connecting via SSH, your client may prompt you to confirm the server's fingerprint. Ensure that the presented fingerprint matches one of the above to confirm a secure connection.<br/><br/>Please note that GitHub rotated its RSA SSH key in 2024. If you encounter a fingerprint mismatch error, it's advisable to update your known hosts file. You can do this by removing the old entry with the following command:<br/><br/>```bash<br/>ssh-keygen -R github.com<br/>```<br/><br/>Then, attempt to connect again, and your SSH client will prompt you to accept the new fingerprint.<br/><br/>For the most current information, refer to GitHub's official documentation or announcements. |
+
+</details>
+</tool-use>
+
+---
+
+
+証明書ピニングの実装を追加中。実際のフィンガープリントは後で更新可能にします。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: scripts/install-binary.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: scripts/install-binary.js</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: scripts/install-binary.js</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] Phase 1: 認証基盤 - OAuth 2.0認証とJWT検証の実装
+- [x] Phase 1: APIキー認証の実装（生成・管理・ハッシュ化）
+- [x] Phase 1: RpcRequestに認証情報フィールドを追加
+- [x] Phase 1: verify_auth()の実装（Bearer token/API key検証）
+- [-] Phase 2: Rate Limitingの実装（スライディングウィンドウ）
+- [-] Phase 2: リプレイ攻撃対策（nonce検証）
+- [x] Phase 2: 証明書ピニングの実装（install-binary.js）
+- [ ] Phase 3: 監査ログモジュールの実装
+- [ ] Phase 3: セキュリティヘッダーの追加
+- [ ] Phase 3: エラーハンドリング改善（機密情報マスキング）
+- [ ] Phase 4: 入力検証の強化
+- [ ] Phase 4: セッション管理の実装
+- [ ] Phase 4: 設定ファイル統合（config.rs作成）
+- [ ] 依存関係の追加（Cargo.toml）
+
+</details>
+</tool-use>
+
+---
+
+
+証明書ピニングの実装を修正中。Node.jsの`https`モジュールでは`checkServerIdentity`で証明書のrawデータにアクセスできないため、別の方法に切り替えます。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: scripts/install-binary.js</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`server.rs`にRate Limiting、リプレイ攻撃対策、監査ログを統合中。まず`OrchestratorServer`構造体を確認します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pub struct OrchestratorServer",
+  "path": "codex-rs/orchestrator/src/server.rs",
+  "contextAfter": 30,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pub struct OrchestratorServer",
+    "path": "codex-rs/orchestrator/src/server.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 36,
+                  "content": "pub struct OrchestratorServer {"
+                },
+                {
+                  "lineNumber": 37,
+                  "content": "    /// Server configuration",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 38,
+                  "content": "    config: OrchestratorConfig,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 39,
+                  "content": "    /// Transport layer",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 40,
+                  "content": "    transport: Box&lt;dyn Transport&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 41,
+                  "content": "    /// Authentication manager",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 42,
+                  "content": "    auth_manager: Arc&lt;AuthManager&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 43,
+                  "content": "    /// Idempotency cache (idem_key -&gt; response)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 44,
+                  "content": "    idempotency_cache: Arc&lt;RwLock&lt;HashMap&lt;String, IdempotencyEntry&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 45,
+                  "content": "    /// Single-writer queue",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 46,
+                  "content": "    write_queue: mpsc::Sender&lt;WriteRequest&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 47,
+                  "content": "    /// Write queue receiver (for processing)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 48,
+                  "content": "    write_queue_rx: Option&lt;mpsc::Receiver&lt;WriteRequest&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 49,
+                  "content": "    /// Queue size tracker",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 50,
+                  "content": "    queue_size: Arc&lt;RwLock&lt;usize&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 51,
+                  "content": "    /// Server start time",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 52,
+                  "content": "    start_time: SystemTime,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 53,
+                  "content": "    /// Active agents",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 54,
+                  "content": "    active_agents: Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 55,
+                  "content": "    /// Active tasks",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 56,
+                  "content": "    active_tasks: Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 57,
+                  "content": "    /// Token budget tracker",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 58,
+                  "content": "    token_budget: Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 59,
+                  "content": "    /// Active sessions",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 60,
+                  "content": "    active_sessions: Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 61,
+                  "content": "    /// PubSub subscribers",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 62,
+                  "content": "    subscribers: Arc&lt;RwLock&lt;HashMap&lt;String, Vec&lt;String&gt;&gt;&gt;&gt;, // topic -&gt; connection_ids",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 63,
+                  "content": "    /// Plan manager for blueprint operations",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 64,
+                  "content": "    plan_manager: Arc&lt;PlanManager&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 65,
+                  "content": "}",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 66,
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 31,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`server.rs`にRate Limiting、リプレイ攻撃対策、監査ログを統合中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`OrchestratorConfig`にセキュリティ設定を追加し、`OrchestratorServer::new()`で初期化するよう更新中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`OrchestratorServer::new()`でrate_limiter、replay_protection、audit_loggerを初期化中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`handle_connection`にRate Limitingとリプレイ攻撃対策を統合中。まず呼び出し元を確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "handle_connection\\(",
+  "path": "codex-rs/orchestrator/src/server.rs",
+  "contextAfter": 10,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "handle_connection\\(",
+    "path": "codex-rs/orchestrator/src/server.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\orchestrator\\src\\server.rs",
+              "matches": [
+                {
+                  "lineNumber": 311,
+                  "content": "                        if let Err(e) = Self::handle_connection("
+                },
+                {
+                  "lineNumber": 312,
+                  "content": "                            conn.as_mut(),",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 313,
+                  "content": "                            &amp;auth_manager,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 314,
+                  "content": "                            &amp;idempotency_cache,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 315,
+                  "content": "                            &amp;write_queue,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 316,
+                  "content": "                            start_time,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 317,
+                  "content": "                            &amp;active_agents,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 318,
+                  "content": "                            &amp;active_tasks,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 319,
+                  "content": "                            &amp;token_budget,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 320,
+                  "content": "                            &amp;active_sessions,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 321,
+                  "content": "                            &amp;queue_size,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 406,
+                  "content": "    async fn handle_connection("
+                },
+                {
+                  "lineNumber": 407,
+                  "content": "        conn: &amp;mut dyn Connection,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 408,
+                  "content": "        auth_manager: &amp;Arc&lt;AuthManager&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 409,
+                  "content": "        idempotency_cache: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, IdempotencyEntry&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 410,
+                  "content": "        write_queue: &amp;mpsc::Sender&lt;WriteRequest&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 411,
+                  "content": "        start_time: SystemTime,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 412,
+                  "content": "        active_agents: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, AgentInfo&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 413,
+                  "content": "        active_tasks: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, TaskInfo&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 414,
+                  "content": "        token_budget: &amp;Arc&lt;RwLock&lt;TokenBudget&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 415,
+                  "content": "        active_sessions: &amp;Arc&lt;RwLock&lt;HashMap&lt;String, SessionInfo&gt;&gt;&gt;,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 416,
+                  "content": "        queue_size: &amp;Arc&lt;RwLock&lt;usize&gt;&gt;,",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 22,
+          "totalMatchedLines": 2
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`handle_connection`にRate Limitingとリプレイ攻撃対策を統合中。実装は段階的に進めます。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+`handle_connection`の呼び出し元を修正し、Rate Limitingとリプレイ攻撃対策を追加中。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/orchestrator/src/server.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] Phase 1: 認証基盤 - OAuth 2.0認証とJWT検証の実装
+- [x] Phase 1: APIキー認証の実装（生成・管理・ハッシュ化）
+- [x] Phase 1: RpcRequestに認証情報フィールドを追加
+- [x] Phase 1: verify_auth()の実装（Bearer token/API key検証）
+- [x] Phase 2: Rate Limitingの実装（スライディングウィンドウ）
+- [x] Phase 2: リプレイ攻撃対策（nonce検証）
+- [x] Phase 2: 証明書ピニングの実装（install-binary.js）
+- [x] Phase 3: 監査ログモジュールの実装
+- [ ] Phase 3: セキュリティヘッダーの追加
+- [ ] Phase 3: エラーハンドリング改善（機密情報マスキング）
+- [ ] Phase 4: 入力検証の強化
+- [ ] Phase 4: セッション管理の実装
+- [ ] Phase 4: 設定ファイル統合（config.rs作成）
+- [x] 依存関係の追加（Cargo.toml）
+
+</details>
+</tool-use>
+
+---
+
+
+コンパイルエラーを確認し、修正します。続いて残りのタスクを実装します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "codex-rs/orchestrator/src"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "codex-rs/orchestrator/src"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd codex-rs/orchestrator && cargo check 2>&1 | head -50</summary>
+
+```bash
+cd codex-rs/orchestrator && cargo check 2>&1 | head -50
+```
+
+```
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-40c49999-0f50-4f3a-a3c0-2a205ab9e03b.ps1:97 ����:26
++ cd codex-rs/orchestrator &amp;&amp; cargo check 2&gt;&amp;1 | head -50
++                          ~~
+�g�[�N�� '&amp;&amp;' �́A���̃o�[�W�����ł͗L���ȃX�e�[�g�����g��؂�ł͂���܂���B
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvalidEndOfLine
+ 
+
+```
+</details>
+</tool-use>
+
+---
+
+
+PowerShellでは`&&`が使えないため、`;`に変更して再実行します。
+
+
+---
+
+Cancelled
+
+---
+
+
+コンパイルエラーを確認し、残りのセキュリティ対策を実装します。
+
+
+---
+
+Cancelled
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: codex-rs/orchestrator/src/auth.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
