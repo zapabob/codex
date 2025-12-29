@@ -7,7 +7,7 @@
 //! `"<server><MCP_TOOL_NAME_DELIMITER><tool>"` as the key.
 
 use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::env;
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -950,7 +950,7 @@ mod tests {
     use super::*;
     use codex_protocol::protocol::McpAuthStatus;
     use mcp_types::ToolInputSchema;
-    use std::collections::HashSet;
+    use std::collections::BTreeSet;
 
     fn create_test_tool(server_name: &str, tool_name: &str) -> ToolInfo {
         ToolInfo {
