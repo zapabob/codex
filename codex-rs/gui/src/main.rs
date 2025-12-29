@@ -276,6 +276,16 @@ impl ActionDefinition {
                 }
                 Ok(args)
             }
+            "web-research" => {
+                let query = self.required_value(values, "query")?;
+                Ok(vec![
+                    "-c".to_string(),
+                    "features.web_search_request=true".to_string(),
+                    "exec".to_string(),
+                    "--".to_string(),
+                    query,
+                ])
+            }
             "research" => {
                 let topic = self.required_value(values, "topic")?;
                 let depth = self.value_or_default(values, "depth");
@@ -618,8 +628,8 @@ fn action_definitions() -> Vec<ActionDefinition> {
         },
         ActionDefinition {
             id: "research",
-            label: "Deep Research",
-            description: "Launch a deep-research session with controllable depth and breadth settings.",
+            label: "Deep Research (Custom)",
+            description: "Launch the custom deep-research pipeline with controllable depth and breadth.",
             category: ActionCategory::Launchpad,
             cta_label: "Run research",
             fields: vec![
@@ -670,6 +680,16 @@ fn action_definitions() -> Vec<ActionDefinition> {
                 )
                 .with_helper_text("Number of unique sources Codex should aggregate."),
             ],
+        },
+        ActionDefinition {
+            id: "web-research",
+            label: "Web Research (Official)",
+            description:
+                "Use the official web_search tool via a non-interactive exec session.",
+            category: ActionCategory::Launchpad,
+            cta_label: "Run web research",
+            fields: vec![ActionFieldDefinition::text_area("query", "Research query")
+                .with_placeholder("Find official guidance on Rust async error handling")],
         },
         ActionDefinition {
             id: "review",

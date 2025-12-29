@@ -94,6 +94,16 @@ export interface ResearchResult {
   completedAt?: Date;
 }
 
+export interface WebResearchResult {
+  id: string;
+  query: string;
+  status: "completed" | "failed";
+  output: string;
+  startedAt: Date;
+  completedAt?: Date;
+  error?: string;
+}
+
 export interface ResearchSource {
   url: string;
   title: string;
