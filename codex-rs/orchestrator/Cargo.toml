@@ -26,6 +26,8 @@ tracing = { workspace = true }
 jsonwebtoken = "9.3"
 ring = "0.17"
 regex = "1.10"
+toml = "0.8"
+dunce = "1.0"
 
 # Platform-specific dependencies
 [target.'cfg(unix)'.dependencies]

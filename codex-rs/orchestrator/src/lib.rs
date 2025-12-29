@@ -4,12 +4,14 @@
 /// for coordinating multiple CLI/GUI/agent instances.
 pub mod audit;
 pub mod auth;
+pub mod config;
 pub mod input_validation;
 pub mod rate_limit;
 pub mod replay_protection;
 pub mod rpc;
 pub mod security_headers;
 pub mod server;
+pub mod session;
 pub mod transport;
 
 pub use auth::AuthHeader;
