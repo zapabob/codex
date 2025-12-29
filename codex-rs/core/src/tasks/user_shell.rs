@@ -9,6 +9,7 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::codex::TurnContext;
+use crate::command_safety::is_dangerous_command::command_might_be_dangerous;
 use crate::exec::ExecToolCallOutput;
 use crate::exec::SandboxType;
 use crate::exec::StdoutStream;
@@ -70,6 +71,56 @@ impl SessionTask for UserShellCommandTask {
         let command = session
             .user_shell()
             .derive_exec_args(&self.command, use_login_shell);
+
+        // Security check: Block dangerous commands even in user shell mode
+        let command_vec: Vec<String> = command.iter().map(|s| s.to_string()).collect();
+        if command_might_be_dangerous(&command_vec) {
+            error!("Dangerous user shell command blocked: {:?}", command);
+            let blocked_message = format!(
+                "Error: Dangerous command blocked for security reasons: {:?}. Commands like 'rm -rf', 'sudo', and destructive git operations are not allowed.",
+                command
+            );
+            let exec_output = ExecToolCallOutput {
+                exit_code: 1,
+                stdout: StreamOutput::new(String::new()),
+                stderr: StreamOutput::new(blocked_message.clone()),
+                aggregated_output: StreamOutput::new(blocked_message.clone()),
+                duration: Duration::ZERO,
+                timed_out: false,
+            };
+            let call_id = Uuid::new_v4().to_string();
+            let raw_command = self.command.clone();
+            let output_items = [user_shell_command_record_item(
+                &raw_command,
+                &exec_output,
+                &turn_context,
+            )];
+            session
+                .record_conversation_items(turn_context.as_ref(), &output_items)
+                .await;
+            session
+                .send_event(
+                    turn_context.as_ref(),
+                    EventMsg::ExecCommandEnd(ExecCommandEndEvent {
+                        call_id,
+                        process_id: None,
+                        turn_id: turn_context.sub_id.clone(),
+                        command: command.clone(),
+                        cwd: turn_context.cwd.clone(),
+                        parsed_cmd: parse_command(&command),
+                        source: ExecCommandSource::UserShell,
+                        interaction_input: None,
+                        stdout: String::new(),
+                        stderr: blocked_message.clone(),
+                        aggregated_output: blocked_message.clone(),
+                        exit_code: 1,
+                        duration: Duration::ZERO,
+                        formatted_output: blocked_message,
+                    }),
+                )
+                .await;
+            return None;
+        }
 
         let call_id = Uuid::new_v4().to_string();
         let raw_command = self.command.clone();

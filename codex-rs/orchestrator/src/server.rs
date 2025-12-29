@@ -123,6 +123,50 @@ struct TokenBudget {
 }
 
 impl OrchestratorServer {
+    /// Validate path to prevent directory traversal attacks
+    /// Ensures the path is within allowed base directories
+    fn validate_path_against_base(
+        path: &Path,
+        base_dirs: &[PathBuf],
+    ) -> Result<PathBuf, String> {
+        // Canonicalize to resolve symlinks and normalize
+        let canonical = path
+            .canonicalize()
+            .map_err(|e| format!("Failed to canonicalize path: {e}"))?;
+
+        // Check if path is within any allowed base directory
+        for base_dir in base_dirs {
+            if let Ok(base_canonical) = base_dir.canonicalize() {
+                if canonical.starts_with(&base_canonical) {
+                    return Ok(canonical);
+                }
+            }
+        }
+
+        Err(format!(
+            "Path access denied: path must be within allowed base directories. Requested: {:?}, Allowed bases: {:?}",
+            canonical,
+            base_dirs
+        ))
+    }
+
+    /// Get allowed base directories for file operations
+    fn get_allowed_base_directories(config: &OrchestratorConfig) -> Vec<PathBuf> {
+        let mut allowed = vec![config.codex_dir.clone()];
+        
+        // Add current working directory if available
+        if let Ok(cwd) = std::env::current_dir() {
+            allowed.push(cwd);
+        }
+        
+        // Add home directory
+        if let Some(home) = dirs::home_dir() {
+            allowed.push(home);
+        }
+        
+        allowed
+    }
+
     /// Create a new orchestrator server
     pub async fn new(config: OrchestratorConfig) -> Result<Self> {
         // Create transport
@@ -259,10 +303,37 @@ impl OrchestratorServer {
         }
     }
 
+    /// Check if a method requires authentication
+    fn requires_auth(method: &str) -> bool {
+        // Read-only methods that don't require auth
+        let read_only_methods = [
+            "status.get",
+            "tokens.getBudget",
+        ];
+        
+        !read_only_methods.contains(&method)
+    }
+
+    /// Verify authentication for RPC request
+    /// Currently a placeholder - should be implemented with actual auth logic
+    fn verify_auth(
+        _auth_manager: &Arc<AuthManager>,
+        _request: &RpcRequest,
+        _conn_info: Option<&TransportInfo>,
+    ) -> Result<(), RpcError> {
+        // TODO: Implement actual authentication verification
+        // For now, allow all requests (local development)
+        // In production, this should verify:
+        // - API token from request headers or params
+        // - Session token validation
+        // - Role-based access control
+        Ok(())
+    }
+
     /// Handle a client connection
     async fn handle_connection(
         conn: &mut dyn Connection,
-        _auth_manager: &Arc<AuthManager>,
+        auth_manager: &Arc<AuthManager>,
         idempotency_cache: &Arc<RwLock<HashMap<String, IdempotencyEntry>>>,
         write_queue: &mpsc::Sender<WriteRequest>,
         start_time: SystemTime,
@@ -304,6 +375,20 @@ impl OrchestratorServer {
                 {
                     // Return cached response
                     let response_data = serde_json::to_vec(&entry.response)?;
+                    conn.write_message(&response_data).await?;
+                    continue;
+                }
+            }
+
+            // Verify authentication for methods that require it
+            if Self::requires_auth(&request.method) {
+                if let Err(auth_error) = Self::verify_auth(auth_manager, &request, None) {
+                    let error_response = RpcResponse {
+                        id: request.id.clone(),
+                        result: None,
+                        error: Some(auth_error),
+                    };
+                    let response_data = serde_json::to_vec(&error_response)?;
                     conn.write_message(&response_data).await?;
                     continue;
                 }
@@ -365,6 +450,7 @@ impl OrchestratorServer {
                     active_sessions,
                     queue_size,
                     config,
+                    auth_manager,
                 )
                 .await
             };
@@ -441,7 +527,18 @@ impl OrchestratorServer {
         _active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         queue_size: &Arc<RwLock<usize>>,
         config: &OrchestratorConfig,
+        auth_manager: &Arc<AuthManager>,
     ) -> RpcResponse {
+        // Verify authentication for read requests that require it
+        if Self::requires_auth(&request.method) {
+            if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {
+                return RpcResponse {
+                    id: request.id.clone(),
+                    result: None,
+                    error: Some(auth_error),
+                };
+            }
+        }
         match request.method.as_str() {
             "status.get" => {
                 let agents = active_agents.read().await;
@@ -572,7 +669,8 @@ impl OrchestratorServer {
                 match params {
                     Ok(params) => {
                         // Validate path (prevent directory traversal)
-                        let path = match params.path.canonicalize() {
+                        let allowed_bases = Self::get_allowed_base_directories(&config);
+                        let path = match Self::validate_path_against_base(&params.path, &allowed_bases) {
                             Ok(p) => p,
                             Err(e) => {
                                 return RpcResponse {
@@ -580,7 +678,7 @@ impl OrchestratorServer {
                                     result: None,
                                     error: Some(RpcError {
                                         code: ERROR_INVALID_PARAMS,
-                                        message: format!("Invalid path: {e}"),
+                                        message: e,
                                         data: None,
                                     }),
                                 };
@@ -763,7 +861,7 @@ impl OrchestratorServer {
     async fn process_write_request(
         request: &RpcRequest,
         config: &OrchestratorConfig,
-        _auth_manager: &Arc<AuthManager>,
+        auth_manager: &Arc<AuthManager>,
         active_agents: &Arc<RwLock<HashMap<String, AgentInfo>>>,
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
@@ -771,6 +869,14 @@ impl OrchestratorServer {
         subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
         plan_manager: &Arc<PlanManager>,
     ) -> RpcResponse {
+        // All write methods require authentication
+        if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {
+            return RpcResponse {
+                id: request.id.clone(),
+                result: None,
+                error: Some(auth_error),
+            };
+        }
         match request.method.as_str() {
             "lock.acquire" => {
                 let params: Result<LockAcquireRequest, _> =
@@ -935,8 +1041,9 @@ impl OrchestratorServer {
                     serde_json::from_value(request.params.clone());
                 match params {
                     Ok(params) => {
-                        // Validate path
-                        let path = match params.path.canonicalize() {
+                        // Validate path (prevent directory traversal)
+                        let allowed_bases = Self::get_allowed_base_directories(&config);
+                        let path = match Self::validate_path_against_base(&params.path, &allowed_bases) {
                             Ok(p) => p,
                             Err(e) => {
                                 return RpcResponse {
@@ -944,7 +1051,7 @@ impl OrchestratorServer {
                                     result: None,
                                     error: Some(RpcError {
                                         code: ERROR_INVALID_PARAMS,
-                                        message: format!("Invalid path: {e}"),
+                                        message: e,
                                         data: None,
                                     }),
                                 };

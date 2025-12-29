@@ -1,10 +1,5 @@
-//! Security module for malware detection and quarantine
+pub mod secret_masking;
 
-pub mod malware_detector;
-pub mod quarantine;
-
-pub use malware_detector::DetectionMethod;
-pub use malware_detector::MalwareDetectionResult;
-pub use malware_detector::MalwareDetector;
-pub use quarantine::Quarantine;
-pub use quarantine::QuarantineEntry;
+pub use secret_masking::mask_secrets;
+pub use secret_masking::mask_error_message;
+pub use secret_masking::mask_debug_output;

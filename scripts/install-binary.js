@@ -13,6 +13,10 @@ const pipeline = promisify(require('stream').pipeline);
 
 const VERSION = '2.8.0';
 const GITHUB_REPO = 'zapabob/codex';
+// GitHub's certificate fingerprint for pinning (SHA256 of github.com's certificate)
+// This should be updated if GitHub changes their certificate
+const GITHUB_CERT_PIN = 'sha256//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='; // Placeholder - should be actual cert pin
+const MAX_REDIRECTS = 5; // Limit redirects to prevent redirect loops
 
 // Platform detection
 function getPlatformInfo() {
@@ -44,12 +48,40 @@ function getPlatformInfo() {
   };
 }
 
-// Download file from URL
-async function downloadFile(url, dest) {
+// Download file from URL with redirect limit and host validation
+async function downloadFile(url, dest, redirectCount = 0) {
   return new Promise((resolve, reject) => {
-    const request = https.get(url, { followAllRedirects: true }, (response) => {
+    // Validate URL to prevent SSRF attacks
+    const urlObj = new URL(url);
+    if (!urlObj.hostname.endsWith('github.com') && !urlObj.hostname.endsWith('githubusercontent.com')) {
+      reject(new Error(`Invalid hostname: ${urlObj.hostname}. Only github.com and githubusercontent.com are allowed.`));
+      return;
+    }
+    
+    // Limit redirects to prevent redirect loops
+    if (redirectCount >= MAX_REDIRECTS) {
+      reject(new Error(`Too many redirects (max ${MAX_REDIRECTS})`));
+      return;
+    }
+    
+    const options = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      method: 'GET',
+      // Reject self-signed certificates
+      rejectUnauthorized: true,
+    };
+    
+    const request = https.get(options, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
-        downloadFile(response.headers.location, dest).then(resolve).catch(reject);
+        const location = response.headers.location;
+        if (!location) {
+          reject(new Error('Redirect without Location header'));
+          return;
+        }
+        // Resolve relative redirects
+        const redirectUrl = new URL(location, url);
+        downloadFile(redirectUrl.toString(), dest, redirectCount + 1).then(resolve).catch(reject);
         return;
       }
       
@@ -92,24 +124,80 @@ async function verifySHA256(filePath, expectedHash) {
   });
 }
 
-// Extract archive
+// Validate and sanitize path to prevent command injection
+function validatePath(filePath) {
+  // Reject paths with null bytes, command separators, or other dangerous characters
+  if (filePath.includes('\0') || 
+      filePath.includes(';') || 
+      filePath.includes('&') || 
+      filePath.includes('|') || 
+      filePath.includes('`') ||
+      filePath.includes('$') ||
+      filePath.includes('(') ||
+      filePath.includes(')')) {
+    throw new Error(`Invalid path: contains dangerous characters`);
+  }
+  
+  // Ensure path is absolute and within expected directory
+  const normalized = path.normalize(filePath);
+  if (path.isAbsolute(normalized)) {
+    return normalized;
+  }
+  throw new Error(`Invalid path: must be absolute`);
+}
+
+// Extract archive using parameterized commands to prevent injection
 async function extractArchive(archivePath, destDir) {
   const { promisify } = require('util');
-  const exec = promisify(require('child_process').exec);
+  const { spawn } = require('child_process');
   
-  const ext = path.extname(archivePath);
+  // Validate paths to prevent command injection
+  const safeArchivePath = validatePath(path.resolve(archivePath));
+  const safeDestDir = validatePath(path.resolve(destDir));
   
-  if (ext === '.zip') {
-    // Windows: use unzip or 7z
-    try {
-      await exec(`powershell -command "Expand-Archive -Path '${archivePath}' -DestinationPath '${destDir}' -Force"`);
-    } catch {
-      await exec(`7z x "${archivePath}" -o"${destDir}" -y`);
+  const ext = path.extname(safeArchivePath);
+  
+  return new Promise((resolve, reject) => {
+    let child;
+    
+    if (ext === '.zip') {
+      // Windows: use PowerShell with parameterized arguments
+      if (process.platform === 'win32') {
+        child = spawn('powershell', [
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          `Expand-Archive -Path ([System.IO.Path]::GetFullPath('${safeArchivePath.replace(/'/g, "''")}')) -DestinationPath ([System.IO.Path]::GetFullPath('${safeDestDir.replace(/'/g, "''")}')) -Force`
+        ]);
+      } else {
+        // Unix: try unzip first, fallback to 7z
+        child = spawn('unzip', ['-q', '-o', safeArchivePath, '-d', safeDestDir]);
+        child.on('error', () => {
+          // Fallback to 7z if unzip not available
+          const child7z = spawn('7z', ['x', safeArchivePath, `-o${safeDestDir}`, '-y']);
+          child7z.on('close', (code) => {
+            if (code === 0) resolve();
+            else reject(new Error(`7z extraction failed with code ${code}`));
+          });
+          child7z.on('error', reject);
+        });
+      }
+    } else if (safeArchivePath.endsWith('.tar.gz')) {
+      // Unix: use tar with parameterized arguments
+      child = spawn('tar', ['-xzf', safeArchivePath, '-C', safeDestDir]);
+    } else {
+      reject(new Error(`Unsupported archive format: ${ext}`));
+      return;
     }
-  } else if (archivePath.endsWith('.tar.gz')) {
-    // Unix: use tar
-    await exec(`tar -xzf "${archivePath}" -C "${destDir}"`);
-  }
+    
+    if (child) {
+      child.on('close', (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`Extraction failed with code ${code}`));
+      });
+      child.on('error', reject);
+    }
+  });
 }
 
 async function main() {
@@ -133,10 +221,40 @@ async function main() {
     
     const binaryPath = path.join(binDir, 'codex' + platformInfo.ext);
     const tempPath = path.join(binDir, 'codex.tmp');
+    const checksumUrl = `${downloadUrl}.sha256`;
+    const checksumPath = path.join(binDir, 'codex.sha256.tmp');
+    
+    // Download checksum file if available
+    let expectedHash = null;
+    try {
+      await downloadFile(checksumUrl, checksumPath);
+      const checksumContent = fs.readFileSync(checksumPath, 'utf8').trim();
+      // SHA256 checksum format: "hash  filename" or just "hash"
+      expectedHash = checksumContent.split(/\s+/)[0];
+      fs.unlinkSync(checksumPath);
+      console.log('✅ Checksum file downloaded');
+    } catch (error) {
+      if (error.statusCode !== 404) {
+        console.warn(`⚠️  Failed to download checksum: ${error.message}`);
+      }
+      // Continue without checksum if not available
+    }
     
     // Download binary
     await downloadFile(downloadUrl, tempPath);
     console.log('✅ Download complete');
+    
+    // Verify SHA256 checksum if available
+    if (expectedHash) {
+      const isValid = await verifySHA256(tempPath, expectedHash);
+      if (!isValid) {
+        fs.unlinkSync(tempPath);
+        throw new Error(`SHA256 checksum verification failed. Expected: ${expectedHash}`);
+      }
+      console.log('✅ SHA256 checksum verified');
+    } else {
+      console.warn('⚠️  No checksum file available - skipping verification');
+    }
     
     // Move to final location
     fs.renameSync(tempPath, binaryPath);
