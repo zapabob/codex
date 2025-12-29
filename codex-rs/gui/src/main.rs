@@ -185,7 +185,7 @@ impl AppState {
     }
 
     fn find_action(&self, id: &str) -> Option<ActionDefinition> {
-        self.actions.iter().cloned().find(|action| action.id == id)
+        self.actions.iter().find(|&action| action.id == id).cloned()
     }
 }
 
@@ -345,11 +345,11 @@ impl ActionDefinition {
                     args.push("--agents".to_string());
                     args.push(agents);
                 }
-                if mode == "parallel" {
-                    if let Some(worktree_base) = worktree_base {
-                        args.push("--worktree-base".to_string());
-                        args.push(worktree_base);
-                    }
+                if mode == "parallel"
+                    && let Some(worktree_base) = worktree_base
+                {
+                    args.push("--worktree-base".to_string());
+                    args.push(worktree_base);
                 }
                 Ok(args)
             }
@@ -846,7 +846,7 @@ async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
     let mut connections = Vec::new();
 
     // Check for configured MCP servers via environment variables
-    if let Ok(_) = std::env::var("CODEX_MCP_FILESYSTEM_ENABLED") {
+    if std::env::var("CODEX_MCP_FILESYSTEM_ENABLED").is_ok() {
         connections.push(MCPConnection {
             id: "filesystem-1".to_string(),
             name: "Local Filesystem".to_string(),
@@ -859,7 +859,7 @@ async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
         });
     }
 
-    if let Ok(_) = std::env::var("CODEX_MCP_GITHUB_ENABLED") {
+    if std::env::var("CODEX_MCP_GITHUB_ENABLED").is_ok() {
         connections.push(MCPConnection {
             id: "github-1".to_string(),
             name: "GitHub Integration".to_string(),
@@ -872,7 +872,7 @@ async fn list_mcp_connections() -> Json<Vec<MCPConnection>> {
         });
     }
 
-    if let Ok(_) = std::env::var("CODEX_MCP_PLAYWRIGHT_ENABLED") {
+    if std::env::var("CODEX_MCP_PLAYWRIGHT_ENABLED").is_ok() {
         connections.push(MCPConnection {
             id: "playwright-1".to_string(),
             name: "Playwright Browser".to_string(),
@@ -941,7 +941,7 @@ async fn get_system_metrics() -> Json<SystemMetrics> {
     let total_memory = sys.total_memory() as f64;
     let used_memory = sys.used_memory() as f64;
     let memory_usage = if total_memory > 0.0 {
-        (used_memory / total_memory * 100.0) as f64
+        used_memory / total_memory * 100.0
     } else {
         0.0
     };

@@ -226,6 +226,8 @@ mod tests {
                 "method": "account/rateLimits/updated",
                 "params": {
                     "rateLimits": {
+                        "credits": null,
+                        "planType": null,
                         "primary": {
                             "usedPercent": 25,
                             "windowDurationMins": 15,

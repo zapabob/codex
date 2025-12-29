@@ -5,6 +5,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeSet;
+use std::collections::HashSet;
 
 /// ClaudeCode skill taxonomy used to guide orchestrator routing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
