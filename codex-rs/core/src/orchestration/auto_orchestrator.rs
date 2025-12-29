@@ -19,7 +19,7 @@ use serde::Serialize;
 use serde_json::json;
 use serde_json::to_value;
 use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::sync::Arc;
 use std::time::Instant;
 use tracing::debug;
@@ -897,7 +897,7 @@ impl AutoOrchestrator {
     /// - Domain specificity
     pub fn select_agents_for_task(&self, analysis: &TaskAnalysis) -> Vec<String> {
         debug!("Selecting agents for task analysis");
-        let mut selected_agents = HashSet::new();
+        let mut selected_agents = BTreeSet::new();
         let strategy_table = Self::skill_strategy_table();
 
         for skill in &analysis.skill_tags {

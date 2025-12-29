@@ -4,7 +4,7 @@
 
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
 /// ClaudeCode skill taxonomy used to guide orchestrator routing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -179,7 +179,7 @@ impl TaskAnalyzer {
             ("deploy", "deployment", "ci", "cd", "devops", "infra"),
         ];
 
-        let mut detected_domains = HashSet::new();
+        let mut detected_domains = BTreeSet::new();
         for domain_group in &domain_keywords {
             let keywords_slice = &[
                 domain_group.0,
