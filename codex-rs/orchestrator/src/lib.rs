@@ -4,6 +4,7 @@
 /// for coordinating multiple CLI/GUI/agent instances.
 pub mod audit;
 pub mod auth;
+pub mod input_validation;
 pub mod rate_limit;
 pub mod replay_protection;
 pub mod rpc;

@@ -383,9 +383,15 @@ impl OrchestratorServer {
                     });
                 }
                 Err(e) => {
+                    // Mask secrets in error message
+                    let error_msg = codex_core::security::secret_masking::mask_secrets(&format!("Authentication failed: {e}"));
                     return Err(RpcError {
                         code: 401,
-                        message: format!("Authentication failed: {e}"),
+                        message: if cfg!(debug_assertions) {
+                            error_msg
+                        } else {
+                            "Authentication failed".to_string()
+                        },
                         data: None,
                     });
                 }
