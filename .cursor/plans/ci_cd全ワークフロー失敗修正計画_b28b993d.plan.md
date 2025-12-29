@@ -34,7 +34,7 @@ todos:
     status: completed
   - id: commit_and_push
     content: 修正をコミット・プッシュしてCIの再実行を確認
-    status: in_progress
+    status: completed
 ---
 
 # CI/CD全ワークフロー失敗修正計画
