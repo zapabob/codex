@@ -9,8 +9,8 @@ use anyhow::bail;
 use serde::Deserialize;
 use serde::Serialize;
 use std::cmp::Ordering;
-use std::collections::HashMap;
 use std::collections::BTreeSet;
+use std::collections::HashMap;
 
 /// Configuration for running multi-agent evaluation loops.
 #[derive(Debug, Clone)]

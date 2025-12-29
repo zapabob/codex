@@ -4,8 +4,8 @@ use crate::types::SupervisorConfig;
 use crate::types::TaskResult;
 use anyhow::Result;
 use anyhow::anyhow;
-use std::collections::HashMap;
 use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::collections::VecDeque;
 use tokio::task::JoinSet;
 

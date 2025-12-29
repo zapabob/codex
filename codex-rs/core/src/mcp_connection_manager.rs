@@ -6,8 +6,8 @@
 //! in a single aggregated map using the fully-qualified tool name
 //! `"<server><MCP_TOOL_NAME_DELIMITER><tool>"` as the key.
 
-use std::collections::HashMap;
 use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::env;
 use std::ffi::OsString;
 use std::path::PathBuf;

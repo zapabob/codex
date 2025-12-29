@@ -684,12 +684,13 @@ fn action_definitions() -> Vec<ActionDefinition> {
         ActionDefinition {
             id: "web-research",
             label: "Web Research (Official)",
-            description:
-                "Use the official web_search tool via a non-interactive exec session.",
+            description: "Use the official web_search tool via a non-interactive exec session.",
             category: ActionCategory::Launchpad,
             cta_label: "Run web research",
-            fields: vec![ActionFieldDefinition::text_area("query", "Research query")
-                .with_placeholder("Find official guidance on Rust async error handling")],
+            fields: vec![
+                ActionFieldDefinition::text_area("query", "Research query")
+                    .with_placeholder("Find official guidance on Rust async error handling"),
+            ],
         },
         ActionDefinition {
             id: "review",
