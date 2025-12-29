@@ -394,7 +394,7 @@ impl TaskAnalyzer {
         keywords: &[String],
         _skill_tags: &[SkillTag],
     ) -> Vec<String> {
-        let mut agents = HashSet::new();
+        let mut agents = BTreeSet::new();
 
         // Dependency analysis
         if keywords.iter().any(|k| {
