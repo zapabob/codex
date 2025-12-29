@@ -1,0 +1,16 @@
+{
+  "current_assistant_turn": {
+    "error": {
+      "code": "APPLY_FAILED",
+      "message": "Patch could not be applied"
+    },
+    "output_items": [
+      {
+        "type": "output_diff",
+        "output_diff": {
+          "diff": "--- a/lib.rs\n+++ b/lib.rs\n@@ -1,1 +1,1 @@\n-old\n+new"
+        }
+      }
+    ]
+  }
+}
