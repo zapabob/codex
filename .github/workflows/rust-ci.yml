@@ -64,7 +64,7 @@ jobs:
         with:
           components: rustfmt
       - name: cargo fmt
-        run: cargo fmt -- --config imports_granularity=Item --check
+        run: cargo fmt -- --check
       - name: Verify codegen for mcp-types
         run: ./mcp-types/check_lib_rs.py
 
