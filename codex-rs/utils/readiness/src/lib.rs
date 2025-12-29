@@ -58,7 +58,7 @@ impl ReadinessFlag {
         Self {
             ready: AtomicBool::new(false),
             next_id: AtomicI32::new(1), // Reserve 0.
-            tokens: Mutex::new(HashSet::new()),
+            tokens: Mutex::new(BTreeSet::new()),
             tx,
         }
     }
