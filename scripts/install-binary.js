@@ -15,7 +15,14 @@ const VERSION = '2.8.0';
 const GITHUB_REPO = 'zapabob/codex';
 // GitHub's certificate fingerprint for pinning (SHA256 of github.com's certificate)
 // This should be updated if GitHub changes their certificate
-const GITHUB_CERT_PIN = 'sha256//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='; // Placeholder - should be actual cert pin
+// To get the actual fingerprint, run:
+// openssl s_client -connect github.com:443 -showcerts | openssl x509 -fingerprint -sha256 -noout
+// Or use: echo | openssl s_client -servername github.com -connect github.com:443 2>/dev/null | openssl x509 -fingerprint -sha256 -noout
+const GITHUB_CERT_PIN = 'sha256//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='; // Placeholder - update with actual cert pin
+const GITHUB_CERT_PINS = [
+  // Add multiple pins for certificate chain rotation
+  'sha256//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', // Placeholder
+];
 const MAX_REDIRECTS = 5; // Limit redirects to prevent redirect loops
 
 // Platform detection
@@ -70,6 +77,11 @@ async function downloadFile(url, dest, redirectCount = 0) {
       method: 'GET',
       // Reject self-signed certificates
       rejectUnauthorized: true,
+      // Note: Certificate pinning verification should be done after connection
+      // For full certificate pinning, use tls.connect with secureContext
+      // or verify the certificate chain after the connection is established
+      // TODO: Implement full certificate pinning with tls.connect
+      // This requires fetching the certificate chain and verifying fingerprints
     };
     
     const request = https.get(options, (response) => {
