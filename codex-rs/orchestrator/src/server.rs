@@ -62,6 +62,12 @@ pub struct OrchestratorServer {
     subscribers: Arc<RwLock<HashMap<String, Vec<String>>>>, // topic -> connection_ids
     /// Plan manager for blueprint operations
     plan_manager: Arc<PlanManager>,
+    /// Rate limiter
+    rate_limiter: Arc<RateLimiter>,
+    /// Replay protection
+    replay_protection: Arc<ReplayProtection>,
+    /// Audit logger
+    audit_logger: Arc<Option<AuditLogger>>,
 }
 
 /// Orchestrator configuration
