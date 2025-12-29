@@ -7,34 +7,34 @@ todos:
     status: completed
   - id: analyze_ci_logs
     content: 各ワークフローのCIログを確認して具体的なエラーメッセージを取得（rust-ci、cargo-deny、ci、Sub-Agent CI、Codespell、AI Kernel Modules CI、sdk）
-    status: pending
+    status: completed
   - id: fix_hashset_errors
     content: CIでエラーになっているHashSet使用箇所をBTreeSetに変更（優先度順）
-    status: in_progress
+    status: completed
   - id: fix_ci_workflow
     content: ciワークフローのエラーを修正（フォーマット、npmステージング、MCPテスト）
-    status: pending
+    status: completed
   - id: fix_cargo_deny
     content: cargo-denyワークフローの依存関係・ライセンス問題を解決
-    status: pending
+    status: completed
   - id: fix_subagent_ci
     content: Sub-Agent & Deep Research CIのビルド・テストエラーを修正
-    status: pending
+    status: completed
   - id: fix_codespell
     content: Codespellワークフローのスペルミスを修正
-    status: pending
+    status: completed
   - id: fix_kernel_ci
     content: AI Kernel Modules CIのビルドエラーを修正
-    status: pending
+    status: completed
   - id: fix_sdk_workflow
     content: sdkワークフローのTypeScriptビルド・Lint・テストエラーを修正
-    status: pending
+    status: completed
   - id: verify_locally
     content: ローカルでcargo clippyとcargo fmt --checkを実行して検証
-    status: pending
+    status: completed
   - id: commit_and_push
     content: 修正をコミット・プッシュしてCIの再実行を確認
-    status: pending
+    status: in_progress
 ---
 
 # CI/CD全ワークフロー失敗修正計画
