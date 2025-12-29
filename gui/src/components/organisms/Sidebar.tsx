@@ -115,6 +115,13 @@ const navigationItems: NavigationItem[] = [
     shortcut: 'Ctrl+R',
     description: '深い調査と研究'
   },
+  {
+    id: 'web-research',
+    label: 'Web Research',
+    icon: Search,
+    shortcut: 'Ctrl+Shift+R',
+    description: 'Official web_search tool for fast web queries'
+  },
   { 
     id: 'mcp', 
     label: 'MCPサーバー', 

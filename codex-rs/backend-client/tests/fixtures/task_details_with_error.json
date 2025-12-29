@@ -6,7 +6,7 @@
     },
     "output_items": [
       {
-        "type": "output_diff",
+        "type": "pr",
         "output_diff": {
           "diff": "--- a/lib.rs\n+++ b/lib.rs\n@@ -1,1 +1,1 @@\n-old\n+new"
         }

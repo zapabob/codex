@@ -9,6 +9,7 @@ import {
   MCPConnection,
   SecurityScan,
   ResearchResult,
+  WebResearchResult,
   SystemMetrics,
   LoginForm,
   NewConversationForm,
@@ -266,6 +267,8 @@ export class CodexAPIClient {
         values.topic = context.query || context.topic || '';
         values.depth = context.depth?.toString() || '3';
         values.breadth = context.breadth?.toString() || '8';
+      } else if (agentId === 'web-research') {
+        values.query = context.query || context.topic || context.prompt || '';
       } else if (agentId === 'delegate') {
         values.agent = context.agent || 'code-reviewer';
         values.goal = context.goal || context.code || context.task || '';
@@ -330,6 +333,16 @@ export class CodexAPIClient {
           startedAt: new Date(result.executed_at),
           completedAt: new Date(new Date(result.executed_at).getTime() + result.duration_ms),
         } as ResearchResult;
+      } else if (agentId === 'web-research') {
+        return {
+          id: result.id,
+          query: values.query || '',
+          status: result.status === 'completed' ? 'completed' : 'failed',
+          output: result.status === 'completed' ? result.stdout : result.stderr,
+          startedAt: new Date(result.executed_at),
+          completedAt: new Date(new Date(result.executed_at).getTime() + result.duration_ms),
+          error: result.status === 'completed' ? undefined : result.stderr,
+        } as WebResearchResult;
       } else {
         // Generic result for other agent types
         return {
@@ -346,6 +359,14 @@ export class CodexAPIClient {
       }
       throw new CodexAPIError(-1, `Failed to run agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  async runResearch(payload: { query: string }): Promise<ResearchResult> {
+    return this.runAgent('research', { query: payload.query }) as Promise<ResearchResult>;
+  }
+
+  async runWebResearch(payload: { query: string }): Promise<WebResearchResult> {
+    return this.runAgent('web-research', { query: payload.query }) as Promise<WebResearchResult>;
   }
 
   private parseSecurityFindings(stdout: string, stderr: string): Array<{

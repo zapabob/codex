@@ -59,6 +59,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       'virtual-os': '/virtual-os',
       'ai-tools': '/ai-tools',
       'research': '/research',
+      'web-research': '/web-research',
       'mcp': '/mcp',
       'analytics': '/analytics',
       'docs': '/docs',
@@ -135,6 +136,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       ctrl: true,
       description: 'Deep Researchページに移動',
       action: () => handleNavigate({ id: 'research', label: 'Deep Research', icon: () => null }),
+    },
+    {
+      key: 'r',
+      ctrl: true,
+      shift: true,
+      description: 'Web Researchページに移動',
+      action: () => handleNavigate({ id: 'web-research', label: 'Web Research', icon: () => null }),
     },
     {
       key: 'm',

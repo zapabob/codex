@@ -8,6 +8,7 @@ import {
   MCPConnection,
   SecurityScan,
   ResearchResult,
+  WebResearchResult,
   SystemMetrics,
   NotificationItem,
   User,
@@ -40,6 +41,7 @@ interface CodexState {
 
   // Research
   researchResults: ResearchResult[];
+  webResearchResults: WebResearchResult[];
 
   // System
   metrics: SystemMetrics | null;
@@ -68,6 +70,8 @@ type CodexAction =
   | { type: 'UPDATE_SECURITY_SCAN'; payload: SecurityScan }
   | { type: 'ADD_RESEARCH_RESULT'; payload: ResearchResult }
   | { type: 'UPDATE_RESEARCH_RESULT'; payload: ResearchResult }
+  | { type: 'ADD_WEB_RESEARCH_RESULT'; payload: WebResearchResult }
+  | { type: 'UPDATE_WEB_RESEARCH_RESULT'; payload: WebResearchResult }
   | { type: 'SET_METRICS'; payload: SystemMetrics }
   | { type: 'ADD_NOTIFICATION'; payload: NotificationItem }
   | { type: 'MARK_NOTIFICATION_READ'; payload: string }
@@ -116,8 +120,17 @@ const initialState: CodexState = {
       type: 'researcher',
       status: 'idle',
       description: '高度な研究と分析を行います',
-      capabilities: ['web-research', 'data-analysis', 'trend-analysis'],
+      capabilities: ['deep-research', 'data-analysis', 'trend-analysis'],
       lastUsed: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    },
+    {
+      id: 'web-research',
+      name: 'Web Research',
+      type: 'researcher',
+      status: 'idle',
+      description: '譛譁ｰ縺ｮWeb繧ｽ繝ｼ繧ｹから情報を検索します。',
+      capabilities: ['web-search', 'official-research'],
+      lastUsed: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
     },
   ],
   activeAgents: [],
@@ -145,6 +158,7 @@ const initialState: CodexState = {
   ],
   securityScans: [],
   researchResults: [],
+  webResearchResults: [],
   metrics: {
     cpuUsage: 45.2,
     memoryUsage: 67.8,
@@ -251,6 +265,20 @@ function codexReducer(state: CodexState, action: CodexAction): CodexState {
         ),
       };
 
+    case 'ADD_WEB_RESEARCH_RESULT':
+      return {
+        ...state,
+        webResearchResults: [action.payload, ...state.webResearchResults],
+      };
+
+    case 'UPDATE_WEB_RESEARCH_RESULT':
+      return {
+        ...state,
+        webResearchResults: state.webResearchResults.map(result =>
+          result.id === action.payload.id ? action.payload : result
+        ),
+      };
+
     case 'SET_METRICS':
       return {
         ...state,
@@ -314,6 +342,7 @@ interface CodexContextType {
   runAgent: (agentId: string, context: any) => Promise<void>;
   runSecurityScan: (type: string, target: string) => Promise<void>;
   runResearch: (query: string) => Promise<void>;
+  runWebResearch: (query: string) => Promise<void>;
   executeCommand: (command: string, cwd?: string) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
   loadMetrics: () => Promise<void>;
   clearError: () => void;
@@ -635,6 +664,17 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const runWebResearch = async (query: string) => {
+    try {
+      const result = await apiClient.runWebResearch({ query });
+      dispatch({ type: 'ADD_WEB_RESEARCH_RESULT', payload: result });
+      return result;
+    } catch (error) {
+      console.error('Web research failed:', error);
+      throw error;
+    }
+  };
+
   const executeCommand = async (command: string, cwd?: string) => {
     const bridge = cliBridgeRef.current;
 
@@ -716,6 +756,7 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     runAgent,
     runSecurityScan,
     runResearch,
+    runWebResearch,
     executeCommand,
     loadMetrics,
     loadAITools,
