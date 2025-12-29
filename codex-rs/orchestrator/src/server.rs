@@ -315,19 +315,60 @@ impl OrchestratorServer {
     }
 
     /// Verify authentication for RPC request
-    /// Currently a placeholder - should be implemented with actual auth logic
-    fn verify_auth(
-        _auth_manager: &Arc<AuthManager>,
-        _request: &RpcRequest,
+    async fn verify_auth(
+        auth_manager: &Arc<AuthManager>,
+        request: &RpcRequest,
         _conn_info: Option<&TransportInfo>,
     ) -> Result<(), RpcError> {
-        // TODO: Implement actual authentication verification
-        // For now, allow all requests (local development)
-        // In production, this should verify:
-        // - API token from request headers or params
-        // - Session token validation
-        // - Role-based access control
-        Ok(())
+        use crate::auth::{AuthError, AuthManager};
+
+        // Try OAuth token first
+        if let Some(ref token) = request.auth_token {
+            match auth_manager.verify_oauth_token(token).await {
+                Ok(_) => return Ok(()),
+                Err(AuthError::TokenExpired) => {
+                    return Err(RpcError {
+                        code: 401,
+                        message: "Token expired".to_string(),
+                        data: None,
+                    });
+                }
+                Err(e) => {
+                    // Fall through to API key check
+                    tracing::debug!("OAuth token verification failed: {e}");
+                }
+            }
+        }
+
+        // Try API key
+        if let Some(ref api_key) = request.api_key {
+            match auth_manager.verify_api_key(api_key).await {
+                Ok(_) => return Ok(()),
+                Err(AuthError::ApiKeyExpired) => {
+                    return Err(RpcError {
+                        code: 401,
+                        message: "API key expired".to_string(),
+                        data: None,
+                    });
+                }
+                Err(e) => {
+                    return Err(RpcError {
+                        code: 401,
+                        message: format!("Authentication failed: {e}"),
+                        data: None,
+                    });
+                }
+            }
+        }
+
+        // No authentication provided
+        Err(RpcError {
+            code: 401,
+            message: "Authentication required".to_string(),
+            data: Some(serde_json::json!({
+                "error": "No authentication token or API key provided"
+            })),
+        })
     }
 
     /// Handle a client connection
@@ -382,7 +423,7 @@ impl OrchestratorServer {
 
             // Verify authentication for methods that require it
             if Self::requires_auth(&request.method) {
-                if let Err(auth_error) = Self::verify_auth(auth_manager, &request, None) {
+                if let Err(auth_error) = Self::verify_auth(auth_manager, &request, None).await {
                     let error_response = RpcResponse {
                         id: request.id.clone(),
                         result: None,
@@ -870,7 +911,7 @@ impl OrchestratorServer {
         plan_manager: &Arc<PlanManager>,
     ) -> RpcResponse {
         // All write methods require authentication
-        if let Err(auth_error) = Self::verify_auth(auth_manager, request, None) {
+        if let Err(auth_error) = Self::verify_auth(auth_manager, request, None).await {
             return RpcResponse {
                 id: request.id.clone(),
                 result: None,

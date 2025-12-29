@@ -22,6 +22,12 @@ pub struct RpcRequest {
     /// Method parameters (JSON object)
     #[serde(default)]
     pub params: serde_json::Value,
+    /// Bearer token for OAuth 2.0 authentication
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auth_token: Option<String>,
+    /// API key for CLI/automation authentication
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<String>,
 }
 
 /// RPC Response envelope

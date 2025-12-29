@@ -2,7 +2,10 @@
 ///
 /// Provides repository-level locking, single-writer queue, and RPC API
 /// for coordinating multiple CLI/GUI/agent instances.
+pub mod audit;
 pub mod auth;
+pub mod rate_limit;
+pub mod replay_protection;
 pub mod rpc;
 pub mod server;
 pub mod transport;

@@ -56,7 +56,7 @@ pub mod path_utils;
 pub mod plan;
 pub mod powershell;
 pub mod sandboxing;
-mod security;
+pub mod security;
 mod stream_events_utils;
 mod text_encoding;
 pub mod token_data;
