@@ -5,7 +5,7 @@ use crate::types::TaskResult;
 use anyhow::Result;
 use anyhow::anyhow;
 use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::collections::VecDeque;
 use tokio::task::JoinSet;
 
@@ -36,18 +36,18 @@ async fn execute_with_dependencies(
     }
 
     let mut all_assignments = Vec::new();
-    let mut all_step_ids = HashSet::new();
+    let mut all_step_ids = BTreeSet::new();
     for assignment in assignments {
         all_step_ids.insert(assignment.step_id.clone());
         all_assignments.push(assignment);
     }
 
     let mut pending: HashMap<String, Assignment> = HashMap::new();
-    let mut remaining_dependencies: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut remaining_dependencies: HashMap<String, BTreeSet<String>> = HashMap::new();
     let mut ready: HashMap<String, VecDeque<Assignment>> = HashMap::new();
 
     for assignment in all_assignments {
-        let filtered_dependencies: HashSet<String> = assignment
+        let filtered_dependencies: BTreeSet<String> = assignment
             .dependencies
             .iter()
             .filter(|dependency| {
@@ -65,7 +65,7 @@ async fn execute_with_dependencies(
     }
 
     let mut results = Vec::new();
-    let mut active_domains: HashSet<String> = HashSet::new();
+    let mut active_domains: BTreeSet<String> = BTreeSet::new();
     let mut join_set = JoinSet::new();
 
     loop {
@@ -135,7 +135,7 @@ fn enqueue_ready(assignment: Assignment, ready: &mut HashMap<String, VecDeque<As
 
 fn pop_next_ready(
     ready: &mut HashMap<String, VecDeque<Assignment>>,
-    active_domains: &HashSet<String>,
+    active_domains: &BTreeSet<String>,
 ) -> Option<(String, Assignment)> {
     let mut domains: Vec<String> = ready.keys().cloned().collect();
     domains.sort();

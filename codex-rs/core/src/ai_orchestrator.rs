@@ -236,7 +236,7 @@ impl OptimizationAlgorithm for QuantumOptimizer {
         // Simplified quantum-inspired optimization
         // Real implementation would use quantum algorithms
         let mut assignments = Vec::new();
-        let mut used_agents = std::collections::HashSet::new();
+        let mut used_agents = std::collections::BTreeSet::new();
 
         // Sort tasks by priority and complexity
         let mut sorted_tasks = tasks.to_vec();

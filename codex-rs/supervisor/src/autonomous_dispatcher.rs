@@ -277,7 +277,7 @@ impl AutonomousDispatcher {
                 .triggers
                 .iter()
                 .map(|t| t.agent_type.clone())
-                .collect::<std::collections::HashSet<_>>()
+                .collect::<std::collections::BTreeSet<_>>()
                 .len(),
         }
     }

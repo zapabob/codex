@@ -14,7 +14,7 @@ use chrono::Utc;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::collections::VecDeque;
 use std::time::Duration;
 use std::time::Instant;
@@ -122,7 +122,7 @@ pub struct AutonomousOrchestrator {
     dispatcher: AutonomousDispatcher,
     agent_manager: SubAgentManager,
     token_tracker: TokenTracker,
-    active_agents: HashSet<AgentType>,
+    active_agents: BTreeSet<AgentType>,
     max_wait_attempts: usize,
     wait_interval: Duration,
     task_registry: HashMap<String, TaskRecord>,
@@ -173,7 +173,7 @@ impl AutonomousOrchestrator {
             dispatcher,
             agent_manager,
             token_tracker,
-            active_agents: HashSet::new(),
+            active_agents: BTreeSet::new(),
             max_wait_attempts: DEFAULT_MAX_WAIT_ATTEMPTS,
             wait_interval: Duration::from_millis(DEFAULT_WAIT_INTERVAL_MS),
             task_registry: HashMap::new(),
@@ -366,7 +366,7 @@ impl AutonomousOrchestrator {
         let candidates = self.build_candidate_list(classification);
         let start = Instant::now();
         let mut attempts = 0;
-        let mut noted_busy: HashSet<AgentType> = HashSet::new();
+        let mut noted_busy: BTreeSet<AgentType> = BTreeSet::new();
         let mut has_waited = false;
 
         loop {

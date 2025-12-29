@@ -10,7 +10,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
 /// Configuration for running multi-agent evaluation loops.
 #[derive(Debug, Clone)]
@@ -294,7 +294,7 @@ impl<S: EvaluationStrategy> MultiAgentEvaluator<S> {
                 .then_with(|| a.agent_name.cmp(&b.agent_name))
         });
 
-        let mut seen = HashSet::new();
+        let mut seen = BTreeSet::new();
         let mut next_agents = Vec::new();
         let take = self.config.top_k.max(1);
 
@@ -312,7 +312,7 @@ impl<S: EvaluationStrategy> MultiAgentEvaluator<S> {
 }
 
 fn dedupe_preserve_order(mut agents: Vec<String>) -> Vec<String> {
-    let mut seen = HashSet::new();
+    let mut seen = BTreeSet::new();
     agents.retain(|agent| seen.insert(agent.clone()));
     agents
 }

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use tokio::sync::mpsc;
 
 /// サブエージェントの種類
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum AgentType {
     /// コード分析・生成エージェント
     CodeExpert,
