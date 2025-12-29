@@ -1929,7 +1929,7 @@ impl CodexMessageProcessor {
 
     async fn list_models(
         outgoing: Arc<OutgoingMessageSender>,
-        _conversation_manager: Arc<ConversationManager>,
+        conversation_manager: Arc<ConversationManager>,
         config: Arc<Config>,
         request_id: RequestId,
         params: ModelListParams,
@@ -1937,7 +1937,7 @@ impl CodexMessageProcessor {
         let ModelListParams { limit, cursor } = params;
         let mut config = (*config).clone();
         config.features.enable(Feature::RemoteModels);
-        let models = supported_models(None);
+        let models = supported_models(conversation_manager, &config).await;
         let total = models.len();
 
         if total == 0 {
