@@ -773,7 +773,7 @@ fn add_paths_to_index(
 }
 
 fn dedupe_paths(paths: Vec<PathBuf>) -> Vec<PathBuf> {
-    let mut seen = HashSet::new();
+    let mut seen = BTreeSet::new();
     let mut result = Vec::new();
     for path in paths {
         if seen.insert(path.clone()) {
