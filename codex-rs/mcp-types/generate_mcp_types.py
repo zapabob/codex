@@ -197,7 +197,7 @@ fn default_jsonrpc() -> String {{ JSONRPC_VERSION.to_owned() }}
 
     if fmt:
         subprocess.check_call(
-            ["cargo", "fmt", "--", "--config", "imports_granularity=Item"],
+            ["cargo", "fmt"],
             cwd=lib_rs.parent.parent,
             stderr=subprocess.DEVNULL,
         )

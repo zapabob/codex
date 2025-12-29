@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::ffi::OsString;
 use std::fs;
 use std::io;
@@ -824,7 +824,7 @@ fn remove_new_untracked(
         return Ok(());
     }
 
-    let preserved_file_set: HashSet<PathBuf> = preserved_files.iter().cloned().collect();
+    let preserved_file_set: BTreeSet<PathBuf> = preserved_files.iter().cloned().collect();
     let preserved_dirs_vec: Vec<PathBuf> = preserved_dirs.to_vec();
 
     for path in current.files {
@@ -847,7 +847,7 @@ fn remove_new_untracked(
 /// Determines whether an untracked path should be kept because it existed in the snapshot.
 fn should_preserve(
     path: &Path,
-    preserved_files: &HashSet<PathBuf>,
+    preserved_files: &BTreeSet<PathBuf>,
     preserved_dirs: &[PathBuf],
 ) -> bool {
     if preserved_files.contains(path) {
