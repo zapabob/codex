@@ -5,10 +5,11 @@
  */
 
 import { NextRequest } from 'next/server'
-import { exec } from 'child_process'
+import { exec, execFile } from 'child_process'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -16,6 +17,12 @@ export const dynamic = 'force-dynamic'
 interface ExecutionEvent {
   type: 'started' | 'progress' | 'step_completed' | 'file_changed' | 'completed' | 'failed'
   data: any
+async function runCodexPlanExecute(planId: string) {
+  // Use execFile to avoid spawning a shell and prevent command injection.
+  // This runs: codex Plan execute <planId>
+  return execFileAsync('codex', ['Plan', 'execute', planId])
+}
+
   timestamp: string
 }
 
@@ -30,8 +37,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Execute Plan via CLI
-    const { stdout, stderr } = await execAsync(`codex Plan execute ${PlanId}`)
+    // Execute Plan via CLI using a safe, non-shell API
+    const { stdout, stderr } = await runCodexPlanExecute(String(PlanId))
 
     return new Response(
       JSON.stringify({
