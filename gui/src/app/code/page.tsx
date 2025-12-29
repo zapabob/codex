@@ -32,6 +32,12 @@ import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { Card } from '@/components/atoms/Card';
 import { useCodex } from '@/lib/context/CodexContext';
 
+// Escape a string so it can be safely embedded inside double quotes in a shell command.
+// This escapes backslashes first, then double quotes.
+function shellEscapeDoubleQuoted(input: string): string {
+  return input.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 interface CodeExecutionResult {
   exitCode: number;
   stdout: string;
@@ -220,7 +226,8 @@ export default function CodeExecutionPage() {
   const handleSave = async () => {
     try {
       // Save code to a file
-      const saveCommand = `echo "${code.replace(/"/g, '\\"')}" > ${filename}`;
+      const escapedCode = shellEscapeDoubleQuoted(code);
+      const saveCommand = `echo "${escapedCode}" > ${filename}`;
       await executeCommand(saveCommand);
       setSavedFiles(prev => [...prev, filename]);
       setError(null);
