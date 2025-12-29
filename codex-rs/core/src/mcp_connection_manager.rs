@@ -82,7 +82,7 @@ fn qualify_tools<I>(tools: I) -> HashMap<String, ToolInfo>
 where
     I: IntoIterator<Item = ToolInfo>,
 {
-    let mut used_names = HashSet::new();
+    let mut used_names = BTreeSet::new();
     let mut qualified_tools = HashMap::new();
     for tool in tools {
         let mut qualified_name = format!(
@@ -673,8 +673,8 @@ async fn emit_update(
 /// 2. The tool is not explicitly disabled.
 #[derive(Default, Clone)]
 pub(crate) struct ToolFilter {
-    enabled: Option<HashSet<String>>,
-    disabled: HashSet<String>,
+    enabled: Option<BTreeSet<String>>,
+    disabled: BTreeSet<String>,
 }
 
 impl ToolFilter {
@@ -682,11 +682,11 @@ impl ToolFilter {
         let enabled = cfg
             .enabled_tools
             .as_ref()
-            .map(|tools| tools.iter().cloned().collect::<HashSet<_>>());
+            .map(|tools| tools.iter().cloned().collect::<BTreeSet<_>>());
         let disabled = cfg
             .disabled_tools
             .as_ref()
-            .map(|tools| tools.iter().cloned().collect::<HashSet<_>>())
+            .map(|tools| tools.iter().cloned().collect::<BTreeSet<_>>())
             .unwrap_or_default();
 
         Self { enabled, disabled }
@@ -1044,8 +1044,8 @@ mod tests {
     #[test]
     fn tool_filter_applies_enabled_list() {
         let filter = ToolFilter {
-            enabled: Some(HashSet::from(["allowed".to_string()])),
-            disabled: HashSet::new(),
+            enabled: Some(BTreeSet::from(["allowed".to_string()])),
+            disabled: BTreeSet::new(),
         };
 
         assert!(filter.allows("allowed"));
@@ -1056,7 +1056,7 @@ mod tests {
     fn tool_filter_applies_disabled_list() {
         let filter = ToolFilter {
             enabled: None,
-            disabled: HashSet::from(["blocked".to_string()]),
+            disabled: BTreeSet::from(["blocked".to_string()]),
         };
 
         assert!(!filter.allows("blocked"));
@@ -1066,8 +1066,8 @@ mod tests {
     #[test]
     fn tool_filter_applies_enabled_then_disabled() {
         let filter = ToolFilter {
-            enabled: Some(HashSet::from(["keep".to_string(), "remove".to_string()])),
-            disabled: HashSet::from(["remove".to_string()]),
+            enabled: Some(BTreeSet::from(["keep".to_string(), "remove".to_string()])),
+            disabled: BTreeSet::from(["remove".to_string()]),
         };
 
         assert!(filter.allows("keep"));
@@ -1083,12 +1083,12 @@ mod tests {
         ];
         let server2_tools = vec![create_test_tool("server2", "tool_a")];
         let server1_filter = ToolFilter {
-            enabled: Some(HashSet::from(["tool_a".to_string(), "tool_b".to_string()])),
-            disabled: HashSet::from(["tool_b".to_string()]),
+            enabled: Some(BTreeSet::from(["tool_a".to_string(), "tool_b".to_string()])),
+            disabled: BTreeSet::from(["tool_b".to_string()]),
         };
         let server2_filter = ToolFilter {
             enabled: None,
-            disabled: HashSet::from(["tool_a".to_string()]),
+            disabled: BTreeSet::from(["tool_a".to_string()]),
         };
 
         let filtered: Vec<_> = filter_tools(server1_tools, server1_filter)
