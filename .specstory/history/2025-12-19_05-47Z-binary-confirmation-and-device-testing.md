@@ -158749,22 +158749,5380 @@ Cancelled
 ---
 
 
+npmに`@zapabob/codex`を公開する準備を進めます。まず、公開前の確認を行います。
+
+
+---
+
+Cancelled
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\README.md</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "undefined" • **3** results in **1** directory</summary>
+
+Directory: **undefined** (3 files)
+
+| File |
+|------|
+| `.\LICENSE` |
+| `.\third_party\wezterm\LICENSE` |
+| `.\extensions\vscode-codex\LICENSE` |
+
+</details>
+</tool-use>
+
+---
+
+Path does not exist: c:\Users\downl\Desktop\codex-main\bin
+
+---
+
+
+画像を確認。複数のワークフローが失敗しています。失敗の詳細を確認し、追加の修正を行います。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "sdk workflow ci.yml codespell cargo-deny workflow failures",
+  "includePattern": ".github/workflows",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\codespell.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 27
+          }
+        },
+        "contents": "# Codespell configuration is within .codespellrc\n---\nname: Codespell\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\npermissions:\n  contents: read\n\njobs:\n  codespell:\n    name: Check for spelling errors\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v6\n      - name: Annotate locations with typos\n        uses: codespell-project/codespell-problem-matcher@9ba2c57125d4908eade4308f32c4ff814c184633 # v1\n      - name: Codespell\n        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2\n        with:\n          ignore_words_file: .codespellignore",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codespell configuration is within .codespellrc",
+            "lineNumber": 1
+          },
+          {
+            "text": "---",
+            "lineNumber": 2
+          },
+          {
+            "text": "name: Codespell",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "on:",
+            "lineNumber": 5
+          },
+          {
+            "text": "  push:",
+            "lineNumber": 6
+          },
+          {
+            "text": "    branches: [main]",
+            "lineNumber": 7
+          },
+          {
+            "text": "  pull_request:",
+            "lineNumber": 8
+          },
+          {
+            "text": "    branches: [main]",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "permissions:",
+            "lineNumber": 11
+          },
+          {
+            "text": "  contents: read",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 14
+          },
+          {
+            "text": "  codespell:",
+            "lineNumber": 15
+          },
+          {
+            "text": "    name: Check for spelling errors",
+            "lineNumber": 16
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 19
+          },
+          {
+            "text": "      - name: Checkout",
+            "lineNumber": 20
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 21
+          },
+          {
+            "text": "      - name: Annotate locations with typos",
+            "lineNumber": 22
+          },
+          {
+            "text": "        uses: codespell-project/codespell-problem-matcher@9ba2c57125d4908eade4308f32c4ff814c184633 # v1",
+            "lineNumber": 23
+          },
+          {
+            "text": "      - name: Codespell",
+            "lineNumber": 24
+          },
+          {
+            "text": "        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2",
+            "lineNumber": 25
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 26
+          },
+          {
+            "text": "          ignore_words_file: .codespellignore",
+            "lineNumber": 27
+          }
+        ]
+      },
+      "score": 0.446610689163208
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 73
+          }
+        },
+        "contents": "name: Sub-Agent &amp; Deep Research CI\n\non:\n  pull_request:\n    paths:\n      - \"codex-rs/**\"\n      - \".codex/agents/**\"\n      - \".github/workflows/subagent-ci.yml\"\n  push:\n    branches: [main]\n    paths:\n      - \"codex-rs/**\"\n      - \".codex/agents/**\"\n\nenv:\n  RUST_BACKTRACE: 1\n  CARGO_TERM_COLOR: always\n\njobs:\n  # ========== Rust ビルド &amp; テスト ==========\n  rust-build-test:\n    name: Rust Build &amp; Test (Sub-Agent + Deep Research)\n    runs-on: ${{ matrix.os }}\n    timeout-minutes: 30\n    strategy:\n      matrix:\n        os: [ubuntu-latest, windows-latest, macos-latest]\n        rust: [stable]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n        with:\n          toolchain: ${{ matrix.rust }}\n          components: rustfmt, clippy\n\n      - name: Cache Cargo registry\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}\n          restore-keys: |\n            ${{ runner.os }}-cargo-\n\n      - name: Build codex-core (Sub-Agent Runtime)\n        working-directory: codex-rs\n        run: cargo build --release -p codex-core --lib\n\n      - name: Build codex-deep-research\n        working-directory: codex-rs\n        run: cargo build --release -p codex-deep-research\n\n      - name: Build codex-mcp-server (Codex MCP Tools)\n        working-directory: codex-rs\n        run: cargo build --release -p codex-mcp-server\n\n      - name: Build codex-cli\n        working-directory: codex-rs\n        run: cargo build --release -p codex-cli\n\n      - name: Run codex-core tests (Agent Runtime)\n        working-directory: codex-rs\n        run: cargo test -p codex-core --lib -- --nocapture\n\n      - name: Run codex-deep-research tests\n        working-directory: codex-rs\n        run: cargo test -p codex-deep-research --lib -- --nocapture",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: Sub-Agent &amp; Deep Research CI",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "on:",
+            "lineNumber": 3
+          },
+          {
+            "text": "  pull_request:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    paths:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - \"codex-rs/**\"",
+            "lineNumber": 6
+          },
+          {
+            "text": "      - \".codex/agents/**\"",
+            "lineNumber": 7
+          },
+          {
+            "text": "      - \".github/workflows/subagent-ci.yml\"",
+            "lineNumber": 8
+          },
+          {
+            "text": "  push:",
+            "lineNumber": 9
+          },
+          {
+            "text": "    branches: [main]",
+            "lineNumber": 10
+          },
+          {
+            "text": "    paths:",
+            "lineNumber": 11
+          },
+          {
+            "text": "      - \"codex-rs/**\"",
+            "lineNumber": 12
+          },
+          {
+            "text": "      - \".codex/agents/**\"",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "env:",
+            "lineNumber": 15
+          },
+          {
+            "text": "  RUST_BACKTRACE: 1",
+            "lineNumber": 16
+          },
+          {
+            "text": "  CARGO_TERM_COLOR: always",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 19
+          },
+          {
+            "text": "  # ========== Rust ビルド &amp; テスト ==========",
+            "lineNumber": 20
+          },
+          {
+            "text": "  rust-build-test:",
+            "lineNumber": 21
+          },
+          {
+            "text": "    name: Rust Build &amp; Test (Sub-Agent + Deep Research)",
+            "lineNumber": 22
+          },
+          {
+            "text": "    runs-on: ${{ matrix.os }}",
+            "lineNumber": 23
+          },
+          {
+            "text": "    timeout-minutes: 30",
+            "lineNumber": 24
+          },
+          {
+            "text": "    strategy:",
+            "lineNumber": 25
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 26
+          },
+          {
+            "text": "        os: [ubuntu-latest, windows-latest, macos-latest]",
+            "lineNumber": 27
+          },
+          {
+            "text": "        rust: [stable]",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 30
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 31
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 34
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 35
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 36
+          },
+          {
+            "text": "          toolchain: ${{ matrix.rust }}",
+            "lineNumber": 37
+          },
+          {
+            "text": "          components: rustfmt, clippy",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "      - name: Cache Cargo registry",
+            "lineNumber": 40
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 41
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 42
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 43
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 44
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 45
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 46
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 47
+          },
+          {
+            "text": "          restore-keys: |",
+            "lineNumber": 48
+          },
+          {
+            "text": "            ${{ runner.os }}-cargo-",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "      - name: Build codex-core (Sub-Agent Runtime)",
+            "lineNumber": 51
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 52
+          },
+          {
+            "text": "        run: cargo build --release -p codex-core --lib",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "      - name: Build codex-deep-research",
+            "lineNumber": 55
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 56
+          },
+          {
+            "text": "        run: cargo build --release -p codex-deep-research",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "      - name: Build codex-mcp-server (Codex MCP Tools)",
+            "lineNumber": 59
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 60
+          },
+          {
+            "text": "        run: cargo build --release -p codex-mcp-server",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "      - name: Build codex-cli",
+            "lineNumber": 63
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 64
+          },
+          {
+            "text": "        run: cargo build --release -p codex-cli",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "      - name: Run codex-core tests (Agent Runtime)",
+            "lineNumber": 67
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 68
+          },
+          {
+            "text": "        run: cargo test -p codex-core --lib -- --nocapture",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "      - name: Run codex-deep-research tests",
+            "lineNumber": 71
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 72
+          },
+          {
+            "text": "        run: cargo test -p codex-deep-research --lib -- --nocapture",
+            "lineNumber": 73
+          }
+        ]
+      },
+      "score": 0.3978174030780792
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 222
+          },
+          "endPosition": {
+            "line": 284
+          }
+        },
+        "contents": "    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n\n      - name: Cache Cargo\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}\n\n      - name: Build codex CLI\n        working-directory: codex-rs\n        run: cargo build --release -p codex-cli\n\n      - name: Test delegate command (researcher)\n        working-directory: codex-rs\n        run: |\n          ./target/release/codex delegate researcher --goal \"CI test\" --budget 1000 || true\n          echo \"Delegate test completed\"\n\n      - name: Verify delegate output\n        run: |\n          echo \"Sub-Agent feature is functional\"\n\n  # ========== ドキュメント検証 ==========\n  docs-validation:\n    name: Documentation Validation\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Check documentation exists\n        run: |\n          test -f _docs/2025-10-11_全Phase完全完了最終レポート.md\n          test -f _docs/2025-10-11_CodexMCP化設計書.md\n          test -f _docs/2025-10-11_Phase3完全実装完了.md\n          test -f _docs/2025-10-11_機能テスト結果.md\n          echo \"All documentation files exist\"\n\n      - name: Check README updates\n        run: |\n          grep -q \"Sub-Agent System\" README.md || (echo \"README missing sub-agent section\" &amp;&amp; exit 1)\n          echo \"README is up to date\"\n\n  # ========== セキュリティ監査 ==========\n  security-audit:\n    name: Security Audit (cargo-audit)\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    steps:",
+            "lineNumber": 223
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 224
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 227
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 228
+          },
+          {
+            "lineNumber": 229
+          },
+          {
+            "text": "      - name: Cache Cargo",
+            "lineNumber": 230
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 231
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 232
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 233
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 234
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 235
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 236
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 237
+          },
+          {
+            "lineNumber": 238
+          },
+          {
+            "text": "      - name: Build codex CLI",
+            "lineNumber": 239
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 240
+          },
+          {
+            "text": "        run: cargo build --release -p codex-cli",
+            "lineNumber": 241
+          },
+          {
+            "lineNumber": 242
+          },
+          {
+            "text": "      - name: Test delegate command (researcher)",
+            "lineNumber": 243
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 244
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 245
+          },
+          {
+            "text": "          ./target/release/codex delegate researcher --goal \"CI test\" --budget 1000 || true",
+            "lineNumber": 246
+          },
+          {
+            "text": "          echo \"Delegate test completed\"",
+            "lineNumber": 247
+          },
+          {
+            "lineNumber": 248
+          },
+          {
+            "text": "      - name: Verify delegate output",
+            "lineNumber": 249
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 250
+          },
+          {
+            "text": "          echo \"Sub-Agent feature is functional\"",
+            "lineNumber": 251
+          },
+          {
+            "lineNumber": 252
+          },
+          {
+            "text": "  # ========== ドキュメント検証 ==========",
+            "lineNumber": 253
+          },
+          {
+            "text": "  docs-validation:",
+            "lineNumber": 254
+          },
+          {
+            "text": "    name: Documentation Validation",
+            "lineNumber": 255
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 256
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 259
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 260
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 261
+          },
+          {
+            "lineNumber": 262
+          },
+          {
+            "text": "      - name: Check documentation exists",
+            "lineNumber": 263
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 264
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_全Phase完全完了最終レポート.md",
+            "lineNumber": 265
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_CodexMCP化設計書.md",
+            "lineNumber": 266
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_Phase3完全実装完了.md",
+            "lineNumber": 267
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_機能テスト結果.md",
+            "lineNumber": 268
+          },
+          {
+            "text": "          echo \"All documentation files exist\"",
+            "lineNumber": 269
+          },
+          {
+            "lineNumber": 270
+          },
+          {
+            "text": "      - name: Check README updates",
+            "lineNumber": 271
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 272
+          },
+          {
+            "text": "          grep -q \"Sub-Agent System\" README.md || (echo \"README missing sub-agent section\" &amp;&amp; exit 1)",
+            "lineNumber": 273
+          },
+          {
+            "text": "          echo \"README is up to date\"",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "  # ========== セキュリティ監査 ==========",
+            "lineNumber": 276
+          },
+          {
+            "text": "  security-audit:",
+            "lineNumber": 277
+          },
+          {
+            "text": "    name: Security Audit (cargo-audit)",
+            "lineNumber": 278
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 279
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 280
+          },
+          {
+            "lineNumber": 281
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 282
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 283
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 284
+          }
+        ]
+      },
+      "score": 0.39498838782310486
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 281
+          },
+          "endPosition": {
+            "line": 323
+          }
+        },
+        "contents": "    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n\n      - name: Install cargo-audit\n        run: cargo install cargo-audit --locked\n\n      - name: Run security audit\n        working-directory: codex-rs\n        run: cargo audit --ignore RUSTSEC-2024-0332\n\n  # ========== 最終サマリー ==========\n  ci-success:\n    name: CI Success (All Checks Passed)\n    runs-on: ubuntu-latest\n    needs:\n      - rust-build-test\n      - clippy\n      - rustfmt\n      - validate-agents\n      - deep-research-test\n      - subagent-test\n      - docs-validation\n      - security-audit\n\n    steps:\n      - name: Success notification\n        run: |\n          echo \"🎉 All CI checks passed!\"\n          echo \"✅ Rust build &amp; tests\"\n          echo \"✅ Clippy lints\"\n          echo \"✅ Rustfmt checks\"\n          echo \"✅ Agent definitions validated\"\n          echo \"✅ Deep Research tested\"\n          echo \"✅ Sub-Agent tested\"\n          echo \"✅ Documentation validated\"\n          echo \"✅ Security audit passed\"\n          echo \"\"\n          echo \"Status: Production Ready ✅\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    steps:",
+            "lineNumber": 282
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 283
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 284
+          },
+          {
+            "lineNumber": 285
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 286
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 287
+          },
+          {
+            "lineNumber": 288
+          },
+          {
+            "text": "      - name: Install cargo-audit",
+            "lineNumber": 289
+          },
+          {
+            "text": "        run: cargo install cargo-audit --locked",
+            "lineNumber": 290
+          },
+          {
+            "lineNumber": 291
+          },
+          {
+            "text": "      - name: Run security audit",
+            "lineNumber": 292
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 293
+          },
+          {
+            "text": "        run: cargo audit --ignore RUSTSEC-2024-0332",
+            "lineNumber": 294
+          },
+          {
+            "lineNumber": 295
+          },
+          {
+            "text": "  # ========== 最終サマリー ==========",
+            "lineNumber": 296
+          },
+          {
+            "text": "  ci-success:",
+            "lineNumber": 297
+          },
+          {
+            "text": "    name: CI Success (All Checks Passed)",
+            "lineNumber": 298
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 299
+          },
+          {
+            "text": "    needs:",
+            "lineNumber": 300
+          },
+          {
+            "text": "      - rust-build-test",
+            "lineNumber": 301
+          },
+          {
+            "text": "      - clippy",
+            "lineNumber": 302
+          },
+          {
+            "text": "      - rustfmt",
+            "lineNumber": 303
+          },
+          {
+            "text": "      - validate-agents",
+            "lineNumber": 304
+          },
+          {
+            "text": "      - deep-research-test",
+            "lineNumber": 305
+          },
+          {
+            "text": "      - subagent-test",
+            "lineNumber": 306
+          },
+          {
+            "text": "      - docs-validation",
+            "lineNumber": 307
+          },
+          {
+            "text": "      - security-audit",
+            "lineNumber": 308
+          },
+          {
+            "lineNumber": 309
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 310
+          },
+          {
+            "text": "      - name: Success notification",
+            "lineNumber": 311
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 312
+          },
+          {
+            "text": "          echo \"🎉 All CI checks passed!\"",
+            "lineNumber": 313
+          },
+          {
+            "text": "          echo \"✅ Rust build &amp; tests\"",
+            "lineNumber": 314
+          },
+          {
+            "text": "          echo \"✅ Clippy lints\"",
+            "lineNumber": 315
+          },
+          {
+            "text": "          echo \"✅ Rustfmt checks\"",
+            "lineNumber": 316
+          },
+          {
+            "text": "          echo \"✅ Agent definitions validated\"",
+            "lineNumber": 317
+          },
+          {
+            "text": "          echo \"✅ Deep Research tested\"",
+            "lineNumber": 318
+          },
+          {
+            "text": "          echo \"✅ Sub-Agent tested\"",
+            "lineNumber": 319
+          },
+          {
+            "text": "          echo \"✅ Documentation validated\"",
+            "lineNumber": 320
+          },
+          {
+            "text": "          echo \"✅ Security audit passed\"",
+            "lineNumber": 321
+          },
+          {
+            "text": "          echo \"\"",
+            "lineNumber": 322
+          },
+          {
+            "text": "          echo \"Status: Production Ready ✅\"",
+            "lineNumber": 323
+          }
+        ]
+      },
+      "score": 0.39364373683929443
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 61
+          }
+        },
+        "contents": "name: rust-ci\non:\n  pull_request: {}\n  push:\n    branches:\n      - main\n  workflow_dispatch:\n\n# CI builds in debug (dev) for faster signal.\n\njobs:\n  # --- Detect what changed to detect which tests to run (always runs) -------------------------------------\n  changed:\n    name: Detect changed areas\n    runs-on: ubuntu-24.04\n    outputs:\n      codex: ${{ steps.detect.outputs.codex }}\n      workflows: ${{ steps.detect.outputs.workflows }}\n    steps:\n      - uses: actions/checkout@v6\n        with:\n          fetch-depth: 0\n      - name: Detect changed paths (no external action)\n        id: detect\n        shell: bash\n        run: |\n          set -euo pipefail\n\n          if [[ \"${{ github.event_name }}\" == \"pull_request\" ]]; then\n            BASE_SHA='${{ github.event.pull_request.base.sha }}'\n            HEAD_SHA='${{ github.event.pull_request.head.sha }}'\n            echo \"Base SHA: $BASE_SHA\"\n            echo \"Head SHA: $HEAD_SHA\"\n            # List files changed between base and PR head\n            mapfile -t files &lt; &lt;(git diff --name-only --no-renames \"$BASE_SHA\" \"$HEAD_SHA\")\n          else\n            # On push / manual runs, default to running everything\n            files=(\"codex-rs/force\" \".github/force\")\n          fi\n\n          codex=false\n          workflows=false\n          for f in \"${files[@]}\"; do\n            [[ $f == codex-rs/* ]] &amp;&amp; codex=true\n            [[ $f == .github/* ]] &amp;&amp; workflows=true\n          done\n\n          echo \"codex=$codex\" &gt;&gt; \"$GITHUB_OUTPUT\"\n          echo \"workflows=$workflows\" &gt;&gt; \"$GITHUB_OUTPUT\"\n\n  # --- CI that doesn't need specific targets ---------------------------------\n  general:\n    name: Format / etc\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    needs: changed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    steps:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: rust-ci",
+            "lineNumber": 1
+          },
+          {
+            "text": "on:",
+            "lineNumber": 2
+          },
+          {
+            "text": "  pull_request: {}",
+            "lineNumber": 3
+          },
+          {
+            "text": "  push:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    branches:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - main",
+            "lineNumber": 6
+          },
+          {
+            "text": "  workflow_dispatch:",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "# CI builds in debug (dev) for faster signal.",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 11
+          },
+          {
+            "text": "  # --- Detect what changed to detect which tests to run (always runs) -------------------------------------",
+            "lineNumber": 12
+          },
+          {
+            "text": "  changed:",
+            "lineNumber": 13
+          },
+          {
+            "text": "    name: Detect changed areas",
+            "lineNumber": 14
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 15
+          },
+          {
+            "text": "    outputs:",
+            "lineNumber": 16
+          },
+          {
+            "text": "      codex: ${{ steps.detect.outputs.codex }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "      workflows: ${{ steps.detect.outputs.workflows }}",
+            "lineNumber": 18
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 19
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 20
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 21
+          },
+          {
+            "text": "          fetch-depth: 0",
+            "lineNumber": 22
+          },
+          {
+            "text": "      - name: Detect changed paths (no external action)",
+            "lineNumber": 23
+          },
+          {
+            "text": "        id: detect",
+            "lineNumber": 24
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 25
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 26
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "          if [[ \"${{ github.event_name }}\" == \"pull_request\" ]]; then",
+            "lineNumber": 29
+          },
+          {
+            "text": "            BASE_SHA='${{ github.event.pull_request.base.sha }}'",
+            "lineNumber": 30
+          },
+          {
+            "text": "            HEAD_SHA='${{ github.event.pull_request.head.sha }}'",
+            "lineNumber": 31
+          },
+          {
+            "text": "            echo \"Base SHA: $BASE_SHA\"",
+            "lineNumber": 32
+          },
+          {
+            "text": "            echo \"Head SHA: $HEAD_SHA\"",
+            "lineNumber": 33
+          },
+          {
+            "text": "            # List files changed between base and PR head",
+            "lineNumber": 34
+          },
+          {
+            "text": "            mapfile -t files &lt; &lt;(git diff --name-only --no-renames \"$BASE_SHA\" \"$HEAD_SHA\")",
+            "lineNumber": 35
+          },
+          {
+            "text": "          else",
+            "lineNumber": 36
+          },
+          {
+            "text": "            # On push / manual runs, default to running everything",
+            "lineNumber": 37
+          },
+          {
+            "text": "            files=(\"codex-rs/force\" \".github/force\")",
+            "lineNumber": 38
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "          codex=false",
+            "lineNumber": 41
+          },
+          {
+            "text": "          workflows=false",
+            "lineNumber": 42
+          },
+          {
+            "text": "          for f in \"${files[@]}\"; do",
+            "lineNumber": 43
+          },
+          {
+            "text": "            [[ $f == codex-rs/* ]] &amp;&amp; codex=true",
+            "lineNumber": 44
+          },
+          {
+            "text": "            [[ $f == .github/* ]] &amp;&amp; workflows=true",
+            "lineNumber": 45
+          },
+          {
+            "text": "          done",
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "text": "          echo \"codex=$codex\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 48
+          },
+          {
+            "text": "          echo \"workflows=$workflows\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "  # --- CI that doesn't need specific targets ---------------------------------",
+            "lineNumber": 51
+          },
+          {
+            "text": "  general:",
+            "lineNumber": 52
+          },
+          {
+            "text": "    name: Format / etc",
+            "lineNumber": 53
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 54
+          },
+          {
+            "text": "    timeout-minutes: 15",
+            "lineNumber": 55
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 56
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 57
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 58
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 59
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 60
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 61
+          }
+        ]
+      },
+      "score": 0.3769497871398926
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 57
+          },
+          "endPosition": {
+            "line": 111,
+            "column": 8
+          }
+        },
+        "contents": "    defaults:\n      run:\n        working-directory: codex-rs\n    steps:\n      - uses: actions/checkout@v6\n      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          components: rustfmt\n      - name: cargo fmt\n        run: cargo fmt -- --check\n      - name: Verify codegen for mcp-types\n        run: ./mcp-types/check_lib_rs.py\n\n  cargo_shear:\n    name: cargo shear\n    runs-on: ubuntu-24.04\n    needs: changed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    steps:\n      - uses: actions/checkout@v6\n      - uses: dtolnay/rust-toolchain@1.90\n      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: cargo-shear\n          version: 1.5.1\n      - name: cargo shear\n        run: cargo shear\n\n  # --- CI to validate on different os/targets --------------------------------\n  lint_build:\n    name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' &amp;&amp; ' (release)' || '' }}\n    runs-on: ${{ matrix.runner }}\n    timeout-minutes: 30\n    needs: changed\n    # Keep job-level if to avoid spinning up runners when not needed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    env:\n      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).\n      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}\n      CARGO_INCREMENTAL: \"0\"\n      SCCACHE_CACHE_SIZE: 10G\n      # Optimize for Windows memory usage\n      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}\n      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}\n\n    strategy:\n      fail-fast: false\n      matrix:\n        ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    defaults:",
+            "lineNumber": 58
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 59
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 60
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 61
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 62
+          },
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 63
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 64
+          },
+          {
+            "text": "          components: rustfmt",
+            "lineNumber": 65
+          },
+          {
+            "text": "      - name: cargo fmt",
+            "lineNumber": 66
+          },
+          {
+            "text": "        run: cargo fmt -- --check",
+            "lineNumber": 67
+          },
+          {
+            "text": "      - name: Verify codegen for mcp-types",
+            "lineNumber": 68
+          },
+          {
+            "text": "        run: ./mcp-types/check_lib_rs.py",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "  cargo_shear:",
+            "lineNumber": 71
+          },
+          {
+            "text": "    name: cargo shear",
+            "lineNumber": 72
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 73
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 74
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 75
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 76
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 77
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 78
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 79
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 80
+          },
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 81
+          },
+          {
+            "text": "      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 82
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 83
+          },
+          {
+            "text": "          tool: cargo-shear",
+            "lineNumber": 84
+          },
+          {
+            "text": "          version: 1.5.1",
+            "lineNumber": 85
+          },
+          {
+            "text": "      - name: cargo shear",
+            "lineNumber": 86
+          },
+          {
+            "text": "        run: cargo shear",
+            "lineNumber": 87
+          },
+          {
+            "lineNumber": 88
+          },
+          {
+            "text": "  # --- CI to validate on different os/targets --------------------------------",
+            "lineNumber": 89
+          },
+          {
+            "text": "  lint_build:",
+            "lineNumber": 90
+          },
+          {
+            "text": "    name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' &amp;&amp; ' (release)' || '' }}",
+            "lineNumber": 91
+          },
+          {
+            "text": "    runs-on: ${{ matrix.runner }}",
+            "lineNumber": 92
+          },
+          {
+            "text": "    timeout-minutes: 30",
+            "lineNumber": 93
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 94
+          },
+          {
+            "text": "    # Keep job-level if to avoid spinning up runners when not needed",
+            "lineNumber": 95
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 96
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 97
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 98
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 99
+          },
+          {
+            "text": "    env:",
+            "lineNumber": 100
+          },
+          {
+            "text": "      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).",
+            "lineNumber": 101
+          },
+          {
+            "text": "      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}",
+            "lineNumber": 102
+          },
+          {
+            "text": "      CARGO_INCREMENTAL: \"0\"",
+            "lineNumber": 103
+          },
+          {
+            "text": "      SCCACHE_CACHE_SIZE: 10G",
+            "lineNumber": 104
+          },
+          {
+            "text": "      # Optimize for Windows memory usage",
+            "lineNumber": 105
+          },
+          {
+            "text": "      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}",
+            "lineNumber": 106
+          },
+          {
+            "text": "      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}",
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108
+          },
+          {
+            "text": "    strategy:",
+            "lineNumber": 109
+          },
+          {
+            "text": "      fail-fast: false",
+            "lineNumber": 110
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 111
+          },
+          {
+            "text": "        ",
+            "lineNumber": 112
+          }
+        ]
+      },
+      "score": 0.37315475940704346
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 310
+          },
+          "endPosition": {
+            "line": 361,
+            "column": 8
+          }
+        },
+        "contents": "      - name: sccache summary\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        shell: bash\n        run: |\n          {\n            echo \"### sccache stats — ${{ matrix.target }} (${{ matrix.profile }})\";\n            echo;\n            echo '&#96;&#96;&#96;';\n            sccache --show-stats || true;\n            echo '&#96;&#96;&#96;';\n          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"\n\n      - name: Save APT cache (musl)\n        if: always() &amp;&amp; !cancelled() &amp;&amp; (matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl') &amp;&amp; steps.cache_apt_restore.outputs.cache-hit != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: |\n            /var/cache/apt\n          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1\n\n      # Fail the job if any of the previous steps failed.\n      - name: verify all steps passed\n        if: |\n          steps.clippy.outcome == 'failure' ||\n          steps.cargo_check_all_crates.outcome == 'failure'\n        run: |\n          echo \"One or more checks failed (clippy or cargo_check_all_crates). See logs for details.\"\n          exit 1\n\n  tests:\n    name: Tests — ${{ matrix.runner }} - ${{ matrix.target }}\n    runs-on: ${{ matrix.runner }}\n    timeout-minutes: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 60 || 30 }}\n    needs: changed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    env:\n      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).\n      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}\n      CARGO_INCREMENTAL: \"0\"\n      SCCACHE_CACHE_SIZE: 10G\n      # Optimize for Windows memory usage\n      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}\n      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}\n\n    strategy:\n      fail-fast: false\n      matrix:\n        ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: sccache summary",
+            "lineNumber": 311
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 312
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 313
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 314
+          },
+          {
+            "text": "          {",
+            "lineNumber": 315
+          },
+          {
+            "text": "            echo \"### sccache stats — ${{ matrix.target }} (${{ matrix.profile }})\";",
+            "lineNumber": 316
+          },
+          {
+            "text": "            echo;",
+            "lineNumber": 317
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 318
+          },
+          {
+            "text": "            sccache --show-stats || true;",
+            "lineNumber": 319
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 320
+          },
+          {
+            "text": "          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"",
+            "lineNumber": 321
+          },
+          {
+            "lineNumber": 322
+          },
+          {
+            "text": "      - name: Save APT cache (musl)",
+            "lineNumber": 323
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; (matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl') &amp;&amp; steps.cache_apt_restore.outputs.cache-hit != 'true'",
+            "lineNumber": 324
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 325
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 326
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 327
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 328
+          },
+          {
+            "text": "            /var/cache/apt",
+            "lineNumber": 329
+          },
+          {
+            "text": "          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1",
+            "lineNumber": 330
+          },
+          {
+            "lineNumber": 331
+          },
+          {
+            "text": "      # Fail the job if any of the previous steps failed.",
+            "lineNumber": 332
+          },
+          {
+            "text": "      - name: verify all steps passed",
+            "lineNumber": 333
+          },
+          {
+            "text": "        if: |",
+            "lineNumber": 334
+          },
+          {
+            "text": "          steps.clippy.outcome == 'failure' ||",
+            "lineNumber": 335
+          },
+          {
+            "text": "          steps.cargo_check_all_crates.outcome == 'failure'",
+            "lineNumber": 336
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 337
+          },
+          {
+            "text": "          echo \"One or more checks failed (clippy or cargo_check_all_crates). See logs for details.\"",
+            "lineNumber": 338
+          },
+          {
+            "text": "          exit 1",
+            "lineNumber": 339
+          },
+          {
+            "lineNumber": 340
+          },
+          {
+            "text": "  tests:",
+            "lineNumber": 341
+          },
+          {
+            "text": "    name: Tests — ${{ matrix.runner }} - ${{ matrix.target }}",
+            "lineNumber": 342
+          },
+          {
+            "text": "    runs-on: ${{ matrix.runner }}",
+            "lineNumber": 343
+          },
+          {
+            "text": "    timeout-minutes: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 60 || 30 }}",
+            "lineNumber": 344
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 345
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 346
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 347
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 348
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 349
+          },
+          {
+            "text": "    env:",
+            "lineNumber": 350
+          },
+          {
+            "text": "      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).",
+            "lineNumber": 351
+          },
+          {
+            "text": "      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}",
+            "lineNumber": 352
+          },
+          {
+            "text": "      CARGO_INCREMENTAL: \"0\"",
+            "lineNumber": 353
+          },
+          {
+            "text": "      SCCACHE_CACHE_SIZE: 10G",
+            "lineNumber": 354
+          },
+          {
+            "text": "      # Optimize for Windows memory usage",
+            "lineNumber": 355
+          },
+          {
+            "text": "      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}",
+            "lineNumber": 356
+          },
+          {
+            "text": "      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}",
+            "lineNumber": 357
+          },
+          {
+            "lineNumber": 358
+          },
+          {
+            "text": "    strategy:",
+            "lineNumber": 359
+          },
+          {
+            "text": "      fail-fast: false",
+            "lineNumber": 360
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 361
+          },
+          {
+            "text": "        ",
+            "lineNumber": 362
+          }
+        ]
+      },
+      "score": 0.3596220910549164
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 127
+          },
+          "endPosition": {
+            "line": 189,
+            "column": 6
+          }
+        },
+        "contents": "    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n        with:\n          components: rustfmt\n\n      - name: Check formatting\n        working-directory: codex-rs\n        run: cargo fmt --all -- --check\n\n  # ========== エージェント定義検証 ==========\n  validate-agents:\n    name: Validate Agent Definitions\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install yq (YAML validator)\n        run: |\n          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64\n          sudo chmod +x /usr/local/bin/yq\n\n      - name: Validate YAML syntax\n        run: |\n          for file in .codex/agents/*.yaml; do\n            echo \"Validating $file...\"\n            yq eval '.' \"$file\" &gt; /dev/null || exit 1\n          done\n\n      - name: Check required fields\n        run: |\n          for file in .codex/agents/*.yaml; do\n            echo \"Checking required fields in $file...\"\n            yq eval '.name' \"$file\" &gt; /dev/null || (echo \"Missing 'name' field\" &amp;&amp; exit 1)\n            yq eval '.goal' \"$file\" &gt; /dev/null || (echo \"Missing 'goal' field\" &amp;&amp; exit 1)\n            yq eval '.tools' \"$file\" &gt; /dev/null || (echo \"Missing 'tools' field\" &amp;&amp; exit 1)\n          done\n\n      - name: List agent files\n        run: |\n          echo \"Found agent definitions:\"\n          ls -la .codex/agents/*.yaml\n\n  # ========== Deep Research 統合テスト ==========\n  deep-research-test:\n    name: Deep Research Integration Test\n    runs-on: ubuntu-latest\n    timeout-minutes: 15\n    needs: [rust-build-test]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 128
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 130
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 131
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 134
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 135
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 136
+          },
+          {
+            "text": "          components: rustfmt",
+            "lineNumber": 137
+          },
+          {
+            "lineNumber": 138
+          },
+          {
+            "text": "      - name: Check formatting",
+            "lineNumber": 139
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 140
+          },
+          {
+            "text": "        run: cargo fmt --all -- --check",
+            "lineNumber": 141
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "text": "  # ========== エージェント定義検証 ==========",
+            "lineNumber": 143
+          },
+          {
+            "text": "  validate-agents:",
+            "lineNumber": 144
+          },
+          {
+            "text": "    name: Validate Agent Definitions",
+            "lineNumber": 145
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 146
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 147
+          },
+          {
+            "lineNumber": 148
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 149
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 150
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 151
+          },
+          {
+            "lineNumber": 152
+          },
+          {
+            "text": "      - name: Install yq (YAML validator)",
+            "lineNumber": 153
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 154
+          },
+          {
+            "text": "          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64",
+            "lineNumber": 155
+          },
+          {
+            "text": "          sudo chmod +x /usr/local/bin/yq",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "      - name: Validate YAML syntax",
+            "lineNumber": 158
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 159
+          },
+          {
+            "text": "          for file in .codex/agents/*.yaml; do",
+            "lineNumber": 160
+          },
+          {
+            "text": "            echo \"Validating $file...\"",
+            "lineNumber": 161
+          },
+          {
+            "text": "            yq eval '.' \"$file\" &gt; /dev/null || exit 1",
+            "lineNumber": 162
+          },
+          {
+            "text": "          done",
+            "lineNumber": 163
+          },
+          {
+            "lineNumber": 164
+          },
+          {
+            "text": "      - name: Check required fields",
+            "lineNumber": 165
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 166
+          },
+          {
+            "text": "          for file in .codex/agents/*.yaml; do",
+            "lineNumber": 167
+          },
+          {
+            "text": "            echo \"Checking required fields in $file...\"",
+            "lineNumber": 168
+          },
+          {
+            "text": "            yq eval '.name' \"$file\" &gt; /dev/null || (echo \"Missing 'name' field\" &amp;&amp; exit 1)",
+            "lineNumber": 169
+          },
+          {
+            "text": "            yq eval '.goal' \"$file\" &gt; /dev/null || (echo \"Missing 'goal' field\" &amp;&amp; exit 1)",
+            "lineNumber": 170
+          },
+          {
+            "text": "            yq eval '.tools' \"$file\" &gt; /dev/null || (echo \"Missing 'tools' field\" &amp;&amp; exit 1)",
+            "lineNumber": 171
+          },
+          {
+            "text": "          done",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "      - name: List agent files",
+            "lineNumber": 174
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 175
+          },
+          {
+            "text": "          echo \"Found agent definitions:\"",
+            "lineNumber": 176
+          },
+          {
+            "text": "          ls -la .codex/agents/*.yaml",
+            "lineNumber": 177
+          },
+          {
+            "lineNumber": 178
+          },
+          {
+            "text": "  # ========== Deep Research 統合テスト ==========",
+            "lineNumber": 179
+          },
+          {
+            "text": "  deep-research-test:",
+            "lineNumber": 180
+          },
+          {
+            "text": "    name: Deep Research Integration Test",
+            "lineNumber": 181
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 182
+          },
+          {
+            "text": "    timeout-minutes: 15",
+            "lineNumber": 183
+          },
+          {
+            "text": "    needs: [rust-build-test]",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 186
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 187
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 188
+          },
+          {
+            "lineNumber": 189
+          },
+          {
+            "text": "      ",
+            "lineNumber": 190
+          }
+        ]
+      },
+      "score": 0.356290340423584
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 69
+          },
+          "endPosition": {
+            "line": 133,
+            "column": 6
+          }
+        },
+        "contents": "      - name: Run codex-deep-research tests\n        working-directory: codex-rs\n        run: cargo test -p codex-deep-research --lib -- --nocapture\n\n      - name: Run codex-mcp-server tests\n        working-directory: codex-rs\n        run: cargo test -p codex-mcp-server --lib -- --nocapture\n\n      - name: Upload binaries (artifacts)\n        if: matrix.os == 'ubuntu-latest'\n        uses: actions/upload-artifact@v4\n        with:\n          name: codex-binaries-${{ matrix.os }}\n          path: |\n            codex-rs/target/release/codex\n            codex-rs/target/release/codex-mcp-server\n\n  # ========== Clippy Lint ==========\n  clippy:\n    name: Clippy Lint (Sub-Agent Code Quality)\n    runs-on: ubuntu-latest\n    timeout-minutes: 20\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n        with:\n          components: clippy\n\n      - name: Cache Cargo\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}\n\n      - name: Run Clippy (codex-core)\n        working-directory: codex-rs\n        run: cargo clippy -p codex-core --lib -- -D warnings\n\n      - name: Run Clippy (codex-deep-research)\n        working-directory: codex-rs\n        run: cargo clippy -p codex-deep-research --lib -- -D warnings\n\n      - name: Run Clippy (codex-mcp-server)\n        working-directory: codex-rs\n        run: cargo clippy -p codex-mcp-server --lib -- -D warnings\n\n  # ========== Rustfmt Format Check ==========\n  rustfmt:\n    name: Rustfmt Format Check\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: Run codex-deep-research tests",
+            "lineNumber": 71
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 72
+          },
+          {
+            "text": "        run: cargo test -p codex-deep-research --lib -- --nocapture",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "      - name: Run codex-mcp-server tests",
+            "lineNumber": 75
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 76
+          },
+          {
+            "text": "        run: cargo test -p codex-mcp-server --lib -- --nocapture",
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "text": "      - name: Upload binaries (artifacts)",
+            "lineNumber": 79
+          },
+          {
+            "text": "        if: matrix.os == 'ubuntu-latest'",
+            "lineNumber": 80
+          },
+          {
+            "text": "        uses: actions/upload-artifact@v4",
+            "lineNumber": 81
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 82
+          },
+          {
+            "text": "          name: codex-binaries-${{ matrix.os }}",
+            "lineNumber": 83
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 84
+          },
+          {
+            "text": "            codex-rs/target/release/codex",
+            "lineNumber": 85
+          },
+          {
+            "text": "            codex-rs/target/release/codex-mcp-server",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "  # ========== Clippy Lint ==========",
+            "lineNumber": 88
+          },
+          {
+            "text": "  clippy:",
+            "lineNumber": 89
+          },
+          {
+            "text": "    name: Clippy Lint (Sub-Agent Code Quality)",
+            "lineNumber": 90
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 91
+          },
+          {
+            "text": "    timeout-minutes: 20",
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 94
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 95
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 98
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 99
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 100
+          },
+          {
+            "text": "          components: clippy",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "      - name: Cache Cargo",
+            "lineNumber": 103
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 104
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 105
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 106
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 107
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 108
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 109
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "      - name: Run Clippy (codex-core)",
+            "lineNumber": 112
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 113
+          },
+          {
+            "text": "        run: cargo clippy -p codex-core --lib -- -D warnings",
+            "lineNumber": 114
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "text": "      - name: Run Clippy (codex-deep-research)",
+            "lineNumber": 116
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 117
+          },
+          {
+            "text": "        run: cargo clippy -p codex-deep-research --lib -- -D warnings",
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "      - name: Run Clippy (codex-mcp-server)",
+            "lineNumber": 120
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 121
+          },
+          {
+            "text": "        run: cargo clippy -p codex-mcp-server --lib -- -D warnings",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "  # ========== Rustfmt Format Check ==========",
+            "lineNumber": 124
+          },
+          {
+            "text": "  rustfmt:",
+            "lineNumber": 125
+          },
+          {
+            "text": "    name: Rustfmt Format Check",
+            "lineNumber": 126
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 127
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 128
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 130
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 131
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "      ",
+            "lineNumber": 134
+          }
+        ]
+      },
+      "score": 0.3543504476547241
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-labeler.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 45
+          }
+        },
+        "contents": "name: Issue Labeler\n\non:\n  issues:\n    types:\n      - opened\n      - labeled\n\njobs:\n  gather-labels:\n    name: Generate label suggestions\n    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label') }}\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    outputs:\n      codex_output: ${{ steps.codex.outputs.final-message }}\n    steps:\n      - uses: actions/checkout@v6\n\n      - id: codex\n        uses: openai/codex-action@main\n        with:\n          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}\n          allow-users: \"*\"\n          prompt: |\n            You are an assistant that reviews GitHub issues for the repository.\n\n            Your job is to choose the most appropriate labels for the issue described later in this prompt.\n            Follow these rules:\n\n            - Add one (and only one) of the following three labels to distinguish the type of issue. Default to \"bug\" if unsure.\n            1. bug — Reproducible defects in Codex products (CLI, VS Code extension, web, auth).\n            2. enhancement — Feature requests or usability improvements that ask for new capabilities, better ergonomics, or quality-of-life tweaks.\n            3. documentation — Updates or corrections needed in docs/README/config references (broken links, missing examples, outdated keys, clarification requests).\n\n            - If applicable, add one of the following labels to specify which sub-product or product surface the issue relates to.\n            1. CLI — the Codex command line interface.\n            2. extension — VS Code (or other IDE) extension-specific issues.\n            3. codex-web — Issues targeting the Codex web UI/Cloud experience.\n            4. github-action — Issues with the Codex GitHub action.\n            5. iOS — Issues with the Codex iOS app.\n\n            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.\n            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: Issue Labeler",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "on:",
+            "lineNumber": 3
+          },
+          {
+            "text": "  issues:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    types:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - opened",
+            "lineNumber": 6
+          },
+          {
+            "text": "      - labeled",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 9
+          },
+          {
+            "text": "  gather-labels:",
+            "lineNumber": 10
+          },
+          {
+            "text": "    name: Generate label suggestions",
+            "lineNumber": 11
+          },
+          {
+            "text": "    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label') }}",
+            "lineNumber": 12
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 13
+          },
+          {
+            "text": "    permissions:",
+            "lineNumber": 14
+          },
+          {
+            "text": "      contents: read",
+            "lineNumber": 15
+          },
+          {
+            "text": "    outputs:",
+            "lineNumber": 16
+          },
+          {
+            "text": "      codex_output: ${{ steps.codex.outputs.final-message }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 18
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "      - id: codex",
+            "lineNumber": 21
+          },
+          {
+            "text": "        uses: openai/codex-action@main",
+            "lineNumber": 22
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 23
+          },
+          {
+            "text": "          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}",
+            "lineNumber": 24
+          },
+          {
+            "text": "          allow-users: \"*\"",
+            "lineNumber": 25
+          },
+          {
+            "text": "          prompt: |",
+            "lineNumber": 26
+          },
+          {
+            "text": "            You are an assistant that reviews GitHub issues for the repository.",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "            Your job is to choose the most appropriate labels for the issue described later in this prompt.",
+            "lineNumber": 29
+          },
+          {
+            "text": "            Follow these rules:",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "            - Add one (and only one) of the following three labels to distinguish the type of issue. Default to \"bug\" if unsure.",
+            "lineNumber": 32
+          },
+          {
+            "text": "            1. bug — Reproducible defects in Codex products (CLI, VS Code extension, web, auth).",
+            "lineNumber": 33
+          },
+          {
+            "text": "            2. enhancement — Feature requests or usability improvements that ask for new capabilities, better ergonomics, or quality-of-life tweaks.",
+            "lineNumber": 34
+          },
+          {
+            "text": "            3. documentation — Updates or corrections needed in docs/README/config references (broken links, missing examples, outdated keys, clarification requests).",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "            - If applicable, add one of the following labels to specify which sub-product or product surface the issue relates to.",
+            "lineNumber": 37
+          },
+          {
+            "text": "            1. CLI — the Codex command line interface.",
+            "lineNumber": 38
+          },
+          {
+            "text": "            2. extension — VS Code (or other IDE) extension-specific issues.",
+            "lineNumber": 39
+          },
+          {
+            "text": "            3. codex-web — Issues targeting the Codex web UI/Cloud experience.",
+            "lineNumber": 40
+          },
+          {
+            "text": "            4. github-action — Issues with the Codex GitHub action.",
+            "lineNumber": 41
+          },
+          {
+            "text": "            5. iOS — Issues with the Codex iOS app.",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.",
+            "lineNumber": 44
+          },
+          {
+            "text": "            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).",
+            "lineNumber": 45
+          }
+        ]
+      },
+      "score": 0.34766650199890137
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 524
+          },
+          "endPosition": {
+            "line": 551
+          }
+        },
+        "contents": "    runs-on: ubuntu-24.04\n    steps:\n      - name: Summarize\n        shell: bash\n        run: |\n          echo \"general: ${{ needs.general.result }}\"\n          echo \"shear  : ${{ needs.cargo_shear.result }}\"\n          echo \"lint   : ${{ needs.lint_build.result }}\"\n          echo \"tests  : ${{ needs.tests.result }}\"\n\n          # If nothing relevant changed (PR touching only root README, etc.),\n          # declare success regardless of other jobs.\n          if [[ '${{ needs.changed.outputs.codex }}' != 'true' &amp;&amp; '${{ needs.changed.outputs.workflows }}' != 'true' &amp;&amp; '${{ github.event_name }}' != 'push' ]]; then\n            echo 'No relevant changes -&gt; CI not required.'\n            exit 0\n          fi\n\n          # Otherwise require the jobs to have succeeded\n          [[ '${{ needs.general.result }}' == 'success' ]] || { echo 'general failed'; exit 1; }\n          [[ '${{ needs.cargo_shear.result }}' == 'success' ]] || { echo 'cargo_shear failed'; exit 1; }\n          [[ '${{ needs.lint_build.result }}' == 'success' ]] || { echo 'lint_build failed'; exit 1; }\n          [[ '${{ needs.tests.result }}' == 'success' ]] || { echo 'tests failed'; exit 1; }\n\n      - name: sccache summary note\n        if: always()\n        run: |\n          echo \"Per-job sccache stats are attached to each matrix job's Step Summary.\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 525
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 526
+          },
+          {
+            "text": "      - name: Summarize",
+            "lineNumber": 527
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 528
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 529
+          },
+          {
+            "text": "          echo \"general: ${{ needs.general.result }}\"",
+            "lineNumber": 530
+          },
+          {
+            "text": "          echo \"shear  : ${{ needs.cargo_shear.result }}\"",
+            "lineNumber": 531
+          },
+          {
+            "text": "          echo \"lint   : ${{ needs.lint_build.result }}\"",
+            "lineNumber": 532
+          },
+          {
+            "text": "          echo \"tests  : ${{ needs.tests.result }}\"",
+            "lineNumber": 533
+          },
+          {
+            "lineNumber": 534
+          },
+          {
+            "text": "          # If nothing relevant changed (PR touching only root README, etc.),",
+            "lineNumber": 535
+          },
+          {
+            "text": "          # declare success regardless of other jobs.",
+            "lineNumber": 536
+          },
+          {
+            "text": "          if [[ '${{ needs.changed.outputs.codex }}' != 'true' &amp;&amp; '${{ needs.changed.outputs.workflows }}' != 'true' &amp;&amp; '${{ github.event_name }}' != 'push' ]]; then",
+            "lineNumber": 537
+          },
+          {
+            "text": "            echo 'No relevant changes -&gt; CI not required.'",
+            "lineNumber": 538
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 539
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 540
+          },
+          {
+            "lineNumber": 541
+          },
+          {
+            "text": "          # Otherwise require the jobs to have succeeded",
+            "lineNumber": 542
+          },
+          {
+            "text": "          [[ '${{ needs.general.result }}' == 'success' ]] || { echo 'general failed'; exit 1; }",
+            "lineNumber": 543
+          },
+          {
+            "text": "          [[ '${{ needs.cargo_shear.result }}' == 'success' ]] || { echo 'cargo_shear failed'; exit 1; }",
+            "lineNumber": 544
+          },
+          {
+            "text": "          [[ '${{ needs.lint_build.result }}' == 'success' ]] || { echo 'lint_build failed'; exit 1; }",
+            "lineNumber": 545
+          },
+          {
+            "text": "          [[ '${{ needs.tests.result }}' == 'success' ]] || { echo 'tests failed'; exit 1; }",
+            "lineNumber": 546
+          },
+          {
+            "lineNumber": 547
+          },
+          {
+            "text": "      - name: sccache summary note",
+            "lineNumber": 548
+          },
+          {
+            "text": "        if: always()",
+            "lineNumber": 549
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 550
+          },
+          {
+            "text": "          echo \"Per-job sccache stats are attached to each matrix job's Step Summary.\"",
+            "lineNumber": 551
+          }
+        ]
+      },
+      "score": 0.3402288854122162
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 183
+          },
+          "endPosition": {
+            "line": 225
+          }
+        },
+        "contents": "    needs: [rust-build-test]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n\n      - name: Cache Cargo\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}\n\n      - name: Build codex CLI\n        working-directory: codex-rs\n        run: cargo build --release -p codex-cli\n\n      - name: Test Deep Research (DuckDuckGo)\n        working-directory: codex-rs\n        run: |\n          ./target/release/codex research \"Rust testing\" --depth 1 --breadth 3 || true\n          echo \"Deep Research test completed (may return 202, which is expected)\"\n\n      - name: Verify research output\n        run: |\n          echo \"Deep Research feature is functional\"\n\n  # ========== サブエージェント統合テスト ==========\n  subagent-test:\n    name: Sub-Agent Integration Test\n    runs-on: ubuntu-latest\n    timeout-minutes: 15\n    needs: [rust-build-test, validate-agents]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    needs: [rust-build-test]",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 186
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 187
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 188
+          },
+          {
+            "lineNumber": 189
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 190
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "      - name: Cache Cargo",
+            "lineNumber": 193
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 194
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 195
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 196
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 197
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 198
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 199
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 200
+          },
+          {
+            "lineNumber": 201
+          },
+          {
+            "text": "      - name: Build codex CLI",
+            "lineNumber": 202
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 203
+          },
+          {
+            "text": "        run: cargo build --release -p codex-cli",
+            "lineNumber": 204
+          },
+          {
+            "lineNumber": 205
+          },
+          {
+            "text": "      - name: Test Deep Research (DuckDuckGo)",
+            "lineNumber": 206
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 207
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 208
+          },
+          {
+            "text": "          ./target/release/codex research \"Rust testing\" --depth 1 --breadth 3 || true",
+            "lineNumber": 209
+          },
+          {
+            "text": "          echo \"Deep Research test completed (may return 202, which is expected)\"",
+            "lineNumber": 210
+          },
+          {
+            "lineNumber": 211
+          },
+          {
+            "text": "      - name: Verify research output",
+            "lineNumber": 212
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 213
+          },
+          {
+            "text": "          echo \"Deep Research feature is functional\"",
+            "lineNumber": 214
+          },
+          {
+            "lineNumber": 215
+          },
+          {
+            "text": "  # ========== サブエージェント統合テスト ==========",
+            "lineNumber": 216
+          },
+          {
+            "text": "  subagent-test:",
+            "lineNumber": 217
+          },
+          {
+            "text": "    name: Sub-Agent Integration Test",
+            "lineNumber": 218
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 219
+          },
+          {
+            "text": "    timeout-minutes: 15",
+            "lineNumber": 220
+          },
+          {
+            "text": "    needs: [rust-build-test, validate-agents]",
+            "lineNumber": 221
+          },
+          {
+            "lineNumber": 222
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 223
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 224
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 225
+          }
+        ]
+      },
+      "score": 0.3383089303970337
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 452
+          },
+          "endPosition": {
+            "line": 498
+          }
+        },
+        "contents": "      - name: Restore sccache cache (fallback)\n        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}\n        id: cache_sccache_restore\n        uses: actions/cache/restore@v5\n        with:\n          path: ${{ github.workspace }}/.sccache/\n          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}\n          restore-keys: |\n            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-\n            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-\n\n      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: nextest\n          version: 0.9.103\n\n      - name: tests\n        id: test\n        run: cargo nextest run --all-features --no-fail-fast --target ${{ matrix.target }} --cargo-profile ci-test\n        env:\n          RUST_BACKTRACE: 1\n          NEXTEST_STATUS_LEVEL: leak\n\n      - name: Save cargo home cache\n        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: |\n            ~/.cargo/bin/\n            ~/.cargo/registry/index/\n            ~/.cargo/registry/cache/\n            ~/.cargo/git/db/\n          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}\n\n      - name: Save sccache cache (fallback)\n        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: ${{ github.workspace }}/.sccache/\n          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}\n\n      - name: sccache stats\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: Restore sccache cache (fallback)",
+            "lineNumber": 454
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}",
+            "lineNumber": 455
+          },
+          {
+            "text": "        id: cache_sccache_restore",
+            "lineNumber": 456
+          },
+          {
+            "text": "        uses: actions/cache/restore@v5",
+            "lineNumber": 457
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 458
+          },
+          {
+            "text": "          path: ${{ github.workspace }}/.sccache/",
+            "lineNumber": 459
+          },
+          {
+            "text": "          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}",
+            "lineNumber": 460
+          },
+          {
+            "text": "          restore-keys: |",
+            "lineNumber": 461
+          },
+          {
+            "text": "            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-",
+            "lineNumber": 462
+          },
+          {
+            "text": "            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-",
+            "lineNumber": 463
+          },
+          {
+            "lineNumber": 464
+          },
+          {
+            "text": "      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 465
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 466
+          },
+          {
+            "text": "          tool: nextest",
+            "lineNumber": 467
+          },
+          {
+            "text": "          version: 0.9.103",
+            "lineNumber": 468
+          },
+          {
+            "lineNumber": 469
+          },
+          {
+            "text": "      - name: tests",
+            "lineNumber": 470
+          },
+          {
+            "text": "        id: test",
+            "lineNumber": 471
+          },
+          {
+            "text": "        run: cargo nextest run --all-features --no-fail-fast --target ${{ matrix.target }} --cargo-profile ci-test",
+            "lineNumber": 472
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 473
+          },
+          {
+            "text": "          RUST_BACKTRACE: 1",
+            "lineNumber": 474
+          },
+          {
+            "text": "          NEXTEST_STATUS_LEVEL: leak",
+            "lineNumber": 475
+          },
+          {
+            "lineNumber": 476
+          },
+          {
+            "text": "      - name: Save cargo home cache",
+            "lineNumber": 477
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'",
+            "lineNumber": 478
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 479
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 480
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 481
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 482
+          },
+          {
+            "text": "            ~/.cargo/bin/",
+            "lineNumber": 483
+          },
+          {
+            "text": "            ~/.cargo/registry/index/",
+            "lineNumber": 484
+          },
+          {
+            "text": "            ~/.cargo/registry/cache/",
+            "lineNumber": 485
+          },
+          {
+            "text": "            ~/.cargo/git/db/",
+            "lineNumber": 486
+          },
+          {
+            "text": "          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}",
+            "lineNumber": 487
+          },
+          {
+            "lineNumber": 488
+          },
+          {
+            "text": "      - name: Save sccache cache (fallback)",
+            "lineNumber": 489
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'",
+            "lineNumber": 490
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 491
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 492
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 493
+          },
+          {
+            "text": "          path: ${{ github.workspace }}/.sccache/",
+            "lineNumber": 494
+          },
+          {
+            "text": "          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}",
+            "lineNumber": 495
+          },
+          {
+            "lineNumber": 496
+          },
+          {
+            "text": "      - name: sccache stats",
+            "lineNumber": 497
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 498
+          }
+        ]
+      },
+      "score": 0.3243721127510071
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 495
+          },
+          "endPosition": {
+            "line": 529,
+            "column": 10
+          }
+        },
+        "contents": "      - name: sccache stats\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        continue-on-error: true\n        run: sccache --show-stats || true\n\n      - name: sccache summary\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        shell: bash\n        run: |\n          {\n            echo \"### sccache stats — ${{ matrix.target }} (tests)\";\n            echo;\n            echo '&#96;&#96;&#96;';\n            sccache --show-stats || true;\n            echo '&#96;&#96;&#96;';\n          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"\n\n      - name: verify tests passed\n        if: steps.test.outcome == 'failure'\n        run: |\n          echo \"Tests failed. See logs for details.\"\n          exit 1\n\n  # --- Gatherer job that you mark as the ONLY required status -----------------\n  results:\n    name: CI results (required)\n    needs: [changed, general, cargo_shear, lint_build, tests]\n    if: always()\n    runs-on: ubuntu-24.04\n    steps:\n      - name: Summarize\n        shell: bash\n        run: |\n          ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: sccache stats",
+            "lineNumber": 497
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 498
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 499
+          },
+          {
+            "text": "        run: sccache --show-stats || true",
+            "lineNumber": 500
+          },
+          {
+            "lineNumber": 501
+          },
+          {
+            "text": "      - name: sccache summary",
+            "lineNumber": 502
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 503
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 504
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 505
+          },
+          {
+            "text": "          {",
+            "lineNumber": 506
+          },
+          {
+            "text": "            echo \"### sccache stats — ${{ matrix.target }} (tests)\";",
+            "lineNumber": 507
+          },
+          {
+            "text": "            echo;",
+            "lineNumber": 508
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 509
+          },
+          {
+            "text": "            sccache --show-stats || true;",
+            "lineNumber": 510
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 511
+          },
+          {
+            "text": "          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"",
+            "lineNumber": 512
+          },
+          {
+            "lineNumber": 513
+          },
+          {
+            "text": "      - name: verify tests passed",
+            "lineNumber": 514
+          },
+          {
+            "text": "        if: steps.test.outcome == 'failure'",
+            "lineNumber": 515
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 516
+          },
+          {
+            "text": "          echo \"Tests failed. See logs for details.\"",
+            "lineNumber": 517
+          },
+          {
+            "text": "          exit 1",
+            "lineNumber": 518
+          },
+          {
+            "lineNumber": 519
+          },
+          {
+            "text": "  # --- Gatherer job that you mark as the ONLY required status -----------------",
+            "lineNumber": 520
+          },
+          {
+            "text": "  results:",
+            "lineNumber": 521
+          },
+          {
+            "text": "    name: CI results (required)",
+            "lineNumber": 522
+          },
+          {
+            "text": "    needs: [changed, general, cargo_shear, lint_build, tests]",
+            "lineNumber": 523
+          },
+          {
+            "text": "    if: always()",
+            "lineNumber": 524
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 525
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 526
+          },
+          {
+            "text": "      - name: Summarize",
+            "lineNumber": 527
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 528
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 529
+          },
+          {
+            "text": "          ",
+            "lineNumber": 530
+          }
+        ]
+      },
+      "score": 0.3045858144760132
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 234
+          },
+          "endPosition": {
+            "line": 277
+          }
+        },
+        "contents": "        uses: actions/cache/restore@v5\n        with:\n          path: |\n            /var/cache/apt\n          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1\n\n      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}\n        name: Install musl build tools\n        env:\n          DEBIAN_FRONTEND: noninteractive\n        shell: bash\n        run: |\n          set -euo pipefail\n          sudo apt-get -y update -o Acquire::Retries=3\n          sudo apt-get -y install --no-install-recommends musl-tools pkg-config\n\n      - name: Install cargo-chef\n        if: ${{ matrix.profile == 'release' }}\n        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: cargo-chef\n          version: 0.1.71\n\n      - name: Pre-warm dependency cache (cargo-chef)\n        if: ${{ matrix.profile == 'release' }}\n        shell: bash\n        run: |\n          set -euo pipefail\n          RECIPE=\"${RUNNER_TEMP}/chef-recipe.json\"\n          cargo chef prepare --recipe-path \"$RECIPE\"\n          cargo chef cook --recipe-path \"$RECIPE\" --target ${{ matrix.target }} --release --all-features\n\n      - name: cargo clippy\n        id: clippy\n        run: cargo clippy --target ${{ matrix.target }} --all-features --tests --profile ${{ matrix.profile }} -- -D warnings\n\n      # Running &#96;cargo build&#96; from the workspace root builds the workspace using\n      # the union of all features from third-party crates. This can mask errors\n      # where individual crates have underspecified features. To avoid this, we\n      # run &#96;cargo check&#96; for each crate individually, though because this is\n      # slower, we only do this for the x86_64-unknown-linux-gnu target.\n      - name: cargo check individual crates\n        id: cargo_check_all_crates",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        uses: actions/cache/restore@v5",
+            "lineNumber": 235
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 236
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 237
+          },
+          {
+            "text": "            /var/cache/apt",
+            "lineNumber": 238
+          },
+          {
+            "text": "          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}",
+            "lineNumber": 241
+          },
+          {
+            "text": "        name: Install musl build tools",
+            "lineNumber": 242
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 243
+          },
+          {
+            "text": "          DEBIAN_FRONTEND: noninteractive",
+            "lineNumber": 244
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 245
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 246
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 247
+          },
+          {
+            "text": "          sudo apt-get -y update -o Acquire::Retries=3",
+            "lineNumber": 248
+          },
+          {
+            "text": "          sudo apt-get -y install --no-install-recommends musl-tools pkg-config",
+            "lineNumber": 249
+          },
+          {
+            "lineNumber": 250
+          },
+          {
+            "text": "      - name: Install cargo-chef",
+            "lineNumber": 251
+          },
+          {
+            "text": "        if: ${{ matrix.profile == 'release' }}",
+            "lineNumber": 252
+          },
+          {
+            "text": "        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 253
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 254
+          },
+          {
+            "text": "          tool: cargo-chef",
+            "lineNumber": 255
+          },
+          {
+            "text": "          version: 0.1.71",
+            "lineNumber": 256
+          },
+          {
+            "lineNumber": 257
+          },
+          {
+            "text": "      - name: Pre-warm dependency cache (cargo-chef)",
+            "lineNumber": 258
+          },
+          {
+            "text": "        if: ${{ matrix.profile == 'release' }}",
+            "lineNumber": 259
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 260
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 261
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 262
+          },
+          {
+            "text": "          RECIPE=\"${RUNNER_TEMP}/chef-recipe.json\"",
+            "lineNumber": 263
+          },
+          {
+            "text": "          cargo chef prepare --recipe-path \"$RECIPE\"",
+            "lineNumber": 264
+          },
+          {
+            "text": "          cargo chef cook --recipe-path \"$RECIPE\" --target ${{ matrix.target }} --release --all-features",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "      - name: cargo clippy",
+            "lineNumber": 267
+          },
+          {
+            "text": "        id: clippy",
+            "lineNumber": 268
+          },
+          {
+            "text": "        run: cargo clippy --target ${{ matrix.target }} --all-features --tests --profile ${{ matrix.profile }} -- -D warnings",
+            "lineNumber": 269
+          },
+          {
+            "lineNumber": 270
+          },
+          {
+            "text": "      # Running &#96;cargo build&#96; from the workspace root builds the workspace using",
+            "lineNumber": 271
+          },
+          {
+            "text": "      # the union of all features from third-party crates. This can mask errors",
+            "lineNumber": 272
+          },
+          {
+            "text": "      # where individual crates have underspecified features. To avoid this, we",
+            "lineNumber": 273
+          },
+          {
+            "text": "      # run &#96;cargo check&#96; for each crate individually, though because this is",
+            "lineNumber": 274
+          },
+          {
+            "text": "      # slower, we only do this for the x86_64-unknown-linux-gnu target.",
+            "lineNumber": 275
+          },
+          {
+            "text": "      - name: cargo check individual crates",
+            "lineNumber": 276
+          },
+          {
+            "text": "        id: cargo_check_all_crates",
+            "lineNumber": 277
+          }
+        ]
+      },
+      "score": 0.30271685123443604
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 357
+          },
+          "endPosition": {
+            "line": 405,
+            "column": 6
+          }
+        },
+        "contents": "    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - runner: macos-14\n            target: aarch64-apple-darwin\n            profile: dev\n          - runner: ubuntu-24.04\n            target: x86_64-unknown-linux-gnu\n            profile: dev\n          - runner: ubuntu-24.04-arm\n            target: aarch64-unknown-linux-gnu\n            profile: dev\n          - runner: windows-latest\n            target: x86_64-pc-windows-msvc\n            profile: dev\n          - runner: windows-11-arm\n            target: aarch64-pc-windows-msvc\n            profile: dev\n\n    steps:\n      - uses: actions/checkout@v6\n\n      # We have been running out of space when running this job on Linux for\n      # x86_64-unknown-linux-gnu, so remove some unnecessary dependencies.\n      - name: Remove unnecessary dependencies to save space\n        if: ${{ startsWith(matrix.runner, 'ubuntu') }}\n        shell: bash\n        run: |\n          set -euo pipefail\n          sudo rm -rf \\\n            /usr/local/lib/android \\\n            /usr/share/dotnet \\\n            /usr/local/share/boost \\\n            /usr/local/lib/node_modules \\\n            /opt/ghc\n          sudo apt-get remove -y docker.io docker-compose podman buildah\n\n      # Some integration tests rely on DotSlash being installed.\n      # See https://github.com/openai/codex/pull/7617.\n      - name: Install DotSlash\n        uses: facebook/install-dotslash@v2\n\n      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          targets: ${{ matrix.target }}\n\n      ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    strategy:",
+            "lineNumber": 359
+          },
+          {
+            "text": "      fail-fast: false",
+            "lineNumber": 360
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 361
+          },
+          {
+            "text": "        include:",
+            "lineNumber": 362
+          },
+          {
+            "text": "          - runner: macos-14",
+            "lineNumber": 363
+          },
+          {
+            "text": "            target: aarch64-apple-darwin",
+            "lineNumber": 364
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 365
+          },
+          {
+            "text": "          - runner: ubuntu-24.04",
+            "lineNumber": 366
+          },
+          {
+            "text": "            target: x86_64-unknown-linux-gnu",
+            "lineNumber": 367
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 368
+          },
+          {
+            "text": "          - runner: ubuntu-24.04-arm",
+            "lineNumber": 369
+          },
+          {
+            "text": "            target: aarch64-unknown-linux-gnu",
+            "lineNumber": 370
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 371
+          },
+          {
+            "text": "          - runner: windows-latest",
+            "lineNumber": 372
+          },
+          {
+            "text": "            target: x86_64-pc-windows-msvc",
+            "lineNumber": 373
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 374
+          },
+          {
+            "text": "          - runner: windows-11-arm",
+            "lineNumber": 375
+          },
+          {
+            "text": "            target: aarch64-pc-windows-msvc",
+            "lineNumber": 376
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 377
+          },
+          {
+            "lineNumber": 378
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 379
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 380
+          },
+          {
+            "lineNumber": 381
+          },
+          {
+            "text": "      # We have been running out of space when running this job on Linux for",
+            "lineNumber": 382
+          },
+          {
+            "text": "      # x86_64-unknown-linux-gnu, so remove some unnecessary dependencies.",
+            "lineNumber": 383
+          },
+          {
+            "text": "      - name: Remove unnecessary dependencies to save space",
+            "lineNumber": 384
+          },
+          {
+            "text": "        if: ${{ startsWith(matrix.runner, 'ubuntu') }}",
+            "lineNumber": 385
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 386
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 387
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 388
+          },
+          {
+            "text": "          sudo rm -rf \\",
+            "lineNumber": 389
+          },
+          {
+            "text": "            /usr/local/lib/android \\",
+            "lineNumber": 390
+          },
+          {
+            "text": "            /usr/share/dotnet \\",
+            "lineNumber": 391
+          },
+          {
+            "text": "            /usr/local/share/boost \\",
+            "lineNumber": 392
+          },
+          {
+            "text": "            /usr/local/lib/node_modules \\",
+            "lineNumber": 393
+          },
+          {
+            "text": "            /opt/ghc",
+            "lineNumber": 394
+          },
+          {
+            "text": "          sudo apt-get remove -y docker.io docker-compose podman buildah",
+            "lineNumber": 395
+          },
+          {
+            "lineNumber": 396
+          },
+          {
+            "text": "      # Some integration tests rely on DotSlash being installed.",
+            "lineNumber": 397
+          },
+          {
+            "text": "      # See https://github.com/openai/codex/pull/7617.",
+            "lineNumber": 398
+          },
+          {
+            "text": "      - name: Install DotSlash",
+            "lineNumber": 399
+          },
+          {
+            "text": "        uses: facebook/install-dotslash@v2",
+            "lineNumber": 400
+          },
+          {
+            "lineNumber": 401
+          },
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 402
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 403
+          },
+          {
+            "text": "          targets: ${{ matrix.target }}",
+            "lineNumber": 404
+          },
+          {
+            "lineNumber": 405
+          },
+          {
+            "text": "      ",
+            "lineNumber": 406
+          }
+        ]
+      },
+      "score": 0.2998121976852417
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 156
+          },
+          "endPosition": {
+            "line": 198
+          }
+        },
+        "contents": "      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          targets: ${{ matrix.target }}\n          components: clippy\n\n      - name: Compute lockfile hash\n        id: lockhash\n        working-directory: codex-rs\n        shell: bash\n        run: |\n          set -euo pipefail\n          echo \"hash=$(sha256sum Cargo.lock | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"\n          echo \"toolchain_hash=$(sha256sum rust-toolchain.toml | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"\n\n      # Explicit cache restore: split cargo home vs target, so we can\n      # avoid caching the large target dir on the gnu-dev job.\n      - name: Restore cargo home cache\n        id: cache_cargo_home_restore\n        uses: actions/cache/restore@v5\n        with:\n          path: |\n            ~/.cargo/bin/\n            ~/.cargo/registry/index/\n            ~/.cargo/registry/cache/\n            ~/.cargo/git/db/\n          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}\n          restore-keys: |\n            cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-\n\n      # Install and restore sccache cache\n      - name: Install sccache\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: sccache\n          version: 0.7.5\n\n      - name: Configure sccache backend\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        shell: bash\n        run: |\n          set -euo pipefail",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 157
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 158
+          },
+          {
+            "text": "          targets: ${{ matrix.target }}",
+            "lineNumber": 159
+          },
+          {
+            "text": "          components: clippy",
+            "lineNumber": 160
+          },
+          {
+            "lineNumber": 161
+          },
+          {
+            "text": "      - name: Compute lockfile hash",
+            "lineNumber": 162
+          },
+          {
+            "text": "        id: lockhash",
+            "lineNumber": 163
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 164
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 165
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 166
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 167
+          },
+          {
+            "text": "          echo \"hash=$(sha256sum Cargo.lock | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 168
+          },
+          {
+            "text": "          echo \"toolchain_hash=$(sha256sum rust-toolchain.toml | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 169
+          },
+          {
+            "lineNumber": 170
+          },
+          {
+            "text": "      # Explicit cache restore: split cargo home vs target, so we can",
+            "lineNumber": 171
+          },
+          {
+            "text": "      # avoid caching the large target dir on the gnu-dev job.",
+            "lineNumber": 172
+          },
+          {
+            "text": "      - name: Restore cargo home cache",
+            "lineNumber": 173
+          },
+          {
+            "text": "        id: cache_cargo_home_restore",
+            "lineNumber": 174
+          },
+          {
+            "text": "        uses: actions/cache/restore@v5",
+            "lineNumber": 175
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 176
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 177
+          },
+          {
+            "text": "            ~/.cargo/bin/",
+            "lineNumber": 178
+          },
+          {
+            "text": "            ~/.cargo/registry/index/",
+            "lineNumber": 179
+          },
+          {
+            "text": "            ~/.cargo/registry/cache/",
+            "lineNumber": 180
+          },
+          {
+            "text": "            ~/.cargo/git/db/",
+            "lineNumber": 181
+          },
+          {
+            "text": "          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}",
+            "lineNumber": 182
+          },
+          {
+            "text": "          restore-keys: |",
+            "lineNumber": 183
+          },
+          {
+            "text": "            cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "      # Install and restore sccache cache",
+            "lineNumber": 186
+          },
+          {
+            "text": "      - name: Install sccache",
+            "lineNumber": 187
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 188
+          },
+          {
+            "text": "        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 189
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 190
+          },
+          {
+            "text": "          tool: sccache",
+            "lineNumber": 191
+          },
+          {
+            "text": "          version: 0.7.5",
+            "lineNumber": 192
+          },
+          {
+            "lineNumber": 193
+          },
+          {
+            "text": "      - name: Configure sccache backend",
+            "lineNumber": 194
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 195
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 196
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 197
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 198
+          }
+        ]
+      },
+      "score": 0.29798424243927
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 275
+          },
+          "endPosition": {
+            "line": 312
+          }
+        },
+        "contents": "      - name: cargo check individual crates\n        id: cargo_check_all_crates\n        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' &amp;&amp; matrix.profile != 'release' }}\n        continue-on-error: true\n        run: |\n          find . -name Cargo.toml -mindepth 2 -maxdepth 2 -print0 \\\n            | xargs -0 -n1 -I{} bash -c 'cd \"$(dirname \"{}\")\" &amp;&amp; cargo check --profile ${{ matrix.profile }}'\n\n      # Save caches explicitly; make non-fatal so cache packaging\n      # never fails the overall job. Only save when key wasn't hit.\n      - name: Save cargo home cache\n        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: |\n            ~/.cargo/bin/\n            ~/.cargo/registry/index/\n            ~/.cargo/registry/cache/\n            ~/.cargo/git/db/\n          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}\n\n      - name: Save sccache cache (fallback)\n        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: ${{ github.workspace }}/.sccache/\n          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}\n\n      - name: sccache stats\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        continue-on-error: true\n        run: sccache --show-stats || true\n\n      - name: sccache summary\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: cargo check individual crates",
+            "lineNumber": 276
+          },
+          {
+            "text": "        id: cargo_check_all_crates",
+            "lineNumber": 277
+          },
+          {
+            "text": "        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' &amp;&amp; matrix.profile != 'release' }}",
+            "lineNumber": 278
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 279
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 280
+          },
+          {
+            "text": "          find . -name Cargo.toml -mindepth 2 -maxdepth 2 -print0 \\",
+            "lineNumber": 281
+          },
+          {
+            "text": "            | xargs -0 -n1 -I{} bash -c 'cd \"$(dirname \"{}\")\" &amp;&amp; cargo check --profile ${{ matrix.profile }}'",
+            "lineNumber": 282
+          },
+          {
+            "lineNumber": 283
+          },
+          {
+            "text": "      # Save caches explicitly; make non-fatal so cache packaging",
+            "lineNumber": 284
+          },
+          {
+            "text": "      # never fails the overall job. Only save when key wasn't hit.",
+            "lineNumber": 285
+          },
+          {
+            "text": "      - name: Save cargo home cache",
+            "lineNumber": 286
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'",
+            "lineNumber": 287
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 288
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 289
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 290
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 291
+          },
+          {
+            "text": "            ~/.cargo/bin/",
+            "lineNumber": 292
+          },
+          {
+            "text": "            ~/.cargo/registry/index/",
+            "lineNumber": 293
+          },
+          {
+            "text": "            ~/.cargo/registry/cache/",
+            "lineNumber": 294
+          },
+          {
+            "text": "            ~/.cargo/git/db/",
+            "lineNumber": 295
+          },
+          {
+            "text": "          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}",
+            "lineNumber": 296
+          },
+          {
+            "lineNumber": 297
+          },
+          {
+            "text": "      - name: Save sccache cache (fallback)",
+            "lineNumber": 298
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'",
+            "lineNumber": 299
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 300
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 301
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 302
+          },
+          {
+            "text": "          path: ${{ github.workspace }}/.sccache/",
+            "lineNumber": 303
+          },
+          {
+            "text": "          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}",
+            "lineNumber": 304
+          },
+          {
+            "lineNumber": 305
+          },
+          {
+            "text": "      - name: sccache stats",
+            "lineNumber": 306
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 307
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 308
+          },
+          {
+            "text": "        run: sccache --show-stats || true",
+            "lineNumber": 309
+          },
+          {
+            "lineNumber": 310
+          },
+          {
+            "text": "      - name: sccache summary",
+            "lineNumber": 311
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 312
+          }
+        ]
+      },
+      "score": 0.29518985748291016
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-deduplicator.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 48
+          }
+        },
+        "contents": "name: Issue Deduplicator\n\non:\n  issues:\n    types:\n      - opened\n      - labeled\n\njobs:\n  gather-duplicates:\n    name: Identify potential duplicates\n    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate') }}\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    outputs:\n      codex_output: ${{ steps.codex.outputs.final-message }}\n    steps:\n      - uses: actions/checkout@v6\n\n      - name: Prepare Codex inputs\n        env:\n          GH_TOKEN: ${{ github.token }}\n        run: |\n          set -eo pipefail\n\n          CURRENT_ISSUE_FILE=codex-current-issue.json\n          EXISTING_ISSUES_FILE=codex-existing-issues.json\n\n          gh issue list --repo \"${{ github.repository }}\" \\\n            --json number,title,body,createdAt \\\n            --limit 1000 \\\n            --state all \\\n            --search \"sort:created-desc\" \\\n            | jq '.' \\\n            &gt; \"$EXISTING_ISSUES_FILE\"\n\n          gh issue view \"${{ github.event.issue.number }}\" \\\n            --repo \"${{ github.repository }}\" \\\n            --json number,title,body \\\n            | jq '.' \\\n            &gt; \"$CURRENT_ISSUE_FILE\"\n\n      - id: codex\n        uses: openai/codex-action@main\n        with:\n          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}\n          allow-users: \"*\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: Issue Deduplicator",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "on:",
+            "lineNumber": 3
+          },
+          {
+            "text": "  issues:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    types:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - opened",
+            "lineNumber": 6
+          },
+          {
+            "text": "      - labeled",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 9
+          },
+          {
+            "text": "  gather-duplicates:",
+            "lineNumber": 10
+          },
+          {
+            "text": "    name: Identify potential duplicates",
+            "lineNumber": 11
+          },
+          {
+            "text": "    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate') }}",
+            "lineNumber": 12
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 13
+          },
+          {
+            "text": "    permissions:",
+            "lineNumber": 14
+          },
+          {
+            "text": "      contents: read",
+            "lineNumber": 15
+          },
+          {
+            "text": "    outputs:",
+            "lineNumber": 16
+          },
+          {
+            "text": "      codex_output: ${{ steps.codex.outputs.final-message }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 18
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "      - name: Prepare Codex inputs",
+            "lineNumber": 21
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 22
+          },
+          {
+            "text": "          GH_TOKEN: ${{ github.token }}",
+            "lineNumber": 23
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 24
+          },
+          {
+            "text": "          set -eo pipefail",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "text": "          CURRENT_ISSUE_FILE=codex-current-issue.json",
+            "lineNumber": 27
+          },
+          {
+            "text": "          EXISTING_ISSUES_FILE=codex-existing-issues.json",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "          gh issue list --repo \"${{ github.repository }}\" \\",
+            "lineNumber": 30
+          },
+          {
+            "text": "            --json number,title,body,createdAt \\",
+            "lineNumber": 31
+          },
+          {
+            "text": "            --limit 1000 \\",
+            "lineNumber": 32
+          },
+          {
+            "text": "            --state all \\",
+            "lineNumber": 33
+          },
+          {
+            "text": "            --search \"sort:created-desc\" \\",
+            "lineNumber": 34
+          },
+          {
+            "text": "            | jq '.' \\",
+            "lineNumber": 35
+          },
+          {
+            "text": "            &gt; \"$EXISTING_ISSUES_FILE\"",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "text": "          gh issue view \"${{ github.event.issue.number }}\" \\",
+            "lineNumber": 38
+          },
+          {
+            "text": "            --repo \"${{ github.repository }}\" \\",
+            "lineNumber": 39
+          },
+          {
+            "text": "            --json number,title,body \\",
+            "lineNumber": 40
+          },
+          {
+            "text": "            | jq '.' \\",
+            "lineNumber": 41
+          },
+          {
+            "text": "            &gt; \"$CURRENT_ISSUE_FILE\"",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "      - id: codex",
+            "lineNumber": 44
+          },
+          {
+            "text": "        uses: openai/codex-action@main",
+            "lineNumber": 45
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 46
+          },
+          {
+            "text": "          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}",
+            "lineNumber": 47
+          },
+          {
+            "text": "          allow-users: \"*\"",
+            "lineNumber": 48
+          }
+        ]
+      },
+      "score": 0.29476138949394226
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 401
+          },
+          "endPosition": {
+            "line": 455
+          }
+        },
+        "contents": "      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          targets: ${{ matrix.target }}\n\n      - name: Compute lockfile hash\n        id: lockhash\n        working-directory: codex-rs\n        shell: bash\n        run: |\n          set -euo pipefail\n          echo \"hash=$(sha256sum Cargo.lock | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"\n          echo \"toolchain_hash=$(sha256sum rust-toolchain.toml | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"\n\n      - name: Restore cargo home cache\n        id: cache_cargo_home_restore\n        uses: actions/cache/restore@v5\n        with:\n          path: |\n            ~/.cargo/bin/\n            ~/.cargo/registry/index/\n            ~/.cargo/registry/cache/\n            ~/.cargo/git/db/\n          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}\n          restore-keys: |\n            cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-\n\n      - name: Install sccache\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: sccache\n          version: 0.7.5\n\n      - name: Configure sccache backend\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        shell: bash\n        run: |\n          set -euo pipefail\n          if [[ -n \"${ACTIONS_CACHE_URL:-}\" &amp;&amp; -n \"${ACTIONS_RUNTIME_TOKEN:-}\" ]]; then\n            echo \"SCCACHE_GHA_ENABLED=true\" &gt;&gt; \"$GITHUB_ENV\"\n            echo \"Using sccache GitHub backend\"\n          else\n            echo \"SCCACHE_GHA_ENABLED=false\" &gt;&gt; \"$GITHUB_ENV\"\n            echo \"SCCACHE_DIR=${{ github.workspace }}/.sccache\" &gt;&gt; \"$GITHUB_ENV\"\n            echo \"Using sccache local disk + actions/cache fallback\"\n          fi\n\n      - name: Enable sccache wrapper\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        shell: bash\n        run: echo \"RUSTC_WRAPPER=sccache\" &gt;&gt; \"$GITHUB_ENV\"\n\n      - name: Restore sccache cache (fallback)\n        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 402
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 403
+          },
+          {
+            "text": "          targets: ${{ matrix.target }}",
+            "lineNumber": 404
+          },
+          {
+            "lineNumber": 405
+          },
+          {
+            "text": "      - name: Compute lockfile hash",
+            "lineNumber": 406
+          },
+          {
+            "text": "        id: lockhash",
+            "lineNumber": 407
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 408
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 409
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 410
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 411
+          },
+          {
+            "text": "          echo \"hash=$(sha256sum Cargo.lock | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 412
+          },
+          {
+            "text": "          echo \"toolchain_hash=$(sha256sum rust-toolchain.toml | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 413
+          },
+          {
+            "lineNumber": 414
+          },
+          {
+            "text": "      - name: Restore cargo home cache",
+            "lineNumber": 415
+          },
+          {
+            "text": "        id: cache_cargo_home_restore",
+            "lineNumber": 416
+          },
+          {
+            "text": "        uses: actions/cache/restore@v5",
+            "lineNumber": 417
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 418
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 419
+          },
+          {
+            "text": "            ~/.cargo/bin/",
+            "lineNumber": 420
+          },
+          {
+            "text": "            ~/.cargo/registry/index/",
+            "lineNumber": 421
+          },
+          {
+            "text": "            ~/.cargo/registry/cache/",
+            "lineNumber": 422
+          },
+          {
+            "text": "            ~/.cargo/git/db/",
+            "lineNumber": 423
+          },
+          {
+            "text": "          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}",
+            "lineNumber": 424
+          },
+          {
+            "text": "          restore-keys: |",
+            "lineNumber": 425
+          },
+          {
+            "text": "            cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-",
+            "lineNumber": 426
+          },
+          {
+            "lineNumber": 427
+          },
+          {
+            "text": "      - name: Install sccache",
+            "lineNumber": 428
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 429
+          },
+          {
+            "text": "        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 430
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 431
+          },
+          {
+            "text": "          tool: sccache",
+            "lineNumber": 432
+          },
+          {
+            "text": "          version: 0.7.5",
+            "lineNumber": 433
+          },
+          {
+            "lineNumber": 434
+          },
+          {
+            "text": "      - name: Configure sccache backend",
+            "lineNumber": 435
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 436
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 437
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 438
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 439
+          },
+          {
+            "text": "          if [[ -n \"${ACTIONS_CACHE_URL:-}\" &amp;&amp; -n \"${ACTIONS_RUNTIME_TOKEN:-}\" ]]; then",
+            "lineNumber": 440
+          },
+          {
+            "text": "            echo \"SCCACHE_GHA_ENABLED=true\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 441
+          },
+          {
+            "text": "            echo \"Using sccache GitHub backend\"",
+            "lineNumber": 442
+          },
+          {
+            "text": "          else",
+            "lineNumber": 443
+          },
+          {
+            "text": "            echo \"SCCACHE_GHA_ENABLED=false\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 444
+          },
+          {
+            "text": "            echo \"SCCACHE_DIR=${{ github.workspace }}/.sccache\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 445
+          },
+          {
+            "text": "            echo \"Using sccache local disk + actions/cache fallback\"",
+            "lineNumber": 446
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 447
+          },
+          {
+            "lineNumber": 448
+          },
+          {
+            "text": "      - name: Enable sccache wrapper",
+            "lineNumber": 449
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 450
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 451
+          },
+          {
+            "text": "        run: echo \"RUSTC_WRAPPER=sccache\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 452
+          },
+          {
+            "lineNumber": 453
+          },
+          {
+            "text": "      - name: Restore sccache cache (fallback)",
+            "lineNumber": 454
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}",
+            "lineNumber": 455
+          }
+        ]
+      },
+      "score": 0.29290398955345154
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-labeler.yml",
+        "range": {
+          "startPosition": {
+            "line": 98
+          },
+          "endPosition": {
+            "line": 130
+          }
+        },
+        "contents": "    steps:\n      - name: Apply labels\n        run: |\n          json=${CODEX_OUTPUT//$'\\r'/}\n          if [ -z \"$json\" ]; then\n            echo \"Codex produced no output. Skipping label application.\"\n            exit 0\n          fi\n\n          if ! printf '%s' \"$json\" | jq -e 'type == \"object\" and (.labels | type == \"array\")' &gt;/dev/null 2&gt;&amp;1; then\n            echo \"Codex output did not include a labels array. Raw output: $json\"\n            exit 0\n          fi\n\n          labels=$(printf '%s' \"$json\" | jq -r '.labels[] | tostring')\n          if [ -z \"$labels\" ]; then\n            echo \"Codex returned an empty array. Nothing to do.\"\n            exit 0\n          fi\n\n          cmd=(gh issue edit \"$ISSUE_NUMBER\")\n          while IFS= read -r label; do\n            cmd+=(--add-label \"$label\")\n          done &lt;&lt;&lt; \"$labels\"\n\n          \"${cmd[@]}\" || true\n\n      - name: Remove codex-label trigger\n        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label' }}\n        run: |\n          gh issue edit \"$ISSUE_NUMBER\" --remove-label codex-label || true\n          echo \"Attempted to remove label: codex-label\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    steps:",
+            "lineNumber": 99
+          },
+          {
+            "text": "      - name: Apply labels",
+            "lineNumber": 100
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 101
+          },
+          {
+            "text": "          json=${CODEX_OUTPUT//$'\\r'/}",
+            "lineNumber": 102
+          },
+          {
+            "text": "          if [ -z \"$json\" ]; then",
+            "lineNumber": 103
+          },
+          {
+            "text": "            echo \"Codex produced no output. Skipping label application.\"",
+            "lineNumber": 104
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 105
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "          if ! printf '%s' \"$json\" | jq -e 'type == \"object\" and (.labels | type == \"array\")' &gt;/dev/null 2&gt;&amp;1; then",
+            "lineNumber": 108
+          },
+          {
+            "text": "            echo \"Codex output did not include a labels array. Raw output: $json\"",
+            "lineNumber": 109
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 110
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112
+          },
+          {
+            "text": "          labels=$(printf '%s' \"$json\" | jq -r '.labels[] | tostring')",
+            "lineNumber": 113
+          },
+          {
+            "text": "          if [ -z \"$labels\" ]; then",
+            "lineNumber": 114
+          },
+          {
+            "text": "            echo \"Codex returned an empty array. Nothing to do.\"",
+            "lineNumber": 115
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 116
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "text": "          cmd=(gh issue edit \"$ISSUE_NUMBER\")",
+            "lineNumber": 119
+          },
+          {
+            "text": "          while IFS= read -r label; do",
+            "lineNumber": 120
+          },
+          {
+            "text": "            cmd+=(--add-label \"$label\")",
+            "lineNumber": 121
+          },
+          {
+            "text": "          done &lt;&lt;&lt; \"$labels\"",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "          \"${cmd[@]}\" || true",
+            "lineNumber": 124
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "      - name: Remove codex-label trigger",
+            "lineNumber": 126
+          },
+          {
+            "text": "        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label' }}",
+            "lineNumber": 127
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 128
+          },
+          {
+            "text": "          gh issue edit \"$ISSUE_NUMBER\" --remove-label codex-label || true",
+            "lineNumber": 129
+          },
+          {
+            "text": "          echo \"Attempted to remove label: codex-label\"",
+            "lineNumber": 130
+          }
+        ]
+      },
+      "score": 0.2769865095615387
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-labeler.yml",
+        "range": {
+          "startPosition": {
+            "line": 64
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 8
+          }
+        },
+        "contents": "            Issue body:\n            ${{ github.event.issue.body }}\n\n            Repository full name:\n            ${{ github.repository }}\n\n          output-schema: |\n            {\n              \"type\": \"object\",\n              \"properties\": {\n                \"labels\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                }\n              },\n              \"required\": [\"labels\"],\n              \"additionalProperties\": false\n            }\n\n  apply-labels:\n    name: Apply labels from Codex output\n    needs: gather-labels\n    if: ${{ needs.gather-labels.result != 'skipped' }}\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      issues: write\n    env:\n      GH_TOKEN: ${{ github.token }}\n      GH_REPO: ${{ github.repository }}\n      ISSUE_NUMBER: ${{ github.event.issue.number }}\n      CODEX_OUTPUT: ${{ needs.gather-labels.outputs.codex_output }}\n    steps:\n      - name: Apply labels\n        ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            Issue body:",
+            "lineNumber": 65
+          },
+          {
+            "text": "            ${{ github.event.issue.body }}",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "            Repository full name:",
+            "lineNumber": 68
+          },
+          {
+            "text": "            ${{ github.repository }}",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "          output-schema: |",
+            "lineNumber": 71
+          },
+          {
+            "text": "            {",
+            "lineNumber": 72
+          },
+          {
+            "text": "              \"type\": \"object\",",
+            "lineNumber": 73
+          },
+          {
+            "text": "              \"properties\": {",
+            "lineNumber": 74
+          },
+          {
+            "text": "                \"labels\": {",
+            "lineNumber": 75
+          },
+          {
+            "text": "                  \"type\": \"array\",",
+            "lineNumber": 76
+          },
+          {
+            "text": "                  \"items\": {",
+            "lineNumber": 77
+          },
+          {
+            "text": "                    \"type\": \"string\"",
+            "lineNumber": 78
+          },
+          {
+            "text": "                  }",
+            "lineNumber": 79
+          },
+          {
+            "text": "                }",
+            "lineNumber": 80
+          },
+          {
+            "text": "              },",
+            "lineNumber": 81
+          },
+          {
+            "text": "              \"required\": [\"labels\"],",
+            "lineNumber": 82
+          },
+          {
+            "text": "              \"additionalProperties\": false",
+            "lineNumber": 83
+          },
+          {
+            "text": "            }",
+            "lineNumber": 84
+          },
+          {
+            "lineNumber": 85
+          },
+          {
+            "text": "  apply-labels:",
+            "lineNumber": 86
+          },
+          {
+            "text": "    name: Apply labels from Codex output",
+            "lineNumber": 87
+          },
+          {
+            "text": "    needs: gather-labels",
+            "lineNumber": 88
+          },
+          {
+            "text": "    if: ${{ needs.gather-labels.result != 'skipped' }}",
+            "lineNumber": 89
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 90
+          },
+          {
+            "text": "    permissions:",
+            "lineNumber": 91
+          },
+          {
+            "text": "      contents: read",
+            "lineNumber": 92
+          },
+          {
+            "text": "      issues: write",
+            "lineNumber": 93
+          },
+          {
+            "text": "    env:",
+            "lineNumber": 94
+          },
+          {
+            "text": "      GH_TOKEN: ${{ github.token }}",
+            "lineNumber": 95
+          },
+          {
+            "text": "      GH_REPO: ${{ github.repository }}",
+            "lineNumber": 96
+          },
+          {
+            "text": "      ISSUE_NUMBER: ${{ github.event.issue.number }}",
+            "lineNumber": 97
+          },
+          {
+            "text": "      CODEX_OUTPUT: ${{ needs.gather-labels.outputs.codex_output }}",
+            "lineNumber": 98
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 99
+          },
+          {
+            "text": "      - name: Apply labels",
+            "lineNumber": 100
+          },
+          {
+            "text": "        ",
+            "lineNumber": 101
+          }
+        ]
+      },
+      "score": 0.2758941948413849
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\cla.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 48
+          }
+        },
+        "contents": "name: CLA Assistant\non:\n  issue_comment:\n    types: [created]\n  pull_request_target:\n    types: [opened, closed, synchronize]\n\npermissions:\n  actions: write\n  contents: write\n  pull-requests: write\n  statuses: write\n\njobs:\n  cla:\n    # Only run the CLA assistant for the zapabob repo\n    if: ${{ github.repository_owner == 'zapabob' }}\n    runs-on: ubuntu-latest\n    steps:\n      - uses: contributor-assistant/github-action@v2.6.1\n        # Run on close only if the PR was merged. This will lock the PR to preserve\n        # the CLA agreement. We don't want to lock PRs that have been closed without\n        # merging because the contributor may want to respond with additional comments.\n        # This action has a \"lock-pullrequest-aftermerge\" option that can be set to false,\n        # but that would unconditionally skip locking even in cases where the PR was merged.\n        if: |\n          (\n            github.event_name == 'pull_request_target' &amp;&amp;\n            (\n              github.event.action == 'opened' ||\n              github.event.action == 'synchronize' ||\n              (github.event.action == 'closed' &amp;&amp; github.event.pull_request.merged == true)\n            )\n          ) ||\n          (\n            github.event_name == 'issue_comment' &amp;&amp;\n            (\n              github.event.comment.body == 'recheck' ||\n              github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'\n            )\n          )\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n        with:\n          path-to-document: https://github.com/zapabob/codex/blob/main/docs/CLA.md\n          path-to-signatures: signatures/cla.json\n          branch: cla-signatures\n          allowlist: codex,dependabot,dependabot[bot],github-actions[bot]",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: CLA Assistant",
+            "lineNumber": 1
+          },
+          {
+            "text": "on:",
+            "lineNumber": 2
+          },
+          {
+            "text": "  issue_comment:",
+            "lineNumber": 3
+          },
+          {
+            "text": "    types: [created]",
+            "lineNumber": 4
+          },
+          {
+            "text": "  pull_request_target:",
+            "lineNumber": 5
+          },
+          {
+            "text": "    types: [opened, closed, synchronize]",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "permissions:",
+            "lineNumber": 8
+          },
+          {
+            "text": "  actions: write",
+            "lineNumber": 9
+          },
+          {
+            "text": "  contents: write",
+            "lineNumber": 10
+          },
+          {
+            "text": "  pull-requests: write",
+            "lineNumber": 11
+          },
+          {
+            "text": "  statuses: write",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 14
+          },
+          {
+            "text": "  cla:",
+            "lineNumber": 15
+          },
+          {
+            "text": "    # Only run the CLA assistant for the zapabob repo",
+            "lineNumber": 16
+          },
+          {
+            "text": "    if: ${{ github.repository_owner == 'zapabob' }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 18
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 19
+          },
+          {
+            "text": "      - uses: contributor-assistant/github-action@v2.6.1",
+            "lineNumber": 20
+          },
+          {
+            "text": "        # Run on close only if the PR was merged. This will lock the PR to preserve",
+            "lineNumber": 21
+          },
+          {
+            "text": "        # the CLA agreement. We don't want to lock PRs that have been closed without",
+            "lineNumber": 22
+          },
+          {
+            "text": "        # merging because the contributor may want to respond with additional comments.",
+            "lineNumber": 23
+          },
+          {
+            "text": "        # This action has a \"lock-pullrequest-aftermerge\" option that can be set to false,",
+            "lineNumber": 24
+          },
+          {
+            "text": "        # but that would unconditionally skip locking even in cases where the PR was merged.",
+            "lineNumber": 25
+          },
+          {
+            "text": "        if: |",
+            "lineNumber": 26
+          },
+          {
+            "text": "          (",
+            "lineNumber": 27
+          },
+          {
+            "text": "            github.event_name == 'pull_request_target' &amp;&amp;",
+            "lineNumber": 28
+          },
+          {
+            "text": "            (",
+            "lineNumber": 29
+          },
+          {
+            "text": "              github.event.action == 'opened' ||",
+            "lineNumber": 30
+          },
+          {
+            "text": "              github.event.action == 'synchronize' ||",
+            "lineNumber": 31
+          },
+          {
+            "text": "              (github.event.action == 'closed' &amp;&amp; github.event.pull_request.merged == true)",
+            "lineNumber": 32
+          },
+          {
+            "text": "            )",
+            "lineNumber": 33
+          },
+          {
+            "text": "          ) ||",
+            "lineNumber": 34
+          },
+          {
+            "text": "          (",
+            "lineNumber": 35
+          },
+          {
+            "text": "            github.event_name == 'issue_comment' &amp;&amp;",
+            "lineNumber": 36
+          },
+          {
+            "text": "            (",
+            "lineNumber": 37
+          },
+          {
+            "text": "              github.event.comment.body == 'recheck' ||",
+            "lineNumber": 38
+          },
+          {
+            "text": "              github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'",
+            "lineNumber": 39
+          },
+          {
+            "text": "            )",
+            "lineNumber": 40
+          },
+          {
+            "text": "          )",
+            "lineNumber": 41
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 42
+          },
+          {
+            "text": "          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}",
+            "lineNumber": 43
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 44
+          },
+          {
+            "text": "          path-to-document: https://github.com/zapabob/codex/blob/main/docs/CLA.md",
+            "lineNumber": 45
+          },
+          {
+            "text": "          path-to-signatures: signatures/cla.json",
+            "lineNumber": 46
+          },
+          {
+            "text": "          branch: cla-signatures",
+            "lineNumber": 47
+          },
+          {
+            "text": "          allowlist: codex,dependabot,dependabot[bot],github-actions[bot]",
+            "lineNumber": 48
+          }
+        ]
+      },
+      "score": 0.27044031023979187
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-labeler.yml",
+        "range": {
+          "startPosition": {
+            "line": 43
+          },
+          "endPosition": {
+            "line": 67
+          }
+        },
+        "contents": "            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.\n            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).\n            2. mcp — Topics involving Model Context Protocol servers/clients.\n            3. mcp-server — Problems related to the codex mcp-server command, where codex runs as an MCP server.\n            4. azure — Problems or requests tied to Azure OpenAI deployments.\n            5. model-behavior — Undesirable LLM behavior: forgetting goals, refusing work, hallucinating environment details, quota misreports, or other reasoning/performance anomalies.\n            6. code-review — Issues related to the code review feature or functionality.\n            7. auth - Problems related to authentication, login, or access tokens.\n            8. codex-exec - Problems related to the \"codex exec\" command or functionality.\n            9. context-management - Problems related to compaction, context windows, or available context reporting.\n            10. custom-model - Problems that involve using custom model providers, local models, or OSS models.\n            11. rate-limits - Problems related to token limits, rate limits, or token usage reporting.\n            12. sandbox - Issues related to local sandbox environments or tool call approvals to override sandbox restrictions.\n            13. tool-calls - Problems related to specific tool call invocations including unexpected errors, failures, or hangs.\n            14. TUI - Problems with the terminal user interface (TUI) including keyboard shortcuts, copy &amp; pasting, menus, or screen update issues.\n\n            Issue number: ${{ github.event.issue.number }}\n\n            Issue title:\n            ${{ github.event.issue.title }}\n\n            Issue body:\n            ${{ github.event.issue.body }}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.",
+            "lineNumber": 44
+          },
+          {
+            "text": "            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).",
+            "lineNumber": 45
+          },
+          {
+            "text": "            2. mcp — Topics involving Model Context Protocol servers/clients.",
+            "lineNumber": 46
+          },
+          {
+            "text": "            3. mcp-server — Problems related to the codex mcp-server command, where codex runs as an MCP server.",
+            "lineNumber": 47
+          },
+          {
+            "text": "            4. azure — Problems or requests tied to Azure OpenAI deployments.",
+            "lineNumber": 48
+          },
+          {
+            "text": "            5. model-behavior — Undesirable LLM behavior: forgetting goals, refusing work, hallucinating environment details, quota misreports, or other reasoning/performance anomalies.",
+            "lineNumber": 49
+          },
+          {
+            "text": "            6. code-review — Issues related to the code review feature or functionality.",
+            "lineNumber": 50
+          },
+          {
+            "text": "            7. auth - Problems related to authentication, login, or access tokens.",
+            "lineNumber": 51
+          },
+          {
+            "text": "            8. codex-exec - Problems related to the \"codex exec\" command or functionality.",
+            "lineNumber": 52
+          },
+          {
+            "text": "            9. context-management - Problems related to compaction, context windows, or available context reporting.",
+            "lineNumber": 53
+          },
+          {
+            "text": "            10. custom-model - Problems that involve using custom model providers, local models, or OSS models.",
+            "lineNumber": 54
+          },
+          {
+            "text": "            11. rate-limits - Problems related to token limits, rate limits, or token usage reporting.",
+            "lineNumber": 55
+          },
+          {
+            "text": "            12. sandbox - Issues related to local sandbox environments or tool call approvals to override sandbox restrictions.",
+            "lineNumber": 56
+          },
+          {
+            "text": "            13. tool-calls - Problems related to specific tool call invocations including unexpected errors, failures, or hangs.",
+            "lineNumber": 57
+          },
+          {
+            "text": "            14. TUI - Problems with the terminal user interface (TUI) including keyboard shortcuts, copy &amp; pasting, menus, or screen update issues.",
+            "lineNumber": 58
+          },
+          {
+            "lineNumber": 59
+          },
+          {
+            "text": "            Issue number: ${{ github.event.issue.number }}",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "            Issue title:",
+            "lineNumber": 62
+          },
+          {
+            "text": "            ${{ github.event.issue.title }}",
+            "lineNumber": 63
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "text": "            Issue body:",
+            "lineNumber": 65
+          },
+          {
+            "text": "            ${{ github.event.issue.body }}",
+            "lineNumber": 66
+          }
+        ]
+      },
+      "score": 0.26698729395866394
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-deduplicator.yml",
+        "range": {
+          "startPosition": {
+            "line": 85
+          },
+          "endPosition": {
+            "line": 138
+          }
+        },
+        "contents": "      issues: write\n    steps:\n      - name: Comment on issue\n        uses: actions/github-script@v8\n        env:\n          CODEX_OUTPUT: ${{ needs.gather-duplicates.outputs.codex_output }}\n        with:\n          github-token: ${{ github.token }}\n          script: |\n            const raw = process.env.CODEX_OUTPUT ?? '';\n            let parsed;\n            try {\n              parsed = JSON.parse(raw);\n            } catch (error) {\n              core.info(&#96;Codex output was not valid JSON. Raw output: ${raw}&#96;);\n              core.info(&#96;Parse error: ${error.message}&#96;);\n              return;\n            }\n\n            const issues = Array.isArray(parsed?.issues) ? parsed.issues : [];\n            const currentIssueNumber = String(context.payload.issue.number);\n\n            console.log(&#96;Current issue number: ${currentIssueNumber}&#96;);\n            console.log(issues);\n\n            const filteredIssues = issues.filter((value) =&gt; String(value) !== currentIssueNumber);\n\n            if (filteredIssues.length === 0) {\n              core.info('Codex reported no potential duplicates.');\n              return;\n            }\n\n            const lines = [\n              'Potential duplicates detected. Please review them and close your issue if it is a duplicate.',\n              '',\n              ...filteredIssues.map((value) =&gt; &#96;- #${String(value)}&#96;),\n              '',\n              '*Powered by [Codex Action](https://github.com/openai/codex-action)*'];\n\n            await github.rest.issues.createComment({\n              owner: context.repo.owner,\n              repo: context.repo.repo,\n              issue_number: context.payload.issue.number,\n              body: lines.join(\"\\n\"),\n            });\n\n      - name: Remove codex-deduplicate label\n        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate' }}\n        env:\n          GH_TOKEN: ${{ github.token }}\n          GH_REPO: ${{ github.repository }}\n        run: |\n          gh issue edit \"${{ github.event.issue.number }}\" --remove-label codex-deduplicate || true",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      issues: write",
+            "lineNumber": 86
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 87
+          },
+          {
+            "text": "      - name: Comment on issue",
+            "lineNumber": 88
+          },
+          {
+            "text": "        uses: actions/github-script@v8",
+            "lineNumber": 89
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 90
+          },
+          {
+            "text": "          CODEX_OUTPUT: ${{ needs.gather-duplicates.outputs.codex_output }}",
+            "lineNumber": 91
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 92
+          },
+          {
+            "text": "          github-token: ${{ github.token }}",
+            "lineNumber": 93
+          },
+          {
+            "text": "          script: |",
+            "lineNumber": 94
+          },
+          {
+            "text": "            const raw = process.env.CODEX_OUTPUT ?? '';",
+            "lineNumber": 95
+          },
+          {
+            "text": "            let parsed;",
+            "lineNumber": 96
+          },
+          {
+            "text": "            try {",
+            "lineNumber": 97
+          },
+          {
+            "text": "              parsed = JSON.parse(raw);",
+            "lineNumber": 98
+          },
+          {
+            "text": "            } catch (error) {",
+            "lineNumber": 99
+          },
+          {
+            "text": "              core.info(&#96;Codex output was not valid JSON. Raw output: ${raw}&#96;);",
+            "lineNumber": 100
+          },
+          {
+            "text": "              core.info(&#96;Parse error: ${error.message}&#96;);",
+            "lineNumber": 101
+          },
+          {
+            "text": "              return;",
+            "lineNumber": 102
+          },
+          {
+            "text": "            }",
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "text": "            const issues = Array.isArray(parsed?.issues) ? parsed.issues : [];",
+            "lineNumber": 105
+          },
+          {
+            "text": "            const currentIssueNumber = String(context.payload.issue.number);",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "            console.log(&#96;Current issue number: ${currentIssueNumber}&#96;);",
+            "lineNumber": 108
+          },
+          {
+            "text": "            console.log(issues);",
+            "lineNumber": 109
+          },
+          {
+            "lineNumber": 110
+          },
+          {
+            "text": "            const filteredIssues = issues.filter((value) =&gt; String(value) !== currentIssueNumber);",
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112
+          },
+          {
+            "text": "            if (filteredIssues.length === 0) {",
+            "lineNumber": 113
+          },
+          {
+            "text": "              core.info('Codex reported no potential duplicates.');",
+            "lineNumber": 114
+          },
+          {
+            "text": "              return;",
+            "lineNumber": 115
+          },
+          {
+            "text": "            }",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "            const lines = [",
+            "lineNumber": 118
+          },
+          {
+            "text": "              'Potential duplicates detected. Please review them and close your issue if it is a duplicate.',",
+            "lineNumber": 119
+          },
+          {
+            "text": "              '',",
+            "lineNumber": 120
+          },
+          {
+            "text": "              ...filteredIssues.map((value) =&gt; &#96;- #${String(value)}&#96;),",
+            "lineNumber": 121
+          },
+          {
+            "text": "              '',",
+            "lineNumber": 122
+          },
+          {
+            "text": "              '*Powered by [Codex Action](https://github.com/openai/codex-action)*'];",
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "            await github.rest.issues.createComment({",
+            "lineNumber": 125
+          },
+          {
+            "text": "              owner: context.repo.owner,",
+            "lineNumber": 126
+          },
+          {
+            "text": "              repo: context.repo.repo,",
+            "lineNumber": 127
+          },
+          {
+            "text": "              issue_number: context.payload.issue.number,",
+            "lineNumber": 128
+          },
+          {
+            "text": "              body: lines.join(\"\\n\"),",
+            "lineNumber": 129
+          },
+          {
+            "text": "            });",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "      - name: Remove codex-deduplicate label",
+            "lineNumber": 132
+          },
+          {
+            "text": "        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate' }}",
+            "lineNumber": 133
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 134
+          },
+          {
+            "text": "          GH_TOKEN: ${{ github.token }}",
+            "lineNumber": 135
+          },
+          {
+            "text": "          GH_REPO: ${{ github.repository }}",
+            "lineNumber": 136
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 137
+          },
+          {
+            "text": "          gh issue edit \"${{ github.event.issue.number }}\" --remove-label codex-deduplicate || true",
+            "lineNumber": 138
+          }
+        ]
+      },
+      "score": 0.2601042091846466
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\.github\workflows\ci.yml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\.github\workflows\sdk.yml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\.github\workflows\cargo-deny.yml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD|=======|&gt;&gt;&gt;&gt;&gt;&gt;&gt; upstream",
+  "path": ".github/workflows",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD|=======|&gt;&gt;&gt;&gt;&gt;&gt;&gt; upstream",
+    "path": ".github/workflows",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": ".github\\workflows\\subagent-ci.yml",
+              "matches": [
+                {
+                  "lineNumber": 20,
+                  "content": "  # ========== Rust ビルド &amp; テスト =========="
+                },
+                {
+                  "lineNumber": 88,
+                  "content": "  # ========== Clippy Lint =========="
+                },
+                {
+                  "lineNumber": 124,
+                  "content": "  # ========== Rustfmt Format Check =========="
+                },
+                {
+                  "lineNumber": 143,
+                  "content": "  # ========== エージェント定義検証 =========="
+                },
+                {
+                  "lineNumber": 179,
+                  "content": "  # ========== Deep Research 統合テスト =========="
+                },
+                {
+                  "lineNumber": 216,
+                  "content": "  # ========== サブエージェント統合テスト =========="
+                },
+                {
+                  "lineNumber": 253,
+                  "content": "  # ========== ドキュメント検証 =========="
+                },
+                {
+                  "lineNumber": 276,
+                  "content": "  # ========== セキュリティ監査 =========="
+                },
+                {
+                  "lineNumber": 296,
+                  "content": "  # ========== 最終サマリー =========="
+                }
+              ]
+            },
+            {
+              "file": ".github\\workflows\\release-subagent.yml",
+              "matches": [
+                {
+                  "lineNumber": 19,
+                  "content": "  # ========== ビルド（全プラットフォーム） =========="
+                },
+                {
+                  "lineNumber": 89,
+                  "content": "  # ========== npm パッケージング =========="
+                },
+                {
+                  "lineNumber": 135,
+                  "content": "  # ========== ドキュメント生成 =========="
+                },
+                {
+                  "lineNumber": 214,
+                  "content": "  # ========== GitHub Release作成 =========="
+                },
+                {
+                  "lineNumber": 249,
+                  "content": "  # ========== npm公開（オプション） =========="
+                },
+                {
+                  "lineNumber": 279,
+                  "content": "  # ========== 完了通知 =========="
+                }
+              ]
+            }
+          ],
+          "totalLines": 15,
+          "totalMatchedLines": 15
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+npmに`@zapabob/codex`を公開する手順を案内します。現在の設定は問題なさそうです。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\package.json</summary>
+
+</details>
+</tool-use>
+
+---
+
+Cancelled
+
+---
+
+Cancelled
+
+---
+
+
+
+---
+
+_**User**_
+
+error[E0433]: failed to resolve: use of undeclared type `HashSet`
+   --> utils/git/src/ghost_commits.rs:776:20
+    |
+776 |     let mut seen = HashSet::new();
+    |                    ^^^^^^^ use of undeclared type `HashSet`
+    |
+help: consider importing this struct
+    |
+  1 + use std::collections::HashSet;
+    |
+
+   Compiling mcp-types v2.8.0 (/home/runner/work/codex/codex/codex-rs/mcp-types)
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `codex-git` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+Error: Process completed with exit code 101.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+`HashSet`の使用箇所を確認し、`BTreeSet`に置き換えます。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "HashSet",
+  "path": "codex-rs/utils/git/src/ghost_commits.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "HashSet",
+    "path": "codex-rs/utils/git/src/ghost_commits.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+ファイルを確認。`HashSet`は見当たりません。CIで古いコードが使われている可能性があります。念のため、ファイル全体を確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "HashSet|hash_set",
+  "path": "codex-rs/utils/git/src/ghost_commits.rs",
+  "caseInsensitive": true
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "HashSet|hash_set",
+    "path": "codex-rs/utils/git/src/ghost_commits.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
-<details><summary>Tool use: **run_terminal_command_v2**</summary>
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Push-Location "C:\Users\downl\Desktop\codex-main\codex-rs" ; cargo check -p codex-git --lib 2>&1 | Select-Object -Last 20</summary>
+
+```bash
+Push-Location "C:\Users\downl\Desktop\codex-main\codex-rs" ; cargo check -p codex-git --lib 2>&1 | Select-Object -Last 20
+```
+
+```
+cargo :     Checking codex-git v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\git)
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-457842e0-b674-4993-b471-8752cb47e473.ps1:97 ����:62
++ ... op\codex-main\codex-rs" ; cargo check -p codex-git --lib 2&gt;&amp;1 | Selec ...
++                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (    Checking co...x-rs\utils\git):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    Finished &#96;dev&#96; profile [unoptimized + debuginfo] target(s) in 1.71s
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ローカルでは`BTreeSet`に変更済みで、`cargo check`も成功しています。CIで古いコードが使われている可能性があります。念のため、ファイル全体を確認します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
 
 </details>
 </tool-use>
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="read_file_v2">
-<details>
-<summary>Tool use: **read_file_v2**</summary>
 
-Status: **loading**
+ローカルでは`BTreeSet`に変更済みで、`cargo check`も成功しています。CIで古いコードが使われている可能性があります。念のため、ファイル全体を確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "HashSet|hash_set",
+  "path": "codex-rs/utils/git/src",
+  "caseInsensitive": true
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "HashSet|hash_set",
+    "path": "codex-rs/utils/git/src",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
 
 
 </details>
@@ -158772,11 +164130,1185 @@ Status: **loading**
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="glob_file_search">
-<details>
-<summary>Tool use: **glob_file_search**</summary>
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Push-Location "C:\Users\downl\Desktop\codex-main\codex-rs" ; cargo clippy -p codex-git --lib -- -D warnings 2>&1 | Select-Object -Last 10</summary>
 
-Status: **loading**
+```bash
+Push-Location "C:\Users\downl\Desktop\codex-main\codex-rs" ; cargo clippy -p codex-git --lib -- -D warnings 2>&1 | Select-Object -Last 10
+```
+
+```
+cargo :     Checking codex-git v2.8.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\git)
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-5854eed6-b4e9-4dae-ace6-3a00a72e1d82.ps1:97 ����:62
++ ... codex-rs" ; cargo clippy -p codex-git --lib -- -D warnings 2&gt;&amp;1 | Sel ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (    Checking co...x-rs\utils\git):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    Finished &#96;dev&#96; profile [unoptimized + debuginfo] target(s) in 1.65s
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+ローカルでは`BTreeSet`に変更済みで、`cargo clippy`も成功しています。CIで古いコードが使われている可能性があります。変更がコミットされていない可能性があるため、ファイル全体を確認します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status --short codex-rs/utils/git/src/ghost_commits.rs</summary>
+
+```bash
+git status --short codex-rs/utils/git/src/ghost_commits.rs
+```
+
+```
+warning: could not open directory 'codex-rs/codex-rs/utils/git/src/': No such file or directory
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git diff codex-rs/utils/git/src/ghost_commits.rs | Select-Object -First 50</summary>
+
+```bash
+git diff codex-rs/utils/git/src/ghost_commits.rs | Select-Object -First 50
+```
+
+```
+fatal: ambiguous argument 'codex-rs/utils/git/src/ghost_commits.rs': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git &lt;command&gt; [&lt;revision&gt;...] -- [&lt;file&gt;...]'
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "HashSet",
+  "path": "codex-rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "HashSet",
+    "path": "codex-rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\app-server\\src\\codex_message_processor.rs",
+              "matches": [
+                {
+                  "lineNumber": 160,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 184,
+                  "content": "    pub(crate) file_change_started: HashSet&lt;String&gt;,"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\cloud-tasks\\src\\app.rs",
+              "matches": [
+                {
+                  "lineNumber": 73,
+                  "content": "    pub in_flight: std::collections::HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 100,
+                  "content": "            in_flight: std::collections::HashSet::new(),"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\orchestration\\auto_orchestrator.rs",
+              "matches": [
+                {
+                  "lineNumber": 22,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 427,
+                  "content": "        let mut seen_agents = HashSet::new();"
+                },
+                {
+                  "lineNumber": 900,
+                  "content": "        let mut selected_agents = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\ai_orchestrator.rs",
+              "matches": [
+                {
+                  "lineNumber": 239,
+                  "content": "        let mut used_agents = std::collections::HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\autonomous_dispatcher.rs",
+              "matches": [
+                {
+                  "lineNumber": 280,
+                  "content": "                .collect::&lt;std::collections::HashSet&lt;_&gt;&gt;()"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\multi_agent_evaluator.rs",
+              "matches": [
+                {
+                  "lineNumber": 13,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 297,
+                  "content": "        let mut seen = HashSet::new();"
+                },
+                {
+                  "lineNumber": 315,
+                  "content": "    let mut seen = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\executor.rs",
+              "matches": [
+                {
+                  "lineNumber": 8,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 39,
+                  "content": "    let mut all_step_ids = HashSet::new();"
+                },
+                {
+                  "lineNumber": 46,
+                  "content": "    let mut remaining_dependencies: HashMap&lt;String, HashSet&lt;String&gt;&gt; = HashMap::new();"
+                },
+                {
+                  "lineNumber": 50,
+                  "content": "        let filtered_dependencies: HashSet&lt;String&gt; = assignment"
+                },
+                {
+                  "lineNumber": 68,
+                  "content": "    let mut active_domains: HashSet&lt;String&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 138,
+                  "content": "    active_domains: &amp;HashSet&lt;String&gt;,"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\autonomous_orchestrator.rs",
+              "matches": [
+                {
+                  "lineNumber": 17,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 125,
+                  "content": "    active_agents: HashSet&lt;AgentType&gt;,"
+                },
+                {
+                  "lineNumber": 176,
+                  "content": "            active_agents: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 369,
+                  "content": "        let mut noted_busy: HashSet&lt;AgentType&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\orchestration\\task_analyzer.rs",
+              "matches": [
+                {
+                  "lineNumber": 7,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 182,
+                  "content": "        let mut detected_domains = HashSet::new();"
+                },
+                {
+                  "lineNumber": 266,
+                  "content": "        let mut tags = HashSet::new();"
+                },
+                {
+                  "lineNumber": 397,
+                  "content": "        let mut agents = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\cli\\src\\pair_program_cmd.rs",
+              "matches": [
+                {
+                  "lineNumber": 14,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 106,
+                  "content": "    let mut seen = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui\\src\\bottom_pane\\command_popup.rs",
+              "matches": [
+                {
+                  "lineNumber": 16,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 40,
+                  "content": "        let exclude: HashSet&lt;String&gt; = builtins.iter().map(|(n, _)| (*n).to_string()).collect();"
+                },
+                {
+                  "lineNumber": 52,
+                  "content": "        let exclude: HashSet&lt;String&gt; = self"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui\\src\\chatwidget.rs",
+              "matches": [
+                {
+                  "lineNumber": 2,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 325,
+                  "content": "    suppressed_exec_calls: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 1446,
+                  "content": "            suppressed_exec_calls: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 1532,
+                  "content": "            suppressed_exec_calls: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 3716,
+                  "content": "    let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\qc\\sandboxed_execution.rs",
+              "matches": [
+                {
+                  "lineNumber": 9,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 167,
+                  "content": "    pub restricted_commands: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 168,
+                  "content": "    pub allowed_network_domains: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 169,
+                  "content": "    pub blocked_file_paths: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 881,
+                  "content": "            restricted_commands: HashSet::from([\"sudo\".to_string()]),"
+                },
+                {
+                  "lineNumber": 882,
+                  "content": "            allowed_network_domains: HashSet::from([\"github.com\".to_string()]),"
+                },
+                {
+                  "lineNumber": 883,
+                  "content": "            blocked_file_paths: HashSet::from([\"/etc/passwd\".to_string()]),"
+                },
+                {
+                  "lineNumber": 903,
+                  "content": "            restricted_commands: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 904,
+                  "content": "            allowed_network_domains: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 905,
+                  "content": "            blocked_file_paths: HashSet::new(),"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\chatwidget.rs",
+              "matches": [
+                {
+                  "lineNumber": 2,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 301,
+                  "content": "    suppressed_exec_calls: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 1320,
+                  "content": "            suppressed_exec_calls: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 1405,
+                  "content": "            suppressed_exec_calls: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 3525,
+                  "content": "    let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\setup_orchestrator.rs",
+              "matches": [
+                {
+                  "lineNumber": 4,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 240,
+                  "content": "    let mut dedup: HashSet&lt;PathBuf&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 429,
+                  "content": "    let write_root_set: HashSet&lt;PathBuf&gt; = write_roots.iter().cloned().collect();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\setup_main_win.rs",
+              "matches": [
+                {
+                  "lineNumber": 23,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 884,
+                  "content": "    let mut seen_write_roots: HashSet&lt;PathBuf&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\audit.rs",
+              "matches": [
+                {
+                  "lineNumber": 11,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 38,
+                  "content": "fn unique_push(set: &amp;mut HashSet&lt;PathBuf&gt;, out: &amp;mut Vec&lt;PathBuf&gt;, p: PathBuf) {"
+                },
+                {
+                  "lineNumber": 47,
+                  "content": "    let mut set: HashSet&lt;PathBuf&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 97,
+                  "content": "    let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\allow.rs",
+              "matches": [
+                {
+                  "lineNumber": 4,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 10,
+                  "content": "    pub allow: HashSet&lt;PathBuf&gt;,"
+                },
+                {
+                  "lineNumber": 11,
+                  "content": "    pub deny: HashSet&lt;PathBuf&gt;,"
+                },
+                {
+                  "lineNumber": 20,
+                  "content": "    let mut allow: HashSet&lt;PathBuf&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 21,
+                  "content": "    let mut deny: HashSet&lt;PathBuf&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 170,
+                  "content": "        let expected_allow: HashSet&lt;PathBuf&gt; = [dunce::canonicalize(&amp;command_cwd).unwrap()]"
+                },
+                {
+                  "lineNumber": 173,
+                  "content": "        let expected_deny: HashSet&lt;PathBuf&gt; = [dunce::canonicalize(&amp;git_dir).unwrap()]"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\resume_picker.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 181,
+                  "content": "    seen_paths: HashSet&lt;PathBuf&gt;,"
+                },
+                {
+                  "lineNumber": 274,
+                  "content": "            seen_paths: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 1481,
+                  "content": "            .collect::&lt;std::collections::HashSet&lt;_&gt;&gt;();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\chatwidget\\tests.rs",
+              "matches": [
+                {
+                  "lineNumber": 63,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 386,
+                  "content": "        suppressed_exec_calls: HashSet::new(),"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\bottom_pane\\command_popup.rs",
+              "matches": [
+                {
+                  "lineNumber": 16,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 40,
+                  "content": "        let exclude: HashSet&lt;String&gt; = builtins.iter().map(|(n, _)| (*n).to_string()).collect();"
+                },
+                {
+                  "lineNumber": 52,
+                  "content": "        let exclude: HashSet&lt;String&gt; = self"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui\\src\\resume_picker.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 181,
+                  "content": "    seen_paths: HashSet&lt;PathBuf&gt;,"
+                },
+                {
+                  "lineNumber": 274,
+                  "content": "            seen_paths: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 1481,
+                  "content": "            .collect::&lt;std::collections::HashSet&lt;_&gt;&gt;();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui\\src\\chatwidget\\tests.rs",
+              "matches": [
+                {
+                  "lineNumber": 65,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 388,
+                  "content": "        suppressed_exec_calls: HashSet::new(),"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\exec-server\\tests\\common\\lib.rs",
+              "matches": [
+                {
+                  "lineNumber": 20,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 144,
+                  "content": "    pub elicitations_to_accept: HashSet&lt;String&gt;,"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\tests\\suite\\grep_files.rs",
+              "matches": [
+                {
+                  "lineNumber": 9,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 133,
+                  "content": "fn collect_file_names(content: &amp;str) -&gt; HashSet&lt;String&gt; {"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\tests\\common\\responses.rs",
+              "matches": [
+                {
+                  "lineNumber": 810,
+                  "content": "    use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 818,
+                  "content": "    fn gather_ids(items: &amp;[Value], kind: &amp;str) -&gt; HashSet&lt;String&gt; {"
+                },
+                {
+                  "lineNumber": 827,
+                  "content": "    fn gather_output_ids(items: &amp;[Value], kind: &amp;str, missing_msg: &amp;str) -&gt; HashSet&lt;String&gt; {"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\unified_exec\\session_manager.rs",
+              "matches": [
+                {
+                  "lineNumber": 4,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 609,
+                  "content": "        let protected: HashSet&lt;String&gt; = by_recency"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\unified_exec\\mod.rs",
+              "matches": [
+                {
+                  "lineNumber": 25,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 126,
+                  "content": "    reserved_sessions_id: HashSet&lt;String&gt;,"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\tools\\spec.rs",
+              "matches": [
+                {
+                  "lineNumber": 1147,
+                  "content": "        use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 1148,
+                  "content": "        let mut names = HashSet::new();"
+                },
+                {
+                  "lineNumber": 1238,
+                  "content": "        use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 1269,
+                  "content": "        let actual_names: HashSet&lt;_&gt; = actual.keys().cloned().collect();"
+                },
+                {
+                  "lineNumber": 1270,
+                  "content": "        let expected_names: HashSet&lt;_&gt; = expected.keys().cloned().collect();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\skills\\loader.rs",
+              "matches": [
+                {
+                  "lineNumber": 10,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 86,
+                  "content": "    let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\models_manager\\manager.rs",
+              "matches": [
+                {
+                  "lineNumber": 9,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 251,
+                  "content": "        let remote_slugs: HashSet&lt;&amp;str&gt; = remote_presets"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\mcp_connection_manager.rs",
+              "matches": [
+                {
+                  "lineNumber": 10,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 85,
+                  "content": "    let mut used_names = HashSet::new();"
+                },
+                {
+                  "lineNumber": 676,
+                  "content": "    enabled: Option&lt;HashSet&lt;String&gt;&gt;,"
+                },
+                {
+                  "lineNumber": 677,
+                  "content": "    disabled: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 685,
+                  "content": "            .map(|tools| tools.iter().cloned().collect::&lt;HashSet&lt;_&gt;&gt;());"
+                },
+                {
+                  "lineNumber": 689,
+                  "content": "            .map(|tools| tools.iter().cloned().collect::&lt;HashSet&lt;_&gt;&gt;())"
+                },
+                {
+                  "lineNumber": 953,
+                  "content": "    use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 1047,
+                  "content": "            enabled: Some(HashSet::from([\"allowed\".to_string()])),"
+                },
+                {
+                  "lineNumber": 1048,
+                  "content": "            disabled: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 1059,
+                  "content": "            disabled: HashSet::from([\"blocked\".to_string()]),"
+                },
+                {
+                  "lineNumber": 1069,
+                  "content": "            enabled: Some(HashSet::from([\"keep\".to_string(), \"remove\".to_string()])),"
+                },
+                {
+                  "lineNumber": 1070,
+                  "content": "            disabled: HashSet::from([\"remove\".to_string()]),"
+                },
+                {
+                  "lineNumber": 1086,
+                  "content": "            enabled: Some(HashSet::from([\"tool_a\".to_string(), \"tool_b\".to_string()])),"
+                },
+                {
+                  "lineNumber": 1087,
+                  "content": "            disabled: HashSet::from([\"tool_b\".to_string()]),"
+                },
+                {
+                  "lineNumber": 1091,
+                  "content": "            disabled: HashSet::from([\"tool_a\".to_string()]),"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\git_info.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 320,
+                  "content": "    let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\exec_env.rs",
+              "matches": [
+                {
+                  "lineNumber": 5,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 31,
+                  "content": "            let allow: HashSet&lt;&amp;str&gt; = CORE_VARS.iter().copied().collect();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\context_manager\\normalize.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 98,
+                  "content": "    let function_call_ids: HashSet&lt;String&gt; = items"
+                },
+                {
+                  "lineNumber": 106,
+                  "content": "    let local_shell_call_ids: HashSet&lt;String&gt; = items"
+                },
+                {
+                  "lineNumber": 117,
+                  "content": "    let custom_tool_call_ids: HashSet&lt;String&gt; = items"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\client_common.rs",
+              "matches": [
+                {
+                  "lineNumber": 11,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 91,
+                  "content": "    let mut shell_call_ids: HashSet&lt;String&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\app-server-protocol\\src\\export.rs",
+              "matches": [
+                {
+                  "lineNumber": 26,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 500,
+                  "content": "    let mut seen = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\codex_tui_build.txt",
+              "matches": [
+                {
+                  "lineNumber": 717,
+                  "content": "error[E0412]: cannot find type &#96;HashSet&#96; in this scope"
+                },
+                {
+                  "lineNumber": 720,
+                  "content": "3249 |     let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 725,
+                  "content": "   1 + use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 728,
+                  "content": "error[E0433]: failed to resolve: use of undeclared type &#96;HashSet&#96;"
+                },
+                {
+                  "lineNumber": 731,
+                  "content": "3249 |     let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 732,
+                  "content": "     |                                     ^^^^^^^ use of undeclared type &#96;HashSet&#96;"
+                },
+                {
+                  "lineNumber": 736,
+                  "content": "   1 + use std::collections::HashSet;"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\_docs\\2025-12-23_FixTuiCompilationAndSlashCommands.md",
+              "matches": [
+                {
+                  "lineNumber": 23,
+                  "content": "- Migrated &#96;HashMap/HashSet&#96; to &#96;BTreeMap/BTreeSet&#96; in &#96;chatwidget.rs&#96; and &#96;windows-sandbox-rs&#96;."
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\bottom_pane\\prompt_args.rs",
+              "matches": [
+                {
+                  "lineNumber": 7,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 90,
+                  "content": "    let mut seen = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\skills\\injection.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 66,
+                  "content": "    let mut seen: HashSet&lt;String&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\mcp-registry\\src\\lib.rs",
+              "matches": [
+                {
+                  "lineNumber": 6,
+                  "content": "use std::collections::{HashMap, HashSet};"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\deep-research\\src\\contradiction.rs",
+              "matches": [
+                {
+                  "lineNumber": 79,
+                  "content": "        let unique_domains: std::collections::HashSet&lt;String&gt; = sources"
+                },
+                {
+                  "lineNumber": 98,
+                  "content": "        let domains: std::collections::HashSet&lt;String&gt; = finding"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\security_monitor.rs",
+              "matches": [
+                {
+                  "lineNumber": 13,
+                  "content": "use std::collections::{HashMap, HashSet, VecDeque};"
+                },
+                {
+                  "lineNumber": 92,
+                  "content": "    blocked_commands: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 93,
+                  "content": "    quarantined_files: HashSet&lt;PathBuf&gt;,"
+                },
+                {
+                  "lineNumber": 162,
+                  "content": "            blocked_commands: HashSet::new(),"
+                },
+                {
+                  "lineNumber": 163,
+                  "content": "            quarantined_files: HashSet::new(),"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\malware_detector.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::{HashMap, HashSet};"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\macos_virtual_os.rs",
+              "matches": [
+                {
+                  "lineNumber": 14,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 127,
+                  "content": "    dangerous_commands: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 134,
+                  "content": "        let mut dangerous_commands = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\git4d_accelerated.rs",
+              "matches": [
+                {
+                  "lineNumber": 4,
+                  "content": "use std::collections::{HashMap, HashSet, VecDeque};"
+                },
+                {
+                  "lineNumber": 18,
+                  "content": "    visible_branches: Mutex&lt;HashSet&lt;u32&gt;&gt;,"
+                },
+                {
+                  "lineNumber": 86,
+                  "content": "            visible_branches: Mutex::new(HashSet::new()),"
+                },
+                {
+                  "lineNumber": 351,
+                  "content": "        let mut visited = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\conversation_history.rs",
+              "matches": [
+                {
+                  "lineNumber": 244,
+                  "content": "        let mut orphan_output_call_ids: std::collections::HashSet&lt;String&gt; ="
+                },
+                {
+                  "lineNumber": 245,
+                  "content": "            std::collections::HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\container_manager.rs",
+              "matches": [
+                {
+                  "lineNumber": 9,
+                  "content": "use std::collections::HashSet;"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\ai_tool_manager.rs",
+              "matches": [
+                {
+                  "lineNumber": 5,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 801,
+                  "content": "        let mut all_files = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\agent-runtime\\windows-runtime.rs",
+              "matches": [
+                {
+                  "lineNumber": 6,
+                  "content": "use std::collections::{HashMap, HashSet};"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\clippy.toml",
+              "matches": [
+                {
+                  "lineNumber": 32,
+                  "content": "    { path = \"std::collections::HashSet\", reason = \"Use BTreeSet for deterministic ordering.\" },"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\_docs\\2025-12-08_RustCUDA_Git4D高速化_VRAR対応.md",
+              "matches": [
+                {
+                  "lineNumber": 215,
+                  "content": "    let mut visited = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\utils\\readiness\\src\\lib.rs",
+              "matches": [
+                {
+                  "lineNumber": 3,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 49,
+                  "content": "    tokens: Mutex&lt;HashSet&lt;Token&gt;&gt;,"
+                },
+                {
+                  "lineNumber": 61,
+                  "content": "            tokens: Mutex::new(HashSet::new()),"
+                },
+                {
+                  "lineNumber": 68,
+                  "content": "        f: impl FnOnce(&amp;mut HashSet&lt;Token&gt;) -&gt; R,"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\execpolicy-legacy\\src\\program.rs",
+              "matches": [
+                {
+                  "lineNumber": 3,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 27,
+                  "content": "    required_options: HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 164,
+                  "content": "        let matched_opt_names: HashSet&lt;String&gt; = matched_opts"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\custom_prompts.rs",
+              "matches": [
+                {
+                  "lineNumber": 2,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 18,
+                  "content": "    discover_prompts_in_excluding(dir, &amp;HashSet::new()).await"
+                },
+                {
+                  "lineNumber": 25,
+                  "content": "    exclude: &amp;HashSet&lt;String&gt;,"
+                },
+                {
+                  "lineNumber": 179,
+                  "content": "        let mut exclude = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\codex-api\\src\\sse\\chat.rs",
+              "matches": [
+                {
+                  "lineNumber": 13,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 52,
+                  "content": "    let mut tool_call_order_seen: HashSet&lt;usize&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\cli\\src\\debug_sandbox\\seatbelt.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 71,
+                  "content": "        let mut seen: HashSet&lt;(String, String)&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\cli\\src\\debug_sandbox\\pid_tracker.rs",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 9,
+                  "content": "    handle: JoinHandle&lt;HashSet&lt;i32&gt;&gt;,"
+                },
+                {
+                  "lineNumber": 24,
+                  "content": "    pub(crate) async fn stop(self) -&gt; HashSet&lt;i32&gt; {"
+                },
+                {
+                  "lineNumber": 113,
+                  "content": "    seen: &amp;mut HashSet&lt;i32&gt;,"
+                },
+                {
+                  "lineNumber": 114,
+                  "content": "    active: &amp;mut HashSet&lt;i32&gt;,"
+                },
+                {
+                  "lineNumber": 122,
+                  "content": "fn add_pid_watch(kq: libc::c_int, pid: i32, seen: &amp;mut HashSet&lt;i32&gt;, active: &amp;mut HashSet&lt;i32&gt;) {"
+                },
+                {
+                  "lineNumber": 185,
+                  "content": "fn track_descendants(kq: libc::c_int, root_pid: i32) -&gt; HashSet&lt;i32&gt; {"
+                },
+                {
+                  "lineNumber": 187,
+                  "content": "        let mut seen = HashSet::new();"
+                },
+                {
+                  "lineNumber": 193,
+                  "content": "        let mut seen = HashSet::new();"
+                },
+                {
+                  "lineNumber": 199,
+                  "content": "    let mut seen: HashSet&lt;i32&gt; = HashSet::new();"
+                },
+                {
+                  "lineNumber": 200,
+                  "content": "    let mut active: HashSet&lt;i32&gt; = HashSet::new();"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\tui\\src\\bottom_pane\\prompt_args.rs",
+              "matches": [
+                {
+                  "lineNumber": 7,
+                  "content": "use std::collections::HashSet;"
+                },
+                {
+                  "lineNumber": 90,
+                  "content": "    let mut seen = HashSet::new();"
+                }
+              ]
+            }
+          ],
+          "totalLines": 193,
+          "totalMatchedLines": 193
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
 
 
 </details>
@@ -158784,15 +165316,6455 @@ Status: **loading**
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="list_dir_v2">
-<details>
-<summary>Tool use: **list_dir_v2**</summary>
 
-Status: **loading**
+ローカルでは`BTreeSet`に変更済みで、`cargo clippy`も成功しています。CIで古いコードが使われている可能性があります。`clippy.toml`で`HashSet`が禁止されているため、他のクレートでも影響がある可能性があります。`clippy.toml`を確認します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\clippy.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "disallowed_types|HashSet",
+  "path": "codex-rs/clippy.toml",
+  "contextAfter": 5,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "disallowed_types|HashSet",
+    "path": "codex-rs/clippy.toml",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\clippy.toml",
+              "matches": [
+                {
+                  "lineNumber": 32,
+                  "content": "    { path = \"std::collections::HashSet\", reason = \"Use BTreeSet for deterministic ordering.\" },"
+                },
+                {
+                  "lineNumber": 33,
+                  "content": "]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 34,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 35,
+                  "content": "# Memory Safety (Stricter than official)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 36,
+                  "content": "max-fn-params-bools = 2  # Limit boolean parameters",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 37,
+                  "content": "too-many-lines-threshold = 300  # Stricter line limits per function",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 6,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
 
 
 </details>
 </tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "clippy disallowed_types HashSet BTreeSet configuration",
+  "includePattern": "codex-rs",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 676,
+            "column": 39
+          },
+          "endPosition": {
+            "line": 737,
+            "column": 35
+          }
+        },
+        "contents": "    std::fs::write(&amp;config_path, doc.to_string())?;\n    Ok(())\n}\n\n/// Base config deserialized from ~/.codex/config.toml.\n#[derive(Deserialize, Debug, Clone, Default, PartialEq)]\npub struct ConfigToml {\n    /// Optional override of model selection.\n    pub model: Option&lt;String&gt;,\n    /// Review model override used by the &#96;/review&#96; feature.\n    pub review_model: Option&lt;String&gt;,\n\n    /// Provider to use from the model_providers map.\n    pub model_provider: Option&lt;String&gt;,\n\n    /// Size of the context window for the model, in tokens.\n    pub model_context_window: Option&lt;i64&gt;,\n\n    /// Token usage threshold triggering auto-compaction of conversation history.\n    pub model_auto_compact_token_limit: Option&lt;i64&gt;,\n\n    /// Default approval policy for executing commands.\n    pub approval_policy: Option&lt;AskForApproval&gt;,\n\n    #[serde(default)]\n    pub shell_environment_policy: ShellEnvironmentPolicyToml,\n\n    /// Sandbox mode to use.\n    pub sandbox_mode: Option&lt;SandboxMode&gt;,\n\n    /// Sandbox configuration to apply if &#96;sandbox&#96; is &#96;WorkspaceWrite&#96;.\n    pub sandbox_workspace_write: Option&lt;SandboxWorkspaceWrite&gt;,\n\n    /// Optional external command to spawn for end-user notifications.\n    #[serde(default)]\n    pub notify: Option&lt;Vec&lt;String&gt;&gt;,\n\n    /// System instructions.\n    pub instructions: Option&lt;String&gt;,\n\n    /// Developer instructions inserted as a &#96;developer&#96; role message.\n    #[serde(default)]\n    pub developer_instructions: Option&lt;String&gt;,\n\n    /// Compact prompt used for history compaction.\n    pub compact_prompt: Option&lt;String&gt;,\n\n    /// When set, restricts ChatGPT login to a specific workspace identifier.\n    #[serde(default)]\n    pub forced_chatgpt_workspace_id: Option&lt;String&gt;,\n\n    /// When set, restricts the login mechanism users may use.\n    #[serde(default)]\n    pub forced_login_method: Option&lt;ForcedLoginMethod&gt;,\n\n    /// Preferred backend for storing CLI auth credentials.\n    /// file (default): Use a file in the Codex home directory.\n    /// keyring: Use an OS-specific keyring service.\n    /// auto: Use the keyring if available, otherwise use a file.\n    #[serde(default)]\n    pub cli_auth_credentials_store:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    std::fs::write(&amp;config_path, doc.to_string())?;",
+            "lineNumber": 678
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 679
+          },
+          {
+            "text": "}",
+            "lineNumber": 680
+          },
+          {
+            "lineNumber": 681
+          },
+          {
+            "text": "/// Base config deserialized from ~/.codex/config.toml.",
+            "lineNumber": 682
+          },
+          {
+            "text": "#[derive(Deserialize, Debug, Clone, Default, PartialEq)]",
+            "lineNumber": 683
+          },
+          {
+            "text": "pub struct ConfigToml {",
+            "lineNumber": 684
+          },
+          {
+            "text": "    /// Optional override of model selection.",
+            "lineNumber": 685
+          },
+          {
+            "text": "    pub model: Option&lt;String&gt;,",
+            "lineNumber": 686
+          },
+          {
+            "text": "    /// Review model override used by the &#96;/review&#96; feature.",
+            "lineNumber": 687
+          },
+          {
+            "text": "    pub review_model: Option&lt;String&gt;,",
+            "lineNumber": 688
+          },
+          {
+            "lineNumber": 689
+          },
+          {
+            "text": "    /// Provider to use from the model_providers map.",
+            "lineNumber": 690
+          },
+          {
+            "text": "    pub model_provider: Option&lt;String&gt;,",
+            "lineNumber": 691
+          },
+          {
+            "lineNumber": 692
+          },
+          {
+            "text": "    /// Size of the context window for the model, in tokens.",
+            "lineNumber": 693
+          },
+          {
+            "text": "    pub model_context_window: Option&lt;i64&gt;,",
+            "lineNumber": 694
+          },
+          {
+            "lineNumber": 695
+          },
+          {
+            "text": "    /// Token usage threshold triggering auto-compaction of conversation history.",
+            "lineNumber": 696
+          },
+          {
+            "text": "    pub model_auto_compact_token_limit: Option&lt;i64&gt;,",
+            "lineNumber": 697
+          },
+          {
+            "lineNumber": 698
+          },
+          {
+            "text": "    /// Default approval policy for executing commands.",
+            "lineNumber": 699
+          },
+          {
+            "text": "    pub approval_policy: Option&lt;AskForApproval&gt;,",
+            "lineNumber": 700
+          },
+          {
+            "lineNumber": 701
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 702
+          },
+          {
+            "text": "    pub shell_environment_policy: ShellEnvironmentPolicyToml,",
+            "lineNumber": 703
+          },
+          {
+            "lineNumber": 704
+          },
+          {
+            "text": "    /// Sandbox mode to use.",
+            "lineNumber": 705
+          },
+          {
+            "text": "    pub sandbox_mode: Option&lt;SandboxMode&gt;,",
+            "lineNumber": 706
+          },
+          {
+            "lineNumber": 707
+          },
+          {
+            "text": "    /// Sandbox configuration to apply if &#96;sandbox&#96; is &#96;WorkspaceWrite&#96;.",
+            "lineNumber": 708
+          },
+          {
+            "text": "    pub sandbox_workspace_write: Option&lt;SandboxWorkspaceWrite&gt;,",
+            "lineNumber": 709
+          },
+          {
+            "lineNumber": 710
+          },
+          {
+            "text": "    /// Optional external command to spawn for end-user notifications.",
+            "lineNumber": 711
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 712
+          },
+          {
+            "text": "    pub notify: Option&lt;Vec&lt;String&gt;&gt;,",
+            "lineNumber": 713
+          },
+          {
+            "lineNumber": 714
+          },
+          {
+            "text": "    /// System instructions.",
+            "lineNumber": 715
+          },
+          {
+            "text": "    pub instructions: Option&lt;String&gt;,",
+            "lineNumber": 716
+          },
+          {
+            "lineNumber": 717
+          },
+          {
+            "text": "    /// Developer instructions inserted as a &#96;developer&#96; role message.",
+            "lineNumber": 718
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 719
+          },
+          {
+            "text": "    pub developer_instructions: Option&lt;String&gt;,",
+            "lineNumber": 720
+          },
+          {
+            "lineNumber": 721
+          },
+          {
+            "text": "    /// Compact prompt used for history compaction.",
+            "lineNumber": 722
+          },
+          {
+            "text": "    pub compact_prompt: Option&lt;String&gt;,",
+            "lineNumber": 723
+          },
+          {
+            "lineNumber": 724
+          },
+          {
+            "text": "    /// When set, restricts ChatGPT login to a specific workspace identifier.",
+            "lineNumber": 725
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 726
+          },
+          {
+            "text": "    pub forced_chatgpt_workspace_id: Option&lt;String&gt;,",
+            "lineNumber": 727
+          },
+          {
+            "lineNumber": 728
+          },
+          {
+            "text": "    /// When set, restricts the login mechanism users may use.",
+            "lineNumber": 729
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 730
+          },
+          {
+            "text": "    pub forced_login_method: Option&lt;ForcedLoginMethod&gt;,",
+            "lineNumber": 731
+          },
+          {
+            "lineNumber": 732
+          },
+          {
+            "text": "    /// Preferred backend for storing CLI auth credentials.",
+            "lineNumber": 733
+          },
+          {
+            "text": "    /// file (default): Use a file in the Codex home directory.",
+            "lineNumber": 734
+          },
+          {
+            "text": "    /// keyring: Use an OS-specific keyring service.",
+            "lineNumber": 735
+          },
+          {
+            "text": "    /// auto: Use the keyring if available, otherwise use a file.",
+            "lineNumber": 736
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 737
+          },
+          {
+            "text": "    pub cli_auth_credentials_store:",
+            "lineNumber": 738
+          }
+        ]
+      },
+      "score": 0.28827494382858276
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 735
+          },
+          "endPosition": {
+            "line": 783
+          }
+        },
+        "contents": "    /// auto: Use the keyring if available, otherwise use a file.\n    #[serde(default)]\n    pub cli_auth_credentials_store: Option&lt;AuthCredentialsStoreMode&gt;,\n\n    /// Definition for MCP servers that Codex can reach out to for tool calls.\n    #[serde(default)]\n    pub mcp_servers: HashMap&lt;String, McpServerConfig&gt;,\n\n    /// Preferred backend for storing MCP OAuth credentials.\n    /// keyring: Use an OS-specific keyring service.\n    ///          https://github.com/openai/codex/blob/main/codex-rs/rmcp-client/src/oauth.rs#L2\n    /// file: Use a file in the Codex home directory.\n    /// auto (default): Use the OS-specific keyring service if available, otherwise use a file.\n    #[serde(default)]\n    pub mcp_oauth_credentials_store: Option&lt;OAuthCredentialsStoreMode&gt;,\n\n    /// User-defined provider entries that extend/override the built-in list.\n    #[serde(default)]\n    pub model_providers: HashMap&lt;String, ModelProviderInfo&gt;,\n\n    /// Maximum number of bytes to include from an AGENTS.md project doc file.\n    pub project_doc_max_bytes: Option&lt;usize&gt;,\n\n    /// Ordered list of fallback filenames to look for when AGENTS.md is missing.\n    pub project_doc_fallback_filenames: Option&lt;Vec&lt;String&gt;&gt;,\n\n    /// Token budget applied when storing tool/function outputs in the context manager.\n    pub tool_output_token_limit: Option&lt;usize&gt;,\n\n    /// Profile to use from the &#96;profiles&#96; map.\n    pub profile: Option&lt;String&gt;,\n\n    /// Named profiles to facilitate switching between different configurations.\n    #[serde(default)]\n    pub profiles: HashMap&lt;String, ConfigProfile&gt;,\n\n    /// Settings that govern if and what will be written to &#96;~/.codex/history.jsonl&#96;.\n    #[serde(default)]\n    pub history: Option&lt;History&gt;,\n\n    /// Optional URI-based file opener. If set, citations to files in the model\n    /// output will be hyperlinked using the specified URI scheme.\n    pub file_opener: Option&lt;UriBasedFileOpener&gt;,\n\n    /// Collection of settings that are specific to the TUI.\n    pub tui: Option&lt;Tui&gt;,\n\n    /// When set to &#96;true&#96;, &#96;AgentReasoning&#96; events will be hidden from the",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    /// auto: Use the keyring if available, otherwise use a file.",
+            "lineNumber": 736
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 737
+          },
+          {
+            "text": "    pub cli_auth_credentials_store: Option&lt;AuthCredentialsStoreMode&gt;,",
+            "lineNumber": 738
+          },
+          {
+            "lineNumber": 739
+          },
+          {
+            "text": "    /// Definition for MCP servers that Codex can reach out to for tool calls.",
+            "lineNumber": 740
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 741
+          },
+          {
+            "text": "    pub mcp_servers: HashMap&lt;String, McpServerConfig&gt;,",
+            "lineNumber": 742
+          },
+          {
+            "lineNumber": 743
+          },
+          {
+            "text": "    /// Preferred backend for storing MCP OAuth credentials.",
+            "lineNumber": 744
+          },
+          {
+            "text": "    /// keyring: Use an OS-specific keyring service.",
+            "lineNumber": 745
+          },
+          {
+            "text": "    ///          https://github.com/openai/codex/blob/main/codex-rs/rmcp-client/src/oauth.rs#L2",
+            "lineNumber": 746
+          },
+          {
+            "text": "    /// file: Use a file in the Codex home directory.",
+            "lineNumber": 747
+          },
+          {
+            "text": "    /// auto (default): Use the OS-specific keyring service if available, otherwise use a file.",
+            "lineNumber": 748
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 749
+          },
+          {
+            "text": "    pub mcp_oauth_credentials_store: Option&lt;OAuthCredentialsStoreMode&gt;,",
+            "lineNumber": 750
+          },
+          {
+            "lineNumber": 751
+          },
+          {
+            "text": "    /// User-defined provider entries that extend/override the built-in list.",
+            "lineNumber": 752
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 753
+          },
+          {
+            "text": "    pub model_providers: HashMap&lt;String, ModelProviderInfo&gt;,",
+            "lineNumber": 754
+          },
+          {
+            "lineNumber": 755
+          },
+          {
+            "text": "    /// Maximum number of bytes to include from an AGENTS.md project doc file.",
+            "lineNumber": 756
+          },
+          {
+            "text": "    pub project_doc_max_bytes: Option&lt;usize&gt;,",
+            "lineNumber": 757
+          },
+          {
+            "lineNumber": 758
+          },
+          {
+            "text": "    /// Ordered list of fallback filenames to look for when AGENTS.md is missing.",
+            "lineNumber": 759
+          },
+          {
+            "text": "    pub project_doc_fallback_filenames: Option&lt;Vec&lt;String&gt;&gt;,",
+            "lineNumber": 760
+          },
+          {
+            "lineNumber": 761
+          },
+          {
+            "text": "    /// Token budget applied when storing tool/function outputs in the context manager.",
+            "lineNumber": 762
+          },
+          {
+            "text": "    pub tool_output_token_limit: Option&lt;usize&gt;,",
+            "lineNumber": 763
+          },
+          {
+            "lineNumber": 764
+          },
+          {
+            "text": "    /// Profile to use from the &#96;profiles&#96; map.",
+            "lineNumber": 765
+          },
+          {
+            "text": "    pub profile: Option&lt;String&gt;,",
+            "lineNumber": 766
+          },
+          {
+            "lineNumber": 767
+          },
+          {
+            "text": "    /// Named profiles to facilitate switching between different configurations.",
+            "lineNumber": 768
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 769
+          },
+          {
+            "text": "    pub profiles: HashMap&lt;String, ConfigProfile&gt;,",
+            "lineNumber": 770
+          },
+          {
+            "lineNumber": 771
+          },
+          {
+            "text": "    /// Settings that govern if and what will be written to &#96;~/.codex/history.jsonl&#96;.",
+            "lineNumber": 772
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 773
+          },
+          {
+            "text": "    pub history: Option&lt;History&gt;,",
+            "lineNumber": 774
+          },
+          {
+            "lineNumber": 775
+          },
+          {
+            "text": "    /// Optional URI-based file opener. If set, citations to files in the model",
+            "lineNumber": 776
+          },
+          {
+            "text": "    /// output will be hyperlinked using the specified URI scheme.",
+            "lineNumber": 777
+          },
+          {
+            "text": "    pub file_opener: Option&lt;UriBasedFileOpener&gt;,",
+            "lineNumber": 778
+          },
+          {
+            "lineNumber": 779
+          },
+          {
+            "text": "    /// Collection of settings that are specific to the TUI.",
+            "lineNumber": 780
+          },
+          {
+            "text": "    pub tui: Option&lt;Tui&gt;,",
+            "lineNumber": 781
+          },
+          {
+            "lineNumber": 782
+          },
+          {
+            "text": "    /// When set to &#96;true&#96;, &#96;AgentReasoning&#96; events will be hidden from the",
+            "lineNumber": 783
+          }
+        ]
+      },
+      "score": 0.26038289070129395
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 1323,
+            "column": 97
+          },
+          "endPosition": {
+            "line": 1368,
+            "column": 24
+          }
+        },
+        "contents": "        let config = Self {\n            model,\n            review_model,\n            model_context_window: cfg.model_context_window,\n            model_auto_compact_token_limit: cfg.model_auto_compact_token_limit,\n            model_provider_id,\n            model_provider,\n            cwd: resolved_cwd,\n            approval_policy: constrained_approval_policy,\n            sandbox_policy: constrained_sandbox_policy,\n            did_user_set_custom_approval_policy_or_sandbox_mode,\n            forced_auto_mode_downgraded_on_windows,\n            shell_environment_policy,\n            notify: cfg.notify,\n            user_instructions,\n            base_instructions,\n            developer_instructions,\n            compact_prompt,\n            // The config.toml omits \"_mode\" because it's a config file. However, \"_mode\"\n            // is important in code to differentiate the mode from the store implementation.\n            cli_auth_credentials_store_mode: cfg.cli_auth_credentials_store.unwrap_or_default(),\n            mcp_servers: cfg.mcp_servers,\n            // The config.toml omits \"_mode\" because it's a config file. However, \"_mode\"\n            // is important in code to differentiate the mode from the store implementation.\n            mcp_oauth_credentials_store_mode: cfg.mcp_oauth_credentials_store.unwrap_or_default(),\n            model_providers,\n            project_doc_max_bytes: cfg.project_doc_max_bytes.unwrap_or(PROJECT_DOC_MAX_BYTES),\n            project_doc_fallback_filenames: cfg\n                .project_doc_fallback_filenames\n                .unwrap_or_default()\n                .into_iter()\n                .filter_map(|name| {\n                    let trimmed = name.trim();\n                    if trimmed.is_empty() {\n                        None\n                    } else {\n                        Some(trimmed.to_string())\n                    }\n                })\n                .collect(),\n            tool_output_token_limit: cfg.tool_output_token_limit,\n            codex_home,\n            history,\n            file_opener:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        let config = Self {",
+            "lineNumber": 1326
+          },
+          {
+            "text": "            model,",
+            "lineNumber": 1327
+          },
+          {
+            "text": "            review_model,",
+            "lineNumber": 1328
+          },
+          {
+            "text": "            model_context_window: cfg.model_context_window,",
+            "lineNumber": 1329
+          },
+          {
+            "text": "            model_auto_compact_token_limit: cfg.model_auto_compact_token_limit,",
+            "lineNumber": 1330
+          },
+          {
+            "text": "            model_provider_id,",
+            "lineNumber": 1331
+          },
+          {
+            "text": "            model_provider,",
+            "lineNumber": 1332
+          },
+          {
+            "text": "            cwd: resolved_cwd,",
+            "lineNumber": 1333
+          },
+          {
+            "text": "            approval_policy: constrained_approval_policy,",
+            "lineNumber": 1334
+          },
+          {
+            "text": "            sandbox_policy: constrained_sandbox_policy,",
+            "lineNumber": 1335
+          },
+          {
+            "text": "            did_user_set_custom_approval_policy_or_sandbox_mode,",
+            "lineNumber": 1336
+          },
+          {
+            "text": "            forced_auto_mode_downgraded_on_windows,",
+            "lineNumber": 1337
+          },
+          {
+            "text": "            shell_environment_policy,",
+            "lineNumber": 1338
+          },
+          {
+            "text": "            notify: cfg.notify,",
+            "lineNumber": 1339
+          },
+          {
+            "text": "            user_instructions,",
+            "lineNumber": 1340
+          },
+          {
+            "text": "            base_instructions,",
+            "lineNumber": 1341
+          },
+          {
+            "text": "            developer_instructions,",
+            "lineNumber": 1342
+          },
+          {
+            "text": "            compact_prompt,",
+            "lineNumber": 1343
+          },
+          {
+            "text": "            // The config.toml omits \"_mode\" because it's a config file. However, \"_mode\"",
+            "lineNumber": 1344
+          },
+          {
+            "text": "            // is important in code to differentiate the mode from the store implementation.",
+            "lineNumber": 1345
+          },
+          {
+            "text": "            cli_auth_credentials_store_mode: cfg.cli_auth_credentials_store.unwrap_or_default(),",
+            "lineNumber": 1346
+          },
+          {
+            "text": "            mcp_servers: cfg.mcp_servers,",
+            "lineNumber": 1347
+          },
+          {
+            "text": "            // The config.toml omits \"_mode\" because it's a config file. However, \"_mode\"",
+            "lineNumber": 1348
+          },
+          {
+            "text": "            // is important in code to differentiate the mode from the store implementation.",
+            "lineNumber": 1349
+          },
+          {
+            "text": "            mcp_oauth_credentials_store_mode: cfg.mcp_oauth_credentials_store.unwrap_or_default(),",
+            "lineNumber": 1350
+          },
+          {
+            "text": "            model_providers,",
+            "lineNumber": 1351
+          },
+          {
+            "text": "            project_doc_max_bytes: cfg.project_doc_max_bytes.unwrap_or(PROJECT_DOC_MAX_BYTES),",
+            "lineNumber": 1352
+          },
+          {
+            "text": "            project_doc_fallback_filenames: cfg",
+            "lineNumber": 1353
+          },
+          {
+            "text": "                .project_doc_fallback_filenames",
+            "lineNumber": 1354
+          },
+          {
+            "text": "                .unwrap_or_default()",
+            "lineNumber": 1355
+          },
+          {
+            "text": "                .into_iter()",
+            "lineNumber": 1356
+          },
+          {
+            "text": "                .filter_map(|name| {",
+            "lineNumber": 1357
+          },
+          {
+            "text": "                    let trimmed = name.trim();",
+            "lineNumber": 1358
+          },
+          {
+            "text": "                    if trimmed.is_empty() {",
+            "lineNumber": 1359
+          },
+          {
+            "text": "                        None",
+            "lineNumber": 1360
+          },
+          {
+            "text": "                    } else {",
+            "lineNumber": 1361
+          },
+          {
+            "text": "                        Some(trimmed.to_string())",
+            "lineNumber": 1362
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 1363
+          },
+          {
+            "text": "                })",
+            "lineNumber": 1364
+          },
+          {
+            "text": "                .collect(),",
+            "lineNumber": 1365
+          },
+          {
+            "text": "            tool_output_token_limit: cfg.tool_output_token_limit,",
+            "lineNumber": 1366
+          },
+          {
+            "text": "            codex_home,",
+            "lineNumber": 1367
+          },
+          {
+            "text": "            history,",
+            "lineNumber": 1368
+          },
+          {
+            "text": "            file_opener:",
+            "lineNumber": 1369
+          }
+        ]
+      },
+      "score": 0.2523202896118164
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 236,
+            "column": 21
+          },
+          "endPosition": {
+            "line": 277
+          }
+        },
+        "contents": "    /// Preferred store for CLI auth credentials.\n    /// file (default): Use a file in the Codex home directory.\n    /// keyring: Use an OS-specific keyring service.\n    /// auto: Use the OS-specific keyring service if available, otherwise use a file.\n    pub cli_auth_credentials_store_mode: AuthCredentialsStoreMode,\n\n    /// Definition for MCP servers that Codex can reach out to for tool calls.\n    pub mcp_servers: HashMap&lt;String, McpServerConfig&gt;,\n\n    /// Preferred store for MCP OAuth credentials.\n    /// keyring: Use an OS-specific keyring service.\n    ///          Credentials stored in the keyring will only be readable by Codex unless the user explicitly grants access via OS-level keyring access.\n    ///          https://github.com/openai/codex/blob/main/codex-rs/rmcp-client/src/oauth.rs#L2\n    /// file: CODEX_HOME/.credentials.json\n    ///       This file will be readable to Codex and other applications running as the same user.\n    /// auto (default): keyring if available, otherwise file.\n    pub mcp_oauth_credentials_store_mode: OAuthCredentialsStoreMode,\n\n    /// Combined provider map (defaults merged with user-defined overrides).\n    pub model_providers: HashMap&lt;String, ModelProviderInfo&gt;,\n\n    /// Maximum number of bytes to include from an AGENTS.md project doc file.\n    pub project_doc_max_bytes: usize,\n\n    /// Additional filenames to try when looking for project-level docs.\n    pub project_doc_fallback_filenames: Vec&lt;String&gt;,\n\n    // todo(aibrahim): this should be used in the override model family\n    /// Token budget applied when storing tool/function outputs in the context manager.\n    pub tool_output_token_limit: Option&lt;usize&gt;,\n\n    /// Directory containing all Codex state (defaults to &#96;~/.codex&#96; but can be\n    /// overridden by the &#96;CODEX_HOME&#96; environment variable).\n    pub codex_home: PathBuf,\n\n    /// Settings that govern if and what will be written to &#96;~/.codex/history.jsonl&#96;.\n    pub history: History,\n\n    /// Optional URI-based file opener. If set, citations to files in the model",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    /// Preferred store for CLI auth credentials.",
+            "lineNumber": 239
+          },
+          {
+            "text": "    /// file (default): Use a file in the Codex home directory.",
+            "lineNumber": 240
+          },
+          {
+            "text": "    /// keyring: Use an OS-specific keyring service.",
+            "lineNumber": 241
+          },
+          {
+            "text": "    /// auto: Use the OS-specific keyring service if available, otherwise use a file.",
+            "lineNumber": 242
+          },
+          {
+            "text": "    pub cli_auth_credentials_store_mode: AuthCredentialsStoreMode,",
+            "lineNumber": 243
+          },
+          {
+            "lineNumber": 244
+          },
+          {
+            "text": "    /// Definition for MCP servers that Codex can reach out to for tool calls.",
+            "lineNumber": 245
+          },
+          {
+            "text": "    pub mcp_servers: HashMap&lt;String, McpServerConfig&gt;,",
+            "lineNumber": 246
+          },
+          {
+            "lineNumber": 247
+          },
+          {
+            "text": "    /// Preferred store for MCP OAuth credentials.",
+            "lineNumber": 248
+          },
+          {
+            "text": "    /// keyring: Use an OS-specific keyring service.",
+            "lineNumber": 249
+          },
+          {
+            "text": "    ///          Credentials stored in the keyring will only be readable by Codex unless the user explicitly grants access via OS-level keyring access.",
+            "lineNumber": 250
+          },
+          {
+            "text": "    ///          https://github.com/openai/codex/blob/main/codex-rs/rmcp-client/src/oauth.rs#L2",
+            "lineNumber": 251
+          },
+          {
+            "text": "    /// file: CODEX_HOME/.credentials.json",
+            "lineNumber": 252
+          },
+          {
+            "text": "    ///       This file will be readable to Codex and other applications running as the same user.",
+            "lineNumber": 253
+          },
+          {
+            "text": "    /// auto (default): keyring if available, otherwise file.",
+            "lineNumber": 254
+          },
+          {
+            "text": "    pub mcp_oauth_credentials_store_mode: OAuthCredentialsStoreMode,",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "    /// Combined provider map (defaults merged with user-defined overrides).",
+            "lineNumber": 257
+          },
+          {
+            "text": "    pub model_providers: HashMap&lt;String, ModelProviderInfo&gt;,",
+            "lineNumber": 258
+          },
+          {
+            "lineNumber": 259
+          },
+          {
+            "text": "    /// Maximum number of bytes to include from an AGENTS.md project doc file.",
+            "lineNumber": 260
+          },
+          {
+            "text": "    pub project_doc_max_bytes: usize,",
+            "lineNumber": 261
+          },
+          {
+            "lineNumber": 262
+          },
+          {
+            "text": "    /// Additional filenames to try when looking for project-level docs.",
+            "lineNumber": 263
+          },
+          {
+            "text": "    pub project_doc_fallback_filenames: Vec&lt;String&gt;,",
+            "lineNumber": 264
+          },
+          {
+            "lineNumber": 265
+          },
+          {
+            "text": "    // todo(aibrahim): this should be used in the override model family",
+            "lineNumber": 266
+          },
+          {
+            "text": "    /// Token budget applied when storing tool/function outputs in the context manager.",
+            "lineNumber": 267
+          },
+          {
+            "text": "    pub tool_output_token_limit: Option&lt;usize&gt;,",
+            "lineNumber": 268
+          },
+          {
+            "lineNumber": 269
+          },
+          {
+            "text": "    /// Directory containing all Codex state (defaults to &#96;~/.codex&#96; but can be",
+            "lineNumber": 270
+          },
+          {
+            "text": "    /// overridden by the &#96;CODEX_HOME&#96; environment variable).",
+            "lineNumber": 271
+          },
+          {
+            "text": "    pub codex_home: PathBuf,",
+            "lineNumber": 272
+          },
+          {
+            "lineNumber": 273
+          },
+          {
+            "text": "    /// Settings that govern if and what will be written to &#96;~/.codex/history.jsonl&#96;.",
+            "lineNumber": 274
+          },
+          {
+            "text": "    pub history: History,",
+            "lineNumber": 275
+          },
+          {
+            "lineNumber": 276
+          },
+          {
+            "text": "    /// Optional URI-based file opener. If set, citations to files in the model",
+            "lineNumber": 277
+          }
+        ]
+      },
+      "score": 0.2517128884792328
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 93
+          },
+          "endPosition": {
+            "line": 147
+          }
+        },
+        "contents": "#[derive(Debug, Clone, PartialEq)]\npub struct Config {\n    /// Optional override of model selection.\n    pub model: Option&lt;String&gt;,\n\n    /// Model used specifically for review sessions. Defaults to \"gpt-5.1-codex-max\".\n    pub review_model: String,\n\n    /// Size of the context window for the model, in tokens.\n    pub model_context_window: Option&lt;i64&gt;,\n\n    /// Token usage threshold triggering auto-compaction of conversation history.\n    pub model_auto_compact_token_limit: Option&lt;i64&gt;,\n\n    /// Key into the model_providers map that specifies which provider to use.\n    pub model_provider_id: String,\n\n    /// Info needed to make an API request to the model.\n    pub model_provider: ModelProviderInfo,\n\n    /// Approval policy for executing commands.\n    pub approval_policy: Constrained&lt;AskForApproval&gt;,\n\n    pub sandbox_policy: Constrained&lt;SandboxPolicy&gt;,\n\n    /// True if the user passed in an override or set a value in config.toml\n    /// for either of approval_policy or sandbox_mode.\n    pub did_user_set_custom_approval_policy_or_sandbox_mode: bool,\n\n    /// On Windows, indicates that a previously configured workspace-write sandbox\n    /// was coerced to read-only because native auto mode is unsupported.\n    pub forced_auto_mode_downgraded_on_windows: bool,\n\n    pub shell_environment_policy: ShellEnvironmentPolicy,\n\n    /// When &#96;true&#96;, &#96;AgentReasoning&#96; events emitted by the backend will be\n    /// suppressed from the frontend output. This can reduce visual noise when\n    /// users are only interested in the final agent responses.\n    pub hide_agent_reasoning: bool,\n\n    /// When set to &#96;true&#96;, &#96;AgentReasoningRawContentEvent&#96; events will be shown in the UI/output.\n    /// Defaults to &#96;false&#96;.\n    pub show_raw_agent_reasoning: bool,\n\n    /// User-provided instructions from AGENTS.md.\n    pub user_instructions: Option&lt;String&gt;,\n\n    /// Base instructions override.\n    pub base_instructions: Option&lt;String&gt;,\n\n    /// Developer instructions override injected as a separate message.\n    pub developer_instructions: Option&lt;String&gt;,\n\n    /// Compact prompt override.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "#[derive(Debug, Clone, PartialEq)]",
+            "lineNumber": 94
+          },
+          {
+            "text": "pub struct Config {",
+            "lineNumber": 95
+          },
+          {
+            "text": "    /// Optional override of model selection.",
+            "lineNumber": 96
+          },
+          {
+            "text": "    pub model: Option&lt;String&gt;,",
+            "lineNumber": 97
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "text": "    /// Model used specifically for review sessions. Defaults to \"gpt-5.1-codex-max\".",
+            "lineNumber": 99
+          },
+          {
+            "text": "    pub review_model: String,",
+            "lineNumber": 100
+          },
+          {
+            "lineNumber": 101
+          },
+          {
+            "text": "    /// Size of the context window for the model, in tokens.",
+            "lineNumber": 102
+          },
+          {
+            "text": "    pub model_context_window: Option&lt;i64&gt;,",
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "text": "    /// Token usage threshold triggering auto-compaction of conversation history.",
+            "lineNumber": 105
+          },
+          {
+            "text": "    pub model_auto_compact_token_limit: Option&lt;i64&gt;,",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "    /// Key into the model_providers map that specifies which provider to use.",
+            "lineNumber": 108
+          },
+          {
+            "text": "    pub model_provider_id: String,",
+            "lineNumber": 109
+          },
+          {
+            "lineNumber": 110
+          },
+          {
+            "text": "    /// Info needed to make an API request to the model.",
+            "lineNumber": 111
+          },
+          {
+            "text": "    pub model_provider: ModelProviderInfo,",
+            "lineNumber": 112
+          },
+          {
+            "lineNumber": 113
+          },
+          {
+            "text": "    /// Approval policy for executing commands.",
+            "lineNumber": 114
+          },
+          {
+            "text": "    pub approval_policy: Constrained&lt;AskForApproval&gt;,",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "    pub sandbox_policy: Constrained&lt;SandboxPolicy&gt;,",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "text": "    /// True if the user passed in an override or set a value in config.toml",
+            "lineNumber": 119
+          },
+          {
+            "text": "    /// for either of approval_policy or sandbox_mode.",
+            "lineNumber": 120
+          },
+          {
+            "text": "    pub did_user_set_custom_approval_policy_or_sandbox_mode: bool,",
+            "lineNumber": 121
+          },
+          {
+            "lineNumber": 122
+          },
+          {
+            "text": "    /// On Windows, indicates that a previously configured workspace-write sandbox",
+            "lineNumber": 123
+          },
+          {
+            "text": "    /// was coerced to read-only because native auto mode is unsupported.",
+            "lineNumber": 124
+          },
+          {
+            "text": "    pub forced_auto_mode_downgraded_on_windows: bool,",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "    pub shell_environment_policy: ShellEnvironmentPolicy,",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "    /// When &#96;true&#96;, &#96;AgentReasoning&#96; events emitted by the backend will be",
+            "lineNumber": 129
+          },
+          {
+            "text": "    /// suppressed from the frontend output. This can reduce visual noise when",
+            "lineNumber": 130
+          },
+          {
+            "text": "    /// users are only interested in the final agent responses.",
+            "lineNumber": 131
+          },
+          {
+            "text": "    pub hide_agent_reasoning: bool,",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "    /// When set to &#96;true&#96;, &#96;AgentReasoningRawContentEvent&#96; events will be shown in the UI/output.",
+            "lineNumber": 134
+          },
+          {
+            "text": "    /// Defaults to &#96;false&#96;.",
+            "lineNumber": 135
+          },
+          {
+            "text": "    pub show_raw_agent_reasoning: bool,",
+            "lineNumber": 136
+          },
+          {
+            "lineNumber": 137
+          },
+          {
+            "text": "    /// User-provided instructions from AGENTS.md.",
+            "lineNumber": 138
+          },
+          {
+            "text": "    pub user_instructions: Option&lt;String&gt;,",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 140
+          },
+          {
+            "text": "    /// Base instructions override.",
+            "lineNumber": 141
+          },
+          {
+            "text": "    pub base_instructions: Option&lt;String&gt;,",
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "    /// Developer instructions override injected as a separate message.",
+            "lineNumber": 144
+          },
+          {
+            "text": "    pub developer_instructions: Option&lt;String&gt;,",
+            "lineNumber": 145
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "text": "    /// Compact prompt override.",
+            "lineNumber": 147
+          }
+        ]
+      },
+      "score": 0.25048959255218506
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\save_cicd_fix_log.py",
+        "range": {
+          "startPosition": {
+            "line": 13
+          },
+          "endPosition": {
+            "line": 132
+          }
+        },
+        "contents": "def main():\n\n**ワークツリー**: main\n**タスク**: zapabob/codexのCI/CDワークフロー失敗を修正\n\n---\n\n## 問題の分析\n\nすべてのCI/CDワークフローが失敗している原因：\n\n1. **Rust 2024 editionでのunsafe関数呼び出し**: &#96;env::set_var&#96;と&#96;env::remove_var&#96;がunsafe関数になったため、unsafeブロックが必要\n2. **MultitoolCli構造体のパターンマッチング**: 新しいフィールドが追加されたが、パターンマッチングで&#96;..&#96;が使用されていない\n\n---\n\n## 修正内容\n\n### 1. integration_web_search.rsのunsafe関数呼び出し修正\n\n**ファイル**: &#96;codex-rs/deep-research/tests/integration_web_search.rs&#96;\n\n**修正箇所**:\n- Line 15: &#96;env::set_var(\"BRAVE_API_KEY\", ...)&#96; → unsafeブロックで囲む\n- Line 35-36: &#96;env::set_var(\"GOOGLE_API_KEY\", ...)&#96; と &#96;env::set_var(\"GOOGLE_CSE_ID\", ...)&#96; → unsafeブロックで囲む\n- Line 54: &#96;env::set_var(\"BING_API_KEY\", ...)&#96; → unsafeブロックで囲む\n- Line 85-88: &#96;env::remove_var(...)&#96; (4箇所) → unsafeブロックで囲む\n- Line 113: &#96;env::set_var(\"BRAVE_API_KEY\", ...)&#96; → unsafeブロックで囲む\n\n**修正方法**:\nすべての&#96;env::set_var&#96;と&#96;env::remove_var&#96;呼び出しを&#96;unsafe {{ ... }}&#96;ブロックで囲む\n\n### 2. cli/src/main.rsのパターンマッチング修正\n\n**ファイル**: &#96;codex-rs/cli/src/main.rs&#96;\n\n**問題**: &#96;MultitoolCli&#96;構造体に新しいフィールド（&#96;use_windows_ai&#96;, &#96;kernel_accelerated&#96;, &#96;use_cuda&#96;, &#96;cuda_device&#96;, &#96;use_ollama&#96;, &#96;ollama_model&#96;, &#96;ollama_url&#96;）が追加されたが、パターンマッチングで&#96;..&#96;が使用されていない\n\n**修正箇所**: Line 1515-1520\n\n**修正方法**:\n&#96;&#96;&#96;rust\n// 修正前\nlet MultitoolCli {{\n    interactive,\n    config_overrides: root_overrides,\n    subcommand,\n    feature_toggles: _,\n}} = cli;\n\n// 修正後\nlet MultitoolCli {{\n    interactive,\n    config_overrides: root_overrides,\n    subcommand,\n    feature_toggles: _,\n    ..",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 14,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 15,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "def main():",
+            "lineNumber": 14,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 24
+          },
+          {
+            "text": "**ワークツリー**: main",
+            "lineNumber": 25
+          },
+          {
+            "text": "**タスク**: zapabob/codexのCI/CDワークフロー失敗を修正",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "---",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "## 問題の分析",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "すべてのCI/CDワークフローが失敗している原因：",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "1. **Rust 2024 editionでのunsafe関数呼び出し**: &#96;env::set_var&#96;と&#96;env::remove_var&#96;がunsafe関数になったため、unsafeブロックが必要",
+            "lineNumber": 34
+          },
+          {
+            "text": "2. **MultitoolCli構造体のパターンマッチング**: 新しいフィールドが追加されたが、パターンマッチングで&#96;..&#96;が使用されていない",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "---",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "## 修正内容",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "### 1. integration_web_search.rsのunsafe関数呼び出し修正",
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "text": "**ファイル**: &#96;codex-rs/deep-research/tests/integration_web_search.rs&#96;",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "**修正箇所**:",
+            "lineNumber": 45
+          },
+          {
+            "text": "- Line 15: &#96;env::set_var(\"BRAVE_API_KEY\", ...)&#96; → unsafeブロックで囲む",
+            "lineNumber": 46
+          },
+          {
+            "text": "- Line 35-36: &#96;env::set_var(\"GOOGLE_API_KEY\", ...)&#96; と &#96;env::set_var(\"GOOGLE_CSE_ID\", ...)&#96; → unsafeブロックで囲む",
+            "lineNumber": 47
+          },
+          {
+            "text": "- Line 54: &#96;env::set_var(\"BING_API_KEY\", ...)&#96; → unsafeブロックで囲む",
+            "lineNumber": 48
+          },
+          {
+            "text": "- Line 85-88: &#96;env::remove_var(...)&#96; (4箇所) → unsafeブロックで囲む",
+            "lineNumber": 49
+          },
+          {
+            "text": "- Line 113: &#96;env::set_var(\"BRAVE_API_KEY\", ...)&#96; → unsafeブロックで囲む",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "**修正方法**:",
+            "lineNumber": 52
+          },
+          {
+            "text": "すべての&#96;env::set_var&#96;と&#96;env::remove_var&#96;呼び出しを&#96;unsafe {{ ... }}&#96;ブロックで囲む",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "### 2. cli/src/main.rsのパターンマッチング修正",
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "text": "**ファイル**: &#96;codex-rs/cli/src/main.rs&#96;",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "**問題**: &#96;MultitoolCli&#96;構造体に新しいフィールド（&#96;use_windows_ai&#96;, &#96;kernel_accelerated&#96;, &#96;use_cuda&#96;, &#96;cuda_device&#96;, &#96;use_ollama&#96;, &#96;ollama_model&#96;, &#96;ollama_url&#96;）が追加されたが、パターンマッチングで&#96;..&#96;が使用されていない",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "**修正箇所**: Line 1515-1520",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "**修正方法**:",
+            "lineNumber": 63
+          },
+          {
+            "text": "&#96;&#96;&#96;rust",
+            "lineNumber": 64
+          },
+          {
+            "text": "// 修正前",
+            "lineNumber": 65
+          },
+          {
+            "text": "let MultitoolCli {{",
+            "lineNumber": 66
+          },
+          {
+            "text": "    interactive,",
+            "lineNumber": 67
+          },
+          {
+            "text": "    config_overrides: root_overrides,",
+            "lineNumber": 68
+          },
+          {
+            "text": "    subcommand,",
+            "lineNumber": 69
+          },
+          {
+            "text": "    feature_toggles: _,",
+            "lineNumber": 70
+          },
+          {
+            "text": "}} = cli;",
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "text": "// 修正後",
+            "lineNumber": 73
+          },
+          {
+            "text": "let MultitoolCli {{",
+            "lineNumber": 74
+          },
+          {
+            "text": "    interactive,",
+            "lineNumber": 75
+          },
+          {
+            "text": "    config_overrides: root_overrides,",
+            "lineNumber": 76
+          },
+          {
+            "text": "    subcommand,",
+            "lineNumber": 77
+          },
+          {
+            "text": "    feature_toggles: _,",
+            "lineNumber": 78
+          },
+          {
+            "text": "    ..",
+            "lineNumber": 79
+          }
+        ]
+      },
+      "score": 0.24017244577407837
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\protocol\\src\\config_types.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 80,
+            "column": 19
+          }
+        },
+        "contents": "use schemars::JsonSchema;\nuse serde::Deserialize;\nuse serde::Serialize;\nuse strum_macros::Display;\nuse ts_rs::TS;\n\npub use crate::openai_models::ReasoningEffort;\n\n/// A summary of the reasoning performed by the model. This can be useful for\n/// debugging and understanding the model's reasoning process.\n/// See https://platform.openai.com/docs/guides/reasoning?api-mode=responses#reasoning-summaries\n#[derive(\n    Debug, Serialize, Deserialize, Default, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS,\n)]\n#[serde(rename_all = \"lowercase\")]\n#[strum(serialize_all = \"lowercase\")]\npub enum ReasoningSummary {\n    #[default]\n    Auto,\n    Concise,\n    Detailed,\n    /// Option to disable reasoning summaries.\n    None,\n}\n\n/// Controls output length/detail on GPT-5 models via the Responses API.\n/// Serialized with lowercase values to match the OpenAI API.\n#[derive(\n    Hash,\n    Debug,\n    Serialize,\n    Deserialize,\n    Default,\n    Clone,\n    Copy,\n    PartialEq,\n    Eq,\n    Display,\n    JsonSchema,\n    TS,\n)]\n#[serde(rename_all = \"lowercase\")]\n#[strum(serialize_all = \"lowercase\")]\npub enum Verbosity {\n    Low,\n    #[default]\n    Medium,\n    High,\n}\n\n#[derive(\n    Deserialize, Debug, Clone, Copy, PartialEq, Default, Serialize, Display, JsonSchema, TS,\n)]\n#[serde(rename_all = \"kebab-case\")]\n#[strum(serialize_all = \"kebab-case\")]\npub enum SandboxMode {\n    #[serde(rename = \"read-only\")]\n    #[default]\n    ReadOnly,\n\n    #[serde(rename = \"workspace-write\")]\n    WorkspaceWrite,\n\n    #[serde(rename = \"danger-full-access\")]\n    DangerFullAccess,\n}\n\n#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS)]\n#[serde(rename_all = \"lowercase\")]\n#[strum(serialize_all = \"lowercase\")]\npub enum ForcedLoginMethod {\n    Chatgpt,\n    Api,\n}\n\n/// Represents the trust level for a project directory.\n/// This determines the approval policy and sandbox mode applied.\n#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS)]\n#[serde(rename_all = \"lowercase\")]\n#[strum(serialize_all = \"lowercase\")]\npub enum TrustLevel",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use schemars::JsonSchema;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use strum_macros::Display;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use ts_rs::TS;",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "pub use crate::openai_models::ReasoningEffort;",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "/// A summary of the reasoning performed by the model. This can be useful for",
+            "lineNumber": 9
+          },
+          {
+            "text": "/// debugging and understanding the model's reasoning process.",
+            "lineNumber": 10
+          },
+          {
+            "text": "/// See https://platform.openai.com/docs/guides/reasoning?api-mode=responses#reasoning-summaries",
+            "lineNumber": 11
+          },
+          {
+            "text": "#[derive(",
+            "lineNumber": 12
+          },
+          {
+            "text": "    Debug, Serialize, Deserialize, Default, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS,",
+            "lineNumber": 13
+          },
+          {
+            "text": ")]",
+            "lineNumber": 14
+          },
+          {
+            "text": "#[serde(rename_all = \"lowercase\")]",
+            "lineNumber": 15
+          },
+          {
+            "text": "#[strum(serialize_all = \"lowercase\")]",
+            "lineNumber": 16
+          },
+          {
+            "text": "pub enum ReasoningSummary {",
+            "lineNumber": 17
+          },
+          {
+            "text": "    #[default]",
+            "lineNumber": 18
+          },
+          {
+            "text": "    Auto,",
+            "lineNumber": 19
+          },
+          {
+            "text": "    Concise,",
+            "lineNumber": 20
+          },
+          {
+            "text": "    Detailed,",
+            "lineNumber": 21
+          },
+          {
+            "text": "    /// Option to disable reasoning summaries.",
+            "lineNumber": 22
+          },
+          {
+            "text": "    None,",
+            "lineNumber": 23
+          },
+          {
+            "text": "}",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "/// Controls output length/detail on GPT-5 models via the Responses API.",
+            "lineNumber": 26
+          },
+          {
+            "text": "/// Serialized with lowercase values to match the OpenAI API.",
+            "lineNumber": 27
+          },
+          {
+            "text": "#[derive(",
+            "lineNumber": 28
+          },
+          {
+            "text": "    Hash,",
+            "lineNumber": 29
+          },
+          {
+            "text": "    Debug,",
+            "lineNumber": 30
+          },
+          {
+            "text": "    Serialize,",
+            "lineNumber": 31
+          },
+          {
+            "text": "    Deserialize,",
+            "lineNumber": 32
+          },
+          {
+            "text": "    Default,",
+            "lineNumber": 33
+          },
+          {
+            "text": "    Clone,",
+            "lineNumber": 34
+          },
+          {
+            "text": "    Copy,",
+            "lineNumber": 35
+          },
+          {
+            "text": "    PartialEq,",
+            "lineNumber": 36
+          },
+          {
+            "text": "    Eq,",
+            "lineNumber": 37
+          },
+          {
+            "text": "    Display,",
+            "lineNumber": 38
+          },
+          {
+            "text": "    JsonSchema,",
+            "lineNumber": 39
+          },
+          {
+            "text": "    TS,",
+            "lineNumber": 40
+          },
+          {
+            "text": ")]",
+            "lineNumber": 41
+          },
+          {
+            "text": "#[serde(rename_all = \"lowercase\")]",
+            "lineNumber": 42
+          },
+          {
+            "text": "#[strum(serialize_all = \"lowercase\")]",
+            "lineNumber": 43
+          },
+          {
+            "text": "pub enum Verbosity {",
+            "lineNumber": 44
+          },
+          {
+            "text": "    Low,",
+            "lineNumber": 45
+          },
+          {
+            "text": "    #[default]",
+            "lineNumber": 46
+          },
+          {
+            "text": "    Medium,",
+            "lineNumber": 47
+          },
+          {
+            "text": "    High,",
+            "lineNumber": 48
+          },
+          {
+            "text": "}",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "#[derive(",
+            "lineNumber": 51
+          },
+          {
+            "text": "    Deserialize, Debug, Clone, Copy, PartialEq, Default, Serialize, Display, JsonSchema, TS,",
+            "lineNumber": 52
+          },
+          {
+            "text": ")]",
+            "lineNumber": 53
+          },
+          {
+            "text": "#[serde(rename_all = \"kebab-case\")]",
+            "lineNumber": 54
+          },
+          {
+            "text": "#[strum(serialize_all = \"kebab-case\")]",
+            "lineNumber": 55
+          },
+          {
+            "text": "pub enum SandboxMode {",
+            "lineNumber": 56
+          },
+          {
+            "text": "    #[serde(rename = \"read-only\")]",
+            "lineNumber": 57
+          },
+          {
+            "text": "    #[default]",
+            "lineNumber": 58
+          },
+          {
+            "text": "    ReadOnly,",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "    #[serde(rename = \"workspace-write\")]",
+            "lineNumber": 61
+          },
+          {
+            "text": "    WorkspaceWrite,",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "    #[serde(rename = \"danger-full-access\")]",
+            "lineNumber": 64
+          },
+          {
+            "text": "    DangerFullAccess,",
+            "lineNumber": 65
+          },
+          {
+            "text": "}",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS)]",
+            "lineNumber": 68
+          },
+          {
+            "text": "#[serde(rename_all = \"lowercase\")]",
+            "lineNumber": 69
+          },
+          {
+            "text": "#[strum(serialize_all = \"lowercase\")]",
+            "lineNumber": 70
+          },
+          {
+            "text": "pub enum ForcedLoginMethod {",
+            "lineNumber": 71
+          },
+          {
+            "text": "    Chatgpt,",
+            "lineNumber": 72
+          },
+          {
+            "text": "    Api,",
+            "lineNumber": 73
+          },
+          {
+            "text": "}",
+            "lineNumber": 74
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "text": "/// Represents the trust level for a project directory.",
+            "lineNumber": 76
+          },
+          {
+            "text": "/// This determines the approval policy and sandbox mode applied.",
+            "lineNumber": 77
+          },
+          {
+            "text": "#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS)]",
+            "lineNumber": 78
+          },
+          {
+            "text": "#[serde(rename_all = \"lowercase\")]",
+            "lineNumber": 79
+          },
+          {
+            "text": "#[strum(serialize_all = \"lowercase\")]",
+            "lineNumber": 80
+          },
+          {
+            "text": "pub enum TrustLevel",
+            "lineNumber": 81
+          }
+        ]
+      },
+      "score": 0.23968124389648438
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\Cargo.toml",
+        "range": {
+          "startPosition": {
+            "line": 225
+          },
+          "endPosition": {
+            "line": 305
+          }
+        },
+        "contents": "uds_windows = \"1.1.0\"\nunicode-segmentation = \"1.12.0\"\nunicode-width = \"0.2\"\nurl = \"2\"\nurlencoding = \"2.1\"\nuuid = \"1\"\nvt100 = \"0.16.2\"\nwalkdir = \"2.5.0\"\nwebbrowser = \"1.0\"\nwhich = \"6\"\nwildmatch = \"2.6.1\"\n\nwiremock = \"0.6\"\nzeroize = \"1.8.2\"\n\n[workspace.lints]\nrust = {}\n\n[workspace.lints.clippy]\nexpect_used = \"deny\"\nidentity_op = \"deny\"\nmanual_clamp = \"deny\"\nmanual_filter = \"deny\"\nmanual_find = \"deny\"\nmanual_flatten = \"deny\"\nmanual_map = \"deny\"\nmanual_memcpy = \"deny\"\nmanual_non_exhaustive = \"deny\"\nmanual_ok_or = \"deny\"\nmanual_range_contains = \"deny\"\nmanual_retain = \"deny\"\nmanual_strip = \"deny\"\nmanual_try_fold = \"deny\"\nmanual_unwrap_or = \"deny\"\nneedless_borrow = \"deny\"\nneedless_borrowed_reference = \"deny\"\nneedless_collect = \"deny\"\nneedless_late_init = \"deny\"\nneedless_option_as_deref = \"deny\"\nneedless_question_mark = \"deny\"\nneedless_update = \"deny\"\nredundant_clone = \"deny\"\nredundant_closure = \"deny\"\nredundant_closure_for_method_calls = \"deny\"\nredundant_static_lifetimes = \"deny\"\ntrivially_copy_pass_by_ref = \"deny\"\nuninlined_format_args = \"deny\"\nunnecessary_filter_map = \"deny\"\nunnecessary_lazy_evaluations = \"deny\"\nunnecessary_sort_by = \"deny\"\nunnecessary_to_owned = \"deny\"\nunwrap_used = \"deny\"\n\n# cargo-shear cannot see the platform-specific openssl-sys usage, so we\n# silence the false positive here instead of deleting a real dependency.\n[workspace.metadata.cargo-shear]\nignored = [\"icu_provider\", \"openssl-sys\", \"codex-utils-readiness\"]\n\n[profile.release]\nlto = \"fat\"\n# Because we bundle some of these executables with the TypeScript CLI, we\n# remove everything to make the binary as small as possible.\nstrip = \"symbols\"\n\n# See https://github.com/openai/codex/issues/1411 for details.\ncodegen-units = 1\n\n[profile.ci-test]\ndebug = 1         # Reduce debug symbol size\ninherits = \"test\"\nopt-level = 0\n\n[patch.crates-io]\n# Uncomment to debug local changes.\n# ratatui = { path = \"../../ratatui\" }\ncrossterm = { git = \"https://github.com/nornagon/crossterm\", branch = \"nornagon/color-query\" }\nratatui = { git = \"https://github.com/nornagon/ratatui\", branch = \"nornagon-v0.29.0-patch\" }\n\n# Uncomment to debug local changes.\n# rmcp = { path = \"../../rust-sdk/crates/rmcp\" }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "uds_windows = \"1.1.0\"",
+            "lineNumber": 226
+          },
+          {
+            "text": "unicode-segmentation = \"1.12.0\"",
+            "lineNumber": 227
+          },
+          {
+            "text": "unicode-width = \"0.2\"",
+            "lineNumber": 228
+          },
+          {
+            "text": "url = \"2\"",
+            "lineNumber": 229
+          },
+          {
+            "text": "urlencoding = \"2.1\"",
+            "lineNumber": 230
+          },
+          {
+            "text": "uuid = \"1\"",
+            "lineNumber": 231
+          },
+          {
+            "text": "vt100 = \"0.16.2\"",
+            "lineNumber": 232
+          },
+          {
+            "text": "walkdir = \"2.5.0\"",
+            "lineNumber": 233
+          },
+          {
+            "text": "webbrowser = \"1.0\"",
+            "lineNumber": 234
+          },
+          {
+            "text": "which = \"6\"",
+            "lineNumber": 235
+          },
+          {
+            "text": "wildmatch = \"2.6.1\"",
+            "lineNumber": 236
+          },
+          {
+            "lineNumber": 237
+          },
+          {
+            "text": "wiremock = \"0.6\"",
+            "lineNumber": 238
+          },
+          {
+            "text": "zeroize = \"1.8.2\"",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "[workspace.lints]",
+            "lineNumber": 241
+          },
+          {
+            "text": "rust = {}",
+            "lineNumber": 242
+          },
+          {
+            "lineNumber": 243
+          },
+          {
+            "text": "[workspace.lints.clippy]",
+            "lineNumber": 244
+          },
+          {
+            "text": "expect_used = \"deny\"",
+            "lineNumber": 245
+          },
+          {
+            "text": "identity_op = \"deny\"",
+            "lineNumber": 246
+          },
+          {
+            "text": "manual_clamp = \"deny\"",
+            "lineNumber": 247
+          },
+          {
+            "text": "manual_filter = \"deny\"",
+            "lineNumber": 248
+          },
+          {
+            "text": "manual_find = \"deny\"",
+            "lineNumber": 249
+          },
+          {
+            "text": "manual_flatten = \"deny\"",
+            "lineNumber": 250
+          },
+          {
+            "text": "manual_map = \"deny\"",
+            "lineNumber": 251
+          },
+          {
+            "text": "manual_memcpy = \"deny\"",
+            "lineNumber": 252
+          },
+          {
+            "text": "manual_non_exhaustive = \"deny\"",
+            "lineNumber": 253
+          },
+          {
+            "text": "manual_ok_or = \"deny\"",
+            "lineNumber": 254
+          },
+          {
+            "text": "manual_range_contains = \"deny\"",
+            "lineNumber": 255
+          },
+          {
+            "text": "manual_retain = \"deny\"",
+            "lineNumber": 256
+          },
+          {
+            "text": "manual_strip = \"deny\"",
+            "lineNumber": 257
+          },
+          {
+            "text": "manual_try_fold = \"deny\"",
+            "lineNumber": 258
+          },
+          {
+            "text": "manual_unwrap_or = \"deny\"",
+            "lineNumber": 259
+          },
+          {
+            "text": "needless_borrow = \"deny\"",
+            "lineNumber": 260
+          },
+          {
+            "text": "needless_borrowed_reference = \"deny\"",
+            "lineNumber": 261
+          },
+          {
+            "text": "needless_collect = \"deny\"",
+            "lineNumber": 262
+          },
+          {
+            "text": "needless_late_init = \"deny\"",
+            "lineNumber": 263
+          },
+          {
+            "text": "needless_option_as_deref = \"deny\"",
+            "lineNumber": 264
+          },
+          {
+            "text": "needless_question_mark = \"deny\"",
+            "lineNumber": 265
+          },
+          {
+            "text": "needless_update = \"deny\"",
+            "lineNumber": 266
+          },
+          {
+            "text": "redundant_clone = \"deny\"",
+            "lineNumber": 267
+          },
+          {
+            "text": "redundant_closure = \"deny\"",
+            "lineNumber": 268
+          },
+          {
+            "text": "redundant_closure_for_method_calls = \"deny\"",
+            "lineNumber": 269
+          },
+          {
+            "text": "redundant_static_lifetimes = \"deny\"",
+            "lineNumber": 270
+          },
+          {
+            "text": "trivially_copy_pass_by_ref = \"deny\"",
+            "lineNumber": 271
+          },
+          {
+            "text": "uninlined_format_args = \"deny\"",
+            "lineNumber": 272
+          },
+          {
+            "text": "unnecessary_filter_map = \"deny\"",
+            "lineNumber": 273
+          },
+          {
+            "text": "unnecessary_lazy_evaluations = \"deny\"",
+            "lineNumber": 274
+          },
+          {
+            "text": "unnecessary_sort_by = \"deny\"",
+            "lineNumber": 275
+          },
+          {
+            "text": "unnecessary_to_owned = \"deny\"",
+            "lineNumber": 276
+          },
+          {
+            "text": "unwrap_used = \"deny\"",
+            "lineNumber": 277
+          },
+          {
+            "lineNumber": 278
+          },
+          {
+            "text": "# cargo-shear cannot see the platform-specific openssl-sys usage, so we",
+            "lineNumber": 279
+          },
+          {
+            "text": "# silence the false positive here instead of deleting a real dependency.",
+            "lineNumber": 280
+          },
+          {
+            "text": "[workspace.metadata.cargo-shear]",
+            "lineNumber": 281
+          },
+          {
+            "text": "ignored = [\"icu_provider\", \"openssl-sys\", \"codex-utils-readiness\"]",
+            "lineNumber": 282
+          },
+          {
+            "lineNumber": 283
+          },
+          {
+            "text": "[profile.release]",
+            "lineNumber": 284
+          },
+          {
+            "text": "lto = \"fat\"",
+            "lineNumber": 285
+          },
+          {
+            "text": "# Because we bundle some of these executables with the TypeScript CLI, we",
+            "lineNumber": 286
+          },
+          {
+            "text": "# remove everything to make the binary as small as possible.",
+            "lineNumber": 287
+          },
+          {
+            "text": "strip = \"symbols\"",
+            "lineNumber": 288
+          },
+          {
+            "lineNumber": 289
+          },
+          {
+            "text": "# See https://github.com/openai/codex/issues/1411 for details.",
+            "lineNumber": 290
+          },
+          {
+            "text": "codegen-units = 1",
+            "lineNumber": 291
+          },
+          {
+            "lineNumber": 292
+          },
+          {
+            "text": "[profile.ci-test]",
+            "lineNumber": 293
+          },
+          {
+            "text": "debug = 1         # Reduce debug symbol size",
+            "lineNumber": 294
+          },
+          {
+            "text": "inherits = \"test\"",
+            "lineNumber": 295
+          },
+          {
+            "text": "opt-level = 0",
+            "lineNumber": 296
+          },
+          {
+            "lineNumber": 297
+          },
+          {
+            "text": "[patch.crates-io]",
+            "lineNumber": 298
+          },
+          {
+            "text": "# Uncomment to debug local changes.",
+            "lineNumber": 299
+          },
+          {
+            "text": "# ratatui = { path = \"../../ratatui\" }",
+            "lineNumber": 300
+          },
+          {
+            "text": "crossterm = { git = \"https://github.com/nornagon/crossterm\", branch = \"nornagon/color-query\" }",
+            "lineNumber": 301
+          },
+          {
+            "text": "ratatui = { git = \"https://github.com/nornagon/ratatui\", branch = \"nornagon-v0.29.0-patch\" }",
+            "lineNumber": 302
+          },
+          {
+            "lineNumber": 303
+          },
+          {
+            "text": "# Uncomment to debug local changes.",
+            "lineNumber": 304
+          },
+          {
+            "text": "# rmcp = { path = \"../../rust-sdk/crates/rmcp\" }",
+            "lineNumber": 305
+          }
+        ]
+      },
+      "score": 0.23751990497112274
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 43,
+            "column": 19
+          },
+          "endPosition": {
+            "line": 96,
+            "column": 30
+          }
+        },
+        "contents": "use serde::Deserialize;\nuse similar::DiffableStr;\nuse std::collections::BTreeMap;\nuse std::collections::HashMap;\nuse std::io::ErrorKind;\nuse std::path::Path;\nuse std::path::PathBuf;\n#[cfg(test)]\nuse tempfile::tempdir;\n\nuse crate::config::profile::ConfigProfile;\nuse toml::Value as TomlValue;\nuse toml_edit::DocumentMut;\n\nmod constraint;\npub mod edit;\npub mod profile;\npub mod service;\npub mod types;\npub use constraint::Constrained;\npub use constraint::ConstraintError;\npub use constraint::ConstraintResult;\n\npub use service::ConfigService;\npub use service::ConfigServiceError;\n\nconst OPENAI_DEFAULT_REVIEW_MODEL: &amp;str = \"gpt-5.1-codex-max\";\n\npub use codex_git::GhostSnapshotConfig;\n\n/// Maximum number of bytes of the documentation that will be embedded. Larger\n/// files are *silently truncated* to this size so we do not take up too much of\n/// the context window.\npub(crate) const PROJECT_DOC_MAX_BYTES: usize = 32 * 1024; // 32 KiB\n\npub const CONFIG_TOML_FILE: &amp;str = \"config.toml\";\n\n#[cfg(test)]\npub(crate) fn test_config() -&gt; Config {\n    let codex_home = tempdir().expect(\"create temp dir\");\n    Config::load_from_base_config_with_overrides(\n        ConfigToml::default(),\n        ConfigOverrides::default(),\n        codex_home.path().to_path_buf(),\n    )\n    .expect(\"load default test config\")\n}\n\n/// Application configuration loaded from disk and merged with overrides.\n#[derive(Debug, Clone, PartialEq)]\npub struct Config {\n    /// Optional override of model selection.\n    pub model: Option&lt;String&gt;,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use similar::DiffableStr;",
+            "lineNumber": 46
+          },
+          {
+            "text": "use std::collections::BTreeMap;",
+            "lineNumber": 47
+          },
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 48
+          },
+          {
+            "text": "use std::io::ErrorKind;",
+            "lineNumber": 49
+          },
+          {
+            "text": "use std::path::Path;",
+            "lineNumber": 50
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 51
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 52
+          },
+          {
+            "text": "use tempfile::tempdir;",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "use crate::config::profile::ConfigProfile;",
+            "lineNumber": 55
+          },
+          {
+            "text": "use toml::Value as TomlValue;",
+            "lineNumber": 56
+          },
+          {
+            "text": "use toml_edit::DocumentMut;",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "mod constraint;",
+            "lineNumber": 59
+          },
+          {
+            "text": "pub mod edit;",
+            "lineNumber": 60
+          },
+          {
+            "text": "pub mod profile;",
+            "lineNumber": 61
+          },
+          {
+            "text": "pub mod service;",
+            "lineNumber": 62
+          },
+          {
+            "text": "pub mod types;",
+            "lineNumber": 63
+          },
+          {
+            "text": "pub use constraint::Constrained;",
+            "lineNumber": 64
+          },
+          {
+            "text": "pub use constraint::ConstraintError;",
+            "lineNumber": 65
+          },
+          {
+            "text": "pub use constraint::ConstraintResult;",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "pub use service::ConfigService;",
+            "lineNumber": 68
+          },
+          {
+            "text": "pub use service::ConfigServiceError;",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "const OPENAI_DEFAULT_REVIEW_MODEL: &amp;str = \"gpt-5.1-codex-max\";",
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "text": "pub use codex_git::GhostSnapshotConfig;",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "/// Maximum number of bytes of the documentation that will be embedded. Larger",
+            "lineNumber": 75
+          },
+          {
+            "text": "/// files are *silently truncated* to this size so we do not take up too much of",
+            "lineNumber": 76
+          },
+          {
+            "text": "/// the context window.",
+            "lineNumber": 77
+          },
+          {
+            "text": "pub(crate) const PROJECT_DOC_MAX_BYTES: usize = 32 * 1024; // 32 KiB",
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79
+          },
+          {
+            "text": "pub const CONFIG_TOML_FILE: &amp;str = \"config.toml\";",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 82
+          },
+          {
+            "text": "pub(crate) fn test_config() -&gt; Config {",
+            "lineNumber": 83
+          },
+          {
+            "text": "    let codex_home = tempdir().expect(\"create temp dir\");",
+            "lineNumber": 84
+          },
+          {
+            "text": "    Config::load_from_base_config_with_overrides(",
+            "lineNumber": 85
+          },
+          {
+            "text": "        ConfigToml::default(),",
+            "lineNumber": 86
+          },
+          {
+            "text": "        ConfigOverrides::default(),",
+            "lineNumber": 87
+          },
+          {
+            "text": "        codex_home.path().to_path_buf(),",
+            "lineNumber": 88
+          },
+          {
+            "text": "    )",
+            "lineNumber": 89
+          },
+          {
+            "text": "    .expect(\"load default test config\")",
+            "lineNumber": 90
+          },
+          {
+            "text": "}",
+            "lineNumber": 91
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "text": "/// Application configuration loaded from disk and merged with overrides.",
+            "lineNumber": 93
+          },
+          {
+            "text": "#[derive(Debug, Clone, PartialEq)]",
+            "lineNumber": 94
+          },
+          {
+            "text": "pub struct Config {",
+            "lineNumber": 95
+          },
+          {
+            "text": "    /// Optional override of model selection.",
+            "lineNumber": 96
+          },
+          {
+            "text": "    pub model: Option&lt;String&gt;,",
+            "lineNumber": 97
+          }
+        ]
+      },
+      "score": 0.23534876108169556
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\qc\\sandboxed_execution.rs",
+        "range": {
+          "startPosition": {
+            "line": 137,
+            "column": 47
+          },
+          "endPosition": {
+            "line": 194
+          }
+        },
+        "contents": "pub struct SecurityEvent {\n    pub event_type: SecurityEventType,\n    pub timestamp: chrono::DateTime&lt;chrono::Utc&gt;,\n    pub description: String,\n    pub severity: SecurityRiskLevel,\n    pub blocked: bool,\n}\n\n/// Types of security events\n#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]\npub enum SecurityEventType {\n    FileSystemAccess,\n    NetworkConnection,\n    ProcessCreation,\n    PrivilegeChange,\n    SuspiciousCommand,\n    ResourceLimitExceeded,\n}\n\n/// Sandbox configuration\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct SandboxConfig {\n    pub default_mode: SandboxMode,\n    pub enable_ai_security: bool,\n    pub enable_network_monitoring: bool,\n    pub enable_filesystem_monitoring: bool,\n    pub max_concurrent_executions: usize,\n    pub execution_timeout_seconds: u32,\n    pub restricted_commands: HashSet&lt;String&gt;,\n    pub allowed_network_domains: HashSet&lt;String&gt;,\n    pub blocked_file_paths: HashSet&lt;String&gt;,\n}\n\n/// AI-powered sandbox executor\npub struct AISandboxExecutor {\n    config: SandboxConfig,\n    execution_sender: mpsc::UnboundedSender&lt;SandboxExecutionRequest&gt;,\n    execution_receiver: Arc&lt;RwLock&lt;mpsc::UnboundedReceiver&lt;SandboxExecutionRequest&gt;&gt;&gt;,\n    result_sender: mpsc::UnboundedSender&lt;SandboxExecutionResult&gt;,\n    result_receiver: Arc&lt;RwLock&lt;mpsc::UnboundedReceiver&lt;SandboxExecutionResult&gt;&gt;&gt;,\n    active_executions: Arc&lt;RwLock&lt;HashMap&lt;String, ActiveExecution&gt;&gt;&gt;,\n    ai_security_analyzer: Arc&lt;dyn AISecurityAnalyzer&gt;,\n}\n\n/// Active execution tracking\n#[derive(Debug)]\nstruct ActiveExecution {\n    request: SandboxExecutionRequest,\n    start_time: tokio::time::Instant,\n    security_analysis: Option&lt;AISecurityAnalysis&gt;,\n}\n\n/// AI security analyzer trait\n#[async_trait::async_trait]\npub trait AISecurityAnalyzer {\n    /// Analyze command for security risks",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub struct SecurityEvent {",
+            "lineNumber": 139
+          },
+          {
+            "text": "    pub event_type: SecurityEventType,",
+            "lineNumber": 140
+          },
+          {
+            "text": "    pub timestamp: chrono::DateTime&lt;chrono::Utc&gt;,",
+            "lineNumber": 141
+          },
+          {
+            "text": "    pub description: String,",
+            "lineNumber": 142
+          },
+          {
+            "text": "    pub severity: SecurityRiskLevel,",
+            "lineNumber": 143
+          },
+          {
+            "text": "    pub blocked: bool,",
+            "lineNumber": 144
+          },
+          {
+            "text": "}",
+            "lineNumber": 145
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "text": "/// Types of security events",
+            "lineNumber": 147
+          },
+          {
+            "text": "#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]",
+            "lineNumber": 148
+          },
+          {
+            "text": "pub enum SecurityEventType {",
+            "lineNumber": 149
+          },
+          {
+            "text": "    FileSystemAccess,",
+            "lineNumber": 150
+          },
+          {
+            "text": "    NetworkConnection,",
+            "lineNumber": 151
+          },
+          {
+            "text": "    ProcessCreation,",
+            "lineNumber": 152
+          },
+          {
+            "text": "    PrivilegeChange,",
+            "lineNumber": 153
+          },
+          {
+            "text": "    SuspiciousCommand,",
+            "lineNumber": 154
+          },
+          {
+            "text": "    ResourceLimitExceeded,",
+            "lineNumber": 155
+          },
+          {
+            "text": "}",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "/// Sandbox configuration",
+            "lineNumber": 158
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 159
+          },
+          {
+            "text": "pub struct SandboxConfig {",
+            "lineNumber": 160
+          },
+          {
+            "text": "    pub default_mode: SandboxMode,",
+            "lineNumber": 161
+          },
+          {
+            "text": "    pub enable_ai_security: bool,",
+            "lineNumber": 162
+          },
+          {
+            "text": "    pub enable_network_monitoring: bool,",
+            "lineNumber": 163
+          },
+          {
+            "text": "    pub enable_filesystem_monitoring: bool,",
+            "lineNumber": 164
+          },
+          {
+            "text": "    pub max_concurrent_executions: usize,",
+            "lineNumber": 165
+          },
+          {
+            "text": "    pub execution_timeout_seconds: u32,",
+            "lineNumber": 166
+          },
+          {
+            "text": "    pub restricted_commands: HashSet&lt;String&gt;,",
+            "lineNumber": 167
+          },
+          {
+            "text": "    pub allowed_network_domains: HashSet&lt;String&gt;,",
+            "lineNumber": 168
+          },
+          {
+            "text": "    pub blocked_file_paths: HashSet&lt;String&gt;,",
+            "lineNumber": 169
+          },
+          {
+            "text": "}",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 171
+          },
+          {
+            "text": "/// AI-powered sandbox executor",
+            "lineNumber": 172
+          },
+          {
+            "text": "pub struct AISandboxExecutor {",
+            "lineNumber": 173
+          },
+          {
+            "text": "    config: SandboxConfig,",
+            "lineNumber": 174
+          },
+          {
+            "text": "    execution_sender: mpsc::UnboundedSender&lt;SandboxExecutionRequest&gt;,",
+            "lineNumber": 175
+          },
+          {
+            "text": "    execution_receiver: Arc&lt;RwLock&lt;mpsc::UnboundedReceiver&lt;SandboxExecutionRequest&gt;&gt;&gt;,",
+            "lineNumber": 176
+          },
+          {
+            "text": "    result_sender: mpsc::UnboundedSender&lt;SandboxExecutionResult&gt;,",
+            "lineNumber": 177
+          },
+          {
+            "text": "    result_receiver: Arc&lt;RwLock&lt;mpsc::UnboundedReceiver&lt;SandboxExecutionResult&gt;&gt;&gt;,",
+            "lineNumber": 178
+          },
+          {
+            "text": "    active_executions: Arc&lt;RwLock&lt;HashMap&lt;String, ActiveExecution&gt;&gt;&gt;,",
+            "lineNumber": 179
+          },
+          {
+            "text": "    ai_security_analyzer: Arc&lt;dyn AISecurityAnalyzer&gt;,",
+            "lineNumber": 180
+          },
+          {
+            "text": "}",
+            "lineNumber": 181
+          },
+          {
+            "lineNumber": 182
+          },
+          {
+            "text": "/// Active execution tracking",
+            "lineNumber": 183
+          },
+          {
+            "text": "#[derive(Debug)]",
+            "lineNumber": 184
+          },
+          {
+            "text": "struct ActiveExecution {",
+            "lineNumber": 185
+          },
+          {
+            "text": "    request: SandboxExecutionRequest,",
+            "lineNumber": 186
+          },
+          {
+            "text": "    start_time: tokio::time::Instant,",
+            "lineNumber": 187
+          },
+          {
+            "text": "    security_analysis: Option&lt;AISecurityAnalysis&gt;,",
+            "lineNumber": 188
+          },
+          {
+            "text": "}",
+            "lineNumber": 189
+          },
+          {
+            "lineNumber": 190
+          },
+          {
+            "text": "/// AI security analyzer trait",
+            "lineNumber": 191
+          },
+          {
+            "text": "#[async_trait::async_trait]",
+            "lineNumber": 192
+          },
+          {
+            "text": "pub trait AISecurityAnalyzer {",
+            "lineNumber": 193
+          },
+          {
+            "text": "    /// Analyze command for security risks",
+            "lineNumber": 194
+          }
+        ]
+      },
+      "score": 0.23329824209213257
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 780
+          },
+          "endPosition": {
+            "line": 831
+          }
+        },
+        "contents": "    pub tui: Option&lt;Tui&gt;,\n\n    /// When set to &#96;true&#96;, &#96;AgentReasoning&#96; events will be hidden from the\n    /// UI/output. Defaults to &#96;false&#96;.\n    pub hide_agent_reasoning: Option&lt;bool&gt;,\n\n    /// When set to &#96;true&#96;, &#96;AgentReasoningRawContentEvent&#96; events will be shown in the UI/output.\n    /// Defaults to &#96;false&#96;.\n    pub show_raw_agent_reasoning: Option&lt;bool&gt;,\n\n    pub model_reasoning_effort: Option&lt;ReasoningEffort&gt;,\n    pub model_reasoning_summary: Option&lt;ReasoningSummary&gt;,\n    /// Optional verbosity control for GPT-5 models (Responses API &#96;text.verbosity&#96;).\n    pub model_verbosity: Option&lt;Verbosity&gt;,\n\n    /// Override to force-enable reasoning summaries for the configured model.\n    pub model_supports_reasoning_summaries: Option&lt;bool&gt;,\n\n    /// Override to force reasoning summary format for the configured model.\n    pub model_reasoning_summary_format: Option&lt;ReasoningSummaryFormat&gt;,\n\n    /// Base URL for requests to ChatGPT (as opposed to the OpenAI API).\n    pub chatgpt_base_url: Option&lt;String&gt;,\n\n    pub projects: Option&lt;HashMap&lt;String, ProjectConfig&gt;&gt;,\n\n    /// Nested tools section for feature toggles\n    pub tools: Option&lt;ToolsToml&gt;,\n\n    /// Centralized feature flags (new). Prefer this over individual toggles.\n    #[serde(default)]\n    pub features: Option&lt;FeaturesToml&gt;,\n\n    /// Settings for ghost snapshots (used for undo).\n    #[serde(default)]\n    pub ghost_snapshot: Option&lt;GhostSnapshotToml&gt;,\n\n    /// When &#96;true&#96;, checks for Codex updates on startup and surfaces update prompts.\n    /// Set to &#96;false&#96; only if your Codex updates are centrally managed.\n    /// Defaults to &#96;true&#96;.\n    pub check_for_update_on_startup: Option&lt;bool&gt;,\n\n    /// When true, disables burst-paste detection for typed input entirely.\n    /// All characters are inserted as they are received, and no buffering\n    /// or placeholder replacement will occur for fast keypress bursts.\n    pub disable_paste_burst: Option&lt;bool&gt;,\n\n    /// OTEL configuration.\n    pub otel: Option&lt;crate::config::types::OtelConfigToml&gt;,\n\n    /// Tracks whether the Windows onboarding screen has been acknowledged.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    pub tui: Option&lt;Tui&gt;,",
+            "lineNumber": 781
+          },
+          {
+            "lineNumber": 782
+          },
+          {
+            "text": "    /// When set to &#96;true&#96;, &#96;AgentReasoning&#96; events will be hidden from the",
+            "lineNumber": 783
+          },
+          {
+            "text": "    /// UI/output. Defaults to &#96;false&#96;.",
+            "lineNumber": 784
+          },
+          {
+            "text": "    pub hide_agent_reasoning: Option&lt;bool&gt;,",
+            "lineNumber": 785
+          },
+          {
+            "lineNumber": 786
+          },
+          {
+            "text": "    /// When set to &#96;true&#96;, &#96;AgentReasoningRawContentEvent&#96; events will be shown in the UI/output.",
+            "lineNumber": 787
+          },
+          {
+            "text": "    /// Defaults to &#96;false&#96;.",
+            "lineNumber": 788
+          },
+          {
+            "text": "    pub show_raw_agent_reasoning: Option&lt;bool&gt;,",
+            "lineNumber": 789
+          },
+          {
+            "lineNumber": 790
+          },
+          {
+            "text": "    pub model_reasoning_effort: Option&lt;ReasoningEffort&gt;,",
+            "lineNumber": 791
+          },
+          {
+            "text": "    pub model_reasoning_summary: Option&lt;ReasoningSummary&gt;,",
+            "lineNumber": 792
+          },
+          {
+            "text": "    /// Optional verbosity control for GPT-5 models (Responses API &#96;text.verbosity&#96;).",
+            "lineNumber": 793
+          },
+          {
+            "text": "    pub model_verbosity: Option&lt;Verbosity&gt;,",
+            "lineNumber": 794
+          },
+          {
+            "lineNumber": 795
+          },
+          {
+            "text": "    /// Override to force-enable reasoning summaries for the configured model.",
+            "lineNumber": 796
+          },
+          {
+            "text": "    pub model_supports_reasoning_summaries: Option&lt;bool&gt;,",
+            "lineNumber": 797
+          },
+          {
+            "lineNumber": 798
+          },
+          {
+            "text": "    /// Override to force reasoning summary format for the configured model.",
+            "lineNumber": 799
+          },
+          {
+            "text": "    pub model_reasoning_summary_format: Option&lt;ReasoningSummaryFormat&gt;,",
+            "lineNumber": 800
+          },
+          {
+            "lineNumber": 801
+          },
+          {
+            "text": "    /// Base URL for requests to ChatGPT (as opposed to the OpenAI API).",
+            "lineNumber": 802
+          },
+          {
+            "text": "    pub chatgpt_base_url: Option&lt;String&gt;,",
+            "lineNumber": 803
+          },
+          {
+            "lineNumber": 804
+          },
+          {
+            "text": "    pub projects: Option&lt;HashMap&lt;String, ProjectConfig&gt;&gt;,",
+            "lineNumber": 805
+          },
+          {
+            "lineNumber": 806
+          },
+          {
+            "text": "    /// Nested tools section for feature toggles",
+            "lineNumber": 807
+          },
+          {
+            "text": "    pub tools: Option&lt;ToolsToml&gt;,",
+            "lineNumber": 808
+          },
+          {
+            "lineNumber": 809
+          },
+          {
+            "text": "    /// Centralized feature flags (new). Prefer this over individual toggles.",
+            "lineNumber": 810
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 811
+          },
+          {
+            "text": "    pub features: Option&lt;FeaturesToml&gt;,",
+            "lineNumber": 812
+          },
+          {
+            "lineNumber": 813
+          },
+          {
+            "text": "    /// Settings for ghost snapshots (used for undo).",
+            "lineNumber": 814
+          },
+          {
+            "text": "    #[serde(default)]",
+            "lineNumber": 815
+          },
+          {
+            "text": "    pub ghost_snapshot: Option&lt;GhostSnapshotToml&gt;,",
+            "lineNumber": 816
+          },
+          {
+            "lineNumber": 817
+          },
+          {
+            "text": "    /// When &#96;true&#96;, checks for Codex updates on startup and surfaces update prompts.",
+            "lineNumber": 818
+          },
+          {
+            "text": "    /// Set to &#96;false&#96; only if your Codex updates are centrally managed.",
+            "lineNumber": 819
+          },
+          {
+            "text": "    /// Defaults to &#96;true&#96;.",
+            "lineNumber": 820
+          },
+          {
+            "text": "    pub check_for_update_on_startup: Option&lt;bool&gt;,",
+            "lineNumber": 821
+          },
+          {
+            "lineNumber": 822
+          },
+          {
+            "text": "    /// When true, disables burst-paste detection for typed input entirely.",
+            "lineNumber": 823
+          },
+          {
+            "text": "    /// All characters are inserted as they are received, and no buffering",
+            "lineNumber": 824
+          },
+          {
+            "text": "    /// or placeholder replacement will occur for fast keypress bursts.",
+            "lineNumber": 825
+          },
+          {
+            "text": "    pub disable_paste_burst: Option&lt;bool&gt;,",
+            "lineNumber": 826
+          },
+          {
+            "lineNumber": 827
+          },
+          {
+            "text": "    /// OTEL configuration.",
+            "lineNumber": 828
+          },
+          {
+            "text": "    pub otel: Option&lt;crate::config::types::OtelConfigToml&gt;,",
+            "lineNumber": 829
+          },
+          {
+            "lineNumber": 830
+          },
+          {
+            "text": "    /// Tracks whether the Windows onboarding screen has been acknowledged.",
+            "lineNumber": 831
+          }
+        ]
+      },
+      "score": 0.2325499951839447
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 319,
+            "column": 39
+          },
+          "endPosition": {
+            "line": 366,
+            "column": 55
+          }
+        },
+        "contents": "    /// If set to &#96;true&#96;, used only the experimental unified exec tool.\n    pub use_experimental_unified_exec_tool: bool,\n\n    /// Settings for ghost snapshots (used for undo).\n    pub ghost_snapshot: GhostSnapshotConfig,\n\n    /// Centralized feature flags; source of truth for feature gating.\n    pub features: Features,\n\n    /// The active profile name used to derive this &#96;Config&#96; (if any).\n    pub active_profile: Option&lt;String&gt;,\n\n    /// The currently active project config, resolved by checking if cwd:\n    /// is (1) part of a git repo, (2) a git worktree, or (3) just using the cwd\n    pub active_project: ProjectConfig,\n\n    /// Tracks whether the Windows onboarding screen has been acknowledged.\n    pub windows_wsl_setup_acknowledged: bool,\n\n    /// Collection of various notices we show the user\n    pub notices: Notice,\n\n    /// When &#96;true&#96;, checks for Codex updates on startup and surfaces update prompts.\n    /// Set to &#96;false&#96; only if your Codex updates are centrally managed.\n    /// Defaults to &#96;true&#96;.\n    pub check_for_update_on_startup: bool,\n\n    /// When true, disables burst-paste detection for typed input entirely.\n    /// All characters are inserted as they are received, and no buffering\n    /// or placeholder replacement will occur for fast keypress bursts.\n    pub disable_paste_burst: bool,\n\n    /// OTEL configuration (exporter type, endpoint, headers, etc.).\n    pub otel: crate::config::types::OtelConfig,\n}\n\n#[derive(Debug, Clone, Default)]\npub struct ConfigBuilder {\n    codex_home: Option&lt;PathBuf&gt;,\n    cli_overrides: Option&lt;Vec&lt;(String, TomlValue)&gt;&gt;,\n    harness_overrides: Option&lt;ConfigOverrides&gt;,\n    loader_overrides: Option&lt;LoaderOverrides&gt;,\n}\n\nimpl ConfigBuilder {\n    pub fn codex_home(mut self, codex_home: PathBuf) -&gt;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    /// If set to &#96;true&#96;, used only the experimental unified exec tool.",
+            "lineNumber": 322
+          },
+          {
+            "text": "    pub use_experimental_unified_exec_tool: bool,",
+            "lineNumber": 323
+          },
+          {
+            "lineNumber": 324
+          },
+          {
+            "text": "    /// Settings for ghost snapshots (used for undo).",
+            "lineNumber": 325
+          },
+          {
+            "text": "    pub ghost_snapshot: GhostSnapshotConfig,",
+            "lineNumber": 326
+          },
+          {
+            "lineNumber": 327
+          },
+          {
+            "text": "    /// Centralized feature flags; source of truth for feature gating.",
+            "lineNumber": 328
+          },
+          {
+            "text": "    pub features: Features,",
+            "lineNumber": 329
+          },
+          {
+            "lineNumber": 330
+          },
+          {
+            "text": "    /// The active profile name used to derive this &#96;Config&#96; (if any).",
+            "lineNumber": 331
+          },
+          {
+            "text": "    pub active_profile: Option&lt;String&gt;,",
+            "lineNumber": 332
+          },
+          {
+            "lineNumber": 333
+          },
+          {
+            "text": "    /// The currently active project config, resolved by checking if cwd:",
+            "lineNumber": 334
+          },
+          {
+            "text": "    /// is (1) part of a git repo, (2) a git worktree, or (3) just using the cwd",
+            "lineNumber": 335
+          },
+          {
+            "text": "    pub active_project: ProjectConfig,",
+            "lineNumber": 336
+          },
+          {
+            "lineNumber": 337
+          },
+          {
+            "text": "    /// Tracks whether the Windows onboarding screen has been acknowledged.",
+            "lineNumber": 338
+          },
+          {
+            "text": "    pub windows_wsl_setup_acknowledged: bool,",
+            "lineNumber": 339
+          },
+          {
+            "lineNumber": 340
+          },
+          {
+            "text": "    /// Collection of various notices we show the user",
+            "lineNumber": 341
+          },
+          {
+            "text": "    pub notices: Notice,",
+            "lineNumber": 342
+          },
+          {
+            "lineNumber": 343
+          },
+          {
+            "text": "    /// When &#96;true&#96;, checks for Codex updates on startup and surfaces update prompts.",
+            "lineNumber": 344
+          },
+          {
+            "text": "    /// Set to &#96;false&#96; only if your Codex updates are centrally managed.",
+            "lineNumber": 345
+          },
+          {
+            "text": "    /// Defaults to &#96;true&#96;.",
+            "lineNumber": 346
+          },
+          {
+            "text": "    pub check_for_update_on_startup: bool,",
+            "lineNumber": 347
+          },
+          {
+            "lineNumber": 348
+          },
+          {
+            "text": "    /// When true, disables burst-paste detection for typed input entirely.",
+            "lineNumber": 349
+          },
+          {
+            "text": "    /// All characters are inserted as they are received, and no buffering",
+            "lineNumber": 350
+          },
+          {
+            "text": "    /// or placeholder replacement will occur for fast keypress bursts.",
+            "lineNumber": 351
+          },
+          {
+            "text": "    pub disable_paste_burst: bool,",
+            "lineNumber": 352
+          },
+          {
+            "lineNumber": 353
+          },
+          {
+            "text": "    /// OTEL configuration (exporter type, endpoint, headers, etc.).",
+            "lineNumber": 354
+          },
+          {
+            "text": "    pub otel: crate::config::types::OtelConfig,",
+            "lineNumber": 355
+          },
+          {
+            "text": "}",
+            "lineNumber": 356
+          },
+          {
+            "lineNumber": 357
+          },
+          {
+            "text": "#[derive(Debug, Clone, Default)]",
+            "lineNumber": 358
+          },
+          {
+            "text": "pub struct ConfigBuilder {",
+            "lineNumber": 359
+          },
+          {
+            "text": "    codex_home: Option&lt;PathBuf&gt;,",
+            "lineNumber": 360
+          },
+          {
+            "text": "    cli_overrides: Option&lt;Vec&lt;(String, TomlValue)&gt;&gt;,",
+            "lineNumber": 361
+          },
+          {
+            "text": "    harness_overrides: Option&lt;ConfigOverrides&gt;,",
+            "lineNumber": 362
+          },
+          {
+            "text": "    loader_overrides: Option&lt;LoaderOverrides&gt;,",
+            "lineNumber": 363
+          },
+          {
+            "text": "}",
+            "lineNumber": 364
+          },
+          {
+            "lineNumber": 365
+          },
+          {
+            "text": "impl ConfigBuilder {",
+            "lineNumber": 366
+          },
+          {
+            "text": "    pub fn codex_home(mut self, codex_home: PathBuf) -&gt;",
+            "lineNumber": 367
+          }
+        ]
+      },
+      "score": 0.22789263725280762
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\lib.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 66
+          }
+        },
+        "contents": "pub mod agent_create_cmd;\npub mod ask_cmd;\npub mod debug_sandbox;\npub mod delegate_cmd;\nmod exit_status;\npub mod git_commands;\npub mod lock_cmd;\npub mod login;\npub mod mcp_cmd;\npub mod pair_program_cmd;\npub mod parallel_delegate_cmd;\npub mod plan_commands;\npub mod qc_cmd;\npub mod research_cmd;\npub mod webhook_cmd;\n\nuse clap::Parser;\nuse codex_common::CliConfigOverrides;\nuse codex_core::config::Config;\nuse std::convert::TryFrom;\n\n#[derive(Debug, Parser)]\npub struct SeatbeltCommand {\n    /// Convenience alias for low-friction sandboxed automatic execution (network-disabled sandbox that can write to cwd and TMPDIR)\n    #[arg(long = \"full-auto\", default_value_t = false)]\n    pub full_auto: bool,\n\n    #[clap(skip)]\n    pub config_overrides: CliConfigOverrides,\n\n    /// Full command args to run under seatbelt.\n    #[arg(trailing_var_arg = true)]\n    pub command: Vec&lt;String&gt;,\n}\n\n/// Resolve the runtime token budget for sub-agent execution.\n///\n/// The budget value in the config is stored as &#96;Option&lt;i64&gt;&#96; to mirror the\n/// server-side representation. We clamp the value to a non-negative range and\n/// downcast safely to &#96;usize&#96; so it can be consumed by the runtime.\npub fn resolve_runtime_budget(config: &amp;Config, default_budget: i64) -&gt; usize {\n    let raw_budget = config.model_context_window.unwrap_or(default_budget).max(0);\n\n    let as_u64 = u64::try_from(raw_budget).unwrap_or(u64::MAX);\n    let capped = as_u64.min(usize::MAX as u64);\n\n    usize::try_from(capped).unwrap_or(usize::MAX)\n}\n\n#[derive(Debug, Parser)]\npub struct LandlockCommand {\n    /// Convenience alias for low-friction sandboxed automatic execution (network-disabled sandbox that can write to cwd and TMPDIR)\n    #[arg(long = \"full-auto\", default_value_t = false)]\n    pub full_auto: bool,\n\n    #[clap(skip)]\n    pub config_overrides: CliConfigOverrides,\n\n    /// Full command args to run under landlock.\n    #[arg(trailing_var_arg = true)]\n    pub command: Vec&lt;String&gt;,\n}\n\n#[derive(Debug, Parser)]\npub struct WindowsCommand {\n    /// Convenience alias for low-friction sandboxed automatic execution (network-disabled sandbox that can write to cwd and TMPDIR)",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub mod agent_create_cmd;",
+            "lineNumber": 1
+          },
+          {
+            "text": "pub mod ask_cmd;",
+            "lineNumber": 2
+          },
+          {
+            "text": "pub mod debug_sandbox;",
+            "lineNumber": 3
+          },
+          {
+            "text": "pub mod delegate_cmd;",
+            "lineNumber": 4
+          },
+          {
+            "text": "mod exit_status;",
+            "lineNumber": 5
+          },
+          {
+            "text": "pub mod git_commands;",
+            "lineNumber": 6
+          },
+          {
+            "text": "pub mod lock_cmd;",
+            "lineNumber": 7
+          },
+          {
+            "text": "pub mod login;",
+            "lineNumber": 8
+          },
+          {
+            "text": "pub mod mcp_cmd;",
+            "lineNumber": 9
+          },
+          {
+            "text": "pub mod pair_program_cmd;",
+            "lineNumber": 10
+          },
+          {
+            "text": "pub mod parallel_delegate_cmd;",
+            "lineNumber": 11
+          },
+          {
+            "text": "pub mod plan_commands;",
+            "lineNumber": 12
+          },
+          {
+            "text": "pub mod qc_cmd;",
+            "lineNumber": 13
+          },
+          {
+            "text": "pub mod research_cmd;",
+            "lineNumber": 14
+          },
+          {
+            "text": "pub mod webhook_cmd;",
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "use clap::Parser;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use std::convert::TryFrom;",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 22
+          },
+          {
+            "text": "pub struct SeatbeltCommand {",
+            "lineNumber": 23
+          },
+          {
+            "text": "    /// Convenience alias for low-friction sandboxed automatic execution (network-disabled sandbox that can write to cwd and TMPDIR)",
+            "lineNumber": 24
+          },
+          {
+            "text": "    #[arg(long = \"full-auto\", default_value_t = false)]",
+            "lineNumber": 25
+          },
+          {
+            "text": "    pub full_auto: bool,",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 28
+          },
+          {
+            "text": "    pub config_overrides: CliConfigOverrides,",
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "text": "    /// Full command args to run under seatbelt.",
+            "lineNumber": 31
+          },
+          {
+            "text": "    #[arg(trailing_var_arg = true)]",
+            "lineNumber": 32
+          },
+          {
+            "text": "    pub command: Vec&lt;String&gt;,",
+            "lineNumber": 33
+          },
+          {
+            "text": "}",
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "text": "/// Resolve the runtime token budget for sub-agent execution.",
+            "lineNumber": 36
+          },
+          {
+            "text": "///",
+            "lineNumber": 37
+          },
+          {
+            "text": "/// The budget value in the config is stored as &#96;Option&lt;i64&gt;&#96; to mirror the",
+            "lineNumber": 38
+          },
+          {
+            "text": "/// server-side representation. We clamp the value to a non-negative range and",
+            "lineNumber": 39
+          },
+          {
+            "text": "/// downcast safely to &#96;usize&#96; so it can be consumed by the runtime.",
+            "lineNumber": 40
+          },
+          {
+            "text": "pub fn resolve_runtime_budget(config: &amp;Config, default_budget: i64) -&gt; usize {",
+            "lineNumber": 41
+          },
+          {
+            "text": "    let raw_budget = config.model_context_window.unwrap_or(default_budget).max(0);",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "    let as_u64 = u64::try_from(raw_budget).unwrap_or(u64::MAX);",
+            "lineNumber": 44
+          },
+          {
+            "text": "    let capped = as_u64.min(usize::MAX as u64);",
+            "lineNumber": 45
+          },
+          {
+            "lineNumber": 46
+          },
+          {
+            "text": "    usize::try_from(capped).unwrap_or(usize::MAX)",
+            "lineNumber": 47
+          },
+          {
+            "text": "}",
+            "lineNumber": 48
+          },
+          {
+            "lineNumber": 49
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 50
+          },
+          {
+            "text": "pub struct LandlockCommand {",
+            "lineNumber": 51
+          },
+          {
+            "text": "    /// Convenience alias for low-friction sandboxed automatic execution (network-disabled sandbox that can write to cwd and TMPDIR)",
+            "lineNumber": 52
+          },
+          {
+            "text": "    #[arg(long = \"full-auto\", default_value_t = false)]",
+            "lineNumber": 53
+          },
+          {
+            "text": "    pub full_auto: bool,",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 56
+          },
+          {
+            "text": "    pub config_overrides: CliConfigOverrides,",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "    /// Full command args to run under landlock.",
+            "lineNumber": 59
+          },
+          {
+            "text": "    #[arg(trailing_var_arg = true)]",
+            "lineNumber": 60
+          },
+          {
+            "text": "    pub command: Vec&lt;String&gt;,",
+            "lineNumber": 61
+          },
+          {
+            "text": "}",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 64
+          },
+          {
+            "text": "pub struct WindowsCommand {",
+            "lineNumber": 65
+          },
+          {
+            "text": "    /// Convenience alias for low-friction sandboxed automatic execution (network-disabled sandbox that can write to cwd and TMPDIR)",
+            "lineNumber": 66
+          }
+        ]
+      },
+      "score": 0.2271312028169632
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 105,
+            "column": 33
+          },
+          "endPosition": {
+            "line": 155,
+            "column": 19
+          }
+        },
+        "contents": " {\n    let (sandbox_mode, approval_policy) = if cli.full_auto {\n        (\n            Some(SandboxMode::WorkspaceWrite),\n            Some(AskForApproval::OnRequest),\n        )\n    } else if cli.dangerously_bypass_approvals_and_sandbox {\n        (\n            Some(SandboxMode::DangerFullAccess),\n            Some(AskForApproval::Never),\n        )\n    } else {\n        (\n            cli.sandbox_mode.map(Into::&lt;SandboxMode&gt;::into),\n            cli.approval_policy.map(Into::into),\n        )\n    };\n\n    cli.config_overrides.raw_overrides.push(format!(\n        \"orchestration.auto_threshold={}\",\n        cli.auto_threshold\n    ));\n    let strategy_override = match cli.strategy {\n        crate::cli::OrchestrationStrategy::Sequential =&gt; \"sequential\",\n        crate::cli::OrchestrationStrategy::Parallel =&gt; \"parallel\",\n        crate::cli::OrchestrationStrategy::Hybrid =&gt; \"hybrid\",\n    };\n    cli.config_overrides\n        .raw_overrides\n        .push(format!(\"orchestration.strategy={strategy_override}\"));\n    if !cli.skills.is_empty() {\n        cli.config_overrides\n            .raw_overrides\n            .push(format!(\"orchestration.skills={}\", cli.skills.join(\",\")));\n    }\n\n    // Map the legacy --search flag to the new feature toggle.\n    if cli.web_search {\n        cli.config_overrides\n            .raw_overrides\n            .push(\"features.web_search_request=true\".to_string());\n    }\n\n    // When using &#96;--oss&#96;, let the bootstrapper pick the model (defaulting to\n    // gpt-oss:20b) and ensure it is present locally. Also, force the built‑in\n    let raw_overrides = cli.config_overrides.raw_overrides.clone();\n    // &#96;oss&#96; model provider.\n    let overrides_cli = codex_common::CliConfigOverrides { raw_overrides };\n    let cli_kv_overrides = match overrides_cli.parse_overrides() {\n        // Parse &#96;-c&#96; overrides from the CLI.\n        Ok(v) =&gt; v,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 106
+          },
+          {
+            "text": "    let (sandbox_mode, approval_policy) = if cli.full_auto {",
+            "lineNumber": 107
+          },
+          {
+            "text": "        (",
+            "lineNumber": 108
+          },
+          {
+            "text": "            Some(SandboxMode::WorkspaceWrite),",
+            "lineNumber": 109
+          },
+          {
+            "text": "            Some(AskForApproval::OnRequest),",
+            "lineNumber": 110
+          },
+          {
+            "text": "        )",
+            "lineNumber": 111
+          },
+          {
+            "text": "    } else if cli.dangerously_bypass_approvals_and_sandbox {",
+            "lineNumber": 112
+          },
+          {
+            "text": "        (",
+            "lineNumber": 113
+          },
+          {
+            "text": "            Some(SandboxMode::DangerFullAccess),",
+            "lineNumber": 114
+          },
+          {
+            "text": "            Some(AskForApproval::Never),",
+            "lineNumber": 115
+          },
+          {
+            "text": "        )",
+            "lineNumber": 116
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 117
+          },
+          {
+            "text": "        (",
+            "lineNumber": 118
+          },
+          {
+            "text": "            cli.sandbox_mode.map(Into::&lt;SandboxMode&gt;::into),",
+            "lineNumber": 119
+          },
+          {
+            "text": "            cli.approval_policy.map(Into::into),",
+            "lineNumber": 120
+          },
+          {
+            "text": "        )",
+            "lineNumber": 121
+          },
+          {
+            "text": "    };",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "    cli.config_overrides.raw_overrides.push(format!(",
+            "lineNumber": 124
+          },
+          {
+            "text": "        \"orchestration.auto_threshold={}\",",
+            "lineNumber": 125
+          },
+          {
+            "text": "        cli.auto_threshold",
+            "lineNumber": 126
+          },
+          {
+            "text": "    ));",
+            "lineNumber": 127
+          },
+          {
+            "text": "    let strategy_override = match cli.strategy {",
+            "lineNumber": 128
+          },
+          {
+            "text": "        crate::cli::OrchestrationStrategy::Sequential =&gt; \"sequential\",",
+            "lineNumber": 129
+          },
+          {
+            "text": "        crate::cli::OrchestrationStrategy::Parallel =&gt; \"parallel\",",
+            "lineNumber": 130
+          },
+          {
+            "text": "        crate::cli::OrchestrationStrategy::Hybrid =&gt; \"hybrid\",",
+            "lineNumber": 131
+          },
+          {
+            "text": "    };",
+            "lineNumber": 132
+          },
+          {
+            "text": "    cli.config_overrides",
+            "lineNumber": 133
+          },
+          {
+            "text": "        .raw_overrides",
+            "lineNumber": 134
+          },
+          {
+            "text": "        .push(format!(\"orchestration.strategy={strategy_override}\"));",
+            "lineNumber": 135
+          },
+          {
+            "text": "    if !cli.skills.is_empty() {",
+            "lineNumber": 136
+          },
+          {
+            "text": "        cli.config_overrides",
+            "lineNumber": 137
+          },
+          {
+            "text": "            .raw_overrides",
+            "lineNumber": 138
+          },
+          {
+            "text": "            .push(format!(\"orchestration.skills={}\", cli.skills.join(\",\")));",
+            "lineNumber": 139
+          },
+          {
+            "text": "    }",
+            "lineNumber": 140
+          },
+          {
+            "lineNumber": 141
+          },
+          {
+            "text": "    // Map the legacy --search flag to the new feature toggle.",
+            "lineNumber": 142
+          },
+          {
+            "text": "    if cli.web_search {",
+            "lineNumber": 143
+          },
+          {
+            "text": "        cli.config_overrides",
+            "lineNumber": 144
+          },
+          {
+            "text": "            .raw_overrides",
+            "lineNumber": 145
+          },
+          {
+            "text": "            .push(\"features.web_search_request=true\".to_string());",
+            "lineNumber": 146
+          },
+          {
+            "text": "    }",
+            "lineNumber": 147
+          },
+          {
+            "lineNumber": 148
+          },
+          {
+            "text": "    // When using &#96;--oss&#96;, let the bootstrapper pick the model (defaulting to",
+            "lineNumber": 149
+          },
+          {
+            "text": "    // gpt-oss:20b) and ensure it is present locally. Also, force the built‑in",
+            "lineNumber": 150
+          },
+          {
+            "text": "    let raw_overrides = cli.config_overrides.raw_overrides.clone();",
+            "lineNumber": 151
+          },
+          {
+            "text": "    // &#96;oss&#96; model provider.",
+            "lineNumber": 152
+          },
+          {
+            "text": "    let overrides_cli = codex_common::CliConfigOverrides { raw_overrides };",
+            "lineNumber": 153
+          },
+          {
+            "text": "    let cli_kv_overrides = match overrides_cli.parse_overrides() {",
+            "lineNumber": 154
+          },
+          {
+            "text": "        // Parse &#96;-c&#96; overrides from the CLI.",
+            "lineNumber": 155
+          },
+          {
+            "text": "        Ok(v) =&gt; v,",
+            "lineNumber": 156
+          }
+        ]
+      },
+      "score": 0.22454659640789032
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\exec\\src\\cli.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 58,
+            "column": 7
+          }
+        },
+        "contents": "use clap::Parser;\nuse clap::ValueEnum;\nuse codex_common::CliConfigOverrides;\nuse std::path::PathBuf;\n\n#[derive(Parser, Debug)]\n#[command(version)]\npub struct Cli {\n    /// Action to perform. If omitted, runs a new non-interactive session.\n    #[command(subcommand)]\n    pub command: Option&lt;Command&gt;,\n\n    /// Optional image(s) to attach to the initial prompt.\n    #[arg(long = \"image\", short = 'i', value_name = \"FILE\", value_delimiter = ',', num_args = 1..)]\n    pub images: Vec&lt;PathBuf&gt;,\n\n    /// Model the agent should use.\n    #[arg(long, short = 'm')]\n    pub model: Option&lt;String&gt;,\n\n    #[arg(long = \"oss\", default_value_t = false)]\n    pub oss: bool,\n\n    /// OSS provider to use (lmstudio or ollama)\n    #[arg(long = \"oss-provider\")]\n    pub oss_provider: Option&lt;String&gt;,\n\n    /// Select the sandbox policy to use when executing model-generated shell\n    /// commands.\n    #[arg(long = \"sandbox\", short = 's', value_enum)]\n    pub sandbox_mode: Option&lt;codex_common::SandboxModeCliArg&gt;,\n\n    /// Configuration profile from config.toml to specify default options.\n    #[arg(long = \"profile\", short = 'p')]\n    pub config_profile: Option&lt;String&gt;,\n\n    /// Convenience alias for low-friction sandboxed automatic execution (-a on-failure, --sandbox workspace-write).\n    #[arg(long = \"full-auto\", default_value_t = false)]\n    pub full_auto: bool,\n\n    /// Skip all confirmation prompts and execute commands without sandboxing.\n    /// EXTREMELY DANGEROUS. Intended solely for running in environments that are externally sandboxed.\n    #[arg(\n        long = \"dangerously-bypass-approvals-and-sandbox\",\n        alias = \"yolo\",\n        default_value_t = false,\n        conflicts_with = \"full_auto\"\n    )]\n    pub dangerously_bypass_approvals_and_sandbox: bool,\n\n    /// Tell the agent to use the specified directory as its working root.\n    #[clap(long = \"cd\", short = 'C', value_name = \"DIR\")]\n    pub cwd: Option&lt;PathBuf&gt;,\n\n    /// Allow running Codex outside a Git repository.\n    #[arg(long = \"skip-git-repo-check\", default_value_t = false)]\n    pub skip_git_repo_check: bool,\n\n    ///",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use clap::Parser;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use clap::ValueEnum;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "#[derive(Parser, Debug)]",
+            "lineNumber": 6
+          },
+          {
+            "text": "#[command(version)]",
+            "lineNumber": 7
+          },
+          {
+            "text": "pub struct Cli {",
+            "lineNumber": 8
+          },
+          {
+            "text": "    /// Action to perform. If omitted, runs a new non-interactive session.",
+            "lineNumber": 9
+          },
+          {
+            "text": "    #[command(subcommand)]",
+            "lineNumber": 10
+          },
+          {
+            "text": "    pub command: Option&lt;Command&gt;,",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "    /// Optional image(s) to attach to the initial prompt.",
+            "lineNumber": 13
+          },
+          {
+            "text": "    #[arg(long = \"image\", short = 'i', value_name = \"FILE\", value_delimiter = ',', num_args = 1..)]",
+            "lineNumber": 14
+          },
+          {
+            "text": "    pub images: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "    /// Model the agent should use.",
+            "lineNumber": 17
+          },
+          {
+            "text": "    #[arg(long, short = 'm')]",
+            "lineNumber": 18
+          },
+          {
+            "text": "    pub model: Option&lt;String&gt;,",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "    #[arg(long = \"oss\", default_value_t = false)]",
+            "lineNumber": 21
+          },
+          {
+            "text": "    pub oss: bool,",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "    /// OSS provider to use (lmstudio or ollama)",
+            "lineNumber": 24
+          },
+          {
+            "text": "    #[arg(long = \"oss-provider\")]",
+            "lineNumber": 25
+          },
+          {
+            "text": "    pub oss_provider: Option&lt;String&gt;,",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "    /// Select the sandbox policy to use when executing model-generated shell",
+            "lineNumber": 28
+          },
+          {
+            "text": "    /// commands.",
+            "lineNumber": 29
+          },
+          {
+            "text": "    #[arg(long = \"sandbox\", short = 's', value_enum)]",
+            "lineNumber": 30
+          },
+          {
+            "text": "    pub sandbox_mode: Option&lt;codex_common::SandboxModeCliArg&gt;,",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "    /// Configuration profile from config.toml to specify default options.",
+            "lineNumber": 33
+          },
+          {
+            "text": "    #[arg(long = \"profile\", short = 'p')]",
+            "lineNumber": 34
+          },
+          {
+            "text": "    pub config_profile: Option&lt;String&gt;,",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "    /// Convenience alias for low-friction sandboxed automatic execution (-a on-failure, --sandbox workspace-write).",
+            "lineNumber": 37
+          },
+          {
+            "text": "    #[arg(long = \"full-auto\", default_value_t = false)]",
+            "lineNumber": 38
+          },
+          {
+            "text": "    pub full_auto: bool,",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "    /// Skip all confirmation prompts and execute commands without sandboxing.",
+            "lineNumber": 41
+          },
+          {
+            "text": "    /// EXTREMELY DANGEROUS. Intended solely for running in environments that are externally sandboxed.",
+            "lineNumber": 42
+          },
+          {
+            "text": "    #[arg(",
+            "lineNumber": 43
+          },
+          {
+            "text": "        long = \"dangerously-bypass-approvals-and-sandbox\",",
+            "lineNumber": 44
+          },
+          {
+            "text": "        alias = \"yolo\",",
+            "lineNumber": 45
+          },
+          {
+            "text": "        default_value_t = false,",
+            "lineNumber": 46
+          },
+          {
+            "text": "        conflicts_with = \"full_auto\"",
+            "lineNumber": 47
+          },
+          {
+            "text": "    )]",
+            "lineNumber": 48
+          },
+          {
+            "text": "    pub dangerously_bypass_approvals_and_sandbox: bool,",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "    /// Tell the agent to use the specified directory as its working root.",
+            "lineNumber": 51
+          },
+          {
+            "text": "    #[clap(long = \"cd\", short = 'C', value_name = \"DIR\")]",
+            "lineNumber": 52
+          },
+          {
+            "text": "    pub cwd: Option&lt;PathBuf&gt;,",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "    /// Allow running Codex outside a Git repository.",
+            "lineNumber": 55
+          },
+          {
+            "text": "    #[arg(long = \"skip-git-repo-check\", default_value_t = false)]",
+            "lineNumber": 56
+          },
+          {
+            "text": "    pub skip_git_repo_check: bool,",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "    ///",
+            "lineNumber": 59
+          }
+        ]
+      },
+      "score": 0.22315073013305664
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\Cargo.toml",
+        "range": {
+          "startPosition": {
+            "line": 80
+          },
+          "endPosition": {
+            "line": 142
+          }
+        },
+        "contents": "codex-feedback = { path = \"feedback\" }\ncodex-file-search = { path = \"file-search\" }\ncodex-git = { path = \"utils/git\" }\ncodex-keyring-store = { path = \"keyring-store\" }\ncodex-linux-sandbox = { path = \"linux-sandbox\" }\ncodex-lmstudio = { path = \"lmstudio\" }\ncodex-login = { path = \"login\" }\ncodex-mcp-server = { path = \"mcp-server\" }\ncodex-ollama = { path = \"ollama\" }\ncodex-otel = { path = \"otel\" }\ncodex-process-hardening = { path = \"process-hardening\" }\ncodex-protocol = { path = \"protocol\" }\ncodex-responses-api-proxy = { path = \"responses-api-proxy\" }\ncodex-rmcp-client = { path = \"rmcp-client\" }\ncodex-stdio-to-uds = { path = \"stdio-to-uds\" }\ncodex-tui = { path = \"tui\" }\ncodex-tui2 = { path = \"tui2\" }\ncodex-utils-absolute-path = { path = \"utils/absolute-path\" }\ncodex-utils-cache = { path = \"utils/cache\" }\ncodex-utils-image = { path = \"utils/image\" }\ncodex-utils-json-to-toml = { path = \"utils/json-to-toml\" }\ncodex-utils-pty = { path = \"utils/pty\" }\ncodex-utils-readiness = { path = \"utils/readiness\" }\ncodex-utils-string = { path = \"utils/string\" }\ncodex-windows-sandbox = { path = \"windows-sandbox-rs\" }\ncore_test_support = { path = \"core/tests/common\" }\nexec_server_test_support = { path = \"exec-server/tests/common\" }\nmcp-types = { path = \"mcp-types\" }\nmcp_test_support = { path = \"mcp-server/tests/common\" }\n\n# External\nallocative = \"0.3.3\"\nansi-to-tui = \"7.0.0\"\nanyhow = \"1\"\narboard = { version = \"3\", features = [\"wayland-data-control\"] }\nassert_cmd = \"2\"\nassert_matches = \"1.5.0\"\nasync-channel = \"2.3.1\"\nasync-stream = \"0.3.6\"\nasync-trait = \"0.1.89\"\naxum = { version = \"0.8\", default-features = false }\nbase64 = \"0.22.1\"\nbytes = \"1.10.1\"\nchardetng = \"0.1.17\"\nchrono = \"0.4.42\"\nclap = \"4.5.53\"\nclap_complete = \"4\"\ncolor-eyre = \"0.6.3\"\ncrossterm = \"0.28.1\"\nctor = \"0.5.0\"\nderive_more = \"2\"\ndiffy = \"0.4.2\"\ndirs = \"6\"\ndotenvy = \"0.15.7\"\ndunce = \"1.0.4\"\nencoding_rs = \"0.8.35\"\nenv-flags = \"0.1.1\"\nenv_logger = \"0.11.5\"\nescargot = \"0.5\"\neventsource-stream = \"0.2.3\"\nfutures = { version = \"0.3\", default-features = false }\nhttp = \"1.3.1\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "codex-feedback = { path = \"feedback\" }",
+            "lineNumber": 81
+          },
+          {
+            "text": "codex-file-search = { path = \"file-search\" }",
+            "lineNumber": 82
+          },
+          {
+            "text": "codex-git = { path = \"utils/git\" }",
+            "lineNumber": 83
+          },
+          {
+            "text": "codex-keyring-store = { path = \"keyring-store\" }",
+            "lineNumber": 84
+          },
+          {
+            "text": "codex-linux-sandbox = { path = \"linux-sandbox\" }",
+            "lineNumber": 85
+          },
+          {
+            "text": "codex-lmstudio = { path = \"lmstudio\" }",
+            "lineNumber": 86
+          },
+          {
+            "text": "codex-login = { path = \"login\" }",
+            "lineNumber": 87
+          },
+          {
+            "text": "codex-mcp-server = { path = \"mcp-server\" }",
+            "lineNumber": 88
+          },
+          {
+            "text": "codex-ollama = { path = \"ollama\" }",
+            "lineNumber": 89
+          },
+          {
+            "text": "codex-otel = { path = \"otel\" }",
+            "lineNumber": 90
+          },
+          {
+            "text": "codex-process-hardening = { path = \"process-hardening\" }",
+            "lineNumber": 91
+          },
+          {
+            "text": "codex-protocol = { path = \"protocol\" }",
+            "lineNumber": 92
+          },
+          {
+            "text": "codex-responses-api-proxy = { path = \"responses-api-proxy\" }",
+            "lineNumber": 93
+          },
+          {
+            "text": "codex-rmcp-client = { path = \"rmcp-client\" }",
+            "lineNumber": 94
+          },
+          {
+            "text": "codex-stdio-to-uds = { path = \"stdio-to-uds\" }",
+            "lineNumber": 95
+          },
+          {
+            "text": "codex-tui = { path = \"tui\" }",
+            "lineNumber": 96
+          },
+          {
+            "text": "codex-tui2 = { path = \"tui2\" }",
+            "lineNumber": 97
+          },
+          {
+            "text": "codex-utils-absolute-path = { path = \"utils/absolute-path\" }",
+            "lineNumber": 98
+          },
+          {
+            "text": "codex-utils-cache = { path = \"utils/cache\" }",
+            "lineNumber": 99
+          },
+          {
+            "text": "codex-utils-image = { path = \"utils/image\" }",
+            "lineNumber": 100
+          },
+          {
+            "text": "codex-utils-json-to-toml = { path = \"utils/json-to-toml\" }",
+            "lineNumber": 101
+          },
+          {
+            "text": "codex-utils-pty = { path = \"utils/pty\" }",
+            "lineNumber": 102
+          },
+          {
+            "text": "codex-utils-readiness = { path = \"utils/readiness\" }",
+            "lineNumber": 103
+          },
+          {
+            "text": "codex-utils-string = { path = \"utils/string\" }",
+            "lineNumber": 104
+          },
+          {
+            "text": "codex-windows-sandbox = { path = \"windows-sandbox-rs\" }",
+            "lineNumber": 105
+          },
+          {
+            "text": "core_test_support = { path = \"core/tests/common\" }",
+            "lineNumber": 106
+          },
+          {
+            "text": "exec_server_test_support = { path = \"exec-server/tests/common\" }",
+            "lineNumber": 107
+          },
+          {
+            "text": "mcp-types = { path = \"mcp-types\" }",
+            "lineNumber": 108
+          },
+          {
+            "text": "mcp_test_support = { path = \"mcp-server/tests/common\" }",
+            "lineNumber": 109
+          },
+          {
+            "lineNumber": 110
+          },
+          {
+            "text": "# External",
+            "lineNumber": 111
+          },
+          {
+            "text": "allocative = \"0.3.3\"",
+            "lineNumber": 112
+          },
+          {
+            "text": "ansi-to-tui = \"7.0.0\"",
+            "lineNumber": 113
+          },
+          {
+            "text": "anyhow = \"1\"",
+            "lineNumber": 114
+          },
+          {
+            "text": "arboard = { version = \"3\", features = [\"wayland-data-control\"] }",
+            "lineNumber": 115
+          },
+          {
+            "text": "assert_cmd = \"2\"",
+            "lineNumber": 116
+          },
+          {
+            "text": "assert_matches = \"1.5.0\"",
+            "lineNumber": 117
+          },
+          {
+            "text": "async-channel = \"2.3.1\"",
+            "lineNumber": 118
+          },
+          {
+            "text": "async-stream = \"0.3.6\"",
+            "lineNumber": 119
+          },
+          {
+            "text": "async-trait = \"0.1.89\"",
+            "lineNumber": 120
+          },
+          {
+            "text": "axum = { version = \"0.8\", default-features = false }",
+            "lineNumber": 121
+          },
+          {
+            "text": "base64 = \"0.22.1\"",
+            "lineNumber": 122
+          },
+          {
+            "text": "bytes = \"1.10.1\"",
+            "lineNumber": 123
+          },
+          {
+            "text": "chardetng = \"0.1.17\"",
+            "lineNumber": 124
+          },
+          {
+            "text": "chrono = \"0.4.42\"",
+            "lineNumber": 125
+          },
+          {
+            "text": "clap = \"4.5.53\"",
+            "lineNumber": 126
+          },
+          {
+            "text": "clap_complete = \"4\"",
+            "lineNumber": 127
+          },
+          {
+            "text": "color-eyre = \"0.6.3\"",
+            "lineNumber": 128
+          },
+          {
+            "text": "crossterm = \"0.28.1\"",
+            "lineNumber": 129
+          },
+          {
+            "text": "ctor = \"0.5.0\"",
+            "lineNumber": 130
+          },
+          {
+            "text": "derive_more = \"2\"",
+            "lineNumber": 131
+          },
+          {
+            "text": "diffy = \"0.4.2\"",
+            "lineNumber": 132
+          },
+          {
+            "text": "dirs = \"6\"",
+            "lineNumber": 133
+          },
+          {
+            "text": "dotenvy = \"0.15.7\"",
+            "lineNumber": 134
+          },
+          {
+            "text": "dunce = \"1.0.4\"",
+            "lineNumber": 135
+          },
+          {
+            "text": "encoding_rs = \"0.8.35\"",
+            "lineNumber": 136
+          },
+          {
+            "text": "env-flags = \"0.1.1\"",
+            "lineNumber": 137
+          },
+          {
+            "text": "env_logger = \"0.11.5\"",
+            "lineNumber": 138
+          },
+          {
+            "text": "escargot = \"0.5\"",
+            "lineNumber": 139
+          },
+          {
+            "text": "eventsource-stream = \"0.2.3\"",
+            "lineNumber": 140
+          },
+          {
+            "text": "futures = { version = \"0.3\", default-features = false }",
+            "lineNumber": 141
+          },
+          {
+            "text": "http = \"1.3.1\"",
+            "lineNumber": 142
+          }
+        ]
+      },
+      "score": 0.22156460583209991
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\Cargo.toml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 75
+          }
+        },
+        "contents": "[package]\nname = \"codex-cli\"\nversion.workspace = true\nedition.workspace = true\nlicense.workspace = true\n\n[[bin]]\nname = \"codex\"\npath = \"src/main.rs\"\n\n[lib]\nname = \"codex_cli\"\npath = \"src/lib.rs\"\n\n[lints]\nworkspace = true\n\n[features]\ncuda = []\nwindows-ai = []\n\n[dependencies]\nanyhow = { workspace = true }\nchrono = { workspace = true }\nclap = { workspace = true, features = [\"derive\"] }\nclap_complete = { workspace = true }\ncodex-app-server = { workspace = true }\ncodex-app-server-protocol = { workspace = true }\ncodex-arg0 = { workspace = true }\ncodex-chatgpt = { workspace = true }\ncodex-cloud-tasks = { path = \"../cloud-tasks\" }\ncodex-common = { workspace = true, features = [\"cli\"] }\ncodex-core = { workspace = true }\ncodex-deep-research = { path = \"../deep-research\" }\ncodex-exec = { workspace = true }\ncodex-execpolicy = { workspace = true }\ncodex-login = { workspace = true }\ncodex-mcp-server = { workspace = true }\ncodex-otel = { workspace = true }\ncodex-process-hardening = { workspace = true }\ncodex-protocol = { workspace = true }\ncodex-protocol-ts = { path = \"../protocol-ts\" }\ncodex-responses-api-proxy = { workspace = true }\ncodex-rmcp-client = { workspace = true }\ncodex-supervisor = { path = \"../supervisor\" }\ncodex-stdio-to-uds = { workspace = true }\ncodex-tui = { workspace = true }\ncodex-tui2 = { workspace = true }\ncodex-utils-absolute-path = { workspace = true }\nctor = { workspace = true }\ndirs = { workspace = true }\ngit2 = \"0.19\"\nlibc = { workspace = true }\nowo-colors = { workspace = true }\nregex-lite = { workspace = true }\nserde = { workspace = true, features = [\"derive\"] }\nserde_json = { workspace = true }\nslug = \"0.1.4\"\nsupports-color = { workspace = true }\ntokio = { workspace = true, features = [\n    \"io-std\",\n    \"macros\",\n    \"process\",\n    \"rt-multi-thread\",\n    \"signal\",\n] }\ntoml = { workspace = true }\ntracing = { workspace = true }\nwalkdir = { workspace = true }\n\n[target.'cfg(target_os = \"windows\")'.dependencies]\ncodex_windows_sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }\n\n[dev-dependencies]\nassert_cmd = { workspace = true }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "[package]",
+            "lineNumber": 1
+          },
+          {
+            "text": "name = \"codex-cli\"",
+            "lineNumber": 2
+          },
+          {
+            "text": "version.workspace = true",
+            "lineNumber": 3
+          },
+          {
+            "text": "edition.workspace = true",
+            "lineNumber": 4
+          },
+          {
+            "text": "license.workspace = true",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "[[bin]]",
+            "lineNumber": 7
+          },
+          {
+            "text": "name = \"codex\"",
+            "lineNumber": 8
+          },
+          {
+            "text": "path = \"src/main.rs\"",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "[lib]",
+            "lineNumber": 11
+          },
+          {
+            "text": "name = \"codex_cli\"",
+            "lineNumber": 12
+          },
+          {
+            "text": "path = \"src/lib.rs\"",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "[lints]",
+            "lineNumber": 15
+          },
+          {
+            "text": "workspace = true",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "[features]",
+            "lineNumber": 18
+          },
+          {
+            "text": "cuda = []",
+            "lineNumber": 19
+          },
+          {
+            "text": "windows-ai = []",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "[dependencies]",
+            "lineNumber": 22
+          },
+          {
+            "text": "anyhow = { workspace = true }",
+            "lineNumber": 23
+          },
+          {
+            "text": "chrono = { workspace = true }",
+            "lineNumber": 24
+          },
+          {
+            "text": "clap = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 25
+          },
+          {
+            "text": "clap_complete = { workspace = true }",
+            "lineNumber": 26
+          },
+          {
+            "text": "codex-app-server = { workspace = true }",
+            "lineNumber": 27
+          },
+          {
+            "text": "codex-app-server-protocol = { workspace = true }",
+            "lineNumber": 28
+          },
+          {
+            "text": "codex-arg0 = { workspace = true }",
+            "lineNumber": 29
+          },
+          {
+            "text": "codex-chatgpt = { workspace = true }",
+            "lineNumber": 30
+          },
+          {
+            "text": "codex-cloud-tasks = { path = \"../cloud-tasks\" }",
+            "lineNumber": 31
+          },
+          {
+            "text": "codex-common = { workspace = true, features = [\"cli\"] }",
+            "lineNumber": 32
+          },
+          {
+            "text": "codex-core = { workspace = true }",
+            "lineNumber": 33
+          },
+          {
+            "text": "codex-deep-research = { path = \"../deep-research\" }",
+            "lineNumber": 34
+          },
+          {
+            "text": "codex-exec = { workspace = true }",
+            "lineNumber": 35
+          },
+          {
+            "text": "codex-execpolicy = { workspace = true }",
+            "lineNumber": 36
+          },
+          {
+            "text": "codex-login = { workspace = true }",
+            "lineNumber": 37
+          },
+          {
+            "text": "codex-mcp-server = { workspace = true }",
+            "lineNumber": 38
+          },
+          {
+            "text": "codex-otel = { workspace = true }",
+            "lineNumber": 39
+          },
+          {
+            "text": "codex-process-hardening = { workspace = true }",
+            "lineNumber": 40
+          },
+          {
+            "text": "codex-protocol = { workspace = true }",
+            "lineNumber": 41
+          },
+          {
+            "text": "codex-protocol-ts = { path = \"../protocol-ts\" }",
+            "lineNumber": 42
+          },
+          {
+            "text": "codex-responses-api-proxy = { workspace = true }",
+            "lineNumber": 43
+          },
+          {
+            "text": "codex-rmcp-client = { workspace = true }",
+            "lineNumber": 44
+          },
+          {
+            "text": "codex-supervisor = { path = \"../supervisor\" }",
+            "lineNumber": 45
+          },
+          {
+            "text": "codex-stdio-to-uds = { workspace = true }",
+            "lineNumber": 46
+          },
+          {
+            "text": "codex-tui = { workspace = true }",
+            "lineNumber": 47
+          },
+          {
+            "text": "codex-tui2 = { workspace = true }",
+            "lineNumber": 48
+          },
+          {
+            "text": "codex-utils-absolute-path = { workspace = true }",
+            "lineNumber": 49
+          },
+          {
+            "text": "ctor = { workspace = true }",
+            "lineNumber": 50
+          },
+          {
+            "text": "dirs = { workspace = true }",
+            "lineNumber": 51
+          },
+          {
+            "text": "git2 = \"0.19\"",
+            "lineNumber": 52
+          },
+          {
+            "text": "libc = { workspace = true }",
+            "lineNumber": 53
+          },
+          {
+            "text": "owo-colors = { workspace = true }",
+            "lineNumber": 54
+          },
+          {
+            "text": "regex-lite = { workspace = true }",
+            "lineNumber": 55
+          },
+          {
+            "text": "serde = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 56
+          },
+          {
+            "text": "serde_json = { workspace = true }",
+            "lineNumber": 57
+          },
+          {
+            "text": "slug = \"0.1.4\"",
+            "lineNumber": 58
+          },
+          {
+            "text": "supports-color = { workspace = true }",
+            "lineNumber": 59
+          },
+          {
+            "text": "tokio = { workspace = true, features = [",
+            "lineNumber": 60
+          },
+          {
+            "text": "    \"io-std\",",
+            "lineNumber": 61
+          },
+          {
+            "text": "    \"macros\",",
+            "lineNumber": 62
+          },
+          {
+            "text": "    \"process\",",
+            "lineNumber": 63
+          },
+          {
+            "text": "    \"rt-multi-thread\",",
+            "lineNumber": 64
+          },
+          {
+            "text": "    \"signal\",",
+            "lineNumber": 65
+          },
+          {
+            "text": "] }",
+            "lineNumber": 66
+          },
+          {
+            "text": "toml = { workspace = true }",
+            "lineNumber": 67
+          },
+          {
+            "text": "tracing = { workspace = true }",
+            "lineNumber": 68
+          },
+          {
+            "text": "walkdir = { workspace = true }",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "[target.'cfg(target_os = \"windows\")'.dependencies]",
+            "lineNumber": 71
+          },
+          {
+            "text": "codex_windows_sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "[dev-dependencies]",
+            "lineNumber": 74
+          },
+          {
+            "text": "assert_cmd = { workspace = true }",
+            "lineNumber": 75
+          }
+        ]
+      },
+      "score": 0.21823179721832275
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\ai_orchestrator.rs",
+        "range": {
+          "startPosition": {
+            "line": 707,
+            "column": 68
+          },
+          "endPosition": {
+            "line": 766,
+            "column": 8
+          }
+        },
+        "contents": " {\n                        // Include common programming language files\n                        let ext_str = extension.to_string_lossy().to_lowercase();\n                        if matches!(\n                            ext_str.as_str(),\n                            \"rs\" | \"py\"\n                                | \"js\"\n                                | \"ts\"\n                                | \"java\"\n                                | \"cpp\"\n                                | \"c\"\n                                | \"h\"\n                                | \"hpp\"\n                                | \"go\"\n                                | \"rb\"\n                                | \"php\"\n                                | \"cs\"\n                                | \"swift\"\n                                | \"kt\"\n                                | \"scala\"\n                                | \"clj\"\n                        ) {\n                            if let Ok(content) = fs::read_to_string(&amp;path) {\n                                files.push(content);\n                            }\n                        }\n                    }\n                }\n            }\n            Ok(())\n        }\n\n        visit_dirs(path, &amp;mut code_files)\n            .map_err(|e| format!(\"Failed to discover code files: {e}\"))?;\n\n        Ok(code_files)\n    }\n\n    /// Get enabled analysis types based on requirements\n    fn get_enabled_analysis_types(&amp;self, requirements: &amp;QualityRequirements) -&gt; Vec&lt;AgentType&gt; {\n        let mut types = Vec::new();\n\n        if requirements.enable_statistical_analysis {\n            types.push(AgentType::StatisticalAnalyzer);\n        }\n        if requirements.enable_quantum_optimization {\n            types.push(AgentType::QuantumOptimizer);\n        }\n        if requirements.enable_mathematical_optimization {\n            types.push(AgentType::MathematicalOptimizer);\n        }\n\n        types\n    }\n\n    /// Aggregate parallel QC results\n    fn aggregate_qc_results(\n        &amp;self,\n        parallel_results: &amp;[ParallelExecutionResult],\n    ) -&gt;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 708
+          },
+          {
+            "text": "                        // Include common programming language files",
+            "lineNumber": 709
+          },
+          {
+            "text": "                        let ext_str = extension.to_string_lossy().to_lowercase();",
+            "lineNumber": 710
+          },
+          {
+            "text": "                        if matches!(",
+            "lineNumber": 711
+          },
+          {
+            "text": "                            ext_str.as_str(),",
+            "lineNumber": 712
+          },
+          {
+            "text": "                            \"rs\" | \"py\"",
+            "lineNumber": 713
+          },
+          {
+            "text": "                                | \"js\"",
+            "lineNumber": 714
+          },
+          {
+            "text": "                                | \"ts\"",
+            "lineNumber": 715
+          },
+          {
+            "text": "                                | \"java\"",
+            "lineNumber": 716
+          },
+          {
+            "text": "                                | \"cpp\"",
+            "lineNumber": 717
+          },
+          {
+            "text": "                                | \"c\"",
+            "lineNumber": 718
+          },
+          {
+            "text": "                                | \"h\"",
+            "lineNumber": 719
+          },
+          {
+            "text": "                                | \"hpp\"",
+            "lineNumber": 720
+          },
+          {
+            "text": "                                | \"go\"",
+            "lineNumber": 721
+          },
+          {
+            "text": "                                | \"rb\"",
+            "lineNumber": 722
+          },
+          {
+            "text": "                                | \"php\"",
+            "lineNumber": 723
+          },
+          {
+            "text": "                                | \"cs\"",
+            "lineNumber": 724
+          },
+          {
+            "text": "                                | \"swift\"",
+            "lineNumber": 725
+          },
+          {
+            "text": "                                | \"kt\"",
+            "lineNumber": 726
+          },
+          {
+            "text": "                                | \"scala\"",
+            "lineNumber": 727
+          },
+          {
+            "text": "                                | \"clj\"",
+            "lineNumber": 728
+          },
+          {
+            "text": "                        ) {",
+            "lineNumber": 729
+          },
+          {
+            "text": "                            if let Ok(content) = fs::read_to_string(&amp;path) {",
+            "lineNumber": 730
+          },
+          {
+            "text": "                                files.push(content);",
+            "lineNumber": 731
+          },
+          {
+            "text": "                            }",
+            "lineNumber": 732
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 733
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 734
+          },
+          {
+            "text": "                }",
+            "lineNumber": 735
+          },
+          {
+            "text": "            }",
+            "lineNumber": 736
+          },
+          {
+            "text": "            Ok(())",
+            "lineNumber": 737
+          },
+          {
+            "text": "        }",
+            "lineNumber": 738
+          },
+          {
+            "lineNumber": 739
+          },
+          {
+            "text": "        visit_dirs(path, &amp;mut code_files)",
+            "lineNumber": 740
+          },
+          {
+            "text": "            .map_err(|e| format!(\"Failed to discover code files: {e}\"))?;",
+            "lineNumber": 741
+          },
+          {
+            "lineNumber": 742
+          },
+          {
+            "text": "        Ok(code_files)",
+            "lineNumber": 743
+          },
+          {
+            "text": "    }",
+            "lineNumber": 744
+          },
+          {
+            "lineNumber": 745
+          },
+          {
+            "text": "    /// Get enabled analysis types based on requirements",
+            "lineNumber": 746
+          },
+          {
+            "text": "    fn get_enabled_analysis_types(&amp;self, requirements: &amp;QualityRequirements) -&gt; Vec&lt;AgentType&gt; {",
+            "lineNumber": 747
+          },
+          {
+            "text": "        let mut types = Vec::new();",
+            "lineNumber": 748
+          },
+          {
+            "lineNumber": 749
+          },
+          {
+            "text": "        if requirements.enable_statistical_analysis {",
+            "lineNumber": 750
+          },
+          {
+            "text": "            types.push(AgentType::StatisticalAnalyzer);",
+            "lineNumber": 751
+          },
+          {
+            "text": "        }",
+            "lineNumber": 752
+          },
+          {
+            "text": "        if requirements.enable_quantum_optimization {",
+            "lineNumber": 753
+          },
+          {
+            "text": "            types.push(AgentType::QuantumOptimizer);",
+            "lineNumber": 754
+          },
+          {
+            "text": "        }",
+            "lineNumber": 755
+          },
+          {
+            "text": "        if requirements.enable_mathematical_optimization {",
+            "lineNumber": 756
+          },
+          {
+            "text": "            types.push(AgentType::MathematicalOptimizer);",
+            "lineNumber": 757
+          },
+          {
+            "text": "        }",
+            "lineNumber": 758
+          },
+          {
+            "lineNumber": 759
+          },
+          {
+            "text": "        types",
+            "lineNumber": 760
+          },
+          {
+            "text": "    }",
+            "lineNumber": 761
+          },
+          {
+            "lineNumber": 762
+          },
+          {
+            "text": "    /// Aggregate parallel QC results",
+            "lineNumber": 763
+          },
+          {
+            "text": "    fn aggregate_qc_results(",
+            "lineNumber": 764
+          },
+          {
+            "text": "        &amp;self,",
+            "lineNumber": 765
+          },
+          {
+            "text": "        parallel_results: &amp;[ParallelExecutionResult],",
+            "lineNumber": 766
+          },
+          {
+            "text": "    ) -&gt;",
+            "lineNumber": 767
+          }
+        ]
+      },
+      "score": 0.21749509871006012
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 537,
+            "column": 75
+          },
+          "endPosition": {
+            "line": 577,
+            "column": 38
+          }
+        },
+        "contents": " {\n    let Some(servers_table) = value.as_table() else {\n        return Ok(());\n    };\n\n    for (server_name, server_value) in servers_table {\n        if let Some(server_table) = server_value.as_table()\n            &amp;&amp; server_table.contains_key(\"bearer_token\")\n        {\n            let message = format!(\n                \"mcp_servers.{server_name} uses unsupported &#96;bearer_token&#96;; set &#96;bearer_token_env_var&#96;.\"\n            );\n            return Err(std::io::Error::new(ErrorKind::InvalidData, message));\n        }\n    }\n\n    Ok(())\n}\n\npub(crate) fn set_project_trust_level_inner(\n    doc: &amp;mut DocumentMut,\n    project_path: &amp;Path,\n    trust_level: TrustLevel,\n) -&gt; anyhow::Result&lt;()&gt; {\n    // Ensure we render a human-friendly structure:\n    //\n    // [projects]\n    // [projects.\"/path/to/project\"]\n    // trust_level = \"trusted\" or \"untrusted\"\n    //\n    // rather than inline tables like:\n    //\n    // [projects]\n    // \"/path/to/project\" = { trust_level = \"trusted\" }\n    let project_key = project_path.to_string_lossy().to_string();\n\n    // Ensure top-level &#96;projects&#96; exists as a non-inline, explicit table. If it\n    // exists but was previously represented as a non-table (e.g., inline),\n    // replace it with an explicit table.\n    {\n        let root = doc.as_table_mut();",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 538
+          },
+          {
+            "text": "    let Some(servers_table) = value.as_table() else {",
+            "lineNumber": 539
+          },
+          {
+            "text": "        return Ok(());",
+            "lineNumber": 540
+          },
+          {
+            "text": "    };",
+            "lineNumber": 541
+          },
+          {
+            "lineNumber": 542
+          },
+          {
+            "text": "    for (server_name, server_value) in servers_table {",
+            "lineNumber": 543
+          },
+          {
+            "text": "        if let Some(server_table) = server_value.as_table()",
+            "lineNumber": 544
+          },
+          {
+            "text": "            &amp;&amp; server_table.contains_key(\"bearer_token\")",
+            "lineNumber": 545
+          },
+          {
+            "text": "        {",
+            "lineNumber": 546
+          },
+          {
+            "text": "            let message = format!(",
+            "lineNumber": 547
+          },
+          {
+            "text": "                \"mcp_servers.{server_name} uses unsupported &#96;bearer_token&#96;; set &#96;bearer_token_env_var&#96;.\"",
+            "lineNumber": 548
+          },
+          {
+            "text": "            );",
+            "lineNumber": 549
+          },
+          {
+            "text": "            return Err(std::io::Error::new(ErrorKind::InvalidData, message));",
+            "lineNumber": 550
+          },
+          {
+            "text": "        }",
+            "lineNumber": 551
+          },
+          {
+            "text": "    }",
+            "lineNumber": 552
+          },
+          {
+            "lineNumber": 553
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 554
+          },
+          {
+            "text": "}",
+            "lineNumber": 555
+          },
+          {
+            "lineNumber": 556
+          },
+          {
+            "text": "pub(crate) fn set_project_trust_level_inner(",
+            "lineNumber": 557
+          },
+          {
+            "text": "    doc: &amp;mut DocumentMut,",
+            "lineNumber": 558
+          },
+          {
+            "text": "    project_path: &amp;Path,",
+            "lineNumber": 559
+          },
+          {
+            "text": "    trust_level: TrustLevel,",
+            "lineNumber": 560
+          },
+          {
+            "text": ") -&gt; anyhow::Result&lt;()&gt; {",
+            "lineNumber": 561
+          },
+          {
+            "text": "    // Ensure we render a human-friendly structure:",
+            "lineNumber": 562
+          },
+          {
+            "text": "    //",
+            "lineNumber": 563
+          },
+          {
+            "text": "    // [projects]",
+            "lineNumber": 564
+          },
+          {
+            "text": "    // [projects.\"/path/to/project\"]",
+            "lineNumber": 565
+          },
+          {
+            "text": "    // trust_level = \"trusted\" or \"untrusted\"",
+            "lineNumber": 566
+          },
+          {
+            "text": "    //",
+            "lineNumber": 567
+          },
+          {
+            "text": "    // rather than inline tables like:",
+            "lineNumber": 568
+          },
+          {
+            "text": "    //",
+            "lineNumber": 569
+          },
+          {
+            "text": "    // [projects]",
+            "lineNumber": 570
+          },
+          {
+            "text": "    // \"/path/to/project\" = { trust_level = \"trusted\" }",
+            "lineNumber": 571
+          },
+          {
+            "text": "    let project_key = project_path.to_string_lossy().to_string();",
+            "lineNumber": 572
+          },
+          {
+            "lineNumber": 573
+          },
+          {
+            "text": "    // Ensure top-level &#96;projects&#96; exists as a non-inline, explicit table. If it",
+            "lineNumber": 574
+          },
+          {
+            "text": "    // exists but was previously represented as a non-table (e.g., inline),",
+            "lineNumber": 575
+          },
+          {
+            "text": "    // replace it with an explicit table.",
+            "lineNumber": 576
+          },
+          {
+            "text": "    {",
+            "lineNumber": 577
+          },
+          {
+            "text": "        let root = doc.as_table_mut();",
+            "lineNumber": 578
+          }
+        ]
+      },
+      "score": 0.21727126836776733
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\Cargo.toml",
+        "range": {
+          "startPosition": {
+            "line": 140
+          },
+          "endPosition": {
+            "line": 228
+          }
+        },
+        "contents": "futures = { version = \"0.3\", default-features = false }\nhttp = \"1.3.1\"\nicu_decimal = \"2.1\"\nicu_locale_core = \"2.1\"\nicu_provider = { version = \"2.1\", features = [\"sync\"] }\nignore = \"0.4.23\"\nimage = { version = \"^0.25.9\", default-features = false }\ninclude_dir = \"0.7.4\"\nindexmap = \"2.12.0\"\ninsta = \"1.44.3\"\nitertools = \"0.14.0\"\nkeyring = { version = \"3.6\", default-features = false }\nlandlock = \"0.4.4\"\nlazy_static = \"1\"\nlibc = \"0.2.177\"\nlog = \"0.4\"\nlru = \"0.16.2\"\nmaplit = \"1.0.2\"\nmime_guess = \"2.0.5\"\nmultimap = \"0.10.0\"\nnotify = \"8.2.0\"\nnum_cpus = \"1.17.0\"\nnucleo-matcher = \"0.3.1\"\nonce_cell = \"1.20.2\"\nopenssl-sys = \"0.9.111\"\nopentelemetry = \"0.31.0\"\nopentelemetry-appender-tracing = \"0.31.0\"\nopentelemetry-otlp = \"0.31.0\"\nopentelemetry-semantic-conventions = \"0.31.0\"\nopentelemetry_sdk = \"0.31.0\"\nos_info = \"3.12.0\"\nowo-colors = \"4.2.0\"\npath-absolutize = \"3.1.1\"\npathdiff = \"0.2\"\nportable-pty = \"0.9.0\"\npredicates = \"3\"\npretty_assertions = \"1.4.1\"\npulldown-cmark = \"0.10\"\nrand = \"0.9\"\nratatui = \"0.29.0\"\nratatui-macros = \"0.6.0\"\nregex = \"1.12.2\"\nregex-lite = \"0.1.7\"\nreqwest = \"0.12\"\nrmcp = { version = \"0.12.0\", default-features = false }\nschemars = \"0.8.22\"\nseccompiler = \"0.5.0\"\nsentry = \"0.46.0\"\nserde = \"1\"\nserde_json = \"1\"\nserde_with = \"3.16\"\nserde_yaml = \"0.9\"\nserial_test = \"3.2.0\"\nsha1 = \"0.10.6\"\nsha2 = \"0.10\"\nshlex = \"1.3.0\"\nsimilar = \"2.7.0\"\nsocket2 = \"0.6.1\"\nstarlark = \"0.13.0\"\nstrum = \"0.27.2\"\nstrum_macros = \"0.27.2\"\nsupports-color = \"3.0.2\"\nsys-locale = \"0.3.2\"\ntempfile = \"3.23.0\"\ntest-log = \"0.2.19\"\ntextwrap = \"0.16.2\"\nthiserror = \"2.0.17\"\ntime = \"0.3\"\ntiny_http = \"0.12\"\ntokio = \"1\"\ntokio-stream = \"0.1.17\"\ntokio-test = \"0.4\"\ntokio-util = \"0.7.16\"\ntoml = \"0.9.5\"\ntoml_edit = \"0.23.5\"\ntonic = \"0.14.2\"\ntracing = \"0.1.43\"\ntracing-appender = \"0.2.3\"\ntracing-opentelemetry = \"0.32.0\"\ntracing-subscriber = \"0.3.20\"\ntracing-test = \"0.2.5\"\ntree-sitter = \"0.25.10\"\ntree-sitter-bash = \"0.25\"\ntree-sitter-highlight = \"0.25.10\"\nts-rs = \"11\"\nuds_windows = \"1.1.0\"\nunicode-segmentation = \"1.12.0\"\nunicode-width = \"0.2\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "futures = { version = \"0.3\", default-features = false }",
+            "lineNumber": 141
+          },
+          {
+            "text": "http = \"1.3.1\"",
+            "lineNumber": 142
+          },
+          {
+            "text": "icu_decimal = \"2.1\"",
+            "lineNumber": 143
+          },
+          {
+            "text": "icu_locale_core = \"2.1\"",
+            "lineNumber": 144
+          },
+          {
+            "text": "icu_provider = { version = \"2.1\", features = [\"sync\"] }",
+            "lineNumber": 145
+          },
+          {
+            "text": "ignore = \"0.4.23\"",
+            "lineNumber": 146
+          },
+          {
+            "text": "image = { version = \"^0.25.9\", default-features = false }",
+            "lineNumber": 147
+          },
+          {
+            "text": "include_dir = \"0.7.4\"",
+            "lineNumber": 148
+          },
+          {
+            "text": "indexmap = \"2.12.0\"",
+            "lineNumber": 149
+          },
+          {
+            "text": "insta = \"1.44.3\"",
+            "lineNumber": 150
+          },
+          {
+            "text": "itertools = \"0.14.0\"",
+            "lineNumber": 151
+          },
+          {
+            "text": "keyring = { version = \"3.6\", default-features = false }",
+            "lineNumber": 152
+          },
+          {
+            "text": "landlock = \"0.4.4\"",
+            "lineNumber": 153
+          },
+          {
+            "text": "lazy_static = \"1\"",
+            "lineNumber": 154
+          },
+          {
+            "text": "libc = \"0.2.177\"",
+            "lineNumber": 155
+          },
+          {
+            "text": "log = \"0.4\"",
+            "lineNumber": 156
+          },
+          {
+            "text": "lru = \"0.16.2\"",
+            "lineNumber": 157
+          },
+          {
+            "text": "maplit = \"1.0.2\"",
+            "lineNumber": 158
+          },
+          {
+            "text": "mime_guess = \"2.0.5\"",
+            "lineNumber": 159
+          },
+          {
+            "text": "multimap = \"0.10.0\"",
+            "lineNumber": 160
+          },
+          {
+            "text": "notify = \"8.2.0\"",
+            "lineNumber": 161
+          },
+          {
+            "text": "num_cpus = \"1.17.0\"",
+            "lineNumber": 162
+          },
+          {
+            "text": "nucleo-matcher = \"0.3.1\"",
+            "lineNumber": 163
+          },
+          {
+            "text": "once_cell = \"1.20.2\"",
+            "lineNumber": 164
+          },
+          {
+            "text": "openssl-sys = \"0.9.111\"",
+            "lineNumber": 165
+          },
+          {
+            "text": "opentelemetry = \"0.31.0\"",
+            "lineNumber": 166
+          },
+          {
+            "text": "opentelemetry-appender-tracing = \"0.31.0\"",
+            "lineNumber": 167
+          },
+          {
+            "text": "opentelemetry-otlp = \"0.31.0\"",
+            "lineNumber": 168
+          },
+          {
+            "text": "opentelemetry-semantic-conventions = \"0.31.0\"",
+            "lineNumber": 169
+          },
+          {
+            "text": "opentelemetry_sdk = \"0.31.0\"",
+            "lineNumber": 170
+          },
+          {
+            "text": "os_info = \"3.12.0\"",
+            "lineNumber": 171
+          },
+          {
+            "text": "owo-colors = \"4.2.0\"",
+            "lineNumber": 172
+          },
+          {
+            "text": "path-absolutize = \"3.1.1\"",
+            "lineNumber": 173
+          },
+          {
+            "text": "pathdiff = \"0.2\"",
+            "lineNumber": 174
+          },
+          {
+            "text": "portable-pty = \"0.9.0\"",
+            "lineNumber": 175
+          },
+          {
+            "text": "predicates = \"3\"",
+            "lineNumber": 176
+          },
+          {
+            "text": "pretty_assertions = \"1.4.1\"",
+            "lineNumber": 177
+          },
+          {
+            "text": "pulldown-cmark = \"0.10\"",
+            "lineNumber": 178
+          },
+          {
+            "text": "rand = \"0.9\"",
+            "lineNumber": 179
+          },
+          {
+            "text": "ratatui = \"0.29.0\"",
+            "lineNumber": 180
+          },
+          {
+            "text": "ratatui-macros = \"0.6.0\"",
+            "lineNumber": 181
+          },
+          {
+            "text": "regex = \"1.12.2\"",
+            "lineNumber": 182
+          },
+          {
+            "text": "regex-lite = \"0.1.7\"",
+            "lineNumber": 183
+          },
+          {
+            "text": "reqwest = \"0.12\"",
+            "lineNumber": 184
+          },
+          {
+            "text": "rmcp = { version = \"0.12.0\", default-features = false }",
+            "lineNumber": 185
+          },
+          {
+            "text": "schemars = \"0.8.22\"",
+            "lineNumber": 186
+          },
+          {
+            "text": "seccompiler = \"0.5.0\"",
+            "lineNumber": 187
+          },
+          {
+            "text": "sentry = \"0.46.0\"",
+            "lineNumber": 188
+          },
+          {
+            "text": "serde = \"1\"",
+            "lineNumber": 189
+          },
+          {
+            "text": "serde_json = \"1\"",
+            "lineNumber": 190
+          },
+          {
+            "text": "serde_with = \"3.16\"",
+            "lineNumber": 191
+          },
+          {
+            "text": "serde_yaml = \"0.9\"",
+            "lineNumber": 192
+          },
+          {
+            "text": "serial_test = \"3.2.0\"",
+            "lineNumber": 193
+          },
+          {
+            "text": "sha1 = \"0.10.6\"",
+            "lineNumber": 194
+          },
+          {
+            "text": "sha2 = \"0.10\"",
+            "lineNumber": 195
+          },
+          {
+            "text": "shlex = \"1.3.0\"",
+            "lineNumber": 196
+          },
+          {
+            "text": "similar = \"2.7.0\"",
+            "lineNumber": 197
+          },
+          {
+            "text": "socket2 = \"0.6.1\"",
+            "lineNumber": 198
+          },
+          {
+            "text": "starlark = \"0.13.0\"",
+            "lineNumber": 199
+          },
+          {
+            "text": "strum = \"0.27.2\"",
+            "lineNumber": 200
+          },
+          {
+            "text": "strum_macros = \"0.27.2\"",
+            "lineNumber": 201
+          },
+          {
+            "text": "supports-color = \"3.0.2\"",
+            "lineNumber": 202
+          },
+          {
+            "text": "sys-locale = \"0.3.2\"",
+            "lineNumber": 203
+          },
+          {
+            "text": "tempfile = \"3.23.0\"",
+            "lineNumber": 204
+          },
+          {
+            "text": "test-log = \"0.2.19\"",
+            "lineNumber": 205
+          },
+          {
+            "text": "textwrap = \"0.16.2\"",
+            "lineNumber": 206
+          },
+          {
+            "text": "thiserror = \"2.0.17\"",
+            "lineNumber": 207
+          },
+          {
+            "text": "time = \"0.3\"",
+            "lineNumber": 208
+          },
+          {
+            "text": "tiny_http = \"0.12\"",
+            "lineNumber": 209
+          },
+          {
+            "text": "tokio = \"1\"",
+            "lineNumber": 210
+          },
+          {
+            "text": "tokio-stream = \"0.1.17\"",
+            "lineNumber": 211
+          },
+          {
+            "text": "tokio-test = \"0.4\"",
+            "lineNumber": 212
+          },
+          {
+            "text": "tokio-util = \"0.7.16\"",
+            "lineNumber": 213
+          },
+          {
+            "text": "toml = \"0.9.5\"",
+            "lineNumber": 214
+          },
+          {
+            "text": "toml_edit = \"0.23.5\"",
+            "lineNumber": 215
+          },
+          {
+            "text": "tonic = \"0.14.2\"",
+            "lineNumber": 216
+          },
+          {
+            "text": "tracing = \"0.1.43\"",
+            "lineNumber": 217
+          },
+          {
+            "text": "tracing-appender = \"0.2.3\"",
+            "lineNumber": 218
+          },
+          {
+            "text": "tracing-opentelemetry = \"0.32.0\"",
+            "lineNumber": 219
+          },
+          {
+            "text": "tracing-subscriber = \"0.3.20\"",
+            "lineNumber": 220
+          },
+          {
+            "text": "tracing-test = \"0.2.5\"",
+            "lineNumber": 221
+          },
+          {
+            "text": "tree-sitter = \"0.25.10\"",
+            "lineNumber": 222
+          },
+          {
+            "text": "tree-sitter-bash = \"0.25\"",
+            "lineNumber": 223
+          },
+          {
+            "text": "tree-sitter-highlight = \"0.25.10\"",
+            "lineNumber": 224
+          },
+          {
+            "text": "ts-rs = \"11\"",
+            "lineNumber": 225
+          },
+          {
+            "text": "uds_windows = \"1.1.0\"",
+            "lineNumber": 226
+          },
+          {
+            "text": "unicode-segmentation = \"1.12.0\"",
+            "lineNumber": 227
+          },
+          {
+            "text": "unicode-width = \"0.2\"",
+            "lineNumber": 228
+          }
+        ]
+      },
+      "score": 0.21611890196800232
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\qc\\sandboxed_execution.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 73
+          }
+        },
+        "contents": "//! Sandboxed Execution System (Rust 2024)\n//!\n//! Provides secure command execution with AI-powered destructive command detection\n//! and prevention, featuring internet connectivity controls and macOS-style UX.\n\nuse serde::Deserialize;\nuse serde::Serialize;\nuse std::collections::HashMap;\nuse std::collections::HashSet;\nuse std::sync::Arc;\nuse tokio::sync::RwLock;\nuse tokio::sync::mpsc;\nuse tokio::time::Duration;\n\n/// Sandbox execution mode\n#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]\npub enum SandboxMode {\n    /// Full isolation - no network, limited filesystem\n    Isolated,\n    /// Network access allowed but monitored\n    NetworkIsolated,\n    /// Full access with AI monitoring\n    Supervised,\n    /// macOS-style sandbox with internet access\n    MacOSSandbox,\n}\n\n/// AI security analysis result\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct AISecurityAnalysis {\n    pub command_id: String,\n    pub risk_level: SecurityRiskLevel,\n    pub risk_score: f64,\n    pub detected_threats: Vec&lt;SecurityThreat&gt;,\n    pub mitigation_suggestions: Vec&lt;String&gt;,\n    pub allow_execution: bool,\n    pub requires_approval: bool,\n    pub analysis_timestamp: chrono::DateTime&lt;chrono::Utc&gt;,\n}\n\n/// Security risk levels\n#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]\npub enum SecurityRiskLevel {\n    Safe,\n    Low,\n    Medium,\n    High,\n    Critical,\n}\n\n/// Detected security threats\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct SecurityThreat {\n    pub threat_type: ThreatType,\n    pub description: String,\n    pub severity: SecurityRiskLevel,\n    pub location: Option&lt;String&gt;,\n    pub confidence: f64,\n}\n\n/// Types of security threats\n#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]\npub enum ThreatType {\n    DestructiveFileOperation,\n    NetworkAttack,\n    PrivilegeEscalation,\n    DataExfiltration,\n    MalwareExecution,\n    UnauthorizedAccess,\n    ResourceExhaustion,\n}\n\n/// Sandbox execution request",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "//! Sandboxed Execution System (Rust 2024)",
+            "lineNumber": 1
+          },
+          {
+            "text": "//!",
+            "lineNumber": 2
+          },
+          {
+            "text": "//! Provides secure command execution with AI-powered destructive command detection",
+            "lineNumber": 3
+          },
+          {
+            "text": "//! and prevention, featuring internet connectivity controls and macOS-style UX.",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use std::collections::HashSet;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use tokio::sync::RwLock;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use tokio::sync::mpsc;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use tokio::time::Duration;",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "/// Sandbox execution mode",
+            "lineNumber": 15
+          },
+          {
+            "text": "#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]",
+            "lineNumber": 16
+          },
+          {
+            "text": "pub enum SandboxMode {",
+            "lineNumber": 17
+          },
+          {
+            "text": "    /// Full isolation - no network, limited filesystem",
+            "lineNumber": 18
+          },
+          {
+            "text": "    Isolated,",
+            "lineNumber": 19
+          },
+          {
+            "text": "    /// Network access allowed but monitored",
+            "lineNumber": 20
+          },
+          {
+            "text": "    NetworkIsolated,",
+            "lineNumber": 21
+          },
+          {
+            "text": "    /// Full access with AI monitoring",
+            "lineNumber": 22
+          },
+          {
+            "text": "    Supervised,",
+            "lineNumber": 23
+          },
+          {
+            "text": "    /// macOS-style sandbox with internet access",
+            "lineNumber": 24
+          },
+          {
+            "text": "    MacOSSandbox,",
+            "lineNumber": 25
+          },
+          {
+            "text": "}",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "/// AI security analysis result",
+            "lineNumber": 28
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 29
+          },
+          {
+            "text": "pub struct AISecurityAnalysis {",
+            "lineNumber": 30
+          },
+          {
+            "text": "    pub command_id: String,",
+            "lineNumber": 31
+          },
+          {
+            "text": "    pub risk_level: SecurityRiskLevel,",
+            "lineNumber": 32
+          },
+          {
+            "text": "    pub risk_score: f64,",
+            "lineNumber": 33
+          },
+          {
+            "text": "    pub detected_threats: Vec&lt;SecurityThreat&gt;,",
+            "lineNumber": 34
+          },
+          {
+            "text": "    pub mitigation_suggestions: Vec&lt;String&gt;,",
+            "lineNumber": 35
+          },
+          {
+            "text": "    pub allow_execution: bool,",
+            "lineNumber": 36
+          },
+          {
+            "text": "    pub requires_approval: bool,",
+            "lineNumber": 37
+          },
+          {
+            "text": "    pub analysis_timestamp: chrono::DateTime&lt;chrono::Utc&gt;,",
+            "lineNumber": 38
+          },
+          {
+            "text": "}",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "/// Security risk levels",
+            "lineNumber": 41
+          },
+          {
+            "text": "#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]",
+            "lineNumber": 42
+          },
+          {
+            "text": "pub enum SecurityRiskLevel {",
+            "lineNumber": 43
+          },
+          {
+            "text": "    Safe,",
+            "lineNumber": 44
+          },
+          {
+            "text": "    Low,",
+            "lineNumber": 45
+          },
+          {
+            "text": "    Medium,",
+            "lineNumber": 46
+          },
+          {
+            "text": "    High,",
+            "lineNumber": 47
+          },
+          {
+            "text": "    Critical,",
+            "lineNumber": 48
+          },
+          {
+            "text": "}",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "/// Detected security threats",
+            "lineNumber": 51
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 52
+          },
+          {
+            "text": "pub struct SecurityThreat {",
+            "lineNumber": 53
+          },
+          {
+            "text": "    pub threat_type: ThreatType,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    pub description: String,",
+            "lineNumber": 55
+          },
+          {
+            "text": "    pub severity: SecurityRiskLevel,",
+            "lineNumber": 56
+          },
+          {
+            "text": "    pub location: Option&lt;String&gt;,",
+            "lineNumber": 57
+          },
+          {
+            "text": "    pub confidence: f64,",
+            "lineNumber": 58
+          },
+          {
+            "text": "}",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "/// Types of security threats",
+            "lineNumber": 61
+          },
+          {
+            "text": "#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]",
+            "lineNumber": 62
+          },
+          {
+            "text": "pub enum ThreatType {",
+            "lineNumber": 63
+          },
+          {
+            "text": "    DestructiveFileOperation,",
+            "lineNumber": 64
+          },
+          {
+            "text": "    NetworkAttack,",
+            "lineNumber": 65
+          },
+          {
+            "text": "    PrivilegeEscalation,",
+            "lineNumber": 66
+          },
+          {
+            "text": "    DataExfiltration,",
+            "lineNumber": 67
+          },
+          {
+            "text": "    MalwareExecution,",
+            "lineNumber": 68
+          },
+          {
+            "text": "    UnauthorizedAccess,",
+            "lineNumber": 69
+          },
+          {
+            "text": "    ResourceExhaustion,",
+            "lineNumber": 70
+          },
+          {
+            "text": "}",
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "text": "/// Sandbox execution request",
+            "lineNumber": 73
+          }
+        ]
+      },
+      "score": 0.21453949809074402
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\exec\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 217,
+            "column": 55
+          },
+          "endPosition": {
+            "line": 276,
+            "column": 10
+          }
+        },
+        "contents": "    let overrides = ConfigOverrides {\n        model,\n        review_model: None,\n        config_profile,\n        // Default to never ask for approvals in headless mode. Feature flags can override.\n        approval_policy: Some(AskForApproval::Never),\n        sandbox_mode,\n        cwd: resolved_cwd,\n        model_provider: model_provider.clone(),\n        codex_linux_sandbox_exe,\n        base_instructions: None,\n        developer_instructions: None,\n        compact_prompt: None,\n        include_apply_patch_tool: None,\n        show_raw_agent_reasoning: oss.then_some(true),\n        tools_web_search_request: None,\n        additional_writable_roots: add_dir,\n    };\n\n    let config =\n        Config::load_with_cli_overrides_and_harness_overrides(cli_kv_overrides, overrides).await?;\n\n    if let Err(err) = enforce_login_restrictions(&amp;config).await {\n        eprintln!(\"{err}\");\n        std::process::exit(1);\n    }\n\n    let otel = codex_core::otel_init::build_provider(&amp;config, env!(\"CARGO_PKG_VERSION\"));\n\n    #[allow(clippy::print_stderr)]\n    let otel = match otel {\n        Ok(otel) =&gt; otel,\n        Err(e) =&gt; {\n            eprintln!(\"Could not create otel exporter: {e}\");\n            std::process::exit(1);\n        }\n    };\n\n    let otel_logger_layer = otel.as_ref().and_then(|o| o.logger_layer());\n\n    let otel_tracing_layer = otel.as_ref().and_then(|o| o.tracing_layer());\n\n    let _ = tracing_subscriber::registry()\n        .with(fmt_layer)\n        .with(otel_tracing_layer)\n        .with(otel_logger_layer)\n        .try_init();\n\n    let mut event_processor: Box&lt;dyn EventProcessor&gt; = match json_mode {\n        true =&gt; Box::new(EventProcessorWithJsonOutput::new(last_message_file.clone())),\n        _ =&gt; Box::new(EventProcessorWithHumanOutput::create_with_ansi(\n            stdout_with_ansi,\n            &amp;config,\n            last_message_file.clone(),\n        )),\n    };\n\n    if oss {\n        //",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    let overrides = ConfigOverrides {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        model,",
+            "lineNumber": 220
+          },
+          {
+            "text": "        review_model: None,",
+            "lineNumber": 221
+          },
+          {
+            "text": "        config_profile,",
+            "lineNumber": 222
+          },
+          {
+            "text": "        // Default to never ask for approvals in headless mode. Feature flags can override.",
+            "lineNumber": 223
+          },
+          {
+            "text": "        approval_policy: Some(AskForApproval::Never),",
+            "lineNumber": 224
+          },
+          {
+            "text": "        sandbox_mode,",
+            "lineNumber": 225
+          },
+          {
+            "text": "        cwd: resolved_cwd,",
+            "lineNumber": 226
+          },
+          {
+            "text": "        model_provider: model_provider.clone(),",
+            "lineNumber": 227
+          },
+          {
+            "text": "        codex_linux_sandbox_exe,",
+            "lineNumber": 228
+          },
+          {
+            "text": "        base_instructions: None,",
+            "lineNumber": 229
+          },
+          {
+            "text": "        developer_instructions: None,",
+            "lineNumber": 230
+          },
+          {
+            "text": "        compact_prompt: None,",
+            "lineNumber": 231
+          },
+          {
+            "text": "        include_apply_patch_tool: None,",
+            "lineNumber": 232
+          },
+          {
+            "text": "        show_raw_agent_reasoning: oss.then_some(true),",
+            "lineNumber": 233
+          },
+          {
+            "text": "        tools_web_search_request: None,",
+            "lineNumber": 234
+          },
+          {
+            "text": "        additional_writable_roots: add_dir,",
+            "lineNumber": 235
+          },
+          {
+            "text": "    };",
+            "lineNumber": 236
+          },
+          {
+            "lineNumber": 237
+          },
+          {
+            "text": "    let config =",
+            "lineNumber": 238
+          },
+          {
+            "text": "        Config::load_with_cli_overrides_and_harness_overrides(cli_kv_overrides, overrides).await?;",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "    if let Err(err) = enforce_login_restrictions(&amp;config).await {",
+            "lineNumber": 241
+          },
+          {
+            "text": "        eprintln!(\"{err}\");",
+            "lineNumber": 242
+          },
+          {
+            "text": "        std::process::exit(1);",
+            "lineNumber": 243
+          },
+          {
+            "text": "    }",
+            "lineNumber": 244
+          },
+          {
+            "lineNumber": 245
+          },
+          {
+            "text": "    let otel = codex_core::otel_init::build_provider(&amp;config, env!(\"CARGO_PKG_VERSION\"));",
+            "lineNumber": 246
+          },
+          {
+            "lineNumber": 247
+          },
+          {
+            "text": "    #[allow(clippy::print_stderr)]",
+            "lineNumber": 248
+          },
+          {
+            "text": "    let otel = match otel {",
+            "lineNumber": 249
+          },
+          {
+            "text": "        Ok(otel) =&gt; otel,",
+            "lineNumber": 250
+          },
+          {
+            "text": "        Err(e) =&gt; {",
+            "lineNumber": 251
+          },
+          {
+            "text": "            eprintln!(\"Could not create otel exporter: {e}\");",
+            "lineNumber": 252
+          },
+          {
+            "text": "            std::process::exit(1);",
+            "lineNumber": 253
+          },
+          {
+            "text": "        }",
+            "lineNumber": 254
+          },
+          {
+            "text": "    };",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "    let otel_logger_layer = otel.as_ref().and_then(|o| o.logger_layer());",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "    let otel_tracing_layer = otel.as_ref().and_then(|o| o.tracing_layer());",
+            "lineNumber": 259
+          },
+          {
+            "lineNumber": 260
+          },
+          {
+            "text": "    let _ = tracing_subscriber::registry()",
+            "lineNumber": 261
+          },
+          {
+            "text": "        .with(fmt_layer)",
+            "lineNumber": 262
+          },
+          {
+            "text": "        .with(otel_tracing_layer)",
+            "lineNumber": 263
+          },
+          {
+            "text": "        .with(otel_logger_layer)",
+            "lineNumber": 264
+          },
+          {
+            "text": "        .try_init();",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "    let mut event_processor: Box&lt;dyn EventProcessor&gt; = match json_mode {",
+            "lineNumber": 267
+          },
+          {
+            "text": "        true =&gt; Box::new(EventProcessorWithJsonOutput::new(last_message_file.clone())),",
+            "lineNumber": 268
+          },
+          {
+            "text": "        _ =&gt; Box::new(EventProcessorWithHumanOutput::create_with_ansi(",
+            "lineNumber": 269
+          },
+          {
+            "text": "            stdout_with_ansi,",
+            "lineNumber": 270
+          },
+          {
+            "text": "            &amp;config,",
+            "lineNumber": 271
+          },
+          {
+            "text": "            last_message_file.clone(),",
+            "lineNumber": 272
+          },
+          {
+            "text": "        )),",
+            "lineNumber": 273
+          },
+          {
+            "text": "    };",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "    if oss {",
+            "lineNumber": 276
+          },
+          {
+            "text": "        //",
+            "lineNumber": 277
+          }
+        ]
+      },
+      "score": 0.2130260020494461
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\mcp-server\\src\\auto_orchestrator_tool_handler.rs",
+        "range": {
+          "startPosition": {
+            "line": 245,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 290,
+            "column": 47
+          }
+        },
+        "contents": "fn collect_agent_metadata(\n    recommended_agents: &amp;[String],\n) -&gt; (Vec&lt;AgentConfigMetadata&gt;, Vec&lt;String&gt;) {\n    let mut skills_used = BTreeSet::new();\n    let mut agent_configs = Vec::new();\n\n    for agent in recommended_agents {\n        if let Some(config) = agent_config_for(agent) {\n            skills_used.insert(config.skill_tag.clone());\n            agent_configs.push(config);\n        } else {\n            skills_used.insert(agent.clone());\n        }\n    }\n\n    (agent_configs, skills_used.into_iter().collect())\n}\n\nfn agent_config_for(agent: &amp;str) -&gt; Option&lt;AgentConfigMetadata&gt; {\n    match agent {\n        \"sec-audit\" =&gt; Some(AgentConfigMetadata {\n            agent: \"sec-audit\".to_string(),\n            skill_tag: \"security-review\".to_string(),\n            scope: \"specialist\".to_string(),\n            config_path: \".codex/agents/sec-audit.yaml\".to_string(),\n            capabilities: vec![\n                \"Threat modeling\".to_string(),\n                \"Static security scan\".to_string(),\n                \"Secrets and credential review\".to_string(),\n            ],\n        }),\n        \"test-gen\" =&gt; Some(AgentConfigMetadata {\n            agent: \"test-gen\".to_string(),\n            skill_tag: \"testing\".to_string(),\n            scope: \"specialist\".to_string(),\n            config_path: \".codex/agents/test-gen.yaml\".to_string(),\n            capabilities: vec![\n                \"Unit/integration test authoring\".to_string(),\n                \"Edge case discovery\".to_string(),\n                \"Snapshot verification\".to_string(),\n            ],\n        }),\n        \"code-reviewer\" =&gt; Some(AgentConfigMetadata {\n            agent: \"code-reviewer\".to_string(),",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "fn collect_agent_metadata(",
+            "lineNumber": 248
+          },
+          {
+            "text": "    recommended_agents: &amp;[String],",
+            "lineNumber": 249
+          },
+          {
+            "text": ") -&gt; (Vec&lt;AgentConfigMetadata&gt;, Vec&lt;String&gt;) {",
+            "lineNumber": 250
+          },
+          {
+            "text": "    let mut skills_used = BTreeSet::new();",
+            "lineNumber": 251
+          },
+          {
+            "text": "    let mut agent_configs = Vec::new();",
+            "lineNumber": 252
+          },
+          {
+            "lineNumber": 253
+          },
+          {
+            "text": "    for agent in recommended_agents {",
+            "lineNumber": 254
+          },
+          {
+            "text": "        if let Some(config) = agent_config_for(agent) {",
+            "lineNumber": 255
+          },
+          {
+            "text": "            skills_used.insert(config.skill_tag.clone());",
+            "lineNumber": 256
+          },
+          {
+            "text": "            agent_configs.push(config);",
+            "lineNumber": 257
+          },
+          {
+            "text": "        } else {",
+            "lineNumber": 258
+          },
+          {
+            "text": "            skills_used.insert(agent.clone());",
+            "lineNumber": 259
+          },
+          {
+            "text": "        }",
+            "lineNumber": 260
+          },
+          {
+            "text": "    }",
+            "lineNumber": 261
+          },
+          {
+            "lineNumber": 262
+          },
+          {
+            "text": "    (agent_configs, skills_used.into_iter().collect())",
+            "lineNumber": 263
+          },
+          {
+            "text": "}",
+            "lineNumber": 264
+          },
+          {
+            "lineNumber": 265
+          },
+          {
+            "text": "fn agent_config_for(agent: &amp;str) -&gt; Option&lt;AgentConfigMetadata&gt; {",
+            "lineNumber": 266
+          },
+          {
+            "text": "    match agent {",
+            "lineNumber": 267
+          },
+          {
+            "text": "        \"sec-audit\" =&gt; Some(AgentConfigMetadata {",
+            "lineNumber": 268
+          },
+          {
+            "text": "            agent: \"sec-audit\".to_string(),",
+            "lineNumber": 269
+          },
+          {
+            "text": "            skill_tag: \"security-review\".to_string(),",
+            "lineNumber": 270
+          },
+          {
+            "text": "            scope: \"specialist\".to_string(),",
+            "lineNumber": 271
+          },
+          {
+            "text": "            config_path: \".codex/agents/sec-audit.yaml\".to_string(),",
+            "lineNumber": 272
+          },
+          {
+            "text": "            capabilities: vec![",
+            "lineNumber": 273
+          },
+          {
+            "text": "                \"Threat modeling\".to_string(),",
+            "lineNumber": 274
+          },
+          {
+            "text": "                \"Static security scan\".to_string(),",
+            "lineNumber": 275
+          },
+          {
+            "text": "                \"Secrets and credential review\".to_string(),",
+            "lineNumber": 276
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 277
+          },
+          {
+            "text": "        }),",
+            "lineNumber": 278
+          },
+          {
+            "text": "        \"test-gen\" =&gt; Some(AgentConfigMetadata {",
+            "lineNumber": 279
+          },
+          {
+            "text": "            agent: \"test-gen\".to_string(),",
+            "lineNumber": 280
+          },
+          {
+            "text": "            skill_tag: \"testing\".to_string(),",
+            "lineNumber": 281
+          },
+          {
+            "text": "            scope: \"specialist\".to_string(),",
+            "lineNumber": 282
+          },
+          {
+            "text": "            config_path: \".codex/agents/test-gen.yaml\".to_string(),",
+            "lineNumber": 283
+          },
+          {
+            "text": "            capabilities: vec![",
+            "lineNumber": 284
+          },
+          {
+            "text": "                \"Unit/integration test authoring\".to_string(),",
+            "lineNumber": 285
+          },
+          {
+            "text": "                \"Edge case discovery\".to_string(),",
+            "lineNumber": 286
+          },
+          {
+            "text": "                \"Snapshot verification\".to_string(),",
+            "lineNumber": 287
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 288
+          },
+          {
+            "text": "        }),",
+            "lineNumber": 289
+          },
+          {
+            "text": "        \"code-reviewer\" =&gt; Some(AgentConfigMetadata {",
+            "lineNumber": 290
+          },
+          {
+            "text": "            agent: \"code-reviewer\".to_string(),",
+            "lineNumber": 291
+          }
+        ]
+      },
+      "score": 0.21212099492549896
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\exec\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "column": 79
+          },
+          "endPosition": {
+            "line": 55,
+            "column": 43
+          }
+        },
+        "contents": "//   stdout is the final message (if any).\n// - In --json mode, stdout must be valid JSONL, one event per line.\n// For both modes, any other output must be written to stderr.\n#![deny(clippy::print_stdout)]\n\nmod cli;\nmod event_processor;\nmod event_processor_with_human_output;\npub mod event_processor_with_jsonl_output;\npub mod exec_events;\n\npub use cli::Cli;\npub use cli::Command;\nuse codex_common::oss::ensure_oss_provider_ready;\nuse codex_common::oss::get_default_model_for_oss_provider;\nuse codex_core::AuthManager;\nuse codex_core::ConversationManager;\nuse codex_core::LMSTUDIO_OSS_PROVIDER_ID;\nuse codex_core::NewConversation;\nuse codex_core::OLLAMA_OSS_PROVIDER_ID;\nuse codex_core::auth::enforce_login_restrictions;\nuse codex_core::config::Config;\nuse codex_core::config::ConfigOverrides;\nuse codex_core::config::find_codex_home;\nuse codex_core::config::load_config_as_toml_with_cli_overrides;\nuse codex_core::config::resolve_oss_provider;\nuse codex_core::git_info::get_git_repo_root;\nuse codex_core::protocol::AskForApproval;\nuse codex_core::protocol::Event;\nuse codex_core::protocol::EventMsg;\nuse codex_core::protocol::Op;\nuse codex_core::protocol::ReviewRequest;\nuse codex_core::protocol::ReviewTarget;\nuse codex_core::protocol::SessionSource;\nuse codex_protocol::approvals::ElicitationAction;\nuse codex_protocol::config_types::SandboxMode;\nuse codex_protocol::user_input::UserInput;\nuse codex_utils_absolute_path::AbsolutePathBuf;\nuse event_processor_with_human_output::EventProcessorWithHumanOutput;\nuse event_processor_with_jsonl_output::EventProcessorWithJsonOutput;\nuse serde_json::Value;\nuse std::io::IsTerminal;\nuse std::io::Read;\nuse std::path::PathBuf;\nuse supports_color::Stream;\nuse tracing::debug;\nuse tracing::error;\nuse tracing::info;\nuse tracing_subscriber::EnvFilter;\nuse tracing_subscriber::prelude::*;\n\nuse crate::cli::Command as ExecCommand;\nuse crate::cli::ReviewArgs;\nuse crate::event_processor::CodexStatus;\nuse crate::event_processor::EventProcessor;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "//   stdout is the final message (if any).",
+            "lineNumber": 2
+          },
+          {
+            "text": "// - In --json mode, stdout must be valid JSONL, one event per line.",
+            "lineNumber": 3
+          },
+          {
+            "text": "// For both modes, any other output must be written to stderr.",
+            "lineNumber": 4
+          },
+          {
+            "text": "#![deny(clippy::print_stdout)]",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "mod cli;",
+            "lineNumber": 7
+          },
+          {
+            "text": "mod event_processor;",
+            "lineNumber": 8
+          },
+          {
+            "text": "mod event_processor_with_human_output;",
+            "lineNumber": 9
+          },
+          {
+            "text": "pub mod event_processor_with_jsonl_output;",
+            "lineNumber": 10
+          },
+          {
+            "text": "pub mod exec_events;",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "pub use cli::Cli;",
+            "lineNumber": 13
+          },
+          {
+            "text": "pub use cli::Command;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use codex_common::oss::ensure_oss_provider_ready;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use codex_common::oss::get_default_model_for_oss_provider;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use codex_core::AuthManager;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_core::ConversationManager;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_core::LMSTUDIO_OSS_PROVIDER_ID;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use codex_core::NewConversation;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use codex_core::OLLAMA_OSS_PROVIDER_ID;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use codex_core::auth::enforce_login_restrictions;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use codex_core::config::ConfigOverrides;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use codex_core::config::find_codex_home;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use codex_core::config::load_config_as_toml_with_cli_overrides;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use codex_core::config::resolve_oss_provider;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use codex_core::git_info::get_git_repo_root;",
+            "lineNumber": 28
+          },
+          {
+            "text": "use codex_core::protocol::AskForApproval;",
+            "lineNumber": 29
+          },
+          {
+            "text": "use codex_core::protocol::Event;",
+            "lineNumber": 30
+          },
+          {
+            "text": "use codex_core::protocol::EventMsg;",
+            "lineNumber": 31
+          },
+          {
+            "text": "use codex_core::protocol::Op;",
+            "lineNumber": 32
+          },
+          {
+            "text": "use codex_core::protocol::ReviewRequest;",
+            "lineNumber": 33
+          },
+          {
+            "text": "use codex_core::protocol::ReviewTarget;",
+            "lineNumber": 34
+          },
+          {
+            "text": "use codex_core::protocol::SessionSource;",
+            "lineNumber": 35
+          },
+          {
+            "text": "use codex_protocol::approvals::ElicitationAction;",
+            "lineNumber": 36
+          },
+          {
+            "text": "use codex_protocol::config_types::SandboxMode;",
+            "lineNumber": 37
+          },
+          {
+            "text": "use codex_protocol::user_input::UserInput;",
+            "lineNumber": 38
+          },
+          {
+            "text": "use codex_utils_absolute_path::AbsolutePathBuf;",
+            "lineNumber": 39
+          },
+          {
+            "text": "use event_processor_with_human_output::EventProcessorWithHumanOutput;",
+            "lineNumber": 40
+          },
+          {
+            "text": "use event_processor_with_jsonl_output::EventProcessorWithJsonOutput;",
+            "lineNumber": 41
+          },
+          {
+            "text": "use serde_json::Value;",
+            "lineNumber": 42
+          },
+          {
+            "text": "use std::io::IsTerminal;",
+            "lineNumber": 43
+          },
+          {
+            "text": "use std::io::Read;",
+            "lineNumber": 44
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use supports_color::Stream;",
+            "lineNumber": 46
+          },
+          {
+            "text": "use tracing::debug;",
+            "lineNumber": 47
+          },
+          {
+            "text": "use tracing::error;",
+            "lineNumber": 48
+          },
+          {
+            "text": "use tracing::info;",
+            "lineNumber": 49
+          },
+          {
+            "text": "use tracing_subscriber::EnvFilter;",
+            "lineNumber": 50
+          },
+          {
+            "text": "use tracing_subscriber::prelude::*;",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "use crate::cli::Command as ExecCommand;",
+            "lineNumber": 53
+          },
+          {
+            "text": "use crate::cli::ReviewArgs;",
+            "lineNumber": 54
+          },
+          {
+            "text": "use crate::event_processor::CodexStatus;",
+            "lineNumber": 55
+          },
+          {
+            "text": "use crate::event_processor::EventProcessor;",
+            "lineNumber": 56
+          }
+        ]
+      },
+      "score": 0.20985880494117737
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\supervisor\\src\\autonomous_orchestrator.rs",
+        "range": {
+          "startPosition": {
+            "line": 147,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 186,
+            "column": 26
+          }
+        },
+        "contents": "impl AutonomousOrchestrator {\n    /// コンフリクト回避付きオーケストレーターを構築\n    pub async fn new(config: SupervisorConfig) -&gt; Result&lt;Self&gt; {\n        let supervisor = Supervisor::new(config);\n        let mut dispatcher = AutonomousDispatcher::new();\n        // キャッシュ初期化のために明示的にクリア\n        dispatcher.clear_cache();\n\n        let mut agent_manager = SubAgentManager::new();\n        let agent_types = Self::default_agent_types();\n        for agent_type in &amp;agent_types {\n            agent_manager.register_agent(agent_type.clone());\n        }\n\n        let token_tracker = TokenTracker::new(Default::default(), TokenAllocationStrategy::Dynamic);\n        for agent_type in &amp;agent_types {\n            token_tracker\n                .register_agent(agent_type.clone(), agent_type.to_string())\n                .await;\n        }\n\n        Ok(Self {\n            supervisor,\n            dispatcher,\n            agent_manager,\n            token_tracker,\n            active_agents: HashSet::new(),\n            max_wait_attempts: DEFAULT_MAX_WAIT_ATTEMPTS,\n            wait_interval: Duration::from_millis(DEFAULT_WAIT_INTERVAL_MS),\n            task_registry: HashMap::new(),\n            event_log: VecDeque::with_capacity(EVENT_LOG_CAPACITY),\n        })\n    }\n\n    /// タスクを自律実行\n    pub async fn execute_task(\n        &amp;mut self,\n        description: &amp;str,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "impl AutonomousOrchestrator {",
+            "lineNumber": 150
+          },
+          {
+            "text": "    /// コンフリクト回避付きオーケストレーターを構築",
+            "lineNumber": 151
+          },
+          {
+            "text": "    pub async fn new(config: SupervisorConfig) -&gt; Result&lt;Self&gt; {",
+            "lineNumber": 152
+          },
+          {
+            "text": "        let supervisor = Supervisor::new(config);",
+            "lineNumber": 153
+          },
+          {
+            "text": "        let mut dispatcher = AutonomousDispatcher::new();",
+            "lineNumber": 154
+          },
+          {
+            "text": "        // キャッシュ初期化のために明示的にクリア",
+            "lineNumber": 155
+          },
+          {
+            "text": "        dispatcher.clear_cache();",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "        let mut agent_manager = SubAgentManager::new();",
+            "lineNumber": 158
+          },
+          {
+            "text": "        let agent_types = Self::default_agent_types();",
+            "lineNumber": 159
+          },
+          {
+            "text": "        for agent_type in &amp;agent_types {",
+            "lineNumber": 160
+          },
+          {
+            "text": "            agent_manager.register_agent(agent_type.clone());",
+            "lineNumber": 161
+          },
+          {
+            "text": "        }",
+            "lineNumber": 162
+          },
+          {
+            "lineNumber": 163
+          },
+          {
+            "text": "        let token_tracker = TokenTracker::new(Default::default(), TokenAllocationStrategy::Dynamic);",
+            "lineNumber": 164
+          },
+          {
+            "text": "        for agent_type in &amp;agent_types {",
+            "lineNumber": 165
+          },
+          {
+            "text": "            token_tracker",
+            "lineNumber": 166
+          },
+          {
+            "text": "                .register_agent(agent_type.clone(), agent_type.to_string())",
+            "lineNumber": 167
+          },
+          {
+            "text": "                .await;",
+            "lineNumber": 168
+          },
+          {
+            "text": "        }",
+            "lineNumber": 169
+          },
+          {
+            "lineNumber": 170
+          },
+          {
+            "text": "        Ok(Self {",
+            "lineNumber": 171
+          },
+          {
+            "text": "            supervisor,",
+            "lineNumber": 172
+          },
+          {
+            "text": "            dispatcher,",
+            "lineNumber": 173
+          },
+          {
+            "text": "            agent_manager,",
+            "lineNumber": 174
+          },
+          {
+            "text": "            token_tracker,",
+            "lineNumber": 175
+          },
+          {
+            "text": "            active_agents: HashSet::new(),",
+            "lineNumber": 176
+          },
+          {
+            "text": "            max_wait_attempts: DEFAULT_MAX_WAIT_ATTEMPTS,",
+            "lineNumber": 177
+          },
+          {
+            "text": "            wait_interval: Duration::from_millis(DEFAULT_WAIT_INTERVAL_MS),",
+            "lineNumber": 178
+          },
+          {
+            "text": "            task_registry: HashMap::new(),",
+            "lineNumber": 179
+          },
+          {
+            "text": "            event_log: VecDeque::with_capacity(EVENT_LOG_CAPACITY),",
+            "lineNumber": 180
+          },
+          {
+            "text": "        })",
+            "lineNumber": 181
+          },
+          {
+            "text": "    }",
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "    /// タスクを自律実行",
+            "lineNumber": 184
+          },
+          {
+            "text": "    pub async fn execute_task(",
+            "lineNumber": 185
+          },
+          {
+            "text": "        &amp;mut self,",
+            "lineNumber": 186
+          },
+          {
+            "text": "        description: &amp;str,",
+            "lineNumber": 187
+          }
+        ]
+      },
+      "score": 0.20902884006500244
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`clippy.toml`で`HashSet`が禁止されています。ローカルでは`BTreeSet`に変更済みですが、CIで古いコードが使われている可能性があります。変更がコミットされているか確認します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status codex-rs/utils/git/src/ghost_commits.rs 2>&1</summary>
+
+```bash
+git status codex-rs/utils/git/src/ghost_commits.rs 2>&1
+```
+
+```
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+git : warning: could not open directory 'codex-rs/codex-rs/utils/git/src/': No such file or directory
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-6817b01c-2783-4add-a312-ac3aa56d44ce.ps1:97 ����:1
++ git status codex-rs/utils/git/src/ghost_commits.rs 2&gt;&amp;1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: could ...le or directory:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git log --oneline -1 codex-rs/utils/git/src/ghost_commits.rs 2>&1</summary>
+
+```bash
+git log --oneline -1 codex-rs/utils/git/src/ghost_commits.rs 2>&1
+```
+
+```
+git : fatal: ambiguous argument 'codex-rs/utils/git/src/ghost_commits.rs': unknown revision or path not in the working 
+tree.
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-7aeae7d6-d5b0-4432-9307-19605564e323.ps1:97 ����:1
++ git log --oneline -1 codex-rs/utils/git/src/ghost_commits.rs 2&gt;&amp;1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: ambiguou...e working tree.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Use '--' to separate paths from revisions, like this:
+'git &lt;command&gt; [&lt;revision&gt;...] -- [&lt;file&gt;...]'
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git diff HEAD codex-rs/utils/git/src/ghost_commits.rs 2>&1 | Select-Object -First 30</summary>
+
+```bash
+git diff HEAD codex-rs/utils/git/src/ghost_commits.rs 2>&1 | Select-Object -First 30
+```
+
+```
+git : fatal: ambiguous argument 'codex-rs/utils/git/src/ghost_commits.rs': unknown revision or path not in the working 
+tree.
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-a8ec667c-cec1-47d2-a7c0-1f4814cc0292.ps1:97 ����:1
++ git diff HEAD codex-rs/utils/git/src/ghost_commits.rs 2&gt;&amp;1 | Select-O ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: ambiguou...e working tree.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Use '--' to separate paths from revisions, like this:
+'git &lt;command&gt; [&lt;revision&gt;...] -- [&lt;file&gt;...]'
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ローカルでは`BTreeSet`に変更済みで、`cargo clippy`も成功しています。CIで古いコードが使われている可能性があります。ファイルを再確認し、必要に応じて修正します。
+
+
+---
+
+path should be a `path.relative()`d string, but got "C:/Users/downl/Desktop/codex-main"
+
+---
+
+path should be a `path.relative()`d string, but got "C:/Users/downl/Desktop/codex-main"
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "^use std::collections::HashSet|HashSet::new|HashSet&lt;",
+  "path": "codex-rs/utils/git/src/ghost_commits.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "^use std::collections::HashSet|HashSet::new|HashSet&lt;",
+    "path": "codex-rs/utils/git/src/ghost_commits.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+ローカルでは`BTreeSet`に変更済みで、`cargo clippy`も成功しています。CIで古いコードが使われている可能性があります。変更がコミットされているか確認します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status 2>&1 | Select-Object -First 10</summary>
+
+```bash
+git status 2>&1 | Select-Object -First 10
+```
+
+```
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+	modified:   ../.specstory/history/2025-12-19_05-47Z-binary-confirmation-and-device-testing.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git log --oneline -5 --all -- codex-rs/utils/git/src/ghost_commits.rs 2>&1</summary>
+
+```bash
+git log --oneline -5 --all -- codex-rs/utils/git/src/ghost_commits.rs 2>&1
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git show HEAD:codex-rs/utils/git/src/ghost_commits.rs | Select-String -Pattern "HashSet|BTreeSet" | Select-Object -First 5</summary>
+
+```bash
+git show HEAD:codex-rs/utils/git/src/ghost_commits.rs | Select-String -Pattern "HashSet|BTreeSet" | Select-Object -First 5
+```
+
+```
+
+use std::collections::BTreeSet;
+    let mut seen = BTreeSet::new();
+    let preserved_file_set: BTreeSet&lt;PathBuf&gt; = preserved_files.iter().cloned().collect();
+    preserved_files: &amp;BTreeSet&lt;PathBuf&gt;,
+
+```
+</details>
+</tool-use>
+
+---
+
+
+HEADでは既に`BTreeSet`に変更されています。CIで古いコードが使われている可能性があります。CIのエラーログを確認し、他の原因を調査します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Push-Location "C:\Users\downl\Desktop\codex-main" ; git log --oneline -1 2>&1</summary>
+
+```bash
+Push-Location "C:\Users\downl\Desktop\codex-main" ; git log --oneline -1 2>&1
+```
+
+```
+ca11aed21 feat: Prepare for npm publication of @zapabob/codex by finalizing publication steps and confirming settings
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Push-Location "C:\Users\downl\Desktop\codex-main" ; git show HEAD:codex-rs/utils/git/src/ghost_commits.rs | Select-String -Pattern "HashSet" | Select-Object -First 3</summary>
+
+```bash
+Push-Location "C:\Users\downl\Desktop\codex-main" ; git show HEAD:codex-rs/utils/git/src/ghost_commits.rs | Select-String -Pattern "HashSet" | Select-Object -First 3
+```
+</details>
+</tool-use>
+
+---
+
+Cancelled
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+_**User**_
+
+
 
 ---
 
