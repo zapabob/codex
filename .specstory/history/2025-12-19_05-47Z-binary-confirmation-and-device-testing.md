@@ -182734,3 +182734,9934 @@ _**User**_
 
 ---
 
+_**Agent (model default, mode Plan)**_
+
+
+画像から、複数のCI/CDワークフローが失敗していることが確認できました。状況を確認し、修正計画を作成します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\_docs\2025-12-29_CICD失敗修正{main}.md</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "HashSet|BTreeSet",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "HashSet|BTreeSet",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\utils\\git\\src\\ghost_commits.rs",
+              "matches": [
+                {
+                  "lineNumber": 2,
+                  "content": "use std::collections::BTreeSet;"
+                },
+                {
+                  "lineNumber": 776,
+                  "content": "    let mut seen = BTreeSet::new();"
+                },
+                {
+                  "lineNumber": 827,
+                  "content": "    let preserved_file_set: BTreeSet&lt;PathBuf&gt; = preserved_files.iter().cloned().collect();"
+                },
+                {
+                  "lineNumber": 850,
+                  "content": "    preserved_files: &amp;BTreeSet&lt;PathBuf&gt;,"
+                }
+              ]
+            }
+          ],
+          "totalLines": 4,
+          "totalMatchedLines": 4
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\clippy.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "What CI/CD workflows are failing and what are the common error patterns?",
+  "includePattern": ".github/workflows",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 73
+          }
+        },
+        "contents": "name: Sub-Agent &amp; Deep Research CI\n\non:\n  pull_request:\n    paths:\n      - \"codex-rs/**\"\n      - \".codex/agents/**\"\n      - \".github/workflows/subagent-ci.yml\"\n  push:\n    branches: [main]\n    paths:\n      - \"codex-rs/**\"\n      - \".codex/agents/**\"\n\nenv:\n  RUST_BACKTRACE: 1\n  CARGO_TERM_COLOR: always\n\njobs:\n  # ========== Rust ビルド &amp; テスト ==========\n  rust-build-test:\n    name: Rust Build &amp; Test (Sub-Agent + Deep Research)\n    runs-on: ${{ matrix.os }}\n    timeout-minutes: 30\n    strategy:\n      matrix:\n        os: [ubuntu-latest, windows-latest, macos-latest]\n        rust: [stable]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n        with:\n          toolchain: ${{ matrix.rust }}\n          components: rustfmt, clippy\n\n      - name: Cache Cargo registry\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}\n          restore-keys: |\n            ${{ runner.os }}-cargo-\n\n      - name: Build codex-core (Sub-Agent Runtime)\n        working-directory: codex-rs\n        run: cargo build --release -p codex-core --lib\n\n      - name: Build codex-deep-research\n        working-directory: codex-rs\n        run: cargo build --release -p codex-deep-research\n\n      - name: Build codex-mcp-server (Codex MCP Tools)\n        working-directory: codex-rs\n        run: cargo build --release -p codex-mcp-server\n\n      - name: Build codex-cli\n        working-directory: codex-rs\n        run: cargo build --release -p codex-cli\n\n      - name: Run codex-core tests (Agent Runtime)\n        working-directory: codex-rs\n        run: cargo test -p codex-core --lib -- --nocapture\n\n      - name: Run codex-deep-research tests\n        working-directory: codex-rs\n        run: cargo test -p codex-deep-research --lib -- --nocapture",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: Sub-Agent &amp; Deep Research CI",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "on:",
+            "lineNumber": 3
+          },
+          {
+            "text": "  pull_request:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    paths:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - \"codex-rs/**\"",
+            "lineNumber": 6
+          },
+          {
+            "text": "      - \".codex/agents/**\"",
+            "lineNumber": 7
+          },
+          {
+            "text": "      - \".github/workflows/subagent-ci.yml\"",
+            "lineNumber": 8
+          },
+          {
+            "text": "  push:",
+            "lineNumber": 9
+          },
+          {
+            "text": "    branches: [main]",
+            "lineNumber": 10
+          },
+          {
+            "text": "    paths:",
+            "lineNumber": 11
+          },
+          {
+            "text": "      - \"codex-rs/**\"",
+            "lineNumber": 12
+          },
+          {
+            "text": "      - \".codex/agents/**\"",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "env:",
+            "lineNumber": 15
+          },
+          {
+            "text": "  RUST_BACKTRACE: 1",
+            "lineNumber": 16
+          },
+          {
+            "text": "  CARGO_TERM_COLOR: always",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 19
+          },
+          {
+            "text": "  # ========== Rust ビルド &amp; テスト ==========",
+            "lineNumber": 20
+          },
+          {
+            "text": "  rust-build-test:",
+            "lineNumber": 21
+          },
+          {
+            "text": "    name: Rust Build &amp; Test (Sub-Agent + Deep Research)",
+            "lineNumber": 22
+          },
+          {
+            "text": "    runs-on: ${{ matrix.os }}",
+            "lineNumber": 23
+          },
+          {
+            "text": "    timeout-minutes: 30",
+            "lineNumber": 24
+          },
+          {
+            "text": "    strategy:",
+            "lineNumber": 25
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 26
+          },
+          {
+            "text": "        os: [ubuntu-latest, windows-latest, macos-latest]",
+            "lineNumber": 27
+          },
+          {
+            "text": "        rust: [stable]",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 30
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 31
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 34
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 35
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 36
+          },
+          {
+            "text": "          toolchain: ${{ matrix.rust }}",
+            "lineNumber": 37
+          },
+          {
+            "text": "          components: rustfmt, clippy",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "      - name: Cache Cargo registry",
+            "lineNumber": 40
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 41
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 42
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 43
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 44
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 45
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 46
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 47
+          },
+          {
+            "text": "          restore-keys: |",
+            "lineNumber": 48
+          },
+          {
+            "text": "            ${{ runner.os }}-cargo-",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "      - name: Build codex-core (Sub-Agent Runtime)",
+            "lineNumber": 51
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 52
+          },
+          {
+            "text": "        run: cargo build --release -p codex-core --lib",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "      - name: Build codex-deep-research",
+            "lineNumber": 55
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 56
+          },
+          {
+            "text": "        run: cargo build --release -p codex-deep-research",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": "      - name: Build codex-mcp-server (Codex MCP Tools)",
+            "lineNumber": 59
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 60
+          },
+          {
+            "text": "        run: cargo build --release -p codex-mcp-server",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "      - name: Build codex-cli",
+            "lineNumber": 63
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 64
+          },
+          {
+            "text": "        run: cargo build --release -p codex-cli",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "      - name: Run codex-core tests (Agent Runtime)",
+            "lineNumber": 67
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 68
+          },
+          {
+            "text": "        run: cargo test -p codex-core --lib -- --nocapture",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "      - name: Run codex-deep-research tests",
+            "lineNumber": 71
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 72
+          },
+          {
+            "text": "        run: cargo test -p codex-deep-research --lib -- --nocapture",
+            "lineNumber": 73
+          }
+        ]
+      },
+      "score": 0.38980674743652344
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 61
+          }
+        },
+        "contents": "name: rust-ci\non:\n  pull_request: {}\n  push:\n    branches:\n      - main\n  workflow_dispatch:\n\n# CI builds in debug (dev) for faster signal.\n\njobs:\n  # --- Detect what changed to detect which tests to run (always runs) -------------------------------------\n  changed:\n    name: Detect changed areas\n    runs-on: ubuntu-24.04\n    outputs:\n      codex: ${{ steps.detect.outputs.codex }}\n      workflows: ${{ steps.detect.outputs.workflows }}\n    steps:\n      - uses: actions/checkout@v6\n        with:\n          fetch-depth: 0\n      - name: Detect changed paths (no external action)\n        id: detect\n        shell: bash\n        run: |\n          set -euo pipefail\n\n          if [[ \"${{ github.event_name }}\" == \"pull_request\" ]]; then\n            BASE_SHA='${{ github.event.pull_request.base.sha }}'\n            HEAD_SHA='${{ github.event.pull_request.head.sha }}'\n            echo \"Base SHA: $BASE_SHA\"\n            echo \"Head SHA: $HEAD_SHA\"\n            # List files changed between base and PR head\n            mapfile -t files &lt; &lt;(git diff --name-only --no-renames \"$BASE_SHA\" \"$HEAD_SHA\")\n          else\n            # On push / manual runs, default to running everything\n            files=(\"codex-rs/force\" \".github/force\")\n          fi\n\n          codex=false\n          workflows=false\n          for f in \"${files[@]}\"; do\n            [[ $f == codex-rs/* ]] &amp;&amp; codex=true\n            [[ $f == .github/* ]] &amp;&amp; workflows=true\n          done\n\n          echo \"codex=$codex\" &gt;&gt; \"$GITHUB_OUTPUT\"\n          echo \"workflows=$workflows\" &gt;&gt; \"$GITHUB_OUTPUT\"\n\n  # --- CI that doesn't need specific targets ---------------------------------\n  general:\n    name: Format / etc\n    runs-on: ubuntu-24.04\n    timeout-minutes: 15\n    needs: changed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    steps:",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: rust-ci",
+            "lineNumber": 1
+          },
+          {
+            "text": "on:",
+            "lineNumber": 2
+          },
+          {
+            "text": "  pull_request: {}",
+            "lineNumber": 3
+          },
+          {
+            "text": "  push:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    branches:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - main",
+            "lineNumber": 6
+          },
+          {
+            "text": "  workflow_dispatch:",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "# CI builds in debug (dev) for faster signal.",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 11
+          },
+          {
+            "text": "  # --- Detect what changed to detect which tests to run (always runs) -------------------------------------",
+            "lineNumber": 12
+          },
+          {
+            "text": "  changed:",
+            "lineNumber": 13
+          },
+          {
+            "text": "    name: Detect changed areas",
+            "lineNumber": 14
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 15
+          },
+          {
+            "text": "    outputs:",
+            "lineNumber": 16
+          },
+          {
+            "text": "      codex: ${{ steps.detect.outputs.codex }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "      workflows: ${{ steps.detect.outputs.workflows }}",
+            "lineNumber": 18
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 19
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 20
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 21
+          },
+          {
+            "text": "          fetch-depth: 0",
+            "lineNumber": 22
+          },
+          {
+            "text": "      - name: Detect changed paths (no external action)",
+            "lineNumber": 23
+          },
+          {
+            "text": "        id: detect",
+            "lineNumber": 24
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 25
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 26
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "          if [[ \"${{ github.event_name }}\" == \"pull_request\" ]]; then",
+            "lineNumber": 29
+          },
+          {
+            "text": "            BASE_SHA='${{ github.event.pull_request.base.sha }}'",
+            "lineNumber": 30
+          },
+          {
+            "text": "            HEAD_SHA='${{ github.event.pull_request.head.sha }}'",
+            "lineNumber": 31
+          },
+          {
+            "text": "            echo \"Base SHA: $BASE_SHA\"",
+            "lineNumber": 32
+          },
+          {
+            "text": "            echo \"Head SHA: $HEAD_SHA\"",
+            "lineNumber": 33
+          },
+          {
+            "text": "            # List files changed between base and PR head",
+            "lineNumber": 34
+          },
+          {
+            "text": "            mapfile -t files &lt; &lt;(git diff --name-only --no-renames \"$BASE_SHA\" \"$HEAD_SHA\")",
+            "lineNumber": 35
+          },
+          {
+            "text": "          else",
+            "lineNumber": 36
+          },
+          {
+            "text": "            # On push / manual runs, default to running everything",
+            "lineNumber": 37
+          },
+          {
+            "text": "            files=(\"codex-rs/force\" \".github/force\")",
+            "lineNumber": 38
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "          codex=false",
+            "lineNumber": 41
+          },
+          {
+            "text": "          workflows=false",
+            "lineNumber": 42
+          },
+          {
+            "text": "          for f in \"${files[@]}\"; do",
+            "lineNumber": 43
+          },
+          {
+            "text": "            [[ $f == codex-rs/* ]] &amp;&amp; codex=true",
+            "lineNumber": 44
+          },
+          {
+            "text": "            [[ $f == .github/* ]] &amp;&amp; workflows=true",
+            "lineNumber": 45
+          },
+          {
+            "text": "          done",
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "text": "          echo \"codex=$codex\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 48
+          },
+          {
+            "text": "          echo \"workflows=$workflows\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "  # --- CI that doesn't need specific targets ---------------------------------",
+            "lineNumber": 51
+          },
+          {
+            "text": "  general:",
+            "lineNumber": 52
+          },
+          {
+            "text": "    name: Format / etc",
+            "lineNumber": 53
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 54
+          },
+          {
+            "text": "    timeout-minutes: 15",
+            "lineNumber": 55
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 56
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 57
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 58
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 59
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 60
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 61
+          }
+        ]
+      },
+      "score": 0.3612724542617798
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 281
+          },
+          "endPosition": {
+            "line": 323
+          }
+        },
+        "contents": "    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n\n      - name: Install cargo-audit\n        run: cargo install cargo-audit --locked\n\n      - name: Run security audit\n        working-directory: codex-rs\n        run: cargo audit --ignore RUSTSEC-2024-0332\n\n  # ========== 最終サマリー ==========\n  ci-success:\n    name: CI Success (All Checks Passed)\n    runs-on: ubuntu-latest\n    needs:\n      - rust-build-test\n      - clippy\n      - rustfmt\n      - validate-agents\n      - deep-research-test\n      - subagent-test\n      - docs-validation\n      - security-audit\n\n    steps:\n      - name: Success notification\n        run: |\n          echo \"🎉 All CI checks passed!\"\n          echo \"✅ Rust build &amp; tests\"\n          echo \"✅ Clippy lints\"\n          echo \"✅ Rustfmt checks\"\n          echo \"✅ Agent definitions validated\"\n          echo \"✅ Deep Research tested\"\n          echo \"✅ Sub-Agent tested\"\n          echo \"✅ Documentation validated\"\n          echo \"✅ Security audit passed\"\n          echo \"\"\n          echo \"Status: Production Ready ✅\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    steps:",
+            "lineNumber": 282
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 283
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 284
+          },
+          {
+            "lineNumber": 285
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 286
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 287
+          },
+          {
+            "lineNumber": 288
+          },
+          {
+            "text": "      - name: Install cargo-audit",
+            "lineNumber": 289
+          },
+          {
+            "text": "        run: cargo install cargo-audit --locked",
+            "lineNumber": 290
+          },
+          {
+            "lineNumber": 291
+          },
+          {
+            "text": "      - name: Run security audit",
+            "lineNumber": 292
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 293
+          },
+          {
+            "text": "        run: cargo audit --ignore RUSTSEC-2024-0332",
+            "lineNumber": 294
+          },
+          {
+            "lineNumber": 295
+          },
+          {
+            "text": "  # ========== 最終サマリー ==========",
+            "lineNumber": 296
+          },
+          {
+            "text": "  ci-success:",
+            "lineNumber": 297
+          },
+          {
+            "text": "    name: CI Success (All Checks Passed)",
+            "lineNumber": 298
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 299
+          },
+          {
+            "text": "    needs:",
+            "lineNumber": 300
+          },
+          {
+            "text": "      - rust-build-test",
+            "lineNumber": 301
+          },
+          {
+            "text": "      - clippy",
+            "lineNumber": 302
+          },
+          {
+            "text": "      - rustfmt",
+            "lineNumber": 303
+          },
+          {
+            "text": "      - validate-agents",
+            "lineNumber": 304
+          },
+          {
+            "text": "      - deep-research-test",
+            "lineNumber": 305
+          },
+          {
+            "text": "      - subagent-test",
+            "lineNumber": 306
+          },
+          {
+            "text": "      - docs-validation",
+            "lineNumber": 307
+          },
+          {
+            "text": "      - security-audit",
+            "lineNumber": 308
+          },
+          {
+            "lineNumber": 309
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 310
+          },
+          {
+            "text": "      - name: Success notification",
+            "lineNumber": 311
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 312
+          },
+          {
+            "text": "          echo \"🎉 All CI checks passed!\"",
+            "lineNumber": 313
+          },
+          {
+            "text": "          echo \"✅ Rust build &amp; tests\"",
+            "lineNumber": 314
+          },
+          {
+            "text": "          echo \"✅ Clippy lints\"",
+            "lineNumber": 315
+          },
+          {
+            "text": "          echo \"✅ Rustfmt checks\"",
+            "lineNumber": 316
+          },
+          {
+            "text": "          echo \"✅ Agent definitions validated\"",
+            "lineNumber": 317
+          },
+          {
+            "text": "          echo \"✅ Deep Research tested\"",
+            "lineNumber": 318
+          },
+          {
+            "text": "          echo \"✅ Sub-Agent tested\"",
+            "lineNumber": 319
+          },
+          {
+            "text": "          echo \"✅ Documentation validated\"",
+            "lineNumber": 320
+          },
+          {
+            "text": "          echo \"✅ Security audit passed\"",
+            "lineNumber": 321
+          },
+          {
+            "text": "          echo \"\"",
+            "lineNumber": 322
+          },
+          {
+            "text": "          echo \"Status: Production Ready ✅\"",
+            "lineNumber": 323
+          }
+        ]
+      },
+      "score": 0.34182000160217285
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 222
+          },
+          "endPosition": {
+            "line": 284
+          }
+        },
+        "contents": "    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n\n      - name: Cache Cargo\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}\n\n      - name: Build codex CLI\n        working-directory: codex-rs\n        run: cargo build --release -p codex-cli\n\n      - name: Test delegate command (researcher)\n        working-directory: codex-rs\n        run: |\n          ./target/release/codex delegate researcher --goal \"CI test\" --budget 1000 || true\n          echo \"Delegate test completed\"\n\n      - name: Verify delegate output\n        run: |\n          echo \"Sub-Agent feature is functional\"\n\n  # ========== ドキュメント検証 ==========\n  docs-validation:\n    name: Documentation Validation\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Check documentation exists\n        run: |\n          test -f _docs/2025-10-11_全Phase完全完了最終レポート.md\n          test -f _docs/2025-10-11_CodexMCP化設計書.md\n          test -f _docs/2025-10-11_Phase3完全実装完了.md\n          test -f _docs/2025-10-11_機能テスト結果.md\n          echo \"All documentation files exist\"\n\n      - name: Check README updates\n        run: |\n          grep -q \"Sub-Agent System\" README.md || (echo \"README missing sub-agent section\" &amp;&amp; exit 1)\n          echo \"README is up to date\"\n\n  # ========== セキュリティ監査 ==========\n  security-audit:\n    name: Security Audit (cargo-audit)\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    steps:",
+            "lineNumber": 223
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 224
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 227
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 228
+          },
+          {
+            "lineNumber": 229
+          },
+          {
+            "text": "      - name: Cache Cargo",
+            "lineNumber": 230
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 231
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 232
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 233
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 234
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 235
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 236
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 237
+          },
+          {
+            "lineNumber": 238
+          },
+          {
+            "text": "      - name: Build codex CLI",
+            "lineNumber": 239
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 240
+          },
+          {
+            "text": "        run: cargo build --release -p codex-cli",
+            "lineNumber": 241
+          },
+          {
+            "lineNumber": 242
+          },
+          {
+            "text": "      - name: Test delegate command (researcher)",
+            "lineNumber": 243
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 244
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 245
+          },
+          {
+            "text": "          ./target/release/codex delegate researcher --goal \"CI test\" --budget 1000 || true",
+            "lineNumber": 246
+          },
+          {
+            "text": "          echo \"Delegate test completed\"",
+            "lineNumber": 247
+          },
+          {
+            "lineNumber": 248
+          },
+          {
+            "text": "      - name: Verify delegate output",
+            "lineNumber": 249
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 250
+          },
+          {
+            "text": "          echo \"Sub-Agent feature is functional\"",
+            "lineNumber": 251
+          },
+          {
+            "lineNumber": 252
+          },
+          {
+            "text": "  # ========== ドキュメント検証 ==========",
+            "lineNumber": 253
+          },
+          {
+            "text": "  docs-validation:",
+            "lineNumber": 254
+          },
+          {
+            "text": "    name: Documentation Validation",
+            "lineNumber": 255
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 256
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 259
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 260
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 261
+          },
+          {
+            "lineNumber": 262
+          },
+          {
+            "text": "      - name: Check documentation exists",
+            "lineNumber": 263
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 264
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_全Phase完全完了最終レポート.md",
+            "lineNumber": 265
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_CodexMCP化設計書.md",
+            "lineNumber": 266
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_Phase3完全実装完了.md",
+            "lineNumber": 267
+          },
+          {
+            "text": "          test -f _docs/2025-10-11_機能テスト結果.md",
+            "lineNumber": 268
+          },
+          {
+            "text": "          echo \"All documentation files exist\"",
+            "lineNumber": 269
+          },
+          {
+            "lineNumber": 270
+          },
+          {
+            "text": "      - name: Check README updates",
+            "lineNumber": 271
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 272
+          },
+          {
+            "text": "          grep -q \"Sub-Agent System\" README.md || (echo \"README missing sub-agent section\" &amp;&amp; exit 1)",
+            "lineNumber": 273
+          },
+          {
+            "text": "          echo \"README is up to date\"",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "  # ========== セキュリティ監査 ==========",
+            "lineNumber": 276
+          },
+          {
+            "text": "  security-audit:",
+            "lineNumber": 277
+          },
+          {
+            "text": "    name: Security Audit (cargo-audit)",
+            "lineNumber": 278
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 279
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 280
+          },
+          {
+            "lineNumber": 281
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 282
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 283
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 284
+          }
+        ]
+      },
+      "score": 0.3326992988586426
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 310
+          },
+          "endPosition": {
+            "line": 361,
+            "column": 8
+          }
+        },
+        "contents": "      - name: sccache summary\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        shell: bash\n        run: |\n          {\n            echo \"### sccache stats — ${{ matrix.target }} (${{ matrix.profile }})\";\n            echo;\n            echo '&#96;&#96;&#96;';\n            sccache --show-stats || true;\n            echo '&#96;&#96;&#96;';\n          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"\n\n      - name: Save APT cache (musl)\n        if: always() &amp;&amp; !cancelled() &amp;&amp; (matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl') &amp;&amp; steps.cache_apt_restore.outputs.cache-hit != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: |\n            /var/cache/apt\n          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1\n\n      # Fail the job if any of the previous steps failed.\n      - name: verify all steps passed\n        if: |\n          steps.clippy.outcome == 'failure' ||\n          steps.cargo_check_all_crates.outcome == 'failure'\n        run: |\n          echo \"One or more checks failed (clippy or cargo_check_all_crates). See logs for details.\"\n          exit 1\n\n  tests:\n    name: Tests — ${{ matrix.runner }} - ${{ matrix.target }}\n    runs-on: ${{ matrix.runner }}\n    timeout-minutes: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 60 || 30 }}\n    needs: changed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    env:\n      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).\n      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}\n      CARGO_INCREMENTAL: \"0\"\n      SCCACHE_CACHE_SIZE: 10G\n      # Optimize for Windows memory usage\n      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}\n      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}\n\n    strategy:\n      fail-fast: false\n      matrix:\n        ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: sccache summary",
+            "lineNumber": 311
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 312
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 313
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 314
+          },
+          {
+            "text": "          {",
+            "lineNumber": 315
+          },
+          {
+            "text": "            echo \"### sccache stats — ${{ matrix.target }} (${{ matrix.profile }})\";",
+            "lineNumber": 316
+          },
+          {
+            "text": "            echo;",
+            "lineNumber": 317
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 318
+          },
+          {
+            "text": "            sccache --show-stats || true;",
+            "lineNumber": 319
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 320
+          },
+          {
+            "text": "          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"",
+            "lineNumber": 321
+          },
+          {
+            "lineNumber": 322
+          },
+          {
+            "text": "      - name: Save APT cache (musl)",
+            "lineNumber": 323
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; (matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl') &amp;&amp; steps.cache_apt_restore.outputs.cache-hit != 'true'",
+            "lineNumber": 324
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 325
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 326
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 327
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 328
+          },
+          {
+            "text": "            /var/cache/apt",
+            "lineNumber": 329
+          },
+          {
+            "text": "          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1",
+            "lineNumber": 330
+          },
+          {
+            "lineNumber": 331
+          },
+          {
+            "text": "      # Fail the job if any of the previous steps failed.",
+            "lineNumber": 332
+          },
+          {
+            "text": "      - name: verify all steps passed",
+            "lineNumber": 333
+          },
+          {
+            "text": "        if: |",
+            "lineNumber": 334
+          },
+          {
+            "text": "          steps.clippy.outcome == 'failure' ||",
+            "lineNumber": 335
+          },
+          {
+            "text": "          steps.cargo_check_all_crates.outcome == 'failure'",
+            "lineNumber": 336
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 337
+          },
+          {
+            "text": "          echo \"One or more checks failed (clippy or cargo_check_all_crates). See logs for details.\"",
+            "lineNumber": 338
+          },
+          {
+            "text": "          exit 1",
+            "lineNumber": 339
+          },
+          {
+            "lineNumber": 340
+          },
+          {
+            "text": "  tests:",
+            "lineNumber": 341
+          },
+          {
+            "text": "    name: Tests — ${{ matrix.runner }} - ${{ matrix.target }}",
+            "lineNumber": 342
+          },
+          {
+            "text": "    runs-on: ${{ matrix.runner }}",
+            "lineNumber": 343
+          },
+          {
+            "text": "    timeout-minutes: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 60 || 30 }}",
+            "lineNumber": 344
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 345
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 346
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 347
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 348
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 349
+          },
+          {
+            "text": "    env:",
+            "lineNumber": 350
+          },
+          {
+            "text": "      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).",
+            "lineNumber": 351
+          },
+          {
+            "text": "      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}",
+            "lineNumber": 352
+          },
+          {
+            "text": "      CARGO_INCREMENTAL: \"0\"",
+            "lineNumber": 353
+          },
+          {
+            "text": "      SCCACHE_CACHE_SIZE: 10G",
+            "lineNumber": 354
+          },
+          {
+            "text": "      # Optimize for Windows memory usage",
+            "lineNumber": 355
+          },
+          {
+            "text": "      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}",
+            "lineNumber": 356
+          },
+          {
+            "text": "      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}",
+            "lineNumber": 357
+          },
+          {
+            "lineNumber": 358
+          },
+          {
+            "text": "    strategy:",
+            "lineNumber": 359
+          },
+          {
+            "text": "      fail-fast: false",
+            "lineNumber": 360
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 361
+          },
+          {
+            "text": "        ",
+            "lineNumber": 362
+          }
+        ]
+      },
+      "score": 0.3136084973812103
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 57
+          },
+          "endPosition": {
+            "line": 111,
+            "column": 8
+          }
+        },
+        "contents": "    defaults:\n      run:\n        working-directory: codex-rs\n    steps:\n      - uses: actions/checkout@v6\n      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          components: rustfmt\n      - name: cargo fmt\n        run: cargo fmt -- --check\n      - name: Verify codegen for mcp-types\n        run: ./mcp-types/check_lib_rs.py\n\n  cargo_shear:\n    name: cargo shear\n    runs-on: ubuntu-24.04\n    needs: changed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    steps:\n      - uses: actions/checkout@v6\n      - uses: dtolnay/rust-toolchain@1.90\n      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: cargo-shear\n          version: 1.5.1\n      - name: cargo shear\n        run: cargo shear\n\n  # --- CI to validate on different os/targets --------------------------------\n  lint_build:\n    name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' &amp;&amp; ' (release)' || '' }}\n    runs-on: ${{ matrix.runner }}\n    timeout-minutes: 30\n    needs: changed\n    # Keep job-level if to avoid spinning up runners when not needed\n    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}\n    defaults:\n      run:\n        working-directory: codex-rs\n    env:\n      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).\n      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}\n      CARGO_INCREMENTAL: \"0\"\n      SCCACHE_CACHE_SIZE: 10G\n      # Optimize for Windows memory usage\n      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}\n      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}\n\n    strategy:\n      fail-fast: false\n      matrix:\n        ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    defaults:",
+            "lineNumber": 58
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 59
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 60
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 61
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 62
+          },
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 63
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 64
+          },
+          {
+            "text": "          components: rustfmt",
+            "lineNumber": 65
+          },
+          {
+            "text": "      - name: cargo fmt",
+            "lineNumber": 66
+          },
+          {
+            "text": "        run: cargo fmt -- --check",
+            "lineNumber": 67
+          },
+          {
+            "text": "      - name: Verify codegen for mcp-types",
+            "lineNumber": 68
+          },
+          {
+            "text": "        run: ./mcp-types/check_lib_rs.py",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "  cargo_shear:",
+            "lineNumber": 71
+          },
+          {
+            "text": "    name: cargo shear",
+            "lineNumber": 72
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 73
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 74
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 75
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 76
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 77
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 78
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 79
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 80
+          },
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 81
+          },
+          {
+            "text": "      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 82
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 83
+          },
+          {
+            "text": "          tool: cargo-shear",
+            "lineNumber": 84
+          },
+          {
+            "text": "          version: 1.5.1",
+            "lineNumber": 85
+          },
+          {
+            "text": "      - name: cargo shear",
+            "lineNumber": 86
+          },
+          {
+            "text": "        run: cargo shear",
+            "lineNumber": 87
+          },
+          {
+            "lineNumber": 88
+          },
+          {
+            "text": "  # --- CI to validate on different os/targets --------------------------------",
+            "lineNumber": 89
+          },
+          {
+            "text": "  lint_build:",
+            "lineNumber": 90
+          },
+          {
+            "text": "    name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' &amp;&amp; ' (release)' || '' }}",
+            "lineNumber": 91
+          },
+          {
+            "text": "    runs-on: ${{ matrix.runner }}",
+            "lineNumber": 92
+          },
+          {
+            "text": "    timeout-minutes: 30",
+            "lineNumber": 93
+          },
+          {
+            "text": "    needs: changed",
+            "lineNumber": 94
+          },
+          {
+            "text": "    # Keep job-level if to avoid spinning up runners when not needed",
+            "lineNumber": 95
+          },
+          {
+            "text": "    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}",
+            "lineNumber": 96
+          },
+          {
+            "text": "    defaults:",
+            "lineNumber": 97
+          },
+          {
+            "text": "      run:",
+            "lineNumber": 98
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 99
+          },
+          {
+            "text": "    env:",
+            "lineNumber": 100
+          },
+          {
+            "text": "      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).",
+            "lineNumber": 101
+          },
+          {
+            "text": "      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; 'false' || 'true' }}",
+            "lineNumber": 102
+          },
+          {
+            "text": "      CARGO_INCREMENTAL: \"0\"",
+            "lineNumber": 103
+          },
+          {
+            "text": "      SCCACHE_CACHE_SIZE: 10G",
+            "lineNumber": 104
+          },
+          {
+            "text": "      # Optimize for Windows memory usage",
+            "lineNumber": 105
+          },
+          {
+            "text": "      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '2' || '4' }}",
+            "lineNumber": 106
+          },
+          {
+            "text": "      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') &amp;&amp; '0' || '1' }}",
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108
+          },
+          {
+            "text": "    strategy:",
+            "lineNumber": 109
+          },
+          {
+            "text": "      fail-fast: false",
+            "lineNumber": 110
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 111
+          },
+          {
+            "text": "        ",
+            "lineNumber": 112
+          }
+        ]
+      },
+      "score": 0.30500364303588867
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 524
+          },
+          "endPosition": {
+            "line": 551
+          }
+        },
+        "contents": "    runs-on: ubuntu-24.04\n    steps:\n      - name: Summarize\n        shell: bash\n        run: |\n          echo \"general: ${{ needs.general.result }}\"\n          echo \"shear  : ${{ needs.cargo_shear.result }}\"\n          echo \"lint   : ${{ needs.lint_build.result }}\"\n          echo \"tests  : ${{ needs.tests.result }}\"\n\n          # If nothing relevant changed (PR touching only root README, etc.),\n          # declare success regardless of other jobs.\n          if [[ '${{ needs.changed.outputs.codex }}' != 'true' &amp;&amp; '${{ needs.changed.outputs.workflows }}' != 'true' &amp;&amp; '${{ github.event_name }}' != 'push' ]]; then\n            echo 'No relevant changes -&gt; CI not required.'\n            exit 0\n          fi\n\n          # Otherwise require the jobs to have succeeded\n          [[ '${{ needs.general.result }}' == 'success' ]] || { echo 'general failed'; exit 1; }\n          [[ '${{ needs.cargo_shear.result }}' == 'success' ]] || { echo 'cargo_shear failed'; exit 1; }\n          [[ '${{ needs.lint_build.result }}' == 'success' ]] || { echo 'lint_build failed'; exit 1; }\n          [[ '${{ needs.tests.result }}' == 'success' ]] || { echo 'tests failed'; exit 1; }\n\n      - name: sccache summary note\n        if: always()\n        run: |\n          echo \"Per-job sccache stats are attached to each matrix job's Step Summary.\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 525
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 526
+          },
+          {
+            "text": "      - name: Summarize",
+            "lineNumber": 527
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 528
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 529
+          },
+          {
+            "text": "          echo \"general: ${{ needs.general.result }}\"",
+            "lineNumber": 530
+          },
+          {
+            "text": "          echo \"shear  : ${{ needs.cargo_shear.result }}\"",
+            "lineNumber": 531
+          },
+          {
+            "text": "          echo \"lint   : ${{ needs.lint_build.result }}\"",
+            "lineNumber": 532
+          },
+          {
+            "text": "          echo \"tests  : ${{ needs.tests.result }}\"",
+            "lineNumber": 533
+          },
+          {
+            "lineNumber": 534
+          },
+          {
+            "text": "          # If nothing relevant changed (PR touching only root README, etc.),",
+            "lineNumber": 535
+          },
+          {
+            "text": "          # declare success regardless of other jobs.",
+            "lineNumber": 536
+          },
+          {
+            "text": "          if [[ '${{ needs.changed.outputs.codex }}' != 'true' &amp;&amp; '${{ needs.changed.outputs.workflows }}' != 'true' &amp;&amp; '${{ github.event_name }}' != 'push' ]]; then",
+            "lineNumber": 537
+          },
+          {
+            "text": "            echo 'No relevant changes -&gt; CI not required.'",
+            "lineNumber": 538
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 539
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 540
+          },
+          {
+            "lineNumber": 541
+          },
+          {
+            "text": "          # Otherwise require the jobs to have succeeded",
+            "lineNumber": 542
+          },
+          {
+            "text": "          [[ '${{ needs.general.result }}' == 'success' ]] || { echo 'general failed'; exit 1; }",
+            "lineNumber": 543
+          },
+          {
+            "text": "          [[ '${{ needs.cargo_shear.result }}' == 'success' ]] || { echo 'cargo_shear failed'; exit 1; }",
+            "lineNumber": 544
+          },
+          {
+            "text": "          [[ '${{ needs.lint_build.result }}' == 'success' ]] || { echo 'lint_build failed'; exit 1; }",
+            "lineNumber": 545
+          },
+          {
+            "text": "          [[ '${{ needs.tests.result }}' == 'success' ]] || { echo 'tests failed'; exit 1; }",
+            "lineNumber": 546
+          },
+          {
+            "lineNumber": 547
+          },
+          {
+            "text": "      - name: sccache summary note",
+            "lineNumber": 548
+          },
+          {
+            "text": "        if: always()",
+            "lineNumber": 549
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 550
+          },
+          {
+            "text": "          echo \"Per-job sccache stats are attached to each matrix job's Step Summary.\"",
+            "lineNumber": 551
+          }
+        ]
+      },
+      "score": 0.3005019426345825
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 183
+          },
+          "endPosition": {
+            "line": 225
+          }
+        },
+        "contents": "    needs: [rust-build-test]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n\n      - name: Cache Cargo\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}\n\n      - name: Build codex CLI\n        working-directory: codex-rs\n        run: cargo build --release -p codex-cli\n\n      - name: Test Deep Research (DuckDuckGo)\n        working-directory: codex-rs\n        run: |\n          ./target/release/codex research \"Rust testing\" --depth 1 --breadth 3 || true\n          echo \"Deep Research test completed (may return 202, which is expected)\"\n\n      - name: Verify research output\n        run: |\n          echo \"Deep Research feature is functional\"\n\n  # ========== サブエージェント統合テスト ==========\n  subagent-test:\n    name: Sub-Agent Integration Test\n    runs-on: ubuntu-latest\n    timeout-minutes: 15\n    needs: [rust-build-test, validate-agents]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    needs: [rust-build-test]",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 186
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 187
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 188
+          },
+          {
+            "lineNumber": 189
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 190
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "      - name: Cache Cargo",
+            "lineNumber": 193
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 194
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 195
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 196
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 197
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 198
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 199
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 200
+          },
+          {
+            "lineNumber": 201
+          },
+          {
+            "text": "      - name: Build codex CLI",
+            "lineNumber": 202
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 203
+          },
+          {
+            "text": "        run: cargo build --release -p codex-cli",
+            "lineNumber": 204
+          },
+          {
+            "lineNumber": 205
+          },
+          {
+            "text": "      - name: Test Deep Research (DuckDuckGo)",
+            "lineNumber": 206
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 207
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 208
+          },
+          {
+            "text": "          ./target/release/codex research \"Rust testing\" --depth 1 --breadth 3 || true",
+            "lineNumber": 209
+          },
+          {
+            "text": "          echo \"Deep Research test completed (may return 202, which is expected)\"",
+            "lineNumber": 210
+          },
+          {
+            "lineNumber": 211
+          },
+          {
+            "text": "      - name: Verify research output",
+            "lineNumber": 212
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 213
+          },
+          {
+            "text": "          echo \"Deep Research feature is functional\"",
+            "lineNumber": 214
+          },
+          {
+            "lineNumber": 215
+          },
+          {
+            "text": "  # ========== サブエージェント統合テスト ==========",
+            "lineNumber": 216
+          },
+          {
+            "text": "  subagent-test:",
+            "lineNumber": 217
+          },
+          {
+            "text": "    name: Sub-Agent Integration Test",
+            "lineNumber": 218
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 219
+          },
+          {
+            "text": "    timeout-minutes: 15",
+            "lineNumber": 220
+          },
+          {
+            "text": "    needs: [rust-build-test, validate-agents]",
+            "lineNumber": 221
+          },
+          {
+            "lineNumber": 222
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 223
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 224
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 225
+          }
+        ]
+      },
+      "score": 0.2997933030128479
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 69
+          },
+          "endPosition": {
+            "line": 133,
+            "column": 6
+          }
+        },
+        "contents": "      - name: Run codex-deep-research tests\n        working-directory: codex-rs\n        run: cargo test -p codex-deep-research --lib -- --nocapture\n\n      - name: Run codex-mcp-server tests\n        working-directory: codex-rs\n        run: cargo test -p codex-mcp-server --lib -- --nocapture\n\n      - name: Upload binaries (artifacts)\n        if: matrix.os == 'ubuntu-latest'\n        uses: actions/upload-artifact@v4\n        with:\n          name: codex-binaries-${{ matrix.os }}\n          path: |\n            codex-rs/target/release/codex\n            codex-rs/target/release/codex-mcp-server\n\n  # ========== Clippy Lint ==========\n  clippy:\n    name: Clippy Lint (Sub-Agent Code Quality)\n    runs-on: ubuntu-latest\n    timeout-minutes: 20\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n        with:\n          components: clippy\n\n      - name: Cache Cargo\n        uses: actions/cache@v4\n        with:\n          path: |\n            ~/.cargo/registry\n            ~/.cargo/git\n            codex-rs/target\n          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}\n\n      - name: Run Clippy (codex-core)\n        working-directory: codex-rs\n        run: cargo clippy -p codex-core --lib -- -D warnings\n\n      - name: Run Clippy (codex-deep-research)\n        working-directory: codex-rs\n        run: cargo clippy -p codex-deep-research --lib -- -D warnings\n\n      - name: Run Clippy (codex-mcp-server)\n        working-directory: codex-rs\n        run: cargo clippy -p codex-mcp-server --lib -- -D warnings\n\n  # ========== Rustfmt Format Check ==========\n  rustfmt:\n    name: Rustfmt Format Check\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: Run codex-deep-research tests",
+            "lineNumber": 71
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 72
+          },
+          {
+            "text": "        run: cargo test -p codex-deep-research --lib -- --nocapture",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "      - name: Run codex-mcp-server tests",
+            "lineNumber": 75
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 76
+          },
+          {
+            "text": "        run: cargo test -p codex-mcp-server --lib -- --nocapture",
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "text": "      - name: Upload binaries (artifacts)",
+            "lineNumber": 79
+          },
+          {
+            "text": "        if: matrix.os == 'ubuntu-latest'",
+            "lineNumber": 80
+          },
+          {
+            "text": "        uses: actions/upload-artifact@v4",
+            "lineNumber": 81
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 82
+          },
+          {
+            "text": "          name: codex-binaries-${{ matrix.os }}",
+            "lineNumber": 83
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 84
+          },
+          {
+            "text": "            codex-rs/target/release/codex",
+            "lineNumber": 85
+          },
+          {
+            "text": "            codex-rs/target/release/codex-mcp-server",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "  # ========== Clippy Lint ==========",
+            "lineNumber": 88
+          },
+          {
+            "text": "  clippy:",
+            "lineNumber": 89
+          },
+          {
+            "text": "    name: Clippy Lint (Sub-Agent Code Quality)",
+            "lineNumber": 90
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 91
+          },
+          {
+            "text": "    timeout-minutes: 20",
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 94
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 95
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 98
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 99
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 100
+          },
+          {
+            "text": "          components: clippy",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "      - name: Cache Cargo",
+            "lineNumber": 103
+          },
+          {
+            "text": "        uses: actions/cache@v4",
+            "lineNumber": 104
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 105
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 106
+          },
+          {
+            "text": "            ~/.cargo/registry",
+            "lineNumber": 107
+          },
+          {
+            "text": "            ~/.cargo/git",
+            "lineNumber": 108
+          },
+          {
+            "text": "            codex-rs/target",
+            "lineNumber": 109
+          },
+          {
+            "text": "          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "      - name: Run Clippy (codex-core)",
+            "lineNumber": 112
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 113
+          },
+          {
+            "text": "        run: cargo clippy -p codex-core --lib -- -D warnings",
+            "lineNumber": 114
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "text": "      - name: Run Clippy (codex-deep-research)",
+            "lineNumber": 116
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 117
+          },
+          {
+            "text": "        run: cargo clippy -p codex-deep-research --lib -- -D warnings",
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "      - name: Run Clippy (codex-mcp-server)",
+            "lineNumber": 120
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 121
+          },
+          {
+            "text": "        run: cargo clippy -p codex-mcp-server --lib -- -D warnings",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "  # ========== Rustfmt Format Check ==========",
+            "lineNumber": 124
+          },
+          {
+            "text": "  rustfmt:",
+            "lineNumber": 125
+          },
+          {
+            "text": "    name: Rustfmt Format Check",
+            "lineNumber": 126
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 127
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 128
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 130
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 131
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "      ",
+            "lineNumber": 134
+          }
+        ]
+      },
+      "score": 0.296766996383667
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\subagent-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 127
+          },
+          "endPosition": {
+            "line": 189,
+            "column": 6
+          }
+        },
+        "contents": "    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install Rust toolchain\n        uses: dtolnay/rust-toolchain@stable\n        with:\n          components: rustfmt\n\n      - name: Check formatting\n        working-directory: codex-rs\n        run: cargo fmt --all -- --check\n\n  # ========== エージェント定義検証 ==========\n  validate-agents:\n    name: Validate Agent Definitions\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      - name: Install yq (YAML validator)\n        run: |\n          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64\n          sudo chmod +x /usr/local/bin/yq\n\n      - name: Validate YAML syntax\n        run: |\n          for file in .codex/agents/*.yaml; do\n            echo \"Validating $file...\"\n            yq eval '.' \"$file\" &gt; /dev/null || exit 1\n          done\n\n      - name: Check required fields\n        run: |\n          for file in .codex/agents/*.yaml; do\n            echo \"Checking required fields in $file...\"\n            yq eval '.name' \"$file\" &gt; /dev/null || (echo \"Missing 'name' field\" &amp;&amp; exit 1)\n            yq eval '.goal' \"$file\" &gt; /dev/null || (echo \"Missing 'goal' field\" &amp;&amp; exit 1)\n            yq eval '.tools' \"$file\" &gt; /dev/null || (echo \"Missing 'tools' field\" &amp;&amp; exit 1)\n          done\n\n      - name: List agent files\n        run: |\n          echo \"Found agent definitions:\"\n          ls -la .codex/agents/*.yaml\n\n  # ========== Deep Research 統合テスト ==========\n  deep-research-test:\n    name: Deep Research Integration Test\n    runs-on: ubuntu-latest\n    timeout-minutes: 15\n    needs: [rust-build-test]\n\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n\n      ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 128
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 130
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 131
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "      - name: Install Rust toolchain",
+            "lineNumber": 134
+          },
+          {
+            "text": "        uses: dtolnay/rust-toolchain@stable",
+            "lineNumber": 135
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 136
+          },
+          {
+            "text": "          components: rustfmt",
+            "lineNumber": 137
+          },
+          {
+            "lineNumber": 138
+          },
+          {
+            "text": "      - name: Check formatting",
+            "lineNumber": 139
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 140
+          },
+          {
+            "text": "        run: cargo fmt --all -- --check",
+            "lineNumber": 141
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "text": "  # ========== エージェント定義検証 ==========",
+            "lineNumber": 143
+          },
+          {
+            "text": "  validate-agents:",
+            "lineNumber": 144
+          },
+          {
+            "text": "    name: Validate Agent Definitions",
+            "lineNumber": 145
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 146
+          },
+          {
+            "text": "    timeout-minutes: 10",
+            "lineNumber": 147
+          },
+          {
+            "lineNumber": 148
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 149
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 150
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 151
+          },
+          {
+            "lineNumber": 152
+          },
+          {
+            "text": "      - name: Install yq (YAML validator)",
+            "lineNumber": 153
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 154
+          },
+          {
+            "text": "          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64",
+            "lineNumber": 155
+          },
+          {
+            "text": "          sudo chmod +x /usr/local/bin/yq",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "      - name: Validate YAML syntax",
+            "lineNumber": 158
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 159
+          },
+          {
+            "text": "          for file in .codex/agents/*.yaml; do",
+            "lineNumber": 160
+          },
+          {
+            "text": "            echo \"Validating $file...\"",
+            "lineNumber": 161
+          },
+          {
+            "text": "            yq eval '.' \"$file\" &gt; /dev/null || exit 1",
+            "lineNumber": 162
+          },
+          {
+            "text": "          done",
+            "lineNumber": 163
+          },
+          {
+            "lineNumber": 164
+          },
+          {
+            "text": "      - name: Check required fields",
+            "lineNumber": 165
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 166
+          },
+          {
+            "text": "          for file in .codex/agents/*.yaml; do",
+            "lineNumber": 167
+          },
+          {
+            "text": "            echo \"Checking required fields in $file...\"",
+            "lineNumber": 168
+          },
+          {
+            "text": "            yq eval '.name' \"$file\" &gt; /dev/null || (echo \"Missing 'name' field\" &amp;&amp; exit 1)",
+            "lineNumber": 169
+          },
+          {
+            "text": "            yq eval '.goal' \"$file\" &gt; /dev/null || (echo \"Missing 'goal' field\" &amp;&amp; exit 1)",
+            "lineNumber": 170
+          },
+          {
+            "text": "            yq eval '.tools' \"$file\" &gt; /dev/null || (echo \"Missing 'tools' field\" &amp;&amp; exit 1)",
+            "lineNumber": 171
+          },
+          {
+            "text": "          done",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "      - name: List agent files",
+            "lineNumber": 174
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 175
+          },
+          {
+            "text": "          echo \"Found agent definitions:\"",
+            "lineNumber": 176
+          },
+          {
+            "text": "          ls -la .codex/agents/*.yaml",
+            "lineNumber": 177
+          },
+          {
+            "lineNumber": 178
+          },
+          {
+            "text": "  # ========== Deep Research 統合テスト ==========",
+            "lineNumber": 179
+          },
+          {
+            "text": "  deep-research-test:",
+            "lineNumber": 180
+          },
+          {
+            "text": "    name: Deep Research Integration Test",
+            "lineNumber": 181
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 182
+          },
+          {
+            "text": "    timeout-minutes: 15",
+            "lineNumber": 183
+          },
+          {
+            "text": "    needs: [rust-build-test]",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 186
+          },
+          {
+            "text": "      - name: Checkout repository",
+            "lineNumber": 187
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 188
+          },
+          {
+            "lineNumber": 189
+          },
+          {
+            "text": "      ",
+            "lineNumber": 190
+          }
+        ]
+      },
+      "score": 0.29459983110427856
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-deduplicator.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 48
+          }
+        },
+        "contents": "name: Issue Deduplicator\n\non:\n  issues:\n    types:\n      - opened\n      - labeled\n\njobs:\n  gather-duplicates:\n    name: Identify potential duplicates\n    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate') }}\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    outputs:\n      codex_output: ${{ steps.codex.outputs.final-message }}\n    steps:\n      - uses: actions/checkout@v6\n\n      - name: Prepare Codex inputs\n        env:\n          GH_TOKEN: ${{ github.token }}\n        run: |\n          set -eo pipefail\n\n          CURRENT_ISSUE_FILE=codex-current-issue.json\n          EXISTING_ISSUES_FILE=codex-existing-issues.json\n\n          gh issue list --repo \"${{ github.repository }}\" \\\n            --json number,title,body,createdAt \\\n            --limit 1000 \\\n            --state all \\\n            --search \"sort:created-desc\" \\\n            | jq '.' \\\n            &gt; \"$EXISTING_ISSUES_FILE\"\n\n          gh issue view \"${{ github.event.issue.number }}\" \\\n            --repo \"${{ github.repository }}\" \\\n            --json number,title,body \\\n            | jq '.' \\\n            &gt; \"$CURRENT_ISSUE_FILE\"\n\n      - id: codex\n        uses: openai/codex-action@main\n        with:\n          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}\n          allow-users: \"*\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: Issue Deduplicator",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "on:",
+            "lineNumber": 3
+          },
+          {
+            "text": "  issues:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    types:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - opened",
+            "lineNumber": 6
+          },
+          {
+            "text": "      - labeled",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 9
+          },
+          {
+            "text": "  gather-duplicates:",
+            "lineNumber": 10
+          },
+          {
+            "text": "    name: Identify potential duplicates",
+            "lineNumber": 11
+          },
+          {
+            "text": "    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate') }}",
+            "lineNumber": 12
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 13
+          },
+          {
+            "text": "    permissions:",
+            "lineNumber": 14
+          },
+          {
+            "text": "      contents: read",
+            "lineNumber": 15
+          },
+          {
+            "text": "    outputs:",
+            "lineNumber": 16
+          },
+          {
+            "text": "      codex_output: ${{ steps.codex.outputs.final-message }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 18
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "      - name: Prepare Codex inputs",
+            "lineNumber": 21
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 22
+          },
+          {
+            "text": "          GH_TOKEN: ${{ github.token }}",
+            "lineNumber": 23
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 24
+          },
+          {
+            "text": "          set -eo pipefail",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "text": "          CURRENT_ISSUE_FILE=codex-current-issue.json",
+            "lineNumber": 27
+          },
+          {
+            "text": "          EXISTING_ISSUES_FILE=codex-existing-issues.json",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "          gh issue list --repo \"${{ github.repository }}\" \\",
+            "lineNumber": 30
+          },
+          {
+            "text": "            --json number,title,body,createdAt \\",
+            "lineNumber": 31
+          },
+          {
+            "text": "            --limit 1000 \\",
+            "lineNumber": 32
+          },
+          {
+            "text": "            --state all \\",
+            "lineNumber": 33
+          },
+          {
+            "text": "            --search \"sort:created-desc\" \\",
+            "lineNumber": 34
+          },
+          {
+            "text": "            | jq '.' \\",
+            "lineNumber": 35
+          },
+          {
+            "text": "            &gt; \"$EXISTING_ISSUES_FILE\"",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "text": "          gh issue view \"${{ github.event.issue.number }}\" \\",
+            "lineNumber": 38
+          },
+          {
+            "text": "            --repo \"${{ github.repository }}\" \\",
+            "lineNumber": 39
+          },
+          {
+            "text": "            --json number,title,body \\",
+            "lineNumber": 40
+          },
+          {
+            "text": "            | jq '.' \\",
+            "lineNumber": 41
+          },
+          {
+            "text": "            &gt; \"$CURRENT_ISSUE_FILE\"",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "      - id: codex",
+            "lineNumber": 44
+          },
+          {
+            "text": "        uses: openai/codex-action@main",
+            "lineNumber": 45
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 46
+          },
+          {
+            "text": "          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}",
+            "lineNumber": 47
+          },
+          {
+            "text": "          allow-users: \"*\"",
+            "lineNumber": 48
+          }
+        ]
+      },
+      "score": 0.2884089946746826
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-labeler.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 45
+          }
+        },
+        "contents": "name: Issue Labeler\n\non:\n  issues:\n    types:\n      - opened\n      - labeled\n\njobs:\n  gather-labels:\n    name: Generate label suggestions\n    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label') }}\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    outputs:\n      codex_output: ${{ steps.codex.outputs.final-message }}\n    steps:\n      - uses: actions/checkout@v6\n\n      - id: codex\n        uses: openai/codex-action@main\n        with:\n          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}\n          allow-users: \"*\"\n          prompt: |\n            You are an assistant that reviews GitHub issues for the repository.\n\n            Your job is to choose the most appropriate labels for the issue described later in this prompt.\n            Follow these rules:\n\n            - Add one (and only one) of the following three labels to distinguish the type of issue. Default to \"bug\" if unsure.\n            1. bug — Reproducible defects in Codex products (CLI, VS Code extension, web, auth).\n            2. enhancement — Feature requests or usability improvements that ask for new capabilities, better ergonomics, or quality-of-life tweaks.\n            3. documentation — Updates or corrections needed in docs/README/config references (broken links, missing examples, outdated keys, clarification requests).\n\n            - If applicable, add one of the following labels to specify which sub-product or product surface the issue relates to.\n            1. CLI — the Codex command line interface.\n            2. extension — VS Code (or other IDE) extension-specific issues.\n            3. codex-web — Issues targeting the Codex web UI/Cloud experience.\n            4. github-action — Issues with the Codex GitHub action.\n            5. iOS — Issues with the Codex iOS app.\n\n            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.\n            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: Issue Labeler",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "on:",
+            "lineNumber": 3
+          },
+          {
+            "text": "  issues:",
+            "lineNumber": 4
+          },
+          {
+            "text": "    types:",
+            "lineNumber": 5
+          },
+          {
+            "text": "      - opened",
+            "lineNumber": 6
+          },
+          {
+            "text": "      - labeled",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 9
+          },
+          {
+            "text": "  gather-labels:",
+            "lineNumber": 10
+          },
+          {
+            "text": "    name: Generate label suggestions",
+            "lineNumber": 11
+          },
+          {
+            "text": "    if: ${{ github.event.action == 'opened' || (github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label') }}",
+            "lineNumber": 12
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 13
+          },
+          {
+            "text": "    permissions:",
+            "lineNumber": 14
+          },
+          {
+            "text": "      contents: read",
+            "lineNumber": 15
+          },
+          {
+            "text": "    outputs:",
+            "lineNumber": 16
+          },
+          {
+            "text": "      codex_output: ${{ steps.codex.outputs.final-message }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 18
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "      - id: codex",
+            "lineNumber": 21
+          },
+          {
+            "text": "        uses: openai/codex-action@main",
+            "lineNumber": 22
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 23
+          },
+          {
+            "text": "          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}",
+            "lineNumber": 24
+          },
+          {
+            "text": "          allow-users: \"*\"",
+            "lineNumber": 25
+          },
+          {
+            "text": "          prompt: |",
+            "lineNumber": 26
+          },
+          {
+            "text": "            You are an assistant that reviews GitHub issues for the repository.",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "            Your job is to choose the most appropriate labels for the issue described later in this prompt.",
+            "lineNumber": 29
+          },
+          {
+            "text": "            Follow these rules:",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "            - Add one (and only one) of the following three labels to distinguish the type of issue. Default to \"bug\" if unsure.",
+            "lineNumber": 32
+          },
+          {
+            "text": "            1. bug — Reproducible defects in Codex products (CLI, VS Code extension, web, auth).",
+            "lineNumber": 33
+          },
+          {
+            "text": "            2. enhancement — Feature requests or usability improvements that ask for new capabilities, better ergonomics, or quality-of-life tweaks.",
+            "lineNumber": 34
+          },
+          {
+            "text": "            3. documentation — Updates or corrections needed in docs/README/config references (broken links, missing examples, outdated keys, clarification requests).",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "            - If applicable, add one of the following labels to specify which sub-product or product surface the issue relates to.",
+            "lineNumber": 37
+          },
+          {
+            "text": "            1. CLI — the Codex command line interface.",
+            "lineNumber": 38
+          },
+          {
+            "text": "            2. extension — VS Code (or other IDE) extension-specific issues.",
+            "lineNumber": 39
+          },
+          {
+            "text": "            3. codex-web — Issues targeting the Codex web UI/Cloud experience.",
+            "lineNumber": 40
+          },
+          {
+            "text": "            4. github-action — Issues with the Codex GitHub action.",
+            "lineNumber": 41
+          },
+          {
+            "text": "            5. iOS — Issues with the Codex iOS app.",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.",
+            "lineNumber": 44
+          },
+          {
+            "text": "            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).",
+            "lineNumber": 45
+          }
+        ]
+      },
+      "score": 0.28349220752716064
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 452
+          },
+          "endPosition": {
+            "line": 498
+          }
+        },
+        "contents": "      - name: Restore sccache cache (fallback)\n        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}\n        id: cache_sccache_restore\n        uses: actions/cache/restore@v5\n        with:\n          path: ${{ github.workspace }}/.sccache/\n          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}\n          restore-keys: |\n            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-\n            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-\n\n      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: nextest\n          version: 0.9.103\n\n      - name: tests\n        id: test\n        run: cargo nextest run --all-features --no-fail-fast --target ${{ matrix.target }} --cargo-profile ci-test\n        env:\n          RUST_BACKTRACE: 1\n          NEXTEST_STATUS_LEVEL: leak\n\n      - name: Save cargo home cache\n        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: |\n            ~/.cargo/bin/\n            ~/.cargo/registry/index/\n            ~/.cargo/registry/cache/\n            ~/.cargo/git/db/\n          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}\n\n      - name: Save sccache cache (fallback)\n        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: ${{ github.workspace }}/.sccache/\n          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}\n\n      - name: sccache stats\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: Restore sccache cache (fallback)",
+            "lineNumber": 454
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}",
+            "lineNumber": 455
+          },
+          {
+            "text": "        id: cache_sccache_restore",
+            "lineNumber": 456
+          },
+          {
+            "text": "        uses: actions/cache/restore@v5",
+            "lineNumber": 457
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 458
+          },
+          {
+            "text": "          path: ${{ github.workspace }}/.sccache/",
+            "lineNumber": 459
+          },
+          {
+            "text": "          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}",
+            "lineNumber": 460
+          },
+          {
+            "text": "          restore-keys: |",
+            "lineNumber": 461
+          },
+          {
+            "text": "            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-",
+            "lineNumber": 462
+          },
+          {
+            "text": "            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-",
+            "lineNumber": 463
+          },
+          {
+            "lineNumber": 464
+          },
+          {
+            "text": "      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 465
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 466
+          },
+          {
+            "text": "          tool: nextest",
+            "lineNumber": 467
+          },
+          {
+            "text": "          version: 0.9.103",
+            "lineNumber": 468
+          },
+          {
+            "lineNumber": 469
+          },
+          {
+            "text": "      - name: tests",
+            "lineNumber": 470
+          },
+          {
+            "text": "        id: test",
+            "lineNumber": 471
+          },
+          {
+            "text": "        run: cargo nextest run --all-features --no-fail-fast --target ${{ matrix.target }} --cargo-profile ci-test",
+            "lineNumber": 472
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 473
+          },
+          {
+            "text": "          RUST_BACKTRACE: 1",
+            "lineNumber": 474
+          },
+          {
+            "text": "          NEXTEST_STATUS_LEVEL: leak",
+            "lineNumber": 475
+          },
+          {
+            "lineNumber": 476
+          },
+          {
+            "text": "      - name: Save cargo home cache",
+            "lineNumber": 477
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'",
+            "lineNumber": 478
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 479
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 480
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 481
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 482
+          },
+          {
+            "text": "            ~/.cargo/bin/",
+            "lineNumber": 483
+          },
+          {
+            "text": "            ~/.cargo/registry/index/",
+            "lineNumber": 484
+          },
+          {
+            "text": "            ~/.cargo/registry/cache/",
+            "lineNumber": 485
+          },
+          {
+            "text": "            ~/.cargo/git/db/",
+            "lineNumber": 486
+          },
+          {
+            "text": "          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}",
+            "lineNumber": 487
+          },
+          {
+            "lineNumber": 488
+          },
+          {
+            "text": "      - name: Save sccache cache (fallback)",
+            "lineNumber": 489
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'",
+            "lineNumber": 490
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 491
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 492
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 493
+          },
+          {
+            "text": "          path: ${{ github.workspace }}/.sccache/",
+            "lineNumber": 494
+          },
+          {
+            "text": "          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}",
+            "lineNumber": 495
+          },
+          {
+            "lineNumber": 496
+          },
+          {
+            "text": "      - name: sccache stats",
+            "lineNumber": 497
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 498
+          }
+        ]
+      },
+      "score": 0.27514129877090454
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 495
+          },
+          "endPosition": {
+            "line": 529,
+            "column": 10
+          }
+        },
+        "contents": "      - name: sccache stats\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        continue-on-error: true\n        run: sccache --show-stats || true\n\n      - name: sccache summary\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        shell: bash\n        run: |\n          {\n            echo \"### sccache stats — ${{ matrix.target }} (tests)\";\n            echo;\n            echo '&#96;&#96;&#96;';\n            sccache --show-stats || true;\n            echo '&#96;&#96;&#96;';\n          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"\n\n      - name: verify tests passed\n        if: steps.test.outcome == 'failure'\n        run: |\n          echo \"Tests failed. See logs for details.\"\n          exit 1\n\n  # --- Gatherer job that you mark as the ONLY required status -----------------\n  results:\n    name: CI results (required)\n    needs: [changed, general, cargo_shear, lint_build, tests]\n    if: always()\n    runs-on: ubuntu-24.04\n    steps:\n      - name: Summarize\n        shell: bash\n        run: |\n          ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: sccache stats",
+            "lineNumber": 497
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 498
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 499
+          },
+          {
+            "text": "        run: sccache --show-stats || true",
+            "lineNumber": 500
+          },
+          {
+            "lineNumber": 501
+          },
+          {
+            "text": "      - name: sccache summary",
+            "lineNumber": 502
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 503
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 504
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 505
+          },
+          {
+            "text": "          {",
+            "lineNumber": 506
+          },
+          {
+            "text": "            echo \"### sccache stats — ${{ matrix.target }} (tests)\";",
+            "lineNumber": 507
+          },
+          {
+            "text": "            echo;",
+            "lineNumber": 508
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 509
+          },
+          {
+            "text": "            sccache --show-stats || true;",
+            "lineNumber": 510
+          },
+          {
+            "text": "            echo '&#96;&#96;&#96;';",
+            "lineNumber": 511
+          },
+          {
+            "text": "          } &gt;&gt; \"$GITHUB_STEP_SUMMARY\"",
+            "lineNumber": 512
+          },
+          {
+            "lineNumber": 513
+          },
+          {
+            "text": "      - name: verify tests passed",
+            "lineNumber": 514
+          },
+          {
+            "text": "        if: steps.test.outcome == 'failure'",
+            "lineNumber": 515
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 516
+          },
+          {
+            "text": "          echo \"Tests failed. See logs for details.\"",
+            "lineNumber": 517
+          },
+          {
+            "text": "          exit 1",
+            "lineNumber": 518
+          },
+          {
+            "lineNumber": 519
+          },
+          {
+            "text": "  # --- Gatherer job that you mark as the ONLY required status -----------------",
+            "lineNumber": 520
+          },
+          {
+            "text": "  results:",
+            "lineNumber": 521
+          },
+          {
+            "text": "    name: CI results (required)",
+            "lineNumber": 522
+          },
+          {
+            "text": "    needs: [changed, general, cargo_shear, lint_build, tests]",
+            "lineNumber": 523
+          },
+          {
+            "text": "    if: always()",
+            "lineNumber": 524
+          },
+          {
+            "text": "    runs-on: ubuntu-24.04",
+            "lineNumber": 525
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 526
+          },
+          {
+            "text": "      - name: Summarize",
+            "lineNumber": 527
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 528
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 529
+          },
+          {
+            "text": "          ",
+            "lineNumber": 530
+          }
+        ]
+      },
+      "score": 0.26526886224746704
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 357
+          },
+          "endPosition": {
+            "line": 405,
+            "column": 6
+          }
+        },
+        "contents": "    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - runner: macos-14\n            target: aarch64-apple-darwin\n            profile: dev\n          - runner: ubuntu-24.04\n            target: x86_64-unknown-linux-gnu\n            profile: dev\n          - runner: ubuntu-24.04-arm\n            target: aarch64-unknown-linux-gnu\n            profile: dev\n          - runner: windows-latest\n            target: x86_64-pc-windows-msvc\n            profile: dev\n          - runner: windows-11-arm\n            target: aarch64-pc-windows-msvc\n            profile: dev\n\n    steps:\n      - uses: actions/checkout@v6\n\n      # We have been running out of space when running this job on Linux for\n      # x86_64-unknown-linux-gnu, so remove some unnecessary dependencies.\n      - name: Remove unnecessary dependencies to save space\n        if: ${{ startsWith(matrix.runner, 'ubuntu') }}\n        shell: bash\n        run: |\n          set -euo pipefail\n          sudo rm -rf \\\n            /usr/local/lib/android \\\n            /usr/share/dotnet \\\n            /usr/local/share/boost \\\n            /usr/local/lib/node_modules \\\n            /opt/ghc\n          sudo apt-get remove -y docker.io docker-compose podman buildah\n\n      # Some integration tests rely on DotSlash being installed.\n      # See https://github.com/openai/codex/pull/7617.\n      - name: Install DotSlash\n        uses: facebook/install-dotslash@v2\n\n      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          targets: ${{ matrix.target }}\n\n      ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    strategy:",
+            "lineNumber": 359
+          },
+          {
+            "text": "      fail-fast: false",
+            "lineNumber": 360
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 361
+          },
+          {
+            "text": "        include:",
+            "lineNumber": 362
+          },
+          {
+            "text": "          - runner: macos-14",
+            "lineNumber": 363
+          },
+          {
+            "text": "            target: aarch64-apple-darwin",
+            "lineNumber": 364
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 365
+          },
+          {
+            "text": "          - runner: ubuntu-24.04",
+            "lineNumber": 366
+          },
+          {
+            "text": "            target: x86_64-unknown-linux-gnu",
+            "lineNumber": 367
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 368
+          },
+          {
+            "text": "          - runner: ubuntu-24.04-arm",
+            "lineNumber": 369
+          },
+          {
+            "text": "            target: aarch64-unknown-linux-gnu",
+            "lineNumber": 370
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 371
+          },
+          {
+            "text": "          - runner: windows-latest",
+            "lineNumber": 372
+          },
+          {
+            "text": "            target: x86_64-pc-windows-msvc",
+            "lineNumber": 373
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 374
+          },
+          {
+            "text": "          - runner: windows-11-arm",
+            "lineNumber": 375
+          },
+          {
+            "text": "            target: aarch64-pc-windows-msvc",
+            "lineNumber": 376
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 377
+          },
+          {
+            "lineNumber": 378
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 379
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 380
+          },
+          {
+            "lineNumber": 381
+          },
+          {
+            "text": "      # We have been running out of space when running this job on Linux for",
+            "lineNumber": 382
+          },
+          {
+            "text": "      # x86_64-unknown-linux-gnu, so remove some unnecessary dependencies.",
+            "lineNumber": 383
+          },
+          {
+            "text": "      - name: Remove unnecessary dependencies to save space",
+            "lineNumber": 384
+          },
+          {
+            "text": "        if: ${{ startsWith(matrix.runner, 'ubuntu') }}",
+            "lineNumber": 385
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 386
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 387
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 388
+          },
+          {
+            "text": "          sudo rm -rf \\",
+            "lineNumber": 389
+          },
+          {
+            "text": "            /usr/local/lib/android \\",
+            "lineNumber": 390
+          },
+          {
+            "text": "            /usr/share/dotnet \\",
+            "lineNumber": 391
+          },
+          {
+            "text": "            /usr/local/share/boost \\",
+            "lineNumber": 392
+          },
+          {
+            "text": "            /usr/local/lib/node_modules \\",
+            "lineNumber": 393
+          },
+          {
+            "text": "            /opt/ghc",
+            "lineNumber": 394
+          },
+          {
+            "text": "          sudo apt-get remove -y docker.io docker-compose podman buildah",
+            "lineNumber": 395
+          },
+          {
+            "lineNumber": 396
+          },
+          {
+            "text": "      # Some integration tests rely on DotSlash being installed.",
+            "lineNumber": 397
+          },
+          {
+            "text": "      # See https://github.com/openai/codex/pull/7617.",
+            "lineNumber": 398
+          },
+          {
+            "text": "      - name: Install DotSlash",
+            "lineNumber": 399
+          },
+          {
+            "text": "        uses: facebook/install-dotslash@v2",
+            "lineNumber": 400
+          },
+          {
+            "lineNumber": 401
+          },
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 402
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 403
+          },
+          {
+            "text": "          targets: ${{ matrix.target }}",
+            "lineNumber": 404
+          },
+          {
+            "lineNumber": 405
+          },
+          {
+            "text": "      ",
+            "lineNumber": 406
+          }
+        ]
+      },
+      "score": 0.2631509304046631
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 107
+          },
+          "endPosition": {
+            "line": 161
+          }
+        },
+        "contents": "    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - runner: macos-14\n            target: aarch64-apple-darwin\n            profile: dev\n          - runner: macos-14\n            target: x86_64-apple-darwin\n            profile: dev\n          - runner: ubuntu-24.04\n            target: x86_64-unknown-linux-musl\n            profile: dev\n          - runner: ubuntu-24.04\n            target: x86_64-unknown-linux-gnu\n            profile: dev\n          - runner: ubuntu-24.04-arm\n            target: aarch64-unknown-linux-musl\n            profile: dev\n          - runner: ubuntu-24.04-arm\n            target: aarch64-unknown-linux-gnu\n            profile: dev\n          - runner: windows-latest\n            target: x86_64-pc-windows-msvc\n            profile: dev\n          - runner: windows-11-arm\n            target: aarch64-pc-windows-msvc\n            profile: dev\n\n          # Also run representative release builds on Mac and Linux because\n          # there could be release-only build errors we want to catch.\n          # Hopefully this also pre-populates the build cache to speed up\n          # releases.\n          - runner: macos-14\n            target: aarch64-apple-darwin\n            profile: release\n          - runner: ubuntu-24.04\n            target: x86_64-unknown-linux-musl\n            profile: release\n          - runner: windows-latest\n            target: x86_64-pc-windows-msvc\n            profile: release\n          - runner: windows-11-arm\n            target: aarch64-pc-windows-msvc\n            profile: release\n\n    steps:\n      - uses: actions/checkout@v6\n      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          targets: ${{ matrix.target }}\n          components: clippy",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    strategy:",
+            "lineNumber": 109
+          },
+          {
+            "text": "      fail-fast: false",
+            "lineNumber": 110
+          },
+          {
+            "text": "      matrix:",
+            "lineNumber": 111
+          },
+          {
+            "text": "        include:",
+            "lineNumber": 112
+          },
+          {
+            "text": "          - runner: macos-14",
+            "lineNumber": 113
+          },
+          {
+            "text": "            target: aarch64-apple-darwin",
+            "lineNumber": 114
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 115
+          },
+          {
+            "text": "          - runner: macos-14",
+            "lineNumber": 116
+          },
+          {
+            "text": "            target: x86_64-apple-darwin",
+            "lineNumber": 117
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 118
+          },
+          {
+            "text": "          - runner: ubuntu-24.04",
+            "lineNumber": 119
+          },
+          {
+            "text": "            target: x86_64-unknown-linux-musl",
+            "lineNumber": 120
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 121
+          },
+          {
+            "text": "          - runner: ubuntu-24.04",
+            "lineNumber": 122
+          },
+          {
+            "text": "            target: x86_64-unknown-linux-gnu",
+            "lineNumber": 123
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 124
+          },
+          {
+            "text": "          - runner: ubuntu-24.04-arm",
+            "lineNumber": 125
+          },
+          {
+            "text": "            target: aarch64-unknown-linux-musl",
+            "lineNumber": 126
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 127
+          },
+          {
+            "text": "          - runner: ubuntu-24.04-arm",
+            "lineNumber": 128
+          },
+          {
+            "text": "            target: aarch64-unknown-linux-gnu",
+            "lineNumber": 129
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 130
+          },
+          {
+            "text": "          - runner: windows-latest",
+            "lineNumber": 131
+          },
+          {
+            "text": "            target: x86_64-pc-windows-msvc",
+            "lineNumber": 132
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 133
+          },
+          {
+            "text": "          - runner: windows-11-arm",
+            "lineNumber": 134
+          },
+          {
+            "text": "            target: aarch64-pc-windows-msvc",
+            "lineNumber": 135
+          },
+          {
+            "text": "            profile: dev",
+            "lineNumber": 136
+          },
+          {
+            "lineNumber": 137
+          },
+          {
+            "text": "          # Also run representative release builds on Mac and Linux because",
+            "lineNumber": 138
+          },
+          {
+            "text": "          # there could be release-only build errors we want to catch.",
+            "lineNumber": 139
+          },
+          {
+            "text": "          # Hopefully this also pre-populates the build cache to speed up",
+            "lineNumber": 140
+          },
+          {
+            "text": "          # releases.",
+            "lineNumber": 141
+          },
+          {
+            "text": "          - runner: macos-14",
+            "lineNumber": 142
+          },
+          {
+            "text": "            target: aarch64-apple-darwin",
+            "lineNumber": 143
+          },
+          {
+            "text": "            profile: release",
+            "lineNumber": 144
+          },
+          {
+            "text": "          - runner: ubuntu-24.04",
+            "lineNumber": 145
+          },
+          {
+            "text": "            target: x86_64-unknown-linux-musl",
+            "lineNumber": 146
+          },
+          {
+            "text": "            profile: release",
+            "lineNumber": 147
+          },
+          {
+            "text": "          - runner: windows-latest",
+            "lineNumber": 148
+          },
+          {
+            "text": "            target: x86_64-pc-windows-msvc",
+            "lineNumber": 149
+          },
+          {
+            "text": "            profile: release",
+            "lineNumber": 150
+          },
+          {
+            "text": "          - runner: windows-11-arm",
+            "lineNumber": 151
+          },
+          {
+            "text": "            target: aarch64-pc-windows-msvc",
+            "lineNumber": 152
+          },
+          {
+            "text": "            profile: release",
+            "lineNumber": 153
+          },
+          {
+            "lineNumber": 154
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 155
+          },
+          {
+            "text": "      - uses: actions/checkout@v6",
+            "lineNumber": 156
+          },
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 157
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 158
+          },
+          {
+            "text": "          targets: ${{ matrix.target }}",
+            "lineNumber": 159
+          },
+          {
+            "text": "          components: clippy",
+            "lineNumber": 160
+          }
+        ]
+      },
+      "score": 0.2624901533126831
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-deduplicator.yml",
+        "range": {
+          "startPosition": {
+            "line": 85
+          },
+          "endPosition": {
+            "line": 138
+          }
+        },
+        "contents": "      issues: write\n    steps:\n      - name: Comment on issue\n        uses: actions/github-script@v8\n        env:\n          CODEX_OUTPUT: ${{ needs.gather-duplicates.outputs.codex_output }}\n        with:\n          github-token: ${{ github.token }}\n          script: |\n            const raw = process.env.CODEX_OUTPUT ?? '';\n            let parsed;\n            try {\n              parsed = JSON.parse(raw);\n            } catch (error) {\n              core.info(&#96;Codex output was not valid JSON. Raw output: ${raw}&#96;);\n              core.info(&#96;Parse error: ${error.message}&#96;);\n              return;\n            }\n\n            const issues = Array.isArray(parsed?.issues) ? parsed.issues : [];\n            const currentIssueNumber = String(context.payload.issue.number);\n\n            console.log(&#96;Current issue number: ${currentIssueNumber}&#96;);\n            console.log(issues);\n\n            const filteredIssues = issues.filter((value) =&gt; String(value) !== currentIssueNumber);\n\n            if (filteredIssues.length === 0) {\n              core.info('Codex reported no potential duplicates.');\n              return;\n            }\n\n            const lines = [\n              'Potential duplicates detected. Please review them and close your issue if it is a duplicate.',\n              '',\n              ...filteredIssues.map((value) =&gt; &#96;- #${String(value)}&#96;),\n              '',\n              '*Powered by [Codex Action](https://github.com/openai/codex-action)*'];\n\n            await github.rest.issues.createComment({\n              owner: context.repo.owner,\n              repo: context.repo.repo,\n              issue_number: context.payload.issue.number,\n              body: lines.join(\"\\n\"),\n            });\n\n      - name: Remove codex-deduplicate label\n        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate' }}\n        env:\n          GH_TOKEN: ${{ github.token }}\n          GH_REPO: ${{ github.repository }}\n        run: |\n          gh issue edit \"${{ github.event.issue.number }}\" --remove-label codex-deduplicate || true",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      issues: write",
+            "lineNumber": 86
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 87
+          },
+          {
+            "text": "      - name: Comment on issue",
+            "lineNumber": 88
+          },
+          {
+            "text": "        uses: actions/github-script@v8",
+            "lineNumber": 89
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 90
+          },
+          {
+            "text": "          CODEX_OUTPUT: ${{ needs.gather-duplicates.outputs.codex_output }}",
+            "lineNumber": 91
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 92
+          },
+          {
+            "text": "          github-token: ${{ github.token }}",
+            "lineNumber": 93
+          },
+          {
+            "text": "          script: |",
+            "lineNumber": 94
+          },
+          {
+            "text": "            const raw = process.env.CODEX_OUTPUT ?? '';",
+            "lineNumber": 95
+          },
+          {
+            "text": "            let parsed;",
+            "lineNumber": 96
+          },
+          {
+            "text": "            try {",
+            "lineNumber": 97
+          },
+          {
+            "text": "              parsed = JSON.parse(raw);",
+            "lineNumber": 98
+          },
+          {
+            "text": "            } catch (error) {",
+            "lineNumber": 99
+          },
+          {
+            "text": "              core.info(&#96;Codex output was not valid JSON. Raw output: ${raw}&#96;);",
+            "lineNumber": 100
+          },
+          {
+            "text": "              core.info(&#96;Parse error: ${error.message}&#96;);",
+            "lineNumber": 101
+          },
+          {
+            "text": "              return;",
+            "lineNumber": 102
+          },
+          {
+            "text": "            }",
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "text": "            const issues = Array.isArray(parsed?.issues) ? parsed.issues : [];",
+            "lineNumber": 105
+          },
+          {
+            "text": "            const currentIssueNumber = String(context.payload.issue.number);",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "            console.log(&#96;Current issue number: ${currentIssueNumber}&#96;);",
+            "lineNumber": 108
+          },
+          {
+            "text": "            console.log(issues);",
+            "lineNumber": 109
+          },
+          {
+            "lineNumber": 110
+          },
+          {
+            "text": "            const filteredIssues = issues.filter((value) =&gt; String(value) !== currentIssueNumber);",
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112
+          },
+          {
+            "text": "            if (filteredIssues.length === 0) {",
+            "lineNumber": 113
+          },
+          {
+            "text": "              core.info('Codex reported no potential duplicates.');",
+            "lineNumber": 114
+          },
+          {
+            "text": "              return;",
+            "lineNumber": 115
+          },
+          {
+            "text": "            }",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "            const lines = [",
+            "lineNumber": 118
+          },
+          {
+            "text": "              'Potential duplicates detected. Please review them and close your issue if it is a duplicate.',",
+            "lineNumber": 119
+          },
+          {
+            "text": "              '',",
+            "lineNumber": 120
+          },
+          {
+            "text": "              ...filteredIssues.map((value) =&gt; &#96;- #${String(value)}&#96;),",
+            "lineNumber": 121
+          },
+          {
+            "text": "              '',",
+            "lineNumber": 122
+          },
+          {
+            "text": "              '*Powered by [Codex Action](https://github.com/openai/codex-action)*'];",
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "            await github.rest.issues.createComment({",
+            "lineNumber": 125
+          },
+          {
+            "text": "              owner: context.repo.owner,",
+            "lineNumber": 126
+          },
+          {
+            "text": "              repo: context.repo.repo,",
+            "lineNumber": 127
+          },
+          {
+            "text": "              issue_number: context.payload.issue.number,",
+            "lineNumber": 128
+          },
+          {
+            "text": "              body: lines.join(\"\\n\"),",
+            "lineNumber": 129
+          },
+          {
+            "text": "            });",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "      - name: Remove codex-deduplicate label",
+            "lineNumber": 132
+          },
+          {
+            "text": "        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-deduplicate' }}",
+            "lineNumber": 133
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 134
+          },
+          {
+            "text": "          GH_TOKEN: ${{ github.token }}",
+            "lineNumber": 135
+          },
+          {
+            "text": "          GH_REPO: ${{ github.repository }}",
+            "lineNumber": 136
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 137
+          },
+          {
+            "text": "          gh issue edit \"${{ github.event.issue.number }}\" --remove-label codex-deduplicate || true",
+            "lineNumber": 138
+          }
+        ]
+      },
+      "score": 0.25652840733528137
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\cla.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 48
+          }
+        },
+        "contents": "name: CLA Assistant\non:\n  issue_comment:\n    types: [created]\n  pull_request_target:\n    types: [opened, closed, synchronize]\n\npermissions:\n  actions: write\n  contents: write\n  pull-requests: write\n  statuses: write\n\njobs:\n  cla:\n    # Only run the CLA assistant for the zapabob repo\n    if: ${{ github.repository_owner == 'zapabob' }}\n    runs-on: ubuntu-latest\n    steps:\n      - uses: contributor-assistant/github-action@v2.6.1\n        # Run on close only if the PR was merged. This will lock the PR to preserve\n        # the CLA agreement. We don't want to lock PRs that have been closed without\n        # merging because the contributor may want to respond with additional comments.\n        # This action has a \"lock-pullrequest-aftermerge\" option that can be set to false,\n        # but that would unconditionally skip locking even in cases where the PR was merged.\n        if: |\n          (\n            github.event_name == 'pull_request_target' &amp;&amp;\n            (\n              github.event.action == 'opened' ||\n              github.event.action == 'synchronize' ||\n              (github.event.action == 'closed' &amp;&amp; github.event.pull_request.merged == true)\n            )\n          ) ||\n          (\n            github.event_name == 'issue_comment' &amp;&amp;\n            (\n              github.event.comment.body == 'recheck' ||\n              github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'\n            )\n          )\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n        with:\n          path-to-document: https://github.com/zapabob/codex/blob/main/docs/CLA.md\n          path-to-signatures: signatures/cla.json\n          branch: cla-signatures\n          allowlist: codex,dependabot,dependabot[bot],github-actions[bot]",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "name: CLA Assistant",
+            "lineNumber": 1
+          },
+          {
+            "text": "on:",
+            "lineNumber": 2
+          },
+          {
+            "text": "  issue_comment:",
+            "lineNumber": 3
+          },
+          {
+            "text": "    types: [created]",
+            "lineNumber": 4
+          },
+          {
+            "text": "  pull_request_target:",
+            "lineNumber": 5
+          },
+          {
+            "text": "    types: [opened, closed, synchronize]",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "permissions:",
+            "lineNumber": 8
+          },
+          {
+            "text": "  actions: write",
+            "lineNumber": 9
+          },
+          {
+            "text": "  contents: write",
+            "lineNumber": 10
+          },
+          {
+            "text": "  pull-requests: write",
+            "lineNumber": 11
+          },
+          {
+            "text": "  statuses: write",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 14
+          },
+          {
+            "text": "  cla:",
+            "lineNumber": 15
+          },
+          {
+            "text": "    # Only run the CLA assistant for the zapabob repo",
+            "lineNumber": 16
+          },
+          {
+            "text": "    if: ${{ github.repository_owner == 'zapabob' }}",
+            "lineNumber": 17
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 18
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 19
+          },
+          {
+            "text": "      - uses: contributor-assistant/github-action@v2.6.1",
+            "lineNumber": 20
+          },
+          {
+            "text": "        # Run on close only if the PR was merged. This will lock the PR to preserve",
+            "lineNumber": 21
+          },
+          {
+            "text": "        # the CLA agreement. We don't want to lock PRs that have been closed without",
+            "lineNumber": 22
+          },
+          {
+            "text": "        # merging because the contributor may want to respond with additional comments.",
+            "lineNumber": 23
+          },
+          {
+            "text": "        # This action has a \"lock-pullrequest-aftermerge\" option that can be set to false,",
+            "lineNumber": 24
+          },
+          {
+            "text": "        # but that would unconditionally skip locking even in cases where the PR was merged.",
+            "lineNumber": 25
+          },
+          {
+            "text": "        if: |",
+            "lineNumber": 26
+          },
+          {
+            "text": "          (",
+            "lineNumber": 27
+          },
+          {
+            "text": "            github.event_name == 'pull_request_target' &amp;&amp;",
+            "lineNumber": 28
+          },
+          {
+            "text": "            (",
+            "lineNumber": 29
+          },
+          {
+            "text": "              github.event.action == 'opened' ||",
+            "lineNumber": 30
+          },
+          {
+            "text": "              github.event.action == 'synchronize' ||",
+            "lineNumber": 31
+          },
+          {
+            "text": "              (github.event.action == 'closed' &amp;&amp; github.event.pull_request.merged == true)",
+            "lineNumber": 32
+          },
+          {
+            "text": "            )",
+            "lineNumber": 33
+          },
+          {
+            "text": "          ) ||",
+            "lineNumber": 34
+          },
+          {
+            "text": "          (",
+            "lineNumber": 35
+          },
+          {
+            "text": "            github.event_name == 'issue_comment' &amp;&amp;",
+            "lineNumber": 36
+          },
+          {
+            "text": "            (",
+            "lineNumber": 37
+          },
+          {
+            "text": "              github.event.comment.body == 'recheck' ||",
+            "lineNumber": 38
+          },
+          {
+            "text": "              github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'",
+            "lineNumber": 39
+          },
+          {
+            "text": "            )",
+            "lineNumber": 40
+          },
+          {
+            "text": "          )",
+            "lineNumber": 41
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 42
+          },
+          {
+            "text": "          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}",
+            "lineNumber": 43
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 44
+          },
+          {
+            "text": "          path-to-document: https://github.com/zapabob/codex/blob/main/docs/CLA.md",
+            "lineNumber": 45
+          },
+          {
+            "text": "          path-to-signatures: signatures/cla.json",
+            "lineNumber": 46
+          },
+          {
+            "text": "          branch: cla-signatures",
+            "lineNumber": 47
+          },
+          {
+            "text": "          allowlist: codex,dependabot,dependabot[bot],github-actions[bot]",
+            "lineNumber": 48
+          }
+        ]
+      },
+      "score": 0.25045689940452576
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 234
+          },
+          "endPosition": {
+            "line": 277
+          }
+        },
+        "contents": "        uses: actions/cache/restore@v5\n        with:\n          path: |\n            /var/cache/apt\n          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1\n\n      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}\n        name: Install musl build tools\n        env:\n          DEBIAN_FRONTEND: noninteractive\n        shell: bash\n        run: |\n          set -euo pipefail\n          sudo apt-get -y update -o Acquire::Retries=3\n          sudo apt-get -y install --no-install-recommends musl-tools pkg-config\n\n      - name: Install cargo-chef\n        if: ${{ matrix.profile == 'release' }}\n        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: cargo-chef\n          version: 0.1.71\n\n      - name: Pre-warm dependency cache (cargo-chef)\n        if: ${{ matrix.profile == 'release' }}\n        shell: bash\n        run: |\n          set -euo pipefail\n          RECIPE=\"${RUNNER_TEMP}/chef-recipe.json\"\n          cargo chef prepare --recipe-path \"$RECIPE\"\n          cargo chef cook --recipe-path \"$RECIPE\" --target ${{ matrix.target }} --release --all-features\n\n      - name: cargo clippy\n        id: clippy\n        run: cargo clippy --target ${{ matrix.target }} --all-features --tests --profile ${{ matrix.profile }} -- -D warnings\n\n      # Running &#96;cargo build&#96; from the workspace root builds the workspace using\n      # the union of all features from third-party crates. This can mask errors\n      # where individual crates have underspecified features. To avoid this, we\n      # run &#96;cargo check&#96; for each crate individually, though because this is\n      # slower, we only do this for the x86_64-unknown-linux-gnu target.\n      - name: cargo check individual crates\n        id: cargo_check_all_crates",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        uses: actions/cache/restore@v5",
+            "lineNumber": 235
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 236
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 237
+          },
+          {
+            "text": "            /var/cache/apt",
+            "lineNumber": 238
+          },
+          {
+            "text": "          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}",
+            "lineNumber": 241
+          },
+          {
+            "text": "        name: Install musl build tools",
+            "lineNumber": 242
+          },
+          {
+            "text": "        env:",
+            "lineNumber": 243
+          },
+          {
+            "text": "          DEBIAN_FRONTEND: noninteractive",
+            "lineNumber": 244
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 245
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 246
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 247
+          },
+          {
+            "text": "          sudo apt-get -y update -o Acquire::Retries=3",
+            "lineNumber": 248
+          },
+          {
+            "text": "          sudo apt-get -y install --no-install-recommends musl-tools pkg-config",
+            "lineNumber": 249
+          },
+          {
+            "lineNumber": 250
+          },
+          {
+            "text": "      - name: Install cargo-chef",
+            "lineNumber": 251
+          },
+          {
+            "text": "        if: ${{ matrix.profile == 'release' }}",
+            "lineNumber": 252
+          },
+          {
+            "text": "        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 253
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 254
+          },
+          {
+            "text": "          tool: cargo-chef",
+            "lineNumber": 255
+          },
+          {
+            "text": "          version: 0.1.71",
+            "lineNumber": 256
+          },
+          {
+            "lineNumber": 257
+          },
+          {
+            "text": "      - name: Pre-warm dependency cache (cargo-chef)",
+            "lineNumber": 258
+          },
+          {
+            "text": "        if: ${{ matrix.profile == 'release' }}",
+            "lineNumber": 259
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 260
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 261
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 262
+          },
+          {
+            "text": "          RECIPE=\"${RUNNER_TEMP}/chef-recipe.json\"",
+            "lineNumber": 263
+          },
+          {
+            "text": "          cargo chef prepare --recipe-path \"$RECIPE\"",
+            "lineNumber": 264
+          },
+          {
+            "text": "          cargo chef cook --recipe-path \"$RECIPE\" --target ${{ matrix.target }} --release --all-features",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "      - name: cargo clippy",
+            "lineNumber": 267
+          },
+          {
+            "text": "        id: clippy",
+            "lineNumber": 268
+          },
+          {
+            "text": "        run: cargo clippy --target ${{ matrix.target }} --all-features --tests --profile ${{ matrix.profile }} -- -D warnings",
+            "lineNumber": 269
+          },
+          {
+            "lineNumber": 270
+          },
+          {
+            "text": "      # Running &#96;cargo build&#96; from the workspace root builds the workspace using",
+            "lineNumber": 271
+          },
+          {
+            "text": "      # the union of all features from third-party crates. This can mask errors",
+            "lineNumber": 272
+          },
+          {
+            "text": "      # where individual crates have underspecified features. To avoid this, we",
+            "lineNumber": 273
+          },
+          {
+            "text": "      # run &#96;cargo check&#96; for each crate individually, though because this is",
+            "lineNumber": 274
+          },
+          {
+            "text": "      # slower, we only do this for the x86_64-unknown-linux-gnu target.",
+            "lineNumber": 275
+          },
+          {
+            "text": "      - name: cargo check individual crates",
+            "lineNumber": 276
+          },
+          {
+            "text": "        id: cargo_check_all_crates",
+            "lineNumber": 277
+          }
+        ]
+      },
+      "score": 0.24662019312381744
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\codespell.yml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 27
+          }
+        },
+        "contents": "# Codespell configuration is within .codespellrc\n---\nname: Codespell\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\npermissions:\n  contents: read\n\njobs:\n  codespell:\n    name: Check for spelling errors\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v6\n      - name: Annotate locations with typos\n        uses: codespell-project/codespell-problem-matcher@9ba2c57125d4908eade4308f32c4ff814c184633 # v1\n      - name: Codespell\n        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2\n        with:\n          ignore_words_file: .codespellignore",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Codespell configuration is within .codespellrc",
+            "lineNumber": 1
+          },
+          {
+            "text": "---",
+            "lineNumber": 2
+          },
+          {
+            "text": "name: Codespell",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "on:",
+            "lineNumber": 5
+          },
+          {
+            "text": "  push:",
+            "lineNumber": 6
+          },
+          {
+            "text": "    branches: [main]",
+            "lineNumber": 7
+          },
+          {
+            "text": "  pull_request:",
+            "lineNumber": 8
+          },
+          {
+            "text": "    branches: [main]",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "permissions:",
+            "lineNumber": 11
+          },
+          {
+            "text": "  contents: read",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "jobs:",
+            "lineNumber": 14
+          },
+          {
+            "text": "  codespell:",
+            "lineNumber": 15
+          },
+          {
+            "text": "    name: Check for spelling errors",
+            "lineNumber": 16
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 19
+          },
+          {
+            "text": "      - name: Checkout",
+            "lineNumber": 20
+          },
+          {
+            "text": "        uses: actions/checkout@v6",
+            "lineNumber": 21
+          },
+          {
+            "text": "      - name: Annotate locations with typos",
+            "lineNumber": 22
+          },
+          {
+            "text": "        uses: codespell-project/codespell-problem-matcher@9ba2c57125d4908eade4308f32c4ff814c184633 # v1",
+            "lineNumber": 23
+          },
+          {
+            "text": "      - name: Codespell",
+            "lineNumber": 24
+          },
+          {
+            "text": "        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2",
+            "lineNumber": 25
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 26
+          },
+          {
+            "text": "          ignore_words_file: .codespellignore",
+            "lineNumber": 27
+          }
+        ]
+      },
+      "score": 0.24561770260334015
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-labeler.yml",
+        "range": {
+          "startPosition": {
+            "line": 43
+          },
+          "endPosition": {
+            "line": 67
+          }
+        },
+        "contents": "            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.\n            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).\n            2. mcp — Topics involving Model Context Protocol servers/clients.\n            3. mcp-server — Problems related to the codex mcp-server command, where codex runs as an MCP server.\n            4. azure — Problems or requests tied to Azure OpenAI deployments.\n            5. model-behavior — Undesirable LLM behavior: forgetting goals, refusing work, hallucinating environment details, quota misreports, or other reasoning/performance anomalies.\n            6. code-review — Issues related to the code review feature or functionality.\n            7. auth - Problems related to authentication, login, or access tokens.\n            8. codex-exec - Problems related to the \"codex exec\" command or functionality.\n            9. context-management - Problems related to compaction, context windows, or available context reporting.\n            10. custom-model - Problems that involve using custom model providers, local models, or OSS models.\n            11. rate-limits - Problems related to token limits, rate limits, or token usage reporting.\n            12. sandbox - Issues related to local sandbox environments or tool call approvals to override sandbox restrictions.\n            13. tool-calls - Problems related to specific tool call invocations including unexpected errors, failures, or hangs.\n            14. TUI - Problems with the terminal user interface (TUI) including keyboard shortcuts, copy &amp; pasting, menus, or screen update issues.\n\n            Issue number: ${{ github.event.issue.number }}\n\n            Issue title:\n            ${{ github.event.issue.title }}\n\n            Issue body:\n            ${{ github.event.issue.body }}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "            - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.",
+            "lineNumber": 44
+          },
+          {
+            "text": "            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).",
+            "lineNumber": 45
+          },
+          {
+            "text": "            2. mcp — Topics involving Model Context Protocol servers/clients.",
+            "lineNumber": 46
+          },
+          {
+            "text": "            3. mcp-server — Problems related to the codex mcp-server command, where codex runs as an MCP server.",
+            "lineNumber": 47
+          },
+          {
+            "text": "            4. azure — Problems or requests tied to Azure OpenAI deployments.",
+            "lineNumber": 48
+          },
+          {
+            "text": "            5. model-behavior — Undesirable LLM behavior: forgetting goals, refusing work, hallucinating environment details, quota misreports, or other reasoning/performance anomalies.",
+            "lineNumber": 49
+          },
+          {
+            "text": "            6. code-review — Issues related to the code review feature or functionality.",
+            "lineNumber": 50
+          },
+          {
+            "text": "            7. auth - Problems related to authentication, login, or access tokens.",
+            "lineNumber": 51
+          },
+          {
+            "text": "            8. codex-exec - Problems related to the \"codex exec\" command or functionality.",
+            "lineNumber": 52
+          },
+          {
+            "text": "            9. context-management - Problems related to compaction, context windows, or available context reporting.",
+            "lineNumber": 53
+          },
+          {
+            "text": "            10. custom-model - Problems that involve using custom model providers, local models, or OSS models.",
+            "lineNumber": 54
+          },
+          {
+            "text": "            11. rate-limits - Problems related to token limits, rate limits, or token usage reporting.",
+            "lineNumber": 55
+          },
+          {
+            "text": "            12. sandbox - Issues related to local sandbox environments or tool call approvals to override sandbox restrictions.",
+            "lineNumber": 56
+          },
+          {
+            "text": "            13. tool-calls - Problems related to specific tool call invocations including unexpected errors, failures, or hangs.",
+            "lineNumber": 57
+          },
+          {
+            "text": "            14. TUI - Problems with the terminal user interface (TUI) including keyboard shortcuts, copy &amp; pasting, menus, or screen update issues.",
+            "lineNumber": 58
+          },
+          {
+            "lineNumber": 59
+          },
+          {
+            "text": "            Issue number: ${{ github.event.issue.number }}",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "            Issue title:",
+            "lineNumber": 62
+          },
+          {
+            "text": "            ${{ github.event.issue.title }}",
+            "lineNumber": 63
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "text": "            Issue body:",
+            "lineNumber": 65
+          },
+          {
+            "text": "            ${{ github.event.issue.body }}",
+            "lineNumber": 66
+          }
+        ]
+      },
+      "score": 0.24544835090637207
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 275
+          },
+          "endPosition": {
+            "line": 312
+          }
+        },
+        "contents": "      - name: cargo check individual crates\n        id: cargo_check_all_crates\n        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' &amp;&amp; matrix.profile != 'release' }}\n        continue-on-error: true\n        run: |\n          find . -name Cargo.toml -mindepth 2 -maxdepth 2 -print0 \\\n            | xargs -0 -n1 -I{} bash -c 'cd \"$(dirname \"{}\")\" &amp;&amp; cargo check --profile ${{ matrix.profile }}'\n\n      # Save caches explicitly; make non-fatal so cache packaging\n      # never fails the overall job. Only save when key wasn't hit.\n      - name: Save cargo home cache\n        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: |\n            ~/.cargo/bin/\n            ~/.cargo/registry/index/\n            ~/.cargo/registry/cache/\n            ~/.cargo/git/db/\n          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}\n\n      - name: Save sccache cache (fallback)\n        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'\n        continue-on-error: true\n        uses: actions/cache/save@v5\n        with:\n          path: ${{ github.workspace }}/.sccache/\n          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}\n\n      - name: sccache stats\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'\n        continue-on-error: true\n        run: sccache --show-stats || true\n\n      - name: sccache summary\n        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - name: cargo check individual crates",
+            "lineNumber": 276
+          },
+          {
+            "text": "        id: cargo_check_all_crates",
+            "lineNumber": 277
+          },
+          {
+            "text": "        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' &amp;&amp; matrix.profile != 'release' }}",
+            "lineNumber": 278
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 279
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 280
+          },
+          {
+            "text": "          find . -name Cargo.toml -mindepth 2 -maxdepth 2 -print0 \\",
+            "lineNumber": 281
+          },
+          {
+            "text": "            | xargs -0 -n1 -I{} bash -c 'cd \"$(dirname \"{}\")\" &amp;&amp; cargo check --profile ${{ matrix.profile }}'",
+            "lineNumber": 282
+          },
+          {
+            "lineNumber": 283
+          },
+          {
+            "text": "      # Save caches explicitly; make non-fatal so cache packaging",
+            "lineNumber": 284
+          },
+          {
+            "text": "      # never fails the overall job. Only save when key wasn't hit.",
+            "lineNumber": 285
+          },
+          {
+            "text": "      - name: Save cargo home cache",
+            "lineNumber": 286
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; steps.cache_cargo_home_restore.outputs.cache-hit != 'true'",
+            "lineNumber": 287
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 288
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 289
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 290
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 291
+          },
+          {
+            "text": "            ~/.cargo/bin/",
+            "lineNumber": 292
+          },
+          {
+            "text": "            ~/.cargo/registry/index/",
+            "lineNumber": 293
+          },
+          {
+            "text": "            ~/.cargo/registry/cache/",
+            "lineNumber": 294
+          },
+          {
+            "text": "            ~/.cargo/git/db/",
+            "lineNumber": 295
+          },
+          {
+            "text": "          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}",
+            "lineNumber": 296
+          },
+          {
+            "lineNumber": 297
+          },
+          {
+            "text": "      - name: Save sccache cache (fallback)",
+            "lineNumber": 298
+          },
+          {
+            "text": "        if: always() &amp;&amp; !cancelled() &amp;&amp; env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true'",
+            "lineNumber": 299
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 300
+          },
+          {
+            "text": "        uses: actions/cache/save@v5",
+            "lineNumber": 301
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 302
+          },
+          {
+            "text": "          path: ${{ github.workspace }}/.sccache/",
+            "lineNumber": 303
+          },
+          {
+            "text": "          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}",
+            "lineNumber": 304
+          },
+          {
+            "lineNumber": 305
+          },
+          {
+            "text": "      - name: sccache stats",
+            "lineNumber": 306
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 307
+          },
+          {
+            "text": "        continue-on-error: true",
+            "lineNumber": 308
+          },
+          {
+            "text": "        run: sccache --show-stats || true",
+            "lineNumber": 309
+          },
+          {
+            "lineNumber": 310
+          },
+          {
+            "text": "      - name: sccache summary",
+            "lineNumber": 311
+          },
+          {
+            "text": "        if: always() &amp;&amp; env.USE_SCCACHE == 'true'",
+            "lineNumber": 312
+          }
+        ]
+      },
+      "score": 0.23592090606689453
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-labeler.yml",
+        "range": {
+          "startPosition": {
+            "line": 98
+          },
+          "endPosition": {
+            "line": 130
+          }
+        },
+        "contents": "    steps:\n      - name: Apply labels\n        run: |\n          json=${CODEX_OUTPUT//$'\\r'/}\n          if [ -z \"$json\" ]; then\n            echo \"Codex produced no output. Skipping label application.\"\n            exit 0\n          fi\n\n          if ! printf '%s' \"$json\" | jq -e 'type == \"object\" and (.labels | type == \"array\")' &gt;/dev/null 2&gt;&amp;1; then\n            echo \"Codex output did not include a labels array. Raw output: $json\"\n            exit 0\n          fi\n\n          labels=$(printf '%s' \"$json\" | jq -r '.labels[] | tostring')\n          if [ -z \"$labels\" ]; then\n            echo \"Codex returned an empty array. Nothing to do.\"\n            exit 0\n          fi\n\n          cmd=(gh issue edit \"$ISSUE_NUMBER\")\n          while IFS= read -r label; do\n            cmd+=(--add-label \"$label\")\n          done &lt;&lt;&lt; \"$labels\"\n\n          \"${cmd[@]}\" || true\n\n      - name: Remove codex-label trigger\n        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label' }}\n        run: |\n          gh issue edit \"$ISSUE_NUMBER\" --remove-label codex-label || true\n          echo \"Attempted to remove label: codex-label\"",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    steps:",
+            "lineNumber": 99
+          },
+          {
+            "text": "      - name: Apply labels",
+            "lineNumber": 100
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 101
+          },
+          {
+            "text": "          json=${CODEX_OUTPUT//$'\\r'/}",
+            "lineNumber": 102
+          },
+          {
+            "text": "          if [ -z \"$json\" ]; then",
+            "lineNumber": 103
+          },
+          {
+            "text": "            echo \"Codex produced no output. Skipping label application.\"",
+            "lineNumber": 104
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 105
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "          if ! printf '%s' \"$json\" | jq -e 'type == \"object\" and (.labels | type == \"array\")' &gt;/dev/null 2&gt;&amp;1; then",
+            "lineNumber": 108
+          },
+          {
+            "text": "            echo \"Codex output did not include a labels array. Raw output: $json\"",
+            "lineNumber": 109
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 110
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112
+          },
+          {
+            "text": "          labels=$(printf '%s' \"$json\" | jq -r '.labels[] | tostring')",
+            "lineNumber": 113
+          },
+          {
+            "text": "          if [ -z \"$labels\" ]; then",
+            "lineNumber": 114
+          },
+          {
+            "text": "            echo \"Codex returned an empty array. Nothing to do.\"",
+            "lineNumber": 115
+          },
+          {
+            "text": "            exit 0",
+            "lineNumber": 116
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "text": "          cmd=(gh issue edit \"$ISSUE_NUMBER\")",
+            "lineNumber": 119
+          },
+          {
+            "text": "          while IFS= read -r label; do",
+            "lineNumber": 120
+          },
+          {
+            "text": "            cmd+=(--add-label \"$label\")",
+            "lineNumber": 121
+          },
+          {
+            "text": "          done &lt;&lt;&lt; \"$labels\"",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "          \"${cmd[@]}\" || true",
+            "lineNumber": 124
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "      - name: Remove codex-label trigger",
+            "lineNumber": 126
+          },
+          {
+            "text": "        if: ${{ always() &amp;&amp; github.event.action == 'labeled' &amp;&amp; github.event.label.name == 'codex-label' }}",
+            "lineNumber": 127
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 128
+          },
+          {
+            "text": "          gh issue edit \"$ISSUE_NUMBER\" --remove-label codex-label || true",
+            "lineNumber": 129
+          },
+          {
+            "text": "          echo \"Attempted to remove label: codex-label\"",
+            "lineNumber": 130
+          }
+        ]
+      },
+      "score": 0.22568799555301666
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\issue-deduplicator.yml",
+        "range": {
+          "startPosition": {
+            "line": 44
+          },
+          "endPosition": {
+            "line": 88,
+            "column": 8
+          }
+        },
+        "contents": "        uses: openai/codex-action@main\n        with:\n          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}\n          allow-users: \"*\"\n          prompt: |\n            You are an assistant that triages new GitHub issues by identifying potential duplicates.\n\n            You will receive the following JSON files located in the current working directory:\n            - &#96;codex-current-issue.json&#96;: JSON object describing the newly created issue (fields: number, title, body).\n            - &#96;codex-existing-issues.json&#96;: JSON array of recent issues (each element includes number, title, body, createdAt).\n\n            Instructions:\n            - Compare the current issue against the existing issues to find up to five that appear to describe the same underlying problem or request.\n            - Focus on the underlying intent and context of each issue—such as reported symptoms, feature requests, reproduction steps, or error messages—rather than relying solely on string similarity or synthetic metrics.\n            - After your analysis, validate your results in 1-2 lines explaining your decision to return the selected matches.\n            - When unsure, prefer returning fewer matches.\n            - Include at most five numbers.\n\n          output-schema: |\n            {\n              \"type\": \"object\",\n              \"properties\": {\n                \"issues\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                \"reason\": { \"type\": \"string\" }\n              },\n              \"required\": [\"issues\", \"reason\"],\n              \"additionalProperties\": false\n            }\n\n  comment-on-issue:\n    name: Comment with potential duplicates\n    needs: gather-duplicates\n    if: ${{ needs.gather-duplicates.result != 'skipped' }}\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      issues: write\n    steps:\n      - name: Comment on issue\n        ",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        uses: openai/codex-action@main",
+            "lineNumber": 45
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 46
+          },
+          {
+            "text": "          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}",
+            "lineNumber": 47
+          },
+          {
+            "text": "          allow-users: \"*\"",
+            "lineNumber": 48
+          },
+          {
+            "text": "          prompt: |",
+            "lineNumber": 49
+          },
+          {
+            "text": "            You are an assistant that triages new GitHub issues by identifying potential duplicates.",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "            You will receive the following JSON files located in the current working directory:",
+            "lineNumber": 52
+          },
+          {
+            "text": "            - &#96;codex-current-issue.json&#96;: JSON object describing the newly created issue (fields: number, title, body).",
+            "lineNumber": 53
+          },
+          {
+            "text": "            - &#96;codex-existing-issues.json&#96;: JSON array of recent issues (each element includes number, title, body, createdAt).",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "            Instructions:",
+            "lineNumber": 56
+          },
+          {
+            "text": "            - Compare the current issue against the existing issues to find up to five that appear to describe the same underlying problem or request.",
+            "lineNumber": 57
+          },
+          {
+            "text": "            - Focus on the underlying intent and context of each issue—such as reported symptoms, feature requests, reproduction steps, or error messages—rather than relying solely on string similarity or synthetic metrics.",
+            "lineNumber": 58
+          },
+          {
+            "text": "            - After your analysis, validate your results in 1-2 lines explaining your decision to return the selected matches.",
+            "lineNumber": 59
+          },
+          {
+            "text": "            - When unsure, prefer returning fewer matches.",
+            "lineNumber": 60
+          },
+          {
+            "text": "            - Include at most five numbers.",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "          output-schema: |",
+            "lineNumber": 63
+          },
+          {
+            "text": "            {",
+            "lineNumber": 64
+          },
+          {
+            "text": "              \"type\": \"object\",",
+            "lineNumber": 65
+          },
+          {
+            "text": "              \"properties\": {",
+            "lineNumber": 66
+          },
+          {
+            "text": "                \"issues\": {",
+            "lineNumber": 67
+          },
+          {
+            "text": "                  \"type\": \"array\",",
+            "lineNumber": 68
+          },
+          {
+            "text": "                  \"items\": {",
+            "lineNumber": 69
+          },
+          {
+            "text": "                    \"type\": \"string\"",
+            "lineNumber": 70
+          },
+          {
+            "text": "                  }",
+            "lineNumber": 71
+          },
+          {
+            "text": "                },",
+            "lineNumber": 72
+          },
+          {
+            "text": "                \"reason\": { \"type\": \"string\" }",
+            "lineNumber": 73
+          },
+          {
+            "text": "              },",
+            "lineNumber": 74
+          },
+          {
+            "text": "              \"required\": [\"issues\", \"reason\"],",
+            "lineNumber": 75
+          },
+          {
+            "text": "              \"additionalProperties\": false",
+            "lineNumber": 76
+          },
+          {
+            "text": "            }",
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "text": "  comment-on-issue:",
+            "lineNumber": 79
+          },
+          {
+            "text": "    name: Comment with potential duplicates",
+            "lineNumber": 80
+          },
+          {
+            "text": "    needs: gather-duplicates",
+            "lineNumber": 81
+          },
+          {
+            "text": "    if: ${{ needs.gather-duplicates.result != 'skipped' }}",
+            "lineNumber": 82
+          },
+          {
+            "text": "    runs-on: ubuntu-latest",
+            "lineNumber": 83
+          },
+          {
+            "text": "    permissions:",
+            "lineNumber": 84
+          },
+          {
+            "text": "      contents: read",
+            "lineNumber": 85
+          },
+          {
+            "text": "      issues: write",
+            "lineNumber": 86
+          },
+          {
+            "text": "    steps:",
+            "lineNumber": 87
+          },
+          {
+            "text": "      - name: Comment on issue",
+            "lineNumber": 88
+          },
+          {
+            "text": "        ",
+            "lineNumber": 89
+          }
+        ]
+      },
+      "score": 0.2250441312789917
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\.github\\workflows\\rust-ci.yml",
+        "range": {
+          "startPosition": {
+            "line": 401
+          },
+          "endPosition": {
+            "line": 455
+          }
+        },
+        "contents": "      - uses: dtolnay/rust-toolchain@1.90\n        with:\n          targets: ${{ matrix.target }}\n\n      - name: Compute lockfile hash\n        id: lockhash\n        working-directory: codex-rs\n        shell: bash\n        run: |\n          set -euo pipefail\n          echo \"hash=$(sha256sum Cargo.lock | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"\n          echo \"toolchain_hash=$(sha256sum rust-toolchain.toml | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"\n\n      - name: Restore cargo home cache\n        id: cache_cargo_home_restore\n        uses: actions/cache/restore@v5\n        with:\n          path: |\n            ~/.cargo/bin/\n            ~/.cargo/registry/index/\n            ~/.cargo/registry/cache/\n            ~/.cargo/git/db/\n          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}\n          restore-keys: |\n            cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-\n\n      - name: Install sccache\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2\n        with:\n          tool: sccache\n          version: 0.7.5\n\n      - name: Configure sccache backend\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        shell: bash\n        run: |\n          set -euo pipefail\n          if [[ -n \"${ACTIONS_CACHE_URL:-}\" &amp;&amp; -n \"${ACTIONS_RUNTIME_TOKEN:-}\" ]]; then\n            echo \"SCCACHE_GHA_ENABLED=true\" &gt;&gt; \"$GITHUB_ENV\"\n            echo \"Using sccache GitHub backend\"\n          else\n            echo \"SCCACHE_GHA_ENABLED=false\" &gt;&gt; \"$GITHUB_ENV\"\n            echo \"SCCACHE_DIR=${{ github.workspace }}/.sccache\" &gt;&gt; \"$GITHUB_ENV\"\n            echo \"Using sccache local disk + actions/cache fallback\"\n          fi\n\n      - name: Enable sccache wrapper\n        if: ${{ env.USE_SCCACHE == 'true' }}\n        shell: bash\n        run: echo \"RUSTC_WRAPPER=sccache\" &gt;&gt; \"$GITHUB_ENV\"\n\n      - name: Restore sccache cache (fallback)\n        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "      - uses: dtolnay/rust-toolchain@1.90",
+            "lineNumber": 402
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 403
+          },
+          {
+            "text": "          targets: ${{ matrix.target }}",
+            "lineNumber": 404
+          },
+          {
+            "lineNumber": 405
+          },
+          {
+            "text": "      - name: Compute lockfile hash",
+            "lineNumber": 406
+          },
+          {
+            "text": "        id: lockhash",
+            "lineNumber": 407
+          },
+          {
+            "text": "        working-directory: codex-rs",
+            "lineNumber": 408
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 409
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 410
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 411
+          },
+          {
+            "text": "          echo \"hash=$(sha256sum Cargo.lock | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 412
+          },
+          {
+            "text": "          echo \"toolchain_hash=$(sha256sum rust-toolchain.toml | cut -d' ' -f1)\" &gt;&gt; \"$GITHUB_OUTPUT\"",
+            "lineNumber": 413
+          },
+          {
+            "lineNumber": 414
+          },
+          {
+            "text": "      - name: Restore cargo home cache",
+            "lineNumber": 415
+          },
+          {
+            "text": "        id: cache_cargo_home_restore",
+            "lineNumber": 416
+          },
+          {
+            "text": "        uses: actions/cache/restore@v5",
+            "lineNumber": 417
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 418
+          },
+          {
+            "text": "          path: |",
+            "lineNumber": 419
+          },
+          {
+            "text": "            ~/.cargo/bin/",
+            "lineNumber": 420
+          },
+          {
+            "text": "            ~/.cargo/registry/index/",
+            "lineNumber": 421
+          },
+          {
+            "text": "            ~/.cargo/registry/cache/",
+            "lineNumber": 422
+          },
+          {
+            "text": "            ~/.cargo/git/db/",
+            "lineNumber": 423
+          },
+          {
+            "text": "          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}",
+            "lineNumber": 424
+          },
+          {
+            "text": "          restore-keys: |",
+            "lineNumber": 425
+          },
+          {
+            "text": "            cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-",
+            "lineNumber": 426
+          },
+          {
+            "lineNumber": 427
+          },
+          {
+            "text": "      - name: Install sccache",
+            "lineNumber": 428
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 429
+          },
+          {
+            "text": "        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2",
+            "lineNumber": 430
+          },
+          {
+            "text": "        with:",
+            "lineNumber": 431
+          },
+          {
+            "text": "          tool: sccache",
+            "lineNumber": 432
+          },
+          {
+            "text": "          version: 0.7.5",
+            "lineNumber": 433
+          },
+          {
+            "lineNumber": 434
+          },
+          {
+            "text": "      - name: Configure sccache backend",
+            "lineNumber": 435
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 436
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 437
+          },
+          {
+            "text": "        run: |",
+            "lineNumber": 438
+          },
+          {
+            "text": "          set -euo pipefail",
+            "lineNumber": 439
+          },
+          {
+            "text": "          if [[ -n \"${ACTIONS_CACHE_URL:-}\" &amp;&amp; -n \"${ACTIONS_RUNTIME_TOKEN:-}\" ]]; then",
+            "lineNumber": 440
+          },
+          {
+            "text": "            echo \"SCCACHE_GHA_ENABLED=true\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 441
+          },
+          {
+            "text": "            echo \"Using sccache GitHub backend\"",
+            "lineNumber": 442
+          },
+          {
+            "text": "          else",
+            "lineNumber": 443
+          },
+          {
+            "text": "            echo \"SCCACHE_GHA_ENABLED=false\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 444
+          },
+          {
+            "text": "            echo \"SCCACHE_DIR=${{ github.workspace }}/.sccache\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 445
+          },
+          {
+            "text": "            echo \"Using sccache local disk + actions/cache fallback\"",
+            "lineNumber": 446
+          },
+          {
+            "text": "          fi",
+            "lineNumber": 447
+          },
+          {
+            "lineNumber": 448
+          },
+          {
+            "text": "      - name: Enable sccache wrapper",
+            "lineNumber": 449
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' }}",
+            "lineNumber": 450
+          },
+          {
+            "text": "        shell: bash",
+            "lineNumber": 451
+          },
+          {
+            "text": "        run: echo \"RUSTC_WRAPPER=sccache\" &gt;&gt; \"$GITHUB_ENV\"",
+            "lineNumber": 452
+          },
+          {
+            "lineNumber": 453
+          },
+          {
+            "text": "      - name: Restore sccache cache (fallback)",
+            "lineNumber": 454
+          },
+          {
+            "text": "        if: ${{ env.USE_SCCACHE == 'true' &amp;&amp; env.SCCACHE_GHA_ENABLED != 'true' }}",
+            "lineNumber": 455
+          }
+        ]
+      },
+      "score": 0.21776074171066284
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+画像から、複数のCI/CDワークフローが失敗していることが確認できました。計画を作成する前に、状況を確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question">
+<details>
+<summary>Tool use: **ask_question**</summary>
+
+
+Parameters:
+
+```json
+{
+  "questions": [
+    {
+      "id": "ci_failure_scope",
+      "prompt": "どのCI/CDワークフローの失敗を優先的に修正しますか？画像から確認できる失敗は：cargo-deny、ci、AI Kernel Modules CI、Codespell、Sub-Agent &amp; Deep Research CI、rust-ci（進行中）、sdk（進行中）です。",
+      "options": [
+        {
+          "id": "all",
+          "label": "すべての失敗を修正（推奨）"
+        },
+        {
+          "id": "rust_related",
+          "label": "Rust関連のみ（rust-ci、cargo-deny、Sub-Agent CI）"
+        },
+        {
+          "id": "npm_publication",
+          "label": "npm公開に必要なもののみ（ci、sdk）"
+        },
+        {
+          "id": "specific",
+          "label": "特定のワークフローのみ（後で指定）"
+        }
+      ]
+    },
+    {
+      "id": "error_details",
+      "prompt": "CIの失敗ログで具体的なエラーメッセージを確認できますか？特に&#96;HashSet&#96;エラーやその他のコンパイルエラーが発生していますか？",
+      "options": [
+        {
+          "id": "yes",
+          "label": "はい、エラーメッセージを確認できる"
+        },
+        {
+          "id": "no",
+          "label": "いいえ、ログを確認していない"
+        },
+        {
+          "id": "hashset_error",
+          "label": "HashSetエラーが発生している（ghost_commits.rs:776）"
+        }
+      ]
+    }
+  ]
+}
+```
+Additional data:
+
+```json
+{
+  "status": "submitted",
+  "currentSelections": {
+    "ci_failure_scope": [
+      "all"
+    ],
+    "error_details": [
+      "yes"
+    ]
+  }
+}
+```
+Result:
+
+```json
+{
+  "answers": [
+    {
+      "questionId": "ci_failure_scope",
+      "selectedOptionIds": [
+        "all"
+      ]
+    },
+    {
+      "questionId": "error_details",
+      "selectedOptionIds": [
+        "yes"
+      ]
+    }
+  ]
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+すべての失敗を修正する計画を作成します。エラーメッセージを確認できるとのことなので、包括的な修正計画を作成します。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\.github\workflows\cargo-deny.yml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\.github\workflows\ci.yml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\.github\workflows\sdk.yml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "HashSet",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs",
+  "outputMode": "count",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "HashSet",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs",
+    "outputMode": "count",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "count": {
+          "counts": [
+            {
+              "file": "codex-rs\\app-server\\src\\codex_message_processor.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\cloud-tasks\\src\\app.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\orchestration\\auto_orchestrator.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\core\\src\\ai_orchestrator.rs",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\autonomous_dispatcher.rs",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\multi_agent_evaluator.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\executor.rs",
+              "count": 6
+            },
+            {
+              "file": "codex-rs\\supervisor\\src\\autonomous_orchestrator.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\core\\src\\orchestration\\task_analyzer.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\cli\\src\\pair_program_cmd.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\tui\\src\\bottom_pane\\command_popup.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\tui\\src\\chatwidget.rs",
+              "count": 5
+            },
+            {
+              "file": "codex-rs\\core\\src\\qc\\sandboxed_execution.rs",
+              "count": 10
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\chatwidget.rs",
+              "count": 5
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\setup_orchestrator.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\setup_main_win.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\audit.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\windows-sandbox-rs\\src\\allow.rs",
+              "count": 7
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\resume_picker.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\chatwidget\\tests.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\bottom_pane\\command_popup.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\tui\\src\\resume_picker.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\tui\\src\\chatwidget\\tests.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\exec-server\\tests\\common\\lib.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\tests\\suite\\grep_files.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\tests\\common\\responses.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\core\\src\\unified_exec\\session_manager.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\unified_exec\\mod.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\tools\\spec.rs",
+              "count": 5
+            },
+            {
+              "file": "codex-rs\\core\\src\\skills\\loader.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\models_manager\\manager.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\mcp_connection_manager.rs",
+              "count": 15
+            },
+            {
+              "file": "codex-rs\\core\\src\\git_info.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\exec_env.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\context_manager\\normalize.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\core\\src\\client_common.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\app-server-protocol\\src\\export.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\codex_tui_build.txt",
+              "count": 7
+            },
+            {
+              "file": "codex-rs\\_docs\\2025-12-23_FixTuiCompilationAndSlashCommands.md",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\tui2\\src\\bottom_pane\\prompt_args.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\skills\\injection.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\mcp-registry\\src\\lib.rs",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\deep-research\\src\\contradiction.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\security_monitor.rs",
+              "count": 5
+            },
+            {
+              "file": "codex-rs\\core\\src\\malware_detector.rs",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\core\\src\\macos_virtual_os.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\core\\src\\git4d_accelerated.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\core\\src\\conversation_history.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\container_manager.rs",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\core\\src\\ai_tool_manager.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\core\\src\\agent-runtime\\windows-runtime.rs",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\clippy.toml",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\_docs\\2025-12-08_RustCUDA_Git4D高速化_VRAR対応.md",
+              "count": 1
+            },
+            {
+              "file": "codex-rs\\utils\\readiness\\src\\lib.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\execpolicy-legacy\\src\\program.rs",
+              "count": 3
+            },
+            {
+              "file": "codex-rs\\core\\src\\custom_prompts.rs",
+              "count": 4
+            },
+            {
+              "file": "codex-rs\\codex-api\\src\\sse\\chat.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\cli\\src\\debug_sandbox\\seatbelt.rs",
+              "count": 2
+            },
+            {
+              "file": "codex-rs\\cli\\src\\debug_sandbox\\pid_tracker.rs",
+              "count": 11
+            },
+            {
+              "file": "codex-rs\\tui\\src\\bottom_pane\\prompt_args.rs",
+              "count": 2
+            }
+          ],
+          "totalFiles": 60,
+          "totalMatches": 193
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+包括的な修正計画を作成します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="create_plan">
+<details>
+<summary>Tool use: **create_plan**</summary>
+
+
+Parameters:
+
+```json
+{
+  "plan": "# CI/CD全ワークフロー失敗修正計画\n\n## 現状分析\n\n画像から確認できる失敗ワークフロー：\n- &#96;cargo-deny&#96; #221: 失敗（1m 4s）\n- &#96;ci&#96; #721: 失敗（31s）\n- &#96;AI Kernel Modules CI&#96; #330: 失敗（36s）\n- &#96;rust-ci&#96; #721: 進行中\n- &#96;Codespell&#96; #717: 失敗（32s）\n- &#96;Sub-Agent &amp; Deep Research CI&#96; #384: 失敗（2m 55s）\n- &#96;sdk&#96; #723: 進行中\n\nすべて「feat: Prepare for npm publication of @zapabob/codex」コミット（ca11aed）で実行。\n\n## 問題の特定と修正方針\n\n### 1. HashSet/BTreeSet問題の確認と修正\n\n**現状**:\n- &#96;codex-rs/utils/git/src/ghost_commits.rs&#96;はローカルで&#96;BTreeSet&#96;に修正済み\n- コードベース全体で193箇所の&#96;HashSet&#96;使用が存在\n- &#96;clippy.toml&#96;で&#96;HashSet&#96;が禁止されている\n\n**修正方針**:\n- CIで実際にエラーになっている箇所を優先的に修正\n- &#96;ghost_commits.rs&#96;の修正がコミット・プッシュされているか確認\n- &#96;rust-ci&#96;のClippyチェックでエラーになる&#96;HashSet&#96;使用箇所を特定して修正\n\n**対象ファイル（優先度順）**:\n1. &#96;codex-rs/utils/git/src/ghost_commits.rs&#96; - 既に修正済みだが、コミット確認が必要\n2. CIでエラーになっている他のファイル（エラーログから特定）\n\n### 2. cargo-denyワークフローの修正\n\n**ファイル**: [.github/workflows/cargo-deny.yml](.github/workflows/cargo-deny.yml)\n\n**確認事項**:\n- &#96;cargo-deny&#96;が依存関係やライセンスの問題を検出している可能性\n- &#96;deny.toml&#96;の設定を確認\n- エラーログから具体的な問題を特定\n\n**修正手順**:\n1. CIログで具体的なエラーを確認\n2. 依存関係の問題なら&#96;deny.toml&#96;を更新\n3. ライセンス問題なら&#96;allow&#96;リストに追加\n\n### 3. ciワークフローの修正\n\n**ファイル**: [.github/workflows/ci.yml](.github/workflows/ci.yml)\n\n**確認事項**:\n- npmパッケージのステージング処理（&#96;stage_npm_packages.py&#96;）\n- READMEのASCIIチェック\n- Prettierフォーマットチェック\n- MCP統合テスト\n\n**修正手順**:\n1. 各ステップのエラーログを確認\n2. フォーマット問題なら&#96;pnpm run format:fix&#96;を実行\n3. スクリプトエラーなら修正\n\n### 4. rust-ciワークフローの修正\n\n**ファイル**: [.github/workflows/rust-ci.yml](.github/workflows/rust-ci.yml)\n\n**確認事項**:\n- &#96;cargo clippy -- -D warnings&#96;で&#96;HashSet&#96;エラーが発生している可能性\n- &#96;cargo fmt --check&#96;でフォーマットエラー\n- &#96;cargo check&#96;でコンパイルエラー\n\n**修正手順**:\n1. Clippyエラーで&#96;HashSet&#96;使用箇所を特定\n2. 優先度の高い箇所から&#96;BTreeSet&#96;に変更\n3. フォーマットエラーがあれば&#96;cargo fmt&#96;を実行\n\n### 5. Sub-Agent &amp; Deep Research CIの修正\n\n**ファイル**: [.github/workflows/subagent-ci.yml](.github/workflows/subagent-ci.yml)\n\n**確認事項**:\n- Rustビルド・テストエラー\n- Clippy/Rustfmtチェック\n- ドキュメント検証\n\n**修正手順**:\n1. ビルドエラーを確認\n2. テスト失敗の原因を特定\n3. 必要に応じてテストコードを修正\n\n### 6. Codespellワークフローの修正\n\n**ファイル**: [.github/workflows/codespell.yml](.github/workflows/codespell.yml)\n\n**確認事項**:\n- スペルチェックエラー\n- 辞書ファイルの更新が必要な可能性\n\n**修正手順**:\n1. エラーログでスペルミスを確認\n2. 辞書に追加するか、コードを修正\n\n### 7. AI Kernel Modules CIの修正\n\n**ファイル**: [.github/workflows/kernel-ci.yml](.github/workflows/kernel-ci.yml)\n\n**確認事項**:\n- カーネルモジュール関連のビルドエラー\n- テスト失敗\n\n**修正手順**:\n1. エラーログを確認\n2. ビルド設定やテストコードを修正\n\n### 8. sdkワークフローの修正\n\n**ファイル**: [.github/workflows/sdk.yml](.github/workflows/sdk.yml)\n\n**確認事項**:\n- TypeScript SDKのビルドエラー\n- Lintエラー\n- テスト失敗\n\n**修正手順**:\n1. ビルドエラーを確認\n2. Lintルール違反を修正\n3. テスト失敗の原因を特定\n\n## 実装手順\n\n### Phase 1: 現状確認とエラー特定\n1. 各ワークフローのCIログを確認して具体的なエラーメッセージを取得\n2. &#96;ghost_commits.rs&#96;の修正がコミット・プッシュされているか確認\n3. Gitの状態を確認（未コミットの変更があるか）\n\n### Phase 2: 優先度の高い修正\n1. **rust-ci**: Clippyでエラーになる&#96;HashSet&#96;使用箇所を&#96;BTreeSet&#96;に変更\n   - エラーログから対象ファイルを特定\n   - 各ファイルで&#96;use std::collections::HashSet;&#96; → &#96;use std::collections::BTreeSet;&#96;\n   - 型アノテーションとインスタンス作成を修正\n2. **ci**: フォーマットエラーがあれば修正\n3. **cargo-deny**: 依存関係・ライセンス問題を解決\n\n### Phase 3: その他のワークフロー修正\n1. **Sub-Agent CI**: ビルド・テストエラーを修正\n2. **Codespell**: スペルミスを修正\n3. **AI Kernel Modules CI**: ビルドエラーを修正\n4. **sdk**: TypeScript SDKのエラーを修正\n\n### Phase 4: 検証とコミット\n1. ローカルで&#96;cargo clippy --all-features --tests -- -D warnings&#96;を実行\n2. ローカルで&#96;cargo fmt --check&#96;を実行\n3. 修正をコミット・プッシュ\n4. CIの再実行を確認\n\n## 注意事項\n\n- &#96;HashSet&#96;→&#96;BTreeSet&#96;の変更は、順序が重要な場合は動作に影響する可能性がある\n- &#96;BTreeSet&#96;は&#96;HashSet&#96;より挿入・検索が遅いが、順序が保証される\n- テストコードの&#96;HashSet&#96;使用も修正が必要（&#96;clippy.toml&#96;の設定により）\n- CI環境のキャッシュが古い可能性があるため、必要に応じてキャッシュをクリア\n\n## 成功基準\n\n- すべてのCI/CDワークフローが成功する\n- &#96;cargo clippy&#96;で警告なし\n- &#96;cargo fmt --check&#96;がパスする\n- npmパッケージのステージングが成功する",
+  "name": "CI/CD全ワークフロー失敗修正計画",
+  "todos": [
+    {
+      "content": "ghost_commits.rsのBTreeSet修正がコミット・プッシュされているか確認",
+      "status": "pending",
+      "id": "verify_ghost_commits_commit"
+    },
+    {
+      "content": "各ワークフローのCIログを確認して具体的なエラーメッセージを取得（rust-ci、cargo-deny、ci、Sub-Agent CI、Codespell、AI Kernel Modules CI、sdk）",
+      "status": "pending",
+      "id": "analyze_ci_logs"
+    },
+    {
+      "content": "CIでエラーになっているHashSet使用箇所をBTreeSetに変更（優先度順）",
+      "status": "pending",
+      "id": "fix_hashset_errors"
+    },
+    {
+      "content": "ciワークフローのエラーを修正（フォーマット、npmステージング、MCPテスト）",
+      "status": "pending",
+      "id": "fix_ci_workflow"
+    },
+    {
+      "content": "cargo-denyワークフローの依存関係・ライセンス問題を解決",
+      "status": "pending",
+      "id": "fix_cargo_deny"
+    },
+    {
+      "content": "Sub-Agent &amp; Deep Research CIのビルド・テストエラーを修正",
+      "status": "pending",
+      "id": "fix_subagent_ci"
+    },
+    {
+      "content": "Codespellワークフローのスペルミスを修正",
+      "status": "pending",
+      "id": "fix_codespell"
+    },
+    {
+      "content": "AI Kernel Modules CIのビルドエラーを修正",
+      "status": "pending",
+      "id": "fix_kernel_ci"
+    },
+    {
+      "content": "sdkワークフローのTypeScriptビルド・Lint・テストエラーを修正",
+      "status": "pending",
+      "id": "fix_sdk_workflow"
+    },
+    {
+      "content": "ローカルでcargo clippyとcargo fmt --checkを実行して検証",
+      "status": "pending",
+      "id": "verify_locally"
+    },
+    {
+      "content": "修正をコミット・プッシュしてCIの再実行を確認",
+      "status": "pending",
+      "id": "commit_and_push"
+    }
+  ],
+  "overview": "zapabob/codexのCI/CDワークフロー（cargo-deny、ci、AI Kernel Modules CI、Codespell、Sub-Agent &amp; Deep Research CI、rust-ci、sdk）の失敗を修正し、npm公開準備を完了させる。"
+}
+```
+Additional data:
+
+```json
+{
+  "reviewData": {
+    "status": "Done",
+    "selectedOption": "edit",
+    "isShowingInput": false
+  },
+  "planUri": "file:///c%3A/Users/downl/Desktop/codex-main/.cursor/plans/ci_cd%E5%85%A8%E3%83%AF%E3%83%BC%E3%82%AF%E3%83%95%E3%83%AD%E3%83%BC%E5%A4%B1%E6%95%97%E4%BF%AE%E6%AD%A3%E8%A8%88%E7%94%BB_b28b993d.plan.md",
+  "hasOpenedEditor": true
+}
+```
+Result:
+
+```json
+{
+  "rejected": {}
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+計画に沿って実装を開始。最初のTo-doから進めます。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\.cursor\plans\ci_cd全ワークフロー失敗修正計画_b28b993d.plan.md</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "HashSet|BTreeSet",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "HashSet|BTreeSet",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\utils\\git\\src\\ghost_commits.rs",
+              "matches": [
+                {
+                  "lineNumber": 2,
+                  "content": "use std::collections::BTreeSet;"
+                },
+                {
+                  "lineNumber": 776,
+                  "content": "    let mut seen = BTreeSet::new();"
+                },
+                {
+                  "lineNumber": 827,
+                  "content": "    let preserved_file_set: BTreeSet&lt;PathBuf&gt; = preserved_files.iter().cloned().collect();"
+                },
+                {
+                  "lineNumber": 850,
+                  "content": "    preserved_files: &amp;BTreeSet&lt;PathBuf&gt;,"
+                }
+              ]
+            }
+          ],
+          "totalLines": 4,
+          "totalMatchedLines": 4
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "What is the git commit history for ghost_commits.rs regarding HashSet to BTreeSet changes?",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\_docs\\2025-12-29_CICD失敗修正{main}.md",
+        "range": {
+          "startPosition": {
+            "line": 91
+          },
+          "endPosition": {
+            "line": 147
+          }
+        },
+        "contents": "**修正方法**: &#96;--config imports_granularity=Item&#96;を削除\n\n### 6. subagent-ci.ymlの更新\n\n**ファイル**: &#96;.github/workflows/subagent-ci.yml&#96;\n\n**修正内容**:\n- &#96;actions/checkout@v5&#96;を&#96;v6&#96;に更新（8箇所）\n- ドキュメント検証テストから存在しない文字列チェック（&#96;zapabob/codex Enhanced Features&#96;）を削除\n\n### 7. rustfmt.tomlとjustfileのimports_granularity設定削除\n\n**ファイル**: &#96;codex-rs/rustfmt.toml&#96;, &#96;codex-rs/justfile&#96;, &#96;codex-rs/mcp-types/generate_mcp_types.py&#96;\n\n**問題**: &#96;imports_granularity = \"Item\"&#96;はnightly版でのみ利用可能だが、stable版（1.90.0）を使用している\n\n**修正方法**:\n- &#96;rustfmt.toml&#96;: &#96;imports_granularity = \"Item\"&#96;をコメントアウト\n- &#96;justfile&#96;: &#96;cargo fmt -- --config imports_granularity=Item&#96;を&#96;cargo fmt&#96;に変更\n- &#96;generate_mcp_types.py&#96;: &#96;--config imports_granularity=Item&#96;を削除\n\n### 8. codex-gitクレートのHashSetをBTreeSetに変更\n\n**ファイル**: &#96;codex-rs/utils/git/src/ghost_commits.rs&#96;\n\n**問題**: Clippyの&#96;disallowed_types&#96;ルールで&#96;HashSet&#96;の使用が禁止されている（&#96;BTreeSet&#96;を使用すべき）\n\n**修正箇所**:\n- Line 2: &#96;use std::collections::HashSet;&#96; → &#96;use std::collections::BTreeSet;&#96;\n- Line 776: &#96;HashSet::new()&#96; → &#96;BTreeSet::new()&#96;\n- Line 827: &#96;HashSet&lt;PathBuf&gt;&#96; → &#96;BTreeSet&lt;PathBuf&gt;&#96;\n- Line 850: &#96;&amp;HashSet&lt;PathBuf&gt;&#96; → &#96;&amp;BTreeSet&lt;PathBuf&gt;&#96;\n\n---\n\n## 検証結果\n\n### cargo check\n- ✅ 成功（警告のみ、エラーなし）\n\n### cargo fmt --check\n- ✅ 成功（警告のみ、エラーなし）\n\n### cargo test -p codex-backend-client\n- ✅ &#96;unified_diff_falls_back_to_pr_output_diff&#96;: passed\n- ✅ &#96;assistant_error_message_combines_code_and_message&#96;: passed\n- ⚠️ その他のテストは&#96;task_details_with_diff.json&#96;の問題（修正範囲外）\n\n---\n\n## 完了したタスク\n\n1. ✅ &#96;integration_web_search.rs&#96;のunsafe関数呼び出しを修正（5箇所）\n2. ✅ &#96;cli/src/main.rs&#96;のパターンマッチングを修正\n3. ✅ &#96;task_details_with_error.json&#96;の構造を修正",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "**修正方法**: &#96;--config imports_granularity=Item&#96;を削除",
+            "lineNumber": 93
+          },
+          {
+            "lineNumber": 94
+          },
+          {
+            "text": "### 6. subagent-ci.ymlの更新",
+            "lineNumber": 95
+          },
+          {
+            "lineNumber": 96
+          },
+          {
+            "text": "**ファイル**: &#96;.github/workflows/subagent-ci.yml&#96;",
+            "lineNumber": 97
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "text": "**修正内容**:",
+            "lineNumber": 99
+          },
+          {
+            "text": "- &#96;actions/checkout@v5&#96;を&#96;v6&#96;に更新（8箇所）",
+            "lineNumber": 100
+          },
+          {
+            "text": "- ドキュメント検証テストから存在しない文字列チェック（&#96;zapabob/codex Enhanced Features&#96;）を削除",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "### 7. rustfmt.tomlとjustfileのimports_granularity設定削除",
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "text": "**ファイル**: &#96;codex-rs/rustfmt.toml&#96;, &#96;codex-rs/justfile&#96;, &#96;codex-rs/mcp-types/generate_mcp_types.py&#96;",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "**問題**: &#96;imports_granularity = \"Item\"&#96;はnightly版でのみ利用可能だが、stable版（1.90.0）を使用している",
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108
+          },
+          {
+            "text": "**修正方法**:",
+            "lineNumber": 109
+          },
+          {
+            "text": "- &#96;rustfmt.toml&#96;: &#96;imports_granularity = \"Item\"&#96;をコメントアウト",
+            "lineNumber": 110
+          },
+          {
+            "text": "- &#96;justfile&#96;: &#96;cargo fmt -- --config imports_granularity=Item&#96;を&#96;cargo fmt&#96;に変更",
+            "lineNumber": 111
+          },
+          {
+            "text": "- &#96;generate_mcp_types.py&#96;: &#96;--config imports_granularity=Item&#96;を削除",
+            "lineNumber": 112
+          },
+          {
+            "lineNumber": 113
+          },
+          {
+            "text": "### 8. codex-gitクレートのHashSetをBTreeSetに変更",
+            "lineNumber": 114
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "text": "**ファイル**: &#96;codex-rs/utils/git/src/ghost_commits.rs&#96;",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "**問題**: Clippyの&#96;disallowed_types&#96;ルールで&#96;HashSet&#96;の使用が禁止されている（&#96;BTreeSet&#96;を使用すべき）",
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "**修正箇所**:",
+            "lineNumber": 120
+          },
+          {
+            "text": "- Line 2: &#96;use std::collections::HashSet;&#96; → &#96;use std::collections::BTreeSet;&#96;",
+            "lineNumber": 121
+          },
+          {
+            "text": "- Line 776: &#96;HashSet::new()&#96; → &#96;BTreeSet::new()&#96;",
+            "lineNumber": 122
+          },
+          {
+            "text": "- Line 827: &#96;HashSet&lt;PathBuf&gt;&#96; → &#96;BTreeSet&lt;PathBuf&gt;&#96;",
+            "lineNumber": 123
+          },
+          {
+            "text": "- Line 850: &#96;&amp;HashSet&lt;PathBuf&gt;&#96; → &#96;&amp;BTreeSet&lt;PathBuf&gt;&#96;",
+            "lineNumber": 124
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "---",
+            "lineNumber": 126
+          },
+          {
+            "lineNumber": 127
+          },
+          {
+            "text": "## 検証結果",
+            "lineNumber": 128
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "text": "### cargo check",
+            "lineNumber": 130
+          },
+          {
+            "text": "- ✅ 成功（警告のみ、エラーなし）",
+            "lineNumber": 131
+          },
+          {
+            "lineNumber": 132
+          },
+          {
+            "text": "### cargo fmt --check",
+            "lineNumber": 133
+          },
+          {
+            "text": "- ✅ 成功（警告のみ、エラーなし）",
+            "lineNumber": 134
+          },
+          {
+            "lineNumber": 135
+          },
+          {
+            "text": "### cargo test -p codex-backend-client",
+            "lineNumber": 136
+          },
+          {
+            "text": "- ✅ &#96;unified_diff_falls_back_to_pr_output_diff&#96;: passed",
+            "lineNumber": 137
+          },
+          {
+            "text": "- ✅ &#96;assistant_error_message_combines_code_and_message&#96;: passed",
+            "lineNumber": 138
+          },
+          {
+            "text": "- ⚠️ その他のテストは&#96;task_details_with_diff.json&#96;の問題（修正範囲外）",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 140
+          },
+          {
+            "text": "---",
+            "lineNumber": 141
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "text": "## 完了したタスク",
+            "lineNumber": 143
+          },
+          {
+            "lineNumber": 144
+          },
+          {
+            "text": "1. ✅ &#96;integration_web_search.rs&#96;のunsafe関数呼び出しを修正（5箇所）",
+            "lineNumber": 145
+          },
+          {
+            "text": "2. ✅ &#96;cli/src/main.rs&#96;のパターンマッチングを修正",
+            "lineNumber": 146
+          },
+          {
+            "text": "3. ✅ &#96;task_details_with_error.json&#96;の構造を修正",
+            "lineNumber": 147
+          }
+        ]
+      },
+      "score": 0.40353089570999146
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 64,
+            "column": 30
+          }
+        },
+        "contents": "use std::collections::BTreeMap;\nuse std::collections::BTreeSet;\nuse std::ffi::OsString;\nuse std::fs;\nuse std::io;\nuse std::path::Component;\nuse std::path::Path;\nuse std::path::PathBuf;\n\nuse tempfile::Builder;\n\nuse crate::GhostCommit;\nuse crate::GitToolingError;\nuse crate::operations::apply_repo_prefix_to_force_include;\nuse crate::operations::ensure_git_repository;\nuse crate::operations::normalize_relative_path;\nuse crate::operations::repo_subdir;\nuse crate::operations::resolve_head;\nuse crate::operations::resolve_repository_root;\nuse crate::operations::run_git_for_status;\nuse crate::operations::run_git_for_stdout;\nuse crate::operations::run_git_for_stdout_all;\n\n/// Default commit message used for ghost commits when none is provided.\nconst DEFAULT_COMMIT_MESSAGE: &amp;str = \"codex snapshot\";\n/// Default threshold for ignoring large untracked directories.\nconst DEFAULT_IGNORE_LARGE_UNTRACKED_DIRS: i64 = 200;\n/// Default threshold (10 MiB) for excluding large untracked files from ghost snapshots.\nconst DEFAULT_IGNORE_LARGE_UNTRACKED_FILES: i64 = 10 * 1024 * 1024;\n/// Directories that should always be ignored when capturing ghost snapshots,\n/// even if they are not listed in .gitignore.\n///\n/// These are typically large dependency or build trees that are not useful\n/// for undo and can cause snapshots to grow without bound.\nconst DEFAULT_IGNORED_DIR_NAMES: &amp;[&amp;str] = &amp;[\n    \"node_modules\",\n    \".venv\",\n    \"venv\",\n    \"env\",\n    \".env\",\n    \"dist\",\n    \"build\",\n    \".pytest_cache\",\n    \".mypy_cache\",\n    \".cache\",\n    \".tox\",\n    \"__pycache__\",\n];\n\n/// Options to control ghost commit creation.\npub struct CreateGhostCommitOptions&lt;'a&gt; {\n    pub repo_path: &amp;'a Path,\n    pub message: Option&lt;&amp;'a str&gt;,\n    pub force_include: Vec&lt;PathBuf&gt;,\n    pub ghost_snapshot: GhostSnapshotConfig,\n}\n\n/// Options to control ghost commit restoration.\npub struct RestoreGhostCommitOptions&lt;'a&gt; {\n    pub repo_path: &amp;'a Path,\n    pub ghost_snapshot: GhostSnapshotConfig,\n}\n\n#[derive(Debug, Clone, PartialEq, Eq)]\npub struct GhostSnapshotConfig",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use std::collections::BTreeMap;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use std::collections::BTreeSet;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use std::ffi::OsString;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use std::fs;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use std::io;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use std::path::Component;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use std::path::Path;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9
+          },
+          {
+            "text": "use tempfile::Builder;",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "use crate::GhostCommit;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use crate::GitToolingError;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use crate::operations::apply_repo_prefix_to_force_include;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use crate::operations::ensure_git_repository;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use crate::operations::normalize_relative_path;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use crate::operations::repo_subdir;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use crate::operations::resolve_head;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use crate::operations::resolve_repository_root;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use crate::operations::run_git_for_status;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use crate::operations::run_git_for_stdout;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use crate::operations::run_git_for_stdout_all;",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "/// Default commit message used for ghost commits when none is provided.",
+            "lineNumber": 24
+          },
+          {
+            "text": "const DEFAULT_COMMIT_MESSAGE: &amp;str = \"codex snapshot\";",
+            "lineNumber": 25
+          },
+          {
+            "text": "/// Default threshold for ignoring large untracked directories.",
+            "lineNumber": 26
+          },
+          {
+            "text": "const DEFAULT_IGNORE_LARGE_UNTRACKED_DIRS: i64 = 200;",
+            "lineNumber": 27
+          },
+          {
+            "text": "/// Default threshold (10 MiB) for excluding large untracked files from ghost snapshots.",
+            "lineNumber": 28
+          },
+          {
+            "text": "const DEFAULT_IGNORE_LARGE_UNTRACKED_FILES: i64 = 10 * 1024 * 1024;",
+            "lineNumber": 29
+          },
+          {
+            "text": "/// Directories that should always be ignored when capturing ghost snapshots,",
+            "lineNumber": 30
+          },
+          {
+            "text": "/// even if they are not listed in .gitignore.",
+            "lineNumber": 31
+          },
+          {
+            "text": "///",
+            "lineNumber": 32
+          },
+          {
+            "text": "/// These are typically large dependency or build trees that are not useful",
+            "lineNumber": 33
+          },
+          {
+            "text": "/// for undo and can cause snapshots to grow without bound.",
+            "lineNumber": 34
+          },
+          {
+            "text": "const DEFAULT_IGNORED_DIR_NAMES: &amp;[&amp;str] = &amp;[",
+            "lineNumber": 35
+          },
+          {
+            "text": "    \"node_modules\",",
+            "lineNumber": 36
+          },
+          {
+            "text": "    \".venv\",",
+            "lineNumber": 37
+          },
+          {
+            "text": "    \"venv\",",
+            "lineNumber": 38
+          },
+          {
+            "text": "    \"env\",",
+            "lineNumber": 39
+          },
+          {
+            "text": "    \".env\",",
+            "lineNumber": 40
+          },
+          {
+            "text": "    \"dist\",",
+            "lineNumber": 41
+          },
+          {
+            "text": "    \"build\",",
+            "lineNumber": 42
+          },
+          {
+            "text": "    \".pytest_cache\",",
+            "lineNumber": 43
+          },
+          {
+            "text": "    \".mypy_cache\",",
+            "lineNumber": 44
+          },
+          {
+            "text": "    \".cache\",",
+            "lineNumber": 45
+          },
+          {
+            "text": "    \".tox\",",
+            "lineNumber": 46
+          },
+          {
+            "text": "    \"__pycache__\",",
+            "lineNumber": 47
+          },
+          {
+            "text": "];",
+            "lineNumber": 48
+          },
+          {
+            "lineNumber": 49
+          },
+          {
+            "text": "/// Options to control ghost commit creation.",
+            "lineNumber": 50
+          },
+          {
+            "text": "pub struct CreateGhostCommitOptions&lt;'a&gt; {",
+            "lineNumber": 51
+          },
+          {
+            "text": "    pub repo_path: &amp;'a Path,",
+            "lineNumber": 52
+          },
+          {
+            "text": "    pub message: Option&lt;&amp;'a str&gt;,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    pub force_include: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    pub ghost_snapshot: GhostSnapshotConfig,",
+            "lineNumber": 55
+          },
+          {
+            "text": "}",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "/// Options to control ghost commit restoration.",
+            "lineNumber": 58
+          },
+          {
+            "text": "pub struct RestoreGhostCommitOptions&lt;'a&gt; {",
+            "lineNumber": 59
+          },
+          {
+            "text": "    pub repo_path: &amp;'a Path,",
+            "lineNumber": 60
+          },
+          {
+            "text": "    pub ghost_snapshot: GhostSnapshotConfig,",
+            "lineNumber": 61
+          },
+          {
+            "text": "}",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "#[derive(Debug, Clone, PartialEq, Eq)]",
+            "lineNumber": 64
+          },
+          {
+            "text": "pub struct GhostSnapshotConfig",
+            "lineNumber": 65
+          }
+        ]
+      },
+      "score": 0.3597027063369751
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\utils\\git\\src\\lib.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 49
+          }
+        },
+        "contents": "use std::fmt;\nuse std::path::PathBuf;\n\nmod apply;\nmod branch;\nmod errors;\nmod ghost_commits;\nmod operations;\nmod platform;\n\npub use apply::ApplyGitRequest;\npub use apply::ApplyGitResult;\npub use apply::apply_git_patch;\npub use apply::extract_paths_from_patch;\npub use apply::parse_git_apply_output;\npub use apply::stage_paths;\npub use branch::merge_base_with_head;\npub use errors::GitToolingError;\npub use ghost_commits::CreateGhostCommitOptions;\npub use ghost_commits::GhostSnapshotConfig;\npub use ghost_commits::GhostSnapshotReport;\npub use ghost_commits::IgnoredUntrackedFile;\npub use ghost_commits::LargeUntrackedDir;\npub use ghost_commits::RestoreGhostCommitOptions;\npub use ghost_commits::capture_ghost_snapshot_report;\npub use ghost_commits::create_ghost_commit;\npub use ghost_commits::create_ghost_commit_with_report;\npub use ghost_commits::restore_ghost_commit;\npub use ghost_commits::restore_ghost_commit_with_options;\npub use ghost_commits::restore_to_commit;\npub use platform::create_symlink;\nuse schemars::JsonSchema;\nuse serde::Deserialize;\nuse serde::Serialize;\nuse ts_rs::TS;\n\ntype CommitID = String;\n\n/// Details of a ghost commit created from a repository state.\n#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]\npub struct GhostCommit {\n    id: CommitID,\n    parent: Option&lt;CommitID&gt;,\n    preexisting_untracked_files: Vec&lt;PathBuf&gt;,\n    preexisting_untracked_dirs: Vec&lt;PathBuf&gt;,\n}\n\nimpl GhostCommit {\n    /// Create a new ghost commit wrapper from a raw commit ID and optional parent.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use std::fmt;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "mod apply;",
+            "lineNumber": 4
+          },
+          {
+            "text": "mod branch;",
+            "lineNumber": 5
+          },
+          {
+            "text": "mod errors;",
+            "lineNumber": 6
+          },
+          {
+            "text": "mod ghost_commits;",
+            "lineNumber": 7
+          },
+          {
+            "text": "mod operations;",
+            "lineNumber": 8
+          },
+          {
+            "text": "mod platform;",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "pub use apply::ApplyGitRequest;",
+            "lineNumber": 11
+          },
+          {
+            "text": "pub use apply::ApplyGitResult;",
+            "lineNumber": 12
+          },
+          {
+            "text": "pub use apply::apply_git_patch;",
+            "lineNumber": 13
+          },
+          {
+            "text": "pub use apply::extract_paths_from_patch;",
+            "lineNumber": 14
+          },
+          {
+            "text": "pub use apply::parse_git_apply_output;",
+            "lineNumber": 15
+          },
+          {
+            "text": "pub use apply::stage_paths;",
+            "lineNumber": 16
+          },
+          {
+            "text": "pub use branch::merge_base_with_head;",
+            "lineNumber": 17
+          },
+          {
+            "text": "pub use errors::GitToolingError;",
+            "lineNumber": 18
+          },
+          {
+            "text": "pub use ghost_commits::CreateGhostCommitOptions;",
+            "lineNumber": 19
+          },
+          {
+            "text": "pub use ghost_commits::GhostSnapshotConfig;",
+            "lineNumber": 20
+          },
+          {
+            "text": "pub use ghost_commits::GhostSnapshotReport;",
+            "lineNumber": 21
+          },
+          {
+            "text": "pub use ghost_commits::IgnoredUntrackedFile;",
+            "lineNumber": 22
+          },
+          {
+            "text": "pub use ghost_commits::LargeUntrackedDir;",
+            "lineNumber": 23
+          },
+          {
+            "text": "pub use ghost_commits::RestoreGhostCommitOptions;",
+            "lineNumber": 24
+          },
+          {
+            "text": "pub use ghost_commits::capture_ghost_snapshot_report;",
+            "lineNumber": 25
+          },
+          {
+            "text": "pub use ghost_commits::create_ghost_commit;",
+            "lineNumber": 26
+          },
+          {
+            "text": "pub use ghost_commits::create_ghost_commit_with_report;",
+            "lineNumber": 27
+          },
+          {
+            "text": "pub use ghost_commits::restore_ghost_commit;",
+            "lineNumber": 28
+          },
+          {
+            "text": "pub use ghost_commits::restore_ghost_commit_with_options;",
+            "lineNumber": 29
+          },
+          {
+            "text": "pub use ghost_commits::restore_to_commit;",
+            "lineNumber": 30
+          },
+          {
+            "text": "pub use platform::create_symlink;",
+            "lineNumber": 31
+          },
+          {
+            "text": "use schemars::JsonSchema;",
+            "lineNumber": 32
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 33
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 34
+          },
+          {
+            "text": "use ts_rs::TS;",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "type CommitID = String;",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "/// Details of a ghost commit created from a repository state.",
+            "lineNumber": 39
+          },
+          {
+            "text": "#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]",
+            "lineNumber": 40
+          },
+          {
+            "text": "pub struct GhostCommit {",
+            "lineNumber": 41
+          },
+          {
+            "text": "    id: CommitID,",
+            "lineNumber": 42
+          },
+          {
+            "text": "    parent: Option&lt;CommitID&gt;,",
+            "lineNumber": 43
+          },
+          {
+            "text": "    preexisting_untracked_files: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 44
+          },
+          {
+            "text": "    preexisting_untracked_dirs: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 45
+          },
+          {
+            "text": "}",
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "text": "impl GhostCommit {",
+            "lineNumber": 48
+          },
+          {
+            "text": "    /// Create a new ghost commit wrapper from a raw commit ID and optional parent.",
+            "lineNumber": 49
+          }
+        ]
+      },
+      "score": 0.34631359577178955
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+        "range": {
+          "startPosition": {
+            "line": 731,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 798,
+            "column": 27
+          }
+        },
+        "contents": "fn is_force_included(path: &amp;Path, force_include: &amp;[PathBuf]) -&gt; bool {\n    force_include\n        .iter()\n        .any(|candidate| path.starts_with(candidate.as_path()))\n}\n\nfn untracked_file_size(path: &amp;Path) -&gt; io::Result&lt;Option&lt;i64&gt;&gt; {\n    let Ok(metadata) = fs::symlink_metadata(path) else {\n        return Ok(None);\n    };\n\n    let Ok(len_i64) = i64::try_from(metadata.len()) else {\n        return Ok(Some(i64::MAX));\n    };\n    Ok(Some(len_i64))\n}\n\nfn add_paths_to_index(\n    repo_root: &amp;Path,\n    env: &amp;[(OsString, OsString)],\n    paths: &amp;[PathBuf],\n) -&gt; Result&lt;(), GitToolingError&gt; {\n    if paths.is_empty() {\n        return Ok(());\n    }\n\n    let chunk_size = usize::try_from(64_i64).unwrap_or(1);\n    for chunk in paths.chunks(chunk_size) {\n        let mut args = vec![\n            OsString::from(\"add\"),\n            OsString::from(\"--all\"),\n            OsString::from(\"--\"),\n        ];\n        args.extend(chunk.iter().map(|path| path.as_os_str().to_os_string()));\n        // Chunk the argv to avoid oversized command lines on large repos.\n        run_git_for_status(repo_root, args, Some(env))?;\n    }\n\n    Ok(())\n}\n\nfn dedupe_paths(paths: Vec&lt;PathBuf&gt;) -&gt; Vec&lt;PathBuf&gt; {\n    let mut seen = BTreeSet::new();\n    let mut result = Vec::new();\n    for path in paths {\n        if seen.insert(path.clone()) {\n            result.push(path);\n        }\n    }\n    result\n}\n\nfn merge_preserved_untracked_files(\n    mut files: Vec&lt;PathBuf&gt;,\n    ignored: &amp;[IgnoredUntrackedFile],\n) -&gt; Vec&lt;PathBuf&gt; {\n    if ignored.is_empty() {\n        return files;\n    }\n\n    files.extend(ignored.iter().map(|entry| entry.path.clone()));\n    files\n}\n\nfn merge_preserved_untracked_dirs(\n    mut dirs: Vec&lt;PathBuf&gt;,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "fn is_force_included(path: &amp;Path, force_include: &amp;[PathBuf]) -&gt; bool {",
+            "lineNumber": 734
+          },
+          {
+            "text": "    force_include",
+            "lineNumber": 735
+          },
+          {
+            "text": "        .iter()",
+            "lineNumber": 736
+          },
+          {
+            "text": "        .any(|candidate| path.starts_with(candidate.as_path()))",
+            "lineNumber": 737
+          },
+          {
+            "text": "}",
+            "lineNumber": 738
+          },
+          {
+            "lineNumber": 739
+          },
+          {
+            "text": "fn untracked_file_size(path: &amp;Path) -&gt; io::Result&lt;Option&lt;i64&gt;&gt; {",
+            "lineNumber": 740
+          },
+          {
+            "text": "    let Ok(metadata) = fs::symlink_metadata(path) else {",
+            "lineNumber": 741
+          },
+          {
+            "text": "        return Ok(None);",
+            "lineNumber": 742
+          },
+          {
+            "text": "    };",
+            "lineNumber": 743
+          },
+          {
+            "lineNumber": 744
+          },
+          {
+            "text": "    let Ok(len_i64) = i64::try_from(metadata.len()) else {",
+            "lineNumber": 745
+          },
+          {
+            "text": "        return Ok(Some(i64::MAX));",
+            "lineNumber": 746
+          },
+          {
+            "text": "    };",
+            "lineNumber": 747
+          },
+          {
+            "text": "    Ok(Some(len_i64))",
+            "lineNumber": 748
+          },
+          {
+            "text": "}",
+            "lineNumber": 749
+          },
+          {
+            "lineNumber": 750
+          },
+          {
+            "text": "fn add_paths_to_index(",
+            "lineNumber": 751
+          },
+          {
+            "text": "    repo_root: &amp;Path,",
+            "lineNumber": 752
+          },
+          {
+            "text": "    env: &amp;[(OsString, OsString)],",
+            "lineNumber": 753
+          },
+          {
+            "text": "    paths: &amp;[PathBuf],",
+            "lineNumber": 754
+          },
+          {
+            "text": ") -&gt; Result&lt;(), GitToolingError&gt; {",
+            "lineNumber": 755
+          },
+          {
+            "text": "    if paths.is_empty() {",
+            "lineNumber": 756
+          },
+          {
+            "text": "        return Ok(());",
+            "lineNumber": 757
+          },
+          {
+            "text": "    }",
+            "lineNumber": 758
+          },
+          {
+            "lineNumber": 759
+          },
+          {
+            "text": "    let chunk_size = usize::try_from(64_i64).unwrap_or(1);",
+            "lineNumber": 760
+          },
+          {
+            "text": "    for chunk in paths.chunks(chunk_size) {",
+            "lineNumber": 761
+          },
+          {
+            "text": "        let mut args = vec![",
+            "lineNumber": 762
+          },
+          {
+            "text": "            OsString::from(\"add\"),",
+            "lineNumber": 763
+          },
+          {
+            "text": "            OsString::from(\"--all\"),",
+            "lineNumber": 764
+          },
+          {
+            "text": "            OsString::from(\"--\"),",
+            "lineNumber": 765
+          },
+          {
+            "text": "        ];",
+            "lineNumber": 766
+          },
+          {
+            "text": "        args.extend(chunk.iter().map(|path| path.as_os_str().to_os_string()));",
+            "lineNumber": 767
+          },
+          {
+            "text": "        // Chunk the argv to avoid oversized command lines on large repos.",
+            "lineNumber": 768
+          },
+          {
+            "text": "        run_git_for_status(repo_root, args, Some(env))?;",
+            "lineNumber": 769
+          },
+          {
+            "text": "    }",
+            "lineNumber": 770
+          },
+          {
+            "lineNumber": 771
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 772
+          },
+          {
+            "text": "}",
+            "lineNumber": 773
+          },
+          {
+            "lineNumber": 774
+          },
+          {
+            "text": "fn dedupe_paths(paths: Vec&lt;PathBuf&gt;) -&gt; Vec&lt;PathBuf&gt; {",
+            "lineNumber": 775
+          },
+          {
+            "text": "    let mut seen = BTreeSet::new();",
+            "lineNumber": 776
+          },
+          {
+            "text": "    let mut result = Vec::new();",
+            "lineNumber": 777
+          },
+          {
+            "text": "    for path in paths {",
+            "lineNumber": 778
+          },
+          {
+            "text": "        if seen.insert(path.clone()) {",
+            "lineNumber": 779
+          },
+          {
+            "text": "            result.push(path);",
+            "lineNumber": 780
+          },
+          {
+            "text": "        }",
+            "lineNumber": 781
+          },
+          {
+            "text": "    }",
+            "lineNumber": 782
+          },
+          {
+            "text": "    result",
+            "lineNumber": 783
+          },
+          {
+            "text": "}",
+            "lineNumber": 784
+          },
+          {
+            "lineNumber": 785
+          },
+          {
+            "text": "fn merge_preserved_untracked_files(",
+            "lineNumber": 786
+          },
+          {
+            "text": "    mut files: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 787
+          },
+          {
+            "text": "    ignored: &amp;[IgnoredUntrackedFile],",
+            "lineNumber": 788
+          },
+          {
+            "text": ") -&gt; Vec&lt;PathBuf&gt; {",
+            "lineNumber": 789
+          },
+          {
+            "text": "    if ignored.is_empty() {",
+            "lineNumber": 790
+          },
+          {
+            "text": "        return files;",
+            "lineNumber": 791
+          },
+          {
+            "text": "    }",
+            "lineNumber": 792
+          },
+          {
+            "lineNumber": 793
+          },
+          {
+            "text": "    files.extend(ignored.iter().map(|entry| entry.path.clone()));",
+            "lineNumber": 794
+          },
+          {
+            "text": "    files",
+            "lineNumber": 795
+          },
+          {
+            "text": "}",
+            "lineNumber": 796
+          },
+          {
+            "lineNumber": 797
+          },
+          {
+            "text": "fn merge_preserved_untracked_dirs(",
+            "lineNumber": 798
+          },
+          {
+            "text": "    mut dirs: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 799
+          }
+        ]
+      },
+      "score": 0.33416223526000977
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+        "range": {
+          "startPosition": {
+            "line": 345,
+            "column": 49
+          },
+          "endPosition": {
+            "line": 394,
+            "column": 79
+          }
+        },
+        "contents": "    //   GIT_INDEX_FILE=/tmp/index git commit-tree &lt;tree&gt; -p &lt;parent&gt; -m \"codex snapshot\"\n\n    // Pre-populate the temporary index with HEAD so unchanged tracked files\n    // are included in the snapshot tree.\n    if let Some(parent_sha) = parent.as_deref() {\n        run_git_for_status(\n            repo_root.as_path(),\n            vec![OsString::from(\"read-tree\"), OsString::from(parent_sha)],\n            Some(base_env.as_slice()),\n        )?;\n    }\n\n    let mut index_paths = status_snapshot.tracked_paths;\n    index_paths.extend(existing_untracked.untracked_files_for_index.iter().cloned());\n    let index_paths = dedupe_paths(index_paths);\n    // Stage tracked + new files into the temp index so write-tree reflects the working tree.\n    // We use &#96;git add --all&#96; to make deletions show up in the snapshot tree too.\n    add_paths_to_index(repo_root.as_path(), base_env.as_slice(), &amp;index_paths)?;\n    if !force_include.is_empty() {\n        let mut args = Vec::with_capacity(force_include.len() + 2);\n        args.push(OsString::from(\"add\"));\n        args.push(OsString::from(\"--force\"));\n        args.extend(\n            force_include\n                .iter()\n                .map(|path| OsString::from(path.as_os_str())),\n        );\n        run_git_for_status(repo_root.as_path(), args, Some(base_env.as_slice()))?;\n    }\n\n    let tree_id = run_git_for_stdout(\n        repo_root.as_path(),\n        vec![OsString::from(\"write-tree\")],\n        Some(base_env.as_slice()),\n    )?;\n\n    let mut commit_env = base_env;\n    commit_env.extend(default_commit_identity());\n    let message = options.message.unwrap_or(DEFAULT_COMMIT_MESSAGE);\n    let commit_args = {\n        let mut result = vec![OsString::from(\"commit-tree\"), OsString::from(&amp;tree_id)];\n        if let Some(parent) = parent.as_deref() {\n            result.extend([OsString::from(\"-p\"), OsString::from(parent)]);\n        }\n        result.extend([OsString::from(\"-m\"), OsString::from(message)]);\n        result\n    };\n\n    // &#96;git commit-tree&#96; writes a detached commit object without updating refs,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    //   GIT_INDEX_FILE=/tmp/index git commit-tree &lt;tree&gt; -p &lt;parent&gt; -m \"codex snapshot\"",
+            "lineNumber": 347
+          },
+          {
+            "lineNumber": 348
+          },
+          {
+            "text": "    // Pre-populate the temporary index with HEAD so unchanged tracked files",
+            "lineNumber": 349
+          },
+          {
+            "text": "    // are included in the snapshot tree.",
+            "lineNumber": 350
+          },
+          {
+            "text": "    if let Some(parent_sha) = parent.as_deref() {",
+            "lineNumber": 351
+          },
+          {
+            "text": "        run_git_for_status(",
+            "lineNumber": 352
+          },
+          {
+            "text": "            repo_root.as_path(),",
+            "lineNumber": 353
+          },
+          {
+            "text": "            vec![OsString::from(\"read-tree\"), OsString::from(parent_sha)],",
+            "lineNumber": 354
+          },
+          {
+            "text": "            Some(base_env.as_slice()),",
+            "lineNumber": 355
+          },
+          {
+            "text": "        )?;",
+            "lineNumber": 356
+          },
+          {
+            "text": "    }",
+            "lineNumber": 357
+          },
+          {
+            "lineNumber": 358
+          },
+          {
+            "text": "    let mut index_paths = status_snapshot.tracked_paths;",
+            "lineNumber": 359
+          },
+          {
+            "text": "    index_paths.extend(existing_untracked.untracked_files_for_index.iter().cloned());",
+            "lineNumber": 360
+          },
+          {
+            "text": "    let index_paths = dedupe_paths(index_paths);",
+            "lineNumber": 361
+          },
+          {
+            "text": "    // Stage tracked + new files into the temp index so write-tree reflects the working tree.",
+            "lineNumber": 362
+          },
+          {
+            "text": "    // We use &#96;git add --all&#96; to make deletions show up in the snapshot tree too.",
+            "lineNumber": 363
+          },
+          {
+            "text": "    add_paths_to_index(repo_root.as_path(), base_env.as_slice(), &amp;index_paths)?;",
+            "lineNumber": 364
+          },
+          {
+            "text": "    if !force_include.is_empty() {",
+            "lineNumber": 365
+          },
+          {
+            "text": "        let mut args = Vec::with_capacity(force_include.len() + 2);",
+            "lineNumber": 366
+          },
+          {
+            "text": "        args.push(OsString::from(\"add\"));",
+            "lineNumber": 367
+          },
+          {
+            "text": "        args.push(OsString::from(\"--force\"));",
+            "lineNumber": 368
+          },
+          {
+            "text": "        args.extend(",
+            "lineNumber": 369
+          },
+          {
+            "text": "            force_include",
+            "lineNumber": 370
+          },
+          {
+            "text": "                .iter()",
+            "lineNumber": 371
+          },
+          {
+            "text": "                .map(|path| OsString::from(path.as_os_str())),",
+            "lineNumber": 372
+          },
+          {
+            "text": "        );",
+            "lineNumber": 373
+          },
+          {
+            "text": "        run_git_for_status(repo_root.as_path(), args, Some(base_env.as_slice()))?;",
+            "lineNumber": 374
+          },
+          {
+            "text": "    }",
+            "lineNumber": 375
+          },
+          {
+            "lineNumber": 376
+          },
+          {
+            "text": "    let tree_id = run_git_for_stdout(",
+            "lineNumber": 377
+          },
+          {
+            "text": "        repo_root.as_path(),",
+            "lineNumber": 378
+          },
+          {
+            "text": "        vec![OsString::from(\"write-tree\")],",
+            "lineNumber": 379
+          },
+          {
+            "text": "        Some(base_env.as_slice()),",
+            "lineNumber": 380
+          },
+          {
+            "text": "    )?;",
+            "lineNumber": 381
+          },
+          {
+            "lineNumber": 382
+          },
+          {
+            "text": "    let mut commit_env = base_env;",
+            "lineNumber": 383
+          },
+          {
+            "text": "    commit_env.extend(default_commit_identity());",
+            "lineNumber": 384
+          },
+          {
+            "text": "    let message = options.message.unwrap_or(DEFAULT_COMMIT_MESSAGE);",
+            "lineNumber": 385
+          },
+          {
+            "text": "    let commit_args = {",
+            "lineNumber": 386
+          },
+          {
+            "text": "        let mut result = vec![OsString::from(\"commit-tree\"), OsString::from(&amp;tree_id)];",
+            "lineNumber": 387
+          },
+          {
+            "text": "        if let Some(parent) = parent.as_deref() {",
+            "lineNumber": 388
+          },
+          {
+            "text": "            result.extend([OsString::from(\"-p\"), OsString::from(parent)]);",
+            "lineNumber": 389
+          },
+          {
+            "text": "        }",
+            "lineNumber": 390
+          },
+          {
+            "text": "        result.extend([OsString::from(\"-m\"), OsString::from(message)]);",
+            "lineNumber": 391
+          },
+          {
+            "text": "        result",
+            "lineNumber": 392
+          },
+          {
+            "text": "    };",
+            "lineNumber": 393
+          },
+          {
+            "lineNumber": 394
+          },
+          {
+            "text": "    // &#96;git commit-tree&#96; writes a detached commit object without updating refs,",
+            "lineNumber": 395
+          }
+        ]
+      },
+      "score": 0.33293581008911133
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+        "range": {
+          "startPosition": {
+            "line": 795,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 865,
+            "column": 32
+          }
+        },
+        "contents": "fn merge_preserved_untracked_dirs(\n    mut dirs: Vec&lt;PathBuf&gt;,\n    ignored_large_dirs: &amp;[LargeUntrackedDir],\n) -&gt; Vec&lt;PathBuf&gt; {\n    if ignored_large_dirs.is_empty() {\n        return dirs;\n    }\n\n    for entry in ignored_large_dirs {\n        if dirs.iter().any(|dir| dir == &amp;entry.path) {\n            continue;\n        }\n        dirs.push(entry.path.clone());\n    }\n\n    dirs\n}\n\n/// Removes untracked files and directories that were not present when the snapshot was captured.\nfn remove_new_untracked(\n    repo_root: &amp;Path,\n    preserved_files: &amp;[PathBuf],\n    preserved_dirs: &amp;[PathBuf],\n    current: UntrackedSnapshot,\n) -&gt; Result&lt;(), GitToolingError&gt; {\n    if current.files.is_empty() &amp;&amp; current.dirs.is_empty() {\n        return Ok(());\n    }\n\n    let preserved_file_set: BTreeSet&lt;PathBuf&gt; = preserved_files.iter().cloned().collect();\n    let preserved_dirs_vec: Vec&lt;PathBuf&gt; = preserved_dirs.to_vec();\n\n    for path in current.files {\n        if should_preserve(&amp;path, &amp;preserved_file_set, &amp;preserved_dirs_vec) {\n            continue;\n        }\n        remove_path(&amp;repo_root.join(&amp;path))?;\n    }\n\n    for dir in current.dirs {\n        if should_preserve(&amp;dir, &amp;preserved_file_set, &amp;preserved_dirs_vec) {\n            continue;\n        }\n        remove_path(&amp;repo_root.join(&amp;dir))?;\n    }\n\n    Ok(())\n}\n\n/// Determines whether an untracked path should be kept because it existed in the snapshot.\nfn should_preserve(\n    path: &amp;Path,\n    preserved_files: &amp;BTreeSet&lt;PathBuf&gt;,\n    preserved_dirs: &amp;[PathBuf],\n) -&gt; bool {\n    if preserved_files.contains(path) {\n        return true;\n    }\n\n    preserved_dirs\n        .iter()\n        .any(|dir| path.starts_with(dir.as_path()))\n}\n\n/// Deletes the file or directory at the provided path, ignoring if it is already absent.\nfn remove_path(path: &amp;Path) -&gt; Result&lt;(), GitToolingError&gt; {\n    match fs::symlink_metadata(path) {\n        Ok(metadata) =&gt; {\n            if metadata.is_dir()",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "fn merge_preserved_untracked_dirs(",
+            "lineNumber": 798
+          },
+          {
+            "text": "    mut dirs: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 799
+          },
+          {
+            "text": "    ignored_large_dirs: &amp;[LargeUntrackedDir],",
+            "lineNumber": 800
+          },
+          {
+            "text": ") -&gt; Vec&lt;PathBuf&gt; {",
+            "lineNumber": 801
+          },
+          {
+            "text": "    if ignored_large_dirs.is_empty() {",
+            "lineNumber": 802
+          },
+          {
+            "text": "        return dirs;",
+            "lineNumber": 803
+          },
+          {
+            "text": "    }",
+            "lineNumber": 804
+          },
+          {
+            "lineNumber": 805
+          },
+          {
+            "text": "    for entry in ignored_large_dirs {",
+            "lineNumber": 806
+          },
+          {
+            "text": "        if dirs.iter().any(|dir| dir == &amp;entry.path) {",
+            "lineNumber": 807
+          },
+          {
+            "text": "            continue;",
+            "lineNumber": 808
+          },
+          {
+            "text": "        }",
+            "lineNumber": 809
+          },
+          {
+            "text": "        dirs.push(entry.path.clone());",
+            "lineNumber": 810
+          },
+          {
+            "text": "    }",
+            "lineNumber": 811
+          },
+          {
+            "lineNumber": 812
+          },
+          {
+            "text": "    dirs",
+            "lineNumber": 813
+          },
+          {
+            "text": "}",
+            "lineNumber": 814
+          },
+          {
+            "lineNumber": 815
+          },
+          {
+            "text": "/// Removes untracked files and directories that were not present when the snapshot was captured.",
+            "lineNumber": 816
+          },
+          {
+            "text": "fn remove_new_untracked(",
+            "lineNumber": 817
+          },
+          {
+            "text": "    repo_root: &amp;Path,",
+            "lineNumber": 818
+          },
+          {
+            "text": "    preserved_files: &amp;[PathBuf],",
+            "lineNumber": 819
+          },
+          {
+            "text": "    preserved_dirs: &amp;[PathBuf],",
+            "lineNumber": 820
+          },
+          {
+            "text": "    current: UntrackedSnapshot,",
+            "lineNumber": 821
+          },
+          {
+            "text": ") -&gt; Result&lt;(), GitToolingError&gt; {",
+            "lineNumber": 822
+          },
+          {
+            "text": "    if current.files.is_empty() &amp;&amp; current.dirs.is_empty() {",
+            "lineNumber": 823
+          },
+          {
+            "text": "        return Ok(());",
+            "lineNumber": 824
+          },
+          {
+            "text": "    }",
+            "lineNumber": 825
+          },
+          {
+            "lineNumber": 826
+          },
+          {
+            "text": "    let preserved_file_set: BTreeSet&lt;PathBuf&gt; = preserved_files.iter().cloned().collect();",
+            "lineNumber": 827
+          },
+          {
+            "text": "    let preserved_dirs_vec: Vec&lt;PathBuf&gt; = preserved_dirs.to_vec();",
+            "lineNumber": 828
+          },
+          {
+            "lineNumber": 829
+          },
+          {
+            "text": "    for path in current.files {",
+            "lineNumber": 830
+          },
+          {
+            "text": "        if should_preserve(&amp;path, &amp;preserved_file_set, &amp;preserved_dirs_vec) {",
+            "lineNumber": 831
+          },
+          {
+            "text": "            continue;",
+            "lineNumber": 832
+          },
+          {
+            "text": "        }",
+            "lineNumber": 833
+          },
+          {
+            "text": "        remove_path(&amp;repo_root.join(&amp;path))?;",
+            "lineNumber": 834
+          },
+          {
+            "text": "    }",
+            "lineNumber": 835
+          },
+          {
+            "lineNumber": 836
+          },
+          {
+            "text": "    for dir in current.dirs {",
+            "lineNumber": 837
+          },
+          {
+            "text": "        if should_preserve(&amp;dir, &amp;preserved_file_set, &amp;preserved_dirs_vec) {",
+            "lineNumber": 838
+          },
+          {
+            "text": "            continue;",
+            "lineNumber": 839
+          },
+          {
+            "text": "        }",
+            "lineNumber": 840
+          },
+          {
+            "text": "        remove_path(&amp;repo_root.join(&amp;dir))?;",
+            "lineNumber": 841
+          },
+          {
+            "text": "    }",
+            "lineNumber": 842
+          },
+          {
+            "lineNumber": 843
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 844
+          },
+          {
+            "text": "}",
+            "lineNumber": 845
+          },
+          {
+            "lineNumber": 846
+          },
+          {
+            "text": "/// Determines whether an untracked path should be kept because it existed in the snapshot.",
+            "lineNumber": 847
+          },
+          {
+            "text": "fn should_preserve(",
+            "lineNumber": 848
+          },
+          {
+            "text": "    path: &amp;Path,",
+            "lineNumber": 849
+          },
+          {
+            "text": "    preserved_files: &amp;BTreeSet&lt;PathBuf&gt;,",
+            "lineNumber": 850
+          },
+          {
+            "text": "    preserved_dirs: &amp;[PathBuf],",
+            "lineNumber": 851
+          },
+          {
+            "text": ") -&gt; bool {",
+            "lineNumber": 852
+          },
+          {
+            "text": "    if preserved_files.contains(path) {",
+            "lineNumber": 853
+          },
+          {
+            "text": "        return true;",
+            "lineNumber": 854
+          },
+          {
+            "text": "    }",
+            "lineNumber": 855
+          },
+          {
+            "lineNumber": 856
+          },
+          {
+            "text": "    preserved_dirs",
+            "lineNumber": 857
+          },
+          {
+            "text": "        .iter()",
+            "lineNumber": 858
+          },
+          {
+            "text": "        .any(|dir| path.starts_with(dir.as_path()))",
+            "lineNumber": 859
+          },
+          {
+            "text": "}",
+            "lineNumber": 860
+          },
+          {
+            "lineNumber": 861
+          },
+          {
+            "text": "/// Deletes the file or directory at the provided path, ignoring if it is already absent.",
+            "lineNumber": 862
+          },
+          {
+            "text": "fn remove_path(path: &amp;Path) -&gt; Result&lt;(), GitToolingError&gt; {",
+            "lineNumber": 863
+          },
+          {
+            "text": "    match fs::symlink_metadata(path) {",
+            "lineNumber": 864
+          },
+          {
+            "text": "        Ok(metadata) =&gt; {",
+            "lineNumber": 865
+          },
+          {
+            "text": "            if metadata.is_dir()",
+            "lineNumber": 866
+          }
+        ]
+      },
+      "score": 0.3231689929962158
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+        "range": {
+          "startPosition": {
+            "line": 390,
+            "column": 71
+          },
+          "endPosition": {
+            "line": 434,
+            "column": 4
+          }
+        },
+        "contents": "        result\n    };\n\n    // &#96;git commit-tree&#96; writes a detached commit object without updating refs,\n    // which keeps snapshots out of the user's branch history.\n    // Retrieve commit ID.\n    let commit_id = run_git_for_stdout(\n        repo_root.as_path(),\n        commit_args,\n        Some(commit_env.as_slice()),\n    )?;\n\n    let ghost_commit = GhostCommit::new(\n        commit_id,\n        parent,\n        merge_preserved_untracked_files(\n            existing_untracked.files,\n            &amp;existing_untracked.ignored_untracked_files,\n        ),\n        merge_preserved_untracked_dirs(\n            existing_untracked.dirs,\n            &amp;existing_untracked.ignored_large_untracked_dirs,\n        ),\n    );\n\n    Ok((\n        ghost_commit,\n        GhostSnapshotReport {\n            large_untracked_dirs,\n            ignored_untracked_files: warning_ignored_files,\n        },\n    ))\n}\n\n/// Restore the working tree to match the provided ghost commit.\npub fn restore_ghost_commit(repo_path: &amp;Path, commit: &amp;GhostCommit) -&gt; Result&lt;(), GitToolingError&gt; {\n    restore_ghost_commit_with_options(&amp;RestoreGhostCommitOptions::new(repo_path), commit)\n}\n\n/// Restore the working tree using the provided options.\npub fn restore_ghost_commit_with_options(\n    options: &amp;RestoreGhostCommitOptions&lt;'_&gt;,\n    commit: &amp;GhostCommit,\n) -&gt;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        result",
+            "lineNumber": 392
+          },
+          {
+            "text": "    };",
+            "lineNumber": 393
+          },
+          {
+            "lineNumber": 394
+          },
+          {
+            "text": "    // &#96;git commit-tree&#96; writes a detached commit object without updating refs,",
+            "lineNumber": 395
+          },
+          {
+            "text": "    // which keeps snapshots out of the user's branch history.",
+            "lineNumber": 396
+          },
+          {
+            "text": "    // Retrieve commit ID.",
+            "lineNumber": 397
+          },
+          {
+            "text": "    let commit_id = run_git_for_stdout(",
+            "lineNumber": 398
+          },
+          {
+            "text": "        repo_root.as_path(),",
+            "lineNumber": 399
+          },
+          {
+            "text": "        commit_args,",
+            "lineNumber": 400
+          },
+          {
+            "text": "        Some(commit_env.as_slice()),",
+            "lineNumber": 401
+          },
+          {
+            "text": "    )?;",
+            "lineNumber": 402
+          },
+          {
+            "lineNumber": 403
+          },
+          {
+            "text": "    let ghost_commit = GhostCommit::new(",
+            "lineNumber": 404
+          },
+          {
+            "text": "        commit_id,",
+            "lineNumber": 405
+          },
+          {
+            "text": "        parent,",
+            "lineNumber": 406
+          },
+          {
+            "text": "        merge_preserved_untracked_files(",
+            "lineNumber": 407
+          },
+          {
+            "text": "            existing_untracked.files,",
+            "lineNumber": 408
+          },
+          {
+            "text": "            &amp;existing_untracked.ignored_untracked_files,",
+            "lineNumber": 409
+          },
+          {
+            "text": "        ),",
+            "lineNumber": 410
+          },
+          {
+            "text": "        merge_preserved_untracked_dirs(",
+            "lineNumber": 411
+          },
+          {
+            "text": "            existing_untracked.dirs,",
+            "lineNumber": 412
+          },
+          {
+            "text": "            &amp;existing_untracked.ignored_large_untracked_dirs,",
+            "lineNumber": 413
+          },
+          {
+            "text": "        ),",
+            "lineNumber": 414
+          },
+          {
+            "text": "    );",
+            "lineNumber": 415
+          },
+          {
+            "lineNumber": 416
+          },
+          {
+            "text": "    Ok((",
+            "lineNumber": 417
+          },
+          {
+            "text": "        ghost_commit,",
+            "lineNumber": 418
+          },
+          {
+            "text": "        GhostSnapshotReport {",
+            "lineNumber": 419
+          },
+          {
+            "text": "            large_untracked_dirs,",
+            "lineNumber": 420
+          },
+          {
+            "text": "            ignored_untracked_files: warning_ignored_files,",
+            "lineNumber": 421
+          },
+          {
+            "text": "        },",
+            "lineNumber": 422
+          },
+          {
+            "text": "    ))",
+            "lineNumber": 423
+          },
+          {
+            "text": "}",
+            "lineNumber": 424
+          },
+          {
+            "lineNumber": 425
+          },
+          {
+            "text": "/// Restore the working tree to match the provided ghost commit.",
+            "lineNumber": 426
+          },
+          {
+            "text": "pub fn restore_ghost_commit(repo_path: &amp;Path, commit: &amp;GhostCommit) -&gt; Result&lt;(), GitToolingError&gt; {",
+            "lineNumber": 427
+          },
+          {
+            "text": "    restore_ghost_commit_with_options(&amp;RestoreGhostCommitOptions::new(repo_path), commit)",
+            "lineNumber": 428
+          },
+          {
+            "text": "}",
+            "lineNumber": 429
+          },
+          {
+            "lineNumber": 430
+          },
+          {
+            "text": "/// Restore the working tree using the provided options.",
+            "lineNumber": 431
+          },
+          {
+            "text": "pub fn restore_ghost_commit_with_options(",
+            "lineNumber": 432
+          },
+          {
+            "text": "    options: &amp;RestoreGhostCommitOptions&lt;'_&gt;,",
+            "lineNumber": 433
+          },
+          {
+            "text": "    commit: &amp;GhostCommit,",
+            "lineNumber": 434
+          },
+          {
+            "text": ") -&gt;",
+            "lineNumber": 435
+          }
+        ]
+      },
+      "score": 0.32028231024742126
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\utils\\git\\src\\ghost_commits.rs",
+        "range": {
+          "startPosition": {
+            "line": 301
+          },
+          "endPosition": {
+            "line": 348,
+            "column": 76
+          }
+        },
+        "contents": "pub fn create_ghost_commit_with_report(\n    options: &amp;CreateGhostCommitOptions&lt;'_&gt;,\n) -&gt; Result&lt;(GhostCommit, GhostSnapshotReport), GitToolingError&gt; {\n    ensure_git_repository(options.repo_path)?;\n\n    let repo_root = resolve_repository_root(options.repo_path)?;\n    let repo_prefix = repo_subdir(repo_root.as_path(), options.repo_path);\n    let parent = resolve_head(repo_root.as_path())?;\n    let force_include = prepare_force_include(repo_prefix.as_deref(), &amp;options.force_include)?;\n    let status_snapshot = capture_status_snapshot(\n        repo_root.as_path(),\n        repo_prefix.as_deref(),\n        options.ghost_snapshot.ignore_large_untracked_files,\n        options.ghost_snapshot.ignore_large_untracked_dirs,\n        &amp;force_include,\n    )?;\n    let existing_untracked = status_snapshot.untracked;\n\n    let warning_ignored_files = existing_untracked\n        .ignored_untracked_files\n        .iter()\n        .map(|file| IgnoredUntrackedFile {\n            path: to_session_relative_path(file.path.as_path(), repo_prefix.as_deref()),\n            byte_size: file.byte_size,\n        })\n        .collect::&lt;Vec&lt;_&gt;&gt;();\n    let large_untracked_dirs = existing_untracked\n        .ignored_large_untracked_dirs\n        .iter()\n        .map(|dir| LargeUntrackedDir {\n            path: to_session_relative_path(dir.path.as_path(), repo_prefix.as_deref()),\n            file_count: dir.file_count,\n        })\n        .collect::&lt;Vec&lt;_&gt;&gt;();\n    let index_tempdir = Builder::new().prefix(\"codex-git-index-\").tempdir()?;\n    let index_path = index_tempdir.path().join(\"index\");\n    let base_env = vec![(\n        OsString::from(\"GIT_INDEX_FILE\"),\n        OsString::from(index_path.as_os_str()),\n    )];\n    // Use a temporary index so snapshotting does not disturb the user's index state.\n    // Example plumbing sequence:\n    //   GIT_INDEX_FILE=/tmp/index git read-tree HEAD\n    //   GIT_INDEX_FILE=/tmp/index git add --all -- &lt;paths&gt;\n    //   GIT_INDEX_FILE=/tmp/index git write-tree\n    //   GIT_INDEX_FILE=/tmp/index git commit-tree &lt;tree&gt; -p &lt;parent&gt; -m \"codex snapshot\"\n\n    // Pre-populate the temporary index with HEAD so unchanged tracked files",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub fn create_ghost_commit_with_report(",
+            "lineNumber": 302
+          },
+          {
+            "text": "    options: &amp;CreateGhostCommitOptions&lt;'_&gt;,",
+            "lineNumber": 303
+          },
+          {
+            "text": ") -&gt; Result&lt;(GhostCommit, GhostSnapshotReport), GitToolingError&gt; {",
+            "lineNumber": 304
+          },
+          {
+            "text": "    ensure_git_repository(options.repo_path)?;",
+            "lineNumber": 305
+          },
+          {
+            "lineNumber": 306
+          },
+          {
+            "text": "    let repo_root = resolve_repository_root(options.repo_path)?;",
+            "lineNumber": 307
+          },
+          {
+            "text": "    let repo_prefix = repo_subdir(repo_root.as_path(), options.repo_path);",
+            "lineNumber": 308
+          },
+          {
+            "text": "    let parent = resolve_head(repo_root.as_path())?;",
+            "lineNumber": 309
+          },
+          {
+            "text": "    let force_include = prepare_force_include(repo_prefix.as_deref(), &amp;options.force_include)?;",
+            "lineNumber": 310
+          },
+          {
+            "text": "    let status_snapshot = capture_status_snapshot(",
+            "lineNumber": 311
+          },
+          {
+            "text": "        repo_root.as_path(),",
+            "lineNumber": 312
+          },
+          {
+            "text": "        repo_prefix.as_deref(),",
+            "lineNumber": 313
+          },
+          {
+            "text": "        options.ghost_snapshot.ignore_large_untracked_files,",
+            "lineNumber": 314
+          },
+          {
+            "text": "        options.ghost_snapshot.ignore_large_untracked_dirs,",
+            "lineNumber": 315
+          },
+          {
+            "text": "        &amp;force_include,",
+            "lineNumber": 316
+          },
+          {
+            "text": "    )?;",
+            "lineNumber": 317
+          },
+          {
+            "text": "    let existing_untracked = status_snapshot.untracked;",
+            "lineNumber": 318
+          },
+          {
+            "lineNumber": 319
+          },
+          {
+            "text": "    let warning_ignored_files = existing_untracked",
+            "lineNumber": 320
+          },
+          {
+            "text": "        .ignored_untracked_files",
+            "lineNumber": 321
+          },
+          {
+            "text": "        .iter()",
+            "lineNumber": 322
+          },
+          {
+            "text": "        .map(|file| IgnoredUntrackedFile {",
+            "lineNumber": 323
+          },
+          {
+            "text": "            path: to_session_relative_path(file.path.as_path(), repo_prefix.as_deref()),",
+            "lineNumber": 324
+          },
+          {
+            "text": "            byte_size: file.byte_size,",
+            "lineNumber": 325
+          },
+          {
+            "text": "        })",
+            "lineNumber": 326
+          },
+          {
+            "text": "        .collect::&lt;Vec&lt;_&gt;&gt;();",
+            "lineNumber": 327
+          },
+          {
+            "text": "    let large_untracked_dirs = existing_untracked",
+            "lineNumber": 328
+          },
+          {
+            "text": "        .ignored_large_untracked_dirs",
+            "lineNumber": 329
+          },
+          {
+            "text": "        .iter()",
+            "lineNumber": 330
+          },
+          {
+            "text": "        .map(|dir| LargeUntrackedDir {",
+            "lineNumber": 331
+          },
+          {
+            "text": "            path: to_session_relative_path(dir.path.as_path(), repo_prefix.as_deref()),",
+            "lineNumber": 332
+          },
+          {
+            "text": "            file_count: dir.file_count,",
+            "lineNumber": 333
+          },
+          {
+            "text": "        })",
+            "lineNumber": 334
+          },
+          {
+            "text": "        .collect::&lt;Vec&lt;_&gt;&gt;();",
+            "lineNumber": 335
+          },
+          {
+            "text": "    let index_tempdir = Builder::new().prefix(\"codex-git-index-\").tempdir()?;",
+            "lineNumber": 336
+          },
+          {
+            "text": "    let index_path = index_tempdir.path().join(\"index\");",
+            "lineNumber": 337
+          },
+          {
+            "text": "    let base_env = vec![(",
+            "lineNumber": 338
+          },
+          {
+            "text": "        OsString::from(\"GIT_INDEX_FILE\"),",
+            "lineNumber": 339
+          },
+          {
+            "text": "        OsString::from(index_path.as_os_str()),",
+            "lineNumber": 340
+          },
+          {
+            "text": "    )];",
+            "lineNumber": 341
+          },
+          {
+            "text": "    // Use a temporary index so snapshotting does not disturb the user's index state.",
+            "lineNumber": 342
+          },
+          {
+            "text": "    // Example plumbing sequence:",
+            "lineNumber": 343
+          },
+          {
+            "text": "    //   GIT_INDEX_FILE=/tmp/index git read-tree HEAD",
+            "lineNumber": 344
+          },
+          {
+            "text": "    //   GIT_INDEX_FILE=/tmp/index git add --all -- &lt;paths&gt;",
+            "lineNumber": 345
+          },
+          {
+            "text": "    //   GIT_INDEX_FILE=/tmp/index git write-tree",
+            "lineNumber": 346
+          },
+          {
+            "text": "    //   GIT_INDEX_FILE=/tmp/index git commit-tree &lt;tree&gt; -p &lt;parent&gt; -m \"codex snapshot\"",
+            "lineNumber": 347
+          },
+          {
+            "lineNumber": 348
+          },
+          {
+            "text": "    // Pre-populate the temporary index with HEAD so unchanged tracked files",
+            "lineNumber": 349
+          }
+        ]
+      },
+      "score": 0.32019108533859253
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\git4d_accelerated.rs",
+        "range": {
+          "startPosition": {
+            "line": 349,
+            "column": 139
+          },
+          "endPosition": {
+            "line": 404,
+            "column": 9
+          }
+        },
+        "contents": " {\n        let mut visited = HashSet::new();\n        let mut queue = VecDeque::new();\n\n        queue.push_back(start_commit.id());\n        visited.insert(start_commit.id());\n\n        while let Some(commit_id) = queue.pop_front() {\n            if commits.len() &gt;= max_commits {\n                break;\n            }\n\n            commits.push(commit_id);\n\n            if let Ok(commit) = self.repository.find_commit(commit_id) {\n                for parent in commit.parents() {\n                    if !visited.contains(&amp;parent.id()) {\n                        visited.insert(parent.id());\n                        queue.push_back(parent.id());\n                    }\n                }\n            }\n        }\n\n        Ok(())\n    }\n\n    /// Get color for commit based on branch and author\n    fn get_commit_color(&amp;self, commit: &amp;Commit, branch_id: u32) -&gt; [f32; 4] {\n        // Color based on branch\n        let hue = (branch_id as f32 * 137.5) % 360.0; // Golden angle approximation\n        let saturation = 0.7;\n        let value = 0.9;\n\n        // Convert HSV to RGB\n        let c = value * saturation;\n        let x = c * (1.0 - ((hue / 60.0) % 2.0 - 1.0).abs());\n        let m = value - c;\n\n        let (r, g, b) = match hue {\n            h if h &lt; 60.0 =&gt; (c, x, 0.0),\n            h if h &lt; 120.0 =&gt; (x, c, 0.0),\n            h if h &lt; 180.0 =&gt; (0.0, c, x),\n            h if h &lt; 240.0 =&gt; (0.0, x, c),\n            h if h &lt; 300.0 =&gt; (x, 0.0, c),\n            _ =&gt; (c, 0.0, x),\n        };\n\n        [r + m, g + m, b + m, 1.0]\n    }\n\n    /// CPU fallback for optimal camera calculation\n    fn calculate_optimal_camera_cpu(&amp;self, vertices: &amp;[GitCommitVertex]) -&gt; ([f32; 3], [f32; 3]) {\n        if vertices.is_empty() {\n            return ([0.0, 0.0, 10.0], [0.0, 0.0, 0.0]);\n        }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 350
+          },
+          {
+            "text": "        let mut visited = HashSet::new();",
+            "lineNumber": 351
+          },
+          {
+            "text": "        let mut queue = VecDeque::new();",
+            "lineNumber": 352
+          },
+          {
+            "lineNumber": 353
+          },
+          {
+            "text": "        queue.push_back(start_commit.id());",
+            "lineNumber": 354
+          },
+          {
+            "text": "        visited.insert(start_commit.id());",
+            "lineNumber": 355
+          },
+          {
+            "lineNumber": 356
+          },
+          {
+            "text": "        while let Some(commit_id) = queue.pop_front() {",
+            "lineNumber": 357
+          },
+          {
+            "text": "            if commits.len() &gt;= max_commits {",
+            "lineNumber": 358
+          },
+          {
+            "text": "                break;",
+            "lineNumber": 359
+          },
+          {
+            "text": "            }",
+            "lineNumber": 360
+          },
+          {
+            "lineNumber": 361
+          },
+          {
+            "text": "            commits.push(commit_id);",
+            "lineNumber": 362
+          },
+          {
+            "lineNumber": 363
+          },
+          {
+            "text": "            if let Ok(commit) = self.repository.find_commit(commit_id) {",
+            "lineNumber": 364
+          },
+          {
+            "text": "                for parent in commit.parents() {",
+            "lineNumber": 365
+          },
+          {
+            "text": "                    if !visited.contains(&amp;parent.id()) {",
+            "lineNumber": 366
+          },
+          {
+            "text": "                        visited.insert(parent.id());",
+            "lineNumber": 367
+          },
+          {
+            "text": "                        queue.push_back(parent.id());",
+            "lineNumber": 368
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 369
+          },
+          {
+            "text": "                }",
+            "lineNumber": 370
+          },
+          {
+            "text": "            }",
+            "lineNumber": 371
+          },
+          {
+            "text": "        }",
+            "lineNumber": 372
+          },
+          {
+            "lineNumber": 373
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 374
+          },
+          {
+            "text": "    }",
+            "lineNumber": 375
+          },
+          {
+            "lineNumber": 376
+          },
+          {
+            "text": "    /// Get color for commit based on branch and author",
+            "lineNumber": 377
+          },
+          {
+            "text": "    fn get_commit_color(&amp;self, commit: &amp;Commit, branch_id: u32) -&gt; [f32; 4] {",
+            "lineNumber": 378
+          },
+          {
+            "text": "        // Color based on branch",
+            "lineNumber": 379
+          },
+          {
+            "text": "        let hue = (branch_id as f32 * 137.5) % 360.0; // Golden angle approximation",
+            "lineNumber": 380
+          },
+          {
+            "text": "        let saturation = 0.7;",
+            "lineNumber": 381
+          },
+          {
+            "text": "        let value = 0.9;",
+            "lineNumber": 382
+          },
+          {
+            "lineNumber": 383
+          },
+          {
+            "text": "        // Convert HSV to RGB",
+            "lineNumber": 384
+          },
+          {
+            "text": "        let c = value * saturation;",
+            "lineNumber": 385
+          },
+          {
+            "text": "        let x = c * (1.0 - ((hue / 60.0) % 2.0 - 1.0).abs());",
+            "lineNumber": 386
+          },
+          {
+            "text": "        let m = value - c;",
+            "lineNumber": 387
+          },
+          {
+            "lineNumber": 388
+          },
+          {
+            "text": "        let (r, g, b) = match hue {",
+            "lineNumber": 389
+          },
+          {
+            "text": "            h if h &lt; 60.0 =&gt; (c, x, 0.0),",
+            "lineNumber": 390
+          },
+          {
+            "text": "            h if h &lt; 120.0 =&gt; (x, c, 0.0),",
+            "lineNumber": 391
+          },
+          {
+            "text": "            h if h &lt; 180.0 =&gt; (0.0, c, x),",
+            "lineNumber": 392
+          },
+          {
+            "text": "            h if h &lt; 240.0 =&gt; (0.0, x, c),",
+            "lineNumber": 393
+          },
+          {
+            "text": "            h if h &lt; 300.0 =&gt; (x, 0.0, c),",
+            "lineNumber": 394
+          },
+          {
+            "text": "            _ =&gt; (c, 0.0, x),",
+            "lineNumber": 395
+          },
+          {
+            "text": "        };",
+            "lineNumber": 396
+          },
+          {
+            "lineNumber": 397
+          },
+          {
+            "text": "        [r + m, g + m, b + m, 1.0]",
+            "lineNumber": 398
+          },
+          {
+            "text": "    }",
+            "lineNumber": 399
+          },
+          {
+            "lineNumber": 400
+          },
+          {
+            "text": "    /// CPU fallback for optimal camera calculation",
+            "lineNumber": 401
+          },
+          {
+            "text": "    fn calculate_optimal_camera_cpu(&amp;self, vertices: &amp;[GitCommitVertex]) -&gt; ([f32; 3], [f32; 3]) {",
+            "lineNumber": 402
+          },
+          {
+            "text": "        if vertices.is_empty() {",
+            "lineNumber": 403
+          },
+          {
+            "text": "            return ([0.0, 0.0, 10.0], [0.0, 0.0, 0.0]);",
+            "lineNumber": 404
+          },
+          {
+            "text": "        }",
+            "lineNumber": 405
+          }
+        ]
+      },
+      "score": 0.31772419810295105
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\git_commands.rs",
+        "range": {
+          "startPosition": {
+            "line": 564,
+            "column": 86
+          },
+          "endPosition": {
+            "line": 641,
+            "column": 22
+          }
+        },
+        "contents": "\");\n\n    Ok(())\n}\n\nfn generate_3d_commits_cpu(\n    repo: &amp;Repository,\n    revwalk: &amp;mut git2::Revwalk,\n    limit: usize,\n) -&gt; Result&lt;Vec&lt;CommitData3D&gt;&gt; {\n    let mut commits = Vec::new();\n\n    for (i, oid) in revwalk.take(limit).enumerate() {\n        let oid = oid?;\n        let commit = repo.find_commit(oid)?;\n\n        let message = commit\n            .message()\n            .unwrap_or(\"No message\")\n            .lines()\n            .next()\n            .unwrap_or(\"\")\n            .to_string();\n\n        let hash = format!(\"{:.7}\", oid);\n\n        // Count file changes\n        let mut changes = 0;\n        if let Ok(tree) = commit.tree() {\n            if commit.parent_count() &gt; 0 {\n                if let Ok(parent) = commit.parent(0) {\n                    if let Ok(parent_tree) = parent.tree() {\n                        if let Ok(diff) =\n                            repo.diff_tree_to_tree(Some(&amp;parent_tree), Some(&amp;tree), None)\n                        {\n                            changes = diff.deltas().len();\n                        }\n                    }\n                }\n            }\n        }\n\n        // Calculate 3D position (spiral pattern)\n        let t = i as f32 * 0.1;\n        let x = t.cos() * (10.0 + t * 0.1);\n        let y = changes as f32 * 0.5; // Height based on changes\n        let z = t.sin() * (10.0 + t * 0.1);\n\n        commits.push(CommitData3D {\n            hash,\n            message,\n            author: commit.author().name().unwrap_or(\"Unknown\").to_string(),\n            timestamp: commit.time().seconds(),\n            changes,\n            x,\n            y,\n            z,\n        });\n    }\n\n    Ok(commits)\n}\n\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct CommitData3D {\n    pub hash: String,\n    pub message: String,\n    pub author: String,\n    pub timestamp: i64,\n    pub changes: usize,\n    pub x: f32,\n    pub y: f32,\n    pub z: f32,\n}\n\n#[cfg(test)]\n#[path = \"git_commands_test.rs\"]\nmod git_commands_test;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "\");",
+            "lineNumber": 565
+          },
+          {
+            "lineNumber": 566
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 567
+          },
+          {
+            "text": "}",
+            "lineNumber": 568
+          },
+          {
+            "lineNumber": 569
+          },
+          {
+            "text": "fn generate_3d_commits_cpu(",
+            "lineNumber": 570
+          },
+          {
+            "text": "    repo: &amp;Repository,",
+            "lineNumber": 571
+          },
+          {
+            "text": "    revwalk: &amp;mut git2::Revwalk,",
+            "lineNumber": 572
+          },
+          {
+            "text": "    limit: usize,",
+            "lineNumber": 573
+          },
+          {
+            "text": ") -&gt; Result&lt;Vec&lt;CommitData3D&gt;&gt; {",
+            "lineNumber": 574
+          },
+          {
+            "text": "    let mut commits = Vec::new();",
+            "lineNumber": 575
+          },
+          {
+            "lineNumber": 576
+          },
+          {
+            "text": "    for (i, oid) in revwalk.take(limit).enumerate() {",
+            "lineNumber": 577
+          },
+          {
+            "text": "        let oid = oid?;",
+            "lineNumber": 578
+          },
+          {
+            "text": "        let commit = repo.find_commit(oid)?;",
+            "lineNumber": 579
+          },
+          {
+            "lineNumber": 580
+          },
+          {
+            "text": "        let message = commit",
+            "lineNumber": 581
+          },
+          {
+            "text": "            .message()",
+            "lineNumber": 582
+          },
+          {
+            "text": "            .unwrap_or(\"No message\")",
+            "lineNumber": 583
+          },
+          {
+            "text": "            .lines()",
+            "lineNumber": 584
+          },
+          {
+            "text": "            .next()",
+            "lineNumber": 585
+          },
+          {
+            "text": "            .unwrap_or(\"\")",
+            "lineNumber": 586
+          },
+          {
+            "text": "            .to_string();",
+            "lineNumber": 587
+          },
+          {
+            "lineNumber": 588
+          },
+          {
+            "text": "        let hash = format!(\"{:.7}\", oid);",
+            "lineNumber": 589
+          },
+          {
+            "lineNumber": 590
+          },
+          {
+            "text": "        // Count file changes",
+            "lineNumber": 591
+          },
+          {
+            "text": "        let mut changes = 0;",
+            "lineNumber": 592
+          },
+          {
+            "text": "        if let Ok(tree) = commit.tree() {",
+            "lineNumber": 593
+          },
+          {
+            "text": "            if commit.parent_count() &gt; 0 {",
+            "lineNumber": 594
+          },
+          {
+            "text": "                if let Ok(parent) = commit.parent(0) {",
+            "lineNumber": 595
+          },
+          {
+            "text": "                    if let Ok(parent_tree) = parent.tree() {",
+            "lineNumber": 596
+          },
+          {
+            "text": "                        if let Ok(diff) =",
+            "lineNumber": 597
+          },
+          {
+            "text": "                            repo.diff_tree_to_tree(Some(&amp;parent_tree), Some(&amp;tree), None)",
+            "lineNumber": 598
+          },
+          {
+            "text": "                        {",
+            "lineNumber": 599
+          },
+          {
+            "text": "                            changes = diff.deltas().len();",
+            "lineNumber": 600
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 601
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 602
+          },
+          {
+            "text": "                }",
+            "lineNumber": 603
+          },
+          {
+            "text": "            }",
+            "lineNumber": 604
+          },
+          {
+            "text": "        }",
+            "lineNumber": 605
+          },
+          {
+            "lineNumber": 606
+          },
+          {
+            "text": "        // Calculate 3D position (spiral pattern)",
+            "lineNumber": 607
+          },
+          {
+            "text": "        let t = i as f32 * 0.1;",
+            "lineNumber": 608
+          },
+          {
+            "text": "        let x = t.cos() * (10.0 + t * 0.1);",
+            "lineNumber": 609
+          },
+          {
+            "text": "        let y = changes as f32 * 0.5; // Height based on changes",
+            "lineNumber": 610
+          },
+          {
+            "text": "        let z = t.sin() * (10.0 + t * 0.1);",
+            "lineNumber": 611
+          },
+          {
+            "lineNumber": 612
+          },
+          {
+            "text": "        commits.push(CommitData3D {",
+            "lineNumber": 613
+          },
+          {
+            "text": "            hash,",
+            "lineNumber": 614
+          },
+          {
+            "text": "            message,",
+            "lineNumber": 615
+          },
+          {
+            "text": "            author: commit.author().name().unwrap_or(\"Unknown\").to_string(),",
+            "lineNumber": 616
+          },
+          {
+            "text": "            timestamp: commit.time().seconds(),",
+            "lineNumber": 617
+          },
+          {
+            "text": "            changes,",
+            "lineNumber": 618
+          },
+          {
+            "text": "            x,",
+            "lineNumber": 619
+          },
+          {
+            "text": "            y,",
+            "lineNumber": 620
+          },
+          {
+            "text": "            z,",
+            "lineNumber": 621
+          },
+          {
+            "text": "        });",
+            "lineNumber": 622
+          },
+          {
+            "text": "    }",
+            "lineNumber": 623
+          },
+          {
+            "lineNumber": 624
+          },
+          {
+            "text": "    Ok(commits)",
+            "lineNumber": 625
+          },
+          {
+            "text": "}",
+            "lineNumber": 626
+          },
+          {
+            "lineNumber": 627
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 628
+          },
+          {
+            "text": "pub struct CommitData3D {",
+            "lineNumber": 629
+          },
+          {
+            "text": "    pub hash: String,",
+            "lineNumber": 630
+          },
+          {
+            "text": "    pub message: String,",
+            "lineNumber": 631
+          },
+          {
+            "text": "    pub author: String,",
+            "lineNumber": 632
+          },
+          {
+            "text": "    pub timestamp: i64,",
+            "lineNumber": 633
+          },
+          {
+            "text": "    pub changes: usize,",
+            "lineNumber": 634
+          },
+          {
+            "text": "    pub x: f32,",
+            "lineNumber": 635
+          },
+          {
+            "text": "    pub y: f32,",
+            "lineNumber": 636
+          },
+          {
+            "text": "    pub z: f32,",
+            "lineNumber": 637
+          },
+          {
+            "text": "}",
+            "lineNumber": 638
+          },
+          {
+            "lineNumber": 639
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 640
+          },
+          {
+            "text": "#[path = \"git_commands_test.rs\"]",
+            "lineNumber": 641
+          },
+          {
+            "text": "mod git_commands_test;",
+            "lineNumber": 642
+          }
+        ]
+      },
+      "score": 0.3164558410644531
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\turn_diff_tracker.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 44,
+            "column": 20
+          }
+        },
+        "contents": "use std::collections::HashMap;\nuse std::fs;\nuse std::path::Path;\nuse std::path::PathBuf;\nuse std::process::Command;\n\nuse anyhow::Context;\nuse anyhow::Result;\nuse anyhow::anyhow;\nuse sha1::digest::Output;\nuse uuid::Uuid;\n\nuse crate::protocol::FileChange;\n\nconst ZERO_OID: &amp;str = \"0000000000000000000000000000000000000000\";\nconst DEV_NULL: &amp;str = \"/dev/null\";\n\nstruct BaselineFileInfo {\n    path: PathBuf,\n    content: Vec&lt;u8&gt;,\n    mode: FileMode,\n    oid: String,\n}\n\n/// Tracks sets of changes to files and exposes the overall unified diff.\n/// Internally, the way this works is now:\n/// 1. Maintain an in-memory baseline snapshot of files when they are first seen.\n///    For new additions, do not create a baseline so that diffs are shown as proper additions (using /dev/null).\n/// 2. Keep a stable internal filename (uuid) per external path for rename tracking.\n/// 3. To compute the aggregated unified diff, compare each baseline snapshot to the current file on disk entirely in-memory\n///    using the &#96;similar&#96; crate and emit unified diffs with rewritten external paths.\n#[derive(Default)]\npub struct TurnDiffTracker {\n    /// Map external path -&gt; internal filename (uuid).\n    external_to_temp_name: HashMap&lt;PathBuf, String&gt;,\n    /// Internal filename -&gt; baseline file info.\n    baseline_file_info: HashMap&lt;String, BaselineFileInfo&gt;,\n    /// Internal filename -&gt; external path as of current accumulated state (after applying all changes).\n    /// This is where renames are tracked.\n    temp_name_to_current_path: HashMap&lt;String, PathBuf&gt;,\n    /// Cache of known git worktree roots to avoid repeated filesystem walks.\n    git_root_cache: Vec&lt;PathBuf&gt;,\n}\n\nimpl TurnDiffTracker",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use std::fs;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use std::path::Path;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use std::process::Command;",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "use anyhow::Context;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use anyhow::anyhow;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use sha1::digest::Output;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use uuid::Uuid;",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "use crate::protocol::FileChange;",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "const ZERO_OID: &amp;str = \"0000000000000000000000000000000000000000\";",
+            "lineNumber": 15
+          },
+          {
+            "text": "const DEV_NULL: &amp;str = \"/dev/null\";",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "struct BaselineFileInfo {",
+            "lineNumber": 18
+          },
+          {
+            "text": "    path: PathBuf,",
+            "lineNumber": 19
+          },
+          {
+            "text": "    content: Vec&lt;u8&gt;,",
+            "lineNumber": 20
+          },
+          {
+            "text": "    mode: FileMode,",
+            "lineNumber": 21
+          },
+          {
+            "text": "    oid: String,",
+            "lineNumber": 22
+          },
+          {
+            "text": "}",
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 24
+          },
+          {
+            "text": "/// Tracks sets of changes to files and exposes the overall unified diff.",
+            "lineNumber": 25
+          },
+          {
+            "text": "/// Internally, the way this works is now:",
+            "lineNumber": 26
+          },
+          {
+            "text": "/// 1. Maintain an in-memory baseline snapshot of files when they are first seen.",
+            "lineNumber": 27
+          },
+          {
+            "text": "///    For new additions, do not create a baseline so that diffs are shown as proper additions (using /dev/null).",
+            "lineNumber": 28
+          },
+          {
+            "text": "/// 2. Keep a stable internal filename (uuid) per external path for rename tracking.",
+            "lineNumber": 29
+          },
+          {
+            "text": "/// 3. To compute the aggregated unified diff, compare each baseline snapshot to the current file on disk entirely in-memory",
+            "lineNumber": 30
+          },
+          {
+            "text": "///    using the &#96;similar&#96; crate and emit unified diffs with rewritten external paths.",
+            "lineNumber": 31
+          },
+          {
+            "text": "#[derive(Default)]",
+            "lineNumber": 32
+          },
+          {
+            "text": "pub struct TurnDiffTracker {",
+            "lineNumber": 33
+          },
+          {
+            "text": "    /// Map external path -&gt; internal filename (uuid).",
+            "lineNumber": 34
+          },
+          {
+            "text": "    external_to_temp_name: HashMap&lt;PathBuf, String&gt;,",
+            "lineNumber": 35
+          },
+          {
+            "text": "    /// Internal filename -&gt; baseline file info.",
+            "lineNumber": 36
+          },
+          {
+            "text": "    baseline_file_info: HashMap&lt;String, BaselineFileInfo&gt;,",
+            "lineNumber": 37
+          },
+          {
+            "text": "    /// Internal filename -&gt; external path as of current accumulated state (after applying all changes).",
+            "lineNumber": 38
+          },
+          {
+            "text": "    /// This is where renames are tracked.",
+            "lineNumber": 39
+          },
+          {
+            "text": "    temp_name_to_current_path: HashMap&lt;String, PathBuf&gt;,",
+            "lineNumber": 40
+          },
+          {
+            "text": "    /// Cache of known git worktree roots to avoid repeated filesystem walks.",
+            "lineNumber": 41
+          },
+          {
+            "text": "    git_root_cache: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 42
+          },
+          {
+            "text": "}",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "impl TurnDiffTracker",
+            "lineNumber": 45
+          }
+        ]
+      },
+      "score": 0.3160851001739502
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\extensions\\codex-viz-web\\backend\\src\\git\\analyzer.rs",
+        "range": {
+          "startPosition": {
+            "line": 35,
+            "column": 68
+          },
+          "endPosition": {
+            "line": 92,
+            "column": 29
+          }
+        },
+        "contents": " Result&lt;Vec&lt;Commit3D&gt;&gt; {\n        let mut revwalk = self.repo.revwalk()?;\n        revwalk.push_head()?;\n        revwalk.set_sorting(git2::Sort::TIME)?;\n\n        let mut commits = Vec::new();\n        let mut branch_positions: HashMap&lt;String, f32&gt; = HashMap::new();\n        let mut depth_map: HashMap&lt;Oid, f32&gt; = HashMap::new();\n\n        let limit = max_commits.unwrap_or(1000);\n        let mut count = 0;\n\n        for oid_result in revwalk {\n            if count &gt;= limit {\n                break;\n            }\n\n            let oid = oid_result?;\n            let commit = self.repo.find_commit(oid)?;\n\n            // Calculate 3D coordinates\n            let branch_name = self.get_branch_for_commit(&amp;commit)?;\n            let x = self.get_branch_position(&amp;branch_name, &amp;mut branch_positions);\n            let y = commit.time().seconds() as f32;\n            let z = self.calculate_depth(&amp;commit, &amp;mut depth_map)?;\n\n            // Get or generate author color\n            let author_email = commit.author().email().unwrap_or(\"unknown\").to_string();\n            let color = self.get_author_color(&amp;author_email);\n\n            let commit_3d = Commit3D {\n                sha: format!(\"{}\", oid),\n                message: commit.message().unwrap_or(\"\").to_string(),\n                author: commit.author().name().unwrap_or(\"Unknown\").to_string(),\n                author_email: author_email.clone(),\n                timestamp: DateTime::from_timestamp(commit.time().seconds(), 0)\n                    .unwrap_or_else(|| Utc::now()),\n                branch: branch_name,\n                parents: commit.parent_ids().map(|p| format!(\"{}\", p)).collect(),\n                x,\n                y,\n                z,\n                color,\n            };\n\n            commits.push(commit_3d);\n            count += 1;\n        }\n\n        Ok(commits)\n    }\n\n    /// Analyze file change statistics for heatmap\n    pub fn analyze_file_stats(&amp;self, max_commits: Option&lt;usize&gt;) -&gt; Result&lt;Vec&lt;FileStats&gt;&gt; {\n        let mut file_map: HashMap&lt;String, FileStatsBuilder&gt; = HashMap::new();\n\n        let mut revwalk = self.repo.revwalk()?;\n        revwalk.push_head()?;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " Result&lt;Vec&lt;Commit3D&gt;&gt; {",
+            "lineNumber": 36
+          },
+          {
+            "text": "        let mut revwalk = self.repo.revwalk()?;",
+            "lineNumber": 37
+          },
+          {
+            "text": "        revwalk.push_head()?;",
+            "lineNumber": 38
+          },
+          {
+            "text": "        revwalk.set_sorting(git2::Sort::TIME)?;",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "        let mut commits = Vec::new();",
+            "lineNumber": 41
+          },
+          {
+            "text": "        let mut branch_positions: HashMap&lt;String, f32&gt; = HashMap::new();",
+            "lineNumber": 42
+          },
+          {
+            "text": "        let mut depth_map: HashMap&lt;Oid, f32&gt; = HashMap::new();",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "        let limit = max_commits.unwrap_or(1000);",
+            "lineNumber": 45
+          },
+          {
+            "text": "        let mut count = 0;",
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "text": "        for oid_result in revwalk {",
+            "lineNumber": 48
+          },
+          {
+            "text": "            if count &gt;= limit {",
+            "lineNumber": 49
+          },
+          {
+            "text": "                break;",
+            "lineNumber": 50
+          },
+          {
+            "text": "            }",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "            let oid = oid_result?;",
+            "lineNumber": 53
+          },
+          {
+            "text": "            let commit = self.repo.find_commit(oid)?;",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "            // Calculate 3D coordinates",
+            "lineNumber": 56
+          },
+          {
+            "text": "            let branch_name = self.get_branch_for_commit(&amp;commit)?;",
+            "lineNumber": 57
+          },
+          {
+            "text": "            let x = self.get_branch_position(&amp;branch_name, &amp;mut branch_positions);",
+            "lineNumber": 58
+          },
+          {
+            "text": "            let y = commit.time().seconds() as f32;",
+            "lineNumber": 59
+          },
+          {
+            "text": "            let z = self.calculate_depth(&amp;commit, &amp;mut depth_map)?;",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "            // Get or generate author color",
+            "lineNumber": 62
+          },
+          {
+            "text": "            let author_email = commit.author().email().unwrap_or(\"unknown\").to_string();",
+            "lineNumber": 63
+          },
+          {
+            "text": "            let color = self.get_author_color(&amp;author_email);",
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "            let commit_3d = Commit3D {",
+            "lineNumber": 66
+          },
+          {
+            "text": "                sha: format!(\"{}\", oid),",
+            "lineNumber": 67
+          },
+          {
+            "text": "                message: commit.message().unwrap_or(\"\").to_string(),",
+            "lineNumber": 68
+          },
+          {
+            "text": "                author: commit.author().name().unwrap_or(\"Unknown\").to_string(),",
+            "lineNumber": 69
+          },
+          {
+            "text": "                author_email: author_email.clone(),",
+            "lineNumber": 70
+          },
+          {
+            "text": "                timestamp: DateTime::from_timestamp(commit.time().seconds(), 0)",
+            "lineNumber": 71
+          },
+          {
+            "text": "                    .unwrap_or_else(|| Utc::now()),",
+            "lineNumber": 72
+          },
+          {
+            "text": "                branch: branch_name,",
+            "lineNumber": 73
+          },
+          {
+            "text": "                parents: commit.parent_ids().map(|p| format!(\"{}\", p)).collect(),",
+            "lineNumber": 74
+          },
+          {
+            "text": "                x,",
+            "lineNumber": 75
+          },
+          {
+            "text": "                y,",
+            "lineNumber": 76
+          },
+          {
+            "text": "                z,",
+            "lineNumber": 77
+          },
+          {
+            "text": "                color,",
+            "lineNumber": 78
+          },
+          {
+            "text": "            };",
+            "lineNumber": 79
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "text": "            commits.push(commit_3d);",
+            "lineNumber": 81
+          },
+          {
+            "text": "            count += 1;",
+            "lineNumber": 82
+          },
+          {
+            "text": "        }",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "        Ok(commits)",
+            "lineNumber": 85
+          },
+          {
+            "text": "    }",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "    /// Analyze file change statistics for heatmap",
+            "lineNumber": 88
+          },
+          {
+            "text": "    pub fn analyze_file_stats(&amp;self, max_commits: Option&lt;usize&gt;) -&gt; Result&lt;Vec&lt;FileStats&gt;&gt; {",
+            "lineNumber": 89
+          },
+          {
+            "text": "        let mut file_map: HashMap&lt;String, FileStatsBuilder&gt; = HashMap::new();",
+            "lineNumber": 90
+          },
+          {
+            "lineNumber": 91
+          },
+          {
+            "text": "        let mut revwalk = self.repo.revwalk()?;",
+            "lineNumber": 92
+          },
+          {
+            "text": "        revwalk.push_head()?;",
+            "lineNumber": 93
+          }
+        ]
+      },
+      "score": 0.3143734931945801
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\extensions\\codex-viz-web\\backend\\src\\git\\analyzer.rs",
+        "range": {
+          "startPosition": {
+            "line": 35,
+            "column": 68
+          },
+          "endPosition": {
+            "line": 92,
+            "column": 29
+          }
+        },
+        "contents": " Result&lt;Vec&lt;Commit3D&gt;&gt; {\n        let mut revwalk = self.repo.revwalk()?;\n        revwalk.push_head()?;\n        revwalk.set_sorting(git2::Sort::TIME)?;\n\n        let mut commits = Vec::new();\n        let mut branch_positions: HashMap&lt;String, f32&gt; = HashMap::new();\n        let mut depth_map: HashMap&lt;Oid, f32&gt; = HashMap::new();\n\n        let limit = max_commits.unwrap_or(1000);\n        let mut count = 0;\n\n        for oid_result in revwalk {\n            if count &gt;= limit {\n                break;\n            }\n\n            let oid = oid_result?;\n            let commit = self.repo.find_commit(oid)?;\n\n            // Calculate 3D coordinates\n            let branch_name = self.get_branch_for_commit(&amp;commit)?;\n            let x = self.get_branch_position(&amp;branch_name, &amp;mut branch_positions);\n            let y = commit.time().seconds() as f32;\n            let z = self.calculate_depth(&amp;commit, &amp;mut depth_map)?;\n\n            // Get or generate author color\n            let author_email = commit.author().email().unwrap_or(\"unknown\").to_string();\n            let color = self.get_author_color(&amp;author_email);\n\n            let commit_3d = Commit3D {\n                sha: format!(\"{}\", oid),\n                message: commit.message().unwrap_or(\"\").to_string(),\n                author: commit.author().name().unwrap_or(\"Unknown\").to_string(),\n                author_email: author_email.clone(),\n                timestamp: DateTime::from_timestamp(commit.time().seconds(), 0)\n                    .unwrap_or_else(|| Utc::now()),\n                branch: branch_name,\n                parents: commit.parent_ids().map(|p| format!(\"{}\", p)).collect(),\n                x,\n                y,\n                z,\n                color,\n            };\n\n            commits.push(commit_3d);\n            count += 1;\n        }\n\n        Ok(commits)\n    }\n\n    /// Analyze file change statistics for heatmap\n    pub fn analyze_file_stats(&amp;self, max_commits: Option&lt;usize&gt;) -&gt; Result&lt;Vec&lt;FileStats&gt;&gt; {\n        let mut file_map: HashMap&lt;String, FileStatsBuilder&gt; = HashMap::new();\n\n        let mut revwalk = self.repo.revwalk()?;\n        revwalk.push_head()?;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " Result&lt;Vec&lt;Commit3D&gt;&gt; {",
+            "lineNumber": 36
+          },
+          {
+            "text": "        let mut revwalk = self.repo.revwalk()?;",
+            "lineNumber": 37
+          },
+          {
+            "text": "        revwalk.push_head()?;",
+            "lineNumber": 38
+          },
+          {
+            "text": "        revwalk.set_sorting(git2::Sort::TIME)?;",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "        let mut commits = Vec::new();",
+            "lineNumber": 41
+          },
+          {
+            "text": "        let mut branch_positions: HashMap&lt;String, f32&gt; = HashMap::new();",
+            "lineNumber": 42
+          },
+          {
+            "text": "        let mut depth_map: HashMap&lt;Oid, f32&gt; = HashMap::new();",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "        let limit = max_commits.unwrap_or(1000);",
+            "lineNumber": 45
+          },
+          {
+            "text": "        let mut count = 0;",
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "text": "        for oid_result in revwalk {",
+            "lineNumber": 48
+          },
+          {
+            "text": "            if count &gt;= limit {",
+            "lineNumber": 49
+          },
+          {
+            "text": "                break;",
+            "lineNumber": 50
+          },
+          {
+            "text": "            }",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "            let oid = oid_result?;",
+            "lineNumber": 53
+          },
+          {
+            "text": "            let commit = self.repo.find_commit(oid)?;",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "            // Calculate 3D coordinates",
+            "lineNumber": 56
+          },
+          {
+            "text": "            let branch_name = self.get_branch_for_commit(&amp;commit)?;",
+            "lineNumber": 57
+          },
+          {
+            "text": "            let x = self.get_branch_position(&amp;branch_name, &amp;mut branch_positions);",
+            "lineNumber": 58
+          },
+          {
+            "text": "            let y = commit.time().seconds() as f32;",
+            "lineNumber": 59
+          },
+          {
+            "text": "            let z = self.calculate_depth(&amp;commit, &amp;mut depth_map)?;",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "            // Get or generate author color",
+            "lineNumber": 62
+          },
+          {
+            "text": "            let author_email = commit.author().email().unwrap_or(\"unknown\").to_string();",
+            "lineNumber": 63
+          },
+          {
+            "text": "            let color = self.get_author_color(&amp;author_email);",
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "            let commit_3d = Commit3D {",
+            "lineNumber": 66
+          },
+          {
+            "text": "                sha: format!(\"{}\", oid),",
+            "lineNumber": 67
+          },
+          {
+            "text": "                message: commit.message().unwrap_or(\"\").to_string(),",
+            "lineNumber": 68
+          },
+          {
+            "text": "                author: commit.author().name().unwrap_or(\"Unknown\").to_string(),",
+            "lineNumber": 69
+          },
+          {
+            "text": "                author_email: author_email.clone(),",
+            "lineNumber": 70
+          },
+          {
+            "text": "                timestamp: DateTime::from_timestamp(commit.time().seconds(), 0)",
+            "lineNumber": 71
+          },
+          {
+            "text": "                    .unwrap_or_else(|| Utc::now()),",
+            "lineNumber": 72
+          },
+          {
+            "text": "                branch: branch_name,",
+            "lineNumber": 73
+          },
+          {
+            "text": "                parents: commit.parent_ids().map(|p| format!(\"{}\", p)).collect(),",
+            "lineNumber": 74
+          },
+          {
+            "text": "                x,",
+            "lineNumber": 75
+          },
+          {
+            "text": "                y,",
+            "lineNumber": 76
+          },
+          {
+            "text": "                z,",
+            "lineNumber": 77
+          },
+          {
+            "text": "                color,",
+            "lineNumber": 78
+          },
+          {
+            "text": "            };",
+            "lineNumber": 79
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "text": "            commits.push(commit_3d);",
+            "lineNumber": 81
+          },
+          {
+            "text": "            count += 1;",
+            "lineNumber": 82
+          },
+          {
+            "text": "        }",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "        Ok(commits)",
+            "lineNumber": 85
+          },
+          {
+            "text": "    }",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "    /// Analyze file change statistics for heatmap",
+            "lineNumber": 88
+          },
+          {
+            "text": "    pub fn analyze_file_stats(&amp;self, max_commits: Option&lt;usize&gt;) -&gt; Result&lt;Vec&lt;FileStats&gt;&gt; {",
+            "lineNumber": 89
+          },
+          {
+            "text": "        let mut file_map: HashMap&lt;String, FileStatsBuilder&gt; = HashMap::new();",
+            "lineNumber": 90
+          },
+          {
+            "lineNumber": 91
+          },
+          {
+            "text": "        let mut revwalk = self.repo.revwalk()?;",
+            "lineNumber": 92
+          },
+          {
+            "text": "        revwalk.push_head()?;",
+            "lineNumber": 93
+          }
+        ]
+      },
+      "score": 0.3143734931945801
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tauri-gui\\src\\utils\\babylon-git-engine.ts",
+        "range": {
+          "startPosition": {
+            "line": 58
+          },
+          "endPosition": {
+            "line": 458,
+            "column": 1
+          }
+        },
+        "contents": "export class GitVisualizationEngine {\n\n\n  /**\n   * コミットデータを読み込み、3D可視化を生成\n   */\n  async loadCommits(commits: Commit3D[]): Promise&lt;void&gt; {\n    if (!this.scene || !this.baseMesh) {\n      throw new Error('Engine not initialized');\n    }\n\n    console.log(&#96;📊 Loading ${commits.length} commits...&#96;);\n    const startTime = performance.now();\n\n    // 既存ノードをクリア\n    this.clearVisualization();\n\n    // コミットノード作成（インスタンス化で高速化）\n    commits.forEach((commit) =&gt; {\n      const instance = this.baseMesh!.createInstance(&#96;commit-${commit.sha}&#96;);\n      \n      // 位置設定\n      instance.position = new Vector3(commit.x, commit.y, commit.z);\n      \n      // カラー設定（PBRマテリアル）\n      const material = new PBRMaterial(&#96;mat-${commit.sha}&#96;, this.scene!);\n      const color = this.parseColor(commit.color);\n      material.albedoColor = color;\n      material.metallic = 0.7;\n      material.roughness = 0.3;\n      material.emissiveColor = color.scale(0.8);\n      material.emissiveIntensity = 2.0;\n      instance.material = material;\n\n      // スケール（初期）\n      instance.scaling = new Vector3(1, 1, 1);\n\n      // データ保存\n      this.commitNodes.set(commit.sha, instance);\n      this.commitData.set(commit.sha, commit);\n\n      // Glow効果追加\n      this.glowLayer?.addIncludedOnlyMesh(instance);\n    });\n\n    // 接続線作成（親コミットとの線）\n    this.createConnectionLines(commits);\n\n    this.stats.totalCommits = commits.length;\n    this.stats.visibleCommits = commits.length;\n\n    const loadTime = performance.now() - startTime;\n    console.log(&#96;✅ ${commits.length} commits loaded in ${loadTime.toFixed(2)}ms&#96;);\n  }\n\n  /**\n   * 親コミットとの接続線を作成\n   */\n  private createConnectionLines(commits: Commit3D[]): void {\n    if (!this.scene) return;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 59,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 59,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 59,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 60,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class GitVisualizationEngine {",
+            "lineNumber": 59,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 184
+          },
+          {
+            "text": "   * コミットデータを読み込み、3D可視化を生成",
+            "lineNumber": 185
+          },
+          {
+            "text": "   */",
+            "lineNumber": 186
+          },
+          {
+            "text": "  async loadCommits(commits: Commit3D[]): Promise&lt;void&gt; {",
+            "lineNumber": 187
+          },
+          {
+            "text": "    if (!this.scene || !this.baseMesh) {",
+            "lineNumber": 188
+          },
+          {
+            "text": "      throw new Error('Engine not initialized');",
+            "lineNumber": 189
+          },
+          {
+            "text": "    }",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "    console.log(&#96;📊 Loading ${commits.length} commits...&#96;);",
+            "lineNumber": 192
+          },
+          {
+            "text": "    const startTime = performance.now();",
+            "lineNumber": 193
+          },
+          {
+            "lineNumber": 194
+          },
+          {
+            "text": "    // 既存ノードをクリア",
+            "lineNumber": 195
+          },
+          {
+            "text": "    this.clearVisualization();",
+            "lineNumber": 196
+          },
+          {
+            "lineNumber": 197
+          },
+          {
+            "text": "    // コミットノード作成（インスタンス化で高速化）",
+            "lineNumber": 198
+          },
+          {
+            "text": "    commits.forEach((commit) =&gt; {",
+            "lineNumber": 199
+          },
+          {
+            "text": "      const instance = this.baseMesh!.createInstance(&#96;commit-${commit.sha}&#96;);",
+            "lineNumber": 200
+          },
+          {
+            "text": "      ",
+            "lineNumber": 201
+          },
+          {
+            "text": "      // 位置設定",
+            "lineNumber": 202
+          },
+          {
+            "text": "      instance.position = new Vector3(commit.x, commit.y, commit.z);",
+            "lineNumber": 203
+          },
+          {
+            "text": "      ",
+            "lineNumber": 204
+          },
+          {
+            "text": "      // カラー設定（PBRマテリアル）",
+            "lineNumber": 205
+          },
+          {
+            "text": "      const material = new PBRMaterial(&#96;mat-${commit.sha}&#96;, this.scene!);",
+            "lineNumber": 206
+          },
+          {
+            "text": "      const color = this.parseColor(commit.color);",
+            "lineNumber": 207
+          },
+          {
+            "text": "      material.albedoColor = color;",
+            "lineNumber": 208
+          },
+          {
+            "text": "      material.metallic = 0.7;",
+            "lineNumber": 209
+          },
+          {
+            "text": "      material.roughness = 0.3;",
+            "lineNumber": 210
+          },
+          {
+            "text": "      material.emissiveColor = color.scale(0.8);",
+            "lineNumber": 211
+          },
+          {
+            "text": "      material.emissiveIntensity = 2.0;",
+            "lineNumber": 212
+          },
+          {
+            "text": "      instance.material = material;",
+            "lineNumber": 213
+          },
+          {
+            "lineNumber": 214
+          },
+          {
+            "text": "      // スケール（初期）",
+            "lineNumber": 215
+          },
+          {
+            "text": "      instance.scaling = new Vector3(1, 1, 1);",
+            "lineNumber": 216
+          },
+          {
+            "lineNumber": 217
+          },
+          {
+            "text": "      // データ保存",
+            "lineNumber": 218
+          },
+          {
+            "text": "      this.commitNodes.set(commit.sha, instance);",
+            "lineNumber": 219
+          },
+          {
+            "text": "      this.commitData.set(commit.sha, commit);",
+            "lineNumber": 220
+          },
+          {
+            "lineNumber": 221
+          },
+          {
+            "text": "      // Glow効果追加",
+            "lineNumber": 222
+          },
+          {
+            "text": "      this.glowLayer?.addIncludedOnlyMesh(instance);",
+            "lineNumber": 223
+          },
+          {
+            "text": "    });",
+            "lineNumber": 224
+          },
+          {
+            "lineNumber": 225
+          },
+          {
+            "text": "    // 接続線作成（親コミットとの線）",
+            "lineNumber": 226
+          },
+          {
+            "text": "    this.createConnectionLines(commits);",
+            "lineNumber": 227
+          },
+          {
+            "lineNumber": 228
+          },
+          {
+            "text": "    this.stats.totalCommits = commits.length;",
+            "lineNumber": 229
+          },
+          {
+            "text": "    this.stats.visibleCommits = commits.length;",
+            "lineNumber": 230
+          },
+          {
+            "lineNumber": 231
+          },
+          {
+            "text": "    const loadTime = performance.now() - startTime;",
+            "lineNumber": 232
+          },
+          {
+            "text": "    console.log(&#96;✅ ${commits.length} commits loaded in ${loadTime.toFixed(2)}ms&#96;);",
+            "lineNumber": 233
+          },
+          {
+            "text": "  }",
+            "lineNumber": 234
+          },
+          {
+            "lineNumber": 235
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 236
+          },
+          {
+            "text": "   * 親コミットとの接続線を作成",
+            "lineNumber": 237
+          },
+          {
+            "text": "   */",
+            "lineNumber": 238
+          },
+          {
+            "text": "  private createConnectionLines(commits: Commit3D[]): void {",
+            "lineNumber": 239
+          },
+          {
+            "text": "    if (!this.scene) return;",
+            "lineNumber": 240
+          },
+          {
+            "text": "  }",
+            "lineNumber": 265
+          },
+          {
+            "text": "}",
+            "lineNumber": 459,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3110179007053375
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tauri-gui\\src\\utils\\babylon-git-engine.ts",
+        "range": {
+          "startPosition": {
+            "line": 58
+          },
+          "endPosition": {
+            "line": 458,
+            "column": 1
+          }
+        },
+        "contents": "export class GitVisualizationEngine {\n\n\n  /**\n   * コミットデータを読み込み、3D可視化を生成\n   */\n  async loadCommits(commits: Commit3D[]): Promise&lt;void&gt; {\n    if (!this.scene || !this.baseMesh) {\n      throw new Error('Engine not initialized');\n    }\n\n    console.log(&#96;📊 Loading ${commits.length} commits...&#96;);\n    const startTime = performance.now();\n\n    // 既存ノードをクリア\n    this.clearVisualization();\n\n    // コミットノード作成（インスタンス化で高速化）\n    commits.forEach((commit) =&gt; {\n      const instance = this.baseMesh!.createInstance(&#96;commit-${commit.sha}&#96;);\n      \n      // 位置設定\n      instance.position = new Vector3(commit.x, commit.y, commit.z);\n      \n      // カラー設定（PBRマテリアル）\n      const material = new PBRMaterial(&#96;mat-${commit.sha}&#96;, this.scene!);\n      const color = this.parseColor(commit.color);\n      material.albedoColor = color;\n      material.metallic = 0.7;\n      material.roughness = 0.3;\n      material.emissiveColor = color.scale(0.8);\n      material.emissiveIntensity = 2.0;\n      instance.material = material;\n\n      // スケール（初期）\n      instance.scaling = new Vector3(1, 1, 1);\n\n      // データ保存\n      this.commitNodes.set(commit.sha, instance);\n      this.commitData.set(commit.sha, commit);\n\n      // Glow効果追加\n      this.glowLayer?.addIncludedOnlyMesh(instance);\n    });\n\n    // 接続線作成（親コミットとの線）\n    this.createConnectionLines(commits);\n\n    this.stats.totalCommits = commits.length;\n    this.stats.visibleCommits = commits.length;\n\n    const loadTime = performance.now() - startTime;\n    console.log(&#96;✅ ${commits.length} commits loaded in ${loadTime.toFixed(2)}ms&#96;);\n  }\n\n  /**\n   * 親コミットとの接続線を作成\n   */\n  private createConnectionLines(commits: Commit3D[]): void {\n    if (!this.scene) return;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 59,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 59,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 59,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 60,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class GitVisualizationEngine {",
+            "lineNumber": 59,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 184
+          },
+          {
+            "text": "   * コミットデータを読み込み、3D可視化を生成",
+            "lineNumber": 185
+          },
+          {
+            "text": "   */",
+            "lineNumber": 186
+          },
+          {
+            "text": "  async loadCommits(commits: Commit3D[]): Promise&lt;void&gt; {",
+            "lineNumber": 187
+          },
+          {
+            "text": "    if (!this.scene || !this.baseMesh) {",
+            "lineNumber": 188
+          },
+          {
+            "text": "      throw new Error('Engine not initialized');",
+            "lineNumber": 189
+          },
+          {
+            "text": "    }",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "    console.log(&#96;📊 Loading ${commits.length} commits...&#96;);",
+            "lineNumber": 192
+          },
+          {
+            "text": "    const startTime = performance.now();",
+            "lineNumber": 193
+          },
+          {
+            "lineNumber": 194
+          },
+          {
+            "text": "    // 既存ノードをクリア",
+            "lineNumber": 195
+          },
+          {
+            "text": "    this.clearVisualization();",
+            "lineNumber": 196
+          },
+          {
+            "lineNumber": 197
+          },
+          {
+            "text": "    // コミットノード作成（インスタンス化で高速化）",
+            "lineNumber": 198
+          },
+          {
+            "text": "    commits.forEach((commit) =&gt; {",
+            "lineNumber": 199
+          },
+          {
+            "text": "      const instance = this.baseMesh!.createInstance(&#96;commit-${commit.sha}&#96;);",
+            "lineNumber": 200
+          },
+          {
+            "text": "      ",
+            "lineNumber": 201
+          },
+          {
+            "text": "      // 位置設定",
+            "lineNumber": 202
+          },
+          {
+            "text": "      instance.position = new Vector3(commit.x, commit.y, commit.z);",
+            "lineNumber": 203
+          },
+          {
+            "text": "      ",
+            "lineNumber": 204
+          },
+          {
+            "text": "      // カラー設定（PBRマテリアル）",
+            "lineNumber": 205
+          },
+          {
+            "text": "      const material = new PBRMaterial(&#96;mat-${commit.sha}&#96;, this.scene!);",
+            "lineNumber": 206
+          },
+          {
+            "text": "      const color = this.parseColor(commit.color);",
+            "lineNumber": 207
+          },
+          {
+            "text": "      material.albedoColor = color;",
+            "lineNumber": 208
+          },
+          {
+            "text": "      material.metallic = 0.7;",
+            "lineNumber": 209
+          },
+          {
+            "text": "      material.roughness = 0.3;",
+            "lineNumber": 210
+          },
+          {
+            "text": "      material.emissiveColor = color.scale(0.8);",
+            "lineNumber": 211
+          },
+          {
+            "text": "      material.emissiveIntensity = 2.0;",
+            "lineNumber": 212
+          },
+          {
+            "text": "      instance.material = material;",
+            "lineNumber": 213
+          },
+          {
+            "lineNumber": 214
+          },
+          {
+            "text": "      // スケール（初期）",
+            "lineNumber": 215
+          },
+          {
+            "text": "      instance.scaling = new Vector3(1, 1, 1);",
+            "lineNumber": 216
+          },
+          {
+            "lineNumber": 217
+          },
+          {
+            "text": "      // データ保存",
+            "lineNumber": 218
+          },
+          {
+            "text": "      this.commitNodes.set(commit.sha, instance);",
+            "lineNumber": 219
+          },
+          {
+            "text": "      this.commitData.set(commit.sha, commit);",
+            "lineNumber": 220
+          },
+          {
+            "lineNumber": 221
+          },
+          {
+            "text": "      // Glow効果追加",
+            "lineNumber": 222
+          },
+          {
+            "text": "      this.glowLayer?.addIncludedOnlyMesh(instance);",
+            "lineNumber": 223
+          },
+          {
+            "text": "    });",
+            "lineNumber": 224
+          },
+          {
+            "lineNumber": 225
+          },
+          {
+            "text": "    // 接続線作成（親コミットとの線）",
+            "lineNumber": 226
+          },
+          {
+            "text": "    this.createConnectionLines(commits);",
+            "lineNumber": 227
+          },
+          {
+            "lineNumber": 228
+          },
+          {
+            "text": "    this.stats.totalCommits = commits.length;",
+            "lineNumber": 229
+          },
+          {
+            "text": "    this.stats.visibleCommits = commits.length;",
+            "lineNumber": 230
+          },
+          {
+            "lineNumber": 231
+          },
+          {
+            "text": "    const loadTime = performance.now() - startTime;",
+            "lineNumber": 232
+          },
+          {
+            "text": "    console.log(&#96;✅ ${commits.length} commits loaded in ${loadTime.toFixed(2)}ms&#96;);",
+            "lineNumber": 233
+          },
+          {
+            "text": "  }",
+            "lineNumber": 234
+          },
+          {
+            "lineNumber": 235
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 236
+          },
+          {
+            "text": "   * 親コミットとの接続線を作成",
+            "lineNumber": 237
+          },
+          {
+            "text": "   */",
+            "lineNumber": 238
+          },
+          {
+            "text": "  private createConnectionLines(commits: Commit3D[]): void {",
+            "lineNumber": 239
+          },
+          {
+            "text": "    if (!this.scene) return;",
+            "lineNumber": 240
+          },
+          {
+            "text": "  }",
+            "lineNumber": 265
+          },
+          {
+            "text": "}",
+            "lineNumber": 459,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3110179007053375
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\tui\\src\\git_visualizer.rs",
+        "range": {
+          "startPosition": {
+            "line": 318,
+            "column": 44
+          },
+          "endPosition": {
+            "line": 372,
+            "column": 20
+          }
+        },
+        "contents": " -&gt; Result&lt;Vec&lt;CommitNode3D&gt;&gt; {\n        use git2::Repository;\n\n        let repo = Repository::open(repo_path)?;\n        let mut revwalk = repo.revwalk()?;\n        revwalk.push_head()?;\n        revwalk.set_sorting(git2::Sort::TIME)?;\n\n        let mut commits = Vec::new();\n\n        for (i, oid) in revwalk.take(10_000).enumerate() {\n            let oid = oid?;\n            let commit = repo.find_commit(oid)?;\n\n            let message = commit\n                .message()\n                .unwrap_or(\"No message\")\n                .lines()\n                .next()\n                .unwrap_or(\"\")\n                .to_string();\n\n            let hash = format!(\"{:.7}\", oid);\n\n            // Count file changes\n            let mut changes = 0;\n            if let Ok(tree) = commit.tree() {\n                if commit.parent_count() &gt; 0 {\n                    if let Ok(parent) = commit.parent(0) {\n                        if let Ok(parent_tree) = parent.tree() {\n                            if let Ok(diff) =\n                                repo.diff_tree_to_tree(Some(&amp;parent_tree), Some(&amp;tree), None)\n                            {\n                                changes = diff.deltas().len();\n                            }\n                        }\n                    }\n                }\n            }\n\n            let pos = Self::calculate_3d_position(i, changes);\n            let color = Self::get_color_for_changes(changes);\n\n            // Get timestamp and calculate age/heat\n            let timestamp = commit.time().seconds();\n            let now = std::time::SystemTime::now()\n                .duration_since(std::time::UNIX_EPOCH)\n                .unwrap()\n                .as_secs() as i64;\n            let age_days = ((now - timestamp) as f32) / 86400.0;\n            let heat = Self::calculate_heat(timestamp, i, 10_000);\n\n            commits.push(CommitNode3D {\n                pos,\n                hash",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " -&gt; Result&lt;Vec&lt;CommitNode3D&gt;&gt; {",
+            "lineNumber": 319
+          },
+          {
+            "text": "        use git2::Repository;",
+            "lineNumber": 320
+          },
+          {
+            "lineNumber": 321
+          },
+          {
+            "text": "        let repo = Repository::open(repo_path)?;",
+            "lineNumber": 322
+          },
+          {
+            "text": "        let mut revwalk = repo.revwalk()?;",
+            "lineNumber": 323
+          },
+          {
+            "text": "        revwalk.push_head()?;",
+            "lineNumber": 324
+          },
+          {
+            "text": "        revwalk.set_sorting(git2::Sort::TIME)?;",
+            "lineNumber": 325
+          },
+          {
+            "lineNumber": 326
+          },
+          {
+            "text": "        let mut commits = Vec::new();",
+            "lineNumber": 327
+          },
+          {
+            "lineNumber": 328
+          },
+          {
+            "text": "        for (i, oid) in revwalk.take(10_000).enumerate() {",
+            "lineNumber": 329
+          },
+          {
+            "text": "            let oid = oid?;",
+            "lineNumber": 330
+          },
+          {
+            "text": "            let commit = repo.find_commit(oid)?;",
+            "lineNumber": 331
+          },
+          {
+            "lineNumber": 332
+          },
+          {
+            "text": "            let message = commit",
+            "lineNumber": 333
+          },
+          {
+            "text": "                .message()",
+            "lineNumber": 334
+          },
+          {
+            "text": "                .unwrap_or(\"No message\")",
+            "lineNumber": 335
+          },
+          {
+            "text": "                .lines()",
+            "lineNumber": 336
+          },
+          {
+            "text": "                .next()",
+            "lineNumber": 337
+          },
+          {
+            "text": "                .unwrap_or(\"\")",
+            "lineNumber": 338
+          },
+          {
+            "text": "                .to_string();",
+            "lineNumber": 339
+          },
+          {
+            "lineNumber": 340
+          },
+          {
+            "text": "            let hash = format!(\"{:.7}\", oid);",
+            "lineNumber": 341
+          },
+          {
+            "lineNumber": 342
+          },
+          {
+            "text": "            // Count file changes",
+            "lineNumber": 343
+          },
+          {
+            "text": "            let mut changes = 0;",
+            "lineNumber": 344
+          },
+          {
+            "text": "            if let Ok(tree) = commit.tree() {",
+            "lineNumber": 345
+          },
+          {
+            "text": "                if commit.parent_count() &gt; 0 {",
+            "lineNumber": 346
+          },
+          {
+            "text": "                    if let Ok(parent) = commit.parent(0) {",
+            "lineNumber": 347
+          },
+          {
+            "text": "                        if let Ok(parent_tree) = parent.tree() {",
+            "lineNumber": 348
+          },
+          {
+            "text": "                            if let Ok(diff) =",
+            "lineNumber": 349
+          },
+          {
+            "text": "                                repo.diff_tree_to_tree(Some(&amp;parent_tree), Some(&amp;tree), None)",
+            "lineNumber": 350
+          },
+          {
+            "text": "                            {",
+            "lineNumber": 351
+          },
+          {
+            "text": "                                changes = diff.deltas().len();",
+            "lineNumber": 352
+          },
+          {
+            "text": "                            }",
+            "lineNumber": 353
+          },
+          {
+            "text": "                        }",
+            "lineNumber": 354
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 355
+          },
+          {
+            "text": "                }",
+            "lineNumber": 356
+          },
+          {
+            "text": "            }",
+            "lineNumber": 357
+          },
+          {
+            "lineNumber": 358
+          },
+          {
+            "text": "            let pos = Self::calculate_3d_position(i, changes);",
+            "lineNumber": 359
+          },
+          {
+            "text": "            let color = Self::get_color_for_changes(changes);",
+            "lineNumber": 360
+          },
+          {
+            "lineNumber": 361
+          },
+          {
+            "text": "            // Get timestamp and calculate age/heat",
+            "lineNumber": 362
+          },
+          {
+            "text": "            let timestamp = commit.time().seconds();",
+            "lineNumber": 363
+          },
+          {
+            "text": "            let now = std::time::SystemTime::now()",
+            "lineNumber": 364
+          },
+          {
+            "text": "                .duration_since(std::time::UNIX_EPOCH)",
+            "lineNumber": 365
+          },
+          {
+            "text": "                .unwrap()",
+            "lineNumber": 366
+          },
+          {
+            "text": "                .as_secs() as i64;",
+            "lineNumber": 367
+          },
+          {
+            "text": "            let age_days = ((now - timestamp) as f32) / 86400.0;",
+            "lineNumber": 368
+          },
+          {
+            "text": "            let heat = Self::calculate_heat(timestamp, i, 10_000);",
+            "lineNumber": 369
+          },
+          {
+            "lineNumber": 370
+          },
+          {
+            "text": "            commits.push(CommitNode3D {",
+            "lineNumber": 371
+          },
+          {
+            "text": "                pos,",
+            "lineNumber": 372
+          },
+          {
+            "text": "                hash",
+            "lineNumber": 373
+          }
+        ]
+      },
+      "score": 0.3099445104598999
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\_docs\\2025-12-29_CICD失敗修正{main}.md",
+        "range": {
+          "startPosition": {
+            "line": 145
+          },
+          "endPosition": {
+            "line": 177
+          }
+        },
+        "contents": "2. ✅ &#96;cli/src/main.rs&#96;のパターンマッチングを修正\n3. ✅ &#96;task_details_with_error.json&#96;の構造を修正\n4. ✅ ワークフローファイルのマージコンフリクトを解決（4ファイル）\n5. ✅ &#96;rust-ci.yml&#96;の&#96;imports_granularity=Item&#96;設定を削除（stable版では未対応）\n6. ✅ &#96;subagent-ci.yml&#96;の&#96;actions/checkout@v5&#96;を&#96;v6&#96;に更新（8箇所）\n7. ✅ &#96;subagent-ci.yml&#96;のドキュメント検証テストを修正（存在しない文字列チェックを削除）\n8. ✅ &#96;rustfmt.toml&#96;と&#96;justfile&#96;の&#96;imports_granularity&#96;設定を削除\n9. ✅ &#96;codex-git&#96;クレートの&#96;HashSet&#96;を&#96;BTreeSet&#96;に変更（Clippyの&#96;disallowed_types&#96;ルール対応）\n10. ✅ &#96;cargo check&#96;でビルドエラーがないことを確認\n11. ✅ &#96;cargo fmt --check&#96;でフォーマットチェックを確認\n\n---\n\n## 実装完了\n\nCI/CDワークフローの失敗原因を修正しました。主な問題は：\n1. Rust 2024 editionでのunsafe関数呼び出し\n2. 構造体のパターンマッチング\n3. **ワークフローファイルのマージコンフリクト**（これが主な失敗原因でした）\n4. **stable版では未対応の&#96;imports_granularity=Item&#96;設定**（&#96;rustfmt.toml&#96;、&#96;justfile&#96;、&#96;generate_mcp_types.py&#96;）\n5. **Clippyの&#96;disallowed_types&#96;ルール違反**（&#96;HashSet&#96;を&#96;BTreeSet&#96;に変更）\n\nこれで、&#96;rust-ci&#96;、&#96;Sub-Agent &amp; Deep Research CI&#96;、&#96;codespell.yml&#96;、&#96;issue-deduplicator.yml&#96;、&#96;issue-labeler.yml&#96;、&#96;cla.yml&#96;のすべてのワークフローが正常に動作するはずです。\n\n### 技術スタック\n\n- **Rust**: 2024 edition\n- **CI/CD**: GitHub Actions\n\n---\n\n完了！",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "2. ✅ &#96;cli/src/main.rs&#96;のパターンマッチングを修正",
+            "lineNumber": 146
+          },
+          {
+            "text": "3. ✅ &#96;task_details_with_error.json&#96;の構造を修正",
+            "lineNumber": 147
+          },
+          {
+            "text": "4. ✅ ワークフローファイルのマージコンフリクトを解決（4ファイル）",
+            "lineNumber": 148
+          },
+          {
+            "text": "5. ✅ &#96;rust-ci.yml&#96;の&#96;imports_granularity=Item&#96;設定を削除（stable版では未対応）",
+            "lineNumber": 149
+          },
+          {
+            "text": "6. ✅ &#96;subagent-ci.yml&#96;の&#96;actions/checkout@v5&#96;を&#96;v6&#96;に更新（8箇所）",
+            "lineNumber": 150
+          },
+          {
+            "text": "7. ✅ &#96;subagent-ci.yml&#96;のドキュメント検証テストを修正（存在しない文字列チェックを削除）",
+            "lineNumber": 151
+          },
+          {
+            "text": "8. ✅ &#96;rustfmt.toml&#96;と&#96;justfile&#96;の&#96;imports_granularity&#96;設定を削除",
+            "lineNumber": 152
+          },
+          {
+            "text": "9. ✅ &#96;codex-git&#96;クレートの&#96;HashSet&#96;を&#96;BTreeSet&#96;に変更（Clippyの&#96;disallowed_types&#96;ルール対応）",
+            "lineNumber": 153
+          },
+          {
+            "text": "10. ✅ &#96;cargo check&#96;でビルドエラーがないことを確認",
+            "lineNumber": 154
+          },
+          {
+            "text": "11. ✅ &#96;cargo fmt --check&#96;でフォーマットチェックを確認",
+            "lineNumber": 155
+          },
+          {
+            "lineNumber": 156
+          },
+          {
+            "text": "---",
+            "lineNumber": 157
+          },
+          {
+            "lineNumber": 158
+          },
+          {
+            "text": "## 実装完了",
+            "lineNumber": 159
+          },
+          {
+            "lineNumber": 160
+          },
+          {
+            "text": "CI/CDワークフローの失敗原因を修正しました。主な問題は：",
+            "lineNumber": 161
+          },
+          {
+            "text": "1. Rust 2024 editionでのunsafe関数呼び出し",
+            "lineNumber": 162
+          },
+          {
+            "text": "2. 構造体のパターンマッチング",
+            "lineNumber": 163
+          },
+          {
+            "text": "3. **ワークフローファイルのマージコンフリクト**（これが主な失敗原因でした）",
+            "lineNumber": 164
+          },
+          {
+            "text": "4. **stable版では未対応の&#96;imports_granularity=Item&#96;設定**（&#96;rustfmt.toml&#96;、&#96;justfile&#96;、&#96;generate_mcp_types.py&#96;）",
+            "lineNumber": 165
+          },
+          {
+            "text": "5. **Clippyの&#96;disallowed_types&#96;ルール違反**（&#96;HashSet&#96;を&#96;BTreeSet&#96;に変更）",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "これで、&#96;rust-ci&#96;、&#96;Sub-Agent &amp; Deep Research CI&#96;、&#96;codespell.yml&#96;、&#96;issue-deduplicator.yml&#96;、&#96;issue-labeler.yml&#96;、&#96;cla.yml&#96;のすべてのワークフローが正常に動作するはずです。",
+            "lineNumber": 168
+          },
+          {
+            "lineNumber": 169
+          },
+          {
+            "text": "### 技術スタック",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 171
+          },
+          {
+            "text": "- **Rust**: 2024 edition",
+            "lineNumber": 172
+          },
+          {
+            "text": "- **CI/CD**: GitHub Actions",
+            "lineNumber": 173
+          },
+          {
+            "lineNumber": 174
+          },
+          {
+            "text": "---",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "完了！",
+            "lineNumber": 177
+          }
+        ]
+      },
+      "score": 0.309597909450531
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\utils\git\src\ghost_commits.rs</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+最初のTo-doを開始。`ghost_commits.rs`の修正状況を確認し、ローカルでClippyを実行してエラーを特定します。
+
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] ghost_commits.rsのBTreeSet修正がコミット・プッシュされているか確認
+- [ ] 各ワークフローのCIログを確認して具体的なエラーメッセージを取得（rust-ci、cargo-deny、ci、Sub-Agent CI、Codespell、AI Kernel Modules CI、sdk）
+- [ ] CIでエラーになっているHashSet使用箇所をBTreeSetに変更（優先度順）
+- [ ] ciワークフローのエラーを修正（フォーマット、npmステージング、MCPテスト）
+- [ ] cargo-denyワークフローの依存関係・ライセンス問題を解決
+- [ ] Sub-Agent & Deep Research CIのビルド・テストエラーを修正
+- [ ] Codespellワークフローのスペルミスを修正
+- [ ] AI Kernel Modules CIのビルドエラーを修正
+- [ ] sdkワークフローのTypeScriptビルド・Lint・テストエラーを修正
+- [ ] ローカルでcargo clippyとcargo fmt --checkを実行して検証
+- [ ] 修正をコミット・プッシュしてCIの再実行を確認
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd codex-rs && cargo clippy --all-features --tests -- -D warnings 2>&1 | Select-String -Pattern "HashSet|ghost_commits" | Select-Object -First 20</summary>
+
+```bash
+cd codex-rs && cargo clippy --all-features --tests -- -D warnings 2>&1 | Select-String -Pattern "HashSet|ghost_commits" | Select-Object -First 20
+```
+
+```
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-63aa1cad-d6ff-4e0b-85a7-84ebbb7537ab.ps1:7 ����:13
++ cd codex-rs &amp;&amp; cargo clippy --all-features --tests -- -D warnings 2&gt;&amp; ...
++             ~~
+�g�[�N�� '&amp;&amp;' �́A���̃o�[�W�����ł͗L���ȃX�e�[�g�����g��؂�ł͂���܂���B
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvalidEndOfLine
+ 
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "use std::collections::HashSet",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs",
+  "outputMode": "files_with_matches",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "use std::collections::HashSet",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs",
+    "outputMode": "files_with_matches",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "files": {
+          "files": [
+            "codex-rs\\app-server\\src\\codex_message_processor.rs",
+            "codex-rs\\core\\src\\orchestration\\auto_orchestrator.rs",
+            "codex-rs\\supervisor\\src\\multi_agent_evaluator.rs",
+            "codex-rs\\supervisor\\src\\executor.rs",
+            "codex-rs\\supervisor\\src\\autonomous_orchestrator.rs",
+            "codex-rs\\core\\src\\orchestration\\task_analyzer.rs",
+            "codex-rs\\cli\\src\\pair_program_cmd.rs",
+            "codex-rs\\tui\\src\\bottom_pane\\command_popup.rs",
+            "codex-rs\\tui\\src\\chatwidget.rs",
+            "codex-rs\\core\\src\\qc\\sandboxed_execution.rs",
+            "codex-rs\\tui2\\src\\chatwidget.rs",
+            "codex-rs\\windows-sandbox-rs\\src\\setup_orchestrator.rs",
+            "codex-rs\\windows-sandbox-rs\\src\\setup_main_win.rs",
+            "codex-rs\\windows-sandbox-rs\\src\\audit.rs",
+            "codex-rs\\windows-sandbox-rs\\src\\allow.rs",
+            "codex-rs\\tui2\\src\\resume_picker.rs",
+            "codex-rs\\tui2\\src\\chatwidget\\tests.rs",
+            "codex-rs\\tui2\\src\\bottom_pane\\command_popup.rs",
+            "codex-rs\\tui\\src\\resume_picker.rs",
+            "codex-rs\\tui\\src\\chatwidget\\tests.rs",
+            "codex-rs\\exec-server\\tests\\common\\lib.rs",
+            "codex-rs\\core\\tests\\suite\\grep_files.rs",
+            "codex-rs\\core\\tests\\common\\responses.rs",
+            "codex-rs\\core\\src\\unified_exec\\session_manager.rs",
+            "codex-rs\\core\\src\\unified_exec\\mod.rs",
+            "codex-rs\\core\\src\\tools\\spec.rs",
+            "codex-rs\\core\\src\\skills\\loader.rs",
+            "codex-rs\\core\\src\\models_manager\\manager.rs",
+            "codex-rs\\core\\src\\mcp_connection_manager.rs",
+            "codex-rs\\core\\src\\git_info.rs",
+            "codex-rs\\core\\src\\exec_env.rs",
+            "codex-rs\\core\\src\\context_manager\\normalize.rs",
+            "codex-rs\\core\\src\\client_common.rs",
+            "codex-rs\\app-server-protocol\\src\\export.rs",
+            "codex-rs\\codex_tui_build.txt",
+            "codex-rs\\tui2\\src\\bottom_pane\\prompt_args.rs",
+            "codex-rs\\core\\src\\skills\\injection.rs",
+            "codex-rs\\core\\src\\macos_virtual_os.rs",
+            "codex-rs\\core\\src\\container_manager.rs",
+            "codex-rs\\core\\src\\ai_tool_manager.rs",
+            "codex-rs\\utils\\readiness\\src\\lib.rs",
+            "codex-rs\\execpolicy-legacy\\src\\program.rs",
+            "codex-rs\\core\\src\\custom_prompts.rs",
+            "codex-rs\\codex-api\\src\\sse\\chat.rs",
+            "codex-rs\\cli\\src\\debug_sandbox\\seatbelt.rs",
+            "codex-rs\\cli\\src\\debug_sandbox\\pid_tracker.rs",
+            "codex-rs\\tui\\src\\bottom_pane\\prompt_args.rs"
+          ],
+          "totalFiles": 47
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+

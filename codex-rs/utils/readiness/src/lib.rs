@@ -1,6 +1,6 @@
 //! Readiness flag with token-based authorization and async waiting (Tokio).
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::fmt;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicI32;
@@ -12,7 +12,7 @@ use tokio::sync::watch;
 use tokio::time;
 
 /// Opaque subscription token returned by `subscribe()`.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Token(i32);
 
 const LOCK_TIMEOUT: Duration = Duration::from_millis(1000);
@@ -46,7 +46,7 @@ pub struct ReadinessFlag {
     /// Used to generate the next i32 token.
     next_id: AtomicI32,
     /// Set of active subscriptions.
-    tokens: Mutex<HashSet<Token>>,
+    tokens: Mutex<BTreeSet<Token>>,
     /// Broadcasts readiness to async waiters.
     tx: watch::Sender<bool>,
 }
@@ -65,7 +65,7 @@ impl ReadinessFlag {
 
     async fn with_tokens<R>(
         &self,
-        f: impl FnOnce(&mut HashSet<Token>) -> R,
+        f: impl FnOnce(&mut BTreeSet<Token>) -> R,
     ) -> Result<R, errors::ReadinessError> {
         let mut guard = time::timeout(LOCK_TIMEOUT, self.tokens.lock())
             .await

@@ -4,13 +4,13 @@ overview: zapabob/codexのCI/CDワークフロー（cargo-deny、ci、AI Kernel 
 todos:
   - id: verify_ghost_commits_commit
     content: ghost_commits.rsのBTreeSet修正がコミット・プッシュされているか確認
-    status: in_progress
+    status: completed
   - id: analyze_ci_logs
     content: 各ワークフローのCIログを確認して具体的なエラーメッセージを取得（rust-ci、cargo-deny、ci、Sub-Agent CI、Codespell、AI Kernel Modules CI、sdk）
     status: pending
   - id: fix_hashset_errors
     content: CIでエラーになっているHashSet使用箇所をBTreeSetに変更（優先度順）
-    status: pending
+    status: in_progress
   - id: fix_ci_workflow
     content: ciワークフローのエラーを修正（フォーマット、npmステージング、MCPテスト）
     status: pending
