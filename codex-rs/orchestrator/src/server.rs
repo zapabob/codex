@@ -427,12 +427,18 @@ impl OrchestratorServer {
             let request: RpcRequest = match serde_json::from_slice(&data) {
                 Ok(req) => req,
                 Err(e) => {
+                    // Mask secrets in error message
+                    let error_msg = codex_core::security::secret_masking::mask_secrets(&format!("Parse error: {e}"));
                     let error_response = RpcResponse {
                         id: "".to_string(),
                         result: None,
                         error: Some(RpcError {
                             code: ERROR_PARSE,
-                            message: format!("Parse error: {e}"),
+                            message: if cfg!(debug_assertions) {
+                                error_msg
+                            } else {
+                                "Invalid request format".to_string()
+                            },
                             data: None,
                         }),
                     };

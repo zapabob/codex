@@ -7,6 +7,7 @@ pub mod auth;
 pub mod rate_limit;
 pub mod replay_protection;
 pub mod rpc;
+pub mod security_headers;
 pub mod server;
 pub mod transport;
 
