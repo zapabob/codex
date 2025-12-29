@@ -249,7 +249,7 @@ function AgentExecutionDialog({ agent, open, onClose, onExecute }: AgentExecutio
 }
 
 export default function AgentsPage() {
-  const { state, runAgent, runSecurityScan, runResearch } = useCodex();
+  const { state, runAgent, runSecurityScan, runResearch, runWebResearch } = useCodex();
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -266,7 +266,11 @@ export default function AgentsPage() {
           await runSecurityScan('code', context.path || '');
           break;
         case 'researcher':
-          await runResearch(context.query || '');
+          if (selectedAgent.id === 'web-research') {
+            await runWebResearch(context.query || '');
+          } else {
+            await runResearch(context.query || '');
+          }
           break;
         default:
           await runAgent(selectedAgent.id, context);
