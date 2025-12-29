@@ -47,14 +47,23 @@ function getPlatformInfo() {
 // Download file from URL
 async function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
-    https.get(url, { followAllRedirects: true }, (response) => {
+    const request = https.get(url, { followAllRedirects: true }, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
         downloadFile(response.headers.location, dest).then(resolve).catch(reject);
         return;
       }
       
+      if (response.statusCode === 404) {
+        const error = new Error(`HTTP 404`);
+        error.statusCode = 404;
+        reject(error);
+        return;
+      }
+      
       if (response.statusCode !== 200) {
-        reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
+        const error = new Error(`Failed to download: HTTP ${response.statusCode}`);
+        error.statusCode = response.statusCode;
+        reject(error);
         return;
       }
       
@@ -62,7 +71,9 @@ async function downloadFile(url, dest) {
       pipeline(response, file)
         .then(() => resolve())
         .catch(reject);
-    }).on('error', reject);
+    });
+    
+    request.on('error', reject);
   });
 }
 
@@ -143,12 +154,35 @@ async function main() {
     console.log('Or:  npx @zapabob/codex-cli --version');
     
   } catch (error) {
+    // If binary doesn't exist (404), warn but don't fail installation
+    const is404 = error.statusCode === 404 || 
+                  error.message.includes('404') || 
+                  error.message.includes('Failed to download: HTTP 404');
+    
+    if (is404) {
+      console.warn('⚠️  Binary not available for this version/platform');
+      console.warn('   This is expected if the release hasn\'t been published yet.');
+      console.warn('');
+      console.warn('💡 To use codex, either:');
+      console.warn('   1. Wait for the release to be published');
+      console.warn('   2. Install from source:');
+      console.warn('      git clone https://github.com/zapabob/codex.git');
+      console.warn('      cd codex/codex-rs');
+      console.warn('      cargo install --path cli');
+      console.warn('');
+      console.warn('   Installation will continue without the binary.');
+      // Don't exit with error - allow installation to continue
+      process.exit(0);
+    }
+    
+    // For other errors, show full error message
     console.error('❌ Installation failed:', error.message);
     console.error('');
     console.error('💡 Alternative: Install from source');
     console.error('   git clone https://github.com/zapabob/codex.git');
     console.error('   cd codex/codex-rs');
     console.error('   cargo install --path cli');
+    // Only exit with error for non-404 errors
     process.exit(1);
   }
 }
