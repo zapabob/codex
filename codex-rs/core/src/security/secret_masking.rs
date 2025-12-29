@@ -42,7 +42,7 @@ pub fn mask_secrets(text: &str) -> String {
         .to_string();
     
     // Mask passwords in query strings or form data
-    masked = regex::Regex::new(r"(?i)(password|pwd|pass|secret|token|api[_-]?key)\s*[:=]\s*([^\s&\"']+)")
+    masked = regex::Regex::new(r"(?i)(password|pwd|pass|secret|token|api[_-]?key)\s*[:=]\s*([^\s&'"]+)")
         .unwrap()
         .replace_all(&masked, "$1=***MASKED***")
         .to_string();
