@@ -22,10 +22,16 @@ jobs:
           fetch-depth: 0
 
       - name: Update models.json
+        if: ${{ secrets.CODEX_OPENAI_API_KEY != '' }}
         env:
           OPENAI_API_KEY: ${{ secrets.CODEX_OPENAI_API_KEY }}
         run: |
           set -euo pipefail
+
+          if [ -z "${OPENAI_API_KEY}" ]; then
+            echo "Warning: OPENAI_API_KEY is not set. Skipping models.json update."
+            exit 0
+          fi
 
           client_version="99.99.99"
           terminal_info="github-actions"
