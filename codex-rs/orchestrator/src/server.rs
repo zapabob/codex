@@ -1,8 +1,14 @@
 /// Orchestrator RPC server
 ///
 /// Single-Writer Queue architecture with idempotency cache
+use crate::audit::{AuditEventType, AuditLogger, AuditLoggerConfig};
 use crate::auth::AuthManager;
+use crate::error_handler::{create_secure_rpc_error, is_production_mode, messages};
+use crate::input_validation::{validate_json_value, validate_path, validate_string};
+use crate::rate_limit::{RateLimitConfig, RateLimiter};
+use crate::replay_protection::{ReplayProtection, ReplayProtectionConfig};
 use crate::rpc::*;
+use crate::session::SessionManager;
 use crate::transport::Connection;
 use crate::transport::Transport;
 use crate::transport::TransportConfig;
@@ -68,6 +74,8 @@ pub struct OrchestratorServer {
     replay_protection: Arc<ReplayProtection>,
     /// Audit logger
     audit_logger: Arc<Option<AuditLogger>>,
+    /// Session manager
+    session_manager: Arc<SessionManager>,
 }
 
 /// Orchestrator configuration
@@ -220,6 +228,9 @@ impl OrchestratorServer {
             Arc::new(None)
         };
 
+        // Initialize session manager (30 min timeout, 24 hour max lifetime)
+        let session_manager = Arc::new(SessionManager::new(1800, 86400));
+
         Ok(Self {
             config,
             transport,
@@ -238,6 +249,7 @@ impl OrchestratorServer {
             rate_limiter,
             replay_protection,
             audit_logger,
+            session_manager,
         })
     }
 
@@ -424,6 +436,7 @@ impl OrchestratorServer {
         rate_limiter: &Arc<RateLimiter>,
         replay_protection: &Arc<ReplayProtection>,
         audit_logger: &Arc<Option<AuditLogger>>,
+        session_manager: &Arc<SessionManager>,
     ) -> Result<()> {
         loop {
             // Read request
@@ -431,22 +444,33 @@ impl OrchestratorServer {
 
             // Parse request
             let request: RpcRequest = match serde_json::from_slice(&data) {
-                Ok(req) => req,
+                Ok(req) => {
+                    // Validate JSON structure to prevent injection attacks
+                    if let Err(validation_err) = validate_json_value(&serde_json::to_value(&req).unwrap_or_default()) {
+                        let error_response = RpcResponse {
+                            id: "".to_string(),
+                            result: None,
+                            error: Some(create_secure_rpc_error(
+                                ERROR_INVALID_REQUEST,
+                                messages::INVALID_REQUEST,
+                                Some(&validation_err),
+                            )),
+                        };
+                        let response_data = serde_json::to_vec(&error_response)?;
+                        conn.write_message(&response_data).await?;
+                        continue;
+                    }
+                    req
+                }
                 Err(e) => {
-                    // Mask secrets in error message
-                    let error_msg = codex_core::security::secret_masking::mask_secrets(&format!("Parse error: {e}"));
                     let error_response = RpcResponse {
                         id: "".to_string(),
                         result: None,
-                        error: Some(RpcError {
-                            code: ERROR_PARSE,
-                            message: if cfg!(debug_assertions) {
-                                error_msg
-                            } else {
-                                "Invalid request format".to_string()
-                            },
-                            data: None,
-                        }),
+                        error: Some(create_secure_rpc_error(
+                            ERROR_PARSE,
+                            messages::INVALID_REQUEST,
+                            Some(&e),
+                        )),
                     };
                     let response_data = serde_json::to_vec(&error_response)?;
                     conn.write_message(&response_data).await?;
@@ -957,11 +981,11 @@ impl OrchestratorServer {
                                     return RpcResponse {
                                         id: request.id.clone(),
                                         result: None,
-                                        error: Some(RpcError {
-                                            code: ERROR_INTERNAL,
-                                            message: format!("Failed to format diff: {e}"),
-                                            data: None,
-                                        }),
+                                        error: Some(create_secure_rpc_error(
+                                            ERROR_INTERNAL,
+                                            messages::OPERATION_FAILED,
+                                            Some(&e),
+                                        )),
                                     };
                                 }
 

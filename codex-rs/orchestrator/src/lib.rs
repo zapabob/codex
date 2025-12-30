@@ -5,6 +5,7 @@
 pub mod audit;
 pub mod auth;
 pub mod config;
+pub mod error_handler;
 pub mod input_validation;
 pub mod rate_limit;
 pub mod replay_protection;
