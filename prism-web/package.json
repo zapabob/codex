@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@react-three/xr": "^6.2.0",
-    "next": "^14.0.4",
+    "next": "^14.2.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@supabase/supabase-js": "^2.39.0",
@@ -66,14 +66,14 @@
     "@testing-library/react": "^14.1.2",
     "@testing-library/jest-dom": "^6.1.5",
     "@vitejs/plugin-react": "^4.2.1",
-    "vitest": "^1.0.4",
-    "@vitest/ui": "^1.0.4",
+    "vitest": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
     "stats.js": "^0.17.0",
     "supabase": "^1.123.4",
     "webpack-bundle-analyzer": "^4.10.1",
     "@playwright/test": "^1.40.0",
-    "vitest": "^1.0.4",
-    "@vitest/ui": "^1.0.4",
+    "vitest": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
     "stats.js": "^0.17.0"
   },
   "engines": {
