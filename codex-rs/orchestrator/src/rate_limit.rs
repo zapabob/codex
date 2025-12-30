@@ -2,25 +2,33 @@
 //!
 //! Provides sliding window rate limiting to prevent DDoS attacks.
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tokio::sync::RwLock;
 
 /// Rate limiter configuration
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RateLimitConfig {
+    /// Enable rate limiting
+    pub enabled: bool,
     /// Maximum requests per second
     pub max_requests_per_sec: f64,
     /// Burst size (maximum requests allowed in a short burst)
     pub burst_size: usize,
+    /// Sliding window size in seconds
+    pub window_seconds: u64,
 }
 
 impl Default for RateLimitConfig {
     fn default() -> Self {
         Self {
+            enabled: true,
             max_requests_per_sec: 10.0,
             burst_size: 20,
+            window_seconds: 1,
         }
     }
 }
@@ -53,8 +61,20 @@ impl RateLimiter {
 
     /// Check if a request should be allowed
     pub async fn check(&self, client_id: &str) -> Result<(), RateLimitError> {
+        if !self.config.enabled {
+            return Ok(());
+        }
+        self.check_with_config(client_id, &self.config).await
+    }
+
+    /// Check a request using a specific config (per-key overrides)
+    pub async fn check_with_config(
+        &self,
+        client_id: &str,
+        config: &RateLimitConfig,
+    ) -> Result<(), RateLimitError> {
         let now = SystemTime::now();
-        let window_duration = Duration::from_secs(1);
+        let window_duration = Duration::from_secs(config.window_seconds.max(1));
 
         let mut entries = self.entries.write().await;
         let entry = entries.entry(client_id.to_string()).or_insert_with(|| {
@@ -75,14 +95,18 @@ impl RateLimiter {
         entry.requests.retain(|&time| time > cutoff_time);
 
         // Check burst limit
-        if entry.requests.len() >= self.config.burst_size {
-            return Err(RateLimitError::BurstExceeded);
+        if entry.requests.len() >= config.burst_size {
+            return Err(RateLimitError::BurstExceeded {
+                burst_size: config.burst_size,
+            });
         }
 
         // Check rate limit
         let requests_per_sec = entry.requests.len() as f64;
-        if requests_per_sec >= self.config.max_requests_per_sec {
-            return Err(RateLimitError::RateExceeded);
+        if requests_per_sec >= config.max_requests_per_sec {
+            return Err(RateLimitError::RateExceeded {
+                max_requests_per_sec: config.max_requests_per_sec,
+            });
         }
 
         // Add current request
@@ -110,7 +134,7 @@ impl RateLimiter {
     /// Get remaining requests for a client
     pub async fn remaining(&self, client_id: &str) -> usize {
         let now = SystemTime::now();
-        let window_duration = Duration::from_secs(1);
+        let window_duration = Duration::from_secs(self.config.window_seconds.max(1));
         let cutoff = now
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -136,8 +160,8 @@ impl RateLimiter {
 /// Rate limit error
 #[derive(Debug, thiserror::Error)]
 pub enum RateLimitError {
-    #[error("Rate limit exceeded: {0} requests per second")]
-    RateExceeded,
-    #[error("Burst limit exceeded: {0} requests")]
-    BurstExceeded,
+    #[error("Rate limit exceeded: {max_requests_per_sec} requests per second")]
+    RateExceeded { max_requests_per_sec: f64 },
+    #[error("Burst limit exceeded: {burst_size} requests")]
+    BurstExceeded { burst_size: usize },
 }
