@@ -5,6 +5,29 @@ All notable changes to Codex will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.2] - 2025-12-30
+
+### MCP Server Startup Fixes & Feature Flag Updates
+
+This release fixes MCP server startup errors and updates deprecated feature flags.
+
+### Fixed
+
+**MCP Server Configuration**
+- Fixed `codex-gemini-mcp` startup error (program not found) by disabling unavailable server
+- Fixed `codex-research`, `codex-agent`, `codex-supervisor` handshaking failures by disabling non-MCP subcommands
+- These subcommands remain available as CLI commands (e.g., `codex research <topic>`)
+
+**Feature Flags**
+- Replaced deprecated `web_search` with `web_search_request` feature flag
+- Updated configuration to use new feature flag format
+
+### Changed
+
+**Configuration**
+- Updated `config.toml` to disable non-functional MCP servers
+- Improved MCP server error handling and startup validation
+
 ## [2.8.0] - 2025-12-26
 
 ### Architecture Evaluation & Claude Code Research

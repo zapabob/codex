@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![Codex v2.8.0](./architecture-v2.8.0.svg)
+![Codex v2.8.2](./architecture-v2.8.2.svg)
 
-**v2.8.0 "Architecture Evaluation & Claude Code Research" - The World's First AI-Native Operating System**
+**v2.8.2 "MCP Server Fixes & Feature Flag Updates" - The World's First AI-Native Operating System**
 
-[![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.8.2-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -23,12 +23,17 @@
 <a name="english"></a>
 ## 📖 English
 
-### 🎉 What's New in v2.8.0 "Architecture Evaluation & Claude Code Research"
+### 🎉 What's New in v2.8.2 "MCP Server Fixes & Feature Flag Updates"
 
-**Release Date**: December 26, 2025
-**Milestone**: Architecture Evaluation & Claude Code Research
+**Release Date**: December 30, 2025
+**Milestone**: MCP Server Startup Fixes & Feature Flag Updates
 
-**🎁 New in v2.8.0**:
+**🔧 Fixed in v2.8.2**:
+- ✅ **MCP Server Startup Fixes**: Fixed startup errors for `codex-gemini-mcp`, `codex-research`, `codex-agent`, and `codex-supervisor`
+- ✅ **Feature Flag Updates**: Replaced deprecated `web_search` with `web_search_request` feature flag
+- ✅ **Configuration Improvements**: Enhanced MCP server error handling and startup validation
+
+**🎁 Previous Updates (v2.8.0)**:
 - ✅ **Architecture Evaluation**: Comprehensive software engineering and LLMOps evaluation report (Overall: 4.25/5.0)
 - ✅ **Claude Code Research**: Deep research on latest Claude Code features (2024-2025) with implementation roadmap
 - ✅ **X Posting Templates**: LLMOps engineer-focused social media templates

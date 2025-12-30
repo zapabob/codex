@@ -1,0 +1,174 @@
+graph TB
+    subgraph Client["🖥️ Client Layer"]
+        CLI["CLI<br/>codex-cli<br/>Cross-platform binaries<br/>v2.8.2"]
+        TUI["TUI<br/>ratatui-based<br/>Rich terminal UI<br/>TUI2 components<br/>22 slash commands"]
+        VSCode["VSCode Extension<br/>Plan Mode UI<br/>Multi-language support"]
+        Cursor["Cursor IDE<br/>MCP Integration<br/>Composer support<br/>Playwright testing"]
+        WebGUI["Web GUI<br/>React + Next.js<br/>Dashboard<br/>Playwright E2E"]
+    end
+
+    subgraph Orchestration["🎯 Orchestration Layer (v2.8.2)"]
+        OrchestratorRPC["Orchestrator RPC Server<br/>16 RPC methods<br/>HMAC-SHA256 auth<br/>TCP/UDS/Named Pipe<br/>Official integration"]
+        ProtocolClient["Protocol Client<br/>@zapabob/codex-protocol-client<br/>TypeScript SDK v2.8.2<br/>React hooks"]
+        TaskQueue["Single-Writer Queue<br/>Concurrent task management<br/>Priority-based execution"]
+        LockManager["Lock Manager<br/>.codex/lock.json<br/>Repository-level concurrency"]
+    end
+
+    subgraph Core["⚙️ Core Runtime (Rust 2024)"]
+        CoreEngine["Core Engine<br/>codex-core v2.8.2<br/>Session management<br/>Tool execution<br/>Unified Exec"]
+        PlanMode["Plan Mode<br/>v2.8.2 Unified<br/>Official commands<br/>/Plan, /approve, /Plan export<br/>Rust/TypeScript only"]
+        TokenBudget["Token Budget<br/>Thread-safe tracking<br/>Per-agent limits"]
+        AuditLog["Audit Logger<br/>Structured logs<br/>Security events"]
+        ProjectDoc["Project Doc<br/>AGENTS.md parser<br/>Language detection<br/>Multi-language support"]
+        UnifiedExec["Unified Exec System<br/>Async watchers<br/>Session management<br/>Official integration"]
+        Sandboxing["Enhanced Sandboxing<br/>ConPTY support<br/>Cross-platform<br/>Security hardening"]
+        MCPDynamicLoader["MCP Dynamic Loader<br/>v2.8.2<br/>Runtime server management<br/>Token optimization<br/>Selective loading"]
+    end
+
+    subgraph Agents["🤖 Sub-Agent System (v2.8.2)"]
+        Supervisor["Supervisor<br/>Agent lifecycle<br/>Timeout: 5min<br/>Retry: 3x<br/>Official features"]
+        CodeReviewer["Code Reviewer<br/>Multi-Language v2.8.2<br/>8 languages<br/>AGENTS.md integration<br/>ReviewLocale"]
+        TestGen["Test Generator<br/>Coverage 80%+<br/>Unit/Integration/E2E"]
+        SecAudit["Security Auditor<br/>OWASP Top 10<br/>CVE scanning<br/>Official updates"]
+        DeepResearch["Deep Researcher<br/>Multi-source<br/>Citation-based<br/>Enhanced"]
+        CustomAgent["Custom Agents<br/>YAML-defined<br/>.codex/agents/<br/>Official integration"]
+    end
+
+    subgraph Research["🔍 Deep Research Engine (v2.8.2)"]
+        SearchProvider["Search Provider<br/>Cache TTL: 1h<br/>45x faster<br/>Official updates"]
+        GeminiCLI["Gemini CLI<br/>OAuth 2.0 PKCE<br/>Google Search Grounding<br/>Official integration"]
+        DuckDuckGo["DuckDuckGo<br/>Zero-cost<br/>No API key"]
+        Citation["Citation Manager<br/>Source tracking<br/>Confidence scoring"]
+    end
+
+    subgraph MCP["🔌 MCP Integration (v2.8.2 - Fixed)"]
+        CodexMCP["codex mcp-server<br/>Self-hosted<br/>Rust-based<br/>Official SDK v1.24.0"]
+        ChromeMCP["chrome-devtools<br/>Browser automation"]
+        PlaywrightMCP["playwright<br/>E2E testing<br/>Official integration"]
+        SequentialMCP["sequential-thinking<br/>CoT reasoning<br/>Enhanced"]
+        FilesystemMCP["filesystem<br/>Cross-platform<br/>Official"]
+        GitHubMCP["github<br/>Repository management<br/>Official"]
+        MCPConfig["MCP Config Manager<br/>v2.8.2<br/>Startup validation<br/>Error handling<br/>Feature flags"]
+    end
+
+    subgraph Storage["💾 Storage & Config"]
+        ConfigTOML["config.toml<br/>Model providers<br/>Sandbox settings<br/>web_search_request flag<br/>Official integration"]
+        SessionDB["Session DB<br/>Conversation history<br/>Checkpoints"]
+        AgentDefs[".codex/agents/<br/>YAML definitions<br/>Agent configs"]
+        ArtifactArchive["Artifact Archive<br/>_docs/<br/>Implementation logs"]
+        BlueprintStore["Blueprint Store<br/>State persistence<br/>Checkpoint/resume"]
+    end
+
+    subgraph Monitoring["📊 Monitoring & Telemetry (v2.8.2)"]
+        Telemetry["Telemetry Module<br/>Privacy-respecting<br/>SHA-256 hashing<br/>Event tracking<br/>Official updates"]
+        Webhooks["Webhooks Module<br/>GitHub/Slack/HTTP<br/>HMAC-SHA256<br/>Real-time notifications"]
+        Otel["OpenTelemetry<br/>Tracing & Metrics<br/>Official integration"]
+    end
+
+    subgraph External["🌐 External Integrations (v2.8.2)"]
+        GitHub["GitHub API<br/>PR automation<br/>Issue management<br/>Official"]
+        Slack["Slack Webhooks<br/>Real-time notifications"]
+        CustomWebhook["Custom Webhooks<br/>HTTP POST endpoints"]
+        AudioNotif["Audio Notifications<br/>marisa_owattaze.wav<br/>Task completion sound"]
+        Playwright["Playwright Testing<br/>Cross-browser<br/>E2E automation"]
+    end
+
+    subgraph LLM["🤖 LLM Providers (Official Integration)"]
+        OpenAI["OpenAI<br/>GPT-5-codex<br/>Primary provider<br/>Official models"]
+        Gemini["Google Gemini<br/>2.5 Pro/Flash<br/>Search grounding<br/>Official"]
+        Anthropic["Anthropic<br/>Claude 3.5+<br/>Alternative"]
+        Local["Local/Ollama<br/>Llama models<br/>Privacy-first"]
+        Codestral["Mistral Codestral<br/>Code generation<br/>Official"]
+    end
+
+    subgraph Build["🏗️ Build & CI/CD (v2.8.2)"]
+        RustBuild["Rust Build System<br/>v2.8.2 Unified<br/>Incremental builds<br/>Zero errors policy<br/>Official toolchain"]
+        NpmBuild["npm Build System<br/>v2.8.2 Unified<br/>Cross-platform<br/>Automated releases<br/>Official"]
+        GitHubActions["GitHub Actions<br/>CI/CD pipelines<br/>actions/checkout@v6<br/>Official workflows"]
+        ReleaseAutomation["Release Automation<br/>Binary generation<br/>npm publishing<br/>Official"]
+    end
+
+    CLI --> OrchestratorRPC
+    TUI --> OrchestratorRPC
+    VSCode --> OrchestratorRPC
+    Cursor --> CodexMCP
+    WebGUI --> ProtocolClient
+
+    ProtocolClient --> OrchestratorRPC
+    OrchestratorRPC --> TaskQueue
+    OrchestratorRPC --> LockManager
+    TaskQueue --> CoreEngine
+
+    CoreEngine --> PlanMode
+    CoreEngine --> TokenBudget
+    CoreEngine --> AuditLog
+    CoreEngine --> Supervisor
+    CoreEngine --> ProjectDoc
+    CoreEngine --> UnifiedExec
+    CoreEngine --> Sandboxing
+    CoreEngine --> MCPDynamicLoader
+
+    ProjectDoc --> CodeReviewer
+    Supervisor --> CodeReviewer
+    Supervisor --> TestGen
+    Supervisor --> SecAudit
+    Supervisor --> DeepResearch
+    Supervisor --> CustomAgent
+
+    DeepResearch --> SearchProvider
+    SearchProvider --> GeminiCLI
+    SearchProvider --> DuckDuckGo
+    DeepResearch --> Citation
+
+    CoreEngine --> MCP
+    MCP --> CodexMCP
+    MCP --> ChromeMCP
+    MCP --> PlaywrightMCP
+    MCP --> SequentialMCP
+    MCP --> FilesystemMCP
+    MCP --> GitHubMCP
+    MCPDynamicLoader --> MCPConfig
+
+    CoreEngine --> Storage
+    Storage --> ConfigTOML
+    Storage --> SessionDB
+    Storage --> AgentDefs
+    Storage --> ArtifactArchive
+        Storage --> PlanStore["Plan Store<br/>v2.8.2 Unified<br/>State persistence<br/>Checkpoint/resume<br/>No Python deps"]
+
+    CoreEngine --> Monitoring
+    Monitoring --> Telemetry
+    Monitoring --> Webhooks
+    Monitoring --> Otel
+
+    CoreEngine --> External
+    External --> GitHub
+    External --> Slack
+    External --> CustomWebhook
+    External --> AudioNotif
+    External --> Playwright
+
+    CoreEngine --> LLM
+    LLM --> OpenAI
+    LLM --> Gemini
+    LLM --> Anthropic
+    LLM --> Local
+    LLM --> Codestral
+
+    CLI --> Build
+    TUI --> Build
+    WebGUI --> Build
+    Build --> RustBuild
+    Build --> NpmBuild
+    Build --> GitHubActions
+    Build --> ReleaseAutomation
+
+    classDef official fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef enhanced fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef new fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef fixed fill:#fff3e0,stroke:#e65100,stroke-width:2px
+
+    class UnifiedExec,Sandboxing,CodexMCP,PlaywrightMCP,FilesystemMCP,GitHubMCP,Otel,RustBuild,NpmBuild,GitHubActions,ReleaseAutomation,Codestral official
+    class CLI,TUI,WebGUI,OrchestratorRPC,CoreEngine,Supervisor,SearchProvider,ConfigTOML,Telemetry,Playwright enhanced
+    class PlanMode,PlanStore,ProtocolClient,MCPDynamicLoader,MCPConfig new
+    class MCPConfig,ConfigTOML fixed
