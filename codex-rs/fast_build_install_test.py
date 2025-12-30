@@ -533,6 +533,29 @@ def main():
     target_dir = os.environ.get('CARGO_TARGET_DIR', 'target')
     print(f"\n📁 ビルドディレクトリ: {target_dir}")
     
+    # 0. クリーンビルド（cargo clean）
+    print("\n" + "="*70)
+    print("🧹 Phase 0: クリーンビルド (cargo clean)")
+    print("="*70)
+    
+    print("\n🧹 ビルドキャッシュをクリーン中...")
+    clean_start = time.time()
+    clean_result = subprocess.run(
+        ["cargo", "clean"],
+        capture_output=True,
+        text=True,
+        encoding='utf-8',
+        errors='replace'
+    )
+    clean_elapsed = time.time() - clean_start
+    
+    if clean_result.returncode == 0:
+        print(f"✅ クリーン完了 (経過: {clean_elapsed:.2f}秒)")
+    else:
+        print(f"⚠️  クリーンで警告がありましたが続行します (経過: {clean_elapsed:.2f}秒)")
+        if clean_result.stderr:
+            print(f"   警告: {clean_result.stderr[:200]}")
+    
     # 1. 高速差分ビルド（codex-cli）
     print("\n" + "="*70)
     print("📦 Phase 1: 高速差分ビルド (codex-cli)")
