@@ -7,11 +7,11 @@ version.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 codex-rmcp-client = { path = "../rmcp-client" }
+codex-web-search = { path = "../web-search" }
 mcp-types = { path = "../mcp-types" }
 regex.workspace = true
 reqwest.workspace = true
 rmcp.workspace = true
-scraper = "0.24"
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true

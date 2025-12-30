@@ -1,5 +1,5 @@
 use crate::types::Finding;
-use crate::types::Source;
+use codex_web_search::Source;
 use serde::Deserialize;
 use serde::Serialize;
 

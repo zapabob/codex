@@ -7,8 +7,8 @@ use codex_deep_research::McpSearchProvider;
 use codex_deep_research::ResearchPlanner;
 use codex_deep_research::ResearchStrategy;
 use codex_deep_research::SearchBackend;
-use codex_deep_research::WebSearchProvider;
 use codex_deep_research::provider::ResearchProvider;
+use codex_web_search::WebSearchProvider;
 use std::path::PathBuf;
 use std::sync::Arc;
 

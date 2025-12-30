@@ -27,6 +27,7 @@ codex-async-utils = { workspace = true }
 codex-client = { workspace = true }
 codex-deep-research = { path = "../deep-research" }
 codex-execpolicy = { workspace = true }
+codex-web-search = { path = "../web-search" }
 codex-file-search = { workspace = true }
 codex-git = { workspace = true }
 codex-keyring-store = { workspace = true }

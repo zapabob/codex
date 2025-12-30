@@ -1,8 +1,7 @@
 // Web Search Provider - Real web search integration
 // Conforms to OpenAI/codex official web_search implementation
-use crate::provider::ResearchProvider;
-use crate::types::Source;
 use crate::url_decoder::decode_duckduckgo_url;
+use crate::types::Source;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -747,7 +746,7 @@ impl WebSearchProvider {
 
         // 実際のHTTP request実装（OpenAI/codex公式パターン）
         let client = reqwest::Client::builder()
-            .user_agent("Mozilla/5.0 Codex-DeepResearch/0.48.0.zapabob.1")
+            .user_agent("Mozilla/5.0 Codex-WebSearch/2.8.0")
             .timeout(std::time::Duration::from_secs(30))
             .build()?;
 
@@ -798,66 +797,6 @@ impl WebSearchProvider {
         combined.split_whitespace().collect::<Vec<&str>>().join(" ")
     }
 
-    /// Fallback: 構造化プレースホルダーコンテンツ（API失敗時用）
-    #[allow(dead_code)]
-    fn get_fallback_content(&self, url: &str) -> String {
-        if url.contains("doc.rust-lang.org") {
-            format!(
-                "# Rust Official Documentation\n\n\
-                Source: {url}\n\n\
-                ## Overview\n\n\
-                This page covers Rust programming concepts with detailed explanations,\n\
-                code examples, and best practices.\n\n\
-                ## Key Points\n\n\
-                - Ownership and borrowing rules\n\
-                - Memory safety guarantees\n\
-                - Zero-cost abstractions\n\
-                - Fearless concurrency\n\n\
-                ## Examples\n\n\
-                ```rust\n\
-                // Example code here\n\
-                ```\n\n\
-                ## See Also\n\
-                - Related documentation\n\
-                - API reference"
-            )
-        } else if url.contains("stackoverflow.com") {
-            format!(
-                "# Stack Overflow Discussion\n\n\
-                Source: {url}\n\n\
-                ## Question\n\n\
-                How to properly handle this in Rust?\n\n\
-                ## Answer (Accepted)\n\n\
-                Here's the recommended approach:\n\n\
-                1. Follow Rust conventions\n\
-                2. Use standard library features\n\
-                3. Apply best practices\n\n\
-                ## Code Example\n\n\
-                ```rust\n\
-                // Community-validated solution\n\
-                ```\n\n\
-                Votes: 125 | Asked: 2024"
-            )
-        } else if url.contains("github.com") {
-            format!(
-                "# GitHub Repository\n\n\
-                Source: {url}\n\n\
-                ## Project Description\n\n\
-                Production-ready implementation with:\n\n\
-                - Comprehensive test coverage\n\
-                - Well-documented API\n\
-                - Active maintenance\n\n\
-                ## Usage Example\n\n\
-                ```rust\n\
-                // Real-world usage\n\
-                ```\n\n\
-                Stars: 5.2k | Forks: 850 | Issues: 32"
-            )
-        } else {
-            format!("Content from {url}\n\nDetailed information and examples.")
-        }
-    }
-
     /// Run a search and return sources.
     pub async fn search(&self, query: &str, max_results: u32) -> Result<Vec<Source>> {
         let search_results = self.execute_search(query).await?;
@@ -884,12 +823,15 @@ impl WebSearchProvider {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct SearchResult {
-    pub title: String,
-    pub url: String,
-    pub snippet: String,
-    pub relevance_score: f64,
+/// Trait for research providers that can search and retrieve information
+/// This trait is re-exported from web-search for compatibility with deep-research
+#[async_trait]
+pub trait ResearchProvider: Send + Sync {
+    /// Search for sources related to the query
+    async fn search(&self, query: &str, max_results: u8) -> Result<Vec<Source>>;
+
+    /// Retrieve detailed content from a source URL
+    async fn retrieve(&self, url: &str) -> Result<String>;
 }
 
 #[async_trait]
@@ -901,6 +843,14 @@ impl ResearchProvider for WebSearchProvider {
     async fn retrieve(&self, url: &str) -> Result<String> {
         WebSearchProvider::retrieve(self, url).await
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SearchResult {
+    pub title: String,
+    pub url: String,
+    pub snippet: String,
+    pub relevance_score: f64,
 }
 
 #[cfg(test)]

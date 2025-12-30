@@ -7,8 +7,6 @@ pub mod planner;
 pub mod provider;
 mod strategies;
 pub mod types;
-mod url_decoder;
-mod web_search_provider;
 
 use anyhow::Result;
 use provider::ResearchProvider;
@@ -21,6 +19,7 @@ pub use contradiction::ContradictionReport;
 pub use evidence::CitationBuilder;
 pub use evidence::Evidence;
 pub use evidence::ResearchLog;
+pub use codex_web_search::WebSearchProvider;
 pub use gemini_search_provider::GeminiSearchProvider;
 pub use mcp_search_provider::McpSearchProvider;
 pub use mcp_search_provider::SearchBackend;
@@ -30,7 +29,6 @@ pub use planner::StopConditions;
 pub use provider::MockProvider;
 pub use types::DeepResearcherConfig;
 pub use types::ResearchStrategy;
-pub use web_search_provider::WebSearchProvider;
 
 /// Main deep researcher for conducting comprehensive research
 pub struct DeepResearcher {

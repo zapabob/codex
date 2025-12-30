@@ -3,8 +3,8 @@
 use crate::deep_research_tool::DeepResearchToolParam;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::ResearchStrategy;
-use codex_deep_research::WebSearchProvider;
 use codex_deep_research::types::DeepResearcherConfig;
+use codex_web_search::WebSearchProvider;
 use mcp_types::CallToolResult;
 use mcp_types::ContentBlock;
 use mcp_types::RequestId;

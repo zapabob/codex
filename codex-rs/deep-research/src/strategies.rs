@@ -1,6 +1,6 @@
 use crate::types::Finding;
 use crate::types::ResearchStrategy;
-use crate::types::Source;
+use codex_web_search::Source;
 
 /// Apply research strategy to prioritize and filter sources
 pub fn apply_strategy(

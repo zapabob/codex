@@ -1,7 +1,7 @@
 /// MCP-based Search Provider - Real integration with MCP tools via rmcp
 /// Exceeds Claude Code by supporting multiple search backends and fallbacks
 use crate::provider::ResearchProvider;
-use crate::types::Source;
+use codex_web_search::Source;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;

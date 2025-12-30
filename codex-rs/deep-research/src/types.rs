@@ -14,14 +14,8 @@ pub enum ResearchStrategy {
     Exploratory,
 }
 
-/// A source of information found during research
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Source {
-    pub url: String,
-    pub title: String,
-    pub snippet: String,
-    pub relevance_score: f64,
-}
+// Re-export Source from web-search for compatibility
+pub use codex_web_search::Source;
 
 /// A finding extracted from research
 #[derive(Debug, Clone, Serialize, Deserialize)]

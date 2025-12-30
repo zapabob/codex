@@ -1230,6 +1230,7 @@ dependencies = [
  "codex-tui",
  "codex-tui2",
  "codex-utils-absolute-path",
+ "codex-web-search",
  "codex-windows-sandbox",
  "ctor 0.5.0",
  "dirs",
@@ -1365,6 +1366,7 @@ dependencies = [
  "codex-utils-pty",
  "codex-utils-readiness",
  "codex-utils-string",
+ "codex-web-search",
  "codex-windows-sandbox",
  "core-foundation 0.9.4",
  "core_test_support",
@@ -1453,13 +1455,13 @@ dependencies = [
  "async-trait",
  "codex-core",
  "codex-rmcp-client",
+ "codex-web-search",
  "criterion 0.7.0",
  "mcp-types",
  "pretty_assertions",
  "regex",
  "reqwest",
  "rmcp",
- "scraper",
  "serde",
  "serde_json",
  "tempfile",
@@ -1699,6 +1701,7 @@ dependencies = [
  "codex-deep-research",
  "codex-protocol",
  "codex-utils-json-to-toml",
+ "codex-web-search",
  "core_test_support",
  "mcp-types",
  "mcp_test_support",
@@ -2115,6 +2118,24 @@ dependencies = [
 [[package]]
 name = "codex-utils-string"
 version = "2.8.0"
+
+[[package]]
+name = "codex-web-search"
+version = "2.8.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "pretty_assertions",
+ "regex",
+ "reqwest",
+ "scraper",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "urlencoding",
+]
 
 [[package]]
 name = "codex-windows-sandbox"
@@ -8670,6 +8691,10 @@ checksum = "34949b42822155826b41db8e5d0c1be3a2bd296c747577a43a3e6daefc296142"
 dependencies = [
  "pkg-config",
 ]
+
+[[package]]
+name = "web-search"
+version = "2.8.0"
 
 [[package]]
 name = "web-sys"

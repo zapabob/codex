@@ -1,16 +1,9 @@
-use crate::types::Source;
+use codex_web_search::Source;
 use anyhow::Result;
 use async_trait::async_trait;
 
-/// Trait for research providers that can search and retrieve information
-#[async_trait]
-pub trait ResearchProvider: Send + Sync {
-    /// Search for sources related to the query
-    async fn search(&self, query: &str, max_results: u8) -> Result<Vec<Source>>;
-
-    /// Retrieve detailed content from a source URL
-    async fn retrieve(&self, url: &str) -> Result<String>;
-}
+// Re-export ResearchProvider trait from web-search for compatibility
+pub use codex_web_search::ResearchProvider;
 
 /// Mock provider for testing
 pub struct MockProvider;
