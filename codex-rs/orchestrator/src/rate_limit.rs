@@ -77,12 +77,12 @@ impl RateLimiter {
         let window_duration = Duration::from_secs(config.window_seconds.max(1));
 
         let mut entries = self.entries.write().await;
-        let entry = entries.entry(client_id.to_string()).or_insert_with(|| {
-            RateLimitEntry {
+        let entry = entries
+            .entry(client_id.to_string())
+            .or_insert_with(|| RateLimitEntry {
                 requests: Vec::new(),
                 last_cleanup: now,
-            }
-        });
+            });
 
         // Clean up old requests outside the window
         // Handle system clock going backwards (NTP adjustment, etc.)
@@ -137,11 +137,7 @@ impl RateLimiter {
             if duration.as_secs() >= 60 {
                 entry.last_cleanup = now;
                 // Clean up entries with no recent requests
-                entries.retain(|_, e| {
-                    e.requests
-                        .iter()
-                        .any(|&time| time > cutoff_time)
-                });
+                entries.retain(|_, e| e.requests.iter().any(|&time| time > cutoff_time));
             }
         } else {
             // System clock went backwards, update last_cleanup

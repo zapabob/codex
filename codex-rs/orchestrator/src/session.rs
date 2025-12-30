@@ -50,18 +50,18 @@ impl SessionManager {
 
     /// Generate a cryptographically secure session ID
     fn generate_session_id() -> String {
-        use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
         use base64::Engine;
-        
+        use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+
         let mut rng = rand::thread_rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
-        
+
         // Hash the random bytes for additional security
         let mut hasher = Sha256::new();
         hasher.update(&bytes);
         let hash = hasher.finalize();
-        
+
         BASE64_STANDARD.encode(&hash[..])
     }
 
@@ -95,7 +95,7 @@ impl SessionManager {
     /// Validate session (check expiration and update last activity)
     pub async fn validate_session(&self, session_id: &str) -> Result<Session, SessionError> {
         let mut sessions = self.sessions.write().await;
-        
+
         let session = sessions
             .get_mut(session_id)
             .ok_or(SessionError::SessionNotFound)?;
@@ -109,8 +109,8 @@ impl SessionManager {
         }
 
         // Check maximum session lifetime
-        let max_lifetime = session.created_at
-            + chrono::Duration::seconds(self.max_session_lifetime_sec as i64);
+        let max_lifetime =
+            session.created_at + chrono::Duration::seconds(self.max_session_lifetime_sec as i64);
         if max_lifetime < now {
             sessions.remove(session_id);
             return Err(SessionError::SessionExpired);
@@ -125,9 +125,12 @@ impl SessionManager {
     }
 
     /// Regenerate session ID (for session fixation attack prevention)
-    pub async fn regenerate_session_id(&self, old_session_id: &str) -> Result<String, SessionError> {
+    pub async fn regenerate_session_id(
+        &self,
+        old_session_id: &str,
+    ) -> Result<String, SessionError> {
         let mut sessions = self.sessions.write().await;
-        
+
         let session = sessions
             .remove(old_session_id)
             .ok_or(SessionError::SessionNotFound)?;
@@ -154,7 +157,9 @@ impl SessionManager {
     /// Invalidate session (logout)
     pub async fn invalidate_session(&self, session_id: &str) -> Result<(), SessionError> {
         let mut sessions = self.sessions.write().await;
-        sessions.remove(session_id).ok_or(SessionError::SessionNotFound)?;
+        sessions
+            .remove(session_id)
+            .ok_or(SessionError::SessionNotFound)?;
         Ok(())
     }
 

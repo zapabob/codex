@@ -5,7 +5,7 @@
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
-use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -119,8 +119,8 @@ impl AuthManager {
 
         // Load existing API keys
         let api_keys = if api_keys_path.exists() {
-            let content = std::fs::read_to_string(&api_keys_path)
-                .context("Failed to read API keys file")?;
+            let content =
+                std::fs::read_to_string(&api_keys_path).context("Failed to read API keys file")?;
             serde_json::from_str(&content).unwrap_or_default()
         } else {
             HashMap::new()
@@ -128,7 +128,7 @@ impl AuthManager {
 
         Ok(Self {
             codex_home,
-            oauth_issuer: None, // Can be set from config
+            oauth_issuer: None,   // Can be set from config
             oauth_audience: None, // Can be set from config
             token_cache: Arc::new(RwLock::new(HashMap::new())),
             api_keys: Arc::new(RwLock::new(api_keys)),
@@ -237,9 +237,7 @@ impl AuthManager {
 
         // Look up API key
         let api_keys = self.api_keys.read().await;
-        let key_info = api_keys
-            .get(&hashed_key)
-            .ok_or(AuthError::InvalidApiKey)?;
+        let key_info = api_keys.get(&hashed_key).ok_or(AuthError::InvalidApiKey)?;
 
         // Check expiration
         if let Some(expires_at) = key_info.expires_at {
@@ -271,8 +269,8 @@ impl AuthManager {
         scopes: Vec<String>,
         expires_in_days: Option<u32>,
     ) -> Result<String> {
-        use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
         use base64::Engine;
+        use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let key_bytes: [u8; 32] = rng.r#gen();
@@ -284,9 +282,8 @@ impl AuthManager {
         let hashed_key = format!("{:x}", hasher.finalize());
 
         // Create API key info
-        let expires_at = expires_in_days.map(|days| {
-            Utc::now() + chrono::Duration::days(days as i64)
-        });
+        let expires_at =
+            expires_in_days.map(|days| Utc::now() + chrono::Duration::days(days as i64));
 
         let key_info = ApiKeyInfo {
             name,
@@ -312,10 +309,9 @@ impl AuthManager {
     /// Save API keys to file
     async fn save_api_keys(&self) -> Result<()> {
         let api_keys = self.api_keys.read().await;
-        let content = serde_json::to_string_pretty(&*api_keys)
-            .context("Failed to serialize API keys")?;
-        std::fs::write(&self.api_keys_path, content)
-            .context("Failed to write API keys file")?;
+        let content =
+            serde_json::to_string_pretty(&*api_keys).context("Failed to serialize API keys")?;
+        std::fs::write(&self.api_keys_path, content).context("Failed to write API keys file")?;
         Ok(())
     }
 

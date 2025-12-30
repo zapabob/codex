@@ -46,10 +46,7 @@ pub fn create_secure_rpc_error(
 }
 
 /// Create a secure error message for logging (always masks secrets)
-pub fn create_secure_log_message(
-    context: &str,
-    error: &dyn std::error::Error,
-) -> String {
+pub fn create_secure_log_message(context: &str, error: &dyn std::error::Error) -> String {
     let error_str = format!("{}: {}", context, error);
     mask_secrets(&error_str)
 }

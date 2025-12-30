@@ -47,12 +47,9 @@ pub fn validate_string(s: &str, max_length: Option<usize>) -> Result<String, Val
     }
 
     // Check for control characters (except newline, tab, carriage return)
-    if s.chars().any(|c| {
-        c.is_control()
-            && c != '\n'
-            && c != '\t'
-            && c != '\r'
-    }) {
+    if s.chars()
+        .any(|c| c.is_control() && c != '\n' && c != '\t' && c != '\r')
+    {
         return Err(ValidationError::InvalidCharacters(
             "Control characters not allowed".to_string(),
         ));
@@ -73,9 +70,8 @@ pub fn validate_path(path: &PathBuf, allowed_base: &[PathBuf]) -> Result<PathBuf
     }
 
     // Normalize path (resolve .. and .)
-    let normalized = dunce::canonicalize(path).map_err(|e| {
-        ValidationError::InvalidPath(format!("Failed to normalize path: {e}"))
-    })?;
+    let normalized = dunce::canonicalize(path)
+        .map_err(|e| ValidationError::InvalidPath(format!("Failed to normalize path: {e}")))?;
 
     // Check for path traversal
     let normalized_str = normalized.to_string_lossy();
@@ -86,24 +82,20 @@ pub fn validate_path(path: &PathBuf, allowed_base: &[PathBuf]) -> Result<PathBuf
     }
 
     // Check if path is within allowed base directories
-    let is_allowed = allowed_base.iter().any(|base| {
-        normalized.starts_with(base)
-    });
+    let is_allowed = allowed_base.iter().any(|base| normalized.starts_with(base));
 
     if !is_allowed {
-        return Err(ValidationError::InvalidPath(
-            format!("Path not in allowed directories: {}", normalized_str)
-        ));
+        return Err(ValidationError::InvalidPath(format!(
+            "Path not in allowed directories: {}",
+            normalized_str
+        )));
     }
 
     Ok(normalized)
 }
 
 /// Validate an array parameter
-pub fn validate_array<T>(
-    arr: &[T],
-    max_length: Option<usize>,
-) -> Result<(), ValidationError> {
+pub fn validate_array<T>(arr: &[T], max_length: Option<usize>) -> Result<(), ValidationError> {
     let max_len = max_length.unwrap_or(MAX_ARRAY_LENGTH);
     if arr.len() > max_len {
         return Err(ValidationError::ArrayTooLong {
@@ -117,9 +109,7 @@ pub fn validate_array<T>(
 /// Sanitize a string by removing dangerous characters
 pub fn sanitize_string(s: &str) -> String {
     s.chars()
-        .filter(|c| {
-            !c.is_control() || c == &'\n' || c == &'\t' || c == &'\r'
-        })
+        .filter(|c| !c.is_control() || c == &'\n' || c == &'\t' || c == &'\r')
         .filter(|c| *c != '\0')
         .collect()
 }

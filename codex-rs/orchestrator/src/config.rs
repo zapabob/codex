@@ -124,12 +124,12 @@ fn default_retention_days() -> u32 {
 
 /// Load security configuration from config-secure.toml
 pub fn load_security_config(config_path: &PathBuf) -> Result<SecurityConfig> {
-    let content = std::fs::read_to_string(config_path)
-        .context("Failed to read config-secure.toml")?;
-    
-    let config: SecurityConfig = toml::from_str(&content)
-        .context("Failed to parse config-secure.toml")?;
-    
+    let content =
+        std::fs::read_to_string(config_path).context("Failed to read config-secure.toml")?;
+
+    let config: SecurityConfig =
+        toml::from_str(&content).context("Failed to parse config-secure.toml")?;
+
     Ok(config)
 }
 

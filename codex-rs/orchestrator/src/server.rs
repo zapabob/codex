@@ -142,10 +142,7 @@ struct TokenBudget {
 impl OrchestratorServer {
     /// Validate path to prevent directory traversal attacks
     /// Ensures the path is within allowed base directories
-    fn validate_path_against_base(
-        path: &Path,
-        base_dirs: &[PathBuf],
-    ) -> Result<PathBuf, String> {
+    fn validate_path_against_base(path: &Path, base_dirs: &[PathBuf]) -> Result<PathBuf, String> {
         // Canonicalize to resolve symlinks and normalize
         let canonical = path
             .canonicalize()
@@ -162,25 +159,24 @@ impl OrchestratorServer {
 
         Err(format!(
             "Path access denied: path must be within allowed base directories. Requested: {:?}, Allowed bases: {:?}",
-            canonical,
-            base_dirs
+            canonical, base_dirs
         ))
     }
 
     /// Get allowed base directories for file operations
     fn get_allowed_base_directories(config: &OrchestratorConfig) -> Vec<PathBuf> {
         let mut allowed = vec![config.codex_dir.clone()];
-        
+
         // Add current working directory if available
         if let Ok(cwd) = std::env::current_dir() {
             allowed.push(cwd);
         }
-        
+
         // Add home directory
         if let Some(home) = dirs::home_dir() {
             allowed.push(home);
         }
-        
+
         allowed
     }
 
@@ -349,11 +345,8 @@ impl OrchestratorServer {
     /// Check if a method requires authentication
     fn requires_auth(method: &str) -> bool {
         // Read-only methods that don't require auth
-        let read_only_methods = [
-            "status.get",
-            "tokens.getBudget",
-        ];
-        
+        let read_only_methods = ["status.get", "tokens.getBudget"];
+
         !read_only_methods.contains(&method)
     }
 
@@ -396,7 +389,9 @@ impl OrchestratorServer {
                 }
                 Err(e) => {
                     // Mask secrets in error message
-                    let error_msg = codex_core::security::secret_masking::mask_secrets(&format!("Authentication failed: {e}"));
+                    let error_msg = codex_core::security::secret_masking::mask_secrets(&format!(
+                        "Authentication failed: {e}"
+                    ));
                     return Err(RpcError {
                         code: 401,
                         message: if cfg!(debug_assertions) {
@@ -446,7 +441,9 @@ impl OrchestratorServer {
             let request: RpcRequest = match serde_json::from_slice(&data) {
                 Ok(req) => {
                     // Validate JSON structure to prevent injection attacks
-                    if let Err(validation_err) = validate_json_value(&serde_json::to_value(&req).unwrap_or_default()) {
+                    if let Err(validation_err) =
+                        validate_json_value(&serde_json::to_value(&req).unwrap_or_default())
+                    {
                         let error_response = RpcResponse {
                             id: "".to_string(),
                             result: None,
@@ -874,20 +871,21 @@ impl OrchestratorServer {
                     Ok(params) => {
                         // Validate path (prevent directory traversal)
                         let allowed_bases = Self::get_allowed_base_directories(&config);
-                        let path = match Self::validate_path_against_base(&params.path, &allowed_bases) {
-                            Ok(p) => p,
-                            Err(e) => {
-                                return RpcResponse {
-                                    id: request.id.clone(),
-                                    result: None,
-                                    error: Some(RpcError {
-                                        code: ERROR_INVALID_PARAMS,
-                                        message: e,
-                                        data: None,
-                                    }),
-                                };
-                            }
-                        };
+                        let path =
+                            match Self::validate_path_against_base(&params.path, &allowed_bases) {
+                                Ok(p) => p,
+                                Err(e) => {
+                                    return RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INVALID_PARAMS,
+                                            message: e,
+                                            data: None,
+                                        }),
+                                    };
+                                }
+                            };
 
                         // Read file
                         match tokio::fs::read_to_string(&path).await {
@@ -1247,20 +1245,21 @@ impl OrchestratorServer {
                     Ok(params) => {
                         // Validate path (prevent directory traversal)
                         let allowed_bases = Self::get_allowed_base_directories(&config);
-                        let path = match Self::validate_path_against_base(&params.path, &allowed_bases) {
-                            Ok(p) => p,
-                            Err(e) => {
-                                return RpcResponse {
-                                    id: request.id.clone(),
-                                    result: None,
-                                    error: Some(RpcError {
-                                        code: ERROR_INVALID_PARAMS,
-                                        message: e,
-                                        data: None,
-                                    }),
-                                };
-                            }
-                        };
+                        let path =
+                            match Self::validate_path_against_base(&params.path, &allowed_bases) {
+                                Ok(p) => p,
+                                Err(e) => {
+                                    return RpcResponse {
+                                        id: request.id.clone(),
+                                        result: None,
+                                        error: Some(RpcError {
+                                            code: ERROR_INVALID_PARAMS,
+                                            message: e,
+                                            data: None,
+                                        }),
+                                    };
+                                }
+                            };
 
                         // Check preimage SHA256 if provided
                         if let Some(expected_sha) = &params.preimage_sha {
