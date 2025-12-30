@@ -23,4 +23,4 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           rust-version: stable
-          manifest-path: ./codex-rs/Cargo.toml
+          manifest-path: ./Cargo.toml
