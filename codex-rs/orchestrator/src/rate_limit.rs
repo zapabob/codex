@@ -85,11 +85,30 @@ impl RateLimiter {
         });
 
         // Clean up old requests outside the window
-        let cutoff = now
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .checked_sub(window_duration)
-            .unwrap();
+        // Handle system clock going backwards (NTP adjustment, etc.)
+        let cutoff = match now.duration_since(std::time::UNIX_EPOCH) {
+            Ok(duration) => match duration.checked_sub(window_duration) {
+                Some(cutoff) => cutoff,
+                None => {
+                    // System clock went backwards significantly, reset entry
+                    *entry = RateLimitEntry {
+                        requests: vec![now],
+                        last_cleanup: now,
+                    };
+                    entry.requests.push(now);
+                    return Ok(());
+                }
+            },
+            Err(_) => {
+                // System clock is before UNIX_EPOCH, reset entry
+                *entry = RateLimitEntry {
+                    requests: vec![now],
+                    last_cleanup: now,
+                };
+                entry.requests.push(now);
+                return Ok(());
+            }
+        };
         let cutoff_time = SystemTime::UNIX_EPOCH + cutoff;
 
         entry.requests.retain(|&time| time > cutoff_time);
@@ -113,19 +132,20 @@ impl RateLimiter {
         entry.requests.push(now);
 
         // Periodic cleanup (every 60 seconds)
-        if now
-            .duration_since(entry.last_cleanup)
-            .unwrap()
-            .as_secs()
-            >= 60
-        {
+        // Handle system clock going backwards
+        if let Ok(duration) = now.duration_since(entry.last_cleanup) {
+            if duration.as_secs() >= 60 {
+                entry.last_cleanup = now;
+                // Clean up entries with no recent requests
+                entries.retain(|_, e| {
+                    e.requests
+                        .iter()
+                        .any(|&time| time > cutoff_time)
+                });
+            }
+        } else {
+            // System clock went backwards, update last_cleanup
             entry.last_cleanup = now;
-            // Clean up entries with no recent requests
-            entries.retain(|_, e| {
-                e.requests
-                    .iter()
-                    .any(|&time| time > cutoff_time)
-            });
         }
 
         Ok(())
