@@ -11,7 +11,8 @@
 # ==================== 機能フラグ ====================
 [features]
 # Web検索機能（モデルへの組み込み用）
-# web_search = true
+# ⚠️ web_searchは非推奨。web_search_requestを使用してください
+web_search_request = true
 # MCP統合
 # mcp_integration = true
 
@@ -66,29 +67,31 @@ env.SLACK_WEBHOOK_URL = "${SLACK_WEBHOOK_URL}"
 startup_timeout_sec = 180
 
 # Codex Supervisor - マルチエージェント調整・高度なエラーハンドリング
-# ⚠️ 無効化: 'supervisor'サブコマンドは未実装（代わりに'delegate'を使用）
+# ⚠️ 無効化: 'supervisor'サブコマンドはMCPサーバーとして動作しません
 [mcp_servers.codex-supervisor]
 args = ["supervisor"]
 command = "codex"
-disabled = true
+enabled = false
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 180
 
 # Codex Research - チームリサーチ/Wedhook統合付き
-# 🔄 有効化済み（2025-10-28）'research'サブコマンド実装済み
+# ⚠️ 無効化: 'research'サブコマンドはMCPサーバーとして動作しません（CLIコマンドとして使用）
 [mcp_servers.codex-research]
 args = ["research"]
 command = "codex"
+enabled = false
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 180
 
 # Codex Agent - 自然言語CLI型AgentInterpreter
-# 🔄 有効化済み（2025-10-28）'agent'サブコマンド実装済み
+# ⚠️ 無効化: 'agent'サブコマンドはMCPサーバーとして動作しません（CLIコマンドとして使用）
 [mcp_servers.codex-agent]
 args = ["agent"]
 command = "codex"
+enabled = false
 env.OPENAI_API_KEY = "${OPENAI_API_KEY}"
 env.RUST_LOG = "info"
 startup_timeout_sec = 180
@@ -157,10 +160,12 @@ command = "C:\\nvm4w\\nodejs\\npx.cmd"
 startup_timeout_sec = 180
 
 # Gemini CLI - Google Gemini AI統合（OAuth 2.0、Google Search機能付き）
+# ⚠️ 無効化: codex-gemini-mcpコマンドが見つかりません
 [mcp_servers.codex-gemini-mcp]
 args = []
 command = "codex-gemini-mcp"
 description = "Codex Gemini CLI MCP Server v0.49.0 - Google Gemini AI integration with OAuth 2.0 authentication and Google Search Grounding"
+enabled = false
 env.PATH = "C:\\Users\\downl\\.cargo\\bin;${PATH}"
 startup_timeout_sec = 180
 
