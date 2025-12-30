@@ -19,11 +19,9 @@ pub(crate) fn backoff(attempt: u64) -> Duration {
 pub(crate) fn error_or_panic(message: impl std::string::ToString) {
     use crate::security::mask_secrets;
     let masked_message = mask_secrets(&message.to_string());
-    if cfg!(debug_assertions) {
-        panic!("{}", masked_message);
-    } else {
-        error!("{}", masked_message);
-    }
+    // Always log as error, never panic (even in debug mode)
+    // This prevents unexpected crashes in development environments
+    error!("{}", masked_message);
 }
 
 pub(crate) fn try_parse_error_message(text: &str) -> String {
