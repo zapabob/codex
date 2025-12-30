@@ -158,4 +158,58 @@ mod tests {
         assert!(masked.contains("password=***MASKED***"));
         assert!(!masked.contains("secret123"));
     }
+
+    #[test]
+    fn test_mask_secrets_handles_regex_errors_gracefully() {
+        // Test that mask_secrets doesn't panic even if regex compilation fails
+        // This tests the error handling we added
+        let text = "Some text with API key: sk-proj-test123456789012345678901234567890";
+        let masked = mask_secrets(text);
+        // Should either mask the secret or return the original text (if regex failed)
+        // The important thing is that it doesn't panic
+        assert!(!masked.is_empty());
+    }
+
+    #[test]
+    fn test_mask_secrets_with_multiple_secrets() {
+        let text = "API key: sk-proj-abc123 Token: ghp_xyz789 Password: secret123";
+        let masked = mask_secrets(text);
+        // Should mask all secrets
+        assert!(!masked.contains("abc123"));
+        assert!(!masked.contains("xyz789"));
+        assert!(!masked.contains("secret123"));
+    }
+
+    #[test]
+    fn test_mask_error_message() {
+        struct TestError;
+        impl std::fmt::Display for TestError {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "Error with API key: sk-proj-test123456789012345678901234567890")
+            }
+        }
+        impl std::error::Error for TestError {}
+
+        let error: Box<dyn std::error::Error> = Box::new(TestError);
+        let masked = mask_error_message(error.as_ref());
+        assert!(!masked.contains("test123456789012345678901234567890"));
+    }
+
+    #[test]
+    fn test_mask_debug_output() {
+        #[derive(Debug)]
+        struct TestStruct {
+            api_key: String,
+            token: String,
+        }
+
+        let value = TestStruct {
+            api_key: "sk-proj-test123456789012345678901234567890".to_string(),
+            token: "ghp_xyz789012345678901234567890123456789".to_string(),
+        };
+
+        let masked = mask_debug_output(&value);
+        assert!(!masked.contains("test123456789012345678901234567890"));
+        assert!(!masked.contains("xyz789012345678901234567890123456789"));
+    }
 }

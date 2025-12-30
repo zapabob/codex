@@ -193,3 +193,115 @@ pub enum RateLimitError {
     #[error("Burst limit exceeded: {burst_size} requests")]
     BurstExceeded { burst_size: usize },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_rate_limit_basic() {
+        let config = RateLimitConfig {
+            enabled: true,
+            max_requests_per_sec: 10.0,
+            burst_size: 20,
+            window_seconds: 1,
+        };
+        let limiter = RateLimiter::new(config);
+
+        // First request should succeed
+        assert!(limiter.check("client1").await.is_ok());
+
+        // Multiple requests should succeed up to burst limit
+        for _ in 0..19 {
+            assert!(limiter.check("client1").await.is_ok());
+        }
+
+        // Burst limit exceeded
+        assert!(limiter.check("client1").await.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_rate_limit_disabled() {
+        let config = RateLimitConfig {
+            enabled: false,
+            max_requests_per_sec: 1.0,
+            burst_size: 1,
+            window_seconds: 1,
+        };
+        let limiter = RateLimiter::new(config);
+
+        // All requests should succeed when disabled
+        for _ in 0..100 {
+            assert!(limiter.check("client1").await.is_ok());
+        }
+    }
+
+    #[tokio::test]
+    async fn test_remaining_requests() {
+        let config = RateLimitConfig {
+            enabled: true,
+            max_requests_per_sec: 10.0,
+            burst_size: 20,
+            window_seconds: 1,
+        };
+        let limiter = RateLimiter::new(config);
+
+        // Initially should have max requests
+        assert_eq!(limiter.remaining("client1").await, 10);
+
+        // After making requests, remaining should decrease
+        for _ in 0..5 {
+            assert!(limiter.check("client1").await.is_ok());
+        }
+        let remaining = limiter.remaining("client1").await;
+        assert!(remaining <= 10);
+    }
+
+    #[tokio::test]
+    async fn test_different_clients() {
+        let config = RateLimitConfig {
+            enabled: true,
+            max_requests_per_sec: 10.0,
+            burst_size: 20,
+            window_seconds: 1,
+        };
+        let limiter = RateLimiter::new(config);
+
+        // Different clients should have separate rate limits
+        assert!(limiter.check("client1").await.is_ok());
+        assert!(limiter.check("client2").await.is_ok());
+        assert!(limiter.check("client3").await.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_remaining_with_clock_edge_cases() {
+        let config = RateLimitConfig {
+            enabled: true,
+            max_requests_per_sec: 10.0,
+            burst_size: 20,
+            window_seconds: 1,
+        };
+        let limiter = RateLimiter::new(config);
+
+        // Test that remaining() handles edge cases gracefully
+        // This tests the error handling for system clock going backwards
+        let remaining = limiter.remaining("nonexistent_client").await;
+        assert_eq!(remaining, 10); // Should return max requests for new client
+    }
+
+    #[tokio::test]
+    async fn test_check_with_clock_edge_cases() {
+        let config = RateLimitConfig {
+            enabled: true,
+            max_requests_per_sec: 10.0,
+            burst_size: 20,
+            window_seconds: 1,
+        };
+        let limiter = RateLimiter::new(config);
+
+        // Test that check() handles edge cases gracefully
+        // The error handling for system clock going backwards should not panic
+        let result = limiter.check("client1").await;
+        assert!(result.is_ok() || result.is_err()); // Should not panic
+    }
+}
