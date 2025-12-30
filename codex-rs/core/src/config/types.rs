@@ -17,6 +17,96 @@ use serde::de::Error as SerdeError;
 
 pub const DEFAULT_OTEL_ENVIRONMENT: &str = "dev";
 
+/// Configuration for dynamic MCP server loading
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct McpDynamicLoadingConfig {
+    /// Enable dynamic loading of MCP servers
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+
+    /// Plugin directory path (defaults to `.codex/mcp-plugins/`)
+    pub plugin_dir: Option<PathBuf>,
+
+    /// Watch configuration file for changes
+    #[serde(default = "default_true")]
+    pub watch_config_file: bool,
+
+    /// API server port (if set, enables REST API for dynamic management)
+    pub api_server_port: Option<u16>,
+}
+
+impl Default for McpDynamicLoadingConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            plugin_dir: None,
+            watch_config_file: true,
+            api_server_port: None,
+        }
+    }
+}
+
+/// Configuration for MCP token optimization
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct McpTokenOptimizationConfig {
+    /// Enable token optimization
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+
+    /// Enable automatic unloading of unused tools
+    #[serde(default = "default_true")]
+    pub auto_unload_enabled: bool,
+
+    /// Time threshold for auto-unloading (in seconds)
+    #[serde(default = "default_auto_unload_threshold_secs")]
+    pub auto_unload_threshold_secs: u64,
+
+    /// Minimum usage count before considering for unload
+    #[serde(default = "default_min_usage_count")]
+    pub min_usage_count: u64,
+
+    /// Compress tool descriptions
+    #[serde(default = "default_true")]
+    pub compress_descriptions: bool,
+
+    /// Maximum tools per prompt
+    #[serde(default = "default_max_tools_per_prompt")]
+    pub max_tools_per_prompt: usize,
+
+    /// Token budget per prompt (None = unlimited)
+    pub token_budget_per_prompt: Option<u64>,
+}
+
+fn default_auto_unload_threshold_secs() -> u64 {
+    3600 // 1 hour
+}
+
+fn default_min_usage_count() -> u64 {
+    0
+}
+
+fn default_max_tools_per_prompt() -> usize {
+    50
+}
+
+impl Default for McpTokenOptimizationConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            auto_unload_enabled: true,
+            auto_unload_threshold_secs: 3600,
+            min_usage_count: 0,
+            compress_descriptions: true,
+            max_tools_per_prompt: 50,
+            token_budget_per_prompt: None,
+        }
+    }
+}
+
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Serialize, Debug, Clone, PartialEq)]
 pub struct McpServerConfig {
     #[serde(flatten)]

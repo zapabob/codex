@@ -627,6 +627,97 @@ impl McpConnectionManager {
             .map(|tool| (tool.server_name.clone(), tool.tool_name.clone()))
     }
 
+    /// Add a single MCP server dynamically (without reinitializing existing servers)
+    pub(crate) async fn add_server_dynamic(
+        &mut self,
+        server_name: String,
+        config: McpServerConfig,
+        store_mode: OAuthCredentialsStoreMode,
+        auth_entry: Option<McpAuthStatusEntry>,
+        tx_event: Sender<Event>,
+        cancel_token: CancellationToken,
+        sandbox_state: SandboxState,
+    ) {
+        // Check if server already exists
+        if self.clients.contains_key(&server_name) {
+            warn!("MCP server '{}' already exists, skipping dynamic add", server_name);
+            return;
+        }
+
+        if !config.enabled {
+            return;
+        }
+
+        let cancel_token = cancel_token.child_token();
+        let _ = emit_update(
+            &tx_event,
+            McpStartupUpdateEvent {
+                server: server_name.clone(),
+                status: McpStartupStatus::Starting,
+            },
+        )
+        .await;
+
+        let async_managed_client = AsyncManagedClient::new(
+            server_name.clone(),
+            config,
+            store_mode,
+            cancel_token.clone(),
+            tx_event.clone(),
+            self.elicitation_requests.clone(),
+        );
+        self.clients.insert(server_name.clone(), async_managed_client.clone());
+
+        let tx_event = tx_event.clone();
+        let sandbox_state_clone = sandbox_state.clone();
+        tokio::spawn(async move {
+            let outcome = async_managed_client.client().await;
+            if cancel_token.is_cancelled() {
+                return;
+            }
+            let status = match &outcome {
+                Ok(_) => {
+                    // Send sandbox state notification immediately after Ready
+                    if let Err(e) = async_managed_client
+                        .notify_sandbox_state_change(&sandbox_state_clone)
+                        .await
+                    {
+                        warn!(
+                            "Failed to notify sandbox state to MCP server {server_name}: {e:#}",
+                        );
+                    }
+                    McpStartupStatus::Ready
+                }
+                Err(error) => {
+                    let error_str = mcp_init_error_display(
+                        server_name.as_str(),
+                        auth_entry.as_ref(),
+                        error,
+                    );
+                    McpStartupStatus::Failed { error: error_str }
+                }
+            };
+
+            let _ = emit_update(
+                &tx_event,
+                McpStartupUpdateEvent {
+                    server: server_name.clone(),
+                    status,
+                },
+            )
+            .await;
+        });
+    }
+
+    /// Remove a single MCP server dynamically
+    pub(crate) async fn remove_server_dynamic(&mut self, server_name: &str) {
+        if self.clients.remove(server_name).is_some() {
+            info!("Removed MCP server '{}' dynamically", server_name);
+        } else {
+            warn!("MCP server '{}' not found for removal", server_name);
+        }
+    }
+
     pub async fn notify_sandbox_state_change(&self, sandbox_state: &SandboxState) -> Result<()> {
         let mut join_set = JoinSet::new();
 

@@ -90,6 +90,7 @@ use crate::exec::StreamOutput;
 use crate::exec_policy::ExecPolicyUpdateError;
 use crate::mcp::auth::compute_auth_statuses;
 use crate::mcp_connection_manager::McpConnectionManager;
+use crate::mcp_dynamic_loader::DynamicMcpLoader;
 use crate::model_provider_info::CHAT_WIRE_API_DEPRECATION_SUMMARY;
 use crate::project_doc::get_user_instructions;
 use crate::protocol::AgentMessageContentDeltaEvent;
@@ -653,9 +654,32 @@ impl Session {
         }
         let state = SessionState::new(session_configuration.clone());
 
+        // Initialize dynamic MCP loader if enabled
+        let mcp_connection_manager = Arc::new(RwLock::new(McpConnectionManager::default()));
+        let mcp_startup_cancellation_token = CancellationToken::new();
+        let sandbox_state = SandboxState {
+            sandbox_policy: session_configuration.sandbox_policy.get().clone(),
+            codex_linux_sandbox_exe: config.codex_linux_sandbox_exe.clone(),
+            sandbox_cwd: session_configuration.cwd.clone(),
+        };
+        let mcp_dynamic_loader = if config.mcp_dynamic_loading.enabled {
+            let loader = DynamicMcpLoader::new(
+                mcp_connection_manager.clone(),
+                config.mcp_oauth_credentials_store_mode,
+                auth_statuses.clone(),
+                tx_event.clone(),
+                mcp_startup_cancellation_token.clone(),
+                sandbox_state.clone(),
+            );
+            Some(Arc::new(loader))
+        } else {
+            None
+        };
+
         let services = SessionServices {
-            mcp_connection_manager: Arc::new(RwLock::new(McpConnectionManager::default())),
-            mcp_startup_cancellation_token: CancellationToken::new(),
+            mcp_connection_manager,
+            mcp_startup_cancellation_token,
+            mcp_dynamic_loader,
             unified_exec_manager: UnifiedExecSessionManager::default(),
             notifier: UserNotifier::new(config.notify.clone()),
             rollout: Mutex::new(Some(rollout_recorder)),
@@ -703,13 +727,7 @@ impl Session {
             sess.send_event_raw(event).await;
         }
 
-        // Construct sandbox_state before initialize() so it can be sent to each
-        // MCP server immediately after it becomes ready (avoiding blocking).
-        let sandbox_state = SandboxState {
-            sandbox_policy: session_configuration.sandbox_policy.get().clone(),
-            codex_linux_sandbox_exe: config.codex_linux_sandbox_exe.clone(),
-            sandbox_cwd: session_configuration.cwd.clone(),
-        };
+        // sandbox_state is already constructed above for dynamic loader
         sess.services
             .mcp_connection_manager
             .write()

@@ -4,6 +4,7 @@ use crate::AuthManager;
 use crate::RolloutRecorder;
 use crate::exec_policy::ExecPolicyManager;
 use crate::mcp_connection_manager::McpConnectionManager;
+use crate::mcp_dynamic_loader::DynamicMcpLoader;
 use crate::models_manager::manager::ModelsManager;
 use crate::skills::SkillsManager;
 use crate::tools::sandboxing::ApprovalStore;
@@ -17,6 +18,7 @@ use tokio_util::sync::CancellationToken;
 pub(crate) struct SessionServices {
     pub(crate) mcp_connection_manager: Arc<RwLock<McpConnectionManager>>,
     pub(crate) mcp_startup_cancellation_token: CancellationToken,
+    pub(crate) mcp_dynamic_loader: Option<Arc<DynamicMcpLoader>>,
     pub(crate) unified_exec_manager: UnifiedExecSessionManager,
     pub(crate) notifier: UserNotifier,
     pub(crate) rollout: Mutex<Option<RolloutRecorder>>,

@@ -353,6 +353,14 @@ pub struct Config {
 
     /// OTEL configuration (exporter type, endpoint, headers, etc.).
     pub otel: crate::config::types::OtelConfig,
+
+    /// Dynamic MCP server loading configuration
+    #[serde(default)]
+    pub mcp_dynamic_loading: crate::config::types::McpDynamicLoadingConfig,
+
+    /// MCP token optimization configuration
+    #[serde(default)]
+    pub mcp_token_optimization: crate::config::types::McpTokenOptimizationConfig,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -748,6 +756,14 @@ pub struct ConfigToml {
     /// auto (default): Use the OS-specific keyring service if available, otherwise use a file.
     #[serde(default)]
     pub mcp_oauth_credentials_store: Option<OAuthCredentialsStoreMode>,
+
+    /// Dynamic MCP server loading configuration
+    #[serde(default)]
+    pub mcp_dynamic_loading: Option<crate::config::types::McpDynamicLoadingConfig>,
+
+    /// MCP token optimization configuration
+    #[serde(default)]
+    pub mcp_token_optimization: Option<crate::config::types::McpTokenOptimizationConfig>,
 
     /// User-defined provider entries that extend/override the built-in list.
     #[serde(default)]
@@ -1348,6 +1364,8 @@ impl Config {
             // The config.toml omits "_mode" because it's a config file. However, "_mode"
             // is important in code to differentiate the mode from the store implementation.
             mcp_oauth_credentials_store_mode: cfg.mcp_oauth_credentials_store.unwrap_or_default(),
+            mcp_dynamic_loading: cfg.mcp_dynamic_loading.unwrap_or_default(),
+            mcp_token_optimization: cfg.mcp_token_optimization.unwrap_or_default(),
             model_providers,
             project_doc_max_bytes: cfg.project_doc_max_bytes.unwrap_or(PROJECT_DOC_MAX_BYTES),
             project_doc_fallback_filenames: cfg

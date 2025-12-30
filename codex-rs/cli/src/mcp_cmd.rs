@@ -42,6 +42,8 @@ pub enum McpSubcommand {
     Remove(RemoveArgs),
     Login(LoginArgs),
     Logout(LogoutArgs),
+    /// Dynamic loading commands (runtime server management)
+    Dynamic(DynamicArgs),
 }
 
 #[derive(Debug, clap::Parser)]
@@ -145,6 +147,57 @@ pub struct LogoutArgs {
     pub name: String,
 }
 
+/// Dynamic loading subcommands for runtime MCP server management
+#[derive(Debug, clap::Parser)]
+pub struct DynamicArgs {
+    #[command(subcommand)]
+    pub subcommand: DynamicSubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+pub enum DynamicSubcommand {
+    /// Add a server dynamically at runtime
+    Add(DynamicAddArgs),
+    /// Remove a server dynamically at runtime
+    Remove(DynamicRemoveArgs),
+    /// Reload a server with new configuration
+    Reload(DynamicReloadArgs),
+    /// List dynamically loaded servers
+    List,
+    /// Start watching configuration files for changes
+    Watch,
+}
+
+#[derive(Debug, clap::Parser)]
+pub struct DynamicAddArgs {
+    /// Name for the MCP server
+    pub name: String,
+    /// Path to server configuration file (TOML or YAML)
+    #[arg(long)]
+    pub config: Option<std::path::PathBuf>,
+    /// Command to launch the MCP server (for stdio transport)
+    #[arg(long, num_args = 1..)]
+    pub command: Option<Vec<String>>,
+    /// URL for streamable HTTP transport
+    #[arg(long)]
+    pub url: Option<String>,
+}
+
+#[derive(Debug, clap::Parser)]
+pub struct DynamicRemoveArgs {
+    /// Name of the MCP server to remove
+    pub name: String,
+}
+
+#[derive(Debug, clap::Parser)]
+pub struct DynamicReloadArgs {
+    /// Name of the MCP server to reload
+    pub name: String,
+    /// Path to new server configuration file
+    #[arg(long)]
+    pub config: Option<std::path::PathBuf>,
+}
+
 impl McpCli {
     pub async fn run(self) -> Result<()> {
         let McpCli {
@@ -171,10 +224,53 @@ impl McpCli {
             McpSubcommand::Logout(args) => {
                 run_logout(&config_overrides, args).await?;
             }
+            McpSubcommand::Dynamic(args) => {
+                run_dynamic(&config_overrides, args).await?;
+            }
         }
 
         Ok(())
     }
+}
+
+async fn run_dynamic(
+    config_overrides: &CliConfigOverrides,
+    args: DynamicArgs,
+) -> Result<()> {
+    // Note: Dynamic loading requires a running Codex instance with DynamicMcpLoader.
+    // This is a placeholder implementation that shows the command structure.
+    // Full implementation would require integration with the Codex runtime.
+    
+    match args.subcommand {
+        DynamicSubcommand::Add(add_args) => {
+            eprintln!("Dynamic add command: {:?}", add_args);
+            eprintln!("Note: Dynamic loading requires a running Codex instance.");
+            eprintln!("This feature will be fully implemented when integrated with Codex runtime.");
+            // TODO: Implement actual dynamic add when Codex runtime integration is complete
+        }
+        DynamicSubcommand::Remove(remove_args) => {
+            eprintln!("Dynamic remove command: {:?}", remove_args);
+            eprintln!("Note: Dynamic loading requires a running Codex instance.");
+            // TODO: Implement actual dynamic remove
+        }
+        DynamicSubcommand::Reload(reload_args) => {
+            eprintln!("Dynamic reload command: {:?}", reload_args);
+            eprintln!("Note: Dynamic loading requires a running Codex instance.");
+            // TODO: Implement actual dynamic reload
+        }
+        DynamicSubcommand::List => {
+            eprintln!("Dynamic list command");
+            eprintln!("Note: Dynamic loading requires a running Codex instance.");
+            // TODO: Implement actual dynamic list
+        }
+        DynamicSubcommand::Watch => {
+            eprintln!("Dynamic watch command");
+            eprintln!("Note: File watching requires a running Codex instance.");
+            // TODO: Implement actual file watching
+        }
+    }
+    
+    Ok(())
 }
 
 async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Result<()> {
