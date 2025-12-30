@@ -102,9 +102,10 @@ Copy-Item .\target\release\codex.exe $installPath -Force
 
 ### ビルド状況
 
-- **ステータス**: 進行中
+- **ステータス**: バックグラウンドでビルド実行中
 - **エラー修正**: `urlencoding`依存を`deep-research`に追加済み
 - **分離完了**: web-searchとdeep-researchの分離は完了
+- **プロセスキル**: 実行済み
 
 ### 注意事項
 
@@ -115,6 +116,24 @@ Copy-Item .\target\release\codex.exe $installPath -Force
 ## 完了
 
 webresearchとDeepresearchの分離が完了しました。
+
+### 分離の成果
+
+1. **web-searchクレート**: 独立したWeb検索機能を提供
+   - WebSearchProvider実装
+   - ResearchProviderトレイト実装
+   - Source型定義
+   - URLデコーダー
+
+2. **deep-researchクレート**: 深層リサーチ機能に特化
+   - リサーチパイプライン
+   - 矛盾検出
+   - 証拠収集
+   - 複数プロバイダー対応（Gemini、MCP、Web）
+
+3. **依存関係の明確化**:
+   - `deep-research` → `web-search` (一方向依存)
+   - 他のクレートは必要に応じて`web-search`または`deep-research`を使用可能
 
 **次のステップ**:
 1. ビルドが完了したら、バイナリをインストール
