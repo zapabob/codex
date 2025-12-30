@@ -943,15 +943,12 @@ pub struct CommandExecResponse {
 pub struct ThreadStartParams {
     pub model: Option<String>,
     pub model_provider: Option<String>,
-    pub model_context_window: Option<i64>,
-    pub model_auto_compact_token_limit: Option<i64>,
     pub cwd: Option<String>,
     pub approval_policy: Option<AskForApproval>,
     pub sandbox: Option<SandboxMode>,
     pub config: Option<HashMap<String, JsonValue>>,
     pub base_instructions: Option<String>,
     pub developer_instructions: Option<String>,
-    pub compact_prompt: Option<String>,
     /// If true, opt into emitting raw response items on the event stream.
     ///
     /// This is for internal use only (e.g. Codex Cloud).
@@ -1000,15 +997,12 @@ pub struct ThreadResumeParams {
     /// Configuration overrides for the resumed thread, if any.
     pub model: Option<String>,
     pub model_provider: Option<String>,
-    pub model_context_window: Option<i64>,
-    pub model_auto_compact_token_limit: Option<i64>,
     pub cwd: Option<String>,
     pub approval_policy: Option<AskForApproval>,
     pub sandbox: Option<SandboxMode>,
     pub config: Option<HashMap<String, serde_json::Value>>,
     pub base_instructions: Option<String>,
     pub developer_instructions: Option<String>,
-    pub compact_prompt: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
