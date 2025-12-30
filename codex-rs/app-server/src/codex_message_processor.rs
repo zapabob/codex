@@ -1254,6 +1254,8 @@ impl CodexMessageProcessor {
         let NewConversationParams {
             model,
             model_provider,
+            model_context_window,
+            model_auto_compact_token_limit,
             profile,
             cwd,
             approval_policy,
@@ -1283,6 +1285,18 @@ impl CodexMessageProcessor {
         // Persist windows sandbox feature.
         // TODO: persist default config in general.
         let mut cli_overrides = cli_overrides.unwrap_or_default();
+        if let Some(model_context_window) = model_context_window {
+            cli_overrides.insert(
+                "model_context_window".to_string(),
+                serde_json::json!(model_context_window),
+            );
+        }
+        if let Some(model_auto_compact_token_limit) = model_auto_compact_token_limit {
+            cli_overrides.insert(
+                "model_auto_compact_token_limit".to_string(),
+                serde_json::json!(model_auto_compact_token_limit),
+            );
+        }
         if cfg!(windows) && self.config.features.enabled(Feature::WindowsSandbox) {
             cli_overrides.insert(
                 "features.experimental_windows_sandbox".to_string(),
@@ -1338,9 +1352,24 @@ impl CodexMessageProcessor {
             params.sandbox,
             params.base_instructions,
             params.developer_instructions,
+            params.compact_prompt,
         );
 
-        let config = match derive_config_from_params(overrides, params.config).await {
+        let mut config_overrides = params.config.unwrap_or_default();
+        if let Some(model_context_window) = params.model_context_window {
+            config_overrides.insert(
+                "model_context_window".to_string(),
+                serde_json::json!(model_context_window),
+            );
+        }
+        if let Some(model_auto_compact_token_limit) = params.model_auto_compact_token_limit {
+            config_overrides.insert(
+                "model_auto_compact_token_limit".to_string(),
+                serde_json::json!(model_auto_compact_token_limit),
+            );
+        }
+
+        let config = match derive_config_from_params(overrides, Some(config_overrides)).await {
             Ok(config) => config,
             Err(err) => {
                 let error = JSONRPCErrorError {
@@ -1448,6 +1477,7 @@ impl CodexMessageProcessor {
         sandbox: Option<SandboxMode>,
         base_instructions: Option<String>,
         developer_instructions: Option<String>,
+        compact_prompt: Option<String>,
     ) -> ConfigOverrides {
         ConfigOverrides {
             model,
@@ -1459,6 +1489,7 @@ impl CodexMessageProcessor {
             codex_linux_sandbox_exe: self.codex_linux_sandbox_exe.clone(),
             base_instructions,
             developer_instructions,
+            compact_prompt,
             ..Default::default()
         }
     }
@@ -1552,22 +1583,28 @@ impl CodexMessageProcessor {
             path,
             model,
             model_provider,
+            model_context_window,
+            model_auto_compact_token_limit,
             cwd,
             approval_policy,
             sandbox,
             config: cli_overrides,
             base_instructions,
             developer_instructions,
+            compact_prompt,
         } = params;
 
         let overrides_requested = model.is_some()
             || model_provider.is_some()
+            || model_context_window.is_some()
+            || model_auto_compact_token_limit.is_some()
             || cwd.is_some()
             || approval_policy.is_some()
             || sandbox.is_some()
             || cli_overrides.is_some()
             || base_instructions.is_some()
-            || developer_instructions.is_some();
+            || developer_instructions.is_some()
+            || compact_prompt.is_some();
 
         let config = if overrides_requested {
             let overrides = self.build_thread_config_overrides(
@@ -1578,8 +1615,22 @@ impl CodexMessageProcessor {
                 sandbox,
                 base_instructions,
                 developer_instructions,
+                compact_prompt,
             );
-            match derive_config_from_params(overrides, cli_overrides).await {
+            let mut config_overrides = cli_overrides.unwrap_or_default();
+            if let Some(model_context_window) = model_context_window {
+                config_overrides.insert(
+                    "model_context_window".to_string(),
+                    serde_json::json!(model_context_window),
+                );
+            }
+            if let Some(model_auto_compact_token_limit) = model_auto_compact_token_limit {
+                config_overrides.insert(
+                    "model_auto_compact_token_limit".to_string(),
+                    serde_json::json!(model_auto_compact_token_limit),
+                );
+            }
+            match derive_config_from_params(overrides, Some(config_overrides)).await {
                 Ok(config) => config,
                 Err(err) => {
                     let error = JSONRPCErrorError {
@@ -2205,6 +2256,8 @@ impl CodexMessageProcessor {
                 let NewConversationParams {
                     model,
                     model_provider,
+                    model_context_window,
+                    model_auto_compact_token_limit,
                     profile,
                     cwd,
                     approval_policy,
@@ -2218,6 +2271,18 @@ impl CodexMessageProcessor {
 
                 // Persist windows sandbox feature.
                 let mut cli_overrides = cli_overrides.unwrap_or_default();
+                if let Some(model_context_window) = model_context_window {
+                    cli_overrides.insert(
+                        "model_context_window".to_string(),
+                        serde_json::json!(model_context_window),
+                    );
+                }
+                if let Some(model_auto_compact_token_limit) = model_auto_compact_token_limit {
+                    cli_overrides.insert(
+                        "model_auto_compact_token_limit".to_string(),
+                        serde_json::json!(model_auto_compact_token_limit),
+                    );
+                }
                 if cfg!(windows) && self.config.features.enabled(Feature::WindowsSandbox) {
                     cli_overrides.insert(
                         "features.experimental_windows_sandbox".to_string(),

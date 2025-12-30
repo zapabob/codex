@@ -35,7 +35,7 @@ function Write-DebugLog {
 Write-DebugLog -location "fast-build-install.ps1:1" -message "高速差分ビルド開始" -data @{release = $Release; clean = $Clean} -hypothesisId "A"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " Codex 高速差分ビルド & インストール" -ForegroundColor Cyan
+Write-Host " Codex 高速差分ビルド インストール" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

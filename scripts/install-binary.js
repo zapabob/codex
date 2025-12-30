@@ -175,18 +175,25 @@ async function extractArchive(archivePath, destDir) {
     if (ext === '.zip') {
       // Windows: use PowerShell with parameterized arguments
       if (process.platform === 'win32') {
+        // Use -File with a script block to avoid command injection
+        // Escape single quotes by doubling them for PowerShell
+        const escapedArchivePath = safeArchivePath.replace(/'/g, "''");
+        const escapedDestDir = safeDestDir.replace(/'/g, "''");
+        // Use -Command with properly escaped arguments
+        const psCommand = `$archivePath = [System.IO.Path]::GetFullPath('${escapedArchivePath}'); $destPath = [System.IO.Path]::GetFullPath('${escapedDestDir}'); Expand-Archive -Path $archivePath -DestinationPath $destPath -Force`;
         child = spawn('powershell', [
           '-NoProfile',
           '-NonInteractive',
           '-Command',
-          `Expand-Archive -Path ([System.IO.Path]::GetFullPath('${safeArchivePath.replace(/'/g, "''")}')) -DestinationPath ([System.IO.Path]::GetFullPath('${safeDestDir.replace(/'/g, "''")}')) -Force`
+          psCommand
         ]);
       } else {
         // Unix: try unzip first, fallback to 7z
         child = spawn('unzip', ['-q', '-o', safeArchivePath, '-d', safeDestDir]);
         child.on('error', () => {
           // Fallback to 7z if unzip not available
-          const child7z = spawn('7z', ['x', safeArchivePath, `-o${safeDestDir}`, '-y']);
+          // Use separate arguments to prevent command injection
+          const child7z = spawn('7z', ['x', safeArchivePath, '-o' + safeDestDir, '-y']);
           child7z.on('close', (code) => {
             if (code === 0) resolve();
             else reject(new Error(`7z extraction failed with code ${code}`));

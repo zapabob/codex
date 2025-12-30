@@ -18,8 +18,9 @@ static GOOGLE_API_KEY_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
     Lazy::new(|| regex::Regex::new(r"AIzaSy[A-Za-z0-9_-]{35}"));
 static BEARER_TOKEN_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
     Lazy::new(|| regex::Regex::new(r"Bearer\s+[A-Za-z0-9_-]{20,}"));
-static PASSWORD_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
-    Lazy::new(|| regex::Regex::new(r"(?i)(password|pwd|pass|secret|token|api[_-]?key)\s*[:=]\s*([^\s&]+)"));
+static PASSWORD_REGEX: Lazy<Result<regex::Regex, regex::Error>> = Lazy::new(|| {
+    regex::Regex::new(r"(?i)(password|pwd|pass|secret|token|api[_-]?key)\s*[:=]\s*([^\s&]+)")
+});
 static URL_CREDENTIALS_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
     Lazy::new(|| regex::Regex::new(r"https?://[^:]+:[^@]+@"));
 
@@ -33,9 +34,9 @@ pub fn mask_secrets(text: &str) -> String {
     // - Tokens: Bearer tokens, access tokens
     // - Passwords: password=..., pwd=...
     // - URLs with credentials: https://user:pass@host
-    
+
     let mut masked = text.to_string();
-    
+
     // Mask OpenAI API keys (sk-proj-... or sk-...)
     if let Ok(re) = OPENAI_API_KEY_PROJ_REGEX.as_ref() {
         masked = re.replace_all(&masked, "sk-proj-***MASKED***").to_string();
@@ -47,42 +48,42 @@ pub fn mask_secrets(text: &str) -> String {
     } else {
         log_regex_error("OPENAI_API_KEY_REGEX");
     }
-    
+
     // Mask GitHub tokens (ghp_..., gho_..., ghu_..., ghs_..., ghr_...)
     if let Ok(re) = GITHUB_TOKEN_REGEX.as_ref() {
         masked = re.replace_all(&masked, "$1_***MASKED***").to_string();
     } else {
         log_regex_error("GITHUB_TOKEN_REGEX");
     }
-    
+
     // Mask Google API keys (AIzaSy...)
     if let Ok(re) = GOOGLE_API_KEY_REGEX.as_ref() {
         masked = re.replace_all(&masked, "AIzaSy***MASKED***").to_string();
     } else {
         log_regex_error("GOOGLE_API_KEY_REGEX");
     }
-    
+
     // Mask Bearer tokens
     if let Ok(re) = BEARER_TOKEN_REGEX.as_ref() {
         masked = re.replace_all(&masked, "Bearer ***MASKED***").to_string();
     } else {
         log_regex_error("BEARER_TOKEN_REGEX");
     }
-    
+
     // Mask passwords in query strings or form data
     if let Ok(re) = PASSWORD_REGEX.as_ref() {
         masked = re.replace_all(&masked, "$1=***MASKED***").to_string();
     } else {
         log_regex_error("PASSWORD_REGEX");
     }
-    
+
     // Mask URLs with credentials (https://user:pass@host)
     if let Ok(re) = URL_CREDENTIALS_REGEX.as_ref() {
         masked = re.replace_all(&masked, "https://***MASKED***@").to_string();
     } else {
         log_regex_error("URL_CREDENTIALS_REGEX");
     }
-    
+
     masked
 }
 
@@ -185,7 +186,10 @@ mod tests {
         struct TestError;
         impl std::fmt::Display for TestError {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "Error with API key: sk-proj-test123456789012345678901234567890")
+                write!(
+                    f,
+                    "Error with API key: sk-proj-test123456789012345678901234567890"
+                )
             }
         }
         impl std::error::Error for TestError {}

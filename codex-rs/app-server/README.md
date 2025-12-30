@@ -95,6 +95,7 @@ Start a fresh thread when you need a new Codex conversation.
     // Optionally set config settings. If not specified, will use the user's
     // current config settings.
     "model": "gpt-5.1-codex",
+    "modelAutoCompactTokenLimit": 180000,
     "cwd": "/Users/me/project",
     "approvalPolicy": "never",
     "sandbox": "workspaceWrite",
@@ -116,6 +117,8 @@ To continue a stored session, call `thread/resume` with the `thread.id` you prev
 { "method": "thread/resume", "id": 11, "params": { "threadId": "thr_123" } }
 { "id": 11, "result": { "thread": { "id": "thr_123", … } } }
 ```
+
+You can also pass `modelContextWindow`, `modelAutoCompactTokenLimit`, or `compactPrompt` to tune context compression (auto-compaction) for long-running threads.
 
 ### Example: List threads (with pagination & filters)
 
