@@ -155,12 +155,20 @@ impl RateLimiter {
     pub async fn remaining(&self, client_id: &str) -> usize {
         let now = SystemTime::now();
         let window_duration = Duration::from_secs(self.config.window_seconds.max(1));
-        let cutoff = now
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .checked_sub(window_duration)
-            .unwrap();
-        let cutoff_time = SystemTime::UNIX_EPOCH + cutoff;
+        // Handle system clock going backwards (NTP adjustment, etc.)
+        let cutoff_time = match now.duration_since(std::time::UNIX_EPOCH) {
+            Ok(duration) => match duration.checked_sub(window_duration) {
+                Some(cutoff) => SystemTime::UNIX_EPOCH + cutoff,
+                None => {
+                    // System clock went backwards significantly, return max requests
+                    return self.config.max_requests_per_sec as usize;
+                }
+            },
+            Err(_) => {
+                // System clock is before UNIX_EPOCH, return max requests
+                return self.config.max_requests_per_sec as usize;
+            }
+        };
 
         let entries = self.entries.read().await;
         if let Some(entry) = entries.get(client_id) {
