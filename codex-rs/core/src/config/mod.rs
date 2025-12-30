@@ -355,11 +355,9 @@ pub struct Config {
     pub otel: crate::config::types::OtelConfig,
 
     /// Dynamic MCP server loading configuration
-    #[serde(default)]
     pub mcp_dynamic_loading: crate::config::types::McpDynamicLoadingConfig,
 
     /// MCP token optimization configuration
-    #[serde(default)]
     pub mcp_token_optimization: crate::config::types::McpTokenOptimizationConfig,
 }
 
@@ -758,11 +756,9 @@ pub struct ConfigToml {
     pub mcp_oauth_credentials_store: Option<OAuthCredentialsStoreMode>,
 
     /// Dynamic MCP server loading configuration
-    #[serde(default)]
     pub mcp_dynamic_loading: Option<crate::config::types::McpDynamicLoadingConfig>,
 
     /// MCP token optimization configuration
-    #[serde(default)]
     pub mcp_token_optimization: Option<crate::config::types::McpTokenOptimizationConfig>,
 
     /// User-defined provider entries that extend/override the built-in list.

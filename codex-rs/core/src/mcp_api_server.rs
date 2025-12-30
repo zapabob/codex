@@ -150,23 +150,23 @@ impl McpApiServer {
     }
 }
 
-/// Future implementation note:
-/// To fully implement the HTTP server, add axum to Cargo.toml:
-/// ```toml
-/// [dependencies]
-/// axum = { version = "0.7", features = ["macros"] }
-/// ```
-///
-/// Then implement handlers like:
-/// ```rust
-/// use axum::{Router, routing::{get, post, delete, put}, Json, extract::Path};
-///
-/// pub fn create_router(server: Arc<McpApiServer>) -> Router {
-///     Router::new()
-///         .route("/api/mcp/servers", post(add_server))
-///         .route("/api/mcp/servers/:name", delete(remove_server))
-///         .route("/api/mcp/servers/:name/reload", put(reload_server))
-///         .route("/api/mcp/servers", get(list_servers))
-///         .with_state(server)
-/// }
-/// ```
+// Future implementation note:
+// To fully implement the HTTP server, add axum to Cargo.toml:
+// ```toml
+// [dependencies]
+// axum = { version = "0.7", features = ["macros"] }
+// ```
+//
+// Then implement handlers like:
+// ```rust
+// use axum::{Router, routing::{get, post, delete, put}, Json, extract::Path};
+//
+// pub fn create_router(server: Arc<McpApiServer>) -> Router {
+//     Router::new()
+//         .route("/api/mcp/servers", post(add_server))
+//         .route("/api/mcp/servers/:name", delete(remove_server))
+//         .route("/api/mcp/servers/:name/reload", put(reload_server))
+//         .route("/api/mcp/servers", get(list_servers))
+//         .with_state(server)
+// }
+// ```

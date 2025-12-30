@@ -8,6 +8,7 @@ use mcp_types::Tool;
 use std::sync::Arc;
 use tracing::debug;
 use tracing::info;
+use tracing::warn;
 
 use crate::client_common::Prompt;
 use crate::mcp_token_optimizer::McpTokenOptimizer;
@@ -36,7 +37,7 @@ impl McpPromptBuilder {
     /// Build prompt with selected tools
     pub fn build_prompt_with_tools(
         &self,
-        base_prompt: &str,
+        _base_prompt: &str,
         available_tools: &[Tool],
         task_context: &str,
     ) -> Result<Prompt> {
@@ -50,7 +51,7 @@ impl McpPromptBuilder {
         );
 
         // Compress tool descriptions if enabled
-        let tool_descriptions = if self.optimizer.compress_descriptions {
+        let _tool_descriptions = if self.optimizer.is_compression_enabled() {
             self.compress_tool_descriptions(&selected_tools)
         } else {
             selected_tools

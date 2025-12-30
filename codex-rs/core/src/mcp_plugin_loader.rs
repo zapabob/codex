@@ -154,11 +154,11 @@ impl McpPluginLoader {
             match loader.add_server(server_name.clone(), plugin.server_config.clone()).await {
                 Ok(_) => {
                     info!("Loaded plugin: {}", plugin.metadata.name);
-                    loaded_names.push(server_name);
+                    loaded_names.push(server_name.clone());
                     
                     // Store loaded plugin
                     let mut loaded = self.loaded_plugins.lock().await;
-                    loaded.insert(server_name.clone(), plugin);
+                    loaded.insert(server_name, plugin);
                 }
                 Err(e) => {
                     error!("Failed to load plugin {}: {}", plugin.metadata.name, e);

@@ -16,7 +16,6 @@ use tracing::info;
 use tracing::warn;
 
 use crate::mcp_dynamic_loader::DynamicMcpLoader;
-use crate::token_budget::TokenBudgetTracker;
 
 /// Tool usage statistics
 #[derive(Debug, Clone)]
@@ -41,7 +40,6 @@ pub struct ToolTokenEstimate {
 /// Token optimizer for MCP tools
 pub struct McpTokenOptimizer {
     tool_usage_stats: Arc<Mutex<HashMap<String, ToolUsageStats>>>,
-    token_tracker: Option<Arc<TokenBudgetTracker>>,
     auto_unload_threshold: Duration,
     min_usage_count: u64,
     compress_descriptions: bool,
@@ -53,11 +51,9 @@ impl McpTokenOptimizer {
         auto_unload_threshold: Duration,
         min_usage_count: u64,
         compress_descriptions: bool,
-        token_tracker: Option<Arc<TokenBudgetTracker>>,
     ) -> Self {
         Self {
             tool_usage_stats: Arc::new(Mutex::new(HashMap::new())),
-            token_tracker,
             auto_unload_threshold,
             min_usage_count,
             compress_descriptions,
@@ -225,6 +221,8 @@ impl McpTokenOptimizer {
                     warn!("Failed to auto-unload unused tools: {}", e);
                 }
             }
+            // loader is moved into the closure and used above
+            drop(loader);
         });
     }
 
@@ -232,5 +230,10 @@ impl McpTokenOptimizer {
     pub async fn get_usage_stats(&self) -> HashMap<String, ToolUsageStats> {
         let stats = self.tool_usage_stats.lock().await;
         stats.clone()
+    }
+
+    /// Check if description compression is enabled
+    pub fn is_compression_enabled(&self) -> bool {
+        self.compress_descriptions
     }
 }
