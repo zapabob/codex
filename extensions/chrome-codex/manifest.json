@@ -1,0 +1,16 @@
+﻿{
+  "manifest_version": 3,
+  "name": "Codex for Chrome",
+  "version": "0.1.0",
+  "description": "Codex CLI integration with native messaging for deep research and browser control.",
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Codex"
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "permissions": ["nativeMessaging", "scripting", "activeTab", "storage", "tabs"],
+  "optional_permissions": ["webRequest", "debugger"],
+  "optional_host_permissions": ["<all_urls>"]
+}

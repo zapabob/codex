@@ -1,0 +1,88 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex</title>
+    <link rel="stylesheet" href="../styles/popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Codex</h1>
+      <p class="subtitle">Chrome Native Messaging bridge</p>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <span class="label">Status</span>
+        <span id="status" class="status">Idle</span>
+      </div>
+      <div class="row">
+        <button id="ping">Ping Host</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Natural Language Control</h2>
+      <label for="nlInput">Instruction</label>
+      <textarea id="nlInput" rows="3" placeholder="Example: click the login button"></textarea>
+      <div class="row">
+        <button id="nlParse">Parse</button>
+        <button id="nlExecute" class="secondary" disabled>Execute</button>
+      </div>
+      <p id="nlNotice" class="notice"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Deep Research</h2>
+      <label for="query">Query</label>
+      <textarea id="query" rows="3" placeholder="Ask a research question..."></textarea>
+      <div class="row">
+        <label for="depth">Depth</label>
+        <input id="depth" type="number" min="1" max="5" value="2" />
+      </div>
+      <div class="row">
+        <button id="research">Run Research</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Code Generation</h2>
+      <label for="codegenPrompt">Task</label>
+      <textarea id="codegenPrompt" rows="3" placeholder="Generate JS to highlight all prices"></textarea>
+      <div class="row">
+        <button id="codegen">Generate</button>
+        <button id="codeRun" class="secondary" disabled>Run Code</button>
+      </div>
+      <p id="codeNotice" class="notice"></p>
+    </section>
+
+    <section class="panel">
+      <h2>DOM Read</h2>
+      <label for="selector">CSS Selector (optional)</label>
+      <input id="selector" type="text" placeholder="#main-content" />
+      <div class="row">
+        <button id="readDom">Read DOM</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Console & Network</h2>
+      <div class="row">
+        <button id="consoleSubscribe" class="secondary">Start Console Logs</button>
+        <button id="consoleFetch">Fetch Console Logs</button>
+      </div>
+      <div class="row">
+        <button id="networkSubscribe" class="secondary">Start Network Monitor</button>
+        <button id="networkFetch">Fetch Network Logs</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Output</h2>
+      <pre id="output"></pre>
+    </section>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

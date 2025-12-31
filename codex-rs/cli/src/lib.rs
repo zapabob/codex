@@ -1,5 +1,6 @@
 pub mod agent_create_cmd;
 pub mod ask_cmd;
+pub mod chrome_cmd;
 pub mod debug_sandbox;
 pub mod delegate_cmd;
 mod exit_status;
