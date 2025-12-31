@@ -44,14 +44,13 @@ fn default_format() -> String {
 
 /// Handle datetime tool call with parsed parameters.
 async fn handle_datetime_tool(params: DateTimeToolParam) -> CallToolResult {
-    
-
     match get_current_datetime(&params) {
         Ok(datetime_str) => {
+            let timezone = params.timezone.as_deref().unwrap_or("system");
             let result_json = json!({
                 "datetime": datetime_str,
                 "format": params.format,
-                "timezone": params.timezone.as_ref().unwrap_or(&"system".to_string()),
+                "timezone": timezone,
             });
 
             CallToolResult {
