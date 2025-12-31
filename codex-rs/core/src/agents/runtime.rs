@@ -690,10 +690,7 @@ Only output the JSON, no explanation."#;
                     total_tokens = usage.total_tokens as usize;
                     debug!(
                         "Agent '{}': Actual token usage: {} (input: {}, output: {})",
-                        agent_def.name,
-                        usage.total_tokens,
-                        usage.input_tokens,
-                        usage.output_tokens
+                        agent_def.name, usage.total_tokens, usage.input_tokens, usage.output_tokens
                     );
                 }
                 ResponseEvent::Completed {
@@ -1458,7 +1455,6 @@ impl AgentRuntime {
 async fn test_filter_codex_mcp_tools() {
     use crate::agents::types::ContextPolicy;
     use crate::agents::types::ToolPermissions;
-    
 
     let agent_def = AgentDefinition {
         name: "test-agent".to_string(),
