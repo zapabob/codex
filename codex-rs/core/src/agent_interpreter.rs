@@ -357,6 +357,52 @@ impl Default for AgentInterpreter {
     }
 }
 
+fn extract_channel_name(input: &str) -> Option<String> {
+    let tokens: Vec<&str> = input.split_whitespace().collect();
+    for window in tokens.windows(2) {
+        if window[0].eq_ignore_ascii_case("channel")
+            && let Some(channel) = clean_channel_token(window[1])
+        {
+            return Some(channel);
+        }
+    }
+
+    tokens.iter().find_map(|token| clean_channel_token(token))
+}
+
+fn extract_webhook_message(input: &str) -> String {
+    if let Some(captures) = WEBHOOK_TEXT_REGEX.captures(input)
+        && let Some(matched) = captures.get(1)
+    {
+        let text = matched.as_str().trim();
+        if !text.is_empty() {
+            return text.to_string();
+        }
+    }
+
+    if let Some(idx) = input.find(':') {
+        let text = input[idx + 1..].trim();
+        if !text.is_empty() {
+            return text.to_string();
+        }
+    }
+
+    input.trim().to_string()
+}
+
+fn clean_channel_token(token: &str) -> Option<String> {
+    let trimmed = token.trim_matches(|c: char| matches!(c, ',' | ';' | '.' | '!'));
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    if trimmed.starts_with('#') || trimmed.starts_with('@') {
+        return Some(trimmed.to_string());
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -528,50 +574,4 @@ mod tests {
         assert_eq!(result.agent_name, "mcp");
         assert_eq!(result.action, AgentAction::ListMcpTools);
     }
-}
-
-fn extract_channel_name(input: &str) -> Option<String> {
-    let tokens: Vec<&str> = input.split_whitespace().collect();
-    for window in tokens.windows(2) {
-        if window[0].eq_ignore_ascii_case("channel")
-            && let Some(channel) = clean_channel_token(window[1])
-        {
-            return Some(channel);
-        }
-    }
-
-    tokens.iter().find_map(|token| clean_channel_token(token))
-}
-
-fn extract_webhook_message(input: &str) -> String {
-    if let Some(captures) = WEBHOOK_TEXT_REGEX.captures(input)
-        && let Some(matched) = captures.get(1)
-    {
-        let text = matched.as_str().trim();
-        if !text.is_empty() {
-            return text.to_string();
-        }
-    }
-
-    if let Some(idx) = input.find(':') {
-        let text = input[idx + 1..].trim();
-        if !text.is_empty() {
-            return text.to_string();
-        }
-    }
-
-    input.trim().to_string()
-}
-
-fn clean_channel_token(token: &str) -> Option<String> {
-    let trimmed = token.trim_matches(|c: char| matches!(c, ',' | ';' | '.' | '!'));
-    if trimmed.is_empty() {
-        return None;
-    }
-
-    if trimmed.starts_with('#') || trimmed.starts_with('@') {
-        return Some(trimmed.to_string());
-    }
-
-    None
 }

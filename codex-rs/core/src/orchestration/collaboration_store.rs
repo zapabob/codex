@@ -322,7 +322,7 @@ mod tests {
             error: None,
         };
 
-        store.store_agent_result("test-agent".to_string(), result.clone());
+        store.store_agent_result("test-agent".to_string(), result);
 
         let retrieved = store.get_agent_result("test-agent");
         assert!(retrieved.is_some());

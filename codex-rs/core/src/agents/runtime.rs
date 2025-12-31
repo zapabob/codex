@@ -1454,7 +1454,7 @@ impl AgentRuntime {
 async fn test_filter_codex_mcp_tools() {
     use crate::agents::types::ContextPolicy;
     use crate::agents::types::ToolPermissions;
-    use crate::model_provider_info::WireApi;
+    
 
     let agent_def = AgentDefinition {
         name: "test-agent".to_string(),

@@ -78691,3 +78691,6256 @@ _**User**_
 
 ---
 
+_**Agent (model default, mode Agent)**_
+
+
+ビルドの最新進捗を確認中です。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Test-Path "codex-rs\target\release\codex.exe"</summary>
+
+```bash
+Test-Path "codex-rs\target\release\codex.exe"
+```
+
+```
+False
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Process | Where-Object { $_.ProcessName -eq "cargo" -or ($_.ProcessName -eq "rustc") } | Select-Object Id, ProcessName, @{Name="CPU(%)";Expression={[math]::Round($_.CPU,2)}}, @{Name="Memory(MB)";Expression={[math]::Round($_.WorkingSet/1MB,2)}} | Format-Table -AutoSize</summary>
+
+```bash
+Get-Process | Where-Object { $_.ProcessName -eq "cargo" -or ($_.ProcessName -eq "rustc") } | Select-Object Id, ProcessName, @{Name="CPU(%)";Expression={[math]::Round($_.CPU,2)}}, @{Name="Memory(MB)";Expression={[math]::Round($_.WorkingSet/1MB,2)}} | Format-Table -AutoSize
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-ChildItem "codex-rs\target\release" -Filter "codex.exe" -ErrorAction SilentlyContinue | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}, LastWriteTime</summary>
+
+```bash
+Get-ChildItem "codex-rs\target\release" -Filter "codex.exe" -ErrorAction SilentlyContinue | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}, LastWriteTime
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Content "C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\71845.txt" -Tail 1 -ErrorAction SilentlyContinue</summary>
+
+```bash
+Get-Content "C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\71845.txt" -Tail 1 -ErrorAction SilentlyContinue
+```
+
+```
+Ended: 2025-12-31T10:55:20.021Z
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-ChildItem "codex-rs\target\release\deps" -Filter "codex-cli*.rlib" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}, LastWriteTime</summary>
+
+```bash
+Get-ChildItem "codex-rs\target\release\deps" -Filter "codex-cli*.rlib" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}, LastWriteTime
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドプロセスは終了していますが、バイナリが見当たりません。ログを確認して成功/失敗を判定します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-Content "C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\71845.txt" | Select-Object -Last 50</summary>
+
+```bash
+Get-Content "C:\Users\downl\.cursor\projects\c-Users-downl-Desktop-codex-main\terminals\71845.txt" | Select-Object -Last 50
+```
+
+```
+=== Background Shell 71845 ===
+Command: Set-Location C:\Users\downl\Desktop\codex-main; py -3 .\fast_build_install.py
+Working Directory: C:\Users\downl\Desktop\codex-main\codex-rs
+Started: 2025-12-31T10:40:57.425Z
+============================================================
+
+📁 作業チE��レクトリ: C:\Users\downl\Desktop\codex-main\codex-rs
+
+======================================================================
+📦 Phase 1: 高速差刁E��ルチE(codex-cli)
+======================================================================
+
+======================================================================
+🚀 codex-cli (リリースビルチEを開始しまぁE..
+======================================================================
+
+
+[░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 1% | codex-protocol                      | 経過: 7.7私E| 残り: 12刁E4私E[█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 2% | codex-keyring-store                 | 経過: 7.8私E| 残り: 6刁E1私E[█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 3% | hostname                            | 経過: 7.8私E| 残り: 4刁E1私E[██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 4% | futures-intrusive                   | 経過: 7.8私E| 残り: 3刁E私E[██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 5% | fd-lock                             | 経過: 7.8私E| 残り: 2刁E8私E[███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 6% | windows-result                      | 経過: 7.8私E| 残り: 2刁E私E[███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 7% | spin                                | 経過: 7.8私E| 残り: 1刁E3私E[████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 8% | toml_datetime                       | 経過: 7.8私E| 残り: 1刁E9私E[████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 9% | bstr                                | 経過: 7.8私E| 残り: 1刁E8私E[█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 10% | sync_wrapper                        | 経過: 7.8私E| 残り: 1刁E0私E[█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 11% | webpki-roots                        | 経過: 7.8私E| 残り: 1刁E私E[██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 12% | toml_writer                         | 経過: 7.8私E| 残り: 57.4私E[██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 13% | urlencoding                         | 経過: 8.5私E| 残り: 56.8私E[███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 14% | streaming-iterator                  | 経過: 8.5私E| 残り: 52.2私E[███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 15% | ego-tree                            | 経過: 8.5私E| 残り: 48.2私E[████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 16% | lalrpop-util                        | 経過: 8.5私E| 残り: 44.7私E[████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 17% | winsafe                             | 経過: 8.5私E| 残り: 41.6私E[█████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 18% | rmcp                                | 経過: 8.5私E| 残り: 38.9私E[█████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 19% | sqlx-core                           | 経過: 8.5私E| 残り: 36.4私E[██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 20% | globset                             | 経過: 8.6私E| 残り: 34.2私E[██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 21% | flume                               | 経過: 8.6私E| 残り: 32.2私E[███████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 22% | windows-core                        | 経過: 8.6私E| 残り: 30.4私E[███████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 23% | reqwest                             | 経過: 9.0私E| 残り: 30.1私E[████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 24% | starlark_syntax                     | 経過: 9.1私E| 残り: 28.9私E[████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 25% | scraper                             | 経過: 9.2私E| 残り: 27.7私E[█████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 26% | tree-sitter                         | 経過: 9.3私E| 残り: 26.6私E[█████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 27% | rustyline                           | 経過: 9.3私E| 残り: 25.2私E[█████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 27% | windows-core                        | 経過: 9.4私E| 残り: 25.4私E[██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 28% | opentelemetry-proto                 | 経過: 10.0私E| 残り: 25.7私E[██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 29% | nix                                 | 経過: 10.0私E| 残り: 24.5私E[███████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 30% | libsqlite3-sys                      | 経過: 10.0私E| 残り: 23.4私E[███████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 31% | codex-client                        | 経過: 10.1私E| 残り: 22.4私E[████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 32% | debugserver-types                   | 経過: 10.5私E| 残り: 22.3私E[████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 33% | libssh2-sys                         | 経過: 10.6私E| 残り: 21.5私E[█████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 34% | dirs                                | 経過: 10.7私E| 残り: 20.7私E[█████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 35% | winreg                              | 経過: 11.0私E| 残り: 20.5私E[██████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 36% | rayon-core                          | 経過: 11.1私E| 残り: 19.8私E[██████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 37% | memoffset                           | 経過: 11.5私E| 残り: 19.6私E[███████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 38% | display_container                   | 経過: 11.6私E| 残り: 18.9私E[███████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 39% | opentelemetry-http                  | 経過: 11.7私E| 残り: 18.3私E[████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 40% | textwrap                            | 経過: 11.8私E| 残り: 17.8私E[████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 41% | which                               | 経過: 11.9私E| 残り: 17.2私E[█████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 42% | shared_library                      | 経過: 12.0私E| 残り: 16.5私E[█████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 43% | filedescriptor                      | 経過: 12.2私E| 残り: 16.2私E[██████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 44% | dirs-sys-next                       | 経過: 12.3私E| 残り: 15.6私E[██████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 45% | serial2                             | 経過: 12.3私E| 残り: 15.0私E[███████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░] 46% | webbrowser                          | 経過: 12.4私E| 残り: 14.5私E[███████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░] 47% | erased-serde                        | 経過: 12.6私E| 残り: 14.2私E[████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░] 48% | serde_spanned                       | 経過: 12.7私E| 残り: 13.7私E[████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░] 49% | env_filter                          | 経過: 12.8私E| 残り: 13.3私E[█████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░] 50% | shell-words                         | 経過: 12.9私E| 残り: 12.9私E[█████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░] 51% | num_cpus                            | 経過: 13.1私E| 残り: 12.6私E[██████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░] 52% | downcast-rs                         | 経過: 13.1私E| 残り: 12.1私E[██████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░] 53% | cmp_any                             | 経過: 13.3私E| 残り: 11.8私E[███████████████████████████░░░░░░░░░░░░░░░░░░░░░░░] 54% | maplit                              | 経過: 13.3私E| 残り: 11.3私E[███████████████████████████░░░░░░░░░░░░░░░░░░░░░░░] 55% | regex-lite                          | 経過: 13.5私E| 残り: 11.1私E[████████████████████████████░░░░░░░░░░░░░░░░░░░░░░] 56% | base64                              | 経過: 13.7私E| 残り: 10.8私E[████████████████████████████░░░░░░░░░░░░░░░░░░░░░░] 57% | strsim                              | 経過: 13.7私E| 残り: 10.3私E[█████████████████████████████░░░░░░░░░░░░░░░░░░░░░] 58% | inventory                           | 経過: 13.8私E| 残り: 10.0私E[█████████████████████████████░░░░░░░░░░░░░░░░░░░░░] 59% | codex-execpolicy                    | 経過: 14.4私E| 残り: 10.0私E[██████████████████████████████░░░░░░░░░░░░░░░░░░░░] 60% | oauth2                              | 経過: 14.4私E| 残り: 9.6私E[██████████████████████████████░░░░░░░░░░░░░░░░░░░░] 61% | portable-pty                        | 経過: 14.4私E| 残り: 9.2私E[███████████████████████████████░░░░░░░░░░░░░░░░░░░] 62% | env_logger                          | 経過: 14.4私E| 残り: 8.8私E[███████████████████████████████░░░░░░░░░░░░░░░░░░░] 63% | windows                             | 経過: 15.5私E| 残り: 9.1私E[████████████████████████████████░░░░░░░░░░░░░░░░░░] 64% | toml                                | 経過: 15.8私E| 残り: 8.9私E[████████████████████████████████░░░░░░░░░░░░░░░░░░] 65% | opentelemetry-otlp                  | 経過: 16.0私E| 残り: 8.6私E[█████████████████████████████████░░░░░░░░░░░░░░░░░] 66% | dirs-next                           | 経過: 16.3私E| 残り: 8.4私E[█████████████████████████████████░░░░░░░░░░░░░░░░░] 66% | windows                             | 経過: 16.3私E| 残り: 8.4私E[█████████████████████████████████░░░░░░░░░░░░░░░░░] 67% | rayon                               | 経過: 16.6私E| 残り: 8.2私E[██████████████████████████████████░░░░░░░░░░░░░░░░] 68% | libgit2-sys                         | 経過: 16.8私E| 残り: 7.9私E[██████████████████████████████████░░░░░░░░░░░░░░░░] 69% | codex-windows-sandbox               | 経過: 16.8私E| 残り: 7.5私E[███████████████████████████████████░░░░░░░░░░░░░░░] 70% | codex-web-search                    | 経過: 16.8私E| 残り: 7.2私E[███████████████████████████████████░░░░░░░░░░░░░░░] 71% | tree-sitter-bash                    | 経過: 17.9私E| 残り: 7.3私E[████████████████████████████████████░░░░░░░░░░░░░░] 72% | ntapi                               | 経過: 18.1私E| 残り: 7.0私E[████████████████████████████████████░░░░░░░░░░░░░░] 73% | ignore                              | 経過: 18.1私E| 残り: 6.7私E[█████████████████████████████████████░░░░░░░░░░░░░] 74% | event-listener-strategy             | 経過: 18.2私E| 残り: 6.4私E[█████████████████████████████████████░░░░░░░░░░░░░] 75% | tower                               | 経過: 18.3私E| 残り: 6.1私E[██████████████████████████████████████░░░░░░░░░░░░] 76% | opentelemetry-appender-tracing      | 経過: 18.7私E| 残り: 5.9私E[██████████████████████████████████████░░░░░░░░░░░░] 77% | nucleo-matcher                      | 経過: 18.8私E| 残り: 5.6私E[███████████████████████████████████████░░░░░░░░░░░] 78% | dashmap                             | 経過: 19.0私E| 残り: 5.4私E[███████████████████████████████████████░░░░░░░░░░░] 79% | multimap                            | 経過: 19.3私E| 残り: 5.1私E[████████████████████████████████████████░░░░░░░░░░] 80% | shlex                               | 経過: 19.7私E| 残り: 4.9私E[████████████████████████████████████████░░░░░░░░░░] 81% | dunce                               | 経過: 19.7私E| 残り: 4.6私E[█████████████████████████████████████████░░░░░░░░░] 82% | similar                             | 経過: 19.8私E| 残り: 4.3私E[█████████████████████████████████████████░░░░░░░░░] 83% | unsafe-libyaml                      | 経過: 20.5私E| 残り: 4.2私E[██████████████████████████████████████████░░░░░░░░] 84% | opentelemetry-semantic-conventions  | 経過: 20.7私E| 残り: 3.9私E[██████████████████████████████████████████░░░░░░░░] 85% | tower-lsp                           | 経過: 20.7私E| 残り: 3.7私E[███████████████████████████████████████████░░░░░░░] 86% | codex-apply-patch                   | 経過: 20.9私E| 残り: 3.4私E[███████████████████████████████████████████░░░░░░░] 87% | serde_yaml                          | 経過: 21.4私E| 残り: 3.2私E[████████████████████████████████████████████░░░░░░] 88% | include_dir                         | 経過: 21.4私E| 残り: 2.9私E[████████████████████████████████████████████░░░░░░] 89% | test-log                            | 経過: 21.5私E| 残り: 2.7私E[█████████████████████████████████████████████░░░░░] 90% | codex-file-search                   | 経過: 22.2私E| 残り: 2.5私E[█████████████████████████████████████████████░░░░░] 91% | async-channel                       | 経過: 22.4私E| 残り: 2.2私E[██████████████████████████████████████████████░░░░] 92% | git2                                | 経過: 22.4私E| 残り: 2.0私E[██████████████████████████████████████████████░░░░] 93% | codex-utils-pty                     | 経過: 22.9私E| 残り: 1.7私E[███████████████████████████████████████████████░░░] 94% | test-case                           | 経過: 23.0私E| 残り: 1.5私E[███████████████████████████████████████████████░░░] 95% | toml_edit                           | 経過: 23.7私E| 残り: 1.2私E[████████████████████████████████████████████████░░] 96% | lsp-types                           | 経過: 23.9私E| 残り: 1.0私E[████████████████████████████████████████████████░░] 97% | codex-utils-readiness               | 経過: 23.9私E| 残り: 0.7私E[█████████████████████████████████████████████████░] 98% | codex-async-utils                   | 経過: 24.7私E| 残り: 0.5私E[█████████████████████████████████████████████████░] 99% | sqlx-sqlite                         | 経過: 26.0私E| 残り: 0.3私E[██████████████████████████████████████████████████] 100% | chardetng                           | 経過: 26.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | wildmatch                           | 経過: 27.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | arc-swap                            | 経過: 27.4私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sqlx                                | 経過: 27.9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-utils-string                  | 経過: 28.1私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | env-flags                           | 経過: 28.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | debugid                             | 経過: 28.8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | deadpool-runtime                    | 経過: 29.6私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | assert-json-diff                    | 経過: 29.6私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sentry-types                        | 経過: 29.8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | deadpool                            | 経過: 30.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | rustc-demangle                      | 経過: 30.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | async-stream                        | 経過: 31.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | is_ci                               | 経過: 31.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sentry-core                         | 経過: 31.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | backtrace                           | 経過: 31.8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | foldhash                            | 経過: 31.9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | wiremock                            | 経過: 31.9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | crossterm_winapi                    | 経過: 32.0私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sysinfo                             | 経過: 32.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | castaway                            | 経過: 32.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | hashbrown                           | 経過: 32.5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | is-terminal                         | 経過: 32.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sentry-backtrace                    | 経過: 32.9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | crossterm                           | 経過: 32.9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | strum                               | 経過: 32.9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | findshlibs                          | 経過: 33.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | compact_str                         | 経過: 33.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | supports-color                      | 経過: 33.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | lru                                 | 経過: 33.5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | supports-color                      | 経過: 33.5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | unicode-truncate                    | 経過: 33.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-linux-sandbox                 | 経過: 33.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | cassowary                           | 経過: 33.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | dotenvy                             | 経過: 33.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | owo-colors                          | 経過: 34.0私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sentry-debug-images                 | 経過: 34.0私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sentry-panic                        | 経過: 34.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sentry-contexts                     | 経過: 34.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-backend-openapi-models        | 経過: 34.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | tracing-error                       | 経過: 34.4私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | simdutf8                            | 経過: 34.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | eyre                                | 経過: 35.0私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | diffy                               | 経過: 35.1私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | sentry                              | 経過: 35.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | color-spantrace                     | 経過: 35.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | crossbeam-channel                   | 経過: 35.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | unicode-linebreak                   | 経過: 35.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | pulldown-cmark-escape               | 経過: 35.8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | smawk                               | 経過: 36.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | color-eyre                          | 経過: 36.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | tracing-appender                    | 経過: 36.5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | tree-sitter-highlight               | 経過: 36.5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | pulldown-cmark                      | 経過: 36.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | arboard                             | 経過: 36.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | ratatui                             | 経過: 37.1私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | textwrap                            | 経過: 37.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | itertools                           | 経過: 37.4私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | pathdiff                            | 経過: 37.4私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | dtor                                | 経過: 37.4私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | memoffset                           | 経過: 37.5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-utils-json-to-toml            | 経過: 37.7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-microsoft365                  | 経過: 38.0私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-process-hardening             | 経過: 38.0私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | uds_windows                         | 経過: 38.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | ctor                                | 経過: 38.3私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | deunicode                           | 経過: 38.4私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | clap_complete                       | 経過: 38.6私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-stdio-to-uds                  | 経過: 38.8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-responses-api-proxy           | 経過: 39.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | slug                                | 経過: 39.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | starlark                            | 経過: 41.5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | ansi-to-tui                         | 経過: 52.8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | ratatui-macros                      | 経過: 52.8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-ansi-escape                   | 経過: 53.2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-app-server-protocol           | 経過: 1刁E私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-api                           | 経過: 1刁E私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-feedback                      | 経過: 1刁E私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-rmcp-client                   | 経過: 1刁E7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-deep-research                 | 経過: 1刁E9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-otel                          | 経過: 7刁E私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-protocol-ts                   | 経過: 7刁E私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-core                          | 経過: 7刁E7私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-ollama                        | 経過: 12刁E5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-lmstudio                      | 経過: 12刁E5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-arg0                          | 経過: 12刁E5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-backend-client                | 経過: 12刁E5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-login                         | 経過: 12刁E5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-supervisor                    | 経過: 12刁E5私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-common                        | 経過: 12刁E8私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-cloud-tasks-client            | 経過: 12刁E9私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-mcp-server                    | 経過: 12刁E2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-chatgpt                       | 経過: 12刁E2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-exec                          | 経過: 12刁E2私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-tui                           | 経過: 12刁E4私E| 残り: 0.0私E[██████████████████████████████████████████████████] 100% | codex-app-server                    | 経過: 12刁E4私E| 残り: 0.0私E
+❁Eエラー: error: could not compile &#96;codex-mcp-server&#96; (lib) due to 13 previous errors; 3 warnings emitted
+
+❁Eビルドに失敗しました
+
+============================================================
+Exited with code: 1
+Ended: 2025-12-31T10:55:20.021Z
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-ChildItem "codex-rs\target\release" -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}, LastWriteTime</summary>
+
+```bash
+Get-ChildItem "codex-rs\target\release" -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}, LastWriteTime
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd codex-rs; cargo build --release -p codex-cli 2>&1 | Select-Object -Last 20</summary>
+
+```bash
+cd codex-rs; cargo build --release -p codex-cli 2>&1 | Select-Object -Last 20
+```
+
+```
+cargo :    Compiling codex-execpolicy v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy)
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-fb9a8fa4-5840-4d70-acda-2551caeae773.ps1:95 ����:14
++ cd codex-rs; cargo build --release -p codex-cli 2&gt;&amp;1 | Select-Object  ...
++              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (   Compiling co...-rs\execpolicy):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   Compiling codex-core v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
+warning: ignoring -C extra-filename flag due to -o flag
+error[E0412]: cannot find type &#96;SecureAgentCommunicator&#96; in this scope
+  --&gt; core\src\agents\secure_message.rs:20:6
+   |
+20 | impl SecureAgentCommunicator {
+   |      ^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+For more information about this error, try &#96;rustc --explain E0412&#96;.
+warning: &#96;codex-core&#96; (lib) generated 1 warning
+error: could not compile &#96;codex-core&#96; (lib) due to 1 previous error; 1 warning emitted
+
+```
+</details>
+</tool-use>
+
+---
+
+
+ビルドエラーを確認。`SecureAgentCommunicator`型が見つかりません。定義とインポートを確認して修正します。
+
+
+---
+
+An unknown error occurred
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "SecureAgentCommunicator",
+  "path": "codex-rs/core/src",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "SecureAgentCommunicator",
+    "path": "codex-rs/core/src",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\core\\src\\agents\\secure_message.rs",
+              "matches": [
+                {
+                  "lineNumber": 11,
+                  "content": "pub struct SecureAgentCommunicator {}"
+                },
+                {
+                  "lineNumber": 14,
+                  "content": "impl Default for SecureAgentCommunicator {"
+                },
+                {
+                  "lineNumber": 20,
+                  "content": "impl SecureAgentCommunicator {"
+                }
+              ]
+            },
+            {
+              "file": "codex-rs\\core\\src\\agent_communication.rs",
+              "matches": [
+                {
+                  "lineNumber": 5,
+                  "content": "// use crate::agents::secure_message::SecureAgentCommunicator;"
+                },
+                {
+                  "lineNumber": 21,
+                  "content": "    communicator: Arc&lt;crate::agents::secure_message::SecureAgentCommunicator&gt;,"
+                },
+                {
+                  "lineNumber": 199,
+                  "content": "            communicator: Arc::new(crate::agents::secure_message::SecureAgentCommunicator::new()),"
+                },
+                {
+                  "lineNumber": 279,
+                  "content": "            signature: vec![], // Will be filled by SecureAgentCommunicator"
+                },
+                {
+                  "lineNumber": 280,
+                  "content": "            nonce: 0,          // Will be filled by SecureAgentCommunicator"
+                }
+              ]
+            }
+          ],
+          "totalLines": 8,
+          "totalMatchedLines": 8
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "Where is SecureAgentCommunicator defined? What is the correct type name for secure agent communication?",
+  "includePattern": "codex-rs/core",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\agents\\secure_message.rs",
+        "range": {
+          "startPosition": {
+            "column": 65
+          },
+          "endPosition": {
+            "line": 71,
+            "column": 1
+          }
+        },
+        "contents": "// Based on design document: _docs/2025-10-28_セキュア通信アーキテクチャ設計書.md\n\nuse serde::Deserialize;\nuse serde::Serialize;\nuse std::collections::BTreeMap;\n\n#[cfg(feature = \"agent_security\")]\n/// Placeholder for secure communication\n#[derive(Debug)]\npub struct SecureAgentCommunicator {}\n\n#[cfg(feature = \"agent_security\")]\nimpl Default for SecureAgentCommunicator {\n    fn default() -&gt; Self {\n        Self::new()\n    }\n}\n\nimpl SecureAgentCommunicator {\n    pub fn new() -&gt; Self {\n        Self {}\n    }\n\n    pub async fn send_secure_message(&amp;self, _message: SecureAgentMessage) -&gt; Result&lt;String&gt; {\n        // Placeholder implementation\n        Ok(\"message_sent\".to_string())\n    }\n\n    pub async fn receive_secure_message(&amp;self) -&gt; Result&lt;SecureAgentMessage&gt; {\n        // Placeholder implementation\n        Err(anyhow::anyhow!(\"No message available\"))\n    }\n}\n\n#[cfg(feature = \"agent_security\")]\nuse anyhow::Context;\n#[cfg(feature = \"agent_security\")]\nuse anyhow::Result;\n#[cfg(feature = \"agent_security\")]\nuse std::sync::Arc;\n#[cfg(feature = \"agent_security\")]\nuse std::sync::atomic::AtomicU64;\n#[cfg(feature = \"agent_security\")]\nuse std::sync::atomic::Ordering;\n#[cfg(feature = \"agent_security\")]\nuse tokio::sync::Mutex;\n\n/// Secure Agent Message (with Ed25519 signature + AES-256-GCM encryption)\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct SecureAgentMessage {\n    /// Sender agent type\n    pub from: String,\n\n    /// Recipient agent type (None = broadcast)\n    pub to: Option&lt;String&gt;,\n\n    /// Encrypted content (AES-256-GCM)\n    pub encrypted_content: Vec&lt;u8&gt;,\n\n    /// Ed25519 signature\n    pub signature: Vec&lt;u8&gt;,\n\n    /// Nonce (replay attack protection)\n    pub nonce: u64,\n\n    /// Timestamp (RFC 3339)\n    pub timestamp: String,\n\n    /// Metadata (not encrypted)\n    pub metadata: SecureMetadata,\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// Based on design document: _docs/2025-10-28_セキュア通信アーキテクチャ設計書.md",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use std::collections::BTreeMap;",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 8
+          },
+          {
+            "text": "/// Placeholder for secure communication",
+            "lineNumber": 9
+          },
+          {
+            "text": "#[derive(Debug)]",
+            "lineNumber": 10
+          },
+          {
+            "text": "pub struct SecureAgentCommunicator {}",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 13
+          },
+          {
+            "text": "impl Default for SecureAgentCommunicator {",
+            "lineNumber": 14
+          },
+          {
+            "text": "    fn default() -&gt; Self {",
+            "lineNumber": 15
+          },
+          {
+            "text": "        Self::new()",
+            "lineNumber": 16
+          },
+          {
+            "text": "    }",
+            "lineNumber": 17
+          },
+          {
+            "text": "}",
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "impl SecureAgentCommunicator {",
+            "lineNumber": 20
+          },
+          {
+            "text": "    pub fn new() -&gt; Self {",
+            "lineNumber": 21
+          },
+          {
+            "text": "        Self {}",
+            "lineNumber": 22
+          },
+          {
+            "text": "    }",
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 24
+          },
+          {
+            "text": "    pub async fn send_secure_message(&amp;self, _message: SecureAgentMessage) -&gt; Result&lt;String&gt; {",
+            "lineNumber": 25
+          },
+          {
+            "text": "        // Placeholder implementation",
+            "lineNumber": 26
+          },
+          {
+            "text": "        Ok(\"message_sent\".to_string())",
+            "lineNumber": 27
+          },
+          {
+            "text": "    }",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "    pub async fn receive_secure_message(&amp;self) -&gt; Result&lt;SecureAgentMessage&gt; {",
+            "lineNumber": 30
+          },
+          {
+            "text": "        // Placeholder implementation",
+            "lineNumber": 31
+          },
+          {
+            "text": "        Err(anyhow::anyhow!(\"No message available\"))",
+            "lineNumber": 32
+          },
+          {
+            "text": "    }",
+            "lineNumber": 33
+          },
+          {
+            "text": "}",
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 36
+          },
+          {
+            "text": "use anyhow::Context;",
+            "lineNumber": 37
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 38
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 39
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 40
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 41
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 42
+          },
+          {
+            "text": "use std::sync::atomic::AtomicU64;",
+            "lineNumber": 43
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 44
+          },
+          {
+            "text": "use std::sync::atomic::Ordering;",
+            "lineNumber": 45
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 46
+          },
+          {
+            "text": "use tokio::sync::Mutex;",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "/// Secure Agent Message (with Ed25519 signature + AES-256-GCM encryption)",
+            "lineNumber": 49
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 50
+          },
+          {
+            "text": "pub struct SecureAgentMessage {",
+            "lineNumber": 51
+          },
+          {
+            "text": "    /// Sender agent type",
+            "lineNumber": 52
+          },
+          {
+            "text": "    pub from: String,",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "    /// Recipient agent type (None = broadcast)",
+            "lineNumber": 55
+          },
+          {
+            "text": "    pub to: Option&lt;String&gt;,",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "    /// Encrypted content (AES-256-GCM)",
+            "lineNumber": 58
+          },
+          {
+            "text": "    pub encrypted_content: Vec&lt;u8&gt;,",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "    /// Ed25519 signature",
+            "lineNumber": 61
+          },
+          {
+            "text": "    pub signature: Vec&lt;u8&gt;,",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "    /// Nonce (replay attack protection)",
+            "lineNumber": 64
+          },
+          {
+            "text": "    pub nonce: u64,",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "    /// Timestamp (RFC 3339)",
+            "lineNumber": 67
+          },
+          {
+            "text": "    pub timestamp: String,",
+            "lineNumber": 68
+          },
+          {
+            "lineNumber": 69
+          },
+          {
+            "text": "    /// Metadata (not encrypted)",
+            "lineNumber": 70
+          },
+          {
+            "text": "    pub metadata: SecureMetadata,",
+            "lineNumber": 71
+          },
+          {
+            "text": "}",
+            "lineNumber": 72
+          }
+        ]
+      },
+      "score": 0.5300506949424744
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\agents\\secure_message.rs",
+        "range": {
+          "startPosition": {
+            "line": 67,
+            "column": 26
+          },
+          "endPosition": {
+            "line": 137,
+            "column": 28
+          }
+        },
+        "contents": "    /// Metadata (not encrypted)\n    pub metadata: SecureMetadata,\n}\n\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct SecureMetadata {\n    /// Message ID (UUID)\n    pub message_id: String,\n\n    /// Priority (0-255)\n    pub priority: u8,\n\n    /// Message type\n    pub message_type: MessageType,\n\n    /// Time to live in seconds\n    pub ttl: u64,\n\n    /// Requires acknowledgment\n    pub requires_ack: bool,\n\n    /// Custom fields for extensibility\n    pub custom_fields: BTreeMap&lt;String, String&gt;,\n}\n\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub enum MessageType {\n    /// Task request\n    TaskRequest,\n\n    /// Task response\n    TaskResponse,\n\n    /// Status update\n    StatusUpdate,\n\n    /// Error notification\n    ErrorNotification,\n\n    /// Shutdown command\n    Shutdown,\n\n    /// Inter-agent communication\n    InterAgentMessage,\n}\n\n/// Secure Agent Channel (encrypted communication)\n#[cfg(feature = \"agent_security\")]\npub struct SecureAgentChannel {\n    /// Send channel\n    tx: tokio::sync::mpsc::UnboundedSender&lt;SecureAgentMessage&gt;,\n\n    /// Receive channel\n    rx: Arc&lt;Mutex&lt;tokio::sync::mpsc::UnboundedReceiver&lt;SecureAgentMessage&gt;&gt;&gt;,\n\n    /// Agent signing keypair (Ed25519)\n    #[cfg(feature = \"agent_security\")]\n    signing_keypair: Arc&lt;ed25519_dalek::SigningKey&gt;,\n\n    /// Encryption key (AES-256-GCM, derived via HKDF)\n    #[cfg(feature = \"agent_security\")]\n    encryption_key: Arc&lt;aes_gcm::Key&lt;aes_gcm::Aes256Gcm&gt;&gt;,\n\n    /// Trusted agent public keys\n    #[cfg(feature = \"agent_security\")]\n    trusted_public_keys: Arc&lt;Mutex&lt;BTreeMap&lt;String, ed25519_dalek::VerifyingKey&gt;&gt;&gt;,\n\n    /// Nonce counter (replay attack protection)\n    nonce_counter: AtomicU64",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    /// Metadata (not encrypted)",
+            "lineNumber": 70
+          },
+          {
+            "text": "    pub metadata: SecureMetadata,",
+            "lineNumber": 71
+          },
+          {
+            "text": "}",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 74
+          },
+          {
+            "text": "pub struct SecureMetadata {",
+            "lineNumber": 75
+          },
+          {
+            "text": "    /// Message ID (UUID)",
+            "lineNumber": 76
+          },
+          {
+            "text": "    pub message_id: String,",
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "text": "    /// Priority (0-255)",
+            "lineNumber": 79
+          },
+          {
+            "text": "    pub priority: u8,",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "    /// Message type",
+            "lineNumber": 82
+          },
+          {
+            "text": "    pub message_type: MessageType,",
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "    /// Time to live in seconds",
+            "lineNumber": 85
+          },
+          {
+            "text": "    pub ttl: u64,",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "    /// Requires acknowledgment",
+            "lineNumber": 88
+          },
+          {
+            "text": "    pub requires_ack: bool,",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "    /// Custom fields for extensibility",
+            "lineNumber": 91
+          },
+          {
+            "text": "    pub custom_fields: BTreeMap&lt;String, String&gt;,",
+            "lineNumber": 92
+          },
+          {
+            "text": "}",
+            "lineNumber": 93
+          },
+          {
+            "lineNumber": 94
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 95
+          },
+          {
+            "text": "pub enum MessageType {",
+            "lineNumber": 96
+          },
+          {
+            "text": "    /// Task request",
+            "lineNumber": 97
+          },
+          {
+            "text": "    TaskRequest,",
+            "lineNumber": 98
+          },
+          {
+            "lineNumber": 99
+          },
+          {
+            "text": "    /// Task response",
+            "lineNumber": 100
+          },
+          {
+            "text": "    TaskResponse,",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "    /// Status update",
+            "lineNumber": 103
+          },
+          {
+            "text": "    StatusUpdate,",
+            "lineNumber": 104
+          },
+          {
+            "lineNumber": 105
+          },
+          {
+            "text": "    /// Error notification",
+            "lineNumber": 106
+          },
+          {
+            "text": "    ErrorNotification,",
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108
+          },
+          {
+            "text": "    /// Shutdown command",
+            "lineNumber": 109
+          },
+          {
+            "text": "    Shutdown,",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "    /// Inter-agent communication",
+            "lineNumber": 112
+          },
+          {
+            "text": "    InterAgentMessage,",
+            "lineNumber": 113
+          },
+          {
+            "text": "}",
+            "lineNumber": 114
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "text": "/// Secure Agent Channel (encrypted communication)",
+            "lineNumber": 116
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 117
+          },
+          {
+            "text": "pub struct SecureAgentChannel {",
+            "lineNumber": 118
+          },
+          {
+            "text": "    /// Send channel",
+            "lineNumber": 119
+          },
+          {
+            "text": "    tx: tokio::sync::mpsc::UnboundedSender&lt;SecureAgentMessage&gt;,",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "    /// Receive channel",
+            "lineNumber": 122
+          },
+          {
+            "text": "    rx: Arc&lt;Mutex&lt;tokio::sync::mpsc::UnboundedReceiver&lt;SecureAgentMessage&gt;&gt;&gt;,",
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "    /// Agent signing keypair (Ed25519)",
+            "lineNumber": 125
+          },
+          {
+            "text": "    #[cfg(feature = \"agent_security\")]",
+            "lineNumber": 126
+          },
+          {
+            "text": "    signing_keypair: Arc&lt;ed25519_dalek::SigningKey&gt;,",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "    /// Encryption key (AES-256-GCM, derived via HKDF)",
+            "lineNumber": 129
+          },
+          {
+            "text": "    #[cfg(feature = \"agent_security\")]",
+            "lineNumber": 130
+          },
+          {
+            "text": "    encryption_key: Arc&lt;aes_gcm::Key&lt;aes_gcm::Aes256Gcm&gt;&gt;,",
+            "lineNumber": 131
+          },
+          {
+            "lineNumber": 132
+          },
+          {
+            "text": "    /// Trusted agent public keys",
+            "lineNumber": 133
+          },
+          {
+            "text": "    #[cfg(feature = \"agent_security\")]",
+            "lineNumber": 134
+          },
+          {
+            "text": "    trusted_public_keys: Arc&lt;Mutex&lt;BTreeMap&lt;String, ed25519_dalek::VerifyingKey&gt;&gt;&gt;,",
+            "lineNumber": 135
+          },
+          {
+            "lineNumber": 136
+          },
+          {
+            "text": "    /// Nonce counter (replay attack protection)",
+            "lineNumber": 137
+          },
+          {
+            "text": "    nonce_counter: AtomicU64",
+            "lineNumber": 138
+          }
+        ]
+      },
+      "score": 0.47408899664878845
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\agents\\secure_message.rs",
+        "range": {
+          "startPosition": {
+            "line": 134,
+            "column": 83
+          },
+          "endPosition": {
+            "line": 189
+          }
+        },
+        "contents": "    /// Nonce counter (replay attack protection)\n    nonce_counter: AtomicU64,\n}\n\n#[cfg(feature = \"agent_security\")]\nimpl SecureAgentChannel {\n    /// Create a new secure channel pair\n    pub fn new(\n        _agent_type: String,\n        signing_keypair: ed25519_dalek::SigningKey,\n        encryption_key: aes_gcm::Key&lt;aes_gcm::Aes256Gcm&gt;,\n    ) -&gt; (Self, Self) {\n        let (tx1, rx1) = tokio::sync::mpsc::unbounded_channel();\n        let (tx2, rx2) = tokio::sync::mpsc::unbounded_channel();\n\n        let keypair = Arc::new(signing_keypair);\n        let enc_key = Arc::new(encryption_key);\n        let trusted_keys = Arc::new(Mutex::new(BTreeMap::new()));\n\n        let channel1 = Self {\n            tx: tx1,\n            rx: Arc::new(Mutex::new(rx2)),\n            signing_keypair: Arc::clone(&amp;keypair),\n            encryption_key: Arc::clone(&amp;enc_key),\n            trusted_public_keys: Arc::clone(&amp;trusted_keys),\n            nonce_counter: AtomicU64::new(0),\n        };\n\n        let channel2 = Self {\n            tx: tx2,\n            rx: Arc::new(Mutex::new(rx1)),\n            signing_keypair: keypair,\n            encryption_key: enc_key,\n            trusted_public_keys: trusted_keys,\n            nonce_counter: AtomicU64::new(0),\n        };\n\n        (channel1, channel2)\n    }\n\n    /// Register trusted agent public key\n    pub async fn register_trusted_agent(\n        &amp;self,\n        agent_type: String,\n        public_key: ed25519_dalek::VerifyingKey,\n    ) {\n        self.trusted_public_keys\n            .lock()\n            .await\n            .insert(agent_type, public_key);\n    }\n\n    /// Send secure message",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    /// Nonce counter (replay attack protection)",
+            "lineNumber": 137
+          },
+          {
+            "text": "    nonce_counter: AtomicU64,",
+            "lineNumber": 138
+          },
+          {
+            "text": "}",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 140
+          },
+          {
+            "text": "#[cfg(feature = \"agent_security\")]",
+            "lineNumber": 141
+          },
+          {
+            "text": "impl SecureAgentChannel {",
+            "lineNumber": 142
+          },
+          {
+            "text": "    /// Create a new secure channel pair",
+            "lineNumber": 143
+          },
+          {
+            "text": "    pub fn new(",
+            "lineNumber": 144
+          },
+          {
+            "text": "        _agent_type: String,",
+            "lineNumber": 145
+          },
+          {
+            "text": "        signing_keypair: ed25519_dalek::SigningKey,",
+            "lineNumber": 146
+          },
+          {
+            "text": "        encryption_key: aes_gcm::Key&lt;aes_gcm::Aes256Gcm&gt;,",
+            "lineNumber": 147
+          },
+          {
+            "text": "    ) -&gt; (Self, Self) {",
+            "lineNumber": 148
+          },
+          {
+            "text": "        let (tx1, rx1) = tokio::sync::mpsc::unbounded_channel();",
+            "lineNumber": 149
+          },
+          {
+            "text": "        let (tx2, rx2) = tokio::sync::mpsc::unbounded_channel();",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "        let keypair = Arc::new(signing_keypair);",
+            "lineNumber": 152
+          },
+          {
+            "text": "        let enc_key = Arc::new(encryption_key);",
+            "lineNumber": 153
+          },
+          {
+            "text": "        let trusted_keys = Arc::new(Mutex::new(BTreeMap::new()));",
+            "lineNumber": 154
+          },
+          {
+            "lineNumber": 155
+          },
+          {
+            "text": "        let channel1 = Self {",
+            "lineNumber": 156
+          },
+          {
+            "text": "            tx: tx1,",
+            "lineNumber": 157
+          },
+          {
+            "text": "            rx: Arc::new(Mutex::new(rx2)),",
+            "lineNumber": 158
+          },
+          {
+            "text": "            signing_keypair: Arc::clone(&amp;keypair),",
+            "lineNumber": 159
+          },
+          {
+            "text": "            encryption_key: Arc::clone(&amp;enc_key),",
+            "lineNumber": 160
+          },
+          {
+            "text": "            trusted_public_keys: Arc::clone(&amp;trusted_keys),",
+            "lineNumber": 161
+          },
+          {
+            "text": "            nonce_counter: AtomicU64::new(0),",
+            "lineNumber": 162
+          },
+          {
+            "text": "        };",
+            "lineNumber": 163
+          },
+          {
+            "lineNumber": 164
+          },
+          {
+            "text": "        let channel2 = Self {",
+            "lineNumber": 165
+          },
+          {
+            "text": "            tx: tx2,",
+            "lineNumber": 166
+          },
+          {
+            "text": "            rx: Arc::new(Mutex::new(rx1)),",
+            "lineNumber": 167
+          },
+          {
+            "text": "            signing_keypair: keypair,",
+            "lineNumber": 168
+          },
+          {
+            "text": "            encryption_key: enc_key,",
+            "lineNumber": 169
+          },
+          {
+            "text": "            trusted_public_keys: trusted_keys,",
+            "lineNumber": 170
+          },
+          {
+            "text": "            nonce_counter: AtomicU64::new(0),",
+            "lineNumber": 171
+          },
+          {
+            "text": "        };",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "        (channel1, channel2)",
+            "lineNumber": 174
+          },
+          {
+            "text": "    }",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "    /// Register trusted agent public key",
+            "lineNumber": 177
+          },
+          {
+            "text": "    pub async fn register_trusted_agent(",
+            "lineNumber": 178
+          },
+          {
+            "text": "        &amp;self,",
+            "lineNumber": 179
+          },
+          {
+            "text": "        agent_type: String,",
+            "lineNumber": 180
+          },
+          {
+            "text": "        public_key: ed25519_dalek::VerifyingKey,",
+            "lineNumber": 181
+          },
+          {
+            "text": "    ) {",
+            "lineNumber": 182
+          },
+          {
+            "text": "        self.trusted_public_keys",
+            "lineNumber": 183
+          },
+          {
+            "text": "            .lock()",
+            "lineNumber": 184
+          },
+          {
+            "text": "            .await",
+            "lineNumber": 185
+          },
+          {
+            "text": "            .insert(agent_type, public_key);",
+            "lineNumber": 186
+          },
+          {
+            "text": "    }",
+            "lineNumber": 187
+          },
+          {
+            "lineNumber": 188
+          },
+          {
+            "text": "    /// Send secure message",
+            "lineNumber": 189
+          }
+        ]
+      },
+      "score": 0.3833102583885193
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\agents\\secure_message.rs",
+        "range": {
+          "startPosition": {
+            "line": 181,
+            "column": 5
+          },
+          "endPosition": {
+            "line": 247,
+            "column": 5
+          }
+        },
+        "contents": " {\n        self.trusted_public_keys\n            .lock()\n            .await\n            .insert(agent_type, public_key);\n    }\n\n    /// Send secure message\n    pub async fn send_secure(&amp;self, from: String, to: Option&lt;String&gt;, content: &amp;str) -&gt; Result&lt;()&gt; {\n        use ed25519_dalek::Signer;\n\n        // 1. Build metadata\n        let metadata = SecureMetadata {\n            message_id: uuid::Uuid::new_v4().to_string(),\n            priority: 128,\n            message_type: MessageType::TaskRequest,\n            ttl: 0,\n            requires_ack: false,\n            custom_fields: BTreeMap::new(),\n        };\n\n        // 2. Encrypt content\n        let encrypted_content = self.encrypt_content(content)?;\n\n        // 3. Generate signature\n        let signature_data = self.build_signature_data(&amp;encrypted_content, &amp;metadata)?;\n        let signature = self.signing_keypair.sign(&amp;signature_data);\n\n        // 4. Build secure message\n        let secure_msg = SecureAgentMessage {\n            from,\n            to,\n            encrypted_content,\n            signature: signature.to_bytes().to_vec(),\n            nonce: self.nonce_counter.fetch_add(1, Ordering::SeqCst),\n            timestamp: chrono::Utc::now().to_rfc3339(),\n            metadata,\n        };\n\n        // 5. Send to channel\n        self.tx.send(secure_msg)?;\n\n        Ok(())\n    }\n\n    /// Receive and verify secure message\n    pub async fn receive_secure(&amp;self) -&gt; Result&lt;(String, String)&gt; {\n        // 1. Receive message\n        let secure_msg = self\n            .rx\n            .lock()\n            .await\n            .recv()\n            .await\n            .context(\"Channel closed\")?;\n\n        // 2. Verify signature\n        self.verify_signature(&amp;secure_msg).await?;\n\n        // 3. Verify nonce (replay protection)\n        self.verify_nonce(&amp;secure_msg)?;\n\n        // 4. Decrypt content\n        let content = self.decrypt_content(&amp;secure_msg.encrypted_content)?;\n\n        Ok((secure_msg.from, content))\n    }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 182
+          },
+          {
+            "text": "        self.trusted_public_keys",
+            "lineNumber": 183
+          },
+          {
+            "text": "            .lock()",
+            "lineNumber": 184
+          },
+          {
+            "text": "            .await",
+            "lineNumber": 185
+          },
+          {
+            "text": "            .insert(agent_type, public_key);",
+            "lineNumber": 186
+          },
+          {
+            "text": "    }",
+            "lineNumber": 187
+          },
+          {
+            "lineNumber": 188
+          },
+          {
+            "text": "    /// Send secure message",
+            "lineNumber": 189
+          },
+          {
+            "text": "    pub async fn send_secure(&amp;self, from: String, to: Option&lt;String&gt;, content: &amp;str) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 190
+          },
+          {
+            "text": "        use ed25519_dalek::Signer;",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "        // 1. Build metadata",
+            "lineNumber": 193
+          },
+          {
+            "text": "        let metadata = SecureMetadata {",
+            "lineNumber": 194
+          },
+          {
+            "text": "            message_id: uuid::Uuid::new_v4().to_string(),",
+            "lineNumber": 195
+          },
+          {
+            "text": "            priority: 128,",
+            "lineNumber": 196
+          },
+          {
+            "text": "            message_type: MessageType::TaskRequest,",
+            "lineNumber": 197
+          },
+          {
+            "text": "            ttl: 0,",
+            "lineNumber": 198
+          },
+          {
+            "text": "            requires_ack: false,",
+            "lineNumber": 199
+          },
+          {
+            "text": "            custom_fields: BTreeMap::new(),",
+            "lineNumber": 200
+          },
+          {
+            "text": "        };",
+            "lineNumber": 201
+          },
+          {
+            "lineNumber": 202
+          },
+          {
+            "text": "        // 2. Encrypt content",
+            "lineNumber": 203
+          },
+          {
+            "text": "        let encrypted_content = self.encrypt_content(content)?;",
+            "lineNumber": 204
+          },
+          {
+            "lineNumber": 205
+          },
+          {
+            "text": "        // 3. Generate signature",
+            "lineNumber": 206
+          },
+          {
+            "text": "        let signature_data = self.build_signature_data(&amp;encrypted_content, &amp;metadata)?;",
+            "lineNumber": 207
+          },
+          {
+            "text": "        let signature = self.signing_keypair.sign(&amp;signature_data);",
+            "lineNumber": 208
+          },
+          {
+            "lineNumber": 209
+          },
+          {
+            "text": "        // 4. Build secure message",
+            "lineNumber": 210
+          },
+          {
+            "text": "        let secure_msg = SecureAgentMessage {",
+            "lineNumber": 211
+          },
+          {
+            "text": "            from,",
+            "lineNumber": 212
+          },
+          {
+            "text": "            to,",
+            "lineNumber": 213
+          },
+          {
+            "text": "            encrypted_content,",
+            "lineNumber": 214
+          },
+          {
+            "text": "            signature: signature.to_bytes().to_vec(),",
+            "lineNumber": 215
+          },
+          {
+            "text": "            nonce: self.nonce_counter.fetch_add(1, Ordering::SeqCst),",
+            "lineNumber": 216
+          },
+          {
+            "text": "            timestamp: chrono::Utc::now().to_rfc3339(),",
+            "lineNumber": 217
+          },
+          {
+            "text": "            metadata,",
+            "lineNumber": 218
+          },
+          {
+            "text": "        };",
+            "lineNumber": 219
+          },
+          {
+            "lineNumber": 220
+          },
+          {
+            "text": "        // 5. Send to channel",
+            "lineNumber": 221
+          },
+          {
+            "text": "        self.tx.send(secure_msg)?;",
+            "lineNumber": 222
+          },
+          {
+            "lineNumber": 223
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 224
+          },
+          {
+            "text": "    }",
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "    /// Receive and verify secure message",
+            "lineNumber": 227
+          },
+          {
+            "text": "    pub async fn receive_secure(&amp;self) -&gt; Result&lt;(String, String)&gt; {",
+            "lineNumber": 228
+          },
+          {
+            "text": "        // 1. Receive message",
+            "lineNumber": 229
+          },
+          {
+            "text": "        let secure_msg = self",
+            "lineNumber": 230
+          },
+          {
+            "text": "            .rx",
+            "lineNumber": 231
+          },
+          {
+            "text": "            .lock()",
+            "lineNumber": 232
+          },
+          {
+            "text": "            .await",
+            "lineNumber": 233
+          },
+          {
+            "text": "            .recv()",
+            "lineNumber": 234
+          },
+          {
+            "text": "            .await",
+            "lineNumber": 235
+          },
+          {
+            "text": "            .context(\"Channel closed\")?;",
+            "lineNumber": 236
+          },
+          {
+            "lineNumber": 237
+          },
+          {
+            "text": "        // 2. Verify signature",
+            "lineNumber": 238
+          },
+          {
+            "text": "        self.verify_signature(&amp;secure_msg).await?;",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "        // 3. Verify nonce (replay protection)",
+            "lineNumber": 241
+          },
+          {
+            "text": "        self.verify_nonce(&amp;secure_msg)?;",
+            "lineNumber": 242
+          },
+          {
+            "lineNumber": 243
+          },
+          {
+            "text": "        // 4. Decrypt content",
+            "lineNumber": 244
+          },
+          {
+            "text": "        let content = self.decrypt_content(&amp;secure_msg.encrypted_content)?;",
+            "lineNumber": 245
+          },
+          {
+            "lineNumber": 246
+          },
+          {
+            "text": "        Ok((secure_msg.from, content))",
+            "lineNumber": 247
+          },
+          {
+            "text": "    }",
+            "lineNumber": 248
+          }
+        ]
+      },
+      "score": 0.38087770342826843
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\lib.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 80,
+            "column": 47
+          }
+        },
+        "contents": "//! Root of the &#96;codex-core&#96; library.\n\n// Prevent accidental direct writes to stdout/stderr in library code. All\n// user-visible output must go through the appropriate abstraction (e.g.,\n// the TUI or the tracing stack).\n#![deny(clippy::print_stdout, clippy::print_stderr)]\n\npub mod agent_interpreter;\npub mod agents;\npub mod ai_orchestrator;\npub mod api_bridge;\nmod apply_patch;\npub mod audit_log;\npub mod auth;\npub mod bash;\nmod client;\nmod client_common;\npub mod codex;\nmod codex_conversation;\nmod compact_remote;\npub mod conflict_detector;\npub mod git_lock_manager;\npub use codex_conversation::CodexConversation;\nmod codex_delegate;\nmod command_safety;\npub mod config;\npub mod config_loader;\nmod context_manager;\npub mod custom_prompts;\npub mod env;\nmod environment_context;\npub mod error;\npub mod exec;\npub mod exec_env;\nmod exec_policy;\npub mod features;\nmod flags;\npub mod git_info;\npub mod integrations;\npub mod landlock;\npub mod lock;\npub mod lsp;\npub mod mcp;\npub mod mcp_api_server;\nmod mcp_connection_manager;\npub mod mcp_dynamic_loader;\npub mod mcp_file_watcher;\npub mod mcp_integration_manager;\npub mod mcp_plugin_loader;\npub mod mcp_prompt_builder;\npub mod mcp_selective_loader;\npub mod mcp_token_optimizer;\npub mod models_manager;\npub mod orchestration;\npub mod organizations;\npub mod qc;\npub mod reasoning;\npub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;\npub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;\npub use mcp_connection_manager::SandboxState;\nmod mcp_tool_call;\nmod message_history;\nmod model_provider_info;\npub mod parse_command;\npub mod path_utils;\npub mod plan;\npub mod powershell;\npub mod sandboxing;\npub mod security;\nmod stream_events_utils;\nmod text_encoding;\npub mod token_data;\nmod truncate;\nmod unified_exec;\nmod user_instructions;\npub mod windows_ai_integration;\npub use model_provider_info::CHAT_WIRE_API_DEPRECATION_SUMMARY;\npub use model_provider_info::DEFAULT_LMSTUDIO_PORT;\npub use model_provider_info::DEFAULT_OLLAMA_PORT;\npub use model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;\npub use model_provider_info::ModelProviderInfo;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "//! Root of the &#96;codex-core&#96; library.",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "// Prevent accidental direct writes to stdout/stderr in library code. All",
+            "lineNumber": 3
+          },
+          {
+            "text": "// user-visible output must go through the appropriate abstraction (e.g.,",
+            "lineNumber": 4
+          },
+          {
+            "text": "// the TUI or the tracing stack).",
+            "lineNumber": 5
+          },
+          {
+            "text": "#![deny(clippy::print_stdout, clippy::print_stderr)]",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "pub mod agent_interpreter;",
+            "lineNumber": 8
+          },
+          {
+            "text": "pub mod agents;",
+            "lineNumber": 9
+          },
+          {
+            "text": "pub mod ai_orchestrator;",
+            "lineNumber": 10
+          },
+          {
+            "text": "pub mod api_bridge;",
+            "lineNumber": 11
+          },
+          {
+            "text": "mod apply_patch;",
+            "lineNumber": 12
+          },
+          {
+            "text": "pub mod audit_log;",
+            "lineNumber": 13
+          },
+          {
+            "text": "pub mod auth;",
+            "lineNumber": 14
+          },
+          {
+            "text": "pub mod bash;",
+            "lineNumber": 15
+          },
+          {
+            "text": "mod client;",
+            "lineNumber": 16
+          },
+          {
+            "text": "mod client_common;",
+            "lineNumber": 17
+          },
+          {
+            "text": "pub mod codex;",
+            "lineNumber": 18
+          },
+          {
+            "text": "mod codex_conversation;",
+            "lineNumber": 19
+          },
+          {
+            "text": "mod compact_remote;",
+            "lineNumber": 20
+          },
+          {
+            "text": "pub mod conflict_detector;",
+            "lineNumber": 21
+          },
+          {
+            "text": "pub mod git_lock_manager;",
+            "lineNumber": 22
+          },
+          {
+            "text": "pub use codex_conversation::CodexConversation;",
+            "lineNumber": 23
+          },
+          {
+            "text": "mod codex_delegate;",
+            "lineNumber": 24
+          },
+          {
+            "text": "mod command_safety;",
+            "lineNumber": 25
+          },
+          {
+            "text": "pub mod config;",
+            "lineNumber": 26
+          },
+          {
+            "text": "pub mod config_loader;",
+            "lineNumber": 27
+          },
+          {
+            "text": "mod context_manager;",
+            "lineNumber": 28
+          },
+          {
+            "text": "pub mod custom_prompts;",
+            "lineNumber": 29
+          },
+          {
+            "text": "pub mod env;",
+            "lineNumber": 30
+          },
+          {
+            "text": "mod environment_context;",
+            "lineNumber": 31
+          },
+          {
+            "text": "pub mod error;",
+            "lineNumber": 32
+          },
+          {
+            "text": "pub mod exec;",
+            "lineNumber": 33
+          },
+          {
+            "text": "pub mod exec_env;",
+            "lineNumber": 34
+          },
+          {
+            "text": "mod exec_policy;",
+            "lineNumber": 35
+          },
+          {
+            "text": "pub mod features;",
+            "lineNumber": 36
+          },
+          {
+            "text": "mod flags;",
+            "lineNumber": 37
+          },
+          {
+            "text": "pub mod git_info;",
+            "lineNumber": 38
+          },
+          {
+            "text": "pub mod integrations;",
+            "lineNumber": 39
+          },
+          {
+            "text": "pub mod landlock;",
+            "lineNumber": 40
+          },
+          {
+            "text": "pub mod lock;",
+            "lineNumber": 41
+          },
+          {
+            "text": "pub mod lsp;",
+            "lineNumber": 42
+          },
+          {
+            "text": "pub mod mcp;",
+            "lineNumber": 43
+          },
+          {
+            "text": "pub mod mcp_api_server;",
+            "lineNumber": 44
+          },
+          {
+            "text": "mod mcp_connection_manager;",
+            "lineNumber": 45
+          },
+          {
+            "text": "pub mod mcp_dynamic_loader;",
+            "lineNumber": 46
+          },
+          {
+            "text": "pub mod mcp_file_watcher;",
+            "lineNumber": 47
+          },
+          {
+            "text": "pub mod mcp_integration_manager;",
+            "lineNumber": 48
+          },
+          {
+            "text": "pub mod mcp_plugin_loader;",
+            "lineNumber": 49
+          },
+          {
+            "text": "pub mod mcp_prompt_builder;",
+            "lineNumber": 50
+          },
+          {
+            "text": "pub mod mcp_selective_loader;",
+            "lineNumber": 51
+          },
+          {
+            "text": "pub mod mcp_token_optimizer;",
+            "lineNumber": 52
+          },
+          {
+            "text": "pub mod models_manager;",
+            "lineNumber": 53
+          },
+          {
+            "text": "pub mod orchestration;",
+            "lineNumber": 54
+          },
+          {
+            "text": "pub mod organizations;",
+            "lineNumber": 55
+          },
+          {
+            "text": "pub mod qc;",
+            "lineNumber": 56
+          },
+          {
+            "text": "pub mod reasoning;",
+            "lineNumber": 57
+          },
+          {
+            "text": "pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;",
+            "lineNumber": 58
+          },
+          {
+            "text": "pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;",
+            "lineNumber": 59
+          },
+          {
+            "text": "pub use mcp_connection_manager::SandboxState;",
+            "lineNumber": 60
+          },
+          {
+            "text": "mod mcp_tool_call;",
+            "lineNumber": 61
+          },
+          {
+            "text": "mod message_history;",
+            "lineNumber": 62
+          },
+          {
+            "text": "mod model_provider_info;",
+            "lineNumber": 63
+          },
+          {
+            "text": "pub mod parse_command;",
+            "lineNumber": 64
+          },
+          {
+            "text": "pub mod path_utils;",
+            "lineNumber": 65
+          },
+          {
+            "text": "pub mod plan;",
+            "lineNumber": 66
+          },
+          {
+            "text": "pub mod powershell;",
+            "lineNumber": 67
+          },
+          {
+            "text": "pub mod sandboxing;",
+            "lineNumber": 68
+          },
+          {
+            "text": "pub mod security;",
+            "lineNumber": 69
+          },
+          {
+            "text": "mod stream_events_utils;",
+            "lineNumber": 70
+          },
+          {
+            "text": "mod text_encoding;",
+            "lineNumber": 71
+          },
+          {
+            "text": "pub mod token_data;",
+            "lineNumber": 72
+          },
+          {
+            "text": "mod truncate;",
+            "lineNumber": 73
+          },
+          {
+            "text": "mod unified_exec;",
+            "lineNumber": 74
+          },
+          {
+            "text": "mod user_instructions;",
+            "lineNumber": 75
+          },
+          {
+            "text": "pub mod windows_ai_integration;",
+            "lineNumber": 76
+          },
+          {
+            "text": "pub use model_provider_info::CHAT_WIRE_API_DEPRECATION_SUMMARY;",
+            "lineNumber": 77
+          },
+          {
+            "text": "pub use model_provider_info::DEFAULT_LMSTUDIO_PORT;",
+            "lineNumber": 78
+          },
+          {
+            "text": "pub use model_provider_info::DEFAULT_OLLAMA_PORT;",
+            "lineNumber": 79
+          },
+          {
+            "text": "pub use model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;",
+            "lineNumber": 80
+          },
+          {
+            "text": "pub use model_provider_info::ModelProviderInfo;",
+            "lineNumber": 81
+          }
+        ]
+      },
+      "score": 0.2920896112918854
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\agents\\secure_message.rs",
+        "range": {
+          "startPosition": {
+            "line": 291,
+            "column": 63
+          },
+          "endPosition": {
+            "line": 349,
+            "column": 9
+          }
+        },
+        "contents": "        data.extend_from_slice(&amp;[metadata.priority]);\n        Ok(data)\n    }\n\n    /// Verify Ed25519 signature\n    async fn verify_signature(&amp;self, msg: &amp;SecureAgentMessage) -&gt; Result&lt;()&gt; {\n        use ed25519_dalek::Signature;\n        use ed25519_dalek::Verifier;\n\n        // Get trusted public key\n        let trusted_keys = self.trusted_public_keys.lock().await;\n        let public_key = trusted_keys.get(&amp;msg.from).context(\"Sender not trusted\")?;\n\n        // Rebuild signature data\n        let signature_data = self.build_signature_data(&amp;msg.encrypted_content, &amp;msg.metadata)?;\n\n        // Verify Ed25519 signature\n        let signature_bytes: [u8; 64] = msg\n            .signature\n            .clone()\n            .try_into()\n            .map_err(|_| anyhow::anyhow!(\"Invalid signature length\"))?;\n        let signature = Signature::from_bytes(&amp;signature_bytes);\n\n        public_key\n            .verify(&amp;signature_data, &amp;signature)\n            .context(\"Signature verification failed\")?;\n\n        Ok(())\n    }\n\n    /// Verify nonce (replay attack protection)\n    fn verify_nonce(&amp;self, msg: &amp;SecureAgentMessage) -&gt; Result&lt;()&gt; {\n        // Timestamp verification (5 minutes)\n        let msg_time = chrono::DateTime::parse_from_rfc3339(&amp;msg.timestamp)?;\n        let now = chrono::Utc::now();\n        let age = now.signed_duration_since(msg_time);\n\n        if age.num_seconds() &gt; 300 {\n            anyhow::bail!(\"Message too old: {} seconds\", age.num_seconds());\n        }\n\n        // In production: check nonce uniqueness in Redis/memory store\n\n        Ok(())\n    }\n\n    /// Generate random nonce\n    fn generate_nonce(&amp;self) -&gt; [u8; 12] {\n        use rand::RngCore;\n        let mut nonce = [0u8; 12];\n        rand::rng().fill_bytes(&amp;mut nonce);\n        nonce\n    }\n}\n\n#[cfg(test)]\nmod tests",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        data.extend_from_slice(&amp;[metadata.priority]);",
+            "lineNumber": 293
+          },
+          {
+            "text": "        Ok(data)",
+            "lineNumber": 294
+          },
+          {
+            "text": "    }",
+            "lineNumber": 295
+          },
+          {
+            "lineNumber": 296
+          },
+          {
+            "text": "    /// Verify Ed25519 signature",
+            "lineNumber": 297
+          },
+          {
+            "text": "    async fn verify_signature(&amp;self, msg: &amp;SecureAgentMessage) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 298
+          },
+          {
+            "text": "        use ed25519_dalek::Signature;",
+            "lineNumber": 299
+          },
+          {
+            "text": "        use ed25519_dalek::Verifier;",
+            "lineNumber": 300
+          },
+          {
+            "lineNumber": 301
+          },
+          {
+            "text": "        // Get trusted public key",
+            "lineNumber": 302
+          },
+          {
+            "text": "        let trusted_keys = self.trusted_public_keys.lock().await;",
+            "lineNumber": 303
+          },
+          {
+            "text": "        let public_key = trusted_keys.get(&amp;msg.from).context(\"Sender not trusted\")?;",
+            "lineNumber": 304
+          },
+          {
+            "lineNumber": 305
+          },
+          {
+            "text": "        // Rebuild signature data",
+            "lineNumber": 306
+          },
+          {
+            "text": "        let signature_data = self.build_signature_data(&amp;msg.encrypted_content, &amp;msg.metadata)?;",
+            "lineNumber": 307
+          },
+          {
+            "lineNumber": 308
+          },
+          {
+            "text": "        // Verify Ed25519 signature",
+            "lineNumber": 309
+          },
+          {
+            "text": "        let signature_bytes: [u8; 64] = msg",
+            "lineNumber": 310
+          },
+          {
+            "text": "            .signature",
+            "lineNumber": 311
+          },
+          {
+            "text": "            .clone()",
+            "lineNumber": 312
+          },
+          {
+            "text": "            .try_into()",
+            "lineNumber": 313
+          },
+          {
+            "text": "            .map_err(|_| anyhow::anyhow!(\"Invalid signature length\"))?;",
+            "lineNumber": 314
+          },
+          {
+            "text": "        let signature = Signature::from_bytes(&amp;signature_bytes);",
+            "lineNumber": 315
+          },
+          {
+            "lineNumber": 316
+          },
+          {
+            "text": "        public_key",
+            "lineNumber": 317
+          },
+          {
+            "text": "            .verify(&amp;signature_data, &amp;signature)",
+            "lineNumber": 318
+          },
+          {
+            "text": "            .context(\"Signature verification failed\")?;",
+            "lineNumber": 319
+          },
+          {
+            "lineNumber": 320
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 321
+          },
+          {
+            "text": "    }",
+            "lineNumber": 322
+          },
+          {
+            "lineNumber": 323
+          },
+          {
+            "text": "    /// Verify nonce (replay attack protection)",
+            "lineNumber": 324
+          },
+          {
+            "text": "    fn verify_nonce(&amp;self, msg: &amp;SecureAgentMessage) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "text": "        // Timestamp verification (5 minutes)",
+            "lineNumber": 326
+          },
+          {
+            "text": "        let msg_time = chrono::DateTime::parse_from_rfc3339(&amp;msg.timestamp)?;",
+            "lineNumber": 327
+          },
+          {
+            "text": "        let now = chrono::Utc::now();",
+            "lineNumber": 328
+          },
+          {
+            "text": "        let age = now.signed_duration_since(msg_time);",
+            "lineNumber": 329
+          },
+          {
+            "lineNumber": 330
+          },
+          {
+            "text": "        if age.num_seconds() &gt; 300 {",
+            "lineNumber": 331
+          },
+          {
+            "text": "            anyhow::bail!(\"Message too old: {} seconds\", age.num_seconds());",
+            "lineNumber": 332
+          },
+          {
+            "text": "        }",
+            "lineNumber": 333
+          },
+          {
+            "lineNumber": 334
+          },
+          {
+            "text": "        // In production: check nonce uniqueness in Redis/memory store",
+            "lineNumber": 335
+          },
+          {
+            "lineNumber": 336
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 337
+          },
+          {
+            "text": "    }",
+            "lineNumber": 338
+          },
+          {
+            "lineNumber": 339
+          },
+          {
+            "text": "    /// Generate random nonce",
+            "lineNumber": 340
+          },
+          {
+            "text": "    fn generate_nonce(&amp;self) -&gt; [u8; 12] {",
+            "lineNumber": 341
+          },
+          {
+            "text": "        use rand::RngCore;",
+            "lineNumber": 342
+          },
+          {
+            "text": "        let mut nonce = [0u8; 12];",
+            "lineNumber": 343
+          },
+          {
+            "text": "        rand::rng().fill_bytes(&amp;mut nonce);",
+            "lineNumber": 344
+          },
+          {
+            "text": "        nonce",
+            "lineNumber": 345
+          },
+          {
+            "text": "    }",
+            "lineNumber": 346
+          },
+          {
+            "text": "}",
+            "lineNumber": 347
+          },
+          {
+            "lineNumber": 348
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 349
+          },
+          {
+            "text": "mod tests",
+            "lineNumber": 350
+          }
+        ]
+      },
+      "score": 0.24937470257282257
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\agents\\secure_message.rs",
+        "range": {
+          "startPosition": {
+            "line": 244,
+            "column": 75
+          },
+          "endPosition": {
+            "line": 294,
+            "column": 5
+          }
+        },
+        "contents": "        Ok((secure_msg.from, content))\n    }\n\n    /// Encrypt content with AES-256-GCM\n    fn encrypt_content(&amp;self, content: &amp;str) -&gt; Result&lt;Vec&lt;u8&gt;&gt; {\n        use aes_gcm::Aes256Gcm;\n        use aes_gcm::Nonce;\n        use aes_gcm::aead::Aead;\n        use aes_gcm::aead::KeyInit;\n\n        let cipher = Aes256Gcm::new(&amp;self.encryption_key);\n        let nonce_bytes = self.generate_nonce();\n        let nonce = Nonce::from_slice(&amp;nonce_bytes);\n\n        cipher\n            .encrypt(nonce, content.as_bytes())\n            .map_err(|e| anyhow::anyhow!(\"Encryption failed: {e}\"))\n    }\n\n    /// Decrypt content with AES-256-GCM\n    fn decrypt_content(&amp;self, ciphertext: &amp;[u8]) -&gt; Result&lt;String&gt; {\n        use aes_gcm::Aes256Gcm;\n        use aes_gcm::Nonce;\n        use aes_gcm::aead::Aead;\n        use aes_gcm::aead::KeyInit;\n\n        let cipher = Aes256Gcm::new(&amp;self.encryption_key);\n        // In production, nonce should be transmitted with ciphertext\n        let nonce = Nonce::from_slice(&amp;[0u8; 12]);\n\n        let plaintext = cipher\n            .decrypt(nonce, ciphertext)\n            .map_err(|e| anyhow::anyhow!(\"Decryption failed: {e}\"))?;\n\n        String::from_utf8(plaintext).context(\"Invalid UTF-8\")\n    }\n\n    /// Build signature data\n    fn build_signature_data(\n        &amp;self,\n        encrypted_content: &amp;[u8],\n        metadata: &amp;SecureMetadata,\n    ) -&gt; Result&lt;Vec&lt;u8&gt;&gt; {\n        let mut data = Vec::new();\n        data.extend_from_slice(encrypted_content);\n        data.extend_from_slice(metadata.message_id.as_bytes());\n        data.extend_from_slice(&amp;[metadata.priority]);\n        Ok(data)\n    }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        Ok((secure_msg.from, content))",
+            "lineNumber": 247
+          },
+          {
+            "text": "    }",
+            "lineNumber": 248
+          },
+          {
+            "lineNumber": 249
+          },
+          {
+            "text": "    /// Encrypt content with AES-256-GCM",
+            "lineNumber": 250
+          },
+          {
+            "text": "    fn encrypt_content(&amp;self, content: &amp;str) -&gt; Result&lt;Vec&lt;u8&gt;&gt; {",
+            "lineNumber": 251
+          },
+          {
+            "text": "        use aes_gcm::Aes256Gcm;",
+            "lineNumber": 252
+          },
+          {
+            "text": "        use aes_gcm::Nonce;",
+            "lineNumber": 253
+          },
+          {
+            "text": "        use aes_gcm::aead::Aead;",
+            "lineNumber": 254
+          },
+          {
+            "text": "        use aes_gcm::aead::KeyInit;",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "        let cipher = Aes256Gcm::new(&amp;self.encryption_key);",
+            "lineNumber": 257
+          },
+          {
+            "text": "        let nonce_bytes = self.generate_nonce();",
+            "lineNumber": 258
+          },
+          {
+            "text": "        let nonce = Nonce::from_slice(&amp;nonce_bytes);",
+            "lineNumber": 259
+          },
+          {
+            "lineNumber": 260
+          },
+          {
+            "text": "        cipher",
+            "lineNumber": 261
+          },
+          {
+            "text": "            .encrypt(nonce, content.as_bytes())",
+            "lineNumber": 262
+          },
+          {
+            "text": "            .map_err(|e| anyhow::anyhow!(\"Encryption failed: {e}\"))",
+            "lineNumber": 263
+          },
+          {
+            "text": "    }",
+            "lineNumber": 264
+          },
+          {
+            "lineNumber": 265
+          },
+          {
+            "text": "    /// Decrypt content with AES-256-GCM",
+            "lineNumber": 266
+          },
+          {
+            "text": "    fn decrypt_content(&amp;self, ciphertext: &amp;[u8]) -&gt; Result&lt;String&gt; {",
+            "lineNumber": 267
+          },
+          {
+            "text": "        use aes_gcm::Aes256Gcm;",
+            "lineNumber": 268
+          },
+          {
+            "text": "        use aes_gcm::Nonce;",
+            "lineNumber": 269
+          },
+          {
+            "text": "        use aes_gcm::aead::Aead;",
+            "lineNumber": 270
+          },
+          {
+            "text": "        use aes_gcm::aead::KeyInit;",
+            "lineNumber": 271
+          },
+          {
+            "lineNumber": 272
+          },
+          {
+            "text": "        let cipher = Aes256Gcm::new(&amp;self.encryption_key);",
+            "lineNumber": 273
+          },
+          {
+            "text": "        // In production, nonce should be transmitted with ciphertext",
+            "lineNumber": 274
+          },
+          {
+            "text": "        let nonce = Nonce::from_slice(&amp;[0u8; 12]);",
+            "lineNumber": 275
+          },
+          {
+            "lineNumber": 276
+          },
+          {
+            "text": "        let plaintext = cipher",
+            "lineNumber": 277
+          },
+          {
+            "text": "            .decrypt(nonce, ciphertext)",
+            "lineNumber": 278
+          },
+          {
+            "text": "            .map_err(|e| anyhow::anyhow!(\"Decryption failed: {e}\"))?;",
+            "lineNumber": 279
+          },
+          {
+            "lineNumber": 280
+          },
+          {
+            "text": "        String::from_utf8(plaintext).context(\"Invalid UTF-8\")",
+            "lineNumber": 281
+          },
+          {
+            "text": "    }",
+            "lineNumber": 282
+          },
+          {
+            "lineNumber": 283
+          },
+          {
+            "text": "    /// Build signature data",
+            "lineNumber": 284
+          },
+          {
+            "text": "    fn build_signature_data(",
+            "lineNumber": 285
+          },
+          {
+            "text": "        &amp;self,",
+            "lineNumber": 286
+          },
+          {
+            "text": "        encrypted_content: &amp;[u8],",
+            "lineNumber": 287
+          },
+          {
+            "text": "        metadata: &amp;SecureMetadata,",
+            "lineNumber": 288
+          },
+          {
+            "text": "    ) -&gt; Result&lt;Vec&lt;u8&gt;&gt; {",
+            "lineNumber": 289
+          },
+          {
+            "text": "        let mut data = Vec::new();",
+            "lineNumber": 290
+          },
+          {
+            "text": "        data.extend_from_slice(encrypted_content);",
+            "lineNumber": 291
+          },
+          {
+            "text": "        data.extend_from_slice(metadata.message_id.as_bytes());",
+            "lineNumber": 292
+          },
+          {
+            "text": "        data.extend_from_slice(&amp;[metadata.priority]);",
+            "lineNumber": 293
+          },
+          {
+            "text": "        Ok(data)",
+            "lineNumber": 294
+          },
+          {
+            "text": "    }",
+            "lineNumber": 295
+          }
+        ]
+      },
+      "score": 0.23767465353012085
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\agents\\secure_message.rs",
+        "range": {
+          "startPosition": {
+            "line": 341,
+            "column": 26
+          },
+          "endPosition": {
+            "line": 368,
+            "column": 10
+          }
+        },
+        "contents": "        let mut nonce = [0u8; 12];\n        rand::rng().fill_bytes(&amp;mut nonce);\n        nonce\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_message_type_serialization() {\n        let msg_type = MessageType::TaskRequest;\n        let json = serde_json::to_string(&amp;msg_type).unwrap();\n        assert!(json.contains(\"TaskRequest\"));\n    }\n\n    #[test]\n    fn test_secure_metadata() {\n        let metadata = SecureMetadata {\n            message_id: uuid::Uuid::new_v4().to_string(),\n            priority: 128,\n            message_type: MessageType::StatusUpdate,\n            ttl: 0,\n            requires_ack: false,\n            custom_fields: BTreeMap::new(),\n        };",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        let mut nonce = [0u8; 12];",
+            "lineNumber": 343
+          },
+          {
+            "text": "        rand::rng().fill_bytes(&amp;mut nonce);",
+            "lineNumber": 344
+          },
+          {
+            "text": "        nonce",
+            "lineNumber": 345
+          },
+          {
+            "text": "    }",
+            "lineNumber": 346
+          },
+          {
+            "text": "}",
+            "lineNumber": 347
+          },
+          {
+            "lineNumber": 348
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 349
+          },
+          {
+            "text": "mod tests {",
+            "lineNumber": 350
+          },
+          {
+            "text": "    use super::*;",
+            "lineNumber": 351
+          },
+          {
+            "lineNumber": 352
+          },
+          {
+            "text": "    #[test]",
+            "lineNumber": 353
+          },
+          {
+            "text": "    fn test_message_type_serialization() {",
+            "lineNumber": 354
+          },
+          {
+            "text": "        let msg_type = MessageType::TaskRequest;",
+            "lineNumber": 355
+          },
+          {
+            "text": "        let json = serde_json::to_string(&amp;msg_type).unwrap();",
+            "lineNumber": 356
+          },
+          {
+            "text": "        assert!(json.contains(\"TaskRequest\"));",
+            "lineNumber": 357
+          },
+          {
+            "text": "    }",
+            "lineNumber": 358
+          },
+          {
+            "lineNumber": 359
+          },
+          {
+            "text": "    #[test]",
+            "lineNumber": 360
+          },
+          {
+            "text": "    fn test_secure_metadata() {",
+            "lineNumber": 361
+          },
+          {
+            "text": "        let metadata = SecureMetadata {",
+            "lineNumber": 362
+          },
+          {
+            "text": "            message_id: uuid::Uuid::new_v4().to_string(),",
+            "lineNumber": 363
+          },
+          {
+            "text": "            priority: 128,",
+            "lineNumber": 364
+          },
+          {
+            "text": "            message_type: MessageType::StatusUpdate,",
+            "lineNumber": 365
+          },
+          {
+            "text": "            ttl: 0,",
+            "lineNumber": 366
+          },
+          {
+            "text": "            requires_ack: false,",
+            "lineNumber": 367
+          },
+          {
+            "text": "            custom_fields: BTreeMap::new(),",
+            "lineNumber": 368
+          },
+          {
+            "text": "        };",
+            "lineNumber": 369
+          }
+        ]
+      },
+      "score": 0.21554505825042725
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\Cargo.toml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 65
+          }
+        },
+        "contents": "[package]\nedition.workspace = true\nlicense.workspace = true\nname = \"codex-core\"\nversion.workspace = true\n\n[lib]\ndoctest = false\nname = \"codex_core\"\npath = \"src/lib.rs\"\n\n[lints]\nworkspace = true\n\n[dependencies]\naes-gcm = { workspace = true, optional = true }\nanyhow = { workspace = true }\nasync-channel = { workspace = true }\nasync-trait = { workspace = true }\narc-swap = \"1.7.1\"\nbase64 = { workspace = true }\nchardetng = { workspace = true }\nchrono = { workspace = true, features = [\"serde\"] }\ncodex-api = { workspace = true }\ncodex-app-server-protocol = { workspace = true }\ncodex-apply-patch = { workspace = true }\ncodex-async-utils = { workspace = true }\ncodex-client = { workspace = true }\ncodex-deep-research = { path = \"../deep-research\" }\ncodex-execpolicy = { workspace = true }\ncodex-web-search = { path = \"../web-search\" }\ncodex-file-search = { workspace = true }\ncodex-git = { workspace = true }\ncodex-keyring-store = { workspace = true }\ncodex-otel = { workspace = true }\ncodex-protocol = { workspace = true }\ncodex-rmcp-client = { workspace = true }\ncodex-utils-absolute-path = { workspace = true }\ncodex-utils-pty = { workspace = true }\ncodex-utils-readiness = { workspace = true }\ncodex-utils-string = { workspace = true }\ncodex-windows-ai = { workspace = true, optional = true }\ncodex-windows-sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }\ncudarc = { workspace = true, optional = true }\ndashmap = \"5.5\"\ndirs = { workspace = true }\ndunce = { workspace = true }\ned25519-dalek = { workspace = true, optional = true }\nencoding_rs = { workspace = true }\nenv-flags = { workspace = true }\neventsource-stream = { workspace = true }\nfastrand = \"2.0\"\nfutures = { workspace = true }\ngit2 = \"0.19\"\nhostname = \"0.4\"\nhttp = { workspace = true }\ninclude_dir = { workspace = true }\nindexmap = { workspace = true }\nkeyring = { workspace = true, features = [\"crypto-rust\"] }\nlibc = { workspace = true }\nmcp-types = { workspace = true }\nmultimap = { workspace = true }\nnum_cpus = { workspace = true }\nonce_cell = { workspace = true }\nos_info = { workspace = true }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "[package]",
+            "lineNumber": 1
+          },
+          {
+            "text": "edition.workspace = true",
+            "lineNumber": 2
+          },
+          {
+            "text": "license.workspace = true",
+            "lineNumber": 3
+          },
+          {
+            "text": "name = \"codex-core\"",
+            "lineNumber": 4
+          },
+          {
+            "text": "version.workspace = true",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "[lib]",
+            "lineNumber": 7
+          },
+          {
+            "text": "doctest = false",
+            "lineNumber": 8
+          },
+          {
+            "text": "name = \"codex_core\"",
+            "lineNumber": 9
+          },
+          {
+            "text": "path = \"src/lib.rs\"",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "[lints]",
+            "lineNumber": 12
+          },
+          {
+            "text": "workspace = true",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "[dependencies]",
+            "lineNumber": 15
+          },
+          {
+            "text": "aes-gcm = { workspace = true, optional = true }",
+            "lineNumber": 16
+          },
+          {
+            "text": "anyhow = { workspace = true }",
+            "lineNumber": 17
+          },
+          {
+            "text": "async-channel = { workspace = true }",
+            "lineNumber": 18
+          },
+          {
+            "text": "async-trait = { workspace = true }",
+            "lineNumber": 19
+          },
+          {
+            "text": "arc-swap = \"1.7.1\"",
+            "lineNumber": 20
+          },
+          {
+            "text": "base64 = { workspace = true }",
+            "lineNumber": 21
+          },
+          {
+            "text": "chardetng = { workspace = true }",
+            "lineNumber": 22
+          },
+          {
+            "text": "chrono = { workspace = true, features = [\"serde\"] }",
+            "lineNumber": 23
+          },
+          {
+            "text": "codex-api = { workspace = true }",
+            "lineNumber": 24
+          },
+          {
+            "text": "codex-app-server-protocol = { workspace = true }",
+            "lineNumber": 25
+          },
+          {
+            "text": "codex-apply-patch = { workspace = true }",
+            "lineNumber": 26
+          },
+          {
+            "text": "codex-async-utils = { workspace = true }",
+            "lineNumber": 27
+          },
+          {
+            "text": "codex-client = { workspace = true }",
+            "lineNumber": 28
+          },
+          {
+            "text": "codex-deep-research = { path = \"../deep-research\" }",
+            "lineNumber": 29
+          },
+          {
+            "text": "codex-execpolicy = { workspace = true }",
+            "lineNumber": 30
+          },
+          {
+            "text": "codex-web-search = { path = \"../web-search\" }",
+            "lineNumber": 31
+          },
+          {
+            "text": "codex-file-search = { workspace = true }",
+            "lineNumber": 32
+          },
+          {
+            "text": "codex-git = { workspace = true }",
+            "lineNumber": 33
+          },
+          {
+            "text": "codex-keyring-store = { workspace = true }",
+            "lineNumber": 34
+          },
+          {
+            "text": "codex-otel = { workspace = true }",
+            "lineNumber": 35
+          },
+          {
+            "text": "codex-protocol = { workspace = true }",
+            "lineNumber": 36
+          },
+          {
+            "text": "codex-rmcp-client = { workspace = true }",
+            "lineNumber": 37
+          },
+          {
+            "text": "codex-utils-absolute-path = { workspace = true }",
+            "lineNumber": 38
+          },
+          {
+            "text": "codex-utils-pty = { workspace = true }",
+            "lineNumber": 39
+          },
+          {
+            "text": "codex-utils-readiness = { workspace = true }",
+            "lineNumber": 40
+          },
+          {
+            "text": "codex-utils-string = { workspace = true }",
+            "lineNumber": 41
+          },
+          {
+            "text": "codex-windows-ai = { workspace = true, optional = true }",
+            "lineNumber": 42
+          },
+          {
+            "text": "codex-windows-sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }",
+            "lineNumber": 43
+          },
+          {
+            "text": "cudarc = { workspace = true, optional = true }",
+            "lineNumber": 44
+          },
+          {
+            "text": "dashmap = \"5.5\"",
+            "lineNumber": 45
+          },
+          {
+            "text": "dirs = { workspace = true }",
+            "lineNumber": 46
+          },
+          {
+            "text": "dunce = { workspace = true }",
+            "lineNumber": 47
+          },
+          {
+            "text": "ed25519-dalek = { workspace = true, optional = true }",
+            "lineNumber": 48
+          },
+          {
+            "text": "encoding_rs = { workspace = true }",
+            "lineNumber": 49
+          },
+          {
+            "text": "env-flags = { workspace = true }",
+            "lineNumber": 50
+          },
+          {
+            "text": "eventsource-stream = { workspace = true }",
+            "lineNumber": 51
+          },
+          {
+            "text": "fastrand = \"2.0\"",
+            "lineNumber": 52
+          },
+          {
+            "text": "futures = { workspace = true }",
+            "lineNumber": 53
+          },
+          {
+            "text": "git2 = \"0.19\"",
+            "lineNumber": 54
+          },
+          {
+            "text": "hostname = \"0.4\"",
+            "lineNumber": 55
+          },
+          {
+            "text": "http = { workspace = true }",
+            "lineNumber": 56
+          },
+          {
+            "text": "include_dir = { workspace = true }",
+            "lineNumber": 57
+          },
+          {
+            "text": "indexmap = { workspace = true }",
+            "lineNumber": 58
+          },
+          {
+            "text": "keyring = { workspace = true, features = [\"crypto-rust\"] }",
+            "lineNumber": 59
+          },
+          {
+            "text": "libc = { workspace = true }",
+            "lineNumber": 60
+          },
+          {
+            "text": "mcp-types = { workspace = true }",
+            "lineNumber": 61
+          },
+          {
+            "text": "multimap = { workspace = true }",
+            "lineNumber": 62
+          },
+          {
+            "text": "num_cpus = { workspace = true }",
+            "lineNumber": 63
+          },
+          {
+            "text": "once_cell = { workspace = true }",
+            "lineNumber": 64
+          },
+          {
+            "text": "os_info = { workspace = true }",
+            "lineNumber": 65
+          }
+        ]
+      },
+      "score": 0.21215975284576416
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\mcp_connection_manager.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 59,
+            "column": 18
+          }
+        },
+        "contents": "//! Connection manager for Model Context Protocol (MCP) servers.\n//!\n//! The [&#96;McpConnectionManager&#96;] owns one [&#96;codex_rmcp_client::RmcpClient&#96;] per\n//! configured server (keyed by the *server name*). It offers convenience\n//! helpers to query the available tools across *all* servers and returns them\n//! in a single aggregated map using the fully-qualified tool name\n//! &#96;\"&lt;server&gt;&lt;MCP_TOOL_NAME_DELIMITER&gt;&lt;tool&gt;\"&#96; as the key.\n\nuse std::collections::BTreeSet;\nuse std::collections::HashMap;\nuse std::env;\nuse std::ffi::OsString;\nuse std::path::PathBuf;\nuse std::sync::Arc;\nuse std::time::Duration;\n\nuse crate::mcp::auth::McpAuthStatusEntry;\nuse anyhow::Context;\nuse anyhow::Result;\nuse anyhow::anyhow;\nuse async_channel::Sender;\nuse codex_async_utils::OrCancelExt;\nuse codex_protocol::approvals::ElicitationRequestEvent;\nuse codex_protocol::protocol::Event;\nuse codex_protocol::protocol::EventMsg;\nuse codex_protocol::protocol::McpStartupCompleteEvent;\nuse codex_protocol::protocol::McpStartupFailure;\nuse codex_protocol::protocol::McpStartupStatus;\nuse codex_protocol::protocol::McpStartupUpdateEvent;\nuse codex_protocol::protocol::SandboxPolicy;\nuse codex_rmcp_client::ElicitationResponse;\nuse codex_rmcp_client::OAuthCredentialsStoreMode;\nuse codex_rmcp_client::RmcpClient;\nuse codex_rmcp_client::SendElicitation;\nuse futures::future::BoxFuture;\nuse futures::future::FutureExt;\nuse futures::future::Shared;\nuse mcp_types::ClientCapabilities;\nuse mcp_types::Implementation;\nuse mcp_types::ListResourceTemplatesRequestParams;\nuse mcp_types::ListResourceTemplatesResult;\nuse mcp_types::ListResourcesRequestParams;\nuse mcp_types::ListResourcesResult;\nuse mcp_types::ReadResourceRequestParams;\nuse mcp_types::ReadResourceResult;\nuse mcp_types::RequestId;\nuse mcp_types::Resource;\nuse mcp_types::ResourceTemplate;\nuse mcp_types::Tool;\n\nuse serde::Deserialize;\nuse serde::Serialize;\nuse serde_json::json;\nuse sha1::Digest;\nuse sha1::Sha1;\nuse tokio::sync::Mutex;\nuse tokio::sync::oneshot;\nuse tokio::task::JoinSet;\nuse tokio_util::sync::CancellationToken;\nuse tracing::info;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "//! Connection manager for Model Context Protocol (MCP) servers.",
+            "lineNumber": 1
+          },
+          {
+            "text": "//!",
+            "lineNumber": 2
+          },
+          {
+            "text": "//! The [&#96;McpConnectionManager&#96;] owns one [&#96;codex_rmcp_client::RmcpClient&#96;] per",
+            "lineNumber": 3
+          },
+          {
+            "text": "//! configured server (keyed by the *server name*). It offers convenience",
+            "lineNumber": 4
+          },
+          {
+            "text": "//! helpers to query the available tools across *all* servers and returns them",
+            "lineNumber": 5
+          },
+          {
+            "text": "//! in a single aggregated map using the fully-qualified tool name",
+            "lineNumber": 6
+          },
+          {
+            "text": "//! &#96;\"&lt;server&gt;&lt;MCP_TOOL_NAME_DELIMITER&gt;&lt;tool&gt;\"&#96; as the key.",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "use std::collections::BTreeSet;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use std::env;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use std::ffi::OsString;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use std::time::Duration;",
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "use crate::mcp::auth::McpAuthStatusEntry;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use anyhow::Context;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use anyhow::anyhow;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use async_channel::Sender;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use codex_async_utils::OrCancelExt;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use codex_protocol::approvals::ElicitationRequestEvent;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use codex_protocol::protocol::Event;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use codex_protocol::protocol::EventMsg;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use codex_protocol::protocol::McpStartupCompleteEvent;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use codex_protocol::protocol::McpStartupFailure;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use codex_protocol::protocol::McpStartupStatus;",
+            "lineNumber": 28
+          },
+          {
+            "text": "use codex_protocol::protocol::McpStartupUpdateEvent;",
+            "lineNumber": 29
+          },
+          {
+            "text": "use codex_protocol::protocol::SandboxPolicy;",
+            "lineNumber": 30
+          },
+          {
+            "text": "use codex_rmcp_client::ElicitationResponse;",
+            "lineNumber": 31
+          },
+          {
+            "text": "use codex_rmcp_client::OAuthCredentialsStoreMode;",
+            "lineNumber": 32
+          },
+          {
+            "text": "use codex_rmcp_client::RmcpClient;",
+            "lineNumber": 33
+          },
+          {
+            "text": "use codex_rmcp_client::SendElicitation;",
+            "lineNumber": 34
+          },
+          {
+            "text": "use futures::future::BoxFuture;",
+            "lineNumber": 35
+          },
+          {
+            "text": "use futures::future::FutureExt;",
+            "lineNumber": 36
+          },
+          {
+            "text": "use futures::future::Shared;",
+            "lineNumber": 37
+          },
+          {
+            "text": "use mcp_types::ClientCapabilities;",
+            "lineNumber": 38
+          },
+          {
+            "text": "use mcp_types::Implementation;",
+            "lineNumber": 39
+          },
+          {
+            "text": "use mcp_types::ListResourceTemplatesRequestParams;",
+            "lineNumber": 40
+          },
+          {
+            "text": "use mcp_types::ListResourceTemplatesResult;",
+            "lineNumber": 41
+          },
+          {
+            "text": "use mcp_types::ListResourcesRequestParams;",
+            "lineNumber": 42
+          },
+          {
+            "text": "use mcp_types::ListResourcesResult;",
+            "lineNumber": 43
+          },
+          {
+            "text": "use mcp_types::ReadResourceRequestParams;",
+            "lineNumber": 44
+          },
+          {
+            "text": "use mcp_types::ReadResourceResult;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use mcp_types::RequestId;",
+            "lineNumber": 46
+          },
+          {
+            "text": "use mcp_types::Resource;",
+            "lineNumber": 47
+          },
+          {
+            "text": "use mcp_types::ResourceTemplate;",
+            "lineNumber": 48
+          },
+          {
+            "text": "use mcp_types::Tool;",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 51
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 52
+          },
+          {
+            "text": "use serde_json::json;",
+            "lineNumber": 53
+          },
+          {
+            "text": "use sha1::Digest;",
+            "lineNumber": 54
+          },
+          {
+            "text": "use sha1::Sha1;",
+            "lineNumber": 55
+          },
+          {
+            "text": "use tokio::sync::Mutex;",
+            "lineNumber": 56
+          },
+          {
+            "text": "use tokio::sync::oneshot;",
+            "lineNumber": 57
+          },
+          {
+            "text": "use tokio::task::JoinSet;",
+            "lineNumber": 58
+          },
+          {
+            "text": "use tokio_util::sync::CancellationToken;",
+            "lineNumber": 59
+          },
+          {
+            "text": "use tracing::info;",
+            "lineNumber": 60
+          }
+        ]
+      },
+      "score": 0.19995419681072235
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\codex.rs",
+        "range": {
+          "startPosition": {
+            "line": 306,
+            "column": 61
+          },
+          "endPosition": {
+            "line": 354,
+            "column": 30
+          }
+        },
+        "contents": " {\n        let id = self\n            .next_id\n            .fetch_add(1, std::sync::atomic::Ordering::SeqCst)\n            .to_string();\n        let sub = Submission { id: id.clone(), op };\n        self.submit_with_id(sub).await?;\n        Ok(id)\n    }\n\n    /// Use sparingly: prefer &#96;submit()&#96; so Codex is responsible for generating\n    /// unique IDs for each submission.\n    pub async fn submit_with_id(&amp;self, sub: Submission) -&gt; CodexResult&lt;()&gt; {\n        self.tx_sub\n            .send(sub)\n            .await\n            .map_err(|_| CodexErr::InternalAgentDied)?;\n        Ok(())\n    }\n\n    pub async fn next_event(&amp;self) -&gt; CodexResult&lt;Event&gt; {\n        let event = self\n            .rx_event\n            .recv()\n            .await\n            .map_err(|_| CodexErr::InternalAgentDied)?;\n        Ok(event)\n    }\n}\n\n/// Context for an initialized model agent\n///\n/// A session has at most 1 running task at a time, and can be interrupted by user input.\npub(crate) struct Session {\n    conversation_id: ConversationId,\n    tx_event: Sender&lt;Event&gt;,\n    state: Mutex&lt;SessionState&gt;,\n    /// The set of enabled features should be invariant for the lifetime of the\n    /// session.\n    features: Features,\n    pub(crate) active_turn: Mutex&lt;Option&lt;ActiveTurn&gt;&gt;,\n    pub(crate) services: SessionServices,\n    next_internal_sub_id: AtomicU64,\n}\n\n/// The context needed for a single turn of the conversation.\n#[derive(Debug)]\npub(crate) struct TurnContext {\n    pub(crate) sub_id: String,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 307
+          },
+          {
+            "text": "        let id = self",
+            "lineNumber": 308
+          },
+          {
+            "text": "            .next_id",
+            "lineNumber": 309
+          },
+          {
+            "text": "            .fetch_add(1, std::sync::atomic::Ordering::SeqCst)",
+            "lineNumber": 310
+          },
+          {
+            "text": "            .to_string();",
+            "lineNumber": 311
+          },
+          {
+            "text": "        let sub = Submission { id: id.clone(), op };",
+            "lineNumber": 312
+          },
+          {
+            "text": "        self.submit_with_id(sub).await?;",
+            "lineNumber": 313
+          },
+          {
+            "text": "        Ok(id)",
+            "lineNumber": 314
+          },
+          {
+            "text": "    }",
+            "lineNumber": 315
+          },
+          {
+            "lineNumber": 316
+          },
+          {
+            "text": "    /// Use sparingly: prefer &#96;submit()&#96; so Codex is responsible for generating",
+            "lineNumber": 317
+          },
+          {
+            "text": "    /// unique IDs for each submission.",
+            "lineNumber": 318
+          },
+          {
+            "text": "    pub async fn submit_with_id(&amp;self, sub: Submission) -&gt; CodexResult&lt;()&gt; {",
+            "lineNumber": 319
+          },
+          {
+            "text": "        self.tx_sub",
+            "lineNumber": 320
+          },
+          {
+            "text": "            .send(sub)",
+            "lineNumber": 321
+          },
+          {
+            "text": "            .await",
+            "lineNumber": 322
+          },
+          {
+            "text": "            .map_err(|_| CodexErr::InternalAgentDied)?;",
+            "lineNumber": 323
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 324
+          },
+          {
+            "text": "    }",
+            "lineNumber": 325
+          },
+          {
+            "lineNumber": 326
+          },
+          {
+            "text": "    pub async fn next_event(&amp;self) -&gt; CodexResult&lt;Event&gt; {",
+            "lineNumber": 327
+          },
+          {
+            "text": "        let event = self",
+            "lineNumber": 328
+          },
+          {
+            "text": "            .rx_event",
+            "lineNumber": 329
+          },
+          {
+            "text": "            .recv()",
+            "lineNumber": 330
+          },
+          {
+            "text": "            .await",
+            "lineNumber": 331
+          },
+          {
+            "text": "            .map_err(|_| CodexErr::InternalAgentDied)?;",
+            "lineNumber": 332
+          },
+          {
+            "text": "        Ok(event)",
+            "lineNumber": 333
+          },
+          {
+            "text": "    }",
+            "lineNumber": 334
+          },
+          {
+            "text": "}",
+            "lineNumber": 335
+          },
+          {
+            "lineNumber": 336
+          },
+          {
+            "text": "/// Context for an initialized model agent",
+            "lineNumber": 337
+          },
+          {
+            "text": "///",
+            "lineNumber": 338
+          },
+          {
+            "text": "/// A session has at most 1 running task at a time, and can be interrupted by user input.",
+            "lineNumber": 339
+          },
+          {
+            "text": "pub(crate) struct Session {",
+            "lineNumber": 340
+          },
+          {
+            "text": "    conversation_id: ConversationId,",
+            "lineNumber": 341
+          },
+          {
+            "text": "    tx_event: Sender&lt;Event&gt;,",
+            "lineNumber": 342
+          },
+          {
+            "text": "    state: Mutex&lt;SessionState&gt;,",
+            "lineNumber": 343
+          },
+          {
+            "text": "    /// The set of enabled features should be invariant for the lifetime of the",
+            "lineNumber": 344
+          },
+          {
+            "text": "    /// session.",
+            "lineNumber": 345
+          },
+          {
+            "text": "    features: Features,",
+            "lineNumber": 346
+          },
+          {
+            "text": "    pub(crate) active_turn: Mutex&lt;Option&lt;ActiveTurn&gt;&gt;,",
+            "lineNumber": 347
+          },
+          {
+            "text": "    pub(crate) services: SessionServices,",
+            "lineNumber": 348
+          },
+          {
+            "text": "    next_internal_sub_id: AtomicU64,",
+            "lineNumber": 349
+          },
+          {
+            "text": "}",
+            "lineNumber": 350
+          },
+          {
+            "lineNumber": 351
+          },
+          {
+            "text": "/// The context needed for a single turn of the conversation.",
+            "lineNumber": 352
+          },
+          {
+            "text": "#[derive(Debug)]",
+            "lineNumber": 353
+          },
+          {
+            "text": "pub(crate) struct TurnContext {",
+            "lineNumber": 354
+          },
+          {
+            "text": "    pub(crate) sub_id: String,",
+            "lineNumber": 355
+          }
+        ]
+      },
+      "score": 0.1946098953485489
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\lib.rs",
+        "range": {
+          "startPosition": {
+            "line": 78,
+            "column": 49
+          },
+          "endPosition": {
+            "line": 137,
+            "column": 70
+          }
+        },
+        "contents": "pub use model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;\npub use model_provider_info::ModelProviderInfo;\npub use model_provider_info::OLLAMA_OSS_PROVIDER_ID;\npub use model_provider_info::WireApi;\npub use model_provider_info::built_in_model_providers;\npub use model_provider_info::create_oss_provider_with_base_url;\nmod conversation_manager;\nmod event_mapping;\npub mod review_format;\npub mod review_prompts;\npub use codex_protocol::protocol::InitialHistory;\npub use conversation_manager::ConversationManager;\npub use conversation_manager::NewConversation;\n// Re-export common auth types for workspace consumers\npub use auth::AuthManager;\npub use auth::CodexAuth;\npub mod default_client;\npub mod project_doc;\nmod rollout;\npub(crate) mod safety;\npub mod seatbelt;\npub mod shell;\npub mod shell_snapshot;\npub mod skills;\npub mod spawn;\npub mod terminal;\nmod tools;\npub mod turn_diff_tracker;\npub use rollout::ARCHIVED_SESSIONS_SUBDIR;\npub use rollout::INTERACTIVE_SESSION_SOURCES;\npub use rollout::RolloutRecorder;\npub use rollout::SESSIONS_SUBDIR;\npub use rollout::SessionMeta;\npub use rollout::find_conversation_path_by_id_str;\npub use rollout::list::ConversationItem;\npub use rollout::list::ConversationsPage;\npub use rollout::list::Cursor;\npub use rollout::list::parse_cursor;\npub use rollout::list::read_head_for_summary;\nmod function_tool;\nmod state;\nmod tasks;\nmod user_notification;\nmod user_shell_command;\npub mod util;\n\npub use apply_patch::CODEX_APPLY_PATCH_ARG1;\npub use command_safety::is_dangerous_command;\npub use command_safety::is_safe_command;\npub use exec_policy::ExecPolicyError;\npub use exec_policy::load_exec_policy;\npub use safety::get_platform_sandbox;\npub use safety::set_windows_sandbox_enabled;\npub use windows_ai_integration::WindowsAiOptions;\n// Re-export the protocol types from the standalone &#96;codex-protocol&#96; crate so existing\n// &#96;codex_core::protocol::...&#96; references continue to work across the workspace.\npub use codex_protocol::protocol;\n// Re-export protocol config enums to ensure call sites can use the same types\n// as those in the protocol crate when constructing protocol messages.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub use model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;",
+            "lineNumber": 80
+          },
+          {
+            "text": "pub use model_provider_info::ModelProviderInfo;",
+            "lineNumber": 81
+          },
+          {
+            "text": "pub use model_provider_info::OLLAMA_OSS_PROVIDER_ID;",
+            "lineNumber": 82
+          },
+          {
+            "text": "pub use model_provider_info::WireApi;",
+            "lineNumber": 83
+          },
+          {
+            "text": "pub use model_provider_info::built_in_model_providers;",
+            "lineNumber": 84
+          },
+          {
+            "text": "pub use model_provider_info::create_oss_provider_with_base_url;",
+            "lineNumber": 85
+          },
+          {
+            "text": "mod conversation_manager;",
+            "lineNumber": 86
+          },
+          {
+            "text": "mod event_mapping;",
+            "lineNumber": 87
+          },
+          {
+            "text": "pub mod review_format;",
+            "lineNumber": 88
+          },
+          {
+            "text": "pub mod review_prompts;",
+            "lineNumber": 89
+          },
+          {
+            "text": "pub use codex_protocol::protocol::InitialHistory;",
+            "lineNumber": 90
+          },
+          {
+            "text": "pub use conversation_manager::ConversationManager;",
+            "lineNumber": 91
+          },
+          {
+            "text": "pub use conversation_manager::NewConversation;",
+            "lineNumber": 92
+          },
+          {
+            "text": "// Re-export common auth types for workspace consumers",
+            "lineNumber": 93
+          },
+          {
+            "text": "pub use auth::AuthManager;",
+            "lineNumber": 94
+          },
+          {
+            "text": "pub use auth::CodexAuth;",
+            "lineNumber": 95
+          },
+          {
+            "text": "pub mod default_client;",
+            "lineNumber": 96
+          },
+          {
+            "text": "pub mod project_doc;",
+            "lineNumber": 97
+          },
+          {
+            "text": "mod rollout;",
+            "lineNumber": 98
+          },
+          {
+            "text": "pub(crate) mod safety;",
+            "lineNumber": 99
+          },
+          {
+            "text": "pub mod seatbelt;",
+            "lineNumber": 100
+          },
+          {
+            "text": "pub mod shell;",
+            "lineNumber": 101
+          },
+          {
+            "text": "pub mod shell_snapshot;",
+            "lineNumber": 102
+          },
+          {
+            "text": "pub mod skills;",
+            "lineNumber": 103
+          },
+          {
+            "text": "pub mod spawn;",
+            "lineNumber": 104
+          },
+          {
+            "text": "pub mod terminal;",
+            "lineNumber": 105
+          },
+          {
+            "text": "mod tools;",
+            "lineNumber": 106
+          },
+          {
+            "text": "pub mod turn_diff_tracker;",
+            "lineNumber": 107
+          },
+          {
+            "text": "pub use rollout::ARCHIVED_SESSIONS_SUBDIR;",
+            "lineNumber": 108
+          },
+          {
+            "text": "pub use rollout::INTERACTIVE_SESSION_SOURCES;",
+            "lineNumber": 109
+          },
+          {
+            "text": "pub use rollout::RolloutRecorder;",
+            "lineNumber": 110
+          },
+          {
+            "text": "pub use rollout::SESSIONS_SUBDIR;",
+            "lineNumber": 111
+          },
+          {
+            "text": "pub use rollout::SessionMeta;",
+            "lineNumber": 112
+          },
+          {
+            "text": "pub use rollout::find_conversation_path_by_id_str;",
+            "lineNumber": 113
+          },
+          {
+            "text": "pub use rollout::list::ConversationItem;",
+            "lineNumber": 114
+          },
+          {
+            "text": "pub use rollout::list::ConversationsPage;",
+            "lineNumber": 115
+          },
+          {
+            "text": "pub use rollout::list::Cursor;",
+            "lineNumber": 116
+          },
+          {
+            "text": "pub use rollout::list::parse_cursor;",
+            "lineNumber": 117
+          },
+          {
+            "text": "pub use rollout::list::read_head_for_summary;",
+            "lineNumber": 118
+          },
+          {
+            "text": "mod function_tool;",
+            "lineNumber": 119
+          },
+          {
+            "text": "mod state;",
+            "lineNumber": 120
+          },
+          {
+            "text": "mod tasks;",
+            "lineNumber": 121
+          },
+          {
+            "text": "mod user_notification;",
+            "lineNumber": 122
+          },
+          {
+            "text": "mod user_shell_command;",
+            "lineNumber": 123
+          },
+          {
+            "text": "pub mod util;",
+            "lineNumber": 124
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "pub use apply_patch::CODEX_APPLY_PATCH_ARG1;",
+            "lineNumber": 126
+          },
+          {
+            "text": "pub use command_safety::is_dangerous_command;",
+            "lineNumber": 127
+          },
+          {
+            "text": "pub use command_safety::is_safe_command;",
+            "lineNumber": 128
+          },
+          {
+            "text": "pub use exec_policy::ExecPolicyError;",
+            "lineNumber": 129
+          },
+          {
+            "text": "pub use exec_policy::load_exec_policy;",
+            "lineNumber": 130
+          },
+          {
+            "text": "pub use safety::get_platform_sandbox;",
+            "lineNumber": 131
+          },
+          {
+            "text": "pub use safety::set_windows_sandbox_enabled;",
+            "lineNumber": 132
+          },
+          {
+            "text": "pub use windows_ai_integration::WindowsAiOptions;",
+            "lineNumber": 133
+          },
+          {
+            "text": "// Re-export the protocol types from the standalone &#96;codex-protocol&#96; crate so existing",
+            "lineNumber": 134
+          },
+          {
+            "text": "// &#96;codex_core::protocol::...&#96; references continue to work across the workspace.",
+            "lineNumber": 135
+          },
+          {
+            "text": "pub use codex_protocol::protocol;",
+            "lineNumber": 136
+          },
+          {
+            "text": "// Re-export protocol config enums to ensure call sites can use the same types",
+            "lineNumber": 137
+          },
+          {
+            "text": "// as those in the protocol crate when constructing protocol messages.",
+            "lineNumber": 138
+          }
+        ]
+      },
+      "score": 0.18889003992080688
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\state\\service.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 32,
+            "column": 1
+          }
+        },
+        "contents": "use std::sync::Arc;\n\nuse crate::AuthManager;\nuse crate::RolloutRecorder;\nuse crate::exec_policy::ExecPolicyManager;\nuse crate::mcp_connection_manager::McpConnectionManager;\nuse crate::mcp_dynamic_loader::DynamicMcpLoader;\nuse crate::models_manager::manager::ModelsManager;\nuse crate::skills::SkillsManager;\nuse crate::tools::sandboxing::ApprovalStore;\nuse crate::unified_exec::UnifiedExecSessionManager;\nuse crate::user_notification::UserNotifier;\nuse codex_otel::otel_manager::OtelManager;\nuse tokio::sync::Mutex;\nuse tokio::sync::RwLock;\nuse tokio_util::sync::CancellationToken;\n\npub(crate) struct SessionServices {\n    pub(crate) mcp_connection_manager: Arc&lt;RwLock&lt;McpConnectionManager&gt;&gt;,\n    pub(crate) mcp_startup_cancellation_token: CancellationToken,\n    pub(crate) mcp_dynamic_loader: Option&lt;Arc&lt;DynamicMcpLoader&gt;&gt;,\n    pub(crate) unified_exec_manager: UnifiedExecSessionManager,\n    pub(crate) notifier: UserNotifier,\n    pub(crate) rollout: Mutex&lt;Option&lt;RolloutRecorder&gt;&gt;,\n    pub(crate) user_shell: Arc&lt;crate::shell::Shell&gt;,\n    pub(crate) show_raw_agent_reasoning: bool,\n    pub(crate) exec_policy: ExecPolicyManager,\n    pub(crate) auth_manager: Arc&lt;AuthManager&gt;,\n    pub(crate) models_manager: Arc&lt;ModelsManager&gt;,\n    pub(crate) otel_manager: OtelManager,\n    pub(crate) tool_approvals: Mutex&lt;ApprovalStore&gt;,\n    pub(crate) skills_manager: Arc&lt;SkillsManager&gt;,\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "use crate::AuthManager;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use crate::RolloutRecorder;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use crate::exec_policy::ExecPolicyManager;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use crate::mcp_connection_manager::McpConnectionManager;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use crate::mcp_dynamic_loader::DynamicMcpLoader;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use crate::models_manager::manager::ModelsManager;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use crate::skills::SkillsManager;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use crate::tools::sandboxing::ApprovalStore;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use crate::unified_exec::UnifiedExecSessionManager;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use crate::user_notification::UserNotifier;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_otel::otel_manager::OtelManager;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use tokio::sync::Mutex;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use tokio::sync::RwLock;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use tokio_util::sync::CancellationToken;",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "pub(crate) struct SessionServices {",
+            "lineNumber": 18
+          },
+          {
+            "text": "    pub(crate) mcp_connection_manager: Arc&lt;RwLock&lt;McpConnectionManager&gt;&gt;,",
+            "lineNumber": 19
+          },
+          {
+            "text": "    pub(crate) mcp_startup_cancellation_token: CancellationToken,",
+            "lineNumber": 20
+          },
+          {
+            "text": "    pub(crate) mcp_dynamic_loader: Option&lt;Arc&lt;DynamicMcpLoader&gt;&gt;,",
+            "lineNumber": 21
+          },
+          {
+            "text": "    pub(crate) unified_exec_manager: UnifiedExecSessionManager,",
+            "lineNumber": 22
+          },
+          {
+            "text": "    pub(crate) notifier: UserNotifier,",
+            "lineNumber": 23
+          },
+          {
+            "text": "    pub(crate) rollout: Mutex&lt;Option&lt;RolloutRecorder&gt;&gt;,",
+            "lineNumber": 24
+          },
+          {
+            "text": "    pub(crate) user_shell: Arc&lt;crate::shell::Shell&gt;,",
+            "lineNumber": 25
+          },
+          {
+            "text": "    pub(crate) show_raw_agent_reasoning: bool,",
+            "lineNumber": 26
+          },
+          {
+            "text": "    pub(crate) exec_policy: ExecPolicyManager,",
+            "lineNumber": 27
+          },
+          {
+            "text": "    pub(crate) auth_manager: Arc&lt;AuthManager&gt;,",
+            "lineNumber": 28
+          },
+          {
+            "text": "    pub(crate) models_manager: Arc&lt;ModelsManager&gt;,",
+            "lineNumber": 29
+          },
+          {
+            "text": "    pub(crate) otel_manager: OtelManager,",
+            "lineNumber": 30
+          },
+          {
+            "text": "    pub(crate) tool_approvals: Mutex&lt;ApprovalStore&gt;,",
+            "lineNumber": 31
+          },
+          {
+            "text": "    pub(crate) skills_manager: Arc&lt;SkillsManager&gt;,",
+            "lineNumber": 32
+          },
+          {
+            "text": "}",
+            "lineNumber": 33
+          }
+        ]
+      },
+      "score": 0.18851840496063232
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\Cargo.toml",
+        "range": {
+          "startPosition": {
+            "line": 61
+          },
+          "endPosition": {
+            "line": 132
+          }
+        },
+        "contents": "multimap = { workspace = true }\nnum_cpus = { workspace = true }\nonce_cell = { workspace = true }\nos_info = { workspace = true }\nparking_lot = \"0.12\"\nrand = { workspace = true }\nregex = { workspace = true }\nregex-lite = { workspace = true }\nreqwest = { workspace = true, features = [\"json\", \"stream\"] }\nserde = { workspace = true, features = [\"derive\"] }\nserde_json = { workspace = true }\nserde_yaml = { workspace = true }\nsha1 = { workspace = true }\nsha2 = { workspace = true }\nshlex = { workspace = true }\nsimilar = { workspace = true }\nsysinfo = \"0.31\"\ntempfile = { workspace = true }\ntest-case = \"3.3.1\"\ntest-log = { workspace = true }\nthiserror = { workspace = true }\ntime = { workspace = true, features = [\n    \"formatting\",\n    \"parsing\",\n    \"local-offset\",\n    \"macros\",\n] }\ntokio = { workspace = true, features = [\n    \"io-std\",\n    \"macros\",\n    \"process\",\n    \"rt-multi-thread\",\n    \"signal\",\n] }\ntokio-util = { workspace = true, features = [\"rt\"] }\ntoml = { workspace = true }\ntoml_edit = { workspace = true }\ntracing = { workspace = true, features = [\"log\"] }\ntree-sitter = { workspace = true }\ntree-sitter-bash = { workspace = true }\nurl = { workspace = true }\nuuid = { workspace = true, features = [\"serde\", \"v4\", \"v5\"] }\nwalkdir = { workspace = true }\nwhich = { workspace = true }\nwildmatch = { workspace = true }\nlsp-types = \"0.95\"\ntower-lsp = \"0.20\"\nsqlx = { version = \"0.8\", features = [\"runtime-tokio-rustls\", \"sqlite\", \"chrono\"] }\noauth2 = \"4.4\"\n\n[features]\ndeterministic_process_ids = []\ntest-support = []\nagent_security = [\"ed25519-dalek\", \"aes-gcm\"]\nwindows-ai = [\"codex-windows-ai\"]\ncuda = [\"cudarc\"]\n\n\n[target.'cfg(target_os = \"linux\")'.dependencies]\nkeyring = { workspace = true, features = [\"linux-native-async-persistent\"] }\nlandlock = { workspace = true }\nseccompiler = { workspace = true }\n\n[target.'cfg(target_os = \"macos\")'.dependencies]\ncore-foundation = \"0.9\"\nkeyring = { workspace = true, features = [\"apple-native\"] }\n\n# Build OpenSSL from source for musl builds.\n[target.x86_64-unknown-linux-musl.dependencies]\nopenssl-sys = { workspace = true, features = [\"vendored\"] }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "multimap = { workspace = true }",
+            "lineNumber": 62
+          },
+          {
+            "text": "num_cpus = { workspace = true }",
+            "lineNumber": 63
+          },
+          {
+            "text": "once_cell = { workspace = true }",
+            "lineNumber": 64
+          },
+          {
+            "text": "os_info = { workspace = true }",
+            "lineNumber": 65
+          },
+          {
+            "text": "parking_lot = \"0.12\"",
+            "lineNumber": 66
+          },
+          {
+            "text": "rand = { workspace = true }",
+            "lineNumber": 67
+          },
+          {
+            "text": "regex = { workspace = true }",
+            "lineNumber": 68
+          },
+          {
+            "text": "regex-lite = { workspace = true }",
+            "lineNumber": 69
+          },
+          {
+            "text": "reqwest = { workspace = true, features = [\"json\", \"stream\"] }",
+            "lineNumber": 70
+          },
+          {
+            "text": "serde = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 71
+          },
+          {
+            "text": "serde_json = { workspace = true }",
+            "lineNumber": 72
+          },
+          {
+            "text": "serde_yaml = { workspace = true }",
+            "lineNumber": 73
+          },
+          {
+            "text": "sha1 = { workspace = true }",
+            "lineNumber": 74
+          },
+          {
+            "text": "sha2 = { workspace = true }",
+            "lineNumber": 75
+          },
+          {
+            "text": "shlex = { workspace = true }",
+            "lineNumber": 76
+          },
+          {
+            "text": "similar = { workspace = true }",
+            "lineNumber": 77
+          },
+          {
+            "text": "sysinfo = \"0.31\"",
+            "lineNumber": 78
+          },
+          {
+            "text": "tempfile = { workspace = true }",
+            "lineNumber": 79
+          },
+          {
+            "text": "test-case = \"3.3.1\"",
+            "lineNumber": 80
+          },
+          {
+            "text": "test-log = { workspace = true }",
+            "lineNumber": 81
+          },
+          {
+            "text": "thiserror = { workspace = true }",
+            "lineNumber": 82
+          },
+          {
+            "text": "time = { workspace = true, features = [",
+            "lineNumber": 83
+          },
+          {
+            "text": "    \"formatting\",",
+            "lineNumber": 84
+          },
+          {
+            "text": "    \"parsing\",",
+            "lineNumber": 85
+          },
+          {
+            "text": "    \"local-offset\",",
+            "lineNumber": 86
+          },
+          {
+            "text": "    \"macros\",",
+            "lineNumber": 87
+          },
+          {
+            "text": "] }",
+            "lineNumber": 88
+          },
+          {
+            "text": "tokio = { workspace = true, features = [",
+            "lineNumber": 89
+          },
+          {
+            "text": "    \"io-std\",",
+            "lineNumber": 90
+          },
+          {
+            "text": "    \"macros\",",
+            "lineNumber": 91
+          },
+          {
+            "text": "    \"process\",",
+            "lineNumber": 92
+          },
+          {
+            "text": "    \"rt-multi-thread\",",
+            "lineNumber": 93
+          },
+          {
+            "text": "    \"signal\",",
+            "lineNumber": 94
+          },
+          {
+            "text": "] }",
+            "lineNumber": 95
+          },
+          {
+            "text": "tokio-util = { workspace = true, features = [\"rt\"] }",
+            "lineNumber": 96
+          },
+          {
+            "text": "toml = { workspace = true }",
+            "lineNumber": 97
+          },
+          {
+            "text": "toml_edit = { workspace = true }",
+            "lineNumber": 98
+          },
+          {
+            "text": "tracing = { workspace = true, features = [\"log\"] }",
+            "lineNumber": 99
+          },
+          {
+            "text": "tree-sitter = { workspace = true }",
+            "lineNumber": 100
+          },
+          {
+            "text": "tree-sitter-bash = { workspace = true }",
+            "lineNumber": 101
+          },
+          {
+            "text": "url = { workspace = true }",
+            "lineNumber": 102
+          },
+          {
+            "text": "uuid = { workspace = true, features = [\"serde\", \"v4\", \"v5\"] }",
+            "lineNumber": 103
+          },
+          {
+            "text": "walkdir = { workspace = true }",
+            "lineNumber": 104
+          },
+          {
+            "text": "which = { workspace = true }",
+            "lineNumber": 105
+          },
+          {
+            "text": "wildmatch = { workspace = true }",
+            "lineNumber": 106
+          },
+          {
+            "text": "lsp-types = \"0.95\"",
+            "lineNumber": 107
+          },
+          {
+            "text": "tower-lsp = \"0.20\"",
+            "lineNumber": 108
+          },
+          {
+            "text": "sqlx = { version = \"0.8\", features = [\"runtime-tokio-rustls\", \"sqlite\", \"chrono\"] }",
+            "lineNumber": 109
+          },
+          {
+            "text": "oauth2 = \"4.4\"",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "[features]",
+            "lineNumber": 112
+          },
+          {
+            "text": "deterministic_process_ids = []",
+            "lineNumber": 113
+          },
+          {
+            "text": "test-support = []",
+            "lineNumber": 114
+          },
+          {
+            "text": "agent_security = [\"ed25519-dalek\", \"aes-gcm\"]",
+            "lineNumber": 115
+          },
+          {
+            "text": "windows-ai = [\"codex-windows-ai\"]",
+            "lineNumber": 116
+          },
+          {
+            "text": "cuda = [\"cudarc\"]",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "[target.'cfg(target_os = \"linux\")'.dependencies]",
+            "lineNumber": 120
+          },
+          {
+            "text": "keyring = { workspace = true, features = [\"linux-native-async-persistent\"] }",
+            "lineNumber": 121
+          },
+          {
+            "text": "landlock = { workspace = true }",
+            "lineNumber": 122
+          },
+          {
+            "text": "seccompiler = { workspace = true }",
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "[target.'cfg(target_os = \"macos\")'.dependencies]",
+            "lineNumber": 125
+          },
+          {
+            "text": "core-foundation = \"0.9\"",
+            "lineNumber": 126
+          },
+          {
+            "text": "keyring = { workspace = true, features = [\"apple-native\"] }",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "# Build OpenSSL from source for musl builds.",
+            "lineNumber": 129
+          },
+          {
+            "text": "[target.x86_64-unknown-linux-musl.dependencies]",
+            "lineNumber": 130
+          },
+          {
+            "text": "openssl-sys = { workspace = true, features = [\"vendored\"] }",
+            "lineNumber": 131
+          }
+        ]
+      },
+      "score": 0.18690484762191772
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\codex.rs",
+        "range": {
+          "startPosition": {
+            "line": 50,
+            "column": 49
+          },
+          "endPosition": {
+            "line": 110,
+            "column": 35
+          }
+        },
+        "contents": ";\nuse mcp_types::ListResourceTemplatesResult;\nuse mcp_types::ListResourcesRequestParams;\nuse mcp_types::ListResourcesResult;\nuse mcp_types::ReadResourceRequestParams;\nuse mcp_types::ReadResourceResult;\nuse mcp_types::RequestId;\nuse serde_json;\nuse serde_json::Value;\nuse tokio::sync::Mutex;\nuse tokio::sync::RwLock;\nuse tokio::sync::oneshot;\nuse tokio_util::sync::CancellationToken;\nuse tracing::Instrument;\nuse tracing::debug;\nuse tracing::error;\nuse tracing::field;\nuse tracing::info;\nuse tracing::instrument;\nuse tracing::trace_span;\nuse tracing::warn;\n\nuse crate::ModelProviderInfo;\nuse crate::WireApi;\nuse crate::client::ModelClient;\nuse crate::client_common::Prompt;\nuse crate::client_common::ResponseEvent;\nuse crate::compact::collect_user_messages;\nuse crate::config::Config;\nuse crate::config::Constrained;\nuse crate::config::ConstraintResult;\nuse crate::config::GhostSnapshotConfig;\nuse crate::config::types::ShellEnvironmentPolicy;\nuse crate::context_manager::ContextManager;\nuse crate::environment_context::EnvironmentContext;\nuse crate::error::CodexErr;\nuse crate::error::Result as CodexResult;\n#[cfg(test)]\nuse crate::exec::StreamOutput;\nuse crate::exec_policy::ExecPolicyUpdateError;\nuse crate::mcp::auth::compute_auth_statuses;\nuse crate::mcp_connection_manager::McpConnectionManager;\nuse crate::mcp_dynamic_loader::DynamicMcpLoader;\nuse crate::model_provider_info::CHAT_WIRE_API_DEPRECATION_SUMMARY;\nuse crate::project_doc::get_user_instructions;\nuse crate::protocol::AgentMessageContentDeltaEvent;\nuse crate::protocol::AgentReasoningSectionBreakEvent;\nuse crate::protocol::ApplyPatchApprovalRequestEvent;\nuse crate::protocol::AskForApproval;\nuse crate::protocol::BackgroundEventEvent;\nuse crate::protocol::DeprecationNoticeEvent;\nuse crate::protocol::ErrorEvent;\nuse crate::protocol::Event;\nuse crate::protocol::EventMsg;\nuse crate::protocol::ExecApprovalRequestEvent;\nuse crate::protocol::Op;\nuse crate::protocol::RateLimitSnapshot;\nuse crate::protocol::ReasoningContentDeltaEvent;\nuse crate::protocol::ReasoningRawContentDeltaEvent;\nuse crate::protocol::ReviewDecision;\nuse crate::protocol::SandboxPolicy;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": ";",
+            "lineNumber": 51
+          },
+          {
+            "text": "use mcp_types::ListResourceTemplatesResult;",
+            "lineNumber": 52
+          },
+          {
+            "text": "use mcp_types::ListResourcesRequestParams;",
+            "lineNumber": 53
+          },
+          {
+            "text": "use mcp_types::ListResourcesResult;",
+            "lineNumber": 54
+          },
+          {
+            "text": "use mcp_types::ReadResourceRequestParams;",
+            "lineNumber": 55
+          },
+          {
+            "text": "use mcp_types::ReadResourceResult;",
+            "lineNumber": 56
+          },
+          {
+            "text": "use mcp_types::RequestId;",
+            "lineNumber": 57
+          },
+          {
+            "text": "use serde_json;",
+            "lineNumber": 58
+          },
+          {
+            "text": "use serde_json::Value;",
+            "lineNumber": 59
+          },
+          {
+            "text": "use tokio::sync::Mutex;",
+            "lineNumber": 60
+          },
+          {
+            "text": "use tokio::sync::RwLock;",
+            "lineNumber": 61
+          },
+          {
+            "text": "use tokio::sync::oneshot;",
+            "lineNumber": 62
+          },
+          {
+            "text": "use tokio_util::sync::CancellationToken;",
+            "lineNumber": 63
+          },
+          {
+            "text": "use tracing::Instrument;",
+            "lineNumber": 64
+          },
+          {
+            "text": "use tracing::debug;",
+            "lineNumber": 65
+          },
+          {
+            "text": "use tracing::error;",
+            "lineNumber": 66
+          },
+          {
+            "text": "use tracing::field;",
+            "lineNumber": 67
+          },
+          {
+            "text": "use tracing::info;",
+            "lineNumber": 68
+          },
+          {
+            "text": "use tracing::instrument;",
+            "lineNumber": 69
+          },
+          {
+            "text": "use tracing::trace_span;",
+            "lineNumber": 70
+          },
+          {
+            "text": "use tracing::warn;",
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "text": "use crate::ModelProviderInfo;",
+            "lineNumber": 73
+          },
+          {
+            "text": "use crate::WireApi;",
+            "lineNumber": 74
+          },
+          {
+            "text": "use crate::client::ModelClient;",
+            "lineNumber": 75
+          },
+          {
+            "text": "use crate::client_common::Prompt;",
+            "lineNumber": 76
+          },
+          {
+            "text": "use crate::client_common::ResponseEvent;",
+            "lineNumber": 77
+          },
+          {
+            "text": "use crate::compact::collect_user_messages;",
+            "lineNumber": 78
+          },
+          {
+            "text": "use crate::config::Config;",
+            "lineNumber": 79
+          },
+          {
+            "text": "use crate::config::Constrained;",
+            "lineNumber": 80
+          },
+          {
+            "text": "use crate::config::ConstraintResult;",
+            "lineNumber": 81
+          },
+          {
+            "text": "use crate::config::GhostSnapshotConfig;",
+            "lineNumber": 82
+          },
+          {
+            "text": "use crate::config::types::ShellEnvironmentPolicy;",
+            "lineNumber": 83
+          },
+          {
+            "text": "use crate::context_manager::ContextManager;",
+            "lineNumber": 84
+          },
+          {
+            "text": "use crate::environment_context::EnvironmentContext;",
+            "lineNumber": 85
+          },
+          {
+            "text": "use crate::error::CodexErr;",
+            "lineNumber": 86
+          },
+          {
+            "text": "use crate::error::Result as CodexResult;",
+            "lineNumber": 87
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 88
+          },
+          {
+            "text": "use crate::exec::StreamOutput;",
+            "lineNumber": 89
+          },
+          {
+            "text": "use crate::exec_policy::ExecPolicyUpdateError;",
+            "lineNumber": 90
+          },
+          {
+            "text": "use crate::mcp::auth::compute_auth_statuses;",
+            "lineNumber": 91
+          },
+          {
+            "text": "use crate::mcp_connection_manager::McpConnectionManager;",
+            "lineNumber": 92
+          },
+          {
+            "text": "use crate::mcp_dynamic_loader::DynamicMcpLoader;",
+            "lineNumber": 93
+          },
+          {
+            "text": "use crate::model_provider_info::CHAT_WIRE_API_DEPRECATION_SUMMARY;",
+            "lineNumber": 94
+          },
+          {
+            "text": "use crate::project_doc::get_user_instructions;",
+            "lineNumber": 95
+          },
+          {
+            "text": "use crate::protocol::AgentMessageContentDeltaEvent;",
+            "lineNumber": 96
+          },
+          {
+            "text": "use crate::protocol::AgentReasoningSectionBreakEvent;",
+            "lineNumber": 97
+          },
+          {
+            "text": "use crate::protocol::ApplyPatchApprovalRequestEvent;",
+            "lineNumber": 98
+          },
+          {
+            "text": "use crate::protocol::AskForApproval;",
+            "lineNumber": 99
+          },
+          {
+            "text": "use crate::protocol::BackgroundEventEvent;",
+            "lineNumber": 100
+          },
+          {
+            "text": "use crate::protocol::DeprecationNoticeEvent;",
+            "lineNumber": 101
+          },
+          {
+            "text": "use crate::protocol::ErrorEvent;",
+            "lineNumber": 102
+          },
+          {
+            "text": "use crate::protocol::Event;",
+            "lineNumber": 103
+          },
+          {
+            "text": "use crate::protocol::EventMsg;",
+            "lineNumber": 104
+          },
+          {
+            "text": "use crate::protocol::ExecApprovalRequestEvent;",
+            "lineNumber": 105
+          },
+          {
+            "text": "use crate::protocol::Op;",
+            "lineNumber": 106
+          },
+          {
+            "text": "use crate::protocol::RateLimitSnapshot;",
+            "lineNumber": 107
+          },
+          {
+            "text": "use crate::protocol::ReasoningContentDeltaEvent;",
+            "lineNumber": 108
+          },
+          {
+            "text": "use crate::protocol::ReasoningRawContentDeltaEvent;",
+            "lineNumber": 109
+          },
+          {
+            "text": "use crate::protocol::ReviewDecision;",
+            "lineNumber": 110
+          },
+          {
+            "text": "use crate::protocol::SandboxPolicy;",
+            "lineNumber": 111
+          }
+        ]
+      },
+      "score": 0.18483079969882965
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\mcp_integration_manager.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 65
+          }
+        },
+        "contents": "//! MCP Integration Manager\n//!\n//! Manages enhanced MCP server integrations including Serena, ArXiv, GitHub, etc.\n//!\n//! Enhanced with Windows 11 25H2 AI integration and VR/AR support\n\nuse serde::Deserialize;\nuse serde::Serialize;\nuse std::collections::HashMap;\nuse std::path::PathBuf;\nuse std::sync::Arc;\nuse tokio::sync::Mutex;\n\n#[cfg(all(target_os = \"windows\", feature = \"windows-ai\"))]\nuse crate::windows_ai_integration::WindowsAiOptions;\n#[cfg(all(target_os = \"windows\", feature = \"windows-ai\"))]\nuse crate::windows_ai_integration::execute_with_windows_ai;\n\n/// Enhanced MCP server configuration\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct EnhancedMcpServer {\n    /// Server command\n    pub command: String,\n    /// Command arguments\n    pub args: Vec&lt;String&gt;,\n    /// Environment variables\n    pub env: HashMap&lt;String, String&gt;,\n    /// Server capabilities\n    pub capabilities: Vec&lt;String&gt;,\n}\n\n/// MCP servers configuration\n#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct McpServersConfig {\n    /// MCP servers\n    pub servers: HashMap&lt;String, EnhancedMcpServer&gt;,\n    /// Development mode specific servers\n    pub development: HashMap&lt;String, Vec&lt;String&gt;&gt;,\n    /// Agent-specific server assignments\n    pub agent_servers: HashMap&lt;String, Vec&lt;String&gt;&gt;,\n    /// Auto-start servers\n    pub auto_start: HashMap&lt;String, Vec&lt;String&gt;&gt;,\n}\n\n/// MCP integration manager with Windows 11 25H2 AI support\npub struct McpIntegrationManager {\n    /// Configuration path\n    config_path: PathBuf,\n    /// Active servers\n    active_servers: Arc&lt;Mutex&lt;HashMap&lt;String, EnhancedMcpServer&gt;&gt;&gt;,\n    /// Server processes\n    server_processes: Arc&lt;Mutex&lt;HashMap&lt;String, tokio::process::Child&gt;&gt;&gt;,\n    /// Windows AI integration options\n    #[cfg(all(target_os = \"windows\", feature = \"windows-ai\"))]\n    windows_ai_options: WindowsAiOptions,\n}\n\nimpl Default for McpIntegrationManager {\n    fn default() -&gt; Self {\n        Self::new()\n    }\n}\n\nimpl McpIntegrationManager {\n    /// Create new MCP integration manager with Windows 11 25H2 AI support",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "//! MCP Integration Manager",
+            "lineNumber": 1
+          },
+          {
+            "text": "//!",
+            "lineNumber": 2
+          },
+          {
+            "text": "//! Manages enhanced MCP server integrations including Serena, ArXiv, GitHub, etc.",
+            "lineNumber": 3
+          },
+          {
+            "text": "//!",
+            "lineNumber": 4
+          },
+          {
+            "text": "//! Enhanced with Windows 11 25H2 AI integration and VR/AR support",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use serde::Serialize;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use tokio::sync::Mutex;",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "#[cfg(all(target_os = \"windows\", feature = \"windows-ai\"))]",
+            "lineNumber": 14
+          },
+          {
+            "text": "use crate::windows_ai_integration::WindowsAiOptions;",
+            "lineNumber": 15
+          },
+          {
+            "text": "#[cfg(all(target_os = \"windows\", feature = \"windows-ai\"))]",
+            "lineNumber": 16
+          },
+          {
+            "text": "use crate::windows_ai_integration::execute_with_windows_ai;",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "/// Enhanced MCP server configuration",
+            "lineNumber": 19
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 20
+          },
+          {
+            "text": "pub struct EnhancedMcpServer {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    /// Server command",
+            "lineNumber": 22
+          },
+          {
+            "text": "    pub command: String,",
+            "lineNumber": 23
+          },
+          {
+            "text": "    /// Command arguments",
+            "lineNumber": 24
+          },
+          {
+            "text": "    pub args: Vec&lt;String&gt;,",
+            "lineNumber": 25
+          },
+          {
+            "text": "    /// Environment variables",
+            "lineNumber": 26
+          },
+          {
+            "text": "    pub env: HashMap&lt;String, String&gt;,",
+            "lineNumber": 27
+          },
+          {
+            "text": "    /// Server capabilities",
+            "lineNumber": 28
+          },
+          {
+            "text": "    pub capabilities: Vec&lt;String&gt;,",
+            "lineNumber": 29
+          },
+          {
+            "text": "}",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "/// MCP servers configuration",
+            "lineNumber": 32
+          },
+          {
+            "text": "#[derive(Debug, Clone, Serialize, Deserialize)]",
+            "lineNumber": 33
+          },
+          {
+            "text": "pub struct McpServersConfig {",
+            "lineNumber": 34
+          },
+          {
+            "text": "    /// MCP servers",
+            "lineNumber": 35
+          },
+          {
+            "text": "    pub servers: HashMap&lt;String, EnhancedMcpServer&gt;,",
+            "lineNumber": 36
+          },
+          {
+            "text": "    /// Development mode specific servers",
+            "lineNumber": 37
+          },
+          {
+            "text": "    pub development: HashMap&lt;String, Vec&lt;String&gt;&gt;,",
+            "lineNumber": 38
+          },
+          {
+            "text": "    /// Agent-specific server assignments",
+            "lineNumber": 39
+          },
+          {
+            "text": "    pub agent_servers: HashMap&lt;String, Vec&lt;String&gt;&gt;,",
+            "lineNumber": 40
+          },
+          {
+            "text": "    /// Auto-start servers",
+            "lineNumber": 41
+          },
+          {
+            "text": "    pub auto_start: HashMap&lt;String, Vec&lt;String&gt;&gt;,",
+            "lineNumber": 42
+          },
+          {
+            "text": "}",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "/// MCP integration manager with Windows 11 25H2 AI support",
+            "lineNumber": 45
+          },
+          {
+            "text": "pub struct McpIntegrationManager {",
+            "lineNumber": 46
+          },
+          {
+            "text": "    /// Configuration path",
+            "lineNumber": 47
+          },
+          {
+            "text": "    config_path: PathBuf,",
+            "lineNumber": 48
+          },
+          {
+            "text": "    /// Active servers",
+            "lineNumber": 49
+          },
+          {
+            "text": "    active_servers: Arc&lt;Mutex&lt;HashMap&lt;String, EnhancedMcpServer&gt;&gt;&gt;,",
+            "lineNumber": 50
+          },
+          {
+            "text": "    /// Server processes",
+            "lineNumber": 51
+          },
+          {
+            "text": "    server_processes: Arc&lt;Mutex&lt;HashMap&lt;String, tokio::process::Child&gt;&gt;&gt;,",
+            "lineNumber": 52
+          },
+          {
+            "text": "    /// Windows AI integration options",
+            "lineNumber": 53
+          },
+          {
+            "text": "    #[cfg(all(target_os = \"windows\", feature = \"windows-ai\"))]",
+            "lineNumber": 54
+          },
+          {
+            "text": "    windows_ai_options: WindowsAiOptions,",
+            "lineNumber": 55
+          },
+          {
+            "text": "}",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "impl Default for McpIntegrationManager {",
+            "lineNumber": 58
+          },
+          {
+            "text": "    fn default() -&gt; Self {",
+            "lineNumber": 59
+          },
+          {
+            "text": "        Self::new()",
+            "lineNumber": 60
+          },
+          {
+            "text": "    }",
+            "lineNumber": 61
+          },
+          {
+            "text": "}",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "impl McpIntegrationManager {",
+            "lineNumber": 64
+          },
+          {
+            "text": "    /// Create new MCP integration manager with Windows 11 25H2 AI support",
+            "lineNumber": 65
+          }
+        ]
+      },
+      "score": 0.1797696053981781
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "line": 93
+          },
+          "endPosition": {
+            "line": 147
+          }
+        },
+        "contents": "#[derive(Debug, Clone, PartialEq)]\npub struct Config {\n    /// Optional override of model selection.\n    pub model: Option&lt;String&gt;,\n\n    /// Model used specifically for review sessions. Defaults to \"gpt-5.1-codex-max\".\n    pub review_model: String,\n\n    /// Size of the context window for the model, in tokens.\n    pub model_context_window: Option&lt;i64&gt;,\n\n    /// Token usage threshold triggering auto-compaction of conversation history.\n    pub model_auto_compact_token_limit: Option&lt;i64&gt;,\n\n    /// Key into the model_providers map that specifies which provider to use.\n    pub model_provider_id: String,\n\n    /// Info needed to make an API request to the model.\n    pub model_provider: ModelProviderInfo,\n\n    /// Approval policy for executing commands.\n    pub approval_policy: Constrained&lt;AskForApproval&gt;,\n\n    pub sandbox_policy: Constrained&lt;SandboxPolicy&gt;,\n\n    /// True if the user passed in an override or set a value in config.toml\n    /// for either of approval_policy or sandbox_mode.\n    pub did_user_set_custom_approval_policy_or_sandbox_mode: bool,\n\n    /// On Windows, indicates that a previously configured workspace-write sandbox\n    /// was coerced to read-only because native auto mode is unsupported.\n    pub forced_auto_mode_downgraded_on_windows: bool,\n\n    pub shell_environment_policy: ShellEnvironmentPolicy,\n\n    /// When &#96;true&#96;, &#96;AgentReasoning&#96; events emitted by the backend will be\n    /// suppressed from the frontend output. This can reduce visual noise when\n    /// users are only interested in the final agent responses.\n    pub hide_agent_reasoning: bool,\n\n    /// When set to &#96;true&#96;, &#96;AgentReasoningRawContentEvent&#96; events will be shown in the UI/output.\n    /// Defaults to &#96;false&#96;.\n    pub show_raw_agent_reasoning: bool,\n\n    /// User-provided instructions from AGENTS.md.\n    pub user_instructions: Option&lt;String&gt;,\n\n    /// Base instructions override.\n    pub base_instructions: Option&lt;String&gt;,\n\n    /// Developer instructions override injected as a separate message.\n    pub developer_instructions: Option&lt;String&gt;,\n\n    /// Compact prompt override.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "#[derive(Debug, Clone, PartialEq)]",
+            "lineNumber": 94
+          },
+          {
+            "text": "pub struct Config {",
+            "lineNumber": 95
+          },
+          {
+            "text": "    /// Optional override of model selection.",
+            "lineNumber": 96
+          },
+          {
+            "text": "    pub model: Option&lt;String&gt;,",
+            "lineNumber": 97
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "text": "    /// Model used specifically for review sessions. Defaults to \"gpt-5.1-codex-max\".",
+            "lineNumber": 99
+          },
+          {
+            "text": "    pub review_model: String,",
+            "lineNumber": 100
+          },
+          {
+            "lineNumber": 101
+          },
+          {
+            "text": "    /// Size of the context window for the model, in tokens.",
+            "lineNumber": 102
+          },
+          {
+            "text": "    pub model_context_window: Option&lt;i64&gt;,",
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "text": "    /// Token usage threshold triggering auto-compaction of conversation history.",
+            "lineNumber": 105
+          },
+          {
+            "text": "    pub model_auto_compact_token_limit: Option&lt;i64&gt;,",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "    /// Key into the model_providers map that specifies which provider to use.",
+            "lineNumber": 108
+          },
+          {
+            "text": "    pub model_provider_id: String,",
+            "lineNumber": 109
+          },
+          {
+            "lineNumber": 110
+          },
+          {
+            "text": "    /// Info needed to make an API request to the model.",
+            "lineNumber": 111
+          },
+          {
+            "text": "    pub model_provider: ModelProviderInfo,",
+            "lineNumber": 112
+          },
+          {
+            "lineNumber": 113
+          },
+          {
+            "text": "    /// Approval policy for executing commands.",
+            "lineNumber": 114
+          },
+          {
+            "text": "    pub approval_policy: Constrained&lt;AskForApproval&gt;,",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "    pub sandbox_policy: Constrained&lt;SandboxPolicy&gt;,",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "text": "    /// True if the user passed in an override or set a value in config.toml",
+            "lineNumber": 119
+          },
+          {
+            "text": "    /// for either of approval_policy or sandbox_mode.",
+            "lineNumber": 120
+          },
+          {
+            "text": "    pub did_user_set_custom_approval_policy_or_sandbox_mode: bool,",
+            "lineNumber": 121
+          },
+          {
+            "lineNumber": 122
+          },
+          {
+            "text": "    /// On Windows, indicates that a previously configured workspace-write sandbox",
+            "lineNumber": 123
+          },
+          {
+            "text": "    /// was coerced to read-only because native auto mode is unsupported.",
+            "lineNumber": 124
+          },
+          {
+            "text": "    pub forced_auto_mode_downgraded_on_windows: bool,",
+            "lineNumber": 125
+          },
+          {
+            "lineNumber": 126
+          },
+          {
+            "text": "    pub shell_environment_policy: ShellEnvironmentPolicy,",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "    /// When &#96;true&#96;, &#96;AgentReasoning&#96; events emitted by the backend will be",
+            "lineNumber": 129
+          },
+          {
+            "text": "    /// suppressed from the frontend output. This can reduce visual noise when",
+            "lineNumber": 130
+          },
+          {
+            "text": "    /// users are only interested in the final agent responses.",
+            "lineNumber": 131
+          },
+          {
+            "text": "    pub hide_agent_reasoning: bool,",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "    /// When set to &#96;true&#96;, &#96;AgentReasoningRawContentEvent&#96; events will be shown in the UI/output.",
+            "lineNumber": 134
+          },
+          {
+            "text": "    /// Defaults to &#96;false&#96;.",
+            "lineNumber": 135
+          },
+          {
+            "text": "    pub show_raw_agent_reasoning: bool,",
+            "lineNumber": 136
+          },
+          {
+            "lineNumber": 137
+          },
+          {
+            "text": "    /// User-provided instructions from AGENTS.md.",
+            "lineNumber": 138
+          },
+          {
+            "text": "    pub user_instructions: Option&lt;String&gt;,",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 140
+          },
+          {
+            "text": "    /// Base instructions override.",
+            "lineNumber": 141
+          },
+          {
+            "text": "    pub base_instructions: Option&lt;String&gt;,",
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "    /// Developer instructions override injected as a separate message.",
+            "lineNumber": 144
+          },
+          {
+            "text": "    pub developer_instructions: Option&lt;String&gt;,",
+            "lineNumber": 145
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "text": "    /// Compact prompt override.",
+            "lineNumber": 147
+          }
+        ]
+      },
+      "score": 0.1711978316307068
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\codex.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 53,
+            "column": 35
+          }
+        },
+        "contents": "use std::collections::HashMap;\nuse std::fmt::Debug;\nuse std::path::PathBuf;\nuse std::sync::Arc;\nuse std::sync::atomic::AtomicBool;\nuse std::sync::atomic::AtomicU64;\nuse std::sync::atomic::Ordering;\n\nuse crate::AuthManager;\nuse crate::SandboxState;\nuse crate::client_common::REVIEW_PROMPT;\nuse crate::compact;\nuse crate::compact::run_inline_auto_compact_task;\nuse crate::compact::should_use_remote_compact_task;\nuse crate::compact_remote::run_inline_remote_auto_compact_task;\nuse crate::exec_policy::ExecPolicyManager;\nuse crate::features::Feature;\nuse crate::features::Features;\nuse crate::models_manager::manager::ModelsManager;\nuse crate::models_manager::model_family::ModelFamily;\nuse crate::parse_command::parse_command;\nuse crate::parse_turn_item;\nuse crate::stream_events_utils::HandleOutputCtx;\nuse crate::stream_events_utils::handle_non_tool_response_item;\nuse crate::stream_events_utils::handle_output_item_done;\nuse crate::terminal;\nuse crate::truncate::TruncationPolicy;\nuse crate::user_notification::UserNotifier;\nuse crate::util::error_or_panic;\nuse async_channel::Receiver;\nuse async_channel::Sender;\nuse codex_protocol::ConversationId;\nuse codex_protocol::approvals::ExecPolicyAmendment;\nuse codex_protocol::items::TurnItem;\nuse codex_protocol::protocol::FileChange;\nuse codex_protocol::protocol::HasLegacyEvent;\nuse codex_protocol::protocol::ItemCompletedEvent;\nuse codex_protocol::protocol::ItemStartedEvent;\nuse codex_protocol::protocol::RawResponseItemEvent;\nuse codex_protocol::protocol::ReviewRequest;\nuse codex_protocol::protocol::RolloutItem;\nuse codex_protocol::protocol::SessionSource;\nuse codex_protocol::protocol::TaskStartedEvent;\nuse codex_protocol::protocol::TurnAbortReason;\nuse codex_protocol::protocol::TurnContextItem;\nuse codex_rmcp_client::ElicitationResponse;\nuse futures::future::BoxFuture;\nuse futures::prelude::*;\nuse futures::stream::FuturesOrdered;\nuse mcp_types::CallToolResult;\nuse mcp_types::ListResourceTemplatesRequestParams;\nuse mcp_types::ListResourceTemplatesResult;\nuse mcp_types::ListResourcesRequestParams;\nuse mcp_types::ListResourcesResult;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use std::fmt::Debug;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use std::sync::atomic::AtomicBool;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use std::sync::atomic::AtomicU64;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use std::sync::atomic::Ordering;",
+            "lineNumber": 7
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "text": "use crate::AuthManager;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use crate::SandboxState;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use crate::client_common::REVIEW_PROMPT;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use crate::compact;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use crate::compact::run_inline_auto_compact_task;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use crate::compact::should_use_remote_compact_task;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use crate::compact_remote::run_inline_remote_auto_compact_task;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use crate::exec_policy::ExecPolicyManager;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use crate::features::Feature;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use crate::features::Features;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use crate::models_manager::manager::ModelsManager;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use crate::models_manager::model_family::ModelFamily;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use crate::parse_command::parse_command;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use crate::parse_turn_item;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use crate::stream_events_utils::HandleOutputCtx;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use crate::stream_events_utils::handle_non_tool_response_item;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use crate::stream_events_utils::handle_output_item_done;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use crate::terminal;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use crate::truncate::TruncationPolicy;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use crate::user_notification::UserNotifier;",
+            "lineNumber": 28
+          },
+          {
+            "text": "use crate::util::error_or_panic;",
+            "lineNumber": 29
+          },
+          {
+            "text": "use async_channel::Receiver;",
+            "lineNumber": 30
+          },
+          {
+            "text": "use async_channel::Sender;",
+            "lineNumber": 31
+          },
+          {
+            "text": "use codex_protocol::ConversationId;",
+            "lineNumber": 32
+          },
+          {
+            "text": "use codex_protocol::approvals::ExecPolicyAmendment;",
+            "lineNumber": 33
+          },
+          {
+            "text": "use codex_protocol::items::TurnItem;",
+            "lineNumber": 34
+          },
+          {
+            "text": "use codex_protocol::protocol::FileChange;",
+            "lineNumber": 35
+          },
+          {
+            "text": "use codex_protocol::protocol::HasLegacyEvent;",
+            "lineNumber": 36
+          },
+          {
+            "text": "use codex_protocol::protocol::ItemCompletedEvent;",
+            "lineNumber": 37
+          },
+          {
+            "text": "use codex_protocol::protocol::ItemStartedEvent;",
+            "lineNumber": 38
+          },
+          {
+            "text": "use codex_protocol::protocol::RawResponseItemEvent;",
+            "lineNumber": 39
+          },
+          {
+            "text": "use codex_protocol::protocol::ReviewRequest;",
+            "lineNumber": 40
+          },
+          {
+            "text": "use codex_protocol::protocol::RolloutItem;",
+            "lineNumber": 41
+          },
+          {
+            "text": "use codex_protocol::protocol::SessionSource;",
+            "lineNumber": 42
+          },
+          {
+            "text": "use codex_protocol::protocol::TaskStartedEvent;",
+            "lineNumber": 43
+          },
+          {
+            "text": "use codex_protocol::protocol::TurnAbortReason;",
+            "lineNumber": 44
+          },
+          {
+            "text": "use codex_protocol::protocol::TurnContextItem;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use codex_rmcp_client::ElicitationResponse;",
+            "lineNumber": 46
+          },
+          {
+            "text": "use futures::future::BoxFuture;",
+            "lineNumber": 47
+          },
+          {
+            "text": "use futures::prelude::*;",
+            "lineNumber": 48
+          },
+          {
+            "text": "use futures::stream::FuturesOrdered;",
+            "lineNumber": 49
+          },
+          {
+            "text": "use mcp_types::CallToolResult;",
+            "lineNumber": 50
+          },
+          {
+            "text": "use mcp_types::ListResourceTemplatesRequestParams;",
+            "lineNumber": 51
+          },
+          {
+            "text": "use mcp_types::ListResourceTemplatesResult;",
+            "lineNumber": 52
+          },
+          {
+            "text": "use mcp_types::ListResourcesRequestParams;",
+            "lineNumber": 53
+          },
+          {
+            "text": "use mcp_types::ListResourcesResult;",
+            "lineNumber": 54
+          }
+        ]
+      },
+      "score": 0.16898170113563538
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\codex.rs",
+        "range": {
+          "startPosition": {
+            "line": 107,
+            "column": 48
+          },
+          "endPosition": {
+            "line": 157,
+            "column": 45
+          }
+        },
+        "contents": "use crate::protocol::ReasoningRawContentDeltaEvent;\nuse crate::protocol::ReviewDecision;\nuse crate::protocol::SandboxPolicy;\nuse crate::protocol::SessionConfiguredEvent;\nuse crate::protocol::SkillErrorInfo;\nuse crate::protocol::SkillMetadata as ProtocolSkillMetadata;\nuse crate::protocol::StreamErrorEvent;\nuse crate::protocol::Submission;\nuse crate::protocol::TokenCountEvent;\nuse crate::protocol::TokenUsage;\nuse crate::protocol::TokenUsageInfo;\nuse crate::protocol::TurnDiffEvent;\nuse crate::protocol::WarningEvent;\nuse crate::rollout::RolloutRecorder;\nuse crate::rollout::RolloutRecorderParams;\nuse crate::rollout::map_session_init_error;\nuse crate::shell;\nuse crate::shell_snapshot::ShellSnapshot;\nuse crate::skills::SkillError;\nuse crate::skills::SkillInjections;\nuse crate::skills::SkillMetadata;\nuse crate::skills::SkillsManager;\nuse crate::skills::build_skill_injections;\nuse crate::state::ActiveTurn;\nuse crate::state::SessionServices;\nuse crate::state::SessionState;\nuse crate::tasks::GhostSnapshotTask;\nuse crate::tasks::ReviewTask;\nuse crate::tasks::SessionTask;\nuse crate::tasks::SessionTaskContext;\nuse crate::tools::ToolRouter;\nuse crate::tools::context::SharedTurnDiffTracker;\nuse crate::tools::parallel::ToolCallRuntime;\nuse crate::tools::sandboxing::ApprovalStore;\nuse crate::tools::spec::ToolsConfig;\nuse crate::tools::spec::ToolsConfigParams;\nuse crate::turn_diff_tracker::TurnDiffTracker;\nuse crate::unified_exec::UnifiedExecSessionManager;\nuse crate::user_instructions::DeveloperInstructions;\nuse crate::user_instructions::UserInstructions;\nuse crate::user_notification::UserNotification;\nuse crate::util::backoff;\nuse codex_async_utils::OrCancelExt;\nuse codex_otel::otel_manager::OtelManager;\nuse codex_protocol::config_types::ReasoningSummary as ReasoningSummaryConfig;\nuse codex_protocol::models::ContentItem;\nuse codex_protocol::models::ResponseInputItem;\nuse codex_protocol::models::ResponseItem;\nuse codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;\nuse codex_protocol::protocol::CodexErrorInfo;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use crate::protocol::ReasoningRawContentDeltaEvent;",
+            "lineNumber": 109
+          },
+          {
+            "text": "use crate::protocol::ReviewDecision;",
+            "lineNumber": 110
+          },
+          {
+            "text": "use crate::protocol::SandboxPolicy;",
+            "lineNumber": 111
+          },
+          {
+            "text": "use crate::protocol::SessionConfiguredEvent;",
+            "lineNumber": 112
+          },
+          {
+            "text": "use crate::protocol::SkillErrorInfo;",
+            "lineNumber": 113
+          },
+          {
+            "text": "use crate::protocol::SkillMetadata as ProtocolSkillMetadata;",
+            "lineNumber": 114
+          },
+          {
+            "text": "use crate::protocol::StreamErrorEvent;",
+            "lineNumber": 115
+          },
+          {
+            "text": "use crate::protocol::Submission;",
+            "lineNumber": 116
+          },
+          {
+            "text": "use crate::protocol::TokenCountEvent;",
+            "lineNumber": 117
+          },
+          {
+            "text": "use crate::protocol::TokenUsage;",
+            "lineNumber": 118
+          },
+          {
+            "text": "use crate::protocol::TokenUsageInfo;",
+            "lineNumber": 119
+          },
+          {
+            "text": "use crate::protocol::TurnDiffEvent;",
+            "lineNumber": 120
+          },
+          {
+            "text": "use crate::protocol::WarningEvent;",
+            "lineNumber": 121
+          },
+          {
+            "text": "use crate::rollout::RolloutRecorder;",
+            "lineNumber": 122
+          },
+          {
+            "text": "use crate::rollout::RolloutRecorderParams;",
+            "lineNumber": 123
+          },
+          {
+            "text": "use crate::rollout::map_session_init_error;",
+            "lineNumber": 124
+          },
+          {
+            "text": "use crate::shell;",
+            "lineNumber": 125
+          },
+          {
+            "text": "use crate::shell_snapshot::ShellSnapshot;",
+            "lineNumber": 126
+          },
+          {
+            "text": "use crate::skills::SkillError;",
+            "lineNumber": 127
+          },
+          {
+            "text": "use crate::skills::SkillInjections;",
+            "lineNumber": 128
+          },
+          {
+            "text": "use crate::skills::SkillMetadata;",
+            "lineNumber": 129
+          },
+          {
+            "text": "use crate::skills::SkillsManager;",
+            "lineNumber": 130
+          },
+          {
+            "text": "use crate::skills::build_skill_injections;",
+            "lineNumber": 131
+          },
+          {
+            "text": "use crate::state::ActiveTurn;",
+            "lineNumber": 132
+          },
+          {
+            "text": "use crate::state::SessionServices;",
+            "lineNumber": 133
+          },
+          {
+            "text": "use crate::state::SessionState;",
+            "lineNumber": 134
+          },
+          {
+            "text": "use crate::tasks::GhostSnapshotTask;",
+            "lineNumber": 135
+          },
+          {
+            "text": "use crate::tasks::ReviewTask;",
+            "lineNumber": 136
+          },
+          {
+            "text": "use crate::tasks::SessionTask;",
+            "lineNumber": 137
+          },
+          {
+            "text": "use crate::tasks::SessionTaskContext;",
+            "lineNumber": 138
+          },
+          {
+            "text": "use crate::tools::ToolRouter;",
+            "lineNumber": 139
+          },
+          {
+            "text": "use crate::tools::context::SharedTurnDiffTracker;",
+            "lineNumber": 140
+          },
+          {
+            "text": "use crate::tools::parallel::ToolCallRuntime;",
+            "lineNumber": 141
+          },
+          {
+            "text": "use crate::tools::sandboxing::ApprovalStore;",
+            "lineNumber": 142
+          },
+          {
+            "text": "use crate::tools::spec::ToolsConfig;",
+            "lineNumber": 143
+          },
+          {
+            "text": "use crate::tools::spec::ToolsConfigParams;",
+            "lineNumber": 144
+          },
+          {
+            "text": "use crate::turn_diff_tracker::TurnDiffTracker;",
+            "lineNumber": 145
+          },
+          {
+            "text": "use crate::unified_exec::UnifiedExecSessionManager;",
+            "lineNumber": 146
+          },
+          {
+            "text": "use crate::user_instructions::DeveloperInstructions;",
+            "lineNumber": 147
+          },
+          {
+            "text": "use crate::user_instructions::UserInstructions;",
+            "lineNumber": 148
+          },
+          {
+            "text": "use crate::user_notification::UserNotification;",
+            "lineNumber": 149
+          },
+          {
+            "text": "use crate::util::backoff;",
+            "lineNumber": 150
+          },
+          {
+            "text": "use codex_async_utils::OrCancelExt;",
+            "lineNumber": 151
+          },
+          {
+            "text": "use codex_otel::otel_manager::OtelManager;",
+            "lineNumber": 152
+          },
+          {
+            "text": "use codex_protocol::config_types::ReasoningSummary as ReasoningSummaryConfig;",
+            "lineNumber": 153
+          },
+          {
+            "text": "use codex_protocol::models::ContentItem;",
+            "lineNumber": 154
+          },
+          {
+            "text": "use codex_protocol::models::ResponseInputItem;",
+            "lineNumber": 155
+          },
+          {
+            "text": "use codex_protocol::models::ResponseItem;",
+            "lineNumber": 156
+          },
+          {
+            "text": "use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;",
+            "lineNumber": 157
+          },
+          {
+            "text": "use codex_protocol::protocol::CodexErrorInfo;",
+            "lineNumber": 158
+          }
+        ]
+      },
+      "score": 0.1571141481399536
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\types.rs",
+        "range": {
+          "startPosition": {
+            "line": 256,
+            "column": 66
+          },
+          "endPosition": {
+            "line": 288,
+            "column": 27
+          }
+        },
+        "contents": "pub enum McpServerTransportConfig {\n    /// https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#stdio\n    Stdio {\n        command: String,\n        #[serde(default)]\n        args: Vec&lt;String&gt;,\n        #[serde(default, skip_serializing_if = \"Option::is_none\")]\n        env: Option&lt;HashMap&lt;String, String&gt;&gt;,\n        #[serde(default, skip_serializing_if = \"Vec::is_empty\")]\n        env_vars: Vec&lt;String&gt;,\n        #[serde(default, skip_serializing_if = \"Option::is_none\")]\n        cwd: Option&lt;PathBuf&gt;,\n    },\n    /// https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http\n    StreamableHttp {\n        url: String,\n        /// Name of the environment variable to read for an HTTP bearer token.\n        /// When set, requests will include the token via &#96;Authorization: Bearer &lt;token&gt;&#96;.\n        /// The actual secret value must be provided via the environment.\n        #[serde(default, skip_serializing_if = \"Option::is_none\")]\n        bearer_token_env_var: Option&lt;String&gt;,\n        /// Additional HTTP headers to include in requests to this server.\n        #[serde(default, skip_serializing_if = \"Option::is_none\")]\n        http_headers: Option&lt;HashMap&lt;String, String&gt;&gt;,\n        /// HTTP headers where the value is sourced from an environment variable.\n        #[serde(default, skip_serializing_if = \"Option::is_none\")]\n        env_http_headers: Option&lt;HashMap&lt;String, String&gt;&gt;,\n    },\n}\n\nmod option_duration_secs {\n    use serde::Deserialize;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub enum McpServerTransportConfig {",
+            "lineNumber": 258
+          },
+          {
+            "text": "    /// https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#stdio",
+            "lineNumber": 259
+          },
+          {
+            "text": "    Stdio {",
+            "lineNumber": 260
+          },
+          {
+            "text": "        command: String,",
+            "lineNumber": 261
+          },
+          {
+            "text": "        #[serde(default)]",
+            "lineNumber": 262
+          },
+          {
+            "text": "        args: Vec&lt;String&gt;,",
+            "lineNumber": 263
+          },
+          {
+            "text": "        #[serde(default, skip_serializing_if = \"Option::is_none\")]",
+            "lineNumber": 264
+          },
+          {
+            "text": "        env: Option&lt;HashMap&lt;String, String&gt;&gt;,",
+            "lineNumber": 265
+          },
+          {
+            "text": "        #[serde(default, skip_serializing_if = \"Vec::is_empty\")]",
+            "lineNumber": 266
+          },
+          {
+            "text": "        env_vars: Vec&lt;String&gt;,",
+            "lineNumber": 267
+          },
+          {
+            "text": "        #[serde(default, skip_serializing_if = \"Option::is_none\")]",
+            "lineNumber": 268
+          },
+          {
+            "text": "        cwd: Option&lt;PathBuf&gt;,",
+            "lineNumber": 269
+          },
+          {
+            "text": "    },",
+            "lineNumber": 270
+          },
+          {
+            "text": "    /// https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http",
+            "lineNumber": 271
+          },
+          {
+            "text": "    StreamableHttp {",
+            "lineNumber": 272
+          },
+          {
+            "text": "        url: String,",
+            "lineNumber": 273
+          },
+          {
+            "text": "        /// Name of the environment variable to read for an HTTP bearer token.",
+            "lineNumber": 274
+          },
+          {
+            "text": "        /// When set, requests will include the token via &#96;Authorization: Bearer &lt;token&gt;&#96;.",
+            "lineNumber": 275
+          },
+          {
+            "text": "        /// The actual secret value must be provided via the environment.",
+            "lineNumber": 276
+          },
+          {
+            "text": "        #[serde(default, skip_serializing_if = \"Option::is_none\")]",
+            "lineNumber": 277
+          },
+          {
+            "text": "        bearer_token_env_var: Option&lt;String&gt;,",
+            "lineNumber": 278
+          },
+          {
+            "text": "        /// Additional HTTP headers to include in requests to this server.",
+            "lineNumber": 279
+          },
+          {
+            "text": "        #[serde(default, skip_serializing_if = \"Option::is_none\")]",
+            "lineNumber": 280
+          },
+          {
+            "text": "        http_headers: Option&lt;HashMap&lt;String, String&gt;&gt;,",
+            "lineNumber": 281
+          },
+          {
+            "text": "        /// HTTP headers where the value is sourced from an environment variable.",
+            "lineNumber": 282
+          },
+          {
+            "text": "        #[serde(default, skip_serializing_if = \"Option::is_none\")]",
+            "lineNumber": 283
+          },
+          {
+            "text": "        env_http_headers: Option&lt;HashMap&lt;String, String&gt;&gt;,",
+            "lineNumber": 284
+          },
+          {
+            "text": "    },",
+            "lineNumber": 285
+          },
+          {
+            "text": "}",
+            "lineNumber": 286
+          },
+          {
+            "lineNumber": 287
+          },
+          {
+            "text": "mod option_duration_secs {",
+            "lineNumber": 288
+          },
+          {
+            "text": "    use serde::Deserialize;",
+            "lineNumber": 289
+          }
+        ]
+      },
+      "score": 0.15612423419952393
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\codex.rs",
+        "range": {
+          "startPosition": {
+            "line": 155,
+            "column": 41
+          },
+          "endPosition": {
+            "line": 209
+          }
+        },
+        "contents": "use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;\nuse codex_protocol::protocol::CodexErrorInfo;\nuse codex_protocol::protocol::InitialHistory;\nuse codex_protocol::user_input::UserInput;\nuse codex_utils_readiness::Readiness;\nuse codex_utils_readiness::ReadinessFlag;\n\n/// The high-level interface to the Codex system.\n/// It operates as a queue pair where you send submissions and receive events.\npub struct Codex {\n    pub(crate) next_id: AtomicU64,\n    pub(crate) tx_sub: Sender&lt;Submission&gt;,\n    pub(crate) rx_event: Receiver&lt;Event&gt;,\n}\n\n/// Wrapper returned by [&#96;Codex::spawn&#96;] containing the spawned [&#96;Codex&#96;],\n/// the submission id for the initial &#96;ConfigureSession&#96; request and the\n/// unique session id.\npub struct CodexSpawnOk {\n    pub codex: Codex,\n    pub conversation_id: ConversationId,\n}\n\npub(crate) const INITIAL_SUBMIT_ID: &amp;str = \"\";\npub(crate) const SUBMISSION_CHANNEL_CAPACITY: usize = 64;\nstatic CHAT_WIRE_API_DEPRECATION_EMITTED: AtomicBool = AtomicBool::new(false);\n\nfn maybe_push_chat_wire_api_deprecation(\n    config: &amp;Config,\n    post_session_configured_events: &amp;mut Vec&lt;Event&gt;,\n) {\n    if config.model_provider.wire_api != WireApi::Chat {\n        return;\n    }\n\n    if CHAT_WIRE_API_DEPRECATION_EMITTED\n        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)\n        .is_err()\n    {\n        return;\n    }\n\n    post_session_configured_events.push(Event {\n        id: INITIAL_SUBMIT_ID.to_owned(),\n        msg: EventMsg::DeprecationNotice(DeprecationNoticeEvent {\n            summary: CHAT_WIRE_API_DEPRECATION_SUMMARY.to_string(),\n            details: None,\n        }),\n    });\n}\n\nimpl Codex {\n    /// Spawn a new [&#96;Codex&#96;] and initialize the session.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;",
+            "lineNumber": 157
+          },
+          {
+            "text": "use codex_protocol::protocol::CodexErrorInfo;",
+            "lineNumber": 158
+          },
+          {
+            "text": "use codex_protocol::protocol::InitialHistory;",
+            "lineNumber": 159
+          },
+          {
+            "text": "use codex_protocol::user_input::UserInput;",
+            "lineNumber": 160
+          },
+          {
+            "text": "use codex_utils_readiness::Readiness;",
+            "lineNumber": 161
+          },
+          {
+            "text": "use codex_utils_readiness::ReadinessFlag;",
+            "lineNumber": 162
+          },
+          {
+            "lineNumber": 163
+          },
+          {
+            "text": "/// The high-level interface to the Codex system.",
+            "lineNumber": 164
+          },
+          {
+            "text": "/// It operates as a queue pair where you send submissions and receive events.",
+            "lineNumber": 165
+          },
+          {
+            "text": "pub struct Codex {",
+            "lineNumber": 166
+          },
+          {
+            "text": "    pub(crate) next_id: AtomicU64,",
+            "lineNumber": 167
+          },
+          {
+            "text": "    pub(crate) tx_sub: Sender&lt;Submission&gt;,",
+            "lineNumber": 168
+          },
+          {
+            "text": "    pub(crate) rx_event: Receiver&lt;Event&gt;,",
+            "lineNumber": 169
+          },
+          {
+            "text": "}",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 171
+          },
+          {
+            "text": "/// Wrapper returned by [&#96;Codex::spawn&#96;] containing the spawned [&#96;Codex&#96;],",
+            "lineNumber": 172
+          },
+          {
+            "text": "/// the submission id for the initial &#96;ConfigureSession&#96; request and the",
+            "lineNumber": 173
+          },
+          {
+            "text": "/// unique session id.",
+            "lineNumber": 174
+          },
+          {
+            "text": "pub struct CodexSpawnOk {",
+            "lineNumber": 175
+          },
+          {
+            "text": "    pub codex: Codex,",
+            "lineNumber": 176
+          },
+          {
+            "text": "    pub conversation_id: ConversationId,",
+            "lineNumber": 177
+          },
+          {
+            "text": "}",
+            "lineNumber": 178
+          },
+          {
+            "lineNumber": 179
+          },
+          {
+            "text": "pub(crate) const INITIAL_SUBMIT_ID: &amp;str = \"\";",
+            "lineNumber": 180
+          },
+          {
+            "text": "pub(crate) const SUBMISSION_CHANNEL_CAPACITY: usize = 64;",
+            "lineNumber": 181
+          },
+          {
+            "text": "static CHAT_WIRE_API_DEPRECATION_EMITTED: AtomicBool = AtomicBool::new(false);",
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "fn maybe_push_chat_wire_api_deprecation(",
+            "lineNumber": 184
+          },
+          {
+            "text": "    config: &amp;Config,",
+            "lineNumber": 185
+          },
+          {
+            "text": "    post_session_configured_events: &amp;mut Vec&lt;Event&gt;,",
+            "lineNumber": 186
+          },
+          {
+            "text": ") {",
+            "lineNumber": 187
+          },
+          {
+            "text": "    if config.model_provider.wire_api != WireApi::Chat {",
+            "lineNumber": 188
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 189
+          },
+          {
+            "text": "    }",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "    if CHAT_WIRE_API_DEPRECATION_EMITTED",
+            "lineNumber": 192
+          },
+          {
+            "text": "        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)",
+            "lineNumber": 193
+          },
+          {
+            "text": "        .is_err()",
+            "lineNumber": 194
+          },
+          {
+            "text": "    {",
+            "lineNumber": 195
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 196
+          },
+          {
+            "text": "    }",
+            "lineNumber": 197
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "text": "    post_session_configured_events.push(Event {",
+            "lineNumber": 199
+          },
+          {
+            "text": "        id: INITIAL_SUBMIT_ID.to_owned(),",
+            "lineNumber": 200
+          },
+          {
+            "text": "        msg: EventMsg::DeprecationNotice(DeprecationNoticeEvent {",
+            "lineNumber": 201
+          },
+          {
+            "text": "            summary: CHAT_WIRE_API_DEPRECATION_SUMMARY.to_string(),",
+            "lineNumber": 202
+          },
+          {
+            "text": "            details: None,",
+            "lineNumber": 203
+          },
+          {
+            "text": "        }),",
+            "lineNumber": 204
+          },
+          {
+            "text": "    });",
+            "lineNumber": 205
+          },
+          {
+            "text": "}",
+            "lineNumber": 206
+          },
+          {
+            "lineNumber": 207
+          },
+          {
+            "text": "impl Codex {",
+            "lineNumber": 208
+          },
+          {
+            "text": "    /// Spawn a new [&#96;Codex&#96;] and initialize the session.",
+            "lineNumber": 209
+          }
+        ]
+      },
+      "score": 0.15477919578552246
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\mcp_connection_manager.rs",
+        "range": {
+          "startPosition": {
+            "line": 830,
+            "column": 41
+          },
+          "endPosition": {
+            "line": 885,
+            "column": 77
+          }
+        },
+        "contents": "enum StartupOutcomeError {\n    #[error(\"MCP startup cancelled\")]\n    Cancelled,\n    // We can't store the original error here because anyhow::Error doesn't implement\n    // &#96;Clone&#96;.\n    #[error(\"MCP startup failed: {error}\")]\n    Failed { error: String },\n}\n\nimpl From&lt;anyhow::Error&gt; for StartupOutcomeError {\n    fn from(error: anyhow::Error) -&gt; Self {\n        Self::Failed {\n            error: error.to_string(),\n        }\n    }\n}\n\nasync fn start_server_task(\n    server_name: String,\n    client: Arc&lt;RmcpClient&gt;,\n    startup_timeout: Option&lt;Duration&gt;, // TODO: cancel_token should handle this.\n    tool_timeout: Duration,\n    tool_filter: ToolFilter,\n    tx_event: Sender&lt;Event&gt;,\n    elicitation_requests: ElicitationRequestManager,\n) -&gt; Result&lt;ManagedClient, StartupOutcomeError&gt; {\n    let params = mcp_types::InitializeRequestParams {\n        capabilities: ClientCapabilities {\n            experimental: None,\n            roots: None,\n            sampling: None,\n            // https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation#capabilities\n            // indicates this should be an empty object.\n            elicitation: Some(json!({})),\n        },\n        client_info: Implementation {\n            name: \"codex-mcp-client\".to_owned(),\n            version: env!(\"CARGO_PKG_VERSION\").to_owned(),\n            title: Some(\"Codex\".into()),\n            // This field is used by Codex when it is an MCP\n            // server: it should not be used when Codex is\n            // an MCP client.\n            user_agent: None,\n        },\n        protocol_version: mcp_types::MCP_SCHEMA_VERSION.to_owned(),\n    };\n\n    let send_elicitation = elicitation_requests.make_sender(server_name.clone(), tx_event);\n\n    let initialize_result = client\n        .initialize(params, startup_timeout, send_elicitation)\n        .await\n        .map_err(StartupOutcomeError::from)?;\n\n    let tools = list_tools_for_client(&amp;server_name, &amp;client, startup_timeout)",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "enum StartupOutcomeError {",
+            "lineNumber": 832
+          },
+          {
+            "text": "    #[error(\"MCP startup cancelled\")]",
+            "lineNumber": 833
+          },
+          {
+            "text": "    Cancelled,",
+            "lineNumber": 834
+          },
+          {
+            "text": "    // We can't store the original error here because anyhow::Error doesn't implement",
+            "lineNumber": 835
+          },
+          {
+            "text": "    // &#96;Clone&#96;.",
+            "lineNumber": 836
+          },
+          {
+            "text": "    #[error(\"MCP startup failed: {error}\")]",
+            "lineNumber": 837
+          },
+          {
+            "text": "    Failed { error: String },",
+            "lineNumber": 838
+          },
+          {
+            "text": "}",
+            "lineNumber": 839
+          },
+          {
+            "lineNumber": 840
+          },
+          {
+            "text": "impl From&lt;anyhow::Error&gt; for StartupOutcomeError {",
+            "lineNumber": 841
+          },
+          {
+            "text": "    fn from(error: anyhow::Error) -&gt; Self {",
+            "lineNumber": 842
+          },
+          {
+            "text": "        Self::Failed {",
+            "lineNumber": 843
+          },
+          {
+            "text": "            error: error.to_string(),",
+            "lineNumber": 844
+          },
+          {
+            "text": "        }",
+            "lineNumber": 845
+          },
+          {
+            "text": "    }",
+            "lineNumber": 846
+          },
+          {
+            "text": "}",
+            "lineNumber": 847
+          },
+          {
+            "lineNumber": 848
+          },
+          {
+            "text": "async fn start_server_task(",
+            "lineNumber": 849
+          },
+          {
+            "text": "    server_name: String,",
+            "lineNumber": 850
+          },
+          {
+            "text": "    client: Arc&lt;RmcpClient&gt;,",
+            "lineNumber": 851
+          },
+          {
+            "text": "    startup_timeout: Option&lt;Duration&gt;, // TODO: cancel_token should handle this.",
+            "lineNumber": 852
+          },
+          {
+            "text": "    tool_timeout: Duration,",
+            "lineNumber": 853
+          },
+          {
+            "text": "    tool_filter: ToolFilter,",
+            "lineNumber": 854
+          },
+          {
+            "text": "    tx_event: Sender&lt;Event&gt;,",
+            "lineNumber": 855
+          },
+          {
+            "text": "    elicitation_requests: ElicitationRequestManager,",
+            "lineNumber": 856
+          },
+          {
+            "text": ") -&gt; Result&lt;ManagedClient, StartupOutcomeError&gt; {",
+            "lineNumber": 857
+          },
+          {
+            "text": "    let params = mcp_types::InitializeRequestParams {",
+            "lineNumber": 858
+          },
+          {
+            "text": "        capabilities: ClientCapabilities {",
+            "lineNumber": 859
+          },
+          {
+            "text": "            experimental: None,",
+            "lineNumber": 860
+          },
+          {
+            "text": "            roots: None,",
+            "lineNumber": 861
+          },
+          {
+            "text": "            sampling: None,",
+            "lineNumber": 862
+          },
+          {
+            "text": "            // https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation#capabilities",
+            "lineNumber": 863
+          },
+          {
+            "text": "            // indicates this should be an empty object.",
+            "lineNumber": 864
+          },
+          {
+            "text": "            elicitation: Some(json!({})),",
+            "lineNumber": 865
+          },
+          {
+            "text": "        },",
+            "lineNumber": 866
+          },
+          {
+            "text": "        client_info: Implementation {",
+            "lineNumber": 867
+          },
+          {
+            "text": "            name: \"codex-mcp-client\".to_owned(),",
+            "lineNumber": 868
+          },
+          {
+            "text": "            version: env!(\"CARGO_PKG_VERSION\").to_owned(),",
+            "lineNumber": 869
+          },
+          {
+            "text": "            title: Some(\"Codex\".into()),",
+            "lineNumber": 870
+          },
+          {
+            "text": "            // This field is used by Codex when it is an MCP",
+            "lineNumber": 871
+          },
+          {
+            "text": "            // server: it should not be used when Codex is",
+            "lineNumber": 872
+          },
+          {
+            "text": "            // an MCP client.",
+            "lineNumber": 873
+          },
+          {
+            "text": "            user_agent: None,",
+            "lineNumber": 874
+          },
+          {
+            "text": "        },",
+            "lineNumber": 875
+          },
+          {
+            "text": "        protocol_version: mcp_types::MCP_SCHEMA_VERSION.to_owned(),",
+            "lineNumber": 876
+          },
+          {
+            "text": "    };",
+            "lineNumber": 877
+          },
+          {
+            "lineNumber": 878
+          },
+          {
+            "text": "    let send_elicitation = elicitation_requests.make_sender(server_name.clone(), tx_event);",
+            "lineNumber": 879
+          },
+          {
+            "lineNumber": 880
+          },
+          {
+            "text": "    let initialize_result = client",
+            "lineNumber": 881
+          },
+          {
+            "text": "        .initialize(params, startup_timeout, send_elicitation)",
+            "lineNumber": 882
+          },
+          {
+            "text": "        .await",
+            "lineNumber": 883
+          },
+          {
+            "text": "        .map_err(StartupOutcomeError::from)?;",
+            "lineNumber": 884
+          },
+          {
+            "lineNumber": 885
+          },
+          {
+            "text": "    let tools = list_tools_for_client(&amp;server_name, &amp;client, startup_timeout)",
+            "lineNumber": 886
+          }
+        ]
+      },
+      "score": 0.15340329706668854
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\mcp_dynamic_loader.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 52,
+            "column": 21
+          }
+        },
+        "contents": "//! Dynamic MCP server loader for runtime addition, removal, and reloading of MCP servers.\n//!\n//! This module provides functionality to dynamically manage MCP servers at runtime,\n//! including adding new servers, removing existing ones, and reloading server configurations.\n\nuse anyhow::Result;\nuse async_channel::Sender;\nuse codex_protocol::protocol::Event;\nuse codex_rmcp_client::OAuthCredentialsStoreMode;\nuse std::collections::HashMap;\nuse std::sync::Arc;\n\n#[cfg(test)]\nmod tests;\nuse std::time::SystemTime;\nuse tokio::sync::Mutex;\nuse tokio_util::sync::CancellationToken;\nuse tracing::info;\n\nuse crate::config::types::McpServerConfig;\nuse crate::mcp::auth::McpAuthStatusEntry;\nuse crate::mcp_connection_manager::McpConnectionManager;\nuse crate::mcp_connection_manager::SandboxState;\n\n/// Server state tracking for dynamic management\n#[derive(Debug, Clone)]\npub struct ServerState {\n    pub name: String,\n    pub config: McpServerConfig,\n    pub status: ServerStatus,\n    pub last_updated: SystemTime,\n}\n\n#[derive(Debug, Clone, PartialEq)]\npub enum ServerStatus {\n    Initializing,\n    Running,\n    Stopped,\n    Error(String),\n}\n\n/// Dynamic MCP loader for runtime server management\npub struct DynamicMcpLoader {\n    connection_manager: Arc&lt;tokio::sync::RwLock&lt;McpConnectionManager&gt;&gt;,\n    server_states: Arc&lt;Mutex&lt;HashMap&lt;String, ServerState&gt;&gt;&gt;,\n    store_mode: OAuthCredentialsStoreMode,\n    auth_entries: Arc&lt;Mutex&lt;HashMap&lt;String, McpAuthStatusEntry&gt;&gt;&gt;,\n    tx_event: Sender&lt;Event&gt;,\n    cancel_token: CancellationToken,\n    sandbox_state: SandboxState,\n}\n\nimpl DynamicMcpLoader",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "//! Dynamic MCP server loader for runtime addition, removal, and reloading of MCP servers.",
+            "lineNumber": 1
+          },
+          {
+            "text": "//!",
+            "lineNumber": 2
+          },
+          {
+            "text": "//! This module provides functionality to dynamically manage MCP servers at runtime,",
+            "lineNumber": 3
+          },
+          {
+            "text": "//! including adding new servers, removing existing ones, and reloading server configurations.",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use async_channel::Sender;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use codex_protocol::protocol::Event;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use codex_rmcp_client::OAuthCredentialsStoreMode;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 13
+          },
+          {
+            "text": "mod tests;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use std::time::SystemTime;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use tokio::sync::Mutex;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use tokio_util::sync::CancellationToken;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use tracing::info;",
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "use crate::config::types::McpServerConfig;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use crate::mcp::auth::McpAuthStatusEntry;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use crate::mcp_connection_manager::McpConnectionManager;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use crate::mcp_connection_manager::SandboxState;",
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 24
+          },
+          {
+            "text": "/// Server state tracking for dynamic management",
+            "lineNumber": 25
+          },
+          {
+            "text": "#[derive(Debug, Clone)]",
+            "lineNumber": 26
+          },
+          {
+            "text": "pub struct ServerState {",
+            "lineNumber": 27
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 28
+          },
+          {
+            "text": "    pub config: McpServerConfig,",
+            "lineNumber": 29
+          },
+          {
+            "text": "    pub status: ServerStatus,",
+            "lineNumber": 30
+          },
+          {
+            "text": "    pub last_updated: SystemTime,",
+            "lineNumber": 31
+          },
+          {
+            "text": "}",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "#[derive(Debug, Clone, PartialEq)]",
+            "lineNumber": 34
+          },
+          {
+            "text": "pub enum ServerStatus {",
+            "lineNumber": 35
+          },
+          {
+            "text": "    Initializing,",
+            "lineNumber": 36
+          },
+          {
+            "text": "    Running,",
+            "lineNumber": 37
+          },
+          {
+            "text": "    Stopped,",
+            "lineNumber": 38
+          },
+          {
+            "text": "    Error(String),",
+            "lineNumber": 39
+          },
+          {
+            "text": "}",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "/// Dynamic MCP loader for runtime server management",
+            "lineNumber": 42
+          },
+          {
+            "text": "pub struct DynamicMcpLoader {",
+            "lineNumber": 43
+          },
+          {
+            "text": "    connection_manager: Arc&lt;tokio::sync::RwLock&lt;McpConnectionManager&gt;&gt;,",
+            "lineNumber": 44
+          },
+          {
+            "text": "    server_states: Arc&lt;Mutex&lt;HashMap&lt;String, ServerState&gt;&gt;&gt;,",
+            "lineNumber": 45
+          },
+          {
+            "text": "    store_mode: OAuthCredentialsStoreMode,",
+            "lineNumber": 46
+          },
+          {
+            "text": "    auth_entries: Arc&lt;Mutex&lt;HashMap&lt;String, McpAuthStatusEntry&gt;&gt;&gt;,",
+            "lineNumber": 47
+          },
+          {
+            "text": "    tx_event: Sender&lt;Event&gt;,",
+            "lineNumber": 48
+          },
+          {
+            "text": "    cancel_token: CancellationToken,",
+            "lineNumber": 49
+          },
+          {
+            "text": "    sandbox_state: SandboxState,",
+            "lineNumber": 50
+          },
+          {
+            "text": "}",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "impl DynamicMcpLoader",
+            "lineNumber": 53
+          }
+        ]
+      },
+      "score": 0.14907419681549072
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\config\\mod.rs",
+        "range": {
+          "startPosition": {
+            "column": 42
+          },
+          "endPosition": {
+            "line": 45,
+            "column": 25
+          }
+        },
+        "contents": "use crate::config::types::DEFAULT_OTEL_ENVIRONMENT;\nuse crate::config::types::History;\nuse crate::config::types::McpServerConfig;\nuse crate::config::types::Notice;\nuse crate::config::types::Notifications;\nuse crate::config::types::OtelConfig;\nuse crate::config::types::OtelConfigToml;\nuse crate::config::types::OtelExporterKind;\nuse crate::config::types::SandboxWorkspaceWrite;\nuse crate::config::types::ScrollInputMode;\nuse crate::config::types::ShellEnvironmentPolicy;\nuse crate::config::types::ShellEnvironmentPolicyToml;\nuse crate::config::types::Tui;\nuse crate::config::types::UriBasedFileOpener;\nuse crate::config_loader::ConfigRequirements;\nuse crate::config_loader::LoaderOverrides;\nuse crate::config_loader::load_config_layers_state;\nuse crate::features::Feature;\nuse crate::features::FeatureOverrides;\nuse crate::features::Features;\nuse crate::features::FeaturesToml;\nuse crate::git_info::resolve_root_git_project_for_trust;\nuse crate::model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;\nuse crate::model_provider_info::ModelProviderInfo;\nuse crate::model_provider_info::OLLAMA_OSS_PROVIDER_ID;\nuse crate::model_provider_info::built_in_model_providers;\nuse crate::project_doc::DEFAULT_PROJECT_DOC_FILENAME;\nuse crate::project_doc::LOCAL_PROJECT_DOC_FILENAME;\nuse crate::protocol::AskForApproval;\nuse crate::protocol::SandboxPolicy;\nuse codex_app_server_protocol::Tools;\nuse codex_app_server_protocol::UserSavedConfig;\nuse codex_protocol::config_types::ForcedLoginMethod;\nuse codex_protocol::config_types::ReasoningSummary;\nuse codex_protocol::config_types::SandboxMode;\nuse codex_protocol::config_types::TrustLevel;\nuse codex_protocol::config_types::Verbosity;\nuse codex_protocol::openai_models::ReasoningEffort;\nuse codex_protocol::openai_models::ReasoningSummaryFormat;\nuse codex_rmcp_client::OAuthCredentialsStoreMode;\nuse codex_utils_absolute_path::AbsolutePathBuf;\nuse codex_utils_absolute_path::AbsolutePathBufGuard;\nuse dirs::home_dir;\nuse serde::Deserialize;\nuse similar::DiffableStr;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use crate::config::types::DEFAULT_OTEL_ENVIRONMENT;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use crate::config::types::History;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use crate::config::types::McpServerConfig;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use crate::config::types::Notice;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use crate::config::types::Notifications;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use crate::config::types::OtelConfig;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use crate::config::types::OtelConfigToml;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use crate::config::types::OtelExporterKind;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use crate::config::types::SandboxWorkspaceWrite;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use crate::config::types::ScrollInputMode;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use crate::config::types::ShellEnvironmentPolicy;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use crate::config::types::ShellEnvironmentPolicyToml;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use crate::config::types::Tui;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use crate::config::types::UriBasedFileOpener;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use crate::config_loader::ConfigRequirements;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use crate::config_loader::LoaderOverrides;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use crate::config_loader::load_config_layers_state;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use crate::features::Feature;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use crate::features::FeatureOverrides;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use crate::features::Features;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use crate::features::FeaturesToml;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use crate::git_info::resolve_root_git_project_for_trust;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use crate::model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use crate::model_provider_info::ModelProviderInfo;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use crate::model_provider_info::OLLAMA_OSS_PROVIDER_ID;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use crate::model_provider_info::built_in_model_providers;",
+            "lineNumber": 27
+          },
+          {
+            "text": "use crate::project_doc::DEFAULT_PROJECT_DOC_FILENAME;",
+            "lineNumber": 28
+          },
+          {
+            "text": "use crate::project_doc::LOCAL_PROJECT_DOC_FILENAME;",
+            "lineNumber": 29
+          },
+          {
+            "text": "use crate::protocol::AskForApproval;",
+            "lineNumber": 30
+          },
+          {
+            "text": "use crate::protocol::SandboxPolicy;",
+            "lineNumber": 31
+          },
+          {
+            "text": "use codex_app_server_protocol::Tools;",
+            "lineNumber": 32
+          },
+          {
+            "text": "use codex_app_server_protocol::UserSavedConfig;",
+            "lineNumber": 33
+          },
+          {
+            "text": "use codex_protocol::config_types::ForcedLoginMethod;",
+            "lineNumber": 34
+          },
+          {
+            "text": "use codex_protocol::config_types::ReasoningSummary;",
+            "lineNumber": 35
+          },
+          {
+            "text": "use codex_protocol::config_types::SandboxMode;",
+            "lineNumber": 36
+          },
+          {
+            "text": "use codex_protocol::config_types::TrustLevel;",
+            "lineNumber": 37
+          },
+          {
+            "text": "use codex_protocol::config_types::Verbosity;",
+            "lineNumber": 38
+          },
+          {
+            "text": "use codex_protocol::openai_models::ReasoningEffort;",
+            "lineNumber": 39
+          },
+          {
+            "text": "use codex_protocol::openai_models::ReasoningSummaryFormat;",
+            "lineNumber": 40
+          },
+          {
+            "text": "use codex_rmcp_client::OAuthCredentialsStoreMode;",
+            "lineNumber": 41
+          },
+          {
+            "text": "use codex_utils_absolute_path::AbsolutePathBuf;",
+            "lineNumber": 42
+          },
+          {
+            "text": "use codex_utils_absolute_path::AbsolutePathBufGuard;",
+            "lineNumber": 43
+          },
+          {
+            "text": "use dirs::home_dir;",
+            "lineNumber": 44
+          },
+          {
+            "text": "use serde::Deserialize;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use similar::DiffableStr;",
+            "lineNumber": 46
+          }
+        ]
+      },
+      "score": 0.1450762003660202
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\core\\src\\mcp_integration_manager.rs",
+        "range": {
+          "startPosition": {
+            "line": 344,
+            "column": 45
+          },
+          "endPosition": {
+            "line": 400,
+            "column": 39
+          }
+        },
+        "contents": "        development.insert(\n            \"parallel-dev\".to_string(),\n            vec![\n                \"serena\".to_string(),\n                \"github\".to_string(),\n                \"git-enhanced\".to_string(),\n                \"filesystem\".to_string(),\n                \"playwright\".to_string(),\n            ],\n        );\n        development.insert(\n            \"centralized-dev\".to_string(),\n            vec![\n                \"serena\".to_string(),\n                \"arxiv\".to_string(),\n                \"docs-analyzer\".to_string(),\n                \"youtube\".to_string(),\n                \"gemini-cli\".to_string(),\n            ],\n        );\n\n        // Agent-specific servers\n        let mut agent_servers = HashMap::new();\n        agent_servers.insert(\n            \"architect\".to_string(),\n            vec![\n                \"serena\".to_string(),\n                \"docs-analyzer\".to_string(),\n                \"git-enhanced\".to_string(),\n                \"youtube\".to_string(),\n                \"filesystem\".to_string(),\n                \"gemini-cli\".to_string(),\n            ],\n        );\n        agent_servers.insert(\n            \"researcher\".to_string(),\n            vec![\n                \"arxiv\".to_string(),\n                \"github\".to_string(),\n                \"docs-analyzer\".to_string(),\n                \"youtube\".to_string(),\n                \"gemini-cli\".to_string(),\n            ],\n        );\n        agent_servers.insert(\n            \"code-reviewer\".to_string(),\n            vec![\n                \"serena\".to_string(),\n                \"github\".to_string(),\n                \"git-enhanced\".to_string(),\n                \"filesystem\".to_string(),\n                \"gemini-cli\".to_string(),\n            ],\n        );\n        agent_servers.insert(\n            \"qc-optimizer\".to_string(),",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        development.insert(",
+            "lineNumber": 346
+          },
+          {
+            "text": "            \"parallel-dev\".to_string(),",
+            "lineNumber": 347
+          },
+          {
+            "text": "            vec![",
+            "lineNumber": 348
+          },
+          {
+            "text": "                \"serena\".to_string(),",
+            "lineNumber": 349
+          },
+          {
+            "text": "                \"github\".to_string(),",
+            "lineNumber": 350
+          },
+          {
+            "text": "                \"git-enhanced\".to_string(),",
+            "lineNumber": 351
+          },
+          {
+            "text": "                \"filesystem\".to_string(),",
+            "lineNumber": 352
+          },
+          {
+            "text": "                \"playwright\".to_string(),",
+            "lineNumber": 353
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 354
+          },
+          {
+            "text": "        );",
+            "lineNumber": 355
+          },
+          {
+            "text": "        development.insert(",
+            "lineNumber": 356
+          },
+          {
+            "text": "            \"centralized-dev\".to_string(),",
+            "lineNumber": 357
+          },
+          {
+            "text": "            vec![",
+            "lineNumber": 358
+          },
+          {
+            "text": "                \"serena\".to_string(),",
+            "lineNumber": 359
+          },
+          {
+            "text": "                \"arxiv\".to_string(),",
+            "lineNumber": 360
+          },
+          {
+            "text": "                \"docs-analyzer\".to_string(),",
+            "lineNumber": 361
+          },
+          {
+            "text": "                \"youtube\".to_string(),",
+            "lineNumber": 362
+          },
+          {
+            "text": "                \"gemini-cli\".to_string(),",
+            "lineNumber": 363
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 364
+          },
+          {
+            "text": "        );",
+            "lineNumber": 365
+          },
+          {
+            "lineNumber": 366
+          },
+          {
+            "text": "        // Agent-specific servers",
+            "lineNumber": 367
+          },
+          {
+            "text": "        let mut agent_servers = HashMap::new();",
+            "lineNumber": 368
+          },
+          {
+            "text": "        agent_servers.insert(",
+            "lineNumber": 369
+          },
+          {
+            "text": "            \"architect\".to_string(),",
+            "lineNumber": 370
+          },
+          {
+            "text": "            vec![",
+            "lineNumber": 371
+          },
+          {
+            "text": "                \"serena\".to_string(),",
+            "lineNumber": 372
+          },
+          {
+            "text": "                \"docs-analyzer\".to_string(),",
+            "lineNumber": 373
+          },
+          {
+            "text": "                \"git-enhanced\".to_string(),",
+            "lineNumber": 374
+          },
+          {
+            "text": "                \"youtube\".to_string(),",
+            "lineNumber": 375
+          },
+          {
+            "text": "                \"filesystem\".to_string(),",
+            "lineNumber": 376
+          },
+          {
+            "text": "                \"gemini-cli\".to_string(),",
+            "lineNumber": 377
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 378
+          },
+          {
+            "text": "        );",
+            "lineNumber": 379
+          },
+          {
+            "text": "        agent_servers.insert(",
+            "lineNumber": 380
+          },
+          {
+            "text": "            \"researcher\".to_string(),",
+            "lineNumber": 381
+          },
+          {
+            "text": "            vec![",
+            "lineNumber": 382
+          },
+          {
+            "text": "                \"arxiv\".to_string(),",
+            "lineNumber": 383
+          },
+          {
+            "text": "                \"github\".to_string(),",
+            "lineNumber": 384
+          },
+          {
+            "text": "                \"docs-analyzer\".to_string(),",
+            "lineNumber": 385
+          },
+          {
+            "text": "                \"youtube\".to_string(),",
+            "lineNumber": 386
+          },
+          {
+            "text": "                \"gemini-cli\".to_string(),",
+            "lineNumber": 387
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 388
+          },
+          {
+            "text": "        );",
+            "lineNumber": 389
+          },
+          {
+            "text": "        agent_servers.insert(",
+            "lineNumber": 390
+          },
+          {
+            "text": "            \"code-reviewer\".to_string(),",
+            "lineNumber": 391
+          },
+          {
+            "text": "            vec![",
+            "lineNumber": 392
+          },
+          {
+            "text": "                \"serena\".to_string(),",
+            "lineNumber": 393
+          },
+          {
+            "text": "                \"github\".to_string(),",
+            "lineNumber": 394
+          },
+          {
+            "text": "                \"git-enhanced\".to_string(),",
+            "lineNumber": 395
+          },
+          {
+            "text": "                \"filesystem\".to_string(),",
+            "lineNumber": 396
+          },
+          {
+            "text": "                \"gemini-cli\".to_string(),",
+            "lineNumber": 397
+          },
+          {
+            "text": "            ],",
+            "lineNumber": 398
+          },
+          {
+            "text": "        );",
+            "lineNumber": 399
+          },
+          {
+            "text": "        agent_servers.insert(",
+            "lineNumber": 400
+          },
+          {
+            "text": "            \"qc-optimizer\".to_string(),",
+            "lineNumber": 401
+          }
+        ]
+      },
+      "score": 0.14460504055023193
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+`SecureAgentCommunicator`の`impl`ブロックに`#[cfg(feature = "agent_security")]`が欠けています。追加して修正します。
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: codex-rs/core/src/agents/secure_message.rs</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd codex-rs; cargo build --release -p codex-cli 2>&1 | Select-Object -Last 10</summary>
+
+```bash
+cd codex-rs; cargo build --release -p codex-cli 2>&1 | Select-Object -Last 10
+```
+</details>
+</tool-use>
+
+---
+
+
+エラーを修正しました。ビルドを再実行します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Set-Location C:\Users\downl\Desktop\codex-main; py -3 .\fast_build_install.py</summary>
+
+```bash
+Set-Location C:\Users\downl\Desktop\codex-main; py -3 .\fast_build_install.py
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] 高速差分ビルド実行（codex-cli）
+- [ ] バイナリ上書きインストール
+- [ ] 実装ログ作成
+
+</details>
+</tool-use>
+
+---
+
+
+エラーを修正し、ビルドを再実行中です。
+
+## 修正内容
+
+- `SecureAgentCommunicator`の`impl`ブロックに`#[cfg(feature = "agent_security")]`属性を追加
+- これにより、`agent_security`フィーチャーが無効でもコンパイルエラーが発生しなくなります
+
+## 現在の状況
+
+- ビルドを再実行中（バックグラウンド）
+- 進捗可視化スクリプトで実行中
+- 完了次第、インストールとログ作成を進めます
+
+ビルド完了までしばらくお待ちください。
+
+---
+
+_**User**_
+
+進捗は？
+
+---
+
