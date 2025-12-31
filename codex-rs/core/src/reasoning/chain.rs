@@ -237,7 +237,7 @@ impl ReasoningChain {
     }
 
     /// Check for counter-evidence
-    async fn check_counter_evidence(&self, state: &ChainState) -> Result<Option<String>> {
+    async fn check_counter_evidence(&self, _state: &ChainState) -> Result<Option<String>> {
         // Look for contradictions in reasoning steps
         // (In real implementation, this would analyze the reasoning for contradictions)
         Ok(None)

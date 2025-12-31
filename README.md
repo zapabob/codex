@@ -1363,7 +1363,11 @@ npm run dev
 ---
 
 **Built with ❤️ by [@zapabob](https://github.com/zapabob_ouj) | Based on [OpenAI/codex](https://github.com/openai/codex)**
-=======
+
+---
+
+## OpenAI Codex CLI (Upstream) / OpenAI Codex CLI（上流版）
+
 <p align="center"><code>npm i -g @openai/codex</code><br />or <code>brew install --cask codex</code></p>
 
 <p align="center"><strong>Codex CLI</strong> is a coding agent from OpenAI that runs locally on your computer.
@@ -1371,13 +1375,20 @@ npm run dev
 </br>If you want Codex in your code editor (VS Code, Cursor, Windsurf), <a href="https://developers.openai.com/codex/ide">install in your IDE</a>
 </br>If you are looking for the <em>cloud-based agent</em> from OpenAI, <strong>Codex Web</strong>, go to <a href="https://chatgpt.com/codex">chatgpt.com/codex</a></p>
 
+<p align="center"><code>npm i -g @openai/codex</code><br />または <code>brew install --cask codex</code></p>
+
+<p align="center"><strong>Codex CLI</strong> はOpenAIのローカル実行型コーディングエージェントです。
+</br>
+</br>VS Code / Cursor / Windsurf で使う場合は <a href="https://developers.openai.com/codex/ide">IDEにインストール</a>
+</br>OpenAIの <em>クラウド版エージェント</em> である <strong>Codex Web</strong> は <a href="https://chatgpt.com/codex">chatgpt.com/codex</a></p>
+
 <p align="center">
   <img src="./.github/codex-cli-splash.png" alt="Codex CLI splash" width="80%" />
   </p>
 
 ---
 
-## Quickstart
+## Quickstart (OpenAI Codex CLI)
 
 ### Installing and running Codex CLI
 
@@ -1402,7 +1413,7 @@ codex
 If you're running into upgrade issues with Homebrew, see the [FAQ entry on brew upgrade codex](./docs/faq.md#brew-upgrade-codex-isnt-upgrading-me).
 
 <details>
-<summary>You can also go to the <a href="https://github.com/openai/codex/releases/latest">latest GitHub Release</a> and download the appropriate binary for your platform.</summary>
+<summary>You can also go to the <a href="https://github.com/openai/codex/releases/latest">latest GitHub Release</a> and download the appropriate binary for your platform. / <a href="https://github.com/openai/codex/releases/latest">最新のGitHub Release</a> から各OS向けバイナリを取得できます。</summary>
 
 Each GitHub Release contains many executables, but in practice, you likely want one of these:
 
@@ -1415,9 +1426,44 @@ Each GitHub Release contains many executables, but in practice, you likely want 
 
 Each archive contains a single entry with the platform baked into the name (e.g., `codex-x86_64-unknown-linux-musl`), so you likely want to rename it to `codex` after extracting it.
 
+各リリースには複数の実行ファイルが含まれますが、通常は以下のいずれかを使用します。
+
+- macOS
+  - Apple Silicon/arm64: `codex-aarch64-apple-darwin.tar.gz`
+  - x86_64（旧型Mac向け）: `codex-x86_64-apple-darwin.tar.gz`
+- Linux
+  - x86_64: `codex-x86_64-unknown-linux-musl.tar.gz`
+  - arm64: `codex-aarch64-unknown-linux-musl.tar.gz`
+
+各アーカイブにはプラットフォーム名が埋め込まれた単一の実行ファイルが含まれるため、展開後に `codex` へリネームするのがおすすめです。
+
 </details>
 
-### Using Codex with your ChatGPT plan
+## クイックスタート（OpenAI Codex CLI）
+
+### インストールと起動
+
+お使いのパッケージマネージャーでグローバルインストールします。npmの場合:
+
+```shell
+npm install -g @openai/codex
+```
+
+Homebrewの場合:
+
+```shell
+brew install --cask codex
+```
+
+その後 `codex` を実行します:
+
+```shell
+codex
+```
+
+Homebrewのアップグレードで問題がある場合は、[FAQの該当項目](./docs/faq.md#brew-upgrade-codex-isnt-upgrading-me) を確認してください。
+
+### Using Codex with your ChatGPT plan / ChatGPTプランでの利用
 
 <p align="center">
   <img src="./.github/codex-cli-login.png" alt="Codex CLI login" width="80%" />
@@ -1425,55 +1471,65 @@ Each archive contains a single entry with the platform baked into the name (e.g.
 
 Run `codex` and select **Sign in with ChatGPT**. We recommend signing into your ChatGPT account to use Codex as part of your Plus, Pro, Team, Edu, or Enterprise plan. [Learn more about what's included in your ChatGPT plan](https://help.openai.com/en/articles/11369540-codex-in-chatgpt).
 
+`codex` を実行し、**Sign in with ChatGPT** を選択してください。CodexはPlus/Pro/Team/Edu/Enterpriseプランに含まれるため、ChatGPTアカウントでのログインを推奨します。詳細は [ChatGPTプランに含まれる内容](https://help.openai.com/en/articles/11369540-codex-in-chatgpt) を参照してください。
+
 You can also use Codex with an API key, but this requires [additional setup](./docs/authentication.md#usage-based-billing-alternative-use-an-openai-api-key). If you previously used an API key for usage-based billing, see the [migration steps](./docs/authentication.md#migrating-from-usage-based-billing-api-key). If you're having trouble with login, please comment on [this issue](https://github.com/openai/codex/issues/1243).
 
-### Model Context Protocol (MCP)
+APIキーでも利用できますが、[追加設定](./docs/authentication.md#usage-based-billing-alternative-use-an-openai-api-key) が必要です。従量課金APIキーから移行する場合は [移行手順](./docs/authentication.md#migrating-from-usage-based-billing-api-key) を確認してください。ログインで問題がある場合は [このIssue](https://github.com/openai/codex/issues/1243) へコメントしてください。
+
+### Model Context Protocol (MCP) / Model Context Protocol（MCP）
 
 Codex can access MCP servers. To configure them, refer to the [config docs](./docs/config.md#mcp_servers).
 
-### Configuration
+CodexはMCPサーバーにアクセスできます。設定方法は [config docs](./docs/config.md#mcp_servers) を参照してください。
+
+### Configuration / 設定
 
 Codex CLI supports a rich set of configuration options, with preferences stored in `~/.codex/config.toml`. For full configuration options, see [Configuration](./docs/config.md).
 
-### Execpolicy
+Codex CLIは多くの設定項目に対応しており、設定は `~/.codex/config.toml` に保存されます。詳細は [Configuration](./docs/config.md) を参照してください。
+
+### Execpolicy / Execpolicy
 
 See the [Execpolicy quickstart](./docs/execpolicy.md) to set up rules that govern what commands Codex can execute.
 
-### Docs & FAQ
+Codexが実行できるコマンドを制御するルールは [Execpolicy quickstart](./docs/execpolicy.md) を参照してください。
 
-- [**Getting started**](./docs/getting-started.md)
-  - [CLI usage](./docs/getting-started.md#cli-usage)
-  - [Slash Commands](./docs/slash_commands.md)
-  - [Running with a prompt as input](./docs/getting-started.md#running-with-a-prompt-as-input)
-  - [Example prompts](./docs/getting-started.md#example-prompts)
-  - [Custom prompts](./docs/prompts.md)
-  - [Memory with AGENTS.md](./docs/getting-started.md#memory-with-agentsmd)
-- [**Configuration**](./docs/config.md)
-  - [Example config](./docs/example-config.md)
-- [**Sandbox & approvals**](./docs/sandbox.md)
-- [**Execpolicy quickstart**](./docs/execpolicy.md)
-- [**Authentication**](./docs/authentication.md)
-  - [Auth methods](./docs/authentication.md#forcing-a-specific-auth-method-advanced)
-  - [Login on a "Headless" machine](./docs/authentication.md#connecting-on-a-headless-machine)
-- **Automating Codex**
-  - [GitHub Action](https://github.com/openai/codex-action)
-  - [TypeScript SDK](./sdk/typescript/README.md)
-  - [Non-interactive mode (`codex exec`)](./docs/exec.md)
-- [**Advanced**](./docs/advanced.md)
-  - [Tracing / verbose logging](./docs/advanced.md#tracing--verbose-logging)
-  - [Model Context Protocol (MCP)](./docs/advanced.md#model-context-protocol-mcp)
-- [**Zero data retention (ZDR)**](./docs/zdr.md)
-- [**Contributing**](./docs/contributing.md)
-- [**Install & build**](./docs/install.md)
-  - [System Requirements](./docs/install.md#system-requirements)
-  - [DotSlash](./docs/install.md#dotslash)
-  - [Build from source](./docs/install.md#build-from-source)
-- [**FAQ**](./docs/faq.md)
-- [**Open source fund**](./docs/open-source-fund.md)
+### Docs & FAQ / ドキュメント & FAQ
+
+- [**Getting started / はじめに**](./docs/getting-started.md)
+  - [CLI usage / CLIの使い方](./docs/getting-started.md#cli-usage)
+  - [Slash Commands / スラッシュコマンド](./docs/slash_commands.md)
+  - [Running with a prompt as input / プロンプト入力で実行](./docs/getting-started.md#running-with-a-prompt-as-input)
+  - [Example prompts / 例文](./docs/getting-started.md#example-prompts)
+  - [Custom prompts / カスタムプロンプト](./docs/prompts.md)
+  - [Memory with AGENTS.md / AGENTS.mdによるメモリ](./docs/getting-started.md#memory-with-agentsmd)
+- [**Configuration / 設定**](./docs/config.md)
+  - [Example config / 設定例](./docs/example-config.md)
+- [**Sandbox & approvals / サンドボックスと承認**](./docs/sandbox.md)
+- [**Execpolicy quickstart / Execpolicyクイックスタート**](./docs/execpolicy.md)
+- [**Authentication / 認証**](./docs/authentication.md)
+  - [Auth methods / 認証方法](./docs/authentication.md#forcing-a-specific-auth-method-advanced)
+  - [Login on a "Headless" machine / ヘッドレス環境でのログイン](./docs/authentication.md#connecting-on-a-headless-machine)
+- **Automating Codex / Codexの自動化**
+  - [GitHub Action / GitHub Action](https://github.com/openai/codex-action)
+  - [TypeScript SDK / TypeScript SDK](./sdk/typescript/README.md)
+  - [Non-interactive mode (`codex exec`) / 非対話モード (`codex exec`)](./docs/exec.md)
+- [**Advanced / 高度な設定**](./docs/advanced.md)
+  - [Tracing / verbose logging / トレーシング・詳細ログ](./docs/advanced.md#tracing--verbose-logging)
+  - [Model Context Protocol (MCP) / MCP](./docs/advanced.md#model-context-protocol-mcp)
+- [**Zero data retention (ZDR) / データ保持なし（ZDR）**](./docs/zdr.md)
+- [**Contributing / 貢献**](./docs/contributing.md)
+- [**Install & build / インストールとビルド**](./docs/install.md)
+  - [System Requirements / システム要件](./docs/install.md#system-requirements)
+  - [DotSlash / DotSlash](./docs/install.md#dotslash)
+  - [Build from source / ソースからビルド](./docs/install.md#build-from-source)
+- [**FAQ / よくある質問**](./docs/faq.md)
+- [**Open source fund / オープンソース基金**](./docs/open-source-fund.md)
 
 ---
 
-## License
+## License / ライセンス
 
 This repository is licensed under the [Apache-2.0 License](LICENSE).
->>>>>>> upstream/main
+本リポジトリは [Apache-2.0 License](LICENSE) の下で公開されています。

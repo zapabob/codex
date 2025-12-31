@@ -107,7 +107,7 @@ impl McpTokenOptimizer {
     }
 
     /// Automatically unload unused tools
-    pub async fn auto_unload_unused(&self, loader: &DynamicMcpLoader) -> Result<()> {
+    pub async fn auto_unload_unused(&self, _loader: &DynamicMcpLoader) -> Result<()> {
         let unused_tools = self.get_unused_tools(self.auto_unload_threshold).await;
         
         if unused_tools.is_empty() {
@@ -221,8 +221,6 @@ impl McpTokenOptimizer {
                     warn!("Failed to auto-unload unused tools: {}", e);
                 }
             }
-            // loader is moved into the closure and used above
-            drop(loader);
         });
     }
 

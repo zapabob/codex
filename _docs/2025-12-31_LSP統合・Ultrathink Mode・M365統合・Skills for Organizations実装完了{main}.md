@@ -347,7 +347,8 @@ cargo test -p codex-microsoft365 --test integration
   - 未使用変数の警告を修正（`_codex_home`, `_refresh_token`, `_content`）
   - 未使用インポートを削除
 
-### 差分ビルド実行中 ⏳
+### 差分ビルド状況
+- **ステータス**: ビルド再実行中（2025-12-31 17:10 JST）
 - `cargo build --release -p codex-cli` をバックグラウンドで実行中
 - ビルド完了後、バイナリを上書きインストール予定
 

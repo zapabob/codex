@@ -132,7 +132,7 @@ impl McpFileWatcher {
 
     /// Reload configuration file
     async fn reload_config_file(
-        loader: &DynamicMcpLoader,
+        _loader: &DynamicMcpLoader,
         config_path: &Path,
     ) -> Result<()> {
         // Read and parse config file
@@ -145,7 +145,7 @@ impl McpFileWatcher {
 
     /// Check plugin directory for new/removed plugins
     async fn check_plugin_directory(
-        loader: &DynamicMcpLoader,
+        _loader: &DynamicMcpLoader,
         plugin_dir: &Path,
     ) -> Result<()> {
         if !plugin_dir.exists() {

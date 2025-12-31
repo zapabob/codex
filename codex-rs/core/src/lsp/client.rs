@@ -4,7 +4,7 @@
 
 use anyhow::{Context, Result};
 use lsp_types::{
-    notification::{DidChangeTextDocument, DidOpenTextDocument, Notification},
+    notification::{DidChangeTextDocument, DidOpenTextDocument, Initialized, Notification},
     request::{Completion, HoverRequest, References, Request},
     CompletionParams, CompletionResponse, Hover, HoverParams,
     InitializeParams, InitializeResult, InitializedParams, ReferenceParams, ServerCapabilities,
@@ -42,7 +42,7 @@ pub struct LspClient {
 
 impl LspClient {
     /// Create a new LSP client for the specified language server
-    pub fn new(server_name: String, command: Vec<String>, root_path: PathBuf) -> Self {
+    pub fn new(server_name: String, _command: Vec<String>, root_path: PathBuf) -> Self {
         Self {
             process: None,
             stdin: None,
@@ -67,6 +67,7 @@ impl LspClient {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
+            .kill_on_drop(true)
             .spawn()
             .context("Failed to spawn language server process")?;
 
@@ -120,7 +121,7 @@ impl LspClient {
 
                         // Read message body
                         let mut body = vec![0u8; content_length];
-                        if let Ok(()) = reader.read_exact(&mut body).await {
+                        if reader.read_exact(&mut body).await.is_ok() {
                             if let Ok(message) = serde_json::from_slice::<Value>(&body) {
                                 if let Some(id) = message.get("id").and_then(|v| v.as_u64()) {
                                     if let Some(result) = message.get("result") {
@@ -143,7 +144,7 @@ impl LspClient {
         let root_uri = self.root_uri.clone().context("Root URI not set")?;
 
         let params = InitializeParams {
-            process_id: Some(std::process::id() as i32),
+            process_id: Some(std::process::id()),
             client_info: Some(lsp_types::ClientInfo {
                 name: "codex".to_string(),
                 version: Some(env!("CARGO_PKG_VERSION").to_string()),
@@ -155,6 +156,7 @@ impl LspClient {
             capabilities: lsp_types::ClientCapabilities::default(),
             trace: None,
             workspace_folders: None,
+            work_done_progress_params: Default::default(),
         };
 
         let response = self
@@ -165,7 +167,7 @@ impl LspClient {
         self.capabilities = Some(response.capabilities);
 
         // Send initialized notification
-        self.send_notification(InitializedParams {}).await?;
+        self.send_notification::<Initialized>(InitializedParams {}).await?;
 
         info!("Language server initialized: {}", self.server_name);
         Ok(())
@@ -286,7 +288,7 @@ impl LspClient {
             context: None,
         };
 
-        self.send_request::<Completion>(params).await.map(Some)
+        self.send_request::<Completion>(params).await
     }
 
     /// Get hover information at a position
@@ -337,7 +339,7 @@ impl LspClient {
 
     /// Stop the language server
     pub async fn stop(&mut self) -> Result<()> {
-        if let Some(process) = self.process.take() {
+        if let Some(mut process) = self.process.take() {
             let _ = process.kill().await;
         }
         Ok(())
@@ -346,8 +348,8 @@ impl LspClient {
 
 impl Drop for LspClient {
     fn drop(&mut self) {
-        if let Some(process) = self.process.take() {
-            let _ = process.kill();
+        if let Some(mut process) = self.process.take() {
+            let _ = process.start_kill();
         }
     }
 }

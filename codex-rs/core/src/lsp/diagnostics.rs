@@ -135,7 +135,7 @@ impl DiagnosticsManager {
     pub async fn get_statistics(&self) -> DiagnosticsStatistics {
         let cache = self.diagnostics.read().await;
         let mut total_diagnostics = 0;
-        let mut total_documents = cache.len();
+        let total_documents = cache.len();
         let mut diagnostics_by_severity: HashMap<String, usize> = HashMap::new();
 
         for doc_diagnostics in cache.values().flatten() {
@@ -146,6 +146,7 @@ impl DiagnosticsManager {
                     Some(lsp_types::DiagnosticSeverity::WARNING) => "warning",
                     Some(lsp_types::DiagnosticSeverity::INFORMATION) => "information",
                     Some(lsp_types::DiagnosticSeverity::HINT) => "hint",
+                    Some(_) => "unknown",
                     None => "unknown",
                 };
                 *diagnostics_by_severity.entry(severity.to_string()).or_insert(0) += 1;
