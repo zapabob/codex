@@ -233,7 +233,7 @@ impl McpCli {
     }
 }
 
-async fn run_dynamic(config_overrides: &CliConfigOverrides, args: DynamicArgs) -> Result<()> {
+async fn run_dynamic(_config_overrides: &CliConfigOverrides, args: DynamicArgs) -> Result<()> {
     // Note: Dynamic loading requires a running Codex instance with DynamicMcpLoader.
     // This is a placeholder implementation that shows the command structure.
     // Full implementation would require integration with the Codex runtime.
