@@ -13,6 +13,7 @@ use mcp_types::ContentBlock;
 use mcp_types::ListToolsResult;
 use mcp_types::TextContent;
 use mcp_types::Tool;
+use mcp_types::ToolInputSchema;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -45,15 +46,15 @@ impl LspToolHandler {
                     name: "lsp_get_diagnostics".to_string(),
                     title: None,
                     description: Some("Get LSP diagnostics for a document or all documents".to_string()),
-                    input_schema: serde_json::from_value(serde_json::json!({
-                        "type": "object",
-                        "properties": {
+                    input_schema: tool_input_schema(
+                        serde_json::json!({
                             "uri": {
                                 "type": "string",
                                 "description": "Document URI (optional, if not provided returns all diagnostics)"
                             }
-                        }
-                    })).unwrap(),
+                        }),
+                        None,
+                    ),
                     output_schema: None,
                     annotations: None,
                 },
@@ -61,9 +62,8 @@ impl LspToolHandler {
                     name: "lsp_start_server".to_string(),
                     title: None,
                     description: Some("Start an LSP server for a language".to_string()),
-                    input_schema: serde_json::from_value(serde_json::json!({
-                        "type": "object",
-                        "properties": {
+                    input_schema: tool_input_schema(
+                        serde_json::json!({
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server (e.g., 'rust-analyzer', 'typescript')"
@@ -77,9 +77,9 @@ impl LspToolHandler {
                                 "type": "string",
                                 "description": "Root path of the workspace"
                             }
-                        },
-                        "required": ["server_name", "command", "root_path"]
-                    })).unwrap(),
+                        }),
+                        Some(&["server_name", "command", "root_path"]),
+                    ),
                     output_schema: None,
                     annotations: None,
                 },
@@ -87,16 +87,15 @@ impl LspToolHandler {
                     name: "lsp_stop_server".to_string(),
                     title: None,
                     description: Some("Stop an LSP server".to_string()),
-                    input_schema: serde_json::from_value(serde_json::json!({
-                        "type": "object",
-                        "properties": {
+                    input_schema: tool_input_schema(
+                        serde_json::json!({
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server to stop"
                             }
-                        },
-                        "required": ["server_name"]
-                    })).unwrap(),
+                        }),
+                        Some(&["server_name"]),
+                    ),
                     output_schema: None,
                     annotations: None,
                 },
@@ -104,9 +103,8 @@ impl LspToolHandler {
                     name: "lsp_get_completions".to_string(),
                     title: None,
                     description: Some("Get code completions at a position".to_string()),
-                    input_schema: serde_json::from_value(serde_json::json!({
-                        "type": "object",
-                        "properties": {
+                    input_schema: tool_input_schema(
+                        serde_json::json!({
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server"
@@ -123,9 +121,9 @@ impl LspToolHandler {
                                 "type": "number",
                                 "description": "Character position (0-based)"
                             }
-                        },
-                        "required": ["server_name", "uri", "line", "character"]
-                    })).unwrap(),
+                        }),
+                        Some(&["server_name", "uri", "line", "character"]),
+                    ),
                     output_schema: None,
                     annotations: None,
                 },
@@ -133,9 +131,8 @@ impl LspToolHandler {
                     name: "lsp_get_hover".to_string(),
                     title: None,
                     description: Some("Get hover information at a position".to_string()),
-                    input_schema: serde_json::from_value(serde_json::json!({
-                        "type": "object",
-                        "properties": {
+                    input_schema: tool_input_schema(
+                        serde_json::json!({
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server"
@@ -152,9 +149,9 @@ impl LspToolHandler {
                                 "type": "number",
                                 "description": "Character position (0-based)"
                             }
-                        },
-                        "required": ["server_name", "uri", "line", "character"]
-                    })).unwrap(),
+                        }),
+                        Some(&["server_name", "uri", "line", "character"]),
+                    ),
                     output_schema: None,
                     annotations: None,
                 },
@@ -162,10 +159,7 @@ impl LspToolHandler {
                     name: "lsp_get_statistics".to_string(),
                     title: None,
                     description: Some("Get LSP diagnostics statistics".to_string()),
-                    input_schema: serde_json::from_value(serde_json::json!({
-                        "type": "object",
-                        "properties": {}
-                    })).unwrap(),
+                    input_schema: tool_input_schema(serde_json::json!({}), None),
                     output_schema: None,
                     annotations: None,
                 },
@@ -415,6 +409,18 @@ impl LspToolHandler {
             is_error: Some(false),
             structured_content: None,
         })
+    }
+}
+
+fn tool_input_schema(
+    properties: serde_json::Value,
+    required: Option<&[&str]>,
+) -> ToolInputSchema {
+    ToolInputSchema {
+        properties: Some(properties),
+        required: required
+            .map(|items| items.iter().map(std::string::ToString::to_string).collect()),
+        r#type: "object".to_string(),
     }
 }
 
