@@ -102,7 +102,7 @@ which = { workspace = true }
 wildmatch = { workspace = true }
 lsp-types = "0.95"
 tower-lsp = "0.20"
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "chrono"] }
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono"] }
 oauth2 = "4.4"
 
 [features]
