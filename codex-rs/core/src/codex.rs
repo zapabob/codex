@@ -3144,6 +3144,7 @@ mod tests {
         let services = SessionServices {
             mcp_connection_manager: Arc::new(RwLock::new(McpConnectionManager::default())),
             mcp_startup_cancellation_token: CancellationToken::new(),
+            mcp_dynamic_loader: None,
             unified_exec_manager: UnifiedExecSessionManager::default(),
             notifier: UserNotifier::new(None),
             rollout: Mutex::new(None),
@@ -3231,6 +3232,7 @@ mod tests {
         let services = SessionServices {
             mcp_connection_manager: Arc::new(RwLock::new(McpConnectionManager::default())),
             mcp_startup_cancellation_token: CancellationToken::new(),
+            mcp_dynamic_loader: None,
             unified_exec_manager: UnifiedExecSessionManager::default(),
             notifier: UserNotifier::new(None),
             rollout: Mutex::new(None),

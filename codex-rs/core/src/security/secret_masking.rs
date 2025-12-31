@@ -183,6 +183,7 @@ mod tests {
 
     #[test]
     fn test_mask_error_message() {
+        #[derive(Debug)]
         struct TestError;
         impl std::fmt::Display for TestError {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
