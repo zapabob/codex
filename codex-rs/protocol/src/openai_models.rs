@@ -262,6 +262,7 @@ fn effort_rank(effort: ReasoningEffort) -> i32 {
 fn nearest_effort(target: ReasoningEffort, supported: &[ReasoningEffort]) -> ReasoningEffort {
     // supported is guaranteed to be non-empty by the caller
     let target_rank = effort_rank(target);
+    #[allow(clippy::expect_used)]
     supported
         .iter()
         .copied()
