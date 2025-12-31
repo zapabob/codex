@@ -392,6 +392,7 @@ async fn codex_tool_passes_base_instructions() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn create_expected_patch_approval_elicitation_request(
     elicitation_request_id: RequestId,
     changes: HashMap<PathBuf, FileChange>,

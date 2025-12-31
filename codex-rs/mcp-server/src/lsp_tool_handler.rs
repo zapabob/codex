@@ -13,7 +13,6 @@ use mcp_types::ContentBlock;
 use mcp_types::ListToolsResult;
 use mcp_types::TextContent;
 use mcp_types::Tool;
-use mcp_types::ToolInputSchema;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -46,15 +45,15 @@ impl LspToolHandler {
                     name: "lsp_get_diagnostics".to_string(),
                     title: None,
                     description: Some("Get LSP diagnostics for a document or all documents".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "uri": {
                                 "type": "string",
                                 "description": "Document URI (optional, if not provided returns all diagnostics)"
                             }
-                        }),
-                        None,
-                    ),
+                        }
+                    })).unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -62,8 +61,9 @@ impl LspToolHandler {
                     name: "lsp_start_server".to_string(),
                     title: None,
                     description: Some("Start an LSP server for a language".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server (e.g., 'rust-analyzer', 'typescript')"
@@ -77,9 +77,9 @@ impl LspToolHandler {
                                 "type": "string",
                                 "description": "Root path of the workspace"
                             }
-                        }),
-                        Some(&["server_name", "command", "root_path"]),
-                    ),
+                        },
+                        "required": ["server_name", "command", "root_path"]
+                    })).unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -87,15 +87,16 @@ impl LspToolHandler {
                     name: "lsp_stop_server".to_string(),
                     title: None,
                     description: Some("Stop an LSP server".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server to stop"
                             }
-                        }),
-                        Some(&["server_name"]),
-                    ),
+                        },
+                        "required": ["server_name"]
+                    })).unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -103,8 +104,9 @@ impl LspToolHandler {
                     name: "lsp_get_completions".to_string(),
                     title: None,
                     description: Some("Get code completions at a position".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server"
@@ -121,9 +123,9 @@ impl LspToolHandler {
                                 "type": "number",
                                 "description": "Character position (0-based)"
                             }
-                        }),
-                        Some(&["server_name", "uri", "line", "character"]),
-                    ),
+                        },
+                        "required": ["server_name", "uri", "line", "character"]
+                    })).unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -131,8 +133,9 @@ impl LspToolHandler {
                     name: "lsp_get_hover".to_string(),
                     title: None,
                     description: Some("Get hover information at a position".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "server_name": {
                                 "type": "string",
                                 "description": "Name of the language server"
@@ -149,9 +152,9 @@ impl LspToolHandler {
                                 "type": "number",
                                 "description": "Character position (0-based)"
                             }
-                        }),
-                        Some(&["server_name", "uri", "line", "character"]),
-                    ),
+                        },
+                        "required": ["server_name", "uri", "line", "character"]
+                    })).unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -159,7 +162,10 @@ impl LspToolHandler {
                     name: "lsp_get_statistics".to_string(),
                     title: None,
                     description: Some("Get LSP diagnostics statistics".to_string()),
-                    input_schema: tool_input_schema(serde_json::json!({}), None),
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {}
+                    })).unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -206,7 +212,7 @@ impl LspToolHandler {
         let uri: Option<String> = arguments
             .get("uri")
             .and_then(|v| v.as_str())
-            .map(std::string::ToString::to_string);
+            .map(|s| s.to_string());
 
         if let Some(uri_str) = uri {
             let uri = Url::parse(&uri_str).context("Invalid URI")?;
@@ -250,7 +256,7 @@ impl LspToolHandler {
             .and_then(|v| v.as_array())
             .context("Missing command")?
             .iter()
-            .filter_map(|v| v.as_str().map(std::string::ToString::to_string))
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
             .collect();
 
         let root_path = arguments
@@ -274,7 +280,7 @@ impl LspToolHandler {
         Ok(CallToolResult {
             content: vec![ContentBlock::TextContent(TextContent {
                 r#type: "text".to_string(),
-                text: format!("Started LSP server: {server_name}"),
+                text: format!("Started LSP server: {}", server_name),
                 annotations: None,
             })],
             is_error: Some(false),
@@ -296,14 +302,14 @@ impl LspToolHandler {
             Ok(CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
-                    text: format!("Stopped LSP server: {server_name}"),
+                    text: format!("Stopped LSP server: {}", server_name),
                     annotations: None,
                 })],
                 is_error: Some(false),
                 structured_content: None,
             })
         } else {
-            Err(anyhow::anyhow!("LSP server not found: {server_name}"))
+            Err(anyhow::anyhow!("LSP server not found: {}", server_name))
         }
     }
 
@@ -322,18 +328,18 @@ impl LspToolHandler {
 
         let line = arguments
             .get("line")
-            .and_then(serde_json::Value::as_u64)
+            .and_then(|v| v.as_u64())
             .context("Missing line")? as u32;
 
         let character = arguments
             .get("character")
-            .and_then(serde_json::Value::as_u64)
+            .and_then(|v| v.as_u64())
             .context("Missing character")? as u32;
 
         let clients = self.clients.read().await;
         let client = clients
             .get(&server_name)
-            .context(format!("LSP server not found: {server_name}"))?;
+            .context(format!("LSP server not found: {}", server_name))?;
 
         let uri = Url::parse(&uri).context("Invalid URI")?;
         let completions = client
@@ -367,18 +373,18 @@ impl LspToolHandler {
 
         let line = arguments
             .get("line")
-            .and_then(serde_json::Value::as_u64)
+            .and_then(|v| v.as_u64())
             .context("Missing line")? as u32;
 
         let character = arguments
             .get("character")
-            .and_then(serde_json::Value::as_u64)
+            .and_then(|v| v.as_u64())
             .context("Missing character")? as u32;
 
         let clients = self.clients.read().await;
         let client = clients
             .get(&server_name)
-            .context(format!("LSP server not found: {server_name}"))?;
+            .context(format!("LSP server not found: {}", server_name))?;
 
         let uri = Url::parse(&uri).context("Invalid URI")?;
         let hover = client
@@ -409,18 +415,6 @@ impl LspToolHandler {
             is_error: Some(false),
             structured_content: None,
         })
-    }
-}
-
-fn tool_input_schema(
-    properties: serde_json::Value,
-    required: Option<&[&str]>,
-) -> ToolInputSchema {
-    ToolInputSchema {
-        properties: Some(properties),
-        required: required
-            .map(|items| items.iter().map(std::string::ToString::to_string).collect()),
-        r#type: "object".to_string(),
     }
 }
 

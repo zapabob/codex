@@ -36,6 +36,7 @@ pub(crate) const INVALID_PARAMS_ERROR_CODE: i64 = -32602;
 ///
 /// On completion (success or error) the function sends the appropriate
 /// `tools/call` response so the LLM can continue the conversation.
+#[allow(clippy::too_many_arguments)]
 pub async fn run_codex_tool_session(
     id: RequestId,
     initial_prompt: String,
@@ -113,6 +114,7 @@ pub async fn run_codex_tool_session(
     .await;
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run_codex_tool_session_reply(
     conversation: Arc<CodexConversation>,
     outgoing: Arc<OutgoingMessageSender>,

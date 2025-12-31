@@ -12,7 +12,6 @@ use mcp_types::ContentBlock;
 use mcp_types::ListToolsResult;
 use mcp_types::TextContent;
 use mcp_types::Tool;
-use mcp_types::ToolInputSchema;
 use serde_json::Value;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -68,13 +67,15 @@ impl Microsoft365ToolHandler {
                     name: "m365_word_read".to_string(),
                     title: None,
                     description: Some("Read a Word document from OneDrive/SharePoint".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "drive_id": { "type": "string", "description": "Drive ID" },
                             "item_id": { "type": "string", "description": "Item ID" }
-                        }),
-                        Some(&["drive_id", "item_id"]),
-                    ),
+                        },
+                        "required": ["drive_id", "item_id"]
+                    }))
+                    .unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -82,13 +83,15 @@ impl Microsoft365ToolHandler {
                     name: "m365_word_create".to_string(),
                     title: None,
                     description: Some("Create a new Word document".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "name": { "type": "string", "description": "Document name" },
                             "content": { "type": "string", "description": "Document content" }
-                        }),
-                        Some(&["name", "content"]),
-                    ),
+                        },
+                        "required": ["name", "content"]
+                    }))
+                    .unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -96,13 +99,15 @@ impl Microsoft365ToolHandler {
                     name: "m365_excel_read".to_string(),
                     title: None,
                     description: Some("Read an Excel spreadsheet".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "drive_id": { "type": "string" },
                             "item_id": { "type": "string" }
-                        }),
-                        Some(&["drive_id", "item_id"]),
-                    ),
+                        },
+                        "required": ["drive_id", "item_id"]
+                    }))
+                    .unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -110,16 +115,18 @@ impl Microsoft365ToolHandler {
                     name: "m365_excel_update_cell".to_string(),
                     title: None,
                     description: Some("Update a cell in an Excel spreadsheet".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "drive_id": { "type": "string" },
                             "item_id": { "type": "string" },
                             "worksheet": { "type": "string" },
                             "cell": { "type": "string" },
                             "value": { "type": "string" }
-                        }),
-                        Some(&["drive_id", "item_id", "worksheet", "cell", "value"]),
-                    ),
+                        },
+                        "required": ["drive_id", "item_id", "worksheet", "cell", "value"]
+                    }))
+                    .unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -127,13 +134,15 @@ impl Microsoft365ToolHandler {
                     name: "m365_powerpoint_read".to_string(),
                     title: None,
                     description: Some("Read a PowerPoint presentation".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "drive_id": { "type": "string" },
                             "item_id": { "type": "string" }
-                        }),
-                        Some(&["drive_id", "item_id"]),
-                    ),
+                        },
+                        "required": ["drive_id", "item_id"]
+                    }))
+                    .unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -141,14 +150,16 @@ impl Microsoft365ToolHandler {
                     name: "m365_outlook_send_email".to_string(),
                     title: None,
                     description: Some("Send an email via Outlook".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "to": { "type": "array", "items": { "type": "string" } },
                             "subject": { "type": "string" },
                             "body": { "type": "string" }
-                        }),
-                        Some(&["to", "subject", "body"]),
-                    ),
+                        },
+                        "required": ["to", "subject", "body"]
+                    }))
+                    .unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -156,13 +167,15 @@ impl Microsoft365ToolHandler {
                     name: "m365_outlook_get_calendar".to_string(),
                     title: None,
                     description: Some("Get calendar events".to_string()),
-                    input_schema: tool_input_schema(
-                        serde_json::json!({
+                    input_schema: serde_json::from_value(serde_json::json!({
+                        "type": "object",
+                        "properties": {
                             "start": { "type": "string", "description": "Start date (ISO 8601)" },
                             "end": { "type": "string", "description": "End date (ISO 8601)" }
-                        }),
-                        Some(&["start", "end"]),
-                    ),
+                        },
+                        "required": ["start", "end"]
+                    }))
+                    .unwrap(),
                     output_schema: None,
                     annotations: None,
                 },
@@ -327,7 +340,7 @@ impl Microsoft365ToolHandler {
         Ok(CallToolResult {
             content: vec![ContentBlock::TextContent(TextContent {
                 r#type: "text".to_string(),
-                text: format!("Cell {cell} updated successfully"),
+                text: format!("Cell {} updated successfully", cell),
                 annotations: None,
             })],
             is_error: Some(false),
@@ -374,7 +387,7 @@ impl Microsoft365ToolHandler {
             .and_then(|v| v.as_array())
             .context("Missing to")?
             .iter()
-            .filter_map(|v| v.as_str().map(std::string::ToString::to_string))
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
             .collect();
         let subject = arguments
             .get("subject")
@@ -432,17 +445,5 @@ impl Microsoft365ToolHandler {
             is_error: Some(false),
             structured_content: None,
         })
-    }
-}
-
-fn tool_input_schema(
-    properties: serde_json::Value,
-    required: Option<&[&str]>,
-) -> ToolInputSchema {
-    ToolInputSchema {
-        properties: Some(properties),
-        required: required
-            .map(|items| items.iter().map(std::string::ToString::to_string).collect()),
-        r#type: "object".to_string(),
     }
 }
