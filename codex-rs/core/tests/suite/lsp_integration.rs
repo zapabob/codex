@@ -2,7 +2,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use anyhow::Result;
-use codex_core::lsp::{DiagnosticsManager, LspClient};
+use codex_core::lsp::DiagnosticsManager;
+use codex_core::lsp::LspClient;
 use std::path::PathBuf;
 use tempfile::TempDir;
 
@@ -34,7 +35,9 @@ async fn test_diagnostics_manager_creation() -> Result<()> {
     let diagnostics_manager = DiagnosticsManager::new(100);
 
     // Verify manager is created by checking it can get diagnostics
-    let diagnostics = diagnostics_manager.get_diagnostics_for_document(&lsp_types::Url::parse("file:///test.rs")?).await;
+    let diagnostics = diagnostics_manager
+        .get_diagnostics_for_document(&lsp_types::Url::parse("file:///test.rs")?)
+        .await;
     assert!(diagnostics.is_empty());
 
     Ok(())
@@ -46,12 +49,16 @@ async fn test_diagnostics_manager_add_diagnostics() -> Result<()> {
 
     // Create a test diagnostic
     let test_uri = lsp_types::Url::parse("file:///test.rs")?;
-    let initial_diagnostics = diagnostics_manager.get_diagnostics_for_document(&test_uri).await;
+    let initial_diagnostics = diagnostics_manager
+        .get_diagnostics_for_document(&test_uri)
+        .await;
     let initial_count = initial_diagnostics.len();
 
     // Note: In a real test, we would add diagnostics through the LSP client
     // For now, we just verify the manager structure
-    let diagnostics_after = diagnostics_manager.get_diagnostics_for_document(&test_uri).await;
+    let diagnostics_after = diagnostics_manager
+        .get_diagnostics_for_document(&test_uri)
+        .await;
     assert_eq!(diagnostics_after.len(), initial_count);
 
     Ok(())

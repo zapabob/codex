@@ -7,6 +7,6 @@ pub mod chain;
 pub mod config;
 
 pub use chain::ReasoningChain;
-pub use chain::ReasoningStep;
 pub use chain::ReasoningResult;
+pub use chain::ReasoningStep;
 pub use config::ReasoningConfig;

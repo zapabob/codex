@@ -1,6 +1,7 @@
 //! Database schema for organizations
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::time::SystemTime;
 
 /// Organization

@@ -202,13 +202,9 @@ impl ThinkingProcess {
     /// Ultrathink Mode用: 推論チェーンの可視化データを取得
     pub fn get_reasoning_chain_visualization(&self) -> String {
         let mut visualization = String::from("Reasoning Chain Visualization:\n\n");
-        
+
         for (i, step) in self.steps.iter().enumerate() {
-            visualization.push_str(&format!(
-                "Step {}: {:?}\n",
-                i + 1,
-                step.step_type
-            ));
+            visualization.push_str(&format!("Step {}: {:?}\n", i + 1, step.step_type));
             visualization.push_str(&format!("  Content: {}\n", step.content));
             visualization.push_str(&format!("  Confidence: {:.1}%\n", step.confidence * 100.0));
             visualization.push_str(&format!("  Reasoning: {}\n\n", step.reasoning));

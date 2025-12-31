@@ -7,5 +7,7 @@ pub mod schema;
 pub mod skills_repo;
 
 pub use manager::OrganizationManager;
-pub use schema::{Member, Organization, SkillShare};
+pub use schema::Member;
+pub use schema::Organization;
+pub use schema::SkillShare;
 pub use skills_repo::OrganizationSkillsRepository;

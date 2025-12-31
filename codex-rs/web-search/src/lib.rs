@@ -9,4 +9,5 @@ pub mod url_decoder;
 pub mod web_search_provider;
 
 pub use types::Source;
-pub use web_search_provider::{ResearchProvider, WebSearchProvider};
+pub use web_search_provider::ResearchProvider;
+pub use web_search_provider::WebSearchProvider;

@@ -2,11 +2,18 @@
 //!
 //! Provides LSP diagnostics as MCP tools
 
-use anyhow::{Context, Result};
-use codex_core::lsp::{DiagnosticsManager, LspClient, Url};
-use mcp_types::{
-    CallToolRequestParams, CallToolResult, ListToolsResult, Tool,
-};
+use anyhow::Context;
+use anyhow::Result;
+use codex_core::lsp::DiagnosticsManager;
+use codex_core::lsp::LspClient;
+use codex_core::lsp::Url;
+use mcp_types::CallToolRequestParams;
+use mcp_types::CallToolResult;
+use mcp_types::ContentBlock;
+use mcp_types::ListToolsResult;
+use mcp_types::TextContent;
+use mcp_types::Tool;
+use mcp_types::ToolInputSchema;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -36,8 +43,9 @@ impl LspToolHandler {
             tools: vec![
                 Tool {
                     name: "lsp_get_diagnostics".to_string(),
-                    description: "Get LSP diagnostics for a document or all documents".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Get LSP diagnostics for a document or all documents".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "uri": {
@@ -45,12 +53,15 @@ impl LspToolHandler {
                                 "description": "Document URI (optional, if not provided returns all diagnostics)"
                             }
                         }
-                    }),
+                    })).unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "lsp_start_server".to_string(),
-                    description: "Start an LSP server for a language".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Start an LSP server for a language".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "server_name": {
@@ -68,12 +79,15 @@ impl LspToolHandler {
                             }
                         },
                         "required": ["server_name", "command", "root_path"]
-                    }),
+                    })).unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "lsp_stop_server".to_string(),
-                    description: "Stop an LSP server".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Stop an LSP server".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "server_name": {
@@ -82,12 +96,15 @@ impl LspToolHandler {
                             }
                         },
                         "required": ["server_name"]
-                    }),
+                    })).unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "lsp_get_completions".to_string(),
-                    description: "Get code completions at a position".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Get code completions at a position".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "server_name": {
@@ -108,12 +125,15 @@ impl LspToolHandler {
                             }
                         },
                         "required": ["server_name", "uri", "line", "character"]
-                    }),
+                    })).unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "lsp_get_hover".to_string(),
-                    description: "Get hover information at a position".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Get hover information at a position".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "server_name": {
@@ -134,22 +154,31 @@ impl LspToolHandler {
                             }
                         },
                         "required": ["server_name", "uri", "line", "character"]
-                    }),
+                    })).unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "lsp_get_statistics".to_string(),
-                    description: "Get LSP diagnostics statistics".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Get LSP diagnostics statistics".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {}
-                    }),
+                    })).unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
             ],
+            next_cursor: None,
         }
     }
 
     /// Handle a tool call
-    pub async fn handle_tool_call(&self, tool_call: CallToolRequestParams) -> Result<CallToolResult> {
+    pub async fn handle_tool_call(
+        &self,
+        tool_call: CallToolRequestParams,
+    ) -> Result<CallToolResult> {
         match tool_call.name.as_str() {
             "lsp_get_diagnostics" => self.handle_get_diagnostics(tool_call.arguments).await,
             "lsp_start_server" => self.handle_start_server(tool_call.arguments).await,
@@ -161,37 +190,43 @@ impl LspToolHandler {
         }
     }
 
-    async fn handle_get_diagnostics(
-        &self,
-        arguments: serde_json::Value,
-    ) -> Result<CallToolResult> {
-        let uri: Option<String> = arguments.get("uri").and_then(|v| v.as_str()).map(|s| s.to_string());
+    async fn handle_get_diagnostics(&self, arguments: serde_json::Value) -> Result<CallToolResult> {
+        let uri: Option<String> = arguments
+            .get("uri")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
 
         if let Some(uri_str) = uri {
             let uri = Url::parse(&uri_str).context("Invalid URI")?;
-            let diagnostics = self.diagnostics_manager.get_combined_diagnostics(&uri).await;
+            let diagnostics = self
+                .diagnostics_manager
+                .get_combined_diagnostics(&uri)
+                .await;
 
             Ok(CallToolResult {
-                content: vec![CallToolResult::Text {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
                     text: serde_json::to_string_pretty(&diagnostics)?,
-                }],
-                is_error: false,
+                    annotations: None,
+                })],
+                is_error: Some(false),
+                structured_content: None,
             })
         } else {
             let all_diagnostics = self.diagnostics_manager.get_all_diagnostics().await;
             Ok(CallToolResult {
-                content: vec![CallToolResult::Text {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
                     text: serde_json::to_string_pretty(&all_diagnostics)?,
-                }],
-                is_error: false,
+                    annotations: None,
+                })],
+                is_error: Some(false),
+                structured_content: None,
             })
         }
     }
 
-    async fn handle_start_server(
-        &self,
-        arguments: serde_json::Value,
-    ) -> Result<CallToolResult> {
+    async fn handle_start_server(&self, arguments: serde_json::Value) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -214,7 +249,10 @@ impl LspToolHandler {
 
         let root_path = PathBuf::from(root_path);
         let mut client = LspClient::new(server_name.clone(), command.clone(), root_path.clone());
-        client.start(command).await.context("Failed to start LSP server")?;
+        client
+            .start(command)
+            .await
+            .context("Failed to start LSP server")?;
 
         let mut clients = self.clients.write().await;
         clients.insert(server_name.clone(), client);
@@ -222,17 +260,17 @@ impl LspToolHandler {
         info!("Started LSP server: {}", server_name);
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: format!("Started LSP server: {}", server_name),
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
-    async fn handle_stop_server(
-        &self,
-        arguments: serde_json::Value,
-    ) -> Result<CallToolResult> {
+    async fn handle_stop_server(&self, arguments: serde_json::Value) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -244,20 +282,20 @@ impl LspToolHandler {
             client.stop().await.context("Failed to stop LSP server")?;
             info!("Stopped LSP server: {}", server_name);
             Ok(CallToolResult {
-                content: vec![CallToolResult::Text {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
                     text: format!("Stopped LSP server: {}", server_name),
-                }],
-                is_error: false,
+                    annotations: None,
+                })],
+                is_error: Some(false),
+                structured_content: None,
             })
         } else {
             Err(anyhow::anyhow!("LSP server not found: {}", server_name))
         }
     }
 
-    async fn handle_get_completions(
-        &self,
-        arguments: serde_json::Value,
-    ) -> Result<CallToolResult> {
+    async fn handle_get_completions(&self, arguments: serde_json::Value) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -292,17 +330,17 @@ impl LspToolHandler {
             .context("Failed to get completions")?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: serde_json::to_string_pretty(&completions)?,
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
-    async fn handle_get_hover(
-        &self,
-        arguments: serde_json::Value,
-    ) -> Result<CallToolResult> {
+    async fn handle_get_hover(&self, arguments: serde_json::Value) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -337,24 +375,27 @@ impl LspToolHandler {
             .context("Failed to get hover")?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: serde_json::to_string_pretty(&hover)?,
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
-    async fn handle_get_statistics(
-        &self,
-        _arguments: serde_json::Value,
-    ) -> Result<CallToolResult> {
+    async fn handle_get_statistics(&self, _arguments: serde_json::Value) -> Result<CallToolResult> {
         let stats = self.diagnostics_manager.get_statistics().await;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: serde_json::to_string_pretty(&stats)?,
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 }

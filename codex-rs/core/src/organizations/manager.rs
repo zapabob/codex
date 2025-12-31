@@ -1,14 +1,18 @@
 //! Organization management system
 
-use anyhow::{Context, Result};
-use sqlx::{sqlite::SqlitePool, Row};
+use anyhow::Context;
+use anyhow::Result;
+use sqlx::Row;
+use sqlx::sqlite::SqlitePool;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::SystemTime;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::organizations::schema::{Member, Organization, SkillShare};
+use crate::organizations::schema::Member;
+use crate::organizations::schema::Organization;
+use crate::organizations::schema::SkillShare;
 
 /// Organization manager
 pub struct OrganizationManager {
@@ -153,12 +157,7 @@ impl OrganizationManager {
     }
 
     /// Add a member to an organization
-    pub async fn add_member(
-        &self,
-        org_id: &str,
-        user_id: &str,
-        role: &str,
-    ) -> Result<Member> {
+    pub async fn add_member(&self, org_id: &str, user_id: &str, role: &str) -> Result<Member> {
         let id = Uuid::new_v4().to_string();
         let now = SystemTime::now();
 

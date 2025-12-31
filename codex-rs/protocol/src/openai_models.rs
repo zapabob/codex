@@ -20,6 +20,8 @@ use crate::config_types::Verbosity;
     Copy,
     PartialEq,
     Eq,
+    PartialOrd,
+    Ord,
     Display,
     JsonSchema,
     TS,

@@ -1,8 +1,10 @@
 //! Organization management commands
 
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use clap::Parser;
-use codex_core::organizations::{OrganizationManager, OrganizationSkillsRepository};
+use codex_core::organizations::OrganizationManager;
+use codex_core::organizations::OrganizationSkillsRepository;
 use codex_core::skills::SkillsSharingManager;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -82,10 +84,7 @@ pub enum OrganizationCommand {
 }
 
 /// Run organization command
-pub async fn run_organization_command(
-    cli: OrganizationCli,
-    codex_home: PathBuf,
-) -> Result<()> {
+pub async fn run_organization_command(cli: OrganizationCli, codex_home: PathBuf) -> Result<()> {
     let database_path = codex_home.join(".codex").join("organizations.db");
     let org_manager = Arc::new(
         OrganizationManager::new(database_path.clone())
@@ -130,8 +129,10 @@ pub async fn run_organization_command(
             user_id,
             access_level,
         } => {
-            let content = std::fs::read_to_string(&skill_file)
-                .context(format!("Failed to read skill file: {}", skill_file.display()))?;
+            let content = std::fs::read_to_string(&skill_file).context(format!(
+                "Failed to read skill file: {}",
+                skill_file.display()
+            ))?;
 
             sharing_manager
                 .share_skill(
@@ -144,7 +145,10 @@ pub async fn run_organization_command(
                 )
                 .await?;
 
-            println!("Shared skill {} v{} with organization {}", skill_name, version, org_id);
+            println!(
+                "Shared skill {} v{} with organization {}",
+                skill_name, version, org_id
+            );
             println!("  Access level: {}", access_level);
         }
         OrganizationCommand::ListSkills { org_id, user_id } => {
@@ -152,13 +156,18 @@ pub async fn run_organization_command(
 
             println!("Shared skills in organization {}:", org_id);
             for skill in skills {
-                println!("  - {} v{} ({} uses)", skill.skill_name, skill.version, skill.usage_count);
+                println!(
+                    "  - {} v{} ({} uses)",
+                    skill.skill_name, skill.version, skill.usage_count
+                );
                 println!("    Shared by: {}", skill.shared_by);
                 println!("    Access level: {}", skill.access_level);
             }
         }
         OrganizationCommand::Statistics { org_id, user_id } => {
-            let stats = sharing_manager.get_usage_statistics(&org_id, &user_id).await?;
+            let stats = sharing_manager
+                .get_usage_statistics(&org_id, &user_id)
+                .await?;
             println!("{}", serde_json::to_string_pretty(&stats)?);
         }
     }

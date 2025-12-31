@@ -13,9 +13,9 @@
 // limitations under the License.
 
 use crate::provider::ResearchProvider;
-use codex_web_search::Source;
 use anyhow::Result;
 use codex_rmcp_client::RmcpClient;
+use codex_web_search::Source;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;

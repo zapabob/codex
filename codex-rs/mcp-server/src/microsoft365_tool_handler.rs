@@ -2,11 +2,17 @@
 //!
 //! Provides Word, Excel, PowerPoint, and Outlook operations as MCP tools
 
-use anyhow::{Context, Result};
-use codex_microsoft365::{Microsoft365AuthManager, Microsoft365Client};
-use mcp_types::{
-    CallToolRequestParams, CallToolResult, ListToolsResult, Tool,
-};
+use anyhow::Context;
+use anyhow::Result;
+use codex_microsoft365::Microsoft365AuthManager;
+use codex_microsoft365::Microsoft365Client;
+use mcp_types::CallToolRequestParams;
+use mcp_types::CallToolResult;
+use mcp_types::ContentBlock;
+use mcp_types::ListToolsResult;
+use mcp_types::TextContent;
+use mcp_types::Tool;
+use mcp_types::ToolInputSchema;
 use serde_json::Value;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -40,8 +46,13 @@ impl Microsoft365ToolHandler {
         redirect_url: String,
     ) -> Result<()> {
         let auth_manager = Arc::new(
-            Microsoft365AuthManager::new(client_id, tenant_id, redirect_url, self.codex_home.clone())
-                .context("Failed to create auth manager")?,
+            Microsoft365AuthManager::new(
+                client_id,
+                tenant_id,
+                redirect_url,
+                self.codex_home.clone(),
+            )
+            .context("Failed to create auth manager")?,
         );
 
         let client = Arc::new(Microsoft365Client::new(auth_manager.clone()));
@@ -59,44 +70,57 @@ impl Microsoft365ToolHandler {
             tools: vec![
                 Tool {
                     name: "m365_word_read".to_string(),
-                    description: "Read a Word document from OneDrive/SharePoint".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Read a Word document from OneDrive/SharePoint".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "drive_id": { "type": "string", "description": "Drive ID" },
                             "item_id": { "type": "string", "description": "Item ID" }
                         },
                         "required": ["drive_id", "item_id"]
-                    }),
+                    }))
+                    .unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "m365_word_create".to_string(),
-                    description: "Create a new Word document".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Create a new Word document".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "name": { "type": "string", "description": "Document name" },
                             "content": { "type": "string", "description": "Document content" }
                         },
                         "required": ["name", "content"]
-                    }),
+                    }))
+                    .unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "m365_excel_read".to_string(),
-                    description: "Read an Excel spreadsheet".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Read an Excel spreadsheet".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "drive_id": { "type": "string" },
                             "item_id": { "type": "string" }
                         },
                         "required": ["drive_id", "item_id"]
-                    }),
+                    }))
+                    .unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "m365_excel_update_cell".to_string(),
-                    description: "Update a cell in an Excel spreadsheet".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Update a cell in an Excel spreadsheet".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "drive_id": { "type": "string" },
@@ -106,24 +130,32 @@ impl Microsoft365ToolHandler {
                             "value": { "type": "string" }
                         },
                         "required": ["drive_id", "item_id", "worksheet", "cell", "value"]
-                    }),
+                    }))
+                    .unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "m365_powerpoint_read".to_string(),
-                    description: "Read a PowerPoint presentation".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Read a PowerPoint presentation".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "drive_id": { "type": "string" },
                             "item_id": { "type": "string" }
                         },
                         "required": ["drive_id", "item_id"]
-                    }),
+                    }))
+                    .unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "m365_outlook_send_email".to_string(),
-                    description: "Send an email via Outlook".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Send an email via Outlook".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "to": { "type": "array", "items": { "type": "string" } },
@@ -131,26 +163,37 @@ impl Microsoft365ToolHandler {
                             "body": { "type": "string" }
                         },
                         "required": ["to", "subject", "body"]
-                    }),
+                    }))
+                    .unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
                 Tool {
                     name: "m365_outlook_get_calendar".to_string(),
-                    description: "Get calendar events".to_string(),
-                    input_schema: serde_json::json!({
+                    title: None,
+                    description: Some("Get calendar events".to_string()),
+                    input_schema: serde_json::from_value(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "start": { "type": "string", "description": "Start date (ISO 8601)" },
                             "end": { "type": "string", "description": "End date (ISO 8601)" }
                         },
                         "required": ["start", "end"]
-                    }),
+                    }))
+                    .unwrap(),
+                    output_schema: None,
+                    annotations: None,
                 },
             ],
+            next_cursor: None,
         }
     }
 
     /// Handle a tool call
-    pub async fn handle_tool_call(&self, tool_call: CallToolRequestParams) -> Result<CallToolResult> {
+    pub async fn handle_tool_call(
+        &self,
+        tool_call: CallToolRequestParams,
+    ) -> Result<CallToolResult> {
         let client = self
             .client
             .as_ref()
@@ -161,16 +204,20 @@ impl Microsoft365ToolHandler {
             "m365_word_create" => self.handle_word_create(client, tool_call.arguments).await,
             "m365_excel_read" => self.handle_excel_read(client, tool_call.arguments).await,
             "m365_excel_update_cell" => {
-                self.handle_excel_update_cell(client, tool_call.arguments).await
+                self.handle_excel_update_cell(client, tool_call.arguments)
+                    .await
             }
             "m365_powerpoint_read" => {
-                self.handle_powerpoint_read(client, tool_call.arguments).await
+                self.handle_powerpoint_read(client, tool_call.arguments)
+                    .await
             }
             "m365_outlook_send_email" => {
-                self.handle_outlook_send_email(client, tool_call.arguments).await
+                self.handle_outlook_send_email(client, tool_call.arguments)
+                    .await
             }
             "m365_outlook_get_calendar" => {
-                self.handle_outlook_get_calendar(client, tool_call.arguments).await
+                self.handle_outlook_get_calendar(client, tool_call.arguments)
+                    .await
             }
             _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_call.name)),
         }
@@ -193,8 +240,13 @@ impl Microsoft365ToolHandler {
         let content = client.word_read_document(drive_id, item_id).await?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text { text: content }],
-            is_error: false,
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
+                text: content,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
@@ -217,8 +269,13 @@ impl Microsoft365ToolHandler {
         let result = client.word_create_document(name.clone(), content).await?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text { text: result }],
-            is_error: false,
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
+                text: result,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
@@ -239,10 +296,13 @@ impl Microsoft365ToolHandler {
         let data = client.excel_read_spreadsheet(drive_id, item_id).await?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: serde_json::to_string_pretty(&data)?,
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
@@ -274,10 +334,13 @@ impl Microsoft365ToolHandler {
             .await?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: format!("Cell {} updated successfully", cell),
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
@@ -295,13 +358,18 @@ impl Microsoft365ToolHandler {
             .and_then(|v| v.as_str())
             .context("Missing item_id")?;
 
-        let data = client.powerpoint_read_presentation(drive_id, item_id).await?;
+        let data = client
+            .powerpoint_read_presentation(drive_id, item_id)
+            .await?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: serde_json::to_string_pretty(&data)?,
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
@@ -331,10 +399,13 @@ impl Microsoft365ToolHandler {
         client.outlook_send_email(to, subject, body).await?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: "Email sent successfully".to_string(),
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 
@@ -362,10 +433,13 @@ impl Microsoft365ToolHandler {
         let events = client.outlook_get_calendar_events(start, end).await?;
 
         Ok(CallToolResult {
-            content: vec![CallToolResult::Text {
+            content: vec![ContentBlock::TextContent(TextContent {
+                r#type: "text".to_string(),
                 text: serde_json::to_string_pretty(&events)?,
-            }],
-            is_error: false,
+                annotations: None,
+            })],
+            is_error: Some(false),
+            structured_content: None,
         })
     }
 }

@@ -796,13 +796,9 @@ impl MessageProcessor {
         }
     }
 
-    async fn handle_tool_call_datetime(
-        &self,
-        id: RequestId,
-        arguments: Option<serde_json::Value>,
-    ) {
-        let result = crate::datetime_tool_handler::handle_datetime_tool_call(id.clone(), arguments)
-            .await;
+    async fn handle_tool_call_datetime(&self, id: RequestId, arguments: Option<serde_json::Value>) {
+        let result =
+            crate::datetime_tool_handler::handle_datetime_tool_call(id.clone(), arguments).await;
         self.send_response::<mcp_types::CallToolRequest>(id, result)
             .await;
     }

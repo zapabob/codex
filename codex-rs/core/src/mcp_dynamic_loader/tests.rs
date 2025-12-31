@@ -17,7 +17,8 @@ mod tests {
             sandbox_cwd: std::path::PathBuf::from("/"),
         };
 
-        let connection_manager = Arc::new(tokio::sync::RwLock::new(McpConnectionManager::default()));
+        let connection_manager =
+            Arc::new(tokio::sync::RwLock::new(McpConnectionManager::default()));
         let loader = DynamicMcpLoader::new(
             connection_manager,
             OAuthCredentialsStoreMode::File,
@@ -59,7 +60,8 @@ mod tests {
             sandbox_cwd: std::path::PathBuf::from("/"),
         };
 
-        let connection_manager = Arc::new(tokio::sync::RwLock::new(McpConnectionManager::default()));
+        let connection_manager =
+            Arc::new(tokio::sync::RwLock::new(McpConnectionManager::default()));
         let loader = DynamicMcpLoader::new(
             connection_manager,
             OAuthCredentialsStoreMode::File,
@@ -84,7 +86,10 @@ mod tests {
             disabled_tools: None,
         };
 
-        loader.add_server("test-server".to_string(), config).await.unwrap();
+        loader
+            .add_server("test-server".to_string(), config)
+            .await
+            .unwrap();
         let result = loader.remove_server("test-server").await;
         assert!(result.is_ok());
 

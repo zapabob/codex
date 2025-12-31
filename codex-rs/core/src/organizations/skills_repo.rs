@@ -1,7 +1,8 @@
 //! Organization Skills repository
 
 use anyhow::Result;
-use sqlx::{sqlite::SqlitePool, Row};
+use sqlx::Row;
+use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 use std::time::SystemTime;
 use tracing::info;
@@ -64,7 +65,10 @@ impl OrganizationSkillsRepository {
             usage_count: 0,
         };
 
-        info!("Shared skill {} v{} with organization {}", share.skill_name, share.version, org_id);
+        info!(
+            "Shared skill {} v{} with organization {}",
+            share.skill_name, share.version, org_id
+        );
         Ok(share)
     }
 
@@ -93,7 +97,8 @@ impl OrganizationSkillsRepository {
                     version: row.get(3),
                     content: row.get(4),
                     shared_by: row.get(5),
-                    shared_at: SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(timestamp_secs),
+                    shared_at: SystemTime::UNIX_EPOCH
+                        + std::time::Duration::from_secs(timestamp_secs),
                     access_level: row.get(7),
                     usage_count: row.get::<i64, _>(8) as u64,
                 }

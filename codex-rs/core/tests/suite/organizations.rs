@@ -2,7 +2,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use anyhow::Result;
-use codex_core::organizations::{OrganizationManager, OrganizationSkillsRepository};
+use codex_core::organizations::OrganizationManager;
+use codex_core::organizations::OrganizationSkillsRepository;
 use codex_core::skills::SkillsSharingManager;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -114,7 +115,9 @@ async fn test_get_usage_statistics() -> Result<()> {
         )
         .await?;
 
-    let stats = sharing_manager.get_usage_statistics(&org.id, "user-1").await?;
+    let stats = sharing_manager
+        .get_usage_statistics(&org.id, "user-1")
+        .await?;
     assert!(stats.total_skills >= 1);
     assert!(stats.total_usage >= 0);
 

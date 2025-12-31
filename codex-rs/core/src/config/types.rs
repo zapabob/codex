@@ -597,7 +597,6 @@ pub struct Tui {
     pub scroll_invert: bool,
 }
 
-
 /// Settings for notices we display to users via the tui and app-server clients
 /// (primarily the Codex IDE extension). NOTE: these are different from
 /// notifications - notices are warnings, NUX screens, acknowledgements, etc.

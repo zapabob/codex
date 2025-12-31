@@ -1,15 +1,25 @@
 //! OAuth 2.0 authentication management for Microsoft 365
 
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use codex_keyring_store::DefaultKeyringStore;
 use codex_keyring_store::KeyringStore;
-use oauth2::{
-    basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
-    ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
-};
-use serde::{Deserialize, Serialize};
+use oauth2::AuthUrl;
+use oauth2::AuthorizationCode;
+use oauth2::ClientId;
+use oauth2::ClientSecret;
+use oauth2::CsrfToken;
+use oauth2::RedirectUrl;
+use oauth2::Scope;
+use oauth2::TokenResponse;
+use oauth2::TokenUrl;
+use oauth2::basic::BasicClient;
+use oauth2::reqwest::async_http_client;
+use serde::Deserialize;
+use serde::Serialize;
 use std::path::PathBuf;
-use tracing::{info, warn};
+use tracing::info;
+use tracing::warn;
 
 /// OAuth 2.0 token information
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,14 +54,9 @@ impl AuthManager {
         redirect_url: String,
         _codex_home: PathBuf,
     ) -> Result<Self> {
-        let auth_url = format!(
-            "https://login.microsoftonline.com/{}/oauth2/v2.0/authorize",
-            tenant_id
-        );
-        let token_url = format!(
-            "https://login.microsoftonline.com/{}/oauth2/v2.0/token",
-            tenant_id
-        );
+        let auth_url =
+            format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize");
+        let token_url = format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token");
 
         let client = BasicClient::new(
             ClientId::new(client_id.clone()),
@@ -73,15 +78,12 @@ impl AuthManager {
 
     /// Get authorization URL for OAuth flow
     pub fn get_authorization_url(&self, scopes: Vec<String>) -> Result<(String, CsrfToken)> {
-        let scopes: Vec<Scope> = scopes
-            .iter()
-            .map(|s| Scope::new(s.clone()))
-            .collect();
+        let scopes = scopes.into_iter().map(Scope::new);
 
         let (auth_url, csrf_token) = self
             .client
             .authorize_url(CsrfToken::new_random)
-            .add_scopes(scopes.into_iter())
+            .add_scopes(scopes)
             .url();
 
         Ok((auth_url.to_string(), csrf_token))
@@ -93,10 +95,7 @@ impl AuthManager {
         code: AuthorizationCode,
         scopes: Vec<String>,
     ) -> Result<TokenInfo> {
-        let scopes: Vec<Scope> = scopes
-            .iter()
-            .map(|s| Scope::new(s.clone()))
-            .collect();
+        let scopes: Vec<Scope> = scopes.into_iter().map(Scope::new).collect();
 
         let token_result = self
             .client
@@ -106,9 +105,9 @@ impl AuthManager {
             .await
             .context("Failed to exchange authorization code")?;
 
-        let expires_at = token_result
-            .expires_in()
-            .map(|duration| chrono::Utc::now() + chrono::Duration::seconds(duration.as_secs() as i64));
+        let expires_at = token_result.expires_in().map(|duration| {
+            chrono::Utc::now() + chrono::Duration::seconds(duration.as_secs() as i64)
+        });
 
         let token_info = TokenInfo {
             access_token: token_result.access_token().secret().clone(),
@@ -142,7 +141,8 @@ impl AuthManager {
     /// Save token to keyring
     async fn save_token(&self, token: &TokenInfo) -> Result<()> {
         let service = "microsoft365";
-        let account = format!("{}:token", self.tenant_id);
+        let tenant_id = &self.tenant_id;
+        let account = format!("{tenant_id}:token");
         let value = serde_json::to_string(token)?;
         self.keyring.save(service, &account, &value)?;
         Ok(())
@@ -151,8 +151,11 @@ impl AuthManager {
     /// Load token from keyring
     async fn load_token(&self) -> Result<TokenInfo> {
         let service = "microsoft365";
-        let account = format!("{}:token", self.tenant_id);
-        let value = self.keyring.load(service, &account)?
+        let tenant_id = &self.tenant_id;
+        let account = format!("{tenant_id}:token");
+        let value = self
+            .keyring
+            .load(service, &account)?
             .ok_or_else(|| anyhow::anyhow!("Token not found in keyring"))?;
         let token: TokenInfo = serde_json::from_str(&value)?;
         Ok(token)

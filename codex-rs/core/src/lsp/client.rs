@@ -2,23 +2,46 @@
 //!
 //! Supports rust-analyzer, TypeScript Server, Python Language Server, etc.
 
-use anyhow::{Context, Result};
-use lsp_types::{
-    notification::{DidChangeTextDocument, DidOpenTextDocument, Initialized, Notification},
-    request::{Completion, HoverRequest, References, Request},
-    CompletionParams, CompletionResponse, Hover, HoverParams,
-    InitializeParams, InitializeResult, InitializedParams, ReferenceParams, ServerCapabilities,
-    TextDocumentIdentifier, TextDocumentItem, TextDocumentPositionParams, Url, VersionedTextDocumentIdentifier,
-};
+use anyhow::Context;
+use anyhow::Result;
+use lsp_types::CompletionParams;
+use lsp_types::CompletionResponse;
+use lsp_types::Hover;
+use lsp_types::HoverParams;
+use lsp_types::InitializeParams;
+use lsp_types::InitializeResult;
+use lsp_types::InitializedParams;
+use lsp_types::ReferenceParams;
+use lsp_types::ServerCapabilities;
+use lsp_types::TextDocumentIdentifier;
+use lsp_types::TextDocumentItem;
+use lsp_types::TextDocumentPositionParams;
+use lsp_types::Url;
+use lsp_types::VersionedTextDocumentIdentifier;
+use lsp_types::notification::DidChangeTextDocument;
+use lsp_types::notification::DidOpenTextDocument;
+use lsp_types::notification::Initialized;
+use lsp_types::notification::Notification;
+use lsp_types::request::Completion;
+use lsp_types::request::HoverRequest;
+use lsp_types::request::References;
+use lsp_types::request::Request;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process::Stdio;
 use std::sync::Arc;
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
-use tokio::process::{Command, ChildStdin, ChildStdout};
+use tokio::io::AsyncBufReadExt;
+use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
+use tokio::io::BufReader;
+use tokio::process::ChildStdin;
+use tokio::process::ChildStdout;
+use tokio::process::Command;
 use tokio::sync::Mutex;
-use tracing::{debug, error, info};
+use tracing::debug;
+use tracing::error;
+use tracing::info;
 
 /// LSP client for connecting to language servers
 pub struct LspClient {
@@ -50,8 +73,7 @@ impl LspClient {
             capabilities: None,
             server_name,
             root_uri: Some(
-                Url::from_file_path(&root_path)
-                    .unwrap_or_else(|_| Url::parse("file:///").unwrap()),
+                Url::from_file_path(&root_path).unwrap_or_else(|_| Url::parse("file:///").unwrap()),
             ),
             next_request_id: Arc::new(Mutex::new(1)),
             pending_requests: Arc::new(Mutex::new(HashMap::new())),
@@ -99,7 +121,7 @@ impl LspClient {
         loop {
             let mut reader = stdout_reader.lock().await;
             let mut line = String::new();
-            
+
             if let Err(e) = reader.read_line(&mut line).await {
                 error!("Failed to read from language server: {}", e);
                 break;
@@ -167,7 +189,8 @@ impl LspClient {
         self.capabilities = Some(response.capabilities);
 
         // Send initialized notification
-        self.send_notification::<Initialized>(InitializedParams {}).await?;
+        self.send_notification::<Initialized>(InitializedParams {})
+            .await?;
 
         info!("Language server initialized: {}", self.server_name);
         Ok(())
@@ -203,8 +226,8 @@ impl LspClient {
         self.send_message(request).await?;
 
         let response = rx.await.context("Request cancelled")?;
-        let result: R::Result = serde_json::from_value(response)
-            .context("Failed to deserialize response")?;
+        let result: R::Result =
+            serde_json::from_value(response).context("Failed to deserialize response")?;
 
         Ok(result)
     }
@@ -238,7 +261,10 @@ impl LspClient {
             .context("Failed to write to stdin")?;
         stdin.flush().await.context("Failed to flush stdin")?;
 
-        debug!("Sent LSP message: {}", serde_json::to_string_pretty(&message)?);
+        debug!(
+            "Sent LSP message: {}",
+            serde_json::to_string_pretty(&message)?
+        );
         Ok(())
     }
 
@@ -268,7 +294,8 @@ impl LspClient {
             content_changes: changes,
         };
 
-        self.send_notification::<DidChangeTextDocument>(params).await
+        self.send_notification::<DidChangeTextDocument>(params)
+            .await
     }
 
     /// Get completion items at a position

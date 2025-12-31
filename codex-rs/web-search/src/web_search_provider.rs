@@ -1,7 +1,7 @@
 // Web Search Provider - Real web search integration
 // Conforms to OpenAI/codex official web_search implementation
-use crate::url_decoder::decode_duckduckgo_url;
 use crate::types::Source;
+use crate::url_decoder::decode_duckduckgo_url;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;

@@ -4,7 +4,8 @@
 
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
+use std::time::SystemTime;
 use tokio::sync::RwLock;
 
 /// Replay protection configuration

@@ -96,7 +96,10 @@ impl McpPromptBuilder {
                 relevant.len(),
                 self.max_tools_per_prompt
             );
-            relevant.into_iter().take(self.max_tools_per_prompt).collect()
+            relevant
+                .into_iter()
+                .take(self.max_tools_per_prompt)
+                .collect()
         } else {
             relevant
         }

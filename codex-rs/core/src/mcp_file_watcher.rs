@@ -131,10 +131,7 @@ impl McpFileWatcher {
     }
 
     /// Reload configuration file
-    async fn reload_config_file(
-        _loader: &DynamicMcpLoader,
-        config_path: &Path,
-    ) -> Result<()> {
+    async fn reload_config_file(_loader: &DynamicMcpLoader, config_path: &Path) -> Result<()> {
         // Read and parse config file
         // This is a simplified version - actual implementation would need to
         // parse the config file format (YAML/TOML) and reload servers
@@ -144,10 +141,7 @@ impl McpFileWatcher {
     }
 
     /// Check plugin directory for new/removed plugins
-    async fn check_plugin_directory(
-        _loader: &DynamicMcpLoader,
-        plugin_dir: &Path,
-    ) -> Result<()> {
+    async fn check_plugin_directory(_loader: &DynamicMcpLoader, plugin_dir: &Path) -> Result<()> {
         if !plugin_dir.exists() {
             return Ok(());
         }

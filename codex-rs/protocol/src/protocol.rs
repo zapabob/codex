@@ -1657,13 +1657,13 @@ pub struct GetHistoryEntryResponseEvent {
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct McpListToolsResponseEvent {
     /// Fully qualified tool name -> tool definition.
-    pub tools: std::collections::HashMap<String, McpTool>,
+    pub tools: HashMap<String, McpTool>,
     /// Known resources grouped by server name.
-    pub resources: std::collections::HashMap<String, Vec<McpResource>>,
+    pub resources: HashMap<String, Vec<McpResource>>,
     /// Known resource templates grouped by server name.
-    pub resource_templates: std::collections::HashMap<String, Vec<McpResourceTemplate>>,
+    pub resource_templates: HashMap<String, Vec<McpResourceTemplate>>,
     /// Authentication status for each configured MCP server.
-    pub auth_statuses: std::collections::HashMap<String, McpAuthStatus>,
+    pub auth_statuses: HashMap<String, McpAuthStatus>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]

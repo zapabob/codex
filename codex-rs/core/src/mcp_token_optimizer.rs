@@ -64,7 +64,7 @@ impl McpTokenOptimizer {
     pub async fn track_tool_usage(&self, tool_name: &str, server_name: &str, tokens: u64) {
         let mut stats = self.tool_usage_stats.lock().await;
         let key = format!("{}__{}", server_name, tool_name);
-        
+
         let stat = stats.entry(key.clone()).or_insert_with(|| ToolUsageStats {
             tool_name: tool_name.to_string(),
             server_name: server_name.to_string(),
@@ -109,7 +109,7 @@ impl McpTokenOptimizer {
     /// Automatically unload unused tools
     pub async fn auto_unload_unused(&self, _loader: &DynamicMcpLoader) -> Result<()> {
         let unused_tools = self.get_unused_tools(self.auto_unload_threshold).await;
-        
+
         if unused_tools.is_empty() {
             return Ok(());
         }
@@ -121,7 +121,10 @@ impl McpTokenOptimizer {
             if let Some((server_name, _tool_name)) = tool_key.split_once("__") {
                 // Note: This would require tracking which server a tool belongs to
                 // For now, we just log the unused tools
-                debug!("Tool {} from server {} is unused and could be unloaded", tool_key, server_name);
+                debug!(
+                    "Tool {} from server {} is unused and could be unloaded",
+                    tool_key, server_name
+                );
                 // TODO: Implement actual server unloading when tool-to-server mapping is available
             }
         }
@@ -136,7 +139,7 @@ impl McpTokenOptimizer {
         }
 
         let description = tool.description.as_deref().unwrap_or("");
-        
+
         // Simple compression: keep first sentence and key parameters
         let compressed = if description.len() > 200 {
             // Take first sentence or first 150 chars
@@ -160,7 +163,7 @@ impl McpTokenOptimizer {
         for tool in tools {
             // Tool name
             total_chars += tool.name.len() as u64;
-            
+
             // Description (compressed if enabled)
             let desc = if self.compress_descriptions {
                 self.compress_tool_description(tool)
@@ -216,7 +219,7 @@ impl McpTokenOptimizer {
         tokio::spawn(async move {
             loop {
                 sleep(interval).await;
-                
+
                 if let Err(e) = self.auto_unload_unused(&*loader).await {
                     warn!("Failed to auto-unload unused tools: {}", e);
                 }

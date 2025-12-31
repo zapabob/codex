@@ -368,7 +368,14 @@ cargo test -p codex-microsoft365 --test integration
   - `usage_count`の型を`i64`から`u64`にキャスト
 - MCP Serverのコンパイルエラーを修正
   - `ToolCall`と`ToolCallResult`を`CallToolRequestParams`と`CallToolResult`に置き換え
-  - `lsp_types::Url`を`mcp_types::Url`に置き換え
+  - `lsp_types::Url`を`codex_core::lsp::Url`経由で使用（`codex_core::lsp::mod.rs`で再エクスポート）
+  - `serde_json::json!`の結果を`ToolInputSchema`に変換（`serde_json::from_value`を使用）
+  - `Tool`構造体に`title`、`output_schema`、`annotations`フィールドを追加
+  - `ListToolsResult`に`next_cursor`フィールドを追加
+  - `CallToolResult`の`is_error`を`Option<bool>`に修正（`Some(false)`/`Some(true)`）
+  - `CallToolResult`に`structured_content`フィールドを追加
+  - `ContentBlock::TextContent`と`TextContent`をインポート
+  - `datetime_tool_handler.rs`で`Local::now()`を`Utc`に変換（`.with_timezone(&Utc)`）
 
 ### インストール先
 - `$env:USERPROFILE\.cargo\bin\codex.exe`

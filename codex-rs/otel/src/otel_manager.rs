@@ -359,6 +359,7 @@ impl OtelManager {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn sse_event_completed(
         &self,
         input_token_count: i64,
@@ -499,6 +500,7 @@ impl OtelManager {
         );
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn tool_result(
         &self,
         tool_name: &str,

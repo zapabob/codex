@@ -641,7 +641,10 @@ impl McpConnectionManager {
     ) {
         // Check if server already exists
         if self.clients.contains_key(&server_name) {
-            warn!("MCP server '{}' already exists, skipping dynamic add", server_name);
+            warn!(
+                "MCP server '{}' already exists, skipping dynamic add",
+                server_name
+            );
             return;
         }
 
@@ -667,7 +670,8 @@ impl McpConnectionManager {
             tx_event.clone(),
             self.elicitation_requests.clone(),
         );
-        self.clients.insert(server_name.clone(), async_managed_client.clone());
+        self.clients
+            .insert(server_name.clone(), async_managed_client.clone());
 
         let tx_event = tx_event.clone();
         let sandbox_state_clone = sandbox_state.clone();
@@ -683,18 +687,13 @@ impl McpConnectionManager {
                         .notify_sandbox_state_change(&sandbox_state_clone)
                         .await
                     {
-                        warn!(
-                            "Failed to notify sandbox state to MCP server {server_name}: {e:#}",
-                        );
+                        warn!("Failed to notify sandbox state to MCP server {server_name}: {e:#}",);
                     }
                     McpStartupStatus::Ready
                 }
                 Err(error) => {
-                    let error_str = mcp_init_error_display(
-                        server_name.as_str(),
-                        auth_entry.as_ref(),
-                        error,
-                    );
+                    let error_str =
+                        mcp_init_error_display(server_name.as_str(), auth_entry.as_ref(), error);
                     McpStartupStatus::Failed { error: error_str }
                 }
             };

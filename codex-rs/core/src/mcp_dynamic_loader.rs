@@ -72,11 +72,7 @@ impl DynamicMcpLoader {
     }
 
     /// Add a new MCP server dynamically
-    pub async fn add_server(
-        &self,
-        server_name: String,
-        config: McpServerConfig,
-    ) -> Result<String> {
+    pub async fn add_server(&self, server_name: String, config: McpServerConfig) -> Result<String> {
         // Check if server already exists
         let mut states = self.server_states.lock().await;
         if states.contains_key(&server_name) {

@@ -3,13 +3,19 @@
 //! Executes multi-step reasoning chains with dependency management
 //! and result verification.
 
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tokio::time::{Duration, Instant};
-use tracing::{debug, info, warn};
+use tokio::time::Duration;
+use tokio::time::Instant;
+use tracing::debug;
+use tracing::info;
+use tracing::warn;
 use uuid::Uuid;
 
 use crate::reasoning::config::ReasoningConfig;
@@ -187,13 +193,17 @@ impl ReasoningChain {
         let previous_steps_summary: String = state
             .steps
             .iter()
-            .map(|s| format!("Step {}: {}\nResult: {:?}\n", s.step_number, s.description, s.result))
+            .map(|s| {
+                format!(
+                    "Step {}: {}\nResult: {:?}\n",
+                    s.step_number, s.description, s.result
+                )
+            })
             .collect();
 
         let next_question = format!(
             "Based on the previous reasoning steps:\n{}\nWhat is the next logical step to answer: {}?",
-            previous_steps_summary,
-            state.steps[0].description
+            previous_steps_summary, state.steps[0].description
         );
 
         // Simulate reasoning (in real implementation, this would call an LLM)

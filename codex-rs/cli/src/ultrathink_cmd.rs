@@ -1,9 +1,12 @@
 //! Ultrathink Mode command for deep reasoning chains
 
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use clap::Parser;
-use codex_core::reasoning::{ReasoningChain, ReasoningConfig};
-use std::io::{self, Write};
+use codex_core::reasoning::ReasoningChain;
+use codex_core::reasoning::ReasoningConfig;
+use std::io::Write;
+use std::io::{self};
 use tracing::info;
 
 /// Ultrathink Mode command for deep reasoning
@@ -68,8 +71,16 @@ fn output_text_format(result: &codex_core::reasoning::ReasoningResult) -> Result
     writeln!(handle, "=== Ultrathink Mode Reasoning Chain ===")?;
     writeln!(handle, "Chain ID: {}", result.chain_id)?;
     writeln!(handle, "Execution Time: {:.2}s", result.execution_time)?;
-    writeln!(handle, "Overall Confidence: {:.1}%", result.overall_confidence * 100.0)?;
-    writeln!(handle, "Verification Passed: {}", result.verification_passed)?;
+    writeln!(
+        handle,
+        "Overall Confidence: {:.1}%",
+        result.overall_confidence * 100.0
+    )?;
+    writeln!(
+        handle,
+        "Verification Passed: {}",
+        result.verification_passed
+    )?;
     writeln!(handle)?;
 
     if let Some(ref counter_evidence) = result.counter_evidence_summary {

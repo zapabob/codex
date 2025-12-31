@@ -1,6 +1,6 @@
-use codex_web_search::Source;
 use anyhow::Result;
 use async_trait::async_trait;
+use codex_web_search::Source;
 
 // Re-export ResearchProvider trait from web-search for compatibility
 pub use codex_web_search::ResearchProvider;

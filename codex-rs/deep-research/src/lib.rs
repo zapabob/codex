@@ -13,13 +13,13 @@ use provider::ResearchProvider;
 use std::sync::Arc;
 use types::ResearchReport;
 
+pub use codex_web_search::WebSearchProvider;
 pub use contradiction::Contradiction;
 pub use contradiction::ContradictionChecker;
 pub use contradiction::ContradictionReport;
 pub use evidence::CitationBuilder;
 pub use evidence::Evidence;
 pub use evidence::ResearchLog;
-pub use codex_web_search::WebSearchProvider;
 pub use gemini_search_provider::GeminiSearchProvider;
 pub use mcp_search_provider::McpSearchProvider;
 pub use mcp_search_provider::SearchBackend;

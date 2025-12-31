@@ -2,10 +2,12 @@
 //!
 //! Provides sliding window rate limiting to prevent DDoS attacks.
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
+use std::time::SystemTime;
 use tokio::sync::RwLock;
 
 /// Rate limiter configuration

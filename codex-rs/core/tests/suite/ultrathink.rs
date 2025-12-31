@@ -2,7 +2,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use anyhow::Result;
-use codex_core::reasoning::{ReasoningChain, ReasoningConfig};
+use codex_core::reasoning::ReasoningChain;
+use codex_core::reasoning::ReasoningConfig;
 
 #[tokio::test]
 async fn test_reasoning_chain_basic() -> Result<()> {
@@ -36,10 +37,7 @@ async fn test_reasoning_chain_timeout() -> Result<()> {
     let chain = ReasoningChain::new(config);
 
     let result = chain
-        .execute(
-            "Complex question that might timeout".to_string(),
-            None,
-        )
+        .execute("Complex question that might timeout".to_string(), None)
         .await?;
 
     // Should complete within timeout or stop early
@@ -50,9 +48,7 @@ async fn test_reasoning_chain_timeout() -> Result<()> {
 
 #[tokio::test]
 async fn test_reasoning_chain_dependencies() -> Result<()> {
-    let config = ReasoningConfig::new()
-        .with_depth(5)
-        .with_timeout(30);
+    let config = ReasoningConfig::new().with_depth(5).with_timeout(30);
     let chain = ReasoningChain::new(config);
 
     let result = chain

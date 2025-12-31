@@ -26,12 +26,6 @@ too-many-arguments-threshold = 5  # Stricter argument limits
 cognitive-complexity-threshold = 15  # Lower cognitive complexity
 too-large-for-stack = 2048  # Stricter stack size limits
 
-# Security Enhancements (Not in official)
-disallowed-types = [
-    { path = "std::collections::HashMap", reason = "Use BTreeMap for deterministic ordering and better cache performance." },
-    { path = "std::collections::HashSet", reason = "Use BTreeSet for deterministic ordering." },
-]
-
 # Memory Safety (Stricter than official)
 max-fn-params-bools = 2  # Limit boolean parameters
 too-many-lines-threshold = 300  # Stricter line limits per function

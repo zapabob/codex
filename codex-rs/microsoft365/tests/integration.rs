@@ -2,7 +2,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use anyhow::Result;
-use codex_microsoft365::{Microsoft365AuthManager, Microsoft365Client};
+use codex_microsoft365::Microsoft365AuthManager;
+use codex_microsoft365::Microsoft365Client;
 use std::path::PathBuf;
 use tempfile::TempDir;
 
@@ -24,9 +25,8 @@ async fn test_auth_manager_creation() -> Result<()> {
     )?;
 
     // Verify auth manager is created by testing authorization URL generation
-    let (auth_url, _csrf_token) = auth_manager.get_authorization_url(vec![
-        "Files.ReadWrite".to_string(),
-    ])?;
+    let (auth_url, _csrf_token) =
+        auth_manager.get_authorization_url(vec!["Files.ReadWrite".to_string()])?;
 
     // Verify URL contains expected components
     assert!(auth_url.contains("login.microsoftonline.com"));
@@ -71,7 +71,7 @@ async fn test_auth_url_generation() -> Result<()> {
         "Files.ReadWrite".to_string(),
         "Mail.ReadWrite".to_string(),
     ])?;
-    
+
     // Verify URL contains expected components
     assert!(auth_url.contains("login.microsoftonline.com"));
     assert!(!csrf_token.secret().is_empty());

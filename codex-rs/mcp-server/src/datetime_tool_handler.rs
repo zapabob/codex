@@ -84,13 +84,13 @@ fn get_current_datetime(params: &DateTimeToolParam) -> Result<String, String> {
         match tz.to_uppercase().as_str() {
             "UTC" => Utc::now(),
             _ => {
-                // Use system timezone (Local)
-                Local::now()
+                // Use system timezone (Local) and convert to UTC
+                Local::now().with_timezone(&Utc)
             }
         }
     } else {
-        // Use system timezone (Local)
-        Local::now()
+        // Use system timezone (Local) and convert to UTC
+        Local::now().with_timezone(&Utc)
     };
 
     let formatted = match params.format.as_str() {
@@ -101,7 +101,8 @@ fn get_current_datetime(params: &DateTimeToolParam) -> Result<String, String> {
         "timestamp" => dt.timestamp().to_string(),
         _ => {
             // Convert format string from yyyy-MM-dd to %Y-%m-%d format
-            let chrono_format = params.format
+            let chrono_format = params
+                .format
                 .replace("yyyy", "%Y")
                 .replace("MM", "%m")
                 .replace("dd", "%d")

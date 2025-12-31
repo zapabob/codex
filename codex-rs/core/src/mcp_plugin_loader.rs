@@ -70,7 +70,10 @@ impl McpPluginLoader {
 
             match Self::load_plugin(&plugin_path).await {
                 Ok(plugin) => {
-                    info!("Discovered plugin: {} ({})", plugin.metadata.name, plugin.metadata.version);
+                    info!(
+                        "Discovered plugin: {} ({})",
+                        plugin.metadata.name, plugin.metadata.version
+                    );
                     plugins.push(plugin);
                 }
                 Err(e) => {
@@ -90,9 +93,10 @@ impl McpPluginLoader {
         // Load plugin metadata
         let metadata = if plugin_toml_path.exists() {
             let content = fs::read_to_string(&plugin_toml_path).await?;
-            let mut metadata: PluginMetadata = toml::from_str(&content)
-                .with_context(|| format!("Failed to parse plugin.toml at {:?}", plugin_toml_path))?;
-            
+            let mut metadata: PluginMetadata = toml::from_str(&content).with_context(|| {
+                format!("Failed to parse plugin.toml at {:?}", plugin_toml_path)
+            })?;
+
             // Ensure plugin name matches directory name if not set
             if metadata.name.is_empty() {
                 metadata.name = plugin_path
@@ -137,10 +141,7 @@ impl McpPluginLoader {
     }
 
     /// Load all enabled plugins into the dynamic loader
-    pub async fn load_enabled_plugins(
-        &self,
-        loader: &DynamicMcpLoader,
-    ) -> Result<Vec<String>> {
+    pub async fn load_enabled_plugins(&self, loader: &DynamicMcpLoader) -> Result<Vec<String>> {
         let plugins = self.scan_plugins().await?;
         let mut loaded_names = Vec::new();
 
@@ -151,11 +152,14 @@ impl McpPluginLoader {
             }
 
             let server_name = format!("plugin-{}", plugin.metadata.name);
-            match loader.add_server(server_name.clone(), plugin.server_config.clone()).await {
+            match loader
+                .add_server(server_name.clone(), plugin.server_config.clone())
+                .await
+            {
                 Ok(_) => {
                     info!("Loaded plugin: {}", plugin.metadata.name);
                     loaded_names.push(server_name.clone());
-                    
+
                     // Store loaded plugin
                     let mut loaded = self.loaded_plugins.lock().await;
                     loaded.insert(server_name, plugin);
@@ -170,11 +174,7 @@ impl McpPluginLoader {
     }
 
     /// Unload a plugin
-    pub async fn unload_plugin(
-        &self,
-        plugin_name: &str,
-        loader: &DynamicMcpLoader,
-    ) -> Result<()> {
+    pub async fn unload_plugin(&self, plugin_name: &str, loader: &DynamicMcpLoader) -> Result<()> {
         let server_name = format!("plugin-{}", plugin_name);
         loader.remove_server(&server_name).await?;
 

@@ -23,10 +23,7 @@ pub struct SelectiveToolLoader {
 
 impl SelectiveToolLoader {
     /// Create a new selective tool loader
-    pub fn new(
-        optimizer: Arc<McpTokenOptimizer>,
-        dynamic_loader: Arc<DynamicMcpLoader>,
-    ) -> Self {
+    pub fn new(optimizer: Arc<McpTokenOptimizer>, dynamic_loader: Arc<DynamicMcpLoader>) -> Self {
         Self {
             optimizer,
             dynamic_loader,
@@ -41,7 +38,11 @@ impl SelectiveToolLoader {
         // Analyze task to determine required tools
         let required_tools = self.analyze_task_requirements(task_description).await;
 
-        info!("Task requires {} tools: {:?}", required_tools.len(), required_tools);
+        info!(
+            "Task requires {} tools: {:?}",
+            required_tools.len(),
+            required_tools
+        );
 
         // Generate task ID
         let task_id = format!("task_{}", uuid::Uuid::new_v4());
@@ -56,9 +57,13 @@ impl SelectiveToolLoader {
     /// Unload tools after task completion
     pub async fn unload_after_task(&self, task_id: &str) -> Result<()> {
         let mut mapping = self.task_tool_mapping.lock().await;
-        
+
         if let Some(tools) = mapping.remove(task_id) {
-            info!("Unloading {} tools after task completion: {}", tools.len(), task_id);
+            info!(
+                "Unloading {} tools after task completion: {}",
+                tools.len(),
+                task_id
+            );
             // TODO: Implement actual tool unloading
             // For now, tools remain loaded but are marked as unused
         }
@@ -70,22 +75,34 @@ impl SelectiveToolLoader {
     pub async fn analyze_task_requirements(&self, task: &str) -> Vec<String> {
         // Simple keyword-based analysis
         // TODO: Implement more sophisticated analysis using LLM or semantic search
-        
+
         let task_lower = task.to_lowercase();
         let mut required = Vec::new();
 
         // Keyword mapping to tool categories
-        if task_lower.contains("github") || task_lower.contains("git") || task_lower.contains("repo") {
+        if task_lower.contains("github")
+            || task_lower.contains("git")
+            || task_lower.contains("repo")
+        {
             required.push("github".to_string());
         }
-        if task_lower.contains("search") || task_lower.contains("research") || task_lower.contains("web") {
+        if task_lower.contains("search")
+            || task_lower.contains("research")
+            || task_lower.contains("web")
+        {
             required.push("web-search".to_string());
             required.push("deep-research".to_string());
         }
-        if task_lower.contains("code") || task_lower.contains("analyze") || task_lower.contains("review") {
+        if task_lower.contains("code")
+            || task_lower.contains("analyze")
+            || task_lower.contains("review")
+        {
             required.push("serena".to_string());
         }
-        if task_lower.contains("file") || task_lower.contains("read") || task_lower.contains("write") {
+        if task_lower.contains("file")
+            || task_lower.contains("read")
+            || task_lower.contains("write")
+        {
             required.push("filesystem".to_string());
         }
 

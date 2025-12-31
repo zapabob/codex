@@ -2,13 +2,20 @@
 //!
 //! Provides real-time diagnostic collection, caching, and WebSocket distribution
 
-use anyhow::{Context, Result};
-use lsp_types::{Diagnostic, PublishDiagnosticsParams, Url};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use lsp_types::Diagnostic;
+use lsp_types::PublishDiagnosticsParams;
+use lsp_types::Url;
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{broadcast, RwLock};
-use tracing::{debug, info, warn};
+use tokio::sync::RwLock;
+use tokio::sync::broadcast;
+use tracing::debug;
+use tracing::info;
+use tracing::warn;
 
 /// Diagnostic information for a document
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -149,7 +156,9 @@ impl DiagnosticsManager {
                     Some(_) => "unknown",
                     None => "unknown",
                 };
-                *diagnostics_by_severity.entry(severity.to_string()).or_insert(0) += 1;
+                *diagnostics_by_severity
+                    .entry(severity.to_string())
+                    .or_insert(0) += 1;
             }
         }
 

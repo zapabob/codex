@@ -34,15 +34,15 @@ mod error_code;
 mod exec_approval;
 mod hook_tool;
 mod hook_tool_handler;
+mod lsp_tool_handler;
 pub(crate) mod message_processor;
+mod microsoft365_tool_handler;
 mod outgoing_message;
 mod patch_approval;
 mod subagent_tool;
 mod subagent_tool_handler;
 mod supervisor_tool;
 mod supervisor_tool_handler;
-mod lsp_tool_handler;
-mod microsoft365_tool_handler;
 
 use crate::message_processor::MessageProcessor;
 use crate::outgoing_message::OutgoingMessage;

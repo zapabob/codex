@@ -1,6 +1,7 @@
 //! Configuration for Ultrathink Mode reasoning
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 
 /// Configuration for reasoning chains
 #[derive(Debug, Clone, Serialize, Deserialize)]

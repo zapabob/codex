@@ -2,13 +2,17 @@
 //!
 //! Provides organization-level Skills sharing, versioning, and access control
 
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Context;
+use anyhow::Result;
+use serde::Deserialize;
+use serde::Serialize;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tracing::{debug, info};
+use tracing::debug;
+use tracing::info;
 
-use crate::organizations::{OrganizationManager, OrganizationSkillsRepository};
+use crate::organizations::OrganizationManager;
+use crate::organizations::OrganizationSkillsRepository;
 
 /// Skills sharing manager
 pub struct SkillsSharingManager {
@@ -49,7 +53,9 @@ impl SkillsSharingManager {
         let user_role = self.org_manager.get_user_role(org_id, &user_id).await?;
         if let Some(role) = user_role {
             if access_level == "admin_only" && role != "admin" {
-                return Err(anyhow::anyhow!("Only admins can share skills with admin_only access"));
+                return Err(anyhow::anyhow!(
+                    "Only admins can share skills with admin_only access"
+                ));
             }
         }
 
@@ -85,13 +91,11 @@ impl SkillsSharingManager {
         let user_role = self.org_manager.get_user_role(org_id, user_id).await?;
         let filtered: Vec<_> = skills
             .into_iter()
-            .filter(|skill| {
-                match skill.access_level.as_str() {
-                    "public" => true,
-                    "members_only" => true,
-                    "admin_only" => user_role.as_deref() == Some("admin"),
-                    _ => false,
-                }
+            .filter(|skill| match skill.access_level.as_str() {
+                "public" => true,
+                "members_only" => true,
+                "admin_only" => user_role.as_deref() == Some("admin"),
+                _ => false,
             })
             .collect();
 
@@ -111,7 +115,10 @@ impl SkillsSharingManager {
             return Err(anyhow::anyhow!("User is not a member of the organization"));
         }
 
-        let skill = self.skills_repo.get_skill(org_id, skill_name, version).await?;
+        let skill = self
+            .skills_repo
+            .get_skill(org_id, skill_name, version)
+            .await?;
 
         if let Some(skill) = skill {
             // Check access level
