@@ -4,7 +4,7 @@ overview: Claude CodeとClaude for Chromeの統合方式を参考に、Codex CLI
 todos:
   - id: "1"
     content: "Native Messaging Host実装: codex-rs/chrome-hostプロジェクト作成、stdin/stdout JSONメッセージ処理、Codex CLI呼び出し機能"
-    status: pending
+    status: in_progress
   - id: "2"
     content: "メッセージプロトコル定義: message.rsでリクエスト/レスポンス形式定義、エラーハンドリング仕様"
     status: pending
