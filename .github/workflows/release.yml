@@ -89,14 +89,25 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
 
+      - name: Check for existing tgz file
+        id: check_tgz
+        run: |
+          if [ -f "codex-2.8.2.tgz" ]; then
+            echo "tgz_exists=true" >> $GITHUB_OUTPUT
+            echo "tgz_file=codex-2.8.2.tgz" >> $GITHUB_OUTPUT
+          else
+            echo "tgz_exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             codex-windows-x64.exe/codex.exe
             codex-darwin-x64/codex
             codex-darwin-arm64/codex
             codex-linux-x64/codex
+            ${{ steps.check_tgz.outputs.tgz_file }}
           body_path: RELEASE_NOTES_v1.0.0.md
           draft: false
           prerelease: false
