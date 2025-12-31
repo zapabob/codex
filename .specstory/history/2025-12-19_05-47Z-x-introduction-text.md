@@ -106026,59 +106026,7 @@ Status: **completed**
 
 ---
 
-<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
-<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd codex-rs ; cargo check 2>&1 | Select-Object -First 50</summary>
-
-```bash
-cd codex-rs ; cargo check 2>&1 | Select-Object -First 50
-```
-
-```
-cargo :     Checking tokio v1.47.1
-�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-140026f4-e249-461d-b10c-468ed7f8dbe2.ps1:95 ����:15
-+ cd codex-rs ; cargo check 2&gt;&amp;1 | Select-Object -First 50
-+               ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (    Checking tokio v1.47.1:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-    Checking image v0.25.9
-    Checking codex-utils-absolute-path v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\absolute-path)
-    Checking codex-git v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\git)
-    Checking mcp-types v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\mcp-types)
-    Checking clap_builder v4.5.53
-    Checking schemars v1.0.4
-    Checking codex-keyring-store v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\keyring-store)
-    Checking starlark_syntax v0.13.0
-    Checking rustyline v14.0.0
-    Checking env_logger v0.11.8
-   Compiling codex-execpolicy v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy)
-    Checking is-terminal v0.4.16
-    Checking test-log v0.2.19
-    Checking codex-backend-openapi-models v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\codex-backend-openapi-mode
-ls)
-    Checking supports-color v2.1.0
-    Checking codex-ansi-escape v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\ansi-escape)
-    Checking arboard v3.6.1
-    Checking codex-utils-json-to-toml v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\json-to-toml)
-    Checking clap v4.5.53
-    Checking owo-colors v4.2.2
-    Checking codex-process-hardening v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\process-hardening)
-    Checking notify v8.2.0
-    Checking codex-stdio-to-uds v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\stdio-to-uds)
-   Compiling codex-execpolicy-legacy v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy-legacy)
-    Checking simple_asn1 v0.6.3
-    Checking codex-linux-sandbox v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\linux-sandbox)
-    Checking clap_complete v4.5.57
-    Checking codex-apply-patch v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\apply-patch)
-    Checking codex-cuda-runtime v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\cuda-runtime)
-    Checking color-spantrace v0.3.0
-    Checking web-search v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\codex-rs\web-search)
-    Checking jsonwebtoken v9.3.1
-    Checking color-eyre v0.6.5
-
-```
-</details>
-</tool-use>
+Cancelled
 
 ---
 
@@ -106095,6 +106043,7324 @@ _**User**_
 Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
 
 To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+`integration_web_search.rs`と`rate_limit.rs`は問題なし。`cli/src/main.rs`のパターンマッチングを確認し、続いて`cargo check`でコンパイルエラーを確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "MultitoolCli\\s*\\{",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+  "contextAfter": 10,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "MultitoolCli\\s*\\{",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\cli\\src\\main.rs",
+              "matches": [
+                {
+                  "lineNumber": 76,
+                  "content": "struct MultitoolCli {"
+                },
+                {
+                  "lineNumber": 77,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 78,
+                  "content": "    pub config_overrides: CliConfigOverrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 79,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 80,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 81,
+                  "content": "    pub feature_toggles: FeatureToggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 82,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 83,
+                  "content": "    #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 84,
+                  "content": "    /// Use Windows 11 AI API for optimization (requires Windows 11 25H2+)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 85,
+                  "content": "    #[clap(long, global = true)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 86,
+                  "content": "    pub use_windows_ai: bool,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 776,
+                  "content": "    let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 777,
+                  "content": "        config_overrides: mut root_config_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 778,
+                  "content": "        feature_toggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 779,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 780,
+                  "content": "        use_windows_ai,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 781,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 782,
+                  "content": "        kernel_accelerated,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 783,
+                  "content": "        mut interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 784,
+                  "content": "        subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 785,
+                  "content": "        ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 786,
+                  "content": "    } = MultitoolCli::parse();",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1534,
+                  "content": "        let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 1535,
+                  "content": "            interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1536,
+                  "content": "            config_overrides: root_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1537,
+                  "content": "            subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1538,
+                  "content": "            feature_toggles: _,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1539,
+                  "content": "            ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1540,
+                  "content": "        } = cli;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1541,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1542,
+                  "content": "        let Subcommand::Resume(ResumeCommand {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1543,
+                  "content": "            session_id,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1544,
+                  "content": "            last,",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 33,
+          "totalMatchedLines": 3
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+Cancelled
+
+---
+
+
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+`integration_web_search.rs`と`rate_limit.rs`は問題なし。`cli/src/main.rs`のパターンマッチングを確認し、続いて`cargo check`でコンパイルエラーを確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "MultitoolCli\\s*\\{",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+  "contextAfter": 10,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "MultitoolCli\\s*\\{",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\cli\\src\\main.rs",
+              "matches": [
+                {
+                  "lineNumber": 76,
+                  "content": "struct MultitoolCli {"
+                },
+                {
+                  "lineNumber": 77,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 78,
+                  "content": "    pub config_overrides: CliConfigOverrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 79,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 80,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 81,
+                  "content": "    pub feature_toggles: FeatureToggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 82,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 83,
+                  "content": "    #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 84,
+                  "content": "    /// Use Windows 11 AI API for optimization (requires Windows 11 25H2+)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 85,
+                  "content": "    #[clap(long, global = true)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 86,
+                  "content": "    pub use_windows_ai: bool,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 776,
+                  "content": "    let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 777,
+                  "content": "        config_overrides: mut root_config_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 778,
+                  "content": "        feature_toggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 779,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 780,
+                  "content": "        use_windows_ai,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 781,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 782,
+                  "content": "        kernel_accelerated,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 783,
+                  "content": "        mut interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 784,
+                  "content": "        subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 785,
+                  "content": "        ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 786,
+                  "content": "    } = MultitoolCli::parse();",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1534,
+                  "content": "        let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 1535,
+                  "content": "            interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1536,
+                  "content": "            config_overrides: root_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1537,
+                  "content": "            subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1538,
+                  "content": "            feature_toggles: _,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1539,
+                  "content": "            ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1540,
+                  "content": "        } = cli;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1541,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1542,
+                  "content": "        let Subcommand::Resume(ResumeCommand {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1543,
+                  "content": "            session_id,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1544,
+                  "content": "            last,",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 33,
+          "totalMatchedLines": 3
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+Cancelled
+
+---
+
+
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+計画に沿って進めます。`integration_web_search.rs`は既にunsafeブロックで囲まれています。`cli/src/main.rs`のパターンマッチングを確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "MultitoolCli\\s*\\{",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+  "contextAfter": 10,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "MultitoolCli\\s*\\{",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\cli\\src\\main.rs",
+              "matches": [
+                {
+                  "lineNumber": 76,
+                  "content": "struct MultitoolCli {"
+                },
+                {
+                  "lineNumber": 77,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 78,
+                  "content": "    pub config_overrides: CliConfigOverrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 79,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 80,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 81,
+                  "content": "    pub feature_toggles: FeatureToggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 82,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 83,
+                  "content": "    #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 84,
+                  "content": "    /// Use Windows 11 AI API for optimization (requires Windows 11 25H2+)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 85,
+                  "content": "    #[clap(long, global = true)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 86,
+                  "content": "    pub use_windows_ai: bool,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 776,
+                  "content": "    let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 777,
+                  "content": "        config_overrides: mut root_config_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 778,
+                  "content": "        feature_toggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 779,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 780,
+                  "content": "        use_windows_ai,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 781,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 782,
+                  "content": "        kernel_accelerated,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 783,
+                  "content": "        mut interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 784,
+                  "content": "        subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 785,
+                  "content": "        ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 786,
+                  "content": "    } = MultitoolCli::parse();",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1534,
+                  "content": "        let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 1535,
+                  "content": "            interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1536,
+                  "content": "            config_overrides: root_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1537,
+                  "content": "            subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1538,
+                  "content": "            feature_toggles: _,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1539,
+                  "content": "            ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1540,
+                  "content": "        } = cli;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1541,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1542,
+                  "content": "        let Subcommand::Resume(ResumeCommand {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1543,
+                  "content": "            session_id,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1544,
+                  "content": "            last,",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 33,
+          "totalMatchedLines": 3
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+Cancelled
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+計画に沿って進めます。`integration_web_search.rs`と`rate_limit.rs`は問題なし。`cli/src/main.rs`のパターンマッチングを確認します。
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "MultitoolCli\\s*\\{",
+  "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+  "contextAfter": 10,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "MultitoolCli\\s*\\{",
+    "path": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\main.rs",
+    "outputMode": "content",
+    "workspaceResults": {
+      "c:\\Users\\downl\\Desktop\\codex-main": {
+        "content": {
+          "matches": [
+            {
+              "file": "codex-rs\\cli\\src\\main.rs",
+              "matches": [
+                {
+                  "lineNumber": 76,
+                  "content": "struct MultitoolCli {"
+                },
+                {
+                  "lineNumber": 77,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 78,
+                  "content": "    pub config_overrides: CliConfigOverrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 79,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 80,
+                  "content": "    #[clap(flatten)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 81,
+                  "content": "    pub feature_toggles: FeatureToggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 82,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 83,
+                  "content": "    #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 84,
+                  "content": "    /// Use Windows 11 AI API for optimization (requires Windows 11 25H2+)",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 85,
+                  "content": "    #[clap(long, global = true)]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 86,
+                  "content": "    pub use_windows_ai: bool,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 776,
+                  "content": "    let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 777,
+                  "content": "        config_overrides: mut root_config_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 778,
+                  "content": "        feature_toggles,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 779,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 780,
+                  "content": "        use_windows_ai,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 781,
+                  "content": "        #[cfg(target_os = \"windows\")]",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 782,
+                  "content": "        kernel_accelerated,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 783,
+                  "content": "        mut interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 784,
+                  "content": "        subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 785,
+                  "content": "        ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 786,
+                  "content": "    } = MultitoolCli::parse();",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1534,
+                  "content": "        let MultitoolCli {"
+                },
+                {
+                  "lineNumber": 1535,
+                  "content": "            interactive,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1536,
+                  "content": "            config_overrides: root_overrides,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1537,
+                  "content": "            subcommand,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1538,
+                  "content": "            feature_toggles: _,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1539,
+                  "content": "            ..",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1540,
+                  "content": "        } = cli;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1541,
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1542,
+                  "content": "        let Subcommand::Resume(ResumeCommand {",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1543,
+                  "content": "            session_id,",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 1544,
+                  "content": "            last,",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 33,
+          "totalMatchedLines": 3
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "MultitoolCli pattern matching with missing fields",
+  "includePattern": "codex-rs/cli",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 58,
+            "column": 47
+          },
+          "endPosition": {
+            "line": 122
+          }
+        },
+        "contents": "/// Codex CLI\n///\n/// If no subcommand is specified, options will be forwarded to the interactive CLI.\n#[derive(Debug, Parser)]\n#[clap(\n    author,\n    version,\n    // If a sub‑command is given, ignore requirements of the default args.\n    subcommand_negates_reqs = true,\n    // The executable is sometimes invoked via a platform‑specific name like\n    // &#96;codex-x86_64-unknown-linux-musl&#96;, but the help output should always use\n    // the generic &#96;codex&#96; command name that users run.\n    bin_name = \"codex\",\n    override_usage = \"codex [OPTIONS] [PROMPT]\\n       codex [OPTIONS] &lt;COMMAND&gt; [ARGS]\"\n)]\nstruct MultitoolCli {\n    #[clap(flatten)]\n    pub config_overrides: CliConfigOverrides,\n\n    #[clap(flatten)]\n    pub feature_toggles: FeatureToggles,\n\n    #[cfg(target_os = \"windows\")]\n    /// Use Windows 11 AI API for optimization (requires Windows 11 25H2+)\n    #[clap(long, global = true)]\n    pub use_windows_ai: bool,\n\n    #[cfg(target_os = \"windows\")]\n    /// Enable kernel driver acceleration (requires AI driver installed)\n    #[clap(long, global = true)]\n    pub kernel_accelerated: bool,\n\n    /// Use CUDA GPU acceleration (100-1000x faster for git analysis)\n    #[clap(long, global = true)]\n    pub use_cuda: bool,\n\n    /// CUDA device ID (default: 0)\n    #[clap(long, global = true)]\n    pub cuda_device: Option&lt;i32&gt;,\n\n    /// Use Ollama for local inference\n    #[clap(long, global = true)]\n    pub use_ollama: bool,\n\n    /// Ollama model name\n    #[clap(long, global = true, default_value = \"gpt-oss:20b\")]\n    pub ollama_model: String,\n\n    /// Ollama server URL\n    #[clap(long, global = true)]\n    pub ollama_url: Option&lt;String&gt;,\n\n    #[clap(flatten)]\n    interactive: TuiCli,\n\n    #[clap(subcommand)]\n    subcommand: Option&lt;Subcommand&gt;,\n}\n\n#[derive(Debug, clap::Subcommand)]\nenum Subcommand {\n    /// Run Codex non-interactively.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/// Codex CLI",
+            "lineNumber": 61
+          },
+          {
+            "text": "///",
+            "lineNumber": 62
+          },
+          {
+            "text": "/// If no subcommand is specified, options will be forwarded to the interactive CLI.",
+            "lineNumber": 63
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 64
+          },
+          {
+            "text": "#[clap(",
+            "lineNumber": 65
+          },
+          {
+            "text": "    author,",
+            "lineNumber": 66
+          },
+          {
+            "text": "    version,",
+            "lineNumber": 67
+          },
+          {
+            "text": "    // If a sub‑command is given, ignore requirements of the default args.",
+            "lineNumber": 68
+          },
+          {
+            "text": "    subcommand_negates_reqs = true,",
+            "lineNumber": 69
+          },
+          {
+            "text": "    // The executable is sometimes invoked via a platform‑specific name like",
+            "lineNumber": 70
+          },
+          {
+            "text": "    // &#96;codex-x86_64-unknown-linux-musl&#96;, but the help output should always use",
+            "lineNumber": 71
+          },
+          {
+            "text": "    // the generic &#96;codex&#96; command name that users run.",
+            "lineNumber": 72
+          },
+          {
+            "text": "    bin_name = \"codex\",",
+            "lineNumber": 73
+          },
+          {
+            "text": "    override_usage = \"codex [OPTIONS] [PROMPT]\\n       codex [OPTIONS] &lt;COMMAND&gt; [ARGS]\"",
+            "lineNumber": 74
+          },
+          {
+            "text": ")]",
+            "lineNumber": 75
+          },
+          {
+            "text": "struct MultitoolCli {",
+            "lineNumber": 76
+          },
+          {
+            "text": "    #[clap(flatten)]",
+            "lineNumber": 77
+          },
+          {
+            "text": "    pub config_overrides: CliConfigOverrides,",
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79
+          },
+          {
+            "text": "    #[clap(flatten)]",
+            "lineNumber": 80
+          },
+          {
+            "text": "    pub feature_toggles: FeatureToggles,",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "    #[cfg(target_os = \"windows\")]",
+            "lineNumber": 83
+          },
+          {
+            "text": "    /// Use Windows 11 AI API for optimization (requires Windows 11 25H2+)",
+            "lineNumber": 84
+          },
+          {
+            "text": "    #[clap(long, global = true)]",
+            "lineNumber": 85
+          },
+          {
+            "text": "    pub use_windows_ai: bool,",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "    #[cfg(target_os = \"windows\")]",
+            "lineNumber": 88
+          },
+          {
+            "text": "    /// Enable kernel driver acceleration (requires AI driver installed)",
+            "lineNumber": 89
+          },
+          {
+            "text": "    #[clap(long, global = true)]",
+            "lineNumber": 90
+          },
+          {
+            "text": "    pub kernel_accelerated: bool,",
+            "lineNumber": 91
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "text": "    /// Use CUDA GPU acceleration (100-1000x faster for git analysis)",
+            "lineNumber": 93
+          },
+          {
+            "text": "    #[clap(long, global = true)]",
+            "lineNumber": 94
+          },
+          {
+            "text": "    pub use_cuda: bool,",
+            "lineNumber": 95
+          },
+          {
+            "lineNumber": 96
+          },
+          {
+            "text": "    /// CUDA device ID (default: 0)",
+            "lineNumber": 97
+          },
+          {
+            "text": "    #[clap(long, global = true)]",
+            "lineNumber": 98
+          },
+          {
+            "text": "    pub cuda_device: Option&lt;i32&gt;,",
+            "lineNumber": 99
+          },
+          {
+            "lineNumber": 100
+          },
+          {
+            "text": "    /// Use Ollama for local inference",
+            "lineNumber": 101
+          },
+          {
+            "text": "    #[clap(long, global = true)]",
+            "lineNumber": 102
+          },
+          {
+            "text": "    pub use_ollama: bool,",
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "text": "    /// Ollama model name",
+            "lineNumber": 105
+          },
+          {
+            "text": "    #[clap(long, global = true, default_value = \"gpt-oss:20b\")]",
+            "lineNumber": 106
+          },
+          {
+            "text": "    pub ollama_model: String,",
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108
+          },
+          {
+            "text": "    /// Ollama server URL",
+            "lineNumber": 109
+          },
+          {
+            "text": "    #[clap(long, global = true)]",
+            "lineNumber": 110
+          },
+          {
+            "text": "    pub ollama_url: Option&lt;String&gt;,",
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112
+          },
+          {
+            "text": "    #[clap(flatten)]",
+            "lineNumber": 113
+          },
+          {
+            "text": "    interactive: TuiCli,",
+            "lineNumber": 114
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "text": "    #[clap(subcommand)]",
+            "lineNumber": 116
+          },
+          {
+            "text": "    subcommand: Option&lt;Subcommand&gt;,",
+            "lineNumber": 117
+          },
+          {
+            "text": "}",
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "#[derive(Debug, clap::Subcommand)]",
+            "lineNumber": 120
+          },
+          {
+            "text": "enum Subcommand {",
+            "lineNumber": 121
+          },
+          {
+            "text": "    /// Run Codex non-interactively.",
+            "lineNumber": 122
+          }
+        ]
+      },
+      "score": 0.2649824619293213
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 769,
+            "column": 49
+          },
+          "endPosition": {
+            "line": 827,
+            "column": 17
+          }
+        },
+        "contents": "        Ok(())\n    })\n}\n\nasync fn cli_main(codex_linux_sandbox_exe: Option&lt;PathBuf&gt;) -&gt; anyhow::Result&lt;()&gt; {\n    let MultitoolCli {\n        config_overrides: mut root_config_overrides,\n        feature_toggles,\n        #[cfg(target_os = \"windows\")]\n        use_windows_ai,\n        #[cfg(target_os = \"windows\")]\n        kernel_accelerated,\n        mut interactive,\n        subcommand,\n        ..\n    } = MultitoolCli::parse();\n\n    // Fold --enable/--disable into config overrides so they flow to all subcommands.\n    let toggle_overrides = feature_toggles.to_overrides()?;\n    root_config_overrides.raw_overrides.extend(toggle_overrides);\n\n    // Add Windows AI flags to config overrides\n    #[cfg(target_os = \"windows\")]\n    {\n        if use_windows_ai {\n            root_config_overrides\n                .raw_overrides\n                .push(\"windows_ai.enabled=true\".to_string());\n\n            if kernel_accelerated {\n                root_config_overrides\n                    .raw_overrides\n                    .push(\"windows_ai.kernel_accelerated=true\".to_string());\n            }\n\n            // Log Windows AI usage\n            #[cfg(feature = \"windows-ai\")]\n            {\n                if codex_windows_ai::check_windows_ai_available() {\n                    eprintln!(\"🚀 Windows AI enabled (kernel_accelerated: {kernel_accelerated})\");\n                } else {\n                    eprintln!(\n                        \"⚠️  Windows AI requested but not available (requires Windows 11 25H2+)\"\n                    );\n                }\n            }\n\n            #[cfg(not(feature = \"windows-ai\"))]\n            {\n                eprintln!(\n                    \"⚠️  Windows AI requested but not compiled (compile with --features windows-ai)\"\n                );\n            }\n        }\n    }\n\n    match subcommand {\n        None =&gt; {",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        Ok(())",
+            "lineNumber": 771
+          },
+          {
+            "text": "    })",
+            "lineNumber": 772
+          },
+          {
+            "text": "}",
+            "lineNumber": 773
+          },
+          {
+            "lineNumber": 774
+          },
+          {
+            "text": "async fn cli_main(codex_linux_sandbox_exe: Option&lt;PathBuf&gt;) -&gt; anyhow::Result&lt;()&gt; {",
+            "lineNumber": 775
+          },
+          {
+            "text": "    let MultitoolCli {",
+            "lineNumber": 776
+          },
+          {
+            "text": "        config_overrides: mut root_config_overrides,",
+            "lineNumber": 777
+          },
+          {
+            "text": "        feature_toggles,",
+            "lineNumber": 778
+          },
+          {
+            "text": "        #[cfg(target_os = \"windows\")]",
+            "lineNumber": 779
+          },
+          {
+            "text": "        use_windows_ai,",
+            "lineNumber": 780
+          },
+          {
+            "text": "        #[cfg(target_os = \"windows\")]",
+            "lineNumber": 781
+          },
+          {
+            "text": "        kernel_accelerated,",
+            "lineNumber": 782
+          },
+          {
+            "text": "        mut interactive,",
+            "lineNumber": 783
+          },
+          {
+            "text": "        subcommand,",
+            "lineNumber": 784
+          },
+          {
+            "text": "        ..",
+            "lineNumber": 785
+          },
+          {
+            "text": "    } = MultitoolCli::parse();",
+            "lineNumber": 786
+          },
+          {
+            "lineNumber": 787
+          },
+          {
+            "text": "    // Fold --enable/--disable into config overrides so they flow to all subcommands.",
+            "lineNumber": 788
+          },
+          {
+            "text": "    let toggle_overrides = feature_toggles.to_overrides()?;",
+            "lineNumber": 789
+          },
+          {
+            "text": "    root_config_overrides.raw_overrides.extend(toggle_overrides);",
+            "lineNumber": 790
+          },
+          {
+            "lineNumber": 791
+          },
+          {
+            "text": "    // Add Windows AI flags to config overrides",
+            "lineNumber": 792
+          },
+          {
+            "text": "    #[cfg(target_os = \"windows\")]",
+            "lineNumber": 793
+          },
+          {
+            "text": "    {",
+            "lineNumber": 794
+          },
+          {
+            "text": "        if use_windows_ai {",
+            "lineNumber": 795
+          },
+          {
+            "text": "            root_config_overrides",
+            "lineNumber": 796
+          },
+          {
+            "text": "                .raw_overrides",
+            "lineNumber": 797
+          },
+          {
+            "text": "                .push(\"windows_ai.enabled=true\".to_string());",
+            "lineNumber": 798
+          },
+          {
+            "lineNumber": 799
+          },
+          {
+            "text": "            if kernel_accelerated {",
+            "lineNumber": 800
+          },
+          {
+            "text": "                root_config_overrides",
+            "lineNumber": 801
+          },
+          {
+            "text": "                    .raw_overrides",
+            "lineNumber": 802
+          },
+          {
+            "text": "                    .push(\"windows_ai.kernel_accelerated=true\".to_string());",
+            "lineNumber": 803
+          },
+          {
+            "text": "            }",
+            "lineNumber": 804
+          },
+          {
+            "lineNumber": 805
+          },
+          {
+            "text": "            // Log Windows AI usage",
+            "lineNumber": 806
+          },
+          {
+            "text": "            #[cfg(feature = \"windows-ai\")]",
+            "lineNumber": 807
+          },
+          {
+            "text": "            {",
+            "lineNumber": 808
+          },
+          {
+            "text": "                if codex_windows_ai::check_windows_ai_available() {",
+            "lineNumber": 809
+          },
+          {
+            "text": "                    eprintln!(\"🚀 Windows AI enabled (kernel_accelerated: {kernel_accelerated})\");",
+            "lineNumber": 810
+          },
+          {
+            "text": "                } else {",
+            "lineNumber": 811
+          },
+          {
+            "text": "                    eprintln!(",
+            "lineNumber": 812
+          },
+          {
+            "text": "                        \"⚠️  Windows AI requested but not available (requires Windows 11 25H2+)\"",
+            "lineNumber": 813
+          },
+          {
+            "text": "                    );",
+            "lineNumber": 814
+          },
+          {
+            "text": "                }",
+            "lineNumber": 815
+          },
+          {
+            "text": "            }",
+            "lineNumber": 816
+          },
+          {
+            "lineNumber": 817
+          },
+          {
+            "text": "            #[cfg(not(feature = \"windows-ai\"))]",
+            "lineNumber": 818
+          },
+          {
+            "text": "            {",
+            "lineNumber": 819
+          },
+          {
+            "text": "                eprintln!(",
+            "lineNumber": 820
+          },
+          {
+            "text": "                    \"⚠️  Windows AI requested but not compiled (compile with --features windows-ai)\"",
+            "lineNumber": 821
+          },
+          {
+            "text": "                );",
+            "lineNumber": 822
+          },
+          {
+            "text": "            }",
+            "lineNumber": 823
+          },
+          {
+            "text": "        }",
+            "lineNumber": 824
+          },
+          {
+            "text": "    }",
+            "lineNumber": 825
+          },
+          {
+            "lineNumber": 826
+          },
+          {
+            "text": "    match subcommand {",
+            "lineNumber": 827
+          },
+          {
+            "text": "        None =&gt; {",
+            "lineNumber": 828
+          }
+        ]
+      },
+      "score": 0.2197698950767517
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 1291,
+            "column": 71
+          },
+          "endPosition": {
+            "line": 1341,
+            "column": 59
+          }
+        },
+        "contents": " {\n    if let Some(model) = resume_cli.model {\n        interactive.model = Some(model);\n    }\n    if resume_cli.oss {\n        interactive.oss = true;\n    }\n    if let Some(profile) = resume_cli.config_profile {\n        interactive.config_profile = Some(profile);\n    }\n    if let Some(sandbox) = resume_cli.sandbox_mode {\n        interactive.sandbox_mode = Some(sandbox);\n    }\n    if let Some(approval) = resume_cli.approval_policy {\n        interactive.approval_policy = Some(approval);\n    }\n    if resume_cli.full_auto {\n        interactive.full_auto = true;\n    }\n    if resume_cli.dangerously_bypass_approvals_and_sandbox {\n        interactive.dangerously_bypass_approvals_and_sandbox = true;\n    }\n    if let Some(cwd) = resume_cli.cwd {\n        interactive.cwd = Some(cwd);\n    }\n    if resume_cli.web_search {\n        interactive.web_search = true;\n    }\n    if !resume_cli.images.is_empty() {\n        interactive.images = resume_cli.images;\n    }\n    if !resume_cli.add_dir.is_empty() {\n        interactive.add_dir.extend(resume_cli.add_dir);\n    }\n    if let Some(prompt) = resume_cli.prompt {\n        interactive.prompt = Some(prompt);\n    }\n\n    interactive\n        .config_overrides\n        .raw_overrides\n        .extend(resume_cli.config_overrides.raw_overrides);\n}\n\nfn print_completion(cmd: CompletionCommand) {\n    let mut app = MultitoolCli::command();\n    let name = \"codex\";\n    generate(cmd.shell, &amp;mut app, name, &amp;mut std::io::stdout());\n}\n\nasync fn launch_gui(cmd: GuiCommand) -&gt; std::io::Result&lt;()&gt;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": " {",
+            "lineNumber": 1292
+          },
+          {
+            "text": "    if let Some(model) = resume_cli.model {",
+            "lineNumber": 1293
+          },
+          {
+            "text": "        interactive.model = Some(model);",
+            "lineNumber": 1294
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1295
+          },
+          {
+            "text": "    if resume_cli.oss {",
+            "lineNumber": 1296
+          },
+          {
+            "text": "        interactive.oss = true;",
+            "lineNumber": 1297
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1298
+          },
+          {
+            "text": "    if let Some(profile) = resume_cli.config_profile {",
+            "lineNumber": 1299
+          },
+          {
+            "text": "        interactive.config_profile = Some(profile);",
+            "lineNumber": 1300
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1301
+          },
+          {
+            "text": "    if let Some(sandbox) = resume_cli.sandbox_mode {",
+            "lineNumber": 1302
+          },
+          {
+            "text": "        interactive.sandbox_mode = Some(sandbox);",
+            "lineNumber": 1303
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1304
+          },
+          {
+            "text": "    if let Some(approval) = resume_cli.approval_policy {",
+            "lineNumber": 1305
+          },
+          {
+            "text": "        interactive.approval_policy = Some(approval);",
+            "lineNumber": 1306
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1307
+          },
+          {
+            "text": "    if resume_cli.full_auto {",
+            "lineNumber": 1308
+          },
+          {
+            "text": "        interactive.full_auto = true;",
+            "lineNumber": 1309
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1310
+          },
+          {
+            "text": "    if resume_cli.dangerously_bypass_approvals_and_sandbox {",
+            "lineNumber": 1311
+          },
+          {
+            "text": "        interactive.dangerously_bypass_approvals_and_sandbox = true;",
+            "lineNumber": 1312
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1313
+          },
+          {
+            "text": "    if let Some(cwd) = resume_cli.cwd {",
+            "lineNumber": 1314
+          },
+          {
+            "text": "        interactive.cwd = Some(cwd);",
+            "lineNumber": 1315
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1316
+          },
+          {
+            "text": "    if resume_cli.web_search {",
+            "lineNumber": 1317
+          },
+          {
+            "text": "        interactive.web_search = true;",
+            "lineNumber": 1318
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1319
+          },
+          {
+            "text": "    if !resume_cli.images.is_empty() {",
+            "lineNumber": 1320
+          },
+          {
+            "text": "        interactive.images = resume_cli.images;",
+            "lineNumber": 1321
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1322
+          },
+          {
+            "text": "    if !resume_cli.add_dir.is_empty() {",
+            "lineNumber": 1323
+          },
+          {
+            "text": "        interactive.add_dir.extend(resume_cli.add_dir);",
+            "lineNumber": 1324
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1325
+          },
+          {
+            "text": "    if let Some(prompt) = resume_cli.prompt {",
+            "lineNumber": 1326
+          },
+          {
+            "text": "        interactive.prompt = Some(prompt);",
+            "lineNumber": 1327
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1328
+          },
+          {
+            "lineNumber": 1329
+          },
+          {
+            "text": "    interactive",
+            "lineNumber": 1330
+          },
+          {
+            "text": "        .config_overrides",
+            "lineNumber": 1331
+          },
+          {
+            "text": "        .raw_overrides",
+            "lineNumber": 1332
+          },
+          {
+            "text": "        .extend(resume_cli.config_overrides.raw_overrides);",
+            "lineNumber": 1333
+          },
+          {
+            "text": "}",
+            "lineNumber": 1334
+          },
+          {
+            "lineNumber": 1335
+          },
+          {
+            "text": "fn print_completion(cmd: CompletionCommand) {",
+            "lineNumber": 1336
+          },
+          {
+            "text": "    let mut app = MultitoolCli::command();",
+            "lineNumber": 1337
+          },
+          {
+            "text": "    let name = \"codex\";",
+            "lineNumber": 1338
+          },
+          {
+            "text": "    generate(cmd.shell, &amp;mut app, name, &amp;mut std::io::stdout());",
+            "lineNumber": 1339
+          },
+          {
+            "text": "}",
+            "lineNumber": 1340
+          },
+          {
+            "lineNumber": 1341
+          },
+          {
+            "text": "async fn launch_gui(cmd: GuiCommand) -&gt; std::io::Result&lt;()&gt;",
+            "lineNumber": 1342
+          }
+        ]
+      },
+      "score": 0.2105313539505005
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\Cargo.toml",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 73
+          }
+        },
+        "contents": "[package]\nname = \"codex-cli\"\nversion.workspace = true\nedition.workspace = true\nlicense.workspace = true\n\n[[bin]]\nname = \"codex\"\npath = \"src/main.rs\"\n\n[lib]\nname = \"codex_cli\"\npath = \"src/lib.rs\"\n\n[lints]\nworkspace = true\n\n[features]\ncuda = []\nwindows-ai = []\n\n[dependencies]\nanyhow = { workspace = true }\nchrono = { workspace = true }\nclap = { workspace = true, features = [\"derive\"] }\nclap_complete = { workspace = true }\ncodex-app-server = { workspace = true }\ncodex-app-server-protocol = { workspace = true }\ncodex-arg0 = { workspace = true }\ncodex-chatgpt = { workspace = true }\ncodex-cloud-tasks = { path = \"../cloud-tasks\" }\ncodex-common = { workspace = true, features = [\"cli\"] }\ncodex-core = { workspace = true }\ncodex-deep-research = { path = \"../deep-research\" }\ncodex-exec = { workspace = true }\ncodex-web-search = { path = \"../web-search\" }\ncodex-execpolicy = { workspace = true }\ncodex-login = { workspace = true }\ncodex-mcp-server = { workspace = true }\ncodex-otel = { workspace = true }\ncodex-process-hardening = { workspace = true }\ncodex-protocol = { workspace = true }\ncodex-protocol-ts = { path = \"../protocol-ts\" }\ncodex-responses-api-proxy = { workspace = true }\ncodex-rmcp-client = { workspace = true }\ncodex-supervisor = { path = \"../supervisor\" }\ncodex-stdio-to-uds = { workspace = true }\ncodex-tui = { workspace = true }\ncodex-tui2 = { workspace = true }\ncodex-utils-absolute-path = { workspace = true }\nctor = { workspace = true }\ndirs = { workspace = true }\ngit2 = \"0.19\"\nlibc = { workspace = true }\nowo-colors = { workspace = true }\nregex-lite = { workspace = true }\nserde = { workspace = true, features = [\"derive\"] }\nserde_json = { workspace = true }\nslug = \"0.1.4\"\nsupports-color = { workspace = true }\ntokio = { workspace = true, features = [\n    \"io-std\",\n    \"macros\",\n    \"process\",\n    \"rt-multi-thread\",\n    \"signal\",\n] }\ntoml = { workspace = true }\ntracing = { workspace = true }\nwalkdir = { workspace = true }\n\n[target.'cfg(target_os = \"windows\")'.dependencies]\ncodex_windows_sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "[package]",
+            "lineNumber": 1
+          },
+          {
+            "text": "name = \"codex-cli\"",
+            "lineNumber": 2
+          },
+          {
+            "text": "version.workspace = true",
+            "lineNumber": 3
+          },
+          {
+            "text": "edition.workspace = true",
+            "lineNumber": 4
+          },
+          {
+            "text": "license.workspace = true",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "[[bin]]",
+            "lineNumber": 7
+          },
+          {
+            "text": "name = \"codex\"",
+            "lineNumber": 8
+          },
+          {
+            "text": "path = \"src/main.rs\"",
+            "lineNumber": 9
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "[lib]",
+            "lineNumber": 11
+          },
+          {
+            "text": "name = \"codex_cli\"",
+            "lineNumber": 12
+          },
+          {
+            "text": "path = \"src/lib.rs\"",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "[lints]",
+            "lineNumber": 15
+          },
+          {
+            "text": "workspace = true",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "[features]",
+            "lineNumber": 18
+          },
+          {
+            "text": "cuda = []",
+            "lineNumber": 19
+          },
+          {
+            "text": "windows-ai = []",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "[dependencies]",
+            "lineNumber": 22
+          },
+          {
+            "text": "anyhow = { workspace = true }",
+            "lineNumber": 23
+          },
+          {
+            "text": "chrono = { workspace = true }",
+            "lineNumber": 24
+          },
+          {
+            "text": "clap = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 25
+          },
+          {
+            "text": "clap_complete = { workspace = true }",
+            "lineNumber": 26
+          },
+          {
+            "text": "codex-app-server = { workspace = true }",
+            "lineNumber": 27
+          },
+          {
+            "text": "codex-app-server-protocol = { workspace = true }",
+            "lineNumber": 28
+          },
+          {
+            "text": "codex-arg0 = { workspace = true }",
+            "lineNumber": 29
+          },
+          {
+            "text": "codex-chatgpt = { workspace = true }",
+            "lineNumber": 30
+          },
+          {
+            "text": "codex-cloud-tasks = { path = \"../cloud-tasks\" }",
+            "lineNumber": 31
+          },
+          {
+            "text": "codex-common = { workspace = true, features = [\"cli\"] }",
+            "lineNumber": 32
+          },
+          {
+            "text": "codex-core = { workspace = true }",
+            "lineNumber": 33
+          },
+          {
+            "text": "codex-deep-research = { path = \"../deep-research\" }",
+            "lineNumber": 34
+          },
+          {
+            "text": "codex-exec = { workspace = true }",
+            "lineNumber": 35
+          },
+          {
+            "text": "codex-web-search = { path = \"../web-search\" }",
+            "lineNumber": 36
+          },
+          {
+            "text": "codex-execpolicy = { workspace = true }",
+            "lineNumber": 37
+          },
+          {
+            "text": "codex-login = { workspace = true }",
+            "lineNumber": 38
+          },
+          {
+            "text": "codex-mcp-server = { workspace = true }",
+            "lineNumber": 39
+          },
+          {
+            "text": "codex-otel = { workspace = true }",
+            "lineNumber": 40
+          },
+          {
+            "text": "codex-process-hardening = { workspace = true }",
+            "lineNumber": 41
+          },
+          {
+            "text": "codex-protocol = { workspace = true }",
+            "lineNumber": 42
+          },
+          {
+            "text": "codex-protocol-ts = { path = \"../protocol-ts\" }",
+            "lineNumber": 43
+          },
+          {
+            "text": "codex-responses-api-proxy = { workspace = true }",
+            "lineNumber": 44
+          },
+          {
+            "text": "codex-rmcp-client = { workspace = true }",
+            "lineNumber": 45
+          },
+          {
+            "text": "codex-supervisor = { path = \"../supervisor\" }",
+            "lineNumber": 46
+          },
+          {
+            "text": "codex-stdio-to-uds = { workspace = true }",
+            "lineNumber": 47
+          },
+          {
+            "text": "codex-tui = { workspace = true }",
+            "lineNumber": 48
+          },
+          {
+            "text": "codex-tui2 = { workspace = true }",
+            "lineNumber": 49
+          },
+          {
+            "text": "codex-utils-absolute-path = { workspace = true }",
+            "lineNumber": 50
+          },
+          {
+            "text": "ctor = { workspace = true }",
+            "lineNumber": 51
+          },
+          {
+            "text": "dirs = { workspace = true }",
+            "lineNumber": 52
+          },
+          {
+            "text": "git2 = \"0.19\"",
+            "lineNumber": 53
+          },
+          {
+            "text": "libc = { workspace = true }",
+            "lineNumber": 54
+          },
+          {
+            "text": "owo-colors = { workspace = true }",
+            "lineNumber": 55
+          },
+          {
+            "text": "regex-lite = { workspace = true }",
+            "lineNumber": 56
+          },
+          {
+            "text": "serde = { workspace = true, features = [\"derive\"] }",
+            "lineNumber": 57
+          },
+          {
+            "text": "serde_json = { workspace = true }",
+            "lineNumber": 58
+          },
+          {
+            "text": "slug = \"0.1.4\"",
+            "lineNumber": 59
+          },
+          {
+            "text": "supports-color = { workspace = true }",
+            "lineNumber": 60
+          },
+          {
+            "text": "tokio = { workspace = true, features = [",
+            "lineNumber": 61
+          },
+          {
+            "text": "    \"io-std\",",
+            "lineNumber": 62
+          },
+          {
+            "text": "    \"macros\",",
+            "lineNumber": 63
+          },
+          {
+            "text": "    \"process\",",
+            "lineNumber": 64
+          },
+          {
+            "text": "    \"rt-multi-thread\",",
+            "lineNumber": 65
+          },
+          {
+            "text": "    \"signal\",",
+            "lineNumber": 66
+          },
+          {
+            "text": "] }",
+            "lineNumber": 67
+          },
+          {
+            "text": "toml = { workspace = true }",
+            "lineNumber": 68
+          },
+          {
+            "text": "tracing = { workspace = true }",
+            "lineNumber": 69
+          },
+          {
+            "text": "walkdir = { workspace = true }",
+            "lineNumber": 70
+          },
+          {
+            "lineNumber": 71
+          },
+          {
+            "text": "[target.'cfg(target_os = \"windows\")'.dependencies]",
+            "lineNumber": 72
+          },
+          {
+            "text": "codex_windows_sandbox = { package = \"codex-windows-sandbox\", path = \"../windows-sandbox-rs\" }",
+            "lineNumber": 73
+          }
+        ]
+      },
+      "score": 0.19705329835414886
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\research_cmd.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 50,
+            "column": 56
+          }
+        },
+        "contents": "use anyhow::Context;\nuse anyhow::Result;\nuse codex_deep_research::DeepResearcher;\nuse codex_deep_research::DeepResearcherConfig;\nuse codex_deep_research::GeminiSearchProvider;\nuse codex_deep_research::McpSearchProvider;\nuse codex_deep_research::ResearchPlanner;\nuse codex_deep_research::ResearchStrategy;\nuse codex_deep_research::SearchBackend;\nuse codex_deep_research::provider::ResearchProvider;\nuse codex_web_search::WebSearchProvider;\nuse std::path::PathBuf;\nuse std::sync::Arc;\n\npub async fn run_research_command(\n    topic: String,\n    depth: u8,\n    breadth: u8,\n    budget: usize,\n    _citations: bool,\n    mcp_url: Option&lt;String&gt;,\n    lightweight_fallback: bool,\n    out: Option&lt;PathBuf&gt;,\n    use_gemini: bool,\n    use_mcp: bool,\n) -&gt; Result&lt;()&gt; {\n    println!(\"🔍 Starting deep research on: {}\", topic);\n    println!(\"   Depth: {}, Breadth: {}\", depth, breadth);\n    println!(\"   Budget: {} tokens\", budget);\n\n    let plan = ResearchPlanner::generate_plan(&amp;topic, depth, breadth as usize)\n        .context(\"Failed to generate research plan\")?;\n\n    println!(\"\\n📋 Research Plan:\");\n    println!(\"   Main topic: {}\", plan.main_topic);\n    println!(\"   Sub-queries ({}):\", plan.sub_queries.len());\n    for (i, query) in plan.sub_queries.iter().enumerate() {\n        println!(\"     {}. {}\", i + 1, query);\n    }\n\n    let actual_plan = if lightweight_fallback &amp;&amp; budget &lt; 30_000 {\n        println!(\"\\n⚡ Using lightweight research mode due to budget constraints\");\n        ResearchPlanner::downgrade_to_lightweight(&amp;plan)\n    } else {\n        plan\n    };\n\n    // Provider selection priority: Gemini CLI -&gt; MCP search -&gt; built-in web search.\n    let provider: Arc&lt;dyn ResearchProvider + Send + Sync&gt; = if use_gemini {\n        let model =\n            std::env::var(\"GEMINI_MODEL\").unwrap_or_else",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use anyhow::Context;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use codex_deep_research::DeepResearcher;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use codex_deep_research::DeepResearcherConfig;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use codex_deep_research::GeminiSearchProvider;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use codex_deep_research::McpSearchProvider;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use codex_deep_research::ResearchPlanner;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use codex_deep_research::ResearchStrategy;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use codex_deep_research::SearchBackend;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use codex_deep_research::provider::ResearchProvider;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use codex_web_search::WebSearchProvider;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use std::sync::Arc;",
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "pub async fn run_research_command(",
+            "lineNumber": 15
+          },
+          {
+            "text": "    topic: String,",
+            "lineNumber": 16
+          },
+          {
+            "text": "    depth: u8,",
+            "lineNumber": 17
+          },
+          {
+            "text": "    breadth: u8,",
+            "lineNumber": 18
+          },
+          {
+            "text": "    budget: usize,",
+            "lineNumber": 19
+          },
+          {
+            "text": "    _citations: bool,",
+            "lineNumber": 20
+          },
+          {
+            "text": "    mcp_url: Option&lt;String&gt;,",
+            "lineNumber": 21
+          },
+          {
+            "text": "    lightweight_fallback: bool,",
+            "lineNumber": 22
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 23
+          },
+          {
+            "text": "    use_gemini: bool,",
+            "lineNumber": 24
+          },
+          {
+            "text": "    use_mcp: bool,",
+            "lineNumber": 25
+          },
+          {
+            "text": ") -&gt; Result&lt;()&gt; {",
+            "lineNumber": 26
+          },
+          {
+            "text": "    println!(\"🔍 Starting deep research on: {}\", topic);",
+            "lineNumber": 27
+          },
+          {
+            "text": "    println!(\"   Depth: {}, Breadth: {}\", depth, breadth);",
+            "lineNumber": 28
+          },
+          {
+            "text": "    println!(\"   Budget: {} tokens\", budget);",
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "text": "    let plan = ResearchPlanner::generate_plan(&amp;topic, depth, breadth as usize)",
+            "lineNumber": 31
+          },
+          {
+            "text": "        .context(\"Failed to generate research plan\")?;",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "    println!(\"\\n📋 Research Plan:\");",
+            "lineNumber": 34
+          },
+          {
+            "text": "    println!(\"   Main topic: {}\", plan.main_topic);",
+            "lineNumber": 35
+          },
+          {
+            "text": "    println!(\"   Sub-queries ({}):\", plan.sub_queries.len());",
+            "lineNumber": 36
+          },
+          {
+            "text": "    for (i, query) in plan.sub_queries.iter().enumerate() {",
+            "lineNumber": 37
+          },
+          {
+            "text": "        println!(\"     {}. {}\", i + 1, query);",
+            "lineNumber": 38
+          },
+          {
+            "text": "    }",
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "    let actual_plan = if lightweight_fallback &amp;&amp; budget &lt; 30_000 {",
+            "lineNumber": 41
+          },
+          {
+            "text": "        println!(\"\\n⚡ Using lightweight research mode due to budget constraints\");",
+            "lineNumber": 42
+          },
+          {
+            "text": "        ResearchPlanner::downgrade_to_lightweight(&amp;plan)",
+            "lineNumber": 43
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 44
+          },
+          {
+            "text": "        plan",
+            "lineNumber": 45
+          },
+          {
+            "text": "    };",
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "text": "    // Provider selection priority: Gemini CLI -&gt; MCP search -&gt; built-in web search.",
+            "lineNumber": 48
+          },
+          {
+            "text": "    let provider: Arc&lt;dyn ResearchProvider + Send + Sync&gt; = if use_gemini {",
+            "lineNumber": 49
+          },
+          {
+            "text": "        let model =",
+            "lineNumber": 50
+          },
+          {
+            "text": "            std::env::var(\"GEMINI_MODEL\").unwrap_or_else",
+            "lineNumber": 51
+          }
+        ]
+      },
+      "score": 0.19451844692230225
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\research_cmd.rs",
+        "range": {
+          "startPosition": {
+            "line": 47,
+            "column": 84
+          },
+          "endPosition": {
+            "line": 86,
+            "column": 39
+          }
+        },
+        "contents": "    let provider: Arc&lt;dyn ResearchProvider + Send + Sync&gt; = if use_gemini {\n        let model =\n            std::env::var(\"GEMINI_MODEL\").unwrap_or_else(|_| \"gemini-2.5-flash\".to_string());\n        if use_mcp {\n            println!(\"🔌 Using Gemini CLI via MCP (Codex → MCP → Gemini CLI)\");\n            if let Some(url) = mcp_url.as_deref() {\n                println!(\"   ℹ️ Requested MCP server: {url}\");\n            }\n            println!(\n                \"   ℹ️ MCP-backed Gemini integration is not fully configured; falling back to direct CLI execution.\"\n            );\n        } else {\n            println!(\"🤖 Using Gemini CLI with Google Search (Grounding)\");\n        }\n        println!(\"   ℹ️ Note: Using OAuth 2.0 authentication (API key not required)\");\n        Arc::new(GeminiSearchProvider::new(model))\n    } else if let Some(url) = mcp_url.as_deref() {\n        println!(\"🔌 Using MCP Search Provider (DuckDuckGo backend)\");\n        println!(\"   ℹ️ Server: {url}\");\n        Arc::new(McpSearchProvider::new(SearchBackend::DuckDuckGo, None))\n    } else {\n        println!(\"🌐 Using Web Search Provider with DuckDuckGo integration\");\n        println!(\"   Priority: Brave &gt; Google &gt; Bing &gt; DuckDuckGo (no API key required)\");\n\n        if std::env::var(\"BRAVE_API_KEY\").is_ok() {\n            println!(\"   ✅ Brave Search API detected\");\n        } else if std::env::var(\"GOOGLE_API_KEY\").is_ok() &amp;&amp; std::env::var(\"GOOGLE_CSE_ID\").is_ok()\n        {\n            println!(\"   ✅ Google Custom Search API detected\");\n        } else if std::env::var(\"BING_API_KEY\").is_ok() {\n            println!(\"   ✅ Bing Web Search API detected\");\n        } else {\n            println!(\"   🔓 No API keys found, using DuckDuckGo (free, no API key required)\");\n        }\n\n        Arc::new(WebSearchProvider::new(3, 30))\n    };\n\n    let config = DeepResearcherConfig {",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    let provider: Arc&lt;dyn ResearchProvider + Send + Sync&gt; = if use_gemini {",
+            "lineNumber": 49
+          },
+          {
+            "text": "        let model =",
+            "lineNumber": 50
+          },
+          {
+            "text": "            std::env::var(\"GEMINI_MODEL\").unwrap_or_else(|_| \"gemini-2.5-flash\".to_string());",
+            "lineNumber": 51
+          },
+          {
+            "text": "        if use_mcp {",
+            "lineNumber": 52
+          },
+          {
+            "text": "            println!(\"🔌 Using Gemini CLI via MCP (Codex → MCP → Gemini CLI)\");",
+            "lineNumber": 53
+          },
+          {
+            "text": "            if let Some(url) = mcp_url.as_deref() {",
+            "lineNumber": 54
+          },
+          {
+            "text": "                println!(\"   ℹ️ Requested MCP server: {url}\");",
+            "lineNumber": 55
+          },
+          {
+            "text": "            }",
+            "lineNumber": 56
+          },
+          {
+            "text": "            println!(",
+            "lineNumber": 57
+          },
+          {
+            "text": "                \"   ℹ️ MCP-backed Gemini integration is not fully configured; falling back to direct CLI execution.\"",
+            "lineNumber": 58
+          },
+          {
+            "text": "            );",
+            "lineNumber": 59
+          },
+          {
+            "text": "        } else {",
+            "lineNumber": 60
+          },
+          {
+            "text": "            println!(\"🤖 Using Gemini CLI with Google Search (Grounding)\");",
+            "lineNumber": 61
+          },
+          {
+            "text": "        }",
+            "lineNumber": 62
+          },
+          {
+            "text": "        println!(\"   ℹ️ Note: Using OAuth 2.0 authentication (API key not required)\");",
+            "lineNumber": 63
+          },
+          {
+            "text": "        Arc::new(GeminiSearchProvider::new(model))",
+            "lineNumber": 64
+          },
+          {
+            "text": "    } else if let Some(url) = mcp_url.as_deref() {",
+            "lineNumber": 65
+          },
+          {
+            "text": "        println!(\"🔌 Using MCP Search Provider (DuckDuckGo backend)\");",
+            "lineNumber": 66
+          },
+          {
+            "text": "        println!(\"   ℹ️ Server: {url}\");",
+            "lineNumber": 67
+          },
+          {
+            "text": "        Arc::new(McpSearchProvider::new(SearchBackend::DuckDuckGo, None))",
+            "lineNumber": 68
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 69
+          },
+          {
+            "text": "        println!(\"🌐 Using Web Search Provider with DuckDuckGo integration\");",
+            "lineNumber": 70
+          },
+          {
+            "text": "        println!(\"   Priority: Brave &gt; Google &gt; Bing &gt; DuckDuckGo (no API key required)\");",
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "text": "        if std::env::var(\"BRAVE_API_KEY\").is_ok() {",
+            "lineNumber": 73
+          },
+          {
+            "text": "            println!(\"   ✅ Brave Search API detected\");",
+            "lineNumber": 74
+          },
+          {
+            "text": "        } else if std::env::var(\"GOOGLE_API_KEY\").is_ok() &amp;&amp; std::env::var(\"GOOGLE_CSE_ID\").is_ok()",
+            "lineNumber": 75
+          },
+          {
+            "text": "        {",
+            "lineNumber": 76
+          },
+          {
+            "text": "            println!(\"   ✅ Google Custom Search API detected\");",
+            "lineNumber": 77
+          },
+          {
+            "text": "        } else if std::env::var(\"BING_API_KEY\").is_ok() {",
+            "lineNumber": 78
+          },
+          {
+            "text": "            println!(\"   ✅ Bing Web Search API detected\");",
+            "lineNumber": 79
+          },
+          {
+            "text": "        } else {",
+            "lineNumber": 80
+          },
+          {
+            "text": "            println!(\"   🔓 No API keys found, using DuckDuckGo (free, no API key required)\");",
+            "lineNumber": 81
+          },
+          {
+            "text": "        }",
+            "lineNumber": 82
+          },
+          {
+            "lineNumber": 83
+          },
+          {
+            "text": "        Arc::new(WebSearchProvider::new(3, 30))",
+            "lineNumber": 84
+          },
+          {
+            "text": "    };",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "    let config = DeepResearcherConfig {",
+            "lineNumber": 87
+          }
+        ]
+      },
+      "score": 0.1881050020456314
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\mcp_cmd.rs",
+        "range": {
+          "startPosition": {
+            "line": 736,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 796,
+            "column": 22
+          }
+        },
+        "contents": "async fn run_get(config_overrides: &amp;CliConfigOverrides, get_args: GetArgs) -&gt; Result&lt;()&gt; {\n    let overrides = config_overrides\n        .parse_overrides()\n        .map_err(anyhow::Error::msg)?;\n    let config = Config::load_with_cli_overrides(overrides)\n        .await\n        .context(\"failed to load configuration\")?;\n\n    let Some(server) = config.mcp_servers.get(&amp;get_args.name) else {\n        bail!(\"No MCP server named '{name}' found.\", name = get_args.name);\n    };\n\n    if get_args.json {\n        let transport = match &amp;server.transport {\n            McpServerTransportConfig::Stdio {\n                command,\n                args,\n                env,\n                env_vars,\n                cwd,\n            } =&gt; serde_json::json!({\n                \"type\": \"stdio\",\n                \"command\": command,\n                \"args\": args,\n                \"env\": env,\n                \"env_vars\": env_vars,\n                \"cwd\": cwd,\n            }),\n            McpServerTransportConfig::StreamableHttp {\n                url,\n                bearer_token_env_var,\n                http_headers,\n                env_http_headers,\n            } =&gt; serde_json::json!({\n                \"type\": \"streamable_http\",\n                \"url\": url,\n                \"bearer_token_env_var\": bearer_token_env_var,\n                \"http_headers\": http_headers,\n                \"env_http_headers\": env_http_headers,\n            }),\n        };\n        let output = serde_json::to_string_pretty(&amp;serde_json::json!({\n            \"name\": get_args.name,\n            \"enabled\": server.enabled,\n            \"transport\": transport,\n            \"enabled_tools\": server.enabled_tools.clone(),\n            \"disabled_tools\": server.disabled_tools.clone(),\n            \"startup_timeout_sec\": server\n                .startup_timeout_sec\n                .map(|timeout| timeout.as_secs_f64()),\n            \"tool_timeout_sec\": server\n                .tool_timeout_sec\n                .map(|timeout| timeout.as_secs_f64()),\n        }))?;\n        println!(\"{output}\");\n        return Ok(());\n    }\n\n    if !server.enabled",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "async fn run_get(config_overrides: &amp;CliConfigOverrides, get_args: GetArgs) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 739
+          },
+          {
+            "text": "    let overrides = config_overrides",
+            "lineNumber": 740
+          },
+          {
+            "text": "        .parse_overrides()",
+            "lineNumber": 741
+          },
+          {
+            "text": "        .map_err(anyhow::Error::msg)?;",
+            "lineNumber": 742
+          },
+          {
+            "text": "    let config = Config::load_with_cli_overrides(overrides)",
+            "lineNumber": 743
+          },
+          {
+            "text": "        .await",
+            "lineNumber": 744
+          },
+          {
+            "text": "        .context(\"failed to load configuration\")?;",
+            "lineNumber": 745
+          },
+          {
+            "lineNumber": 746
+          },
+          {
+            "text": "    let Some(server) = config.mcp_servers.get(&amp;get_args.name) else {",
+            "lineNumber": 747
+          },
+          {
+            "text": "        bail!(\"No MCP server named '{name}' found.\", name = get_args.name);",
+            "lineNumber": 748
+          },
+          {
+            "text": "    };",
+            "lineNumber": 749
+          },
+          {
+            "lineNumber": 750
+          },
+          {
+            "text": "    if get_args.json {",
+            "lineNumber": 751
+          },
+          {
+            "text": "        let transport = match &amp;server.transport {",
+            "lineNumber": 752
+          },
+          {
+            "text": "            McpServerTransportConfig::Stdio {",
+            "lineNumber": 753
+          },
+          {
+            "text": "                command,",
+            "lineNumber": 754
+          },
+          {
+            "text": "                args,",
+            "lineNumber": 755
+          },
+          {
+            "text": "                env,",
+            "lineNumber": 756
+          },
+          {
+            "text": "                env_vars,",
+            "lineNumber": 757
+          },
+          {
+            "text": "                cwd,",
+            "lineNumber": 758
+          },
+          {
+            "text": "            } =&gt; serde_json::json!({",
+            "lineNumber": 759
+          },
+          {
+            "text": "                \"type\": \"stdio\",",
+            "lineNumber": 760
+          },
+          {
+            "text": "                \"command\": command,",
+            "lineNumber": 761
+          },
+          {
+            "text": "                \"args\": args,",
+            "lineNumber": 762
+          },
+          {
+            "text": "                \"env\": env,",
+            "lineNumber": 763
+          },
+          {
+            "text": "                \"env_vars\": env_vars,",
+            "lineNumber": 764
+          },
+          {
+            "text": "                \"cwd\": cwd,",
+            "lineNumber": 765
+          },
+          {
+            "text": "            }),",
+            "lineNumber": 766
+          },
+          {
+            "text": "            McpServerTransportConfig::StreamableHttp {",
+            "lineNumber": 767
+          },
+          {
+            "text": "                url,",
+            "lineNumber": 768
+          },
+          {
+            "text": "                bearer_token_env_var,",
+            "lineNumber": 769
+          },
+          {
+            "text": "                http_headers,",
+            "lineNumber": 770
+          },
+          {
+            "text": "                env_http_headers,",
+            "lineNumber": 771
+          },
+          {
+            "text": "            } =&gt; serde_json::json!({",
+            "lineNumber": 772
+          },
+          {
+            "text": "                \"type\": \"streamable_http\",",
+            "lineNumber": 773
+          },
+          {
+            "text": "                \"url\": url,",
+            "lineNumber": 774
+          },
+          {
+            "text": "                \"bearer_token_env_var\": bearer_token_env_var,",
+            "lineNumber": 775
+          },
+          {
+            "text": "                \"http_headers\": http_headers,",
+            "lineNumber": 776
+          },
+          {
+            "text": "                \"env_http_headers\": env_http_headers,",
+            "lineNumber": 777
+          },
+          {
+            "text": "            }),",
+            "lineNumber": 778
+          },
+          {
+            "text": "        };",
+            "lineNumber": 779
+          },
+          {
+            "text": "        let output = serde_json::to_string_pretty(&amp;serde_json::json!({",
+            "lineNumber": 780
+          },
+          {
+            "text": "            \"name\": get_args.name,",
+            "lineNumber": 781
+          },
+          {
+            "text": "            \"enabled\": server.enabled,",
+            "lineNumber": 782
+          },
+          {
+            "text": "            \"transport\": transport,",
+            "lineNumber": 783
+          },
+          {
+            "text": "            \"enabled_tools\": server.enabled_tools.clone(),",
+            "lineNumber": 784
+          },
+          {
+            "text": "            \"disabled_tools\": server.disabled_tools.clone(),",
+            "lineNumber": 785
+          },
+          {
+            "text": "            \"startup_timeout_sec\": server",
+            "lineNumber": 786
+          },
+          {
+            "text": "                .startup_timeout_sec",
+            "lineNumber": 787
+          },
+          {
+            "text": "                .map(|timeout| timeout.as_secs_f64()),",
+            "lineNumber": 788
+          },
+          {
+            "text": "            \"tool_timeout_sec\": server",
+            "lineNumber": 789
+          },
+          {
+            "text": "                .tool_timeout_sec",
+            "lineNumber": 790
+          },
+          {
+            "text": "                .map(|timeout| timeout.as_secs_f64()),",
+            "lineNumber": 791
+          },
+          {
+            "text": "        }))?;",
+            "lineNumber": 792
+          },
+          {
+            "text": "        println!(\"{output}\");",
+            "lineNumber": 793
+          },
+          {
+            "text": "        return Ok(());",
+            "lineNumber": 794
+          },
+          {
+            "text": "    }",
+            "lineNumber": 795
+          },
+          {
+            "lineNumber": 796
+          },
+          {
+            "text": "    if !server.enabled",
+            "lineNumber": 797
+          }
+        ]
+      },
+      "score": 0.18119579553604126
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\ultrathink_cmd.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 68,
+            "column": 35
+          }
+        },
+        "contents": "//! Ultrathink Mode command for deep reasoning chains\n\nuse anyhow::Context;\nuse anyhow::Result;\nuse clap::Parser;\nuse codex_core::reasoning::ReasoningChain;\nuse codex_core::reasoning::ReasoningConfig;\nuse std::io::Write;\nuse std::io::{self};\nuse tracing::info;\n\n/// Ultrathink Mode command for deep reasoning\n#[derive(Debug, Parser)]\npub struct UltrathinkCli {\n    /// Question or problem to reason about\n    #[clap(value_name = \"QUESTION\")]\n    pub question: String,\n\n    /// Maximum depth of reasoning chain\n    #[clap(long, default_value = \"10\")]\n    pub max_depth: usize,\n\n    /// Timeout in seconds\n    #[clap(long, default_value = \"300\")]\n    pub timeout: u64,\n\n    /// Initial context or background information\n    #[clap(long)]\n    pub context: Option&lt;String&gt;,\n\n    /// Output format (text, json)\n    #[clap(long, default_value = \"text\")]\n    pub format: String,\n}\n\n/// Run the ultrathink command\npub async fn run_ultrathink(cli: UltrathinkCli) -&gt; Result&lt;()&gt; {\n    info!(\"Starting Ultrathink Mode reasoning chain\");\n\n    let config = ReasoningConfig::new()\n        .with_depth(cli.max_depth)\n        .with_timeout(cli.timeout);\n\n    let chain = ReasoningChain::new(config);\n\n    // Execute reasoning chain\n    let result = chain\n        .execute(cli.question.clone(), cli.context.clone())\n        .await\n        .context(\"Failed to execute reasoning chain\")?;\n\n    // Output results\n    match cli.format.as_str() {\n        \"json\" =&gt; {\n            let json = serde_json::to_string_pretty(&amp;result)?;\n            println!(\"{}\", json);\n        }\n        _ =&gt; {\n            output_text_format(&amp;result)?;\n        }\n    }\n\n    Ok(())\n}\n\n/// Output results in text format\nfn output_text_format(result: &amp;codex_core::reasoning::ReasoningResult) -&gt; Result&lt;()&gt; {\n    let stdout = io::stdout();\n    let mut handle = stdout.lock();",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "//! Ultrathink Mode command for deep reasoning chains",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "use anyhow::Context;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use clap::Parser;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use codex_core::reasoning::ReasoningChain;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use codex_core::reasoning::ReasoningConfig;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use std::io::Write;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use std::io::{self};",
+            "lineNumber": 9
+          },
+          {
+            "text": "use tracing::info;",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "/// Ultrathink Mode command for deep reasoning",
+            "lineNumber": 12
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 13
+          },
+          {
+            "text": "pub struct UltrathinkCli {",
+            "lineNumber": 14
+          },
+          {
+            "text": "    /// Question or problem to reason about",
+            "lineNumber": 15
+          },
+          {
+            "text": "    #[clap(value_name = \"QUESTION\")]",
+            "lineNumber": 16
+          },
+          {
+            "text": "    pub question: String,",
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "text": "    /// Maximum depth of reasoning chain",
+            "lineNumber": 19
+          },
+          {
+            "text": "    #[clap(long, default_value = \"10\")]",
+            "lineNumber": 20
+          },
+          {
+            "text": "    pub max_depth: usize,",
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "text": "    /// Timeout in seconds",
+            "lineNumber": 23
+          },
+          {
+            "text": "    #[clap(long, default_value = \"300\")]",
+            "lineNumber": 24
+          },
+          {
+            "text": "    pub timeout: u64,",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "text": "    /// Initial context or background information",
+            "lineNumber": 27
+          },
+          {
+            "text": "    #[clap(long)]",
+            "lineNumber": 28
+          },
+          {
+            "text": "    pub context: Option&lt;String&gt;,",
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "text": "    /// Output format (text, json)",
+            "lineNumber": 31
+          },
+          {
+            "text": "    #[clap(long, default_value = \"text\")]",
+            "lineNumber": 32
+          },
+          {
+            "text": "    pub format: String,",
+            "lineNumber": 33
+          },
+          {
+            "text": "}",
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "text": "/// Run the ultrathink command",
+            "lineNumber": 36
+          },
+          {
+            "text": "pub async fn run_ultrathink(cli: UltrathinkCli) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 37
+          },
+          {
+            "text": "    info!(\"Starting Ultrathink Mode reasoning chain\");",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "    let config = ReasoningConfig::new()",
+            "lineNumber": 40
+          },
+          {
+            "text": "        .with_depth(cli.max_depth)",
+            "lineNumber": 41
+          },
+          {
+            "text": "        .with_timeout(cli.timeout);",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "    let chain = ReasoningChain::new(config);",
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "    // Execute reasoning chain",
+            "lineNumber": 46
+          },
+          {
+            "text": "    let result = chain",
+            "lineNumber": 47
+          },
+          {
+            "text": "        .execute(cli.question.clone(), cli.context.clone())",
+            "lineNumber": 48
+          },
+          {
+            "text": "        .await",
+            "lineNumber": 49
+          },
+          {
+            "text": "        .context(\"Failed to execute reasoning chain\")?;",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "    // Output results",
+            "lineNumber": 52
+          },
+          {
+            "text": "    match cli.format.as_str() {",
+            "lineNumber": 53
+          },
+          {
+            "text": "        \"json\" =&gt; {",
+            "lineNumber": 54
+          },
+          {
+            "text": "            let json = serde_json::to_string_pretty(&amp;result)?;",
+            "lineNumber": 55
+          },
+          {
+            "text": "            println!(\"{}\", json);",
+            "lineNumber": 56
+          },
+          {
+            "text": "        }",
+            "lineNumber": 57
+          },
+          {
+            "text": "        _ =&gt; {",
+            "lineNumber": 58
+          },
+          {
+            "text": "            output_text_format(&amp;result)?;",
+            "lineNumber": 59
+          },
+          {
+            "text": "        }",
+            "lineNumber": 60
+          },
+          {
+            "text": "    }",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 63
+          },
+          {
+            "text": "}",
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "/// Output results in text format",
+            "lineNumber": 66
+          },
+          {
+            "text": "fn output_text_format(result: &amp;codex_core::reasoning::ReasoningResult) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 67
+          },
+          {
+            "text": "    let stdout = io::stdout();",
+            "lineNumber": 68
+          },
+          {
+            "text": "    let mut handle = stdout.lock();",
+            "lineNumber": 69
+          }
+        ]
+      },
+      "score": 0.17595049738883972
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\mcp_cmd.rs",
+        "range": {
+          "startPosition": {
+            "line": 228,
+            "column": 13
+          },
+          "endPosition": {
+            "line": 272,
+            "column": 74
+          }
+        },
+        "contents": "        }\n\n        Ok(())\n    }\n}\n\nasync fn run_dynamic(config_overrides: &amp;CliConfigOverrides, args: DynamicArgs) -&gt; Result&lt;()&gt; {\n    // Note: Dynamic loading requires a running Codex instance with DynamicMcpLoader.\n    // This is a placeholder implementation that shows the command structure.\n    // Full implementation would require integration with the Codex runtime.\n\n    match args.subcommand {\n        DynamicSubcommand::Add(add_args) =&gt; {\n            eprintln!(\"Dynamic add command: {:?}\", add_args);\n            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");\n            eprintln!(\"This feature will be fully implemented when integrated with Codex runtime.\");\n            // TODO: Implement actual dynamic add when Codex runtime integration is complete\n        }\n        DynamicSubcommand::Remove(remove_args) =&gt; {\n            eprintln!(\"Dynamic remove command: {:?}\", remove_args);\n            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");\n            // TODO: Implement actual dynamic remove\n        }\n        DynamicSubcommand::Reload(reload_args) =&gt; {\n            eprintln!(\"Dynamic reload command: {:?}\", reload_args);\n            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");\n            // TODO: Implement actual dynamic reload\n        }\n        DynamicSubcommand::List =&gt; {\n            eprintln!(\"Dynamic list command\");\n            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");\n            // TODO: Implement actual dynamic list\n        }\n        DynamicSubcommand::Watch =&gt; {\n            eprintln!(\"Dynamic watch command\");\n            eprintln!(\"Note: File watching requires a running Codex instance.\");\n            // TODO: Implement actual file watching\n        }\n    }\n\n    Ok(())\n}\n\nasync fn run_add(config_overrides: &amp;CliConfigOverrides, add_args: AddArgs)",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        }",
+            "lineNumber": 230
+          },
+          {
+            "lineNumber": 231
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 232
+          },
+          {
+            "text": "    }",
+            "lineNumber": 233
+          },
+          {
+            "text": "}",
+            "lineNumber": 234
+          },
+          {
+            "lineNumber": 235
+          },
+          {
+            "text": "async fn run_dynamic(config_overrides: &amp;CliConfigOverrides, args: DynamicArgs) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 236
+          },
+          {
+            "text": "    // Note: Dynamic loading requires a running Codex instance with DynamicMcpLoader.",
+            "lineNumber": 237
+          },
+          {
+            "text": "    // This is a placeholder implementation that shows the command structure.",
+            "lineNumber": 238
+          },
+          {
+            "text": "    // Full implementation would require integration with the Codex runtime.",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "    match args.subcommand {",
+            "lineNumber": 241
+          },
+          {
+            "text": "        DynamicSubcommand::Add(add_args) =&gt; {",
+            "lineNumber": 242
+          },
+          {
+            "text": "            eprintln!(\"Dynamic add command: {:?}\", add_args);",
+            "lineNumber": 243
+          },
+          {
+            "text": "            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");",
+            "lineNumber": 244
+          },
+          {
+            "text": "            eprintln!(\"This feature will be fully implemented when integrated with Codex runtime.\");",
+            "lineNumber": 245
+          },
+          {
+            "text": "            // TODO: Implement actual dynamic add when Codex runtime integration is complete",
+            "lineNumber": 246
+          },
+          {
+            "text": "        }",
+            "lineNumber": 247
+          },
+          {
+            "text": "        DynamicSubcommand::Remove(remove_args) =&gt; {",
+            "lineNumber": 248
+          },
+          {
+            "text": "            eprintln!(\"Dynamic remove command: {:?}\", remove_args);",
+            "lineNumber": 249
+          },
+          {
+            "text": "            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");",
+            "lineNumber": 250
+          },
+          {
+            "text": "            // TODO: Implement actual dynamic remove",
+            "lineNumber": 251
+          },
+          {
+            "text": "        }",
+            "lineNumber": 252
+          },
+          {
+            "text": "        DynamicSubcommand::Reload(reload_args) =&gt; {",
+            "lineNumber": 253
+          },
+          {
+            "text": "            eprintln!(\"Dynamic reload command: {:?}\", reload_args);",
+            "lineNumber": 254
+          },
+          {
+            "text": "            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");",
+            "lineNumber": 255
+          },
+          {
+            "text": "            // TODO: Implement actual dynamic reload",
+            "lineNumber": 256
+          },
+          {
+            "text": "        }",
+            "lineNumber": 257
+          },
+          {
+            "text": "        DynamicSubcommand::List =&gt; {",
+            "lineNumber": 258
+          },
+          {
+            "text": "            eprintln!(\"Dynamic list command\");",
+            "lineNumber": 259
+          },
+          {
+            "text": "            eprintln!(\"Note: Dynamic loading requires a running Codex instance.\");",
+            "lineNumber": 260
+          },
+          {
+            "text": "            // TODO: Implement actual dynamic list",
+            "lineNumber": 261
+          },
+          {
+            "text": "        }",
+            "lineNumber": 262
+          },
+          {
+            "text": "        DynamicSubcommand::Watch =&gt; {",
+            "lineNumber": 263
+          },
+          {
+            "text": "            eprintln!(\"Dynamic watch command\");",
+            "lineNumber": 264
+          },
+          {
+            "text": "            eprintln!(\"Note: File watching requires a running Codex instance.\");",
+            "lineNumber": 265
+          },
+          {
+            "text": "            // TODO: Implement actual file watching",
+            "lineNumber": 266
+          },
+          {
+            "text": "        }",
+            "lineNumber": 267
+          },
+          {
+            "text": "    }",
+            "lineNumber": 268
+          },
+          {
+            "lineNumber": 269
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 270
+          },
+          {
+            "text": "}",
+            "lineNumber": 271
+          },
+          {
+            "lineNumber": 272
+          },
+          {
+            "text": "async fn run_add(config_overrides: &amp;CliConfigOverrides, add_args: AddArgs)",
+            "lineNumber": 273
+          }
+        ]
+      },
+      "score": 0.17434440553188324
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 358,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 428,
+            "column": 40
+          }
+        },
+        "contents": "#[derive(Debug, Parser)]\nstruct AgentCreateCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,\n\n    /// Prompt describing the agent's purpose and tasks\n    #[arg(value_name = \"PROMPT\")]\n    prompt: String,\n\n    /// Token budget for the custom agent\n    #[arg(long, value_name = \"TOKENS\")]\n    budget: Option&lt;usize&gt;,\n\n    /// Save the generated agent definition to .codex/agents/\n    #[arg(long, default_value = \"false\")]\n    save: bool,\n\n    /// Output file for the result\n    #[arg(short, long, value_name = \"FILE\")]\n    out: Option&lt;PathBuf&gt;,\n}\n\n#[derive(Debug, Parser)]\nstruct ResearchCommand {\n    /// Topic to research\n    #[arg(value_name = \"TOPIC\")]\n    topic: String,\n\n    /// Research depth (1-5)\n    #[arg(short, long, value_name = \"DEPTH\", default_value = \"3\")]\n    depth: u8,\n\n    /// Search breadth (number of sources)\n    #[arg(short, long, value_name = \"BREADTH\", default_value = \"8\")]\n    breadth: u8,\n\n    /// Token budget\n    #[arg(long, value_name = \"TOKENS\", default_value = \"60000\")]\n    budget: usize,\n\n    /// Require citations\n    #[arg(long, default_value = \"true\")]\n    citations: bool,\n\n    /// MCP tools to use (comma-separated)\n    #[arg(long, value_name = \"TOOLS\")]\n    mcp: Option&lt;String&gt;,\n\n    /// Enable lightweight fallback\n    #[arg(long, default_value = \"false\")]\n    lightweight_fallback: bool,\n\n    /// Use Gemini CLI with Google Search (OAuth 2.0 authentication)\n    #[arg(long, default_value = \"false\")]\n    gemini: bool,\n\n    /// Use MCP mode (Codex → MCP → Gemini CLI)\n    #[arg(long, default_value = \"false\")]\n    use_mcp: bool,\n\n    /// Output file for the report\n    #[arg(short, long, value_name = \"FILE\")]\n    out: Option&lt;PathBuf&gt;,\n}\n\n#[derive(Debug, Parser)]\nstruct AskCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 361
+          },
+          {
+            "text": "struct AgentCreateCommand {",
+            "lineNumber": 362
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 363
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 364
+          },
+          {
+            "lineNumber": 365
+          },
+          {
+            "text": "    /// Prompt describing the agent's purpose and tasks",
+            "lineNumber": 366
+          },
+          {
+            "text": "    #[arg(value_name = \"PROMPT\")]",
+            "lineNumber": 367
+          },
+          {
+            "text": "    prompt: String,",
+            "lineNumber": 368
+          },
+          {
+            "lineNumber": 369
+          },
+          {
+            "text": "    /// Token budget for the custom agent",
+            "lineNumber": 370
+          },
+          {
+            "text": "    #[arg(long, value_name = \"TOKENS\")]",
+            "lineNumber": 371
+          },
+          {
+            "text": "    budget: Option&lt;usize&gt;,",
+            "lineNumber": 372
+          },
+          {
+            "lineNumber": 373
+          },
+          {
+            "text": "    /// Save the generated agent definition to .codex/agents/",
+            "lineNumber": 374
+          },
+          {
+            "text": "    #[arg(long, default_value = \"false\")]",
+            "lineNumber": 375
+          },
+          {
+            "text": "    save: bool,",
+            "lineNumber": 376
+          },
+          {
+            "lineNumber": 377
+          },
+          {
+            "text": "    /// Output file for the result",
+            "lineNumber": 378
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"FILE\")]",
+            "lineNumber": 379
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 380
+          },
+          {
+            "text": "}",
+            "lineNumber": 381
+          },
+          {
+            "lineNumber": 382
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 383
+          },
+          {
+            "text": "struct ResearchCommand {",
+            "lineNumber": 384
+          },
+          {
+            "text": "    /// Topic to research",
+            "lineNumber": 385
+          },
+          {
+            "text": "    #[arg(value_name = \"TOPIC\")]",
+            "lineNumber": 386
+          },
+          {
+            "text": "    topic: String,",
+            "lineNumber": 387
+          },
+          {
+            "lineNumber": 388
+          },
+          {
+            "text": "    /// Research depth (1-5)",
+            "lineNumber": 389
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"DEPTH\", default_value = \"3\")]",
+            "lineNumber": 390
+          },
+          {
+            "text": "    depth: u8,",
+            "lineNumber": 391
+          },
+          {
+            "lineNumber": 392
+          },
+          {
+            "text": "    /// Search breadth (number of sources)",
+            "lineNumber": 393
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"BREADTH\", default_value = \"8\")]",
+            "lineNumber": 394
+          },
+          {
+            "text": "    breadth: u8,",
+            "lineNumber": 395
+          },
+          {
+            "lineNumber": 396
+          },
+          {
+            "text": "    /// Token budget",
+            "lineNumber": 397
+          },
+          {
+            "text": "    #[arg(long, value_name = \"TOKENS\", default_value = \"60000\")]",
+            "lineNumber": 398
+          },
+          {
+            "text": "    budget: usize,",
+            "lineNumber": 399
+          },
+          {
+            "lineNumber": 400
+          },
+          {
+            "text": "    /// Require citations",
+            "lineNumber": 401
+          },
+          {
+            "text": "    #[arg(long, default_value = \"true\")]",
+            "lineNumber": 402
+          },
+          {
+            "text": "    citations: bool,",
+            "lineNumber": 403
+          },
+          {
+            "lineNumber": 404
+          },
+          {
+            "text": "    /// MCP tools to use (comma-separated)",
+            "lineNumber": 405
+          },
+          {
+            "text": "    #[arg(long, value_name = \"TOOLS\")]",
+            "lineNumber": 406
+          },
+          {
+            "text": "    mcp: Option&lt;String&gt;,",
+            "lineNumber": 407
+          },
+          {
+            "lineNumber": 408
+          },
+          {
+            "text": "    /// Enable lightweight fallback",
+            "lineNumber": 409
+          },
+          {
+            "text": "    #[arg(long, default_value = \"false\")]",
+            "lineNumber": 410
+          },
+          {
+            "text": "    lightweight_fallback: bool,",
+            "lineNumber": 411
+          },
+          {
+            "lineNumber": 412
+          },
+          {
+            "text": "    /// Use Gemini CLI with Google Search (OAuth 2.0 authentication)",
+            "lineNumber": 413
+          },
+          {
+            "text": "    #[arg(long, default_value = \"false\")]",
+            "lineNumber": 414
+          },
+          {
+            "text": "    gemini: bool,",
+            "lineNumber": 415
+          },
+          {
+            "lineNumber": 416
+          },
+          {
+            "text": "    /// Use MCP mode (Codex → MCP → Gemini CLI)",
+            "lineNumber": 417
+          },
+          {
+            "text": "    #[arg(long, default_value = \"false\")]",
+            "lineNumber": 418
+          },
+          {
+            "text": "    use_mcp: bool,",
+            "lineNumber": 419
+          },
+          {
+            "lineNumber": 420
+          },
+          {
+            "text": "    /// Output file for the report",
+            "lineNumber": 421
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"FILE\")]",
+            "lineNumber": 422
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 423
+          },
+          {
+            "text": "}",
+            "lineNumber": 424
+          },
+          {
+            "lineNumber": 425
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 426
+          },
+          {
+            "text": "struct AskCommand {",
+            "lineNumber": 427
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 428
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides",
+            "lineNumber": 429
+          }
+        ]
+      },
+      "score": 0.17246884107589722
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 294,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 363,
+            "column": 41
+          }
+        },
+        "contents": "#[derive(Debug, Parser)]\nstruct DelegateParallelCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,\n\n    /// Comma-separated agent names\n    #[arg(value_name = \"AGENTS\", value_delimiter = ',')]\n    agents: Vec&lt;String&gt;,\n\n    /// Comma-separated goals (must match number of agents)\n    #[arg(long, value_delimiter = ',')]\n    goals: Vec&lt;String&gt;,\n\n    /// Comma-separated scope paths (optional, must match number of agents if provided)\n    #[arg(long, value_delimiter = ',')]\n    scopes: Vec&lt;PathBuf&gt;,\n\n    /// Comma-separated budgets (optional, must match number of agents if provided)\n    #[arg(long, value_delimiter = ',')]\n    budgets: Vec&lt;usize&gt;,\n\n    /// Deadline in minutes (applies to all agents)\n    #[arg(long, value_name = \"MINUTES\")]\n    deadline: Option&lt;u64&gt;,\n\n    /// Output file for combined results\n    #[arg(short, long, value_name = \"FILE\")]\n    out: Option&lt;PathBuf&gt;,\n}\n\n#[derive(Debug, Parser)]\nstruct PairProgramCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,\n\n    /// Natural-language goal for the pair programming session\n    #[arg(value_name = \"GOAL\", required = true)]\n    goal: Vec&lt;String&gt;,\n\n    /// Optional comma-separated list of agent names to start from\n    #[arg(long, value_name = \"AGENTS\", value_delimiter = ',')]\n    agents: Vec&lt;String&gt;,\n\n    /// Maximum number of evaluation rounds\n    #[arg(long, value_name = \"ROUNDS\", default_value_t = 3)]\n    rounds: usize,\n\n    /// Number of top agents to keep after each round\n    #[arg(long, value_name = \"TOP_K\", default_value_t = 2)]\n    top_k: usize,\n\n    /// Override the improvement threshold required to continue iterating\n    #[arg(long, value_name = \"THRESHOLD\")]\n    improvement_threshold: Option&lt;f64&gt;,\n\n    /// Maximum acceptable risk score (0-1). Lower values prune riskier agents sooner.\n    #[arg(long, value_name = \"RISK\")]\n    max_risk: Option&lt;f64&gt;,\n\n    /// Persist the evaluation report as JSON\n    #[arg(short, long, value_name = \"FILE\")]\n    out: Option&lt;PathBuf&gt;,\n}\n\n#[derive(Debug, Parser)]\nstruct AgentCreateCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 297
+          },
+          {
+            "text": "struct DelegateParallelCommand {",
+            "lineNumber": 298
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 299
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 300
+          },
+          {
+            "lineNumber": 301
+          },
+          {
+            "text": "    /// Comma-separated agent names",
+            "lineNumber": 302
+          },
+          {
+            "text": "    #[arg(value_name = \"AGENTS\", value_delimiter = ',')]",
+            "lineNumber": 303
+          },
+          {
+            "text": "    agents: Vec&lt;String&gt;,",
+            "lineNumber": 304
+          },
+          {
+            "lineNumber": 305
+          },
+          {
+            "text": "    /// Comma-separated goals (must match number of agents)",
+            "lineNumber": 306
+          },
+          {
+            "text": "    #[arg(long, value_delimiter = ',')]",
+            "lineNumber": 307
+          },
+          {
+            "text": "    goals: Vec&lt;String&gt;,",
+            "lineNumber": 308
+          },
+          {
+            "lineNumber": 309
+          },
+          {
+            "text": "    /// Comma-separated scope paths (optional, must match number of agents if provided)",
+            "lineNumber": 310
+          },
+          {
+            "text": "    #[arg(long, value_delimiter = ',')]",
+            "lineNumber": 311
+          },
+          {
+            "text": "    scopes: Vec&lt;PathBuf&gt;,",
+            "lineNumber": 312
+          },
+          {
+            "lineNumber": 313
+          },
+          {
+            "text": "    /// Comma-separated budgets (optional, must match number of agents if provided)",
+            "lineNumber": 314
+          },
+          {
+            "text": "    #[arg(long, value_delimiter = ',')]",
+            "lineNumber": 315
+          },
+          {
+            "text": "    budgets: Vec&lt;usize&gt;,",
+            "lineNumber": 316
+          },
+          {
+            "lineNumber": 317
+          },
+          {
+            "text": "    /// Deadline in minutes (applies to all agents)",
+            "lineNumber": 318
+          },
+          {
+            "text": "    #[arg(long, value_name = \"MINUTES\")]",
+            "lineNumber": 319
+          },
+          {
+            "text": "    deadline: Option&lt;u64&gt;,",
+            "lineNumber": 320
+          },
+          {
+            "lineNumber": 321
+          },
+          {
+            "text": "    /// Output file for combined results",
+            "lineNumber": 322
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"FILE\")]",
+            "lineNumber": 323
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 324
+          },
+          {
+            "text": "}",
+            "lineNumber": 325
+          },
+          {
+            "lineNumber": 326
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 327
+          },
+          {
+            "text": "struct PairProgramCommand {",
+            "lineNumber": 328
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 329
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 330
+          },
+          {
+            "lineNumber": 331
+          },
+          {
+            "text": "    /// Natural-language goal for the pair programming session",
+            "lineNumber": 332
+          },
+          {
+            "text": "    #[arg(value_name = \"GOAL\", required = true)]",
+            "lineNumber": 333
+          },
+          {
+            "text": "    goal: Vec&lt;String&gt;,",
+            "lineNumber": 334
+          },
+          {
+            "lineNumber": 335
+          },
+          {
+            "text": "    /// Optional comma-separated list of agent names to start from",
+            "lineNumber": 336
+          },
+          {
+            "text": "    #[arg(long, value_name = \"AGENTS\", value_delimiter = ',')]",
+            "lineNumber": 337
+          },
+          {
+            "text": "    agents: Vec&lt;String&gt;,",
+            "lineNumber": 338
+          },
+          {
+            "lineNumber": 339
+          },
+          {
+            "text": "    /// Maximum number of evaluation rounds",
+            "lineNumber": 340
+          },
+          {
+            "text": "    #[arg(long, value_name = \"ROUNDS\", default_value_t = 3)]",
+            "lineNumber": 341
+          },
+          {
+            "text": "    rounds: usize,",
+            "lineNumber": 342
+          },
+          {
+            "lineNumber": 343
+          },
+          {
+            "text": "    /// Number of top agents to keep after each round",
+            "lineNumber": 344
+          },
+          {
+            "text": "    #[arg(long, value_name = \"TOP_K\", default_value_t = 2)]",
+            "lineNumber": 345
+          },
+          {
+            "text": "    top_k: usize,",
+            "lineNumber": 346
+          },
+          {
+            "lineNumber": 347
+          },
+          {
+            "text": "    /// Override the improvement threshold required to continue iterating",
+            "lineNumber": 348
+          },
+          {
+            "text": "    #[arg(long, value_name = \"THRESHOLD\")]",
+            "lineNumber": 349
+          },
+          {
+            "text": "    improvement_threshold: Option&lt;f64&gt;,",
+            "lineNumber": 350
+          },
+          {
+            "lineNumber": 351
+          },
+          {
+            "text": "    /// Maximum acceptable risk score (0-1). Lower values prune riskier agents sooner.",
+            "lineNumber": 352
+          },
+          {
+            "text": "    #[arg(long, value_name = \"RISK\")]",
+            "lineNumber": 353
+          },
+          {
+            "text": "    max_risk: Option&lt;f64&gt;,",
+            "lineNumber": 354
+          },
+          {
+            "lineNumber": 355
+          },
+          {
+            "text": "    /// Persist the evaluation report as JSON",
+            "lineNumber": 356
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"FILE\")]",
+            "lineNumber": 357
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 358
+          },
+          {
+            "text": "}",
+            "lineNumber": 359
+          },
+          {
+            "lineNumber": 360
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 361
+          },
+          {
+            "text": "struct AgentCreateCommand {",
+            "lineNumber": 362
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 363
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 364
+          }
+        ]
+      },
+      "score": 0.17068719863891602
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 66,
+            "column": 12
+          }
+        },
+        "contents": "use clap::CommandFactory;\nuse clap::Parser;\nuse clap_complete::Shell;\nuse clap_complete::generate;\nuse codex_arg0::arg0_dispatch_or_else;\nuse codex_chatgpt::apply_command::ApplyCommand;\nuse codex_chatgpt::apply_command::run_apply_command;\nuse codex_cli::LandlockCommand;\nuse codex_cli::SeatbeltCommand;\nuse codex_cli::WindowsCommand;\nuse codex_cli::login::read_api_key_from_stdin;\nuse codex_cli::login::run_login_status;\nuse codex_cli::login::run_login_with_api_key;\nuse codex_cli::login::run_login_with_chatgpt;\nuse codex_cli::login::run_login_with_device_code;\nuse codex_cli::login::run_logout;\nuse codex_cloud_tasks::Cli as CloudTasksCli;\nuse codex_common::CliConfigOverrides;\nuse codex_exec::Cli as ExecCli;\nuse codex_responses_api_proxy::Args as ResponsesApiProxyArgs;\nuse codex_tui::AppExitInfo;\nuse codex_tui::Cli as TuiCli;\nuse codex_tui::update_action::UpdateAction;\nuse codex_tui2 as tui2;\nuse owo_colors::OwoColorize;\nuse std::path::PathBuf;\nuse supports_color::Stream;\n\nmod dev_mode_cmd;\nmod git_commands;\nmod lock_cmd;\nmod mcp_cmd;\nmod organization_cmd;\nmod plan_commands;\nmod qc_cmd;\nmod ultrathink_cmd;\nmod webhook_cmd;\nmod wsl_paths;\n\nuse crate::git_commands::GitAnalyzeCli;\nuse crate::lock_cmd::LockCli;\nuse crate::mcp_cmd::McpCli;\nuse crate::organization_cmd::OrganizationCli;\nuse crate::organization_cmd::run_organization_command;\nuse crate::plan_commands::PlanCli;\nuse crate::qc_cmd::QcCli;\nuse crate::ultrathink_cmd::UltrathinkCli;\nuse crate::ultrathink_cmd::run_ultrathink;\nuse crate::webhook_cmd::WebhookCli;\nuse crate::wsl_paths::normalize_for_wsl;\nuse codex_core::config::Config;\nuse codex_core::config::ConfigOverrides;\nuse codex_core::config::find_codex_home;\nuse codex_core::config::load_config_as_toml_with_cli_overrides;\nuse codex_core::features::Feature;\nuse codex_core::features::FeatureOverrides;\nuse codex_core::features::Features;\nuse codex_core::features::is_known_feature_key;\nuse codex_utils_absolute_path::AbsolutePathBuf;\n\n/// Codex CLI\n///\n/// If no subcommand is specified, options will be forwarded to the interactive CLI.\n#[derive(Debug, Parser)]\n#[clap(\n    author,\n    version,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use clap::CommandFactory;",
+            "lineNumber": 1
+          },
+          {
+            "text": "use clap::Parser;",
+            "lineNumber": 2
+          },
+          {
+            "text": "use clap_complete::Shell;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use clap_complete::generate;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use codex_arg0::arg0_dispatch_or_else;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use codex_chatgpt::apply_command::ApplyCommand;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use codex_chatgpt::apply_command::run_apply_command;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use codex_cli::LandlockCommand;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use codex_cli::SeatbeltCommand;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use codex_cli::WindowsCommand;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use codex_cli::login::read_api_key_from_stdin;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use codex_cli::login::run_login_status;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_api_key;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_chatgpt;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use codex_cli::login::run_login_with_device_code;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use codex_cli::login::run_logout;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use codex_cloud_tasks::Cli as CloudTasksCli;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_exec::Cli as ExecCli;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;",
+            "lineNumber": 20
+          },
+          {
+            "text": "use codex_tui::AppExitInfo;",
+            "lineNumber": 21
+          },
+          {
+            "text": "use codex_tui::Cli as TuiCli;",
+            "lineNumber": 22
+          },
+          {
+            "text": "use codex_tui::update_action::UpdateAction;",
+            "lineNumber": 23
+          },
+          {
+            "text": "use codex_tui2 as tui2;",
+            "lineNumber": 24
+          },
+          {
+            "text": "use owo_colors::OwoColorize;",
+            "lineNumber": 25
+          },
+          {
+            "text": "use std::path::PathBuf;",
+            "lineNumber": 26
+          },
+          {
+            "text": "use supports_color::Stream;",
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "text": "mod dev_mode_cmd;",
+            "lineNumber": 29
+          },
+          {
+            "text": "mod git_commands;",
+            "lineNumber": 30
+          },
+          {
+            "text": "mod lock_cmd;",
+            "lineNumber": 31
+          },
+          {
+            "text": "mod mcp_cmd;",
+            "lineNumber": 32
+          },
+          {
+            "text": "mod organization_cmd;",
+            "lineNumber": 33
+          },
+          {
+            "text": "mod plan_commands;",
+            "lineNumber": 34
+          },
+          {
+            "text": "mod qc_cmd;",
+            "lineNumber": 35
+          },
+          {
+            "text": "mod ultrathink_cmd;",
+            "lineNumber": 36
+          },
+          {
+            "text": "mod webhook_cmd;",
+            "lineNumber": 37
+          },
+          {
+            "text": "mod wsl_paths;",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "use crate::git_commands::GitAnalyzeCli;",
+            "lineNumber": 40
+          },
+          {
+            "text": "use crate::lock_cmd::LockCli;",
+            "lineNumber": 41
+          },
+          {
+            "text": "use crate::mcp_cmd::McpCli;",
+            "lineNumber": 42
+          },
+          {
+            "text": "use crate::organization_cmd::OrganizationCli;",
+            "lineNumber": 43
+          },
+          {
+            "text": "use crate::organization_cmd::run_organization_command;",
+            "lineNumber": 44
+          },
+          {
+            "text": "use crate::plan_commands::PlanCli;",
+            "lineNumber": 45
+          },
+          {
+            "text": "use crate::qc_cmd::QcCli;",
+            "lineNumber": 46
+          },
+          {
+            "text": "use crate::ultrathink_cmd::UltrathinkCli;",
+            "lineNumber": 47
+          },
+          {
+            "text": "use crate::ultrathink_cmd::run_ultrathink;",
+            "lineNumber": 48
+          },
+          {
+            "text": "use crate::webhook_cmd::WebhookCli;",
+            "lineNumber": 49
+          },
+          {
+            "text": "use crate::wsl_paths::normalize_for_wsl;",
+            "lineNumber": 50
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 51
+          },
+          {
+            "text": "use codex_core::config::ConfigOverrides;",
+            "lineNumber": 52
+          },
+          {
+            "text": "use codex_core::config::find_codex_home;",
+            "lineNumber": 53
+          },
+          {
+            "text": "use codex_core::config::load_config_as_toml_with_cli_overrides;",
+            "lineNumber": 54
+          },
+          {
+            "text": "use codex_core::features::Feature;",
+            "lineNumber": 55
+          },
+          {
+            "text": "use codex_core::features::FeatureOverrides;",
+            "lineNumber": 56
+          },
+          {
+            "text": "use codex_core::features::Features;",
+            "lineNumber": 57
+          },
+          {
+            "text": "use codex_core::features::is_known_feature_key;",
+            "lineNumber": 58
+          },
+          {
+            "text": "use codex_utils_absolute_path::AbsolutePathBuf;",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "/// Codex CLI",
+            "lineNumber": 61
+          },
+          {
+            "text": "///",
+            "lineNumber": 62
+          },
+          {
+            "text": "/// If no subcommand is specified, options will be forwarded to the interactive CLI.",
+            "lineNumber": 63
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 64
+          },
+          {
+            "text": "#[clap(",
+            "lineNumber": 65
+          },
+          {
+            "text": "    author,",
+            "lineNumber": 66
+          },
+          {
+            "text": "    version,",
+            "lineNumber": 67
+          }
+        ]
+      },
+      "score": 0.1679631471633911
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 119,
+            "column": 34
+          },
+          "endPosition": {
+            "line": 181
+          }
+        },
+        "contents": "enum Subcommand {\n    /// Run Codex non-interactively.\n    #[clap(visible_alias = \"e\")]\n    Exec(ExecCli),\n\n    /// Manage login.\n    Login(LoginCommand),\n\n    /// Remove stored authentication credentials.\n    Logout(LogoutCommand),\n\n    /// [experimental] Run Codex as an MCP server and manage MCP servers.\n    Mcp(McpCli),\n\n    /// [experimental] Run the Codex MCP server (stdio transport).\n    McpServer,\n\n    /// [experimental] Run the app server.\n    AppServer,\n\n    /// Launch the Codex GUI web interface.\n    ///\n    /// Starts the GUI server and opens it in your default browser.\n    /// The GUI provides a modern web-based interface for managing agents,\n    /// monitoring system resources, and interacting with Codex features.\n    ///\n    /// Options:\n    ///   --port &lt;PORT&gt;     Set the port for the GUI server (default: 3000)\n    ///   --no-browser      Don't open the browser automatically\n    ///   --backend-port    Set the backend API port (default: 8787)\n    Gui(GuiCommand),\n\n    /// Generate shell completion scripts.\n    Completion(CompletionCommand),\n\n    /// Run commands within a Codex-provided sandbox.\n    #[clap(visible_alias = \"debug\")]\n    Sandbox(SandboxArgs),\n\n    /// Apply the latest diff produced by Codex agent as a &#96;git apply&#96; to your local working tree.\n    #[clap(visible_alias = \"a\")]\n    Apply(ApplyCommand),\n\n    /// Resume a previous interactive session (picker by default; use --last to continue the most recent).\n    Resume(ResumeCommand),\n\n    /// Internal: generate TypeScript protocol bindings.\n    #[clap(hide = true)]\n    GenerateTs(GenerateTsCommand),\n    /// [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally.\n    #[clap(name = \"cloud\", alias = \"cloud-tasks\")]\n    Cloud(CloudTasksCli),\n\n    /// [EXPERIMENTAL] Delegate task to a sub-agent.\n    Delegate(DelegateCommand),\n\n    /// [EXPERIMENTAL] Delegate tasks to multiple agents in parallel\n    #[clap(name = \"delegate-parallel\")]\n    DelegateParallel(DelegateParallelCommand),\n\n    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "enum Subcommand {",
+            "lineNumber": 121
+          },
+          {
+            "text": "    /// Run Codex non-interactively.",
+            "lineNumber": 122
+          },
+          {
+            "text": "    #[clap(visible_alias = \"e\")]",
+            "lineNumber": 123
+          },
+          {
+            "text": "    Exec(ExecCli),",
+            "lineNumber": 124
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "    /// Manage login.",
+            "lineNumber": 126
+          },
+          {
+            "text": "    Login(LoginCommand),",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "    /// Remove stored authentication credentials.",
+            "lineNumber": 129
+          },
+          {
+            "text": "    Logout(LogoutCommand),",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "    /// [experimental] Run Codex as an MCP server and manage MCP servers.",
+            "lineNumber": 132
+          },
+          {
+            "text": "    Mcp(McpCli),",
+            "lineNumber": 133
+          },
+          {
+            "lineNumber": 134
+          },
+          {
+            "text": "    /// [experimental] Run the Codex MCP server (stdio transport).",
+            "lineNumber": 135
+          },
+          {
+            "text": "    McpServer,",
+            "lineNumber": 136
+          },
+          {
+            "lineNumber": 137
+          },
+          {
+            "text": "    /// [experimental] Run the app server.",
+            "lineNumber": 138
+          },
+          {
+            "text": "    AppServer,",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 140
+          },
+          {
+            "text": "    /// Launch the Codex GUI web interface.",
+            "lineNumber": 141
+          },
+          {
+            "text": "    ///",
+            "lineNumber": 142
+          },
+          {
+            "text": "    /// Starts the GUI server and opens it in your default browser.",
+            "lineNumber": 143
+          },
+          {
+            "text": "    /// The GUI provides a modern web-based interface for managing agents,",
+            "lineNumber": 144
+          },
+          {
+            "text": "    /// monitoring system resources, and interacting with Codex features.",
+            "lineNumber": 145
+          },
+          {
+            "text": "    ///",
+            "lineNumber": 146
+          },
+          {
+            "text": "    /// Options:",
+            "lineNumber": 147
+          },
+          {
+            "text": "    ///   --port &lt;PORT&gt;     Set the port for the GUI server (default: 3000)",
+            "lineNumber": 148
+          },
+          {
+            "text": "    ///   --no-browser      Don't open the browser automatically",
+            "lineNumber": 149
+          },
+          {
+            "text": "    ///   --backend-port    Set the backend API port (default: 8787)",
+            "lineNumber": 150
+          },
+          {
+            "text": "    Gui(GuiCommand),",
+            "lineNumber": 151
+          },
+          {
+            "lineNumber": 152
+          },
+          {
+            "text": "    /// Generate shell completion scripts.",
+            "lineNumber": 153
+          },
+          {
+            "text": "    Completion(CompletionCommand),",
+            "lineNumber": 154
+          },
+          {
+            "lineNumber": 155
+          },
+          {
+            "text": "    /// Run commands within a Codex-provided sandbox.",
+            "lineNumber": 156
+          },
+          {
+            "text": "    #[clap(visible_alias = \"debug\")]",
+            "lineNumber": 157
+          },
+          {
+            "text": "    Sandbox(SandboxArgs),",
+            "lineNumber": 158
+          },
+          {
+            "lineNumber": 159
+          },
+          {
+            "text": "    /// Apply the latest diff produced by Codex agent as a &#96;git apply&#96; to your local working tree.",
+            "lineNumber": 160
+          },
+          {
+            "text": "    #[clap(visible_alias = \"a\")]",
+            "lineNumber": 161
+          },
+          {
+            "text": "    Apply(ApplyCommand),",
+            "lineNumber": 162
+          },
+          {
+            "lineNumber": 163
+          },
+          {
+            "text": "    /// Resume a previous interactive session (picker by default; use --last to continue the most recent).",
+            "lineNumber": 164
+          },
+          {
+            "text": "    Resume(ResumeCommand),",
+            "lineNumber": 165
+          },
+          {
+            "lineNumber": 166
+          },
+          {
+            "text": "    /// Internal: generate TypeScript protocol bindings.",
+            "lineNumber": 167
+          },
+          {
+            "text": "    #[clap(hide = true)]",
+            "lineNumber": 168
+          },
+          {
+            "text": "    GenerateTs(GenerateTsCommand),",
+            "lineNumber": 169
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally.",
+            "lineNumber": 170
+          },
+          {
+            "text": "    #[clap(name = \"cloud\", alias = \"cloud-tasks\")]",
+            "lineNumber": 171
+          },
+          {
+            "text": "    Cloud(CloudTasksCli),",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Delegate task to a sub-agent.",
+            "lineNumber": 174
+          },
+          {
+            "text": "    Delegate(DelegateCommand),",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Delegate tasks to multiple agents in parallel",
+            "lineNumber": 177
+          },
+          {
+            "text": "    #[clap(name = \"delegate-parallel\")]",
+            "lineNumber": 178
+          },
+          {
+            "text": "    DelegateParallel(DelegateParallelCommand),",
+            "lineNumber": 179
+          },
+          {
+            "lineNumber": 180
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor",
+            "lineNumber": 181
+          }
+        ]
+      },
+      "score": 0.16652905941009521
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 961,
+            "column": 9
+          },
+          "endPosition": {
+            "line": 1020,
+            "column": 63
+          }
+        },
+        "contents": "        Some(Subcommand::DevMode(dev_mode_cmd)) =&gt; {\n            crate::dev_mode_cmd::run_dev_mode_command(dev_mode_cmd).await?;\n        }\n        Some(Subcommand::PairProgram(mut pair_cmd)) =&gt; {\n            prepend_config_flags(\n                &amp;mut pair_cmd.config_overrides,\n                root_config_overrides.clone(),\n            );\n\n            if pair_cmd.goal.is_empty() {\n                anyhow::bail!(\"pair programming requires a natural-language goal\");\n            }\n\n            let goal = pair_cmd.goal.join(\" \");\n\n            codex_cli::pair_program_cmd::run_pair_program_command(\n                pair_cmd.config_overrides,\n                goal,\n                pair_cmd.agents,\n                pair_cmd.rounds,\n                pair_cmd.top_k,\n                pair_cmd.improvement_threshold,\n                pair_cmd.max_risk,\n                pair_cmd.out,\n            )\n            .await?;\n        }\n        Some(Subcommand::AgentCreate(mut agent_create_cmd)) =&gt; {\n            prepend_config_flags(\n                &amp;mut agent_create_cmd.config_overrides,\n                root_config_overrides.clone(),\n            );\n\n            codex_cli::agent_create_cmd::run_agent_create_command(\n                agent_create_cmd.prompt,\n                agent_create_cmd.budget,\n                agent_create_cmd.save,\n                agent_create_cmd.out,\n                agent_create_cmd.config_overrides,\n            )\n            .await?;\n        }\n        Some(Subcommand::Research(research_cmd)) =&gt; {\n            codex_cli::research_cmd::run_research_command(\n                research_cmd.topic,\n                research_cmd.depth,\n                research_cmd.breadth,\n                research_cmd.budget,\n                research_cmd.citations,\n                research_cmd.mcp,\n                research_cmd.lightweight_fallback,\n                research_cmd.out,\n                research_cmd.gemini,\n                research_cmd.use_mcp,\n            )\n            .await?;\n        }\n        Some(Subcommand::Ask(mut ask_cmd)) =&gt; {\n            prepend_config_flags(&amp;mut ask_cmd.config_overrides,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        Some(Subcommand::DevMode(dev_mode_cmd)) =&gt; {",
+            "lineNumber": 963
+          },
+          {
+            "text": "            crate::dev_mode_cmd::run_dev_mode_command(dev_mode_cmd).await?;",
+            "lineNumber": 964
+          },
+          {
+            "text": "        }",
+            "lineNumber": 965
+          },
+          {
+            "text": "        Some(Subcommand::PairProgram(mut pair_cmd)) =&gt; {",
+            "lineNumber": 966
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 967
+          },
+          {
+            "text": "                &amp;mut pair_cmd.config_overrides,",
+            "lineNumber": 968
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 969
+          },
+          {
+            "text": "            );",
+            "lineNumber": 970
+          },
+          {
+            "lineNumber": 971
+          },
+          {
+            "text": "            if pair_cmd.goal.is_empty() {",
+            "lineNumber": 972
+          },
+          {
+            "text": "                anyhow::bail!(\"pair programming requires a natural-language goal\");",
+            "lineNumber": 973
+          },
+          {
+            "text": "            }",
+            "lineNumber": 974
+          },
+          {
+            "lineNumber": 975
+          },
+          {
+            "text": "            let goal = pair_cmd.goal.join(\" \");",
+            "lineNumber": 976
+          },
+          {
+            "lineNumber": 977
+          },
+          {
+            "text": "            codex_cli::pair_program_cmd::run_pair_program_command(",
+            "lineNumber": 978
+          },
+          {
+            "text": "                pair_cmd.config_overrides,",
+            "lineNumber": 979
+          },
+          {
+            "text": "                goal,",
+            "lineNumber": 980
+          },
+          {
+            "text": "                pair_cmd.agents,",
+            "lineNumber": 981
+          },
+          {
+            "text": "                pair_cmd.rounds,",
+            "lineNumber": 982
+          },
+          {
+            "text": "                pair_cmd.top_k,",
+            "lineNumber": 983
+          },
+          {
+            "text": "                pair_cmd.improvement_threshold,",
+            "lineNumber": 984
+          },
+          {
+            "text": "                pair_cmd.max_risk,",
+            "lineNumber": 985
+          },
+          {
+            "text": "                pair_cmd.out,",
+            "lineNumber": 986
+          },
+          {
+            "text": "            )",
+            "lineNumber": 987
+          },
+          {
+            "text": "            .await?;",
+            "lineNumber": 988
+          },
+          {
+            "text": "        }",
+            "lineNumber": 989
+          },
+          {
+            "text": "        Some(Subcommand::AgentCreate(mut agent_create_cmd)) =&gt; {",
+            "lineNumber": 990
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 991
+          },
+          {
+            "text": "                &amp;mut agent_create_cmd.config_overrides,",
+            "lineNumber": 992
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 993
+          },
+          {
+            "text": "            );",
+            "lineNumber": 994
+          },
+          {
+            "lineNumber": 995
+          },
+          {
+            "text": "            codex_cli::agent_create_cmd::run_agent_create_command(",
+            "lineNumber": 996
+          },
+          {
+            "text": "                agent_create_cmd.prompt,",
+            "lineNumber": 997
+          },
+          {
+            "text": "                agent_create_cmd.budget,",
+            "lineNumber": 998
+          },
+          {
+            "text": "                agent_create_cmd.save,",
+            "lineNumber": 999
+          },
+          {
+            "text": "                agent_create_cmd.out,",
+            "lineNumber": 1000
+          },
+          {
+            "text": "                agent_create_cmd.config_overrides,",
+            "lineNumber": 1001
+          },
+          {
+            "text": "            )",
+            "lineNumber": 1002
+          },
+          {
+            "text": "            .await?;",
+            "lineNumber": 1003
+          },
+          {
+            "text": "        }",
+            "lineNumber": 1004
+          },
+          {
+            "text": "        Some(Subcommand::Research(research_cmd)) =&gt; {",
+            "lineNumber": 1005
+          },
+          {
+            "text": "            codex_cli::research_cmd::run_research_command(",
+            "lineNumber": 1006
+          },
+          {
+            "text": "                research_cmd.topic,",
+            "lineNumber": 1007
+          },
+          {
+            "text": "                research_cmd.depth,",
+            "lineNumber": 1008
+          },
+          {
+            "text": "                research_cmd.breadth,",
+            "lineNumber": 1009
+          },
+          {
+            "text": "                research_cmd.budget,",
+            "lineNumber": 1010
+          },
+          {
+            "text": "                research_cmd.citations,",
+            "lineNumber": 1011
+          },
+          {
+            "text": "                research_cmd.mcp,",
+            "lineNumber": 1012
+          },
+          {
+            "text": "                research_cmd.lightweight_fallback,",
+            "lineNumber": 1013
+          },
+          {
+            "text": "                research_cmd.out,",
+            "lineNumber": 1014
+          },
+          {
+            "text": "                research_cmd.gemini,",
+            "lineNumber": 1015
+          },
+          {
+            "text": "                research_cmd.use_mcp,",
+            "lineNumber": 1016
+          },
+          {
+            "text": "            )",
+            "lineNumber": 1017
+          },
+          {
+            "text": "            .await?;",
+            "lineNumber": 1018
+          },
+          {
+            "text": "        }",
+            "lineNumber": 1019
+          },
+          {
+            "text": "        Some(Subcommand::Ask(mut ask_cmd)) =&gt; {",
+            "lineNumber": 1020
+          },
+          {
+            "text": "            prepend_config_flags(&amp;mut ask_cmd.config_overrides,",
+            "lineNumber": 1021
+          }
+        ]
+      },
+      "score": 0.16627080738544464
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 1500,
+            "column": 55
+          },
+          "endPosition": {
+            "line": 1571,
+            "column": 46
+          }
+        },
+        "contents": "    }\n    println!(\"\\n💡 Tips:\");\n    println!(\"   - Use Ctrl+B to toggle sidebar\");\n    println!(\"   - Use Ctrl+D, Ctrl+C, Ctrl+A, etc. for quick navigation\");\n    println!(\"   - Press Ctrl+C here to stop the servers\\n\");\n\n    // Wait for both servers\n    tokio::select! {\n        _ = backend_handle =&gt; {\n            println!(\"\\n⚠️  Backend server stopped\");\n        },\n        _ = frontend_handle =&gt; {\n            println!(\"\\n⚠️  Frontend server stopped\");\n        },\n        _ = tokio::signal::ctrl_c() =&gt; {\n            println!(\"\\n🛑 Stopping GUI servers...\");\n        }\n    }\n\n    Ok(())\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use assert_matches::assert_matches;\n    use codex_core::protocol::TokenUsage;\n    use codex_protocol::ConversationId;\n    use pretty_assertions::assert_eq;\n\n    fn finalize_from_args(args: &amp;[&amp;str]) -&gt; TuiCli {\n        let cli = MultitoolCli::try_parse_from(args).expect(\"parse\");\n        let MultitoolCli {\n            interactive,\n            config_overrides: root_overrides,\n            subcommand,\n            feature_toggles: _,\n            ..\n        } = cli;\n\n        let Subcommand::Resume(ResumeCommand {\n            session_id,\n            last,\n            config_overrides: resume_cli,\n        }) = subcommand.expect(\"resume present\")\n        else {\n            unreachable!()\n        };\n\n        finalize_resume_interactive(interactive, root_overrides, session_id, last, resume_cli)\n    }\n\n    fn sample_exit_info(conversation: Option&lt;&amp;str&gt;) -&gt; AppExitInfo {\n        let token_usage = TokenUsage {\n            output_tokens: 2,\n            total_tokens: 2,\n            ..Default::default()\n        };\n        AppExitInfo {\n            token_usage,\n            conversation_id: conversation\n                .map(ConversationId::from_string)\n                .map(Result::unwrap),\n            update_action: None,\n        }\n    }\n\n    #[test]\n    fn format_exit_messages_skips_zero_usage() {\n        let exit_info = AppExitInfo {\n            token_usage: TokenUsage::default()",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    }",
+            "lineNumber": 1502
+          },
+          {
+            "text": "    println!(\"\\n💡 Tips:\");",
+            "lineNumber": 1503
+          },
+          {
+            "text": "    println!(\"   - Use Ctrl+B to toggle sidebar\");",
+            "lineNumber": 1504
+          },
+          {
+            "text": "    println!(\"   - Use Ctrl+D, Ctrl+C, Ctrl+A, etc. for quick navigation\");",
+            "lineNumber": 1505
+          },
+          {
+            "text": "    println!(\"   - Press Ctrl+C here to stop the servers\\n\");",
+            "lineNumber": 1506
+          },
+          {
+            "lineNumber": 1507
+          },
+          {
+            "text": "    // Wait for both servers",
+            "lineNumber": 1508
+          },
+          {
+            "text": "    tokio::select! {",
+            "lineNumber": 1509
+          },
+          {
+            "text": "        _ = backend_handle =&gt; {",
+            "lineNumber": 1510
+          },
+          {
+            "text": "            println!(\"\\n⚠️  Backend server stopped\");",
+            "lineNumber": 1511
+          },
+          {
+            "text": "        },",
+            "lineNumber": 1512
+          },
+          {
+            "text": "        _ = frontend_handle =&gt; {",
+            "lineNumber": 1513
+          },
+          {
+            "text": "            println!(\"\\n⚠️  Frontend server stopped\");",
+            "lineNumber": 1514
+          },
+          {
+            "text": "        },",
+            "lineNumber": 1515
+          },
+          {
+            "text": "        _ = tokio::signal::ctrl_c() =&gt; {",
+            "lineNumber": 1516
+          },
+          {
+            "text": "            println!(\"\\n🛑 Stopping GUI servers...\");",
+            "lineNumber": 1517
+          },
+          {
+            "text": "        }",
+            "lineNumber": 1518
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1519
+          },
+          {
+            "lineNumber": 1520
+          },
+          {
+            "text": "    Ok(())",
+            "lineNumber": 1521
+          },
+          {
+            "text": "}",
+            "lineNumber": 1522
+          },
+          {
+            "lineNumber": 1523
+          },
+          {
+            "text": "#[cfg(test)]",
+            "lineNumber": 1524
+          },
+          {
+            "text": "mod tests {",
+            "lineNumber": 1525
+          },
+          {
+            "text": "    use super::*;",
+            "lineNumber": 1526
+          },
+          {
+            "text": "    use assert_matches::assert_matches;",
+            "lineNumber": 1527
+          },
+          {
+            "text": "    use codex_core::protocol::TokenUsage;",
+            "lineNumber": 1528
+          },
+          {
+            "text": "    use codex_protocol::ConversationId;",
+            "lineNumber": 1529
+          },
+          {
+            "text": "    use pretty_assertions::assert_eq;",
+            "lineNumber": 1530
+          },
+          {
+            "lineNumber": 1531
+          },
+          {
+            "text": "    fn finalize_from_args(args: &amp;[&amp;str]) -&gt; TuiCli {",
+            "lineNumber": 1532
+          },
+          {
+            "text": "        let cli = MultitoolCli::try_parse_from(args).expect(\"parse\");",
+            "lineNumber": 1533
+          },
+          {
+            "text": "        let MultitoolCli {",
+            "lineNumber": 1534
+          },
+          {
+            "text": "            interactive,",
+            "lineNumber": 1535
+          },
+          {
+            "text": "            config_overrides: root_overrides,",
+            "lineNumber": 1536
+          },
+          {
+            "text": "            subcommand,",
+            "lineNumber": 1537
+          },
+          {
+            "text": "            feature_toggles: _,",
+            "lineNumber": 1538
+          },
+          {
+            "text": "            ..",
+            "lineNumber": 1539
+          },
+          {
+            "text": "        } = cli;",
+            "lineNumber": 1540
+          },
+          {
+            "lineNumber": 1541
+          },
+          {
+            "text": "        let Subcommand::Resume(ResumeCommand {",
+            "lineNumber": 1542
+          },
+          {
+            "text": "            session_id,",
+            "lineNumber": 1543
+          },
+          {
+            "text": "            last,",
+            "lineNumber": 1544
+          },
+          {
+            "text": "            config_overrides: resume_cli,",
+            "lineNumber": 1545
+          },
+          {
+            "text": "        }) = subcommand.expect(\"resume present\")",
+            "lineNumber": 1546
+          },
+          {
+            "text": "        else {",
+            "lineNumber": 1547
+          },
+          {
+            "text": "            unreachable!()",
+            "lineNumber": 1548
+          },
+          {
+            "text": "        };",
+            "lineNumber": 1549
+          },
+          {
+            "lineNumber": 1550
+          },
+          {
+            "text": "        finalize_resume_interactive(interactive, root_overrides, session_id, last, resume_cli)",
+            "lineNumber": 1551
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1552
+          },
+          {
+            "lineNumber": 1553
+          },
+          {
+            "text": "    fn sample_exit_info(conversation: Option&lt;&amp;str&gt;) -&gt; AppExitInfo {",
+            "lineNumber": 1554
+          },
+          {
+            "text": "        let token_usage = TokenUsage {",
+            "lineNumber": 1555
+          },
+          {
+            "text": "            output_tokens: 2,",
+            "lineNumber": 1556
+          },
+          {
+            "text": "            total_tokens: 2,",
+            "lineNumber": 1557
+          },
+          {
+            "text": "            ..Default::default()",
+            "lineNumber": 1558
+          },
+          {
+            "text": "        };",
+            "lineNumber": 1559
+          },
+          {
+            "text": "        AppExitInfo {",
+            "lineNumber": 1560
+          },
+          {
+            "text": "            token_usage,",
+            "lineNumber": 1561
+          },
+          {
+            "text": "            conversation_id: conversation",
+            "lineNumber": 1562
+          },
+          {
+            "text": "                .map(ConversationId::from_string)",
+            "lineNumber": 1563
+          },
+          {
+            "text": "                .map(Result::unwrap),",
+            "lineNumber": 1564
+          },
+          {
+            "text": "            update_action: None,",
+            "lineNumber": 1565
+          },
+          {
+            "text": "        }",
+            "lineNumber": 1566
+          },
+          {
+            "text": "    }",
+            "lineNumber": 1567
+          },
+          {
+            "lineNumber": 1568
+          },
+          {
+            "text": "    #[test]",
+            "lineNumber": 1569
+          },
+          {
+            "text": "    fn format_exit_messages_skips_zero_usage() {",
+            "lineNumber": 1570
+          },
+          {
+            "text": "        let exit_info = AppExitInfo {",
+            "lineNumber": 1571
+          },
+          {
+            "text": "            token_usage: TokenUsage::default()",
+            "lineNumber": 1572
+          }
+        ]
+      },
+      "score": 0.15980039536952972
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\mcp_cmd.rs",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 68
+          }
+        },
+        "contents": "use std::collections::HashMap;\n\nuse anyhow::Context;\nuse anyhow::Result;\nuse anyhow::anyhow;\nuse anyhow::bail;\nuse clap::ArgGroup;\nuse codex_common::CliConfigOverrides;\nuse codex_common::format_env_display::format_env_display;\nuse codex_core::config::Config;\nuse codex_core::config::edit::ConfigEditsBuilder;\nuse codex_core::config::find_codex_home;\nuse codex_core::config::load_global_mcp_servers;\nuse codex_core::config::types::McpServerConfig;\nuse codex_core::config::types::McpServerTransportConfig;\nuse codex_core::mcp::auth::compute_auth_statuses;\nuse codex_core::protocol::McpAuthStatus;\nuse codex_rmcp_client::delete_oauth_tokens;\nuse codex_rmcp_client::perform_oauth_login;\nuse codex_rmcp_client::supports_oauth_login;\n\n/// Subcommands:\n/// - &#96;serve&#96;  — run the MCP server on stdio\n/// - &#96;list&#96;   — list configured servers (with &#96;--json&#96;)\n/// - &#96;get&#96;    — show a single server (with &#96;--json&#96;)\n/// - &#96;add&#96;    — add a server launcher entry to &#96;~/.codex/config.toml&#96;\n/// - &#96;remove&#96; — delete a server entry\n#[derive(Debug, clap::Parser)]\npub struct McpCli {\n    #[clap(flatten)]\n    pub config_overrides: CliConfigOverrides,\n\n    #[command(subcommand)]\n    pub subcommand: McpSubcommand,\n}\n\n#[derive(Debug, clap::Subcommand)]\npub enum McpSubcommand {\n    List(ListArgs),\n    Get(GetArgs),\n    Add(AddArgs),\n    Remove(RemoveArgs),\n    Login(LoginArgs),\n    Logout(LogoutArgs),\n    /// Dynamic loading commands (runtime server management)\n    Dynamic(DynamicArgs),\n}\n\n#[derive(Debug, clap::Parser)]\npub struct ListArgs {\n    /// Output the configured servers as JSON.\n    #[arg(long)]\n    pub json: bool,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct GetArgs {\n    /// Name of the MCP server to display.\n    pub name: String,\n\n    /// Output the server configuration as JSON.\n    #[arg(long)]\n    pub json: bool,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct AddArgs {\n    /// Name for the MCP server configuration.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "use std::collections::HashMap;",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "use anyhow::Context;",
+            "lineNumber": 3
+          },
+          {
+            "text": "use anyhow::Result;",
+            "lineNumber": 4
+          },
+          {
+            "text": "use anyhow::anyhow;",
+            "lineNumber": 5
+          },
+          {
+            "text": "use anyhow::bail;",
+            "lineNumber": 6
+          },
+          {
+            "text": "use clap::ArgGroup;",
+            "lineNumber": 7
+          },
+          {
+            "text": "use codex_common::CliConfigOverrides;",
+            "lineNumber": 8
+          },
+          {
+            "text": "use codex_common::format_env_display::format_env_display;",
+            "lineNumber": 9
+          },
+          {
+            "text": "use codex_core::config::Config;",
+            "lineNumber": 10
+          },
+          {
+            "text": "use codex_core::config::edit::ConfigEditsBuilder;",
+            "lineNumber": 11
+          },
+          {
+            "text": "use codex_core::config::find_codex_home;",
+            "lineNumber": 12
+          },
+          {
+            "text": "use codex_core::config::load_global_mcp_servers;",
+            "lineNumber": 13
+          },
+          {
+            "text": "use codex_core::config::types::McpServerConfig;",
+            "lineNumber": 14
+          },
+          {
+            "text": "use codex_core::config::types::McpServerTransportConfig;",
+            "lineNumber": 15
+          },
+          {
+            "text": "use codex_core::mcp::auth::compute_auth_statuses;",
+            "lineNumber": 16
+          },
+          {
+            "text": "use codex_core::protocol::McpAuthStatus;",
+            "lineNumber": 17
+          },
+          {
+            "text": "use codex_rmcp_client::delete_oauth_tokens;",
+            "lineNumber": 18
+          },
+          {
+            "text": "use codex_rmcp_client::perform_oauth_login;",
+            "lineNumber": 19
+          },
+          {
+            "text": "use codex_rmcp_client::supports_oauth_login;",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "/// Subcommands:",
+            "lineNumber": 22
+          },
+          {
+            "text": "/// - &#96;serve&#96;  — run the MCP server on stdio",
+            "lineNumber": 23
+          },
+          {
+            "text": "/// - &#96;list&#96;   — list configured servers (with &#96;--json&#96;)",
+            "lineNumber": 24
+          },
+          {
+            "text": "/// - &#96;get&#96;    — show a single server (with &#96;--json&#96;)",
+            "lineNumber": 25
+          },
+          {
+            "text": "/// - &#96;add&#96;    — add a server launcher entry to &#96;~/.codex/config.toml&#96;",
+            "lineNumber": 26
+          },
+          {
+            "text": "/// - &#96;remove&#96; — delete a server entry",
+            "lineNumber": 27
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 28
+          },
+          {
+            "text": "pub struct McpCli {",
+            "lineNumber": 29
+          },
+          {
+            "text": "    #[clap(flatten)]",
+            "lineNumber": 30
+          },
+          {
+            "text": "    pub config_overrides: CliConfigOverrides,",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "    #[command(subcommand)]",
+            "lineNumber": 33
+          },
+          {
+            "text": "    pub subcommand: McpSubcommand,",
+            "lineNumber": 34
+          },
+          {
+            "text": "}",
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "text": "#[derive(Debug, clap::Subcommand)]",
+            "lineNumber": 37
+          },
+          {
+            "text": "pub enum McpSubcommand {",
+            "lineNumber": 38
+          },
+          {
+            "text": "    List(ListArgs),",
+            "lineNumber": 39
+          },
+          {
+            "text": "    Get(GetArgs),",
+            "lineNumber": 40
+          },
+          {
+            "text": "    Add(AddArgs),",
+            "lineNumber": 41
+          },
+          {
+            "text": "    Remove(RemoveArgs),",
+            "lineNumber": 42
+          },
+          {
+            "text": "    Login(LoginArgs),",
+            "lineNumber": 43
+          },
+          {
+            "text": "    Logout(LogoutArgs),",
+            "lineNumber": 44
+          },
+          {
+            "text": "    /// Dynamic loading commands (runtime server management)",
+            "lineNumber": 45
+          },
+          {
+            "text": "    Dynamic(DynamicArgs),",
+            "lineNumber": 46
+          },
+          {
+            "text": "}",
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 49
+          },
+          {
+            "text": "pub struct ListArgs {",
+            "lineNumber": 50
+          },
+          {
+            "text": "    /// Output the configured servers as JSON.",
+            "lineNumber": 51
+          },
+          {
+            "text": "    #[arg(long)]",
+            "lineNumber": 52
+          },
+          {
+            "text": "    pub json: bool,",
+            "lineNumber": 53
+          },
+          {
+            "text": "}",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 56
+          },
+          {
+            "text": "pub struct GetArgs {",
+            "lineNumber": 57
+          },
+          {
+            "text": "    /// Name of the MCP server to display.",
+            "lineNumber": 58
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "    /// Output the server configuration as JSON.",
+            "lineNumber": 61
+          },
+          {
+            "text": "    #[arg(long)]",
+            "lineNumber": 62
+          },
+          {
+            "text": "    pub json: bool,",
+            "lineNumber": 63
+          },
+          {
+            "text": "}",
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 66
+          },
+          {
+            "text": "pub struct AddArgs {",
+            "lineNumber": 67
+          },
+          {
+            "text": "    /// Name for the MCP server configuration.",
+            "lineNumber": 68
+          }
+        ]
+      },
+      "score": 0.15351930260658264
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\mcp_cmd.rs",
+        "range": {
+          "startPosition": {
+            "line": 143,
+            "column": 30
+          },
+          "endPosition": {
+            "line": 201,
+            "column": 40
+          }
+        },
+        "contents": "pub struct LogoutArgs {\n    /// Name of the MCP server to deauthenticate.\n    pub name: String,\n}\n\n/// Dynamic loading subcommands for runtime MCP server management\n#[derive(Debug, clap::Parser)]\npub struct DynamicArgs {\n    #[command(subcommand)]\n    pub subcommand: DynamicSubcommand,\n}\n\n#[derive(Debug, clap::Subcommand)]\npub enum DynamicSubcommand {\n    /// Add a server dynamically at runtime\n    Add(DynamicAddArgs),\n    /// Remove a server dynamically at runtime\n    Remove(DynamicRemoveArgs),\n    /// Reload a server with new configuration\n    Reload(DynamicReloadArgs),\n    /// List dynamically loaded servers\n    List,\n    /// Start watching configuration files for changes\n    Watch,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct DynamicAddArgs {\n    /// Name for the MCP server\n    pub name: String,\n    /// Path to server configuration file (TOML or YAML)\n    #[arg(long)]\n    pub config: Option&lt;std::path::PathBuf&gt;,\n    /// Command to launch the MCP server (for stdio transport)\n    #[arg(long, num_args = 1..)]\n    pub command: Option&lt;Vec&lt;String&gt;&gt;,\n    /// URL for streamable HTTP transport\n    #[arg(long)]\n    pub url: Option&lt;String&gt;,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct DynamicRemoveArgs {\n    /// Name of the MCP server to remove\n    pub name: String,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct DynamicReloadArgs {\n    /// Name of the MCP server to reload\n    pub name: String,\n    /// Path to new server configuration file\n    #[arg(long)]\n    pub config: Option&lt;std::path::PathBuf&gt;,\n}\n\nimpl McpCli {\n    pub async fn run(self) -&gt; Result&lt;()&gt;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub struct LogoutArgs {",
+            "lineNumber": 145
+          },
+          {
+            "text": "    /// Name of the MCP server to deauthenticate.",
+            "lineNumber": 146
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 147
+          },
+          {
+            "text": "}",
+            "lineNumber": 148
+          },
+          {
+            "lineNumber": 149
+          },
+          {
+            "text": "/// Dynamic loading subcommands for runtime MCP server management",
+            "lineNumber": 150
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 151
+          },
+          {
+            "text": "pub struct DynamicArgs {",
+            "lineNumber": 152
+          },
+          {
+            "text": "    #[command(subcommand)]",
+            "lineNumber": 153
+          },
+          {
+            "text": "    pub subcommand: DynamicSubcommand,",
+            "lineNumber": 154
+          },
+          {
+            "text": "}",
+            "lineNumber": 155
+          },
+          {
+            "lineNumber": 156
+          },
+          {
+            "text": "#[derive(Debug, clap::Subcommand)]",
+            "lineNumber": 157
+          },
+          {
+            "text": "pub enum DynamicSubcommand {",
+            "lineNumber": 158
+          },
+          {
+            "text": "    /// Add a server dynamically at runtime",
+            "lineNumber": 159
+          },
+          {
+            "text": "    Add(DynamicAddArgs),",
+            "lineNumber": 160
+          },
+          {
+            "text": "    /// Remove a server dynamically at runtime",
+            "lineNumber": 161
+          },
+          {
+            "text": "    Remove(DynamicRemoveArgs),",
+            "lineNumber": 162
+          },
+          {
+            "text": "    /// Reload a server with new configuration",
+            "lineNumber": 163
+          },
+          {
+            "text": "    Reload(DynamicReloadArgs),",
+            "lineNumber": 164
+          },
+          {
+            "text": "    /// List dynamically loaded servers",
+            "lineNumber": 165
+          },
+          {
+            "text": "    List,",
+            "lineNumber": 166
+          },
+          {
+            "text": "    /// Start watching configuration files for changes",
+            "lineNumber": 167
+          },
+          {
+            "text": "    Watch,",
+            "lineNumber": 168
+          },
+          {
+            "text": "}",
+            "lineNumber": 169
+          },
+          {
+            "lineNumber": 170
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 171
+          },
+          {
+            "text": "pub struct DynamicAddArgs {",
+            "lineNumber": 172
+          },
+          {
+            "text": "    /// Name for the MCP server",
+            "lineNumber": 173
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 174
+          },
+          {
+            "text": "    /// Path to server configuration file (TOML or YAML)",
+            "lineNumber": 175
+          },
+          {
+            "text": "    #[arg(long)]",
+            "lineNumber": 176
+          },
+          {
+            "text": "    pub config: Option&lt;std::path::PathBuf&gt;,",
+            "lineNumber": 177
+          },
+          {
+            "text": "    /// Command to launch the MCP server (for stdio transport)",
+            "lineNumber": 178
+          },
+          {
+            "text": "    #[arg(long, num_args = 1..)]",
+            "lineNumber": 179
+          },
+          {
+            "text": "    pub command: Option&lt;Vec&lt;String&gt;&gt;,",
+            "lineNumber": 180
+          },
+          {
+            "text": "    /// URL for streamable HTTP transport",
+            "lineNumber": 181
+          },
+          {
+            "text": "    #[arg(long)]",
+            "lineNumber": 182
+          },
+          {
+            "text": "    pub url: Option&lt;String&gt;,",
+            "lineNumber": 183
+          },
+          {
+            "text": "}",
+            "lineNumber": 184
+          },
+          {
+            "lineNumber": 185
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 186
+          },
+          {
+            "text": "pub struct DynamicRemoveArgs {",
+            "lineNumber": 187
+          },
+          {
+            "text": "    /// Name of the MCP server to remove",
+            "lineNumber": 188
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 189
+          },
+          {
+            "text": "}",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 192
+          },
+          {
+            "text": "pub struct DynamicReloadArgs {",
+            "lineNumber": 193
+          },
+          {
+            "text": "    /// Name of the MCP server to reload",
+            "lineNumber": 194
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 195
+          },
+          {
+            "text": "    /// Path to new server configuration file",
+            "lineNumber": 196
+          },
+          {
+            "text": "    #[arg(long)]",
+            "lineNumber": 197
+          },
+          {
+            "text": "    pub config: Option&lt;std::path::PathBuf&gt;,",
+            "lineNumber": 198
+          },
+          {
+            "text": "}",
+            "lineNumber": 199
+          },
+          {
+            "lineNumber": 200
+          },
+          {
+            "text": "impl McpCli {",
+            "lineNumber": 201
+          },
+          {
+            "text": "    pub async fn run(self) -&gt; Result&lt;()&gt;",
+            "lineNumber": 202
+          }
+        ]
+      },
+      "score": 0.14936469495296478
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 178,
+            "column": 45
+          },
+          "endPosition": {
+            "line": 242,
+            "column": 1
+          }
+        },
+        "contents": ",\n\n    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor\n    #[clap(name = \"pair\", alias = \"pair-program\")]\n    PairProgram(PairProgramCommand),\n\n    /// [EXPERIMENTAL] Create and run a custom agent from a prompt\n    #[clap(name = \"agent-create\")]\n    AgentCreate(AgentCreateCommand),\n\n    /// [EXPERIMENTAL] Development mode orchestration (centralized/parallel)\n    #[clap(name = \"dev-mode\")]\n    DevMode(crate::dev_mode_cmd::DevModeCli),\n\n    /// [EXPERIMENTAL] Conduct deep research on a topic.\n    Research(ResearchCommand),\n\n    /// [EXPERIMENTAL] Ask a sub-agent with @mention support (e.g., \"codex ask '@code-reviewer review this'\")\n    Ask(AskCommand),\n\n    /// [EXPERIMENTAL] Send webhook notifications to external services (GitHub, Slack, Custom)\n    Webhook(WebhookCli),\n\n    /// [EXPERIMENTAL] Quick review with code-reviewer agent\n    Review(ReviewCommand),\n\n    /// [EXPERIMENTAL] Quick audit with sec-audit agent\n    Audit(AuditCommand),\n\n    /// [EXPERIMENTAL] Quick test generation with test-gen agent\n    Test(TestCommand),\n\n    /// [EXPERIMENTAL] Quality control analysis and reporting\n    Qc(QcCli),\n\n    /// [EXPERIMENTAL] Natural language agent invocation (e.g., \"codex agent 'Review with security focus'\")\n    Agent(AgentCommand),\n\n    /// [EXPERIMENTAL] Manage repository locks\n    Lock(LockCli),\n\n    /// [EXPERIMENTAL] Plan Mode commands\n    Plan(PlanCli),\n\n    /// [EXPERIMENTAL] Ultrathink Mode - Deep reasoning chains for complex problems\n    Ultrathink(UltrathinkCli),\n\n    /// [EXPERIMENTAL] Organization management and Skills sharing\n    Org(OrganizationCli),\n\n    /// [EXPERIMENTAL] Git repository analysis for 3D/4D visualization\n    #[clap(name = \"git-analyze\")]\n    GitAnalyze(GitAnalyzeCli),\n\n    /// Internal: run the responses API proxy.\n    #[clap(hide = true)]\n    ResponsesApiProxy(ResponsesApiProxyArgs),\n\n    /// Internal: relay stdio to a Unix domain socket.\n    #[clap(hide = true, name = \"stdio-to-uds\")]\n    StdioToUds(StdioToUdsCommand),\n\n    /// Inspect feature flags.\n    Features(FeaturesCli),\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": ",",
+            "lineNumber": 179
+          },
+          {
+            "lineNumber": 180
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor",
+            "lineNumber": 181
+          },
+          {
+            "text": "    #[clap(name = \"pair\", alias = \"pair-program\")]",
+            "lineNumber": 182
+          },
+          {
+            "text": "    PairProgram(PairProgramCommand),",
+            "lineNumber": 183
+          },
+          {
+            "lineNumber": 184
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Create and run a custom agent from a prompt",
+            "lineNumber": 185
+          },
+          {
+            "text": "    #[clap(name = \"agent-create\")]",
+            "lineNumber": 186
+          },
+          {
+            "text": "    AgentCreate(AgentCreateCommand),",
+            "lineNumber": 187
+          },
+          {
+            "lineNumber": 188
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Development mode orchestration (centralized/parallel)",
+            "lineNumber": 189
+          },
+          {
+            "text": "    #[clap(name = \"dev-mode\")]",
+            "lineNumber": 190
+          },
+          {
+            "text": "    DevMode(crate::dev_mode_cmd::DevModeCli),",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Conduct deep research on a topic.",
+            "lineNumber": 193
+          },
+          {
+            "text": "    Research(ResearchCommand),",
+            "lineNumber": 194
+          },
+          {
+            "lineNumber": 195
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Ask a sub-agent with @mention support (e.g., \"codex ask '@code-reviewer review this'\")",
+            "lineNumber": 196
+          },
+          {
+            "text": "    Ask(AskCommand),",
+            "lineNumber": 197
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Send webhook notifications to external services (GitHub, Slack, Custom)",
+            "lineNumber": 199
+          },
+          {
+            "text": "    Webhook(WebhookCli),",
+            "lineNumber": 200
+          },
+          {
+            "lineNumber": 201
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Quick review with code-reviewer agent",
+            "lineNumber": 202
+          },
+          {
+            "text": "    Review(ReviewCommand),",
+            "lineNumber": 203
+          },
+          {
+            "lineNumber": 204
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Quick audit with sec-audit agent",
+            "lineNumber": 205
+          },
+          {
+            "text": "    Audit(AuditCommand),",
+            "lineNumber": 206
+          },
+          {
+            "lineNumber": 207
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Quick test generation with test-gen agent",
+            "lineNumber": 208
+          },
+          {
+            "text": "    Test(TestCommand),",
+            "lineNumber": 209
+          },
+          {
+            "lineNumber": 210
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Quality control analysis and reporting",
+            "lineNumber": 211
+          },
+          {
+            "text": "    Qc(QcCli),",
+            "lineNumber": 212
+          },
+          {
+            "lineNumber": 213
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Natural language agent invocation (e.g., \"codex agent 'Review with security focus'\")",
+            "lineNumber": 214
+          },
+          {
+            "text": "    Agent(AgentCommand),",
+            "lineNumber": 215
+          },
+          {
+            "lineNumber": 216
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Manage repository locks",
+            "lineNumber": 217
+          },
+          {
+            "text": "    Lock(LockCli),",
+            "lineNumber": 218
+          },
+          {
+            "lineNumber": 219
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Plan Mode commands",
+            "lineNumber": 220
+          },
+          {
+            "text": "    Plan(PlanCli),",
+            "lineNumber": 221
+          },
+          {
+            "lineNumber": 222
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Ultrathink Mode - Deep reasoning chains for complex problems",
+            "lineNumber": 223
+          },
+          {
+            "text": "    Ultrathink(UltrathinkCli),",
+            "lineNumber": 224
+          },
+          {
+            "lineNumber": 225
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Organization management and Skills sharing",
+            "lineNumber": 226
+          },
+          {
+            "text": "    Org(OrganizationCli),",
+            "lineNumber": 227
+          },
+          {
+            "lineNumber": 228
+          },
+          {
+            "text": "    /// [EXPERIMENTAL] Git repository analysis for 3D/4D visualization",
+            "lineNumber": 229
+          },
+          {
+            "text": "    #[clap(name = \"git-analyze\")]",
+            "lineNumber": 230
+          },
+          {
+            "text": "    GitAnalyze(GitAnalyzeCli),",
+            "lineNumber": 231
+          },
+          {
+            "lineNumber": 232
+          },
+          {
+            "text": "    /// Internal: run the responses API proxy.",
+            "lineNumber": 233
+          },
+          {
+            "text": "    #[clap(hide = true)]",
+            "lineNumber": 234
+          },
+          {
+            "text": "    ResponsesApiProxy(ResponsesApiProxyArgs),",
+            "lineNumber": 235
+          },
+          {
+            "lineNumber": 236
+          },
+          {
+            "text": "    /// Internal: relay stdio to a Unix domain socket.",
+            "lineNumber": 237
+          },
+          {
+            "text": "    #[clap(hide = true, name = \"stdio-to-uds\")]",
+            "lineNumber": 238
+          },
+          {
+            "text": "    StdioToUds(StdioToUdsCommand),",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "    /// Inspect feature flags.",
+            "lineNumber": 241
+          },
+          {
+            "text": "    Features(FeaturesCli),",
+            "lineNumber": 242
+          },
+          {
+            "text": "}",
+            "lineNumber": 243
+          }
+        ]
+      },
+      "score": 0.14753590524196625
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 911,
+            "column": 9
+          },
+          "endPosition": {
+            "line": 963,
+            "column": 75
+          }
+        },
+        "contents": "        Some(Subcommand::Cloud(mut cloud_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut cloud_cli.config_overrides,\n                root_config_overrides.clone(),\n            );\n            codex_cloud_tasks::run_main(cloud_cli, codex_linux_sandbox_exe).await?;\n        }\n        Some(Subcommand::Delegate(mut delegate_cmd)) =&gt; {\n            prepend_config_flags(\n                &amp;mut delegate_cmd.config_overrides,\n                root_config_overrides.clone(),\n            );\n            codex_cli::delegate_cmd::run_delegate_command(\n                delegate_cmd.config_overrides,\n                delegate_cmd.agent,\n                delegate_cmd.goal,\n                delegate_cmd.scope,\n                delegate_cmd.budget,\n                delegate_cmd.deadline,\n                delegate_cmd.out,\n            )\n            .await?;\n        }\n        Some(Subcommand::DelegateParallel(mut parallel_cmd)) =&gt; {\n            prepend_config_flags(\n                &amp;mut parallel_cmd.config_overrides,\n                root_config_overrides.clone(),\n            );\n\n            // clap handles value_delimiter, so we get Vec&lt;T&gt; directly\n            let agents = parallel_cmd.agents;\n            let goals = parallel_cmd.goals;\n\n            // Convert Vec&lt;PathBuf&gt; to Vec&lt;Option&lt;PathBuf&gt;&gt;\n            let scopes: Vec&lt;Option&lt;PathBuf&gt;&gt; = parallel_cmd.scopes.into_iter().map(Some).collect();\n\n            // Convert Vec&lt;usize&gt; to Vec&lt;Option&lt;usize&gt;&gt;\n            let budgets: Vec&lt;Option&lt;usize&gt;&gt; = parallel_cmd.budgets.into_iter().map(Some).collect();\n\n            codex_cli::parallel_delegate_cmd::run_parallel_delegate_command(\n                agents,\n                goals,\n                scopes,\n                budgets,\n                parallel_cmd.deadline,\n                parallel_cmd.out,\n                parallel_cmd.config_overrides,\n            )\n            .await?;\n        }\n        Some(Subcommand::DevMode(dev_mode_cmd)) =&gt; {\n            crate::dev_mode_cmd::run_dev_mode_command(dev_mode_cmd).await?;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        Some(Subcommand::Cloud(mut cloud_cli)) =&gt; {",
+            "lineNumber": 913
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 914
+          },
+          {
+            "text": "                &amp;mut cloud_cli.config_overrides,",
+            "lineNumber": 915
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 916
+          },
+          {
+            "text": "            );",
+            "lineNumber": 917
+          },
+          {
+            "text": "            codex_cloud_tasks::run_main(cloud_cli, codex_linux_sandbox_exe).await?;",
+            "lineNumber": 918
+          },
+          {
+            "text": "        }",
+            "lineNumber": 919
+          },
+          {
+            "text": "        Some(Subcommand::Delegate(mut delegate_cmd)) =&gt; {",
+            "lineNumber": 920
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 921
+          },
+          {
+            "text": "                &amp;mut delegate_cmd.config_overrides,",
+            "lineNumber": 922
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 923
+          },
+          {
+            "text": "            );",
+            "lineNumber": 924
+          },
+          {
+            "text": "            codex_cli::delegate_cmd::run_delegate_command(",
+            "lineNumber": 925
+          },
+          {
+            "text": "                delegate_cmd.config_overrides,",
+            "lineNumber": 926
+          },
+          {
+            "text": "                delegate_cmd.agent,",
+            "lineNumber": 927
+          },
+          {
+            "text": "                delegate_cmd.goal,",
+            "lineNumber": 928
+          },
+          {
+            "text": "                delegate_cmd.scope,",
+            "lineNumber": 929
+          },
+          {
+            "text": "                delegate_cmd.budget,",
+            "lineNumber": 930
+          },
+          {
+            "text": "                delegate_cmd.deadline,",
+            "lineNumber": 931
+          },
+          {
+            "text": "                delegate_cmd.out,",
+            "lineNumber": 932
+          },
+          {
+            "text": "            )",
+            "lineNumber": 933
+          },
+          {
+            "text": "            .await?;",
+            "lineNumber": 934
+          },
+          {
+            "text": "        }",
+            "lineNumber": 935
+          },
+          {
+            "text": "        Some(Subcommand::DelegateParallel(mut parallel_cmd)) =&gt; {",
+            "lineNumber": 936
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 937
+          },
+          {
+            "text": "                &amp;mut parallel_cmd.config_overrides,",
+            "lineNumber": 938
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 939
+          },
+          {
+            "text": "            );",
+            "lineNumber": 940
+          },
+          {
+            "lineNumber": 941
+          },
+          {
+            "text": "            // clap handles value_delimiter, so we get Vec&lt;T&gt; directly",
+            "lineNumber": 942
+          },
+          {
+            "text": "            let agents = parallel_cmd.agents;",
+            "lineNumber": 943
+          },
+          {
+            "text": "            let goals = parallel_cmd.goals;",
+            "lineNumber": 944
+          },
+          {
+            "lineNumber": 945
+          },
+          {
+            "text": "            // Convert Vec&lt;PathBuf&gt; to Vec&lt;Option&lt;PathBuf&gt;&gt;",
+            "lineNumber": 946
+          },
+          {
+            "text": "            let scopes: Vec&lt;Option&lt;PathBuf&gt;&gt; = parallel_cmd.scopes.into_iter().map(Some).collect();",
+            "lineNumber": 947
+          },
+          {
+            "lineNumber": 948
+          },
+          {
+            "text": "            // Convert Vec&lt;usize&gt; to Vec&lt;Option&lt;usize&gt;&gt;",
+            "lineNumber": 949
+          },
+          {
+            "text": "            let budgets: Vec&lt;Option&lt;usize&gt;&gt; = parallel_cmd.budgets.into_iter().map(Some).collect();",
+            "lineNumber": 950
+          },
+          {
+            "lineNumber": 951
+          },
+          {
+            "text": "            codex_cli::parallel_delegate_cmd::run_parallel_delegate_command(",
+            "lineNumber": 952
+          },
+          {
+            "text": "                agents,",
+            "lineNumber": 953
+          },
+          {
+            "text": "                goals,",
+            "lineNumber": 954
+          },
+          {
+            "text": "                scopes,",
+            "lineNumber": 955
+          },
+          {
+            "text": "                budgets,",
+            "lineNumber": 956
+          },
+          {
+            "text": "                parallel_cmd.deadline,",
+            "lineNumber": 957
+          },
+          {
+            "text": "                parallel_cmd.out,",
+            "lineNumber": 958
+          },
+          {
+            "text": "                parallel_cmd.config_overrides,",
+            "lineNumber": 959
+          },
+          {
+            "text": "            )",
+            "lineNumber": 960
+          },
+          {
+            "text": "            .await?;",
+            "lineNumber": 961
+          },
+          {
+            "text": "        }",
+            "lineNumber": 962
+          },
+          {
+            "text": "        Some(Subcommand::DevMode(dev_mode_cmd)) =&gt; {",
+            "lineNumber": 963
+          },
+          {
+            "text": "            crate::dev_mode_cmd::run_dev_mode_command(dev_mode_cmd).await?;",
+            "lineNumber": 964
+          }
+        ]
+      },
+      "score": 0.14729315042495728
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 237
+          },
+          "endPosition": {
+            "line": 299,
+            "column": 41
+          }
+        },
+        "contents": "    #[clap(hide = true, name = \"stdio-to-uds\")]\n    StdioToUds(StdioToUdsCommand),\n\n    /// Inspect feature flags.\n    Features(FeaturesCli),\n}\n\n#[derive(Debug, Parser)]\nstruct CompletionCommand {\n    /// Shell to generate completions for\n    #[clap(value_enum, default_value_t = Shell::Bash)]\n    shell: Shell,\n}\n\n#[derive(Debug, Parser)]\nstruct ResumeCommand {\n    /// Conversation/session id (UUID). When provided, resumes this session.\n    /// If omitted, use --last to pick the most recent recorded session.\n    #[arg(value_name = \"SESSION_ID\")]\n    session_id: Option&lt;String&gt;,\n\n    /// Continue the most recent session without showing the picker.\n    #[arg(long = \"last\", default_value_t = false, conflicts_with = \"session_id\")]\n    last: bool,\n\n    #[clap(flatten)]\n    config_overrides: TuiCli,\n}\n\n#[derive(Debug, Parser)]\nstruct DelegateCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,\n\n    /// Agent name to delegate to\n    #[arg(value_name = \"AGENT\")]\n    agent: String,\n\n    /// Goal or task description\n    #[arg(short, long, value_name = \"GOAL\")]\n    goal: Option&lt;String&gt;,\n\n    /// Scope path (files or directories)\n    #[arg(long, value_name = \"PATH\")]\n    scope: Option&lt;PathBuf&gt;,\n\n    /// Token budget for the agent\n    #[arg(long, value_name = \"TOKENS\")]\n    budget: Option&lt;usize&gt;,\n\n    /// Deadline in minutes\n    #[arg(long, value_name = \"MINUTES\")]\n    deadline: Option&lt;u64&gt;,\n\n    /// Output file for the result\n    #[arg(short, long, value_name = \"FILE\")]\n    out: Option&lt;PathBuf&gt;,\n}\n\n#[derive(Debug, Parser)]\nstruct DelegateParallelCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    #[clap(hide = true, name = \"stdio-to-uds\")]",
+            "lineNumber": 238
+          },
+          {
+            "text": "    StdioToUds(StdioToUdsCommand),",
+            "lineNumber": 239
+          },
+          {
+            "lineNumber": 240
+          },
+          {
+            "text": "    /// Inspect feature flags.",
+            "lineNumber": 241
+          },
+          {
+            "text": "    Features(FeaturesCli),",
+            "lineNumber": 242
+          },
+          {
+            "text": "}",
+            "lineNumber": 243
+          },
+          {
+            "lineNumber": 244
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 245
+          },
+          {
+            "text": "struct CompletionCommand {",
+            "lineNumber": 246
+          },
+          {
+            "text": "    /// Shell to generate completions for",
+            "lineNumber": 247
+          },
+          {
+            "text": "    #[clap(value_enum, default_value_t = Shell::Bash)]",
+            "lineNumber": 248
+          },
+          {
+            "text": "    shell: Shell,",
+            "lineNumber": 249
+          },
+          {
+            "text": "}",
+            "lineNumber": 250
+          },
+          {
+            "lineNumber": 251
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 252
+          },
+          {
+            "text": "struct ResumeCommand {",
+            "lineNumber": 253
+          },
+          {
+            "text": "    /// Conversation/session id (UUID). When provided, resumes this session.",
+            "lineNumber": 254
+          },
+          {
+            "text": "    /// If omitted, use --last to pick the most recent recorded session.",
+            "lineNumber": 255
+          },
+          {
+            "text": "    #[arg(value_name = \"SESSION_ID\")]",
+            "lineNumber": 256
+          },
+          {
+            "text": "    session_id: Option&lt;String&gt;,",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "    /// Continue the most recent session without showing the picker.",
+            "lineNumber": 259
+          },
+          {
+            "text": "    #[arg(long = \"last\", default_value_t = false, conflicts_with = \"session_id\")]",
+            "lineNumber": 260
+          },
+          {
+            "text": "    last: bool,",
+            "lineNumber": 261
+          },
+          {
+            "lineNumber": 262
+          },
+          {
+            "text": "    #[clap(flatten)]",
+            "lineNumber": 263
+          },
+          {
+            "text": "    config_overrides: TuiCli,",
+            "lineNumber": 264
+          },
+          {
+            "text": "}",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 267
+          },
+          {
+            "text": "struct DelegateCommand {",
+            "lineNumber": 268
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 269
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 270
+          },
+          {
+            "lineNumber": 271
+          },
+          {
+            "text": "    /// Agent name to delegate to",
+            "lineNumber": 272
+          },
+          {
+            "text": "    #[arg(value_name = \"AGENT\")]",
+            "lineNumber": 273
+          },
+          {
+            "text": "    agent: String,",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "    /// Goal or task description",
+            "lineNumber": 276
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"GOAL\")]",
+            "lineNumber": 277
+          },
+          {
+            "text": "    goal: Option&lt;String&gt;,",
+            "lineNumber": 278
+          },
+          {
+            "lineNumber": 279
+          },
+          {
+            "text": "    /// Scope path (files or directories)",
+            "lineNumber": 280
+          },
+          {
+            "text": "    #[arg(long, value_name = \"PATH\")]",
+            "lineNumber": 281
+          },
+          {
+            "text": "    scope: Option&lt;PathBuf&gt;,",
+            "lineNumber": 282
+          },
+          {
+            "lineNumber": 283
+          },
+          {
+            "text": "    /// Token budget for the agent",
+            "lineNumber": 284
+          },
+          {
+            "text": "    #[arg(long, value_name = \"TOKENS\")]",
+            "lineNumber": 285
+          },
+          {
+            "text": "    budget: Option&lt;usize&gt;,",
+            "lineNumber": 286
+          },
+          {
+            "lineNumber": 287
+          },
+          {
+            "text": "    /// Deadline in minutes",
+            "lineNumber": 288
+          },
+          {
+            "text": "    #[arg(long, value_name = \"MINUTES\")]",
+            "lineNumber": 289
+          },
+          {
+            "text": "    deadline: Option&lt;u64&gt;,",
+            "lineNumber": 290
+          },
+          {
+            "lineNumber": 291
+          },
+          {
+            "text": "    /// Output file for the result",
+            "lineNumber": 292
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"FILE\")]",
+            "lineNumber": 293
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 294
+          },
+          {
+            "text": "}",
+            "lineNumber": 295
+          },
+          {
+            "lineNumber": 296
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 297
+          },
+          {
+            "text": "struct DelegateParallelCommand {",
+            "lineNumber": 298
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 299
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 300
+          }
+        ]
+      },
+      "score": 0.1464952975511551
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 824,
+            "column": 5
+          },
+          "endPosition": {
+            "line": 873,
+            "column": 47
+          }
+        },
+        "contents": "    match subcommand {\n        None =&gt; {\n            prepend_config_flags(\n                &amp;mut interactive.config_overrides,\n                root_config_overrides.clone(),\n            );\n            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;\n            handle_app_exit(exit_info)?;\n        }\n        Some(Subcommand::Exec(mut exec_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut exec_cli.config_overrides,\n                root_config_overrides.clone(),\n            );\n            codex_exec::run_main(exec_cli, codex_linux_sandbox_exe).await?;\n        }\n        Some(Subcommand::McpServer) =&gt; {\n            codex_mcp_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;\n        }\n        Some(Subcommand::Mcp(mut mcp_cli)) =&gt; {\n            // Propagate any root-level config overrides (e.g. &#96;-c key=value&#96;).\n            prepend_config_flags(&amp;mut mcp_cli.config_overrides, root_config_overrides.clone());\n            mcp_cli.run().await?;\n        }\n        Some(Subcommand::AppServer) =&gt; {\n            codex_app_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;\n        }\n        Some(Subcommand::Gui(gui_cmd)) =&gt; {\n            launch_gui(gui_cmd).await?;\n        }\n        Some(Subcommand::Resume(ResumeCommand {\n            session_id,\n            last,\n            config_overrides,\n        })) =&gt; {\n            interactive = finalize_resume_interactive(\n                interactive,\n                root_config_overrides.clone(),\n                session_id,\n                last,\n                config_overrides,\n            );\n            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;\n            handle_app_exit(exit_info)?;\n        }\n        Some(Subcommand::Login(mut login_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut login_cli.config_overrides",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "    match subcommand {",
+            "lineNumber": 827
+          },
+          {
+            "text": "        None =&gt; {",
+            "lineNumber": 828
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 829
+          },
+          {
+            "text": "                &amp;mut interactive.config_overrides,",
+            "lineNumber": 830
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 831
+          },
+          {
+            "text": "            );",
+            "lineNumber": 832
+          },
+          {
+            "text": "            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;",
+            "lineNumber": 833
+          },
+          {
+            "text": "            handle_app_exit(exit_info)?;",
+            "lineNumber": 834
+          },
+          {
+            "text": "        }",
+            "lineNumber": 835
+          },
+          {
+            "text": "        Some(Subcommand::Exec(mut exec_cli)) =&gt; {",
+            "lineNumber": 836
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 837
+          },
+          {
+            "text": "                &amp;mut exec_cli.config_overrides,",
+            "lineNumber": 838
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 839
+          },
+          {
+            "text": "            );",
+            "lineNumber": 840
+          },
+          {
+            "text": "            codex_exec::run_main(exec_cli, codex_linux_sandbox_exe).await?;",
+            "lineNumber": 841
+          },
+          {
+            "text": "        }",
+            "lineNumber": 842
+          },
+          {
+            "text": "        Some(Subcommand::McpServer) =&gt; {",
+            "lineNumber": 843
+          },
+          {
+            "text": "            codex_mcp_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;",
+            "lineNumber": 844
+          },
+          {
+            "text": "        }",
+            "lineNumber": 845
+          },
+          {
+            "text": "        Some(Subcommand::Mcp(mut mcp_cli)) =&gt; {",
+            "lineNumber": 846
+          },
+          {
+            "text": "            // Propagate any root-level config overrides (e.g. &#96;-c key=value&#96;).",
+            "lineNumber": 847
+          },
+          {
+            "text": "            prepend_config_flags(&amp;mut mcp_cli.config_overrides, root_config_overrides.clone());",
+            "lineNumber": 848
+          },
+          {
+            "text": "            mcp_cli.run().await?;",
+            "lineNumber": 849
+          },
+          {
+            "text": "        }",
+            "lineNumber": 850
+          },
+          {
+            "text": "        Some(Subcommand::AppServer) =&gt; {",
+            "lineNumber": 851
+          },
+          {
+            "text": "            codex_app_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;",
+            "lineNumber": 852
+          },
+          {
+            "text": "        }",
+            "lineNumber": 853
+          },
+          {
+            "text": "        Some(Subcommand::Gui(gui_cmd)) =&gt; {",
+            "lineNumber": 854
+          },
+          {
+            "text": "            launch_gui(gui_cmd).await?;",
+            "lineNumber": 855
+          },
+          {
+            "text": "        }",
+            "lineNumber": 856
+          },
+          {
+            "text": "        Some(Subcommand::Resume(ResumeCommand {",
+            "lineNumber": 857
+          },
+          {
+            "text": "            session_id,",
+            "lineNumber": 858
+          },
+          {
+            "text": "            last,",
+            "lineNumber": 859
+          },
+          {
+            "text": "            config_overrides,",
+            "lineNumber": 860
+          },
+          {
+            "text": "        })) =&gt; {",
+            "lineNumber": 861
+          },
+          {
+            "text": "            interactive = finalize_resume_interactive(",
+            "lineNumber": 862
+          },
+          {
+            "text": "                interactive,",
+            "lineNumber": 863
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 864
+          },
+          {
+            "text": "                session_id,",
+            "lineNumber": 865
+          },
+          {
+            "text": "                last,",
+            "lineNumber": 866
+          },
+          {
+            "text": "                config_overrides,",
+            "lineNumber": 867
+          },
+          {
+            "text": "            );",
+            "lineNumber": 868
+          },
+          {
+            "text": "            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;",
+            "lineNumber": 869
+          },
+          {
+            "text": "            handle_app_exit(exit_info)?;",
+            "lineNumber": 870
+          },
+          {
+            "text": "        }",
+            "lineNumber": 871
+          },
+          {
+            "text": "        Some(Subcommand::Login(mut login_cli)) =&gt; {",
+            "lineNumber": 872
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 873
+          },
+          {
+            "text": "                &amp;mut login_cli.config_overrides",
+            "lineNumber": 874
+          }
+        ]
+      },
+      "score": 0.14510999619960785
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\mcp_cmd.rs",
+        "range": {
+          "startPosition": {
+            "line": 65,
+            "column": 30
+          },
+          "endPosition": {
+            "line": 146
+          }
+        },
+        "contents": "pub struct AddArgs {\n    /// Name for the MCP server configuration.\n    pub name: String,\n\n    #[command(flatten)]\n    pub transport_args: AddMcpTransportArgs,\n}\n\n#[derive(Debug, clap::Args)]\n#[command(\n    group(\n        ArgGroup::new(\"transport\")\n            .args([\"command\", \"url\"])\n            .required(true)\n            .multiple(false)\n    )\n)]\npub struct AddMcpTransportArgs {\n    #[command(flatten)]\n    pub stdio: Option&lt;AddMcpStdioArgs&gt;,\n\n    #[command(flatten)]\n    pub streamable_http: Option&lt;AddMcpStreamableHttpArgs&gt;,\n}\n\n#[derive(Debug, clap::Args)]\npub struct AddMcpStdioArgs {\n    /// Command to launch the MCP server.\n    /// Use --url for a streamable HTTP server.\n    #[arg(\n            trailing_var_arg = true,\n            num_args = 0..,\n        )]\n    pub command: Vec&lt;String&gt;,\n\n    /// Environment variables to set when launching the server.\n    /// Only valid with stdio servers.\n    #[arg(\n        long,\n        value_parser = parse_env_pair,\n        value_name = \"KEY=VALUE\",\n    )]\n    pub env: Vec&lt;(String, String)&gt;,\n}\n\n#[derive(Debug, clap::Args)]\npub struct AddMcpStreamableHttpArgs {\n    /// URL for a streamable HTTP MCP server.\n    #[arg(long)]\n    pub url: String,\n\n    /// Optional environment variable to read for a bearer token.\n    /// Only valid with streamable HTTP servers.\n    #[arg(\n        long = \"bearer-token-env-var\",\n        value_name = \"ENV_VAR\",\n        requires = \"url\"\n    )]\n    pub bearer_token_env_var: Option&lt;String&gt;,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct RemoveArgs {\n    /// Name of the MCP server configuration to remove.\n    pub name: String,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct LoginArgs {\n    /// Name of the MCP server to authenticate with oauth.\n    pub name: String,\n\n    /// Comma-separated list of OAuth scopes to request.\n    #[arg(long, value_delimiter = ',', value_name = \"SCOPE,SCOPE\")]\n    pub scopes: Vec&lt;String&gt;,\n}\n\n#[derive(Debug, clap::Parser)]\npub struct LogoutArgs {\n    /// Name of the MCP server to deauthenticate.",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "pub struct AddArgs {",
+            "lineNumber": 67
+          },
+          {
+            "text": "    /// Name for the MCP server configuration.",
+            "lineNumber": 68
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "    #[command(flatten)]",
+            "lineNumber": 71
+          },
+          {
+            "text": "    pub transport_args: AddMcpTransportArgs,",
+            "lineNumber": 72
+          },
+          {
+            "text": "}",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "#[derive(Debug, clap::Args)]",
+            "lineNumber": 75
+          },
+          {
+            "text": "#[command(",
+            "lineNumber": 76
+          },
+          {
+            "text": "    group(",
+            "lineNumber": 77
+          },
+          {
+            "text": "        ArgGroup::new(\"transport\")",
+            "lineNumber": 78
+          },
+          {
+            "text": "            .args([\"command\", \"url\"])",
+            "lineNumber": 79
+          },
+          {
+            "text": "            .required(true)",
+            "lineNumber": 80
+          },
+          {
+            "text": "            .multiple(false)",
+            "lineNumber": 81
+          },
+          {
+            "text": "    )",
+            "lineNumber": 82
+          },
+          {
+            "text": ")]",
+            "lineNumber": 83
+          },
+          {
+            "text": "pub struct AddMcpTransportArgs {",
+            "lineNumber": 84
+          },
+          {
+            "text": "    #[command(flatten)]",
+            "lineNumber": 85
+          },
+          {
+            "text": "    pub stdio: Option&lt;AddMcpStdioArgs&gt;,",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "    #[command(flatten)]",
+            "lineNumber": 88
+          },
+          {
+            "text": "    pub streamable_http: Option&lt;AddMcpStreamableHttpArgs&gt;,",
+            "lineNumber": 89
+          },
+          {
+            "text": "}",
+            "lineNumber": 90
+          },
+          {
+            "lineNumber": 91
+          },
+          {
+            "text": "#[derive(Debug, clap::Args)]",
+            "lineNumber": 92
+          },
+          {
+            "text": "pub struct AddMcpStdioArgs {",
+            "lineNumber": 93
+          },
+          {
+            "text": "    /// Command to launch the MCP server.",
+            "lineNumber": 94
+          },
+          {
+            "text": "    /// Use --url for a streamable HTTP server.",
+            "lineNumber": 95
+          },
+          {
+            "text": "    #[arg(",
+            "lineNumber": 96
+          },
+          {
+            "text": "            trailing_var_arg = true,",
+            "lineNumber": 97
+          },
+          {
+            "text": "            num_args = 0..,",
+            "lineNumber": 98
+          },
+          {
+            "text": "        )]",
+            "lineNumber": 99
+          },
+          {
+            "text": "    pub command: Vec&lt;String&gt;,",
+            "lineNumber": 100
+          },
+          {
+            "lineNumber": 101
+          },
+          {
+            "text": "    /// Environment variables to set when launching the server.",
+            "lineNumber": 102
+          },
+          {
+            "text": "    /// Only valid with stdio servers.",
+            "lineNumber": 103
+          },
+          {
+            "text": "    #[arg(",
+            "lineNumber": 104
+          },
+          {
+            "text": "        long,",
+            "lineNumber": 105
+          },
+          {
+            "text": "        value_parser = parse_env_pair,",
+            "lineNumber": 106
+          },
+          {
+            "text": "        value_name = \"KEY=VALUE\",",
+            "lineNumber": 107
+          },
+          {
+            "text": "    )]",
+            "lineNumber": 108
+          },
+          {
+            "text": "    pub env: Vec&lt;(String, String)&gt;,",
+            "lineNumber": 109
+          },
+          {
+            "text": "}",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "#[derive(Debug, clap::Args)]",
+            "lineNumber": 112
+          },
+          {
+            "text": "pub struct AddMcpStreamableHttpArgs {",
+            "lineNumber": 113
+          },
+          {
+            "text": "    /// URL for a streamable HTTP MCP server.",
+            "lineNumber": 114
+          },
+          {
+            "text": "    #[arg(long)]",
+            "lineNumber": 115
+          },
+          {
+            "text": "    pub url: String,",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "    /// Optional environment variable to read for a bearer token.",
+            "lineNumber": 118
+          },
+          {
+            "text": "    /// Only valid with streamable HTTP servers.",
+            "lineNumber": 119
+          },
+          {
+            "text": "    #[arg(",
+            "lineNumber": 120
+          },
+          {
+            "text": "        long = \"bearer-token-env-var\",",
+            "lineNumber": 121
+          },
+          {
+            "text": "        value_name = \"ENV_VAR\",",
+            "lineNumber": 122
+          },
+          {
+            "text": "        requires = \"url\"",
+            "lineNumber": 123
+          },
+          {
+            "text": "    )]",
+            "lineNumber": 124
+          },
+          {
+            "text": "    pub bearer_token_env_var: Option&lt;String&gt;,",
+            "lineNumber": 125
+          },
+          {
+            "text": "}",
+            "lineNumber": 126
+          },
+          {
+            "lineNumber": 127
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 128
+          },
+          {
+            "text": "pub struct RemoveArgs {",
+            "lineNumber": 129
+          },
+          {
+            "text": "    /// Name of the MCP server configuration to remove.",
+            "lineNumber": 130
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 131
+          },
+          {
+            "text": "}",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 134
+          },
+          {
+            "text": "pub struct LoginArgs {",
+            "lineNumber": 135
+          },
+          {
+            "text": "    /// Name of the MCP server to authenticate with oauth.",
+            "lineNumber": 136
+          },
+          {
+            "text": "    pub name: String,",
+            "lineNumber": 137
+          },
+          {
+            "lineNumber": 138
+          },
+          {
+            "text": "    /// Comma-separated list of OAuth scopes to request.",
+            "lineNumber": 139
+          },
+          {
+            "text": "    #[arg(long, value_delimiter = ',', value_name = \"SCOPE,SCOPE\")]",
+            "lineNumber": 140
+          },
+          {
+            "text": "    pub scopes: Vec&lt;String&gt;,",
+            "lineNumber": 141
+          },
+          {
+            "text": "}",
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "#[derive(Debug, clap::Parser)]",
+            "lineNumber": 144
+          },
+          {
+            "text": "pub struct LogoutArgs {",
+            "lineNumber": 145
+          },
+          {
+            "text": "    /// Name of the MCP server to deauthenticate.",
+            "lineNumber": 146
+          }
+        ]
+      },
+      "score": 0.14465780556201935
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\mcp_cmd.rs",
+        "range": {
+          "startPosition": {
+            "line": 198,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 235,
+            "column": 20
+          }
+        },
+        "contents": "impl McpCli {\n    pub async fn run(self) -&gt; Result&lt;()&gt; {\n        let McpCli {\n            config_overrides,\n            subcommand,\n        } = self;\n\n        match subcommand {\n            McpSubcommand::List(args) =&gt; {\n                run_list(&amp;config_overrides, args).await?;\n            }\n            McpSubcommand::Get(args) =&gt; {\n                run_get(&amp;config_overrides, args).await?;\n            }\n            McpSubcommand::Add(args) =&gt; {\n                run_add(&amp;config_overrides, args).await?;\n            }\n            McpSubcommand::Remove(args) =&gt; {\n                run_remove(&amp;config_overrides, args).await?;\n            }\n            McpSubcommand::Login(args) =&gt; {\n                run_login(&amp;config_overrides, args).await?;\n            }\n            McpSubcommand::Logout(args) =&gt; {\n                run_logout(&amp;config_overrides, args).await?;\n            }\n            McpSubcommand::Dynamic(args) =&gt; {\n                run_dynamic(&amp;config_overrides, args).await?;\n            }\n        }\n\n        Ok(())\n    }\n}\n\nasync fn run_dynamic",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "impl McpCli {",
+            "lineNumber": 201
+          },
+          {
+            "text": "    pub async fn run(self) -&gt; Result&lt;()&gt; {",
+            "lineNumber": 202
+          },
+          {
+            "text": "        let McpCli {",
+            "lineNumber": 203
+          },
+          {
+            "text": "            config_overrides,",
+            "lineNumber": 204
+          },
+          {
+            "text": "            subcommand,",
+            "lineNumber": 205
+          },
+          {
+            "text": "        } = self;",
+            "lineNumber": 206
+          },
+          {
+            "lineNumber": 207
+          },
+          {
+            "text": "        match subcommand {",
+            "lineNumber": 208
+          },
+          {
+            "text": "            McpSubcommand::List(args) =&gt; {",
+            "lineNumber": 209
+          },
+          {
+            "text": "                run_list(&amp;config_overrides, args).await?;",
+            "lineNumber": 210
+          },
+          {
+            "text": "            }",
+            "lineNumber": 211
+          },
+          {
+            "text": "            McpSubcommand::Get(args) =&gt; {",
+            "lineNumber": 212
+          },
+          {
+            "text": "                run_get(&amp;config_overrides, args).await?;",
+            "lineNumber": 213
+          },
+          {
+            "text": "            }",
+            "lineNumber": 214
+          },
+          {
+            "text": "            McpSubcommand::Add(args) =&gt; {",
+            "lineNumber": 215
+          },
+          {
+            "text": "                run_add(&amp;config_overrides, args).await?;",
+            "lineNumber": 216
+          },
+          {
+            "text": "            }",
+            "lineNumber": 217
+          },
+          {
+            "text": "            McpSubcommand::Remove(args) =&gt; {",
+            "lineNumber": 218
+          },
+          {
+            "text": "                run_remove(&amp;config_overrides, args).await?;",
+            "lineNumber": 219
+          },
+          {
+            "text": "            }",
+            "lineNumber": 220
+          },
+          {
+            "text": "            McpSubcommand::Login(args) =&gt; {",
+            "lineNumber": 221
+          },
+          {
+            "text": "                run_login(&amp;config_overrides, args).await?;",
+            "lineNumber": 222
+          },
+          {
+            "text": "            }",
+            "lineNumber": 223
+          },
+          {
+            "text": "            McpSubcommand::Logout(args) =&gt; {",
+            "lineNumber": 224
+          },
+          {
+            "text": "                run_logout(&amp;config_overrides, args).await?;",
+            "lineNumber": 225
+          },
+          {
+            "text": "            }",
+            "lineNumber": 226
+          },
+          {
+            "text": "            McpSubcommand::Dynamic(args) =&gt; {",
+            "lineNumber": 227
+          },
+          {
+            "text": "                run_dynamic(&amp;config_overrides, args).await?;",
+            "lineNumber": 228
+          },
+          {
+            "text": "            }",
+            "lineNumber": 229
+          },
+          {
+            "text": "        }",
+            "lineNumber": 230
+          },
+          {
+            "lineNumber": 231
+          },
+          {
+            "text": "        Ok(())",
+            "lineNumber": 232
+          },
+          {
+            "text": "    }",
+            "lineNumber": 233
+          },
+          {
+            "text": "}",
+            "lineNumber": 234
+          },
+          {
+            "lineNumber": 235
+          },
+          {
+            "text": "async fn run_dynamic",
+            "lineNumber": 236
+          }
+        ]
+      },
+      "score": 0.1415943056344986
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 870,
+            "column": 9
+          },
+          "endPosition": {
+            "line": 914,
+            "column": 47
+          }
+        },
+        "contents": "        Some(Subcommand::Login(mut login_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut login_cli.config_overrides,\n                root_config_overrides.clone(),\n            );\n            match login_cli.action {\n                Some(LoginSubcommand::Status) =&gt; {\n                    run_login_status(login_cli.config_overrides).await;\n                }\n                None =&gt; {\n                    if login_cli.use_device_code {\n                        run_login_with_device_code(\n                            login_cli.config_overrides,\n                            login_cli.issuer_base_url,\n                            login_cli.client_id,\n                        )\n                        .await;\n                    } else if login_cli.api_key.is_some() {\n                        eprintln!(\n                            \"The --api-key flag is no longer supported. Pipe the key instead, e.g. &#96;printenv OPENAI_API_KEY | codex login --with-api-key&#96;.\"\n                        );\n                        std::process::exit(1);\n                    } else if login_cli.with_api_key {\n                        let api_key = read_api_key_from_stdin();\n                        run_login_with_api_key(login_cli.config_overrides, api_key).await;\n                    } else {\n                        run_login_with_chatgpt(login_cli.config_overrides).await;\n                    }\n                }\n            }\n        }\n        Some(Subcommand::Logout(mut logout_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut logout_cli.config_overrides,\n                root_config_overrides.clone(),\n            );\n            run_logout(logout_cli.config_overrides).await;\n        }\n        Some(Subcommand::Completion(completion_cli)) =&gt; {\n            print_completion(completion_cli);\n        }\n        Some(Subcommand::Cloud(mut cloud_cli)) =&gt; {\n            prepend_config_flags(\n                &amp;mut cloud_cli.config_overrides",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "        Some(Subcommand::Login(mut login_cli)) =&gt; {",
+            "lineNumber": 872
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 873
+          },
+          {
+            "text": "                &amp;mut login_cli.config_overrides,",
+            "lineNumber": 874
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 875
+          },
+          {
+            "text": "            );",
+            "lineNumber": 876
+          },
+          {
+            "text": "            match login_cli.action {",
+            "lineNumber": 877
+          },
+          {
+            "text": "                Some(LoginSubcommand::Status) =&gt; {",
+            "lineNumber": 878
+          },
+          {
+            "text": "                    run_login_status(login_cli.config_overrides).await;",
+            "lineNumber": 879
+          },
+          {
+            "text": "                }",
+            "lineNumber": 880
+          },
+          {
+            "text": "                None =&gt; {",
+            "lineNumber": 881
+          },
+          {
+            "text": "                    if login_cli.use_device_code {",
+            "lineNumber": 882
+          },
+          {
+            "text": "                        run_login_with_device_code(",
+            "lineNumber": 883
+          },
+          {
+            "text": "                            login_cli.config_overrides,",
+            "lineNumber": 884
+          },
+          {
+            "text": "                            login_cli.issuer_base_url,",
+            "lineNumber": 885
+          },
+          {
+            "text": "                            login_cli.client_id,",
+            "lineNumber": 886
+          },
+          {
+            "text": "                        )",
+            "lineNumber": 887
+          },
+          {
+            "text": "                        .await;",
+            "lineNumber": 888
+          },
+          {
+            "text": "                    } else if login_cli.api_key.is_some() {",
+            "lineNumber": 889
+          },
+          {
+            "text": "                        eprintln!(",
+            "lineNumber": 890
+          },
+          {
+            "text": "                            \"The --api-key flag is no longer supported. Pipe the key instead, e.g. &#96;printenv OPENAI_API_KEY | codex login --with-api-key&#96;.\"",
+            "lineNumber": 891
+          },
+          {
+            "text": "                        );",
+            "lineNumber": 892
+          },
+          {
+            "text": "                        std::process::exit(1);",
+            "lineNumber": 893
+          },
+          {
+            "text": "                    } else if login_cli.with_api_key {",
+            "lineNumber": 894
+          },
+          {
+            "text": "                        let api_key = read_api_key_from_stdin();",
+            "lineNumber": 895
+          },
+          {
+            "text": "                        run_login_with_api_key(login_cli.config_overrides, api_key).await;",
+            "lineNumber": 896
+          },
+          {
+            "text": "                    } else {",
+            "lineNumber": 897
+          },
+          {
+            "text": "                        run_login_with_chatgpt(login_cli.config_overrides).await;",
+            "lineNumber": 898
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 899
+          },
+          {
+            "text": "                }",
+            "lineNumber": 900
+          },
+          {
+            "text": "            }",
+            "lineNumber": 901
+          },
+          {
+            "text": "        }",
+            "lineNumber": 902
+          },
+          {
+            "text": "        Some(Subcommand::Logout(mut logout_cli)) =&gt; {",
+            "lineNumber": 903
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 904
+          },
+          {
+            "text": "                &amp;mut logout_cli.config_overrides,",
+            "lineNumber": 905
+          },
+          {
+            "text": "                root_config_overrides.clone(),",
+            "lineNumber": 906
+          },
+          {
+            "text": "            );",
+            "lineNumber": 907
+          },
+          {
+            "text": "            run_logout(logout_cli.config_overrides).await;",
+            "lineNumber": 908
+          },
+          {
+            "text": "        }",
+            "lineNumber": 909
+          },
+          {
+            "text": "        Some(Subcommand::Completion(completion_cli)) =&gt; {",
+            "lineNumber": 910
+          },
+          {
+            "text": "            print_completion(completion_cli);",
+            "lineNumber": 911
+          },
+          {
+            "text": "        }",
+            "lineNumber": 912
+          },
+          {
+            "text": "        Some(Subcommand::Cloud(mut cloud_cli)) =&gt; {",
+            "lineNumber": 913
+          },
+          {
+            "text": "            prepend_config_flags(",
+            "lineNumber": 914
+          },
+          {
+            "text": "                &amp;mut cloud_cli.config_overrides",
+            "lineNumber": 915
+          }
+        ]
+      },
+      "score": 0.1395646333694458
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": ".\\codex-rs\\cli\\src\\main.rs",
+        "range": {
+          "startPosition": {
+            "line": 489,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 558,
+            "column": 40
+          }
+        },
+        "contents": "#[derive(Debug, Parser)]\nstruct TestCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,\n\n    /// Test generation task description\n    #[arg(value_name = \"TASK\")]\n    task: String,\n\n    /// Scope path (files or directories)\n    #[arg(long, value_name = \"PATH\")]\n    scope: Option&lt;PathBuf&gt;,\n\n    /// Token budget\n    #[arg(long, value_name = \"TOKENS\")]\n    budget: Option&lt;usize&gt;,\n\n    /// Output file for the result\n    #[arg(short, long, value_name = \"FILE\")]\n    out: Option&lt;PathBuf&gt;,\n}\n\n#[derive(Debug, Parser)]\nstruct AgentCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides,\n\n    /// Natural language task description\n    #[arg(value_name = \"TASK\")]\n    task: String,\n\n    /// Scope path (files or directories)\n    #[arg(long, value_name = \"PATH\")]\n    scope: Option&lt;PathBuf&gt;,\n\n    /// Token budget\n    #[arg(long, value_name = \"TOKENS\")]\n    budget: Option&lt;usize&gt;,\n\n    /// Output file for the result\n    #[arg(short, long, value_name = \"FILE\")]\n    out: Option&lt;PathBuf&gt;,\n}\n\n#[derive(Debug, Parser)]\nstruct SandboxArgs {\n    #[command(subcommand)]\n    cmd: SandboxCommand,\n}\n\n#[derive(Debug, clap::Subcommand)]\nenum SandboxCommand {\n    /// Run a command under Seatbelt (macOS only).\n    #[clap(visible_alias = \"seatbelt\")]\n    Macos(SeatbeltCommand),\n\n    /// Run a command under Landlock+seccomp (Linux only).\n    #[clap(visible_alias = \"landlock\")]\n    Linux(LandlockCommand),\n\n    /// Run a command under Windows restricted token (Windows only).\n    Windows(WindowsCommand),\n}\n\n#[derive(Debug, Parser)]\nstruct LoginCommand {\n    #[clap(skip)]\n    config_overrides: CliConfigOverrides",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 492
+          },
+          {
+            "text": "struct TestCommand {",
+            "lineNumber": 493
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 494
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 495
+          },
+          {
+            "lineNumber": 496
+          },
+          {
+            "text": "    /// Test generation task description",
+            "lineNumber": 497
+          },
+          {
+            "text": "    #[arg(value_name = \"TASK\")]",
+            "lineNumber": 498
+          },
+          {
+            "text": "    task: String,",
+            "lineNumber": 499
+          },
+          {
+            "lineNumber": 500
+          },
+          {
+            "text": "    /// Scope path (files or directories)",
+            "lineNumber": 501
+          },
+          {
+            "text": "    #[arg(long, value_name = \"PATH\")]",
+            "lineNumber": 502
+          },
+          {
+            "text": "    scope: Option&lt;PathBuf&gt;,",
+            "lineNumber": 503
+          },
+          {
+            "lineNumber": 504
+          },
+          {
+            "text": "    /// Token budget",
+            "lineNumber": 505
+          },
+          {
+            "text": "    #[arg(long, value_name = \"TOKENS\")]",
+            "lineNumber": 506
+          },
+          {
+            "text": "    budget: Option&lt;usize&gt;,",
+            "lineNumber": 507
+          },
+          {
+            "lineNumber": 508
+          },
+          {
+            "text": "    /// Output file for the result",
+            "lineNumber": 509
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"FILE\")]",
+            "lineNumber": 510
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 511
+          },
+          {
+            "text": "}",
+            "lineNumber": 512
+          },
+          {
+            "lineNumber": 513
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 514
+          },
+          {
+            "text": "struct AgentCommand {",
+            "lineNumber": 515
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 516
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides,",
+            "lineNumber": 517
+          },
+          {
+            "lineNumber": 518
+          },
+          {
+            "text": "    /// Natural language task description",
+            "lineNumber": 519
+          },
+          {
+            "text": "    #[arg(value_name = \"TASK\")]",
+            "lineNumber": 520
+          },
+          {
+            "text": "    task: String,",
+            "lineNumber": 521
+          },
+          {
+            "lineNumber": 522
+          },
+          {
+            "text": "    /// Scope path (files or directories)",
+            "lineNumber": 523
+          },
+          {
+            "text": "    #[arg(long, value_name = \"PATH\")]",
+            "lineNumber": 524
+          },
+          {
+            "text": "    scope: Option&lt;PathBuf&gt;,",
+            "lineNumber": 525
+          },
+          {
+            "lineNumber": 526
+          },
+          {
+            "text": "    /// Token budget",
+            "lineNumber": 527
+          },
+          {
+            "text": "    #[arg(long, value_name = \"TOKENS\")]",
+            "lineNumber": 528
+          },
+          {
+            "text": "    budget: Option&lt;usize&gt;,",
+            "lineNumber": 529
+          },
+          {
+            "lineNumber": 530
+          },
+          {
+            "text": "    /// Output file for the result",
+            "lineNumber": 531
+          },
+          {
+            "text": "    #[arg(short, long, value_name = \"FILE\")]",
+            "lineNumber": 532
+          },
+          {
+            "text": "    out: Option&lt;PathBuf&gt;,",
+            "lineNumber": 533
+          },
+          {
+            "text": "}",
+            "lineNumber": 534
+          },
+          {
+            "lineNumber": 535
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 536
+          },
+          {
+            "text": "struct SandboxArgs {",
+            "lineNumber": 537
+          },
+          {
+            "text": "    #[command(subcommand)]",
+            "lineNumber": 538
+          },
+          {
+            "text": "    cmd: SandboxCommand,",
+            "lineNumber": 539
+          },
+          {
+            "text": "}",
+            "lineNumber": 540
+          },
+          {
+            "lineNumber": 541
+          },
+          {
+            "text": "#[derive(Debug, clap::Subcommand)]",
+            "lineNumber": 542
+          },
+          {
+            "text": "enum SandboxCommand {",
+            "lineNumber": 543
+          },
+          {
+            "text": "    /// Run a command under Seatbelt (macOS only).",
+            "lineNumber": 544
+          },
+          {
+            "text": "    #[clap(visible_alias = \"seatbelt\")]",
+            "lineNumber": 545
+          },
+          {
+            "text": "    Macos(SeatbeltCommand),",
+            "lineNumber": 546
+          },
+          {
+            "lineNumber": 547
+          },
+          {
+            "text": "    /// Run a command under Landlock+seccomp (Linux only).",
+            "lineNumber": 548
+          },
+          {
+            "text": "    #[clap(visible_alias = \"landlock\")]",
+            "lineNumber": 549
+          },
+          {
+            "text": "    Linux(LandlockCommand),",
+            "lineNumber": 550
+          },
+          {
+            "lineNumber": 551
+          },
+          {
+            "text": "    /// Run a command under Windows restricted token (Windows only).",
+            "lineNumber": 552
+          },
+          {
+            "text": "    Windows(WindowsCommand),",
+            "lineNumber": 553
+          },
+          {
+            "text": "}",
+            "lineNumber": 554
+          },
+          {
+            "lineNumber": 555
+          },
+          {
+            "text": "#[derive(Debug, Parser)]",
+            "lineNumber": 556
+          },
+          {
+            "text": "struct LoginCommand {",
+            "lineNumber": 557
+          },
+          {
+            "text": "    #[clap(skip)]",
+            "lineNumber": 558
+          },
+          {
+            "text": "    config_overrides: CliConfigOverrides",
+            "lineNumber": 559
+          }
+        ]
+      },
+      "score": 0.13889800012111664
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+パターンマッチングは`..`を使用しており問題ありません。コンパイルエラーを確認するため、`cargo check`を実行します。
+
+
+---
+
+Cancelled
+
+---
+
+
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+`cli/src/main.rs`のパターンマッチングは`..`を使用しており問題ありません。コンパイルエラーを確認します。
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd codex-rs ; cargo check --all-features 2>&1 | Select-Object -First 50</summary>
+
+```bash
+cd codex-rs ; cargo check --all-features 2>&1 | Select-Object -First 50
+```
+
+```
+cd : �p�X 'C:\Users\downl\Desktop\codex-main\codex-rs\codex-rs\codex-rs' �����݂��Ȃ����ߌ��o�ł��܂���B
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-c89a932d-f9af-41f6-8ed6-e2bb9b4e518b.ps1:95 ����:1
++ cd codex-rs ; cargo check --all-features 2&gt;&amp;1 | Select-Object -First  ...
++ ~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\downl\...dex-rs\codex-rs:String) [Set-Location], ItemNotFoundE 
+   xception
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SetLocationCommand
+ 
+cargo :    Compiling codex-execpolicy v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy)
+�����ꏊ C:\Users\downl\AppData\Local\Temp\ps-script-c89a932d-f9af-41f6-8ed6-e2bb9b4e518b.ps1:95 ����:15
++ cd codex-rs ; cargo check --all-features 2&gt;&amp;1 | Select-Object -First  ...
++               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (   Compiling co...-rs\execpolicy):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    Checking codex-core v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
+    Checking codex-ollama v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\ollama)
+    Checking codex-lmstudio v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\lmstudio)
+    Checking codex-arg0 v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\arg0)
+    Checking codex-backend-client v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\backend-client)
+    Checking codex-login v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\login)
+    Checking core_test_support v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\core\tests\common)
+    Checking codex-exec-server v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\exec-server)
+    Checking codex-supervisor v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\supervisor)
+    Checking codex-orchestrator v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\orchestrator)
+    Checking exec_server_test_support v2.8.2 (C:\Users\downl\Desktop\codex-main\codex-rs\exec-server\tests\common)
+
+```
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+_**User**_
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_file_v2">
+<details>
+<summary>Tool use: **read_file_v2**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_file_v2">
+<details>
+<summary>Tool use: **read_file_v2**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_file_v2">
+<details>
+<summary>Tool use: **read_file_v2**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
 
 ---
 

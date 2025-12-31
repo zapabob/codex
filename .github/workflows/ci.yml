@@ -112,12 +112,19 @@ jobs:
 
       # Build MCP programs
       - name: Build MCP programs
+        shell: pwsh
         run: |
-          cd codex-rs
+          Set-Location codex-rs
           cargo build --release -p codex-gemini-cli-mcp-server
-          cargo build --release -p codex-supervisor || echo "supervisor build failed, continuing..."
-          cargo build --release -p codex-mcp-server || echo "mcp-server build failed, continuing..."
-          cargo build --release -p codex-deep-research || echo "deep-research build failed, continuing..."
+          if (-not (cargo build --release -p codex-supervisor 2>&1)) {
+            Write-Host "Warning: supervisor build failed, continuing..."
+          }
+          if (-not (cargo build --release -p codex-mcp-server 2>&1)) {
+            Write-Host "Warning: mcp-server build failed, continuing..."
+          }
+          if (-not (cargo build --release -p codex-deep-research 2>&1)) {
+            Write-Host "Warning: deep-research build failed, continuing..."
+          }
 
       # Test MCP binaries
       - name: Test MCP binaries

@@ -7,25 +7,25 @@ todos:
     status: completed
   - id: verify_compilation_errors
     content: cargo checkでコンパイルエラーを確認・修正（integration_web_search.rs、rate_limit.rs、cli/src/main.rsなど）
-    status: in_progress
+    status: completed
   - id: verify_lint_errors
     content: cargo clippyでLintエラーを確認・修正
-    status: pending
+    status: completed
   - id: verify_format_errors
     content: cargo fmt --checkでフォーマットエラーを確認・修正
-    status: pending
+    status: completed
   - id: fix_ci_mcp_integration
     content: ci.ymlのMCP統合テストのビルド失敗を適切にハンドリング
-    status: pending
+    status: completed
   - id: verify_cargo_deny
     content: cargo-denyワークフローの依存関係・ライセンス問題を確認・修正
-    status: pending
+    status: completed
   - id: verify_rust_ci
     content: rust-ci.ymlのRust toolchainバージョンがrust-toolchain.tomlと一致しているか確認
-    status: pending
+    status: completed
   - id: test_locally
     content: ローカルでCIと同等のコマンドを実行して検証（cargo check、cargo clippy、cargo fmt --check、cargo test）
-    status: pending
+    status: completed
 ---
 
 # CI/CD全ワークフロー失敗修正計画
