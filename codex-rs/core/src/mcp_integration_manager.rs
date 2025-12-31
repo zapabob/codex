@@ -574,7 +574,7 @@ impl McpIntegrationManager {
             server_name, server
         );
 
-        let optimized_config =
+        let _optimized_config =
             execute_with_windows_ai(&optimization_prompt, &self.windows_ai_options)
                 .await
                 .map_err(|e| format!("AI optimization failed: {}", e))?;
