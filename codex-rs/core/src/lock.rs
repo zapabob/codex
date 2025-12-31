@@ -269,7 +269,7 @@ fn is_process_alive(pid: u32) -> bool {
         use std::process::Command;
         // On Windows, use tasklist to check
         Command::new("tasklist")
-            .args(&["/FI", &format!("PID eq {pid}")])
+            .args(["/FI", &format!("PID eq {pid}")])
             .output()
             .ok()
             .and_then(|output| String::from_utf8(output.stdout).ok())

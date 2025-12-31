@@ -303,30 +303,27 @@ impl MLConflictPredictor {
     ) -> BTreeMap<String, f64> {
         let mut features = BTreeMap::new();
 
-        match (op1, op2) {
-            (GitOperation::ModifyFiles(files1), GitOperation::ModifyFiles(files2)) => {
-                // File overlap
-                let overlap: f64 = files1
-                    .iter()
-                    .filter(|f1| files2.iter().any(|f2| *f1 == f2))
-                    .count() as f64
-                    / (files1.len().max(1) + files2.len().max(1)) as f64;
-                features.insert("file_overlap".to_string(), overlap);
+        if let (GitOperation::ModifyFiles(files1), GitOperation::ModifyFiles(files2)) = (op1, op2) {
+            // File overlap
+            let overlap: f64 = files1
+                .iter()
+                .filter(|f1| files2.iter().any(|f2| *f1 == f2))
+                .count() as f64
+                / (files1.len().max(1) + files2.len().max(1)) as f64;
+            features.insert("file_overlap".to_string(), overlap);
 
-                // Directory proximity
-                let mut dir_score = 0.0;
-                for f1 in files1 {
-                    for f2 in files2 {
-                        if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent())
-                            && p1 == p2 {
-                                dir_score = 1.0;
-                                break;
-                            }
-                    }
+            // Directory proximity
+            let mut dir_score = 0.0;
+            for f1 in files1 {
+                for f2 in files2 {
+                    if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent())
+                        && p1 == p2 {
+                            dir_score = 1.0;
+                            break;
+                        }
                 }
-                features.insert("directory_proximity".to_string(), dir_score);
             }
-            _ => {}
+            features.insert("directory_proximity".to_string(), dir_score);
         }
 
         // Repository state features - simplified for now

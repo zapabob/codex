@@ -78,7 +78,7 @@ artifacts:
 
     let elapsed = start.elapsed();
 
-    println!("⏱️  Agent delegation latency: {:?}", elapsed);
+    println!("⏱️  Agent delegation latency: {elapsed:?}");
     assert!(
         elapsed.as_millis() < 5000,
         "Should complete within 5 seconds"
@@ -119,7 +119,7 @@ artifacts:
 
     let elapsed = start.elapsed();
 
-    println!("⏱️  10 parallel agents completed in: {:?}", elapsed);
+    println!("⏱️  10 parallel agents completed in: {elapsed:?}");
     println!(
         "   Throughput: {:.2} agents/sec",
         10.0 / elapsed.as_secs_f64()
@@ -145,7 +145,7 @@ async fn test_perf_token_budgeter_overhead() {
 
     let elapsed = start.elapsed();
 
-    println!("⏱️  1000 token operations: {:?}", elapsed);
+    println!("⏱️  1000 token operations: {elapsed:?}");
     assert!(elapsed.as_micros() < 100_000, "Should be under 100ms");
 }
 
@@ -157,7 +157,7 @@ async fn test_perf_research_plan_generation() {
 
     let elapsed = start.elapsed();
 
-    println!("⏱️  Research plan generation: {:?}", elapsed);
+    println!("⏱️  Research plan generation: {elapsed:?}");
     assert_eq!(plan.sub_queries.len(), 8);
     assert!(elapsed.as_millis() < 100, "Should be under 100ms");
 }
@@ -179,7 +179,7 @@ async fn test_perf_deep_research_execution() {
 
     let elapsed = start.elapsed();
 
-    println!("⏱️  Deep research execution: {:?}", elapsed);
+    println!("⏱️  Deep research execution: {elapsed:?}");
     println!("   Sources found: {}", report.sources.len());
     println!("   Depth reached: {}", report.depth_reached);
 
@@ -197,17 +197,16 @@ fn test_perf_agent_definition_loading() {
     for i in 0..50 {
         let yaml = format!(
             r#"
-name: "Agent {}"
-goal: "Goal {}"
+name: "Agent {i}"
+goal: "Goal {i}"
 tools: {{}}
 policies:
   context: {{}}
 success_criteria: []
 artifacts: []
-"#,
-            i, i
+"#
         );
-        fs::write(agents_dir.join(format!("agent{}.yaml", i)), yaml).unwrap();
+        fs::write(agents_dir.join(format!("agent{i}.yaml")), yaml).unwrap();
     }
 
     let mut loader = codex_core::agents::AgentLoader::new(temp_dir.path());
@@ -218,7 +217,7 @@ artifacts: []
 
     let elapsed = start.elapsed();
 
-    println!("⏱️  Loaded 50 agents in: {:?}", elapsed);
+    println!("⏱️  Loaded 50 agents in: {elapsed:?}");
     assert_eq!(agents.len(), 50);
     assert!(elapsed.as_millis() < 500, "Should load within 500ms");
 }
@@ -232,8 +231,8 @@ async fn test_perf_memory_usage_baseline() {
     let (used, remaining, utilization) = runtime.get_budget_status();
 
     println!("💾 Memory baseline:");
-    println!("   Used: {}", used);
-    println!("   Remaining: {}", remaining);
+    println!("   Used: {used}");
+    println!("   Remaining: {remaining}");
     println!("   Utilization: {:.2}%", utilization * 100.0);
 
     assert_eq!(used, 0);

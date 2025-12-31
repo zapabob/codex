@@ -114,8 +114,7 @@ artifacts:
         let artifact_path = temp_dir.path().join(artifact);
         assert!(
             artifact_path.exists(),
-            "Artifact should exist: {}",
-            artifact
+            "Artifact should exist: {artifact}"
         );
     }
 }
@@ -173,7 +172,7 @@ artifacts:
     .unwrap();
 
     assert_eq!(result.status, AgentStatus::Completed);
-    assert!(result.artifacts.len() >= 1);
+    assert!(!result.artifacts.is_empty());
 }
 
 #[tokio::test]
