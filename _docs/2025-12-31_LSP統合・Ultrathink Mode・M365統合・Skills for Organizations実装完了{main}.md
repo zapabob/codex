@@ -339,6 +339,28 @@ cargo test -p codex-core --test suite lsp_integration
 cargo test -p codex-microsoft365 --test integration
 ```
 
+## ビルドとインストール状況
+
+### コンパイルエラー修正完了 ✅
+- Microsoft 365統合のコンパイルエラーを修正
+  - `KeyringStore`の使用方法を修正（`get`/`set` → `load`/`save`）
+  - 未使用変数の警告を修正（`_codex_home`, `_refresh_token`, `_content`）
+  - 未使用インポートを削除
+
+### 差分ビルド実行中 ⏳
+- `cargo build --release -p codex-cli` をバックグラウンドで実行中
+- ビルド完了後、バイナリを上書きインストール予定
+
+### インストール先
+- `$env:USERPROFILE\.cargo\bin\codex.exe`
+
+**注意**: ビルドが完了したら、以下のコマンドでインストールを実行してください：
+```powershell
+Get-Process codex -ErrorAction SilentlyContinue | Stop-Process -Force
+Copy-Item "codex-rs\target\release\codex.exe" "$env:USERPROFILE\.cargo\bin\codex.exe" -Force
+codex --version
+```
+
 ---
 
 *この実装ログは自動生成されました。*
