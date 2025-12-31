@@ -3508,6 +3508,8 @@ model_verbosity = "high"
             tui_scroll_wheel_like_max_duration_ms: None,
             tui_scroll_invert: false,
             otel: OtelConfig::default(),
+            mcp_dynamic_loading: crate::config::types::McpDynamicLoadingConfig::default(),
+            mcp_token_optimization: crate::config::types::McpTokenOptimizationConfig::default(),
         };
 
         assert_eq!(expected_gpt5_profile_config, gpt5_profile_config);
