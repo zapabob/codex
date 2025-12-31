@@ -13,6 +13,7 @@ use mcp_types::ContentBlock;
 use mcp_types::ListToolsResult;
 use mcp_types::TextContent;
 use mcp_types::Tool;
+use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
