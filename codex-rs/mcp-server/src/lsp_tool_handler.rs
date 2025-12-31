@@ -4,9 +4,8 @@
 
 use anyhow::{Context, Result};
 use codex_core::lsp::{DiagnosticsManager, LspClient};
-use lsp_types::Url;
 use mcp_types::{
-    CallToolRequestParams, CallToolResult, ListToolsResult, Tool,
+    CallToolRequestParams, CallToolResult, ListToolsResult, Tool, Url,
 };
 use std::collections::HashMap;
 use std::path::PathBuf;
