@@ -9,7 +9,6 @@ use lsp_types::CompletionResponse;
 use lsp_types::Hover;
 use lsp_types::HoverParams;
 use lsp_types::InitializeParams;
-use lsp_types::InitializeResult;
 use lsp_types::InitializedParams;
 use lsp_types::ReferenceParams;
 use lsp_types::ServerCapabilities;
@@ -18,6 +17,7 @@ use lsp_types::TextDocumentItem;
 use lsp_types::TextDocumentPositionParams;
 use lsp_types::Url;
 use lsp_types::VersionedTextDocumentIdentifier;
+use lsp_types::WorkspaceFolder;
 use lsp_types::notification::DidChangeTextDocument;
 use lsp_types::notification::DidOpenTextDocument;
 use lsp_types::notification::Initialized;
@@ -165,6 +165,16 @@ impl LspClient {
     async fn initialize(&mut self) -> Result<()> {
         let root_uri = self.root_uri.clone().context("Root URI not set")?;
 
+        let folder_name = root_uri
+            .to_file_path()
+            .ok()
+            .and_then(|path| {
+                path.file_name()
+                    .and_then(|name| name.to_str())
+                    .map(String::from)
+            })
+            .unwrap_or_else(|| "workspace".to_string());
+
         let params = InitializeParams {
             process_id: Some(std::process::id()),
             client_info: Some(lsp_types::ClientInfo {
@@ -172,13 +182,15 @@ impl LspClient {
                 version: Some(env!("CARGO_PKG_VERSION").to_string()),
             }),
             locale: None,
-            root_path: None,
-            root_uri: Some(root_uri.clone()),
             initialization_options: None,
             capabilities: lsp_types::ClientCapabilities::default(),
             trace: None,
-            workspace_folders: None,
+            workspace_folders: Some(vec![WorkspaceFolder {
+                uri: root_uri.clone(),
+                name: folder_name,
+            }]),
             work_done_progress_params: Default::default(),
+            ..Default::default()
         };
 
         let response = self

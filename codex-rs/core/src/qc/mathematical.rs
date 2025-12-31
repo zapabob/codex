@@ -129,7 +129,6 @@ impl ConvexFunction {
 #[cfg(feature = "cuda")]
 pub mod cuda_math {
     use cudarc::driver::CudaDevice;
-    use cudarc::driver::CudaSlice;
     use cudarc::driver::LaunchAsync;
     use cudarc::driver::LaunchConfig;
     use std::sync::Arc;
@@ -180,7 +179,7 @@ pub mod cuda_math {
             // Launch kernel
             let config = LaunchConfig::for_num_elems(rows as u32);
             unsafe {
-                self.mat_vec_kernel.launch(
+                self.mat_vec_kernel.clone().launch(
                     config,
                     (
                         &d_matrix,

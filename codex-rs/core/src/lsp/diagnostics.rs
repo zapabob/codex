@@ -14,7 +14,6 @@ use tokio::sync::RwLock;
 use tokio::sync::broadcast;
 use tracing::debug;
 use tracing::info;
-use tracing::warn;
 
 /// Diagnostic information for a document
 #[derive(Debug, Clone, Serialize, Deserialize)]
