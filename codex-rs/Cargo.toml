@@ -48,7 +48,9 @@ members = [
     "utils/readiness",
     "utils/string",
     "codex-client",
-    "codex-api", "codex-rs/web-search",
+    "codex-api",
+    "codex-rs/web-search",
+    "chrome-host",
 ]
 resolver = "2"
 
