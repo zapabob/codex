@@ -17,6 +17,7 @@ impl Default for SecureAgentCommunicator {
     }
 }
 
+#[cfg(feature = "agent_security")]
 impl SecureAgentCommunicator {
     pub fn new() -> Self {
         Self {}
