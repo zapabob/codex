@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use codex_core::lsp::{DiagnosticsManager, LspClient};
 use lsp_types::Url;
 use mcp_types::{
-    CallToolResult, ListToolsResult, Tool, ToolCall, ToolCallResult,
+    CallToolRequestParams, CallToolResult, ListToolsResult, Tool,
 };
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -150,7 +150,7 @@ impl LspToolHandler {
     }
 
     /// Handle a tool call
-    pub async fn handle_tool_call(&self, tool_call: ToolCall) -> Result<ToolCallResult> {
+    pub async fn handle_tool_call(&self, tool_call: CallToolRequestParams) -> Result<CallToolResult> {
         match tool_call.name.as_str() {
             "lsp_get_diagnostics" => self.handle_get_diagnostics(tool_call.arguments).await,
             "lsp_start_server" => self.handle_start_server(tool_call.arguments).await,
@@ -165,14 +165,14 @@ impl LspToolHandler {
     async fn handle_get_diagnostics(
         &self,
         arguments: serde_json::Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let uri: Option<String> = arguments.get("uri").and_then(|v| v.as_str()).map(|s| s.to_string());
 
         if let Some(uri_str) = uri {
             let uri = Url::parse(&uri_str).context("Invalid URI")?;
             let diagnostics = self.diagnostics_manager.get_combined_diagnostics(&uri).await;
 
-            Ok(ToolCallResult {
+            Ok(CallToolResult {
                 content: vec![CallToolResult::Text {
                     text: serde_json::to_string_pretty(&diagnostics)?,
                 }],
@@ -180,7 +180,7 @@ impl LspToolHandler {
             })
         } else {
             let all_diagnostics = self.diagnostics_manager.get_all_diagnostics().await;
-            Ok(ToolCallResult {
+            Ok(CallToolResult {
                 content: vec![CallToolResult::Text {
                     text: serde_json::to_string_pretty(&all_diagnostics)?,
                 }],
@@ -192,7 +192,7 @@ impl LspToolHandler {
     async fn handle_start_server(
         &self,
         arguments: serde_json::Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -222,7 +222,7 @@ impl LspToolHandler {
 
         info!("Started LSP server: {}", server_name);
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: format!("Started LSP server: {}", server_name),
             }],
@@ -233,7 +233,7 @@ impl LspToolHandler {
     async fn handle_stop_server(
         &self,
         arguments: serde_json::Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -244,7 +244,7 @@ impl LspToolHandler {
         if let Some(mut client) = clients.remove(&server_name) {
             client.stop().await.context("Failed to stop LSP server")?;
             info!("Stopped LSP server: {}", server_name);
-            Ok(ToolCallResult {
+            Ok(CallToolResult {
                 content: vec![CallToolResult::Text {
                     text: format!("Stopped LSP server: {}", server_name),
                 }],
@@ -258,7 +258,7 @@ impl LspToolHandler {
     async fn handle_get_completions(
         &self,
         arguments: serde_json::Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -292,7 +292,7 @@ impl LspToolHandler {
             .await
             .context("Failed to get completions")?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: serde_json::to_string_pretty(&completions)?,
             }],
@@ -303,7 +303,7 @@ impl LspToolHandler {
     async fn handle_get_hover(
         &self,
         arguments: serde_json::Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let server_name = arguments
             .get("server_name")
             .and_then(|v| v.as_str())
@@ -337,7 +337,7 @@ impl LspToolHandler {
             .await
             .context("Failed to get hover")?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: serde_json::to_string_pretty(&hover)?,
             }],
@@ -348,10 +348,10 @@ impl LspToolHandler {
     async fn handle_get_statistics(
         &self,
         _arguments: serde_json::Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let stats = self.diagnostics_manager.get_statistics().await;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: serde_json::to_string_pretty(&stats)?,
             }],

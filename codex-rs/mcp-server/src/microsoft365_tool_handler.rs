@@ -5,7 +5,7 @@
 use anyhow::{Context, Result};
 use codex_microsoft365::{Microsoft365AuthManager, Microsoft365Client};
 use mcp_types::{
-    CallToolResult, ListToolsResult, Tool, ToolCall, ToolCallResult,
+    CallToolRequestParams, CallToolResult, ListToolsResult, Tool,
 };
 use serde_json::Value;
 use std::path::PathBuf;
@@ -150,7 +150,7 @@ impl Microsoft365ToolHandler {
     }
 
     /// Handle a tool call
-    pub async fn handle_tool_call(&self, tool_call: ToolCall) -> Result<ToolCallResult> {
+    pub async fn handle_tool_call(&self, tool_call: CallToolRequestParams) -> Result<CallToolResult> {
         let client = self
             .client
             .as_ref()
@@ -180,7 +180,7 @@ impl Microsoft365ToolHandler {
         &self,
         client: &Microsoft365Client,
         arguments: Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let drive_id = arguments
             .get("drive_id")
             .and_then(|v| v.as_str())
@@ -192,7 +192,7 @@ impl Microsoft365ToolHandler {
 
         let content = client.word_read_document(drive_id, item_id).await?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text { text: content }],
             is_error: false,
         })
@@ -202,7 +202,7 @@ impl Microsoft365ToolHandler {
         &self,
         client: &Microsoft365Client,
         arguments: Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let name = arguments
             .get("name")
             .and_then(|v| v.as_str())
@@ -216,7 +216,7 @@ impl Microsoft365ToolHandler {
 
         let result = client.word_create_document(name.clone(), content).await?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text { text: result }],
             is_error: false,
         })
@@ -226,7 +226,7 @@ impl Microsoft365ToolHandler {
         &self,
         client: &Microsoft365Client,
         arguments: Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let drive_id = arguments
             .get("drive_id")
             .and_then(|v| v.as_str())
@@ -238,7 +238,7 @@ impl Microsoft365ToolHandler {
 
         let data = client.excel_read_spreadsheet(drive_id, item_id).await?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: serde_json::to_string_pretty(&data)?,
             }],
@@ -250,7 +250,7 @@ impl Microsoft365ToolHandler {
         &self,
         client: &Microsoft365Client,
         arguments: Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let drive_id = arguments
             .get("drive_id")
             .and_then(|v| v.as_str())
@@ -273,7 +273,7 @@ impl Microsoft365ToolHandler {
             .excel_update_cell(drive_id, item_id, worksheet, cell, value)
             .await?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: format!("Cell {} updated successfully", cell),
             }],
@@ -285,7 +285,7 @@ impl Microsoft365ToolHandler {
         &self,
         client: &Microsoft365Client,
         arguments: Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let drive_id = arguments
             .get("drive_id")
             .and_then(|v| v.as_str())
@@ -297,7 +297,7 @@ impl Microsoft365ToolHandler {
 
         let data = client.powerpoint_read_presentation(drive_id, item_id).await?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: serde_json::to_string_pretty(&data)?,
             }],
@@ -309,7 +309,7 @@ impl Microsoft365ToolHandler {
         &self,
         client: &Microsoft365Client,
         arguments: Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let to: Vec<String> = arguments
             .get("to")
             .and_then(|v| v.as_array())
@@ -330,7 +330,7 @@ impl Microsoft365ToolHandler {
 
         client.outlook_send_email(to, subject, body).await?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: "Email sent successfully".to_string(),
             }],
@@ -342,7 +342,7 @@ impl Microsoft365ToolHandler {
         &self,
         client: &Microsoft365Client,
         arguments: Value,
-    ) -> Result<ToolCallResult> {
+    ) -> Result<CallToolResult> {
         let start_str = arguments
             .get("start")
             .and_then(|v| v.as_str())
@@ -361,7 +361,7 @@ impl Microsoft365ToolHandler {
 
         let events = client.outlook_get_calendar_events(start, end).await?;
 
-        Ok(ToolCallResult {
+        Ok(CallToolResult {
             content: vec![CallToolResult::Text {
                 text: serde_json::to_string_pretty(&events)?,
             }],
