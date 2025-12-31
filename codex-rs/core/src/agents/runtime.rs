@@ -683,20 +683,24 @@ Only output the JSON, no explanation."#;
                 }
                 ResponseEvent::Completed {
                     response_id: _,
-                    token_usage,
+                    token_usage: Some(usage),
                 } => {
                     debug!("Agent '{}': Response completed", agent_def.name);
                     // Use actual token usage from API
-                    if let Some(usage) = token_usage {
-                        total_tokens = usage.total_tokens as usize;
-                        debug!(
-                            "Agent '{}': Actual token usage: {} (input: {}, output: {})",
-                            agent_def.name,
-                            usage.total_tokens,
-                            usage.input_tokens,
-                            usage.output_tokens
-                        );
-                    }
+                    total_tokens = usage.total_tokens as usize;
+                    debug!(
+                        "Agent '{}': Actual token usage: {} (input: {}, output: {})",
+                        agent_def.name,
+                        usage.total_tokens,
+                        usage.input_tokens,
+                        usage.output_tokens
+                    );
+                }
+                ResponseEvent::Completed {
+                    response_id: _,
+                    token_usage: None,
+                } => {
+                    debug!("Agent '{}': Response completed", agent_def.name);
                 }
                 _ => {}
             }
