@@ -65,6 +65,18 @@ impl MessageProcessor {
         );
         let conversation_manager =
             Arc::new(ConversationManager::new(auth_manager, SessionSource::Mcp));
+        let mut microsoft365_tool_handler = Microsoft365ToolHandler::new(codex_home);
+        if let (Ok(client_id), Ok(tenant_id), Ok(redirect_url)) = (
+            std::env::var("CODEX_M365_CLIENT_ID"),
+            std::env::var("CODEX_M365_TENANT_ID"),
+            std::env::var("CODEX_M365_REDIRECT_URL"),
+        ) {
+            if let Err(err) =
+                microsoft365_tool_handler.initialize_auth(client_id, tenant_id, redirect_url)
+            {
+                tracing::warn!("Failed to initialize Microsoft 365 auth: {err}");
+            }
+        }
         Self {
             outgoing,
             initialized: false,
@@ -72,7 +84,7 @@ impl MessageProcessor {
             conversation_manager,
             running_requests_id_to_codex_uuid: Arc::new(Mutex::new(HashMap::new())),
             lsp_tool_handler: LspToolHandler::new(),
-            microsoft365_tool_handler: Microsoft365ToolHandler::new(codex_home),
+            microsoft365_tool_handler,
         }
     }
 

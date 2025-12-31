@@ -21,8 +21,6 @@ use tracing::info;
 pub struct Microsoft365ToolHandler {
     /// Microsoft 365 client
     client: Option<Arc<Microsoft365Client>>,
-    /// Authentication manager
-    auth_manager: Option<Arc<Microsoft365AuthManager>>,
     /// Codex home directory
     codex_home: PathBuf,
 }
@@ -32,7 +30,6 @@ impl Microsoft365ToolHandler {
     pub fn new(codex_home: PathBuf) -> Self {
         Self {
             client: None,
-            auth_manager: None,
             codex_home,
         }
     }
@@ -54,9 +51,8 @@ impl Microsoft365ToolHandler {
             .context("Failed to create auth manager")?,
         );
 
-        let client = Arc::new(Microsoft365Client::new(auth_manager.clone()));
+        let client = Arc::new(Microsoft365Client::new(auth_manager));
 
-        self.auth_manager = Some(auth_manager);
         self.client = Some(client);
 
         info!("Microsoft 365 authentication initialized");
