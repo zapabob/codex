@@ -70,6 +70,7 @@ pub mod security;
 mod stream_events_utils;
 mod text_encoding;
 pub mod token_data;
+pub mod windows_ai_integration;
 mod truncate;
 mod unified_exec;
 mod user_instructions;
@@ -129,6 +130,7 @@ pub use exec_policy::ExecPolicyError;
 pub use exec_policy::load_exec_policy;
 pub use safety::get_platform_sandbox;
 pub use safety::set_windows_sandbox_enabled;
+pub use windows_ai_integration::WindowsAiOptions;
 // Re-export the protocol types from the standalone `codex-protocol` crate so existing
 // `codex_core::protocol::...` references continue to work across the workspace.
 pub use codex_protocol::protocol;

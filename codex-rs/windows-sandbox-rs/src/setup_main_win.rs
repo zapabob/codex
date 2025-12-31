@@ -1,4 +1,5 @@
 #![cfg(target_os = "windows")]
+#![allow(clippy::disallowed_methods)]
 
 use anyhow::Context;
 use anyhow::Result;
@@ -421,6 +422,7 @@ fn apply_read_acls(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn read_mask_allows_or_log(
     root: &Path,
     psids: &[*mut c_void],
@@ -637,6 +639,7 @@ fn lock_sandbox_dir(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn write_secrets(
     codex_home: &Path,
     offline_user: &str,

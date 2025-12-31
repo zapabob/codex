@@ -45,6 +45,7 @@ impl<T: HttpTransport, A: AuthProvider> CompactClient<T, A> {
         }
     }
 
+    #[allow(clippy::result_large_err)]
     pub async fn compact(
         &self,
         body: serde_json::Value,
@@ -70,6 +71,7 @@ impl<T: HttpTransport, A: AuthProvider> CompactClient<T, A> {
         Ok(parsed.output)
     }
 
+    #[allow(clippy::result_large_err)]
     pub async fn compact_input(
         &self,
         input: &CompactionInput<'_>,

@@ -94,6 +94,7 @@ impl<'a> ResponsesRequestBuilder<'a> {
         self
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn build(self, provider: &Provider) -> Result<ResponsesRequest, ApiError> {
         let model = self
             .model

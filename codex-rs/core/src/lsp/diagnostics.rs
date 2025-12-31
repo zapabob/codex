@@ -2,7 +2,6 @@
 //!
 //! Provides real-time diagnostic collection, caching, and WebSocket distribution
 
-use anyhow::Context;
 use anyhow::Result;
 use lsp_types::Diagnostic;
 use lsp_types::PublishDiagnosticsParams;

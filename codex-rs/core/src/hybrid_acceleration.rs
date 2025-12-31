@@ -3,6 +3,8 @@
 //! Coordinates Windows AI API and CUDA for maximum performance
 
 use anyhow::Result;
+#[cfg(feature = "cuda")]
+use anyhow::Context;
 use tracing::debug;
 use tracing::info;
 

@@ -247,6 +247,7 @@ fn reasoning_effort_mapping_from_presets(
     Some(map)
 }
 
+#[allow(clippy::cast_possible_wrap)]
 fn effort_rank(effort: ReasoningEffort) -> i32 {
     match effort {
         ReasoningEffort::None => 0,
@@ -259,10 +260,14 @@ fn effort_rank(effort: ReasoningEffort) -> i32 {
 }
 
 fn nearest_effort(target: ReasoningEffort, supported: &[ReasoningEffort]) -> ReasoningEffort {
+    // supported is guaranteed to be non-empty by the caller
     let target_rank = effort_rank(target);
     supported
         .iter()
         .copied()
-        .min_by_key(|candidate| (effort_rank(*candidate) - target_rank).abs())
-        .unwrap_or(target)
+        .min_by_key(|candidate| {
+            let diff = effort_rank(*candidate) - target_rank;
+            diff.abs()
+        })
+        .expect("supported should never be empty")
 }

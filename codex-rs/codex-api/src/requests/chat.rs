@@ -55,6 +55,7 @@ impl<'a> ChatRequestBuilder<'a> {
         self
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn build(self, _provider: &Provider) -> Result<ChatRequest, ApiError> {
         let mut messages = Vec::<Value>::new();
         messages.push(json!({"role": "system", "content": self.instructions}));

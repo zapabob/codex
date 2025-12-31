@@ -103,6 +103,7 @@ codex-utils-json-to-toml = { path = "utils/json-to-toml" }
 codex-utils-pty = { path = "utils/pty" }
 codex-utils-readiness = { path = "utils/readiness" }
 codex-utils-string = { path = "utils/string" }
+codex-windows-ai = { path = "windows-ai" }
 codex-windows-sandbox = { path = "windows-sandbox-rs" }
 core_test_support = { path = "core/tests/common" }
 exec_server_test_support = { path = "exec-server/tests/common" }
@@ -113,6 +114,7 @@ mcp_test_support = { path = "mcp-server/tests/common" }
 allocative = "0.3.3"
 ansi-to-tui = "7.0.0"
 anyhow = "1"
+aes-gcm = "0.10"
 arboard = { version = "3", features = ["wayland-data-control"] }
 assert_cmd = "2"
 assert_matches = "1.5.0"
@@ -129,11 +131,13 @@ clap_complete = "4"
 color-eyre = "0.6.3"
 crossterm = "0.28.1"
 ctor = "0.5.0"
+cudarc = { version = "0.9" }
 derive_more = "2"
 diffy = "0.4.2"
 dirs = "6"
 dotenvy = "0.15.7"
 dunce = "1.0.4"
+ed25519-dalek = "2.0"
 encoding_rs = "0.8.35"
 env-flags = "0.1.1"
 env_logger = "0.11.5"

@@ -21,6 +21,7 @@ const OAUTH_DISCOVERY_HEADER: &str = "MCP-Protocol-Version";
 const OAUTH_DISCOVERY_VERSION: &str = "2024-11-05";
 
 /// Determine the authentication status for a streamable HTTP MCP server.
+#[allow(clippy::too_many_arguments)]
 pub async fn determine_streamable_http_auth_status(
     server_name: &str,
     url: &str,

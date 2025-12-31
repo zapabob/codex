@@ -1,4 +1,5 @@
 #![allow(clippy::expect_used)]
+#![allow(clippy::disallowed_methods)]
 #![allow(clippy::upper_case_acronyms)]
 
 // This file is copied from https://github.com/wezterm/wezterm (MIT license).

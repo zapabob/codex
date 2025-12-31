@@ -12,7 +12,6 @@ use uuid::Uuid;
 
 use crate::organizations::schema::Member;
 use crate::organizations::schema::Organization;
-use crate::organizations::schema::SkillShare;
 
 /// Organization manager
 pub struct OrganizationManager {

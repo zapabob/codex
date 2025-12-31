@@ -196,7 +196,6 @@ pub struct GitDiffToRemoteResponse {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
-
 pub struct ApplyPatchApprovalParams {
     pub conversation_id: ConversationId,
     /// Use to correlate this with [codex_core::protocol::PatchApplyBeginEvent]
@@ -236,7 +235,6 @@ pub struct ExecCommandApprovalResponse {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
-
 pub struct CancelLoginChatGptParams {
     #[schemars(with = "String")]
     pub login_id: Uuid,

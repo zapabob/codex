@@ -3,7 +3,6 @@
 //! This module provides functionality to analyze tasks and load only the necessary
 //! MCP tools, reducing token consumption.
 
-use anyhow::Context;
 use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Arc;

@@ -335,7 +335,7 @@ impl SecureAgentChannel {
     fn generate_nonce(&self) -> [u8; 12] {
         use rand::RngCore;
         let mut nonce = [0u8; 12];
-        rand::thread_rng().fill_bytes(&mut nonce);
+        rand::rng().fill_bytes(&mut nonce);
         nonce
     }
 }

@@ -1,4 +1,5 @@
 #![cfg(target_os = "windows")]
+#![allow(clippy::disallowed_methods)]
 
 use anyhow::Context;
 use anyhow::Result;

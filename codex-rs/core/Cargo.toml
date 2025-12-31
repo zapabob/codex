@@ -13,6 +13,7 @@ path = "src/lib.rs"
 workspace = true
 
 [dependencies]
+aes-gcm = { workspace = true, optional = true }
 anyhow = { workspace = true }
 async-channel = { workspace = true }
 async-trait = { workspace = true }
@@ -38,10 +39,13 @@ codex-utils-absolute-path = { workspace = true }
 codex-utils-pty = { workspace = true }
 codex-utils-readiness = { workspace = true }
 codex-utils-string = { workspace = true }
+codex-windows-ai = { workspace = true, optional = true }
 codex-windows-sandbox = { package = "codex-windows-sandbox", path = "../windows-sandbox-rs" }
+cudarc = { workspace = true, optional = true }
 dashmap = "5.5"
 dirs = { workspace = true }
 dunce = { workspace = true }
+ed25519-dalek = { workspace = true, optional = true }
 encoding_rs = { workspace = true }
 env-flags = { workspace = true }
 eventsource-stream = { workspace = true }
@@ -108,9 +112,9 @@ oauth2 = "4.4"
 [features]
 deterministic_process_ids = []
 test-support = []
-agent_security = []
-windows-ai = []
-cuda = []
+agent_security = ["ed25519-dalek", "aes-gcm"]
+windows-ai = ["codex-windows-ai"]
+cuda = ["cudarc"]
 
 
 [target.'cfg(target_os = "linux")'.dependencies]

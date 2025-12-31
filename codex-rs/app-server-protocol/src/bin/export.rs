@@ -13,7 +13,7 @@ struct Args {
 }
 
 impl Args {
-    fn parse() -> Self {
+    fn parse() -> Result<Self> {
         let matches = Command::new("codex-app-server-protocol-export")
             .about(
                 "Generate TypeScript bindings and JSON Schemas for the Codex app-server protocol",
@@ -37,14 +37,19 @@ impl Args {
             )
             .get_matches();
 
-        Self {
-            out_dir: matches.get_one::<PathBuf>("out").unwrap().clone(),
+        let out_dir = matches
+            .get_one::<PathBuf>("out")
+            .cloned()
+            .ok_or_else(|| anyhow::anyhow!("--out is required"))?;
+
+        Ok(Self {
+            out_dir,
             prettier: matches.get_one::<PathBuf>("prettier").cloned(),
-        }
+        })
     }
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
+    let args = Args::parse()?;
     codex_app_server_protocol::generate_types(&args.out_dir, args.prettier.as_deref())
 }

@@ -3,7 +3,6 @@
 //! Executes multi-step reasoning chains with dependency management
 //! and result verification.
 
-use anyhow::Context;
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;

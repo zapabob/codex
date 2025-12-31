@@ -7,16 +7,12 @@ use anyhow::Context;
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
-use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::sync::Mutex;
-use tracing::error;
 use tracing::info;
 use tracing::warn;
 
 use crate::config::types::McpServerConfig;
 use crate::mcp_dynamic_loader::DynamicMcpLoader;
-use crate::mcp_dynamic_loader::ServerState;
 
 /// API server for MCP dynamic management
 pub struct McpApiServer {

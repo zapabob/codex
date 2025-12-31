@@ -25,6 +25,7 @@ use tracing::debug;
 use tracing::trace;
 
 /// Streams SSE events from an on-disk fixture for tests.
+#[allow(clippy::result_large_err)]
 pub fn stream_from_fixture(
     path: impl AsRef<Path>,
     idle_timeout: Duration,

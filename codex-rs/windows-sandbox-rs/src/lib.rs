@@ -1,3 +1,5 @@
+#![allow(clippy::disallowed_methods)]
+
 macro_rules! windows_modules {
     ($($name:ident),+ $(,)?) => {
         $(#[cfg(target_os = "windows")] mod $name;)+
