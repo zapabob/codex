@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 use codex_core::chrome::{ChromeNlRequest, ChromeOrigin, parse_nl_command};
-use codex_deep_research::{DeepResearcher, DeepResearcherConfig, ResearchStrategy, WebSearchProvider};
+use codex_deep_research::{DeepResearcher, DeepResearcherConfig, ResearchStrategy};
+use codex_web_search::WebSearchProvider;
 use serde_json;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tokio;
 
 pub async fn handle_deep_research(
     query: String,

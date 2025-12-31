@@ -12,8 +12,10 @@ path = "src/main.rs"
 anyhow = { workspace = true }
 codex-core = { workspace = true }
 codex-deep-research = { path = "../deep-research" }
+codex-web-search = { path = "../web-search" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }

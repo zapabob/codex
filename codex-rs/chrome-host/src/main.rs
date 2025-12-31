@@ -1,11 +1,8 @@
 mod cli_bridge;
 mod message;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use message::{read_message, write_response, NativeResponse};
-use std::io;
-use tracing_subscriber;
-use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> Result<()> {

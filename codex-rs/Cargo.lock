@@ -1257,6 +1257,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "codex-chrome-host"
+version = "2.8.2"
+dependencies = [
+ "anyhow",
+ "codex-core",
+ "codex-deep-research",
+ "codex-web-search",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "codex-cli"
 version = "2.8.2"
 dependencies = [
