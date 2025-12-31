@@ -3,9 +3,9 @@
 //! Provides LSP diagnostics as MCP tools
 
 use anyhow::{Context, Result};
-use codex_core::lsp::{DiagnosticsManager, LspClient};
+use codex_core::lsp::{DiagnosticsManager, LspClient, Url};
 use mcp_types::{
-    CallToolRequestParams, CallToolResult, ListToolsResult, Tool, Url,
+    CallToolRequestParams, CallToolResult, ListToolsResult, Tool,
 };
 use std::collections::HashMap;
 use std::path::PathBuf;

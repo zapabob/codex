@@ -348,9 +348,27 @@ cargo test -p codex-microsoft365 --test integration
   - 未使用インポートを削除
 
 ### 差分ビルド状況
-- **ステータス**: ビルド再実行中（2025-12-31 17:10 JST）
-- `cargo build --release -p codex-cli` をバックグラウンドで実行中
+- **ステータス**: ビルド再実行中（2025-12-31 17:30 JST）
+- `cargo build --release -p codex-cli` を実行中
 - ビルド完了後、バイナリを上書きインストール予定
+
+### 追加のコンパイルエラー修正 ✅
+- LSP統合のコンパイルエラーを修正
+  - `tokio::process::Child`の`Drop`実装で`start_kill()`を使用
+  - `kill_on_drop(true)`を`Command`に追加
+  - `read_exact`の戻り値型を修正（`Ok(())` → `is_ok()`）
+  - `InitializeParams`に`work_done_progress_params`フィールドを追加
+  - `process_id`の型を`u32`に修正
+  - `Initialized`通知の型パラメータを明示的に指定
+  - `DiagnosticSeverity`のマッチにワイルドカードパターンを追加
+  - 未使用変数の警告を修正（`_state`, `_loader`）
+  - 到達不可能なコードを削除（`drop(loader)`）
+- Organizations機能のコンパイルエラーを修正
+  - `sqlx::Row`トレイトをインポート
+  - `usage_count`の型を`i64`から`u64`にキャスト
+- MCP Serverのコンパイルエラーを修正
+  - `ToolCall`と`ToolCallResult`を`CallToolRequestParams`と`CallToolResult`に置き換え
+  - `lsp_types::Url`を`mcp_types::Url`に置き換え
 
 ### インストール先
 - `$env:USERPROFILE\.cargo\bin\codex.exe`
