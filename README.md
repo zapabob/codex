@@ -13,6 +13,7 @@
 [![CUDA](https://img.shields.io/badge/CUDA-12.x-76B900)](https://developer.nvidia.com/cuda-toolkit)
 [![VR](https://img.shields.io/badge/VR-Quest%202%2F3%2FPro-00D4FF)](https://www.meta.com/quest/)
 [![AR](https://img.shields.io/badge/AR-Vision%20Pro-555555)](https://www.apple.com/apple-vision-pro/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/zapabob/codex)
 
 [English](#english) | [日本語](#japanese)
 
