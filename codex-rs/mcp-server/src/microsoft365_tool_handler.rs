@@ -340,7 +340,7 @@ impl Microsoft365ToolHandler {
         Ok(CallToolResult {
             content: vec![ContentBlock::TextContent(TextContent {
                 r#type: "text".to_string(),
-                text: format!("Cell {} updated successfully", cell),
+                text: format!("Cell {cell} updated successfully"),
                 annotations: None,
             })],
             is_error: Some(false),
@@ -387,7 +387,7 @@ impl Microsoft365ToolHandler {
             .and_then(|v| v.as_array())
             .context("Missing to")?
             .iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .filter_map(|v| v.as_str().map(std::string::ToString::to_string))
             .collect();
         let subject = arguments
             .get("subject")

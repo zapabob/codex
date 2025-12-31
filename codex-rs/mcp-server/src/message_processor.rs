@@ -70,13 +70,12 @@ impl MessageProcessor {
             std::env::var("CODEX_M365_CLIENT_ID"),
             std::env::var("CODEX_M365_TENANT_ID"),
             std::env::var("CODEX_M365_REDIRECT_URL"),
-        ) {
-            if let Err(err) =
+        )
+            && let Err(err) =
                 microsoft365_tool_handler.initialize_auth(client_id, tenant_id, redirect_url)
             {
                 tracing::warn!("Failed to initialize Microsoft 365 auth: {err}");
             }
-        }
         Self {
             outgoing,
             initialized: false,

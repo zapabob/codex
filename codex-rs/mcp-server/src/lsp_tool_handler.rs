@@ -212,7 +212,7 @@ impl LspToolHandler {
         let uri: Option<String> = arguments
             .get("uri")
             .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
+            .map(std::string::ToString::to_string);
 
         if let Some(uri_str) = uri {
             let uri = Url::parse(&uri_str).context("Invalid URI")?;
@@ -256,7 +256,7 @@ impl LspToolHandler {
             .and_then(|v| v.as_array())
             .context("Missing command")?
             .iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .filter_map(|v| v.as_str().map(std::string::ToString::to_string))
             .collect();
 
         let root_path = arguments
@@ -280,7 +280,7 @@ impl LspToolHandler {
         Ok(CallToolResult {
             content: vec![ContentBlock::TextContent(TextContent {
                 r#type: "text".to_string(),
-                text: format!("Started LSP server: {}", server_name),
+                text: format!("Started LSP server: {server_name}"),
                 annotations: None,
             })],
             is_error: Some(false),
@@ -302,14 +302,14 @@ impl LspToolHandler {
             Ok(CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
-                    text: format!("Stopped LSP server: {}", server_name),
+                    text: format!("Stopped LSP server: {server_name}"),
                     annotations: None,
                 })],
                 is_error: Some(false),
                 structured_content: None,
             })
         } else {
-            Err(anyhow::anyhow!("LSP server not found: {}", server_name))
+            Err(anyhow::anyhow!("LSP server not found: {server_name}"))
         }
     }
 
@@ -328,18 +328,18 @@ impl LspToolHandler {
 
         let line = arguments
             .get("line")
-            .and_then(|v| v.as_u64())
+            .and_then(serde_json::Value::as_u64)
             .context("Missing line")? as u32;
 
         let character = arguments
             .get("character")
-            .and_then(|v| v.as_u64())
+            .and_then(serde_json::Value::as_u64)
             .context("Missing character")? as u32;
 
         let clients = self.clients.read().await;
         let client = clients
             .get(&server_name)
-            .context(format!("LSP server not found: {}", server_name))?;
+            .context(format!("LSP server not found: {server_name}"))?;
 
         let uri = Url::parse(&uri).context("Invalid URI")?;
         let completions = client
@@ -373,18 +373,18 @@ impl LspToolHandler {
 
         let line = arguments
             .get("line")
-            .and_then(|v| v.as_u64())
+            .and_then(serde_json::Value::as_u64)
             .context("Missing line")? as u32;
 
         let character = arguments
             .get("character")
-            .and_then(|v| v.as_u64())
+            .and_then(serde_json::Value::as_u64)
             .context("Missing character")? as u32;
 
         let clients = self.clients.read().await;
         let client = clients
             .get(&server_name)
-            .context(format!("LSP server not found: {}", server_name))?;
+            .context(format!("LSP server not found: {server_name}"))?;
 
         let uri = Url::parse(&uri).context("Invalid URI")?;
         let hover = client

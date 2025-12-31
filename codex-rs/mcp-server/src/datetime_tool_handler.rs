@@ -44,7 +44,9 @@ fn default_format() -> String {
 
 /// Handle datetime tool call with parsed parameters.
 async fn handle_datetime_tool(params: DateTimeToolParam) -> CallToolResult {
-    let result = match get_current_datetime(&params) {
+    
+
+    match get_current_datetime(&params) {
         Ok(datetime_str) => {
             let result_json = json!({
                 "datetime": datetime_str,
@@ -71,9 +73,7 @@ async fn handle_datetime_tool(params: DateTimeToolParam) -> CallToolResult {
             is_error: Some(true),
             structured_content: None,
         },
-    };
-
-    result
+    }
 }
 
 /// Get current datetime based on format and timezone.
