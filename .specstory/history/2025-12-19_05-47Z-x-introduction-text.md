@@ -85324,12 +85324,4892 @@ _**User**_
 _**Agent (model default, mode Agent)**_
 
 
+codex-rsの構成を確認し、高速差分ビルドでバイナリを上書きインストールします。
+
 
 ---
 
-_**User**_
+<tool-use data-tool-type="unknown" data-tool-name="list_dir_v2">
+<details>
+<summary>Tool use: **list_dir_v2**</summary>
 
-高速差分ビルド、バイナリを上書きインストールして　
+
+Parameters:
+
+```json
+{
+  "targetDirectory": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs"
+}
+```
+Result:
+
+```json
+{
+  "directoryTreeRoot": {
+    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs",
+    "childrenDirs": [
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\_docs",
+        "childrenFiles": [
+          {
+            "name": "2025-10-23_GeminiCLI_MCP統合実装.md"
+          },
+          {
+            "name": "2025-10-23_実機テスト結果_GeminiCLI_MCP.md"
+          },
+          {
+            "name": "2025-10-31_差分ビルドグローバルインストール.md"
+          },
+          {
+            "name": "2025-11-21_MCP設定統合実装完了.md"
+          },
+          {
+            "name": "2025-11-21_Rust2024_TSベストプラクティス_DeepResearch_Plan_TUI_GUI_QC_実装完了.md"
+          },
+          {
+            "name": "2025-12-08_RustCUDA_Git4D高速化_VRAR対応.md"
+          },
+          {
+            "name": "2025-12-08_TUI-GUI-CLI差分高速ビルド上書きインストール完了.md"
+          },
+          {
+            "name": "2025-12-08_コンテナ内仮想OSブラウザコード生成機能実装完了.md"
+          },
+          {
+            "name": "2025-12-08_マルウェア検知隔離削除機能実装完了.md"
+          },
+          {
+            "name": "2025-12-08_複数AIツール非同期起動統合機能実装完了.md"
+          },
+          {
+            "name": "2025-12-11_蜈ｬ蠑上Μ繝昴ず繝医Μ邨ｱ蜷医・繝舌・繧ｸ繝ｧ繝ｳ2.5.0繝ｪ繝ｪ繝ｼ繧ｹ.md"
+          },
+          {
+            "name": "2025-12-23_FixTuiCompilationAndSlashCommands.md"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\.cargo",
+        "childrenFiles": [
+          {
+            "name": "audit.toml"
+          },
+          {
+            "name": "config.toml"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\.config",
+        "childrenFiles": [
+          {
+            "name": "nextest.toml"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\.github",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\.github\\workflows",
+            "childrenFiles": [
+              {
+                "name": "cargo-audit.yml"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\.specstory",
+        "childrenFiles": [
+          {
+            "name": ".gitignore"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\ansi-escape",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\ansi-escape\\src",
+            "childrenFiles": [
+              {
+                "name": "lib.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          },
+          {
+            "name": "README.md"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 11
+            },
+            "numFiles": 11
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server\\tests\\common",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 7,
+                  ".toml": 1
+                },
+                "numFiles": 8
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server\\tests\\suite",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server\\tests\\suite\\v2",
+                    "fullSubtreeExtensionCounts": {
+                      ".rs": 12
+                    },
+                    "numFiles": 12
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 20
+                },
+                "numFiles": 20
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 27,
+              ".toml": 1
+            },
+            "numFiles": 28
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 38,
+          ".toml": 2,
+          ".md": 1
+        },
+        "numFiles": 41
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server-protocol",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server-protocol\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server-protocol\\src\\bin",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server-protocol\\src\\protocol",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 6
+                },
+                "numFiles": 6
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 10
+            },
+            "numFiles": 10
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 10,
+          ".toml": 1
+        },
+        "numFiles": 11
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server-test-client",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\app-server-test-client\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 1,
+          ".md": 1,
+          ".toml": 1,
+          ".lock": 1
+        },
+        "numFiles": 4
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 6
+            },
+            "numFiles": 6
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios",
+                    "childrenDirs": [
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\001_add_file",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\001_add_file\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".md": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 1,
+                          ".md": 1
+                        },
+                        "numFiles": 2
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\002_multiple_operations",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\002_multiple_operations\\expected",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\002_multiple_operations\\expected\\nested",
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 2
+                            },
+                            "numFiles": 2
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\002_multiple_operations\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 2
+                            },
+                            "numFiles": 2
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 5
+                        },
+                        "numFiles": 5
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\003_multiple_chunks",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\003_multiple_chunks\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\003_multiple_chunks\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\004_move_to_new_directory",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\004_move_to_new_directory\\expected",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\004_move_to_new_directory\\expected\\old",
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              },
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\004_move_to_new_directory\\expected\\renamed",
+                                "childrenDirs": [
+                                  {
+                                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\004_move_to_new_directory\\expected\\renamed\\dir",
+                                    "fullSubtreeExtensionCounts": {
+                                      ".txt": 1
+                                    },
+                                    "numFiles": 1
+                                  }
+                                ],
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 2
+                            },
+                            "numFiles": 2
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\004_move_to_new_directory\\input",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\004_move_to_new_directory\\input\\old",
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 2
+                                },
+                                "numFiles": 2
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 2
+                            },
+                            "numFiles": 2
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 5
+                        },
+                        "numFiles": 5
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\005_rejects_empty_patch",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\005_rejects_empty_patch\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\005_rejects_empty_patch\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\006_rejects_missing_context",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\006_rejects_missing_context\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\006_rejects_missing_context\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\007_rejects_missing_file_delete",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\007_rejects_missing_file_delete\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\007_rejects_missing_file_delete\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\008_rejects_empty_update_hunk",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\008_rejects_empty_update_hunk\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\008_rejects_empty_update_hunk\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\009_requires_existing_file_for_update",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\009_requires_existing_file_for_update\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\009_requires_existing_file_for_update\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\expected",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\expected\\old",
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              },
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\expected\\renamed",
+                                "childrenDirs": [
+                                  {
+                                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\expected\\renamed\\dir",
+                                    "fullSubtreeExtensionCounts": {
+                                      ".txt": 1
+                                    },
+                                    "numFiles": 1
+                                  }
+                                ],
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 2
+                            },
+                            "numFiles": 2
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\input",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\input\\old",
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 2
+                                },
+                                "numFiles": 2
+                              },
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\input\\renamed",
+                                "childrenDirs": [
+                                  {
+                                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\010_move_overwrites_existing_destination\\input\\renamed\\dir",
+                                    "fullSubtreeExtensionCounts": {
+                                      ".txt": 1
+                                    },
+                                    "numFiles": 1
+                                  }
+                                ],
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 3
+                            },
+                            "numFiles": 3
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 6
+                        },
+                        "numFiles": 6
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\011_add_overwrites_existing_file",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\011_add_overwrites_existing_file\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\011_add_overwrites_existing_file\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\012_delete_directory_fails",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\012_delete_directory_fails\\expected",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\012_delete_directory_fails\\expected\\dir",
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\012_delete_directory_fails\\input",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\012_delete_directory_fails\\input\\dir",
+                                "fullSubtreeExtensionCounts": {
+                                  ".txt": 1
+                                },
+                                "numFiles": 1
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\013_rejects_invalid_hunk_header",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\013_rejects_invalid_hunk_header\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\013_rejects_invalid_hunk_header\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\014_update_file_appends_trailing_newline",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\014_update_file_appends_trailing_newline\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\014_update_file_appends_trailing_newline\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\015_failure_after_partial_success_leaves_changes",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\015_failure_after_partial_success_leaves_changes\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 2
+                        },
+                        "numFiles": 2
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\016_pure_addition_update_chunk",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\016_pure_addition_update_chunk\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\016_pure_addition_update_chunk\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\017_whitespace_padded_hunk_header",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\017_whitespace_padded_hunk_header\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\017_whitespace_padded_hunk_header\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\018_whitespace_padded_patch_markers",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\018_whitespace_padded_patch_markers\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\018_whitespace_padded_patch_markers\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      },
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\019_unicode_simple",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\019_unicode_simple\\expected",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\fixtures\\scenarios\\019_unicode_simple\\input",
+                            "fullSubtreeExtensionCounts": {
+                              ".txt": 1
+                            },
+                            "numFiles": 1
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".txt": 3
+                        },
+                        "numFiles": 3
+                      }
+                    ],
+                    "fullSubtreeExtensionCounts": {
+                      ".md": 2,
+                      ".txt": 61,
+                      "": 1
+                    },
+                    "numFiles": 64
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".md": 2,
+                  ".txt": 61,
+                  "": 1
+                },
+                "numFiles": 64
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\apply-patch\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 5,
+              ".md": 2,
+              ".txt": 61,
+              "": 1
+            },
+            "numFiles": 69
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".toml": 1,
+          ".md": 3,
+          ".rs": 11,
+          ".txt": 61,
+          "": 1
+        },
+        "numFiles": 77
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\arg0",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\arg0\\src",
+            "childrenFiles": [
+              {
+                "name": "lib.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\artifacts",
+        "fullSubtreeExtensionCounts": {
+          ".md": 1
+        },
+        "numFiles": 1
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\async-utils",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\async-utils\\src",
+            "childrenFiles": [
+              {
+                "name": "lib.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\audit",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\audit\\src",
+            "childrenFiles": [
+              {
+                "name": "lib.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\backend-client",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\backend-client\\src",
+            "childrenFiles": [
+              {
+                "name": "client.rs"
+              },
+              {
+                "name": "lib.rs"
+              },
+              {
+                "name": "types.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\backend-client\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\backend-client\\tests\\fixtures",
+                "childrenFiles": [
+                  {
+                    "name": "task_details_with_diff.json"
+                  },
+                  {
+                    "name": "task_details_with_error.json"
+                  }
+                ],
+                "childrenWereProcessed": true
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\benches",
+        "childrenFiles": [
+          {
+            "name": "git_analysis.rs"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\chatgpt",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\chatgpt\\src",
+            "childrenFiles": [
+              {
+                "name": "apply_command.rs"
+              },
+              {
+                "name": "chatgpt_client.rs"
+              },
+              {
+                "name": "chatgpt_token.rs"
+              },
+              {
+                "name": "get_task.rs"
+              },
+              {
+                "name": "lib.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\chatgpt\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\chatgpt\\tests\\suite",
+                "childrenFiles": [
+                  {
+                    "name": "apply_command_e2e.rs"
+                  },
+                  {
+                    "name": "mod.rs"
+                  }
+                ],
+                "childrenWereProcessed": true
+              }
+            ],
+            "childrenFiles": [
+              {
+                "name": "all.rs"
+              },
+              {
+                "name": "task_turn_fixture.json"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          },
+          {
+            "name": "README.md"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\src\\debug_sandbox",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 28
+            },
+            "numFiles": 28
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cli\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 29,
+          ".toml": 1
+        },
+        "numFiles": 30
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cloud-tasks",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cloud-tasks\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 8
+            },
+            "numFiles": 8
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cloud-tasks\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 9,
+          ".toml": 1
+        },
+        "numFiles": 10
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cloud-tasks-client",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cloud-tasks-client\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".toml": 1,
+          ".rs": 3
+        },
+        "numFiles": 4
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-api",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-api\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-api\\src\\endpoint",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 6
+                },
+                "numFiles": 6
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-api\\src\\requests",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-api\\src\\sse",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 20
+            },
+            "numFiles": 20
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-api\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 23,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 25
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-backend-openapi-models",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-backend-openapi-models\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-backend-openapi-models\\src\\models",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 11
+                },
+                "numFiles": 11
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 12
+            },
+            "numFiles": 12
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 12,
+          ".toml": 1
+        },
+        "numFiles": 13
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-client",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-client\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 8
+            },
+            "numFiles": 8
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 8,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 10
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-rs",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-rs\\_docs",
+            "fullSubtreeExtensionCounts": {
+              ".json": 1
+            },
+            "numFiles": 1
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-rs\\web-search",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\codex-rs\\web-search\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1,
+              ".toml": 1
+            },
+            "numFiles": 2
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".json": 1,
+          ".rs": 1,
+          ".toml": 1,
+          ".txt": 1
+        },
+        "numFiles": 4
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\common",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\common\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 12
+            },
+            "numFiles": 12
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 12,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 14
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\agent-runtime",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\agents",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 10
+                },
+                "numFiles": 10
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\audit_log",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\auth",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\code_review",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\codex",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\command_safety",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5,
+                  ".ps1": 1
+                },
+                "numFiles": 6
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\config",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 6
+                },
+                "numFiles": 6
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\config_loader",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 9,
+                  ".md": 1
+                },
+                "numFiles": 10
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\context_manager",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5
+                },
+                "numFiles": 5
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\execution",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\features",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\git",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\integrations",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5
+                },
+                "numFiles": 5
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\lsp",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\mcp",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\mcp_dynamic_loader",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\models_manager",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5
+                },
+                "numFiles": 5
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\orchestration",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 13
+                },
+                "numFiles": 13
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\organizations",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\plan",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 11
+                },
+                "numFiles": 11
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\qc",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 16
+                },
+                "numFiles": 16
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\reasoning",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\resources",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\rollout",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 6
+                },
+                "numFiles": 6
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\sandboxing",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\security",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets",
+                    "childrenDirs": [
+                      {
+                        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets\\samples",
+                        "childrenDirs": [
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets\\samples\\plan",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets\\samples\\plan\\scripts",
+                                "fullSubtreeExtensionCounts": {
+                                  ".ts": 4
+                                },
+                                "numFiles": 4
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".ts": 4
+                            },
+                            "numFiles": 4
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets\\samples\\skill-creator",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets\\samples\\skill-creator\\scripts",
+                                "fullSubtreeExtensionCounts": {
+                                  ".py": 3
+                                },
+                                "numFiles": 3
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".md": 1,
+                              ".py": 3,
+                              ".txt": 1
+                            },
+                            "numFiles": 5
+                          },
+                          {
+                            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets\\samples\\skill-installer",
+                            "childrenDirs": [
+                              {
+                                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\skills\\assets\\samples\\skill-installer\\scripts",
+                                "fullSubtreeExtensionCounts": {
+                                  ".py": 3
+                                },
+                                "numFiles": 3
+                              }
+                            ],
+                            "fullSubtreeExtensionCounts": {
+                              ".md": 1,
+                              ".py": 3,
+                              ".txt": 1
+                            },
+                            "numFiles": 5
+                          }
+                        ],
+                        "fullSubtreeExtensionCounts": {
+                          ".md": 2,
+                          ".py": 6,
+                          ".txt": 2,
+                          ".ts": 4
+                        },
+                        "numFiles": 14
+                      }
+                    ],
+                    "fullSubtreeExtensionCounts": {
+                      ".md": 2,
+                      ".py": 6,
+                      ".txt": 2,
+                      ".ts": 4
+                    },
+                    "numFiles": 14
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 8,
+                  ".md": 2,
+                  ".py": 6,
+                  ".txt": 2,
+                  ".ts": 4
+                },
+                "numFiles": 22
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\state",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\tasks",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 7
+                },
+                "numFiles": 7
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\telemetry",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\tools",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\tools\\handlers",
+                    "fullSubtreeExtensionCounts": {
+                      ".rs": 12,
+                      ".lark": 1
+                    },
+                    "numFiles": 13
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\tools\\runtimes",
+                    "fullSubtreeExtensionCounts": {
+                      ".rs": 4
+                    },
+                    "numFiles": 4
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 25,
+                  ".lark": 1
+                },
+                "numFiles": 26
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\unified_exec",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5
+                },
+                "numFiles": 5
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\virtualization",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5
+                },
+                "numFiles": 5
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\src\\webhooks",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 281,
+              ".lark": 1,
+              ".md": 3,
+              ".py": 6,
+              ".txt": 2,
+              ".ts": 4,
+              ".sbpl": 2,
+              ".ps1": 1
+            },
+            "numFiles": 300
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\templates",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\templates\\compact",
+                "fullSubtreeExtensionCounts": {
+                  ".md": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\templates\\review",
+                "fullSubtreeExtensionCounts": {
+                  ".md": 2,
+                  ".xml": 2
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".md": 4,
+              ".xml": 2
+            },
+            "numFiles": 6
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\tests\\common",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 6,
+                  ".toml": 1
+                },
+                "numFiles": 7
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\tests\\fixtures",
+                "fullSubtreeExtensionCounts": {
+                  ".json": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\tests\\integration",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\core\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 54
+                },
+                "numFiles": 54
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 68,
+              ".md": 1,
+              ".json": 2,
+              ".toml": 1,
+              ".sse": 1
+            },
+            "numFiles": 73
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 349,
+          ".md": 16,
+          ".json": 3,
+          ".toml": 2,
+          ".sse": 1,
+          ".xml": 2,
+          ".lark": 1,
+          ".py": 6,
+          ".txt": 2,
+          ".ts": 4,
+          ".sbpl": 2,
+          ".walkdir": 1,
+          ".final": 1,
+          ".broken": 1,
+          ".backup": 1,
+          ".ps1": 1
+        },
+        "numFiles": 393
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cuda-runtime",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cuda-runtime\\benches",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cuda-runtime\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 4
+            },
+            "numFiles": 4
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\cuda-runtime\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 6,
+          ".toml": 1
+        },
+        "numFiles": 7
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\deep-research",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\deep-research\\benches",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\deep-research\\mcp-server",
+            "fullSubtreeExtensionCounts": {
+              ".js": 1
+            },
+            "numFiles": 1
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\deep-research\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 10
+            },
+            "numFiles": 10
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\deep-research\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 14,
+          ".py": 1,
+          ".js": 1,
+          ".toml": 1,
+          ".md": 1
+        },
+        "numFiles": 18
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\docs",
+        "fullSubtreeExtensionCounts": {
+          ".md": 2
+        },
+        "numFiles": 2
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 7
+            },
+            "numFiles": 7
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec\\tests\\fixtures",
+                "fullSubtreeExtensionCounts": {
+                  ".sse": 1,
+                  ".txt": 1
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 9
+                },
+                "numFiles": 9
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 11,
+              ".sse": 1,
+              ".txt": 1
+            },
+            "numFiles": 13
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 18,
+          ".sse": 1,
+          ".txt": 1,
+          ".toml": 1
+        },
+        "numFiles": 21
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec-server",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec-server\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec-server\\src\\bin",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec-server\\src\\posix",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 8
+                },
+                "numFiles": 8
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 12
+            },
+            "numFiles": 12
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec-server\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec-server\\tests\\common",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1,
+                  ".toml": 1
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\exec-server\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3,
+                  "": 1
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 5,
+              "": 1,
+              ".toml": 1
+            },
+            "numFiles": 7
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 17,
+          "": 1,
+          ".toml": 2,
+          ".md": 1
+        },
+        "numFiles": 21
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy\\examples",
+            "fullSubtreeExtensionCounts": {
+              ".codexpolicy": 1
+            },
+            "numFiles": 1
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 9
+            },
+            "numFiles": 9
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 11,
+          ".md": 1,
+          ".codexpolicy": 1,
+          ".toml": 1
+        },
+        "numFiles": 14
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy-legacy",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy-legacy\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 14,
+              ".policy": 1
+            },
+            "numFiles": 15
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy-legacy\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\execpolicy-legacy\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 10
+                },
+                "numFiles": 10
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 11
+            },
+            "numFiles": 11
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".toml": 1,
+          ".rs": 26,
+          ".policy": 1,
+          ".md": 1
+        },
+        "numFiles": 29
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\feedback",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\feedback\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 1,
+          ".toml": 1
+        },
+        "numFiles": 2
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\file-search",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\file-search\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 3,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 5
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\gemini-cli-mcp-server",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\gemini-cli-mcp-server\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\gemini-cli-mcp-server\\tests",
+            "childrenFiles": [
+              {
+                "name": "mcp_integration_test.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenWereProcessed": true,
+        "fullSubtreeExtensionCounts": {
+          ".rs": 3,
+          ".toml": 1
+        },
+        "numFiles": 4
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\gui",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\gui\\src",
+            "childrenFiles": [
+              {
+                "name": "main.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          },
+          {
+            "name": "README.md"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\keyring-store",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\keyring-store\\src",
+            "childrenFiles": [
+              {
+                "name": "lib.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\linux-sandbox",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\linux-sandbox\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 4
+            },
+            "numFiles": 4
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\linux-sandbox\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\linux-sandbox\\tests\\suite",
+                "childrenFiles": [
+                  {
+                    "name": "landlock.rs"
+                  },
+                  {
+                    "name": "mod.rs"
+                  }
+                ],
+                "childrenWereProcessed": true
+              }
+            ],
+            "childrenFiles": [
+              {
+                "name": "all.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "Cargo.toml"
+          }
+        ],
+        "childrenWereProcessed": true,
+        "fullSubtreeExtensionCounts": {
+          ".rs": 4,
+          ".md": 1
+        },
+        "numFiles": 5
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\lmstudio",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\lmstudio\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 2
+            },
+            "numFiles": 2
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 2,
+          ".toml": 1
+        },
+        "numFiles": 3
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\login",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\login\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\login\\src\\assets",
+                "fullSubtreeExtensionCounts": {
+                  ".html": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 4,
+              ".html": 1
+            },
+            "numFiles": 5
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\login\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\login\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 4
+            },
+            "numFiles": 4
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".toml": 1,
+          ".rs": 8,
+          ".html": 1
+        },
+        "numFiles": 10
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-registry",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-registry\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 1
+        },
+        "numFiles": 1
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server\\src\\codex_tools",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 9,
+                  ".md": 1
+                },
+                "numFiles": 10
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server\\src\\tool_handlers",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "childrenFiles": [
+              {
+                "name": "error_code.rs"
+              },
+              {
+                "name": "exec_approval.rs"
+              },
+              {
+                "name": "webhook_tool_handler.rs"
+              },
+              {
+                "name": "webhook_tool.rs"
+              },
+              {
+                "name": "windows_mcp_bridge.rs"
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 37,
+              ".md": 1
+            },
+            "numFiles": 38
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server\\test",
+            "childrenFiles": [
+              {
+                "name": "test-server.js"
+              }
+            ],
+            "childrenWereProcessed": true
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server\\tests\\common",
+                "childrenFiles": [
+                  {
+                    "name": "Cargo.toml"
+                  },
+                  {
+                    "name": "lib.rs"
+                  },
+                  {
+                    "name": "mcp_process.rs"
+                  },
+                  {
+                    "name": "mock_model_server.rs"
+                  },
+                  {
+                    "name": "responses.rs"
+                  }
+                ],
+                "childrenWereProcessed": true
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-server\\tests\\suite",
+                "childrenFiles": [
+                  {
+                    "name": "codex_tool.rs"
+                  },
+                  {
+                    "name": "mod.rs"
+                  }
+                ],
+                "childrenWereProcessed": true
+              }
+            ],
+            "childrenFiles": [
+              {
+                "name": "all.rs"
+              },
+              {
+                "name": "windows_mcp_test.rs"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 37,
+          ".toml": 1,
+          ".md": 1,
+          ".json": 1
+        },
+        "numFiles": 40
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-types",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-types\\schema",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-types\\schema\\2025-03-26",
+                "fullSubtreeExtensionCounts": {
+                  ".json": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-types\\schema\\2025-06-18",
+                "fullSubtreeExtensionCounts": {
+                  ".json": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".json": 2
+            },
+            "numFiles": 2
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-types\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-types\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\mcp-types\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 4
+            },
+            "numFiles": 4
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 5,
+          ".json": 2,
+          ".md": 1,
+          ".py": 2,
+          ".toml": 1
+        },
+        "numFiles": 11
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\metal-runtime",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\metal-runtime\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 3,
+          ".toml": 1
+        },
+        "numFiles": 4
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\microsoft365",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\microsoft365\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\microsoft365\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 4,
+          ".toml": 1
+        },
+        "numFiles": 5
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\ollama",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\ollama\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 5
+            },
+            "numFiles": 5
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".toml": 1,
+          ".rs": 5
+        },
+        "numFiles": 6
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\orchestrator",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\orchestrator\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\orchestrator\\src\\transport",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 16
+            },
+            "numFiles": 16
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 16,
+          ".toml": 1
+        },
+        "numFiles": 17
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\otel",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\otel\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 5
+            },
+            "numFiles": 5
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 5,
+          ".toml": 1
+        },
+        "numFiles": 6
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\process-hardening",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\process-hardening\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 1,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 3
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\protocol",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\protocol\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 15
+            },
+            "numFiles": 15
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 15,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 17
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\protocol-ts",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\protocol-ts\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 2
+            },
+            "numFiles": 2
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".toml": 1,
+          "": 1,
+          ".rs": 2
+        },
+        "numFiles": 4
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\responses-api-proxy",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\responses-api-proxy\\npm",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\responses-api-proxy\\npm\\bin",
+                "fullSubtreeExtensionCounts": {
+                  ".js": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".md": 1,
+              ".json": 1,
+              ".js": 1
+            },
+            "numFiles": 3
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\responses-api-proxy\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 3
+            },
+            "numFiles": 3
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 3,
+          ".md": 2,
+          ".json": 1,
+          ".toml": 1,
+          ".js": 1
+        },
+        "numFiles": 8
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\rmcp-client",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\rmcp-client\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\rmcp-client\\src\\bin",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 12
+            },
+            "numFiles": 12
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\rmcp-client\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 13,
+          ".toml": 1
+        },
+        "numFiles": 14
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\scripts",
+        "fullSubtreeExtensionCounts": {
+          ".ps1": 1
+        },
+        "numFiles": 1
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\stdio-to-uds",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\stdio-to-uds\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 2
+            },
+            "numFiles": 2
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\stdio-to-uds\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 3,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 5
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\supervisor",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\supervisor\\benches",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\supervisor\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 20
+            },
+            "numFiles": 20
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\supervisor\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 4
+            },
+            "numFiles": 4
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 25,
+          ".md": 1,
+          ".toml": 1
+        },
+        "numFiles": 27
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\aho-corasick-576da021e4daa4c2",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\autocfg-383c8c7ccc540283",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\bitflags-e9155d2a0fead41e",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\bytes-8436b566a65f548d",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\cc-da2b8571496f8602",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\cfg-if-0b3b3d85de4e92f0",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\cfg-if-40ea69de30d6779c",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\equivalent-3cae6a944a3833f6",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\futures-core-5c8b495f5d4cd8eb",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\futures-sink-95e2646aca8c54a3",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\generic-array-c4354e17af29b6c7",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\getrandom-295a7d8e1f5b3577",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\getrandom-3ac440165fa9287a",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\getrandom-48c7a2c4ee6dcbb5",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\getrandom-596b1b5a7aee2a74",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\hashbrown-06324db5c9701a96",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\indexmap-03322944cfaa646a",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\itoa-728bff84ae98581f",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\jobserver-2ad7ff47a8b75180",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\libc-b7861c5b72f76519",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\litemap-9aec0b7f88b354b1",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\lock_api-ddc421d33338b237",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\log-461a42741113520d",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\memchr-77da8f98f37fb982",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\once_cell-35e4e9644b427836",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\parking_lot_core-15eb5b0891bc59fd",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\parking_lot_core-26b17f2c43612499",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\parking_lot_core-e17ce83db2c6a604",
+                    "fullSubtreeExtensionCounts": {
+                      "": 2,
+                      ".timestamp": 1,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\parking_lot-dff78e68e4bcebef",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\percent-encoding-c57feeb54fd371bd",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\pin-project-lite-466c99d7a8834076",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\proc-macro2-04380193b6eec896",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\proc-macro2-cd3b5b56a6b7960d",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\proc-macro2-dbdae866252dfa5e",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\quote-107c50d726e1e154",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\rand_core-7b49db8a26ca9faf",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\regex-automata-06b42fc712df7bc7",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\regex-syntax-f84539e54b98a113",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\ryu-cadcad4d86619ae8",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\scopeguard-ad590b815028edbb",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\serde_core-57ace95265175c0e",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\serde_core-e41793eac8604874",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\serde_core-fccdb5b60e99f512",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\serde_json-227142394c55d9b2",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\serde-59e661bcb548bbc8",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\serde-fb0f2de6175b9984",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\shlex-817560798d5e131e",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\smallvec-d95ca0a3f6966eb5",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\stable_deref_trait-2969074da69a4047",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\subtle-c5f1df0a9031b5da",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\syn-a94c8e485713b523",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\tracing-core-cd40f6774510fd1f",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\typenum-7d6e5673d7bd5e5d",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\unicode-ident-e936795027cbd090",
+                    "fullSubtreeExtensionCounts": {
+                      "": 2,
+                      ".timestamp": 1,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\version_check-9356474ec7a7564f",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\windows_x86_64_msvc-4427054b6aabffcf",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\windows_x86_64_msvc-6dc33ea2c80d7242",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\windows_x86_64_msvc-b9909357099f833c",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\windows-link-87b394e19b828a2e",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\windows-sys-cfa40113a656872b",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\windows-targets-0dac841af79984bf",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\writeable-1c67c3ee945d4f48",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\.fingerprint\\zerocopy-c16c293f4ba2df52",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".json": 63,
+                  "": 120,
+                  ".timestamp": 57
+                },
+                "numFiles": 240
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_fix_verify\\debug\\deps",
+                "fullSubtreeExtensionCounts": {
+                  ".d": 46,
+                  ".rmeta": 46,
+                  ".rlib": 11
+                },
+                "numFiles": 103
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              "": 121,
+              ".d": 46,
+              ".json": 63,
+              ".timestamp": 57,
+              ".rmeta": 46,
+              ".rlib": 11
+            },
+            "numFiles": 344
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".TAG": 1,
+          ".json": 64,
+          "": 121,
+          ".d": 46,
+          ".timestamp": 57,
+          ".rmeta": 46,
+          ".rlib": 11
+        },
+        "numFiles": 346
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\bytes-d0eca2c9f9af3d43",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\cfg-if-2adf23b2ec8d5670",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\cfg-if-471c4fa17d2f10d8",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\equivalent-02f9ab63e137ec78",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\futures-core-3bebeb67fbade114",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\getrandom-8bc2b17d0107aa51",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\getrandom-f3f4cf3edd04a27d",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\getrandom-f9c8b8364206596f",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\hashbrown-e33023013a7e6df7",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\indexmap-99e2b44f0e4fb7ad",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\itoa-62ccf2b05b5f54cd",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\lock_api-8d1dabce8619214c",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\log-17676a4b1539cc2d",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\memchr-76c08b7757842370",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\once_cell-30a78d41e79dd226",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\parking_lot_core-2d8184222fc5577f",
+                    "fullSubtreeExtensionCounts": {
+                      "": 1,
+                      ".json": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\parking_lot_core-5967df943c76baa8",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\pin-project-lite-85479a8281e2b06d",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\proc-macro2-47fe91e871e289b8",
+                    "fullSubtreeExtensionCounts": {
+                      "": 2,
+                      ".timestamp": 1,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\proc-macro2-b964c1d3283ec8be",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\ryu-5d67dad79444ab33",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\scopeguard-7b35a19e1a083d1f",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\serde_core-a0ed85aa5b40d881",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\serde_core-dfb0cec777d505c4",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\serde-97bd6a378a140843",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 1
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\serde-a7cf96fa5dd74fca",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\smallvec-63fda6bf2fc20a23",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\stable_deref_trait-5b2ef794c54b7075",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\unicode-ident-1fb555bab7c7a1be",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\windows_x86_64_msvc-803a0b28d019ed97",
+                    "fullSubtreeExtensionCounts": {
+                      ".timestamp": 1,
+                      "": 2,
+                      ".json": 1
+                    },
+                    "numFiles": 4
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\.fingerprint\\windows-link-3425a520a5c1180b",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 1,
+                      "": 2,
+                      ".timestamp": 1
+                    },
+                    "numFiles": 4
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".json": 31,
+                  "": 57,
+                  ".timestamp": 26
+                },
+                "numFiles": 114
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\target_install_verify\\release\\deps",
+                "fullSubtreeExtensionCounts": {
+                  ".d": 20,
+                  ".rmeta": 20,
+                  ".rlib": 20
+                },
+                "numFiles": 60
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              "": 58,
+              ".d": 20,
+              ".rmeta": 20,
+              ".rlib": 20,
+              ".json": 31,
+              ".timestamp": 26
+            },
+            "numFiles": 175
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".json": 32,
+          ".TAG": 1,
+          "": 58,
+          ".d": 20,
+          ".rmeta": 20,
+          ".rlib": 20,
+          ".timestamp": 26
+        },
+        "numFiles": 177
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\components",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\components\\ar",
+                    "fullSubtreeExtensionCounts": {
+                      ".tsx": 2
+                    },
+                    "numFiles": 2
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\components\\git",
+                    "fullSubtreeExtensionCounts": {
+                      ".tsx": 8
+                    },
+                    "numFiles": 8
+                  },
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\components\\vr",
+                    "fullSubtreeExtensionCounts": {
+                      ".tsx": 1
+                    },
+                    "numFiles": 1
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".tsx": 19
+                },
+                "numFiles": 19
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\hooks",
+                "fullSubtreeExtensionCounts": {
+                  ".ts": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\pages",
+                "fullSubtreeExtensionCounts": {
+                  ".tsx": 6
+                },
+                "numFiles": 6
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\styles",
+                "fullSubtreeExtensionCounts": {
+                  ".css": 16
+                },
+                "numFiles": 16
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src\\utils",
+                "fullSubtreeExtensionCounts": {
+                  ".ts": 4
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".ts": 5,
+              ".css": 18,
+              ".tsx": 27
+            },
+            "numFiles": 50
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src-tauri",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src-tauri\\gen",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src-tauri\\gen\\schemas",
+                    "fullSubtreeExtensionCounts": {
+                      ".json": 4
+                    },
+                    "numFiles": 4
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".json": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src-tauri\\icons",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src-tauri\\icons\\icon.iconset",
+                    "fullSubtreeExtensionCounts": {
+                      ".png": 6
+                    },
+                    "numFiles": 6
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".png": 11,
+                  ".md": 1,
+                  ".ico": 1
+                },
+                "numFiles": 13
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tauri-gui\\src-tauri\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 14
+                },
+                "numFiles": 14
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".json": 5,
+              ".rs": 15,
+              ".png": 11,
+              ".md": 1,
+              ".ico": 1,
+              ".toml": 1
+            },
+            "numFiles": 34
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".ps1": 13,
+          ".md": 11,
+          ".ts": 6,
+          ".json": 9,
+          ".bak": 1,
+          ".html": 1,
+          ".py": 1,
+          ".js": 1,
+          ".cjs": 1,
+          ".rs": 15,
+          ".png": 11,
+          ".ico": 1,
+          ".css": 18,
+          ".toml": 1,
+          ".tsx": 27
+        },
+        "numFiles": 117
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\temp-gui-build",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\temp-gui-build\\gen",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\temp-gui-build\\gen\\schemas",
+                "fullSubtreeExtensionCounts": {
+                  ".json": 4
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".json": 4
+            },
+            "numFiles": 4
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\temp-gui-build\\icons",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\temp-gui-build\\icons\\icon.iconset",
+                "fullSubtreeExtensionCounts": {
+                  ".png": 6
+                },
+                "numFiles": 6
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".md": 1,
+              ".png": 11,
+              ".ico": 1
+            },
+            "numFiles": 13
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\temp-gui-build\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 13
+            },
+            "numFiles": 13
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 13,
+          ".md": 1,
+          ".png": 11,
+          ".ico": 1,
+          ".json": 4
+        },
+        "numFiles": 30
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\blocks",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\codex",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\default",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\dots",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\hash",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\hbars",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\openai",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\shapes",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\slug",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\frames\\vbars",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".txt": 360
+            },
+            "numFiles": 360
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\bottom_pane",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\bottom_pane\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 47
+                    },
+                    "numFiles": 47
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 21,
+                  ".snap": 47
+                },
+                "numFiles": 68
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\chatwidget",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\chatwidget\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 50
+                    },
+                    "numFiles": 50
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4,
+                  ".snap": 50
+                },
+                "numFiles": 54
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\exec_cell",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\notifications",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\onboarding",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\onboarding\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 1
+                    },
+                    "numFiles": 1
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 6,
+                  ".snap": 1
+                },
+                "numFiles": 7
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\public_widgets",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\render",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\snapshots",
+                "fullSubtreeExtensionCounts": {
+                  ".snap": 57
+                },
+                "numFiles": 57
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\status",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\status\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 8
+                    },
+                    "numFiles": 8
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 7,
+                  ".snap": 8
+                },
+                "numFiles": 15
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\streaming",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\src\\tui",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 106,
+              ".snap": 163
+            },
+            "numFiles": 269
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\tests\\fixtures",
+                "fullSubtreeExtensionCounts": {
+                  ".jsonl": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 6,
+              ".jsonl": 2
+            },
+            "numFiles": 8
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".txt": 364,
+          ".rs": 112,
+          ".jsonl": 2,
+          ".md": 2,
+          ".snap": 163,
+          ".toml": 1
+        },
+        "numFiles": 644
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\docs",
+            "fullSubtreeExtensionCounts": {
+              ".md": 3
+            },
+            "numFiles": 3
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\blocks",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\codex",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\default",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\dots",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\hash",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\hbars",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\openai",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\shapes",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\slug",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\frames\\vbars",
+                "fullSubtreeExtensionCounts": {
+                  ".txt": 36
+                },
+                "numFiles": 36
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".txt": 360
+            },
+            "numFiles": 360
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\bin",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\bottom_pane",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\bottom_pane\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 85
+                    },
+                    "numFiles": 85
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 19,
+                  ".snap": 85
+                },
+                "numFiles": 104
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\chatwidget",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\chatwidget\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 85
+                    },
+                    "numFiles": 85
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4,
+                  ".snap": 85
+                },
+                "numFiles": 89
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\exec_cell",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\notifications",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 3
+                },
+                "numFiles": 3
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\onboarding",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\onboarding\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 2
+                    },
+                    "numFiles": 2
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5,
+                  ".snap": 2
+                },
+                "numFiles": 7
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\public_widgets",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\render",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\snapshots",
+                "fullSubtreeExtensionCounts": {
+                  ".snap": 96
+                },
+                "numFiles": 96
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\status",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\status\\snapshots",
+                    "fullSubtreeExtensionCounts": {
+                      ".snap": 16
+                    },
+                    "numFiles": 16
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 7,
+                  ".snap": 16
+                },
+                "numFiles": 23
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\streaming",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\tui",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\src\\tui\\scrolling",
+                    "fullSubtreeExtensionCounts": {
+                      ".rs": 1
+                    },
+                    "numFiles": 1
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 102,
+              ".snap": 284
+            },
+            "numFiles": 386
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\tests",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\tests\\fixtures",
+                "fullSubtreeExtensionCounts": {
+                  ".jsonl": 1
+                },
+                "numFiles": 1
+              },
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\tui2\\tests\\suite",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 4
+                },
+                "numFiles": 4
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 6,
+              ".jsonl": 1
+            },
+            "numFiles": 7
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".txt": 361,
+          ".rs": 108,
+          ".jsonl": 1,
+          ".md": 5,
+          ".snap": 284,
+          ".toml": 1
+        },
+        "numFiles": 760
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\absolute-path",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\absolute-path\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1,
+              ".toml": 1
+            },
+            "numFiles": 2
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\cache",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\cache\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1,
+              ".toml": 1
+            },
+            "numFiles": 2
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\git",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\git\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 9
+                },
+                "numFiles": 9
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 9,
+              ".md": 1,
+              ".toml": 1
+            },
+            "numFiles": 11
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\image",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\image\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 2,
+              ".toml": 1
+            },
+            "numFiles": 3
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\json-to-toml",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\json-to-toml\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1,
+              ".toml": 1
+            },
+            "numFiles": 2
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\pty",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\pty\\src",
+                "childrenDirs": [
+                  {
+                    "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\pty\\src\\win",
+                    "fullSubtreeExtensionCounts": {
+                      ".rs": 4
+                    },
+                    "numFiles": 4
+                  }
+                ],
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 5
+                },
+                "numFiles": 5
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 5,
+              ".toml": 1
+            },
+            "numFiles": 6
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\readiness",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\readiness\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1,
+              ".toml": 1
+            },
+            "numFiles": 2
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\string",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\string\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1,
+              ".toml": 1
+            },
+            "numFiles": 2
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\tokenizer",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\utils\\tokenizer\\src",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 1
+                },
+                "numFiles": 1
+              }
+            ],
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1,
+              ".toml": 1
+            },
+            "numFiles": 2
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 22,
+          ".toml": 9,
+          ".md": 1
+        },
+        "numFiles": 32
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\vr-runtime",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\vr-runtime\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 6
+            },
+            "numFiles": 6
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 7,
+          ".md": 2,
+          ".toml": 1
+        },
+        "numFiles": 10
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\vrchat-optimizer",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\vrchat-optimizer\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 1,
+          ".toml": 1
+        },
+        "numFiles": 2
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\wasm-cli",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\wasm-cli\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 1,
+          ".svg": 1,
+          ".toml": 1
+        },
+        "numFiles": 3
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\web-search",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\web-search\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 4
+            },
+            "numFiles": 4
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 4,
+          ".toml": 1
+        },
+        "numFiles": 5
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-ai",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-ai\\src",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 9
+            },
+            "numFiles": 9
+          },
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-ai\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 10,
+          ".toml": 1
+        },
+        "numFiles": 11
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-sandbox",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-sandbox\\tests",
+            "fullSubtreeExtensionCounts": {
+              ".rs": 1
+            },
+            "numFiles": 1
+          }
+        ],
+        "fullSubtreeExtensionCounts": {
+          ".rs": 1
+        },
+        "numFiles": 1
+      },
+      {
+        "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-sandbox-rs",
+        "childrenDirs": [
+          {
+            "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-sandbox-rs\\src",
+            "childrenDirs": [
+              {
+                "absPath": "c:\\Users\\downl\\Desktop\\codex-main\\codex-rs\\windows-sandbox-rs\\src\\bin",
+                "fullSubtreeExtensionCounts": {
+                  ".rs": 2
+                },
+                "numFiles": 2
+              }
+            ],
+            "childrenFiles": [
+              {
+                "name": "cap.rs"
+              },
+              {
+                "name": "command_runner_win.rs"
+              },
+              {
+                "name": "dpapi.rs"
+              },
+              {
+                "name": "elevated_impl.rs"
+              },
+              {
+                "name": "env.rs"
+              },
+              {
+                "name": "identity.rs"
+              },
+              {
+                "name": "lib.rs"
+              },
+              {
+                "name": "logging.rs"
+              },
+              {
+                "name": "policy.rs"
+              },
+              {
+                "name": "process.rs"
+              },
+              {
+                "name": "read_acl_mutex.rs"
+              },
+              {
+                "name": "setup_main_win.rs"
+              },
+              {
+                "name": "setup_orchestrator.rs"
+              },
+              {
+                "name": "token.rs"
+              },
+              {
+                "name": "winutil.rs"
+              }
+            ],
+            "childrenWereProcessed": true,
+            "fullSubtreeExtensionCounts": {
+              ".rs": 5
+            },
+            "numFiles": 5
+          }
+        ],
+        "childrenWereProcessed": true,
+        "fullSubtreeExtensionCounts": {
+          ".rs": 6,
+          ".py": 1,
+          ".manifest": 1,
+          ".toml": 1,
+          ".lock": 1
+        },
+        "numFiles": 10
+      }
+    ],
+    "childrenFiles": [
+      {
+        "name": ".cursorindexingignore"
+      },
+      {
+        "name": ".gitignore"
+      },
+      {
+        "name": "BUILD_AND_INSTALL_GUIDE.md"
+      },
+      {
+        "name": "build_check.txt"
+      },
+      {
+        "name": "build_err.txt"
+      },
+      {
+        "name": "build_error_2_utf8.txt"
+      },
+      {
+        "name": "build_error_2.txt"
+      },
+      {
+        "name": "build_error_3_utf8.txt"
+      },
+      {
+        "name": "build_error_3.txt"
+      },
+      {
+        "name": "build_error_utf8.txt"
+      },
+      {
+        "name": "build_error.txt"
+      },
+      {
+        "name": "build_errors.txt"
+      },
+      {
+        "name": "build_log_20251231_175753.txt"
+      },
+      {
+        "name": "build_log_utf8.txt"
+      },
+      {
+        "name": "build_log.txt"
+      },
+      {
+        "name": "build_test_summary.json"
+      },
+      {
+        "name": "build_with_progress.py"
+      },
+      {
+        "name": "build-orchestrator-test.py"
+      },
+      {
+        "name": "build-performance-guide.md"
+      },
+      {
+        "name": "build-unified.ps1"
+      },
+      {
+        "name": "build-with-progress.py"
+      },
+      {
+        "name": "Cargo.lock"
+      },
+      {
+        "name": "Cargo.toml"
+      },
+      {
+        "name": "Cargo.toml.backup"
+      },
+      {
+        "name": "check_build_progress.ps1"
+      },
+      {
+        "name": "check_error_2.txt"
+      },
+      {
+        "name": "check_error_workspace_10.txt"
+      },
+      {
+        "name": "check_error_workspace_11.txt"
+      },
+      {
+        "name": "check_error_workspace_12.txt"
+      },
+      {
+        "name": "check_error_workspace_2.txt"
+      },
+      {
+        "name": "check_error_workspace_3.txt"
+      },
+      {
+        "name": "check_error_workspace_4.txt"
+      },
+      {
+        "name": "check_error_workspace_5.txt"
+      },
+      {
+        "name": "check_error_workspace_6.txt"
+      },
+      {
+        "name": "check_error_workspace_7.txt"
+      },
+      {
+        "name": "check_error_workspace_8.txt"
+      },
+      {
+        "name": "check_error_workspace_9.txt"
+      },
+      {
+        "name": "check_error_workspace.txt"
+      },
+      {
+        "name": "check_error.txt"
+      },
+      {
+        "name": "check_output_utf8_2.txt"
+      },
+      {
+        "name": "check_output_utf8_3.txt"
+      },
+      {
+        "name": "check_output_utf8_4.txt"
+      },
+      {
+        "name": "check_output_utf8_5.txt"
+      },
+      {
+        "name": "check_output_utf8.txt"
+      },
+      {
+        "name": "check_output.txt"
+      },
+      {
+        "name": "clean-build-install.ps1"
+      },
+      {
+        "name": "gui_error.txt"
+      },
+      {
+        "name": "install_and_test.py"
+      },
+      {
+        "name": "install-sccache-simple.ps1"
+      },
+      {
+        "name": "install-sccache.ps1"
+      },
+      {
+        "name": "install-unified.ps1"
+      },
+      {
+        "name": "justfile"
+      },
+      {
+        "name": "workspace_error.txt"
+      }
+    ],
+    "fullSubtreeExtensionCounts": {
+      ".rs": 1058,
+      ".py": 16,
+      ".manifest": 1,
+      ".toml": 64,
+      ".lock": 2,
+      ".md": 66,
+      ".txt": 807,
+      ".json": 118,
+      ".sse": 2,
+      ".ps1": 23,
+      ".svg": 1,
+      ".nix": 1,
+      "": 183,
+      ".xml": 2,
+      ".codexpolicy": 1,
+      ".policy": 1,
+      ".html": 2,
+      ".js": 3,
+      ".lark": 1,
+      ".TAG": 2,
+      ".jsonl": 3,
+      ".snap": 447,
+      ".ts": 10,
+      ".d": 66,
+      ".sbpl": 2,
+      ".timestamp": 83,
+      ".rmeta": 66,
+      ".rlib": 31,
+      ".png": 22,
+      ".ico": 2,
+      ".bak": 1,
+      ".walkdir": 1,
+      ".final": 1,
+      ".broken": 1,
+      ".backup": 1,
+      ".cjs": 1,
+      ".css": 18,
+      ".tsx": 27
+    },
+    "numFiles": 3137
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\Cargo.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+メインのバイナリを特定し、高速差分ビルドで上書きインストールします。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\downl\Desktop\codex-main\codex-rs\cli\Cargo.toml</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "undefined" • **1** result in **1** directory</summary>
+
+Directory: **c:\Users\downl\Desktop\codex-main\codex-rs\cli** (1 file)
+
+| File |
+|------|
+| `../codex-rs\cli\src\main.rs` |
+
+</details>
+</tool-use>
 
 ---
 
