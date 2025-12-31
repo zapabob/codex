@@ -594,7 +594,10 @@ impl McpIntegrationManager {
             if let Ok(gpu_stats) = crate::windows_ai_integration::get_gpu_statistics().await {
                 metrics.insert("gpu_utilization".to_string(), gpu_stats.utilization as f64);
                 metrics.insert("gpu_memory_used".to_string(), gpu_stats.memory_used as f64);
-                metrics.insert("gpu_memory_total".to_string(), gpu_stats.memory_total as f64);
+                metrics.insert(
+                    "gpu_memory_total".to_string(),
+                    gpu_stats.memory_total as f64,
+                );
             }
         }
 

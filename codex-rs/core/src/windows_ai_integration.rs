@@ -8,11 +8,11 @@ use anyhow::Result;
 #[cfg(all(target_os = "windows", feature = "windows-ai"))]
 use anyhow::Context;
 #[cfg(all(target_os = "windows", feature = "windows-ai"))]
-use codex_windows_ai::kernel_driver::KernelBridge;
-#[cfg(all(target_os = "windows", feature = "windows-ai"))]
 use codex_windows_ai::GpuStats;
 #[cfg(all(target_os = "windows", feature = "windows-ai"))]
 use codex_windows_ai::WindowsAiRuntime;
+#[cfg(all(target_os = "windows", feature = "windows-ai"))]
+use codex_windows_ai::kernel_driver::KernelBridge;
 #[cfg(all(target_os = "windows", feature = "windows-ai"))]
 use tracing::debug;
 #[cfg(all(target_os = "windows", feature = "windows-ai"))]
