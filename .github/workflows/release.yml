@@ -89,15 +89,35 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
 
-      - name: Check for existing tgz file
-        id: check_tgz
+      - name: Extract version from tag
+        id: version
         run: |
-          if [ -f "codex-2.8.2.tgz" ]; then
-            echo "tgz_exists=true" >> $GITHUB_OUTPUT
-            echo "tgz_file=codex-2.8.2.tgz" >> $GITHUB_OUTPUT
-          else
-            echo "tgz_exists=false" >> $GITHUB_OUTPUT
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
+
+      - name: Create tgz package
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          TEMP_DIR="codex-${VERSION}-temp"
+          mkdir -p "${TEMP_DIR}"
+          
+          # Copy essential files
+          cp README.md LICENSE VERSION CHANGELOG.md package.json "${TEMP_DIR}/" 2>/dev/null || true
+          cp config*.toml cliff.toml turbo.json "${TEMP_DIR}/" 2>/dev/null || true
+          
+          # Copy zapabob directory if it exists
+          if [ -d "zapabob" ]; then
+            cp -r zapabob "${TEMP_DIR}/"
           fi
+          
+          # Create tgz archive
+          tar -czf "codex-${VERSION}.tgz" -C "${TEMP_DIR}" .
+          rm -rf "${TEMP_DIR}"
+          
+          echo "Created codex-${VERSION}.tgz"
+          ls -lh "codex-${VERSION}.tgz"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -107,7 +127,7 @@ jobs:
             codex-darwin-x64/codex
             codex-darwin-arm64/codex
             codex-linux-x64/codex
-            ${{ steps.check_tgz.outputs.tgz_file }}
+            codex-${{ steps.version.outputs.version }}.tgz
           body_path: RELEASE_NOTES_v1.0.0.md
           draft: false
           prerelease: false
