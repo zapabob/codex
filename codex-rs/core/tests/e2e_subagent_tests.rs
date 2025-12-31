@@ -114,10 +114,7 @@ artifacts:
     // Verify artifacts exist
     for artifact in &result.artifacts {
         let artifact_path = temp_dir.path().join(artifact);
-        assert!(
-            artifact_path.exists(),
-            "Artifact should exist: {artifact}"
-        );
+        assert!(artifact_path.exists(), "Artifact should exist: {artifact}");
     }
 }
 
