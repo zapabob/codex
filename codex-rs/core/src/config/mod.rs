@@ -3237,6 +3237,8 @@ model_verbosity = "high"
                 tui_scroll_wheel_like_max_duration_ms: None,
                 tui_scroll_invert: false,
                 otel: OtelConfig::default(),
+                mcp_dynamic_loading: crate::config::types::McpDynamicLoadingConfig::default(),
+                mcp_token_optimization: crate::config::types::McpTokenOptimizationConfig::default(),
             },
             o3_profile_config
         );
@@ -3320,6 +3322,8 @@ model_verbosity = "high"
             tui_scroll_wheel_like_max_duration_ms: None,
             tui_scroll_invert: false,
             otel: OtelConfig::default(),
+            mcp_dynamic_loading: crate::config::types::McpDynamicLoadingConfig::default(),
+            mcp_token_optimization: crate::config::types::McpTokenOptimizationConfig::default(),
         };
 
         assert_eq!(expected_gpt3_profile_config, gpt3_profile_config);
@@ -3418,6 +3422,8 @@ model_verbosity = "high"
             tui_scroll_wheel_like_max_duration_ms: None,
             tui_scroll_invert: false,
             otel: OtelConfig::default(),
+            mcp_dynamic_loading: crate::config::types::McpDynamicLoadingConfig::default(),
+            mcp_token_optimization: crate::config::types::McpTokenOptimizationConfig::default(),
         };
 
         assert_eq!(expected_zdr_profile_config, zdr_profile_config);
