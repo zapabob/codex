@@ -73,12 +73,11 @@ impl SessionTask for UserShellCommandTask {
             .derive_exec_args(&self.command, use_login_shell);
 
         // Security check: Block dangerous commands even in user shell mode
-        let command_vec: Vec<String> = command.iter().map(|s| s.to_string()).collect();
+        let command_vec: Vec<String> = command.iter().map(std::string::ToString::to_string).collect();
         if command_might_be_dangerous(&command_vec) {
             error!("Dangerous user shell command blocked: {:?}", command);
             let blocked_message = format!(
-                "Error: Dangerous command blocked for security reasons: {:?}. Commands like 'rm -rf', 'sudo', and destructive git operations are not allowed.",
-                command
+                "Error: Dangerous command blocked for security reasons: {command:?}. Commands like 'rm -rf', 'sudo', and destructive git operations are not allowed."
             );
             let exec_output = ExecToolCallOutput {
                 exit_code: 1,

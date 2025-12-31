@@ -52,7 +52,7 @@ impl PlanOrchestrator {
             collaboration_store,
             workspace_dir.clone(),
         );
-        let parallel_orchestrator = ParallelOrchestrator::with_repo_path(workspace_dir.clone());
+        let parallel_orchestrator = ParallelOrchestrator::with_repo_path(workspace_dir);
         let task_analyzer = TaskAnalyzer::new(0.7);
 
         Self {
@@ -183,7 +183,7 @@ impl PlanOrchestrator {
             was_orchestrated: false,
             agents_used: vec![agent],
             execution_summary: summary,
-            agent_results: vec![result.clone()],
+            agent_results: vec![result],
             total_execution_time_secs: start.elapsed().as_secs_f64(),
             task_analysis: analysis,
             orchestration_log: Vec::new(),
@@ -310,13 +310,12 @@ fn build_competition_summary(
         "Competition executed {total_agents} agents: {successful} succeeded, {failed} failed."
     );
 
-    if let Some(agent) = comparison.fastest_agent {
-        if let Some(time) = comparison.fastest_time {
+    if let Some(agent) = comparison.fastest_agent
+        && let Some(time) = comparison.fastest_time {
             summary.push_str(&format!(
                 " Fastest successful agent: {agent:?} ({time:.2}s)."
             ));
         }
-    }
 
     let agent = best_result.agent;
     let best_key = format!("{agent:?}");

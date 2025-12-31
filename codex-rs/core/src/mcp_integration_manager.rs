@@ -55,6 +55,12 @@ pub struct McpIntegrationManager {
     windows_ai_options: WindowsAiOptions,
 }
 
+impl Default for McpIntegrationManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl McpIntegrationManager {
     /// Create new MCP integration manager with Windows 11 25H2 AI support
     pub fn new() -> Self {
@@ -84,10 +90,10 @@ impl McpIntegrationManager {
 
         let content = tokio::fs::read_to_string(&self.config_path)
             .await
-            .map_err(|e| format!("Failed to read MCP config: {}", e))?;
+            .map_err(|e| format!("Failed to read MCP config: {e}"))?;
 
         let config: McpServersConfig = serde_yaml::from_str(&content)
-            .map_err(|e| format!("Failed to parse MCP config: {}", e))?;
+            .map_err(|e| format!("Failed to parse MCP config: {e}"))?;
 
         Ok(config)
     }
@@ -433,18 +439,18 @@ impl McpIntegrationManager {
     /// Save MCP servers configuration
     pub async fn save_config(&self, config: &McpServersConfig) -> Result<(), String> {
         let content = serde_yaml::to_string(config)
-            .map_err(|e| format!("Failed to serialize MCP config: {}", e))?;
+            .map_err(|e| format!("Failed to serialize MCP config: {e}"))?;
 
         // Create directory if it doesn't exist
         if let Some(parent) = self.config_path.parent() {
             tokio::fs::create_dir_all(parent)
                 .await
-                .map_err(|e| format!("Failed to create config directory: {}", e))?;
+                .map_err(|e| format!("Failed to create config directory: {e}"))?;
         }
 
         tokio::fs::write(&self.config_path, content)
             .await
-            .map_err(|e| format!("Failed to write MCP config: {}", e))?;
+            .map_err(|e| format!("Failed to write MCP config: {e}"))?;
 
         Ok(())
     }
@@ -456,7 +462,7 @@ impl McpIntegrationManager {
         let server_names = config
             .auto_start
             .get(mode)
-            .ok_or_else(|| format!("Unknown development mode: {}", mode))?
+            .ok_or_else(|| format!("Unknown development mode: {mode}"))?
             .clone();
 
         for server_name in server_names {
@@ -473,7 +479,7 @@ impl McpIntegrationManager {
         let server_config = config
             .servers
             .get(name)
-            .ok_or_else(|| format!("Unknown MCP server: {}", name))?
+            .ok_or_else(|| format!("Unknown MCP server: {name}"))?
             .clone();
 
         let mut command = tokio::process::Command::new(&server_config.command);
@@ -486,7 +492,7 @@ impl McpIntegrationManager {
 
         let child = command
             .spawn()
-            .map_err(|e| format!("Failed to start MCP server {}: {}", name, e))?;
+            .map_err(|e| format!("Failed to start MCP server {name}: {e}"))?;
 
         let mut processes = self.server_processes.lock().await;
         let mut servers = self.active_servers.lock().await;
@@ -505,7 +511,7 @@ impl McpIntegrationManager {
             child
                 .kill()
                 .await
-                .map_err(|e| format!("Failed to stop MCP server {}: {}", name, e))?;
+                .map_err(|e| format!("Failed to stop MCP server {name}: {e}"))?;
         }
 
         let mut servers = self.active_servers.lock().await;
@@ -549,13 +555,12 @@ impl McpIntegrationManager {
         }
 
         let prompt = format!(
-            "Execute MCP task '{}' on server '{}' with optimal parameters for Windows 11 25H2 AI acceleration",
-            task_description, server_name
+            "Execute MCP task '{task_description}' on server '{server_name}' with optimal parameters for Windows 11 25H2 AI acceleration"
         );
 
         execute_with_windows_ai(&prompt, &self.windows_ai_options)
             .await
-            .map_err(|e| format!("Windows AI execution failed: {}", e))
+            .map_err(|e| format!("Windows AI execution failed: {e}"))
     }
 
     /// Optimize server configuration using Windows AI
@@ -567,17 +572,16 @@ impl McpIntegrationManager {
         let servers = self.active_servers.lock().await;
         let server = servers
             .get(server_name)
-            .ok_or_else(|| format!("Server '{}' not found", server_name))?;
+            .ok_or_else(|| format!("Server '{server_name}' not found"))?;
 
         let optimization_prompt = format!(
-            "Optimize MCP server '{}' configuration for Windows 11 25H2 AI acceleration. Current config: {:?}",
-            server_name, server
+            "Optimize MCP server '{server_name}' configuration for Windows 11 25H2 AI acceleration. Current config: {server:?}"
         );
 
         let _optimized_config =
             execute_with_windows_ai(&optimization_prompt, &self.windows_ai_options)
                 .await
-                .map_err(|e| format!("AI optimization failed: {}", e))?;
+                .map_err(|e| format!("AI optimization failed: {e}"))?;
 
         // Parse optimized config (simplified - in reality would need proper parsing)
         // For now, return the original server config
@@ -590,8 +594,8 @@ impl McpIntegrationManager {
         let mut metrics = HashMap::new();
 
         // Get GPU stats if available
-        if self.windows_ai_options.use_gpu {
-            if let Ok(gpu_stats) = crate::windows_ai_integration::get_gpu_statistics().await {
+        if self.windows_ai_options.use_gpu
+            && let Ok(gpu_stats) = crate::windows_ai_integration::get_gpu_statistics().await {
                 metrics.insert("gpu_utilization".to_string(), gpu_stats.utilization as f64);
                 metrics.insert("gpu_memory_used".to_string(), gpu_stats.memory_used as f64);
                 metrics.insert(
@@ -599,7 +603,6 @@ impl McpIntegrationManager {
                     gpu_stats.memory_total as f64,
                 );
             }
-        }
 
         metrics.insert(
             "windows_ai_enabled".to_string(),

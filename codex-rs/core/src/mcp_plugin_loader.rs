@@ -94,7 +94,7 @@ impl McpPluginLoader {
         let metadata = if plugin_toml_path.exists() {
             let content = fs::read_to_string(&plugin_toml_path).await?;
             let mut metadata: PluginMetadata = toml::from_str(&content).with_context(|| {
-                format!("Failed to parse plugin.toml at {:?}", plugin_toml_path)
+                format!("Failed to parse plugin.toml at {plugin_toml_path:?}")
             })?;
 
             // Ensure plugin name matches directory name if not set
@@ -125,11 +125,10 @@ impl McpPluginLoader {
         let server_config = if server_toml_path.exists() {
             let content = fs::read_to_string(&server_toml_path).await?;
             toml::from_str(&content)
-                .with_context(|| format!("Failed to parse server.toml at {:?}", server_toml_path))?
+                .with_context(|| format!("Failed to parse server.toml at {server_toml_path:?}"))?
         } else {
             return Err(anyhow::anyhow!(
-                "server.toml not found in plugin directory: {:?}",
-                plugin_path
+                "server.toml not found in plugin directory: {plugin_path:?}"
             ));
         };
 
@@ -175,7 +174,7 @@ impl McpPluginLoader {
 
     /// Unload a plugin
     pub async fn unload_plugin(&self, plugin_name: &str, loader: &DynamicMcpLoader) -> Result<()> {
-        let server_name = format!("plugin-{}", plugin_name);
+        let server_name = format!("plugin-{plugin_name}");
         loader.remove_server(&server_name).await?;
 
         let mut loaded = self.loaded_plugins.lock().await;
@@ -193,7 +192,7 @@ impl McpPluginLoader {
 
     /// Get plugin information
     pub async fn get_plugin(&self, plugin_name: &str) -> Option<McpPlugin> {
-        let server_name = format!("plugin-{}", plugin_name);
+        let server_name = format!("plugin-{plugin_name}");
         let loaded = self.loaded_plugins.lock().await;
         loaded.get(&server_name).cloned()
     }

@@ -315,7 +315,7 @@ impl AutoOrchestrator {
         log_entries: &mut Vec<OrchestrationLogEntry>,
         entry: OrchestrationLogEntry,
     ) {
-        log_entries.push(entry.clone());
+        log_entries.push(entry);
         if let Ok(value) = to_value(log_entries) {
             self.collaboration_store
                 .set_metadata("orchestration_log".to_string(), value);
@@ -377,7 +377,7 @@ impl AutoOrchestrator {
             self.collaboration_store
                 .set_metadata("selected_skills".to_string(), value);
         }
-        if let Ok(value) = to_value(&plan.strategy) {
+        if let Ok(value) = to_value(plan.strategy) {
             self.collaboration_store
                 .set_metadata("execution_strategy".to_string(), value);
         }
@@ -637,8 +637,8 @@ impl AutoOrchestrator {
                         .store_agent_result(result.agent_name.clone(), result.clone());
                     let status = result.status.clone();
                     results.push(result.clone());
-                    if status != AgentStatus::Completed {
-                        if let Some(task) = plan
+                    if status != AgentStatus::Completed
+                        && let Some(task) = plan
                             .tasks
                             .iter()
                             .find(|task| task.agent == result.agent_name)
@@ -658,7 +658,6 @@ impl AutoOrchestrator {
                             }
                             results.append(&mut retry_results);
                         }
-                    }
                 }
 
                 if initial_results.is_empty() {
@@ -821,7 +820,7 @@ impl AutoOrchestrator {
                     collected.push(failure);
                     self.record_log(
                         log_entries,
-                        format!("Fallback agent {} failed: {}", fallback_agent, err),
+                        format!("Fallback agent {fallback_agent} failed: {err}"),
                         task.skill_tag.clone(),
                         vec![fallback_agent.clone()],
                         strategy,
@@ -937,11 +936,10 @@ impl AutoOrchestrator {
             task.description
         );
 
-        if let Some(skill) = &task.skill_tag {
-            if let Some(config) = Self::skill_strategy_table().get(skill) {
+        if let Some(skill) = &task.skill_tag
+            && let Some(config) = Self::skill_strategy_table().get(skill) {
                 return config.strategy;
             }
-        }
 
         // Check for keywords indicating sequential dependencies
         let description_lower = task.description.to_lowercase();

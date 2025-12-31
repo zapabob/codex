@@ -79,8 +79,8 @@ impl McpFileWatcher {
                 }
 
                 // Check config file changes
-                if let Ok(current_mtime) = Self::get_file_mtime(&config_path) {
-                    if last_config_mtime.as_ref() != Some(&current_mtime) {
+                if let Ok(current_mtime) = Self::get_file_mtime(&config_path)
+                    && last_config_mtime.as_ref() != Some(&current_mtime) {
                         info!("MCP config file changed, reloading...");
                         if let Some(loader) = &loader {
                             // Reload configuration
@@ -90,7 +90,6 @@ impl McpFileWatcher {
                         }
                         last_config_mtime = Some(current_mtime);
                     }
-                }
 
                 // Check plugin directory changes (less frequently)
                 let now = std::time::SystemTime::now();
@@ -99,11 +98,10 @@ impl McpFileWatcher {
                     .unwrap_or(Duration::ZERO)
                     > Duration::from_secs(30)
                 {
-                    if let Some(loader) = &loader {
-                        if let Err(e) = Self::check_plugin_directory(loader, &plugin_dir).await {
+                    if let Some(loader) = &loader
+                        && let Err(e) = Self::check_plugin_directory(loader, &plugin_dir).await {
                             warn!("Failed to check plugin directory: {}", e);
                         }
-                    }
                     last_plugin_check = now;
                 }
 
@@ -124,10 +122,10 @@ impl McpFileWatcher {
     /// Get file modification time
     fn get_file_mtime(path: &Path) -> Result<std::time::SystemTime> {
         let metadata = std::fs::metadata(path)
-            .with_context(|| format!("Failed to get metadata for {:?}", path))?;
+            .with_context(|| format!("Failed to get metadata for {path:?}"))?;
         metadata
             .modified()
-            .with_context(|| format!("Failed to get modification time for {:?}", path))
+            .with_context(|| format!("Failed to get modification time for {path:?}"))
     }
 
     /// Reload configuration file

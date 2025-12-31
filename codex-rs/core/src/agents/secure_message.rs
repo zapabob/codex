@@ -11,6 +11,12 @@ use std::collections::BTreeMap;
 pub struct SecureAgentCommunicator {}
 
 #[cfg(feature = "agent_security")]
+impl Default for SecureAgentCommunicator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SecureAgentCommunicator {
     pub fn new() -> Self {
         Self {}
@@ -254,7 +260,7 @@ impl SecureAgentChannel {
 
         cipher
             .encrypt(nonce, content.as_bytes())
-            .map_err(|e| anyhow::anyhow!("Encryption failed: {}", e))
+            .map_err(|e| anyhow::anyhow!("Encryption failed: {e}"))
     }
 
     /// Decrypt content with AES-256-GCM
@@ -270,7 +276,7 @@ impl SecureAgentChannel {
 
         let plaintext = cipher
             .decrypt(nonce, ciphertext)
-            .map_err(|e| anyhow::anyhow!("Decryption failed: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Decryption failed: {e}"))?;
 
         String::from_utf8(plaintext).context("Invalid UTF-8")
     }

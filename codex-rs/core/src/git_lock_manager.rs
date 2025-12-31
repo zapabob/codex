@@ -171,7 +171,7 @@ impl GitLockManager {
                 .detect_conflicts(&self.repo_path, &operation, &[])
                 .await?;
             if !conflicts.is_empty() {
-                return Err(anyhow::anyhow!("Lock conflicts detected: {:?}", conflicts));
+                return Err(anyhow::anyhow!("Lock conflicts detected: {conflicts:?}"));
             }
         }
 

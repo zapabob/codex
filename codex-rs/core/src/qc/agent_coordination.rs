@@ -158,7 +158,7 @@ impl AgentCoordinator {
         let mut status = self.agent_status.lock().unwrap();
         status.insert(agent_id.clone(), AgentStatus::Idle);
 
-        println!("✅ Registered agent: {} ({:?})", agent_id, agent_type);
+        println!("✅ Registered agent: {agent_id} ({agent_type:?})");
     }
 
     /// Submit task for parallel execution
@@ -193,7 +193,7 @@ impl AgentCoordinator {
         };
 
         if let Err(e) = self.message_tx.send(message) {
-            return Err(format!("Failed to send task assignment: {}", e));
+            return Err(format!("Failed to send task assignment: {e}"));
         }
 
         Ok(task_id)
@@ -239,7 +239,7 @@ impl AgentCoordinator {
                         tasks.push(task_id);
                     }
                     Err(e) => {
-                        println!("⚠️  Failed to submit task: {}", e);
+                        println!("⚠️  Failed to submit task: {e}");
                     }
                 }
             }
@@ -254,7 +254,7 @@ impl AgentCoordinator {
             while active_tasks < max_concurrent {
                 if let Some(task_id) = task_iter.next() {
                     active_tasks += 1;
-                    println!("🚀 Started task: {} (active: {})", task_id, active_tasks);
+                    println!("🚀 Started task: {task_id} (active: {active_tasks})");
                 } else {
                     break;
                 }

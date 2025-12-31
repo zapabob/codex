@@ -100,7 +100,7 @@ impl QualityVisualizer {
     fn create_complexity_script(&self, data: &HashMap<u8, usize>, output_path: &str) -> String {
         let mut data_str = String::new();
         for (complexity, count) in data {
-            data_str.push_str(&format!("({}, {}), ", complexity, count));
+            data_str.push_str(&format!("({complexity}, {count}), "));
         }
         if data_str.ends_with(", ") {
             data_str.truncate(data_str.len() - 2);
@@ -123,7 +123,7 @@ plt.rcParams['xtick.color'] = '#00ff41'
 plt.rcParams['ytick.color'] = '#00ff41'
 
 # Data
-complexity_data = [{}]
+complexity_data = [{data_str}]
 
 if complexity_data:
     complexities, counts = zip(*complexity_data)
@@ -155,12 +155,11 @@ if complexity_data:
                 ha='center', va='bottom', fontsize=10, color='#00ff41')
 
     plt.tight_layout()
-    plt.savefig('{}', dpi=150, bbox_inches='tight', facecolor='#0a0a0a')
-    print("Complexity chart saved to {}")
+    plt.savefig('{output_path}', dpi=150, bbox_inches='tight', facecolor='#0a0a0a')
+    print("Complexity chart saved to {output_path}")
 else:
     print("No complexity data available")
-"#,
-            data_str, output_path, output_path
+"#
         )
     }
 
@@ -296,7 +295,7 @@ plt.rcParams['axes.facecolor'] = '#1a1a1a'
 plt.rcParams['axes.edgecolor'] = '#00ff41'
 
 # Data
-optimization_data = [{}]
+optimization_data = [{data_str}]
 
 if optimization_data:
     descriptions, improvements, confidences = zip(*optimization_data)
@@ -330,12 +329,11 @@ if optimization_data:
                 f'{{:.2f}}'.format(width2), ha='left', va='center', fontsize=9, color='#00ff41')
 
     plt.tight_layout()
-    plt.savefig('{}', dpi=150, bbox_inches='tight', facecolor='#0a0a0a')
-    print("Optimization chart saved to {}")
+    plt.savefig('{output_path}', dpi=150, bbox_inches='tight', facecolor='#0a0a0a')
+    print("Optimization chart saved to {output_path}")
 else:
     print("No optimization data available")
-"#,
-            data_str, output_path, output_path
+"#
         )
     }
 
@@ -397,13 +395,13 @@ print("Resource allocation chart saved to {}")
     fn execute_python_script(&self, script: &str) -> Result<(), String> {
         // Write script to temporary file
         let script_path = "temp_viz_script.py";
-        fs::write(script_path, script).map_err(|e| format!("Failed to write script: {}", e))?;
+        fs::write(script_path, script).map_err(|e| format!("Failed to write script: {e}"))?;
 
         // Execute Python script
         let output = Command::new("python")
             .arg(script_path)
             .output()
-            .map_err(|e| format!("Failed to execute Python script: {}", e))?;
+            .map_err(|e| format!("Failed to execute Python script: {e}"))?;
 
         // Clean up temporary file
         let _ = fs::remove_file(script_path);
@@ -412,7 +410,7 @@ print("Resource allocation chart saved to {}")
             Ok(())
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            Err(format!("Python script failed: {}", stderr))
+            Err(format!("Python script failed: {stderr}"))
         }
     }
 }

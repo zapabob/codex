@@ -265,7 +265,7 @@ impl ReasoningChain {
             .steps
             .iter()
             .filter_map(|s| s.result.as_ref())
-            .map(|r| format!("- {}\n", r))
+            .map(|r| format!("- {r}\n"))
             .collect();
 
         Ok(format!(

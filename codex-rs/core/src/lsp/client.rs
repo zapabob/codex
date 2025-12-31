@@ -132,9 +132,9 @@ impl LspClient {
             }
 
             // Parse Content-Length header
-            if line.starts_with("Content-Length:") {
-                if let Some(len_str) = line.strip_prefix("Content-Length:") {
-                    if let Ok(content_length) = len_str.trim().parse::<usize>() {
+            if line.starts_with("Content-Length:")
+                && let Some(len_str) = line.strip_prefix("Content-Length:")
+                    && let Ok(content_length) = len_str.trim().parse::<usize>() {
                         // Read empty line
                         let mut empty_line = String::new();
                         if reader.read_line(&mut empty_line).await.is_err() {
@@ -143,21 +143,16 @@ impl LspClient {
 
                         // Read message body
                         let mut body = vec![0u8; content_length];
-                        if reader.read_exact(&mut body).await.is_ok() {
-                            if let Ok(message) = serde_json::from_slice::<Value>(&body) {
-                                if let Some(id) = message.get("id").and_then(|v| v.as_u64()) {
-                                    if let Some(result) = message.get("result") {
+                        if reader.read_exact(&mut body).await.is_ok()
+                            && let Ok(message) = serde_json::from_slice::<Value>(&body)
+                                && let Some(id) = message.get("id").and_then(serde_json::Value::as_u64)
+                                    && let Some(result) = message.get("result") {
                                         let mut pending = pending_requests.lock().await;
                                         if let Some(tx) = pending.remove(&id) {
                                             let _ = tx.send(result.clone());
                                         }
                                     }
-                                }
-                            }
-                        }
                     }
-                }
-            }
         }
     }
 

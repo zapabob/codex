@@ -76,7 +76,7 @@ impl DynamicMcpLoader {
         // Check if server already exists
         let mut states = self.server_states.lock().await;
         if states.contains_key(&server_name) {
-            return Err(anyhow::anyhow!("Server '{}' already exists", server_name));
+            return Err(anyhow::anyhow!("Server '{server_name}' already exists"));
         }
 
         info!("Adding MCP server dynamically: {}", server_name);
@@ -120,7 +120,7 @@ impl DynamicMcpLoader {
     pub async fn remove_server(&self, server_name: &str) -> Result<()> {
         let mut states = self.server_states.lock().await;
         if !states.contains_key(server_name) {
-            return Err(anyhow::anyhow!("Server '{}' not found", server_name));
+            return Err(anyhow::anyhow!("Server '{server_name}' not found"));
         }
 
         info!("Removing MCP server: {}", server_name);

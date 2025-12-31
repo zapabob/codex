@@ -115,7 +115,7 @@ impl ConvexFunction {
             ConvexFunction::Quadratic {
                 quadratic_matrix, ..
             } => quadratic_matrix.len(),
-            ConvexFunction::Sum(functions) => functions.first().map(|f| f.dimension()).unwrap_or(0),
+            ConvexFunction::Sum(functions) => functions.first().map(ConvexFunction::dimension).unwrap_or(0),
         }
     }
 
@@ -223,6 +223,12 @@ pub struct MathematicalOptimizer {
     /// CUDA acceleration support (optional)
     #[cfg(feature = "cuda")]
     cuda_accel: Option<cuda_math::CudaLinearAlgebra>,
+}
+
+impl Default for MathematicalOptimizer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MathematicalOptimizer {
@@ -609,8 +615,8 @@ impl MathematicalOptimizer {
                 ConstraintType::Equal => {
                     // Equality constraints are more complex - simplified handling
                     let diff = value - constraint.bound;
-                    if diff.abs() > 1e-6 {
-                        if let ConvexFunction::Linear(coeffs) = &constraint.function {
+                    if diff.abs() > 1e-6
+                        && let ConvexFunction::Linear(coeffs) = &constraint.function {
                             let norm_squared: f64 = coeffs.iter().map(|c| c * c).sum();
                             if norm_squared > 0.0 {
                                 let step_size = diff / norm_squared;
@@ -620,7 +626,6 @@ impl MathematicalOptimizer {
                                 }
                             }
                         }
-                    }
                 }
             }
         }

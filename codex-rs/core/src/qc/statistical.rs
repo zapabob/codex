@@ -98,12 +98,12 @@ impl StatisticalAnalyzer {
         // Check if all groups have data
         for (i, group) in samples.iter().enumerate() {
             if group.is_empty() {
-                return Err(format!("Group {} has no data", i));
+                return Err(format!("Group {i} has no data"));
             }
         }
 
         // Calculate total number of observations
-        let n_total: usize = samples.iter().map(|g| g.len()).sum();
+        let n_total: usize = samples.iter().map(std::vec::Vec::len).sum();
         if n_total < 3 {
             return Err("ANOVA requires at least 3 total observations".to_string());
         }
@@ -386,7 +386,7 @@ impl StatisticalAnalyzer {
             }
         }
 
-        if lines.len() > 0 {
+        if !lines.is_empty() {
             (duplicate_lines as f64 / lines.len() as f64) * 100.0
         } else {
             0.0

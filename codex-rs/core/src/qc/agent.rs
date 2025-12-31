@@ -237,7 +237,7 @@ impl QcAgent {
     /// Perform comprehensive quality control analysis
     pub async fn analyze(&self, source: &str, target_name: &str) -> Result<QcReport, String> {
         if self.config.verbose {
-            println!("🔍 Starting QC analysis for: {}", target_name);
+            println!("🔍 Starting QC analysis for: {target_name}");
         }
 
         let mut outputs = Vec::new();
@@ -307,7 +307,7 @@ impl QcAgent {
                     .visualizer
                     .generate_optimization_chart(&filtered_suggestions, &chart_path)
                 {
-                    eprintln!("Warning: Failed to generate optimization chart: {}", e);
+                    eprintln!("Warning: Failed to generate optimization chart: {e}");
                 } else {
                     outputs.push(chart_path);
                 }
@@ -373,7 +373,7 @@ impl QcAgent {
                     .visualizer
                     .generate_resource_chart(&allocation, &chart_path)
                 {
-                    eprintln!("Warning: Failed to generate resource chart: {}", e);
+                    eprintln!("Warning: Failed to generate resource chart: {e}");
                 } else {
                     outputs.push(chart_path);
                 }
@@ -440,7 +440,7 @@ impl QcAgent {
                 .visualizer
                 .generate_quality_dashboard(&metrics.statistical.code_stats, &dashboard_path)
             {
-                eprintln!("Warning: Failed to generate quality dashboard: {}", e);
+                eprintln!("Warning: Failed to generate quality dashboard: {e}");
             } else {
                 outputs.push(dashboard_path);
             }
@@ -456,10 +456,10 @@ impl QcAgent {
         };
 
         if self.config.verbose {
-            println!("✅ QC analysis completed for: {}", target_name);
+            println!("✅ QC analysis completed for: {target_name}");
             println!(
                 "📊 Overall quality score: {:.2}/1.0",
-                scores.clone().overall
+                scores.overall
             );
         }
 
@@ -629,10 +629,10 @@ impl QcAgent {
         // Create output directory if it doesn't exist
         if let Some(parent) = Path::new(path).parent() {
             std::fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create directory: {}", e))?;
+                .map_err(|e| format!("Failed to create directory: {e}"))?;
         }
 
-        std::fs::write(path, content).map_err(|e| format!("Failed to write report: {}", e))?;
+        std::fs::write(path, content).map_err(|e| format!("Failed to write report: {e}"))?;
         Ok(())
     }
 

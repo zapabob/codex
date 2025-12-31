@@ -98,21 +98,19 @@ impl AstConflictDetector {
             let line = line.trim();
 
             // Detect function definitions
-            if line.starts_with("fn ") || line.starts_with("pub fn ") {
-                if let Some(end) = line.find('(') {
+            if (line.starts_with("fn ") || line.starts_with("pub fn "))
+                && let Some(end) = line.find('(') {
                     let func_name = line[if line.starts_with("pub ") { 7 } else { 3 }..end].trim();
                     functions.push(func_name.to_string());
                 }
-            }
 
             // Detect struct definitions
-            if line.starts_with("struct ") || line.starts_with("pub struct ") {
-                if let Some(end) = line.find('{') {
+            if (line.starts_with("struct ") || line.starts_with("pub struct "))
+                && let Some(end) = line.find('{') {
                     let struct_name =
                         line[if line.starts_with("pub ") { 10 } else { 7 }..end].trim();
                     structs.push(struct_name.to_string());
                 }
-            }
 
             // Detect imports
             if line.starts_with("use ") {
@@ -158,23 +156,21 @@ impl AstConflictDetector {
     ) -> f64 {
         for f1 in files1 {
             for f2 in files2 {
-                if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent()) {
-                    if p1 == p2 {
+                if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent())
+                    && p1 == p2 {
                         // Same directory - potential conflict
                         return 0.3;
                     }
-                }
 
                 // Check file name similarity (without extension)
                 let n1 = f1.file_stem().and_then(|s| s.to_str());
                 let n2 = f2.file_stem().and_then(|s| s.to_str());
 
-                if let (Some(n1), Some(n2)) = (n1, n2) {
-                    if n1.contains(n2) || n2.contains(n1) {
+                if let (Some(n1), Some(n2)) = (n1, n2)
+                    && (n1.contains(n2) || n2.contains(n1)) {
                         // Similar names - potential conflict
                         return 0.2;
                     }
-                }
             }
         }
 
@@ -218,7 +214,7 @@ impl ConflictDetectorTrait for AstConflictDetector {
             if conflict_prob > 0.5 {
                 conflicts.push(LockConflict {
                     conflicting_lock: lock.clone(),
-                    reason: format!("High semantic conflict probability: {:.2}", conflict_prob),
+                    reason: format!("High semantic conflict probability: {conflict_prob:.2}"),
                     resolution: if conflict_prob > 0.8 {
                         ConflictResolution::AlternativePath
                     } else {
@@ -242,8 +238,7 @@ impl ConflictDetectorTrait for AstConflictDetector {
 
         // Add repository state factors
         let repo_factor = match Repository::open(repo_path)
-            .ok()
-            .and_then(|r| Some(r.state()))
+            .ok().map(|r| r.state())
         {
             Some(git2::RepositoryState::Merge) => 0.3, // Ongoing merge increases conflict risk
             Some(git2::RepositoryState::Rebase)
@@ -259,6 +254,12 @@ impl ConflictDetectorTrait for AstConflictDetector {
 pub struct MLConflictPredictor {
     /// Trained model weights (placeholder)
     model_weights: BTreeMap<String, f64>,
+}
+
+impl Default for MLConflictPredictor {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MLConflictPredictor {
@@ -316,12 +317,11 @@ impl MLConflictPredictor {
                 let mut dir_score = 0.0;
                 for f1 in files1 {
                     for f2 in files2 {
-                        if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent()) {
-                            if p1 == p2 {
+                        if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent())
+                            && p1 == p2 {
                                 dir_score = 1.0;
                                 break;
                             }
-                        }
                     }
                 }
                 features.insert("directory_proximity".to_string(), dir_score);
@@ -366,7 +366,7 @@ impl ConflictDetectorTrait for MLConflictPredictor {
             if prob > 0.6 {
                 conflicts.push(LockConflict {
                     conflicting_lock: lock.clone(),
-                    reason: format!("ML predicted conflict probability: {:.2}", prob),
+                    reason: format!("ML predicted conflict probability: {prob:.2}"),
                     resolution: if prob > 0.8 {
                         ConflictResolution::RetryLater
                     } else {

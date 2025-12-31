@@ -479,8 +479,8 @@ impl QCOptimizer {
         let mut total_score = 0.0;
 
         for (task_id, agent_name) in assignments {
-            if let Some(task) = tasks.iter().find(|t| t.id == *task_id) {
-                if let Some(agent) = agents.iter().find(|a| a.name == *agent_name) {
+            if let Some(task) = tasks.iter().find(|t| t.id == *task_id)
+                && let Some(agent) = agents.iter().find(|a| a.name == *agent_name) {
                     // Calculate assignment quality score
                     let priority_score = task.priority as i32 as f64 * 10.0;
                     let specialization_match = task
@@ -497,7 +497,6 @@ impl QCOptimizer {
 
                     total_score += priority_score + specialization_match + workload_penalty;
                 }
-            }
         }
 
         total_score
@@ -606,8 +605,7 @@ impl AIOrchestrator {
         max_concurrent_agents: usize,
     ) -> std::result::Result<QcQualityAssuranceResult, String> {
         println!(
-            "🔍 Starting QC Quality Assurance workflow for: {}",
-            codebase_path
+            "🔍 Starting QC Quality Assurance workflow for: {codebase_path}"
         );
 
         // Initialize QC agent coordinator
@@ -726,11 +724,10 @@ impl AIOrchestrator {
                                 | "kt"
                                 | "scala"
                                 | "clj"
-                        ) {
-                            if let Ok(content) = fs::read_to_string(&path) {
+                        )
+                            && let Ok(content) = fs::read_to_string(&path) {
                                 files.push(content);
                             }
-                        }
                     }
                 }
             }
@@ -782,30 +779,29 @@ impl AIOrchestrator {
 
                 if let Some(result_data) = &result.result {
                     // Parse QC scores from result (simplified)
-                    if let Some(scores) = result_data.get("quality_scores") {
-                        if let Some(scores_obj) = scores.as_object() {
+                    if let Some(scores) = result_data.get("quality_scores")
+                        && let Some(scores_obj) = scores.as_object() {
                             average_scores.readability += scores_obj
                                 .get("readability")
-                                .and_then(|v| v.as_f64())
+                                .and_then(serde_json::Value::as_f64)
                                 .unwrap_or(0.0);
                             average_scores.maintainability += scores_obj
                                 .get("maintainability")
-                                .and_then(|v| v.as_f64())
+                                .and_then(serde_json::Value::as_f64)
                                 .unwrap_or(0.0);
                             average_scores.performance += scores_obj
                                 .get("performance")
-                                .and_then(|v| v.as_f64())
+                                .and_then(serde_json::Value::as_f64)
                                 .unwrap_or(0.0);
                             average_scores.security += scores_obj
                                 .get("security")
-                                .and_then(|v| v.as_f64())
+                                .and_then(serde_json::Value::as_f64)
                                 .unwrap_or(0.0);
                             average_scores.overall += scores_obj
                                 .get("overall")
-                                .and_then(|v| v.as_f64())
+                                .and_then(serde_json::Value::as_f64)
                                 .unwrap_or(0.0);
                         }
-                    }
                 }
             }
 

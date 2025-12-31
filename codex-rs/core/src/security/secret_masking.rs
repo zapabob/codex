@@ -91,20 +91,20 @@ pub fn mask_secrets(text: &str) -> String {
 fn log_regex_error(regex_name: &str) {
     let mut error = REGEX_COMPILATION_ERROR.lock().unwrap();
     if error.is_none() {
-        *error = Some(format!("Regex compilation failed for {}", regex_name));
+        *error = Some(format!("Regex compilation failed for {regex_name}"));
         tracing::error!("Secret masking regex compilation failed: {}", regex_name);
     }
 }
 
 /// Mask secrets in error messages
 pub fn mask_error_message(error: &dyn std::error::Error) -> String {
-    let error_string = format!("{}", error);
+    let error_string = format!("{error}");
     mask_secrets(&error_string)
 }
 
 /// Mask secrets in debug output
 pub fn mask_debug_output<T: std::fmt::Debug>(value: &T) -> String {
-    let debug_string = format!("{:?}", value);
+    let debug_string = format!("{value:?}");
     mask_secrets(&debug_string)
 }
 

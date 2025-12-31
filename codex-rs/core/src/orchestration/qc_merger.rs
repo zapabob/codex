@@ -190,18 +190,16 @@ impl QcMerger {
             .filter_map(Result::ok)
         {
             let path = entry.path();
-            if path.is_file() {
-                if let Some(ext) = path.extension() {
-                    if ext == "rs" || ext == "ts" || ext == "tsx" || ext == "js" || ext == "jsx" {
-                        if let Ok(content) = fs::read_to_string(path) {
+            if path.is_file()
+                && let Some(ext) = path.extension() {
+                    if (ext == "rs" || ext == "ts" || ext == "tsx" || ext == "js" || ext == "jsx")
+                        && let Ok(content) = fs::read_to_string(path) {
                             let display = path.display();
                             source_content.push_str(&format!("\n// File: {display}\n"));
                             source_content.push_str(&content);
                             source_content.push('\n');
                         }
-                    }
                 }
-            }
         }
 
         if source_content.is_empty() {

@@ -63,9 +63,9 @@ impl McpTokenOptimizer {
     /// Track tool usage
     pub async fn track_tool_usage(&self, tool_name: &str, server_name: &str, tokens: u64) {
         let mut stats = self.tool_usage_stats.lock().await;
-        let key = format!("{}__{}", server_name, tool_name);
+        let key = format!("{server_name}__{tool_name}");
 
-        let stat = stats.entry(key.clone()).or_insert_with(|| ToolUsageStats {
+        let stat = stats.entry(key).or_insert_with(|| ToolUsageStats {
             tool_name: tool_name.to_string(),
             server_name: server_name.to_string(),
             usage_count: 0,
@@ -96,11 +96,10 @@ impl McpTokenOptimizer {
                 continue;
             }
 
-            if let Ok(elapsed) = now.duration_since(stat.last_used) {
-                if elapsed > threshold {
+            if let Ok(elapsed) = now.duration_since(stat.last_used)
+                && elapsed > threshold {
                     unused.push(key.clone());
                 }
-            }
         }
 
         unused
@@ -141,7 +140,9 @@ impl McpTokenOptimizer {
         let description = tool.description.as_deref().unwrap_or("");
 
         // Simple compression: keep first sentence and key parameters
-        let compressed = if description.len() > 200 {
+        
+
+        if description.len() > 200 {
             // Take first sentence or first 150 chars
             let first_sentence = description
                 .split('.')
@@ -150,9 +151,7 @@ impl McpTokenOptimizer {
             format!("{}...", first_sentence.trim())
         } else {
             description.to_string()
-        };
-
-        compressed
+        }
     }
 
     /// Estimate tokens for a list of tools
@@ -220,7 +219,7 @@ impl McpTokenOptimizer {
             loop {
                 sleep(interval).await;
 
-                if let Err(e) = self.auto_unload_unused(&*loader).await {
+                if let Err(e) = self.auto_unload_unused(&loader).await {
                     warn!("Failed to auto-unload unused tools: {}", e);
                 }
             }

@@ -66,8 +66,8 @@ impl RepositoryLock {
     /// Attempt to acquire the lock
     pub fn acquire(&self, ttl_secs: Option<u64>) -> Result<LockMetadata> {
         // Check for existing lock and clean up stale locks
-        if self.lock_path.exists() {
-            if let Ok(existing) = self.read_lock() {
+        if self.lock_path.exists()
+            && let Ok(existing) = self.read_lock() {
                 if self.is_lock_alive(&existing) {
                     return Err(anyhow!(
                         "Lock is held by PID {} on {} since {}",
@@ -79,7 +79,6 @@ impl RepositoryLock {
                 // Stale lock, will be overwritten
                 tracing::info!("Removing stale lock from PID {}", existing.pid);
             }
-        }
 
         let metadata = self.create_lock_metadata(ttl_secs)?;
         self.write_lock(&metadata)?;
@@ -270,7 +269,7 @@ fn is_process_alive(pid: u32) -> bool {
         use std::process::Command;
         // On Windows, use tasklist to check
         Command::new("tasklist")
-            .args(&["/FI", &format!("PID eq {}", pid)])
+            .args(&["/FI", &format!("PID eq {pid}")])
             .output()
             .ok()
             .and_then(|output| String::from_utf8(output.stdout).ok())

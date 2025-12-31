@@ -106,7 +106,7 @@ impl McpApiServer {
         self.loader
             .remove_server(name)
             .await
-            .with_context(|| format!("Failed to remove server: {}", name))
+            .with_context(|| format!("Failed to remove server: {name}"))
     }
 
     /// Handle reload server request
@@ -118,7 +118,7 @@ impl McpApiServer {
         self.loader
             .reload_server(name, request.config)
             .await
-            .with_context(|| format!("Failed to reload server: {}", name))
+            .with_context(|| format!("Failed to reload server: {name}"))
     }
 
     /// Handle list servers request
