@@ -13,7 +13,6 @@ use mcp_types::ContentBlock;
 use mcp_types::ListToolsResult;
 use mcp_types::TextContent;
 use mcp_types::Tool;
-use mcp_types::ToolInputSchema;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -180,12 +179,30 @@ impl LspToolHandler {
         tool_call: CallToolRequestParams,
     ) -> Result<CallToolResult> {
         match tool_call.name.as_str() {
-            "lsp_get_diagnostics" => self.handle_get_diagnostics(tool_call.arguments).await,
-            "lsp_start_server" => self.handle_start_server(tool_call.arguments).await,
-            "lsp_stop_server" => self.handle_stop_server(tool_call.arguments).await,
-            "lsp_get_completions" => self.handle_get_completions(tool_call.arguments).await,
-            "lsp_get_hover" => self.handle_get_hover(tool_call.arguments).await,
-            "lsp_get_statistics" => self.handle_get_statistics(tool_call.arguments).await,
+            "lsp_get_diagnostics" => {
+                self.handle_get_diagnostics(tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
+            "lsp_start_server" => {
+                self.handle_start_server(tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
+            "lsp_stop_server" => {
+                self.handle_stop_server(tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
+            "lsp_get_completions" => {
+                self.handle_get_completions(tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
+            "lsp_get_hover" => {
+                self.handle_get_hover(tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
+            "lsp_get_statistics" => {
+                self.handle_get_statistics(tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
             _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_call.name)),
         }
     }

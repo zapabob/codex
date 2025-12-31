@@ -12,7 +12,6 @@ use mcp_types::ContentBlock;
 use mcp_types::ListToolsResult;
 use mcp_types::TextContent;
 use mcp_types::Tool;
-use mcp_types::ToolInputSchema;
 use serde_json::Value;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -200,23 +199,32 @@ impl Microsoft365ToolHandler {
             .context("Microsoft 365 not authenticated. Please configure client_id and tenant_id in config.toml")?;
 
         match tool_call.name.as_str() {
-            "m365_word_read" => self.handle_word_read(client, tool_call.arguments).await,
-            "m365_word_create" => self.handle_word_create(client, tool_call.arguments).await,
-            "m365_excel_read" => self.handle_excel_read(client, tool_call.arguments).await,
+            "m365_word_read" => {
+                self.handle_word_read(client, tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
+            "m365_word_create" => {
+                self.handle_word_create(client, tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
+            "m365_excel_read" => {
+                self.handle_excel_read(client, tool_call.arguments.unwrap_or(Value::Null))
+                    .await
+            }
             "m365_excel_update_cell" => {
-                self.handle_excel_update_cell(client, tool_call.arguments)
+                self.handle_excel_update_cell(client, tool_call.arguments.unwrap_or(Value::Null))
                     .await
             }
             "m365_powerpoint_read" => {
-                self.handle_powerpoint_read(client, tool_call.arguments)
+                self.handle_powerpoint_read(client, tool_call.arguments.unwrap_or(Value::Null))
                     .await
             }
             "m365_outlook_send_email" => {
-                self.handle_outlook_send_email(client, tool_call.arguments)
+                self.handle_outlook_send_email(client, tool_call.arguments.unwrap_or(Value::Null))
                     .await
             }
             "m365_outlook_get_calendar" => {
-                self.handle_outlook_get_calendar(client, tool_call.arguments)
+                self.handle_outlook_get_calendar(client, tool_call.arguments.unwrap_or(Value::Null))
                     .await
             }
             _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_call.name)),
