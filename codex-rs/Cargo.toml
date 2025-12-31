@@ -27,6 +27,7 @@ members = [
     "lmstudio",
     "login",
     "mcp-server",
+    "microsoft365",
     "mcp-types",
     "ollama",
     "orchestrator",

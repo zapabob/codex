@@ -30,16 +30,20 @@ mod dev_mode_cmd;
 mod git_commands;
 mod lock_cmd;
 mod mcp_cmd;
+mod organization_cmd;
 mod plan_commands;
 mod qc_cmd;
+mod ultrathink_cmd;
 mod webhook_cmd;
 mod wsl_paths;
 
 use crate::git_commands::GitAnalyzeCli;
 use crate::lock_cmd::LockCli;
 use crate::mcp_cmd::McpCli;
+use crate::organization_cmd::{run_organization_command, OrganizationCli};
 use crate::plan_commands::PlanCli;
 use crate::qc_cmd::QcCli;
+use crate::ultrathink_cmd::{run_ultrathink, UltrathinkCli};
 use crate::webhook_cmd::WebhookCli;
 use crate::wsl_paths::normalize_for_wsl;
 use codex_core::config::Config;
@@ -213,6 +217,12 @@ enum Subcommand {
 
     /// [EXPERIMENTAL] Plan Mode commands
     Plan(PlanCli),
+
+    /// [EXPERIMENTAL] Ultrathink Mode - Deep reasoning chains for complex problems
+    Ultrathink(UltrathinkCli),
+
+    /// [EXPERIMENTAL] Organization management and Skills sharing
+    Org(OrganizationCli),
 
     /// [EXPERIMENTAL] Git repository analysis for 3D/4D visualization
     #[clap(name = "git-analyze")]
@@ -1033,6 +1043,13 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
         },
         Some(Subcommand::Plan(plan_cli)) => {
             plan_commands::run_plan_command(plan_cli).await?;
+        }
+        Some(Subcommand::Ultrathink(ultrathink_cli)) => {
+            run_ultrathink(ultrathink_cli).await?;
+        }
+        Some(Subcommand::Org(org_cli)) => {
+            let codex_home = find_codex_home()?;
+            run_organization_command(org_cli, codex_home).await?;
         }
         Some(Subcommand::GitAnalyze(git_cli)) => {
             git_commands::run_git_analyze_command(git_cli).await?;

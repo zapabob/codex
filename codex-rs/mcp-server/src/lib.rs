@@ -26,6 +26,8 @@ mod codex_tool_runner;
 pub mod codex_tools;
 mod custom_command_tool;
 mod custom_command_tool_handler;
+mod datetime_tool;
+mod datetime_tool_handler;
 mod deep_research_tool;
 mod deep_research_tool_handler;
 mod error_code;
@@ -39,6 +41,8 @@ mod subagent_tool;
 mod subagent_tool_handler;
 mod supervisor_tool;
 mod supervisor_tool_handler;
+mod lsp_tool_handler;
+mod microsoft365_tool_handler;
 
 use crate::message_processor::MessageProcessor;
 use crate::outgoing_message::OutgoingMessage;

@@ -37,6 +37,14 @@ pub enum ThinkingStepType {
     Verification,
     /// 結論
     Conclusion,
+    /// Ultrathink Mode: 深い推論チェーン
+    DeepReasoning,
+    /// Ultrathink Mode: 反証チェック
+    CounterEvidenceCheck,
+    /// Ultrathink Mode: 多段階推論
+    MultiStepReasoning,
+    /// Ultrathink Mode: 依存関係分析
+    DependencyAnalysis,
 }
 
 /// 思考プロセス
@@ -131,6 +139,87 @@ impl ThinkingProcess {
         self.steps.clear();
         self.current_phase = ThinkingStepType::ProblemAnalysis;
         self.overall_confidence = 0.0;
+    }
+
+    /// Ultrathink Mode用: 深い推論チェーンを追加
+    pub fn add_deep_reasoning_step(&mut self, reasoning: String, confidence: f32) {
+        let step = ThinkingStep {
+            step_id: uuid::Uuid::new_v4().to_string(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+            step_type: ThinkingStepType::DeepReasoning,
+            content: reasoning.clone(),
+            confidence,
+            reasoning,
+        };
+        self.add_step(step);
+    }
+
+    /// Ultrathink Mode用: 反証チェックを追加
+    pub fn add_counter_evidence_check(&mut self, evidence: String, confidence: f32) {
+        let step = ThinkingStep {
+            step_id: uuid::Uuid::new_v4().to_string(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+            step_type: ThinkingStepType::CounterEvidenceCheck,
+            content: evidence.clone(),
+            confidence,
+            reasoning: format!("Checking for counter-evidence: {}", evidence),
+        };
+        self.add_step(step);
+    }
+
+    /// Ultrathink Mode用: 多段階推論を追加
+    pub fn add_multi_step_reasoning(&mut self, steps: Vec<String>, overall_confidence: f32) {
+        for (i, step_content) in steps.iter().enumerate() {
+            let step = ThinkingStep {
+                step_id: uuid::Uuid::new_v4().to_string(),
+                timestamp: chrono::Utc::now().to_rfc3339(),
+                step_type: ThinkingStepType::MultiStepReasoning,
+                content: step_content.clone(),
+                confidence: overall_confidence,
+                reasoning: format!("Multi-step reasoning step {}: {}", i + 1, step_content),
+            };
+            self.add_step(step);
+        }
+    }
+
+    /// Ultrathink Mode用: 依存関係分析を追加
+    pub fn add_dependency_analysis(&mut self, dependencies: Vec<String>, confidence: f32) {
+        let analysis = format!(
+            "Dependency analysis: {} dependencies identified",
+            dependencies.len()
+        );
+        let step = ThinkingStep {
+            step_id: uuid::Uuid::new_v4().to_string(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+            step_type: ThinkingStepType::DependencyAnalysis,
+            content: analysis.clone(),
+            confidence,
+            reasoning: format!("Dependencies: {}", dependencies.join(", ")),
+        };
+        self.add_step(step);
+    }
+
+    /// Ultrathink Mode用: 推論チェーンの可視化データを取得
+    pub fn get_reasoning_chain_visualization(&self) -> String {
+        let mut visualization = String::from("Reasoning Chain Visualization:\n\n");
+        
+        for (i, step) in self.steps.iter().enumerate() {
+            visualization.push_str(&format!(
+                "Step {}: {:?}\n",
+                i + 1,
+                step.step_type
+            ));
+            visualization.push_str(&format!("  Content: {}\n", step.content));
+            visualization.push_str(&format!("  Confidence: {:.1}%\n", step.confidence * 100.0));
+            visualization.push_str(&format!("  Reasoning: {}\n\n", step.reasoning));
+        }
+
+        visualization.push_str(&format!(
+            "Overall Confidence: {:.1}%\n",
+            self.overall_confidence * 100.0
+        ));
+
+        visualization
     }
 }
 

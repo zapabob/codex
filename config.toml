@@ -245,6 +245,30 @@ include_mcp_calls = true
 include_tool_args = true
 log_dir = "~/.codex/audit-logs"
 
+# ==================== LSP統合 ====================
+[lsp]
+enabled = true
+servers = ["rust-analyzer", "typescript", "python"]
+diagnostics_realtime = true
+
+# ==================== Ultrathink Mode ====================
+[ultrathink]
+enabled = true
+max_chain_depth = 10
+timeout_seconds = 300
+
+# ==================== Microsoft 365統合 ====================
+[microsoft365]
+enabled = false
+client_id = ""
+tenant_id = ""
+scopes = ["Files.ReadWrite", "Mail.ReadWrite"]
+
+# ==================== Organizations ====================
+[organizations]
+enabled = true
+database_path = ".codex/organizations.db"
+
 # ==================== チェック完了 ====================
 # 🎉 全チェックリスト完了（2025-10-24）
 # - コンパイルチェックス PASS

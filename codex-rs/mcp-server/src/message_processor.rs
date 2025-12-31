@@ -1,4 +1,4 @@
-﻿use std::collections::HashMap;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::codex_tool_config::CodexToolCallParam;
@@ -312,6 +312,7 @@ impl MessageProcessor {
                 crate::custom_command_tool::create_custom_command_tool(),
                 crate::hook_tool::create_hook_tool(),
                 crate::auto_orchestrator_tool::create_auto_orchestrator_tool(),
+                crate::datetime_tool::create_datetime_tool(),
             ],
             next_cursor: None,
         };
@@ -342,6 +343,7 @@ impl MessageProcessor {
             "codex-auto-orchestrate" => {
                 self.handle_tool_call_auto_orchestrator(id, arguments).await
             }
+            "codex-datetime" => self.handle_tool_call_datetime(id, arguments).await,
             _ => {
                 let result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
@@ -792,5 +794,16 @@ impl MessageProcessor {
                     .await;
             }
         }
+    }
+
+    async fn handle_tool_call_datetime(
+        &self,
+        id: RequestId,
+        arguments: Option<serde_json::Value>,
+    ) {
+        let result = crate::datetime_tool_handler::handle_datetime_tool_call(id.clone(), arguments)
+            .await;
+        self.send_response::<mcp_types::CallToolRequest>(id, result)
+            .await;
     }
 }

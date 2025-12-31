@@ -20,10 +20,12 @@ cuda = ["dep:codex-cuda-runtime"]
 
 [dependencies]
 anyhow = { workspace = true }
+chrono = { workspace = true }
 codex-arg0 = { workspace = true }
 codex-common = { workspace = true, features = ["cli"] }
 codex-core = { workspace = true }
 codex-deep-research = { path = "../deep-research" }
+codex-microsoft365 = { path = "../microsoft365" }
 codex-protocol = { workspace = true }
 codex-web-search = { path = "../web-search" }
 codex-utils-json-to-toml = { workspace = true }

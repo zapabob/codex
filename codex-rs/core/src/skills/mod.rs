@@ -3,6 +3,7 @@ pub mod loader;
 pub mod manager;
 pub mod model;
 pub mod render;
+pub mod sharing;
 pub mod system;
 
 pub(crate) use injection::SkillInjections;
@@ -13,3 +14,4 @@ pub use model::SkillError;
 pub use model::SkillLoadOutcome;
 pub use model::SkillMetadata;
 pub use render::render_skills_section;
+pub use sharing::SkillsSharingManager;
