@@ -14,6 +14,7 @@ use crate::mcp_dynamic_loader::DynamicMcpLoader;
 use crate::mcp_token_optimizer::McpTokenOptimizer;
 
 /// Selective tool loader for task-based loading
+#[allow(dead_code)]
 pub struct SelectiveToolLoader {
     optimizer: Arc<McpTokenOptimizer>,
     dynamic_loader: Arc<DynamicMcpLoader>,

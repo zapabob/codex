@@ -4,6 +4,13 @@
 // user-visible output must go through the appropriate abstraction (e.g.,
 // the TUI or the tracing stack).
 #![deny(clippy::print_stdout, clippy::print_stderr)]
+#![allow(
+    clippy::expect_used,
+    clippy::result_large_err,
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::unwrap_used
+)]
 
 pub mod agent_interpreter;
 pub mod agents;

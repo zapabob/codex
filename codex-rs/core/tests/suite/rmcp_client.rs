@@ -1032,6 +1032,7 @@ async fn wait_for_streamable_http_server(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn write_fallback_oauth_tokens(
     home: &Path,
     server_name: &str,

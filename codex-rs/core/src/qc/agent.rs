@@ -457,10 +457,7 @@ impl QcAgent {
 
         if self.config.verbose {
             println!("✅ QC analysis completed for: {target_name}");
-            println!(
-                "📊 Overall quality score: {:.2}/1.0",
-                scores.overall
-            );
+            println!("📊 Overall quality score: {:.2}/1.0", scores.overall);
         }
 
         Ok(report)

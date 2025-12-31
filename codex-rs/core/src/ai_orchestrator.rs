@@ -480,23 +480,24 @@ impl QCOptimizer {
 
         for (task_id, agent_name) in assignments {
             if let Some(task) = tasks.iter().find(|t| t.id == *task_id)
-                && let Some(agent) = agents.iter().find(|a| a.name == *agent_name) {
-                    // Calculate assignment quality score
-                    let priority_score = task.priority as i32 as f64 * 10.0;
-                    let specialization_match = task
-                        .tags
-                        .iter()
-                        .filter(|tag| agent.specialization.contains(tag))
-                        .count() as f64
-                        * 5.0;
-                    let workload_penalty = if agent.current_tasks >= agent.max_concurrent_tasks {
-                        -20.0
-                    } else {
-                        0.0
-                    };
+                && let Some(agent) = agents.iter().find(|a| a.name == *agent_name)
+            {
+                // Calculate assignment quality score
+                let priority_score = task.priority as i32 as f64 * 10.0;
+                let specialization_match = task
+                    .tags
+                    .iter()
+                    .filter(|tag| agent.specialization.contains(tag))
+                    .count() as f64
+                    * 5.0;
+                let workload_penalty = if agent.current_tasks >= agent.max_concurrent_tasks {
+                    -20.0
+                } else {
+                    0.0
+                };
 
-                    total_score += priority_score + specialization_match + workload_penalty;
-                }
+                total_score += priority_score + specialization_match + workload_penalty;
+            }
         }
 
         total_score
@@ -604,9 +605,7 @@ impl AIOrchestrator {
         quality_requirements: QualityRequirements,
         max_concurrent_agents: usize,
     ) -> std::result::Result<QcQualityAssuranceResult, String> {
-        println!(
-            "🔍 Starting QC Quality Assurance workflow for: {codebase_path}"
-        );
+        println!("🔍 Starting QC Quality Assurance workflow for: {codebase_path}");
 
         // Initialize QC agent coordinator
         let coordinator = AgentCoordinator::new();
@@ -724,10 +723,10 @@ impl AIOrchestrator {
                                 | "kt"
                                 | "scala"
                                 | "clj"
-                        )
-                            && let Ok(content) = fs::read_to_string(&path) {
-                                files.push(content);
-                            }
+                        ) && let Ok(content) = fs::read_to_string(&path)
+                        {
+                            files.push(content);
+                        }
                     }
                 }
             }
@@ -780,28 +779,29 @@ impl AIOrchestrator {
                 if let Some(result_data) = &result.result {
                     // Parse QC scores from result (simplified)
                     if let Some(scores) = result_data.get("quality_scores")
-                        && let Some(scores_obj) = scores.as_object() {
-                            average_scores.readability += scores_obj
-                                .get("readability")
-                                .and_then(serde_json::Value::as_f64)
-                                .unwrap_or(0.0);
-                            average_scores.maintainability += scores_obj
-                                .get("maintainability")
-                                .and_then(serde_json::Value::as_f64)
-                                .unwrap_or(0.0);
-                            average_scores.performance += scores_obj
-                                .get("performance")
-                                .and_then(serde_json::Value::as_f64)
-                                .unwrap_or(0.0);
-                            average_scores.security += scores_obj
-                                .get("security")
-                                .and_then(serde_json::Value::as_f64)
-                                .unwrap_or(0.0);
-                            average_scores.overall += scores_obj
-                                .get("overall")
-                                .and_then(serde_json::Value::as_f64)
-                                .unwrap_or(0.0);
-                        }
+                        && let Some(scores_obj) = scores.as_object()
+                    {
+                        average_scores.readability += scores_obj
+                            .get("readability")
+                            .and_then(serde_json::Value::as_f64)
+                            .unwrap_or(0.0);
+                        average_scores.maintainability += scores_obj
+                            .get("maintainability")
+                            .and_then(serde_json::Value::as_f64)
+                            .unwrap_or(0.0);
+                        average_scores.performance += scores_obj
+                            .get("performance")
+                            .and_then(serde_json::Value::as_f64)
+                            .unwrap_or(0.0);
+                        average_scores.security += scores_obj
+                            .get("security")
+                            .and_then(serde_json::Value::as_f64)
+                            .unwrap_or(0.0);
+                        average_scores.overall += scores_obj
+                            .get("overall")
+                            .and_then(serde_json::Value::as_f64)
+                            .unwrap_or(0.0);
+                    }
                 }
             }
 

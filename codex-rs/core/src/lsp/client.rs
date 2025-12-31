@@ -134,25 +134,27 @@ impl LspClient {
             // Parse Content-Length header
             if line.starts_with("Content-Length:")
                 && let Some(len_str) = line.strip_prefix("Content-Length:")
-                    && let Ok(content_length) = len_str.trim().parse::<usize>() {
-                        // Read empty line
-                        let mut empty_line = String::new();
-                        if reader.read_line(&mut empty_line).await.is_err() {
-                            break;
-                        }
+                && let Ok(content_length) = len_str.trim().parse::<usize>()
+            {
+                // Read empty line
+                let mut empty_line = String::new();
+                if reader.read_line(&mut empty_line).await.is_err() {
+                    break;
+                }
 
-                        // Read message body
-                        let mut body = vec![0u8; content_length];
-                        if reader.read_exact(&mut body).await.is_ok()
-                            && let Ok(message) = serde_json::from_slice::<Value>(&body)
-                                && let Some(id) = message.get("id").and_then(serde_json::Value::as_u64)
-                                    && let Some(result) = message.get("result") {
-                                        let mut pending = pending_requests.lock().await;
-                                        if let Some(tx) = pending.remove(&id) {
-                                            let _ = tx.send(result.clone());
-                                        }
-                                    }
+                // Read message body
+                let mut body = vec![0u8; content_length];
+                if reader.read_exact(&mut body).await.is_ok()
+                    && let Ok(message) = serde_json::from_slice::<Value>(&body)
+                    && let Some(id) = message.get("id").and_then(serde_json::Value::as_u64)
+                    && let Some(result) = message.get("result")
+                {
+                    let mut pending = pending_requests.lock().await;
+                    if let Some(tx) = pending.remove(&id) {
+                        let _ = tx.send(result.clone());
                     }
+                }
+            }
         }
     }
 
@@ -387,7 +389,3 @@ impl Drop for LspClient {
         }
     }
 }
-
-// Helper type aliases for LSP notifications
-type DidOpenTextDocumentParams = lsp_types::DidOpenTextDocumentParams;
-type DidChangeTextDocumentParams = lsp_types::DidChangeTextDocumentParams;

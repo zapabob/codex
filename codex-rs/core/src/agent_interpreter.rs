@@ -219,9 +219,10 @@ impl AgentInterpreter {
         if let Some(caps) = ORCHESTRATION_REGEX.captures(input) {
             let mut parameters = HashMap::new();
             if let Some(agent_list_match) = ORCHESTRATION_AGENT_LIST_REGEX.captures(input)
-                && let Some(agent_list) = agent_list_match.name("agents") {
-                    parameters.insert("agents".to_string(), agent_list.as_str().trim().to_string());
-                }
+                && let Some(agent_list) = agent_list_match.name("agents")
+            {
+                parameters.insert("agents".to_string(), agent_list.as_str().trim().to_string());
+            }
 
             if let Some(agent_capture) = caps.name("agents") {
                 parameters.insert(
@@ -533,9 +534,10 @@ fn extract_channel_name(input: &str) -> Option<String> {
     let tokens: Vec<&str> = input.split_whitespace().collect();
     for window in tokens.windows(2) {
         if window[0].eq_ignore_ascii_case("channel")
-            && let Some(channel) = clean_channel_token(window[1]) {
-                return Some(channel);
-            }
+            && let Some(channel) = clean_channel_token(window[1])
+        {
+            return Some(channel);
+        }
     }
 
     tokens.iter().find_map(|token| clean_channel_token(token))
@@ -543,12 +545,13 @@ fn extract_channel_name(input: &str) -> Option<String> {
 
 fn extract_webhook_message(input: &str) -> String {
     if let Some(captures) = WEBHOOK_TEXT_REGEX.captures(input)
-        && let Some(matched) = captures.get(1) {
-            let text = matched.as_str().trim();
-            if !text.is_empty() {
-                return text.to_string();
-            }
+        && let Some(matched) = captures.get(1)
+    {
+        let text = matched.as_str().trim();
+        if !text.is_empty() {
+            return text.to_string();
         }
+    }
 
     if let Some(idx) = input.find(':') {
         let text = input[idx + 1..].trim();

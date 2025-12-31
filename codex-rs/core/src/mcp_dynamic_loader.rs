@@ -52,7 +52,7 @@ pub struct DynamicMcpLoader {
 
 impl DynamicMcpLoader {
     /// Create a new dynamic MCP loader
-    pub fn new(
+    pub(crate) fn new(
         connection_manager: Arc<tokio::sync::RwLock<McpConnectionManager>>,
         store_mode: OAuthCredentialsStoreMode,
         auth_entries: HashMap<String, McpAuthStatusEntry>,

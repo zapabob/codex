@@ -255,12 +255,6 @@ impl PlanOrchestrator {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    // Coverage exercised through plan executor integration tests.
-}
-
 fn build_competition_prompt(plan: &PlanBlock) -> String {
     let mut prompt = String::new();
     prompt.push_str("Plan execution goal:\n");
@@ -311,11 +305,12 @@ fn build_competition_summary(
     );
 
     if let Some(agent) = comparison.fastest_agent
-        && let Some(time) = comparison.fastest_time {
-            summary.push_str(&format!(
-                " Fastest successful agent: {agent:?} ({time:.2}s)."
-            ));
-        }
+        && let Some(time) = comparison.fastest_time
+    {
+        summary.push_str(&format!(
+            " Fastest successful agent: {agent:?} ({time:.2}s)."
+        ));
+    }
 
     let agent = best_result.agent;
     let best_key = format!("{agent:?}");

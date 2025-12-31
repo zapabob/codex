@@ -61,6 +61,7 @@ pub struct ReasoningResult {
 }
 
 /// Reasoning chain engine
+#[allow(dead_code)]
 pub struct ReasoningChain {
     /// Configuration
     config: ReasoningConfig,
@@ -69,6 +70,7 @@ pub struct ReasoningChain {
 }
 
 /// Internal state of a reasoning chain
+#[allow(dead_code)]
 struct ChainState {
     chain_id: String,
     steps: Vec<ReasoningStep>,

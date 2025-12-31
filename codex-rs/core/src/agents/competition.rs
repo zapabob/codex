@@ -204,7 +204,7 @@ impl WorktreeManager {
     }
 
     /// Remove a worktree
-    pub fn remove_worktree(&self, worktree_path: &PathBuf) -> Result<()> {
+    pub fn remove_worktree(&self, worktree_path: &Path) -> Result<()> {
         if !worktree_path.exists() {
             return Ok(());
         }

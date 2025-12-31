@@ -66,13 +66,14 @@ impl McpPromptBuilder {
 
         // Check token budget
         if let Some(budget) = self.token_budget
-            && estimated_tokens > budget {
-                warn!(
-                    "Tool descriptions exceed token budget ({} > {}), truncating",
-                    estimated_tokens, budget
-                );
-                // TODO: Implement tool truncation based on priority
-            }
+            && estimated_tokens > budget
+        {
+            warn!(
+                "Tool descriptions exceed token budget ({} > {}), truncating",
+                estimated_tokens, budget
+            );
+            // TODO: Implement tool truncation based on priority
+        }
 
         // Build prompt (simplified - actual implementation would integrate with Prompt struct)
         // For now, this is a placeholder that shows the structure

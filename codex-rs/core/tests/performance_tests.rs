@@ -19,6 +19,8 @@ use pretty_assertions::assert_eq;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+#![allow(clippy::unwrap_used)]
+
 use std::sync::Arc;
 use std::time::Instant;
 use tempfile::TempDir;

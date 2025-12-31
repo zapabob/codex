@@ -80,16 +80,17 @@ impl McpFileWatcher {
 
                 // Check config file changes
                 if let Ok(current_mtime) = Self::get_file_mtime(&config_path)
-                    && last_config_mtime.as_ref() != Some(&current_mtime) {
-                        info!("MCP config file changed, reloading...");
-                        if let Some(loader) = &loader {
-                            // Reload configuration
-                            if let Err(e) = Self::reload_config_file(loader, &config_path).await {
-                                error!("Failed to reload config file: {}", e);
-                            }
+                    && last_config_mtime.as_ref() != Some(&current_mtime)
+                {
+                    info!("MCP config file changed, reloading...");
+                    if let Some(loader) = &loader {
+                        // Reload configuration
+                        if let Err(e) = Self::reload_config_file(loader, &config_path).await {
+                            error!("Failed to reload config file: {}", e);
                         }
-                        last_config_mtime = Some(current_mtime);
                     }
+                    last_config_mtime = Some(current_mtime);
+                }
 
                 // Check plugin directory changes (less frequently)
                 let now = std::time::SystemTime::now();
@@ -99,9 +100,10 @@ impl McpFileWatcher {
                     > Duration::from_secs(30)
                 {
                     if let Some(loader) = &loader
-                        && let Err(e) = Self::check_plugin_directory(loader, &plugin_dir).await {
-                            warn!("Failed to check plugin directory: {}", e);
-                        }
+                        && let Err(e) = Self::check_plugin_directory(loader, &plugin_dir).await
+                    {
+                        warn!("Failed to check plugin directory: {}", e);
+                    }
                     last_plugin_check = now;
                 }
 

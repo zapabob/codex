@@ -93,9 +93,8 @@ impl McpPluginLoader {
         // Load plugin metadata
         let metadata = if plugin_toml_path.exists() {
             let content = fs::read_to_string(&plugin_toml_path).await?;
-            let mut metadata: PluginMetadata = toml::from_str(&content).with_context(|| {
-                format!("Failed to parse plugin.toml at {plugin_toml_path:?}")
-            })?;
+            let mut metadata: PluginMetadata = toml::from_str(&content)
+                .with_context(|| format!("Failed to parse plugin.toml at {plugin_toml_path:?}"))?;
 
             // Ensure plugin name matches directory name if not set
             if metadata.name.is_empty() {

@@ -47,11 +47,13 @@ impl SkillsSharingManager {
         // Check access level permissions
         let user_role = self.org_manager.get_user_role(org_id, &user_id).await?;
         if let Some(role) = user_role
-            && access_level == "admin_only" && role != "admin" {
-                return Err(anyhow::anyhow!(
-                    "Only admins can share skills with admin_only access"
-                ));
-            }
+            && access_level == "admin_only"
+            && role != "admin"
+        {
+            return Err(anyhow::anyhow!(
+                "Only admins can share skills with admin_only access"
+            ));
+        }
 
         self.skills_repo
             .share_skill(

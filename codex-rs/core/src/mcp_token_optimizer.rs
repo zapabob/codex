@@ -97,9 +97,10 @@ impl McpTokenOptimizer {
             }
 
             if let Ok(elapsed) = now.duration_since(stat.last_used)
-                && elapsed > threshold {
-                    unused.push(key.clone());
-                }
+                && elapsed > threshold
+            {
+                unused.push(key.clone());
+            }
         }
 
         unused
@@ -140,7 +141,6 @@ impl McpTokenOptimizer {
         let description = tool.description.as_deref().unwrap_or("");
 
         // Simple compression: keep first sentence and key parameters
-        
 
         if description.len() > 200 {
             // Take first sentence or first 150 chars

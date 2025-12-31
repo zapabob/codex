@@ -99,18 +99,19 @@ impl AstConflictDetector {
 
             // Detect function definitions
             if (line.starts_with("fn ") || line.starts_with("pub fn "))
-                && let Some(end) = line.find('(') {
-                    let func_name = line[if line.starts_with("pub ") { 7 } else { 3 }..end].trim();
-                    functions.push(func_name.to_string());
-                }
+                && let Some(end) = line.find('(')
+            {
+                let func_name = line[if line.starts_with("pub ") { 7 } else { 3 }..end].trim();
+                functions.push(func_name.to_string());
+            }
 
             // Detect struct definitions
             if (line.starts_with("struct ") || line.starts_with("pub struct "))
-                && let Some(end) = line.find('{') {
-                    let struct_name =
-                        line[if line.starts_with("pub ") { 10 } else { 7 }..end].trim();
-                    structs.push(struct_name.to_string());
-                }
+                && let Some(end) = line.find('{')
+            {
+                let struct_name = line[if line.starts_with("pub ") { 10 } else { 7 }..end].trim();
+                structs.push(struct_name.to_string());
+            }
 
             // Detect imports
             if line.starts_with("use ") {
@@ -157,20 +158,22 @@ impl AstConflictDetector {
         for f1 in files1 {
             for f2 in files2 {
                 if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent())
-                    && p1 == p2 {
-                        // Same directory - potential conflict
-                        return 0.3;
-                    }
+                    && p1 == p2
+                {
+                    // Same directory - potential conflict
+                    return 0.3;
+                }
 
                 // Check file name similarity (without extension)
                 let n1 = f1.file_stem().and_then(|s| s.to_str());
                 let n2 = f2.file_stem().and_then(|s| s.to_str());
 
                 if let (Some(n1), Some(n2)) = (n1, n2)
-                    && (n1.contains(n2) || n2.contains(n1)) {
-                        // Similar names - potential conflict
-                        return 0.2;
-                    }
+                    && (n1.contains(n2) || n2.contains(n1))
+                {
+                    // Similar names - potential conflict
+                    return 0.2;
+                }
             }
         }
 
@@ -237,9 +240,7 @@ impl ConflictDetectorTrait for AstConflictDetector {
         let semantic_overlap = self.calculate_semantic_overlap(op1, op2);
 
         // Add repository state factors
-        let repo_factor = match Repository::open(repo_path)
-            .ok().map(|r| r.state())
-        {
+        let repo_factor = match Repository::open(repo_path).ok().map(|r| r.state()) {
             Some(git2::RepositoryState::Merge) => 0.3, // Ongoing merge increases conflict risk
             Some(git2::RepositoryState::Rebase)
             | Some(git2::RepositoryState::RebaseInteractive) => 0.4, // Rebase operations are risky
@@ -317,10 +318,11 @@ impl MLConflictPredictor {
             for f1 in files1 {
                 for f2 in files2 {
                     if let (Some(p1), Some(p2)) = (f1.parent(), f2.parent())
-                        && p1 == p2 {
-                            dir_score = 1.0;
-                            break;
-                        }
+                        && p1 == p2
+                    {
+                        dir_score = 1.0;
+                        break;
+                    }
                 }
             }
             features.insert("directory_proximity".to_string(), dir_score);

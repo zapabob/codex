@@ -642,22 +642,22 @@ impl AutoOrchestrator {
                             .tasks
                             .iter()
                             .find(|task| task.agent == result.agent_name)
-                        {
-                            let (mut retry_results, retry_fallback_used) = self
-                                .execute_task_sequence(
-                                    task,
-                                    timeout,
-                                    retry_limit,
-                                    &fallback_table,
-                                    log_entries,
-                                    plan.strategy,
-                                )
-                                .await;
-                            if retry_fallback_used {
-                                fallback_used = true;
-                            }
-                            results.append(&mut retry_results);
+                    {
+                        let (mut retry_results, retry_fallback_used) = self
+                            .execute_task_sequence(
+                                task,
+                                timeout,
+                                retry_limit,
+                                &fallback_table,
+                                log_entries,
+                                plan.strategy,
+                            )
+                            .await;
+                        if retry_fallback_used {
+                            fallback_used = true;
                         }
+                        results.append(&mut retry_results);
+                    }
                 }
 
                 if initial_results.is_empty() {
@@ -937,9 +937,10 @@ impl AutoOrchestrator {
         );
 
         if let Some(skill) = &task.skill_tag
-            && let Some(config) = Self::skill_strategy_table().get(skill) {
-                return config.strategy;
-            }
+            && let Some(config) = Self::skill_strategy_table().get(skill)
+        {
+            return config.strategy;
+        }
 
         // Check for keywords indicating sequential dependencies
         let description_lower = task.description.to_lowercase();

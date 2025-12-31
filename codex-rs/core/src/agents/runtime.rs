@@ -840,7 +840,6 @@ mod tests {
         use crate::model_provider_info::WireApi;
         use codex_otel::otel_manager::OtelManager as OtelEventManager;
         use codex_protocol::ConversationId;
-        use uuid::Uuid;
 
         let temp_dir = TempDir::new().unwrap();
         let agents_dir = temp_dir.path().join(".codex/agents");
@@ -949,7 +948,6 @@ artifacts:
         use crate::model_provider_info::WireApi;
         use codex_otel::otel_manager::OtelManager as OtelEventManager;
         use codex_protocol::ConversationId;
-        use uuid::Uuid;
 
         let temp_dir = TempDir::new().unwrap();
         let agents_dir = temp_dir.path().join(".codex/agents");
@@ -1452,17 +1450,11 @@ impl AgentRuntime {
     }
 }
 
-#[cfg(test)]
-mod mcp_tests {
-    use super::*;
-    use pretty_assertions::assert_eq;
-}
 #[tokio::test]
 async fn test_filter_codex_mcp_tools() {
     use crate::agents::types::ContextPolicy;
     use crate::agents::types::ToolPermissions;
     use crate::model_provider_info::WireApi;
-    use uuid::Uuid;
 
     let agent_def = AgentDefinition {
         name: "test-agent".to_string(),

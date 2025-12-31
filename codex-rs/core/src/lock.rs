@@ -67,18 +67,19 @@ impl RepositoryLock {
     pub fn acquire(&self, ttl_secs: Option<u64>) -> Result<LockMetadata> {
         // Check for existing lock and clean up stale locks
         if self.lock_path.exists()
-            && let Ok(existing) = self.read_lock() {
-                if self.is_lock_alive(&existing) {
-                    return Err(anyhow!(
-                        "Lock is held by PID {} on {} since {}",
-                        existing.pid,
-                        existing.hostname.as_deref().unwrap_or("unknown"),
-                        existing.started_at
-                    ));
-                }
-                // Stale lock, will be overwritten
-                tracing::info!("Removing stale lock from PID {}", existing.pid);
+            && let Ok(existing) = self.read_lock()
+        {
+            if self.is_lock_alive(&existing) {
+                return Err(anyhow!(
+                    "Lock is held by PID {} on {} since {}",
+                    existing.pid,
+                    existing.hostname.as_deref().unwrap_or("unknown"),
+                    existing.started_at
+                ));
             }
+            // Stale lock, will be overwritten
+            tracing::info!("Removing stale lock from PID {}", existing.pid);
+        }
 
         let metadata = self.create_lock_metadata(ttl_secs)?;
         self.write_lock(&metadata)?;

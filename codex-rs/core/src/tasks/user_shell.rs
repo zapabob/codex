@@ -73,7 +73,10 @@ impl SessionTask for UserShellCommandTask {
             .derive_exec_args(&self.command, use_login_shell);
 
         // Security check: Block dangerous commands even in user shell mode
-        let command_vec: Vec<String> = command.iter().map(std::string::ToString::to_string).collect();
+        let command_vec: Vec<String> = command
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect();
         if command_might_be_dangerous(&command_vec) {
             error!("Dangerous user shell command blocked: {:?}", command);
             let blocked_message = format!(
