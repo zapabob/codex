@@ -6,6 +6,8 @@ use crate::codex_tool_config::CodexToolCallReplyParam;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_param;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_reply_param;
 use crate::error_code::INVALID_REQUEST_ERROR_CODE;
+use crate::lsp_tool_handler::LspToolHandler;
+use crate::microsoft365_tool_handler::Microsoft365ToolHandler;
 use crate::outgoing_message::OutgoingMessageSender;
 use codex_protocol::ConversationId;
 use codex_protocol::protocol::SessionSource;
@@ -42,6 +44,8 @@ pub(crate) struct MessageProcessor {
     codex_linux_sandbox_exe: Option<PathBuf>,
     conversation_manager: Arc<ConversationManager>,
     running_requests_id_to_codex_uuid: Arc<Mutex<HashMap<RequestId, ConversationId>>>,
+    lsp_tool_handler: LspToolHandler,
+    microsoft365_tool_handler: Microsoft365ToolHandler,
 }
 
 impl MessageProcessor {
@@ -53,8 +57,9 @@ impl MessageProcessor {
         config: Arc<Config>,
     ) -> Self {
         let outgoing = Arc::new(outgoing);
+        let codex_home = config.codex_home.clone();
         let auth_manager = AuthManager::shared(
-            config.codex_home.clone(),
+            codex_home.clone(),
             false,
             config.cli_auth_credentials_store_mode,
         );
@@ -66,6 +71,8 @@ impl MessageProcessor {
             codex_linux_sandbox_exe,
             conversation_manager,
             running_requests_id_to_codex_uuid: Arc::new(Mutex::new(HashMap::new())),
+            lsp_tool_handler: LspToolHandler::new(),
+            microsoft365_tool_handler: Microsoft365ToolHandler::new(codex_home),
         }
     }
 
@@ -302,18 +309,22 @@ impl MessageProcessor {
         params: <mcp_types::ListToolsRequest as mcp_types::ModelContextProtocolRequest>::Params,
     ) {
         tracing::trace!("tools/list -> {params:?}");
+        let mut tools = vec![
+            create_tool_for_codex_tool_call_param(),
+            create_tool_for_codex_tool_call_reply_param(),
+            crate::supervisor_tool::create_supervisor_tool(),
+            crate::deep_research_tool::create_deep_research_tool(),
+            crate::subagent_tool::create_subagent_tool(),
+            crate::custom_command_tool::create_custom_command_tool(),
+            crate::hook_tool::create_hook_tool(),
+            crate::auto_orchestrator_tool::create_auto_orchestrator_tool(),
+            crate::datetime_tool::create_datetime_tool(),
+        ];
+        tools.extend(self.lsp_tool_handler.list_tools().tools);
+        tools.extend(self.microsoft365_tool_handler.list_tools().tools);
+
         let result = ListToolsResult {
-            tools: vec![
-                create_tool_for_codex_tool_call_param(),
-                create_tool_for_codex_tool_call_reply_param(),
-                crate::supervisor_tool::create_supervisor_tool(),
-                crate::deep_research_tool::create_deep_research_tool(),
-                crate::subagent_tool::create_subagent_tool(),
-                crate::custom_command_tool::create_custom_command_tool(),
-                crate::hook_tool::create_hook_tool(),
-                crate::auto_orchestrator_tool::create_auto_orchestrator_tool(),
-                crate::datetime_tool::create_datetime_tool(),
-            ],
+            tools,
             next_cursor: None,
         };
 
@@ -344,6 +355,22 @@ impl MessageProcessor {
                 self.handle_tool_call_auto_orchestrator(id, arguments).await
             }
             "codex-datetime" => self.handle_tool_call_datetime(id, arguments).await,
+            "lsp_get_diagnostics"
+            | "lsp_start_server"
+            | "lsp_stop_server"
+            | "lsp_get_completions"
+            | "lsp_get_hover"
+            | "lsp_get_statistics" => self.handle_tool_call_lsp(id, name, arguments).await,
+            "m365_word_read"
+            | "m365_word_create"
+            | "m365_excel_read"
+            | "m365_excel_update_cell"
+            | "m365_powerpoint_read"
+            | "m365_outlook_send_email"
+            | "m365_outlook_get_calendar" => {
+                self.handle_tool_call_microsoft365(id, name, arguments)
+                    .await
+            }
             _ => {
                 let result = CallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
@@ -801,5 +828,66 @@ impl MessageProcessor {
             crate::datetime_tool_handler::handle_datetime_tool_call(id.clone(), arguments).await;
         self.send_response::<mcp_types::CallToolRequest>(id, result)
             .await;
+    }
+
+    async fn handle_tool_call_lsp(
+        &self,
+        id: RequestId,
+        name: String,
+        arguments: Option<serde_json::Value>,
+    ) {
+        let tool_call = CallToolRequestParams { name, arguments };
+        let result = self.lsp_tool_handler.handle_tool_call(tool_call).await;
+        match result {
+            Ok(call_result) => {
+                self.send_response::<mcp_types::CallToolRequest>(id, call_result)
+                    .await;
+            }
+            Err(e) => {
+                let error_result = CallToolResult {
+                    content: vec![ContentBlock::TextContent(TextContent {
+                        r#type: "text".to_string(),
+                        text: format!("Error: {e}"),
+                        annotations: None,
+                    })],
+                    is_error: Some(true),
+                    structured_content: None,
+                };
+                self.send_response::<mcp_types::CallToolRequest>(id, error_result)
+                    .await;
+            }
+        }
+    }
+
+    async fn handle_tool_call_microsoft365(
+        &self,
+        id: RequestId,
+        name: String,
+        arguments: Option<serde_json::Value>,
+    ) {
+        let tool_call = CallToolRequestParams { name, arguments };
+        let result = self
+            .microsoft365_tool_handler
+            .handle_tool_call(tool_call)
+            .await;
+        match result {
+            Ok(call_result) => {
+                self.send_response::<mcp_types::CallToolRequest>(id, call_result)
+                    .await;
+            }
+            Err(e) => {
+                let error_result = CallToolResult {
+                    content: vec![ContentBlock::TextContent(TextContent {
+                        r#type: "text".to_string(),
+                        text: format!("Error: {e}"),
+                        annotations: None,
+                    })],
+                    is_error: Some(true),
+                    structured_content: None,
+                };
+                self.send_response::<mcp_types::CallToolRequest>(id, error_result)
+                    .await;
+            }
+        }
     }
 }
