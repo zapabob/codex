@@ -5,6 +5,11 @@ use codex_core::chrome::{
 };
 use serde::{Deserialize, Serialize};
 use std::io::Read;
+use std::path::PathBuf;
+use std::process::Stdio;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::process::{ChildStdin, ChildStdout};
+use uuid::Uuid;
 
 #[derive(Debug, Parser)]
 pub struct ChromeCli {
