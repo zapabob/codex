@@ -13,7 +13,7 @@ static OPENAI_API_KEY_PROJ_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
 static OPENAI_API_KEY_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
     Lazy::new(|| regex::Regex::new(r"sk-[A-Za-z0-9]{6,}"));
 static GITHUB_TOKEN_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
-    Lazy::new(|| regex::Regex::new(r"(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{6,}"));
+    Lazy::new(|| regex::Regex::new(r"(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]+"));
 static GOOGLE_API_KEY_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
     Lazy::new(|| regex::Regex::new(r"AIzaSy[A-Za-z0-9_-]{10,}"));
 static BEARER_TOKEN_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
