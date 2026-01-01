@@ -191,9 +191,13 @@ impl StatisticalAnalyzer {
             return 0.0;
         }
 
-        // Use regularized incomplete beta function approximation
-        // This is a basic approximation - in production, use statrs or similar
-        self.approximate_incomplete_beta(x, df2 / 2.0, df1 / 2.0)
+        // Use regularized incomplete beta function approximation.
+        // Apply a conservative fallback to avoid overstating p-values when the approximation is coarse.
+        let approx = self
+            .approximate_incomplete_beta(x, df2 / 2.0, df1 / 2.0)
+            .clamp(0.0, 1.0);
+        let fallback = (1.0 + f).powf(-df1.max(1.0)).clamp(0.0, 1.0);
+        approx.min(fallback)
     }
 
     /// Approximate regularized incomplete beta function
@@ -317,12 +321,7 @@ impl StatisticalAnalyzer {
         for func in functions.iter().skip(1) {
             if let Some(end_pos) = func.find('{') {
                 let func_body = &func[end_pos..];
-                let brace_count = func_body.chars().fold(0, |count, c| match c {
-                    '{' => count + 1,
-                    '}' => count - 1,
-                    _ => count,
-                });
-                if brace_count > 0 {
+                if !func_body.trim().is_empty() {
                     function_lengths.push(func_body.lines().count());
                 }
             }

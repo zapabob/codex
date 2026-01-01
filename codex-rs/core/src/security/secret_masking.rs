@@ -9,13 +9,13 @@ use std::sync::Mutex;
 // Compile regex patterns once at startup
 // If compilation fails, we'll use a fallback that returns the original text
 static OPENAI_API_KEY_PROJ_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
-    Lazy::new(|| regex::Regex::new(r"sk-proj-[A-Za-z0-9]{32,}"));
+    Lazy::new(|| regex::Regex::new(r"sk-proj-[A-Za-z0-9]{6,}"));
 static OPENAI_API_KEY_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
-    Lazy::new(|| regex::Regex::new(r"sk-[A-Za-z0-9]{32,}"));
+    Lazy::new(|| regex::Regex::new(r"sk-[A-Za-z0-9]{6,}"));
 static GITHUB_TOKEN_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
-    Lazy::new(|| regex::Regex::new(r"(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}"));
+    Lazy::new(|| regex::Regex::new(r"(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{6,}"));
 static GOOGLE_API_KEY_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
-    Lazy::new(|| regex::Regex::new(r"AIzaSy[A-Za-z0-9_-]{35}"));
+    Lazy::new(|| regex::Regex::new(r"AIzaSy[A-Za-z0-9_-]{10,}"));
 static BEARER_TOKEN_REGEX: Lazy<Result<regex::Regex, regex::Error>> =
     Lazy::new(|| regex::Regex::new(r"Bearer\s+[A-Za-z0-9_-]{20,}"));
 static PASSWORD_REGEX: Lazy<Result<regex::Regex, regex::Error>> = Lazy::new(|| {

@@ -114,7 +114,7 @@ impl AgentInterpreter {
             return Ok(invocation);
         }
 
-        // Try each pattern in order of confidence
+        // Try each pattern in order of specificity
         for pattern in &self.patterns {
             if let Some(captures) = pattern.regex.captures(&input_lower) {
                 let mut parameters = HashMap::new();
@@ -221,13 +221,16 @@ impl AgentInterpreter {
             if let Some(agent_list_match) = ORCHESTRATION_AGENT_LIST_REGEX.captures(input)
                 && let Some(agent_list) = agent_list_match.name("agents")
             {
-                parameters.insert("agents".to_string(), agent_list.as_str().trim().to_string());
+                parameters.insert(
+                    "agents".to_string(),
+                    sanitize_agent_list(agent_list.as_str()),
+                );
             }
 
             if let Some(agent_capture) = caps.name("agents") {
                 parameters.insert(
                     "agents".to_string(),
-                    agent_capture.as_str().trim().to_string(),
+                    sanitize_agent_list(agent_capture.as_str()),
                 );
             }
 
@@ -247,16 +250,6 @@ impl AgentInterpreter {
     /// Get default patterns for common agent invocations.
     fn default_patterns() -> Vec<Pattern> {
         vec![
-            // Security patterns
-            Pattern {
-                regex: Regex::new(
-                    r"(?i)(security|sec|audit|vulnerability|vuln|exploit|cve|oauth|auth|jwt|token)",
-                )
-                .unwrap(),
-                agent_name: "sec-audit".to_string(),
-                param_extractors: vec![],
-                confidence: 0.95,
-            },
             // Test patterns
             Pattern {
                 regex: Regex::new(r"(?i)(test|unit test|integration test|e2e|spec|jest|pytest)")
@@ -264,32 +257,6 @@ impl AgentInterpreter {
                 agent_name: "test-gen".to_string(),
                 param_extractors: vec![],
                 confidence: 0.9,
-            },
-            // Review patterns
-            Pattern {
-                regex: Regex::new(r"(?i)(review|check|inspect|analyze|examine|lint)(?:\s+(.+))?")
-                    .unwrap(),
-                agent_name: "code-reviewer".to_string(),
-                param_extractors: vec![ParamExtractor {
-                    name: "scope".to_string(),
-                    group_index: 2,
-                    default: Some(".".to_string()),
-                }],
-                confidence: 0.85,
-            },
-            // Research patterns
-            Pattern {
-                regex: Regex::new(
-                    r"(?i)(research|investigate|learn|study|find out|explore)(?:\s+(.+))?",
-                )
-                .unwrap(),
-                agent_name: "researcher".to_string(),
-                param_extractors: vec![ParamExtractor {
-                    name: "query".to_string(),
-                    group_index: 2,
-                    default: None,
-                }],
-                confidence: 0.8,
             },
             // TypeScript specific
             Pattern {
@@ -311,6 +278,42 @@ impl AgentInterpreter {
                 agent_name: "unity-reviewer".to_string(),
                 param_extractors: vec![],
                 confidence: 0.75,
+            },
+            // Review patterns
+            Pattern {
+                regex: Regex::new(r"(?i)(review|check|inspect|analyze|examine|lint)(?:\s+(.+))?")
+                    .unwrap(),
+                agent_name: "code-reviewer".to_string(),
+                param_extractors: vec![ParamExtractor {
+                    name: "scope".to_string(),
+                    group_index: 2,
+                    default: Some(".".to_string()),
+                }],
+                confidence: 0.85,
+            },
+            // Security patterns
+            Pattern {
+                regex: Regex::new(
+                    r"(?i)(security|sec|audit|vulnerability|vuln|exploit|cve|oauth|auth|jwt|token)",
+                )
+                .unwrap(),
+                agent_name: "sec-audit".to_string(),
+                param_extractors: vec![],
+                confidence: 0.95,
+            },
+            // Research patterns
+            Pattern {
+                regex: Regex::new(
+                    r"(?i)(research|investigate|learn|study|find out|explore)(?:\s+(.+))?",
+                )
+                .unwrap(),
+                agent_name: "researcher".to_string(),
+                param_extractors: vec![ParamExtractor {
+                    name: "query".to_string(),
+                    group_index: 2,
+                    default: None,
+                }],
+                confidence: 0.8,
             },
         ]
     }
@@ -391,7 +394,7 @@ fn extract_webhook_message(input: &str) -> String {
 }
 
 fn clean_channel_token(token: &str) -> Option<String> {
-    let trimmed = token.trim_matches(|c: char| matches!(c, ',' | ';' | '.' | '!'));
+    let trimmed = token.trim_matches(|c: char| matches!(c, ',' | ';' | '.' | '!' | ':'));
     if trimmed.is_empty() {
         return None;
     }
@@ -401,6 +404,15 @@ fn clean_channel_token(token: &str) -> Option<String> {
     }
 
     None
+}
+
+fn sanitize_agent_list(agents: &str) -> String {
+    let trimmed = agents.trim();
+    let lower = trimmed.to_lowercase();
+    if let Some(idx) = lower.find(" for ") {
+        return trimmed[..idx].trim().to_string();
+    }
+    trimmed.to_string()
 }
 
 #[cfg(test)]

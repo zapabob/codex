@@ -98,12 +98,48 @@ fn parse_powershell_invocation(executable: &str, args: &[String]) -> Option<Vec<
 /// Tokenizes an inline PowerShell script and delegates to the command splitter.
 /// Examples of when this is called: pwsh.exe -Command '<script>' or pwsh.exe -Command:<script>
 fn parse_powershell_script(executable: &str, script: &str) -> Option<Vec<Vec<String>>> {
-    if let PowershellParseOutcome::Commands(commands) =
-        parse_with_powershell_ast(executable, script)
+    match parse_with_powershell_ast(executable, script) {
+        PowershellParseOutcome::Commands(commands) => Some(commands),
+        PowershellParseOutcome::Failed | PowershellParseOutcome::Unsupported => {
+            parse_powershell_script_fallback(script)
+        }
+    }
+}
+
+fn parse_powershell_script_fallback(script: &str) -> Option<Vec<Vec<String>>> {
+    let mut trimmed = script.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    trimmed = trimmed
+        .strip_prefix('\"')
+        .and_then(|value| value.strip_suffix('\"'))
+        .unwrap_or(trimmed);
+    trimmed = trimmed
+        .strip_prefix('\'')
+        .and_then(|value| value.strip_suffix('\''))
+        .unwrap_or(trimmed);
+
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    if trimmed
+        .chars()
+        .any(|ch| matches!(ch, ';' | '|' | '&' | '\n' | '\r'))
     {
-        Some(commands)
-    } else {
+        return None;
+    }
+
+    let parts: Vec<String> = trimmed
+        .split_whitespace()
+        .map(ToString::to_string)
+        .collect();
+    if parts.is_empty() {
         None
+    } else {
+        Some(vec![parts])
     }
 }
 

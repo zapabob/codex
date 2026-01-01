@@ -646,7 +646,7 @@ impl QuantumOptimizer {
                 + func.matches("for ").count()
                 + func.matches("match ").count();
 
-            if complexity_score > 5 {
+            if complexity_score >= 5 {
                 return true;
             }
         }
