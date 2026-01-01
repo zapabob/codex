@@ -50,9 +50,11 @@ The binary path will be:
 - High-risk actions (posting, login, shopping) require explicit confirmation.
 - Domain guards are enforced:
   - `post_social` only on `x.com` or `twitter.com`
-  - shopping intents only on `amazon.*`
+  - `post_article` only on `note.com`, `qiita.com`, or `zenn.dev`
+  - shopping intents only on `amazon.com`, `amazon.co.jp`, `mercari.com`, `mercari.jp`, or `auctions.yahoo.co.jp`
 - No credential storage. Login automation is limited to click/field fill only.
 - Code execution (`eval`) is exposed but should only be run after user confirmation.
+- Image uploads require manual file selection in the browser.
 
 ## Message types (native host)
 

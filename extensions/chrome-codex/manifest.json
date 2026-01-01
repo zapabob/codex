@@ -12,5 +12,16 @@
   },
   "permissions": ["nativeMessaging", "scripting", "activeTab", "storage", "tabs"],
   "optional_permissions": ["webRequest", "debugger"],
-  "optional_host_permissions": ["<all_urls>"]
+  "optional_host_permissions": [
+    "*://*.x.com/*",
+    "*://*.twitter.com/*",
+    "*://*.note.com/*",
+    "*://*.qiita.com/*",
+    "*://*.zenn.dev/*",
+    "*://*.amazon.com/*",
+    "*://*.amazon.co.jp/*",
+    "*://*.mercari.com/*",
+    "*://*.mercari.jp/*",
+    "*://auctions.yahoo.co.jp/*"
+  ]
 }

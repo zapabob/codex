@@ -2,7 +2,7 @@ mod cli_bridge;
 mod message;
 
 use anyhow::Result;
-use message::{read_message, write_response, NativeResponse};
+use message::{NativeResponse, read_message, write_response};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,13 +31,11 @@ async fn main() -> Result<()> {
 
 async fn handle_message(msg: message::NativeMessage) -> Result<()> {
     let response = match msg.r#type.as_str() {
-        "ping" => {
-            NativeResponse::success(
-                msg.id.clone(),
-                "ping.response".to_string(),
-                serde_json::json!({ "message": "pong" }),
-            )
-        }
+        "ping" => NativeResponse::success(
+            msg.id.clone(),
+            "ping.response".to_string(),
+            serde_json::json!({ "message": "pong" }),
+        ),
         "deep_research.request" => {
             let query = msg
                 .payload
@@ -77,16 +75,14 @@ async fn handle_message(msg: message::NativeMessage) -> Result<()> {
                 .context("Missing utterance in payload")?
                 .to_string();
 
-            let origin = msg.origin.and_then(|o| {
-                serde_json::from_value::<codex_core::chrome::ChromeOrigin>(o).ok()
-            });
+            let origin = msg
+                .origin
+                .and_then(|o| serde_json::from_value::<codex_core::chrome::ChromeOrigin>(o).ok());
 
             match cli_bridge::handle_nl_command(utterance, origin) {
-                Ok(data) => NativeResponse::success(
-                    msg.id.clone(),
-                    "nl_command.response".to_string(),
-                    data,
-                ),
+                Ok(data) => {
+                    NativeResponse::success(msg.id.clone(), "nl_command.response".to_string(), data)
+                }
                 Err(e) => NativeResponse::error(
                     msg.id.clone(),
                     "nl_command.response".to_string(),
@@ -94,13 +90,11 @@ async fn handle_message(msg: message::NativeMessage) -> Result<()> {
                 ),
             }
         }
-        "codegen.request" => {
-            NativeResponse::error(
-                msg.id.clone(),
-                "codegen.response".to_string(),
-                "Code generation not yet implemented".to_string(),
-            )
-        }
+        "codegen.request" => NativeResponse::error(
+            msg.id.clone(),
+            "codegen.response".to_string(),
+            "Code generation not yet implemented".to_string(),
+        ),
         _ => NativeResponse::error(
             msg.id.clone(),
             format!("{}.response", msg.r#type),

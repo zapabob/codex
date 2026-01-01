@@ -3,6 +3,16 @@ const MAX_HARD_LIMIT = 20000;
 const MAX_ACTIONS = 20;
 const LOG_SOURCE = "codex-console";
 const LOGIN_KEYWORDS = ["login", "sign in", "\u30ed\u30b0\u30a4\u30f3"];
+const ARTICLE_PLATFORM_DOMAINS = {
+  note: ["note.com"],
+  qiita: ["qiita.com"],
+  zenn: ["zenn.dev"]
+};
+const SHOP_PLATFORM_DOMAINS = {
+  amazon: ["amazon.com", "amazon.co.jp"],
+  mercari: ["mercari.com", "mercari.jp"],
+  yahoo_auctions: ["auctions.yahoo.co.jp"]
+};
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -27,6 +37,85 @@ function readDom(selector, maxChars) {
 
 function normalizeText(value) {
   return (value || "").toString().trim().toLowerCase();
+}
+
+function hostMatchesDomain(host, domains) {
+  if (!host || !Array.isArray(domains)) {
+    return false;
+  }
+  return domains.some((domain) => host === domain || host.endsWith(`.${domain}`));
+}
+
+function ensureHostAllowed(platform, allowlist) {
+  const host = window.location.hostname || "";
+  const domains = allowlist[platform] || [];
+  if (!hostMatchesDomain(host, domains)) {
+    throw new Error(`Not on allowed ${platform} domain`);
+  }
+}
+
+function collectElementHints(element) {
+  const hints = [
+    element.getAttribute("aria-label"),
+    element.getAttribute("placeholder"),
+    element.getAttribute("name"),
+    element.getAttribute("id"),
+    element.getAttribute("data-placeholder")
+  ];
+  return hints.map(normalizeText).filter(Boolean);
+}
+
+function findEditableByKeywords(keywords) {
+  const normalized = keywords.map(normalizeText).filter(Boolean);
+  if (normalized.length === 0) {
+    return null;
+  }
+  const candidates = Array.from(
+    document.querySelectorAll("input, textarea, [contenteditable=\"true\"]")
+  );
+  for (const element of candidates) {
+    const hints = collectElementHints(element);
+    if (normalized.some((keyword) => hints.some((hint) => hint.includes(keyword)))) {
+      return element;
+    }
+  }
+  return null;
+}
+
+function findLargestEditable() {
+  const candidates = Array.from(
+    document.querySelectorAll("textarea, [contenteditable=\"true\"]")
+  );
+  let best = null;
+  let bestArea = 0;
+  for (const element of candidates) {
+    const rect = element.getBoundingClientRect();
+    const area = rect.width * rect.height;
+    if (area > bestArea) {
+      bestArea = area;
+      best = element;
+    }
+  }
+  return best;
+}
+
+function findSelectByKeywords(keywords) {
+  const normalized = keywords.map(normalizeText).filter(Boolean);
+  if (normalized.length === 0) {
+    return null;
+  }
+  const candidates = Array.from(document.querySelectorAll("select"));
+  for (const element of candidates) {
+    const hints = collectElementHints(element);
+    if (normalized.some((keyword) => hints.some((hint) => hint.includes(keyword)))) {
+      return element;
+    }
+  }
+  return null;
+}
+
+function findFileInput() {
+  return document.querySelector("input[type=\"file\"]");
 }
 
 function findByText(text) {
@@ -118,6 +207,76 @@ function pressEnter(element) {
   element.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", bubbles: true }));
 }
 
+function setContentEditable(element, value) {
+  element.focus();
+  element.textContent = value;
+  element.dispatchEvent(new Event("input", { bubbles: true }));
+  element.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function fillTextField(element, value) {
+  if (!element || value === null || value === undefined) {
+    return;
+  }
+  if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
+    setInputValue(element, value);
+    return;
+  }
+  if (element.isContentEditable) {
+    setContentEditable(element, value);
+    return;
+  }
+  setInputValue(element, value);
+}
+
+function fillTagsField(element, tags) {
+  if (!element || !Array.isArray(tags) || tags.length === 0) {
+    return;
+  }
+  if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
+    element.focus();
+    element.value = "";
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    for (const tag of tags) {
+      if (!tag) {
+        continue;
+      }
+      setInputValue(element, tag);
+      pressEnter(element);
+    }
+    return;
+  }
+  if (element.isContentEditable) {
+    setContentEditable(element, tags.join(", "));
+  }
+}
+
+function fillCategoriesField(categories) {
+  if (!Array.isArray(categories) || categories.length === 0) {
+    return false;
+  }
+  const select = findSelectByKeywords(["category", "\u30ab\u30c6\u30b4\u30ea"]);
+  if (select) {
+    const category = categories[0];
+    const options = Array.from(select.options || []);
+    const match = options.find((option) =>
+      normalizeText(option.textContent).includes(normalizeText(category))
+    );
+    if (match) {
+      select.value = match.value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    }
+  }
+
+  const input = findEditableByKeywords(["category", "\u30ab\u30c6\u30b4\u30ea"]);
+  if (input) {
+    fillTextField(input, categories.join(", "));
+    return true;
+  }
+  return false;
+}
+
 function waitFor(condition, timeoutMs = 8000, intervalMs = 200) {
   return new Promise((resolve, reject) => {
     const start = Date.now();
@@ -177,6 +336,75 @@ async function waitForTarget(target, timeoutMs) {
   return await waitFor(() => resolveTarget(target), timeoutMs);
 }
 
+async function runPostArticle(action) {
+  const platform = normalizeText(action.platform);
+  if (!platform) {
+    throw new Error("No article platform provided");
+  }
+  ensureHostAllowed(platform, ARTICLE_PLATFORM_DOMAINS);
+
+  const title = action.title || "";
+  const body = action.body || "";
+  const tags = Array.isArray(action.tags) ? action.tags : [];
+  const categories = Array.isArray(action.categories) ? action.categories : [];
+  const images = Array.isArray(action.images) ? action.images : [];
+  const wantsPublish = Boolean(action.publish);
+
+  const titleInput = findEditableByKeywords(["title", "\u30bf\u30a4\u30c8\u30eb", "\u898b\u51fa\u3057"]);
+  const bodyInput =
+    findEditableByKeywords(["body", "\u672c\u6587", "\u8a18\u4e8b", "content"]) ||
+    findLargestEditable();
+  const tagInput = findEditableByKeywords(["tag", "\u30bf\u30b0"]);
+
+  if (titleInput && title) {
+    fillTextField(titleInput, title);
+  }
+  if (bodyInput && body) {
+    fillTextField(bodyInput, body);
+  }
+  if (tagInput && tags.length > 0) {
+    fillTagsField(tagInput, tags);
+  }
+
+  if (categories.length > 0) {
+    fillCategoriesField(categories);
+  }
+
+  let imagePrompted = false;
+  if (images.length > 0) {
+    const fileInput = findFileInput();
+    if (fileInput) {
+      fileInput.click();
+      imagePrompted = true;
+    }
+  }
+
+  let publishReady = false;
+  if (wantsPublish) {
+    const publishButton =
+      findByText("\u516c\u958b") ||
+      findByText("publish") ||
+      findByText("share") ||
+      findByText("\u6295\u7a3f");
+    if (publishButton) {
+      publishButton.scrollIntoView({ behavior: "smooth", block: "center" });
+      publishReady = true;
+    }
+  }
+
+  return {
+    ok: true,
+    result: {
+      platform,
+      publishReady,
+      imagePrompted,
+      titleFilled: Boolean(titleInput && title),
+      bodyFilled: Boolean(bodyInput && body),
+      tagsFilled: Boolean(tagInput && tags.length > 0)
+    }
+  };
+}
+
 async function runPostToX(text) {
   const host = window.location.hostname || "";
   if (!host.includes("x.com") && !host.includes("twitter.com")) {
@@ -226,10 +454,7 @@ async function runLoginClick() {
 }
 
 async function runAmazonAddToCart(productName) {
-  const host = window.location.hostname || "";
-  if (!host.includes("amazon.")) {
-    throw new Error("Not on Amazon domain");
-  }
+  ensureHostAllowed("amazon", SHOP_PLATFORM_DOMAINS);
 
   if (productName) {
     const searchInput =
@@ -254,6 +479,62 @@ async function runAmazonAddToCart(productName) {
   addToCartButton.click();
 }
 
+async function runMercariPreparePurchase(productName) {
+  ensureHostAllowed("mercari", SHOP_PLATFORM_DOMAINS);
+
+  if (productName) {
+    const searchInput =
+      document.querySelector("input[type='search']") ||
+      document.querySelector("input[name='keyword']") ||
+      document.querySelector("input[placeholder*='\u691c\u7d22']");
+    if (searchInput) {
+      setInputValue(searchInput, productName);
+      pressEnter(searchInput);
+    }
+  }
+
+  const firstResult = await waitFor(
+    () => document.querySelector("a[href*='/item/']") || document.querySelector("a[href*='/items/']")
+  );
+  firstResult.click();
+
+  const purchaseButton =
+    findByText("\u8cfc\u5165\u624b\u7d9a\u304d\u3078") ||
+    findByText("\u8cfc\u5165\u3059\u308b") ||
+    findByText("buy");
+  if (purchaseButton) {
+    purchaseButton.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+async function runYahooAuctionPreparePurchase(productName) {
+  ensureHostAllowed("yahoo_auctions", SHOP_PLATFORM_DOMAINS);
+
+  if (productName) {
+    const searchInput =
+      document.querySelector("input[name='p']") ||
+      document.querySelector("input[type='search']") ||
+      document.querySelector("input[placeholder*='\u691c\u7d22']");
+    if (searchInput) {
+      setInputValue(searchInput, productName);
+      pressEnter(searchInput);
+    }
+  }
+
+  const firstResult = await waitFor(
+    () => document.querySelector("a[href*='/auction/']") || document.querySelector("a[href*='/item/']")
+  );
+  firstResult.click();
+
+  const bidButton =
+    findByText("\u5165\u672d\u3059\u308b") ||
+    findByText("\u5165\u672d") ||
+    findByText("bid");
+  if (bidButton) {
+    bidButton.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
 async function runAction(action) {
   switch (action.type) {
     case "click":
@@ -275,6 +556,8 @@ async function runAction(action) {
       const result = fn();
       return { ok: true, result };
     }
+    case "post_article":
+      return await runPostArticle(action);
     case "post_social":
       if ((action.platform || "").toLowerCase() === "x") {
         await runPostToX(action.text || "");
@@ -287,6 +570,18 @@ async function runAction(action) {
     case "shop_add_to_cart":
       await runAmazonAddToCart(action.productName || "");
       return { ok: true };
+    case "shop_prepare_purchase": {
+      const platform = normalizeText(action.platform);
+      if (platform === "mercari") {
+        await runMercariPreparePurchase(action.productName || "");
+        return { ok: true };
+      }
+      if (platform === "yahoo_auctions") {
+        await runYahooAuctionPreparePurchase(action.productName || "");
+        return { ok: true };
+      }
+      throw new Error("Unsupported shopping platform");
+    }
     default:
       throw new Error(`Unsupported action: ${action.type}`);
   }

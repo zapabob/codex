@@ -164,12 +164,16 @@ async function onParseNl() {
           "read_dom",
           "post_social",
           "login_start",
-          "shop_add_to_cart"
+          "shop_add_to_cart",
+          "post_article",
+          "shop_prepare_purchase"
         ],
         require_confirmation_for: [
           "post_social",
           "login_start",
-          "shop_add_to_cart"
+          "shop_add_to_cart",
+          "post_article",
+          "shop_prepare_purchase"
         ]
       }
     },
@@ -244,10 +248,27 @@ function intentToActions(intent) {
       return [{ type: "read_dom", selector: intent.args?.selector, maxChars: intent.args?.max_chars }];
     case "post_social":
       return [{ type: "post_social", platform: intent.args?.platform, text: intent.args?.text }];
+    case "post_article":
+      return [{
+        type: "post_article",
+        platform: intent.args?.platform,
+        title: intent.args?.title,
+        body: intent.args?.body,
+        tags: intent.args?.tags || [],
+        categories: intent.args?.categories || [],
+        images: intent.args?.images || [],
+        publish: Boolean(intent.args?.publish)
+      }];
     case "login_start":
       return [{ type: "login_start" }];
     case "shop_add_to_cart":
       return [{ type: "shop_add_to_cart", productName: intent.args?.product_name }];
+    case "shop_prepare_purchase":
+      return [{
+        type: "shop_prepare_purchase",
+        platform: intent.args?.platform,
+        productName: intent.args?.product_name
+      }];
     default:
       return [];
   }

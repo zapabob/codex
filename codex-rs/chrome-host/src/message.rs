@@ -61,8 +61,8 @@ pub fn read_message() -> Result<NativeMessage> {
         .read_exact(&mut buffer)
         .context("Failed to read message body")?;
 
-    let message: NativeMessage = serde_json::from_slice(&buffer)
-        .context("Failed to parse message JSON")?;
+    let message: NativeMessage =
+        serde_json::from_slice(&buffer).context("Failed to parse message JSON")?;
 
     Ok(message)
 }

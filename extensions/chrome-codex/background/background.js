@@ -1,6 +1,24 @@
 ﻿const HOST_NAME = "com.codex.chrome";
 const CONTENT_SCRIPT_PATH = "content/content.js";
 const MAX_LOGS = 200;
+const ACTION_DOMAIN_ALLOWLIST = {
+  post_social: ["x.com", "twitter.com"],
+  post_article: ["note.com", "qiita.com", "zenn.dev"],
+  shop_add_to_cart: ["amazon.com", "amazon.co.jp"],
+  shop_prepare_purchase: ["mercari.com", "mercari.jp", "auctions.yahoo.co.jp"]
+};
+const OPTIONAL_HOST_PERMISSIONS = [
+  "*://*.x.com/*",
+  "*://*.twitter.com/*",
+  "*://*.note.com/*",
+  "*://*.qiita.com/*",
+  "*://*.zenn.dev/*",
+  "*://*.amazon.com/*",
+  "*://*.amazon.co.jp/*",
+  "*://*.mercari.com/*",
+  "*://*.mercari.jp/*",
+  "*://auctions.yahoo.co.jp/*"
+];
 
 let nativePort = null;
 const nativeQueue = [];
@@ -122,13 +140,21 @@ async function handleDomRead(request) {
 }
 
 async function handleActionExecute(request) {
-  const highRisk = new Set(["post_social", "login_start", "shop_add_to_cart", "eval"]);
+  const highRisk = new Set([
+    "post_social",
+    "post_article",
+    "login_start",
+    "shop_add_to_cart",
+    "shop_prepare_purchase",
+    "eval"
+  ]);
   const actions = Array.isArray(request.actions) ? request.actions : [];
   const needsConfirmation = actions.some((action) => highRisk.has(action.type));
   if (needsConfirmation && !request.confirmed) {
     throw new Error("Confirmation required for high-risk actions");
   }
   const tab = await queryActiveTab();
+  ensureAllowedDomains(actions, tab.url || "");
   await injectContentScript(tab.id);
   return await sendMessageToTab(tab.id, {
     type: "action.execute",
@@ -186,13 +212,35 @@ function requestNetworkPermissions() {
     chrome.permissions.request(
       {
         permissions: ["webRequest"],
-        origins: ["<all_urls>"]
+        origins: OPTIONAL_HOST_PERMISSIONS
       },
       (granted) => {
         resolve(Boolean(granted));
       }
     );
   });
+}
+
+function ensureAllowedDomains(actions, url) {
+  if (!url) {
+    return;
+  }
+  let host = "";
+  try {
+    host = new URL(url).hostname;
+  } catch (err) {
+    throw new Error("Invalid tab URL");
+  }
+
+  for (const action of actions) {
+    const allowed = ACTION_DOMAIN_ALLOWLIST[action.type];
+    if (!allowed || allowed.length === 0) {
+      continue;
+    }
+    if (!allowed.some((domain) => host === domain || host.endsWith(`.${domain}`))) {
+      throw new Error(`Action ${action.type} not allowed on ${host}`);
+    }
+  }
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
