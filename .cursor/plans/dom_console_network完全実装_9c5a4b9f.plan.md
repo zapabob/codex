@@ -4,25 +4,25 @@ overview: CLIからNative Messaging Hostプロセスを直接起動して通信�
 todos:
   - id: "1"
     content: "CLIにNative Messaging Hostプロセス起動機能を実装: spawn_native_host()関数を実装し、プロセスのstdin/stdoutを取得"
-    status: in_progress
+    status: completed
   - id: "2"
     content: "CLIにメッセージ送受信機能を実装: send_message_to_host()とreceive_message_from_host()関数を実装、Native Messaging APIプロトコルに準拠"
-    status: pending
+    status: completed
   - id: "3"
     content: "run_dom()関数を完全実装: Native Messaging Hostプロセスを起動し、DOM読み取りリクエストを送信して結果を表示"
-    status: pending
+    status: completed
   - id: "4"
     content: "run_console()関数を完全実装: Native Messaging Hostプロセスを起動し、コンソールログ取得リクエストを送信して結果を表示"
-    status: pending
+    status: completed
   - id: "5"
     content: "run_network()関数を完全実装: Native Messaging Hostプロセスを起動し、ネットワークログ取得リクエストを送信して結果を表示"
-    status: pending
+    status: completed
   - id: "6"
     content: "Native Messaging Hostの拡張機能連携機能を実装: CLIからのリクエストを処理し、拡張機能に転送して結果を返却"
-    status: pending
+    status: in_progress
   - id: "7"
     content: "エラーハンドリングとタイムアウト処理を実装: プロセス起動エラー、メッセージ送受信エラー、タイムアウト処理"
-    status: pending
+    status: in_progress
   - id: "8"
     content: "ドキュメント更新: 使用方法の説明、エラー対処法、統合テスト"
     status: pending

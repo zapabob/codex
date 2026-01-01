@@ -311,3 +311,136 @@ async fn run_network(args: ChromeNetworkArgs) -> Result<()> {
 
     Ok(())
 }
+
+/// Find the native messaging host binary path
+fn find_native_host_binary() -> Result<PathBuf> {
+    // Try to find in target/release directory (development)
+    let current_exe = std::env::current_exe()?;
+    let workspace_root = current_exe
+        .parent()
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .map(|p| p.join("codex-rs/target/release"));
+
+    if let Some(release_dir) = workspace_root {
+        #[cfg(target_os = "windows")]
+        let binary_name = "codex-chrome-host.exe";
+        #[cfg(not(target_os = "windows"))]
+        let binary_name = "codex-chrome-host";
+
+        let binary_path = release_dir.join(binary_name);
+        if binary_path.exists() {
+            return Ok(binary_path);
+        }
+    }
+
+    // Try to find in PATH
+    #[cfg(target_os = "windows")]
+    let binary_name = "codex-chrome-host.exe";
+    #[cfg(not(target_os = "windows"))]
+    let binary_name = "codex-chrome-host";
+
+    // Use which crate if available, otherwise try direct execution
+    if let Ok(path) = std::env::var("PATH") {
+        for dir in path.split(std::path::MAIN_SEPARATOR) {
+            let candidate = PathBuf::from(dir).join(binary_name);
+            if candidate.exists() {
+                return Ok(candidate);
+            }
+        }
+    }
+
+    anyhow::bail!(
+        "Native messaging host binary not found. Please build it with: cargo build -p codex-chrome-host --release"
+    )
+}
+
+/// Spawn the native messaging host process and return stdin/stdout handles
+async fn spawn_native_host() -> Result<(ChildStdin, ChildStdout)> {
+    let binary_path = find_native_host_binary()?;
+
+    let mut child = tokio::process::Command::new(&binary_path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .context("Failed to spawn native messaging host")?;
+
+    let stdin = child
+        .stdin
+        .take()
+        .context("Failed to take stdin from child process")?;
+    let stdout = child
+        .stdout
+        .take()
+        .context("Failed to take stdout from child process")?;
+
+    // Spawn a task to wait for the child process
+    tokio::spawn(async move {
+        if let Err(e) = child.wait().await {
+            eprintln!("Native messaging host process error: {}", e);
+        }
+    });
+
+    Ok((stdin, stdout))
+}
+
+/// Send a message to the native messaging host
+async fn send_message_to_host(
+    stdin: &mut ChildStdin,
+    message: &serde_json::Value,
+) -> Result<()> {
+    let json = serde_json::to_string(message).context("Failed to serialize message")?;
+    let bytes = json.as_bytes();
+    let len = bytes.len() as u32;
+
+    // Write length prefix (4 bytes, little-endian)
+    stdin
+        .write_all(&len.to_le_bytes())
+        .await
+        .context("Failed to write message length")?;
+
+    // Write message body
+    stdin
+        .write_all(bytes)
+        .await
+        .context("Failed to write message body")?;
+
+    stdin.flush().await.context("Failed to flush stdin")?;
+
+    Ok(())
+}
+
+/// Receive a message from the native messaging host
+async fn receive_message_from_host(
+    stdout: &mut ChildStdout,
+) -> Result<serde_json::Value> {
+    // Read length prefix (4 bytes, little-endian)
+    let mut len_bytes = [0u8; 4];
+    stdout
+        .read_exact(&mut len_bytes)
+        .await
+        .context("Failed to read message length")?;
+
+    let len = u32::from_le_bytes(len_bytes) as usize;
+    if len == 0 {
+        anyhow::bail!("Message length is zero");
+    }
+    if len > 1024 * 1024 {
+        anyhow::bail!("Message too large: {} bytes", len);
+    }
+
+    // Read message body
+    let mut buffer = vec![0u8; len];
+    stdout
+        .read_exact(&mut buffer)
+        .await
+        .context("Failed to read message body")?;
+
+    let json_str = String::from_utf8(buffer).context("Invalid UTF-8 in message")?;
+    let message: serde_json::Value =
+        serde_json::from_str(&json_str).context("Failed to parse message JSON")?;
+
+    Ok(message)
+}
