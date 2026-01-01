@@ -100,9 +100,8 @@ fn parse_powershell_invocation(executable: &str, args: &[String]) -> Option<Vec<
 fn parse_powershell_script(executable: &str, script: &str) -> Option<Vec<Vec<String>>> {
     match parse_with_powershell_ast(executable, script) {
         PowershellParseOutcome::Commands(commands) => Some(commands),
-        PowershellParseOutcome::Failed | PowershellParseOutcome::Unsupported => {
-            parse_powershell_script_fallback(script)
-        }
+        PowershellParseOutcome::Failed => parse_powershell_script_fallback(script),
+        PowershellParseOutcome::Unsupported => None,
     }
 }
 
