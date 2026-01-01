@@ -1,4 +1,4 @@
-﻿const HOST_NAME = "com.codex.chrome";
+const HOST_NAME = "com.codex.chrome";
 const CONTENT_SCRIPT_PATH = "content/content.js";
 const MAX_LOGS = 200;
 const ACTION_DOMAIN_ALLOWLIST = {
@@ -265,7 +265,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ ok: true, response });
       })
       .catch((error) => {
-        sendResponse({ ok: false, error: error.message || String(error) });
+        const errorMessage = error.message || String(error);
+        // Provide more helpful error messages
+        let userMessage = errorMessage;
+        if (errorMessage.includes("Native host has exited") || errorMessage.includes("disconnected")) {
+          userMessage = "Native host disconnected. Please ensure codex-chrome-host is installed and running.";
+        } else if (errorMessage.includes("Could not connect")) {
+          userMessage = "Could not connect to native host. Please check the installation.";
+        }
+        sendResponse({ ok: false, error: userMessage, originalError: errorMessage });
       });
     return true;
   }

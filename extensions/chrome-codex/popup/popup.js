@@ -1,4 +1,4 @@
-﻿const statusEl = document.getElementById("status");
+const statusEl = document.getElementById("status");
 const outputEl = document.getElementById("output");
 const queryEl = document.getElementById("query");
 const depthEl = document.getElementById("depth");
@@ -71,15 +71,24 @@ function getActiveTab() {
 
 async function onPing() {
   setStatus("Connecting...");
-  const response = await sendNative(makeNativeMessage("ping", {}, {}));
-  if (!response || !response.ok) {
-    setStatus("Disconnected", true);
-    setOutput(response?.error || "Failed to connect to native host");
-    return;
-  }
+  try {
+    const response = await sendNative(makeNativeMessage("ping", {}, {}));
+    if (!response || !response.ok) {
+      setStatus("Disconnected", true);
+      const errorMsg = response?.error || response?.originalError || "Failed to connect to native host";
+      setOutput({ error: errorMsg, hint: "Run: cargo build -p codex-chrome-host --release" });
+      return;
+    }
 
-  setStatus("Connected");
-  setOutput(response.response || { message: "pong" });
+    setStatus("Connected");
+    setOutput(response.response || { message: "pong" });
+  } catch (error) {
+    setStatus("Error", true);
+    setOutput({ 
+      error: error.message || String(error),
+      hint: "Ensure codex-chrome-host is installed and registered with Chrome"
+    });
+  }
 }
 
 async function onResearch() {
@@ -91,25 +100,34 @@ async function onResearch() {
 
   setStatus("Running...");
   const depth = Number(depthEl.value) || 2;
-  const response = await sendNative(
-    makeNativeMessage(
-      "deep_research.request",
-      {
-        query,
-        options: { depth }
-      },
-      {}
-    )
-  );
+  try {
+    const response = await sendNative(
+      makeNativeMessage(
+        "deep_research.request",
+        {
+          query,
+          options: { depth }
+        },
+        {}
+      )
+    );
 
-  if (!response || !response.ok || !response.response?.success) {
-    setStatus("Disconnected", true);
-    setOutput(response?.response?.error || response?.error || "Research failed");
-    return;
+    if (!response || !response.ok || !response.response?.success) {
+      setStatus("Error", true);
+      const errorMsg = response?.response?.error || response?.error || response?.originalError || "Research failed";
+      setOutput({ error: errorMsg });
+      return;
+    }
+
+    setStatus("Done");
+    setOutput(response.response.data || {});
+  } catch (error) {
+    setStatus("Error", true);
+    setOutput({ 
+      error: error.message || String(error),
+      hint: "Check native host connection"
+    });
   }
-
-  setStatus("Connected");
-  setOutput(response.response.data || {});
 }
 
 async function onReadDom() {
