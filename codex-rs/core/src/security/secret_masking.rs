@@ -51,10 +51,16 @@ pub fn mask_secrets(text: &str) -> String {
 
     // Mask GitHub tokens (ghp_..., gho_..., ghu_..., ghs_..., ghr_...)
     if let Ok(re) = GITHUB_TOKEN_REGEX.as_ref() {
-        masked = re.replace_all(&masked, "${1}_***MASKED***").to_string();
+        masked = re
+            .replace_all(&masked, |caps: &regex::Captures| {
+                let prefix = &caps[1];
+                format!("{prefix}_***MASKED***")
+            })
+            .to_string();
     } else {
         log_regex_error("GITHUB_TOKEN_REGEX");
     }
+    masked = mask_prefixed_tokens(&masked, &["ghp_", "gho_", "ghu_", "ghs_", "ghr_"]);
 
     // Mask Google API keys (AIzaSy...)
     if let Ok(re) = GOOGLE_API_KEY_REGEX.as_ref() {
@@ -72,7 +78,18 @@ pub fn mask_secrets(text: &str) -> String {
 
     // Mask passwords in query strings or form data
     if let Ok(re) = PASSWORD_REGEX.as_ref() {
-        masked = re.replace_all(&masked, "$1=***MASKED***").to_string();
+        masked = re
+            .replace_all(&masked, |caps: &regex::Captures| {
+                let value = caps.get(2).map_or("", |m| m.as_str());
+                if value.contains("***MASKED***") {
+                    return caps
+                        .get(0)
+                        .map_or(String::new(), |m| m.as_str().to_string());
+                }
+                let key = &caps[1];
+                format!("{key}=***MASKED***")
+            })
+            .to_string();
     } else {
         log_regex_error("PASSWORD_REGEX");
     }
@@ -85,6 +102,53 @@ pub fn mask_secrets(text: &str) -> String {
     }
 
     masked
+}
+
+fn mask_prefixed_tokens(input: &str, prefixes: &[&str]) -> String {
+    let mut current = input.to_string();
+    for prefix in prefixes {
+        current = mask_prefixed_token(&current, prefix);
+    }
+    current
+}
+
+fn mask_prefixed_token(input: &str, prefix: &str) -> String {
+    let mut output = String::with_capacity(input.len());
+    let mut rest = input;
+    let masked_marker = "***MASKED***";
+
+    while let Some(index) = rest.find(prefix) {
+        let (head, tail) = rest.split_at(index);
+        output.push_str(head);
+        output.push_str(prefix);
+
+        let after_prefix = &tail[prefix.len()..];
+        if let Some(stripped) = after_prefix.strip_prefix(masked_marker) {
+            output.push_str(masked_marker);
+            rest = stripped;
+            continue;
+        }
+
+        let mut consumed = 0;
+        for ch in after_prefix.chars() {
+            if ch.is_ascii_alphanumeric() {
+                consumed += ch.len_utf8();
+            } else {
+                break;
+            }
+        }
+
+        if consumed == 0 {
+            rest = after_prefix;
+            continue;
+        }
+
+        output.push_str(masked_marker);
+        rest = &after_prefix[consumed..];
+    }
+
+    output.push_str(rest);
+    output
 }
 
 /// Log regex compilation error (only once)
