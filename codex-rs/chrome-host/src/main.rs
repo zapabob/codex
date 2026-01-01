@@ -1,8 +1,11 @@
 mod cli_bridge;
 mod message;
 
-use anyhow::{Context, Result};
-use message::{NativeResponse, read_message, write_response};
+use anyhow::Context;
+use anyhow::Result;
+use message::NativeResponse;
+use message::read_message;
+use message::write_response;
 use std::io;
 use tracing_subscriber;
 use uuid::Uuid;

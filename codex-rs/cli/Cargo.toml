@@ -50,8 +50,10 @@ codex-tui2 = { workspace = true }
 codex-utils-absolute-path = { workspace = true }
 ctor = { workspace = true }
 dirs = { workspace = true }
+futures = { workspace = true }
 git2 = "0.19"
 libc = { workspace = true }
+mcp-types = { workspace = true }
 owo-colors = { workspace = true }
 regex-lite = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![Codex v2.8.2](./architecture-v2.8.2.svg)
+![Codex v2.8.3](./architecture-v2.8.3.svg)
 
-**v2.8.2 "MCP Server Fixes & Feature Flag Updates" - The World's First AI-Native Operating System**
+**v2.8.3 "Build System Improvements & Repository Organization" - The World's First AI-Native Operating System**
 
-[![Version](https://img.shields.io/badge/version-2.8.2-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.8.3-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -24,12 +24,18 @@
 <a name="english"></a>
 ## 📖 English
 
-### 🎉 What's New in v2.8.2 "MCP Server Fixes & Feature Flag Updates"
+### 🎉 What's New in v2.8.3 "Build System Improvements & Repository Organization"
 
-**Release Date**: December 30, 2025
-**Milestone**: MCP Server Startup Fixes & Feature Flag Updates
+**Release Date**: January 2, 2026
+**Milestone**: Build System Improvements & Repository Organization
 
-**🔧 Fixed in v2.8.2**:
+**🔧 Fixed in v2.8.3**:
+- ✅ **Build Error Fixes**: Fixed 22 compilation errors including `Regex`, `mcp_types`, `ClientCapabilities`, and `SendElicitation` issues
+- ✅ **Code Quality**: Removed unused imports and improved type safety
+- ✅ **Build System**: Enhanced incremental build support with better caching
+- ✅ **Repository Organization**: Systematic folder organization for better maintainability
+
+**🎁 Previous Updates (v2.8.2)**:
 - ✅ **MCP Server Startup Fixes**: Fixed startup errors for `codex-gemini-mcp`, `codex-research`, `codex-agent`, and `codex-supervisor`
 - ✅ **Feature Flag Updates**: Replaced deprecated `web_search` with `web_search_request` feature flag
 - ✅ **Configuration Improvements**: Enhanced MCP server error handling and startup validation
@@ -602,7 +608,14 @@ npm run dev
 
 ### 🏗️ Architecture Overview
 
-![Codex v2.8.0 Architecture](./architecture-v2.8.0.svg)
+![Codex v2.8.3 Architecture](./architecture-v2.8.3.svg)
+
+<details>
+<summary>📊 High-resolution PNG version (2400x1350)</summary>
+
+![Codex v2.8.3 Architecture PNG](./architecture-v2.8.3.png)
+
+</details>
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -792,12 +805,23 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 <a name="japanese"></a>
 ## 📖 日本語
 
-### 🎉 v2.8.0 "Architecture Evaluation & Claude Code Research" の新機能
+### 🎉 v2.8.3 "Build System Improvements & Repository Organization" の新機能
 
-**リリース日**: 2025年12月26日
-**マイルストーン**: アーキテクチャ評価 & Claude Code調査
+**リリース日**: 2026年1月2日
+**マイルストーン**: ビルドシステム改善 & リポジトリ整理整頓
 
-**🎁 v2.8.0の新機能**:
+**🔧 v2.8.3で修正**:
+- ✅ **ビルドエラー修正**: `Regex`、`mcp_types`、`ClientCapabilities`、`SendElicitation`など22個のコンパイルエラーを修正
+- ✅ **コード品質**: 未使用のimportを削除し、型安全性を向上
+- ✅ **ビルドシステム**: キャッシング改善によるインクリメンタルビルド強化
+- ✅ **リポジトリ整理**: 保守性向上のための体系的なフォルダー整理
+
+**🎁 以前のアップデート（v2.8.2）**:
+- ✅ **MCP Server起動修正**: `codex-gemini-mcp`、`codex-research`、`codex-agent`、`codex-supervisor`の起動エラーを修正
+- ✅ **機能フラグ更新**: 非推奨の`web_search`を`web_search_request`機能フラグに置き換え
+- ✅ **設定改善**: MCPサーバーのエラーハンドリングと起動検証を強化
+
+**🎁 以前のアップデート（v2.8.0）**:
 - ✅ **アーキテクチャ評価**: ソフトウェア工学・LLMOps観点からの包括的分析レポート（総合評価: 4.25/5.0）
 - ✅ **Claude Code調査**: 最新Claude Code機能（2024-2025）の深い調査と実装ロードマップ
 - ✅ **X投稿テンプレート**: LLMOpsエンジニア向けソーシャルメディア投稿テンプレート

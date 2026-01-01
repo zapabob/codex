@@ -1,5 +1,9 @@
-use anyhow::{Context, Result};
-use codex_core::chrome::{ChromeNlRequest, ChromeNlResponse, ChromeOrigin, parse_nl_command};
+use anyhow::Context;
+use anyhow::Result;
+use codex_core::chrome::ChromeNlRequest;
+use codex_core::chrome::ChromeNlResponse;
+use codex_core::chrome::ChromeOrigin;
+use codex_core::chrome::parse_nl_command;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
 use codex_deep_research::ResearchPlanner;
@@ -88,45 +92,54 @@ pub fn handle_nl_command(
 }
 
 /// Handle DOM read request from Chrome extension
-/// Note: This function is called by the extension, which handles the actual DOM reading.
-/// This function just returns a message indicating that the request should be handled by the extension.
+/// Note: When called from CLI, this function returns request parameters.
+/// The actual DOM reading is done by the extension's content script when the extension processes the request.
 pub fn handle_dom_read(selector: Option<String>, max_chars: usize) -> Result<serde_json::Value> {
     // The actual DOM reading is done by the extension's content script.
-    // This function just returns the request parameters for the extension to process.
+    // This function returns the request parameters that the extension should process.
+    // When called from CLI, the extension needs to be connected to process this request.
     Ok(serde_json::json!({
         "selector": selector,
         "max_chars": max_chars,
-        "note": "This request should be processed by the extension's content script"
+        "status": "pending",
+        "message": "This request requires the Chrome extension to be active and connected to process DOM reading",
+        "note": "The extension's content script will execute the actual DOM reading operation"
     }))
 }
 
 /// Handle console logs request from Chrome extension
-/// Note: This function is called by the extension, which handles the actual log retrieval.
-/// This function just returns a message indicating that the request should be handled by the extension.
+/// Note: When called from CLI, this function returns request parameters.
+/// The actual log retrieval is done by the extension's background script when the extension processes the request.
 pub fn handle_console_logs(
     level: Option<String>,
     filter: Option<String>,
     limit: usize,
 ) -> Result<serde_json::Value> {
     // The actual log retrieval is done by the extension's background script.
-    // This function just returns the request parameters for the extension to process.
+    // This function returns the request parameters that the extension should process.
+    // When called from CLI, the extension needs to be connected to process this request.
     Ok(serde_json::json!({
         "level": level,
         "filter": filter,
         "limit": limit,
-        "note": "This request should be processed by the extension's background script"
+        "status": "pending",
+        "message": "This request requires the Chrome extension to be active and connected to retrieve console logs",
+        "note": "The extension's background script will execute the actual console log retrieval operation"
     }))
 }
 
 /// Handle network logs request from Chrome extension
-/// Note: This function is called by the extension, which handles the actual log retrieval.
-/// This function just returns a message indicating that the request should be handled by the extension.
+/// Note: When called from CLI, this function returns request parameters.
+/// The actual log retrieval is done by the extension's background script when the extension processes the request.
 pub fn handle_network_logs(filter: Option<String>, limit: usize) -> Result<serde_json::Value> {
     // The actual log retrieval is done by the extension's background script.
-    // This function just returns the request parameters for the extension to process.
+    // This function returns the request parameters that the extension should process.
+    // When called from CLI, the extension needs to be connected to process this request.
     Ok(serde_json::json!({
         "filter": filter,
         "limit": limit,
-        "note": "This request should be processed by the extension's background script"
+        "status": "pending",
+        "message": "This request requires the Chrome extension to be active and connected to retrieve network logs",
+        "note": "The extension's background script will execute the actual network log retrieval operation"
     }))
 }

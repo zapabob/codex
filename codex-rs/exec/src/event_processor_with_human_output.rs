@@ -1,7 +1,6 @@
 use codex_common::elapsed::format_duration;
 use codex_common::elapsed::format_elapsed;
 use codex_core::config::Config;
-use codex_core::implementation_log;
 use codex_core::protocol::AgentMessageEvent;
 use codex_core::protocol::AgentReasoningRawContentEvent;
 use codex_core::protocol::BackgroundEventEvent;
@@ -27,6 +26,7 @@ use codex_core::protocol::WebSearchEndEvent;
 use codex_protocol::num_format::format_with_separators;
 use owo_colors::OwoColorize;
 use owo_colors::Style;
+use regex::Regex;
 use shlex::try_join;
 use std::collections::HashMap;
 use std::path::PathBuf;

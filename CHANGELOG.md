@@ -5,6 +5,58 @@ All notable changes to Codex will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.3] - 2026-01-02
+
+### Build System Improvements & Repository Organization
+
+This release focuses on build system improvements, repository organization, and documentation updates.
+
+### Added
+
+**Build System**
+- Enhanced incremental build support with better caching
+- Improved differential build scripts with progress visualization
+- Binary overwrite installation automation
+- Process management for seamless updates
+
+**Documentation**
+- Updated README.md with v2.8.3 architecture diagram (Mermaid)
+- Comprehensive repository structure documentation
+- Enhanced CHANGELOG with detailed version history
+
+**Repository Organization**
+- Systematic folder organization for better maintainability
+- Improved file structure and categorization
+
+### Fixed
+
+**Build Errors**
+- Fixed `Regex` type undeclared error in `event_processor_with_human_output.rs`
+- Fixed `mcp_types` crate resolution in CLI
+- Fixed `ClientCapabilities` Default trait implementation
+- Fixed `SendElicitation` type usage (Box<dyn Fn>)
+- Fixed `call_tool` argument type mismatches (String vs &str)
+- Fixed `RequestId` import from `mcp_types`
+- Fixed `futures` crate dependency in CLI
+- Fixed `codex_core::chrome` module visibility
+- Fixed `codex_cli` crate reference (changed to `crate::`)
+
+**Code Quality**
+- Removed unused imports (`std::collections::HashMap`, `codex_core::implementation_log`)
+- All build errors resolved (22 errors → 0 errors)
+
+### Changed
+
+**Version**
+- Unified all package versions to 2.8.3
+- Updated Rust workspace version to 2.8.3
+- Synchronized all internal dependencies to 2.8.3
+
+**Documentation**
+- Updated architecture diagrams to v2.8.3
+- Enhanced README.md with latest features
+- Improved CHANGELOG structure and readability
+
 ## [2.8.2] - 2025-12-30
 
 ### MCP Server Startup Fixes & Feature Flag Updates

@@ -60,13 +60,52 @@ The binary path will be:
 
 - `deep_research.request` - Run deep research query
 - `nl_command.request` - Parse natural language command
-- `dom.read.request` - Read DOM from active tab
-- `console.get_logs.request` - Get console logs from active tab
-- `network.get_logs.request` - Get network request logs from active tab
+- `dom.read.request` - Read DOM from active tab (requires extension)
+- `console.get_logs.request` - Get console logs from active tab (requires extension)
+- `network.get_logs.request` - Get network request logs from active tab (requires extension)
 - `codegen.request` - Code generation (not yet implemented)
 - `ping` - Connection test
 
 Responses are returned as `*.response` payloads with `success` and `data` fields.
+
+## CLI Usage Notes
+
+When using CLI commands that require the extension (dom, console, network):
+
+1. **Extension must be active**: The Chrome extension must be installed and active
+2. **Native host connection**: The extension must be able to connect to the native messaging host
+3. **Timeout**: Requests timeout after 30 seconds if no response is received
+4. **Error handling**: Detailed error messages are provided if the extension is not connected or the request fails
+
+The CLI spawns the native messaging host process and communicates with it directly. However, for DOM reading, console log retrieval, and network monitoring, the extension's content script and background script must be active to perform the actual operations.
+
+## MCP Bridge Server (Experimental)
+
+An MCP (Model Context Protocol) bridge server is available as an alternative communication method:
+
+### Building the MCP Bridge Server
+
+From the repo root:
+
+```bash
+cargo build -p codex-chrome-mcp-bridge --release
+```
+
+### Running the MCP Bridge Server
+
+**stdio mode (for CLI):**
+```bash
+codex-chrome-mcp-bridge stdio
+```
+
+**HTTP mode (for extension):**
+```bash
+codex-chrome-mcp-bridge http 8788
+```
+
+### Using MCP Bridge
+
+The CLI will automatically try to use the MCP bridge if available, falling back to native messaging host if the bridge is not found. The extension can connect to the MCP bridge via streamable HTTP for more robust communication.
 
 ## CLI Commands
 
@@ -80,15 +119,15 @@ codex chrome parse --utterance "click the login button" --url "https://example.c
 codex chrome research "Rust async best practices" --depth 3 --breadth 10
 
 # Read DOM from active tab (requires extension)
-# Note: Currently displays usage instructions. Full implementation requires extension popup.
+# Note: Requires Chrome extension to be active and connected to native messaging host
 codex chrome dom --selector "#main-content"
 
 # Get console logs (requires extension)
-# Note: Currently displays usage instructions. Full implementation requires extension popup.
+# Note: Requires Chrome extension to be active and connected to native messaging host
 codex chrome console --filter "error" --limit 50
 
 # Monitor network requests (requires extension)
-# Note: Currently displays usage instructions. Full implementation requires extension popup.
+# Note: Requires Chrome extension to be active and connected to native messaging host
 codex chrome network --filter "api" --limit 50
 ```
 

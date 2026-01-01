@@ -1,0 +1,1 @@
+🚀Codex v2.8.3：世界初のAI-Native OS。CUDA加速でGit解析100倍高速、4D可視化、VR/AR対応、マルチエージェント並列で2.6倍高速化。完全オープンソース。https://github.com/zapabob/codex

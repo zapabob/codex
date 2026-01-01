@@ -51,11 +51,12 @@ members = [
     "codex-api",
     "codex-rs/web-search",
     "chrome-host",
+    "chrome-mcp-bridge",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "2.8.2"
+version = "2.8.3"
 # Track the edition for all workspace crates in one place. Individual
 # crates can still override this value, but keeping it here means new
 # crates created with `cargo new -w ...` automatically inherit the 2024
