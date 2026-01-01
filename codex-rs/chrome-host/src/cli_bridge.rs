@@ -90,10 +90,7 @@ pub fn handle_nl_command(
 /// Handle DOM read request from Chrome extension
 /// Note: This function is called by the extension, which handles the actual DOM reading.
 /// This function just returns a message indicating that the request should be handled by the extension.
-pub fn handle_dom_read(
-    selector: Option<String>,
-    max_chars: usize,
-) -> Result<serde_json::Value> {
+pub fn handle_dom_read(selector: Option<String>, max_chars: usize) -> Result<serde_json::Value> {
     // The actual DOM reading is done by the extension's content script.
     // This function just returns the request parameters for the extension to process.
     Ok(serde_json::json!({
@@ -124,10 +121,7 @@ pub fn handle_console_logs(
 /// Handle network logs request from Chrome extension
 /// Note: This function is called by the extension, which handles the actual log retrieval.
 /// This function just returns a message indicating that the request should be handled by the extension.
-pub fn handle_network_logs(
-    filter: Option<String>,
-    limit: usize,
-) -> Result<serde_json::Value> {
+pub fn handle_network_logs(filter: Option<String>, limit: usize) -> Result<serde_json::Value> {
     // The actual log retrieval is done by the extension's background script.
     // This function just returns the request parameters for the extension to process.
     Ok(serde_json::json!({

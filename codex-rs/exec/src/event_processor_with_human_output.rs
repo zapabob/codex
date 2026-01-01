@@ -1,6 +1,7 @@
 use codex_common::elapsed::format_duration;
 use codex_common::elapsed::format_elapsed;
 use codex_core::config::Config;
+use codex_core::implementation_log;
 use codex_core::protocol::AgentMessageEvent;
 use codex_core::protocol::AgentReasoningRawContentEvent;
 use codex_core::protocol::BackgroundEventEvent;
@@ -63,6 +64,34 @@ pub(crate) struct EventProcessorWithHumanOutput {
     last_message_path: Option<PathBuf>,
     last_total_token_usage: Option<codex_core::protocol::TokenUsageInfo>,
     final_message: Option<String>,
+}
+
+/// Extract feature name from agent message
+fn extract_feature_name_from_message(message: &str) -> String {
+    // Try to extract a meaningful feature name from the message
+    // Look for common patterns like "実装", "機能", "追加", etc.
+    let patterns = [
+        (r"実装[：:]\s*(.+?)(?:\.|$)", 1),
+        (r"機能[：:]\s*(.+?)(?:\.|$)", 1),
+        (r"追加[：:]\s*(.+?)(?:\.|$)", 1),
+        (r"^(.+?)(?:の実装|を実装|を追加)", 1),
+    ];
+    
+    for (pattern, group) in &patterns {
+        if let Ok(re) = Regex::new(pattern) {
+            if let Some(captures) = re.captures(message) {
+                if let Some(matched) = captures.get(*group) {
+                    let name = matched.as_str().trim();
+                    if !name.is_empty() && name.len() < 100 {
+                        return name.to_string();
+                    }
+                }
+            }
+        }
+    }
+    
+    // Fallback: use first 50 characters
+    message.chars().take(50).collect::<String>().trim().to_string()
 }
 
 impl EventProcessorWithHumanOutput {

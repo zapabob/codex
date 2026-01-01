@@ -1574,6 +1574,7 @@ dependencies = [
  "owo-colors",
  "predicates",
  "pretty_assertions",
+ "regex",
  "serde",
  "serde_json",
  "shlex",

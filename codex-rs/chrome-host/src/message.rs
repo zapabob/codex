@@ -69,8 +69,8 @@ pub fn read_message() -> Result<NativeMessage> {
         .context("Failed to read message body")?;
 
     let json_str = String::from_utf8(buffer).context("Invalid UTF-8 in message")?;
-    let message: NativeMessage = serde_json::from_str(&json_str)
-        .context("Failed to parse message JSON")?;
+    let message: NativeMessage =
+        serde_json::from_str(&json_str).context("Failed to parse message JSON")?;
 
     Ok(message)
 }

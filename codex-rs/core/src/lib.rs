@@ -43,6 +43,7 @@ mod exec_policy;
 pub mod features;
 mod flags;
 pub mod git_info;
+pub mod implementation_log;
 pub mod integrations;
 pub mod landlock;
 pub mod lock;

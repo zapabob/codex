@@ -393,6 +393,12 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
     // is using.
     event_processor.print_config_summary(&config, &prompt_summary, &session_configured);
 
+    // Load and display implementation logs in nanj style
+    let nanj_response = codex_core::implementation_log::generate_nanj_response().await;
+    if let Ok(response) = nanj_response {
+        eprintln!("\n{}", response);
+    }
+
     info!("Codex initialized with event: {session_configured:?}");
 
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Event>();

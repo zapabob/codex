@@ -266,7 +266,7 @@ impl PlanBlock {
         let now = Utc::now();
         let id = format!(
             "{}_{}",
-            now.format("%Y-%m-%dT%H:%M:%SZ"),
+            now.format("%Y-%m-%dT%H-%M-%SZ"),
             title.to_lowercase().replace(' ', "-")
         );
 

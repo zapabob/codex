@@ -2,7 +2,7 @@ mod cli_bridge;
 mod message;
 
 use anyhow::{Context, Result};
-use message::{read_message, write_response, NativeResponse};
+use message::{NativeResponse, read_message, write_response};
 use std::io;
 use tracing_subscriber;
 use uuid::Uuid;
@@ -34,13 +34,11 @@ async fn main() -> Result<()> {
 
 async fn handle_message(msg: message::NativeMessage) -> Result<()> {
     let response = match msg.r#type.as_str() {
-        "ping" => {
-            NativeResponse::success(
-                msg.id.clone(),
-                "ping.response".to_string(),
-                serde_json::json!({ "message": "pong" }),
-            )
-        }
+        "ping" => NativeResponse::success(
+            msg.id.clone(),
+            "ping.response".to_string(),
+            serde_json::json!({ "message": "pong" }),
+        ),
         "deep_research.request" => {
             let query = msg
                 .payload
@@ -80,16 +78,14 @@ async fn handle_message(msg: message::NativeMessage) -> Result<()> {
                 .context("Missing utterance in payload")?
                 .to_string();
 
-            let origin = msg.origin.and_then(|o| {
-                serde_json::from_value::<codex_core::chrome::ChromeOrigin>(o).ok()
-            });
+            let origin = msg
+                .origin
+                .and_then(|o| serde_json::from_value::<codex_core::chrome::ChromeOrigin>(o).ok());
 
             match cli_bridge::handle_nl_command(utterance, origin) {
-                Ok(data) => NativeResponse::success(
-                    msg.id.clone(),
-                    "nl_command.response".to_string(),
-                    data,
-                ),
+                Ok(data) => {
+                    NativeResponse::success(msg.id.clone(), "nl_command.response".to_string(), data)
+                }
                 Err(e) => NativeResponse::error(
                     msg.id.clone(),
                     "nl_command.response".to_string(),
@@ -97,27 +93,28 @@ async fn handle_message(msg: message::NativeMessage) -> Result<()> {
                 ),
             }
         }
-        "codegen.request" => {
-            NativeResponse::error(
-                msg.id.clone(),
-                "codegen.response".to_string(),
-                "Code generation not yet implemented".to_string(),
-            )
-        }
+        "codegen.request" => NativeResponse::error(
+            msg.id.clone(),
+            "codegen.response".to_string(),
+            "Code generation not yet implemented".to_string(),
+        ),
         "dom.read.request" => {
-            let selector = msg.payload.get("selector").and_then(|v| v.as_str()).map(|s| s.to_string());
-            let max_chars = msg.payload
+            let selector = msg
+                .payload
+                .get("selector")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let max_chars = msg
+                .payload
                 .get("max_chars")
                 .and_then(|v| v.as_u64())
                 .map(|c| c as usize)
                 .unwrap_or(5000);
 
             match cli_bridge::handle_dom_read(selector, max_chars) {
-                Ok(data) => NativeResponse::success(
-                    msg.id.clone(),
-                    "dom.read.response".to_string(),
-                    data,
-                ),
+                Ok(data) => {
+                    NativeResponse::success(msg.id.clone(), "dom.read.response".to_string(), data)
+                }
                 Err(e) => NativeResponse::error(
                     msg.id.clone(),
                     "dom.read.response".to_string(),
@@ -126,9 +123,18 @@ async fn handle_message(msg: message::NativeMessage) -> Result<()> {
             }
         }
         "console.get_logs.request" => {
-            let level = msg.payload.get("level").and_then(|v| v.as_str()).map(|s| s.to_string());
-            let filter = msg.payload.get("filter").and_then(|v| v.as_str()).map(|s| s.to_string());
-            let limit = msg.payload
+            let level = msg
+                .payload
+                .get("level")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let filter = msg
+                .payload
+                .get("filter")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let limit = msg
+                .payload
                 .get("limit")
                 .and_then(|v| v.as_u64())
                 .map(|l| l as usize)
@@ -148,8 +154,13 @@ async fn handle_message(msg: message::NativeMessage) -> Result<()> {
             }
         }
         "network.get_logs.request" => {
-            let filter = msg.payload.get("filter").and_then(|v| v.as_str()).map(|s| s.to_string());
-            let limit = msg.payload
+            let filter = msg
+                .payload
+                .get("filter")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let limit = msg
+                .payload
                 .get("limit")
                 .and_then(|v| v.as_u64())
                 .map(|l| l as usize)

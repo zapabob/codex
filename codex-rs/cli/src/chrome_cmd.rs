@@ -197,7 +197,7 @@ fn run_parse(args: ChromeParseArgs) -> Result<()> {
 
 async fn run_research(args: ChromeResearchArgs) -> Result<()> {
     use codex_cli::research_cmd::run_research_command;
-    
+
     run_research_command(
         args.query,
         args.depth,
