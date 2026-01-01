@@ -214,18 +214,41 @@ async fn run_research(args: ChromeResearchArgs) -> Result<()> {
 }
 
 async fn run_dom(args: ChromeDomArgs) -> Result<()> {
-    eprintln!("Note: DOM reading requires the Chrome extension to be active.");
-    eprintln!("The extension will handle the request via Native Messaging Host.");
-    eprintln!("");
-    eprintln!("To use this feature:");
-    eprintln!("1. Ensure the Chrome extension is installed and active");
-    eprintln!("2. Open a webpage in Chrome");
-    eprintln!("3. Use the extension popup to read DOM, or");
-    eprintln!("4. Use: codex chrome parse --utterance \"read DOM\" --url <URL>");
-    eprintln!("");
-    eprintln!("Request parameters:");
-    eprintln!("  Selector: {:?}", args.selector);
-    eprintln!("  Max chars: {}", args.max_chars);
+    let (mut stdin, mut stdout) = spawn_native_host().await?;
+
+    let message_id = Uuid::new_v4().to_string();
+    let message = serde_json::json!({
+        "version": "1.0",
+        "id": message_id,
+        "type": "dom.read.request",
+        "origin": {},
+        "payload": {
+            "selector": args.selector,
+            "max_chars": args.max_chars,
+        }
+    });
+
+    send_message_to_host(&mut stdin, &message).await?;
+    let response = receive_message_from_host(&mut stdout).await?;
+
+    if let Some(success) = response.get("success").and_then(|s| s.as_bool()) {
+        if success {
+            if let Some(data) = response.get("data") {
+                println!("{}", serde_json::to_string_pretty(data)?);
+            } else {
+                println!("DOM read successful (no data returned)");
+            }
+        } else {
+            let error = response
+                .get("error")
+                .and_then(|e| e.as_str())
+                .unwrap_or("Unknown error");
+            anyhow::bail!("DOM read failed: {}", error);
+        }
+    } else {
+        anyhow::bail!("Invalid response format");
+    }
+
     Ok(())
 }
 
@@ -246,16 +269,40 @@ async fn run_console(args: ChromeConsoleArgs) -> Result<()> {
 }
 
 async fn run_network(args: ChromeNetworkArgs) -> Result<()> {
-    eprintln!("Note: Network request monitoring requires the Chrome extension to be active.");
-    eprintln!("The extension will handle the request via Native Messaging Host.");
-    eprintln!("");
-    eprintln!("To use this feature:");
-    eprintln!("1. Ensure the Chrome extension is installed and active");
-    eprintln!("2. Open a webpage in Chrome");
-    eprintln!("3. Use the extension popup to monitor network requests");
-    eprintln!("");
-    eprintln!("Request parameters:");
-    eprintln!("  URL filter: {:?}", args.filter);
-    eprintln!("  Limit: {}", args.limit);
+    let (mut stdin, mut stdout) = spawn_native_host().await?;
+
+    let message_id = Uuid::new_v4().to_string();
+    let message = serde_json::json!({
+        "version": "1.0",
+        "id": message_id,
+        "type": "network.get_logs.request",
+        "origin": {},
+        "payload": {
+            "filter": args.filter,
+            "limit": args.limit,
+        }
+    });
+
+    send_message_to_host(&mut stdin, &message).await?;
+    let response = receive_message_from_host(&mut stdout).await?;
+
+    if let Some(success) = response.get("success").and_then(|s| s.as_bool()) {
+        if success {
+            if let Some(data) = response.get("data") {
+                println!("{}", serde_json::to_string_pretty(data)?);
+            } else {
+                println!("Network logs retrieved (no data returned)");
+            }
+        } else {
+            let error = response
+                .get("error")
+                .and_then(|e| e.as_str())
+                .unwrap_or("Unknown error");
+            anyhow::bail!("Network log retrieval failed: {}", error);
+        }
+    } else {
+        anyhow::bail!("Invalid response format");
+    }
+
     Ok(())
 }
