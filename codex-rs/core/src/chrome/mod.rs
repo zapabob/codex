@@ -227,12 +227,12 @@ pub fn parse_nl_command(request: ChromeNlRequest) -> Result<ChromeNlResponse> {
         .as_ref()
         .and_then(|c| c.allowed_intents.as_ref())
         && !allowed.is_empty()
-            && !allowed
-                .iter()
-                .any(|allowed_intent| allowed_intent == &intent)
-        {
-            bail!("Intent not allowed by constraints");
-        }
+        && !allowed
+            .iter()
+            .any(|allowed_intent| allowed_intent == &intent)
+    {
+        bail!("Intent not allowed by constraints");
+    }
 
     let requires_confirmation = match risk {
         RiskLevel::High => true,
@@ -300,12 +300,13 @@ fn extract_label_value(input: &str, labels: &[&str]) -> Option<String> {
         );
         if let Ok(regex) = Regex::new(&pattern)
             && let Some(caps) = regex.captures(input)
-                && let Some(value) = caps.name("value") {
-                    let raw = value.as_str().trim();
-                    if !raw.is_empty() {
-                        return Some(strip_quotes(raw));
-                    }
-                }
+            && let Some(value) = caps.name("value")
+        {
+            let raw = value.as_str().trim();
+            if !raw.is_empty() {
+                return Some(strip_quotes(raw));
+            }
+        }
     }
     None
 }
