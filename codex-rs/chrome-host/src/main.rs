@@ -104,6 +104,70 @@ async fn handle_message(msg: message::NativeMessage) -> Result<()> {
                 "Code generation not yet implemented".to_string(),
             )
         }
+        "dom.read.request" => {
+            let selector = msg.payload.get("selector").and_then(|v| v.as_str()).map(|s| s.to_string());
+            let max_chars = msg.payload
+                .get("max_chars")
+                .and_then(|v| v.as_u64())
+                .map(|c| c as usize)
+                .unwrap_or(5000);
+
+            match cli_bridge::handle_dom_read(selector, max_chars) {
+                Ok(data) => NativeResponse::success(
+                    msg.id.clone(),
+                    "dom.read.response".to_string(),
+                    data,
+                ),
+                Err(e) => NativeResponse::error(
+                    msg.id.clone(),
+                    "dom.read.response".to_string(),
+                    e.to_string(),
+                ),
+            }
+        }
+        "console.get_logs.request" => {
+            let level = msg.payload.get("level").and_then(|v| v.as_str()).map(|s| s.to_string());
+            let filter = msg.payload.get("filter").and_then(|v| v.as_str()).map(|s| s.to_string());
+            let limit = msg.payload
+                .get("limit")
+                .and_then(|v| v.as_u64())
+                .map(|l| l as usize)
+                .unwrap_or(50);
+
+            match cli_bridge::handle_console_logs(level, filter, limit) {
+                Ok(data) => NativeResponse::success(
+                    msg.id.clone(),
+                    "console.get_logs.response".to_string(),
+                    data,
+                ),
+                Err(e) => NativeResponse::error(
+                    msg.id.clone(),
+                    "console.get_logs.response".to_string(),
+                    e.to_string(),
+                ),
+            }
+        }
+        "network.get_logs.request" => {
+            let filter = msg.payload.get("filter").and_then(|v| v.as_str()).map(|s| s.to_string());
+            let limit = msg.payload
+                .get("limit")
+                .and_then(|v| v.as_u64())
+                .map(|l| l as usize)
+                .unwrap_or(50);
+
+            match cli_bridge::handle_network_logs(filter, limit) {
+                Ok(data) => NativeResponse::success(
+                    msg.id.clone(),
+                    "network.get_logs.response".to_string(),
+                    data,
+                ),
+                Err(e) => NativeResponse::error(
+                    msg.id.clone(),
+                    "network.get_logs.response".to_string(),
+                    e.to_string(),
+                ),
+            }
+        }
         _ => NativeResponse::error(
             msg.id.clone(),
             format!("{}.response", msg.r#type),

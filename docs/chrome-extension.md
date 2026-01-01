@@ -58,10 +58,13 @@ The binary path will be:
 
 ## Message types (native host)
 
-- `deep_research.request`
-- `nl_command.request`
-- `codegen.request`
-- `ping`
+- `deep_research.request` - Run deep research query
+- `nl_command.request` - Parse natural language command
+- `dom.read.request` - Read DOM from active tab
+- `console.get_logs.request` - Get console logs from active tab
+- `network.get_logs.request` - Get network request logs from active tab
+- `codegen.request` - Code generation (not yet implemented)
+- `ping` - Connection test
 
 Responses are returned as `*.response` payloads with `success` and `data` fields.
 
@@ -77,12 +80,15 @@ codex chrome parse --utterance "click the login button" --url "https://example.c
 codex chrome research "Rust async best practices" --depth 3 --breadth 10
 
 # Read DOM from active tab (requires extension)
+# Note: Currently displays usage instructions. Full implementation requires extension popup.
 codex chrome dom --selector "#main-content"
 
 # Get console logs (requires extension)
+# Note: Currently displays usage instructions. Full implementation requires extension popup.
 codex chrome console --filter "error" --limit 50
 
 # Monitor network requests (requires extension)
+# Note: Currently displays usage instructions. Full implementation requires extension popup.
 codex chrome network --filter "api" --limit 50
 ```
 

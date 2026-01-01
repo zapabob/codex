@@ -86,3 +86,53 @@ pub fn handle_nl_command(
         "warnings": response.warnings,
     }))
 }
+
+/// Handle DOM read request from Chrome extension
+/// Note: This function is called by the extension, which handles the actual DOM reading.
+/// This function just returns a message indicating that the request should be handled by the extension.
+pub fn handle_dom_read(
+    selector: Option<String>,
+    max_chars: usize,
+) -> Result<serde_json::Value> {
+    // The actual DOM reading is done by the extension's content script.
+    // This function just returns the request parameters for the extension to process.
+    Ok(serde_json::json!({
+        "selector": selector,
+        "max_chars": max_chars,
+        "note": "This request should be processed by the extension's content script"
+    }))
+}
+
+/// Handle console logs request from Chrome extension
+/// Note: This function is called by the extension, which handles the actual log retrieval.
+/// This function just returns a message indicating that the request should be handled by the extension.
+pub fn handle_console_logs(
+    level: Option<String>,
+    filter: Option<String>,
+    limit: usize,
+) -> Result<serde_json::Value> {
+    // The actual log retrieval is done by the extension's background script.
+    // This function just returns the request parameters for the extension to process.
+    Ok(serde_json::json!({
+        "level": level,
+        "filter": filter,
+        "limit": limit,
+        "note": "This request should be processed by the extension's background script"
+    }))
+}
+
+/// Handle network logs request from Chrome extension
+/// Note: This function is called by the extension, which handles the actual log retrieval.
+/// This function just returns a message indicating that the request should be handled by the extension.
+pub fn handle_network_logs(
+    filter: Option<String>,
+    limit: usize,
+) -> Result<serde_json::Value> {
+    // The actual log retrieval is done by the extension's background script.
+    // This function just returns the request parameters for the extension to process.
+    Ok(serde_json::json!({
+        "filter": filter,
+        "limit": limit,
+        "note": "This request should be processed by the extension's background script"
+    }))
+}

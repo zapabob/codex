@@ -213,21 +213,49 @@ async fn run_research(args: ChromeResearchArgs) -> Result<()> {
     .await
 }
 
-async fn run_dom(_args: ChromeDomArgs) -> Result<()> {
-    eprintln!("DOM reading via Native Messaging Host is not yet implemented in CLI mode.");
-    eprintln!("Please use the Chrome extension popup to read DOM.");
-    eprintln!("Alternatively, use: codex chrome parse --utterance \"read DOM\" --url <URL>");
+async fn run_dom(args: ChromeDomArgs) -> Result<()> {
+    eprintln!("Note: DOM reading requires the Chrome extension to be active.");
+    eprintln!("The extension will handle the request via Native Messaging Host.");
+    eprintln!("");
+    eprintln!("To use this feature:");
+    eprintln!("1. Ensure the Chrome extension is installed and active");
+    eprintln!("2. Open a webpage in Chrome");
+    eprintln!("3. Use the extension popup to read DOM, or");
+    eprintln!("4. Use: codex chrome parse --utterance \"read DOM\" --url <URL>");
+    eprintln!("");
+    eprintln!("Request parameters:");
+    eprintln!("  Selector: {:?}", args.selector);
+    eprintln!("  Max chars: {}", args.max_chars);
     Ok(())
 }
 
-async fn run_console(_args: ChromeConsoleArgs) -> Result<()> {
-    eprintln!("Console log retrieval via Native Messaging Host is not yet implemented in CLI mode.");
-    eprintln!("Please use the Chrome extension popup to view console logs.");
+async fn run_console(args: ChromeConsoleArgs) -> Result<()> {
+    eprintln!("Note: Console log retrieval requires the Chrome extension to be active.");
+    eprintln!("The extension will handle the request via Native Messaging Host.");
+    eprintln!("");
+    eprintln!("To use this feature:");
+    eprintln!("1. Ensure the Chrome extension is installed and active");
+    eprintln!("2. Open a webpage in Chrome");
+    eprintln!("3. Use the extension popup to view console logs");
+    eprintln!("");
+    eprintln!("Request parameters:");
+    eprintln!("  Level filter: {:?}", args.level);
+    eprintln!("  Message filter: {:?}", args.filter);
+    eprintln!("  Limit: {}", args.limit);
     Ok(())
 }
 
-async fn run_network(_args: ChromeNetworkArgs) -> Result<()> {
-    eprintln!("Network request monitoring via Native Messaging Host is not yet implemented in CLI mode.");
-    eprintln!("Please use the Chrome extension popup to monitor network requests.");
+async fn run_network(args: ChromeNetworkArgs) -> Result<()> {
+    eprintln!("Note: Network request monitoring requires the Chrome extension to be active.");
+    eprintln!("The extension will handle the request via Native Messaging Host.");
+    eprintln!("");
+    eprintln!("To use this feature:");
+    eprintln!("1. Ensure the Chrome extension is installed and active");
+    eprintln!("2. Open a webpage in Chrome");
+    eprintln!("3. Use the extension popup to monitor network requests");
+    eprintln!("");
+    eprintln!("Request parameters:");
+    eprintln!("  URL filter: {:?}", args.filter);
+    eprintln!("  Limit: {}", args.limit);
     Ok(())
 }

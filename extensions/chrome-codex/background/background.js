@@ -278,6 +278,116 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
+  if (request.type === "dom.read.request") {
+    (async () => {
+      try {
+        const result = await handleDomRead({
+          selector: request.selector || null,
+          maxChars: request.maxChars || 5000
+        });
+        // Send result to native host if needed
+        if (request.sendToNative) {
+          const nativeMessage = {
+            version: "1.0",
+            id: request.id || crypto.randomUUID(),
+            type: "dom.read.response",
+            origin: request.origin || {},
+            payload: {
+              success: true,
+              data: result
+            }
+          };
+          await sendNativeMessage(nativeMessage);
+        }
+        sendResponse({ ok: true, result });
+      } catch (error) {
+        sendResponse({ ok: false, error: error.message || String(error) });
+      }
+    })();
+    return true;
+  }
+
+  if (request.type === "console.get_logs.request") {
+    (async () => {
+      try {
+        let logs = consoleLogs.slice();
+        
+        // Filter by level if specified
+        if (request.level) {
+          logs = logs.filter(log => log.level === request.level);
+        }
+        
+        // Filter by message content if specified
+        if (request.filter) {
+          logs = logs.filter(log => log.message.includes(request.filter));
+        }
+        
+        // Limit results
+        const limit = request.limit || 50;
+        logs = logs.slice(-limit);
+        
+        const result = { logs };
+        
+        // Send result to native host if needed
+        if (request.sendToNative) {
+          const nativeMessage = {
+            version: "1.0",
+            id: request.id || crypto.randomUUID(),
+            type: "console.get_logs.response",
+            origin: request.origin || {},
+            payload: {
+              success: true,
+              data: result
+            }
+          };
+          await sendNativeMessage(nativeMessage);
+        }
+        sendResponse({ ok: true, result });
+      } catch (error) {
+        sendResponse({ ok: false, error: error.message || String(error) });
+      }
+    })();
+    return true;
+  }
+
+  if (request.type === "network.get_logs.request") {
+    (async () => {
+      try {
+        let logs = networkLogs.slice();
+        
+        // Filter by URL pattern if specified
+        if (request.filter) {
+          logs = logs.filter(log => log.url.includes(request.filter));
+        }
+        
+        // Limit results
+        const limit = request.limit || 50;
+        logs = logs.slice(-limit);
+        
+        const result = { logs };
+        
+        // Send result to native host if needed
+        if (request.sendToNative) {
+          const nativeMessage = {
+            version: "1.0",
+            id: request.id || crypto.randomUUID(),
+            type: "network.get_logs.response",
+            origin: request.origin || {},
+            payload: {
+              success: true,
+              data: result
+            }
+          };
+          await sendNativeMessage(nativeMessage);
+        }
+        sendResponse({ ok: true, result });
+      } catch (error) {
+        sendResponse({ ok: false, error: error.message || String(error) });
+      }
+    })();
+    return true;
+  }
+
   if (request.type === "dom.read") {
     handleDomRead(request)
       .then((result) => {
