@@ -51,7 +51,7 @@ pub fn mask_secrets(text: &str) -> String {
 
     // Mask GitHub tokens (ghp_..., gho_..., ghu_..., ghs_..., ghr_...)
     if let Ok(re) = GITHUB_TOKEN_REGEX.as_ref() {
-        masked = re.replace_all(&masked, "$1_***MASKED***").to_string();
+        masked = re.replace_all(&masked, "${1}_***MASKED***").to_string();
     } else {
         log_regex_error("GITHUB_TOKEN_REGEX");
     }
