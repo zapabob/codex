@@ -1,4 +1,4 @@
-﻿# Codex Chrome Extension (Native Messaging)
+# Codex Chrome Extension (Native Messaging)
 
 This document describes how to run the Codex Chrome/Edge extension with the native messaging host and the `/chrome` CLI command.
 
@@ -64,6 +64,27 @@ The binary path will be:
 - `ping`
 
 Responses are returned as `*.response` payloads with `success` and `data` fields.
+
+## CLI Commands
+
+The Codex CLI now supports Chrome extension integration commands:
+
+```bash
+# Parse natural language instruction
+codex chrome parse --utterance "click the login button" --url "https://example.com"
+
+# Run deep research
+codex chrome research "Rust async best practices" --depth 3 --breadth 10
+
+# Read DOM from active tab (requires extension)
+codex chrome dom --selector "#main-content"
+
+# Get console logs (requires extension)
+codex chrome console --filter "error" --limit 50
+
+# Monitor network requests (requires extension)
+codex chrome network --filter "api" --limit 50
+```
 
 ## Example CLI usage
 
