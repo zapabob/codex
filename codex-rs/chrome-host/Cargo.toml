@@ -8,6 +8,9 @@ license.workspace = true
 name = "codex-chrome-host"
 path = "src/main.rs"
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow = { workspace = true }
 codex-core = { workspace = true }
@@ -15,7 +18,7 @@ codex-deep-research = { path = "../deep-research" }
 codex-web-search = { path = "../web-search" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-tokio = { workspace = true, features = ["full"] }
+tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-uuid = { workspace = true, features = ["v4"] }
+uuid = { workspace = true, features = ["serde", "v4"] }

@@ -240,6 +240,9 @@ enum Subcommand {
 
     /// Inspect feature flags.
     Features(FeaturesCli),
+
+    /// [EXPERIMENTAL] Chrome/Edge extension integration commands
+    Chrome(codex_cli::chrome_cmd::ChromeCli),
 }
 
 #[derive(Debug, Parser)]
@@ -1055,6 +1058,9 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
         }
         Some(Subcommand::GitAnalyze(git_cli)) => {
             git_commands::run_git_analyze_command(git_cli).await?;
+        }
+        Some(Subcommand::Chrome(chrome_cli)) => {
+            codex_cli::chrome_cmd::run_chrome_command(chrome_cli).await?;
         }
         Some(Subcommand::Review(mut review_cmd)) => {
             prepend_config_flags(

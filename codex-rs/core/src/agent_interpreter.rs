@@ -258,6 +258,20 @@ impl AgentInterpreter {
                 param_extractors: vec![],
                 confidence: 0.9,
             },
+            // Research patterns
+            Pattern {
+                regex: Regex::new(
+                    r"(?i)(research|investigate|learn|study|find out|explore)(?:\s+(.+))?",
+                )
+                .unwrap(),
+                agent_name: "researcher".to_string(),
+                param_extractors: vec![ParamExtractor {
+                    name: "query".to_string(),
+                    group_index: 2,
+                    default: None,
+                }],
+                confidence: 0.8,
+            },
             // TypeScript specific
             Pattern {
                 regex: Regex::new(r"(?i)(typescript|ts|tsx|react)").unwrap(),
@@ -300,20 +314,6 @@ impl AgentInterpreter {
                 agent_name: "sec-audit".to_string(),
                 param_extractors: vec![],
                 confidence: 0.95,
-            },
-            // Research patterns
-            Pattern {
-                regex: Regex::new(
-                    r"(?i)(research|investigate|learn|study|find out|explore)(?:\s+(.+))?",
-                )
-                .unwrap(),
-                agent_name: "researcher".to_string(),
-                param_extractors: vec![ParamExtractor {
-                    name: "query".to_string(),
-                    group_index: 2,
-                    default: None,
-                }],
-                confidence: 0.8,
             },
         ]
     }

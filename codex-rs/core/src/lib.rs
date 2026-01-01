@@ -20,7 +20,6 @@ mod apply_patch;
 pub mod audit_log;
 pub mod auth;
 pub mod bash;
-pub mod chrome;
 mod client;
 mod client_common;
 pub mod codex;

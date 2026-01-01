@@ -16,6 +16,14 @@ pub struct ChromeCli {
 pub enum ChromeSubcommand {
     /// Parse natural language into a structured browser intent
     Parse(ChromeParseArgs),
+    /// Run deep research query
+    Research(ChromeResearchArgs),
+    /// Read DOM from active tab
+    Dom(ChromeDomArgs),
+    /// Get console logs from active tab
+    Console(ChromeConsoleArgs),
+    /// Monitor network requests from active tab
+    Network(ChromeNetworkArgs),
 }
 
 #[derive(Debug, Args)]
@@ -41,6 +49,57 @@ pub struct ChromeParseArgs {
     pub require_confirmation_for: Vec<String>,
 }
 
+#[derive(Debug, Args)]
+pub struct ChromeResearchArgs {
+    /// Research query
+    pub query: String,
+
+    /// Research depth (default: 3)
+    #[arg(long, default_value_t = 3)]
+    pub depth: u8,
+
+    /// Research breadth (default: 10)
+    #[arg(long, default_value_t = 10)]
+    pub breadth: u8,
+}
+
+#[derive(Debug, Args)]
+pub struct ChromeDomArgs {
+    /// CSS selector to read (optional, reads entire page if not specified)
+    #[arg(long)]
+    pub selector: Option<String>,
+
+    /// Maximum characters to read (default: 5000)
+    #[arg(long, default_value_t = 5000)]
+    pub max_chars: usize,
+}
+
+#[derive(Debug, Args)]
+pub struct ChromeConsoleArgs {
+    /// Filter logs by level (log, warn, error, info, debug)
+    #[arg(long)]
+    pub level: Option<String>,
+
+    /// Filter logs by message content
+    #[arg(long)]
+    pub filter: Option<String>,
+
+    /// Maximum number of logs to retrieve (default: 50)
+    #[arg(long, default_value_t = 50)]
+    pub limit: usize,
+}
+
+#[derive(Debug, Args)]
+pub struct ChromeNetworkArgs {
+    /// Filter requests by URL pattern
+    #[arg(long)]
+    pub filter: Option<String>,
+
+    /// Maximum number of requests to retrieve (default: 50)
+    #[arg(long, default_value_t = 50)]
+    pub limit: usize,
+}
+
 #[derive(Debug, Deserialize)]
 struct ChromeParseRequest {
     pub id: Option<String>,
@@ -61,6 +120,10 @@ struct ChromeParseResponse {
 pub async fn run_chrome_command(cli: ChromeCli) -> Result<()> {
     match cli.subcommand {
         ChromeSubcommand::Parse(args) => run_parse(args),
+        ChromeSubcommand::Research(args) => run_research(args).await,
+        ChromeSubcommand::Dom(args) => run_dom(args).await,
+        ChromeSubcommand::Console(args) => run_console(args).await,
+        ChromeSubcommand::Network(args) => run_network(args).await,
     }
 }
 
@@ -129,5 +192,42 @@ fn run_parse(args: ChromeParseArgs) -> Result<()> {
 
     let output = serde_json::to_string_pretty(&response).context("Failed to serialize response")?;
     println!("{output}");
+    Ok(())
+}
+
+async fn run_research(args: ChromeResearchArgs) -> Result<()> {
+    use codex_cli::research_cmd::run_research_command;
+    
+    run_research_command(
+        args.query,
+        args.depth,
+        args.breadth,
+        100_000, // budget
+        false,   // citations
+        None,    // mcp_url
+        false,   // lightweight_fallback
+        None,    // out
+        false,   // use_gemini
+        false,   // use_mcp
+    )
+    .await
+}
+
+async fn run_dom(_args: ChromeDomArgs) -> Result<()> {
+    eprintln!("DOM reading via Native Messaging Host is not yet implemented in CLI mode.");
+    eprintln!("Please use the Chrome extension popup to read DOM.");
+    eprintln!("Alternatively, use: codex chrome parse --utterance \"read DOM\" --url <URL>");
+    Ok(())
+}
+
+async fn run_console(_args: ChromeConsoleArgs) -> Result<()> {
+    eprintln!("Console log retrieval via Native Messaging Host is not yet implemented in CLI mode.");
+    eprintln!("Please use the Chrome extension popup to view console logs.");
+    Ok(())
+}
+
+async fn run_network(_args: ChromeNetworkArgs) -> Result<()> {
+    eprintln!("Network request monitoring via Native Messaging Host is not yet implemented in CLI mode.");
+    eprintln!("Please use the Chrome extension popup to monitor network requests.");
     Ok(())
 }
