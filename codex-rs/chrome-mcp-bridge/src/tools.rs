@@ -1,4 +1,4 @@
-use mcp_types::Tool;
+use mcp_types::{Tool, ToolInputSchema};
 use serde_json::json;
 
 /// Create dom_read tool definition
@@ -6,9 +6,9 @@ pub fn create_dom_read_tool() -> Tool {
     Tool {
         name: "dom_read".to_string(),
         description: Some("Read DOM from active Chrome tab".to_string()),
-        input_schema: json!({
-            "type": "object",
-            "properties": {
+        input_schema: ToolInputSchema {
+            r#type: "object".to_string(),
+            properties: Some(json!({
                 "selector": {
                     "type": "string",
                     "description": "CSS selector to read (optional, reads entire page if not specified)"
@@ -18,9 +18,18 @@ pub fn create_dom_read_tool() -> Tool {
                     "description": "Maximum characters to read",
                     "default": 5000
                 }
-            }
-        }),
-    }
+            })),
+            required: None,
+        },
+   
+
+        annotations: None,
+
+        output_schema: None,
+
+        title: Some("Chrome Extension Tool".to_string()),
+
+        }
 }
 
 /// Create console_get_logs tool definition
@@ -28,9 +37,9 @@ pub fn create_console_get_logs_tool() -> Tool {
     Tool {
         name: "console_get_logs".to_string(),
         description: Some("Get console logs from active Chrome tab".to_string()),
-        input_schema: json!({
-            "type": "object",
-            "properties": {
+        input_schema: ToolInputSchema {
+            r#type: "object".to_string(),
+            properties: Some(json!({
                 "level": {
                     "type": "string",
                     "description": "Filter logs by level (log, warn, error, info, debug)",
@@ -45,9 +54,18 @@ pub fn create_console_get_logs_tool() -> Tool {
                     "description": "Maximum number of logs to retrieve",
                     "default": 50
                 }
-            }
-        }),
-    }
+            })),
+            required: None,
+        },
+   
+
+        annotations: None,
+
+        output_schema: None,
+
+        title: Some("Chrome Extension Tool".to_string()),
+
+        }
 }
 
 /// Create network_get_logs tool definition
@@ -55,9 +73,9 @@ pub fn create_network_get_logs_tool() -> Tool {
     Tool {
         name: "network_get_logs".to_string(),
         description: Some("Get network request logs from active Chrome tab".to_string()),
-        input_schema: json!({
-            "type": "object",
-            "properties": {
+        input_schema: ToolInputSchema {
+            r#type: "object".to_string(),
+            properties: Some(json!({
                 "filter": {
                     "type": "string",
                     "description": "Filter requests by URL pattern"
@@ -67,9 +85,18 @@ pub fn create_network_get_logs_tool() -> Tool {
                     "description": "Maximum number of requests to retrieve",
                     "default": 50
                 }
-            }
-        }),
-    }
+            })),
+            required: None,
+        },
+   
+
+        annotations: None,
+
+        output_schema: None,
+
+        title: Some("Chrome Extension Tool".to_string()),
+
+        }
 }
 
 /// Get all Chrome extension tools

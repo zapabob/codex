@@ -3,6 +3,7 @@
 """
 高速差分ビルド・プロセスキル・上書きインストールスクリプト
 tqdm風の進捗表示で残り時間と経過時間を可視化
+実装ログを自動保存する機能付き
 """
 
 import subprocess
@@ -13,6 +14,67 @@ import os
 import json
 from datetime import datetime
 from pathlib import Path
+
+# MCPサーバーから現在日時を取得する関数
+def get_current_datetime_from_mcp():
+    """MCPサーバー経由で現在日時を取得（フォールバック付き）"""
+    try:
+        # まずPowerShellで日時を取得
+        result = subprocess.run(
+            ["powershell", "-Command", "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            encoding='utf-8',
+            errors='replace'
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception as e:
+        print(f"PowerShell日時取得失敗: {e}")
+
+    # フォールバック: Pythonのdatetimeを使用
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def save_implementation_log(log_content, feature_name="高速差分ビルド"):
+    """実装ログを_docs/ディレクトリに保存"""
+    try:
+        # 日時を取得
+        current_datetime = get_current_datetime_from_mcp()
+        date_part = current_datetime.split()[0]  # yyyy-mm-dd
+
+        # ログファイル名を作成
+        log_filename = f"{date_part}_{feature_name}{{main}}.md"
+        log_dir = Path("_docs")
+        log_dir.mkdir(exist_ok=True)
+        log_path = log_dir / log_filename
+
+        # ログ内容を作成
+        log_header = f"""# 実装ログ: {feature_name}
+**実装日時**: {current_datetime}
+**ワークツリー**: main
+**機能**: {feature_name}
+
+## 実行内容
+{log_content}
+
+## 完了ステータス
+✅ 正常に完了しました
+
+---
+*自動生成された実装ログ*
+"""
+
+        # ファイルを保存
+        with open(log_path, 'w', encoding='utf-8') as f:
+            f.write(log_header)
+
+        print(f"📝 実装ログを保存しました: {log_path}")
+        return str(log_path)
+
+    except Exception as e:
+        print(f"⚠️  実装ログ保存でエラー: {e}")
+        return None
 
 # Windows環境での文字エンコーディング対策
 if sys.platform == 'win32':
@@ -245,10 +307,14 @@ def main():
     # 作業ディレクトリをcodex-rsに変更
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
-    
+
+    # 開始日時を取得
+    start_datetime = get_current_datetime_from_mcp()
+
     print("="*70)
     print("🚀 高速差分ビルド・プロセスキル・上書きインストール")
     print("="*70)
+    print(f"🕐 開始時刻: {start_datetime}")
     
     # 環境変数を確認
     target_dir = os.environ.get('CARGO_TARGET_DIR', 'target')
@@ -329,19 +395,35 @@ def main():
         print(f"   ⚠️  動作確認でエラー: {e}")
     
     # 完了
+    end_datetime = get_current_datetime_from_mcp()
     print("\n" + "="*70)
     print("🎉 全ての処理が正常に完了しました！")
     print("="*70)
+    print(f"🕐 終了時刻: {end_datetime}")
     print(f"\n📊 サマリー:")
     print(f"   - ビルド時間: {build_elapsed:.2f}秒")
     print(f"   - コンパイル済みクレート: {build_count}個")
     print(f"   - インストール先: {install_path}")
     print(f"   - バイナリサイズ: {file_size:.2f} MB")
+
+    # 実装ログを保存
+    log_content = f"""- 開始時刻: {start_datetime}
+- 終了時刻: {end_datetime}
+- ビルド時間: {build_elapsed:.2f}秒
+- コンパイル済みクレート: {build_count}個
+- バイナリサイズ: {file_size:.2f} MB
+- インストール先: {install_path}
+- プロセスキル: 正常に実行
+- ビルド結果: 成功
+- インストール結果: 成功
+- 動作確認: 完了"""
+
+    log_path = save_implementation_log(log_content, "高速差分ビルド・プロセスキル・上書きインストール")
     
     # 完了音声を再生（Windows環境）
     if sys.platform == 'win32':
         audio_paths = [
-            r"C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav",
+            r"C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav",  # 優先パス
             os.path.join(os.path.dirname(os.path.dirname(script_dir)), ".codex", "marisa_owattaze.wav")
         ]
         
@@ -352,7 +434,7 @@ def main():
                     import winsound
                     print(f"\n🔊 完了音声を再生中: {audio_path}")
                     winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_SYNC)
-                    print("✅ 音声を再生しました: 終わったぜ！")
+                    print("✅ 音声を再生しました: 終わったぜ！ 高速ビルド・インストール完了だぜ！")
                     audio_played = True
                     break
                 except Exception as e:

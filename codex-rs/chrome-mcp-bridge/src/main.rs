@@ -4,7 +4,6 @@ mod tools;
 use anyhow::Result;
 use bridge::BridgeServer;
 use std::env;
-use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<()> {

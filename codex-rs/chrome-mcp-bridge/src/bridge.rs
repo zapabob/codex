@@ -8,7 +8,7 @@ use mcp_types::{
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdout};
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 use tracing::{error, info};
@@ -92,7 +92,7 @@ impl BridgeServer {
 
         // Task: write to stdout
         let stdout_handle = tokio::spawn(async move {
-            let mut stdout = tokio::io::stdout();
+            let mut stdout = stdout();
             while let Some(msg) = outgoing_rx.recv().await {
                 match serde_json::to_string(&msg) {
                     Ok(json) => {
@@ -193,13 +193,17 @@ impl BridgeServer {
 
         match method.as_str() {
             "initialize" => {
-                let params: InitializeRequestParams = serde_json::from_value(request.params)?;
+                let params: InitializeRequestParams = serde_json::from_value(request.params.ok_or_else(|| anyhow::anyhow!("Missing params"))?)?;
                 let result = InitializeResult {
                     capabilities: ServerCapabilities {
                         tools: Some(ServerCapabilitiesTools {
                             list_changed: Some(true),
                         }),
-                        ..Default::default()
+                        completions: None,
+                        experimental: None,
+                        logging: None,
+                        prompts: None,
+                        resources: None,
                     },
                     instructions: None,
                     protocol_version: params.protocol_version.clone(),
@@ -222,7 +226,7 @@ impl BridgeServer {
                     .await?;
             }
             "tools/call" => {
-                let params: CallToolRequestParams = serde_json::from_value(request.params)?;
+                let params: CallToolRequestParams = serde_json::from_value(request.params.ok_or_else(|| anyhow::anyhow!("Missing params"))?)?;
                 self.handle_tool_call(request_id, params, outgoing_tx).await?;
             }
             _ => {
@@ -317,8 +321,7 @@ impl BridgeServer {
         let response = mcp_types::JSONRPCResponse {
             jsonrpc: mcp_types::JSONRPC_VERSION.to_string(),
             id,
-            result: Some(serde_json::to_value(result)?),
-            error: None,
+            result: serde_json::to_value(result)?,
         };
 
         outgoing_tx
