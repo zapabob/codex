@@ -1496,6 +1496,167 @@ Agent: [MUST execute] PowerShell sound notification command
 **Based on**: OpenAI/codex official + community issues  
 **Status**: ✅ Production Ready
 
+---
+
+## 📝 README作成ルール - 採用面接対策
+
+### 🎯 READMEの構造原則（主張→証拠→再現手順）
+
+**採用面接で「実務経験」を証明するためのREADME構造**:
+
+```
+1. 🎯 TL;DR (主張: 何ができるか)
+   - Status: Stable/Experimentalの明記
+   - Use cases: 具体的な活用シーン
+   - Quickstart: 動作確認コマンド
+
+2. Why Codex? (理由: なぜ使うべきか)
+   - 具体的な価値提案
+   - 競合との差異
+
+3. 📊 Feature Status Matrix (証拠: 機能一覧)
+   - Proof: 実在するドキュメントパス
+   - Status: Stable/Experimentalの明確区分
+
+4. 🚀 Quickstart (再現手順: すぐに試せる)
+   - 実在するコマンドのみ
+   - 5分以内で動作確認可能
+
+5. 👔 For recruiters (採用担当向け導線)
+   - 評価ポイントの明示
+   - 3ステップで技術力を確認可能
+```
+
+### 🛡️ 採用面接対策の具体ルール
+
+#### 1. Proofの整合性確保（最重要）
+```markdown
+<!-- ❌ BAD: 機能とProofが合わない -->
+| Git analysis | ✅ Stable | `cursor-integration.md` |
+
+<!-- ✅ GOOD: 機能に対応する専用ページ -->
+| Git analysis | ✅ Stable | `docs/git/README.md` |
+```
+
+#### 2. 数値主張の条件明記
+```markdown
+<!-- ❌ BAD: 根拠のない数字 -->
+"Fixed 22 compilation errors"
+
+<!-- ✅ GOOD: 条件付き or ベンチマーク隔離 -->
+"Fixed compilation errors, improved incremental builds"
+"Performance improvements (see docs/benchmarks/)"
+```
+
+#### 3. ブランド混同リスク回避
+```markdown
+<!-- ✅ MUST: README冒頭に明記 -->
+*This is an independent fork/extension and is not affiliated with OpenAI.*
+```
+
+#### 4. 採用担当向け導線
+```markdown
+<!-- ✅ MUST: READMEに追加 -->
+### 👔 For recruiters / hiring managers
+If you want to evaluate engineering depth quickly:
+1) Read: `ARCHITECTURE.md`
+2) Run: `codex --version` and `codex --help`
+3) Skim: `docs/benchmarks/README.md` and `SECURITY.md`
+```
+
+#### 5. コマンド例の実在保証
+```bash
+# ❌ BAD: 存在しないサブコマンド
+codex git-analyze commits --period=30d
+
+# ✅ GOOD: --help で確認可能なコマンド
+codex git-analyze --help
+```
+
+### 📊 README品質チェックリスト
+
+- [ ] TL;DRにStatus/Use cases/Quickstartが揃っている
+- [ ] Why Codex?セクションで価値提案が明確
+- [ ] Feature MatrixのProofが実在するファイルパス
+- [ ] 数値は条件付き or ベンチマークに隔離
+- [ ] 非公式フォークであることが明記されている
+- [ ] 採用担当向けの評価導線がある
+- [ ] コマンド例は実際に動作するもののみ
+- [ ] curlダウンロードリンクが安全な形式
+
+---
+
+## 💾 文字化けしないコミットメッセージ生成ルール
+
+### 🎯 日本語コミットメッセージの文字化け対策
+
+**問題**: Gitコミットメッセージで日本語を使うと文字化けが発生することがある
+
+**解決策**: コミットメッセージは**必ず英語**で記述し、日本語内容はコミット本文に記載
+
+#### ✅ 正しいコミット方法
+
+```bash
+# ❌ BAD: 日本語メッセージ（文字化けリスク）
+git commit -m "fix: READMEの採用面接対策修正"
+
+# ✅ GOOD: 英語メッセージ + 日本語本文
+git commit -m "feat: Add interview-focused content and security improvements
+
+- Add recruiter guide section to README
+- Fix feature matrix proof links to existing docs
+- Add brand disclaimer for independent fork
+- Implement automated security scanning
+- Add comprehensive CI/CD pipeline"
+
+# ✅ EVEN BETTER: 英語のみ（安全策）
+git commit -m "feat: Add interview-focused content - recruiter guide, proof links, security automation"
+```
+
+#### 📝 コミットメッセージテンプレート
+
+```bash
+# 機能追加
+git commit -m "feat: Add [feature name] - [brief description]"
+
+# バグ修正
+git commit -m "fix: Fix [issue] - [impact]"
+
+# リファクタリング
+git commit -m "refactor: Refactor [component] - [improvement]"
+
+# ドキュメント
+git commit -m "docs: Update [doc name] - [changes]"
+
+# 設定変更
+git commit -m "chore: Update [config] - [reason]"
+```
+
+#### 🔍 文字化けが発生した場合の対処
+
+```bash
+# コミットメッセージの文字コード確認
+git log --oneline --encoding=utf-8
+
+# 文字化けが発生したら再コミット
+git commit --amend -m "feat: [english message]"
+
+# Git設定の確認
+git config --global core.quotepath false
+git config --global i18n.commitEncoding utf-8
+git config --global i18n.logOutputEncoding utf-8
+```
+
+#### ⚠️ 重要ルール
+
+1. **コミットメッセージは常に英語**で記述
+2. **日本語内容はコミット本文**に記載
+3. **絵文字は避ける**（文字化けリスク）
+4. **Conventional Commits**形式を守る
+5. **1行目は50文字以内**に収める
+
+---
+
 **🔗 Links**:
 - [Full Rules](.cursor/rules.md)
 - [OpenAI Official](https://github.com/openai/codex)
