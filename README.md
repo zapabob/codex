@@ -22,23 +22,44 @@
 
 ### 🎯 TL;DR
 
-**Codex is a local AI coding CLI extended with plan execution, parallel sub-agents, and git timeline visualization.**
+**Codex is a local AI coding CLI extended with plan execution, parallel sub-agents, and git analysis utilities.**
 
-- **Status**: CLI + Plan Mode + Sub-agents are stable. Research and visualization features are production-ready.
+- **Status**: CLI + Plan Mode + Sub-agents are **stable**. GUI/VR/CUDA acceleration are **experimental**.
 - **Quickstart**: `npm i -g @zapabob/codex && codex --version && codex`
-- **Key Features**: Plan orchestration, parallel agents, deep research, git analysis
+- **Use cases**: Task planning/execution, parallel reviews/tests, reproducible research with citations, repo-level analysis
+
+### Why Codex?
+
+Codex reduces the overhead of day-to-day engineering work by:
+
+* Converting ambiguous tasks into executable plans (Plan mode)
+* Delegating review/testing/security checks to parallel sub-agents
+* Providing reproducible local research outputs with citations
+
+### What's extended compared to upstream OpenAI/codex?
+
+* Plan mode execution workflow (create/approve/execute)
+* Parallel sub-agent orchestration (delegate-parallel)
+* Research workflow with citations and MCP integration
+* Git analysis utilities for repository-level insights
+
+### Safety model
+
+* Default sandbox: read-only
+* Risky commands require explicit approval
+* Agent actions can be audited via structured logs
 
 ### 📊 Feature Status Matrix
 
 | Feature              | Status                     | Proof                        |
 | -------------------- | -------------------------- | ---------------------------- |
-| **Plan mode**        | ✅ **Stable**              | Demo gif, command examples   |
-| **Sub-agents**       | ✅ **Stable**              | Parallel execution benchmarks |
-| **Deep research**    | ✅ **Stable**              | Citation tracking, MCP integration |
-| **Git analysis**     | ✅ **Stable**              | Terminal visualization, CUDA acceleration |
-| **GUI/Web interface**| 🧪 **Experimental**        | Dashboard, agent management  |
-| **VR/AR support**    | 🧪 **Experimental**        | Meta Quest integration       |
-| **CUDA acceleration**| 🧪 **Experimental**        | Performance benchmarks       |
+| **Plan mode**        | ✅ **Stable**              | `docs/plan/README.md`        |
+| **Sub-agents**       | ✅ **Stable**              | `docs/guides/parallel-custom-agent.md` |
+| **Deep research**    | ✅ **Stable**              | `docs/mcp/api-specification.md` |
+| **Git analysis**     | ✅ **Stable**              | `docs/guides/cursor-integration.md` |
+| **GUI/Web interface**| 🧪 **Experimental**        | `docs/guides/cursor-ide-setup.md` |
+| **VR/AR support**    | 🧪 **Experimental**        | `docs/zapabob/AGENTS.md`     |
+| **CUDA acceleration**| 🧪 **Experimental**        | `CHANGELOG.md`               |
 
 ### 🚀 Quickstart
 
@@ -48,8 +69,7 @@
 npm install -g @zapabob/codex
 
 # Or download binary from releases
-curl -L https://github.com/zapabob/codex/releases/download/v2.8.3/codex-cli-2.8.3-windows-x64.tar.gz -o codex.tar.gz
-tar -xzf codex.tar.gz
+# Download from GitHub Releases
 ```
 
 #### Verify Installation
@@ -122,23 +142,44 @@ cargo install --path cli --force
 
 ### 🎯 要約
 
-**CodexはPlan実行、並列サブエージェント、Gitタイムライン可視化を拡張したローカルAIコーディングCLIです。**
+**CodexはPlan実行、並列サブエージェント、Git解析ユーティリティを拡張したローカルAIコーディングCLIです。**
 
-- **ステータス**: CLI + Plan Mode + Sub-agentsは安定版。研究・可視化機能は本番環境対応。
+- **ステータス**: CLI + Plan Mode + Sub-agentsは**安定版**。GUI/VR/CUDA高速化は**実験版**。
 - **クイックスタート**: `npm i -g @zapabob/codex && codex --version && codex`
-- **主要機能**: Planオーケストレーション、並列エージェント、Deep Research、Git解析
+- **ユースケース**: タスク計画/実行、並列レビュー/テスト、再現性のある引用付きリサーチ、リポジトリレベル分析
+
+### Codexを使う理由
+
+Codexは日々のエンジニアリング作業のオーバーヘッドを削減します：
+
+* 曖昧なタスクを実行可能な計画に変換（Planモード）
+* レビュー/テスト/セキュリティチェックを並列サブエージェントに委任
+* 引用付きの再現性のあるローカルリサーチ出力を提供
+
+### 上流OpenAI/codexとの拡張点
+
+* Planモード実行ワークフロー（作成/承認/実行）
+* 並列サブエージェントオーケストレーション（delegate-parallel）
+* 引用とMCP統合付きリサーチワークフロー
+* リポジトリレベル洞察のためのGit解析ユーティリティ
+
+### 安全モデル
+
+* デフォルトサンドボックス: 読み取り専用
+* 危険なコマンドには明示的な承認が必要
+* エージェントアクションは構造化ログで監査可能
 
 ### 📊 機能ステータスマトリックス
 
 | 機能                | ステータス                  | 証明                          |
 | ------------------- | -------------------------- | ---------------------------- |
-| **Plan mode**       | ✅ **安定版**              | デモ動画、コマンド例          |
-| **Sub-agents**      | ✅ **安定版**              | 並列実行ベンチマーク          |
-| **Deep research**   | ✅ **安定版**              | 引用追跡、MCP統合            |
-| **Git analysis**    | ✅ **安定版**              | ターミナル可視化、CUDA高速化  |
-| **GUI/Webインターフェース** | 🧪 **実験版**        | ダッシュボード、エージェント管理 |
-| **VR/AR対応**       | 🧪 **実験版**              | Meta Quest統合               |
-| **CUDA高速化**      | 🧪 **実験版**              | パフォーマンスベンチマーク    |
+| **Plan mode**       | ✅ **安定版**              | `docs/plan/README.md`        |
+| **Sub-agents**      | ✅ **安定版**              | `docs/guides/parallel-custom-agent.md` |
+| **Deep research**   | ✅ **安定版**              | `docs/mcp/api-specification.md` |
+| **Git analysis**    | ✅ **安定版**              | `docs/guides/cursor-integration.md` |
+| **GUI/Webインターフェース** | 🧪 **実験版**        | `docs/guides/cursor-ide-setup.md` |
+| **VR/AR対応**       | 🧪 **実験版**              | `docs/zapabob/AGENTS.md`     |
+| **CUDA高速化**      | 🧪 **実験版**              | `CHANGELOG.md`               |
 
 ### 🚀 クイックスタート
 
@@ -148,8 +189,7 @@ cargo install --path cli --force
 npm install -g @zapabob/codex
 
 # またはリリースからバイナリをダウンロード
-curl -L https://github.com/zapabob/codex/releases/download/v2.8.3/codex-cli-2.8.3-windows-x64.tar.gz -o codex.tar.gz
-tar -xzf codex.tar.gz
+# GitHub Releasesからダウンロード
 ```
 
 #### インストール確認
