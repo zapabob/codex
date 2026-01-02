@@ -6,6 +6,8 @@
 
 **v2.8.3 "Build System Improvements & Repository Organization" - Extended OpenAI Codex CLI**
 
+*This is an independent fork/extension and is not affiliated with OpenAI.*
+
 [![Version](https://img.shields.io/badge/version-2.8.3-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
@@ -54,12 +56,12 @@ Codex reduces the overhead of day-to-day engineering work by:
 | Feature              | Status                     | Proof                        |
 | -------------------- | -------------------------- | ---------------------------- |
 | **Plan mode**        | ✅ **Stable**              | `docs/plan/README.md`        |
-| **Sub-agents**       | ✅ **Stable**              | `docs/guides/parallel-custom-agent.md` |
-| **Deep research**    | ✅ **Stable**              | `docs/mcp/api-specification.md` |
-| **Git analysis**     | ✅ **Stable**              | `docs/guides/cursor-integration.md` |
-| **GUI/Web interface**| 🧪 **Experimental**        | `docs/guides/cursor-ide-setup.md` |
-| **VR/AR support**    | 🧪 **Experimental**        | `docs/zapabob/AGENTS.md`     |
-| **CUDA acceleration**| 🧪 **Experimental**        | `CHANGELOG.md`               |
+| **Sub-agents**       | ✅ **Stable**              | `docs/agents/README.md`      |
+| **Deep research**    | ✅ **Stable**              | `docs/research/README.md`    |
+| **Git analysis**     | ✅ **Stable**              | `docs/git/README.md`         |
+| **GUI/Web interface**| 🧪 **Experimental**        | `docs/gui/README.md`         |
+| **VR/AR support**    | 🧪 **Experimental**        | `docs/vr/README.md`          |
+| **CUDA acceleration**| 🧪 **Experimental**        | `docs/benchmarks/cuda.md`    |
 
 ### 🚀 Quickstart
 
@@ -68,8 +70,7 @@ Codex reduces the overhead of day-to-day engineering work by:
 # Recommended: npm package
 npm install -g @zapabob/codex
 
-# Or download binary from releases
-# Download from GitHub Releases
+# Or download a prebuilt binary from GitHub Releases (see Releases page).
 ```
 
 #### Verify Installation
@@ -118,10 +119,17 @@ Codex extends OpenAI's Codex CLI with:
 
 ### 🔧 What's New in v2.8.3
 
-- ✅ **Build System**: Fixed 22 compilation errors, improved incremental builds
+- ✅ **Build System**: Fixed compilation errors, improved incremental builds
 - ✅ **Code Quality**: Enhanced type safety and removed unused imports
-- ✅ **Repository**: Systematic organization (6,979 files reorganized)
-- ✅ **Performance**: sccache integration for faster compilation
+- ✅ **Repository**: Systematic organization for maintainability
+- ✅ **Performance**: sccache integration for faster local builds (see docs/benchmarks/)
+
+### 👔 For recruiters / hiring managers
+
+If you want to evaluate engineering depth quickly:
+1) Read: `ARCHITECTURE.md`
+2) Run: `codex --version` and `codex --help`
+3) Skim: `docs/benchmarks/README.md` and `SECURITY.md`
 
 ### 🤝 Contributing
 
