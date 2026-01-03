@@ -37,8 +37,8 @@ class BuildAndInstallSystem:
 
     def run_command_with_progress(self, cmd: list, description: str, timeout: int = 300) -> bool:
         """コマンドを実行し、進捗を表示"""
-        print(f"🔧 {description}")
-        print(f"💻 コマンド: {' '.join(cmd)}")
+        print(f"[TOOL] {description}")
+        print(f"[CMD] コマンド: {' '.join(cmd)}")
 
         start_time = time.time()
         try:
@@ -66,7 +66,8 @@ class BuildAndInstallSystem:
 
                 if process.returncode == 0:
                     elapsed = time.time() - start_time
-                    print(".1f"                    return True
+                    print(f"[OK] コマンド成功 ({elapsed:.1f}s)")
+                    return True
                 else:
                     print(f"[ERROR] コマンド失敗 ({time.time() - start_time:.1f}s)")
                     if stderr:
@@ -260,7 +261,7 @@ class BuildAndInstallSystem:
                 print(f"[ERROR] ステップ {i} 失敗: {step_name}")
                 return False
 
-            print(".1f"
+            print(".1f")
         print(f"\n[SUCCESS] すべてのステップが完了しました!")
         return True
 
@@ -293,7 +294,7 @@ def main():
     print("[TARGET] 設定:")
     print(f"  [DIR] プロジェクトルート: {project_root}")
     print(f"  [TARGET] インストール先: {install_path or system.default_install_path}")
-    print(f"  🚫 プロセス終了: {'スキップ' if args.skip_kill else '実行'}")
+    print(f"  [SKIP] プロセス終了: {'スキップ' if args.skip_kill else '実行'}")
 
     # プロセス終了スキップ設定
     if args.skip_kill:
