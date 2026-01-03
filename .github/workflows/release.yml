@@ -205,7 +205,7 @@ jobs:
             codex-darwin-arm64/codex
             codex-linux-x64/codex
             codex-${{ steps.version.outputs.version }}.tgz
-          body_path: RELEASE_NOTES_v1.0.0.md
+          body_path: RELEASE_NOTES_v2.9.0.md
           draft: false
           prerelease: false
         env:

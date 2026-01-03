@@ -2,13 +2,13 @@
 
 <div align="center">
 
-![Codex v2.8.3](./architecture-v2.8.3.svg)
+![Codex v2.9.0](./architecture-v2.9.0.svg)
 
-**v2.8.3 "Build System Improvements & Repository Organization" - Extended OpenAI Codex CLI**
+**v2.9.0 "Fast Build & Hot Reload System" - Extended OpenAI Codex CLI**
 
 *This is an independent fork/extension and is not affiliated with OpenAI.*
 
-[![Version](https://img.shields.io/badge/version-2.8.3-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.9.0-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -44,6 +44,9 @@ Codex reduces the overhead of day-to-day engineering work by:
 * Parallel sub-agent orchestration (delegate-parallel)
 * Research workflow with citations and MCP integration
 * Git analysis utilities for repository-level insights
+* **Fast incremental build system with change detection**
+* **Hot reload installation with process management**
+* **Integrated release packaging for all platforms**
 
 ### Safety model
 
@@ -117,12 +120,12 @@ Codex extends OpenAI's Codex CLI with:
 - [Contributing](./CONTRIBUTING.md) - Development guidelines
 - [Upstream](./UPSTREAM.md) - OpenAI Codex CLI documentation
 
-### 🔧 What's New in v2.8.3
+### 🔧 What's New in v2.9.0
 
-- ✅ **Build System**: Fixed compilation errors, improved incremental builds
-- ✅ **Code Quality**: Enhanced type safety and removed unused imports
-- ✅ **Repository**: Systematic organization for maintainability
-- ✅ **Performance**: sccache integration for faster local builds (see docs/benchmarks/)
+- ✅ **Fast Incremental Build**: MD5-based change detection with tqdm progress visualization
+- ✅ **Hot Reload Installation**: Process-safe binary replacement with cross-platform support
+- ✅ **Integrated Release Packaging**: Single tgz archive with all platform binaries
+- ✅ **Development Workflow**: One-command build, test, and deploy pipeline
 
 ### 👔 For recruiters / hiring managers
 
@@ -244,12 +247,12 @@ CodexはOpenAIのCodex CLIを以下で拡張：
 - [Contributing](./CONTRIBUTING.md) - 開発ガイドライン
 - [Upstream](./UPSTREAM.md) - OpenAI Codex CLI ドキュメント
 
-### 🔧 v2.8.3の新機能
+### 🔧 v2.9.0の新機能
 
-- ✅ **Build System**: 22個のコンパイルエラー修正、インクリメンタルビルド改善
-- ✅ **Code Quality**: 型安全性向上と未使用インポート除去
-- ✅ **Repository**: 体系的整理（6,979ファイル再整理）
-- ✅ **Performance**: sccache統合による高速コンパイル
+- ✅ **高速インクリメンタルビルド**: MD5ベース変更検出とtqdm進捗可視化
+- ✅ **ホットリロードインストール**: プロセス安全なバイナリ置換、クロスプラットフォーム対応
+- ✅ **統合リリースパッケージ**: 全プラットフォームバイナリを含む単一tgzアーカイブ
+- ✅ **開発ワークフロー**: ワンコマンドでのビルド・テスト・デプロイパイプライン
 
 ### 🤝 Contributing
 
