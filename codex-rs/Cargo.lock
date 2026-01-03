@@ -356,7 +356,7 @@ checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "app_test_support"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1086,7 +1086,7 @@ checksum = "e9b18233253483ce2f65329a24072ec414db782531bdbb7d0bbc4bd2ce6b7e21"
 
 [[package]]
 name = "codex-ansi-escape"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "ansi-to-tui",
  "ratatui",
@@ -1095,7 +1095,7 @@ dependencies = [
 
 [[package]]
 name = "codex-api"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_matches",
@@ -1121,7 +1121,7 @@ dependencies = [
 
 [[package]]
 name = "codex-app-server"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "app_test_support",
@@ -1159,7 +1159,7 @@ dependencies = [
 
 [[package]]
 name = "codex-app-server-protocol"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1178,7 +1178,7 @@ dependencies = [
 
 [[package]]
 name = "codex-app-server-test-client"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1191,7 +1191,7 @@ dependencies = [
 
 [[package]]
 name = "codex-apply-patch"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1206,7 +1206,7 @@ dependencies = [
 
 [[package]]
 name = "codex-arg0"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "codex-apply-patch",
@@ -1219,7 +1219,7 @@ dependencies = [
 
 [[package]]
 name = "codex-async-utils"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "async-trait",
  "pretty_assertions",
@@ -1230,7 +1230,7 @@ dependencies = [
 
 [[package]]
 name = "codex-backend-client"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "codex-backend-openapi-models",
@@ -1244,7 +1244,7 @@ dependencies = [
 
 [[package]]
 name = "codex-backend-openapi-models"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1253,7 +1253,7 @@ dependencies = [
 
 [[package]]
 name = "codex-chatgpt"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1268,7 +1268,7 @@ dependencies = [
 
 [[package]]
 name = "codex-chrome-host"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "codex-core",
@@ -1284,7 +1284,7 @@ dependencies = [
 
 [[package]]
 name = "codex-chrome-mcp-bridge"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "mcp-types",
@@ -1298,7 +1298,7 @@ dependencies = [
 
 [[package]]
 name = "codex-cli"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1355,7 +1355,7 @@ dependencies = [
 
 [[package]]
 name = "codex-client"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1377,7 +1377,7 @@ dependencies = [
 
 [[package]]
 name = "codex-cloud-tasks"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1406,7 +1406,7 @@ dependencies = [
 
 [[package]]
 name = "codex-cloud-tasks-client"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1422,7 +1422,7 @@ dependencies = [
 
 [[package]]
 name = "codex-common"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "clap",
  "codex-app-server-protocol",
@@ -1438,7 +1438,7 @@ dependencies = [
 
 [[package]]
 name = "codex-core"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "aes-gcm",
  "anyhow",
@@ -1547,7 +1547,7 @@ dependencies = [
 
 [[package]]
 name = "codex-cuda-runtime"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "criterion 0.5.1",
@@ -1559,7 +1559,7 @@ dependencies = [
 
 [[package]]
 name = "codex-deep-research"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1584,7 +1584,7 @@ dependencies = [
 
 [[package]]
 name = "codex-exec"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1618,7 +1618,7 @@ dependencies = [
 
 [[package]]
 name = "codex-exec-server"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1645,7 +1645,7 @@ dependencies = [
 
 [[package]]
 name = "codex-execpolicy"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1661,7 +1661,7 @@ dependencies = [
 
 [[package]]
 name = "codex-execpolicy-legacy"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "allocative",
  "anyhow",
@@ -1681,7 +1681,7 @@ dependencies = [
 
 [[package]]
 name = "codex-feedback"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "codex-protocol",
@@ -1692,7 +1692,7 @@ dependencies = [
 
 [[package]]
 name = "codex-file-search"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1706,7 +1706,7 @@ dependencies = [
 
 [[package]]
 name = "codex-git"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_matches",
@@ -1724,7 +1724,7 @@ dependencies = [
 
 [[package]]
 name = "codex-gui"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "axum",
  "chrono",
@@ -1742,7 +1742,7 @@ dependencies = [
 
 [[package]]
 name = "codex-keyring-store"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "keyring",
  "tracing",
@@ -1750,7 +1750,7 @@ dependencies = [
 
 [[package]]
 name = "codex-linux-sandbox"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "clap",
  "codex-core",
@@ -1764,7 +1764,7 @@ dependencies = [
 
 [[package]]
 name = "codex-lmstudio"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "codex-core",
  "reqwest 0.12.28",
@@ -1777,7 +1777,7 @@ dependencies = [
 
 [[package]]
 name = "codex-login"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1801,7 +1801,7 @@ dependencies = [
 
 [[package]]
 name = "codex-mcp-server"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1833,7 +1833,7 @@ dependencies = [
 
 [[package]]
 name = "codex-microsoft365"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1849,7 +1849,7 @@ dependencies = [
 
 [[package]]
 name = "codex-ollama"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "assert_matches",
  "async-stream",
@@ -1865,7 +1865,7 @@ dependencies = [
 
 [[package]]
 name = "codex-orchestrator"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "async-channel",
@@ -1894,7 +1894,7 @@ dependencies = [
 
 [[package]]
 name = "codex-otel"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "chrono",
  "codex-api",
@@ -1921,7 +1921,7 @@ dependencies = [
 
 [[package]]
 name = "codex-process-hardening"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "libc",
  "pretty_assertions",
@@ -1929,7 +1929,7 @@ dependencies = [
 
 [[package]]
 name = "codex-protocol"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "codex-git",
@@ -1956,7 +1956,7 @@ dependencies = [
 
 [[package]]
 name = "codex-protocol-ts"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1966,7 +1966,7 @@ dependencies = [
 
 [[package]]
 name = "codex-responses-api-proxy"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1982,7 +1982,7 @@ dependencies = [
 
 [[package]]
 name = "codex-rmcp-client"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -2012,7 +2012,7 @@ dependencies = [
 
 [[package]]
 name = "codex-stdio-to-uds"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -2023,7 +2023,7 @@ dependencies = [
 
 [[package]]
 name = "codex-supervisor"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2043,7 +2043,7 @@ dependencies = [
 
 [[package]]
 name = "codex-tui"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "arboard",
@@ -2110,7 +2110,7 @@ dependencies = [
 
 [[package]]
 name = "codex-tui2"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "arboard",
@@ -2179,7 +2179,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-absolute-path"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "path-absolutize",
  "schemars 0.8.22",
@@ -2191,7 +2191,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-cache"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "lru 0.16.2",
  "sha1",
@@ -2200,7 +2200,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-image"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "base64 0.22.1",
  "codex-utils-cache",
@@ -2212,7 +2212,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-json-to-toml"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "pretty_assertions",
  "serde_json",
@@ -2221,7 +2221,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-pty"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "filedescriptor",
@@ -2235,7 +2235,7 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-readiness"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "assert_matches",
  "async-trait",
@@ -2246,11 +2246,11 @@ dependencies = [
 
 [[package]]
 name = "codex-utils-string"
-version = "2.8.3"
+version = "2.9.0"
 
 [[package]]
 name = "codex-web-search"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2268,7 +2268,7 @@ dependencies = [
 
 [[package]]
 name = "codex-windows-ai"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "serde",
@@ -2283,7 +2283,7 @@ dependencies = [
 
 [[package]]
 name = "codex-windows-sandbox"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -2444,7 +2444,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core_test_support"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3416,7 +3416,7 @@ dependencies = [
 
 [[package]]
 name = "exec_server_test_support"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -5081,7 +5081,7 @@ checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
 name = "mcp-types"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "schemars 0.8.22",
  "serde",
@@ -5091,7 +5091,7 @@ dependencies = [
 
 [[package]]
 name = "mcp_test_support"
-version = "2.8.3"
+version = "2.9.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -9704,7 +9704,7 @@ dependencies = [
 
 [[package]]
 name = "web-search"
-version = "2.8.3"
+version = "2.9.0"
 
 [[package]]
 name = "web-sys"
