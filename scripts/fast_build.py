@@ -162,7 +162,7 @@ class FastBuildSystem:
                 env=env,
                 capture_output=True,
                 text=True,
-                timeout=1800  # 30分タイムアウト
+                timeout=1800  # 30分タイムアウト（ユーザ指定）
             )
             build_time = time.time() - start_time
 
