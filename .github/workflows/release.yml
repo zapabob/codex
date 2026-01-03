@@ -102,22 +102,99 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TEMP_DIR="codex-${VERSION}-temp"
           mkdir -p "${TEMP_DIR}"
-          
+
           # Copy essential files
           cp README.md LICENSE VERSION CHANGELOG.md package.json "${TEMP_DIR}/" 2>/dev/null || true
           cp config*.toml cliff.toml turbo.json "${TEMP_DIR}/" 2>/dev/null || true
-          
+
           # Copy zapabob directory if it exists
           if [ -d "zapabob" ]; then
             cp -r zapabob "${TEMP_DIR}/"
           fi
-          
+
+          # Create bin directory and copy binaries
+          mkdir -p "${TEMP_DIR}/bin"
+          if [ -f "codex-windows-x64.exe/codex.exe" ]; then
+            cp "codex-windows-x64.exe/codex.exe" "${TEMP_DIR}/bin/codex-windows-x64.exe"
+          fi
+          if [ -f "codex-darwin-x64/codex" ]; then
+            cp "codex-darwin-x64/codex" "${TEMP_DIR}/bin/codex-darwin-x64"
+          fi
+          if [ -f "codex-darwin-arm64/codex" ]; then
+            cp "codex-darwin-arm64/codex" "${TEMP_DIR}/bin/codex-darwin-arm64"
+          fi
+          if [ -f "codex-linux-x64/codex" ]; then
+            cp "codex-linux-x64/codex" "${TEMP_DIR}/bin/codex-linux-x64"
+          fi
+
+          # Create install script
+          cat > "${TEMP_DIR}/install.sh" << 'EOF'
+          #!/bin/bash
+          set -e
+
+          echo "🚀 Installing Codex..."
+
+          # Detect platform
+          if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+              BINARY="codex-windows-x64.exe"
+              INSTALL_DIR="$HOME/bin"
+              mkdir -p "$INSTALL_DIR"
+              cp "bin/$BINARY" "$INSTALL_DIR/codex.exe"
+              echo "✅ Installed to: $INSTALL_DIR/codex.exe"
+              echo "💡 Add $INSTALL_DIR to your PATH"
+          elif [[ "$OSTYPE" == "darwin"* ]]; then
+              if [[ $(uname -m) == "arm64" ]]; then
+                  BINARY="codex-darwin-arm64"
+              else
+                  BINARY="codex-darwin-x64"
+              fi
+              sudo cp "bin/$BINARY" "/usr/local/bin/codex"
+              sudo chmod +x "/usr/local/bin/codex"
+              echo "✅ Installed to: /usr/local/bin/codex"
+          else
+              BINARY="codex-linux-x64"
+              sudo cp "bin/$BINARY" "/usr/local/bin/codex"
+              sudo chmod +x "/usr/local/bin/codex"
+              echo "✅ Installed to: /usr/local/bin/codex"
+          fi
+
+          echo "🎉 Installation complete!"
+          EOF
+
+          chmod +x "${TEMP_DIR}/install.sh"
+
+          # Create README for installation
+          cat > "${TEMP_DIR}/INSTALL.md" << EOF
+          # Codex Installation
+
+          ## Quick Install
+          ./install.sh
+
+          ## Manual Install
+
+          Choose the appropriate binary for your platform:
+
+          - **Windows**: \`bin/codex-windows-x64.exe\`
+          - **macOS Intel**: \`bin/codex-darwin-x64\`
+          - **macOS Apple Silicon**: \`bin/codex-darwin-arm64\`
+          - **Linux x64**: \`bin/codex-linux-x64\`
+
+          Copy the binary to a directory in your PATH (e.g., /usr/local/bin/ on Unix, ~/bin/ on Windows).
+
+          ## Verify Installation
+          codex --version
+          EOF
+
           # Create tgz archive
           tar -czf "codex-${VERSION}.tgz" -C "${TEMP_DIR}" .
           rm -rf "${TEMP_DIR}"
-          
+
           echo "Created codex-${VERSION}.tgz"
           ls -lh "codex-${VERSION}.tgz"
+
+          # Show contents
+          echo "Archive contents:"
+          tar -tzf "codex-${VERSION}.tgz" | head -20
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

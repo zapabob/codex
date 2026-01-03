@@ -51,3 +51,15 @@ test:
 # Run the MCP server
 mcp-server-run *args:
     cargo run -p codex-mcp-server -- "$@"
+
+# Fast build system with incremental compilation
+fast-build target="debug" *packages:
+    python3 scripts/fast_build.py {{target}} {{packages}}
+
+# Build and install with process killing
+build-install *args:
+    python3 scripts/build_and_install.py {{args}}
+
+# Install with process killing (PowerShell)
+install-kill source target:
+    powershell -ExecutionPolicy Bypass -File scripts/install_with_kill.ps1 -SourcePath {{source}} -TargetPath {{target}} -Force
