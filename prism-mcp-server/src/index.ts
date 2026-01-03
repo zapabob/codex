@@ -201,9 +201,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params
 
+  if (!args) {
+    throw new Error('Arguments are required')
+  }
+
   try {
     switch (name) {
       case 'visualize_repository': {
+        if (!args.repoPath) {
+          throw new Error('repoPath argument is required for visualize_repository')
+        }
         const result = await visualizeRepository(args.repoPath as string)
         return {
           content: [
@@ -216,6 +223,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'analyze_code': {
+        if (!args.code || !args.language) {
+          throw new Error('code and language arguments are required for analyze_code')
+        }
         const result = await analyzeCode(args.code as string, args.language as string)
         return {
           content: [
@@ -228,6 +238,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_repo_stats': {
+        if (!args.repoPath) {
+          throw new Error('repoPath argument is required for get_repo_stats')
+        }
         const result = await getRepoStats(args.repoPath as string)
         return {
           content: [
