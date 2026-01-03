@@ -1,6 +1,7 @@
 use codex_app_server_protocol::AuthMode;
 use codex_protocol::openai_models::ModelPreset;
 use codex_protocol::openai_models::ModelUpgrade;
+use codex_protocol::openai_models::ModelsResponse;
 use codex_protocol::openai_models::ReasoningEffort;
 use codex_protocol::openai_models::ReasoningEffortPreset;
 use once_cell::sync::Lazy;
@@ -9,7 +10,7 @@ pub const HIDE_GPT5_1_MIGRATION_PROMPT_CONFIG: &str = "hide_gpt5_1_migration_pro
 pub const HIDE_GPT_5_1_CODEX_MAX_MIGRATION_PROMPT_CONFIG: &str =
     "hide_gpt-5.1-codex-max_migration_prompt";
 
-static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
+static FALLBACK_PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
     vec![
         ModelPreset {
             id: "gpt-5.2-codex".to_string(),
@@ -307,6 +308,40 @@ static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
         },
     ]
 });
+
+static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
+    presets_from_models_json().unwrap_or_else(|| (*FALLBACK_PRESETS).clone())
+});
+
+fn presets_from_models_json() -> Option<Vec<ModelPreset>> {
+    let response: ModelsResponse = serde_json::from_str(include_str!("../../models.json")).ok()?;
+    let mut models = response.models;
+    models.sort_by(|a, b| a.priority.cmp(&b.priority));
+
+    let mut presets: Vec<ModelPreset> = models.into_iter().map(ModelPreset::from).collect();
+    apply_upgrade_overrides(&mut presets);
+    Some(presets)
+}
+
+fn apply_upgrade_overrides(presets: &mut [ModelPreset]) {
+    for preset in presets {
+        if let Some(upgrade) = fallback_upgrade_for(preset.model.as_str()) {
+            preset.upgrade = Some(upgrade);
+        }
+    }
+}
+
+fn fallback_upgrade_for(model: &str) -> Option<ModelUpgrade> {
+    FALLBACK_PRESETS
+        .iter()
+        .find_map(|preset| {
+            if preset.model == model {
+                preset.upgrade.clone()
+            } else {
+                None
+            }
+        })
+}
 
 fn gpt_52_codex_upgrade() -> ModelUpgrade {
     ModelUpgrade {
