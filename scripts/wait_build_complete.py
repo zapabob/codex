@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ビルド完了待機＆自動インストールスクリプト
+Build completion waiting & auto installation script
 """
 
 import os
@@ -13,21 +13,21 @@ def wait_for_build_completion():
     """ビルド完了を待機"""
     binary_path = Path("codex-rs/target/x86_64-pc-windows-msvc/release/codex.exe")
 
-    print("🔄 リリースビルド完了を待機中...")
+    print("[REBUILD] リリースビルド完了を待機中...")
 
     while not binary_path.exists():
-        print(f"⏳ ビルド待機中... (30秒ごとに確認) - {time.strftime('%H:%M:%S')}")
+        print(f"[WAIT] ビルド待機中... (30秒ごとに確認) - {time.strftime('%H:%M:%S')}")
         time.sleep(30)
 
-    print("✅ ビルド完了! バイナリが見つかりました。")
-    print(f"📁 パス: {binary_path}")
-    print(f"📏 サイズ: {binary_path.stat().st_size} bytes")
+    print("[OK] ビルド完了! バイナリが見つかりました。")
+    print(f"[DIR] パス: {binary_path}")
+    print(f"[INFO] サイズ: {binary_path.stat().st_size} bytes")
 
     return binary_path
 
 def run_installation(binary_path):
     """インストールを実行"""
-    print("\n🔧 プロセスキル＆インストールを実行...")
+    print("\n[TOOL] プロセスキル＆インストールを実行...")
 
     # PowerShellスクリプトを実行
     ps_script = Path("scripts/install_with_kill.ps1")
@@ -40,39 +40,39 @@ def run_installation(binary_path):
         ]
         result = subprocess.run(cmd, cwd=Path.cwd())
         if result.returncode == 0:
-            print("✅ インストール完了")
+            print("[OK] インストール完了")
         else:
-            print("❌ インストール失敗")
+            print("[ERROR] インストール失敗")
             return False
     else:
-        print("❌ インストールスクリプトが見つかりません")
+        print("[ERROR] インストールスクリプトが見つかりません")
         return False
 
     return True
 
 def verify_installation():
     """インストールを検証"""
-    print("\n🔍 インストール確認...")
+    print("\n[SEARCH] インストール確認...")
 
     try:
         result = subprocess.run(["codex", "--version"], capture_output=True, text=True, timeout=10)
         if result.returncode == 0:
-            print("✅ インストール成功!")
-            print(f"📋 バージョン: {result.stdout.strip()}")
+            print("[OK] インストール成功!")
+            print(f"[INFO] バージョン: {result.stdout.strip()}")
             return True
         else:
-            print("❌ バージョン確認失敗")
+            print("[ERROR] バージョン確認失敗")
             print(f"エラー: {result.stderr}")
             return False
     except FileNotFoundError:
-        print("❌ codexコマンドが見つかりません。PATHにC:\\binが含まれているか確認してください。")
+        print("[ERROR] codexコマンドが見つかりません。PATHにC:\\binが含まれているか確認してください。")
         return False
     except Exception as e:
-        print(f"❌ 確認エラー: {e}")
+        print(f"[ERROR] 確認エラー: {e}")
         return False
 
 def main():
-    print("🚀 Codex リリースビルド完了確認＆自動インストールシステム")
+    print("[START] Codex リリースビルド完了確認＆自動インストールシステム")
     print("=" * 60)
 
     # ビルド完了を待機
@@ -82,10 +82,10 @@ def main():
     if run_installation(binary_path):
         # インストールを検証
         verify_installation()
-        print("\n🎉 すべての処理が完了しました!")
-        print("🚀 新しいCodexを使用できます")
+        print("\n[SUCCESS] すべての処理が完了しました!")
+        print("[START] 新しいCodexを使用できます")
     else:
-        print("\n💥 インストールに失敗しました")
+        print("\n[CRASH] インストールに失敗しました")
         sys.exit(1)
 
 if __name__ == "__main__":
