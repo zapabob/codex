@@ -16,7 +16,6 @@ use std::os::unix::net::UnixListener;
 use uds_windows::UnixListener;
 
 #[test]
-#[allow(deprecated)]
 fn pipes_stdin_and_stdout_through_socket() -> anyhow::Result<()> {
     let dir = tempfile::TempDir::new().context("failed to create temp dir")?;
     let socket_path = dir.path().join("socket");
@@ -48,8 +47,7 @@ fn pipes_stdin_and_stdout_through_socket() -> anyhow::Result<()> {
         Ok(())
     });
 
-    let bin_path = assert_cmd::cargo::cargo_bin("codex-stdio-to-uds");
-    Command::new(bin_path)
+    Command::new(codex_utils_cargo_bin::cargo_bin("codex-stdio-to-uds")?)
         .arg(&socket_path)
         .write_stdin("request")
         .assert()

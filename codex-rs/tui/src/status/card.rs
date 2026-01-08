@@ -7,11 +7,16 @@ use chrono::DateTime;
 use chrono::Local;
 use codex_common::create_config_summary_entries;
 use codex_core::config::Config;
-use codex_core::models_manager::model_family::ModelFamily;
 use codex_core::protocol::NetworkAccess;
 use codex_core::protocol::SandboxPolicy;
 use codex_core::protocol::TokenUsage;
+<<<<<<< HEAD
 use codex_protocol::ConversationId;
+=======
+use codex_core::protocol::TokenUsageInfo;
+use codex_protocol::ThreadId;
+use codex_protocol::account::PlanType;
+>>>>>>> upstream/main
 use ratatui::prelude::*;
 use ratatui::style::Stylize;
 use std::collections::BTreeSet;
@@ -69,10 +74,14 @@ struct StatusHistoryCell {
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn new_status_output(
     config: &Config,
+<<<<<<< HEAD
     model_family: &ModelFamily,
+=======
+    auth_manager: &AuthManager,
+    token_info: Option<&TokenUsageInfo>,
+>>>>>>> upstream/main
     total_usage: &TokenUsage,
-    context_usage: Option<&TokenUsage>,
-    session_id: &Option<ConversationId>,
+    session_id: &Option<ThreadId>,
     rate_limits: Option<&RateLimitSnapshotDisplay>,
     now: DateTime<Local>,
     model_name: &str,
@@ -80,9 +89,13 @@ pub(crate) fn new_status_output(
     let command = PlainHistoryCell::new(vec!["/status".magenta().into()]);
     let card = StatusHistoryCell::new(
         config,
+<<<<<<< HEAD
         model_family,
+=======
+        auth_manager,
+        token_info,
+>>>>>>> upstream/main
         total_usage,
-        context_usage,
         session_id,
         rate_limits,
         now,
@@ -96,10 +109,14 @@ impl StatusHistoryCell {
     #[allow(clippy::too_many_arguments)]
     fn new(
         config: &Config,
+<<<<<<< HEAD
         model_family: &ModelFamily,
+=======
+        auth_manager: &AuthManager,
+        token_info: Option<&TokenUsageInfo>,
+>>>>>>> upstream/main
         total_usage: &TokenUsage,
-        context_usage: Option<&TokenUsage>,
-        session_id: &Option<ConversationId>,
+        session_id: &Option<ThreadId>,
         rate_limits: Option<&RateLimitSnapshotDisplay>,
         now: DateTime<Local>,
         model_name: &str,
@@ -126,12 +143,15 @@ impl StatusHistoryCell {
         let agents_summary = compose_agents_summary(config);
         let account = compose_account_display(config);
         let session_id = session_id.as_ref().map(std::string::ToString::to_string);
-        let context_window = model_family.context_window.and_then(|window| {
-            context_usage.map(|usage| StatusContextWindowData {
-                percent_remaining: usage.percent_of_context_window_remaining(window),
-                tokens_in_context: usage.tokens_in_context_window(),
-                window,
-            })
+        let default_usage = TokenUsage::default();
+        let (context_usage, context_window) = match token_info {
+            Some(info) => (&info.last_token_usage, info.model_context_window),
+            None => (&default_usage, config.model_context_window),
+        };
+        let context_window = context_window.map(|window| StatusContextWindowData {
+            percent_remaining: context_usage.percent_of_context_window_remaining(window),
+            tokens_in_context: context_usage.tokens_in_context_window(),
+            window,
         });
 
         let token_usage = StatusTokenUsageData {
@@ -340,6 +360,7 @@ impl HistoryCell for StatusHistoryCell {
         if self.token_usage.context_window.is_some() {
             push_label(&mut labels, &mut seen, "Context window");
         }
+
         self.collect_rate_limit_labels(&mut seen, &mut labels);
 
         let formatter = FieldFormatter::from_labels(labels.iter().map(String::as_str));

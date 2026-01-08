@@ -2,17 +2,17 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::time::Duration;
 
+use codex_rmcp_client::ElicitationAction;
+use codex_rmcp_client::ElicitationResponse;
 use codex_rmcp_client::RmcpClient;
-use codex_rmcp_client::SendElicitation;
-use escargot::CargoBuild;
-use futures::FutureExt;
+use codex_utils_cargo_bin::CargoBinError;
+use futures::FutureExt as _;
 use mcp_types::ClientCapabilities;
 use mcp_types::Implementation;
 use mcp_types::InitializeRequestParams;
 use mcp_types::ListResourceTemplatesResult;
 use mcp_types::ReadResourceRequestParams;
 use mcp_types::ReadResourceResultContents;
-use mcp_types::RequestId;
 use mcp_types::Resource;
 use mcp_types::ResourceTemplate;
 use mcp_types::TextResourceContents;
@@ -20,12 +20,8 @@ use serde_json::json;
 
 const RESOURCE_URI: &str = "memo://codex/example-note";
 
-fn stdio_server_bin() -> anyhow::Result<PathBuf> {
-    let build = CargoBuild::new()
-        .package("codex-rmcp-client")
-        .bin("test_stdio_server")
-        .run()?;
-    Ok(build.path().to_path_buf())
+fn stdio_server_bin() -> Result<PathBuf, CargoBinError> {
+    codex_utils_cargo_bin::cargo_bin("test_stdio_server")
 }
 
 fn init_params() -> InitializeRequestParams {
@@ -57,18 +53,19 @@ async fn rmcp_client_can_list_and_read_resources() -> anyhow::Result<()> {
     )
     .await?;
 
-    // Create a simple send_elicitation callback for testing
-    let send_elicitation: SendElicitation = Box::new(
-        |_request_id: RequestId, _elicitation: codex_rmcp_client::Elicitation| {
-            async move { anyhow::bail!("Elicitation not supported in test") }.boxed()
-        },
-    );
-
     client
         .initialize(
             init_params(),
             Some(Duration::from_secs(5)),
-            send_elicitation,
+            Box::new(|_, _| {
+                async {
+                    Ok(ElicitationResponse {
+                        action: ElicitationAction::Accept,
+                        content: Some(json!({})),
+                    })
+                }
+                .boxed()
+            }),
         )
         .await?;
 

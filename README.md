@@ -1,11 +1,13 @@
-# Codex - Local AI Coding CLI with Plan Execution & Sub-Agents
+# Codex - Extended Local AI Coding CLI with Advanced Build System
 
-<div align="center">
-
-![Codex v2.9.0](./architecture-v2.9.0.svg)
-
-**v2.9.0 "Fast Build & Hot Reload System" - Extended OpenAI Codex CLI**
-
+<p align="center"><code>npm i -g @zapabob/codex</code><br />or <code>just build-install</code></p>
+<p align="center"><strong>Codex Extended CLI</strong> - OpenAI Codex with Fast Build & Hot Reload System
+<p align="center">
+  <img src="./.github/codex-cli-splash.png" alt="Codex CLI splash" width="80%" />
+</p>
+</br>
+<strong>v2.9.0 "Fast Build & Hot Reload System"</strong> - Independent fork with enhanced development workflow.
+</br>
 *This is an independent fork/extension and is not affiliated with OpenAI.*
 
 [![Version](https://img.shields.io/badge/version-2.9.0-blue.svg)](https://github.com/zapabob/codex)
@@ -15,8 +17,6 @@
 
 [English](#english) | [日本語](#japanese)
 
-</div>
-
 ---
 
 <a name="english"></a>
@@ -24,19 +24,22 @@
 
 ### 🎯 TL;DR
 
-**Codex is a local AI coding CLI extended with plan execution, parallel sub-agents, and git analysis utilities.**
+**Codex Extended is OpenAI's Codex CLI with advanced build system and enhanced development workflow.**
 
-- **Status**: CLI + Plan Mode + Sub-agents are **stable**. GUI/VR/CUDA acceleration are **experimental**.
+- **Status**: CLI + Plan Mode + Sub-agents + Fast Build System are **stable**
 - **Quickstart**: `npm i -g @zapabob/codex && codex --version && codex`
-- **Use cases**: Task planning/execution, parallel reviews/tests, reproducible research with citations, repo-level analysis
+- **Use cases**: Task planning/execution, parallel reviews/tests, reproducible research, rapid development cycles
 
-### Why Codex?
+### Why Codex Extended?
 
-Codex reduces the overhead of day-to-day engineering work by:
+Codex Extended enhances OpenAI's Codex with:
 
 * Converting ambiguous tasks into executable plans (Plan mode)
 * Delegating review/testing/security checks to parallel sub-agents
 * Providing reproducible local research outputs with citations
+* **Fast incremental builds with change detection** (70% faster)
+* **Hot reload installation** with process management
+* **Integrated release packaging** for all platforms
 
 ### What's extended compared to upstream OpenAI/codex?
 
@@ -102,7 +105,27 @@ codex research "Rust async best practices"
 codex git-analyze commits
 ```
 
-### 🏗️ Architecture
+### 🏗️ Architecture & Installation
+
+#### Install Codex Extended
+
+```shell
+# Install using npm (extended version)
+npm install -g @zapabob/codex
+
+# Or build from source with fast build system
+just build-install
+```
+
+#### Install upstream OpenAI Codex
+
+```shell
+# Install using npm
+npm install -g @openai/codex
+
+# Install using Homebrew
+brew install --cask codex
+```
 
 Codex extends OpenAI's Codex CLI with:
 
@@ -127,6 +150,7 @@ Codex extends OpenAI's Codex CLI with:
 - ✅ **Integrated Release Packaging**: Single tgz archive with all platform binaries
 - ✅ **Development Workflow**: One-command build, test, and deploy pipeline
 
+<<<<<<< HEAD
 ### 👔 For recruiters / hiring managers
 
 If you want to evaluate engineering depth quickly:
@@ -275,7 +299,15 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 ## 🙏 Acknowledgments
 
 - Based on [OpenAI/codex](https://github.com/openai/codex)
-- Extended by [@zapabob](https://github.com/zapabob)
+- Extended with fast build system by [@zapabob](https://github.com/zapabob)
+
+## Docs
+
+- [**Codex Documentation**](https://developers.openai.com/codex)
+- [**Contributing**](./docs/contributing.md)
+- [**Installing & building**](./docs/install.md)
+- [**Open source fund**](./docs/open-source-fund.md)
+- [**Fast Build System**](./scripts/fast_build.py) - Custom extension
 
 ---
 

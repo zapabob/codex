@@ -6,9 +6,7 @@ use codex_core::protocol::Event;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::ExecCommandBeginEvent;
 use codex_core::protocol::ExecCommandEndEvent;
-use codex_core::protocol::ExecCommandOutputDeltaEvent;
 use codex_core::protocol::ExecCommandSource;
-use codex_core::protocol::ExecOutputStream;
 use codex_core::protocol::FileChange;
 use codex_core::protocol::McpInvocation;
 use codex_core::protocol::McpToolCallBeginEvent;
@@ -49,6 +47,9 @@ use codex_exec::exec_events::WebSearchItem;
 use codex_protocol::plan_tool::PlanItemArg;
 use codex_protocol::plan_tool::StepStatus;
 use codex_protocol::plan_tool::UpdatePlanArgs;
+use codex_protocol::protocol::CodexErrorInfo;
+use codex_protocol::protocol::ExecCommandOutputDeltaEvent;
+use codex_protocol::protocol::ExecOutputStream;
 use mcp_types::CallToolResult;
 use mcp_types::ContentBlock;
 use mcp_types::TextContent;
@@ -68,8 +69,7 @@ fn event(id: &str, msg: EventMsg) -> Event {
 fn session_configured_produces_thread_started_event() {
     let mut ep = EventProcessorWithJsonOutput::new(None);
     let session_id =
-        codex_protocol::ConversationId::from_string("67e55044-10b1-426f-9247-bb680e5fe0c8")
-            .unwrap();
+        codex_protocol::ThreadId::from_string("67e55044-10b1-426f-9247-bb680e5fe0c8").unwrap();
     let rollout_path = PathBuf::from("/tmp/rollout.json");
     let ev = event(
         "e1",
@@ -77,9 +77,9 @@ fn session_configured_produces_thread_started_event() {
             session_id,
             model: "codex-mini-latest".to_string(),
             model_provider_id: "test-provider".to_string(),
-            approval_policy: AskForApproval::OnRequest,
-            sandbox_policy: SandboxPolicy::DangerFullAccess,
-            cwd: PathBuf::from("/tmp"),
+            approval_policy: AskForApproval::Never,
+            sandbox_policy: SandboxPolicy::ReadOnly,
+            cwd: PathBuf::from("/home/user/project"),
             reasoning_effort: None,
             history_log_id: 0,
             history_entry_count: 0,
@@ -541,7 +541,7 @@ fn error_event_produces_error() {
         "e1",
         EventMsg::Error(codex_core::protocol::ErrorEvent {
             message: "boom".to_string(),
-            codex_error_info: None,
+            codex_error_info: Some(CodexErrorInfo::Other),
         }),
     ));
     assert_eq!(
@@ -558,7 +558,7 @@ fn warning_event_produces_error_item() {
     let out = ep.collect_thread_events(&event(
         "e1",
         EventMsg::Warning(WarningEvent {
-            message: "Heads up: Long conversations and multiple compactions can cause the model to be less accurate. Start new a new conversation when possible to keep conversations small and targeted.".to_string(),
+            message: "Heads up: Long conversations and multiple compactions can cause the model to be less accurate. Start a new conversation when possible to keep conversations small and targeted.".to_string(),
         }),
     ));
     assert_eq!(
@@ -567,7 +567,7 @@ fn warning_event_produces_error_item() {
             item: ThreadItem {
                 id: "item_0".to_string(),
                 details: ThreadItemDetails::Error(ErrorItem {
-                    message: "Heads up: Long conversations and multiple compactions can cause the model to be less accurate. Start new a new conversation when possible to keep conversations small and targeted.".to_string(),
+                    message: "Heads up: Long conversations and multiple compactions can cause the model to be less accurate. Start a new conversation when possible to keep conversations small and targeted.".to_string(),
                 }),
             },
         })]
@@ -581,7 +581,8 @@ fn stream_error_event_produces_error() {
         "e1",
         EventMsg::StreamError(codex_core::protocol::StreamErrorEvent {
             message: "retrying".to_string(),
-            codex_error_info: None,
+            codex_error_info: Some(CodexErrorInfo::Other),
+            additional_details: None,
         }),
     ));
     assert_eq!(
@@ -600,7 +601,7 @@ fn error_followed_by_task_complete_produces_turn_failed() {
         "e1",
         EventMsg::Error(ErrorEvent {
             message: "boom".to_string(),
-            codex_error_info: None,
+            codex_error_info: Some(CodexErrorInfo::Other),
         }),
     );
     assert_eq!(
@@ -871,8 +872,8 @@ fn exec_command_end_without_begin_is_ignored() {
             call_id: "no-begin".to_string(),
             process_id: None,
             turn_id: "turn-1".to_string(),
-            command: vec!["sh".to_string()],
-            cwd: std::env::current_dir().unwrap(),
+            command: Vec::new(),
+            cwd: PathBuf::from("."),
             parsed_cmd: Vec::new(),
             source: ExecCommandSource::Agent,
             interaction_input: None,
@@ -991,7 +992,7 @@ fn patch_apply_failure_produces_item_completed_patchapply_failed() {
         "p1",
         EventMsg::PatchApplyBegin(PatchApplyBeginEvent {
             call_id: "call-2".to_string(),
-            turn_id: "turn-1".to_string(),
+            turn_id: "turn-2".to_string(),
             auto_approved: false,
             changes: changes.clone(),
         }),
@@ -1003,11 +1004,11 @@ fn patch_apply_failure_produces_item_completed_patchapply_failed() {
         "p2",
         EventMsg::PatchApplyEnd(PatchApplyEndEvent {
             call_id: "call-2".to_string(),
-            turn_id: "turn-1".to_string(),
+            turn_id: "turn-2".to_string(),
             stdout: String::new(),
             stderr: "failed to apply".to_string(),
             success: false,
-            changes,
+            changes: changes.clone(),
         }),
     );
     let out_end = ep.collect_thread_events(&end);

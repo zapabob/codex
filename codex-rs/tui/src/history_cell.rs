@@ -33,7 +33,6 @@ use codex_core::protocol::McpAuthStatus;
 use codex_core::protocol::McpInvocation;
 use codex_core::protocol::SessionConfiguredEvent;
 use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
-use codex_protocol::openai_models::ReasoningSummaryFormat;
 use codex_protocol::plan_tool::PlanItemArg;
 use codex_protocol::plan_tool::StepStatus;
 use codex_protocol::plan_tool::UpdatePlanArgs;
@@ -518,29 +517,29 @@ pub(crate) fn new_unified_exec_wait_live(
 }
 
 #[derive(Debug)]
-struct UnifiedExecSessionsCell {
-    sessions: Vec<String>,
+struct UnifiedExecProcessesCell {
+    processes: Vec<String>,
 }
 
-impl UnifiedExecSessionsCell {
-    fn new(sessions: Vec<String>) -> Self {
-        Self { sessions }
+impl UnifiedExecProcessesCell {
+    fn new(processes: Vec<String>) -> Self {
+        Self { processes }
     }
 }
 
-impl HistoryCell for UnifiedExecSessionsCell {
+impl HistoryCell for UnifiedExecProcessesCell {
     fn display_lines(&self, width: u16) -> Vec<Line<'static>> {
         if width == 0 {
             return Vec::new();
         }
 
         let wrap_width = width as usize;
-        let max_sessions = 16usize;
+        let max_processes = 16usize;
         let mut out: Vec<Line<'static>> = Vec::new();
         out.push(vec!["Background terminals".bold()].into());
         out.push("".into());
 
-        if self.sessions.is_empty() {
+        if self.processes.is_empty() {
             out.push("  • No background terminals running.".italic().into());
             return out;
         }
@@ -550,8 +549,8 @@ impl HistoryCell for UnifiedExecSessionsCell {
         let truncation_suffix = " [...]";
         let truncation_suffix_width = UnicodeWidthStr::width(truncation_suffix);
         let mut shown = 0usize;
-        for command in &self.sessions {
-            if shown >= max_sessions {
+        for command in &self.processes {
+            if shown >= max_processes {
                 break;
             }
             let (snippet, snippet_truncated) = {
@@ -591,7 +590,7 @@ impl HistoryCell for UnifiedExecSessionsCell {
             shown += 1;
         }
 
-        let remaining = self.sessions.len().saturating_sub(shown);
+        let remaining = self.processes.len().saturating_sub(shown);
         if remaining > 0 {
             let more_text = format!("... and {remaining} more running");
             if wrap_width <= prefix_width {
@@ -611,9 +610,9 @@ impl HistoryCell for UnifiedExecSessionsCell {
     }
 }
 
-pub(crate) fn new_unified_exec_sessions_output(sessions: Vec<String>) -> CompositeHistoryCell {
+pub(crate) fn new_unified_exec_processes_output(processes: Vec<String>) -> CompositeHistoryCell {
     let command = PlainHistoryCell::new(vec!["/ps".magenta().into()]);
-    let summary = UnifiedExecSessionsCell::new(sessions);
+    let summary = UnifiedExecProcessesCell::new(processes);
     CompositeHistoryCell::new(vec![Box::new(command), Box::new(summary)])
 }
 
@@ -817,11 +816,11 @@ pub(crate) fn padded_emoji(emoji: &str) -> String {
 
 #[derive(Debug)]
 struct TooltipHistoryCell {
-    tip: &'static str,
+    tip: String,
 }
 
 impl TooltipHistoryCell {
-    fn new(tip: &'static str) -> Self {
+    fn new(tip: String) -> Self {
         Self { tip }
     }
 }
@@ -1662,39 +1661,28 @@ pub(crate) fn new_view_image_tool_call(path: PathBuf, cwd: &Path) -> PlainHistor
     PlainHistoryCell { lines }
 }
 
-pub(crate) fn new_reasoning_summary_block(
-    full_reasoning_buffer: String,
-    reasoning_summary_format: ReasoningSummaryFormat,
-) -> Box<dyn HistoryCell> {
-    if reasoning_summary_format == ReasoningSummaryFormat::Experimental {
-        // Experimental format is following:
-        // ** header **
-        //
-        // reasoning summary
-        //
-        // So we need to strip header from reasoning summary
-        let full_reasoning_buffer = full_reasoning_buffer.trim();
-        if let Some(open) = full_reasoning_buffer.find("**") {
-            let after_open = &full_reasoning_buffer[(open + 2)..];
-            if let Some(close) = after_open.find("**") {
-                let after_close_idx = open + 2 + close + 2;
-                // if we don't have anything beyond `after_close_idx`
-                // then we don't have a summary to inject into history
-                if after_close_idx < full_reasoning_buffer.len() {
-                    let header_buffer = full_reasoning_buffer[..after_close_idx].to_string();
-                    let summary_buffer = full_reasoning_buffer[after_close_idx..].to_string();
-                    return Box::new(ReasoningSummaryCell::new(
-                        header_buffer,
-                        summary_buffer,
-                        false,
-                    ));
-                }
+pub(crate) fn new_reasoning_summary_block(full_reasoning_buffer: String) -> Box<dyn HistoryCell> {
+    let full_reasoning_buffer = full_reasoning_buffer.trim();
+    if let Some(open) = full_reasoning_buffer.find("**") {
+        let after_open = &full_reasoning_buffer[(open + 2)..];
+        if let Some(close) = after_open.find("**") {
+            let after_close_idx = open + 2 + close + 2;
+            // if we don't have anything beyond `after_close_idx`
+            // then we don't have a summary to inject into history
+            if after_close_idx < full_reasoning_buffer.len() {
+                let header_buffer = full_reasoning_buffer[..after_close_idx].to_string();
+                let summary_buffer = full_reasoning_buffer[after_close_idx..].to_string();
+                return Box::new(ReasoningSummaryCell::new(
+                    header_buffer,
+                    summary_buffer,
+                    false,
+                ));
             }
         }
     }
     Box::new(ReasoningSummaryCell::new(
         "".to_string(),
-        full_reasoning_buffer,
+        full_reasoning_buffer.to_string(),
         true,
     ))
 }
@@ -1760,7 +1748,6 @@ mod tests {
     use codex_core::config::ConfigBuilder;
     use codex_core::config::types::McpServerConfig;
     use codex_core::config::types::McpServerTransportConfig;
-    use codex_core::models_manager::manager::ModelsManager;
     use codex_core::protocol::McpAuthStatus;
     use codex_protocol::parse_command::ParsedCommand;
     use dirs::home_dir;
@@ -1832,14 +1819,14 @@ mod tests {
 
     #[test]
     fn ps_output_empty_snapshot() {
-        let cell = new_unified_exec_sessions_output(Vec::new());
+        let cell = new_unified_exec_processes_output(Vec::new());
         let rendered = render_lines(&cell.display_lines(60)).join("\n");
         insta::assert_snapshot!(rendered);
     }
 
     #[test]
     fn ps_output_multiline_snapshot() {
-        let cell = new_unified_exec_sessions_output(vec![
+        let cell = new_unified_exec_processes_output(vec![
             "echo hello\nand then some extra text".to_string(),
             "rg \"foo\" src".to_string(),
         ]);
@@ -1849,7 +1836,7 @@ mod tests {
 
     #[test]
     fn ps_output_long_command_snapshot() {
-        let cell = new_unified_exec_sessions_output(vec![String::from(
+        let cell = new_unified_exec_processes_output(vec![String::from(
             "rg \"foo\" src --glob '**/*.rs' --max-count 1000 --no-ignore --hidden --follow --glob '!target/**'",
         )]);
         let rendered = render_lines(&cell.display_lines(36)).join("\n");
@@ -1858,8 +1845,9 @@ mod tests {
 
     #[test]
     fn ps_output_many_sessions_snapshot() {
-        let cell =
-            new_unified_exec_sessions_output((0..20).map(|idx| format!("command {idx}")).collect());
+        let cell = new_unified_exec_processes_output(
+            (0..20).map(|idx| format!("command {idx}")).collect(),
+        );
         let rendered = render_lines(&cell.display_lines(32)).join("\n");
         insta::assert_snapshot!(rendered);
     }
@@ -2630,10 +2618,8 @@ mod tests {
     }
     #[test]
     fn reasoning_summary_block() {
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
         let cell = new_reasoning_summary_block(
             "**High level reasoning**\n\nDetailed reasoning goes here.".to_string(),
-            reasoning_format,
         );
 
         let rendered_display = render_lines(&cell.display_lines(80));
@@ -2645,11 +2631,7 @@ mod tests {
 
     #[test]
     fn reasoning_summary_block_returns_reasoning_cell_when_feature_disabled() {
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
-        let cell = new_reasoning_summary_block(
-            "Detailed reasoning goes here.".to_string(),
-            reasoning_format,
-        );
+        let cell = new_reasoning_summary_block("Detailed reasoning goes here.".to_string());
 
         let rendered = render_transcript(cell.as_ref());
         assert_eq!(rendered, vec!["• Detailed reasoning goes here."]);
@@ -2660,17 +2642,8 @@ mod tests {
         let mut config = test_config().await;
         config.model = Some("gpt-3.5-turbo".to_string());
         config.model_supports_reasoning_summaries = Some(true);
-        config.model_reasoning_summary_format = Some(ReasoningSummaryFormat::Experimental);
-        let model_family =
-            ModelsManager::construct_model_family_offline(&config.model.clone().unwrap(), &config);
-        assert_eq!(
-            model_family.reasoning_summary_format,
-            ReasoningSummaryFormat::Experimental
-        );
-
         let cell = new_reasoning_summary_block(
             "**High level reasoning**\n\nDetailed reasoning goes here.".to_string(),
-            model_family.reasoning_summary_format,
         );
 
         let rendered_display = render_lines(&cell.display_lines(80));
@@ -2679,11 +2652,8 @@ mod tests {
 
     #[test]
     fn reasoning_summary_block_falls_back_when_header_is_missing() {
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
-        let cell = new_reasoning_summary_block(
-            "**High level reasoning without closing".to_string(),
-            reasoning_format,
-        );
+        let cell =
+            new_reasoning_summary_block("**High level reasoning without closing".to_string());
 
         let rendered = render_transcript(cell.as_ref());
         assert_eq!(rendered, vec!["• **High level reasoning without closing"]);
@@ -2691,18 +2661,14 @@ mod tests {
 
     #[test]
     fn reasoning_summary_block_falls_back_when_summary_is_missing() {
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
-        let cell = new_reasoning_summary_block(
-            "**High level reasoning without closing**".to_string(),
-            reasoning_format.clone(),
-        );
+        let cell =
+            new_reasoning_summary_block("**High level reasoning without closing**".to_string());
 
         let rendered = render_transcript(cell.as_ref());
         assert_eq!(rendered, vec!["• High level reasoning without closing"]);
 
         let cell = new_reasoning_summary_block(
             "**High level reasoning without closing**\n\n  ".to_string(),
-            reasoning_format,
         );
 
         let rendered = render_transcript(cell.as_ref());
@@ -2711,10 +2677,8 @@ mod tests {
 
     #[test]
     fn reasoning_summary_block_splits_header_and_summary_when_present() {
-        let reasoning_format = ReasoningSummaryFormat::Experimental;
         let cell = new_reasoning_summary_block(
             "**High level plan**\n\nWe should fix the bug next.".to_string(),
-            reasoning_format,
         );
 
         let rendered_display = render_lines(&cell.display_lines(80));

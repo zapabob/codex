@@ -89,6 +89,7 @@ pub enum CodexErrorInfo {
     InternalServerError,
     Unauthorized,
     BadRequest,
+    ThreadRollbackFailed,
     SandboxError,
     /// The response SSE stream disconnected in the middle of a turn before completion.
     ResponseStreamDisconnected {
@@ -119,6 +120,7 @@ impl From<CoreCodexErrorInfo> for CodexErrorInfo {
             CoreCodexErrorInfo::InternalServerError => CodexErrorInfo::InternalServerError,
             CoreCodexErrorInfo::Unauthorized => CodexErrorInfo::Unauthorized,
             CoreCodexErrorInfo::BadRequest => CodexErrorInfo::BadRequest,
+            CoreCodexErrorInfo::ThreadRollbackFailed => CodexErrorInfo::ThreadRollbackFailed,
             CoreCodexErrorInfo::SandboxError => CodexErrorInfo::SandboxError,
             CoreCodexErrorInfo::ResponseStreamDisconnected { http_status_code } => {
                 CodexErrorInfo::ResponseStreamDisconnected { http_status_code }
@@ -227,6 +229,8 @@ pub enum ConfigLayerSource {
     #[serde(rename_all = "camelCase")]
     #[ts(rename_all = "camelCase")]
     System {
+        /// This is the path to the system config.toml file, though it is not
+        /// guaranteed to exist.
         file: AbsolutePathBuf,
     },
 
@@ -237,7 +241,17 @@ pub enum ConfigLayerSource {
     #[serde(rename_all = "camelCase")]
     #[ts(rename_all = "camelCase")]
     User {
+        /// This is the path to the user's config.toml file, though it is not
+        /// guaranteed to exist.
         file: AbsolutePathBuf,
+    },
+
+    /// Path to a .codex/ folder within a project. There could be multiple of
+    /// these between `cwd` and the project/repo root.
+    #[serde(rename_all = "camelCase")]
+    #[ts(rename_all = "camelCase")]
+    Project {
+        dot_codex_folder: AbsolutePathBuf,
     },
 
     /// Session-layer overrides supplied via `-c`/`--config`.
@@ -247,6 +261,8 @@ pub enum ConfigLayerSource {
     /// as the last layer on top of everything else. This scheme did not quite
     /// work out as intended, but we keep this variant as a "best effort" while
     /// we phase out `managed_config.toml` in favor of `requirements.toml`.
+    #[serde(rename_all = "camelCase")]
+    #[ts(rename_all = "camelCase")]
     LegacyManagedConfigTomlFromFile {
         file: AbsolutePathBuf,
     },
@@ -262,6 +278,7 @@ impl ConfigLayerSource {
             ConfigLayerSource::Mdm { .. } => 0,
             ConfigLayerSource::System { .. } => 10,
             ConfigLayerSource::User { .. } => 20,
+            ConfigLayerSource::Project { .. } => 25,
             ConfigLayerSource::SessionFlags => 30,
             ConfigLayerSource::LegacyManagedConfigTomlFromFile { .. } => 40,
             ConfigLayerSource::LegacyManagedConfigTomlFromMdm => 50,
@@ -318,6 +335,15 @@ pub struct ProfileV2 {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "v2/")]
+pub struct AnalyticsConfig {
+    pub enabled: Option<bool>,
+    #[serde(default, flatten)]
+    pub additional: HashMap<String, JsonValue>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "v2/")]
 pub struct Config {
     pub model: Option<String>,
     pub review_model: Option<String>,
@@ -339,6 +365,7 @@ pub struct Config {
     pub model_reasoning_effort: Option<ReasoningEffort>,
     pub model_reasoning_summary: Option<ReasoningSummary>,
     pub model_verbosity: Option<Verbosity>,
+    pub analytics: Option<AnalyticsConfig>,
     #[serde(default, flatten)]
     pub additional: HashMap<String, JsonValue>,
 }
@@ -429,6 +456,22 @@ pub struct ConfigReadResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
+pub struct ConfigRequirements {
+    pub allowed_approval_policies: Option<Vec<AskForApproval>>,
+    pub allowed_sandbox_modes: Option<Vec<SandboxMode>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ConfigRequirementsReadResponse {
+    /// Null if no requirements are configured (e.g. no requirements.toml/MDM entries).
+    pub requirements: Option<ConfigRequirements>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct ConfigValueWriteParams {
     pub key_path: String,
     pub value: JsonValue,
@@ -460,14 +503,33 @@ pub struct ConfigEdit {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-pub enum ApprovalDecision {
+pub enum CommandExecutionApprovalDecision {
+    /// User approved the command.
     Accept,
-    /// Approve and remember the approval for the session.
+    /// User approved the command and future identical commands should run without prompting.
     AcceptForSession,
+    /// User approved the command, and wants to apply the proposed execpolicy amendment so future
+    /// matching commands can run without prompting.
     AcceptWithExecpolicyAmendment {
         execpolicy_amendment: ExecPolicyAmendment,
     },
+    /// User denied the command. The agent will continue the turn.
     Decline,
+    /// User denied the command. The turn will also be immediately interrupted.
+    Cancel,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub enum FileChangeApprovalDecision {
+    /// User approved the file changes.
+    Accept,
+    /// User approved the file changes and future changes to the same files should run without prompting.
+    AcceptForSession,
+    /// User denied the file changes. The agent will continue the turn.
+    Decline,
+    /// User denied the file changes. The turn will also be immediately interrupted.
     Cancel,
 }
 
@@ -1033,6 +1095,30 @@ pub struct ThreadArchiveResponse {}
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
+pub struct ThreadRollbackParams {
+    pub thread_id: String,
+    /// The number of turns to drop from the end of the thread. Must be >= 1.
+    ///
+    /// This only modifies the thread's history and does not revert local file changes
+    /// that have been made by the agent. Clients are responsible for reverting these changes.
+    pub num_turns: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ThreadRollbackResponse {
+    /// The updated thread after applying the rollback, with `turns` populated.
+    ///
+    /// The ThreadItems stored in each Turn are lossy since we explicitly do not
+    /// persist all agent interactions, such as command executions. This is the same
+    /// behavior as `thread/resume`.
+    pub thread: Thread,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct ThreadListParams {
     /// Opaque pagination cursor returned by a previous call.
     pub cursor: Option<String>,
@@ -1168,7 +1254,7 @@ pub struct Thread {
     pub source: SessionSource,
     /// Optional Git metadata captured when the thread was created.
     pub git_info: Option<GitInfo>,
-    /// Only populated on a `thread/resume` response.
+    /// Only populated on `thread/resume` and `thread/rollback` responses.
     /// For all other responses and notifications returning a Thread,
     /// the turns field will be an empty list.
     pub turns: Vec<Turn>,
@@ -1196,6 +1282,7 @@ pub struct ThreadTokenUsageUpdatedNotification {
 pub struct ThreadTokenUsage {
     pub total: TokenUsageBreakdown,
     pub last: TokenUsageBreakdown,
+    // TODO(aibrahim): make this not optional
     #[ts(type = "number | null")]
     pub model_context_window: Option<i64>,
 }
@@ -1259,6 +1346,8 @@ pub struct Turn {
 pub struct TurnError {
     pub message: String,
     pub codex_error_info: Option<CodexErrorInfo>,
+    #[serde(default)]
+    pub additional_details: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -1302,6 +1391,8 @@ pub struct TurnStartParams {
     pub effort: Option<ReasoningEffort>,
     /// Override the reasoning summary for this turn and subsequent turns.
     pub summary: Option<ReasoningSummary>,
+    /// Optional JSON Schema used to constrain the final assistant message for this turn.
+    pub output_schema: Option<JsonValue>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -1385,6 +1476,7 @@ pub enum UserInput {
     Text { text: String },
     Image { url: String },
     LocalImage { path: PathBuf },
+    Skill { name: String, path: PathBuf },
 }
 
 impl UserInput {
@@ -1393,6 +1485,7 @@ impl UserInput {
             UserInput::Text { text } => CoreUserInput::Text { text },
             UserInput::Image { url } => CoreUserInput::Image { image_url: url },
             UserInput::LocalImage { path } => CoreUserInput::LocalImage { path },
+            UserInput::Skill { name, path } => CoreUserInput::Skill { name, path },
         }
     }
 }
@@ -1403,6 +1496,7 @@ impl From<CoreUserInput> for UserInput {
             CoreUserInput::Text { text } => UserInput::Text { text },
             CoreUserInput::Image { image_url } => UserInput::Image { url: image_url },
             CoreUserInput::LocalImage { path } => UserInput::LocalImage { path },
+            CoreUserInput::Skill { name, path } => UserInput::Skill { name, path },
             _ => unreachable!("unsupported user input variant"),
         }
     }
@@ -1829,7 +1923,7 @@ pub struct CommandExecutionRequestApprovalParams {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct CommandExecutionRequestApprovalResponse {
-    pub decision: ApprovalDecision,
+    pub decision: CommandExecutionApprovalDecision,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -1849,7 +1943,7 @@ pub struct FileChangeRequestApprovalParams {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[ts(export_to = "v2/")]
 pub struct FileChangeRequestApprovalResponse {
-    pub decision: ApprovalDecision,
+    pub decision: FileChangeApprovalDecision,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -1988,6 +2082,10 @@ mod tests {
                 CoreUserInput::LocalImage {
                     path: PathBuf::from("local/image.png"),
                 },
+                CoreUserInput::Skill {
+                    name: "skill-creator".to_string(),
+                    path: PathBuf::from("/repo/.codex/skills/skill-creator/SKILL.md"),
+                },
             ],
         });
 
@@ -2004,6 +2102,10 @@ mod tests {
                     },
                     UserInput::LocalImage {
                         path: PathBuf::from("local/image.png"),
+                    },
+                    UserInput::Skill {
+                        name: "skill-creator".to_string(),
+                        path: PathBuf::from("/repo/.codex/skills/skill-creator/SKILL.md"),
                     },
                 ],
             }

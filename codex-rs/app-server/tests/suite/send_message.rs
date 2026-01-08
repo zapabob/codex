@@ -13,7 +13,7 @@ use codex_app_server_protocol::NewConversationResponse;
 use codex_app_server_protocol::RequestId;
 use codex_app_server_protocol::SendUserMessageParams;
 use codex_app_server_protocol::SendUserMessageResponse;
-use codex_protocol::ConversationId;
+use codex_protocol::ThreadId;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::ResponseItem;
 use codex_protocol::protocol::RawResponseItemEvent;
@@ -81,7 +81,7 @@ async fn test_send_message_success() -> Result<()> {
 #[expect(clippy::expect_used)]
 async fn send_message(
     message: &str,
-    conversation_id: ConversationId,
+    conversation_id: ThreadId,
     mcp: &mut McpProcess,
 ) -> Result<()> {
     // Now exercise sendUserMessage.
@@ -220,7 +220,7 @@ async fn test_send_message_session_not_found() -> Result<()> {
     let mut mcp = McpProcess::new(codex_home.path()).await?;
     timeout(DEFAULT_READ_TIMEOUT, mcp.initialize()).await??;
 
-    let unknown = ConversationId::new();
+    let unknown = ThreadId::new();
     let req_id = mcp
         .send_send_user_message_request(SendUserMessageParams {
             conversation_id: unknown,
@@ -268,44 +268,46 @@ stream_max_retries = 0
 }
 
 #[expect(clippy::expect_used)]
-async fn read_raw_response_item(
-    mcp: &mut McpProcess,
-    conversation_id: ConversationId,
-) -> ResponseItem {
-    let raw_notification: JSONRPCNotification = timeout(
-        DEFAULT_READ_TIMEOUT,
-        mcp.read_stream_until_notification_message("codex/event/raw_response_item"),
-    )
-    .await
-    .expect("codex/event/raw_response_item notification timeout")
-    .expect("codex/event/raw_response_item notification resp");
+async fn read_raw_response_item(mcp: &mut McpProcess, conversation_id: ThreadId) -> ResponseItem {
+    loop {
+        let raw_notification: JSONRPCNotification = timeout(
+            DEFAULT_READ_TIMEOUT,
+            mcp.read_stream_until_notification_message("codex/event/raw_response_item"),
+        )
+        .await
+        .expect("codex/event/raw_response_item notification timeout")
+        .expect("codex/event/raw_response_item notification resp");
 
-    let serde_json::Value::Object(params) = raw_notification
-        .params
-        .expect("codex/event/raw_response_item should have params")
-    else {
-        panic!("codex/event/raw_response_item should have params");
-    };
+        let serde_json::Value::Object(params) = raw_notification
+            .params
+            .expect("codex/event/raw_response_item should have params")
+        else {
+            panic!("codex/event/raw_response_item should have params");
+        };
 
-    let conversation_id_value = params
-        .get("conversationId")
-        .and_then(|value| value.as_str())
-        .expect("raw response item should include conversationId");
+        let conversation_id_value = params
+            .get("conversationId")
+            .and_then(|value| value.as_str())
+            .expect("raw response item should include conversationId");
 
-    assert_eq!(
-        conversation_id_value,
-        conversation_id.to_string(),
-        "raw response item conversation mismatch"
-    );
+        assert_eq!(
+            conversation_id_value,
+            conversation_id.to_string(),
+            "raw response item conversation mismatch"
+        );
 
-    let msg_value = params
-        .get("msg")
-        .cloned()
-        .expect("raw response item should include msg payload");
+        let msg_value = params
+            .get("msg")
+            .cloned()
+            .expect("raw response item should include msg payload");
 
-    let event: RawResponseItemEvent =
-        serde_json::from_value(msg_value).expect("deserialize raw response item");
-    event.item
+        // Ghost snapshots are produced concurrently and may arrive before the model reply.
+        let event: RawResponseItemEvent =
+            serde_json::from_value(msg_value).expect("deserialize raw response item");
+        if !matches!(event.item, ResponseItem::GhostSnapshot { .. }) {
+            return event.item;
+        }
+    }
 }
 
 fn assert_instructions_message(item: &ResponseItem) {

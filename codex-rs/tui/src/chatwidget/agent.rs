@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use codex_core::CodexConversation;
-use codex_core::ConversationManager;
-use codex_core::NewConversation;
+use codex_core::CodexThread;
+use codex_core::NewThread;
+use codex_core::ThreadManager;
 use codex_core::config::Config;
 use codex_core::protocol::Op;
 use tokio::sync::mpsc::UnboundedSender;
@@ -16,17 +16,17 @@ use crate::app_event_sender::AppEventSender;
 pub(crate) fn spawn_agent(
     config: Config,
     app_event_tx: AppEventSender,
-    server: Arc<ConversationManager>,
+    server: Arc<ThreadManager>,
 ) -> UnboundedSender<Op> {
     let (codex_op_tx, mut codex_op_rx) = unbounded_channel::<Op>();
 
     let app_event_tx_clone = app_event_tx;
     tokio::spawn(async move {
-        let NewConversation {
-            conversation_id: _,
-            conversation,
+        let NewThread {
+            thread,
             session_configured,
-        } = match server.new_conversation(config).await {
+            ..
+        } = match server.start_thread(config).await {
             Ok(v) => v,
             Err(e) => {
                 // TODO: surface this error to the user.
@@ -43,17 +43,17 @@ pub(crate) fn spawn_agent(
         };
         app_event_tx_clone.send(AppEvent::CodexEvent(ev));
 
-        let conversation_clone = conversation.clone();
+        let thread_clone = thread.clone();
         tokio::spawn(async move {
             while let Some(op) = codex_op_rx.recv().await {
-                let id = conversation_clone.submit(op).await;
+                let id = thread_clone.submit(op).await;
                 if let Err(e) = id {
                     tracing::error!("failed to submit op: {e}");
                 }
             }
         });
 
-        while let Ok(event) = conversation.next_event().await {
+        while let Ok(event) = thread.next_event().await {
             app_event_tx_clone.send(AppEvent::CodexEvent(event));
         }
     });
@@ -61,11 +61,11 @@ pub(crate) fn spawn_agent(
     codex_op_tx
 }
 
-/// Spawn agent loops for an existing conversation (e.g., a forked conversation).
+/// Spawn agent loops for an existing thread (e.g., a forked thread).
 /// Sends the provided `SessionConfiguredEvent` immediately, then forwards subsequent
 /// events and accepts Ops for submission.
 pub(crate) fn spawn_agent_from_existing(
-    conversation: std::sync::Arc<CodexConversation>,
+    thread: std::sync::Arc<CodexThread>,
     session_configured: codex_core::protocol::SessionConfiguredEvent,
     app_event_tx: AppEventSender,
 ) -> UnboundedSender<Op> {
@@ -80,17 +80,17 @@ pub(crate) fn spawn_agent_from_existing(
         };
         app_event_tx_clone.send(AppEvent::CodexEvent(ev));
 
-        let conversation_clone = conversation.clone();
+        let thread_clone = thread.clone();
         tokio::spawn(async move {
             while let Some(op) = codex_op_rx.recv().await {
-                let id = conversation_clone.submit(op).await;
+                let id = thread_clone.submit(op).await;
                 if let Err(e) = id {
                     tracing::error!("failed to submit op: {e}");
                 }
             }
         });
 
-        while let Ok(event) = conversation.next_event().await {
+        while let Ok(event) = thread.next_event().await {
             app_event_tx_clone.send(AppEvent::CodexEvent(event));
         }
     });

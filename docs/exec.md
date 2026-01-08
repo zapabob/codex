@@ -1,4 +1,4 @@
-## Non-interactive mode
+# Non-interactive mode
 
 Use Codex in non-interactive mode to automate common workflows.
 
@@ -118,3 +118,6 @@ CODEX_API_KEY=your-api-key-here codex exec "Fix merge conflict"
 ```
 
 NOTE: `CODEX_API_KEY` is only supported in `codex exec`.
+
+
+For more information about non-interactive mode, see [the official documentation](https://developers.openai.com/codex/noninteractive).

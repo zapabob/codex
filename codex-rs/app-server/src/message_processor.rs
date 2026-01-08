@@ -1,29 +1,36 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use crate::codex_message_processor::CodexMessageProcessor;
+use crate::config_api::ConfigApi;
 use crate::error_code::INVALID_REQUEST_ERROR_CODE;
 use crate::outgoing_message::OutgoingMessageSender;
 use codex_app_server_protocol::ClientInfo;
 use codex_app_server_protocol::ClientRequest;
+use codex_app_server_protocol::ConfigBatchWriteParams;
+use codex_app_server_protocol::ConfigReadParams;
+use codex_app_server_protocol::ConfigValueWriteParams;
 use codex_app_server_protocol::InitializeResponse;
-
 use codex_app_server_protocol::JSONRPCError;
 use codex_app_server_protocol::JSONRPCErrorError;
 use codex_app_server_protocol::JSONRPCNotification;
 use codex_app_server_protocol::JSONRPCRequest;
 use codex_app_server_protocol::JSONRPCResponse;
+use codex_app_server_protocol::RequestId;
 use codex_core::AuthManager;
-use codex_core::ConversationManager;
+use codex_core::ThreadManager;
 use codex_core::config::Config;
+use codex_core::config_loader::LoaderOverrides;
 use codex_core::default_client::USER_AGENT_SUFFIX;
 use codex_core::default_client::get_codex_user_agent;
 use codex_feedback::CodexFeedback;
 use codex_protocol::protocol::SessionSource;
-use std::sync::Arc;
+use toml::Value as TomlValue;
 
 pub(crate) struct MessageProcessor {
     outgoing: Arc<OutgoingMessageSender>,
     codex_message_processor: CodexMessageProcessor,
+    config_api: ConfigApi,
     initialized: bool,
 }
 
@@ -34,7 +41,8 @@ impl MessageProcessor {
         outgoing: OutgoingMessageSender,
         codex_linux_sandbox_exe: Option<PathBuf>,
         config: Arc<Config>,
-        cli_overrides: Vec<(String, toml::Value)>,
+        cli_overrides: Vec<(String, TomlValue)>,
+        loader_overrides: LoaderOverrides,
         feedback: CodexFeedback,
     ) -> Self {
         let outgoing = Arc::new(outgoing);
@@ -43,23 +51,26 @@ impl MessageProcessor {
             false,
             config.cli_auth_credentials_store_mode,
         );
-        let conversation_manager = Arc::new(ConversationManager::new(
+        let thread_manager = Arc::new(ThreadManager::new(
+            config.codex_home.clone(),
             auth_manager.clone(),
             SessionSource::VSCode,
         ));
         let codex_message_processor = CodexMessageProcessor::new(
             auth_manager,
-            conversation_manager,
+            thread_manager,
             outgoing.clone(),
             codex_linux_sandbox_exe,
-            config,
-            cli_overrides,
+            Arc::clone(&config),
+            cli_overrides.clone(),
             feedback,
         );
+        let config_api = ConfigApi::new(config.codex_home.clone(), cli_overrides, loader_overrides);
 
         Self {
             outgoing,
             codex_message_processor,
+            config_api,
             initialized: false,
         }
     }
@@ -120,6 +131,7 @@ impl MessageProcessor {
                     self.outgoing.send_response(request_id, response).await;
 
                     self.initialized = true;
+
                     return;
                 }
             }
@@ -136,9 +148,26 @@ impl MessageProcessor {
             }
         }
 
-        self.codex_message_processor
-            .process_request(codex_request)
-            .await;
+        match codex_request {
+            ClientRequest::ConfigRead { request_id, params } => {
+                self.handle_config_read(request_id, params).await;
+            }
+            ClientRequest::ConfigValueWrite { request_id, params } => {
+                self.handle_config_value_write(request_id, params).await;
+            }
+            ClientRequest::ConfigBatchWrite { request_id, params } => {
+                self.handle_config_batch_write(request_id, params).await;
+            }
+            ClientRequest::ConfigRequirementsRead {
+                request_id,
+                params: _,
+            } => {
+                self.handle_config_requirements_read(request_id).await;
+            }
+            other => {
+                self.codex_message_processor.process_request(other).await;
+            }
+        }
     }
 
     pub(crate) async fn process_notification(&self, notification: JSONRPCNotification) {
@@ -157,5 +186,41 @@ impl MessageProcessor {
     /// Handle an error object received from the peer.
     pub(crate) fn process_error(&mut self, err: JSONRPCError) {
         tracing::error!("<- error: {:?}", err);
+    }
+
+    async fn handle_config_read(&self, request_id: RequestId, params: ConfigReadParams) {
+        match self.config_api.read(params).await {
+            Ok(response) => self.outgoing.send_response(request_id, response).await,
+            Err(error) => self.outgoing.send_error(request_id, error).await,
+        }
+    }
+
+    async fn handle_config_value_write(
+        &self,
+        request_id: RequestId,
+        params: ConfigValueWriteParams,
+    ) {
+        match self.config_api.write_value(params).await {
+            Ok(response) => self.outgoing.send_response(request_id, response).await,
+            Err(error) => self.outgoing.send_error(request_id, error).await,
+        }
+    }
+
+    async fn handle_config_batch_write(
+        &self,
+        request_id: RequestId,
+        params: ConfigBatchWriteParams,
+    ) {
+        match self.config_api.batch_write(params).await {
+            Ok(response) => self.outgoing.send_response(request_id, response).await,
+            Err(error) => self.outgoing.send_error(request_id, error).await,
+        }
+    }
+
+    async fn handle_config_requirements_read(&self, request_id: RequestId) {
+        match self.config_api.config_requirements_read().await {
+            Ok(response) => self.outgoing.send_response(request_id, response).await,
+            Err(error) => self.outgoing.send_error(request_id, error).await,
+        }
     }
 }

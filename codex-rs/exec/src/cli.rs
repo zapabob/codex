@@ -11,11 +11,17 @@ pub struct Cli {
     pub command: Option<Command>,
 
     /// Optional image(s) to attach to the initial prompt.
-    #[arg(long = "image", short = 'i', value_name = "FILE", value_delimiter = ',', num_args = 1..)]
+    #[arg(
+        long = "image",
+        short = 'i',
+        value_name = "FILE",
+        value_delimiter = ',',
+        num_args = 1..
+    )]
     pub images: Vec<PathBuf>,
 
     /// Model the agent should use.
-    #[arg(long, short = 'm')]
+    #[arg(long, short = 'm', global = true)]
     pub model: Option<String>,
 
     #[arg(long = "oss", default_value_t = false)]
@@ -34,8 +40,8 @@ pub struct Cli {
     #[arg(long = "profile", short = 'p')]
     pub config_profile: Option<String>,
 
-    /// Convenience alias for low-friction sandboxed automatic execution (-a on-failure, --sandbox workspace-write).
-    #[arg(long = "full-auto", default_value_t = false)]
+    /// Convenience alias for low-friction sandboxed automatic execution (-a on-request, --sandbox workspace-write).
+    #[arg(long = "full-auto", default_value_t = false, global = true)]
     pub full_auto: bool,
 
     /// Skip all confirmation prompts and execute commands without sandboxing.
@@ -44,6 +50,7 @@ pub struct Cli {
         long = "dangerously-bypass-approvals-and-sandbox",
         alias = "yolo",
         default_value_t = false,
+        global = true,
         conflicts_with = "full_auto"
     )]
     pub dangerously_bypass_approvals_and_sandbox: bool,
@@ -53,7 +60,7 @@ pub struct Cli {
     pub cwd: Option<PathBuf>,
 
     /// Allow running Codex outside a Git repository.
-    #[arg(long = "skip-git-repo-check", default_value_t = false)]
+    #[arg(long = "skip-git-repo-check", global = true, default_value_t = false)]
     pub skip_git_repo_check: bool,
 
     /// Additional directories to include in context
@@ -84,7 +91,12 @@ pub struct Cli {
     pub color: Color,
 
     /// Print events to stdout as JSONL.
-    #[arg(long = "json", alias = "experimental-json", default_value_t = false)]
+    #[arg(
+        long = "json",
+        alias = "experimental-json",
+        default_value_t = false,
+        global = true
+    )]
     pub json: bool,
 
     /// Specifies file where the last message from the agent should be written.
@@ -138,6 +150,16 @@ pub struct ResumeArgs {
     /// Resume the most recent recorded session (newest) without specifying an id.
     #[arg(long = "last", default_value_t = false, conflicts_with = "session_id")]
     pub last: bool,
+
+    /// Optional image(s) to attach to the prompt sent after resuming.
+    #[arg(
+        long = "image",
+        short = 'i',
+        value_name = "FILE",
+        value_delimiter = ',',
+        num_args = 1
+    )]
+    pub images: Vec<PathBuf>,
 
     /// Prompt to send after resuming the session. If `-` is used, read from stdin.
     #[arg(value_name = "PROMPT", value_hint = clap::ValueHint::Other)]

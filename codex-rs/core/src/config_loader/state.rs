@@ -1,4 +1,5 @@
 use crate::config_loader::ConfigRequirements;
+use crate::config_loader::ConfigRequirementsToml;
 
 use super::fingerprint::record_origins;
 use super::fingerprint::version_for_toml;
@@ -12,14 +13,17 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use toml::Value as TomlValue;
 
+/// LoaderOverrides overrides managed configuration inputs (primarily for tests).
 #[derive(Debug, Default, Clone)]
 pub struct LoaderOverrides {
     pub managed_config_path: Option<PathBuf>,
+    //TODO(gt): Add a macos_ prefix to this field and remove the target_os check.
     #[cfg(target_os = "macos")]
     pub managed_preferences_base64: Option<String>,
+    pub macos_managed_config_requirements_base64: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ConfigLayerEntry {
     pub name: ConfigLayerSource,
     pub config: TomlValue,
@@ -50,9 +54,28 @@ impl ConfigLayerEntry {
             config: serde_json::to_value(&self.config).unwrap_or(JsonValue::Null),
         }
     }
+
+    // Get the `.codex/` folder associated with this config layer, if any.
+    pub fn config_folder(&self) -> Option<AbsolutePathBuf> {
+        match &self.name {
+            ConfigLayerSource::Mdm { .. } => None,
+            ConfigLayerSource::System { file } => file.parent(),
+            ConfigLayerSource::User { file } => file.parent(),
+            ConfigLayerSource::Project { dot_codex_folder } => Some(dot_codex_folder.clone()),
+            ConfigLayerSource::SessionFlags => None,
+            ConfigLayerSource::LegacyManagedConfigTomlFromFile { .. } => None,
+            ConfigLayerSource::LegacyManagedConfigTomlFromMdm => None,
+        }
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConfigLayerStackOrdering {
+    LowestPrecedenceFirst,
+    HighestPrecedenceFirst,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct ConfigLayerStack {
     /// Layers are listed from lowest precedence (base) to highest (top), so
     /// later entries in the Vec override earlier ones.
@@ -64,18 +87,25 @@ pub struct ConfigLayerStack {
     /// Constraints that must be enforced when deriving a [Config] from the
     /// layers.
     requirements: ConfigRequirements,
+
+    /// Raw requirements data as loaded from requirements.toml/MDM/legacy
+    /// sources. This preserves the original allow-lists so they can be
+    /// surfaced via APIs.
+    requirements_toml: ConfigRequirementsToml,
 }
 
 impl ConfigLayerStack {
     pub fn new(
         layers: Vec<ConfigLayerEntry>,
         requirements: ConfigRequirements,
+        requirements_toml: ConfigRequirementsToml,
     ) -> std::io::Result<Self> {
         let user_layer_index = verify_layer_ordering(&layers)?;
         Ok(Self {
             layers,
             user_layer_index,
             requirements,
+            requirements_toml,
         })
     }
 
@@ -87,6 +117,10 @@ impl ConfigLayerStack {
 
     pub fn requirements(&self) -> &ConfigRequirements {
         &self.requirements
+    }
+
+    pub fn requirements_toml(&self) -> &ConfigRequirementsToml {
+        &self.requirements_toml
     }
 
     /// Creates a new [ConfigLayerStack] using the specified values to inject a
@@ -109,6 +143,7 @@ impl ConfigLayerStack {
                     layers,
                     user_layer_index: self.user_layer_index,
                     requirements: self.requirements.clone(),
+                    requirements_toml: self.requirements_toml.clone(),
                 }
             }
             None => {
@@ -129,6 +164,7 @@ impl ConfigLayerStack {
                     layers,
                     user_layer_index: Some(user_layer_index),
                     requirements: self.requirements.clone(),
+                    requirements_toml: self.requirements_toml.clone(),
                 }
             }
         }
@@ -156,7 +192,16 @@ impl ConfigLayerStack {
     /// Returns the highest-precedence to lowest-precedence layers, so
     /// `ConfigLayerSource::SessionFlags` would be first, if present.
     pub fn layers_high_to_low(&self) -> Vec<&ConfigLayerEntry> {
-        self.layers.iter().rev().collect()
+        self.get_layers(ConfigLayerStackOrdering::HighestPrecedenceFirst)
+    }
+
+    /// Returns the highest-precedence to lowest-precedence layers, so
+    /// `ConfigLayerSource::SessionFlags` would be first, if present.
+    pub fn get_layers(&self, ordering: ConfigLayerStackOrdering) -> Vec<&ConfigLayerEntry> {
+        match ordering {
+            ConfigLayerStackOrdering::HighestPrecedenceFirst => self.layers.iter().rev().collect(),
+            ConfigLayerStackOrdering::LowestPrecedenceFirst => self.layers.iter().collect(),
+        }
     }
 }
 
@@ -170,7 +215,12 @@ fn verify_layer_ordering(layers: &[ConfigLayerEntry]) -> std::io::Result<Option<
         ));
     }
 
+    // The previous check ensured `layers` is sorted by precedence, so now we
+    // further verify that:
+    // 1. There is at most one user config layer.
+    // 2. Project layers are ordered from root to cwd.
     let mut user_layer_index: Option<usize> = None;
+    let mut previous_project_dot_codex_folder: Option<&AbsolutePathBuf> = None;
     for (index, layer) in layers.iter().enumerate() {
         if matches!(layer.name, ConfigLayerSource::User { .. }) {
             if user_layer_index.is_some() {
@@ -180,6 +230,32 @@ fn verify_layer_ordering(layers: &[ConfigLayerEntry]) -> std::io::Result<Option<
                 ));
             }
             user_layer_index = Some(index);
+        }
+
+        if let ConfigLayerSource::Project {
+            dot_codex_folder: current_project_dot_codex_folder,
+        } = &layer.name
+        {
+            if let Some(previous) = previous_project_dot_codex_folder {
+                let Some(parent) = previous.as_path().parent() else {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        "project layer has no parent directory",
+                    ));
+                };
+                if previous == current_project_dot_codex_folder
+                    || !current_project_dot_codex_folder
+                        .as_path()
+                        .ancestors()
+                        .any(|ancestor| ancestor == parent)
+                {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        "project layers are not ordered from root to cwd",
+                    ));
+                }
+            }
+            previous_project_dot_codex_folder = Some(current_project_dot_codex_folder);
         }
     }
 

@@ -234,7 +234,7 @@ mod tests {
     use anyhow::Result;
     use codex_core::protocol::EventMsg;
     use codex_core::protocol::SessionConfiguredEvent;
-    use codex_protocol::ConversationId;
+    use codex_protocol::ThreadId;
     use codex_protocol::openai_models::ReasoningEffort;
     use codex_protocol::protocol::AskForApproval;
     use codex_protocol::protocol::SandboxPolicy;
@@ -250,7 +250,7 @@ mod tests {
         let (outgoing_tx, mut outgoing_rx) = mpsc::unbounded_channel::<OutgoingMessage>();
         let outgoing_message_sender = OutgoingMessageSender::new(outgoing_tx);
 
-        let conversation_id = ConversationId::new();
+        let conversation_id = ThreadId::new();
         let rollout_file = NamedTempFile::new()?;
         let cwd = rollout_file
             .path()
@@ -296,7 +296,7 @@ mod tests {
         let (outgoing_tx, mut outgoing_rx) = mpsc::unbounded_channel::<OutgoingMessage>();
         let outgoing_message_sender = OutgoingMessageSender::new(outgoing_tx);
 
-        let conversation_id = ConversationId::new();
+        let conversation_id = ThreadId::new();
         let rollout_file = NamedTempFile::new()?;
         let cwd = rollout_file
             .path()

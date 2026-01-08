@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use codex_protocol::ConversationId;
+use codex_protocol::ThreadId;
 use codex_protocol::config_types::ForcedLoginMethod;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode;
@@ -70,7 +70,7 @@ pub struct NewConversationParams {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct NewConversationResponse {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     pub model: String,
     pub reasoning_effort: Option<ReasoningEffort>,
     pub rollout_path: PathBuf,
@@ -79,7 +79,7 @@ pub struct NewConversationResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ResumeConversationResponse {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     pub model: String,
     pub initial_messages: Option<Vec<EventMsg>>,
     pub rollout_path: PathBuf,
@@ -92,9 +92,9 @@ pub enum GetConversationSummaryParams {
         #[serde(rename = "rolloutPath")]
         rollout_path: PathBuf,
     },
-    ConversationId {
+    ThreadId {
         #[serde(rename = "conversationId")]
-        conversation_id: ConversationId,
+        conversation_id: ThreadId,
     },
 }
 
@@ -115,7 +115,7 @@ pub struct ListConversationsParams {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ConversationSummary {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     pub path: PathBuf,
     pub preview: String,
     pub timestamp: Option<String>,
@@ -145,7 +145,7 @@ pub struct ListConversationsResponse {
 #[serde(rename_all = "camelCase")]
 pub struct ResumeConversationParams {
     pub path: Option<PathBuf>,
-    pub conversation_id: Option<ConversationId>,
+    pub conversation_id: Option<ThreadId>,
     pub history: Option<Vec<ResponseItem>>,
     pub overrides: Option<NewConversationParams>,
 }
@@ -160,7 +160,7 @@ pub struct AddConversationSubscriptionResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ArchiveConversationParams {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     pub rollout_path: PathBuf,
 }
 
@@ -197,7 +197,7 @@ pub struct GitDiffToRemoteResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplyPatchApprovalParams {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     /// Use to correlate this with [codex_core::protocol::PatchApplyBeginEvent]
     /// and [codex_core::protocol::PatchApplyEndEvent].
     pub call_id: String,
@@ -218,7 +218,7 @@ pub struct ApplyPatchApprovalResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecCommandApprovalParams {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     /// Use to correlate this with [codex_core::protocol::ExecCommandBeginEvent]
     /// and [codex_core::protocol::ExecCommandEndEvent].
     pub call_id: String,
@@ -364,14 +364,14 @@ pub struct SandboxSettings {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct SendUserMessageParams {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     pub items: Vec<InputItem>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct SendUserTurnParams {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     pub items: Vec<InputItem>,
     pub cwd: PathBuf,
     pub approval_policy: AskForApproval,
@@ -379,6 +379,8 @@ pub struct SendUserTurnParams {
     pub model: String,
     pub effort: Option<ReasoningEffort>,
     pub summary: ReasoningSummary,
+    /// Optional JSON Schema used to constrain the final assistant message for this turn.
+    pub output_schema: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -387,7 +389,7 @@ pub struct SendUserTurnResponse {}
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct InterruptConversationParams {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema, TS)]
@@ -402,7 +404,7 @@ pub struct SendUserMessageResponse {}
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AddConversationListenerParams {
-    pub conversation_id: ConversationId,
+    pub conversation_id: ThreadId,
     #[serde(default)]
     pub experimental_raw_events: bool,
 }
@@ -436,7 +438,7 @@ pub struct LoginChatGptCompleteNotification {
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionConfiguredNotification {
-    pub session_id: ConversationId,
+    pub session_id: ThreadId,
     pub model: String,
     pub reasoning_effort: Option<ReasoningEffort>,
     pub history_log_id: u64,

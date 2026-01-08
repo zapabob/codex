@@ -86,6 +86,11 @@ async fn run_compact_task_inner(
         model: turn_context.client.get_model(),
         effort: turn_context.client.get_reasoning_effort(),
         summary: turn_context.client.get_reasoning_summary(),
+        base_instructions: turn_context.base_instructions.clone(),
+        user_instructions: turn_context.user_instructions.clone(),
+        developer_instructions: turn_context.developer_instructions.clone(),
+        final_output_json_schema: turn_context.final_output_json_schema.clone(),
+        truncation_policy: Some(turn_context.truncation_policy.into()),
     });
     sess.persist_rollout_items(&[rollout_item]).await;
 
@@ -103,7 +108,7 @@ async fn run_compact_task_inner(
                     sess.notify_background_event(
                         turn_context.as_ref(),
                         format!(
-                            "Trimmed {truncated_count} older conversation item(s) before compacting so the prompt fits the model context window."
+                            "Trimmed {truncated_count} older thread item(s) before compacting so the prompt fits the model context window."
                         ),
                     )
                     .await;
@@ -177,7 +182,7 @@ async fn run_compact_task_inner(
     sess.send_event(&turn_context, event).await;
 
     let warning = EventMsg::Warning(WarningEvent {
-        message: "Heads up: Long conversations and multiple compactions can cause the model to be less accurate. Start a new conversation when possible to keep conversations small and targeted.".to_string(),
+        message: "Heads up: Long threads and multiple compactions can cause the model to be less accurate. Start a new thread when possible to keep threads small and targeted.".to_string(),
     });
     sess.send_event(&turn_context, warning).await;
 }
