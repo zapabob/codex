@@ -9,6 +9,10 @@ import sys
 import json
 import subprocess
 import tempfile
+import smtplib
+import requests
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
@@ -27,17 +31,35 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @dataclass
+class NotificationConfig:
+    slack_webhook_url: Optional[str] = None
+    discord_webhook_url: Optional[str] = None
+    email_smtp_server: Optional[str] = None
+    email_smtp_port: int = 587
+    email_username: Optional[str] = None
+    email_password: Optional[str] = None
+    email_from: Optional[str] = None
+    email_to: List[str] = None
+    notify_on_success: bool = True
+    notify_on_failure: bool = True
+    notify_on_warning: bool = True
+
+    def __post_init__(self):
+        if self.email_to is None:
+            self.email_to = []
+
+@dataclass
 class MergeQAConfig:
     block_on_critical: bool = True
     block_on_high: bool = False
     require_minimum_score: float = 7.0
     max_qa_time: int = 300  # 5 minutes
     generate_diff_report: bool = True
-    notify_channels: List[str] = None
+    notification_config: Optional[NotificationConfig] = None
 
     def __post_init__(self):
-        if self.notify_channels is None:
-            self.notify_channels = []
+        if self.notification_config is None:
+            self.notification_config = NotificationConfig()
 
 @dataclass
 class MergeContext:
@@ -438,24 +460,325 @@ class PreMergeQAHook:
     def _send_notifications(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any]):
         """Send notifications about merge QA results"""
 
-        # This is a placeholder for notification implementations
-        # Could integrate with Slack, Discord, email, etc.
+        config = self.config.notification_config
 
-        if "slack" in self.config.notify_channels:
-            self._send_slack_notification(qa_report, merge_context, evaluation)
+        # Determine if we should send notification
+        should_notify = False
+        if evaluation["block_reasons"] and config.notify_on_failure:
+            should_notify = True
+        elif evaluation["warnings"] and config.notify_on_warning:
+            should_notify = True
+        elif config.notify_on_success:
+            should_notify = True
 
-        if "email" in self.config.notify_channels:
-            self._send_email_notification(qa_report, merge_context, evaluation)
+        if not should_notify:
+            return
+
+        # Send notifications to configured channels
+        if config.slack_webhook_url:
+            try:
+                self._send_slack_notification(qa_report, merge_context, evaluation)
+            except Exception as e:
+                logger.error(f"Failed to send Slack notification: {e}")
+
+        if config.discord_webhook_url:
+            try:
+                self._send_discord_notification(qa_report, merge_context, evaluation)
+            except Exception as e:
+                logger.error(f"Failed to send Discord notification: {e}")
+
+        if config.email_smtp_server and config.email_to:
+            try:
+                self._send_email_notification(qa_report, merge_context, evaluation)
+            except Exception as e:
+                logger.error(f"Failed to send email notification: {e}")
 
     def _send_slack_notification(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any]):
-        """Send Slack notification (placeholder)"""
-        # Implement Slack webhook integration
-        pass
+        """Send Slack notification via webhook"""
+
+        config = self.config.notification_config
+
+        # Determine status and color
+        if evaluation["block_reasons"]:
+            status = "❌ FAILED"
+            color = "danger"
+        elif evaluation["warnings"]:
+            status = "⚠️ WARNING"
+            color = "warning"
+        else:
+            status = "✅ PASSED"
+            color = "good"
+
+        # Create Slack message
+        message = {
+            "attachments": [
+                {
+                    "color": color,
+                    "title": f"🔬 Pre-Merge QA Analysis: {status}",
+                    "fields": [
+                        {
+                            "title": "Merge Details",
+                            "value": f"*{merge_context.source_branch}* → *{merge_context.target_branch}*\nAuthor: {merge_context.author}",
+                            "short": True
+                        },
+                        {
+                            "title": "Quality Scores",
+                            "value": f"Algorithmic: {qa_report.metrics.algorithmic_complexity}\nQuantum: {qa_report.metrics.quantum_optimization}\nEngineering: {qa_report.metrics.software_engineering}\nQuality: {qa_report.metrics.code_quality}",
+                            "short": True
+                        },
+                        {
+                            "title": "Issues Summary",
+                            "value": f"Total: {len(qa_report.issues)}\nCritical: {len([i for i in qa_report.issues if i.severity.name == 'CRITICAL'])}\nHigh: {len([i for i in qa_report.issues if i.severity.name == 'HIGH'])}\nWarnings: {len(evaluation['warnings'])}",
+                            "short": True
+                        },
+                        {
+                            "title": "Merge Status",
+                            "value": f"Confidence: {evaluation['merge_confidence']:.1%}\nRisk Level: {evaluation['risk_level']}",
+                            "short": True
+                        }
+                    ],
+                    "footer": "Codex QA Engineering System",
+                    "ts": datetime.now().timestamp()
+                }
+            ]
+        }
+
+        # Add blocking reasons if any
+        if evaluation["block_reasons"]:
+            message["attachments"][0]["fields"].append({
+                "title": "🚫 Blocking Issues",
+                "value": "\n".join(f"• {reason}" for reason in evaluation["block_reasons"][:3]),
+                "short": False
+            })
+
+        # Add recommendations
+        if evaluation["recommendations"]:
+            message["attachments"][0]["fields"].append({
+                "title": "💡 Key Recommendations",
+                "value": "\n".join(f"• {rec}" for rec in evaluation["recommendations"][:3]),
+                "short": False
+            })
+
+        # Send to Slack
+        response = requests.post(config.slack_webhook_url, json=message)
+        response.raise_for_status()
+
+        logger.info("Slack notification sent successfully")
+
+    def _send_discord_notification(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any]):
+        """Send Discord notification via webhook"""
+
+        config = self.config.notification_config
+
+        # Determine status emoji
+        if evaluation["block_reasons"]:
+            status_emoji = "❌"
+            color = 15158332  # Red
+        elif evaluation["warnings"]:
+            status_emoji = "⚠️"
+            color = 16776960  # Yellow
+        else:
+            status_emoji = "✅"
+            color = 3066993   # Green
+
+        # Create Discord embed
+        embed = {
+            "title": f"{status_emoji} Pre-Merge QA Analysis Results",
+            "description": f"**{merge_context.source_branch}** → **{merge_context.target_branch}**",
+            "color": color,
+            "fields": [
+                {
+                    "name": "👤 Author",
+                    "value": merge_context.author,
+                    "inline": True
+                },
+                {
+                    "name": "📊 Quality Scores",
+                    "value": f"""Algorithmic: `{qa_report.metrics.algorithmic_complexity}`
+Quantum: `{qa_report.metrics.quantum_optimization}`
+Engineering: `{qa_report.metrics.software_engineering}`
+Quality: `{qa_report.metrics.code_quality}`""",
+                    "inline": True
+                },
+                {
+                    "name": "🔍 Issues Summary",
+                    "value": f"""Total: `{len(qa_report.issues)}`
+Critical: `{len([i for i in qa_report.issues if i.severity.name == 'CRITICAL'])}`
+High: `{len([i for i in qa_report.issues if i.severity.name == 'HIGH'])}`
+Warnings: `{len(evaluation['warnings'])}`""",
+                    "inline": True
+                },
+                {
+                    "name": "🎯 Merge Confidence",
+                    "value": f"`{evaluation['merge_confidence']:.1%}` ({evaluation['risk_level']} risk)",
+                    "inline": True
+                }
+            ],
+            "timestamp": datetime.now().isoformat(),
+            "footer": {
+                "text": "Codex QA Engineering System"
+            }
+        }
+
+        # Add blocking issues
+        if evaluation["block_reasons"]:
+            embed["fields"].append({
+                "name": "🚫 Blocking Issues",
+                "value": "\n".join(f"• {reason}" for reason in evaluation["block_reasons"][:3]),
+                "inline": False
+            })
+
+        # Add key recommendations
+        if evaluation["recommendations"]:
+            embed["fields"].append({
+                "name": "💡 Recommendations",
+                "value": "\n".join(f"• {rec}" for rec in evaluation["recommendations"][:3]),
+                "inline": False
+            })
+
+        # Create Discord message
+        message = {
+            "embeds": [embed]
+        }
+
+        # Send to Discord
+        response = requests.post(config.discord_webhook_url, json=message)
+        response.raise_for_status()
+
+        logger.info("Discord notification sent successfully")
 
     def _send_email_notification(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any]):
-        """Send email notification (placeholder)"""
-        # Implement email sending
-        pass
+        """Send email notification via SMTP"""
+
+        config = self.config.notification_config
+
+        # Determine subject and status
+        if evaluation["block_reasons"]:
+            subject = f"❌ QA BLOCKED: Merge {merge_context.source_branch} → {merge_context.target_branch}"
+            status_emoji = "❌"
+        elif evaluation["warnings"]:
+            subject = f"⚠️ QA WARNING: Merge {merge_context.source_branch} → {merge_context.target_branch}"
+            status_emoji = "⚠️"
+        else:
+            subject = f"✅ QA PASSED: Merge {merge_context.source_branch} → {merge_context.target_branch}"
+            status_emoji = "✅"
+
+        # Create email content
+        html_content = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .header {{ background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }}
+                .scores {{ display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }}
+                .score-card {{ background: #fff; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; min-width: 200px; }}
+                .issues {{ margin: 20px 0; }}
+                .issue-block {{ background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 10px 0; }}
+                .issue-warn {{ background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin: 10px 0; }}
+                .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #6c757d; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>{status_emoji} Pre-Merge QA Analysis Results</h1>
+                <p><strong>Merge:</strong> {merge_context.source_branch} → {merge_context.target_branch}</p>
+                <p><strong>Author:</strong> {merge_context.author}</p>
+                <p><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            </div>
+
+            <div class="scores">
+                <div class="score-card">
+                    <h3>Algorithmic Complexity</h3>
+                    <div style="font-size: 24px; font-weight: bold;">{qa_report.metrics.algorithmic_complexity}</div>
+                </div>
+                <div class="score-card">
+                    <h3>Quantum Optimization</h3>
+                    <div style="font-size: 24px; font-weight: bold;">{qa_report.metrics.quantum_optimization}</div>
+                </div>
+                <div class="score-card">
+                    <h3>Software Engineering</h3>
+                    <div style="font-size: 24px; font-weight: bold;">{qa_report.metrics.software_engineering}</div>
+                </div>
+                <div class="score-card">
+                    <h3>Code Quality</h3>
+                    <div style="font-size: 24px; font-weight: bold;">{qa_report.metrics.code_quality}</div>
+                </div>
+            </div>
+
+            <div class="issues">
+                <h2>Issues Summary</h2>
+                <ul>
+                    <li><strong>Total Issues:</strong> {len(qa_report.issues)}</li>
+                    <li><strong>Critical:</strong> {len([i for i in qa_report.issues if i.severity.name == 'CRITICAL'])}</li>
+                    <li><strong>High:</strong> {len([i for i in qa_report.issues if i.severity.name == 'HIGH'])}</li>
+                    <li><strong>Medium:</strong> {len([i for i in qa_report.issues if i.severity.name == 'MEDIUM'])}</li>
+                    <li><strong>Low:</strong> {len([i for i in qa_report.issues if i.severity.name == 'LOW'])}</li>
+                    <li><strong>Warnings:</strong> {len(evaluation['warnings'])}</li>
+                </ul>
+            </div>
+
+            {"".join(f'''
+            <div class="issue-block">
+                <h3>🚫 Blocking Issues</h3>
+                <ul>
+                    {"".join(f"<li>{reason}</li>" for reason in evaluation["block_reasons"])}
+                </ul>
+            </div>
+            ''' if evaluation["block_reasons"] else "")}
+
+            {"".join(f'''
+            <div class="issue-warn">
+                <h3>⚠️ Warnings</h3>
+                <ul>
+                    {"".join(f"<li>{warning}</li>" for warning in evaluation["warnings"])}
+                </ul>
+            </div>
+            ''' if evaluation["warnings"] else "")}
+
+            {"".join(f'''
+            <div class="issue-warn">
+                <h3>💡 Recommendations</h3>
+                <ul>
+                    {"".join(f"<li>{rec}</li>" for rec in evaluation["recommendations"])}
+                </ul>
+            </div>
+            ''' if evaluation["recommendations"] else "")}
+
+            <div class="footer">
+                <p>
+                    <strong>Merge Confidence:</strong> {evaluation['merge_confidence']:.1%}<br>
+                    <strong>Risk Level:</strong> {evaluation['risk_level']}
+                </p>
+                <p><em>Generated by Codex QA Engineering System</em></p>
+                <p><small>Please review the detailed QA report for complete analysis.</small></p>
+            </div>
+        </body>
+        </html>
+        """
+
+        # Create email message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = config.email_from
+        msg['To'] = ', '.join(config.email_to)
+
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+
+        # Send email
+        try:
+            server = smtplib.SMTP(config.email_smtp_server, config.email_smtp_port)
+            server.starttls()
+            server.login(config.email_username, config.email_password)
+            server.sendmail(config.email_from, config.email_to, msg.as_string())
+            server.quit()
+
+            logger.info(f"Email notification sent to {len(config.email_to)} recipients")
+
+        except Exception as e:
+            logger.error(f"Failed to send email: {e}")
+            raise
 
 def install_git_hooks():
     """Install git hooks for pre-merge QA"""
