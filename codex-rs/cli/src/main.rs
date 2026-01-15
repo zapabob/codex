@@ -34,6 +34,7 @@ use std::path::PathBuf;
 use supports_color::Stream;
 
 mod mcp_cmd;
+mod research_cmd;
 #[cfg(not(windows))]
 mod wsl_paths;
 
@@ -86,6 +87,9 @@ enum Subcommand {
 
     /// Run a code review non-interactively.
     Review(ReviewArgs),
+
+    /// [experimental] Conduct deep research on a topic.
+    Research(ResearchCommand),
 
     /// Manage login.
     Login(LoginCommand),
@@ -323,6 +327,52 @@ struct StdioToUdsCommand {
     socket_path: PathBuf,
 }
 
+#[derive(Debug, Parser)]
+struct ResearchCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
+    /// Topic to research
+    #[arg(value_name = "TOPIC")]
+    topic: String,
+
+    /// Research depth (1-5)
+    #[arg(short, long, value_name = "DEPTH", default_value = "3")]
+    depth: u8,
+
+    /// Search breadth (number of sources)
+    #[arg(short, long, value_name = "BREADTH", default_value = "8")]
+    breadth: u8,
+
+    /// Token budget
+    #[arg(long, value_name = "TOKENS", default_value = "60000")]
+    budget: usize,
+
+    /// Require citations
+    #[arg(long, default_value = "true")]
+    citations: bool,
+
+    /// MCP tools to use (comma-separated)
+    #[arg(long, value_name = "TOOLS")]
+    mcp: Option<String>,
+
+    /// Enable lightweight fallback
+    #[arg(long, default_value = "false")]
+    lightweight_fallback: bool,
+
+    /// Use Gemini CLI with Google Search (OAuth 2.0 authentication)
+    #[arg(long, default_value = "false")]
+    gemini: bool,
+
+    /// Use MCP mode (Codex → MCP → Gemini CLI)
+    #[arg(long, default_value = "false")]
+    use_mcp: bool,
+
+    /// Output file for the report
+    #[arg(short, long, value_name = "FILE")]
+    out: Option<PathBuf>,
+}
+
 fn format_exit_messages(exit_info: AppExitInfo, color_enabled: bool) -> Vec<String> {
     let AppExitInfo {
         token_usage,
@@ -512,6 +562,25 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 root_config_overrides.clone(),
             );
             codex_exec::run_main(exec_cli, codex_linux_sandbox_exe).await?;
+        }
+        Some(Subcommand::Research(mut research_cmd)) => {
+            prepend_config_flags(
+                &mut research_cmd.config_overrides,
+                root_config_overrides.clone(),
+            );
+            research_cmd::run_research_command(
+                research_cmd.topic,
+                research_cmd.depth,
+                research_cmd.breadth,
+                research_cmd.budget,
+                research_cmd.citations,
+                research_cmd.mcp,
+                research_cmd.lightweight_fallback,
+                research_cmd.out,
+                research_cmd.gemini,
+                research_cmd.use_mcp,
+            )
+            .await?;
         }
         Some(Subcommand::McpServer) => {
             codex_mcp_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;
