@@ -1,3 +1,4 @@
+use clap::Args;
 use clap::CommandFactory;
 use clap::Parser;
 use clap_complete::Shell;
@@ -13,41 +14,31 @@ use codex_cli::login::run_login_status;
 use codex_cli::login::run_login_with_api_key;
 use codex_cli::login::run_login_with_chatgpt;
 use codex_cli::login::run_login_with_device_code;
+use codex_cli::login::run_login_with_device_code_fallback_to_browser;
 use codex_cli::login::run_logout;
 use codex_cloud_tasks::Cli as CloudTasksCli;
 use codex_common::CliConfigOverrides;
+use codex_core::env::is_headless_environment;
 use codex_exec::Cli as ExecCli;
+use codex_exec::Command as ExecCommand;
+use codex_exec::ReviewArgs;
+use codex_execpolicy::ExecPolicyCheckCommand;
 use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;
 use codex_tui::AppExitInfo;
 use codex_tui::Cli as TuiCli;
+use codex_tui::ExitReason;
 use codex_tui::update_action::UpdateAction;
 use codex_tui2 as tui2;
 use owo_colors::OwoColorize;
 use std::path::PathBuf;
 use supports_color::Stream;
 
-mod dev_mode_cmd;
-mod git_commands;
-mod lock_cmd;
 mod mcp_cmd;
-mod organization_cmd;
-mod plan_commands;
-mod qc_cmd;
-mod ultrathink_cmd;
-mod webhook_cmd;
+#[cfg(not(windows))]
 mod wsl_paths;
 
-use crate::git_commands::GitAnalyzeCli;
-use crate::lock_cmd::LockCli;
 use crate::mcp_cmd::McpCli;
-use crate::organization_cmd::OrganizationCli;
-use crate::organization_cmd::run_organization_command;
-use crate::plan_commands::PlanCli;
-use crate::qc_cmd::QcCli;
-use crate::ultrathink_cmd::UltrathinkCli;
-use crate::ultrathink_cmd::run_ultrathink;
-use crate::webhook_cmd::WebhookCli;
-use crate::wsl_paths::normalize_for_wsl;
+
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 use codex_core::config::find_codex_home;
@@ -80,36 +71,6 @@ struct MultitoolCli {
     #[clap(flatten)]
     pub feature_toggles: FeatureToggles,
 
-    #[cfg(target_os = "windows")]
-    /// Use Windows 11 AI API for optimization (requires Windows 11 25H2+)
-    #[clap(long, global = true)]
-    pub use_windows_ai: bool,
-
-    #[cfg(target_os = "windows")]
-    /// Enable kernel driver acceleration (requires AI driver installed)
-    #[clap(long, global = true)]
-    pub kernel_accelerated: bool,
-
-    /// Use CUDA GPU acceleration (100-1000x faster for git analysis)
-    #[clap(long, global = true)]
-    pub use_cuda: bool,
-
-    /// CUDA device ID (default: 0)
-    #[clap(long, global = true)]
-    pub cuda_device: Option<i32>,
-
-    /// Use Ollama for local inference
-    #[clap(long, global = true)]
-    pub use_ollama: bool,
-
-    /// Ollama model name
-    #[clap(long, global = true, default_value = "gpt-oss:20b")]
-    pub ollama_model: String,
-
-    /// Ollama server URL
-    #[clap(long, global = true)]
-    pub ollama_url: Option<String>,
-
     #[clap(flatten)]
     interactive: TuiCli,
 
@@ -123,6 +84,9 @@ enum Subcommand {
     #[clap(visible_alias = "e")]
     Exec(ExecCli),
 
+    /// Run a code review non-interactively.
+    Review(ReviewArgs),
+
     /// Manage login.
     Login(LoginCommand),
 
@@ -135,20 +99,8 @@ enum Subcommand {
     /// [experimental] Run the Codex MCP server (stdio transport).
     McpServer,
 
-    /// [experimental] Run the app server.
-    AppServer,
-
-    /// Launch the Codex GUI web interface.
-    ///
-    /// Starts the GUI server and opens it in your default browser.
-    /// The GUI provides a modern web-based interface for managing agents,
-    /// monitoring system resources, and interacting with Codex features.
-    ///
-    /// Options:
-    ///   --port <PORT>     Set the port for the GUI server (default: 3000)
-    ///   --no-browser      Don't open the browser automatically
-    ///   --backend-port    Set the backend API port (default: 8787)
-    Gui(GuiCommand),
+    /// [experimental] Run the app server or related tooling.
+    AppServer(AppServerCommand),
 
     /// Generate shell completion scripts.
     Completion(CompletionCommand),
@@ -157,6 +109,10 @@ enum Subcommand {
     #[clap(visible_alias = "debug")]
     Sandbox(SandboxArgs),
 
+    /// Execpolicy tooling.
+    #[clap(hide = true)]
+    Execpolicy(ExecpolicyCommand),
+
     /// Apply the latest diff produced by Codex agent as a `git apply` to your local working tree.
     #[clap(visible_alias = "a")]
     Apply(ApplyCommand),
@@ -164,71 +120,12 @@ enum Subcommand {
     /// Resume a previous interactive session (picker by default; use --last to continue the most recent).
     Resume(ResumeCommand),
 
-    /// Internal: generate TypeScript protocol bindings.
-    #[clap(hide = true)]
-    GenerateTs(GenerateTsCommand),
+    /// Fork a previous interactive session (picker by default; use --last to fork the most recent).
+    Fork(ForkCommand),
+
     /// [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally.
     #[clap(name = "cloud", alias = "cloud-tasks")]
     Cloud(CloudTasksCli),
-
-    /// [EXPERIMENTAL] Delegate task to a sub-agent.
-    Delegate(DelegateCommand),
-
-    /// [EXPERIMENTAL] Delegate tasks to multiple agents in parallel
-    #[clap(name = "delegate-parallel")]
-    DelegateParallel(DelegateParallelCommand),
-
-    /// [EXPERIMENTAL] Natural-language pair programming orchestrated by the supervisor
-    #[clap(name = "pair", alias = "pair-program")]
-    PairProgram(PairProgramCommand),
-
-    /// [EXPERIMENTAL] Create and run a custom agent from a prompt
-    #[clap(name = "agent-create")]
-    AgentCreate(AgentCreateCommand),
-
-    /// [EXPERIMENTAL] Development mode orchestration (centralized/parallel)
-    #[clap(name = "dev-mode")]
-    DevMode(crate::dev_mode_cmd::DevModeCli),
-
-    /// [EXPERIMENTAL] Conduct deep research on a topic.
-    Research(ResearchCommand),
-
-    /// [EXPERIMENTAL] Ask a sub-agent with @mention support (e.g., "codex ask '@code-reviewer review this'")
-    Ask(AskCommand),
-
-    /// [EXPERIMENTAL] Send webhook notifications to external services (GitHub, Slack, Custom)
-    Webhook(WebhookCli),
-
-    /// [EXPERIMENTAL] Quick review with code-reviewer agent
-    Review(ReviewCommand),
-
-    /// [EXPERIMENTAL] Quick audit with sec-audit agent
-    Audit(AuditCommand),
-
-    /// [EXPERIMENTAL] Quick test generation with test-gen agent
-    Test(TestCommand),
-
-    /// [EXPERIMENTAL] Quality control analysis and reporting
-    Qc(QcCli),
-
-    /// [EXPERIMENTAL] Natural language agent invocation (e.g., "codex agent 'Review with security focus'")
-    Agent(AgentCommand),
-
-    /// [EXPERIMENTAL] Manage repository locks
-    Lock(LockCli),
-
-    /// [EXPERIMENTAL] Plan Mode commands
-    Plan(PlanCli),
-
-    /// [EXPERIMENTAL] Ultrathink Mode - Deep reasoning chains for complex problems
-    Ultrathink(UltrathinkCli),
-
-    /// [EXPERIMENTAL] Organization management and Skills sharing
-    Org(OrganizationCli),
-
-    /// [EXPERIMENTAL] Git repository analysis for 3D/4D visualization
-    #[clap(name = "git-analyze")]
-    GitAnalyze(GitAnalyzeCli),
 
     /// Internal: run the responses API proxy.
     #[clap(hide = true)]
@@ -240,9 +137,6 @@ enum Subcommand {
 
     /// Inspect feature flags.
     Features(FeaturesCli),
-
-    /// [EXPERIMENTAL] Chrome/Edge extension integration commands
-    Chrome(codex_cli::chrome_cmd::ChromeCli),
 }
 
 #[derive(Debug, Parser)]
@@ -263,277 +157,31 @@ struct ResumeCommand {
     #[arg(long = "last", default_value_t = false, conflicts_with = "session_id")]
     last: bool,
 
+    /// Show all sessions (disables cwd filtering and shows CWD column).
+    #[arg(long = "all", default_value_t = false)]
+    all: bool,
+
     #[clap(flatten)]
     config_overrides: TuiCli,
 }
 
 #[derive(Debug, Parser)]
-struct DelegateCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
+struct ForkCommand {
+    /// Conversation/session id (UUID). When provided, forks this session.
+    /// If omitted, use --last to pick the most recent recorded session.
+    #[arg(value_name = "SESSION_ID")]
+    session_id: Option<String>,
 
-    /// Agent name to delegate to
-    #[arg(value_name = "AGENT")]
-    agent: String,
+    /// Fork the most recent session without showing the picker.
+    #[arg(long = "last", default_value_t = false, conflicts_with = "session_id")]
+    last: bool,
 
-    /// Goal or task description
-    #[arg(short, long, value_name = "GOAL")]
-    goal: Option<String>,
+    /// Show all sessions (disables cwd filtering and shows CWD column).
+    #[arg(long = "all", default_value_t = false)]
+    all: bool,
 
-    /// Scope path (files or directories)
-    #[arg(long, value_name = "PATH")]
-    scope: Option<PathBuf>,
-
-    /// Token budget for the agent
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Deadline in minutes
-    #[arg(long, value_name = "MINUTES")]
-    deadline: Option<u64>,
-
-    /// Output file for the result
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct DelegateParallelCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Comma-separated agent names
-    #[arg(value_name = "AGENTS", value_delimiter = ',')]
-    agents: Vec<String>,
-
-    /// Comma-separated goals (must match number of agents)
-    #[arg(long, value_delimiter = ',')]
-    goals: Vec<String>,
-
-    /// Comma-separated scope paths (optional, must match number of agents if provided)
-    #[arg(long, value_delimiter = ',')]
-    scopes: Vec<PathBuf>,
-
-    /// Comma-separated budgets (optional, must match number of agents if provided)
-    #[arg(long, value_delimiter = ',')]
-    budgets: Vec<usize>,
-
-    /// Deadline in minutes (applies to all agents)
-    #[arg(long, value_name = "MINUTES")]
-    deadline: Option<u64>,
-
-    /// Output file for combined results
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct PairProgramCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Natural-language goal for the pair programming session
-    #[arg(value_name = "GOAL", required = true)]
-    goal: Vec<String>,
-
-    /// Optional comma-separated list of agent names to start from
-    #[arg(long, value_name = "AGENTS", value_delimiter = ',')]
-    agents: Vec<String>,
-
-    /// Maximum number of evaluation rounds
-    #[arg(long, value_name = "ROUNDS", default_value_t = 3)]
-    rounds: usize,
-
-    /// Number of top agents to keep after each round
-    #[arg(long, value_name = "TOP_K", default_value_t = 2)]
-    top_k: usize,
-
-    /// Override the improvement threshold required to continue iterating
-    #[arg(long, value_name = "THRESHOLD")]
-    improvement_threshold: Option<f64>,
-
-    /// Maximum acceptable risk score (0-1). Lower values prune riskier agents sooner.
-    #[arg(long, value_name = "RISK")]
-    max_risk: Option<f64>,
-
-    /// Persist the evaluation report as JSON
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct AgentCreateCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Prompt describing the agent's purpose and tasks
-    #[arg(value_name = "PROMPT")]
-    prompt: String,
-
-    /// Token budget for the custom agent
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Save the generated agent definition to .codex/agents/
-    #[arg(long, default_value = "false")]
-    save: bool,
-
-    /// Output file for the result
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct ResearchCommand {
-    /// Topic to research
-    #[arg(value_name = "TOPIC")]
-    topic: String,
-
-    /// Research depth (1-5)
-    #[arg(short, long, value_name = "DEPTH", default_value = "3")]
-    depth: u8,
-
-    /// Search breadth (number of sources)
-    #[arg(short, long, value_name = "BREADTH", default_value = "8")]
-    breadth: u8,
-
-    /// Token budget
-    #[arg(long, value_name = "TOKENS", default_value = "60000")]
-    budget: usize,
-
-    /// Require citations
-    #[arg(long, default_value = "true")]
-    citations: bool,
-
-    /// MCP tools to use (comma-separated)
-    #[arg(long, value_name = "TOOLS")]
-    mcp: Option<String>,
-
-    /// Enable lightweight fallback
-    #[arg(long, default_value = "false")]
-    lightweight_fallback: bool,
-
-    /// Use Gemini CLI with Google Search (OAuth 2.0 authentication)
-    #[arg(long, default_value = "false")]
-    gemini: bool,
-
-    /// Use MCP mode (Codex → MCP → Gemini CLI)
-    #[arg(long, default_value = "false")]
-    use_mcp: bool,
-
-    /// Output file for the report
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct AskCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Prompt with optional @mention (e.g., "@code-reviewer review this" or just "research topic")
-    #[arg(value_name = "PROMPT")]
-    prompt: String,
-
-    /// Scope path (files or directories)
-    #[arg(long, value_name = "PATH")]
-    scope: Option<PathBuf>,
-
-    /// Token budget
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Output file for the result
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct ReviewCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Task description or files to review
-    #[arg(value_name = "TASK")]
-    task: String,
-
-    /// Scope path (files or directories)
-    #[arg(long, value_name = "PATH")]
-    scope: Option<PathBuf>,
-
-    /// Token budget
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Output file for the result
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct AuditCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Security audit task description
-    #[arg(value_name = "TASK", default_value = "Audit dependencies for CVEs")]
-    task: String,
-
-    /// Scope path (files or directories)
-    #[arg(long, value_name = "PATH")]
-    scope: Option<PathBuf>,
-
-    /// Token budget
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Output file for the result
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct TestCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Test generation task description
-    #[arg(value_name = "TASK")]
-    task: String,
-
-    /// Scope path (files or directories)
-    #[arg(long, value_name = "PATH")]
-    scope: Option<PathBuf>,
-
-    /// Token budget
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Output file for the result
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct AgentCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Natural language task description
-    #[arg(value_name = "TASK")]
-    task: String,
-
-    /// Scope path (files or directories)
-    #[arg(long, value_name = "PATH")]
-    scope: Option<PathBuf>,
-
-    /// Token budget
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Output file for the result
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
+    #[clap(flatten)]
+    config_overrides: TuiCli,
 }
 
 #[derive(Debug, Parser)]
@@ -554,6 +202,19 @@ enum SandboxCommand {
 
     /// Run a command under Windows restricted token (Windows only).
     Windows(WindowsCommand),
+}
+
+#[derive(Debug, Parser)]
+struct ExecpolicyCommand {
+    #[command(subcommand)]
+    sub: ExecpolicySubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum ExecpolicySubcommand {
+    /// Check execpolicy files against a command.
+    #[clap(name = "check")]
+    Check(ExecPolicyCheckCommand),
 }
 
 #[derive(Debug, Parser)]
@@ -604,24 +265,40 @@ struct LogoutCommand {
 }
 
 #[derive(Debug, Parser)]
-struct GuiCommand {
-    #[clap(flatten)]
-    config_overrides: CliConfigOverrides,
+struct AppServerCommand {
+    /// Omit to run the app server; specify a subcommand for tooling.
+    #[command(subcommand)]
+    subcommand: Option<AppServerSubcommand>,
 
-    /// Port for the GUI frontend server (default: 3000)
-    #[arg(long, default_value = "3000")]
-    port: u16,
-
-    /// Port for the backend API server (default: 8787)
-    #[arg(long, default_value = "8787")]
-    backend_port: u16,
-
-    /// Don't open the browser automatically
-    #[arg(long)]
-    no_browser: bool,
+    /// Controls whether analytics are enabled by default.
+    ///
+    /// Analytics are disabled by default for app-server. Users have to explicitly opt in
+    /// via the `analytics` section in the config.toml file.
+    ///
+    /// However, for first-party use cases like the VSCode IDE extension, we default analytics
+    /// to be enabled by default by setting this flag. Users can still opt out by setting this
+    /// in their config.toml:
+    ///
+    /// ```toml
+    /// [analytics]
+    /// enabled = false
+    /// ```
+    ///
+    /// See https://developers.openai.com/codex/config-advanced/#metrics for more details.
+    #[arg(long = "analytics-default-enabled")]
+    analytics_default_enabled: bool,
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, clap::Subcommand)]
+enum AppServerSubcommand {
+    /// [experimental] Generate TypeScript bindings for the app server protocol.
+    GenerateTs(GenerateTsCommand),
+
+    /// [experimental] Generate JSON Schema for the app server protocol.
+    GenerateJsonSchema(GenerateJsonSchemaCommand),
+}
+
+#[derive(Debug, Args)]
 struct GenerateTsCommand {
     /// Output directory where .ts files will be written
     #[arg(short = 'o', long = "out", value_name = "DIR")]
@@ -630,6 +307,13 @@ struct GenerateTsCommand {
     /// Optional path to the Prettier executable to format generated files
     #[arg(short = 'p', long = "prettier", value_name = "PRETTIER_BIN")]
     prettier: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+struct GenerateJsonSchemaCommand {
+    /// Output directory where the schema bundle will be written
+    #[arg(short = 'o', long = "out", value_name = "DIR")]
+    out_dir: PathBuf,
 }
 
 #[derive(Debug, Parser)]
@@ -670,6 +354,14 @@ fn format_exit_messages(exit_info: AppExitInfo, color_enabled: bool) -> Vec<Stri
 
 /// Handle the app exit and print the results. Optionally run the update action.
 fn handle_app_exit(exit_info: AppExitInfo) -> anyhow::Result<()> {
+    match exit_info.exit_reason {
+        ExitReason::Fatal(message) => {
+            eprintln!("ERROR: {message}");
+            std::process::exit(1);
+        }
+        ExitReason::UserRequested => { /* normal exit */ }
+    }
+
     let update_action = exit_info.update_action;
     let color_enabled = supports_color::on(Stream::Stdout).is_some();
     for line in format_exit_messages(exit_info, color_enabled) {
@@ -684,23 +376,40 @@ fn handle_app_exit(exit_info: AppExitInfo) -> anyhow::Result<()> {
 /// Run the update action and print the result.
 fn run_update_action(action: UpdateAction) -> anyhow::Result<()> {
     println!();
-    let (cmd, args) = action.command_args();
     let cmd_str = action.command_str();
     println!("Updating Codex via `{cmd_str}`...");
-    let command_path = normalize_for_wsl(std::path::Path::new(cmd));
-    let normalized_args: Vec<String> = args
-        .iter()
-        .map(|arg| normalize_for_wsl(std::path::Path::new(arg)))
-        .collect();
-    let status = std::process::Command::new(&command_path)
-        .args(&normalized_args)
-        .status()?;
+
+    let status = {
+        #[cfg(windows)]
+        {
+            // On Windows, run via cmd.exe so .CMD/.BAT are correctly resolved (PATHEXT semantics).
+            std::process::Command::new("cmd")
+                .args(["/C", &cmd_str])
+                .status()?
+        }
+        #[cfg(not(windows))]
+        {
+            let (cmd, args) = action.command_args();
+            let command_path = crate::wsl_paths::normalize_for_wsl(cmd);
+            let normalized_args: Vec<String> = args
+                .iter()
+                .map(crate::wsl_paths::normalize_for_wsl)
+                .collect();
+            std::process::Command::new(&command_path)
+                .args(&normalized_args)
+                .status()?
+        }
+    };
     if !status.success() {
         anyhow::bail!("`{cmd_str}` failed with status {status}");
     }
     println!();
     println!("🎉 Update ran successfully! Please restart Codex.");
     Ok(())
+}
+
+fn run_execpolicycheck(cmd: ExecPolicyCheckCommand) -> anyhow::Result<()> {
+    cmd.run()
 }
 
 #[derive(Debug, Default, Parser, Clone)]
@@ -760,14 +469,6 @@ fn stage_str(stage: codex_core::features::Stage) -> &'static str {
     }
 }
 
-/// As early as possible in the process lifecycle, apply hardening measures. We
-/// skip this in debug builds to avoid interfering with debugging.
-#[ctor::ctor]
-#[cfg(not(debug_assertions))]
-fn pre_main_hardening() {
-    codex_process_hardening::pre_main_hardening();
-}
-
 fn main() -> anyhow::Result<()> {
     arg0_dispatch_or_else(|codex_linux_sandbox_exe| async move {
         cli_main(codex_linux_sandbox_exe).await?;
@@ -779,53 +480,13 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
     let MultitoolCli {
         config_overrides: mut root_config_overrides,
         feature_toggles,
-        #[cfg(target_os = "windows")]
-        use_windows_ai,
-        #[cfg(target_os = "windows")]
-        kernel_accelerated,
         mut interactive,
         subcommand,
-        ..
     } = MultitoolCli::parse();
 
     // Fold --enable/--disable into config overrides so they flow to all subcommands.
     let toggle_overrides = feature_toggles.to_overrides()?;
     root_config_overrides.raw_overrides.extend(toggle_overrides);
-
-    // Add Windows AI flags to config overrides
-    #[cfg(target_os = "windows")]
-    {
-        if use_windows_ai {
-            root_config_overrides
-                .raw_overrides
-                .push("windows_ai.enabled=true".to_string());
-
-            if kernel_accelerated {
-                root_config_overrides
-                    .raw_overrides
-                    .push("windows_ai.kernel_accelerated=true".to_string());
-            }
-
-            // Log Windows AI usage
-            #[cfg(feature = "windows-ai")]
-            {
-                if codex_windows_ai::check_windows_ai_available() {
-                    eprintln!("🚀 Windows AI enabled (kernel_accelerated: {kernel_accelerated})");
-                } else {
-                    eprintln!(
-                        "⚠️  Windows AI requested but not available (requires Windows 11 25H2+)"
-                    );
-                }
-            }
-
-            #[cfg(not(feature = "windows-ai"))]
-            {
-                eprintln!(
-                    "⚠️  Windows AI requested but not compiled (compile with --features windows-ai)"
-                );
-            }
-        }
-    }
 
     match subcommand {
         None => {
@@ -837,6 +498,15 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
             handle_app_exit(exit_info)?;
         }
         Some(Subcommand::Exec(mut exec_cli)) => {
+            prepend_config_flags(
+                &mut exec_cli.config_overrides,
+                root_config_overrides.clone(),
+            );
+            codex_exec::run_main(exec_cli, codex_linux_sandbox_exe).await?;
+        }
+        Some(Subcommand::Review(review_args)) => {
+            let mut exec_cli = ExecCli::try_parse_from(["codex", "exec"])?;
+            exec_cli.command = Some(ExecCommand::Review(review_args));
             prepend_config_flags(
                 &mut exec_cli.config_overrides,
                 root_config_overrides.clone(),
@@ -857,6 +527,7 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                     codex_linux_sandbox_exe,
                     root_config_overrides,
                     codex_core::config_loader::LoaderOverrides::default(),
+                    app_server_cli.analytics_default_enabled,
                 )
                 .await?;
             }
@@ -873,6 +544,7 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
         Some(Subcommand::Resume(ResumeCommand {
             session_id,
             last,
+            all,
             config_overrides,
         })) => {
             interactive = finalize_resume_interactive(
@@ -880,6 +552,24 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 root_config_overrides.clone(),
                 session_id,
                 last,
+                all,
+                config_overrides,
+            );
+            let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;
+            handle_app_exit(exit_info)?;
+        }
+        Some(Subcommand::Fork(ForkCommand {
+            session_id,
+            last,
+            all,
+            config_overrides,
+        })) => {
+            interactive = finalize_fork_interactive(
+                interactive,
+                root_config_overrides.clone(),
+                session_id,
+                last,
+                all,
                 config_overrides,
             );
             let exit_info = run_interactive_tui(interactive, codex_linux_sandbox_exe).await?;
@@ -910,6 +600,13 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                     } else if login_cli.with_api_key {
                         let api_key = read_api_key_from_stdin();
                         run_login_with_api_key(login_cli.config_overrides, api_key).await;
+                    } else if is_headless_environment() {
+                        run_login_with_device_code_fallback_to_browser(
+                            login_cli.config_overrides,
+                            login_cli.issuer_base_url,
+                            login_cli.client_id,
+                        )
+                        .await;
                     } else {
                         run_login_with_chatgpt(login_cli.config_overrides).await;
                     }
@@ -932,210 +629,6 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 root_config_overrides.clone(),
             );
             codex_cloud_tasks::run_main(cloud_cli, codex_linux_sandbox_exe).await?;
-        }
-        Some(Subcommand::Delegate(mut delegate_cmd)) => {
-            prepend_config_flags(
-                &mut delegate_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-            codex_cli::delegate_cmd::run_delegate_command(
-                delegate_cmd.config_overrides,
-                delegate_cmd.agent,
-                delegate_cmd.goal,
-                delegate_cmd.scope,
-                delegate_cmd.budget,
-                delegate_cmd.deadline,
-                delegate_cmd.out,
-            )
-            .await?;
-        }
-        Some(Subcommand::DelegateParallel(mut parallel_cmd)) => {
-            prepend_config_flags(
-                &mut parallel_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-
-            // clap handles value_delimiter, so we get Vec<T> directly
-            let agents = parallel_cmd.agents;
-            let goals = parallel_cmd.goals;
-
-            // Convert Vec<PathBuf> to Vec<Option<PathBuf>>
-            let scopes: Vec<Option<PathBuf>> = parallel_cmd.scopes.into_iter().map(Some).collect();
-
-            // Convert Vec<usize> to Vec<Option<usize>>
-            let budgets: Vec<Option<usize>> = parallel_cmd.budgets.into_iter().map(Some).collect();
-
-            codex_cli::parallel_delegate_cmd::run_parallel_delegate_command(
-                agents,
-                goals,
-                scopes,
-                budgets,
-                parallel_cmd.deadline,
-                parallel_cmd.out,
-                parallel_cmd.config_overrides,
-            )
-            .await?;
-        }
-        Some(Subcommand::DevMode(dev_mode_cmd)) => {
-            crate::dev_mode_cmd::run_dev_mode_command(dev_mode_cmd).await?;
-        }
-        Some(Subcommand::PairProgram(mut pair_cmd)) => {
-            prepend_config_flags(
-                &mut pair_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-
-            if pair_cmd.goal.is_empty() {
-                anyhow::bail!("pair programming requires a natural-language goal");
-            }
-
-            let goal = pair_cmd.goal.join(" ");
-
-            codex_cli::pair_program_cmd::run_pair_program_command(
-                pair_cmd.config_overrides,
-                goal,
-                pair_cmd.agents,
-                pair_cmd.rounds,
-                pair_cmd.top_k,
-                pair_cmd.improvement_threshold,
-                pair_cmd.max_risk,
-                pair_cmd.out,
-            )
-            .await?;
-        }
-        Some(Subcommand::AgentCreate(mut agent_create_cmd)) => {
-            prepend_config_flags(
-                &mut agent_create_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-
-            codex_cli::agent_create_cmd::run_agent_create_command(
-                agent_create_cmd.prompt,
-                agent_create_cmd.budget,
-                agent_create_cmd.save,
-                agent_create_cmd.out,
-                agent_create_cmd.config_overrides,
-            )
-            .await?;
-        }
-        Some(Subcommand::Research(research_cmd)) => {
-            codex_cli::research_cmd::run_research_command(
-                research_cmd.topic,
-                research_cmd.depth,
-                research_cmd.breadth,
-                research_cmd.budget,
-                research_cmd.citations,
-                research_cmd.mcp,
-                research_cmd.lightweight_fallback,
-                research_cmd.out,
-                research_cmd.gemini,
-                research_cmd.use_mcp,
-            )
-            .await?;
-        }
-        Some(Subcommand::Ask(mut ask_cmd)) => {
-            prepend_config_flags(&mut ask_cmd.config_overrides, root_config_overrides.clone());
-            codex_cli::ask_cmd::run_ask_command(
-                ask_cmd.config_overrides,
-                ask_cmd.prompt,
-                ask_cmd.scope,
-                ask_cmd.budget,
-                ask_cmd.out,
-            )
-            .await?;
-        }
-        Some(Subcommand::Webhook(mut webhook_cli)) => {
-            prepend_config_flags(
-                &mut webhook_cli.config_overrides,
-                root_config_overrides.clone(),
-            );
-            webhook_cmd::run(webhook_cli).await?;
-        }
-        Some(Subcommand::Lock(lock_cli)) => match lock_cli.command {
-            lock_cmd::LockCommand::Status(status_cmd) => {
-                lock_cmd::run_lock_status(status_cmd)?;
-            }
-            lock_cmd::LockCommand::Remove(remove_cmd) => {
-                lock_cmd::run_lock_remove(remove_cmd)?;
-            }
-        },
-        Some(Subcommand::Plan(plan_cli)) => {
-            plan_commands::run_plan_command(plan_cli).await?;
-        }
-        Some(Subcommand::Ultrathink(ultrathink_cli)) => {
-            run_ultrathink(ultrathink_cli).await?;
-        }
-        Some(Subcommand::Org(org_cli)) => {
-            let codex_home = find_codex_home()?;
-            run_organization_command(org_cli, codex_home).await?;
-        }
-        Some(Subcommand::GitAnalyze(git_cli)) => {
-            git_commands::run_git_analyze_command(git_cli).await?;
-        }
-        Some(Subcommand::Chrome(chrome_cli)) => {
-            codex_cli::chrome_cmd::run_chrome_command(chrome_cli).await?;
-        }
-        Some(Subcommand::Review(mut review_cmd)) => {
-            prepend_config_flags(
-                &mut review_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-            codex_cli::ask_cmd::run_shortcut_command(
-                review_cmd.config_overrides,
-                "review",
-                review_cmd.task,
-                review_cmd.scope,
-                review_cmd.budget,
-                review_cmd.out,
-            )
-            .await?;
-        }
-        Some(Subcommand::Audit(mut audit_cmd)) => {
-            prepend_config_flags(
-                &mut audit_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-            codex_cli::ask_cmd::run_shortcut_command(
-                audit_cmd.config_overrides,
-                "audit",
-                audit_cmd.task,
-                audit_cmd.scope,
-                audit_cmd.budget,
-                audit_cmd.out,
-            )
-            .await?;
-        }
-        Some(Subcommand::Test(mut test_cmd)) => {
-            prepend_config_flags(
-                &mut test_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-            codex_cli::ask_cmd::run_shortcut_command(
-                test_cmd.config_overrides,
-                "test",
-                test_cmd.task,
-                test_cmd.scope,
-                test_cmd.budget,
-                test_cmd.out,
-            )
-            .await?;
-        }
-        Some(Subcommand::Qc(qc_cli)) => {
-            qc_cmd::run_qc_command(qc_cli).await?;
-        }
-        Some(Subcommand::Agent(mut agent_cmd)) => {
-            prepend_config_flags(
-                &mut agent_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-            codex_cli::ask_cmd::run_natural_language_agent(
-                agent_cmd.config_overrides,
-                agent_cmd.task,
-                agent_cmd.scope,
-                agent_cmd.budget,
-                agent_cmd.out,
-            )
-            .await?;
         }
         Some(Subcommand::Sandbox(sandbox_args)) => match sandbox_args.cmd {
             SandboxCommand::Macos(mut seatbelt_cli) => {
@@ -1172,6 +665,9 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 .await?;
             }
         },
+        Some(Subcommand::Execpolicy(ExecpolicyCommand { sub })) => match sub {
+            ExecpolicySubcommand::Check(cmd) => run_execpolicycheck(cmd)?,
+        },
         Some(Subcommand::Apply(mut apply_cli)) => {
             prepend_config_flags(
                 &mut apply_cli.config_overrides,
@@ -1188,9 +684,6 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
             tokio::task::spawn_blocking(move || codex_stdio_to_uds::run(socket_path.as_path()))
                 .await??;
         }
-        Some(Subcommand::GenerateTs(gen_cli)) => {
-            codex_protocol_ts::generate_ts(&gen_cli.out_dir, gen_cli.prettier.as_deref())?;
-        }
         Some(Subcommand::Features(FeaturesCli { sub })) => match sub {
             FeaturesSubcommand::List => {
                 // Respect root-level `-c` overrides plus top-level flags like `--profile`.
@@ -1198,11 +691,11 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                     .parse_overrides()
                     .map_err(anyhow::Error::msg)?;
 
-                // Honor `--search` via the new feature toggle.
+                // Honor `--search` via the canonical web_search mode.
                 if interactive.web_search {
                     cli_kv_overrides.push((
-                        "features.web_search_request".to_string(),
-                        toml::Value::Boolean(true),
+                        "web_search".to_string(),
+                        toml::Value::String("live".to_string()),
                     ));
                 }
 
@@ -1287,6 +780,7 @@ fn finalize_resume_interactive(
     root_config_overrides: CliConfigOverrides,
     session_id: Option<String>,
     last: bool,
+    show_all: bool,
     resume_cli: TuiCli,
 ) -> TuiCli {
     // Start with the parsed interactive CLI so resume shares the same
@@ -1295,9 +789,10 @@ fn finalize_resume_interactive(
     interactive.resume_picker = resume_session_id.is_none() && !last;
     interactive.resume_last = last;
     interactive.resume_session_id = resume_session_id;
+    interactive.resume_show_all = show_all;
 
     // Merge resume-scoped flags and overrides with highest precedence.
-    merge_resume_cli_flags(&mut interactive, resume_cli);
+    merge_interactive_cli_flags(&mut interactive, resume_cli);
 
     // Propagate any root-level config overrides (e.g. `-c key=value`).
     prepend_config_flags(&mut interactive.config_overrides, root_config_overrides);
@@ -1305,239 +800,83 @@ fn finalize_resume_interactive(
     interactive
 }
 
-/// Merge flags provided to `codex resume` so they take precedence over any
-/// root-level flags. Only overrides fields explicitly set on the resume-scoped
+/// Build the final `TuiCli` for a `codex fork` invocation.
+fn finalize_fork_interactive(
+    mut interactive: TuiCli,
+    root_config_overrides: CliConfigOverrides,
+    session_id: Option<String>,
+    last: bool,
+    show_all: bool,
+    fork_cli: TuiCli,
+) -> TuiCli {
+    // Start with the parsed interactive CLI so fork shares the same
+    // configuration surface area as `codex` without additional flags.
+    let fork_session_id = session_id;
+    interactive.fork_picker = fork_session_id.is_none() && !last;
+    interactive.fork_last = last;
+    interactive.fork_session_id = fork_session_id;
+    interactive.fork_show_all = show_all;
+
+    // Merge fork-scoped flags and overrides with highest precedence.
+    merge_interactive_cli_flags(&mut interactive, fork_cli);
+
+    // Propagate any root-level config overrides (e.g. `-c key=value`).
+    prepend_config_flags(&mut interactive.config_overrides, root_config_overrides);
+
+    interactive
+}
+
+/// Merge flags provided to `codex resume`/`codex fork` so they take precedence over any
+/// root-level flags. Only overrides fields explicitly set on the subcommand-scoped
 /// CLI. Also appends `-c key=value` overrides with highest precedence.
-fn merge_resume_cli_flags(interactive: &mut TuiCli, resume_cli: TuiCli) {
-    if let Some(model) = resume_cli.model {
+fn merge_interactive_cli_flags(interactive: &mut TuiCli, subcommand_cli: TuiCli) {
+    if let Some(model) = subcommand_cli.model {
         interactive.model = Some(model);
     }
-    if resume_cli.oss {
+    if subcommand_cli.oss {
         interactive.oss = true;
     }
-    if let Some(profile) = resume_cli.config_profile {
+    if let Some(profile) = subcommand_cli.config_profile {
         interactive.config_profile = Some(profile);
     }
-    if let Some(sandbox) = resume_cli.sandbox_mode {
+    if let Some(sandbox) = subcommand_cli.sandbox_mode {
         interactive.sandbox_mode = Some(sandbox);
     }
-    if let Some(approval) = resume_cli.approval_policy {
+    if let Some(approval) = subcommand_cli.approval_policy {
         interactive.approval_policy = Some(approval);
     }
-    if resume_cli.full_auto {
+    if subcommand_cli.full_auto {
         interactive.full_auto = true;
     }
-    if resume_cli.dangerously_bypass_approvals_and_sandbox {
+    if subcommand_cli.dangerously_bypass_approvals_and_sandbox {
         interactive.dangerously_bypass_approvals_and_sandbox = true;
     }
-    if let Some(cwd) = resume_cli.cwd {
+    if let Some(cwd) = subcommand_cli.cwd {
         interactive.cwd = Some(cwd);
     }
-    if resume_cli.web_search {
+    if subcommand_cli.web_search {
         interactive.web_search = true;
     }
-    if !resume_cli.images.is_empty() {
-        interactive.images = resume_cli.images;
+    if !subcommand_cli.images.is_empty() {
+        interactive.images = subcommand_cli.images;
     }
-    if !resume_cli.add_dir.is_empty() {
-        interactive.add_dir.extend(resume_cli.add_dir);
+    if !subcommand_cli.add_dir.is_empty() {
+        interactive.add_dir.extend(subcommand_cli.add_dir);
     }
-    if let Some(prompt) = resume_cli.prompt {
+    if let Some(prompt) = subcommand_cli.prompt {
         interactive.prompt = Some(prompt);
     }
 
     interactive
         .config_overrides
         .raw_overrides
-        .extend(resume_cli.config_overrides.raw_overrides);
+        .extend(subcommand_cli.config_overrides.raw_overrides);
 }
 
 fn print_completion(cmd: CompletionCommand) {
     let mut app = MultitoolCli::command();
     let name = "codex";
     generate(cmd.shell, &mut app, name, &mut std::io::stdout());
-}
-
-async fn launch_gui(cmd: GuiCommand) -> std::io::Result<()> {
-    use std::process::Command;
-    use std::time::Duration;
-    use tokio::time::sleep;
-
-    println!("🚀 Launching Codex GUI...");
-    println!("   Frontend: http://localhost:{}", cmd.port);
-    println!("   Backend API: http://localhost:{}", cmd.backend_port);
-
-    // Find GUI directory - try multiple locations
-    let current_dir = std::env::current_dir()?;
-    let gui_dir = current_dir
-        .join("gui")
-        .canonicalize()
-        .ok()
-        .or_else(|| {
-            current_dir
-                .parent()
-                .and_then(|p| p.join("gui").canonicalize().ok())
-        })
-        .or_else(|| {
-            // Try from codex-rs directory
-            current_dir
-                .parent()
-                .and_then(|p| p.parent().and_then(|pp| pp.join("gui").canonicalize().ok()))
-        })
-        .ok_or_else(|| {
-            std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                "GUI directory not found. Please run from codex-main or codex-rs directory.",
-            )
-        })?;
-
-    if !gui_dir.exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            format!("GUI directory not found: {}", gui_dir.display()),
-        ));
-    }
-
-    // Start backend API server in background
-    println!(
-        "📡 Starting backend API server on port {}...",
-        cmd.backend_port
-    );
-    let backend_port = cmd.backend_port;
-    let backend_handle = tokio::spawn(async move {
-        // Try to run codex-gui binary first
-        let gui_binary = std::env::var("CODEX_GUI_PATH")
-            .ok()
-            .map(PathBuf::from)
-            .or_else(|| {
-                // Try common locations
-                let home = std::env::var("HOME")
-                    .or_else(|_| std::env::var("USERPROFILE"))
-                    .ok()?;
-                #[cfg(target_os = "windows")]
-                {
-                    Some(
-                        PathBuf::from(home)
-                            .join(".cargo")
-                            .join("bin")
-                            .join("codex-gui.exe"),
-                    )
-                }
-                #[cfg(not(target_os = "windows"))]
-                {
-                    Some(
-                        PathBuf::from(home)
-                            .join(".cargo")
-                            .join("bin")
-                            .join("codex-gui"),
-                    )
-                }
-            });
-
-        if let Some(binary) = gui_binary {
-            if binary.exists() {
-                let mut child = Command::new(&binary)
-                    .env("CODEX_GUI_PORT", backend_port.to_string())
-                    .spawn()
-                    .ok()?;
-                let _ = child.wait();
-                return Some(());
-            }
-        }
-
-        // Fallback: try to run via cargo
-        let mut child = Command::new("cargo")
-            .args(["run", "-p", "codex-gui", "--release"])
-            .env("CODEX_GUI_PORT", backend_port.to_string())
-            .spawn()
-            .ok()?;
-        let _ = child.wait();
-        Some(())
-    });
-
-    // Wait a bit for backend to start
-    sleep(Duration::from_secs(2)).await;
-
-    // Start frontend dev server
-    println!("🎨 Starting frontend dev server on port {}...", cmd.port);
-    let frontend_port = cmd.port;
-    let no_browser = cmd.no_browser;
-    let gui_dir_clone = gui_dir.clone();
-    let frontend_handle = tokio::spawn(async move {
-        // Check if node_modules exists, if not run npm install
-        let node_modules = gui_dir_clone.join("node_modules");
-        if !node_modules.exists() {
-            println!("📦 Installing dependencies...");
-            let install_result = Command::new("npm")
-                .args(["install"])
-                .current_dir(&gui_dir_clone)
-                .output();
-
-            if let Ok(output) = install_result {
-                if !output.status.success() {
-                    eprintln!("⚠️  npm install failed, but continuing...");
-                } else {
-                    println!("✅ Dependencies installed");
-                }
-            }
-        }
-
-        let mut child = Command::new("npm")
-            .args(["run", "dev"])
-            .env("PORT", frontend_port.to_string())
-            .current_dir(&gui_dir_clone)
-            .spawn()
-            .ok()?;
-
-        // Wait a bit for server to start
-        sleep(Duration::from_secs(5)).await;
-
-        // Open browser if not disabled
-        if !no_browser {
-            let url = format!("http://localhost:{}", frontend_port);
-            #[cfg(target_os = "windows")]
-            {
-                let _ = Command::new("cmd").args(["/C", "start", &url]).spawn();
-            }
-            #[cfg(target_os = "macos")]
-            {
-                let _ = Command::new("open").arg(&url).spawn();
-            }
-            #[cfg(target_os = "linux")]
-            {
-                let _ = Command::new("xdg-open").arg(&url).spawn();
-            }
-        }
-
-        let _ = child.wait();
-        Some(())
-    });
-
-    println!("\n✅ Codex GUI is starting...");
-    println!("   Frontend: http://localhost:{}", cmd.port);
-    println!("   Backend: http://localhost:{}", cmd.backend_port);
-    if !cmd.no_browser {
-        println!("   Browser will open automatically");
-    }
-    println!("\n💡 Tips:");
-    println!("   - Use Ctrl+B to toggle sidebar");
-    println!("   - Use Ctrl+D, Ctrl+C, Ctrl+A, etc. for quick navigation");
-    println!("   - Press Ctrl+C here to stop the servers\n");
-
-    // Wait for both servers
-    tokio::select! {
-        _ = backend_handle => {
-            println!("\n⚠️  Backend server stopped");
-        },
-        _ = frontend_handle => {
-            println!("\n⚠️  Frontend server stopped");
-        },
-        _ = tokio::signal::ctrl_c() => {
-            println!("\n🛑 Stopping GUI servers...");
-        }
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
@@ -1548,26 +887,63 @@ mod tests {
     use codex_protocol::ThreadId;
     use pretty_assertions::assert_eq;
 
-    fn finalize_from_args(args: &[&str]) -> TuiCli {
+    fn finalize_resume_from_args(args: &[&str]) -> TuiCli {
         let cli = MultitoolCli::try_parse_from(args).expect("parse");
         let MultitoolCli {
             interactive,
             config_overrides: root_overrides,
             subcommand,
             feature_toggles: _,
-            ..
         } = cli;
 
         let Subcommand::Resume(ResumeCommand {
             session_id,
             last,
+            all,
             config_overrides: resume_cli,
         }) = subcommand.expect("resume present")
         else {
             unreachable!()
         };
 
-        finalize_resume_interactive(interactive, root_overrides, session_id, last, resume_cli)
+        finalize_resume_interactive(
+            interactive,
+            root_overrides,
+            session_id,
+            last,
+            all,
+            resume_cli,
+        )
+    }
+
+    fn finalize_fork_from_args(args: &[&str]) -> TuiCli {
+        let cli = MultitoolCli::try_parse_from(args).expect("parse");
+        let MultitoolCli {
+            interactive,
+            config_overrides: root_overrides,
+            subcommand,
+            feature_toggles: _,
+        } = cli;
+
+        let Subcommand::Fork(ForkCommand {
+            session_id,
+            last,
+            all,
+            config_overrides: fork_cli,
+        }) = subcommand.expect("fork present")
+        else {
+            unreachable!()
+        };
+
+        finalize_fork_interactive(interactive, root_overrides, session_id, last, all, fork_cli)
+    }
+
+    fn app_server_from_args(args: &[&str]) -> AppServerCommand {
+        let cli = MultitoolCli::try_parse_from(args).expect("parse");
+        let Subcommand::AppServer(app_server) = cli.subcommand.expect("app-server present") else {
+            unreachable!()
+        };
+        app_server
     }
 
     fn sample_exit_info(conversation: Option<&str>) -> AppExitInfo {
@@ -1580,6 +956,7 @@ mod tests {
             token_usage,
             thread_id: conversation.map(ThreadId::from_string).map(Result::unwrap),
             update_action: None,
+            exit_reason: ExitReason::UserRequested,
         }
     }
 
@@ -1589,6 +966,7 @@ mod tests {
             token_usage: TokenUsage::default(),
             thread_id: None,
             update_action: None,
+            exit_reason: ExitReason::UserRequested,
         };
         let lines = format_exit_messages(exit_info, false);
         assert!(lines.is_empty());
@@ -1618,9 +996,10 @@ mod tests {
 
     #[test]
     fn resume_model_flag_applies_when_no_root_flags() {
-        let interactive = finalize_from_args(["codex", "resume", "-m", "gpt-5-test"].as_ref());
+        let interactive =
+            finalize_resume_from_args(["codex", "resume", "-m", "gpt-5.1-test"].as_ref());
 
-        assert_eq!(interactive.model.as_deref(), Some("gpt-5-test"));
+        assert_eq!(interactive.model.as_deref(), Some("gpt-5.1-test"));
         assert!(interactive.resume_picker);
         assert!(!interactive.resume_last);
         assert_eq!(interactive.resume_session_id, None);
@@ -1628,31 +1007,41 @@ mod tests {
 
     #[test]
     fn resume_picker_logic_none_and_not_last() {
-        let interactive = finalize_from_args(["codex", "resume"].as_ref());
+        let interactive = finalize_resume_from_args(["codex", "resume"].as_ref());
         assert!(interactive.resume_picker);
         assert!(!interactive.resume_last);
         assert_eq!(interactive.resume_session_id, None);
+        assert!(!interactive.resume_show_all);
     }
 
     #[test]
     fn resume_picker_logic_last() {
-        let interactive = finalize_from_args(["codex", "resume", "--last"].as_ref());
+        let interactive = finalize_resume_from_args(["codex", "resume", "--last"].as_ref());
         assert!(!interactive.resume_picker);
         assert!(interactive.resume_last);
         assert_eq!(interactive.resume_session_id, None);
+        assert!(!interactive.resume_show_all);
     }
 
     #[test]
     fn resume_picker_logic_with_session_id() {
-        let interactive = finalize_from_args(["codex", "resume", "1234"].as_ref());
+        let interactive = finalize_resume_from_args(["codex", "resume", "1234"].as_ref());
         assert!(!interactive.resume_picker);
         assert!(!interactive.resume_last);
         assert_eq!(interactive.resume_session_id.as_deref(), Some("1234"));
+        assert!(!interactive.resume_show_all);
+    }
+
+    #[test]
+    fn resume_all_flag_sets_show_all() {
+        let interactive = finalize_resume_from_args(["codex", "resume", "--all"].as_ref());
+        assert!(interactive.resume_picker);
+        assert!(interactive.resume_show_all);
     }
 
     #[test]
     fn resume_merges_option_flags_and_full_auto() {
-        let interactive = finalize_from_args(
+        let interactive = finalize_resume_from_args(
             [
                 "codex",
                 "resume",
@@ -1665,7 +1054,7 @@ mod tests {
                 "--ask-for-approval",
                 "on-request",
                 "-m",
-                "gpt-5-test",
+                "gpt-5.1-test",
                 "-p",
                 "my-profile",
                 "-C",
@@ -1676,7 +1065,7 @@ mod tests {
             .as_ref(),
         );
 
-        assert_eq!(interactive.model.as_deref(), Some("gpt-5-test"));
+        assert_eq!(interactive.model.as_deref(), Some("gpt-5.1-test"));
         assert!(interactive.oss);
         assert_eq!(interactive.config_profile.as_deref(), Some("my-profile"));
         assert_matches!(
@@ -1709,7 +1098,7 @@ mod tests {
 
     #[test]
     fn resume_merges_dangerously_bypass_flag() {
-        let interactive = finalize_from_args(
+        let interactive = finalize_resume_from_args(
             [
                 "codex",
                 "resume",
@@ -1721,6 +1110,53 @@ mod tests {
         assert!(interactive.resume_picker);
         assert!(!interactive.resume_last);
         assert_eq!(interactive.resume_session_id, None);
+    }
+
+    #[test]
+    fn fork_picker_logic_none_and_not_last() {
+        let interactive = finalize_fork_from_args(["codex", "fork"].as_ref());
+        assert!(interactive.fork_picker);
+        assert!(!interactive.fork_last);
+        assert_eq!(interactive.fork_session_id, None);
+        assert!(!interactive.fork_show_all);
+    }
+
+    #[test]
+    fn fork_picker_logic_last() {
+        let interactive = finalize_fork_from_args(["codex", "fork", "--last"].as_ref());
+        assert!(!interactive.fork_picker);
+        assert!(interactive.fork_last);
+        assert_eq!(interactive.fork_session_id, None);
+        assert!(!interactive.fork_show_all);
+    }
+
+    #[test]
+    fn fork_picker_logic_with_session_id() {
+        let interactive = finalize_fork_from_args(["codex", "fork", "1234"].as_ref());
+        assert!(!interactive.fork_picker);
+        assert!(!interactive.fork_last);
+        assert_eq!(interactive.fork_session_id.as_deref(), Some("1234"));
+        assert!(!interactive.fork_show_all);
+    }
+
+    #[test]
+    fn fork_all_flag_sets_show_all() {
+        let interactive = finalize_fork_from_args(["codex", "fork", "--all"].as_ref());
+        assert!(interactive.fork_picker);
+        assert!(interactive.fork_show_all);
+    }
+
+    #[test]
+    fn app_server_analytics_default_disabled_without_flag() {
+        let app_server = app_server_from_args(["codex", "app-server"].as_ref());
+        assert!(!app_server.analytics_default_enabled);
+    }
+
+    #[test]
+    fn app_server_analytics_default_enabled_with_flag() {
+        let app_server =
+            app_server_from_args(["codex", "app-server", "--analytics-default-enabled"].as_ref());
+        assert!(app_server.analytics_default_enabled);
     }
 
     #[test]

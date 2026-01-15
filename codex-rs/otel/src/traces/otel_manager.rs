@@ -16,43 +16,18 @@ use eventsource_stream::Event as StreamEvent;
 use eventsource_stream::EventStreamError as StreamError;
 use reqwest::Error;
 use reqwest::Response;
-use serde::Serialize;
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::future::Future;
 use std::time::Duration;
 use std::time::Instant;
-use strum_macros::Display;
 use tokio::time::error::Elapsed;
 use tracing::Span;
-use tracing::trace_span;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-#[derive(Debug, Clone, Serialize, Display)]
-#[serde(rename_all = "snake_case")]
-pub enum ToolDecisionSource {
-    Config,
-    User,
-}
-
-#[derive(Debug, Clone)]
-pub struct OtelEventMetadata {
-    conversation_id: ThreadId,
-    auth_mode: Option<String>,
-    account_id: Option<String>,
-    account_email: Option<String>,
-    model: String,
-    slug: String,
-    log_user_prompts: bool,
-    app_version: &'static str,
-    terminal_type: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct OtelManager {
-    metadata: OtelEventMetadata,
-    session_span: Span,
-}
+pub use crate::OtelEventMetadata;
+pub use crate::OtelManager;
+pub use crate::ToolDecisionSource;
 
 impl OtelManager {
     #[allow(clippy::too_many_arguments)]
@@ -65,14 +40,8 @@ impl OtelManager {
         auth_mode: Option<AuthMode>,
         log_user_prompts: bool,
         terminal_type: String,
-        session_source: SessionSource,
+        _session_source: SessionSource,
     ) -> OtelManager {
-        let session_span = trace_span!("new_session", conversation_id = %conversation_id, session_source = %session_source);
-
-        if let Some(context) = traceparent_context_from_env() {
-            let _ = session_span.set_parent(context);
-        }
-
         Self {
             metadata: OtelEventMetadata {
                 conversation_id,
@@ -85,33 +54,15 @@ impl OtelManager {
                 app_version: env!("CARGO_PKG_VERSION"),
                 terminal_type,
             },
-            session_span,
+            metrics: crate::metrics::global(),
+            metrics_use_metadata_tags: true,
         }
     }
 
-    pub fn with_model(&self, model: &str, slug: &str) -> Self {
-        let mut manager = self.clone();
-        manager.metadata.model = model.to_owned();
-        manager.metadata.slug = slug.to_owned();
-        manager
-    }
-
-    pub fn new_noop() -> Self {
-        Self::new(
-            ConversationId::new(),
-            "unknown",
-            "noop",
-            None,
-            None,
-            None,
-            false,
-            "unknown".to_string(),
-            SessionSource::Unknown,
-        )
-    }
-
-    pub fn current_span(&self) -> &Span {
-        &self.session_span
+    pub fn apply_traceparent_parent(&self, span: &Span) {
+        if let Some(context) = traceparent_context_from_env() {
+            let _ = span.set_parent(context);
+        }
     }
 
     pub fn record_responses(&self, handle_responses_span: &Span, event: &ResponseEvent) {
@@ -141,7 +92,6 @@ impl OtelManager {
         reasoning_effort: Option<ReasoningEffort>,
         reasoning_summary: ReasoningSummary,
         context_window: Option<i64>,
-        max_output_tokens: Option<i64>,
         auto_compact_token_limit: Option<i64>,
         approval_policy: AskForApproval,
         sandbox_policy: SandboxPolicy,
@@ -164,7 +114,6 @@ impl OtelManager {
             reasoning_effort = reasoning_effort.map(|e| e.to_string()),
             reasoning_summary = %reasoning_summary,
             context_window = context_window,
-            max_output_tokens = max_output_tokens,
             auto_compact_token_limit = auto_compact_token_limit,
             approval_policy = %approval_policy,
             sandbox_policy = %sandbox_policy,
@@ -178,7 +127,7 @@ impl OtelManager {
         F: FnOnce() -> Fut,
         Fut: Future<Output = Result<Response, Error>>,
     {
-        let start = std::time::Instant::now();
+        let start = Instant::now();
         let response = f().await;
         let duration = start.elapsed();
 
@@ -186,24 +135,7 @@ impl OtelManager {
             Ok(response) => (Some(response.status().as_u16()), None),
             Err(error) => (error.status().map(|s| s.as_u16()), Some(error.to_string())),
         };
-
-        tracing::event!(
-            tracing::Level::INFO,
-            event.name = "codex.api_request",
-            event.timestamp = %timestamp(),
-            conversation.id = %self.metadata.conversation_id,
-            app.version = %self.metadata.app_version,
-            auth_mode = self.metadata.auth_mode,
-            user.account_id = self.metadata.account_id,
-            user.email = self.metadata.account_email,
-            terminal.type = %self.metadata.terminal_type,
-            model = %self.metadata.model,
-            slug = %self.metadata.slug,
-            duration_ms = %duration.as_millis(),
-            http.response.status_code = status,
-            error.message = error,
-            attempt = attempt,
-        );
+        self.record_api_request(attempt, status, error.as_deref(), duration);
 
         response
     }
@@ -359,7 +291,6 @@ impl OtelManager {
         )
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn sse_event_completed(
         &self,
         input_token_count: i64,
@@ -393,7 +324,7 @@ impl OtelManager {
         let prompt = items
             .iter()
             .flat_map(|item| match item {
-                UserInput::Text { text } => Some(text.as_str()),
+                UserInput::Text { text, .. } => Some(text.as_str()),
                 _ => None,
             })
             .collect::<String>();
@@ -425,7 +356,7 @@ impl OtelManager {
         &self,
         tool_name: &str,
         call_id: &str,
-        decision: ReviewDecision,
+        decision: &ReviewDecision,
         source: ToolDecisionSource,
     ) {
         tracing::event!(
@@ -442,7 +373,7 @@ impl OtelManager {
             slug = %self.metadata.slug,
             tool_name = %tool_name,
             call_id = %call_id,
-            decision = %decision.to_string().to_lowercase(),
+            decision = %decision.clone().to_string().to_lowercase(),
             source = %source.to_string(),
         );
     }
@@ -500,7 +431,6 @@ impl OtelManager {
         );
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn tool_result(
         &self,
         tool_name: &str,
@@ -511,7 +441,11 @@ impl OtelManager {
         output: &str,
     ) {
         let success_str = if success { "true" } else { "false" };
-
+        self.counter(
+            "codex.tool.call",
+            1,
+            &[("tool", tool_name), ("success", success_str)],
+        );
         tracing::event!(
             tracing::Level::INFO,
             event.name = "codex.tool_result",

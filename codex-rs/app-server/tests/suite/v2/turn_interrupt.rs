@@ -2,8 +2,13 @@
 
 use anyhow::Result;
 use app_test_support::McpProcess;
+<<<<<<< HEAD
 use app_test_support::create_mock_chat_completions_server;
 use app_test_support::create_shell_sse_response;
+=======
+use app_test_support::create_mock_responses_server_sequence;
+use app_test_support::create_shell_command_sse_response;
+>>>>>>> upstream/main
 use app_test_support::to_response;
 use codex_app_server_protocol::JSONRPCResponse;
 use codex_app_server_protocol::RequestId;
@@ -38,7 +43,11 @@ async fn turn_interrupt_aborts_running_turn() -> Result<()> {
     std::fs::create_dir(&working_directory)?;
 
     // Mock server: long-running shell command then (after abort) nothing else needed.
+<<<<<<< HEAD
     let server = create_mock_chat_completions_server(vec![create_shell_sse_response(
+=======
+    let server = create_mock_responses_server_sequence(vec![create_shell_command_sse_response(
+>>>>>>> upstream/main
         shell_command.clone(),
         Some(&working_directory),
         Some(10_000),
@@ -70,6 +79,7 @@ async fn turn_interrupt_aborts_running_turn() -> Result<()> {
             thread_id: thread.id.clone(),
             input: vec![V2UserInput::Text {
                 text: "run sleep".to_string(),
+                text_elements: Vec::new(),
             }],
             cwd: Some(working_directory.clone()),
             ..Default::default()
@@ -119,7 +129,7 @@ model_provider = "mock_provider"
 [model_providers.mock_provider]
 name = "Mock provider for test"
 base_url = "{server_uri}/v1"
-wire_api = "chat"
+wire_api = "responses"
 request_max_retries = 0
 stream_max_retries = 0
 "#

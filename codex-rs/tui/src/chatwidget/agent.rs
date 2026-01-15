@@ -4,6 +4,8 @@ use codex_core::CodexThread;
 use codex_core::NewThread;
 use codex_core::ThreadManager;
 use codex_core::config::Config;
+use codex_core::protocol::Event;
+use codex_core::protocol::EventMsg;
 use codex_core::protocol::Op;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::mpsc::unbounded_channel;
@@ -28,9 +30,15 @@ pub(crate) fn spawn_agent(
             ..
         } = match server.start_thread(config).await {
             Ok(v) => v,
-            Err(e) => {
-                // TODO: surface this error to the user.
-                tracing::error!("failed to initialize codex: {e}");
+            Err(err) => {
+                let message = format!("Failed to initialize codex: {err}");
+                tracing::error!("{message}");
+                app_event_tx_clone.send(AppEvent::CodexEvent(Event {
+                    id: "".to_string(),
+                    msg: EventMsg::Error(err.to_error_event(None)),
+                }));
+                app_event_tx_clone.send(AppEvent::FatalExitRequest(message));
+                tracing::error!("failed to initialize codex: {err}");
                 return;
             }
         };

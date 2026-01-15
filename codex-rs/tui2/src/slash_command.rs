@@ -14,12 +14,15 @@ pub enum SlashCommand {
     // more frequently used commands should be listed first.
     Model,
     Approvals,
+    #[strum(serialize = "setup-elevated-sandbox")]
+    ElevateSandbox,
     Skills,
     Review,
     Qc,
     DevMode,
     New,
     Resume,
+    Fork,
     Init,
     Compact,
     // Undo,
@@ -47,6 +50,7 @@ impl SlashCommand {
             SlashCommand::Qc => "run quality control analysis via the CLI",
             SlashCommand::DevMode => "start dev-mode orchestration via the CLI",
             SlashCommand::Resume => "resume a saved chat",
+            SlashCommand::Fork => "fork a saved chat",
             // SlashCommand::Undo => "ask Codex to undo a turn",
             SlashCommand::Quit | SlashCommand::Exit => "exit Codex",
             SlashCommand::Diff => "show git diff (including untracked files)",
@@ -55,6 +59,7 @@ impl SlashCommand {
             SlashCommand::Status => "show current session configuration and token usage",
             SlashCommand::Model => "choose what model and reasoning effort to use",
             SlashCommand::Approvals => "choose what Codex can do without approval",
+            SlashCommand::ElevateSandbox => "set up elevated agent sandbox",
             SlashCommand::Mcp => "list configured MCP tools",
             SlashCommand::Logout => "log out of Codex",
             SlashCommand::Rollout => "print the rollout file path",
@@ -73,11 +78,13 @@ impl SlashCommand {
         match self {
             SlashCommand::New
             | SlashCommand::Resume
+            | SlashCommand::Fork
             | SlashCommand::Init
             | SlashCommand::Compact
             // | SlashCommand::Undo
             | SlashCommand::Model
             | SlashCommand::Approvals
+            | SlashCommand::ElevateSandbox
             | SlashCommand::Review
             | SlashCommand::Qc
             | SlashCommand::DevMode

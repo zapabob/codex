@@ -115,6 +115,7 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
         workdir_for_shell_function_call.path(),
         codex_request_id.to_string(),
         params.codex_event_id.clone(),
+        params.thread_id,
     )?;
     assert_eq!(expected_elicitation_request, elicitation_request);
 
@@ -154,7 +155,10 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
                         "text": "File created!",
                         "type": "text"
                     }
-                ]
+                ],
+                "structuredContent": {
+                    "threadId": params.thread_id,
+                }
             }),
         },
         codex_response
@@ -171,6 +175,7 @@ fn create_expected_elicitation_request(
     workdir: &Path,
     codex_mcp_tool_call_id: String,
     codex_event_id: String,
+    thread_id: codex_protocol::ThreadId,
 ) -> anyhow::Result<JSONRPCRequest> {
     let expected_message = format!(
         "Allow Codex to run `{}` in `{}`?",
@@ -189,6 +194,7 @@ fn create_expected_elicitation_request(
                 properties: json!({}),
                 required: None,
             },
+            thread_id,
             codex_elicitation: "exec-approval".to_string(),
             codex_mcp_tool_call_id,
             codex_event_id,
@@ -250,7 +256,13 @@ async fn patch_approval_triggers_elicitation() -> anyhow::Result<()> {
     )
     .await??;
 
-    let elicitation_request_id = RequestId::Integer(0);
+    let elicitation_request_id = elicitation_request.id.clone();
+    let params = serde_json::from_value::<PatchApprovalElicitRequestParams>(
+        elicitation_request
+            .params
+            .clone()
+            .ok_or_else(|| anyhow::anyhow!("elicitation_request.params must be set"))?,
+    )?;
 
     let mut expected_changes = HashMap::new();
     expected_changes.insert(
@@ -267,7 +279,8 @@ async fn patch_approval_triggers_elicitation() -> anyhow::Result<()> {
         None, // No grant_root expected
         None, // No reason expected
         codex_request_id.to_string(),
-        "1".to_string(),
+        params.codex_event_id.clone(),
+        params.thread_id,
     )?;
     assert_eq!(expected_elicitation_request, elicitation_request);
 
@@ -297,7 +310,10 @@ async fn patch_approval_triggers_elicitation() -> anyhow::Result<()> {
                         "text": "Patch has been applied successfully!",
                         "type": "text"
                     }
-                ]
+                ],
+                "structuredContent": {
+                    "threadId": params.thread_id,
+                }
             }),
         },
         codex_response
@@ -321,7 +337,7 @@ async fn test_codex_tool_passes_base_instructions() {
 }
 
 async fn codex_tool_passes_base_instructions() -> anyhow::Result<()> {
-    #![expect(clippy::unwrap_used)]
+    #![expect(clippy::expect_used, clippy::unwrap_used)]
 
     let server =
         create_mock_chat_completions_server(vec![create_final_assistant_message_sse_response(
@@ -350,20 +366,26 @@ async fn codex_tool_passes_base_instructions() -> anyhow::Result<()> {
         mcp_process.read_stream_until_response_message(RequestId::Integer(codex_request_id)),
     )
     .await??;
+    assert_eq!(codex_response.jsonrpc, JSONRPC_VERSION);
+    assert_eq!(codex_response.id, RequestId::Integer(codex_request_id));
     assert_eq!(
-        JSONRPCResponse {
-            jsonrpc: JSONRPC_VERSION.into(),
-            id: RequestId::Integer(codex_request_id),
-            result: json!({
-                "content": [
-                    {
-                        "text": "Enjoy!",
-                        "type": "text"
-                    }
-                ]
-            }),
-        },
-        codex_response
+        codex_response.result,
+        json!({
+            "content": [
+                {
+                    "text": "Enjoy!",
+                    "type": "text"
+                }
+            ],
+            "structuredContent": {
+                "threadId": codex_response
+                    .result
+                    .get("structuredContent")
+                    .and_then(|v| v.get("threadId"))
+                    .and_then(serde_json::Value::as_str)
+                    .expect("codex tool response should include structuredContent.threadId"),
+            }
+        })
     );
 
     let requests = server.received_requests().await.unwrap();
@@ -371,23 +393,26 @@ async fn codex_tool_passes_base_instructions() -> anyhow::Result<()> {
     let instructions = request["messages"][0]["content"].as_str().unwrap();
     assert!(instructions.starts_with("You are a helpful assistant."));
 
-    let developer_msg = request["messages"]
+    let developer_messages: Vec<&serde_json::Value> = request["messages"]
         .as_array()
-        .and_then(|messages| {
-            messages
-                .iter()
-                .find(|msg| msg.get("role").and_then(|role| role.as_str()) == Some("developer"))
-        })
-        .unwrap();
-    let developer_content = developer_msg
-        .get("content")
-        .and_then(|value| value.as_str())
-        .unwrap();
+        .unwrap()
+        .iter()
+        .filter(|msg| msg.get("role").and_then(|role| role.as_str()) == Some("developer"))
+        .collect();
+    let developer_contents: Vec<&str> = developer_messages
+        .iter()
+        .filter_map(|msg| msg.get("content").and_then(|value| value.as_str()))
+        .collect();
     assert!(
-        !developer_content.contains('<'),
-        "expected developer instructions without XML tags, got `{developer_content}`"
+        developer_contents
+            .iter()
+            .any(|content| content.contains("`sandbox_mode`")),
+        "expected permissions developer message, got {developer_contents:?}"
     );
-    assert_eq!(developer_content, "Foreshadow upcoming tool calls.");
+    assert!(
+        developer_contents.contains(&"Foreshadow upcoming tool calls."),
+        "expected developer instructions in developer messages, got {developer_contents:?}"
+    );
 
     Ok(())
 }
@@ -400,6 +425,7 @@ fn create_expected_patch_approval_elicitation_request(
     reason: Option<String>,
     codex_mcp_tool_call_id: String,
     codex_event_id: String,
+    thread_id: codex_protocol::ThreadId,
 ) -> anyhow::Result<JSONRPCRequest> {
     let mut message_lines = Vec::new();
     if let Some(r) = &reason {
@@ -418,6 +444,7 @@ fn create_expected_patch_approval_elicitation_request(
                 properties: json!({}),
                 required: None,
             },
+            thread_id,
             codex_elicitation: "patch-approval".to_string(),
             codex_mcp_tool_call_id,
             codex_event_id,

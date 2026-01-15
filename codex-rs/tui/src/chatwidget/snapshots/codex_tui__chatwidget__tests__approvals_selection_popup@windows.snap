@@ -1,6 +1,10 @@
 ---
 source: tui/src/chatwidget/tests.rs
+<<<<<<< HEAD
 assertion_line: 1431
+=======
+assertion_line: 1980
+>>>>>>> upstream/main
 expression: popup
 ---
   Select Approval Mode
