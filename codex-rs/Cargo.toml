@@ -57,7 +57,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "2.9.0"
+version = "2.10.0"
 # Track the edition for all workspace crates in one place. Individual
 # crates can still override this value, but keeping it here means new
 # crates created with `cargo new -w ...` automatically inherit the 2024
@@ -116,10 +116,10 @@ mcp-types = { path = "mcp-types" }
 mcp_test_support = { path = "mcp-server/tests/common" }
 
 # External
+aes-gcm = "0.10"
 allocative = "0.3.3"
 ansi-to-tui = "7.0.0"
 anyhow = "1"
-aes-gcm = "0.10"
 arboard = { version = "3", features = ["wayland-data-control"] }
 assert_cmd = "2"
 assert_matches = "1.5.0"
@@ -169,8 +169,8 @@ maplit = "1.0.2"
 mime_guess = "2.0.5"
 multimap = "0.10.0"
 notify = "8.2.0"
-num_cpus = "1.17.0"
 nucleo-matcher = "0.3.1"
+num_cpus = "1.17.0"
 once_cell = "1.20.2"
 openssl-sys = "0.9"
 opentelemetry = "0.31.0"
@@ -232,7 +232,6 @@ tracing-subscriber = "0.3.22"
 tracing-test = "0.2.5"
 tree-sitter = "0.25.10"
 tree-sitter-bash = "0.25"
-zstd = "0.13"
 tree-sitter-highlight = "0.25.10"
 ts-rs = "11"
 tui-scrollbar = "0.2.1"
@@ -247,6 +246,7 @@ walkdir = "2.5.0"
 webbrowser = "1.0"
 which = "6"
 wildmatch = "2.6.1"
+zstd = "0.13"
 
 wiremock = "0.6"
 zeroize = "1.8.2"

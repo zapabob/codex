@@ -6,11 +6,11 @@
   <img src="./.github/codex-cli-splash.png" alt="Codex CLI splash" width="80%" />
 </p>
 </br>
-<strong>v2.9.0 "Fast Build & Hot Reload System"</strong> - Independent fork with enhanced development workflow.
+<strong>v2.10.0 "Advanced QA & CI/CD Integration"</strong> - Independent fork with enhanced development workflow.
 </br>
 *This is an independent fork/extension and is not affiliated with OpenAI.*
 
-[![Version](https://img.shields.io/badge/version-2.9.0-blue.svg)](https://github.com/zapabob/codex)
+[![Version](https://img.shields.io/badge/version-2.10.0-blue.svg)](https://github.com/zapabob/codex)
 [![npm](https://img.shields.io/npm/v/@zapabob/codex)](https://www.npmjs.com/package/@zapabob/codex)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -143,7 +143,7 @@ Codex extends OpenAI's Codex CLI with:
 - [Contributing](./CONTRIBUTING.md) - Development guidelines
 - [Upstream](./UPSTREAM.md) - OpenAI Codex CLI documentation
 
-### 🔧 What's New in v2.9.0
+### 🔧 What's New in v2.10.0
 
 - ✅ **Fast Incremental Build**: MD5-based change detection with tqdm progress visualization
 - ✅ **Hot Reload Installation**: Process-safe binary replacement with cross-platform support
@@ -271,7 +271,7 @@ CodexはOpenAIのCodex CLIを以下で拡張：
 - [Contributing](./CONTRIBUTING.md) - 開発ガイドライン
 - [Upstream](./UPSTREAM.md) - OpenAI Codex CLI ドキュメント
 
-### 🔧 v2.9.0の新機能
+### 🔧 v2.10.0の新機能
 
 - ✅ **高速インクリメンタルビルド**: MD5ベース変更検出とtqdm進捗可視化
 - ✅ **ホットリロードインストール**: プロセス安全なバイナリ置換、クロスプラットフォーム対応

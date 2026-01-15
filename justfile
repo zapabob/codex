@@ -59,3 +59,26 @@ build-install *args:
 # Install with process killing (PowerShell)
 install-kill source target:
     powershell -ExecutionPolicy Bypass -File scripts/install_with_kill.ps1 -SourcePath {{source}} -TargetPath {{target}} -Force
+
+# Supervisor orchestrator (official Agents SDK)
+supervisor *args:
+    python3 tools/codex-supervisor/supervisor.py {{args}}
+
+# Test supervisor package
+test-supervisor:
+    cd tools/codex-supervisor && python test_workflow.py
+
+# Install supervisor as package
+install-supervisor:
+    cd tools/codex-supervisor && pip install -e .
+
+# Test skills migration
+test-skills:
+    echo "Testing skills structure..."
+    ls -la .codex/skills/
+    echo "Testing architect skill..."
+    cat .codex/skills/architect/SKILL.md | head -10
+
+# Migrate agents to skills (official format)
+migrate-agents:
+    python3 scripts/migrate_to_skills.py
