@@ -1,0 +1,101 @@
+graph TB
+    %% zapabob/codex Architecture v2.10.0
+    %% Skills + MCP + Agents SDK Architecture
+
+    subgraph "User Interface"
+        TUI[Terminal UI<br/>codex-rs/tui]
+        CLI[Command Line<br/>codex-rs/cli]
+        MCP_Client[MCP Client<br/>WebSocket]
+    end
+
+    subgraph "Core Engine (zapabob/codex fork)"
+        Core[Codex Core<br/>AI Engine<br/>codex-rs/core]
+        Skills_System[Skills System<br/>.codex/skills/]
+
+        subgraph "Built-in Skills"
+            Build_Manager[Build Manager<br/>Incremental Build<br/>Process Management]
+            Orchestrator_Skill[Orchestrator<br/>Task Decomposition<br/>Skill Execution]
+            Worktree_Manager[Worktree Manager<br/>Parallel Development<br/>Git Worktrees]
+            QA_Service[QA Service<br/>Automated Reviews<br/>Background Monitoring]
+            CI_CD[CI/CD Integration<br/>Pipeline Generation<br/>Notifications]
+        end
+    end
+
+    subgraph "External Supervisor (codex-supervisor)"
+        Supervisor[Codex Supervisor<br/>Multi-Agent Orchestrator<br/>Guardrails & Handoffs]
+
+        subgraph "Agents SDK Workers"
+            Code_Reviewer[Code Reviewer<br/>Quality Analysis]
+            Test_Generator[Test Generator<br/>Unit Test Creation]
+            Security_Auditor[Security Auditor<br/>Vulnerability Scan]
+            Performance_Analyzer[Performance Analyzer<br/>Optimization]
+        end
+    end
+
+    subgraph "Communication Layer"
+        MCP[MCP Protocol<br/>WebSocket + JSON-RPC<br/>Tool Execution]
+        Guardrails[Guardrails<br/>Security & Quality<br/>Structured Output]
+    end
+
+    subgraph "Development Workflow"
+        Git_Worktrees[Git Worktrees<br/>Parallel Branches<br/>Isolated Environments]
+
+        subgraph "QA Integration"
+            Pre_Merge_Hook[Pre-merge QA Hook<br/>Automated Reviews<br/>Block Critical Issues]
+            Background_QA[Background QA Service<br/>Continuous Monitoring<br/>File Change Detection]
+        end
+
+        subgraph "Notification Systems"
+            Slack[Slack Webhooks]
+            Discord[Discord Webhooks]
+            Email[SMTP Email]
+        end
+    end
+
+    %% Connections
+    TUI --> CLI
+    CLI --> Core
+    CLI --> MCP_Client
+
+    Core --> Skills_System
+    Skills_System --> Build_Manager
+    Skills_System --> Orchestrator_Skill
+    Skills_System --> Worktree_Manager
+    Skills_System --> QA_Service
+    Skills_System --> CI_CD
+
+    MCP_Client --> MCP
+    MCP --> Supervisor
+
+    Supervisor --> Code_Reviewer
+    Supervisor --> Test_Generator
+    Supervisor --> Security_Auditor
+    Supervisor --> Performance_Analyzer
+
+    Supervisor --> Guardrails
+    Guardrails --> MCP
+
+    Worktree_Manager --> Git_Worktrees
+    QA_Service --> Pre_Merge_Hook
+    QA_Service --> Background_QA
+
+    CI_CD --> Slack
+    CI_CD --> Discord
+    CI_CD --> Email
+
+    %% Styling
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef skill fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef supervisor fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef worker fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef comm fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef workflow fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef notify fill:#fff8e1,stroke:#f57f17,stroke-width:2px
+
+    class Core,Skills_System core
+    class Build_Manager,Orchestrator_Skill,Worktree_Manager,QA_Service,CI_CD skill
+    class Supervisor supervisor
+    class Code_Reviewer,Test_Generator,Security_Auditor,Performance_Analyzer worker
+    class MCP,Guardrails comm
+    class Git_Worktrees,Pre_Merge_Hook,Background_QA workflow
+    class Slack,Discord,Email notify
