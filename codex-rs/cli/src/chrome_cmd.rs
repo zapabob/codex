@@ -14,8 +14,8 @@ use mcp_types::InitializeRequestParams;
 use mcp_types::RequestId;
 use serde::Deserialize;
 use serde::Serialize;
-use std::ffi::OsString;
 use std::env;
+use std::ffi::OsString;
 use std::io::Read;
 use std::path::PathBuf;
 use std::process::Stdio;
@@ -260,7 +260,7 @@ async fn run_dom(args: ChromeDomArgs) -> Result<()> {
     send_message_to_host(&mut stdin, &message)
         .await
         .context("Failed to send message to native messaging host")?;
-    
+
     let response = timeout(
         Duration::from_secs(30),
         receive_message_from_host(&mut stdout)
@@ -281,7 +281,10 @@ async fn run_dom(args: ChromeDomArgs) -> Result<()> {
                 .get("error")
                 .and_then(|e| e.as_str())
                 .unwrap_or("Unknown error");
-            anyhow::bail!("DOM read failed: {}. Note: DOM reading requires the Chrome extension to be active and connected to the native messaging host.", error);
+            anyhow::bail!(
+                "DOM read failed: {}. Note: DOM reading requires the Chrome extension to be active and connected to the native messaging host.",
+                error
+            );
         }
     } else {
         anyhow::bail!("Invalid response format from native messaging host");
@@ -292,16 +295,11 @@ async fn run_dom(args: ChromeDomArgs) -> Result<()> {
 
 async fn run_dom_via_mcp(args: &ChromeDomArgs) -> Result<Result<()>> {
     let bridge_path = find_mcp_bridge_binary()?;
-    
-    let client = RmcpClient::new_stdio_client(
-        OsString::from(&bridge_path),
-        vec![],
-        None,
-        &[],
-        None,
-    )
-    .await
-    .context("Failed to create MCP client")?;
+
+    let client =
+        RmcpClient::new_stdio_client(OsString::from(&bridge_path), vec![], None, &[], None)
+            .await
+            .context("Failed to create MCP client")?;
 
     let init_params = InitializeRequestParams {
         protocol_version: mcp_types::MCP_SCHEMA_VERSION.to_string(),
@@ -336,7 +334,11 @@ async fn run_dom_via_mcp(args: &ChromeDomArgs) -> Result<Result<()>> {
     });
 
     let result = client
-        .call_tool("dom_read".to_string(), Some(params), Some(Duration::from_secs(30)))
+        .call_tool(
+            "dom_read".to_string(),
+            Some(params),
+            Some(Duration::from_secs(30)),
+        )
         .await
         .context("Failed to call dom_read tool")?;
 
@@ -380,7 +382,7 @@ async fn run_console(args: ChromeConsoleArgs) -> Result<()> {
     send_message_to_host(&mut stdin, &message)
         .await
         .context("Failed to send message to native messaging host")?;
-    
+
     let response = timeout(
         Duration::from_secs(30),
         receive_message_from_host(&mut stdout)
@@ -401,7 +403,10 @@ async fn run_console(args: ChromeConsoleArgs) -> Result<()> {
                 .get("error")
                 .and_then(|e| e.as_str())
                 .unwrap_or("Unknown error");
-            anyhow::bail!("Console log retrieval failed: {}. Note: Console log retrieval requires the Chrome extension to be active and connected to the native messaging host.", error);
+            anyhow::bail!(
+                "Console log retrieval failed: {}. Note: Console log retrieval requires the Chrome extension to be active and connected to the native messaging host.",
+                error
+            );
         }
     } else {
         anyhow::bail!("Invalid response format from native messaging host");
@@ -412,16 +417,11 @@ async fn run_console(args: ChromeConsoleArgs) -> Result<()> {
 
 async fn run_console_via_mcp(args: &ChromeConsoleArgs) -> Result<Result<()>> {
     let bridge_path = find_mcp_bridge_binary()?;
-    
-    let client = RmcpClient::new_stdio_client(
-        OsString::from(&bridge_path),
-        vec![],
-        None,
-        &[],
-        None,
-    )
-    .await
-    .context("Failed to create MCP client")?;
+
+    let client =
+        RmcpClient::new_stdio_client(OsString::from(&bridge_path), vec![], None, &[], None)
+            .await
+            .context("Failed to create MCP client")?;
 
     let init_params = InitializeRequestParams {
         protocol_version: mcp_types::MCP_SCHEMA_VERSION.to_string(),
@@ -457,7 +457,11 @@ async fn run_console_via_mcp(args: &ChromeConsoleArgs) -> Result<Result<()>> {
     });
 
     let result = client
-        .call_tool("console_get_logs".to_string(), Some(params), Some(Duration::from_secs(30)))
+        .call_tool(
+            "console_get_logs".to_string(),
+            Some(params),
+            Some(Duration::from_secs(30)),
+        )
         .await
         .context("Failed to call console_get_logs tool")?;
 
@@ -500,7 +504,7 @@ async fn run_network(args: ChromeNetworkArgs) -> Result<()> {
     send_message_to_host(&mut stdin, &message)
         .await
         .context("Failed to send message to native messaging host")?;
-    
+
     let response = timeout(
         Duration::from_secs(30),
         receive_message_from_host(&mut stdout)
@@ -521,7 +525,10 @@ async fn run_network(args: ChromeNetworkArgs) -> Result<()> {
                 .get("error")
                 .and_then(|e| e.as_str())
                 .unwrap_or("Unknown error");
-            anyhow::bail!("Network log retrieval failed: {}. Note: Network log retrieval requires the Chrome extension to be active and connected to the native messaging host.", error);
+            anyhow::bail!(
+                "Network log retrieval failed: {}. Note: Network log retrieval requires the Chrome extension to be active and connected to the native messaging host.",
+                error
+            );
         }
     } else {
         anyhow::bail!("Invalid response format from native messaging host");
@@ -532,16 +539,11 @@ async fn run_network(args: ChromeNetworkArgs) -> Result<()> {
 
 async fn run_network_via_mcp(args: &ChromeNetworkArgs) -> Result<Result<()>> {
     let bridge_path = find_mcp_bridge_binary()?;
-    
-    let client = RmcpClient::new_stdio_client(
-        OsString::from(&bridge_path),
-        vec![],
-        None,
-        &[],
-        None,
-    )
-    .await
-    .context("Failed to create MCP client")?;
+
+    let client =
+        RmcpClient::new_stdio_client(OsString::from(&bridge_path), vec![], None, &[], None)
+            .await
+            .context("Failed to create MCP client")?;
 
     let init_params = InitializeRequestParams {
         protocol_version: mcp_types::MCP_SCHEMA_VERSION.to_string(),
@@ -576,7 +578,11 @@ async fn run_network_via_mcp(args: &ChromeNetworkArgs) -> Result<Result<()>> {
     });
 
     let result = client
-        .call_tool("network_get_logs".to_string(), Some(params), Some(Duration::from_secs(30)))
+        .call_tool(
+            "network_get_logs".to_string(),
+            Some(params),
+            Some(Duration::from_secs(30)),
+        )
         .await
         .context("Failed to call network_get_logs tool")?;
 
@@ -690,7 +696,12 @@ async fn spawn_native_host() -> Result<(ChildStdin, ChildStdout)> {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .with_context(|| format!("Failed to spawn native messaging host from: {}", binary_path.display()))?;
+        .with_context(|| {
+            format!(
+                "Failed to spawn native messaging host from: {}",
+                binary_path.display()
+            )
+        })?;
 
     let stdin = child
         .stdin

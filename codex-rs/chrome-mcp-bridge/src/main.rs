@@ -10,7 +10,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let mode = env::args().nth(1).unwrap_or_else(|| "stdio".to_string());
-    
+
     match mode.as_str() {
         "stdio" => {
             BridgeServer::run_stdio().await?;

@@ -310,9 +310,8 @@ static FALLBACK_PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
     ]
 });
 
-static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
-    presets_from_models_json().unwrap_or_else(|| (*FALLBACK_PRESETS).clone())
-});
+static PRESETS: Lazy<Vec<ModelPreset>> =
+    Lazy::new(|| presets_from_models_json().unwrap_or_else(|| (*FALLBACK_PRESETS).clone()));
 
 fn presets_from_models_json() -> Option<Vec<ModelPreset>> {
     let response: ModelsResponse = serde_json::from_str(include_str!("../../models.json")).ok()?;
@@ -333,15 +332,13 @@ fn apply_upgrade_overrides(presets: &mut [ModelPreset]) {
 }
 
 fn fallback_upgrade_for(model: &str) -> Option<ModelUpgrade> {
-    FALLBACK_PRESETS
-        .iter()
-        .find_map(|preset| {
-            if preset.model == model {
-                preset.upgrade.clone()
-            } else {
-                None
-            }
-        })
+    FALLBACK_PRESETS.iter().find_map(|preset| {
+        if preset.model == model {
+            preset.upgrade.clone()
+        } else {
+            None
+        }
+    })
 }
 
 fn gpt_52_codex_upgrade() -> ModelUpgrade {

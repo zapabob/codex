@@ -68,7 +68,11 @@ impl WinChild {
         let proc = self.proc.lock().unwrap().try_clone().unwrap();
         let res = unsafe { TerminateProcess(proc.as_raw_handle() as _, 1) };
         let err = IoError::last_os_error();
-        if res != 0 { Err(err) } else { Ok(()) }
+        if res != 0 {
+            Err(err)
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -93,7 +97,11 @@ impl ChildKiller for WinChildKiller {
     fn kill(&mut self) -> IoResult<()> {
         let res = unsafe { TerminateProcess(self.proc.as_raw_handle() as _, 1) };
         let err = IoError::last_os_error();
-        if res != 0 { Err(err) } else { Ok(()) }
+        if res != 0 {
+            Err(err)
+        } else {
+            Ok(())
+        }
     }
 
     fn clone_killer(&self) -> Box<dyn ChildKiller + Send + Sync> {
@@ -126,7 +134,11 @@ impl Child for WinChild {
 
     fn process_id(&self) -> Option<u32> {
         let res = unsafe { GetProcessId(self.proc.lock().unwrap().as_raw_handle() as _) };
-        if res == 0 { None } else { Some(res) }
+        if res == 0 {
+            None
+        } else {
+            Some(res)
+        }
     }
 
     fn as_raw_handle(&self) -> Option<std::os::windows::io::RawHandle> {

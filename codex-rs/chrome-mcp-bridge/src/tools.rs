@@ -21,15 +21,13 @@ pub fn create_dom_read_tool() -> Tool {
             })),
             required: None,
         },
-   
 
         annotations: None,
 
         output_schema: None,
 
         title: Some("Chrome Extension Tool".to_string()),
-
-        }
+    }
 }
 
 /// Create console_get_logs tool definition
@@ -57,15 +55,13 @@ pub fn create_console_get_logs_tool() -> Tool {
             })),
             required: None,
         },
-   
 
         annotations: None,
 
         output_schema: None,
 
         title: Some("Chrome Extension Tool".to_string()),
-
-        }
+    }
 }
 
 /// Create network_get_logs tool definition
@@ -88,15 +84,13 @@ pub fn create_network_get_logs_tool() -> Tool {
             })),
             required: None,
         },
-   
 
         annotations: None,
 
         output_schema: None,
 
         title: Some("Chrome Extension Tool".to_string()),
-
-        }
+    }
 }
 
 /// Get all Chrome extension tools

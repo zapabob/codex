@@ -1,16 +1,16 @@
 use anyhow::{Context, Result};
 use mcp_types::{
     CallToolRequest, CallToolRequestParams, CallToolResult, ContentBlock, InitializeRequest,
-    InitializeRequestParams, InitializeResult, JSONRPCMessage, ListToolsRequest,
-    ListToolsResult, ModelContextProtocolRequest, RequestId, ServerCapabilities,
-    ServerCapabilitiesTools, TextContent,
+    InitializeRequestParams, InitializeResult, JSONRPCMessage, ListToolsRequest, ListToolsResult,
+    ModelContextProtocolRequest, RequestId, ServerCapabilities, ServerCapabilitiesTools,
+    TextContent,
 };
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdout};
-use tokio::sync::mpsc;
 use tokio::sync::Mutex;
+use tokio::sync::mpsc;
 use tracing::{error, info};
 
 use crate::tools::get_chrome_tools;
@@ -57,16 +57,14 @@ impl BridgeServer {
 
                 loop {
                     match lines.next_line().await {
-                        Ok(Some(line)) => {
-                            match serde_json::from_str::<JSONRPCMessage>(&line) {
-                                Ok(msg) => {
-                                    if incoming_tx.send(msg).await.is_err() {
-                                        break;
-                                    }
+                        Ok(Some(line)) => match serde_json::from_str::<JSONRPCMessage>(&line) {
+                            Ok(msg) => {
+                                if incoming_tx.send(msg).await.is_err() {
+                                    break;
                                 }
-                                Err(e) => error!("Failed to deserialize JSONRPCMessage: {e}"),
                             }
-                        }
+                            Err(e) => error!("Failed to deserialize JSONRPCMessage: {e}"),
+                        },
                         Ok(None) => break,
                         Err(e) => {
                             error!("Failed to read line from stdin: {e}");
@@ -121,19 +119,19 @@ impl BridgeServer {
     /// Run bridge server in HTTP mode
     pub async fn run_http(port: u16) -> Result<()> {
         info!("Starting MCP bridge server on port {}", port);
-        
+
         // For now, we'll implement a basic HTTP server
         // In a full implementation, this would use streamable HTTP MCP transport
         use tokio::net::TcpListener;
-        
+
         let listener = TcpListener::bind(format!("127.0.0.1:{}", port))
             .await
             .context("Failed to bind to port")?;
-        
+
         info!("MCP bridge server listening on http://127.0.0.1:{}", port);
-        
+
         let bridge = Arc::new(BridgeServer::new());
-        
+
         loop {
             match listener.accept().await {
                 Ok((stream, addr)) => {
@@ -152,10 +150,7 @@ impl BridgeServer {
         }
     }
 
-    async fn handle_http_connection(
-        &self,
-        _stream: tokio::net::TcpStream,
-    ) -> Result<()> {
+    async fn handle_http_connection(&self, _stream: tokio::net::TcpStream) -> Result<()> {
         // HTTP connection handling would be implemented here
         // For now, this is a placeholder
         Ok(())
@@ -193,7 +188,11 @@ impl BridgeServer {
 
         match method.as_str() {
             "initialize" => {
-                let params: InitializeRequestParams = serde_json::from_value(request.params.ok_or_else(|| anyhow::anyhow!("Missing params"))?)?;
+                let params: InitializeRequestParams = serde_json::from_value(
+                    request
+                        .params
+                        .ok_or_else(|| anyhow::anyhow!("Missing params"))?,
+                )?;
                 let result = InitializeResult {
                     capabilities: ServerCapabilities {
                         tools: Some(ServerCapabilitiesTools {
@@ -226,8 +225,13 @@ impl BridgeServer {
                     .await?;
             }
             "tools/call" => {
-                let params: CallToolRequestParams = serde_json::from_value(request.params.ok_or_else(|| anyhow::anyhow!("Missing params"))?)?;
-                self.handle_tool_call(request_id, params, outgoing_tx).await?;
+                let params: CallToolRequestParams = serde_json::from_value(
+                    request
+                        .params
+                        .ok_or_else(|| anyhow::anyhow!("Missing params"))?,
+                )?;
+                self.handle_tool_call(request_id, params, outgoing_tx)
+                    .await?;
             }
             _ => {
                 error!("Unknown method: {}", method);
@@ -248,59 +252,51 @@ impl BridgeServer {
         // For now, return a message indicating that the extension needs to process this
         // In a full implementation, this would forward the request to the extension
         let result = match name.as_str() {
-            "dom_read" => {
-                CallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!(
-                            "DOM read request received. This requires the Chrome extension to be connected. Arguments: {}",
-                            serde_json::to_string(&arguments.unwrap_or_default())?
-                        ),
-                        annotations: None,
-                    })],
-                    is_error: Some(false),
-                    structured_content: None,
-                }
-            }
-            "console_get_logs" => {
-                CallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!(
-                            "Console logs request received. This requires the Chrome extension to be connected. Arguments: {}",
-                            serde_json::to_string(&arguments.unwrap_or_default())?
-                        ),
-                        annotations: None,
-                    })],
-                    is_error: Some(false),
-                    structured_content: None,
-                }
-            }
-            "network_get_logs" => {
-                CallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!(
-                            "Network logs request received. This requires the Chrome extension to be connected. Arguments: {}",
-                            serde_json::to_string(&arguments.unwrap_or_default())?
-                        ),
-                        annotations: None,
-                    })],
-                    is_error: Some(false),
-                    structured_content: None,
-                }
-            }
-            _ => {
-                CallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!("Unknown tool: {}", name),
-                        annotations: None,
-                    })],
-                    is_error: Some(true),
-                    structured_content: None,
-                }
-            }
+            "dom_read" => CallToolResult {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
+                    text: format!(
+                        "DOM read request received. This requires the Chrome extension to be connected. Arguments: {}",
+                        serde_json::to_string(&arguments.unwrap_or_default())?
+                    ),
+                    annotations: None,
+                })],
+                is_error: Some(false),
+                structured_content: None,
+            },
+            "console_get_logs" => CallToolResult {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
+                    text: format!(
+                        "Console logs request received. This requires the Chrome extension to be connected. Arguments: {}",
+                        serde_json::to_string(&arguments.unwrap_or_default())?
+                    ),
+                    annotations: None,
+                })],
+                is_error: Some(false),
+                structured_content: None,
+            },
+            "network_get_logs" => CallToolResult {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
+                    text: format!(
+                        "Network logs request received. This requires the Chrome extension to be connected. Arguments: {}",
+                        serde_json::to_string(&arguments.unwrap_or_default())?
+                    ),
+                    annotations: None,
+                })],
+                is_error: Some(false),
+                structured_content: None,
+            },
+            _ => CallToolResult {
+                content: vec![ContentBlock::TextContent(TextContent {
+                    r#type: "text".to_string(),
+                    text: format!("Unknown tool: {}", name),
+                    annotations: None,
+                })],
+                is_error: Some(true),
+                structured_content: None,
+            },
         };
 
         self.send_response::<CallToolRequest>(request_id, result, outgoing_tx)

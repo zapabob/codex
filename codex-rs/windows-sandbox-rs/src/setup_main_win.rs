@@ -321,7 +321,6 @@ fn lock_sandbox_dir(
             }
         }
     }
-<<<<<<< HEAD
     log_line(
         log,
         &format!("sandbox dir ACL applied at {}", dir.display()),

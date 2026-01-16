@@ -517,19 +517,19 @@ impl OrchestratorServer {
 
                 let error_response = RpcResponse {
                     id: request.id.clone(),
-                        result: None,
-                        error: Some(RpcError {
+                    result: None,
+                    error: Some(RpcError {
                         code: 429, // Too Many Requests
                         message: format!("Rate limit exceeded: {}", rate_limit_error),
                         data: Some(serde_json::json!({
                             "retry_after": 1
                         })),
-                        }),
-                    };
-                    let response_data = serde_json::to_vec(&error_response)?;
-                    conn.write_message(&response_data).await?;
-                    continue;
-                }
+                    }),
+                };
+                let response_data = serde_json::to_vec(&error_response)?;
+                conn.write_message(&response_data).await?;
+                continue;
+            }
 
             // Check replay protection (if nonce is provided in params)
             // Note: In a real implementation, nonce should be in request headers or a separate field
@@ -634,13 +634,13 @@ impl OrchestratorServer {
                                 let mut size = queue_size.write().await;
                                 *size = size.saturating_sub(1);
                                 RpcResponse {
-                                id: request.id.clone(),
-                                result: None,
-                                error: Some(RpcError {
-                                    code: ERROR_INTERNAL,
-                                    message: "Write queue processing failed".to_string(),
-                                    data: None,
-                                }),
+                                    id: request.id.clone(),
+                                    result: None,
+                                    error: Some(RpcError {
+                                        code: ERROR_INTERNAL,
+                                        message: "Write queue processing failed".to_string(),
+                                        data: None,
+                                    }),
                                 }
                             }
                         }
@@ -811,11 +811,11 @@ impl OrchestratorServer {
                                     error: None,
                                 },
                                 Ok(None) => RpcResponse {
-                    id: request.id.clone(),
-                    result: Some(json!({
-                        "locked": false,
-                    })),
-                    error: None,
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "locked": false,
+                                    })),
+                                    error: None,
                                 },
                                 Err(e) => RpcResponse {
                                     id: request.id.clone(),
@@ -2051,13 +2051,13 @@ impl OrchestratorServer {
                                 )
                                 .await;
 
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({
-                                "success": true,
-                                                "blueprint_id": blueprint_id,
-                            })),
-                            error: None,
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({
+                                        "success": true,
+                                                        "blueprint_id": blueprint_id,
+                                    })),
+                                    error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -2139,10 +2139,10 @@ impl OrchestratorServer {
                                 )
                                 .await;
 
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({ "success": true })),
+                                    error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -2190,10 +2190,10 @@ impl OrchestratorServer {
                                 )
                                 .await;
 
-                        RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                                RpcResponse {
+                                    id: request.id.clone(),
+                                    result: Some(json!({ "success": true })),
+                                    error: None,
                                 }
                             }
                             Err(e) => RpcResponse {
@@ -2237,12 +2237,12 @@ impl OrchestratorServer {
                                     json!(json_path.to_string_lossy().to_string());
                             }
 
-                        RpcResponse {
-                            id: request.id.clone(),
+                            RpcResponse {
+                                id: request.id.clone(),
                                 result: Some(result),
-                            error: None,
+                                error: None,
+                            }
                         }
-                    }
                         Err(e) => RpcResponse {
                             id: request.id.clone(),
                             result: None,
@@ -2325,9 +2325,9 @@ impl OrchestratorServer {
 
                         match plan_manager.add_research(&params.blueprint_id, research) {
                             Ok(_) => RpcResponse {
-                            id: request.id.clone(),
-                            result: Some(json!({ "success": true })),
-                            error: None,
+                                id: request.id.clone(),
+                                result: Some(json!({ "success": true })),
+                                error: None,
                             },
                             Err(e) => RpcResponse {
                                 id: request.id.clone(),
