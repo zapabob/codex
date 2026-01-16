@@ -10,24 +10,44 @@
 //! - **Real-time Collaboration**: Multi-user synchronized visualization
 //! - **Rust 2024 Features**: GATs, async closures, const generics for performance
 
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::sync::{Arc, Mutex, RwLock};
-use std::path::Path;
-use std::future::Future;
-use std::pin::Pin;
-use tokio::sync::{broadcast, mpsc, oneshot};
-use tokio::time::{self, Duration, Instant};
-use git2::{Repository, Commit, Oid, Diff, DiffOptions};
-use serde::{Serialize, Deserialize};
 use async_trait::async_trait;
+use git2::Commit;
+use git2::Diff;
+use git2::DiffOptions;
+use git2::Oid;
+use git2::Repository;
 use openai_api_rs::v1::api::Client;
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::chat_completion::ChatCompletionRequest;
+use openai_api_rs::v1::chat_completion::{self};
 use regex::Regex;
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::collections::VecDeque;
+use std::future::Future;
+use std::path::Path;
+use std::pin::Pin;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::RwLock;
+use tokio::sync::broadcast;
+use tokio::sync::mpsc;
+use tokio::sync::oneshot;
+use tokio::time::Duration;
+use tokio::time::Instant;
+use tokio::time::{self};
 
 // Import existing components
-use crate::git4d_accelerated::{Git4DAcceleratedVisualizer, Git4DVisualizationConfig, Git4DEvent};
-use crate::vr_ar_integration::{VRARIntegration, VRInteraction, VREvent, XRPlatform};
-use crate::cuda_accelerator::{CudaGit4DAccelerator, GitCommitVertex};
+use crate::cuda_accelerator::CudaGit4DAccelerator;
+use crate::cuda_accelerator::GitCommitVertex;
+use crate::git4d_accelerated::Git4DAcceleratedVisualizer;
+use crate::git4d_accelerated::Git4DEvent;
+use crate::git4d_accelerated::Git4DVisualizationConfig;
+use crate::vr_ar_integration::VRARIntegration;
+use crate::vr_ar_integration::VREvent;
+use crate::vr_ar_integration::VRInteraction;
+use crate::vr_ar_integration::XRPlatform;
 
 /// Superior Git4D Visualizer with AI, Quantum, and VR/AR enhancements
 pub struct SuperiorGit4DVisualizer {
@@ -179,12 +199,21 @@ pub struct SentimentAnalyzer {
 impl SentimentAnalyzer {
     pub fn new(ai_client: Option<Client>) -> Self {
         let sentiment_patterns = vec![
-            (Regex::new(r"(?i)fix|bug|error|issue|problem").unwrap(), -0.3),
+            (
+                Regex::new(r"(?i)fix|bug|error|issue|problem").unwrap(),
+                -0.3,
+            ),
             (Regex::new(r"(?i)add|implement|feature|new").unwrap(), 0.2),
-            (Regex::new(r"(?i)refactor|clean|improve|optimize").unwrap(), 0.1),
+            (
+                Regex::new(r"(?i)refactor|clean|improve|optimize").unwrap(),
+                0.1,
+            ),
             (Regex::new(r"(?i)remove|delete|deprecate").unwrap(), -0.1),
             (Regex::new(r"(?i)urgent|critical|emergency").unwrap(), -0.4),
-            (Regex::new(r"(?i)great|awesome|excellent|perfect").unwrap(), 0.4),
+            (
+                Regex::new(r"(?i)great|awesome|excellent|perfect").unwrap(),
+                0.4,
+            ),
         ];
 
         Self {
@@ -194,7 +223,10 @@ impl SentimentAnalyzer {
         }
     }
 
-    pub async fn analyze_commit_sentiment(&self, commit: &Commit) -> Result<CommitSentiment, Box<dyn std::error::Error>> {
+    pub async fn analyze_commit_sentiment(
+        &self,
+        commit: &Commit,
+    ) -> Result<CommitSentiment, Box<dyn std::error::Error>> {
         let commit_id = commit.id();
 
         // Check cache first
@@ -218,11 +250,13 @@ impl SentimentAnalyzer {
 
         // AI-powered deep analysis
         let deep_sentiment = if let Some(client) = &self.ai_client {
-            self.analyze_with_ai(message, author).await.unwrap_or(SentimentResult {
-                score: 0.0,
-                confidence: 0.0,
-                emotions: HashMap::new(),
-            })
+            self.analyze_with_ai(message, author)
+                .await
+                .unwrap_or(SentimentResult {
+                    score: 0.0,
+                    confidence: 0.0,
+                    emotions: HashMap::new(),
+                })
         } else {
             SentimentResult {
                 score: sentiment_score,
@@ -240,12 +274,19 @@ impl SentimentAnalyzer {
         };
 
         // Cache result
-        self.cache.write().unwrap().insert(commit_id, result.clone());
+        self.cache
+            .write()
+            .unwrap()
+            .insert(commit_id, result.clone());
 
         Ok(result)
     }
 
-    async fn analyze_with_ai(&self, message: &str, author: &str) -> Result<SentimentResult, Box<dyn std::error::Error>> {
+    async fn analyze_with_ai(
+        &self,
+        message: &str,
+        author: &str,
+    ) -> Result<SentimentResult, Box<dyn std::error::Error>> {
         if self.ai_client.is_none() {
             return Ok(SentimentResult::default());
         }
@@ -270,7 +311,12 @@ Be precise and consider the context of software development.",
             }],
         );
 
-        let response = self.ai_client.as_ref().unwrap().chat_completion(request).await?;
+        let response = self
+            .ai_client
+            .as_ref()
+            .unwrap()
+            .chat_completion(request)
+            .await?;
         let content = response.choices[0].message.content.as_str();
 
         // Parse JSON response
@@ -279,14 +325,19 @@ Be precise and consider the context of software development.",
         let confidence = analysis["confidence"].as_f64().unwrap_or(0.5) as f32;
 
         let emotions = if let Some(emotions_obj) = analysis["emotions"].as_object() {
-            emotions_obj.iter()
+            emotions_obj
+                .iter()
                 .filter_map(|(k, v)| v.as_f64().map(|v| (k.clone(), v as f32)))
                 .collect()
         } else {
             HashMap::new()
         };
 
-        Ok(SentimentResult { score, confidence, emotions })
+        Ok(SentimentResult {
+            score,
+            confidence,
+            emotions,
+        })
     }
 }
 
@@ -311,7 +362,11 @@ impl ImpactCalculator {
         }
     }
 
-    pub async fn calculate_commit_impact(&self, commit: &Commit, diff: Option<&Diff>) -> Result<CommitImpact, Box<dyn std::error::Error>> {
+    pub async fn calculate_commit_impact(
+        &self,
+        commit: &Commit,
+        diff: Option<&Diff>,
+    ) -> Result<CommitImpact, Box<dyn std::error::Error>> {
         let commit_id = commit.id();
 
         // Check cache
@@ -335,7 +390,10 @@ impl ImpactCalculator {
         };
 
         // Cache result
-        self.cache.write().unwrap().insert(commit_id, impact.clone());
+        self.cache
+            .write()
+            .unwrap()
+            .insert(commit_id, impact.clone());
 
         Ok(impact)
     }
@@ -346,27 +404,38 @@ impl ImpactCalculator {
         let mut files_affected = 0;
         let mut breaking_changes = false;
 
-        diff.foreach(&mut |delta, _| {
-            files_affected += 1;
+        diff.foreach(
+            &mut |delta, _| {
+                files_affected += 1;
 
-            // Check for breaking changes in file names
-            let old_path = delta.old_file().path();
-            let new_path = delta.new_file().path();
+                // Check for breaking changes in file names
+                let old_path = delta.old_file().path();
+                let new_path = delta.new_file().path();
 
-            if let (Some(old), Some(new)) = (old_path, new_path) {
-                if old != new {
-                    breaking_changes = true;
+                if let (Some(old), Some(new)) = (old_path, new_path) {
+                    if old != new {
+                        breaking_changes = true;
+                    }
                 }
-            }
 
-            true
-        }, Some(git2::DiffFormat::Patch), None, None).unwrap();
+                true
+            },
+            Some(git2::DiffFormat::Patch),
+            None,
+            None,
+        )
+        .unwrap();
 
         // Calculate complexity delta
         let complexity_delta = self.complexity_analyzer.analyze_complexity_change(diff);
 
         // Calculate impact score
-        let impact_score = self.calculate_impact_score(lines_added + lines_deleted, files_affected, complexity_delta, breaking_changes);
+        let impact_score = self.calculate_impact_score(
+            lines_added + lines_deleted,
+            files_affected,
+            complexity_delta,
+            breaking_changes,
+        );
 
         CommitImpact {
             commit_id: commit.id(),
@@ -379,7 +448,13 @@ impl ImpactCalculator {
         }
     }
 
-    fn calculate_impact_score(&self, lines_changed: usize, files_affected: usize, complexity_delta: f32, breaking_changes: bool) -> f32 {
+    fn calculate_impact_score(
+        &self,
+        lines_changed: usize,
+        files_affected: usize,
+        complexity_delta: f32,
+        breaking_changes: bool,
+    ) -> f32 {
         let mut score = 0.0;
 
         // Lines changed factor (logarithmic scaling)
@@ -419,20 +494,30 @@ impl ComplexityAnalyzer {
         // In a full implementation, this would analyze AST changes
         let mut complexity_delta = 0.0;
 
-        diff.foreach(&mut |delta, _| {
-            let new_file = delta.new_file();
-            if let Some(path) = new_file.path() {
-                let path_str = path.to_string_lossy();
+        diff.foreach(
+            &mut |delta, _| {
+                let new_file = delta.new_file();
+                if let Some(path) = new_file.path() {
+                    let path_str = path.to_string_lossy();
 
-                // Rust files get higher complexity weight
-                if path_str.ends_with(".rs") {
-                    complexity_delta += 0.1;
-                } else if path_str.ends_with(".py") || path_str.ends_with(".js") || path_str.ends_with(".ts") {
-                    complexity_delta += 0.05;
+                    // Rust files get higher complexity weight
+                    if path_str.ends_with(".rs") {
+                        complexity_delta += 0.1;
+                    } else if path_str.ends_with(".py")
+                        || path_str.ends_with(".js")
+                        || path_str.ends_with(".ts")
+                    {
+                        complexity_delta += 0.05;
+                    }
                 }
-            }
-            true
-        }, None, None, None, None).unwrap();
+                true
+            },
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
 
         complexity_delta
     }
@@ -464,12 +549,14 @@ impl CollaborationTracker {
         let mut sessions = self.user_sessions.write().unwrap();
         let now = chrono::Utc::now();
 
-        let session = sessions.entry(user_id.clone()).or_insert_with(|| UserSession {
-            user_id: user_id.clone(),
-            start_time: now,
-            last_activity: now,
-            actions: Vec::new(),
-        });
+        let session = sessions
+            .entry(user_id.clone())
+            .or_insert_with(|| UserSession {
+                user_id: user_id.clone(),
+                start_time: now,
+                last_activity: now,
+                actions: Vec::new(),
+            });
 
         session.last_activity = now;
         session.actions.push(action);
@@ -530,7 +617,10 @@ impl QuantumOptimizer {
         }
     }
 
-    pub async fn optimize_rendering_pipeline(&self, vertices: &[GitCommitVertex]) -> QuantumOptimizationResult {
+    pub async fn optimize_rendering_pipeline(
+        &self,
+        vertices: &[GitCommitVertex],
+    ) -> QuantumOptimizationResult {
         if self.quantum_enabled {
             // Quantum-accelerated optimization would go here
             // For now, return classical optimization result
@@ -565,23 +655,29 @@ impl Git4DAnalyzer for SentimentAnalyzer {
     type AnalysisResult = CommitSentiment;
 
     async fn analyze(&self, commit: &Commit) -> Self::AnalysisResult {
-        self.analyze_commit_sentiment(commit).await.unwrap_or_else(|_| CommitSentiment {
-            commit_id: commit.id(),
-            sentiment_score: 0.0,
-            confidence: 0.0,
-            emotions: HashMap::new(),
-            keywords: Vec::new(),
-        })
+        self.analyze_commit_sentiment(commit)
+            .await
+            .unwrap_or_else(|_| CommitSentiment {
+                commit_id: commit.id(),
+                sentiment_score: 0.0,
+                confidence: 0.0,
+                emotions: HashMap::new(),
+                keywords: Vec::new(),
+            })
     }
 }
 
 impl SuperiorGit4DVisualizer {
-    pub fn new(repo_path: &Path, config: SuperiorGit4DConfig) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(
+        repo_path: &Path,
+        config: SuperiorGit4DConfig,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let base_visualizer = Git4DAcceleratedVisualizer::new(repo_path, config.base_config)?;
 
-        let ai_client = config.openai_api_key.as_ref().map(|key| {
-            Client::new(key.clone())
-        });
+        let ai_client = config
+            .openai_api_key
+            .as_ref()
+            .map(|key| Client::new(key.clone()));
 
         Ok(Self {
             base_visualizer,
@@ -598,7 +694,9 @@ impl SuperiorGit4DVisualizer {
     /// Enhanced commit loading with AI analysis and 5D/6D data
     pub async fn load_commits_enhanced(&self) -> Result<(), Box<dyn std::error::Error>> {
         // Load base commits
-        self.base_visualizer.load_commits(&self.base_visualizer.config).await?;
+        self.base_visualizer
+            .load_commits(&self.base_visualizer.config)
+            .await?;
 
         // Get repository for additional analysis
         let repo = Repository::open(self.base_visualizer.repository.path())?;
@@ -646,31 +744,52 @@ impl SuperiorGit4DVisualizer {
         let analysis_results: Vec<_> = futures::future::join_all(analysis_futures).await;
 
         // Process results
-        let sentiments: Vec<CommitSentiment> = analysis_results.iter().map(|(s, _)| s.clone()).collect();
+        let sentiments: Vec<CommitSentiment> =
+            analysis_results.iter().map(|(s, _)| s.clone()).collect();
         let impacts: Vec<CommitImpact> = analysis_results.iter().map(|(_, i)| i.clone()).collect();
 
         // Detect collaboration patterns
-        let collaborations = self.collaboration_tracker.detect_collaboration_patterns(&commits);
+        let collaborations = self
+            .collaboration_tracker
+            .detect_collaboration_patterns(&commits);
 
         // Send enhanced events
-        let _ = self.event_sender.send(SuperiorGit4DEvent::SentimentAnalyzed(sentiments));
-        let _ = self.event_sender.send(SuperiorGit4DEvent::ImpactCalculated(impacts));
-        let _ = self.event_sender.send(SuperiorGit4DEvent::CollaborationDetected(collaborations));
+        let _ = self
+            .event_sender
+            .send(SuperiorGit4DEvent::SentimentAnalyzed(sentiments));
+        let _ = self
+            .event_sender
+            .send(SuperiorGit4DEvent::ImpactCalculated(impacts));
+        let _ = self
+            .event_sender
+            .send(SuperiorGit4DEvent::CollaborationDetected(collaborations));
 
         // Apply quantum optimizations
         if self.config.enable_quantum_optimization {
             let vertices = vec![]; // Get from base visualizer
-            let quantum_result = self.quantum_optimizer.optimize_rendering_pipeline(&vertices).await;
-            let _ = self.event_sender.send(SuperiorGit4DEvent::QuantumOptimizationApplied(quantum_result));
+            let quantum_result = self
+                .quantum_optimizer
+                .optimize_rendering_pipeline(&vertices)
+                .await;
+            let _ = self
+                .event_sender
+                .send(SuperiorGit4DEvent::QuantumOptimizationApplied(
+                    quantum_result,
+                ));
         }
 
         Ok(())
     }
 
     /// Enhanced VR/AR interaction with gesture recognition
-    pub async fn process_vr_interaction_enhanced(&self, interaction: VRInteraction) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn process_vr_interaction_enhanced(
+        &self,
+        interaction: VRInteraction,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Process base VR interaction
-        self.base_visualizer.process_vr_interaction(interaction.clone()).await?;
+        self.base_visualizer
+            .process_vr_interaction(interaction.clone())
+            .await?;
 
         // Enhanced processing
         match interaction {
@@ -686,7 +805,10 @@ impl SuperiorGit4DVisualizer {
         Ok(())
     }
 
-    async fn process_gesture_enhanced(&self, gesture: crate::vr_ar_integration::HandGesture) -> Result<(), Box<dyn std::error::Error>> {
+    async fn process_gesture_enhanced(
+        &self,
+        gesture: crate::vr_ar_integration::HandGesture,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Enhanced gesture processing with AI interpretation
         if self.ai_client.is_some() {
             // Use AI to interpret complex gestures
@@ -697,13 +819,19 @@ impl SuperiorGit4DVisualizer {
         Ok(())
     }
 
-    async fn interpret_gesture_with_ai(&self, gesture: crate::vr_ar_integration::HandGesture) -> Result<String, Box<dyn std::error::Error>> {
+    async fn interpret_gesture_with_ai(
+        &self,
+        gesture: crate::vr_ar_integration::HandGesture,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // AI-powered gesture interpretation
         // This would use the AI client to understand complex gestures
         Ok("time_travel_backward".to_string()) // Placeholder
     }
 
-    async fn execute_gesture_action(&self, action: String) -> Result<(), Box<dyn std::error::Error>> {
+    async fn execute_gesture_action(
+        &self,
+        action: String,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Execute the interpreted action
         match action.as_str() {
             "time_travel_backward" => {
@@ -720,7 +848,10 @@ impl SuperiorGit4DVisualizer {
         Ok(())
     }
 
-    async fn process_voice_command_enhanced(&self, command: String) -> Result<(), Box<dyn std::error::Error>> {
+    async fn process_voice_command_enhanced(
+        &self,
+        command: String,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Enhanced voice command processing with NLP
         if self.ai_client.is_some() {
             let parsed_command = self.parse_voice_command_with_ai(command).await?;
@@ -730,12 +861,18 @@ impl SuperiorGit4DVisualizer {
         Ok(())
     }
 
-    async fn parse_voice_command_with_ai(&self, command: String) -> Result<String, Box<dyn std::error::Error>> {
+    async fn parse_voice_command_with_ai(
+        &self,
+        command: String,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // Use AI to parse natural language voice commands
         Ok("show_collaboration_network".to_string()) // Placeholder
     }
 
-    async fn execute_voice_command(&self, command: String) -> Result<(), Box<dyn std::error::Error>> {
+    async fn execute_voice_command(
+        &self,
+        command: String,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         match command.as_str() {
             "show_collaboration_network" => {
                 self.show_collaboration_network().await?;
@@ -776,7 +913,10 @@ impl SuperiorGit4DVisualizer {
     }
 
     /// Export enhanced visualization data
-    pub async fn export_enhanced_data(&self, format: &str) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn export_enhanced_data(
+        &self,
+        format: &str,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // Export 5D/6D visualization data
         match format {
             "json" => {
@@ -787,7 +927,7 @@ impl SuperiorGit4DVisualizer {
                 // Export as optimized binary format
                 Ok("binary_data".to_string())
             }
-            _ => Err("Unsupported format".into())
+            _ => Err("Unsupported format".into()),
         }
     }
 }
@@ -797,7 +937,9 @@ pub struct Git4DComputeShader<const THREADS_PER_BLOCK: u32, const BLOCKS: u32> {
     // Compile-time optimized compute shader
 }
 
-impl<const THREADS_PER_BLOCK: u32, const BLOCKS: u32> Git4DComputeShader<THREADS_PER_BLOCK, BLOCKS> {
+impl<const THREADS_PER_BLOCK: u32, const BLOCKS: u32>
+    Git4DComputeShader<THREADS_PER_BLOCK, BLOCKS>
+{
     pub const fn new() -> Self {
         Self {}
     }
