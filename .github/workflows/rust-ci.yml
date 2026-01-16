@@ -20,6 +20,14 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ubuntu-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ubuntu-registry-
       - name: Detect changed paths (no external action)
         id: detect
         shell: bash
@@ -112,6 +120,7 @@ jobs:
           key: windows-fast-build-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
           restore-keys: |
             windows-fast-build-
+          save-always: true
 
       - name: Install sccache for faster compilation
         uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532
@@ -669,3 +678,10 @@ jobs:
         if: always()
         run: |
           echo "Per-job sccache stats are attached to each matrix job's Step Summary."
+
+      - name: CI/CD Success Notification
+        if: success()
+        run: |
+          echo "🎉 CI/CD Pipeline completed successfully!"
+          echo "All quality checks, builds, and tests passed."
+          echo "Ready for deployment or merge."

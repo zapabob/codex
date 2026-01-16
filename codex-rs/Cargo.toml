@@ -312,6 +312,13 @@ debug = 1         # Reduce debug symbol size
 inherits = "test"
 opt-level = 0
 
+[profile.ci-release]
+inherits = "release"
+debug = 1         # Include debug symbols for CI debugging
+strip = false     # Keep symbols for better error reporting
+lto = "thin"      # Faster LTO for CI
+codegen-units = 4 # Parallel codegen for faster builds
+
 [patch.crates-io]
 # Uncomment to debug local changes.
 # ratatui = { path = "../../ratatui" }
