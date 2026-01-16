@@ -178,10 +178,11 @@ jobs:
           const evaluation = qaResults.evaluation;
 
           // Create comment body
-          let comment = `## 🔬 QA Engineering Analysis Results
-
-**Status:** ${evaluation.block_reasons.length > 0 ? '❌ Issues Found' : '✅ Passed'}
-**Analysis Time:** ${new Date().toLocaleString()}
+          let statusText = evaluation.block_reasons.length > 0 ? '❌ Issues Found' : '✅ Passed';
+          let timeText = new Date().toLocaleString();
+          let comment = '## 🔬 QA Engineering Analysis Results\n\n';
+          comment += '**Status:** ' + statusText + '\n';
+          comment += '**Analysis Time:** ' + timeText;
 
 ### 📊 Quality Scores
 | Category | Score |

@@ -159,6 +159,14 @@ jobs:
             }
           }
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Disable real-time monitoring temporarily
+        run: |
           # Also try to disable real-time monitoring temporarily
           try {
             Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
