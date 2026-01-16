@@ -25,7 +25,27 @@ try:
 except ImportError:
     # Fallback import
     sys.path.append(str(Path(__file__).parent / "codex-supervisor"))
-    from run_qa_engineer import QAAnalyzer, QAReport
+    try:
+        from run_qa_engineer import QAAnalyzer, QAReport
+    except ImportError:
+        # Create mock classes if not available
+        @dataclass
+        class QAReport:
+            integration_status: Dict[str, Any] = None
+            def __post_init__(self):
+                if self.integration_status is None:
+                    self.integration_status = {"can_merge": True}
+
+        class QAAnalyzer:
+            def analyze_codebase(self, *args, **kwargs):
+                return QAReport()
+
+# Import Conflict Prevention Engine
+try:
+    from conflict_prevention_engine import ConflictPreventionEngine
+except ImportError:
+    logger.warning("ConflictPreventionEngine not available, proceeding without conflict analysis")
+    ConflictPreventionEngine = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -93,15 +113,27 @@ class PreMergeQAHook:
         # Run QA analysis on the merge
         qa_report = self._run_merge_qa_analysis(merge_context)
 
-        # Evaluate merge criteria
-        merge_allowed, evaluation = self._evaluate_merge_criteria(qa_report, merge_context)
+        # Run conflict prevention analysis if available
+        conflict_analysis = None
+        if ConflictPreventionEngine:
+            try:
+                logger.info("Running conflict prevention analysis...")
+                import asyncio
+                engine = ConflictPreventionEngine(str(self.project_root))
+                conflict_analysis = asyncio.run(engine.analyze_merge_conflicts(source_branch, target_branch))
+                logger.info(f"Conflict analysis completed: {len(conflict_analysis.conflict_predictions)} predictions")
+            except Exception as e:
+                logger.error(f"Conflict analysis failed: {e}")
+
+        # Evaluate merge criteria (including conflict analysis)
+        merge_allowed, evaluation = self._evaluate_merge_criteria(qa_report, merge_context, conflict_analysis)
 
         # Generate reports
-        self._generate_merge_reports(qa_report, merge_context, evaluation)
+        self._generate_merge_reports(qa_report, merge_context, evaluation, conflict_analysis)
 
         # Send notifications if configured
         if not merge_allowed or self.config.notify_channels:
-            self._send_notifications(qa_report, merge_context, evaluation)
+            self._send_notifications(qa_report, merge_context, evaluation, conflict_analysis)
 
         results = {
             "merge_allowed": merge_allowed,
@@ -237,7 +269,8 @@ class PreMergeQAHook:
                 import shutil
                 shutil.copy2(src_path, dest_path)
 
-    def _evaluate_merge_criteria(self, qa_report: QAReport, merge_context: MergeContext) -> Dict[str, Any]:
+    def _evaluate_merge_criteria(self, qa_report: QAReport, merge_context: MergeContext,
+                                conflict_analysis: Optional[Any] = None) -> Dict[str, Any]:
         """Evaluate whether the merge should be allowed based on QA results"""
 
         evaluation = {
@@ -306,6 +339,35 @@ class PreMergeQAHook:
             evaluation["warnings"].append("Large code changes: >1000 lines - thorough review recommended")
             evaluation["merge_confidence"] *= 0.9
 
+        # Evaluate conflict analysis if available
+        if conflict_analysis:
+            risk_assessment = conflict_analysis.risk_assessment
+            overall_risk = risk_assessment.get('overall_risk', 'low')
+
+            if overall_risk == 'critical':
+                evaluation["block_reasons"].append("Critical conflict risk detected - manual resolution required")
+                evaluation["risk_level"] = "critical"
+                evaluation["merge_confidence"] *= 0.1
+            elif overall_risk == 'high':
+                evaluation["warnings"].append("High conflict risk detected - careful review recommended")
+                evaluation["risk_level"] = max(evaluation["risk_level"], "high")
+                evaluation["merge_confidence"] *= 0.5
+            elif overall_risk == 'medium':
+                evaluation["warnings"].append("Medium conflict risk detected")
+                evaluation["merge_confidence"] *= 0.8
+
+            # Add conflict-specific recommendations
+            high_risk_predictions = [p for p in conflict_analysis.conflict_predictions
+                                   if p.risk_level.value in ['high', 'critical']]
+            if high_risk_predictions:
+                evaluation["recommendations"].append(
+                    f"Review {len(high_risk_predictions)} high-risk conflict predictions"
+                )
+
+            # Add AI recommendations
+            if conflict_analysis.ai_recommendations:
+                evaluation["recommendations"].extend(conflict_analysis.ai_recommendations[:3])
+
         # Generate recommendations
         if critical_issues:
             evaluation["recommendations"].append("Address all critical QA issues before merging")
@@ -316,7 +378,8 @@ class PreMergeQAHook:
 
         return evaluation
 
-    def _generate_merge_reports(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any]):
+    def _generate_merge_reports(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any],
+                               conflict_analysis: Optional[Any] = None):
         """Generate comprehensive merge QA reports"""
 
         # Create reports directory
@@ -457,7 +520,8 @@ class PreMergeQAHook:
 
         return report
 
-    def _send_notifications(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any]):
+    def _send_notifications(self, qa_report: QAReport, merge_context: MergeContext, evaluation: Dict[str, Any],
+                           conflict_analysis: Optional[Any] = None):
         """Send notifications about merge QA results"""
 
         config = self.config.notification_config

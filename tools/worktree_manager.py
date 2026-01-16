@@ -298,7 +298,7 @@ class GitWorktreeManager:
             return False
 
     def _can_merge(self, worktree_info: WorktreeInfo) -> bool:
-        """Check if worktree can be merged based on QA results"""
+        """Check if worktree can be merged based on QA results and conflict analysis"""
 
         if not worktree_info.qa_report_path or not worktree_info.qa_report_path.exists():
             return False
@@ -308,7 +308,24 @@ class GitWorktreeManager:
                 qa_report = json.load(f)
 
             integration_status = qa_report.get('integration_status', {})
-            return integration_status.get('can_merge', False)
+            qa_can_merge = integration_status.get('can_merge', False)
+
+            # Additional conflict prevention check
+            conflict_analysis_file = worktree_info.path / "conflict_analysis.json"
+            if conflict_analysis_file.exists():
+                with open(conflict_analysis_file, 'r', encoding='utf-8') as f:
+                    conflict_data = json.load(f)
+
+                # Check conflict risk level
+                risk_assessment = conflict_data.get('risk_assessment', {})
+                overall_risk = risk_assessment.get('overall_risk', 'low')
+
+                if overall_risk in ['high', 'critical']:
+                    logger.warning(f"High conflict risk detected for {worktree_info.name} (risk: {overall_risk})")
+                    # Log warning but still allow merge with manual review
+                    logger.info(f"Proceeding with merge despite high risk - manual review recommended")
+
+            return qa_can_merge
 
         except Exception as e:
             logger.error(f"Failed to check merge status: {e}")
