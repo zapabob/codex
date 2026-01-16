@@ -122,8 +122,10 @@ jobs:
         run: |
           echo "CARGO_INCREMENTAL=1" >> $env:GITHUB_ENV
           echo "RUSTC_WRAPPER=sccache" >> $env:GITHUB_ENV
-          echo "SCCACHE_CACHE_SIZE=2G" >> $env:GITHUB_ENV
-          echo "CARGO_BUILD_JOBS=6" >> $env:GITHUB_ENV
+          echo "SCCACHE_CACHE_SIZE=5G" >> $env:GITHUB_ENV
+          echo "CARGO_BUILD_JOBS=8" >> $env:GITHUB_ENV
+          echo "RUST_BACKTRACE=1" >> $env:GITHUB_ENV
+          echo "RUSTFLAGS=-C target-cpu=native -C opt-level=2 -C link-args=/DEBUG:NONE" >> $env:GITHUB_ENV
 
       - name: Kill existing codex processes
         run: |
@@ -192,14 +194,14 @@ jobs:
         working-directory: codex-rs
     env:
       # Enable incremental builds for faster CI
-      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') && 'false' || 'true' }}
+      USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') && 'true' || 'true' }}
       CARGO_INCREMENTAL: "1"
-      SCCACHE_CACHE_SIZE: 10G
-      # Optimize build jobs based on runner
-      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') && '4' || '8' }}
-      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') && '0' || '1' }}
-      # Enable faster linking
-      RUSTFLAGS: "-C target-cpu=native -C opt-level=2"
+      SCCACHE_CACHE_SIZE: ${{ startsWith(matrix.runner, 'windows') && '5G' || '10G' }}
+      # Optimize build jobs based on runner (increased for Windows)
+      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') && '6' || '8' }}
+      RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') && '1' || '1' }}
+      # Enable faster linking with Windows-specific optimizations
+      RUSTFLAGS: ${{ startsWith(matrix.runner, 'windows') && '-C target-cpu=native -C opt-level=2 -C link-args=/DEBUG:NONE' || '-C target-cpu=native -C opt-level=2' }}
 
     strategy:
       fail-fast: false

@@ -670,7 +670,7 @@ impl LLMSecurityHardening {
             SecurityLevel::Critical => 1000,
         };
 
-        let allowed_characters = Regex::new(r"^[\w\s\.,!?\-\(\)\[\]{}:;\"\'\n\r]+$").unwrap();
+        let allowed_characters = Regex::new(r"[\w\s\.,!?\-\(\)\[\]{}:;\"']+").unwrap();
         let forbidden_patterns = vec![
             Regex::new(r"(?i)system\s+prompt|override\s+instructions").unwrap(),
             Regex::new(r"(?i)ignore\s+previous\s+instructions").unwrap(),

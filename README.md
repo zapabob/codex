@@ -6,7 +6,7 @@
   <img src="./docs/architecture/architecture-v2.10.0.svg" alt="Codex v2.10.0 Architecture" width="80%" />
 </p>
 </br>
-<strong>v2.10.0 "Skills + MCP + Agents SDK"</strong> - Production-ready multi-agent orchestration platform.
+<strong>v2.10.1 "Skills + MCP + Agents SDK + GeminiCLI Integration"</strong> - Production-ready multi-agent orchestration with Google Gemini AI integration.
 </br>
 *This is an independent fork/extension and is not affiliated with OpenAI.*
 
@@ -59,6 +59,17 @@ Codex Extended implements the official OpenAI Codex Skills + MCP + Agents SDK pa
 * **Parallel Development**: Git worktree-based isolated environments for team collaboration
 * **Advanced QA System**: Automated reviews with mathematical/quantum optimization and security analysis
 * **CI/CD Integration**: Pipeline generation with Slack/Discord/Email notifications
+* **Web Search Deepresearch 2.0**: ClaudeCowork integrated next-generation research platform
+* **Multi-Model Intelligence**: Manus/Genspark-style advanced AI agent integration with GeminiCLI
+* **Cowork Productivity Suite**: Apple Human Interface compliant productivity automation
+* **GeminiCLI Integration**: MCP/A2A/Skills-based Google Gemini AI access
+* **MCP/A2A Skills Architecture**: WebSocket-based multi-agent communication and orchestration
+* **Web Search Deepresearch 2.0**: ClaudeCowork統合の次世代研究プラットフォーム
+* **Multi-Model Intelligence**: Manus/Gensparkスタイルの高度AIエージェント統合
+* **Cowork Productivity Suite**: Apple Human Interface準拠の生産性自動化
+* **Web Search Deepresearch 2.0**: ClaudeCowork統合 + Manus/GensparkスタイルAIエージェント
+* **Multi-Model Intelligence**: 状況に応じた最適AIモデル選択と適応学習
+* **Cowork Productivity**: Apple風GUI統合の生産性自動化システム
 
 ### Safety model
 
@@ -77,6 +88,14 @@ Codex Extended implements the official OpenAI Codex Skills + MCP + Agents SDK pa
 | **Advanced QA Engine**    | ✅ **Stable**              | `.codex/skills/qa-engineer/` |
 | **CI/CD Integration**     | ✅ **Stable**              | `.github/workflows/qa-ci.yml`|
 | **Build Manager**         | ✅ **Stable**              | `.codex/skills/build-manager/` |
+| **Web Search Deepresearch**| 🆕 **Enhanced v2.0**       | ClaudeCowork + Manus/Genspark|
+| **Multi-Model Intelligence**| 🆕 **Stable**             | GeminiCLI + Adaptive AI      |
+| **Cowork Productivity**   | 🆕 **Stable**              | Apple-style GUI integration  |
+| **GeminiCLI Integration** | 🆕 **Stable**              | MCP/A2A Google Gemini access |
+| **MCP/A2A Skills**        | 🆕 **Stable**              | WebSocket-based communication|
+| **Web Search Deepresearch**| 🆕 **Enhanced v2.0**       | ClaudeCowork + Manus/Genspark|
+| **Multi-Model Intelligence**| 🆕 **Beta**               | Adaptive AI selection        |
+| **Cowork Productivity**   | 🆕 **Stable**              | Apple-style GUI integration  |
 
 ### 🚀 Quickstart
 
@@ -144,6 +163,9 @@ Codex Extended implements the official Skills + MCP + Agents SDK architecture:
 - **Agents SDK Patterns**: Supervisor/Worker architecture with guardrails and handoffs
 - **Parallel Development**: Git worktree-based isolated environments
 - **Advanced QA Engine**: Automated reviews with comprehensive criteria analysis
+- **Web Search Deepresearch 2.0**: ClaudeCowork integrated next-generation research platform
+- **Multi-Model Intelligence**: Manus/Genspark-style advanced AI agent integration
+- **Cowork Productivity Suite**: Apple Human Interface compliant productivity automation
 
 ### 📚 Documentation
 
@@ -227,6 +249,11 @@ Codex Extendedは公式のOpenAI Codex Skills + MCP + Agents SDKパターンを�
 | **高度なQA Engine**     | ✅ **安定版**              | `.codex/skills/qa-engineer/` |
 | **CI/CD Integration**   | ✅ **安定版**              | `.github/workflows/qa-ci.yml`|
 | **Build Manager**       | ✅ **安定版**              | `.codex/skills/build-manager/` |
+| **Web Search Deepresearch**| 🆕 **強化版 v2.0**         | ClaudeCowork + Manus/Genspark|
+| **Multi-Model Intelligence**| 🆕 **安定版**              | GeminiCLI + 適応型AI選択     |
+| **Cowork Productivity** | 🆕 **安定版**              | Apple風GUI統合               |
+| **GeminiCLI Integration**| 🆕 **安定版**              | MCP/A2A経由Google Gemini    |
+| **MCP/A2A Skills**      | 🆕 **安定版**              | WebSocketベース通信         |
 
 ### 🚀 クイックスタート
 
@@ -283,6 +310,12 @@ Codex Extendedは公式のSkills + MCP + Agents SDKアーキテクチャを実�
 - [Supervisor Orchestration](./tools/codex-supervisor/README.md) - マルチエージェントオーケストレーション
 - [QA Integration](./tools/qa_integration_guide.md) - 高度なQAシステム設定
 - [CI/CD Integration](./tools/cicd_integration_guide.md) - パイプライン生成と通知
+- [Web Search Deepresearch 2.0](./web_search_deepresearch_enhancement_plan.md) - ClaudeCowork + Manus/Genspark統合
+- [Multi-Model Intelligence](./multi_model_intelligence.py) - 適応型AI選択システム
+- [Cowork Productivity Suite](./scripts/cowork_apple_gui.py) - Apple風生産性自動化
+- [Enhanced Research Agent](./enhanced_research_agent.py) - 統合研究・生産性プラットフォーム
+- [GeminiCLI Integration](./gemini_cli_deepresearch_integration_plan.md) - MCP/A2A経由Google Gemini統合
+- [GeminiCLI Skill](./.codex/skills/gemini-cli-integration/) - Google Gemini AIスキルラッパー
 
 ### 🔧 v2.10.0の新機能
 
@@ -291,6 +324,9 @@ Codex Extendedは公式のSkills + MCP + Agents SDKアーキテクチャを実�
 - ✅ **Agents SDK Patterns**: ガードレール、ハンドオフ、構造化出力を持つSupervisor/Workerアーキテクチャ
 - ✅ **並列開発**: 自動QA統合を備えたGit worktreeベースの分離環境
 - ✅ **高度なQA Engine**: 数学的/量子的最適化とセキュリティを含む包括的な分析
+- ✅ **Web Search Deepresearch 2.0**: ClaudeCowork統合の次世代研究プラットフォーム
+- ✅ **Multi-Model Intelligence**: Manus/Gensparkスタイルの高度AIエージェント統合
+- ✅ **Cowork Productivity Suite**: Apple Human Interface準拠の生産性自動化
 
 ### 🤝 Contributing
 
@@ -322,6 +358,10 @@ Apache License 2.0 - See [LICENSE](./LICENSE)
 - [**Installing & building**](./docs/install.md)
 - [**Open source fund**](./docs/open-source-fund.md)
 - [**Fast Build System**](./scripts/fast_build.py) - Custom extension
+- [**Web Search Deepresearch 2.0**](./web_search_deepresearch_enhancement_plan.md) - ClaudeCowork + Manus/Genspark integration
+- [**Multi-Model Intelligence**](./multi_model_intelligence.py) - Adaptive AI selection system
+- [**Cowork Productivity Suite**](./scripts/cowork_apple_gui.py) - Apple-style productivity automation
+- [**Enhanced Research Agent**](./enhanced_research_agent.py) - Unified research and productivity platform
 
 ---
 

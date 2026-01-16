@@ -30,23 +30,37 @@ use windows_sys::Win32::Security::Authorization::ConvertStringSidToSidW;
 use windows_sys::Win32::Security::LookupAccountNameW;
 use windows_sys::Win32::Security::SID_NAME_USE;
 
-use codex_windows_sandbox::dpapi_protect;
-use codex_windows_sandbox::sandbox_dir;
-use codex_windows_sandbox::string_from_sid_bytes;
-use codex_windows_sandbox::to_wide;
-use codex_windows_sandbox::SETUP_VERSION;
+use super::dpapi_protect;
+use super::sandbox_dir;
+use super::string_from_sid_bytes;
+use super::to_wide;
+use super::SETUP_VERSION;
 
+#[allow(dead_code)]
+fn log_line(log: &mut File, msg: &str) -> Result<()> {
+    use std::io::Write;
+    writeln!(log, "{}", msg)?;
+    log.flush()?;
+    Ok(())
+}
+
+#[allow(dead_code)]
 pub const SANDBOX_USERS_GROUP: &str = "CodexSandboxUsers";
+
+#[allow(dead_code)]
 const SANDBOX_USERS_GROUP_COMMENT: &str = "Codex sandbox internal group (managed)";
 
+#[allow(dead_code)]
 pub fn ensure_sandbox_users_group(log: &mut File) -> Result<()> {
     ensure_local_group(SANDBOX_USERS_GROUP, SANDBOX_USERS_GROUP_COMMENT, log)
 }
 
+#[allow(dead_code)]
 pub fn resolve_sandbox_users_group_sid() -> Result<Vec<u8>> {
     resolve_sid(SANDBOX_USERS_GROUP)
 }
 
+#[allow(dead_code)]
 pub fn provision_sandbox_users(
     codex_home: &Path,
     offline_username: &str,
@@ -54,7 +68,7 @@ pub fn provision_sandbox_users(
     log: &mut File,
 ) -> Result<()> {
     ensure_sandbox_users_group(log)?;
-    super::log_line(
+    log_line(
         log,
         &format!("ensuring sandbox users offline={offline_username} online={online_username}"),
     )?;
@@ -72,12 +86,14 @@ pub fn provision_sandbox_users(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn ensure_sandbox_user(username: &str, password: &str, log: &mut File) -> Result<()> {
     ensure_local_user(username, password, log)?;
     ensure_local_group_member(SANDBOX_USERS_GROUP, username)?;
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<()> {
     let name_w = to_wide(OsStr::new(name));
     let pwd_w = to_wide(OsStr::new(password));
@@ -111,7 +127,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 std::ptr::null_mut(),
             );
             if upd != NERR_Success {
-                super::log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
+                log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
                 return Err(anyhow::anyhow!(
                     "failed to create/update user {name}, code {status}/{upd}"
                 ));
@@ -134,6 +150,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn ensure_local_group(name: &str, comment: &str, log: &mut File) -> Result<()> {
     const ERROR_ALIAS_EXISTS: u32 = 1379;
     const NERR_GROUP_EXISTS: u32 = 2223;
@@ -153,7 +170,7 @@ pub fn ensure_local_group(name: &str, comment: &str, log: &mut File) -> Result<(
             &mut parm_err as *mut _,
         );
         if status != NERR_Success && status != ERROR_ALIAS_EXISTS && status != NERR_GROUP_EXISTS {
-            super::log_line(
+            log_line(
                 log,
                 &format!("NetLocalGroupAdd failed for {name} code {status} parm_err={parm_err}"),
             )?;
@@ -163,6 +180,7 @@ pub fn ensure_local_group(name: &str, comment: &str, log: &mut File) -> Result<(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn ensure_local_group_member(group_name: &str, member_name: &str) -> Result<()> {
     // If the member is already in the group, NetLocalGroupAddMembers may
     // return an error code. We don't care.
@@ -183,6 +201,7 @@ pub fn ensure_local_group_member(group_name: &str, member_name: &str) -> Result<
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn resolve_sid(name: &str) -> Result<Vec<u8>> {
     let name_w = to_wide(OsStr::new(name));
     let mut sid_buffer = vec![0u8; 68];
@@ -218,6 +237,7 @@ pub fn resolve_sid(name: &str) -> Result<Vec<u8>> {
     }
 }
 
+#[allow(dead_code)]
 pub fn sid_bytes_to_psid(sid: &[u8]) -> Result<*mut c_void> {
     let sid_str = string_from_sid_bytes(sid).map_err(anyhow::Error::msg)?;
     let sid_w = to_wide(OsStr::new(&sid_str));
@@ -231,6 +251,7 @@ pub fn sid_bytes_to_psid(sid: &[u8]) -> Result<*mut c_void> {
     Ok(psid)
 }
 
+#[allow(dead_code)]
 fn random_password() -> String {
     const CHARS: &[u8] =
         b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
@@ -246,20 +267,20 @@ fn random_password() -> String {
 }
 
 #[derive(Serialize)]
-struct SandboxUserRecord {
-    username: String,
-    password: String,
+pub struct SandboxUserRecord {
+    pub username: String,
+    pub password: String,
 }
 
 #[derive(Serialize)]
-struct SandboxUsersFile {
-    version: u32,
-    offline: SandboxUserRecord,
-    online: SandboxUserRecord,
+pub struct SandboxUsersFile {
+    pub version: u32,
+    pub offline: SandboxUserRecord,
+    pub online: SandboxUserRecord,
 }
 
 #[derive(Serialize)]
-struct SetupMarker {
+pub struct SetupMarker {
     version: u32,
     offline_username: String,
     online_username: String,
@@ -268,6 +289,7 @@ struct SetupMarker {
     write_roots: Vec<PathBuf>,
 }
 
+#[allow(dead_code)]
 fn write_secrets(
     codex_home: &Path,
     offline_user: &str,

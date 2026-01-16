@@ -7,8 +7,8 @@ macro_rules! windows_modules {
 }
 
 windows_modules!(
-    acl, allow, audit, cap, dpapi, env, hide_users, identity, logging, policy, process, token,
-    winutil
+    acl, allow, audit, cap, dpapi, env, hide_users, identity, logging, policy, process,
+    sandbox_users, token, winutil
 );
 
 #[cfg(target_os = "windows")]
@@ -49,9 +49,13 @@ pub use identity::require_logon_sandbox_creds;
 #[cfg(target_os = "windows")]
 pub use identity::sandbox_setup_is_complete;
 #[cfg(target_os = "windows")]
+pub use logging::log_note;
+#[cfg(target_os = "windows")]
+pub use sandbox_users::SandboxUserRecord;
+#[cfg(target_os = "windows")]
 pub use sandbox_users::SandboxUsersFile;
 #[cfg(target_os = "windows")]
-pub use logging::log_note;
+pub use sandbox_users::SetupMarker;
 #[cfg(target_os = "windows")]
 pub use logging::LOG_FILE_NAME;
 #[cfg(target_os = "windows")]
@@ -116,10 +120,6 @@ mod windows_impl {
     use super::winutil::quote_windows_arg;
     use super::winutil::to_wide;
     use anyhow::Result;
-    use std::collections::HashMap;
-    use std::ffi::c_void;
-    use std::io;
-    use std::path::Path;
     use std::path::PathBuf;
     use std::ptr;
     use windows_sys::Win32::Foundation::CloseHandle;
@@ -143,12 +143,12 @@ mod windows_impl {
         !policy.has_full_network_access()
     }
 
-    fn ensure_codex_home_exists(p: &Path) -> Result<()> {
+    fn ensure_codex_home_exists(p: &std::path::Path) -> Result<()> {
         std::fs::create_dir_all(p)?;
         Ok(())
     }
 
-    unsafe fn setup_stdio_pipes() -> io::Result<PipeHandles> {
+    unsafe fn setup_stdio_pipes() -> std::io::Result<PipeHandles> {
         let mut in_r: HANDLE = 0;
         let mut in_w: HANDLE = 0;
         let mut out_r: HANDLE = 0;
@@ -156,22 +156,46 @@ mod windows_impl {
         let mut err_r: HANDLE = 0;
         let mut err_w: HANDLE = 0;
         if CreatePipe(&mut in_r, &mut in_w, ptr::null_mut(), 0) == 0 {
-            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
+            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
         }
         if CreatePipe(&mut out_r, &mut out_w, ptr::null_mut(), 0) == 0 {
-            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
+            CloseHandle(in_r);
+            CloseHandle(in_w);
+            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
         }
         if CreatePipe(&mut err_r, &mut err_w, ptr::null_mut(), 0) == 0 {
-            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
+            CloseHandle(in_r);
+            CloseHandle(in_w);
+            CloseHandle(out_r);
+            CloseHandle(out_w);
+            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
         }
         if SetHandleInformation(in_r, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
-            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
+            CloseHandle(in_r);
+            CloseHandle(in_w);
+            CloseHandle(out_r);
+            CloseHandle(out_w);
+            CloseHandle(err_r);
+            CloseHandle(err_w);
+            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
         }
         if SetHandleInformation(out_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
-            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
+            CloseHandle(in_r);
+            CloseHandle(in_w);
+            CloseHandle(out_r);
+            CloseHandle(out_w);
+            CloseHandle(err_r);
+            CloseHandle(err_w);
+            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
         }
         if SetHandleInformation(err_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
-            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
+            CloseHandle(in_r);
+            CloseHandle(in_w);
+            CloseHandle(out_r);
+            CloseHandle(out_w);
+            CloseHandle(err_r);
+            CloseHandle(err_w);
+            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
         }
         Ok(((in_r, in_w), (out_r, out_w), (err_r, err_w)))
     }
@@ -185,13 +209,13 @@ mod windows_impl {
 
     pub fn run_windows_sandbox_capture(
         policy_json_or_preset: &str,
-        sandbox_policy_cwd: &Path,
-        codex_home: &Path,
+        sandbox_policy_cwd: &std::path::Path,
+        codex_home: &std::path::Path,
         command: Vec<String>,
-        cwd: &Path,
-        mut env_map: HashMap<String, String>,
+        cwd: &std::path::Path,
+        mut env_map: std::collections::HashMap<String, String>,
         timeout_ms: Option<u64>,
-    ) -> Result<CaptureResult> {
+    ) -> anyhow::Result<CaptureResult> {
         let policy = parse_policy(policy_json_or_preset)?;
         let apply_network_block = should_apply_network_block(&policy);
         normalize_null_device_env(&mut env_map);
@@ -214,14 +238,16 @@ mod windows_impl {
             anyhow::bail!("DangerFullAccess and ExternalSandbox are not supported for sandboxing")
         }
         let caps = load_or_create_cap_sids(codex_home)?;
-        let (h_token, psid_to_use): (HANDLE, *mut c_void) = unsafe {
+        let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
             match &policy {
                 SandboxPolicy::ReadOnly => {
-                    let psid = convert_string_sid_to_sid(&caps.readonly).unwrap();
+                    let psid = convert_string_sid_to_sid(&caps.readonly)
+                        .ok_or_else(|| anyhow::anyhow!("convert_string_sid_to_sid failed for readonly"))?;
                     super::token::create_readonly_token_with_cap(psid)?
                 }
                 SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid = convert_string_sid_to_sid(&caps.workspace).unwrap();
+                    let psid = convert_string_sid_to_sid(&caps.workspace)
+                        .ok_or_else(|| anyhow::anyhow!("convert_string_sid_to_sid failed for workspace"))?;
                     super::token::create_workspace_write_token_with_cap(psid)?
                 }
                 SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. } => {
@@ -235,10 +261,10 @@ mod windows_impl {
                 if let Ok(base) = super::token::get_current_token_for_restriction() {
                     if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
                         let mut tmp = bytes.clone();
-                        let psid2 = tmp.as_mut_ptr() as *mut c_void;
+                        let psid2 = tmp.as_mut_ptr() as *mut std::ffi::c_void;
                         allow_null_device(psid2);
                     }
-                    windows_sys::Win32::Foundation::CloseHandle(base);
+                    CloseHandle(base);
                 }
             }
         }
@@ -246,32 +272,51 @@ mod windows_impl {
         let persist_aces = is_workspace_write;
         let AllowDenyPaths { allow, deny } =
             compute_allow_paths(&policy, sandbox_policy_cwd, &current_dir, &env_map);
-        let mut guards: Vec<(PathBuf, *mut c_void)> = Vec::new();
+        let mut guards: Vec<(PathBuf, *mut std::ffi::c_void)> = Vec::new();
         unsafe {
             for p in &allow {
-                if let Ok(added) = add_allow_ace(p, psid_to_use) {
-                    if added {
-                        if persist_aces {
-                            if p.is_dir() {
-                                // best-effort seeding omitted intentionally
+                match add_allow_ace(p, psid_to_use) {
+                    Ok(added) => {
+                        if added {
+                            if persist_aces {
+                                if p.is_dir() {
+                                    // best-effort seeding omitted intentionally
+                                }
+                            } else {
+                                guards.push((p.clone(), psid_to_use));
                             }
-                        } else {
-                            guards.push((p.clone(), psid_to_use));
                         }
+                    }
+                    Err(e) => {
+                        // エラーを記録する。失敗した場合は特に落とさず進む
+                        debug_log(&format!("add_allow_ace failed for {}: {:?}", p.display(), e), logs_base_dir);
                     }
                 }
             }
             for p in &deny {
-                if let Ok(added) = add_deny_write_ace(p, psid_to_use) {
-                    if added && !persist_aces {
-                        guards.push((p.clone(), psid_to_use));
+                match add_deny_write_ace(p, psid_to_use) {
+                    Ok(added) => {
+                        if added && !persist_aces {
+                            guards.push((p.clone(), psid_to_use));
+                        }
+                    }
+                    Err(e) => {
+                        debug_log(&format!("add_deny_write_ace failed for {}: {:?}", p.display(), e), logs_base_dir);
                     }
                 }
             }
             allow_null_device(psid_to_use);
         }
 
-        let (stdin_pair, stdout_pair, stderr_pair) = unsafe { setup_stdio_pipes()? };
+        // setup_stdio_pipesのunsafe呼び出しにエラー落ち。
+        let (stdin_pair, stdout_pair, stderr_pair) = match unsafe { setup_stdio_pipes() } {
+            Ok(res) => res,
+            Err(e) => {
+                log_failure(&command, &format!("Failed to setup stdio pipes: {}", e), logs_base_dir);
+                return Err(anyhow::anyhow!("Failed to setup stdio pipes: {}", e));
+            }
+        };
+
         let ((in_r, in_w), (out_r, out_w), (err_r, err_w)) = (stdin_pair, stdout_pair, stderr_pair);
         let mut si: STARTUPINFOW = unsafe { std::mem::zeroed() };
         si.cb = std::mem::size_of::<STARTUPINFOW>() as u32;
@@ -287,6 +332,7 @@ mod windows_impl {
             .collect::<Vec<_>>()
             .join(" ");
         let mut cmdline: Vec<u16> = to_wide(&cmdline_str);
+
         let env_block = make_env_block(&env_map);
         let desktop = to_wide("Winsta0\\Default");
         si.lpDesktop = desktop.as_ptr() as *mut u16;
@@ -299,7 +345,7 @@ mod windows_impl {
                 ptr::null_mut(),
                 1,
                 CREATE_UNICODE_ENVIRONMENT,
-                env_block.as_ptr() as *mut c_void,
+                env_block.as_ptr() as *mut std::ffi::c_void,
                 to_wide(cwd).as_ptr(),
                 &si,
                 &mut pi,
@@ -329,9 +375,9 @@ mod windows_impl {
             return Err(anyhow::anyhow!("CreateProcessAsUserW failed: {}", err));
         }
 
+        // in_r, in_w, out_w, err_wはparentからclose。out_r, err_rはリーダーで使うので残す。
         unsafe {
             CloseHandle(in_r);
-            // Close the parent's stdin write end so the child sees EOF immediately.
             CloseHandle(in_w);
             CloseHandle(out_w);
             CloseHandle(err_w);
@@ -339,6 +385,8 @@ mod windows_impl {
 
         let (tx_out, rx_out) = std::sync::mpsc::channel::<Vec<u8>>();
         let (tx_err, rx_err) = std::sync::mpsc::channel::<Vec<u8>>();
+
+        // ここで安全にout_r, err_rをMoveするためにlet mutで明示。closeはthread終了後に自動で。
         let t_out = std::thread::spawn(move || {
             let mut buf = Vec::new();
             let mut tmp = [0u8; 8192];
@@ -358,6 +406,7 @@ mod windows_impl {
                 }
                 buf.extend_from_slice(&tmp[..read_bytes as usize]);
             }
+            unsafe { CloseHandle(out_r); }
             let _ = tx_out.send(buf);
         });
         let t_err = std::thread::spawn(move || {
@@ -379,6 +428,7 @@ mod windows_impl {
                 }
                 buf.extend_from_slice(&tmp[..read_bytes as usize]);
             }
+            unsafe { CloseHandle(err_r); }
             let _ = tx_err.send(buf);
         });
 
@@ -425,6 +475,7 @@ mod windows_impl {
             unsafe {
                 for (p, sid) in guards {
                     revoke_ace(&p, sid);
+                    // revoke_ace no longer returns Result, simplified error handling
                 }
             }
         }
