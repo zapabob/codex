@@ -411,7 +411,7 @@ class AppleStyleGUI:
         })
 
     def select_feature(self, title, description):
-        """機能選択"""
+        """機能選択（Deepresearch統合拡張）"""
         # 機能に応じたデフォルトタスクを設定
         default_tasks = {
             "ファイル整理": "ダウンロードフォルダを整理して分類してください",
@@ -421,11 +421,20 @@ class AppleStyleGUI:
             "画像処理": "imagesフォルダ内の写真からテキストを読み取ってください",
             "研究支援": "AI技術の最新トレンドを調査してください",
             "レポート作成": "先月のデータをまとめてレポートを作成してください",
-            "ワークフロー": "毎日のルーティンタスクを自動化してください"
+            "ワークフロー": "毎日のルーティンタスクを自動化してください",
+            # Deepresearch拡張機能
+            "Deep Research": "量子コンピューティングの最新動向を包括的に調査してください",
+            "Contradiction Analysis": "COVID-19ワクチンの有効性に関する相反する主張を分析してください",
+            "Trend Forecasting": "電気自動車市場の今後5年間のトレンドを予測してください",
+            "Academic Synthesis": "機械学習のバイアス軽減手法に関する学術論文を統合分析してください"
         }
 
         if title in default_tasks:
             self.search_var.set(default_tasks[title])
+
+        # Deepresearch機能の場合、特別なUI表示
+        if "Deep" in title or "Research" in title:
+            self.show_deep_research_interface(title)
 
     def clear_history(self):
         """履歴クリア"""
@@ -630,6 +639,239 @@ StartupWMClass=CoworkAssistant
 
         # 設定項目（簡易版）
         tk.Label(settings_window, text="設定ウィンドウ", font=self.fonts['title2']).pack(pady=20)
+
+    def show_deep_research_interface(self, feature_title):
+        """Deepresearch専用インターフェース表示"""
+        research_window = tk.Toplevel(self.root)
+        research_window.title(f"{feature_title} - Enhanced Research")
+        research_window.geometry("900x700")
+        research_window.configure(bg=self.get_color('bg'))
+
+        # Apple風ヘッダー
+        header_frame = tk.Frame(research_window, bg=self.get_color('bg'))
+        header_frame.pack(fill=tk.X, pady=(20, 0))
+
+        title_label = tk.Label(header_frame,
+                              text=f"{feature_title}",
+                              font=self.fonts['large_title'],
+                              bg=self.get_color('bg'),
+                              fg=self.get_color('text'))
+        title_label.pack(anchor=tk.W)
+
+        subtitle_label = tk.Label(header_frame,
+                                 text="ClaudeCowork統合版Deepresearch - 高度な調査・分析機能",
+                                 font=self.fonts['body'],
+                                 bg=self.get_color('bg'),
+                                 fg=self.get_color('text_secondary'))
+        subtitle_label.pack(anchor=tk.W, pady=(4, 20))
+
+        # 研究設定パネル
+        settings_frame = tk.Frame(research_window, bg=self.get_color('surface'),
+                                 relief='flat', borderwidth=1)
+        settings_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+
+        # 設定ラベル
+        settings_title = tk.Label(settings_frame,
+                                 text="研究設定",
+                                 font=self.fonts['title2'],
+                                 bg=self.get_color('surface'),
+                                 fg=self.get_color('text'))
+        settings_title.pack(anchor=tk.W, padx=20, pady=(20, 12))
+
+        # 設定オプション
+        options_frame = tk.Frame(settings_frame, bg=self.get_color('surface'))
+        options_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+
+        # 深度設定
+        depth_label = tk.Label(options_frame, text="調査深度:",
+                              font=self.fonts['body'],
+                              bg=self.get_color('surface'),
+                              fg=self.get_color('text'))
+        depth_label.grid(row=0, column=0, sticky=tk.W, pady=5)
+
+        depth_var = tk.StringVar(value="comprehensive")
+        depth_combo = ttk.Combobox(options_frame, textvariable=depth_var,
+                                  values=["basic", "comprehensive"],
+                                  state="readonly", width=15)
+        depth_combo.grid(row=0, column=1, padx=(10, 20), pady=5)
+
+        # ソース設定
+        sources_label = tk.Label(options_frame, text="検索ソース:",
+                                font=self.fonts['body'],
+                                bg=self.get_color('surface'),
+                                fg=self.get_color('text'))
+        sources_label.grid(row=1, column=0, sticky=tk.W, pady=5)
+
+        sources_var = tk.StringVar(value="google,bing,scholar")
+        sources_entry = tk.Entry(options_frame, textvariable=sources_var,
+                                font=self.fonts['body'], width=20)
+        sources_entry.grid(row=1, column=1, padx=(10, 20), pady=5)
+
+        # 品質閾値
+        quality_label = tk.Label(options_frame, text="品質閾値:",
+                                font=self.fonts['body'],
+                                bg=self.get_color('surface'),
+                                fg=self.get_color('text'))
+        quality_label.grid(row=2, column=0, sticky=tk.W, pady=5)
+
+        quality_var = tk.StringVar(value="0.8")
+        quality_entry = tk.Entry(options_frame, textvariable=quality_var,
+                                font=self.fonts['body'], width=10)
+        quality_entry.grid(row=2, column=1, padx=(10, 20), pady=5)
+
+        # 高度設定（折りたたみ）
+        advanced_frame = tk.Frame(settings_frame, bg=self.get_color('surface'))
+        advanced_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+
+        # 実行ボタン
+        execute_btn = tk.Button(settings_frame,
+                               text="高度な研究を実行",
+                               font=self.fonts['body'],
+                               bg=self.get_color('primary'),
+                               fg='white',
+                               relief='flat',
+                               borderwidth=0,
+                               padx=24,
+                               pady=12,
+                               command=lambda: self.execute_deep_research(
+                                   self.search_var.get(),
+                                   depth_var.get(),
+                                   sources_var.get(),
+                                   quality_var.get(),
+                                   research_window
+                               ))
+        execute_btn.pack(pady=(0, 20))
+
+        # 結果表示エリア
+        result_frame = tk.Frame(research_window, bg=self.get_color('surface'),
+                               relief='flat', borderwidth=1)
+        result_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
+
+        result_title = tk.Label(result_frame,
+                               text="研究結果",
+                               font=self.fonts['title2'],
+                               bg=self.get_color('surface'),
+                               fg=self.get_color('text'))
+        result_title.pack(anchor=tk.W, padx=20, pady=(20, 12))
+
+        # 結果テキストエリア
+        result_text = scrolledtext.ScrolledText(result_frame,
+                                               font=self.fonts['body'],
+                                               bg=self.get_color('bg'),
+                                               fg=self.get_color('text'),
+                                               wrap=tk.WORD)
+        result_text.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
+
+        # ステータスバー
+        status_frame = tk.Frame(research_window, bg=self.get_color('surface'),
+                               relief='flat', borderwidth=1, height=30)
+        status_frame.pack(fill=tk.X, side=tk.BOTTOM)
+
+        status_var = tk.StringVar(value="準備完了 - 研究パラメータを設定してください")
+        status_label = tk.Label(status_frame,
+                               textvariable=status_var,
+                               font=self.fonts['caption1'],
+                               bg=self.get_color('surface'),
+                               fg=self.get_color('text_secondary'))
+        status_label.pack(side=tk.LEFT, padx=12, pady=6)
+
+        # ウィンドウ設定
+        research_window.transient(self.root)
+        research_window.grab_set()
+
+        # 結果表示用に参照保持
+        research_window.result_text = result_text
+        research_window.status_var = status_var
+
+    def execute_deep_research(self, query, depth, sources, quality_threshold, window):
+        """Deepresearch実行"""
+        if not query.strip():
+            messagebox.showwarning("警告", "検索クエリを入力してください。")
+            return
+
+        # UI更新
+        window.status_var.set("高度な研究を実行中...")
+        window.result_text.delete(1.0, tk.END)
+        window.result_text.insert(tk.END, "研究を開始しています...\n\n")
+
+        # 非同期実行
+        import threading
+        def run_research():
+            try:
+                # Enhanced Research Agentで実行
+                import asyncio
+                from enhanced_research_agent import EnhancedResearchAgent
+
+                async def execute():
+                    agent = EnhancedResearchAgent()
+                    await agent.initialize()
+
+                    # 研究タスク実行
+                    result = await agent.execute_enhanced_task(query, {
+                        "depth": depth,
+                        "sources": sources.split(','),
+                        "quality_threshold": float(quality_threshold),
+                        "research_type": "deep_enhanced"
+                    })
+
+                    await agent.shutdown()
+                    return result
+
+                # asyncio実行
+                result = asyncio.run(execute())
+
+                # UI更新
+                window.after(0, lambda: self.display_research_result(result, window))
+
+            except Exception as e:
+                window.after(0, lambda: self.display_research_error(str(e), window))
+
+        threading.Thread(target=run_research, daemon=True).start()
+
+    def display_research_result(self, result, window):
+        """研究結果表示"""
+        window.status_var.set("研究完了")
+
+        if result.get("success"):
+            output = f"✅ 研究成功\n\n"
+            output += f"実行時間: {result.get('execution_time', 0):.2f}秒\n"
+            output += f"品質スコア: {result.get('quality_score', 0):.2f}\n\n"
+
+            if "research_component" in result:
+                output += "📊 研究コンポーネント:\n"
+                research = result["research_component"]
+                if research.get("summary"):
+                    output += f"{research['summary']}\n\n"
+
+            if "cowork_component" in result:
+                output += "🔧 生産性コンポーネント:\n"
+                cowork = result["cowork_component"]
+                if cowork.get("summary"):
+                    output += f"{cowork['summary']}\n\n"
+
+            if "insights" in result:
+                output += "💡 洞察:\n"
+                for insight in result["insights"]:
+                    output += f"• {insight}\n"
+                output += "\n"
+
+            if "suggestions" in result:
+                output += "🎯 推奨アクション:\n"
+                for suggestion in result["suggestions"][:3]:  # Top 3
+                    output += f"• {suggestion.get('title', 'Suggestion')}: {suggestion.get('description', '')}\n"
+
+        else:
+            output = f"❌ 研究失敗\n\n"
+            output += f"エラー: {result.get('error', 'Unknown error')}\n"
+
+        window.result_text.delete(1.0, tk.END)
+        window.result_text.insert(tk.END, output)
+
+    def display_research_error(self, error, window):
+        """研究エラー表示"""
+        window.status_var.set("研究エラー")
+        window.result_text.delete(1.0, tk.END)
+        window.result_text.insert(tk.END, f"❌ 研究実行中にエラーが発生しました:\n\n{error}")
 
     def quit_application(self):
         """アプリケーション終了"""
