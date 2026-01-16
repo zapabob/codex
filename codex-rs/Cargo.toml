@@ -50,7 +50,7 @@ members = [
     "utils/string",
     "codex-client",
     "codex-api",
-    "codex-rs/web-search",
+    "web-search",
     "chrome-host",
     "chrome-mcp-bridge",
 ]
