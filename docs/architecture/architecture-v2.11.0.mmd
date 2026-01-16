@@ -1,0 +1,120 @@
+graph TB
+    subgraph "User Interface Layer"
+        TUI["🖥️ Terminal UI<br/>codex-rs/tui<br/>Text-based Interface"]
+        CLI["💻 Command Line<br/>codex-rs/cli<br/>CLI Commands"]
+        MCPClient["🔗 MCP Client<br/>WebSocket<br/>Tool Execution"]
+    end
+
+    subgraph "Core Engine Layer"
+        Core["🤖 Codex Core<br/>AI Engine<br/>codex-rs/core<br/>LLMOps + A2A"]
+        SkillsSystem["⚡ Skills System<br/>.codex/skills/<br/>Dynamic Skill Loading"]
+    end
+
+    subgraph "ClaudeCode Integration Layer"
+        TaskParser["📋 ClaudeCode Task Parser<br/>Natural Language Processing<br/>Task Specification"]
+        Executor["⚙️ ClaudeCode Executor<br/>Autonomous Execution<br/>Code Generation"]
+        MultiModelOrch["🎭 Multi-Model Orchestrator<br/>Gemini/Claude/GPT/Local<br/>Dynamic Selection"]
+        CostOptimizer["💰 Cost Optimizer<br/>Token Management<br/>API Cost Reduction"]
+        PrivacyGuard["🔒 Privacy Guard<br/>Data Anonymization<br/>Security Protection"]
+        CoworkProd["🏢 Cowork Productivity<br/>File Management<br/>Browser Automation<br/>Workflow Orchestration"]
+        PromptGuard["🛡️ Prompt Injection Guard<br/>Multi-layer Protection<br/>Security Validation"]
+        SecureExec["🔐 Secure Execution Engine<br/>Sandboxed Environment<br/>Resource Limits"]
+    end
+
+    subgraph "Supervisor Layer"
+        Supervisor["🎯 Codex Supervisor<br/>Multi-Agent Orchestrator<br/>Guardrails & Handoffs"]
+    end
+
+    subgraph "Worker Agents Layer"
+        CodeReviewer["👨‍💻 Code Reviewer<br/>Quality Analysis<br/>Style Enforcement"]
+        TestGenerator["🧪 Test Generator<br/>Unit Test Creation<br/>Coverage Analysis"]
+        SecurityAuditor["🔍 Security Auditor<br/>Vulnerability Scan<br/>Compliance Check"]
+        PerformanceAnalyzer["📈 Performance Analyzer<br/>Optimization<br/>Profiling"]
+        Guardrails["🚧 Guardrails<br/>Security & Quality<br/>Structured Output"]
+    end
+
+    subgraph "Skills Layer"
+        BuildManager["🔨 Build Manager<br/>Incremental Build<br/>Process Management"]
+        OrchestratorSkill["🎼 Orchestrator Skill<br/>Task Decomposition<br/>Skill Execution"]
+        WorktreeManager["🌳 Worktree Manager<br/>Parallel Development<br/>Git Worktrees"]
+        QAService["🧪 QA Service<br/>Automated Reviews<br/>Background Monitoring"]
+        CICDSkill["🚀 CI/CD Integration<br/>Pipeline Generation<br/>Notifications"]
+    end
+
+    subgraph "Communication Layer"
+        MCP["📡 MCP Protocol<br/>WebSocket + JSON-RPC<br/>Tool Execution"]
+    end
+
+    subgraph "Notification Layer"
+        Slack["💬 Slack Webhooks<br/>Real-time Updates"]
+        Discord["🎮 Discord Webhooks<br/>Community Integration"]
+        Email["📧 SMTP Email<br/>Formal Notifications"]
+    end
+
+    subgraph "Workflow Layer"
+        GitWorktrees["🌿 Git Worktrees<br/>Parallel Branches<br/>Isolated Environments"]
+        PreMergeHook["🔒 Pre-merge QA Hook<br/>Automated Reviews<br/>Block Critical Issues"]
+        BackgroundQA["🔄 Background QA Service<br/>Continuous Monitoring<br/>File Change Detection"]
+    end
+
+    %% Connections
+    TUI --> CLI
+    CLI --> Core
+    CLI --> MCPClient
+
+    MCPClient --> MCP
+
+    Core --> SkillsSystem
+
+    SkillsSystem --> TaskParser
+    SkillsSystem --> Executor
+    SkillsSystem --> MultiModelOrch
+    SkillsSystem --> CostOptimizer
+    SkillsSystem --> PrivacyGuard
+    SkillsSystem --> CoworkProd
+    SkillsSystem --> PromptGuard
+    SkillsSystem --> SecureExec
+
+    SkillsSystem --> BuildManager
+    SkillsSystem --> OrchestratorSkill
+    SkillsSystem --> WorktreeManager
+    SkillsSystem --> QAService
+    SkillsSystem --> CICDSkill
+
+    Core --> Supervisor
+
+    Supervisor --> CodeReviewer
+    Supervisor --> TestGenerator
+    Supervisor --> SecurityAuditor
+    Supervisor --> PerformanceAnalyzer
+    Supervisor --> Guardrails
+
+    Guardrails --> MCP
+
+    WorktreeManager --> GitWorktrees
+
+    QAService --> PreMergeHook
+    QAService --> BackgroundQA
+
+    CICDSkill --> Slack
+    CICDSkill --> Discord
+    CICDSkill --> Email
+
+    %% Styling
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef skill fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef supervisor fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef worker fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef comm fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef workflow fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef notify fill:#fff8e1,stroke:#f57f17,stroke-width:2px
+    classDef claude fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+
+    class Core,SkillsSystem core
+    class BuildManager,OrchestratorSkill,WorktreeManager,QAService,CICDSkill skill
+    class Supervisor supervisor
+    class CodeReviewer,TestGenerator,SecurityAuditor,PerformanceAnalyzer,Guardrails worker
+    class MCP,Guardrails comm
+    class GitWorktrees,PreMergeHook,BackgroundQA workflow
+    class Slack,Discord,Email notify
+    class TaskParser,Executor,MultiModelOrch,CostOptimizer,PrivacyGuard,CoworkProd,PromptGuard,SecureExec claude
