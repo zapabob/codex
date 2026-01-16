@@ -1,4 +1,4 @@
-﻿import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/playwright',
@@ -17,9 +17,17 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'cursor',
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'chrome',
+        executablePath: process.env.CURSOR_EXECUTABLE_PATH || undefined,
+      },
+    },
   ],
   webServer: {
-    command: 'cd codex-rs && cargo run --bin codex-gui -- --port 3001',
+    command: 'codex-gui-new.exe --port 3001',
     url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
   },

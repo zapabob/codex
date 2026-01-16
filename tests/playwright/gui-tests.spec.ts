@@ -1,4 +1,4 @@
-﻿import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 test.describe('Codex GUI Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe('Codex GUI Tests', () => {
     ];
 
     for (const element of navElements) {
-      const navItem = page.locator(	ext=);
+      const navItem = page.locator(`text=${element}`);
       await expect(navItem).toBeVisible();
     }
     console.log(' ナビゲーション要素確認成功');
