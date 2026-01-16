@@ -90,8 +90,8 @@ class ResidentAgent:
         # 生産性アシスタント初期化
         self.productivity_assistant = CoworkProductivityAssistant()
 
-        # GUIブリッジ
-        self.gui_bridge = GUIBridge(self)
+        # GUIブリッジ（Apple風デザイン）
+        self.gui_bridge = AppleStyleGUIBridge(self)
 
         # シャットダウンイベント
         self.shutdown_event = threading.Event()
@@ -987,33 +987,207 @@ class ResourceMonitor:
             return {"cpu": 0, "memory": 0, "disk": 0}
 
 
-class GUIBridge:
-    """GUIブリッジクラス"""
+class AppleStyleGUIBridge:
+    """Apple風デザインGUIブリッジクラス"""
 
     def __init__(self, agent: ResidentAgent):
         self.agent = agent
-        self.logger = logging.getLogger("GUIBridge")
+        self.logger = logging.getLogger("AppleStyleGUIBridge")
         self.is_running = False
+        self.gui_process = None
+        self.notification_queue = asyncio.Queue()
 
     async def start(self):
-        """GUIブリッジ起動"""
+        """Apple風GUIブリッジ起動"""
         self.is_running = True
-        self.logger.info("GUIブリッジ起動")
+        self.logger.info("Apple風GUIブリッジ起動")
+
+        # GUIプロセス起動
+        try:
+            import subprocess
+            import sys
+            from pathlib import Path
+
+            gui_script = Path(__file__).parent.parent / "cowork_apple_gui.py"
+            if gui_script.exists():
+                self.gui_process = subprocess.Popen([
+                    sys.executable, str(gui_script)
+                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                self.logger.info("Apple風GUIプロセス起動成功")
+            else:
+                self.logger.warning("Apple風GUIスクリプトが見つかりません")
+
+        except Exception as e:
+            self.logger.error(f"GUIプロセス起動エラー: {e}")
+
+        # 通知処理タスク起動
+        asyncio.create_task(self._process_notifications())
 
     async def stop(self):
-        """GUIブリッジ停止"""
+        """Apple風GUIブリッジ停止"""
         self.is_running = False
-        self.logger.info("GUIブリッジ停止")
+
+        # GUIプロセス終了
+        if self.gui_process:
+            try:
+                self.gui_process.terminate()
+                await asyncio.sleep(2)
+                if self.gui_process.poll() is None:
+                    self.gui_process.kill()
+                self.logger.info("GUIプロセス正常終了")
+            except Exception as e:
+                self.logger.error(f"GUIプロセス終了エラー: {e}")
+
+        self.logger.info("Apple風GUIブリッジ停止")
 
     async def notify_task_completion(self, task: Dict[str, Any]):
-        """タスク完了通知"""
-        # GUIへの通知ロジック
-        pass
+        """タスク完了通知（Apple風デザイン）"""
+        await self._send_notification({
+            "type": "task_completion",
+            "task": task,
+            "style": "apple_success"
+        })
 
     async def notify_task_error(self, task: Dict[str, Any]):
-        """タスクエラー通知"""
-        # GUIへの通知ロジック
-        pass
+        """タスクエラー通知（Apple風デザイン）"""
+        await self._send_notification({
+            "type": "task_error",
+            "task": task,
+            "style": "apple_error"
+        })
+
+    async def show_feature_search(self):
+        """機能検索ウィンドウ表示"""
+        await self._send_notification({
+            "type": "show_feature_search",
+            "style": "apple_modal"
+        })
+
+    async def show_settings(self):
+        """設定ウィンドウ表示"""
+        await self._send_notification({
+            "type": "show_settings",
+            "style": "apple_sheet"
+        })
+
+    async def _send_notification(self, notification: Dict[str, Any]):
+        """通知送信"""
+        try:
+            await self.notification_queue.put(notification)
+        except Exception as e:
+            self.logger.error(f"通知送信エラー: {e}")
+
+    async def _process_notifications(self):
+        """通知処理（Apple風アニメーション付き）"""
+        while self.is_running:
+            try:
+                notification = await asyncio.wait_for(
+                    self.notification_queue.get(), timeout=1.0
+                )
+
+                # Apple風通知処理
+                await self._handle_apple_notification(notification)
+
+            except asyncio.TimeoutError:
+                continue
+            except Exception as e:
+                self.logger.error(f"通知処理エラー: {e}")
+
+    async def _handle_apple_notification(self, notification: Dict[str, Any]):
+        """Apple風通知ハンドリング"""
+        notification_type = notification.get("type")
+        style = notification.get("style", "apple_default")
+
+        # Apple風通知スタイル適用
+        if notification_type == "task_completion":
+            await self._show_apple_success_notification(notification["task"])
+        elif notification_type == "task_error":
+            await self._show_apple_error_notification(notification["task"])
+        elif notification_type == "show_feature_search":
+            await self._show_apple_feature_search()
+        elif notification_type == "show_settings":
+            await self._show_apple_settings()
+
+    async def _show_apple_success_notification(self, task: Dict[str, Any]):
+        """Apple風成功通知"""
+        # macOSスタイルの通知（Windowsでは代替）
+        try:
+            import platform
+            if platform.system() == "Darwin":
+                await self._show_macos_notification(task, "success")
+            else:
+                await self._show_windows_notification(task, "success")
+        except Exception as e:
+            self.logger.error(f"成功通知エラー: {e}")
+
+    async def _show_apple_error_notification(self, task: Dict[str, Any]):
+        """Apple風エラー通知"""
+        try:
+            import platform
+            if platform.system() == "Darwin":
+                await self._show_macos_notification(task, "error")
+            else:
+                await self._show_windows_notification(task, "error")
+        except Exception as e:
+            self.logger.error(f"エラー通知エラー: {e}")
+
+    async def _show_macos_notification(self, task: Dict[str, Any], notification_type: str):
+        """macOS通知"""
+        import subprocess
+
+        title = "Cowork Assistant"
+        if notification_type == "success":
+            message = f"✅ タスク完了: {task.get('description', '')[:50]}..."
+        else:
+            message = f"❌ タスク失敗: {task.get('description', '')[:50]}..."
+
+        try:
+            subprocess.run([
+                "osascript", "-e",
+                f'display notification "{message}" with title "{title}"'
+            ], check=True)
+        except Exception as e:
+            self.logger.error(f"macOS通知エラー: {e}")
+
+    async def _show_windows_notification(self, task: Dict[str, Any], notification_type: str):
+        """Windows通知"""
+        try:
+            from win10toast import ToastNotifier
+
+            toaster = ToastNotifier()
+
+            title = "Cowork Assistant"
+            if notification_type == "success":
+                message = f"✅ タスク完了: {task.get('description', '')[:50]}..."
+                icon_path = None  # 成功アイコン
+            else:
+                message = f"❌ タスク失敗: {task.get('description', '')[:50]}..."
+                icon_path = None  # エラーアイコン
+
+            toaster.show_toast(title, message, icon_path=icon_path, duration=5)
+
+        except ImportError:
+            # win10toastがインストールされていない場合
+            self.logger.info(f"Windows通知: {title} - {message}")
+        except Exception as e:
+            self.logger.error(f"Windows通知エラー: {e}")
+
+    async def _show_apple_feature_search(self):
+        """Apple風機能検索表示"""
+        # GUIプロセスに機能検索を表示するよう通知
+        self.logger.info("Apple風機能検索ウィンドウ表示要求")
+
+    async def _show_apple_settings(self):
+        """Apple風設定表示"""
+        # GUIプロセスに設定を表示するよう通知
+        self.logger.info("Apple風設定ウィンドウ表示要求")
+
+
+# 旧GUIBridgeクラスとの互換性維持
+class GUIBridge(AppleStyleGUIBridge):
+    """後方互換性のためのGUIBridgeクラス"""
+    pass
 
 
 async def main():

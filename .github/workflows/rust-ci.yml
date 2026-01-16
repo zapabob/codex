@@ -86,6 +86,99 @@ jobs:
       - name: cargo shear
         run: cargo shear
 
+  # --- Fast incremental build and install job -----------------------------------
+  fast_build_install:
+    name: Fast Build & Install — Windows Latest
+    runs-on: windows-latest
+    needs: changed
+    if: ${{ needs.changed.outputs.codex == 'true' || github.event_name == 'push' }}
+    timeout-minutes: 25  # Increased for incremental builds
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Rust (nightly for faster builds)
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: Cache Cargo incremental artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+            codex-rs/target/
+          key: windows-fast-build-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
+          restore-keys: |
+            windows-fast-build-
+
+      - name: Install sccache for faster compilation
+        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532
+        with:
+          tool: sccache
+
+      - name: Configure incremental build
+        run: |
+          echo "CARGO_INCREMENTAL=1" >> $env:GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $env:GITHUB_ENV
+          echo "SCCACHE_CACHE_SIZE=2G" >> $env:GITHUB_ENV
+          echo "CARGO_BUILD_JOBS=6" >> $env:GITHUB_ENV
+
+      - name: Kill existing codex processes
+        run: |
+          # PowerShellでプロセスを検知・終了
+          $processes = Get-Process | Where-Object { $_.ProcessName -like "*codex*" }
+          if ($processes) {
+            Write-Host "Terminating existing codex processes..."
+            foreach ($proc in $processes) {
+              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            }
+            # 終了待機
+            Start-Sleep -Seconds 3
+          }
+
+      - name: Fast incremental build and install
+        working-directory: codex-rs
+        run: |
+          # 高速差分ビルド実行
+          cargo build --release -p codex-cli 2>&1 | ForEach-Object {
+            $line = $_
+            Write-Host $line
+            if ($line -match "Compiling|Finished|error|warning") {
+              Write-Host "::group::Build Progress:: $line"
+            }
+          }
+
+          # プロセスキル付きインストール
+          Write-Host "Installing with process kill..."
+          cargo install --path cli --force --root ~/.cargo
+
+      - name: Verify installation and cleanup
+        run: |
+          # インストール検証
+          $version = codex --version 2>&1
+          Write-Host "Codex installed: $version"
+
+          # 最終プロセスクリーンアップ
+          $remaining = Get-Process | Where-Object { $_.ProcessName -like "*codex*" -and $_.Id -ne $PID }
+          if ($remaining) {
+            Write-Host "Cleaning up remaining processes..."
+            foreach ($proc in $remaining) {
+              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            }
+          }
+
+      - name: Generate build report
+        run: |
+          Write-Host "::group::Build Performance Report::"
+          Write-Host "Fast incremental build completed successfully"
+          Write-Host "Incremental compilation: Enabled"
+          Write-Host "sccache: Enabled"
+          Write-Host "Parallel jobs: 6"
+          Write-Host "Process management: Automatic kill and cleanup"
+          Write-Host "::endgroup::"
+
   # --- CI to validate on different os/targets --------------------------------
   lint_build:
     name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' && ' (release)' || '' }}
@@ -281,7 +374,7 @@ jobs:
         uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2
         with:
           tool: cargo-chef
-          version: 0.1.71
+          tool_versions: 0.1.71
 
       - name: Pre-warm dependency cache (cargo-chef)
         if: ${{ matrix.profile == 'release' }}

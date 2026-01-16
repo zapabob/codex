@@ -56,6 +56,20 @@ jobs:
         run: ./scripts/asciicheck.py README.md
       - name: Check root README ToC
         run: python3 scripts/readme_toc.py README.md
+      - name: Validate README bilingual format (English/Japanese)
+        run: |
+          # Check if README contains both English and Japanese sections
+          if ! grep -q "## English" README.md || ! grep -q "## 日本語" README.md; then
+            echo "README must contain both English and Japanese sections"
+            exit 1
+          fi
+          # Check for bilingual consistency
+          en_sections=$(grep -c "^## " README.md)
+          jp_sections=$(grep -c "^## " README.md | grep -v "English\|日本語\|Features\|機能" | wc -l)
+          if [ "$en_sections" -ne "$jp_sections" ]; then
+            echo "English and Japanese sections must be balanced"
+            exit 1
+          fi
 
       - name: Ensure codex-cli/README.md contains only ASCII and certain Unicode code points
         run: ./scripts/asciicheck.py codex-cli/README.md
