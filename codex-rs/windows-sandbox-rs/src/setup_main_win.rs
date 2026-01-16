@@ -8,12 +8,14 @@ use anyhow::Result;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use codex_windows_sandbox::convert_string_sid_to_sid;
+use codex_windows_sandbox::dpapi_protect;
 use codex_windows_sandbox::ensure_allow_mask_aces_with_inheritance;
 use codex_windows_sandbox::ensure_allow_write_aces;
 use codex_windows_sandbox::hide_newly_created_users;
 use codex_windows_sandbox::load_or_create_cap_sids;
 use codex_windows_sandbox::log_note;
 use codex_windows_sandbox::path_mask_allows;
+use codex_windows_sandbox::SandboxUsersFile;
 use codex_windows_sandbox::sandbox_dir;
 use codex_windows_sandbox::string_from_sid_bytes;
 use codex_windows_sandbox::to_wide;
@@ -232,7 +234,7 @@ fn lock_sandbox_dir(
     dir: &Path,
     real_user: &str,
     sandbox_group_sid: &[u8],
-    _log: &mut File,
+    log: &mut File,
 ) -> Result<()> {
     std::fs::create_dir_all(dir)?;
     let system_sid = resolve_sid("SYSTEM")?;
