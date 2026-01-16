@@ -6,8 +6,8 @@ on:
 
 jobs:
   build-test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     env:
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
@@ -80,8 +80,8 @@ jobs:
         run: pnpm run format
 
   mcp-integration-test:
-    runs-on: windows-latest
-    timeout-minutes: 15
+    runs-on: windows-2022
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -181,8 +181,8 @@ jobs:
 
   gui-tests:
     name: GUI Integration Tests
-    runs-on: windows-latest
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     needs: build-test
     steps:
       - name: Checkout repository
