@@ -116,37 +116,37 @@ function Add-AvastExclusions {
     }
 
     Write-Host "除外設定を追加するパス:" -ForegroundColor Cyan
-    foreach ($exclusion in $exclusions) {
-        Write-Host "  - $exclusion" -ForegroundColor Gray
+        foreach ($exclusion in $exclusions) {
+            Write-Host "  - $exclusion" -ForegroundColor Gray
 
-        # Avastのコマンドラインで除外設定を追加
-        # 注意: Avastのコマンドラインインターフェースはバージョンによって異なる
-        try {
-            # レジストリ経由で除外設定を追加（Avastの設定方法）
-            $regPath = "HKLM:\SOFTWARE\AVAST Software\Avast\properties"
-            if (!(Test-Path $regPath)) {
-                $regPath = "HKLM:\SOFTWARE\WOW6432Node\AVAST Software\Avast\properties"
-            }
-
-            if (Test-Path $regPath) {
-                # 除外リストに追加（実際のレジストリパスはAvastバージョンによる）
-                $currentExclusions = (Get-ItemProperty -Path $regPath -Name "Exclusions" -ErrorAction SilentlyContinue).Exclusions
-                if ($currentExclusions) {
-                    $currentExclusions += ";$exclusion"
-                } else {
-                    $currentExclusions = $exclusion
+            # Avastのコマンドラインで除外設定を追加
+            # 注意: Avastのコマンドラインインターフェースはバージョンによって異なる
+            try {
+                # レジストリ経由で除外設定を追加（Avastの設定方法）
+                $regPath = "HKLM:\SOFTWARE\AVAST Software\Avast\properties"
+                if (!(Test-Path $regPath)) {
+                    $regPath = "HKLM:\SOFTWARE\WOW6432Node\AVAST Software\Avast\properties"
                 }
 
-                Set-ItemProperty -Path $regPath -Name "Exclusions" -Value $currentExclusions -Type String
-                Write-Host "    ✓ 追加完了: $exclusion" -ForegroundColor Green
-            } else {
-                Write-Host "    ⚠ レジストリパスが見つかりません: $regPath" -ForegroundColor Yellow
+                if (Test-Path $regPath) {
+                    # 除外リストに追加（実際のレジストリパスはAvastバージョンによる）
+                    $currentExclusions = (Get-ItemProperty -Path $regPath -Name "Exclusions" -ErrorAction SilentlyContinue).Exclusions
+                    if ($currentExclusions) {
+                        $currentExclusions += ";$exclusion"
+                    } else {
+                        $currentExclusions = $exclusion
+                    }
+
+                    Set-ItemProperty -Path $regPath -Name 'Exclusions' -Value $currentExclusions -Type String
+                    Write-Host "    ✓ 追加完了: $exclusion" -ForegroundColor Green
+                } else {
+                    Write-Host "    ⚠ レジストリパスが見つかりません: $regPath" -ForegroundColor Yellow
+                }
+            }
+            catch {
+                Write-Host "    ✗ 追加失敗: $exclusion - $($_.Exception.Message)" -ForegroundColor Red
             }
         }
-        catch {
-            Write-Host "    ✗ 追加失敗: $exclusion - $($_.Exception.Message)" -ForegroundColor Red
-        }
-    }
 
     Write-Host ""
     Write-Host "Avast GUIでの除外設定確認をおすすめします:" -ForegroundColor Cyan

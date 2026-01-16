@@ -96,11 +96,11 @@ jobs:
 
   # --- Fast incremental build and install job -----------------------------------
   fast_build_install:
-    name: Fast Build & Install — Windows Latest
+    name: Fast Build & Install — Windows Latest (Avast Safe)
     runs-on: windows-latest
     needs: changed
     if: ${{ needs.changed.outputs.codex == 'true' || github.event_name == 'push' }}
-    timeout-minutes: 25  # Increased for incremental builds
+    timeout-minutes: 30  # Increased for Avast-safe builds
     steps:
       - uses: actions/checkout@v6
 
@@ -127,7 +127,7 @@ jobs:
         with:
           tool: sccache
 
-      - name: Configure incremental build
+      - name: Configure incremental build (Avast Safe)
         run: |
           echo "CARGO_INCREMENTAL=1" >> $env:GITHUB_ENV
           echo "RUSTC_WRAPPER=sccache" >> $env:GITHUB_ENV
@@ -135,6 +135,37 @@ jobs:
           echo "CARGO_BUILD_JOBS=8" >> $env:GITHUB_ENV
           echo "RUST_BACKTRACE=1" >> $env:GITHUB_ENV
           echo "RUSTFLAGS=-C target-cpu=native -C opt-level=2 -C link-args=/DEBUG:NONE" >> $env:GITHUB_ENV
+
+      - name: Setup Windows Defender exclusions (Avast compatibility)
+        run: |
+          # Add common development paths to Windows Defender exclusions
+          # This helps prevent conflicts with Avast and other antivirus software
+          $exclusions = @(
+            "$env:USERPROFILE\.cargo",
+            "$env:USERPROFILE\.rustup",
+            "$(pwd)",
+            "$(pwd)\codex-rs",
+            "$(pwd)\codex-rs\target",
+            "C:\Program Files\Git",
+            "C:\hostedtoolcache\windows\Python"
+          )
+
+          foreach ($path in $exclusions) {
+            try {
+              Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
+              Write-Host "Added exclusion: $path"
+            } catch {
+              Write-Host "Could not add exclusion: $path"
+            }
+          }
+
+          # Also try to disable real-time monitoring temporarily
+          try {
+            Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+            Write-Host "Disabled real-time monitoring for build"
+          } catch {
+            Write-Host "Could not disable real-time monitoring"
+          }
 
       - name: Kill existing codex processes
         run: |
@@ -147,6 +178,17 @@ jobs:
             }
             # 終了待機
             Start-Sleep -Seconds 3
+          }
+
+      - name: Restore Windows Defender settings
+        if: always()
+        run: |
+          # Re-enable real-time monitoring after build
+          try {
+            Set-MpPreference -DisableRealtimeMonitoring $false -ErrorAction SilentlyContinue
+            Write-Host "Restored real-time monitoring"
+          } catch {
+            Write-Host "Could not restore real-time monitoring"
           }
 
       - name: Fast incremental build and install

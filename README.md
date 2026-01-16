@@ -107,6 +107,37 @@ npm install -g @zapabob/codex
 # Or download a prebuilt binary from GitHub Releases (see Releases page).
 ```
 
+#### Build from Source (Avast/Windows Defender対策)
+```bash
+# If you encounter antivirus false positives during build:
+# 1. Run simple Avast exclusion setup
+powershell -ExecutionPolicy Bypass -File scripts/setup_avast_exclusions_simple.ps1
+
+# 2. Use Avast-safe build script
+powershell -ExecutionPolicy Bypass -File scripts/avast_safe_build.ps1 -Release -Install
+
+# Or manually exclude these paths in your antivirus:
+# - %USERPROFILE%\.cargo
+# - %USERPROFILE%\.rustup
+# - [project-root]\codex-rs
+# - [project-root]\codex-rs\target
+```
+
+#### Troubleshooting Build Issues
+```bash
+# If you encounter build errors:
+# 1. Clean build cache
+cargo clean
+
+# 2. Check antivirus exclusions
+.\scripts\setup_avast_exclusions_simple.ps1
+
+# 3. Build with verbose output
+cargo build --release --all-features -v
+
+# 4. Check build logs for specific errors
+```
+
 #### Verify Installation
 ```bash
 codex --version
