@@ -149,12 +149,16 @@ jobs:
         args: |
           🔬 **QA Analysis Complete**
           **PR:** #${{ github.event.number }} - ${{ github.event.pull_request.title }}
-          **Status:** ${{ job.status }}
-          **Details:** <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>
-        channel: 'qa-alerts'
-      env:
-        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      continue-on-error: true
+          args: |
+            🔬 **QA Analysis Complete**
+            **PR:** #${{ github.event.number }} - ${{ github.event.pull_request.title }}
+            **Status:** ${{ job.status }}
+            **Status:** ${{ job.status }}
+            **Details:** <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+          channel: 'qa-alerts'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        continue-on-error: true
 
     - name: Comment PR with QA Results
       if: always() && github.event_name == 'pull_request' && steps.qa-analysis.outputs.qa_report_exists == 'true'
