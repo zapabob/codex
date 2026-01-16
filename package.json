@@ -59,8 +59,10 @@
     "README.md",
     "LICENSE"
   ],
-  "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "playwright": "^1.57.0"
+  },
   "pnpm": {
     "overrides": {
       "glob": ">=10.5.0",

@@ -27,8 +27,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'codex-gui-new.exe --port 3001',
-    url: 'http://localhost:3001',
+    command: 'codex-gui-new.exe --port 8787',
+    url: 'http://localhost:8787',
     reuseExistingServer: !process.env.CI,
   },
 });

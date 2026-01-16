@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Codex GUI Tests', () => {
   test.beforeEach(async ({ page }) => {
-    // GUIサーバーがlocalhost:3001で起動している前提
-    await page.goto('http://localhost:3001');
+    // GUIサーバーがlocalhost:8787で起動している前提
+    await page.goto('http://localhost:8787');
     await page.waitForLoadState('networkidle');
   });
 
