@@ -1,11 +1,13 @@
 {
   "name": "@zapabob/codex",
-  "version": "2.10.1",
-  "description": "AI-Native OS with 4D Git Visualization & VR/AR Support - The world's first AI operating system with kernel integration",
+  "version": "2.11.0",
+  "description": "ClaudeCode Integration - Revolutionary AI development with autonomous features, multi-model intelligence, and enterprise-grade privacy protection",
   "keywords": [
     "ai",
+    "claudecode-integration",
     "coding-assistant",
     "llm",
+    "multi-model",
     "git-visualization",
     "vr",
     "ar",
@@ -15,7 +17,11 @@
     "kernel",
     "sub-agents",
     "mcp",
-    "deep-research"
+    "deep-research",
+    "cowork-productivity",
+    "prompt-injection-protection",
+    "privacy-first",
+    "cost-optimization"
   ],
   "main": "index.js",
   "bin": {
@@ -23,7 +29,10 @@
   },
   "scripts": {
     "postinstall": "node scripts/install-binary.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublishOnly": "echo \"Building Codex v2.11.0 - ClaudeCode Integration\" && npm run build",
+    "build": "echo \"Codex v2.11.0 is pre-built - no additional build step required\"",
+    "test": "echo \"Run tests with: npm run test:integration\" && exit 1",
+    "test:integration": "echo \"Integration tests for ClaudeCode features would run here\""
   },
   "repository": {
     "type": "git",
