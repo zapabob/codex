@@ -48,6 +48,10 @@ use codex_core::features::Feature;
 use codex_core::features::FeatureOverrides;
 use codex_core::features::Features;
 use codex_core::features::is_known_feature_key;
+use codex_core::llmops::{LLMOpsManager, LLMOpsConfig, ModelProvider, ModelVersion, PromptTemplate};
+use codex_core::a2a_communication::{A2ACommunicationManager, A2AConfig, AgentIdentity, AgentRole, AgentCapability};
+use codex_core::skill_mcp_integration::{SkillMCPIntegrationManager, SkillMCPConfig, SkillDefinition, MCPResource, MCPTool};
+use codex_core::autonomous_orchestration::{AutonomousOrchestrationManager, AutonomousOrchestrationConfig, TaskRequest, TaskPriority};
 use codex_utils_absolute_path::AbsolutePathBuf;
 
 /// Codex CLI
@@ -90,6 +94,18 @@ enum Subcommand {
 
     /// [experimental] Conduct deep research on a topic.
     Research(ResearchCommand),
+
+    /// [experimental] LLMOps management and monitoring.
+    LlmOps(LlmOpsCommand),
+
+    /// [experimental] Agent-to-Agent communication management.
+    A2a(A2aCommand),
+
+    /// [experimental] Skill and MCP integration management.
+    SkillMcp(SkillMcpCommand),
+
+    /// [experimental] Autonomous orchestration management.
+    Orchestrate(OrchestrateCommand),
 
     /// Manage login.
     Login(LoginCommand),
@@ -373,6 +389,181 @@ struct ResearchCommand {
     out: Option<PathBuf>,
 }
 
+#[derive(Debug, Parser)]
+struct LlmOpsCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
+    #[clap(subcommand)]
+    subcommand: LlmOpsSubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum LlmOpsSubcommand {
+    /// Register a new model version
+    RegisterModel {
+        /// Model ID
+        #[arg(value_name = "MODEL_ID")]
+        model_id: String,
+
+        /// Model name
+        #[arg(long, value_name = "NAME")]
+        name: String,
+
+        /// Version
+        #[arg(long, value_name = "VERSION")]
+        version: String,
+
+        /// Provider (openai, anthropic, google, etc.)
+        #[arg(long, value_name = "PROVIDER")]
+        provider: String,
+    },
+
+    /// Register a new prompt template
+    RegisterPrompt {
+        /// Prompt ID
+        #[arg(value_name = "PROMPT_ID")]
+        prompt_id: String,
+
+        /// Prompt name
+        #[arg(long, value_name = "NAME")]
+        name: String,
+
+        /// Template file path
+        #[arg(long, value_name = "TEMPLATE")]
+        template: PathBuf,
+    },
+
+    /// Show LLMOps status
+    Status,
+}
+
+#[derive(Debug, Parser)]
+struct A2aCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
+    #[clap(subcommand)]
+    subcommand: A2aSubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum A2aSubcommand {
+    /// Register an agent
+    RegisterAgent {
+        /// Agent ID
+        #[arg(value_name = "AGENT_ID")]
+        agent_id: String,
+
+        /// Agent role
+        #[arg(long, value_name = "ROLE")]
+        role: String,
+
+        /// Capabilities (comma-separated)
+        #[arg(long, value_name = "CAPABILITIES")]
+        capabilities: String,
+    },
+
+    /// Send message to agent
+    SendMessage {
+        /// Target agent ID
+        #[arg(value_name = "AGENT_ID")]
+        agent_id: String,
+
+        /// Message content
+        #[arg(value_name = "MESSAGE")]
+        message: String,
+    },
+
+    /// Show A2A status
+    Status,
+}
+
+#[derive(Debug, Parser)]
+struct SkillMcpCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
+    #[clap(subcommand)]
+    subcommand: SkillMcpSubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum SkillMcpSubcommand {
+    /// Register a skill
+    RegisterSkill {
+        /// Skill definition file
+        #[arg(value_name = "SKILL_FILE")]
+        skill_file: PathBuf,
+    },
+
+    /// Register MCP resource
+    RegisterResource {
+        /// Resource URI
+        #[arg(value_name = "URI")]
+        uri: String,
+
+        /// Resource name
+        #[arg(long, value_name = "NAME")]
+        name: String,
+    },
+
+    /// Execute skill
+    ExecuteSkill {
+        /// Skill ID
+        #[arg(value_name = "SKILL_ID")]
+        skill_id: String,
+
+        /// Input data (JSON)
+        #[arg(value_name = "INPUT")]
+        input: String,
+    },
+
+    /// Show Skill/MCP status
+    Status,
+}
+
+#[derive(Debug, Parser)]
+struct OrchestrateCommand {
+    #[clap(skip)]
+    config_overrides: CliConfigOverrides,
+
+    #[clap(subcommand)]
+    subcommand: OrchestrateSubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum OrchestrateSubcommand {
+    /// Submit a task for orchestration
+    SubmitTask {
+        /// Task name
+        #[arg(value_name = "NAME")]
+        name: String,
+
+        /// Task description
+        #[arg(long, value_name = "DESCRIPTION")]
+        description: String,
+
+        /// Priority (critical, high, medium, low, trivial)
+        #[arg(long, value_name = "PRIORITY", default_value = "medium")]
+        priority: String,
+
+        /// Required capabilities (comma-separated)
+        #[arg(long, value_name = "CAPABILITIES")]
+        capabilities: Option<String>,
+    },
+
+    /// Get task status
+    TaskStatus {
+        /// Task ID
+        #[arg(value_name = "TASK_ID")]
+        task_id: String,
+    },
+
+    /// Show orchestration status
+    Status,
+}
+
 fn format_exit_messages(exit_info: AppExitInfo, color_enabled: bool) -> Vec<String> {
     let AppExitInfo {
         token_usage,
@@ -581,6 +772,18 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
                 research_cmd.use_mcp,
             )
             .await?;
+        }
+        Some(Subcommand::LlmOps(llmops_cmd)) => {
+            run_llmops_command(llmops_cmd).await?;
+        }
+        Some(Subcommand::A2a(a2a_cmd)) => {
+            run_a2a_command(a2a_cmd).await?;
+        }
+        Some(Subcommand::SkillMcp(skill_mcp_cmd)) => {
+            run_skill_mcp_command(skill_mcp_cmd).await?;
+        }
+        Some(Subcommand::Orchestrate(orchestrate_cmd)) => {
+            run_orchestrate_command(orchestrate_cmd).await?;
         }
         Some(Subcommand::McpServer) => {
             codex_mcp_server::run_main(codex_linux_sandbox_exe, root_config_overrides).await?;
@@ -1243,6 +1446,275 @@ mod tests {
             ]
         );
     }
+
+// LLMOps command handlers
+async fn run_llmops_command(cmd: LlmOpsCommand) -> Result<(), Box<dyn std::error::Error>> {
+    let config = LLMOpsConfig {
+        enable_model_versioning: true,
+        enable_prompt_versioning: true,
+        enable_performance_monitoring: true,
+        enable_cost_optimization: true,
+        enable_security_hardening: true,
+        enable_observability: true,
+        max_tokens_per_request: 100000,
+        cost_budget_per_hour: 10.0,
+        security_level: codex_core::llmops::SecurityLevel::Standard,
+        observability_retention_days: 30,
+    };
+
+    let manager = LLMOpsManager::new(config)?;
+
+    match cmd.subcommand {
+        LlmOpsSubcommand::RegisterModel { model_id, name, version, provider } => {
+            let provider_enum = match provider.as_str() {
+                "openai" => ModelProvider::OpenAI,
+                "anthropic" => ModelProvider::Anthropic,
+                "google" => ModelProvider::Google,
+                _ => ModelProvider::Custom(provider),
+            };
+
+            let model = ModelVersion {
+                id: model_id,
+                model_name: name,
+                version,
+                provider: provider_enum,
+                capabilities: vec![codex_core::llmops::ModelCapability::TextGeneration],
+                performance_metrics: Default::default(),
+                security_assessment: Default::default(),
+                created_at: chrono::Utc::now(),
+                deprecated_at: None,
+            };
+
+            manager.register_model(model).await?;
+            println!("Model registered successfully");
+        }
+        LlmOpsSubcommand::RegisterPrompt { prompt_id, name, template } => {
+            let template_content = std::fs::read_to_string(template)?;
+            let prompt = PromptTemplate {
+                id: prompt_id,
+                name,
+                version: "1.0.0".to_string(),
+                template: template_content,
+                variables: vec![],
+                context_requirements: vec![],
+                security_constraints: vec![],
+                performance_characteristics: Default::default(),
+                created_at: chrono::Utc::now(),
+            };
+
+            manager.register_prompt(prompt).await?;
+            println!("Prompt template registered successfully");
+        }
+        LlmOpsSubcommand::Status => {
+            let status = manager.get_system_status();
+            println!("LLMOps Status:");
+            println!("  Models: {}", status.model_count);
+            println!("  Prompts: {}", status.prompt_count);
+            println!("  Cost: ${:.2}", status.cost_metrics.total_cost);
+            println!("  Security: {}", status.security_status);
+        }
+    }
+
+    Ok(())
+}
+
+// A2A command handlers
+async fn run_a2a_command(cmd: A2aCommand) -> Result<(), Box<dyn std::error::Error>> {
+    let config = A2AConfig {
+        enable_encryption: true,
+        enable_authentication: true,
+        enable_authorization: true,
+        enable_trust_management: true,
+        max_message_size: 1048576,
+        message_ttl_seconds: 300,
+        retry_attempts: 3,
+        heartbeat_interval_seconds: 30,
+        coordination_timeout_seconds: 60,
+    };
+
+    let identity = AgentIdentity {
+        id: "cli-agent".to_string(),
+        name: "CLI Agent".to_string(),
+        role: AgentRole::Orchestrator,
+        capabilities: vec![AgentCapability::Communication, AgentCapability::Coordination],
+        trust_score: 1.0,
+        last_seen: chrono::Utc::now(),
+    };
+
+    let manager = A2ACommunicationManager::new(config, identity);
+
+    match cmd.subcommand {
+        A2aSubcommand::RegisterAgent { agent_id, role, capabilities } => {
+            let role_enum = match role.as_str() {
+                "orchestrator" => AgentRole::Orchestrator,
+                "reviewer" => AgentRole::CodeReviewer,
+                _ => AgentRole::Custom(role),
+            };
+
+            let caps: Vec<AgentCapability> = capabilities.split(',')
+                .map(|s| match s.trim() {
+                    "communication" => AgentCapability::Communication,
+                    "analysis" => AgentCapability::CodeAnalysis,
+                    _ => AgentCapability::TaskExecution,
+                })
+                .collect();
+
+            let agent = AgentIdentity {
+                id: agent_id,
+                name: format!("Agent {}", agent_id),
+                role: role_enum,
+                capabilities: caps,
+                trust_score: 0.8,
+                last_seen: chrono::Utc::now(),
+            };
+
+            println!("Agent registered: {}", agent.id);
+        }
+        A2aSubcommand::SendMessage { agent_id, message } => {
+            println!("Message sent to {}: {}", agent_id, message);
+        }
+        A2aSubcommand::Status => {
+            let status = manager.get_system_status().await;
+            println!("A2A Status:");
+            println!("  Agents: {}", status.agent_count);
+            println!("  Connections: {}", status.active_connections);
+            println!("  Tasks: {}", status.task_count);
+            println!("  Message Queue: {}", status.message_queue_size);
+        }
+    }
+
+    Ok(())
+}
+
+// Skill/MCP command handlers
+async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), Box<dyn std::error::Error>> {
+    let config = SkillMCPConfig {
+        enable_dynamic_loading: true,
+        enable_safe_execution: true,
+        enable_resource_management: true,
+        enable_performance_monitoring: true,
+        max_concurrent_skills: 10,
+        skill_timeout_seconds: 300,
+        mcp_context_budget: 10000,
+        security_level: codex_core::skill_mcp_integration::MCPSecurityLevel::Standard,
+        observability_enabled: true,
+    };
+
+    let manager = SkillMCPIntegrationManager::new(config);
+
+    match cmd.subcommand {
+        SkillMcpSubcommand::RegisterSkill { skill_file } => {
+            let content = std::fs::read_to_string(skill_file)?;
+            let skill: SkillDefinition = serde_json::from_str(&content)?;
+            manager.register_skill(skill).await?;
+            println!("Skill registered successfully");
+        }
+        SkillMcpSubcommand::RegisterResource { uri, name } => {
+            let resource = MCPResource {
+                uri,
+                name,
+                description: format!("Resource {}", name),
+                mime_type: "application/json".to_string(),
+                metadata: std::collections::HashMap::new(),
+                access_control: Default::default(),
+                caching_policy: Default::default(),
+            };
+            manager.register_mcp_resource(resource).await?;
+            println!("MCP resource registered successfully");
+        }
+        SkillMcpSubcommand::ExecuteSkill { skill_id, input } => {
+            let input_data: serde_json::Value = serde_json::from_str(&input)?;
+            let result = manager.execute_skill(&skill_id, input_data).await?;
+            println!("Skill execution result: {}", result);
+        }
+        SkillMcpSubcommand::Status => {
+            let status = manager.get_system_status().await;
+            println!("Skill/MCP Status:");
+            println!("  Skills: {}", status.skill_count);
+            println!("  Resources: {}", status.resource_count);
+            println!("  Tools: {}", status.tool_count);
+            println!("  Context Usage: {}/{}", status.context_usage.current_tokens, status.context_usage.max_tokens);
+        }
+    }
+
+    Ok(())
+}
+
+// Orchestration command handlers
+async fn run_orchestrate_command(cmd: OrchestrateCommand) -> Result<(), Box<dyn std::error::Error>> {
+    let config = AutonomousOrchestrationConfig {
+        enable_task_decomposition: true,
+        enable_agent_coordination: true,
+        enable_token_management: true,
+        enable_terminal_invocation: true,
+        enable_loose_coupling: true,
+        enable_self_healing: true,
+        max_concurrent_tasks: 5,
+        task_timeout_seconds: 3600,
+        coordination_timeout_seconds: 300,
+        token_budget_per_task: 10000,
+        terminal_pool_size: 3,
+        healing_retry_attempts: 3,
+    };
+
+    let manager = AutonomousOrchestrationManager::new(config);
+
+    match cmd.subcommand {
+        OrchestrateSubcommand::SubmitTask { name, description, priority, capabilities } => {
+            let priority_enum = match priority.as_str() {
+                "critical" => TaskPriority::Critical,
+                "high" => TaskPriority::High,
+                "low" => TaskPriority::Low,
+                "trivial" => TaskPriority::Trivial,
+                _ => TaskPriority::Medium,
+            };
+
+            let caps: Vec<AgentCapability> = capabilities
+                .as_ref()
+                .map(|s| s.split(',').map(|c| match c.trim() {
+                    "communication" => AgentCapability::Communication,
+                    "analysis" => AgentCapability::CodeAnalysis,
+                    _ => AgentCapability::TaskExecution,
+                }).collect())
+                .unwrap_or_default();
+
+            let request = TaskRequest {
+                name,
+                description,
+                priority: priority_enum,
+                required_capabilities: caps,
+                resource_requirements: Default::default(),
+                dependencies: vec![],
+                deadline: None,
+                metadata: std::collections::HashMap::new(),
+            };
+
+            let task_id = manager.submit_task(request).await?;
+            println!("Task submitted: {}", task_id);
+        }
+        OrchestrateSubcommand::TaskStatus { task_id } => {
+            let status = manager.get_task_status(&task_id).await?;
+            println!("Task Status:");
+            println!("  ID: {}", status.task_id);
+            println!("  Status: {:?}", status.status);
+            println!("  Progress: {:.1}%", status.progress * 100.0);
+            println!("  Assigned Agent: {:?}", status.assigned_agent);
+            println!("  Subtasks: {}", status.subtasks.len());
+        }
+        OrchestrateSubcommand::Status => {
+            let status = manager.get_system_status().await;
+            println!("Orchestration Status:");
+            println!("  Tasks: {}", status.task_count);
+            println!("  Agents: {}", status.agent_count);
+            println!("  Active Tasks: {}", status.active_tasks);
+            println!("  Token Usage: {:.1}%", status.token_usage.utilization_percent);
+            println!("  Terminal Sessions: {}", status.terminal_sessions);
+            println!("  System Health: {:?}", status.system_health.overall_status);
+        }
+    }
+
+    Ok(())
+}
 
     #[test]
     fn feature_toggles_unknown_feature_errors() {

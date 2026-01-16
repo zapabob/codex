@@ -143,3 +143,9 @@ pub use compact::content_items_to_text;
 pub use event_mapping::parse_turn_item;
 pub mod compact;
 pub mod otel_init;
+
+// LLMOps, A2A Communication, Skill/MCP Integration, and Autonomous Orchestration
+pub mod llmops;
+pub mod a2a_communication;
+pub mod skill_mcp_integration;
+pub mod autonomous_orchestration;
