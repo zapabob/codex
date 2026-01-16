@@ -24,11 +24,13 @@ pub struct Cli {
     #[arg(long, short = 'm', global = true)]
     pub model: Option<String>,
 
+    /// Use open-source provider.
     #[arg(long = "oss", default_value_t = false)]
     pub oss: bool,
 
-    /// OSS provider to use (lmstudio or ollama)
-    #[arg(long = "oss-provider")]
+    /// Specify which local provider to use (lmstudio, ollama, or ollama-chat).
+    /// If not specified with --oss, will use config default or show selection.
+    #[arg(long = "local-provider")]
     pub oss_provider: Option<String>,
 
     /// Select the sandbox policy to use when executing model-generated shell
@@ -63,25 +65,13 @@ pub struct Cli {
     #[arg(long = "skip-git-repo-check", global = true, default_value_t = false)]
     pub skip_git_repo_check: bool,
 
-    /// Additional directories to include in context
-    #[arg(long = "add-dir", value_name = "DIR")]
+    /// Additional directories that should be writable alongside the primary workspace.
+    #[arg(long = "add-dir", value_name = "DIR", value_hint = clap::ValueHint::DirPath)]
     pub add_dir: Vec<PathBuf>,
 
     /// Path to a JSON Schema file describing the model's final response shape.
     #[arg(long = "output-schema", value_name = "FILE")]
     pub output_schema: Option<PathBuf>,
-
-    /// Complexity threshold for triggering auto-orchestration (0.0-1.0).
-    #[arg(long = "auto-threshold", default_value_t = 0.7)]
-    pub auto_threshold: f64,
-
-    /// Auto-orchestration strategy when threshold is met.
-    #[arg(long = "strategy", value_enum, default_value = "hybrid")]
-    pub strategy: OrchestrationStrategy,
-
-    /// Explicit skills to bias orchestrator selection (comma-separated).
-    #[arg(long = "skills", value_delimiter = ',', value_name = "SKILL,SKILL")]
-    pub skills: Vec<String>,
 
     #[clap(skip)]
     pub config_overrides: CliConfigOverrides,
@@ -113,31 +103,9 @@ pub struct Cli {
 pub enum Command {
     /// Resume a previous session by id or pick the most recent with --last.
     Resume(ResumeArgs),
-    /// Request a code review
+
+    /// Run a code review against the current repository.
     Review(ReviewArgs),
-}
-
-#[derive(Parser, Debug)]
-pub struct ReviewArgs {
-    /// Review uncommitted changes
-    #[arg(long, default_value_t = false)]
-    pub uncommitted: bool,
-
-    /// Base branch to compare against
-    #[arg(long)]
-    pub base: Option<String>,
-
-    /// Specific commit to review
-    #[arg(long)]
-    pub commit: Option<String>,
-
-    /// Title for the commit being reviewed
-    #[arg(long)]
-    pub commit_title: Option<String>,
-
-    /// Custom review instructions
-    #[arg(value_name = "PROMPT", value_hint = clap::ValueHint::Other)]
-    pub prompt: Option<String>,
 }
 
 #[derive(Parser, Debug)]
@@ -148,7 +116,7 @@ pub struct ResumeArgs {
     pub session_id: Option<String>,
 
     /// Resume the most recent recorded session (newest) without specifying an id.
-    #[arg(long = "last", default_value_t = false, conflicts_with = "session_id")]
+    #[arg(long = "last", default_value_t = false)]
     pub last: bool,
 
     /// Optional image(s) to attach to the prompt sent after resuming.
@@ -166,6 +134,41 @@ pub struct ResumeArgs {
     pub prompt: Option<String>,
 }
 
+#[derive(Parser, Debug)]
+pub struct ReviewArgs {
+    /// Review staged, unstaged, and untracked changes.
+    #[arg(
+        long = "uncommitted",
+        default_value_t = false,
+        conflicts_with_all = ["base", "commit", "prompt"]
+    )]
+    pub uncommitted: bool,
+
+    /// Review changes against the given base branch.
+    #[arg(
+        long = "base",
+        value_name = "BRANCH",
+        conflicts_with_all = ["uncommitted", "commit", "prompt"]
+    )]
+    pub base: Option<String>,
+
+    /// Review the changes introduced by a commit.
+    #[arg(
+        long = "commit",
+        value_name = "SHA",
+        conflicts_with_all = ["uncommitted", "base", "prompt"]
+    )]
+    pub commit: Option<String>,
+
+    /// Optional commit title to display in the review summary.
+    #[arg(long = "title", value_name = "TITLE", requires = "commit")]
+    pub commit_title: Option<String>,
+
+    /// Custom review instructions. If `-` is used, read from stdin.
+    #[arg(value_name = "PROMPT", value_hint = clap::ValueHint::Other)]
+    pub prompt: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
 #[value(rename_all = "kebab-case")]
 pub enum Color {
@@ -173,13 +176,4 @@ pub enum Color {
     Never,
     #[default]
     Auto,
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
-#[value(rename_all = "kebab-case")]
-pub enum OrchestrationStrategy {
-    Sequential,
-    Parallel,
-    #[default]
-    Hybrid,
 }

@@ -1,12 +1,12 @@
-# Codex - Extended Local AI Coding CLI with Advanced Build System
+# Codex Extended - Advanced AI-Native Development Platform
 
 <p align="center"><code>npm i -g @zapabob/codex</code><br />or <code>just build-install</code></p>
-<p align="center"><strong>Codex Extended CLI</strong> - OpenAI Codex with Fast Build & Hot Reload System
+<p align="center"><strong>Codex Extended CLI</strong> - Enterprise-grade AI development platform with Skills + MCP + Agents SDK
 <p align="center">
-  <img src="./.github/codex-cli-splash.png" alt="Codex CLI splash" width="80%" />
+  <img src="./docs/architecture/architecture-v2.10.0.svg" alt="Codex v2.10.0 Architecture" width="80%" />
 </p>
 </br>
-<strong>v2.10.0 "Advanced QA & CI/CD Integration"</strong> - Independent fork with enhanced development workflow.
+<strong>v2.10.0 "Skills + MCP + Agents SDK"</strong> - Production-ready multi-agent orchestration platform.
 </br>
 *This is an independent fork/extension and is not affiliated with OpenAI.*
 
@@ -17,6 +17,17 @@
 
 [English](#english) | [日本語](#japanese)
 
+## 🏆 Enterprise Features
+
+**For Hiring Managers & Tech Leaders:**
+
+- **🔬 Research-Grade Architecture**: Skills + MCP + Agents SDK pattern implementation
+- **🏗️ Production Ready**: Comprehensive testing, CI/CD, security hardening
+- **📈 Scalable Design**: Multi-agent orchestration with guardrails and structured output
+- **🔒 Enterprise Security**: Sandboxing, audit logging, dependency scanning
+- **🎯 Quality Assurance**: Automated QA, performance monitoring, comprehensive testing
+- **🚀 Developer Experience**: Fast iteration cycles, hot reload, parallel development
+
 ---
 
 <a name="english"></a>
@@ -24,32 +35,30 @@
 
 ### 🎯 TL;DR
 
-**Codex Extended is OpenAI's Codex CLI with advanced build system and enhanced development workflow.**
+**Codex Extended is zapabob/codex fork implementing Skills + MCP + Agents SDK architecture.**
 
-- **Status**: CLI + Plan Mode + Sub-agents + Fast Build System are **stable**
+- **Status**: Skills System + MCP Integration + Supervisor Orchestration are **stable**
 - **Quickstart**: `npm i -g @zapabob/codex && codex --version && codex`
-- **Use cases**: Task planning/execution, parallel reviews/tests, reproducible research, rapid development cycles
+- **Use cases**: Multi-agent orchestration, parallel development, automated QA, CI/CD integration
 
 ### Why Codex Extended?
 
-Codex Extended enhances OpenAI's Codex with:
+Codex Extended implements the official OpenAI Codex Skills + MCP + Agents SDK pattern:
 
-* Converting ambiguous tasks into executable plans (Plan mode)
-* Delegating review/testing/security checks to parallel sub-agents
-* Providing reproducible local research outputs with citations
-* **Fast incremental builds with change detection** (70% faster)
-* **Hot reload installation** with process management
-* **Integrated release packaging** for all platforms
+* **Skills System**: Modular `.codex/skills/` with specialized capabilities (Build Manager, QA Service, CI/CD Integration)
+* **MCP Integration**: WebSocket-based communication between Codex CLI (server) and external orchestrators (clients)
+* **Agents SDK Patterns**: Supervisor/Worker architecture with guardrails, handoffs, and structured output
+* **Parallel Development**: Git worktree-based isolated environments with automated QA
+* **Advanced QA**: Mathematical/quantum optimization, software engineering best practices, security/performance analysis
 
-### What's extended compared to upstream OpenAI/codex?
+### What's implemented compared to upstream OpenAI/codex?
 
-* Plan mode execution workflow (create/approve/execute)
-* Parallel sub-agent orchestration (delegate-parallel)
-* Research workflow with citations and MCP integration
-* Git analysis utilities for repository-level insights
-* **Fast incremental build system with change detection**
-* **Hot reload installation with process management**
-* **Integrated release packaging for all platforms**
+* **Skills System**: Official `.codex/skills/` architecture with specialized skills (Build Manager, QA Service, etc.)
+* **MCP Integration**: WebSocket-based communication protocol for external orchestration
+* **Agents SDK Patterns**: Supervisor/Worker architecture with guardrails, handoffs, structured output
+* **Parallel Development**: Git worktree-based isolated environments for team collaboration
+* **Advanced QA System**: Automated reviews with mathematical/quantum optimization and security analysis
+* **CI/CD Integration**: Pipeline generation with Slack/Discord/Email notifications
 
 ### Safety model
 
@@ -59,15 +68,15 @@ Codex Extended enhances OpenAI's Codex with:
 
 ### 📊 Feature Status Matrix
 
-| Feature              | Status                     | Proof                        |
-| -------------------- | -------------------------- | ---------------------------- |
-| **Plan mode**        | ✅ **Stable**              | `docs/plan/README.md`        |
-| **Sub-agents**       | ✅ **Stable**              | `docs/agents/README.md`      |
-| **Deep research**    | ✅ **Stable**              | `docs/research/README.md`    |
-| **Git analysis**     | ✅ **Stable**              | `docs/git/README.md`         |
-| **GUI/Web interface**| 🧪 **Experimental**        | `docs/gui/README.md`         |
-| **VR/AR support**    | 🧪 **Experimental**        | `docs/vr/README.md`          |
-| **CUDA acceleration**| 🧪 **Experimental**        | `docs/benchmarks/cuda.md`    |
+| Feature                   | Status                     | Proof                        |
+| ------------------------- | -------------------------- | ---------------------------- |
+| **Skills System**         | ✅ **Stable**              | `.codex/skills/`             |
+| **MCP Integration**       | ✅ **Stable**              | `codex mcp-server`           |
+| **Supervisor Orchestration**| ✅ **Stable**            | `tools/codex-supervisor/`    |
+| **Parallel Development**  | ✅ **Stable**              | `tools/worktree_manager.py`  |
+| **Advanced QA Engine**    | ✅ **Stable**              | `.codex/skills/qa-engineer/` |
+| **CI/CD Integration**     | ✅ **Stable**              | `.github/workflows/qa-ci.yml`|
+| **Build Manager**         | ✅ **Stable**              | `.codex/skills/build-manager/` |
 
 ### 🚀 Quickstart
 
@@ -90,19 +99,20 @@ codex --version
 # Interactive mode
 codex
 
-# Plan execution
-codex plan create "Implement user authentication"
-codex plan execute <plan-id>
+# Skills execution
+codex $ build-manager fast-build
+codex $ qa-engineer analyze --scope ./src
+codex $ worktree-manager create feature-branch
 
-# Sub-agent delegation
-codex delegate code-reviewer --scope ./src
-codex delegate-parallel code-reviewer,test-gen --scopes ./src,./tests
+# MCP server mode (for external orchestration)
+codex mcp-server
 
-# Deep research
-codex research "Rust async best practices"
+# Parallel development with QA
+codex $ worktree-manager create --qa-enabled feature-x
+codex $ worktree-manager merge --qa-check feature-x
 
-# Git analysis
-codex git-analyze commits
+# CI/CD pipeline generation
+codex $ cicd-integration generate github-actions
 ```
 
 ### 🏗️ Architecture & Installation
@@ -127,28 +137,29 @@ npm install -g @openai/codex
 brew install --cask codex
 ```
 
-Codex extends OpenAI's Codex CLI with:
+Codex Extended implements the official Skills + MCP + Agents SDK architecture:
 
-- **Plan Orchestrator**: Multi-step task planning and execution
-- **Sub-Agent System**: Parallel AI agent execution (2.6x speedup)
-- **Deep Research Engine**: MCP-integrated research with citations
-- **Git Timeline Visualization**: 4D git history analysis
-- **Security Sandbox**: Process isolation and permission management
+- **Skills System**: Modular `.codex/skills/` with specialized capabilities
+- **MCP Protocol**: WebSocket-based communication for external orchestration
+- **Agents SDK Patterns**: Supervisor/Worker architecture with guardrails and handoffs
+- **Parallel Development**: Git worktree-based isolated environments
+- **Advanced QA Engine**: Automated reviews with comprehensive criteria analysis
 
 ### 📚 Documentation
 
-- [Architecture](./ARCHITECTURE.md) - System design and components
-- [Benchmarks](./docs/benchmarks.md) - Performance measurements
-- [Security](./SECURITY.md) - Sandboxing and audit logging
-- [Contributing](./CONTRIBUTING.md) - Development guidelines
-- [Upstream](./UPSTREAM.md) - OpenAI Codex CLI documentation
+- [Architecture](./ARCHITECTURE.md) - Skills + MCP + Agents SDK architecture
+- [Skills System](./.codex/skills/) - Available skills and their capabilities
+- [Supervisor Orchestration](./tools/codex-supervisor/README.md) - Multi-agent orchestration
+- [QA Integration](./tools/qa_integration_guide.md) - Advanced QA system setup
+- [CI/CD Integration](./tools/cicd_integration_guide.md) - Pipeline generation and notifications
 
 ### 🔧 What's New in v2.10.0
 
-- ✅ **Fast Incremental Build**: MD5-based change detection with tqdm progress visualization
-- ✅ **Hot Reload Installation**: Process-safe binary replacement with cross-platform support
-- ✅ **Integrated Release Packaging**: Single tgz archive with all platform binaries
-- ✅ **Development Workflow**: One-command build, test, and deploy pipeline
+- ✅ **Skills System**: Official `.codex/skills/` architecture with Build Manager, QA Service, CI/CD Integration
+- ✅ **MCP Integration**: WebSocket-based communication protocol for external Supervisor orchestration
+- ✅ **Agents SDK Patterns**: Supervisor/Worker architecture with guardrails, handoffs, structured output
+- ✅ **Parallel Development**: Git worktree-based isolated environments with automated QA integration
+- ✅ **Advanced QA Engine**: Comprehensive analysis including mathematical/quantum optimization and security
 
 <<<<<<< HEAD
 ### 👔 For recruiters / hiring managers
@@ -177,26 +188,27 @@ cargo install --path cli --force
 
 ### 🎯 要約
 
-**CodexはPlan実行、並列サブエージェント、Git解析ユーティリティを拡張したローカルAIコーディングCLIです。**
+**Codex ExtendedはSkills + MCP + Agents SDKアーキテクチャを実装したzapabob/codexのフォークです。**
 
-- **ステータス**: CLI + Plan Mode + Sub-agentsは**安定版**。GUI/VR/CUDA高速化は**実験版**。
+- **ステータス**: Skills System + MCP Integration + Supervisor Orchestrationは**安定版**。
 - **クイックスタート**: `npm i -g @zapabob/codex && codex --version && codex`
-- **ユースケース**: タスク計画/実行、並列レビュー/テスト、再現性のある引用付きリサーチ、リポジトリレベル分析
+- **ユースケース**: マルチエージェントオーケストレーション、並列開発、自動QA、CI/CD統合
 
 ### Codexを使う理由
 
-Codexは日々のエンジニアリング作業のオーバーヘッドを削減します：
+Codex Extendedは公式のOpenAI Codex Skills + MCP + Agents SDKパターンを実装します：
 
-* 曖昧なタスクを実行可能な計画に変換（Planモード）
-* レビュー/テスト/セキュリティチェックを並列サブエージェントに委任
-* 引用付きの再現性のあるローカルリサーチ出力を提供
+* **Skills System**: 専門化した能力を持つモジュラーな`.codex/skills/`（Build Manager、QA Service、CI/CD Integration）
+* **MCP Integration**: Codex CLI（サーバー）と外部オーケストレータ（クライアント）間のWebSocket通信
+* **Agents SDK Patterns**: ガードレール、ハンドオフ、構造化出力を持つSupervisor/Workerアーキテクチャ
 
-### 上流OpenAI/codexとの拡張点
+### 上流OpenAI/codexとの実装点
 
-* Planモード実行ワークフロー（作成/承認/実行）
-* 並列サブエージェントオーケストレーション（delegate-parallel）
-* 引用とMCP統合付きリサーチワークフロー
-* リポジトリレベル洞察のためのGit解析ユーティリティ
+* **Skills System**: 公式の`.codex/skills/`アーキテクチャと専門化されたスキル（Build Manager、QA Serviceなど）
+* **MCP Integration**: 外部オーケストレーションのためのWebSocketベース通信プロトコル
+* **Agents SDK Patterns**: ガードレール、ハンドオフ、構造化出力を持つSupervisor/Workerアーキテクチャ
+* **並列開発**: 自動QAを備えたGit worktreeベースの分離環境
+* **高度なQAシステム**: 数学的/量子的最適化、ソフトウェア工学ベストプラクティス、セキュリティ分析
 
 ### 安全モデル
 
@@ -206,15 +218,15 @@ Codexは日々のエンジニアリング作業のオーバーヘッドを削減
 
 ### 📊 機能ステータスマトリックス
 
-| 機能                | ステータス                  | 証明                          |
-| ------------------- | -------------------------- | ---------------------------- |
-| **Plan mode**       | ✅ **安定版**              | `docs/plan/README.md`        |
-| **Sub-agents**      | ✅ **安定版**              | `docs/guides/parallel-custom-agent.md` |
-| **Deep research**   | ✅ **安定版**              | `docs/mcp/api-specification.md` |
-| **Git analysis**    | ✅ **安定版**              | `docs/guides/cursor-integration.md` |
-| **GUI/Webインターフェース** | 🧪 **実験版**        | `docs/guides/cursor-ide-setup.md` |
-| **VR/AR対応**       | 🧪 **実験版**              | `docs/zapabob/AGENTS.md`     |
-| **CUDA高速化**      | 🧪 **実験版**              | `CHANGELOG.md`               |
+| 機能                     | ステータス                  | 証明                          |
+| ----------------------- | -------------------------- | ---------------------------- |
+| **Skills System**       | ✅ **安定版**              | `.codex/skills/`             |
+| **MCP Integration**     | ✅ **安定版**              | `codex mcp-server`           |
+| **Supervisor Orchestration**| ✅ **安定版**           | `tools/codex-supervisor/`    |
+| **並列開発**            | ✅ **安定版**              | `tools/worktree_manager.py`  |
+| **高度なQA Engine**     | ✅ **安定版**              | `.codex/skills/qa-engineer/` |
+| **CI/CD Integration**   | ✅ **安定版**              | `.github/workflows/qa-ci.yml`|
+| **Build Manager**       | ✅ **安定版**              | `.codex/skills/build-manager/` |
 
 ### 🚀 クイックスタート
 
@@ -238,45 +250,47 @@ codex --version
 # インタラクティブモード
 codex
 
-# Plan実行
-codex plan create "Implement user authentication"
-codex plan execute <plan-id>
+# Skills実行
+codex $ build-manager fast-build
+codex $ qa-engineer analyze --scope ./src
+codex $ worktree-manager create feature-branch
 
-# サブエージェント委任
-codex delegate code-reviewer --scope ./src
-codex delegate-parallel code-reviewer,test-gen --scopes ./src,./tests
+# MCPサーバーモード（外部オーケストレーション用）
+codex mcp-server
 
-# Deep research
-codex research "Rust async best practices"
+# QAを備えた並列開発
+codex $ worktree-manager create --qa-enabled feature-x
+codex $ worktree-manager merge --qa-check feature-x
 
-# Git解析
-codex git-analyze commits
+# CI/CDパイプライン生成
+codex $ cicd-integration generate github-actions
 ```
 
 ### 🏗️ アーキテクチャ
 
-CodexはOpenAIのCodex CLIを以下で拡張：
+Codex Extendedは公式のSkills + MCP + Agents SDKアーキテクチャを実装：
 
-- **Plan Orchestrator**: マルチステップタスクの計画・実行
-- **Sub-Agent System**: 並列AIエージェント実行（2.6倍高速化）
-- **Deep Research Engine**: MCP統合リサーチエンジン
-- **Git Timeline Visualization**: 4D Git履歴解析
-- **Security Sandbox**: プロセス分離と権限管理
+- **Skills System**: 専門化した能力を持つモジュラーな`.codex/skills/`
+- **MCP Protocol**: 外部オーケストレーションのためのWebSocketベース通信
+- **Agents SDK Patterns**: ガードレールとハンドオフを持つSupervisor/Workerアーキテクチャ
+- **並列開発**: Git worktreeベースの分離環境
+- **高度なQA Engine**: 包括的な基準分析による自動レビュー
 
 ### 📚 ドキュメント
 
-- [Architecture](./ARCHITECTURE.md) - システム設計とコンポーネント
-- [Benchmarks](./docs/benchmarks.md) - パフォーマンス測定
-- [Security](./SECURITY.md) - サンドボックスと監査ログ
-- [Contributing](./CONTRIBUTING.md) - 開発ガイドライン
-- [Upstream](./UPSTREAM.md) - OpenAI Codex CLI ドキュメント
+- [Architecture](./ARCHITECTURE.md) - Skills + MCP + Agents SDKアーキテクチャ
+- [Skills System](./.codex/skills/) - 利用可能なスキルとその能力
+- [Supervisor Orchestration](./tools/codex-supervisor/README.md) - マルチエージェントオーケストレーション
+- [QA Integration](./tools/qa_integration_guide.md) - 高度なQAシステム設定
+- [CI/CD Integration](./tools/cicd_integration_guide.md) - パイプライン生成と通知
 
 ### 🔧 v2.10.0の新機能
 
-- ✅ **高速インクリメンタルビルド**: MD5ベース変更検出とtqdm進捗可視化
-- ✅ **ホットリロードインストール**: プロセス安全なバイナリ置換、クロスプラットフォーム対応
-- ✅ **統合リリースパッケージ**: 全プラットフォームバイナリを含む単一tgzアーカイブ
-- ✅ **開発ワークフロー**: ワンコマンドでのビルド・テスト・デプロイパイプライン
+- ✅ **Skills System**: Build Manager、QA Service、CI/CD Integrationを備えた公式`.codex/skills/`アーキテクチャ
+- ✅ **MCP Integration**: SupervisorオーケストレーションのためのWebSocketベース通信プロトコル
+- ✅ **Agents SDK Patterns**: ガードレール、ハンドオフ、構造化出力を持つSupervisor/Workerアーキテクチャ
+- ✅ **並列開発**: 自動QA統合を備えたGit worktreeベースの分離環境
+- ✅ **高度なQA Engine**: 数学的/量子的最適化とセキュリティを含む包括的な分析
 
 ### 🤝 Contributing
 

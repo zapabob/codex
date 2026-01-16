@@ -4,30 +4,16 @@
 // user-visible output must go through the appropriate abstraction (e.g.,
 // the TUI or the tracing stack).
 #![deny(clippy::print_stdout, clippy::print_stderr)]
-#![allow(
-    clippy::expect_used,
-    clippy::result_large_err,
-    clippy::too_many_arguments,
-    clippy::type_complexity,
-    clippy::unwrap_used
-)]
 
-pub mod agent_interpreter;
-pub mod agents;
-pub mod ai_orchestrator;
 pub mod api_bridge;
 mod apply_patch;
-pub mod audit_log;
 pub mod auth;
 pub mod bash;
-pub mod chrome;
 mod client;
 mod client_common;
 pub mod codex;
 mod codex_thread;
 mod compact_remote;
-pub mod conflict_detector;
-pub mod git_lock_manager;
 pub use codex_thread::CodexThread;
 mod agent;
 mod codex_delegate;
@@ -45,26 +31,10 @@ mod exec_policy;
 pub mod features;
 mod flags;
 pub mod git_info;
-pub mod implementation_log;
-pub mod integrations;
 pub mod landlock;
-pub mod lock;
-pub mod lsp;
 pub mod mcp;
-pub mod mcp_api_server;
 mod mcp_connection_manager;
-pub mod mcp_dynamic_loader;
-pub mod mcp_file_watcher;
-pub mod mcp_integration_manager;
-pub mod mcp_plugin_loader;
-pub mod mcp_prompt_builder;
-pub mod mcp_selective_loader;
-pub mod mcp_token_optimizer;
 pub mod models_manager;
-pub mod orchestration;
-pub mod organizations;
-pub mod qc;
-pub mod reasoning;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;
 pub use mcp_connection_manager::SandboxState;
@@ -73,22 +43,21 @@ mod message_history;
 mod model_provider_info;
 pub mod parse_command;
 pub mod path_utils;
-pub mod plan;
 pub mod powershell;
 pub mod sandboxing;
-pub mod security;
 mod stream_events_utils;
 mod text_encoding;
 pub mod token_data;
 mod truncate;
 mod unified_exec;
 mod user_instructions;
-pub mod windows_ai_integration;
+pub mod windows_sandbox;
 pub use model_provider_info::CHAT_WIRE_API_DEPRECATION_SUMMARY;
 pub use model_provider_info::DEFAULT_LMSTUDIO_PORT;
 pub use model_provider_info::DEFAULT_OLLAMA_PORT;
 pub use model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;
 pub use model_provider_info::ModelProviderInfo;
+pub use model_provider_info::OLLAMA_CHAT_PROVIDER_ID;
 pub use model_provider_info::OLLAMA_OSS_PROVIDER_ID;
 pub use model_provider_info::WireApi;
 pub use model_provider_info::built_in_model_providers;
@@ -142,13 +111,16 @@ mod user_shell_command;
 pub mod util;
 
 pub use apply_patch::CODEX_APPLY_PATCH_ARG1;
+pub use client::WEB_SEARCH_ELIGIBLE_HEADER;
 pub use command_safety::is_dangerous_command;
 pub use command_safety::is_safe_command;
 pub use exec_policy::ExecPolicyError;
+pub use exec_policy::check_execpolicy_for_warnings;
 pub use exec_policy::load_exec_policy;
 pub use safety::get_platform_sandbox;
+pub use safety::is_windows_elevated_sandbox_enabled;
+pub use safety::set_windows_elevated_sandbox_enabled;
 pub use safety::set_windows_sandbox_enabled;
-pub use windows_ai_integration::WindowsAiOptions;
 // Re-export the protocol types from the standalone `codex-protocol` crate so existing
 // `codex_core::protocol::...` references continue to work across the workspace.
 pub use codex_protocol::protocol;
@@ -157,6 +129,7 @@ pub use codex_protocol::protocol;
 pub use codex_protocol::config_types as protocol_config_types;
 
 pub use client::ModelClient;
+pub use client::ModelClientSession;
 pub use client_common::Prompt;
 pub use client_common::REVIEW_PROMPT;
 pub use client_common::ResponseEvent;

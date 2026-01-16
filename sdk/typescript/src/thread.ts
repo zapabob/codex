@@ -87,6 +87,7 @@ export class Thread {
       outputSchemaFile: schemaPath,
       modelReasoningEffort: options?.modelReasoningEffort,
       networkAccessEnabled: options?.networkAccessEnabled,
+      webSearchMode: options?.webSearchMode,
       webSearchEnabled: options?.webSearchEnabled,
       approvalPolicy: options?.approvalPolicy,
     });

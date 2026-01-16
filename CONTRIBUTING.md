@@ -53,7 +53,9 @@ codex/
 │       ├── frontend/    # React + Three.js
 │       └── desktop/     # Electron app
 ├── docs/                # Documentation
-├── _docs/               # Implementation logs
+├── archive/             # Historical artifacts and logs
+│   ├── implementation-logs/  # Development logs
+│   └── build-artifacts/      # Build artifacts
 └── .github/             # GitHub configuration
 ```
 

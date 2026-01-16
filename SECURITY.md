@@ -1,254 +1,127 @@
-# Security Policy & Sandbox Architecture
-
-**Codex v2.8.3** - 実践的なAIセキュリティモデル
-
-## 🎯 概要
-
-Codexは**デフォルト拒否**のセキュリティファースト設計を採用。すべての操作がサンドボックス環境で実行され、明示的な承認なしに外部リソースへのアクセスを禁止します。
-
-## 🛡️ サンドボックス・アーキテクチャ
-
-### 1. プロセス分離 (Process Isolation)
-
-**実装方式**: macOS Sandbox / Windows AppContainer / Linux namespaces
-
-```bash
-# プロセス起動時のセキュリティコンテキスト
-codex execute plan-123
-# → 自動的に分離されたプロセスで実行
-# → 親プロセスへのアクセス不可
-# → ファイルシステム: 読み取り専用 (デフォルト)
-```
-
-**セキュリティ境界**:
-- **ネットワーク**: ブロック (APIコール除く)
-- **ファイルシステム**: プロジェクトディレクトリのみ + 明示的許可
-- **プロセス**: 子プロセス生成制限
-- **システムコール**: ホワイトリスト方式
-
-### 2. 承認ゲート (Approval Gates)
-
-#### Plan Modeの3段階セキュリティ
-
-```mermaid
-graph TD
-    A[Planning Phase] --> B[Approval Phase]
-    B --> C[Execution Phase]
-
-    A --> D[Read-only operations]
-    B --> E[Human review required]
-    C --> F[Controlled execution]
-
-    D --> G[No side effects]
-    E --> H[Structured approval]
-    F --> I[Audited logging]
-```
-
-#### 承認レベル
-
-| 操作タイプ | 承認レベル | 自動実行 | 監査ログ |
-|------------|------------|----------|----------|
-| ファイル読み取り | 自動 | ✅ | 📝 |
-| コード解析 | 自動 | ✅ | 📝 |
-| ファイル書き込み | 手動 | ❌ | 📊 |
-| 外部コマンド実行 | 手動 | ❌ | 🚨 |
-| ネットワークアクセス | 手動 | ❌ | 🚨 |
-| パッケージインストール | 手動 | ❌ | 🚨 |
-
-### 3. 監査ログシステム (Audit Logging)
-
-#### ログ構造
-
-```json
-{
-  "timestamp": "2026-01-03T15:30:45Z",
-  "session_id": "sess-abc123",
-  "plan_id": "plan-456",
-  "operation": "file_write",
-  "resource": "/src/components/Button.tsx",
-  "user_approval": true,
-  "sandbox_level": "read-write",
-  "execution_time_ms": 1250,
-  "checksum": "sha256:..."
-}
-```
-
-#### ログ活用
-
-```bash
-# セッション監査
-codex audit session sess-abc123
-
-# 計画実行履歴
-codex audit plan plan-456
-
-# セキュリティレポート
-codex audit security --period 7d
-```
-
-## 🔐 セキュリティレベル
-
-### Level 1: Read-Only (デフォルト)
-
-```bash
-codex --sandbox=read-only
-# 許可: ファイル読み取り、コード解析、計画生成
-# 禁止: ファイル書き込み、コマンド実行、ネットワーク
-```
-
-### Level 2: Workspace Write
-
-```bash
-codex --sandbox=workspace-write
-# 許可: プロジェクト内ファイル操作
-# 制限: システムファイルアクセス禁止
-```
-
-### Level 3: Danger Full Access
-
-```bash
-codex --sandbox=danger-full-access
-# ⚠️  注意: すべての操作許可 (開発時のみ)
-```
-
-## 🛡️ 脅威モデル & 対策
-
-### 1. プロンプトインジェクション
-
-**脅威**: AIに悪意あるコード生成を誘導
-**対策**:
-- 構造化プロンプトテンプレート
-- 出力サニタイズ
-- 人間承認ゲート
-
-### 2. サプライチェーン攻撃
-
-**脅威**: 悪意あるパッケージ/ライブラリ
-**対策**:
-- パッケージインストールの明示的承認
-- チェックサム検証
-- 依存関係スキャン
-
-### 3. データ漏洩
-
-**脅威**: 機密情報の外部送信
-**対策**:
-- ネットワークアクセス制御
-- データフロー監視
-- クリップボードアクセス制限
-
-### 4. リソース枯渇
-
-**脅威**: 無限ループ/メモリ消費
-**対策**:
-- タイムアウト設定
-- リソース使用量制限
-- 自動終了機構
-
-## 📊 セキュリティメトリクス
-
-### 運用実績 (v2.8.3)
-
-| メトリクス | 値 | 目標 | ステータス |
-|------------|-----|------|------------|
-| ゼロデイ脆弱性 | 0件 | 0件 | ✅ |
-| 承認ゲート通過率 | 94% | >90% | ✅ |
-| 誤検知率 | 3.2% | <5% | ✅ |
-| 平均応答時間 | 850ms | <1s | ✅ |
-| アップタイム | 99.9% | >99.5% | ✅ |
-
-### 脆弱性レポート
-
-#### 報告方法
-
-```bash
-# セキュリティ問題を報告
-codex security report --type=vulnerability \
-  --severity=high \
-  --description="Potential sandbox escape in plan execution"
-```
-
-#### 対応フロー
-
-1. **報告受付**: 24時間以内
-2. **調査開始**: 72時間以内
-3. **修正完了**: 脆弱性レベルによる (Critical: 24h, High: 72h, Medium: 1week)
-4. **公開**: 修正後14日以内
-
-## 🔧 設定 & カスタマイズ
-
-### セキュリティ設定ファイル
-
-```toml
-# codex.toml
-[security]
-sandbox_level = "workspace-write"
-approval_required = ["shell", "network", "install"]
-audit_retention_days = 90
-timeout_seconds = 300
-
-[approval]
-auto_approve_read = true
-auto_approve_write = false
-require_reason = true
-```
-
-### 環境変数
-
-```bash
-# 厳格モード
-export CODEX_SANDBOX_STRICT=1
-
-# デバッグログ有効化
-export CODEX_AUDIT_DEBUG=1
-
-# カスタム承認フック
-export CODEX_APPROVAL_HOOK=/path/to/hook.sh
-```
-
-## 🧪 セキュリティテスト
-
-### 自動テストスイート
-
-```bash
-# サンドボックス境界テスト
-npm run test:security:sandbox
-
-# 承認ゲートテスト
-npm run test:security:approval
-
-# 監査ログテスト
-npm run test:security:audit
-```
-
-### ペネトレーションテスト
-
-```bash
-# 定期的なセキュリティ評価
-codex security penetration-test --scope=full
-
-# サンドボックス脱出テスト
-codex security escape-test --iterations=1000
-```
-
-## 📚 関連ドキュメント
-
-- [Plan Mode Guide](./docs/plan/README.md) - 承認ワークフロー
-- [Benchmarks](./docs/benchmarks/README.md) - 性能測定
-- [Architecture](./ARCHITECTURE.md) - システム設計
-
-## 🤝 セキュリティ貢献
-
-セキュリティ改善を提案する場合：
-
-```bash
-# セキュリティ関連の変更
-codex /Plan "Add new security control for file operations"
-codex delegate security-reviewer --scope ./src/security
-```
+# Security Policy
+
+## 🔒 Security Overview
+
+Codex Extended implements multiple layers of security to ensure safe operation across different environments.
+
+## 🚨 Reporting Security Vulnerabilities
+
+If you discover a security vulnerability, please report it responsibly:
+
+### Contact Information
+- **Email**: security@codex.dev (placeholder)
+- **GitHub Security Advisories**: [Create a new advisory](https://github.com/zapabob/codex/security/advisories/new)
+
+### Reporting Process
+1. **Do not** create public issues for security vulnerabilities
+2. Email security@codex.dev with details
+3. Include reproduction steps and potential impact
+4. We will acknowledge receipt within 48 hours
+5. We will provide regular updates on our progress
+
+## 🛡️ Security Measures
+
+### Code Security
+- **Rust Memory Safety**: All core components use Rust for memory safety
+- **Dependency Scanning**: Automated vulnerability checks in CI/CD
+- **Code Review**: Required for all security-related changes
+- **Static Analysis**: Clippy and custom linting rules
+
+### Runtime Security
+- **Sandboxing**: Process isolation using Linux namespaces/Windows containers
+- **Permission Model**: Least privilege execution
+- **Input Validation**: Comprehensive input sanitization
+- **Audit Logging**: All operations are logged for forensic analysis
+
+### Network Security
+- **MCP Protocol**: Secure WebSocket communication
+- **TLS Encryption**: All network communications encrypted
+- **Authentication**: Token-based authentication for API access
+
+## 🔧 Security Best Practices
+
+### For Contributors
+- **Never commit secrets**: Use environment variables or secure vaults
+- **Validate inputs**: All user inputs must be validated and sanitized
+- **Handle errors securely**: Don't leak sensitive information in error messages
+- **Use secure defaults**: Security should be enabled by default
+
+### For Users
+- **Keep dependencies updated**: Regularly update to latest versions
+- **Use sandboxed execution**: Run untrusted code in isolated environments
+- **Monitor logs**: Regularly review audit logs for suspicious activity
+- **Secure configuration**: Use strong passwords and secure API keys
+
+## 📊 Security Metrics
+
+### Vulnerability Response Time
+- **Critical**: < 24 hours
+- **High**: < 72 hours
+- **Medium**: < 1 week
+- **Low**: < 2 weeks
+
+### Code Coverage
+- **Security-critical code**: > 90% test coverage
+- **Core functionality**: > 80% test coverage
+- **Integration tests**: Required for all security features
+
+## 🔍 Security Tools
+
+### Automated Security Scanning
+- **Cargo Audit**: Rust dependency vulnerability scanning
+- **Clippy**: Security-focused linting rules
+- **Trivy**: Container and filesystem scanning
+- **Dependabot**: Automated dependency updates
+
+### Manual Security Reviews
+- **Code Review**: Required for security-related PRs
+- **Architecture Review**: Major changes reviewed by security team
+- **Penetration Testing**: Regular security assessments
+
+## 📋 Security Checklist for Contributors
+
+### Pre-commit
+- [ ] No secrets committed to repository
+- [ ] All inputs validated and sanitized
+- [ ] Error messages don't leak sensitive information
+- [ ] Secure defaults enabled
+
+### Code Review
+- [ ] Security implications documented
+- [ ] Input validation implemented
+- [ ] Authentication/authorization checked
+- [ ] Audit logging added for sensitive operations
+
+### Testing
+- [ ] Security test cases added
+- [ ] Fuzz testing performed on parsers
+- [ ] Integration tests include security scenarios
+- [ ] Performance impact of security measures measured
+
+## 🚩 Known Security Considerations
+
+### Architecture Security
+- **MCP Communication**: WebSocket connections should use TLS in production
+- **Agent Isolation**: Sub-agents run in isolated processes/environments
+- **Resource Limits**: CPU/memory limits prevent resource exhaustion attacks
+
+### Third-party Dependencies
+- **Regular Updates**: Dependencies updated quarterly minimum
+- **Vulnerability Monitoring**: Automated alerts for new vulnerabilities
+- **License Compliance**: All dependencies reviewed for license compatibility
+
+### Data Protection
+- **Encryption at Rest**: Sensitive data encrypted when stored
+- **Encryption in Transit**: All network communications encrypted
+- **Data Minimization**: Only collect necessary data
+- **Retention Policies**: Data deleted according to retention schedules
+
+## 📞 Contact
+
+For security-related questions or concerns:
+- **Security Team**: security@codex.dev
+- **General Support**: support@codex.dev
 
 ---
 
-**「信頼できるAI開発環境」の実現** 🛡️
-
-**最終更新**: 2026-01-03 | **バージョン**: 2.8.3
+*This security policy is reviewed and updated quarterly to ensure continued effectiveness.*

@@ -13,6 +13,7 @@ In the codex-rs folder where the rust code lives:
 - Use method references over closures when possible per https://rust-lang.github.io/rust-clippy/master/index.html#redundant_closure_for_method_calls
 - When writing tests, prefer comparing the equality of entire objects over fields one by one.
 - When making a change that adds or changes an API, ensure that the documentation in the `docs/` folder is up to date if applicable.
+- If you change `ConfigToml` or nested config types, run `just write-config-schema` to update `codex-rs/core/config.schema.json`.
 - At the end of each task, write an implementation log in `_docs/` as `yyyy-mm-dd作業内容{worktree}.md`.
   - Follow the existing implementation log format: `# yyyy-mm-dd 実装ログ（{worktree}）`, then `## 取り組み内容` and `## メモ` with bullet points.
 
