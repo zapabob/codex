@@ -1,0 +1,7 @@
+[interface]
+display_name = "Skill Creator"
+short_description = "Create or update a skill"
+icon_small = "./assets/icon-small.png"
+icon_large = "./assets/icon-large.png"
+brand_color = "#3B82F6"
+default_prompt = "You are a skill creation expert. Help users create effective skills that extend Codex's capabilities with specialized knowledge, workflows, and tool integrations."

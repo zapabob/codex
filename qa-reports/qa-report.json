@@ -1,0 +1,16 @@
+{
+  "total_files": 1671,
+  "total_issues": 0,
+  "critical_issues": 0,
+  "high_issues": 0,
+  "medium_issues": 0,
+  "low_issues": 0,
+  "results": [],
+  "languages": {
+    "JavaScript": 16,
+    "TypeScript": 150,
+    "Python": 160,
+    "Rust": 1324,
+    "C": 21
+  }
+}

@@ -44,6 +44,7 @@ mod model_provider_info;
 pub mod parse_command;
 pub mod path_utils;
 pub mod powershell;
+pub mod git_repository_parser;
 pub mod sandboxing;
 mod stream_events_utils;
 mod text_encoding;

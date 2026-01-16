@@ -320,7 +320,3 @@ ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.2
 
 # Uncomment to debug local changes.
 # rmcp = { path = "../../rust-sdk/crates/rmcp" }
-
-# LLMOps and autonomous orchestration dependencies
-openai-api-rs = "4.0"
-git2 = "0.18"

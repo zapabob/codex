@@ -98,13 +98,15 @@ jobs:
       run:
         working-directory: codex-rs
     env:
-      # Speed up repeated builds across CI runs by caching compiled objects (non-Windows).
+      # Enable incremental builds for faster CI
       USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') && 'false' || 'true' }}
-      CARGO_INCREMENTAL: "0"
+      CARGO_INCREMENTAL: "1"
       SCCACHE_CACHE_SIZE: 10G
-      # Optimize for Windows memory usage
-      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') && '2' || '4' }}
+      # Optimize build jobs based on runner
+      CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') && '4' || '8' }}
       RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') && '0' || '1' }}
+      # Enable faster linking
+      RUSTFLAGS: "-C target-cpu=native -C opt-level=2"
 
     strategy:
       fail-fast: false
@@ -216,7 +218,6 @@ jobs:
         uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2
         with:
           tool: sccache
-          version: 0.7.5
 
       - name: Configure sccache backend
         if: ${{ env.USE_SCCACHE == 'true' }}

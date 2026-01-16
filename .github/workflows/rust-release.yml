@@ -48,6 +48,7 @@ jobs:
   build:
     needs: tag-check
     name: Build - ${{ matrix.runner }} - ${{ matrix.target }}
+    timeout-minutes: 45  # Increased timeout for incremental builds
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     permissions:
