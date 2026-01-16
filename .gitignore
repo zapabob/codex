@@ -19,6 +19,14 @@ codex-rs/target_locked_backup/
 # ignore README for publishing
 codex-cli/README.md
 
+# Sensitive information logs
+_docs/*password*
+_docs/*token*
+_docs/*secret*
+_docs/*auth*
+_docs/*key*
+_docs/2026-01-04_テック企業採用担当者目線リポジトリ徹底整理完了.md
+
 # ignore Nix derivation results
 result
 
