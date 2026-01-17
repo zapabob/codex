@@ -101,32 +101,19 @@ CHANGELOG.ignore.md
 __pycache__/
 *.pyc
 
-primeband_outputs/20251226_193354/band_center_vs_lambda.png
-primeband_outputs/20251226_193354/headline_metrics.json
-primeband_outputs/20251226_193354/k_eff_vs_lambda.png
-primeband_outputs/20251226_193354/lambda_sweep.csv
-primeband_outputs/20251226_193354/phase_transition.json
-primeband_outputs/20251226_193354/test_mae_vs_lambda.png
-primeband_outputs/20251226_193354/band_center_vs_twindow.png
-primeband_outputs/20251226_193354/coherence_by_band.csv
-primeband_outputs/20251226_193354/coherence_vs_logp.png
-primeband_outputs/20251226_193354/randomization_band_centers.csv
-primeband_outputs/20251226_193354/randomization_summary.json
-primeband_outputs/20251226_193354/scaling_band_center.png
-primeband_outputs/20251226_193354/scaling_pmax.csv
-primeband_outputs/20251226_193354/twindow_slide.csv
-primeband_fastcg_outputs/amplitude_vs_logprime_band.png
-primeband_fastcg_outputs/coherence_by_band.csv
-primeband_fastcg_outputs/coherence_vs_center.png
-primeband_fastcg_outputs/headline_metrics.json
-primeband_fastcg_outputs/quickscan_periodogram.png
-primeband_fastcg_outputs/randomization_results.csv
-primeband_fastcg_outputs/randomization_summary.json
-primeband_fastcg_outputs/top_primes_by_amplitude.csv
-_docs/Ryo_Minegishi_CV.html
-_docs/Ryo_Minegishi_CV.md
-_docs/Ryo_Minegishi_CV.pdf
+# Archive and development artifacts (automatically organized)
+archive/
+docs/development-logs/
+
+# Legacy analysis outputs
+primeband_outputs/
+primeband_fastcg_outputs/
+
+# Personal files
+_docs/Ryo_Minegishi_CV.*
+
+# Build artifacts
 codex-rs/codex.exe
+
+# Development artifacts
 .cursor/commands/fix.md
-.specstory/history/2026-01-16_05-43Z-未来のai開発と統合エコシステム.md
-.specstory/history/2026-01-16_05-43Z-未来のai開発と統合エコシステム.md

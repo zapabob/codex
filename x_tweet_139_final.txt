@@ -1,1 +1,0 @@
-Claude Code最新（LSP・Ultrathink・M365）vs Codex v2.8.3（MCP動的ロード・Deep Research・並列2.6x・CUDA加速100倍・4D可視化）。完全オープンソースで拡張性重視。https://github.com/zapabob/codex

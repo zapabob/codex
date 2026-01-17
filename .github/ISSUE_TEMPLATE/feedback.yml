@@ -1,0 +1,142 @@
+name: 💬 Feedback & Suggestions
+description: Share your thoughts about Codex Extended v2.11.0
+title: "[Feedback] "
+labels: ["feedback", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 💬 Feedback & Suggestions for Codex Extended v2.11.0
+
+        Thank you for using Codex Extended! Your feedback helps us improve the platform. Please share your thoughts, suggestions, or experiences.
+
+  - type: dropdown
+    id: feedback-type
+    attributes:
+      label: Feedback Type
+      description: What type of feedback are you providing?
+      options:
+        - Feature Request
+        - Bug Report
+        - Performance Issue
+        - Usability Feedback
+        - Documentation Issue
+        - General Suggestion
+        - Success Story
+    validations:
+      required: true
+
+  - type: dropdown
+    id: experience-level
+    attributes:
+      label: Your Experience Level
+      description: How familiar are you with Codex Extended?
+      options:
+        - First-time user
+        - Occasional user
+        - Regular user
+        - Power user
+        - Contributor/Developer
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please provide detailed feedback about your experience with Codex Extended v2.11.0
+      placeholder: |
+        What did you like? What didn't work well? Any specific features you'd like to see?
+
+        Examples:
+        - "The multi-model orchestration is fantastic!"
+        - "Had trouble with cost optimization on large projects"
+        - "Would love to see integration with [specific tool]"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe how you're using Codex Extended
+      placeholder: |
+        - Web development (React, Node.js, etc.)
+        - API development
+        - Database design
+        - DevOps/CI/CD
+        - Code review
+        - Documentation
+        - Other: please specify
+
+  - type: dropdown
+    id: satisfaction
+    attributes:
+      label: Overall Satisfaction
+      description: How satisfied are you with Codex Extended v2.11.0?
+      options:
+        - Very Satisfied
+        - Satisfied
+        - Neutral
+        - Dissatisfied
+        - Very Dissatisfied
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: features-used
+    attributes:
+      label: Features Used
+      description: Which v2.11.0 features have you tried? (Select all that apply)
+      options:
+        - ClaudeCode Intelligence (Natural language tasks)
+        - Multi-Model Orchestration
+        - Cost Optimization
+        - Privacy & Security features
+        - Cowork Productivity Suite
+        - Terminal Integration
+        - Autonomous Code Generation
+
+  - type: textarea
+    id: improvement-suggestions
+    attributes:
+      label: Improvement Suggestions
+      description: What specific improvements would you like to see?
+      placeholder: |
+        - New features
+        - Performance improvements
+        - Better documentation
+        - UI/UX enhancements
+        - Integration with other tools
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any additional context or information that might be helpful
+      placeholder: |
+        - Your development environment (OS, IDE, etc.)
+        - Specific commands or workflows you use
+        - Performance metrics or cost data
+        - Screenshots or examples (if applicable)
+
+  - type: checkboxes
+    id: contact-consent
+    attributes:
+      label: Contact Consent
+      description: Would you like to be contacted for follow-up questions?
+      options:
+        - label: I consent to being contacted about this feedback
+          required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 📞 Get Help
+
+        - **Documentation**: https://github.com/zapabob/Codex/blob/main/docs/user-guide.md
+        - **GitHub Discussions**: https://github.com/zapabob/Codex/discussions
+        - **Discord Community**: https://discord.gg/codex
+        - **Issue Tracker**: https://github.com/zapabob/Codex/issues
+
+        Thank you for helping make Codex Extended better! 🙏

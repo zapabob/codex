@@ -1,120 +1,133 @@
 graph TB
+    %% User Interface Layer
     subgraph "User Interface Layer"
         TUI["🖥️ Terminal UI<br/>codex-rs/tui<br/>Text-based Interface"]
-        CLI["💻 Command Line<br/>codex-rs/cli<br/>CLI Commands"]
+        CLI["💻 Command Line<br/>codex-rs/cli<br/>CLI Commands<br/>npm i -g @zapabob/codex"]
         MCPClient["🔗 MCP Client<br/>WebSocket<br/>Tool Execution"]
     end
 
-    subgraph "Core Engine Layer"
-        Core["🤖 Codex Core<br/>AI Engine<br/>codex-rs/core<br/>LLMOps + A2A"]
-        SkillsSystem["⚡ Skills System<br/>.codex/skills/<br/>Dynamic Skill Loading"]
+    %% AI/ML Core Layer
+    subgraph "AI/ML Core Layer"
+        Core["🤖 Codex Core<br/>AI Engine<br/>codex-rs/core<br/>LLMOps + A2A<br/>Multi-Model Intelligence"]
+        SkillsSystem["⚡ Skills System<br/>.codex/skills/<br/>Dynamic Skill Loading<br/>Plugin Architecture"]
     end
 
-    subgraph "ClaudeCode Integration Layer"
-        TaskParser["📋 ClaudeCode Task Parser<br/>Natural Language Processing<br/>Task Specification"]
-        Executor["⚙️ ClaudeCode Executor<br/>Autonomous Execution<br/>Code Generation"]
-        MultiModelOrch["🎭 Multi-Model Orchestrator<br/>Gemini/Claude/GPT/Local<br/>Dynamic Selection"]
-        CostOptimizer["💰 Cost Optimizer<br/>Token Management<br/>API Cost Reduction"]
-        PrivacyGuard["🔒 Privacy Guard<br/>Data Anonymization<br/>Security Protection"]
-        CoworkProd["🏢 Cowork Productivity<br/>File Management<br/>Browser Automation<br/>Workflow Orchestration"]
-        PromptGuard["🛡️ Prompt Injection Guard<br/>Multi-layer Protection<br/>Security Validation"]
-        SecureExec["🔐 Secure Execution Engine<br/>Sandboxed Environment<br/>Resource Limits"]
+    %% ClaudeCode Integration Core
+    subgraph "ClaudeCode Integration Core"
+        TaskParser["📋 ClaudeCode Task Parser<br/>Natural Language Processing<br/>Intent Analysis<br/>Task Decomposition"]
+        Executor["⚙️ ClaudeCode Executor<br/>Autonomous Execution<br/>Code Generation<br/>Workflow Automation"]
+        MultiModelOrch["🎭 Multi-Model Orchestrator<br/>Gemini/Claude/GPT/Local<br/>Dynamic Selection<br/>Load Balancing"]
+        CostOptimizer["💰 Cost Optimizer<br/>Token Management<br/>API Cost Reduction<br/>70%+ Savings"]
+        PrivacyGuard["🔒 Privacy Guard<br/>Data Anonymization<br/>Security Protection<br/>Compliance"]
+        PromptGuard["🛡️ Prompt Injection Guard<br/>Multi-layer Protection<br/>Security Validation<br/>Attack Prevention"]
+        SecureExec["🔐 Secure Execution Engine<br/>Sandboxed Environment<br/>Resource Limits<br/>Isolation"]
     end
 
-    subgraph "Supervisor Layer"
-        Supervisor["🎯 Codex Supervisor<br/>Multi-Agent Orchestrator<br/>Guardrails & Handoffs"]
+    %% Cowork Productivity Suite
+    subgraph "Cowork Productivity Suite"
+        FileManager["📁 File Management<br/>Intelligent Organization<br/>Bulk Operations<br/>Version Control"]
+        BrowserAuto["🌐 Browser Automation<br/>Web Scraping<br/>UI Testing<br/>Data Extraction"]
+        WorkflowOrch["⚙️ Workflow Orchestrator<br/>Task Automation<br/>Process Scheduling<br/>Complex Workflows"]
     end
 
-    subgraph "Worker Agents Layer"
-        CodeReviewer["👨‍💻 Code Reviewer<br/>Quality Analysis<br/>Style Enforcement"]
-        TestGenerator["🧪 Test Generator<br/>Unit Test Creation<br/>Coverage Analysis"]
-        SecurityAuditor["🔍 Security Auditor<br/>Vulnerability Scan<br/>Compliance Check"]
-        PerformanceAnalyzer["📈 Performance Analyzer<br/>Optimization<br/>Profiling"]
-        Guardrails["🚧 Guardrails<br/>Security & Quality<br/>Structured Output"]
+    %% Multi-Agent System
+    subgraph "Multi-Agent System"
+        Supervisor["🎯 Codex Supervisor<br/>Agent Orchestrator<br/>Guardrails & Handoffs<br/>Conflict Resolution"]
+        CodeReviewer["👨‍💻 Code Reviewer<br/>Quality Analysis<br/>Style Enforcement<br/>Best Practices"]
+        TestGenerator["🧪 Test Generator<br/>Unit Test Creation<br/>Coverage Analysis<br/>Edge Cases"]
+        SecurityAuditor["🔍 Security Auditor<br/>Vulnerability Scan<br/>Compliance Check<br/>Risk Assessment"]
+        PerformanceAnalyzer["📈 Performance Analyzer<br/>Optimization<br/>Profiling<br/>Bottleneck Detection"]
     end
 
-    subgraph "Skills Layer"
-        BuildManager["🔨 Build Manager<br/>Incremental Build<br/>Process Management"]
-        OrchestratorSkill["🎼 Orchestrator Skill<br/>Task Decomposition<br/>Skill Execution"]
-        WorktreeManager["🌳 Worktree Manager<br/>Parallel Development<br/>Git Worktrees"]
-        QAService["🧪 QA Service<br/>Automated Reviews<br/>Background Monitoring"]
-        CICDSkill["🚀 CI/CD Integration<br/>Pipeline Generation<br/>Notifications"]
+    %% Development Tools
+    subgraph "Development Tools"
+        BuildManager["🔨 Build Manager<br/>Incremental Builds<br/>Process Management<br/>Cache Optimization"]
+        WorktreeManager["🌳 Worktree Manager<br/>Parallel Development<br/>Git Worktrees<br/>Branch Isolation"]
+        QAService["🧪 QA Service<br/>Automated Reviews<br/>Background Monitoring<br/>Quality Assurance"]
+        CICDSkill["🚀 CI/CD Integration<br/>Pipeline Generation<br/>Deployment Automation<br/>Notifications"]
     end
 
-    subgraph "Communication Layer"
-        MCP["📡 MCP Protocol<br/>WebSocket + JSON-RPC<br/>Tool Execution"]
+    %% Communication & Integration
+    subgraph "Communication & Integration"
+        MCP["📡 MCP Protocol<br/>WebSocket + JSON-RPC<br/>Tool Execution<br/>External APIs"]
+        API_Gateways["🔌 API Gateways<br/>Model Providers<br/>External Services<br/>Rate Limiting"]
     end
 
-    subgraph "Notification Layer"
-        Slack["💬 Slack Webhooks<br/>Real-time Updates"]
-        Discord["🎮 Discord Webhooks<br/>Community Integration"]
-        Email["📧 SMTP Email<br/>Formal Notifications"]
+    %% Communication Channels
+    subgraph "Communication Channels"
+        Slack["💬 Slack Integration<br/>Real-time Updates<br/>Team Notifications<br/>Status Reports"]
+        Discord["🎮 Discord Integration<br/>Community Engagement<br/>Support Channels<br/>Event Notifications"]
+        Email["📧 Email Notifications<br/>Formal Reports<br/>Alert System<br/>Scheduled Updates"]
     end
 
-    subgraph "Workflow Layer"
-        GitWorktrees["🌿 Git Worktrees<br/>Parallel Branches<br/>Isolated Environments"]
-        PreMergeHook["🔒 Pre-merge QA Hook<br/>Automated Reviews<br/>Block Critical Issues"]
-        BackgroundQA["🔄 Background QA Service<br/>Continuous Monitoring<br/>File Change Detection"]
+    %% Data & Analytics
+    subgraph "Data & Analytics"
+        Telemetry["📊 Telemetry System<br/>Usage Analytics<br/>Performance Metrics<br/>Error Tracking"]
+        FeedbackSys["💬 Feedback System<br/>User Surveys<br/>Issue Tracking<br/>Improvement Pipeline"]
     end
 
-    %% Connections
+    %% Connections - User Interface
     TUI --> CLI
     CLI --> Core
     CLI --> MCPClient
 
+    %% Connections - Core Systems
     MCPClient --> MCP
-
     Core --> SkillsSystem
+    Core --> Supervisor
 
+    %% Connections - ClaudeCode Integration
     SkillsSystem --> TaskParser
     SkillsSystem --> Executor
     SkillsSystem --> MultiModelOrch
     SkillsSystem --> CostOptimizer
     SkillsSystem --> PrivacyGuard
-    SkillsSystem --> CoworkProd
     SkillsSystem --> PromptGuard
     SkillsSystem --> SecureExec
 
-    SkillsSystem --> BuildManager
-    SkillsSystem --> OrchestratorSkill
-    SkillsSystem --> WorktreeManager
-    SkillsSystem --> QAService
-    SkillsSystem --> CICDSkill
+    %% Connections - Cowork Suite
+    SkillsSystem --> FileManager
+    SkillsSystem --> BrowserAuto
+    SkillsSystem --> WorkflowOrch
 
-    Core --> Supervisor
-
+    %% Connections - Agent System
     Supervisor --> CodeReviewer
     Supervisor --> TestGenerator
     Supervisor --> SecurityAuditor
     Supervisor --> PerformanceAnalyzer
-    Supervisor --> Guardrails
 
-    Guardrails --> MCP
+    %% Connections - Development Tools
+    SkillsSystem --> BuildManager
+    SkillsSystem --> WorktreeManager
+    SkillsSystem --> QAService
+    SkillsSystem --> CICDSkill
 
-    WorktreeManager --> GitWorktrees
-
-    QAService --> PreMergeHook
-    QAService --> BackgroundQA
-
+    %% Connections - External Systems
+    MCP --> API_Gateways
     CICDSkill --> Slack
     CICDSkill --> Discord
     CICDSkill --> Email
 
-    %% Styling
-    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:3px
-    classDef skill fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef supervisor fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef worker fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef comm fill:#fce4ec,stroke:#880e4f,stroke-width:2px
-    classDef workflow fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
-    classDef notify fill:#fff8e1,stroke:#f57f17,stroke-width:2px
-    classDef claude fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    %% Connections - Analytics
+    Core --> Telemetry
+    Supervisor --> FeedbackSys
 
+    %% Styling
+    classDef ui fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef claude fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef cowork fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef agents fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef tools fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef comm fill:#fff8e1,stroke:#f57f17,stroke-width:2px
+    classDef analytics fill:#f8f9fa,stroke:#6c757d,stroke-width:2px
+
+    class TUI,CLI,MCPClient ui
     class Core,SkillsSystem core
-    class BuildManager,OrchestratorSkill,WorktreeManager,QAService,CICDSkill skill
-    class Supervisor supervisor
-    class CodeReviewer,TestGenerator,SecurityAuditor,PerformanceAnalyzer,Guardrails worker
-    class MCP,Guardrails comm
-    class GitWorktrees,PreMergeHook,BackgroundQA workflow
-    class Slack,Discord,Email notify
-    class TaskParser,Executor,MultiModelOrch,CostOptimizer,PrivacyGuard,CoworkProd,PromptGuard,SecureExec claude
+    class TaskParser,Executor,MultiModelOrch,CostOptimizer,PrivacyGuard,PromptGuard,SecureExec claude
+    class FileManager,BrowserAuto,WorkflowOrch cowork
+    class Supervisor,CodeReviewer,TestGenerator,SecurityAuditor,PerformanceAnalyzer agents
+    class BuildManager,WorktreeManager,QAService,CICDSkill tools
+    class MCP,API_Gateways comm
+    class Slack,Discord,Email comm
+    class Telemetry,FeedbackSys analytics
