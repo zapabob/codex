@@ -117,3 +117,6 @@ codex-rs/codex.exe
 
 # Development artifacts
 .cursor/commands/fix.md
+
+# Conversation history (contains potential secrets)
+.specstory/
