@@ -4,10 +4,10 @@ use crate::history_cell::HistoryCell;
 use chrono::Duration as ChronoDuration;
 use chrono::TimeZone;
 use chrono::Utc;
+use codex_core::auth::AuthManager;
 use codex_core::config::Config;
 use codex_core::config::ConfigBuilder;
 use codex_core::models_manager::manager::ModelsManager;
-use codex_core::auth::AuthManager;
 use codex_core::protocol::CreditsSnapshot;
 use codex_core::protocol::RateLimitSnapshot;
 use codex_core::protocol::RateLimitWindow;
@@ -63,7 +63,7 @@ fn sanitize_directory(lines: Vec<String>) -> Vec<String> {
     lines
         .into_iter()
         .map(|line| {
-            if let (Some(dir_pos), Some(pipe_idx)) = (line.find("Directory: "), line.rfind('━E)) {
+            if let (Some(dir_pos), Some(pipe_idx)) = (line.find("Directory: "), line.rfind('│')) {
                 let prefix = &line[..dir_pos + "Directory: ".len()];
                 let suffix = &line[pipe_idx..];
                 let content_width = pipe_idx.saturating_sub(dir_pos + "Directory: ".len());
@@ -141,7 +141,7 @@ async fn status_snapshot_includes_reasoning_details() {
 
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -195,7 +195,7 @@ async fn status_snapshot_includes_monthly_limit() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -237,7 +237,7 @@ async fn status_snapshot_shows_unlimited_credits() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -278,7 +278,7 @@ async fn status_snapshot_shows_positive_credits() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -319,7 +319,7 @@ async fn status_snapshot_hides_zero_credits() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -358,7 +358,7 @@ async fn status_snapshot_hides_when_has_no_credits_flag() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -397,7 +397,7 @@ async fn status_card_token_usage_excludes_cached_tokens() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -451,7 +451,7 @@ async fn status_snapshot_truncates_in_narrow_terminal() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -494,7 +494,7 @@ async fn status_snapshot_shows_missing_limits_message() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -555,7 +555,7 @@ async fn status_snapshot_includes_credits_and_limits() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -604,7 +604,7 @@ async fn status_snapshot_shows_empty_limits_message() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -662,7 +662,7 @@ async fn status_snapshot_shows_stale_limits_message() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -724,7 +724,7 @@ async fn status_snapshot_cached_limits_hide_credits_without_flag() {
     let token_info = token_info_for(&model_slug, &config, &usage);
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &usage,
         &None,
@@ -776,7 +776,7 @@ async fn status_context_window_uses_last_usage() {
     };
     let composite = new_status_output(
         &config,
-        &auth_manager
+        &auth_manager,
         Some(&token_info),
         &total_usage,
         &None,
@@ -799,7 +799,3 @@ async fn status_context_window_uses_last_usage() {
         "context line should not use total aggregated tokens, got: {context_line}"
     );
 }
-
-
-
-
