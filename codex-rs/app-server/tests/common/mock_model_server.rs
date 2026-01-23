@@ -1,7 +1,11 @@
 // Mock model server for testing
 use std::net::SocketAddr;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
-<<<<<<< HEAD
+use core_test_support::responses;
+use wiremock::matchers::{method, path_regex};
+use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
+
 pub struct MockModelServer {
     addr: SocketAddr,
 }
@@ -9,15 +13,22 @@ pub struct MockModelServer {
 impl MockModelServer {
     pub fn new() -> Self {
         Self {
-            addr: "127.0.0.1:0".parse().unwrap(),
-=======
-use core_test_support::responses;
-use wiremock::Mock;
-use wiremock::MockServer;
-use wiremock::Respond;
-use wiremock::ResponseTemplate;
-use wiremock::matchers::method;
-use wiremock::matchers::path_regex;
+            addr: SocketAddr::from(([127, 0, 0, 1], 0)),
+        }
+    }
+
+    pub fn addr(&self) -> SocketAddr {
+        self.addr
+    }
+}
+
+pub fn create_mock_chat_completions_server() -> MockModelServer {
+    MockModelServer::new()
+}
+
+pub fn create_mock_chat_completions_server_unchecked() -> MockModelServer {
+    MockModelServer::new()
+}
 
 /// Create a mock server that will provide the responses, in order, for
 /// requests to the `/v1/responses` endpoint.
@@ -70,21 +81,8 @@ impl Respond for SeqResponder {
         match self.responses.get(call_num) {
             Some(response) => responses::sse_response(response.clone()),
             None => panic!("no response for {call_num}"),
->>>>>>> upstream/main
         }
     }
-
-    pub fn addr(&self) -> SocketAddr {
-        self.addr
-    }
-}
-
-pub fn create_mock_chat_completions_server() -> MockModelServer {
-    MockModelServer::new()
-}
-
-pub fn create_mock_chat_completions_server_unchecked() -> MockModelServer {
-    MockModelServer::new()
 }
 
 /// Create a mock responses API server that returns the same assistant message for every request.

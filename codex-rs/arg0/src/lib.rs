@@ -13,7 +13,7 @@ const MISSPELLED_APPLY_PATCH_ARG0: &str = "applypatch";
 
 pub fn arg0_dispatch() -> anyhow::Result<TempDir> {
     load_dotenv();
-    Ok(prepend_path_entry_for_apply_patch()?)
+    Ok(prepend_path_entry_for_codex_aliases()?)
 }
 
 /// While we want to deploy the Codex CLI as a single executable for simplicity,
@@ -84,7 +84,7 @@ where
     // Retain the TempDir so it exists for the lifetime of the invocation of
     // this executable. Admittedly, we could invoke `keep()` on it, but it
     // would be nice to avoid leaving temporary directories behind, if possible.
-    let _path_entry = match prepend_path_entry_for_apply_patch() {
+    let _path_entry = match prepend_path_entry_for_codex_aliases() {
         Ok(path_entry) => Some(path_entry),
         Err(err) => {
             // It is possible that Codex will proceed successfully even if
@@ -150,10 +150,6 @@ where
 ///
 /// IMPORTANT: This function modifies the PATH environment variable, so it MUST
 /// be called before multiple threads are spawned.
-<<<<<<< HEAD
-fn prepend_path_entry_for_apply_patch() -> std::io::Result<TempDir> {
-    let temp_dir = TempDir::new()?;
-=======
 pub fn prepend_path_entry_for_codex_aliases() -> std::io::Result<TempDir> {
     let codex_home = codex_core::config::find_codex_home()?;
     #[cfg(not(debug_assertions))]
@@ -185,7 +181,6 @@ pub fn prepend_path_entry_for_codex_aliases() -> std::io::Result<TempDir> {
     let temp_dir = tempfile::Builder::new()
         .prefix("codex-arg0")
         .tempdir_in(&temp_root)?;
->>>>>>> upstream/main
     let path = temp_dir.path();
 
     for filename in &[APPLY_PATCH_ARG0, MISSPELLED_APPLY_PATCH_ARG0] {

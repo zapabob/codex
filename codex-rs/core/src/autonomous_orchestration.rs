@@ -6,21 +6,24 @@
 //! - Terminal invocation and loose coupling
 //! - Self-healing and adaptive behavior
 
-use std::collections::{HashMap, HashSet, VecDeque, BinaryHeap};
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
-use std::cmp::Reverse;
-use serde::{Serialize, Deserialize};
-use async_trait::async_trait;
-use tokio::sync::{broadcast, mpsc, oneshot, RwLock as TokioRwLock, Semaphore};
+use tokio::sync::{RwLock as TokioRwLock, Semaphore, broadcast, mpsc, oneshot};
 use tokio::time;
 use uuid::Uuid;
 
 // Import existing components
+use crate::a2a_communication::{
+    A2ACommunicationManager, A2AMessage, AgentCapability, AgentIdentity, AgentRole, MessagePayload,
+    MessageType,
+};
 use crate::config::Config;
-use crate::llmops::{LLMOpsManager, LLMRequest, LLMResponse, LLMOpsConfig};
-use crate::a2a_communication::{A2ACommunicationManager, A2AMessage, MessageType, MessagePayload, AgentIdentity, AgentRole, AgentCapability};
-use crate::skill_mcp_integration::{SkillMCPIntegrationManager, SkillMCPConfig};
+use crate::llmops::{LLMOpsConfig, LLMOpsManager, LLMRequest, LLMResponse};
+use crate::skill_mcp_integration::{SkillMCPConfig, SkillMCPIntegrationManager};
 
 /// Autonomous orchestration configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -157,8 +160,13 @@ pub struct TaskAssignment {
 
 impl Ord for TaskAssignment {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.priority_score.cmp(&other.priority_score)
-            .then_with(|| self.compatibility_score.partial_cmp(&other.compatibility_score).unwrap_or(std::cmp::Ordering::Equal))
+        self.priority_score
+            .cmp(&other.priority_score)
+            .then_with(|| {
+                self.compatibility_score
+                    .partial_cmp(&other.compatibility_score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
     }
 }
 
@@ -681,7 +689,10 @@ impl AutonomousOrchestrationManager {
     }
 
     /// Submit a new orchestration task
-    pub async fn submit_task(&self, task_request: TaskRequest) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn submit_task(
+        &self,
+        task_request: TaskRequest,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // Create orchestration task
         let task = self.create_orchestration_task(task_request).await?;
 
@@ -701,17 +712,24 @@ impl AutonomousOrchestrationManager {
         // Schedule task for execution
         self.schedule_task(&task).await?;
 
-        let _ = self.event_sender.send(OrchestrationEvent::TaskCreated(task_id.clone()));
+        let _ = self
+            .event_sender
+            .send(OrchestrationEvent::TaskCreated(task_id.clone()));
 
         Ok(task_id)
     }
 
     /// Get task status and progress
-    pub async fn get_task_status(&self, task_id: &str) -> Result<TaskStatusInfo, Box<dyn std::error::Error>> {
+    pub async fn get_task_status(
+        &self,
+        task_id: &str,
+    ) -> Result<TaskStatusInfo, Box<dyn std::error::Error>> {
         let registry = self.task_registry.read().await;
         let task = registry.get(task_id).ok_or("Task not found")?;
 
-        let subtasks_status = task.subtasks.iter()
+        let subtasks_status = task
+            .subtasks
+            .iter()
             .map(|st| SubTaskStatus {
                 id: st.id.clone(),
                 status: st.status.clone(),
@@ -749,11 +767,13 @@ impl AutonomousOrchestrationManager {
         let assigned_agent = self.agent_coordinator.assign_task(&task).await?;
 
         // Update task status
-        self.update_task_status(task_id, TaskStatus::Assigned, Some(assigned_agent.clone())).await?;
+        self.update_task_status(task_id, TaskStatus::Assigned, Some(assigned_agent.clone()))
+            .await?;
 
         // Invoke terminal if needed
         if self.config.enable_terminal_invocation {
-            self.invoke_terminal_for_task(&task, &assigned_agent).await?;
+            self.invoke_terminal_for_task(&task, &assigned_agent)
+                .await?;
         }
 
         // Execute task through agent coordination
@@ -762,8 +782,11 @@ impl AutonomousOrchestrationManager {
         // Handle result
         match result {
             Ok(_) => {
-                self.update_task_status(task_id, TaskStatus::Completed, Some(assigned_agent)).await?;
-                let _ = self.event_sender.send(OrchestrationEvent::TaskCompleted(task_id.to_string()));
+                self.update_task_status(task_id, TaskStatus::Completed, Some(assigned_agent))
+                    .await?;
+                let _ = self
+                    .event_sender
+                    .send(OrchestrationEvent::TaskCompleted(task_id.to_string()));
             }
             Err(e) => {
                 self.handle_task_failure(task_id, &e).await?;
@@ -780,7 +803,13 @@ impl AutonomousOrchestrationManager {
         let agent_count = self.agent_coordinator.agent_registry.read().await.len();
         let active_tasks = self.agent_coordinator.active_assignments.read().await.len();
         let token_usage = self.token_manager.get_token_usage().await;
-        let terminal_sessions = self.terminal_manager.session_monitor.active_sessions.read().await.len();
+        let terminal_sessions = self
+            .terminal_manager
+            .session_monitor
+            .active_sessions
+            .read()
+            .await
+            .len();
 
         OrchestrationStatus {
             task_count,
@@ -802,7 +831,10 @@ impl AutonomousOrchestrationManager {
 
     // Private helper methods
 
-    async fn create_orchestration_task(&self, request: TaskRequest) -> Result<OrchestrationTask, Box<dyn std::error::Error>> {
+    async fn create_orchestration_task(
+        &self,
+        request: TaskRequest,
+    ) -> Result<OrchestrationTask, Box<dyn std::error::Error>> {
         let task_id = Uuid::new_v4().to_string();
 
         Ok(OrchestrationTask {
@@ -810,7 +842,10 @@ impl AutonomousOrchestrationManager {
             name: request.name,
             description: request.description,
             priority: request.priority,
-            complexity: self.task_decomposer.complexity_analyzer.analyze_complexity(&request),
+            complexity: self
+                .task_decomposer
+                .complexity_analyzer
+                .analyze_complexity(&request),
             dependencies: request.dependencies,
             subtasks: vec![],
             required_capabilities: request.required_capabilities,
@@ -824,7 +859,10 @@ impl AutonomousOrchestrationManager {
         })
     }
 
-    async fn decompose_task(&self, task: &OrchestrationTask) -> Result<(), Box<dyn std::error::Error>> {
+    async fn decompose_task(
+        &self,
+        task: &OrchestrationTask,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let subtasks = self.task_decomposer.decompose(task).await?;
 
         // Update task with subtasks
@@ -835,17 +873,27 @@ impl AutonomousOrchestrationManager {
         let mut registry = self.task_registry.write().await;
         registry.insert(task.id.clone(), updated_task);
 
-        let _ = self.event_sender.send(OrchestrationEvent::TaskDecomposed(task.id.clone()));
+        let _ = self
+            .event_sender
+            .send(OrchestrationEvent::TaskDecomposed(task.id.clone()));
 
         Ok(())
     }
 
-    async fn schedule_task(&self, task: &OrchestrationTask) -> Result<(), Box<dyn std::error::Error>> {
+    async fn schedule_task(
+        &self,
+        task: &OrchestrationTask,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Add to coordination queue
         self.agent_coordinator.schedule_task(task).await
     }
 
-    async fn update_task_status(&self, task_id: &str, status: TaskStatus, assigned_agent: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
+    async fn update_task_status(
+        &self,
+        task_id: &str,
+        status: TaskStatus,
+        assigned_agent: Option<String>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut registry = self.task_registry.write().await;
         if let Some(task) = registry.get_mut(task_id) {
             task.status = status;
@@ -854,27 +902,48 @@ impl AutonomousOrchestrationManager {
         Ok(())
     }
 
-    async fn invoke_terminal_for_task(&self, task: &OrchestrationTask, agent_id: &str) -> Result<(), Box<dyn std::error::Error>> {
-        self.terminal_manager.invoke_terminal(task, agent_id).await?;
-        let _ = self.event_sender.send(OrchestrationEvent::TerminalInvoked(task.id.clone()));
+    async fn invoke_terminal_for_task(
+        &self,
+        task: &OrchestrationTask,
+        agent_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.terminal_manager
+            .invoke_terminal(task, agent_id)
+            .await?;
+        let _ = self
+            .event_sender
+            .send(OrchestrationEvent::TerminalInvoked(task.id.clone()));
         Ok(())
     }
 
-    async fn execute_through_agent(&self, task: &OrchestrationTask, agent_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    async fn execute_through_agent(
+        &self,
+        task: &OrchestrationTask,
+        agent_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified agent execution - in production, this would coordinate with A2A communication
         Ok(())
     }
 
-    async fn handle_task_failure(&self, task_id: &str, error: &Box<dyn std::error::Error>) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_task_failure(
+        &self,
+        task_id: &str,
+        error: &Box<dyn std::error::Error>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Update task status
-        self.update_task_status(task_id, TaskStatus::Failed, None).await?;
+        self.update_task_status(task_id, TaskStatus::Failed, None)
+            .await?;
 
         // Trigger self-healing if enabled
         if self.config.enable_self_healing {
-            self.self_healing_manager.handle_failure(task_id, error).await?;
+            self.self_healing_manager
+                .handle_failure(task_id, error)
+                .await?;
         }
 
-        let _ = self.event_sender.send(OrchestrationEvent::TaskFailed(task_id.to_string()));
+        let _ = self
+            .event_sender
+            .send(OrchestrationEvent::TaskFailed(task_id.to_string()));
 
         Ok(())
     }
@@ -883,39 +952,42 @@ impl AutonomousOrchestrationManager {
 impl TaskDecomposer {
     pub fn new() -> Self {
         Self {
-            decomposition_rules: vec![
-                DecompositionRule {
-                    task_type: "complex_analysis".to_string(),
-                    complexity_threshold: TaskComplexity::Complex,
-                    subtask_templates: vec![
-                        SubTaskTemplate {
-                            name: "data_collection".to_string(),
-                            description: "Collect relevant data".to_string(),
-                            capabilities: vec![AgentCapability::Communication],
-                            estimated_tokens: 1000,
-                        },
-                        SubTaskTemplate {
-                            name: "analysis".to_string(),
-                            description: "Analyze collected data".to_string(),
-                            capabilities: vec![AgentCapability::CodeAnalysis],
-                            estimated_tokens: 2000,
-                        },
-                    ],
-                    decomposition_strategy: DecompositionStrategy::Sequential,
-                },
-            ],
+            decomposition_rules: vec![DecompositionRule {
+                task_type: "complex_analysis".to_string(),
+                complexity_threshold: TaskComplexity::Complex,
+                subtask_templates: vec![
+                    SubTaskTemplate {
+                        name: "data_collection".to_string(),
+                        description: "Collect relevant data".to_string(),
+                        capabilities: vec![AgentCapability::Communication],
+                        estimated_tokens: 1000,
+                    },
+                    SubTaskTemplate {
+                        name: "analysis".to_string(),
+                        description: "Analyze collected data".to_string(),
+                        capabilities: vec![AgentCapability::CodeAnalysis],
+                        estimated_tokens: 2000,
+                    },
+                ],
+                decomposition_strategy: DecompositionStrategy::Sequential,
+            }],
             complexity_analyzer: ComplexityAnalyzer::new(),
             dependency_resolver: DependencyResolver::new(),
         }
     }
 
-    pub async fn decompose(&self, task: &OrchestrationTask) -> Result<Vec<SubTask>, Box<dyn std::error::Error>> {
+    pub async fn decompose(
+        &self,
+        task: &OrchestrationTask,
+    ) -> Result<Vec<SubTask>, Box<dyn std::error::Error>> {
         let mut subtasks = Vec::new();
 
         // Find applicable decomposition rule
-        if let Some(rule) = self.decomposition_rules.iter()
-            .find(|r| r.task_type == task.name && task.complexity >= r.complexity_threshold) {
-
+        if let Some(rule) = self
+            .decomposition_rules
+            .iter()
+            .find(|r| r.task_type == task.name && task.complexity >= r.complexity_threshold)
+        {
             for (i, template) in rule.subtask_templates.iter().enumerate() {
                 let subtask = SubTask {
                     id: format!("{}_{}", task.id, i),
@@ -1000,14 +1072,12 @@ impl AgentCoordinator {
             agent_registry: TokioRwLock::new(HashMap::new()),
             task_queue: TokioRwLock::new(BinaryHeap::new()),
             active_assignments: TokioRwLock::new(HashMap::new()),
-            coordination_rules: vec![
-                CoordinationRule {
-                    name: "high_priority_first".to_string(),
-                    condition: "task.priority == Critical".to_string(),
-                    action: CoordinationAction::AssignTask,
-                    priority: 10,
-                },
-            ],
+            coordination_rules: vec![CoordinationRule {
+                name: "high_priority_first".to_string(),
+                condition: "task.priority == Critical".to_string(),
+                action: CoordinationAction::AssignTask,
+                priority: 10,
+            }],
             load_balancer: LoadBalancer {
                 strategy: LoadBalancingStrategy::LeastLoaded,
                 max_workload_per_agent: 0.8,
@@ -1016,7 +1086,10 @@ impl AgentCoordinator {
         }
     }
 
-    pub async fn assign_task(&self, task: &OrchestrationTask) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn assign_task(
+        &self,
+        task: &OrchestrationTask,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         let agents = self.agent_registry.read().await;
 
         // Find best agent for task
@@ -1032,7 +1105,9 @@ impl AgentCoordinator {
             }
 
             // Check capabilities match
-            let capability_match = task.required_capabilities.iter()
+            let capability_match = task
+                .required_capabilities
+                .iter()
                 .all(|cap| agent_info.capabilities.contains(cap));
 
             if !capability_match {
@@ -1062,7 +1137,10 @@ impl AgentCoordinator {
         Ok(assigned_agent)
     }
 
-    pub async fn schedule_task(&self, task: &OrchestrationTask) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn schedule_task(
+        &self,
+        task: &OrchestrationTask,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let agents = self.agent_registry.read().await;
 
         // Create task assignments for all compatible agents
@@ -1087,7 +1165,9 @@ impl AgentCoordinator {
                 agent_id: agent_id.clone(),
                 priority_score: Reverse(priority_score),
                 compatibility_score,
-                estimated_completion_time: Duration::from_secs(task.resource_requirements.estimated_duration_seconds),
+                estimated_completion_time: Duration::from_secs(
+                    task.resource_requirements.estimated_duration_seconds,
+                ),
             };
 
             assignments.push(assignment);
@@ -1106,9 +1186,12 @@ impl AgentCoordinator {
         let mut score = 0.0;
 
         // Capability matching
-        let capability_match = task.required_capabilities.iter()
+        let capability_match = task
+            .required_capabilities
+            .iter()
             .filter(|cap| agent.capabilities.contains(cap))
-            .count() as f64 / task.required_capabilities.len() as f64;
+            .count() as f64
+            / task.required_capabilities.len() as f64;
         score += capability_match * 0.6;
 
         // Performance score
@@ -1138,7 +1221,10 @@ impl TokenManager {
         }
     }
 
-    pub async fn allocate_tokens_for_task(&self, task: &OrchestrationTask) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn allocate_tokens_for_task(
+        &self,
+        task: &OrchestrationTask,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let estimated_tokens = task.resource_requirements.estimated_duration_seconds as usize * 10; // Rough estimate
 
         let mut budget = self.budget_tracker.write().await;
@@ -1171,13 +1257,11 @@ impl TokenUsageAnalyzer {
             efficiency_metrics: TokioRwLock::new(HashMap::new()),
             waste_detection: WasteDetector {
                 inefficiency_threshold: 0.7,
-                patterns: vec![
-                    TokenWastePattern {
-                        pattern: "repetitive_queries".to_string(),
-                        severity: WasteSeverity::Medium,
-                        remediation: "Implement caching for similar queries".to_string(),
-                    },
-                ],
+                patterns: vec![TokenWastePattern {
+                    pattern: "repetitive_queries".to_string(),
+                    severity: WasteSeverity::Medium,
+                    remediation: "Implement caching for similar queries".to_string(),
+                }],
             },
         }
     }
@@ -1190,16 +1274,12 @@ impl TokenOptimizationEngine {
                 CompressionTechnique::PromptCompression,
                 CompressionTechnique::ContextPruning,
             ],
-            caching_strategies: vec![
-                CachingStrategy::SemanticSimilarity,
-            ],
-            batching_rules: vec![
-                BatchingRule {
-                    condition: "similar_tasks > 3".to_string(),
-                    batch_size: 5,
-                    timeout_seconds: 30,
-                },
-            ],
+            caching_strategies: vec![CachingStrategy::SemanticSimilarity],
+            batching_rules: vec![BatchingRule {
+                condition: "similar_tasks > 3".to_string(),
+                batch_size: 5,
+                timeout_seconds: 30,
+            }],
         }
     }
 }
@@ -1208,27 +1288,31 @@ impl TerminalManager {
     pub fn new(pool_size: usize) -> Self {
         Self {
             terminal_pool: TokioRwLock::new(HashMap::new()),
-            invocation_rules: vec![
-                TerminalInvocationRule {
-                    task_type: "build".to_string(),
-                    terminal_type: TerminalType::Bash,
-                    command_template: "cd {{project_dir}} && {{build_command}}".to_string(),
-                    resource_requirements: TerminalResourceRequirements {
-                        max_runtime_seconds: 300,
-                        max_memory_mb: 1024,
-                        allow_network: true,
-                        allow_filesystem: true,
-                    },
+            invocation_rules: vec![TerminalInvocationRule {
+                task_type: "build".to_string(),
+                terminal_type: TerminalType::Bash,
+                command_template: "cd {{project_dir}} && {{build_command}}".to_string(),
+                resource_requirements: TerminalResourceRequirements {
+                    max_runtime_seconds: 300,
+                    max_memory_mb: 1024,
+                    allow_network: true,
+                    allow_filesystem: true,
                 },
-            ],
+            }],
             session_monitor: SessionMonitor::new(pool_size),
             resource_allocator: TerminalResourceAllocator::new(),
         }
     }
 
-    pub async fn invoke_terminal(&self, task: &OrchestrationTask, agent_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn invoke_terminal(
+        &self,
+        task: &OrchestrationTask,
+        agent_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Find appropriate invocation rule
-        let rule = self.invocation_rules.iter()
+        let rule = self
+            .invocation_rules
+            .iter()
             .find(|r| r.task_type == task.name)
             .ok_or("No invocation rule found for task type")?;
 
@@ -1272,18 +1356,19 @@ impl SessionMonitor {
                 max_sessions_per_agent: 3,
                 session_timeout_seconds: 3600,
             },
-            health_checks: vec![
-                HealthCheck {
-                    name: "session_timeout".to_string(),
-                    command: "check_timeout".to_string(),
-                    interval_seconds: 60,
-                    failure_threshold: 3,
-                },
-            ],
+            health_checks: vec![HealthCheck {
+                name: "session_timeout".to_string(),
+                command: "check_timeout".to_string(),
+                interval_seconds: 60,
+                failure_threshold: 3,
+            }],
         }
     }
 
-    pub async fn start_monitoring(&self, session_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start_monitoring(
+        &self,
+        session_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Start background monitoring task
         Ok(())
     }
@@ -1307,26 +1392,31 @@ impl SelfHealingManager {
     pub fn new() -> Self {
         Self {
             failure_detector: FailureDetector::new(),
-            healing_strategies: vec![
-                HealingStrategy {
-                    failure_type: "task_timeout".to_string(),
-                    strategy_type: HealingStrategyType::Restart,
-                    parameters: HashMap::new(),
-                    success_rate: 0.8,
-                },
-            ],
+            healing_strategies: vec![HealingStrategy {
+                failure_type: "task_timeout".to_string(),
+                strategy_type: HealingStrategyType::Restart,
+                parameters: HashMap::new(),
+                success_rate: 0.8,
+            }],
             adaptation_engine: AdaptationEngine::new(),
             recovery_coordinator: RecoveryCoordinator::new(),
         }
     }
 
-    pub async fn handle_failure(&self, task_id: &str, error: &Box<dyn std::error::Error>) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn handle_failure(
+        &self,
+        task_id: &str,
+        error: &Box<dyn std::error::Error>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Detect failure type
         let failure_type = self.failure_detector.detect_failure(error)?;
 
         // Apply healing strategy
-        if let Some(strategy) = self.healing_strategies.iter()
-            .find(|s| s.failure_type == failure_type) {
+        if let Some(strategy) = self
+            .healing_strategies
+            .iter()
+            .find(|s| s.failure_type == failure_type)
+        {
             self.apply_healing_strategy(strategy, task_id).await?;
         }
 
@@ -1387,14 +1477,12 @@ impl SelfHealingManager {
 impl FailureDetector {
     pub fn new() -> Self {
         Self {
-            failure_patterns: vec![
-                FailurePattern {
-                    pattern: "timeout".to_string(),
-                    severity: FailureSeverity::Moderate,
-                    auto_healing: true,
-                    escalation_rules: vec![],
-                },
-            ],
+            failure_patterns: vec![FailurePattern {
+                pattern: "timeout".to_string(),
+                severity: FailureSeverity::Moderate,
+                auto_healing: true,
+                escalation_rules: vec![],
+            }],
             anomaly_detector: AnomalyDetector {
                 baseline_metrics: HashMap::new(),
                 sensitivity: 0.8,
@@ -1404,7 +1492,10 @@ impl FailureDetector {
         }
     }
 
-    pub fn detect_failure(&self, error: &Box<dyn std::error::Error>) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn detect_failure(
+        &self,
+        error: &Box<dyn std::error::Error>,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         let error_msg = error.to_string().to_lowercase();
 
         for pattern in &self.failure_patterns {
@@ -1420,13 +1511,11 @@ impl FailureDetector {
 impl AdaptationEngine {
     pub fn new() -> Self {
         Self {
-            adaptation_rules: vec![
-                AdaptationRule {
-                    trigger_condition: "high_failure_rate".to_string(),
-                    adaptation_action: AdaptationAction::AdjustResourceAllocation,
-                    cooldown_period: Duration::from_secs(300),
-                },
-            ],
+            adaptation_rules: vec![AdaptationRule {
+                trigger_condition: "high_failure_rate".to_string(),
+                adaptation_action: AdaptationAction::AdjustResourceAllocation,
+                cooldown_period: Duration::from_secs(300),
+            }],
             learning_rate: 0.1,
             adaptation_history: TokioRwLock::new(Vec::new()),
         }
@@ -1446,7 +1535,11 @@ impl RecoveryCoordinator {
         }
     }
 
-    pub async fn apply_healing_strategy(&self, strategy: &HealingStrategy, task_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn apply_healing_strategy(
+        &self,
+        strategy: &HealingStrategy,
+        task_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Apply the healing strategy
         match strategy.strategy_type {
             HealingStrategyType::Restart => {

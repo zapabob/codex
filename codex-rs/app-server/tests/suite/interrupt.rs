@@ -18,13 +18,8 @@ use tempfile::TempDir;
 use tokio::time::timeout;
 
 use app_test_support::McpProcess;
-<<<<<<< HEAD
-use app_test_support::create_mock_chat_completions_server;
-use app_test_support::create_shell_sse_response;
-=======
 use app_test_support::create_mock_responses_server_sequence;
 use app_test_support::create_shell_command_sse_response;
->>>>>>> upstream/main
 use app_test_support::to_response;
 
 const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
@@ -61,11 +56,7 @@ async fn shell_command_interruption() -> anyhow::Result<()> {
     std::fs::create_dir(&working_directory)?;
 
     // Create mock server with a single SSE response: the long sleep command
-<<<<<<< HEAD
-    let server = create_mock_chat_completions_server(vec![create_shell_sse_response(
-=======
     let server = create_mock_responses_server_sequence(vec![create_shell_command_sse_response(
->>>>>>> upstream/main
         shell_command.clone(),
         Some(&working_directory),
         Some(10_000), // 10 seconds timeout in ms

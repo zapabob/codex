@@ -2,13 +2,8 @@
 
 use anyhow::Result;
 use app_test_support::McpProcess;
-<<<<<<< HEAD
-use app_test_support::create_mock_chat_completions_server;
-use app_test_support::create_shell_sse_response;
-=======
 use app_test_support::create_mock_responses_server_sequence;
 use app_test_support::create_shell_command_sse_response;
->>>>>>> upstream/main
 use app_test_support::to_response;
 use codex_app_server_protocol::JSONRPCResponse;
 use codex_app_server_protocol::RequestId;
@@ -43,11 +38,7 @@ async fn turn_interrupt_aborts_running_turn() -> Result<()> {
     std::fs::create_dir(&working_directory)?;
 
     // Mock server: long-running shell command then (after abort) nothing else needed.
-<<<<<<< HEAD
-    let server = create_mock_chat_completions_server(vec![create_shell_sse_response(
-=======
     let server = create_mock_responses_server_sequence(vec![create_shell_command_sse_response(
->>>>>>> upstream/main
         shell_command.clone(),
         Some(&working_directory),
         Some(10_000),

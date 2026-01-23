@@ -275,6 +275,7 @@ pub struct AnomalyDetector {
 pub struct ObservabilityEngine {
     trace_storage: RwLock<HashMap<String, Vec<TraceEntry>>>,
     metric_storage: RwLock<HashMap<String, Vec<MetricEntry>>>,
+    #[allow(dead_code)]
     governance_rules: Vec<GovernanceRule>,
 }
 
@@ -345,7 +346,10 @@ impl LLMOpsManager {
     }
 
     /// Register a new model version
-    pub async fn register_model(&self, model: ModelVersion) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_model(
+        &self,
+        model: ModelVersion,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Validate model version
         self.validate_model_version(&model).await?;
 
@@ -358,13 +362,18 @@ impl LLMOpsManager {
         write_lock(&self.model_registry).insert(model.id.clone(), model_with_security);
 
         // Notify observers
-        let _ = self.event_sender.send(LLMOpsEvent::ModelVersionUpdated(model.id));
+        let _ = self
+            .event_sender
+            .send(LLMOpsEvent::ModelVersionUpdated(model.id));
 
         Ok(())
     }
 
     /// Register a new prompt template
-    pub async fn register_prompt(&self, prompt: PromptTemplate) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_prompt(
+        &self,
+        prompt: PromptTemplate,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Validate prompt template
         self.validate_prompt_template(&prompt).await?;
 
@@ -372,13 +381,18 @@ impl LLMOpsManager {
         write_lock(&self.prompt_registry).insert(prompt.id.clone(), prompt.clone());
 
         // Notify observers
-        let _ = self.event_sender.send(LLMOpsEvent::PromptTemplateUpdated(prompt.id));
+        let _ = self
+            .event_sender
+            .send(LLMOpsEvent::PromptTemplateUpdated(prompt.id));
 
         Ok(())
     }
 
     /// Execute LLM request with full LLMOps monitoring
-    pub async fn execute_request(&self, request: LLMRequest) -> Result<LLMResponse, Box<dyn std::error::Error>> {
+    pub async fn execute_request(
+        &self,
+        request: LLMRequest,
+    ) -> Result<LLMResponse, Box<dyn std::error::Error>> {
         let start_time = Instant::now();
 
         // Pre-request validation and security checks
@@ -397,7 +411,9 @@ impl LLMOpsManager {
         // Execute request with monitoring
         let trace_id = format!("trace_{}", chrono::Utc::now().timestamp_millis());
 
-        let result = self.execute_with_monitoring(&request, &model, &prompt_template, &trace_id).await;
+        let result = self
+            .execute_with_monitoring(&request, &model, &prompt_template, &trace_id)
+            .await;
 
         let latency = start_time.elapsed().as_millis() as f64;
 
@@ -408,7 +424,8 @@ impl LLMOpsManager {
                 self.update_cost_tracking(&model, response.tokens_used, estimated_cost);
 
                 // Performance monitoring
-                self.performance_monitor.record_request(latency, response.tokens_used, true);
+                self.performance_monitor
+                    .record_request(latency, response.tokens_used, true);
 
                 // Observability
                 self.observability_engine.record_trace(TraceEntry {
@@ -472,7 +489,10 @@ impl LLMOpsManager {
 
     // Private helper methods
 
-    async fn validate_model_version(&self, model: &ModelVersion) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_model_version(
+        &self,
+        model: &ModelVersion,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Semantic version validation
         if !self.is_valid_semantic_version(&model.version) {
             return Err("Invalid semantic version format".into());
@@ -491,7 +511,10 @@ impl LLMOpsManager {
         Ok(())
     }
 
-    async fn assess_model_security(&self, model: &ModelVersion) -> Result<SecurityAssessment, Box<dyn std::error::Error>> {
+    async fn assess_model_security(
+        &self,
+        model: &ModelVersion,
+    ) -> Result<SecurityAssessment, Box<dyn std::error::Error>> {
         // Simplified security assessment
         // In production, this would involve comprehensive security testing
         Ok(SecurityAssessment {
@@ -508,7 +531,10 @@ impl LLMOpsManager {
         })
     }
 
-    async fn validate_prompt_template(&self, prompt: &PromptTemplate) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_prompt_template(
+        &self,
+        prompt: &PromptTemplate,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Template syntax validation
         if prompt.template.is_empty() {
             return Err("Prompt template cannot be empty".into());
@@ -517,7 +543,9 @@ impl LLMOpsManager {
         // Variable validation
         for var in &prompt.variables {
             if var.required && !prompt.template.contains(&format!("{{{}}}", var.name)) {
-                return Err(format!("Required variable '{}' not found in template", var.name).into());
+                return Err(
+                    format!("Required variable '{}' not found in template", var.name).into(),
+                );
             }
         }
 
@@ -537,15 +565,14 @@ impl LLMOpsManager {
             "no_pii",
             "no_sensitive_data",
             "safe_content_only",
-            "no_malicious_instructions"
+            "no_malicious_instructions",
         ];
 
         valid_constraints.contains(&constraint)
     }
 
     fn is_valid_semantic_version(&self, version: &str) -> bool {
-        let semver_regex =
-            build_regex(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$");
+        let semver_regex = build_regex(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$");
         semver_regex.is_match(version)
     }
 
@@ -578,8 +605,13 @@ impl LLMOpsManager {
         Ok((model, prompt))
     }
 
-    fn estimate_request_cost(&self, model: &ModelVersion, request: &LLMRequest) -> Result<f64, Box<dyn std::error::Error>> {
-        let estimated_tokens = request.estimated_input_tokens + (request.max_output_tokens.unwrap_or(1000) as f64 * 0.5) as usize;
+    fn estimate_request_cost(
+        &self,
+        model: &ModelVersion,
+        request: &LLMRequest,
+    ) -> Result<f64, Box<dyn std::error::Error>> {
+        let estimated_tokens = request.estimated_input_tokens
+            + (request.max_output_tokens.unwrap_or(1000) as f64 * 0.5) as usize;
         let cost_per_1k = model.performance_metrics.cost_per_1k_tokens;
         Ok((estimated_tokens as f64 / 1000.0) * cost_per_1k)
     }
@@ -590,16 +622,26 @@ impl LLMOpsManager {
 
         // Simple hourly budget check
         if current_cost + estimated_cost > hourly_budget {
-            let _ = self.event_sender.send(LLMOpsEvent::CostThresholdExceeded(current_cost + estimated_cost));
-            return Err(format!("Cost budget exceeded: estimated ${:.2}, budget ${:.2}",
-                             estimated_cost, hourly_budget).into());
+            let _ = self.event_sender.send(LLMOpsEvent::CostThresholdExceeded(
+                current_cost + estimated_cost,
+            ));
+            return Err(format!(
+                "Cost budget exceeded: estimated ${:.2}, budget ${:.2}",
+                estimated_cost, hourly_budget
+            )
+            .into());
         }
 
         Ok(())
     }
 
-    async fn execute_with_monitoring(&self, request: &LLMRequest, model: &ModelVersion,
-                                   prompt_template: &PromptTemplate, trace_id: &str) -> Result<LLMResponse, Box<dyn std::error::Error>> {
+    async fn execute_with_monitoring(
+        &self,
+        request: &LLMRequest,
+        model: &ModelVersion,
+        prompt_template: &PromptTemplate,
+        trace_id: &str,
+    ) -> Result<LLMResponse, Box<dyn std::error::Error>> {
         // This would integrate with actual LLM providers
         // For now, return a mock response
 
@@ -617,7 +659,10 @@ impl LLMOpsManager {
         cost_tracker.total_cost += actual_cost;
         cost_tracker.tokens_used += tokens_used;
 
-        *cost_tracker.cost_by_model.entry(model.model_name.clone()).or_insert(0.0) += actual_cost;
+        *cost_tracker
+            .cost_by_model
+            .entry(model.model_name.clone())
+            .or_insert(0.0) += actual_cost;
     }
 }
 
@@ -697,13 +742,11 @@ impl LLMSecurityHardening {
             build_regex(r"(?i)ignore\s+previous\s+instructions"),
         ];
 
-        let sanitization_rules = vec![
-            SanitizationRule {
-                pattern: build_regex(r"<script[^>]*>.*?</script>"),
-                replacement: "[SCRIPT_REMOVED]".to_string(),
-                description: "Remove script tags".to_string(),
-            },
-        ];
+        let sanitization_rules = vec![SanitizationRule {
+            pattern: build_regex(r"<script[^>]*>.*?</script>"),
+            replacement: "[SCRIPT_REMOVED]".to_string(),
+            description: "Remove script tags".to_string(),
+        }];
 
         InputValidator {
             max_length,
@@ -721,18 +764,19 @@ impl LLMSecurityHardening {
             SecurityLevel::Critical => 0.2,
         };
 
-        let content_filters = vec![
-            ContentFilter {
-                pattern: build_regex(r"(?i)harmful|dangerous|illegal"),
-                severity: FilterSeverity::High,
-                action: FilterAction::Block,
-            },
-        ];
+        let content_filters = vec![ContentFilter {
+            pattern: build_regex(r"(?i)harmful|dangerous|illegal"),
+            severity: FilterSeverity::High,
+            action: FilterAction::Block,
+        }];
 
         OutputFilter {
             content_filters,
             toxicity_threshold,
-            hallucination_detection: matches!(security_level, SecurityLevel::High | SecurityLevel::Critical),
+            hallucination_detection: matches!(
+                security_level,
+                SecurityLevel::High | SecurityLevel::Critical
+            ),
         }
     }
 
@@ -754,7 +798,12 @@ impl LLMSecurityHardening {
     pub fn validate_input(&self, input: &str) -> Result<(), Box<dyn std::error::Error>> {
         // Length check
         if input.len() > self.input_validation.max_length {
-            return Err(format!("Input too long: {} > {}", input.len(), self.input_validation.max_length).into());
+            return Err(format!(
+                "Input too long: {} > {}",
+                input.len(),
+                self.input_validation.max_length
+            )
+            .into());
         }
 
         // Character validation
@@ -772,7 +821,10 @@ impl LLMSecurityHardening {
         // Sanitization
         let mut sanitized = input.to_string();
         for rule in &self.input_validation.sanitization_rules {
-            sanitized = rule.pattern.replace_all(&sanitized, &rule.replacement).to_string();
+            sanitized = rule
+                .pattern
+                .replace_all(&sanitized, &rule.replacement)
+                .to_string();
         }
 
         Ok(())
@@ -786,10 +838,17 @@ impl LLMSecurityHardening {
             if filter.pattern.is_match(&filtered) {
                 match filter.action {
                     FilterAction::Block => {
-                        return Err(format!("Output blocked due to content filter: {}", filter.pattern).into());
+                        return Err(format!(
+                            "Output blocked due to content filter: {}",
+                            filter.pattern
+                        )
+                        .into());
                     }
                     FilterAction::Sanitize => {
-                        filtered = filter.pattern.replace_all(&filtered, "[FILTERED]").to_string();
+                        filtered = filter
+                            .pattern
+                            .replace_all(&filtered, "[FILTERED]")
+                            .to_string();
                     }
                     _ => {} // Allow or Warn - no action needed for filtering
                 }
@@ -866,11 +925,17 @@ impl PerformanceMonitor {
 
     fn check_alerts(&self, snapshot: &PerformanceSnapshot) {
         if snapshot.latency_ms > self.alert_thresholds.max_latency_ms {
-            println!("??  Performance Alert: High latency detected: {:.2}ms", snapshot.latency_ms);
+            println!(
+                "??  Performance Alert: High latency detected: {:.2}ms",
+                snapshot.latency_ms
+            );
         }
 
         if snapshot.success_rate < self.alert_thresholds.min_success_rate {
-            println!("??  Performance Alert: Low success rate: {:.2}%", snapshot.success_rate * 100.0);
+            println!(
+                "??  Performance Alert: Low success rate: {:.2}%",
+                snapshot.success_rate * 100.0
+            );
         }
     }
 }
@@ -898,18 +963,30 @@ impl ObservabilityEngine {
     }
 
     pub fn record_trace(&self, trace: TraceEntry) {
-        let mut storage = self.trace_storage.write().unwrap();
-        storage.entry(trace.operation.clone()).or_insert_with(Vec::new).push(trace);
+        let mut storage = write_lock(&self.trace_storage);
+        storage
+            .entry(trace.operation.clone())
+            .or_insert_with(Vec::new)
+            .push(trace);
     }
 
     pub fn record_metric(&self, metric: MetricEntry) {
-        let mut storage = self.metric_storage.write().unwrap();
-        storage.entry(metric.name.clone()).or_insert_with(Vec::new).push(metric);
+        let mut storage = write_lock(&self.metric_storage);
+        storage
+            .entry(metric.name.clone())
+            .or_insert_with(Vec::new)
+            .push(metric);
     }
 
     pub fn get_status(&self) -> String {
-        let trace_count = self.trace_storage.read().unwrap().values().map(|v| v.len()).sum::<usize>();
-        let metric_count = self.metric_storage.read().unwrap().values().map(|v| v.len()).sum::<usize>();
+        let trace_count = read_lock(&self.trace_storage)
+            .values()
+            .map(|v| v.len())
+            .sum::<usize>();
+        let metric_count = read_lock(&self.metric_storage)
+            .values()
+            .map(|v| v.len())
+            .sum::<usize>();
 
         format!("Traces: {}, Metrics: {}", trace_count, metric_count)
     }

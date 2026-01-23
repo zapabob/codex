@@ -8,21 +8,21 @@
 //! - Observability, auditing, and infrastructure
 //! - Performance, scalability, and usability
 
+use async_trait::async_trait;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
-use serde::{Serialize, Deserialize};
-use async_trait::async_trait;
-use tokio::sync::{broadcast, mpsc, oneshot, RwLock as TokioRwLock};
+use tokio::sync::{RwLock as TokioRwLock, broadcast, mpsc, oneshot};
 use tokio::time;
-use regex::Regex;
 use uuid::Uuid;
 
 // Import existing components
+use crate::a2a_communication::{A2ACommunicationManager, A2AMessage, MessagePayload, MessageType};
 use crate::config::Config;
-use crate::security::{SecurityContext, AuditLogger};
 use crate::llmops::{LLMOpsManager, LLMRequest, LLMResponse};
-use crate::a2a_communication::{A2ACommunicationManager, A2AMessage, MessageType, MessagePayload};
+use crate::security::{AuditLogger, SecurityContext};
 
 /// Skill/MCP integration configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -559,7 +559,10 @@ impl SkillMCPIntegrationManager {
     }
 
     /// Register a new skill
-    pub async fn register_skill(&self, skill: SkillDefinition) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_skill(
+        &self,
+        skill: SkillDefinition,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Validate skill definition
         self.validate_skill_definition(&skill).await?;
 
@@ -573,14 +576,19 @@ impl SkillMCPIntegrationManager {
         }
 
         // Notify observers
-        let _ = self.event_sender.send(SkillMCPEvent::SkillRegistered(skill.id));
+        let _ = self
+            .event_sender
+            .send(SkillMCPEvent::SkillRegistered(skill.id));
 
         Ok(())
     }
 
     /// Execute a skill with full monitoring and security
-    pub async fn execute_skill(&self, skill_id: &str, input: serde_json::Value)
-                               -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn execute_skill(
+        &self,
+        skill_id: &str,
+        input: serde_json::Value,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let start_time = Instant::now();
 
         // Get skill definition
@@ -608,17 +616,25 @@ impl SkillMCPIntegrationManager {
         };
 
         // Start observability tracing
-        self.observability_engine.start_trace(&execution_context.trace_id, "skill_execution").await?;
+        self.observability_engine
+            .start_trace(&execution_context.trace_id, "skill_execution")
+            .await?;
 
         // Execute skill in sandbox
-        let result = self.execution_environment.execute_skill(&skill, &execution_context).await;
+        let result = self
+            .execution_environment
+            .execute_skill(&skill, &execution_context)
+            .await;
 
         // Record execution metrics
         let execution_time = start_time.elapsed();
-        self.record_execution_metrics(skill_id, execution_time, result.is_ok()).await?;
+        self.record_execution_metrics(skill_id, execution_time, result.is_ok())
+            .await?;
 
         // End observability tracing
-        self.observability_engine.end_trace(&execution_context.trace_id, result.is_ok()).await?;
+        self.observability_engine
+            .end_trace(&execution_context.trace_id, result.is_ok())
+            .await?;
 
         // Clean up resources
         self.deallocate_resources(resource_allocation)?;
@@ -627,7 +643,10 @@ impl SkillMCPIntegrationManager {
         match result {
             Ok(output) => {
                 let validated_output = self.validate_skill_output(&skill, &output).await?;
-                let filtered_output = self.execution_environment.security_enforcer.filter_output(&validated_output)?;
+                let filtered_output = self
+                    .execution_environment
+                    .security_enforcer
+                    .filter_output(&validated_output)?;
                 Ok(filtered_output)
             }
             Err(e) => {
@@ -638,7 +657,10 @@ impl SkillMCPIntegrationManager {
     }
 
     /// Register MCP resource
-    pub async fn register_mcp_resource(&self, resource: MCPResource) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_mcp_resource(
+        &self,
+        resource: MCPResource,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Validate resource
         self.validate_mcp_resource(&resource).await?;
 
@@ -666,8 +688,11 @@ impl SkillMCPIntegrationManager {
     }
 
     /// Access MCP resource with security and caching
-    pub async fn access_mcp_resource(&self, uri: &str, context: &SecurityContext)
-                                    -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn access_mcp_resource(
+        &self,
+        uri: &str,
+        context: &SecurityContext,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Get resource definition
         let resource = {
             let resources = self.mcp_resources.read().await;
@@ -693,16 +718,24 @@ impl SkillMCPIntegrationManager {
         }
 
         // Record access
-        self.observability_engine.record_metric("resource_access", 1.0, &[("uri", uri)]).await?;
+        self.observability_engine
+            .record_metric("resource_access", 1.0, &[("uri", uri)])
+            .await?;
 
-        let _ = self.event_sender.send(SkillMCPEvent::MCPResourceAccessed(uri.to_string()));
+        let _ = self
+            .event_sender
+            .send(SkillMCPEvent::MCPResourceAccessed(uri.to_string()));
 
         Ok(result)
     }
 
     /// Call MCP tool with validation and monitoring
-    pub async fn call_mcp_tool(&self, tool_name: &str, parameters: serde_json::Value, context: &SecurityContext)
-                              -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn call_mcp_tool(
+        &self,
+        tool_name: &str,
+        parameters: serde_json::Value,
+        context: &SecurityContext,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let start_time = Instant::now();
 
         // Get tool definition
@@ -715,16 +748,20 @@ impl SkillMCPIntegrationManager {
         self.validate_tool_parameters(&tool, &parameters).await?;
 
         // Check execution requirements
-        self.check_tool_execution_requirements(&tool, context).await?;
+        self.check_tool_execution_requirements(&tool, context)
+            .await?;
 
         // Execute tool via MCP
         let result = self.execute_tool_via_mcp(&tool, &parameters).await?;
 
         // Record metrics
         let execution_time = start_time.elapsed();
-        self.record_tool_execution_metrics(tool_name, execution_time, true).await?;
+        self.record_tool_execution_metrics(tool_name, execution_time, true)
+            .await?;
 
-        let _ = self.event_sender.send(SkillMCPEvent::MCPToolCalled(tool_name.to_string()));
+        let _ = self
+            .event_sender
+            .send(SkillMCPEvent::MCPToolCalled(tool_name.to_string()));
 
         Ok(result)
     }
@@ -736,7 +773,10 @@ impl SkillMCPIntegrationManager {
         let tool_count = self.mcp_tools.read().await.len();
 
         let context_usage = self.context_manager.get_usage_stats().await;
-        let resource_usage = self.execution_environment.resource_monitor.get_usage_stats();
+        let resource_usage = self
+            .execution_environment
+            .resource_monitor
+            .get_usage_stats();
 
         SkillMCPStatus {
             skill_count,
@@ -745,13 +785,16 @@ impl SkillMCPIntegrationManager {
             context_usage,
             resource_usage,
             active_executions: 0, // Would be tracked
-            security_alerts: 0, // Would be counted
+            security_alerts: 0,   // Would be counted
         }
     }
 
     // Private helper methods
 
-    async fn validate_skill_definition(&self, skill: &SkillDefinition) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_skill_definition(
+        &self,
+        skill: &SkillDefinition,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Validate semantic version
         if !self.is_valid_semantic_version(&skill.version) {
             return Err("Invalid semantic version".into());
@@ -771,7 +814,10 @@ impl SkillMCPIntegrationManager {
         Ok(())
     }
 
-    fn validate_json_schema(&self, schema: &serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+    fn validate_json_schema(
+        &self,
+        schema: &serde_json::Value,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Basic schema validation
         if !schema.is_object() {
             return Err("Schema must be an object".into());
@@ -779,21 +825,32 @@ impl SkillMCPIntegrationManager {
         Ok(())
     }
 
-    fn check_resource_availability(&self, requirements: &ResourceRequirements) -> Result<(), Box<dyn std::error::Error>> {
+    fn check_resource_availability(
+        &self,
+        requirements: &ResourceRequirements,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified resource check - in production, this would check actual system resources
-        if requirements.memory_mb > 8192 { // 8GB limit
+        if requirements.memory_mb > 8192 {
+            // 8GB limit
             return Err("Insufficient memory".into());
         }
         Ok(())
     }
 
-    async fn validate_skill_input(&self, skill: &SkillDefinition, input: &serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_skill_input(
+        &self,
+        skill: &SkillDefinition,
+        input: &serde_json::Value,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Schema validation against input_schema
         // Simplified - in production, use a proper JSON schema validator
         Ok(())
     }
 
-    async fn enforce_security_requirements(&self, skill: &SkillDefinition) -> Result<(), Box<dyn std::error::Error>> {
+    async fn enforce_security_requirements(
+        &self,
+        skill: &SkillDefinition,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         for requirement in &skill.security_requirements {
             match requirement.as_str() {
                 "authentication_required" => {
@@ -808,7 +865,10 @@ impl SkillMCPIntegrationManager {
         Ok(())
     }
 
-    fn allocate_resources(&self, requirements: &ResourceRequirements) -> Result<ResourceAllocation, Box<dyn std::error::Error>> {
+    fn allocate_resources(
+        &self,
+        requirements: &ResourceRequirements,
+    ) -> Result<ResourceAllocation, Box<dyn std::error::Error>> {
         // Simplified resource allocation
         Ok(ResourceAllocation {
             id: Uuid::new_v4().to_string(),
@@ -818,30 +878,63 @@ impl SkillMCPIntegrationManager {
         })
     }
 
-    fn deallocate_resources(&self, allocation: ResourceAllocation) -> Result<(), Box<dyn std::error::Error>> {
+    fn deallocate_resources(
+        &self,
+        allocation: ResourceAllocation,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified resource deallocation
         Ok(())
     }
 
-    async fn validate_skill_output(&self, skill: &SkillDefinition, output: &serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    async fn validate_skill_output(
+        &self,
+        skill: &SkillDefinition,
+        output: &serde_json::Value,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Schema validation against output_schema
         Ok(output.clone())
     }
 
-    async fn handle_execution_error(&self, skill_id: &str, error: &Box<dyn std::error::Error>) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_execution_error(
+        &self,
+        skill_id: &str,
+        error: &Box<dyn std::error::Error>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Log error and potentially trigger alerts
-        self.observability_engine.record_metric("skill_execution_error", 1.0, &[("skill_id", skill_id)]).await?;
+        self.observability_engine
+            .record_metric("skill_execution_error", 1.0, &[("skill_id", skill_id)])
+            .await?;
         Ok(())
     }
 
-    async fn record_execution_metrics(&self, skill_id: &str, duration: Duration, success: bool) -> Result<(), Box<dyn std::error::Error>> {
+    async fn record_execution_metrics(
+        &self,
+        skill_id: &str,
+        duration: Duration,
+        success: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let success_value = if success { 1.0 } else { 0.0 };
-        self.observability_engine.record_metric("skill_execution_success", success_value, &[("skill_id", skill_id)]).await?;
-        self.observability_engine.record_metric("skill_execution_duration", duration.as_millis() as f64, &[("skill_id", skill_id)]).await?;
+        self.observability_engine
+            .record_metric(
+                "skill_execution_success",
+                success_value,
+                &[("skill_id", skill_id)],
+            )
+            .await?;
+        self.observability_engine
+            .record_metric(
+                "skill_execution_duration",
+                duration.as_millis() as f64,
+                &[("skill_id", skill_id)],
+            )
+            .await?;
         Ok(())
     }
 
-    async fn validate_mcp_resource(&self, resource: &MCPResource) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_mcp_resource(
+        &self,
+        resource: &MCPResource,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         if resource.uri.is_empty() {
             return Err("Resource URI cannot be empty".into());
         }
@@ -856,7 +949,11 @@ impl SkillMCPIntegrationManager {
         Ok(())
     }
 
-    async fn check_resource_access(&self, resource: &MCPResource, context: &SecurityContext) -> Result<(), Box<dyn std::error::Error>> {
+    async fn check_resource_access(
+        &self,
+        resource: &MCPResource,
+        context: &SecurityContext,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified access control check
         for permission in &resource.access_control.required_permissions {
             if !context.permissions.contains(permission) {
@@ -866,45 +963,85 @@ impl SkillMCPIntegrationManager {
         Ok(())
     }
 
-    async fn check_resource_cache(&self, uri: &str) -> Result<Option<serde_json::Value>, Box<dyn std::error::Error>> {
+    async fn check_resource_cache(
+        &self,
+        uri: &str,
+    ) -> Result<Option<serde_json::Value>, Box<dyn std::error::Error>> {
         // Simplified cache check
         Ok(None)
     }
 
-    async fn access_resource_via_mcp(&self, resource: &MCPResource) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    async fn access_resource_via_mcp(
+        &self,
+        resource: &MCPResource,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Simplified MCP resource access
         Ok(serde_json::json!({"data": "mock_resource_data"}))
     }
 
-    async fn cache_resource_result(&self, uri: &str, result: &serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+    async fn cache_resource_result(
+        &self,
+        uri: &str,
+        result: &serde_json::Value,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified caching
         Ok(())
     }
 
-    async fn validate_tool_parameters(&self, tool: &MCPTool, parameters: &serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_tool_parameters(
+        &self,
+        tool: &MCPTool,
+        parameters: &serde_json::Value,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Parameter validation against input_schema
         Ok(())
     }
 
-    async fn check_tool_execution_requirements(&self, tool: &MCPTool, context: &SecurityContext) -> Result<(), Box<dyn std::error::Error>> {
+    async fn check_tool_execution_requirements(
+        &self,
+        tool: &MCPTool,
+        context: &SecurityContext,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Check sandbox level, resource limits, etc.
         Ok(())
     }
 
-    async fn execute_tool_via_mcp(&self, tool: &MCPTool, parameters: &serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    async fn execute_tool_via_mcp(
+        &self,
+        tool: &MCPTool,
+        parameters: &serde_json::Value,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Simplified MCP tool execution
         Ok(serde_json::json!({"result": "mock_tool_result"}))
     }
 
-    async fn record_tool_execution_metrics(&self, tool_name: &str, duration: Duration, success: bool) -> Result<(), Box<dyn std::error::Error>> {
+    async fn record_tool_execution_metrics(
+        &self,
+        tool_name: &str,
+        duration: Duration,
+        success: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let success_value = if success { 1.0 } else { 0.0 };
-        self.observability_engine.record_metric("tool_execution_success", success_value, &[("tool_name", tool_name)]).await?;
-        self.observability_engine.record_metric("tool_execution_duration", duration.as_millis() as f64, &[("tool_name", tool_name)]).await?;
+        self.observability_engine
+            .record_metric(
+                "tool_execution_success",
+                success_value,
+                &[("tool_name", tool_name)],
+            )
+            .await?;
+        self.observability_engine
+            .record_metric(
+                "tool_execution_duration",
+                duration.as_millis() as f64,
+                &[("tool_name", tool_name)],
+            )
+            .await?;
         Ok(())
     }
 
     fn is_valid_semantic_version(&self, version: &str) -> bool {
-        let semver_regex = Regex::new(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$").unwrap();
+        let semver_regex =
+            Regex::new(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$").unwrap();
         semver_regex.is_match(version)
     }
 }
@@ -926,8 +1063,11 @@ impl SkillExecutionEnvironment {
         }
     }
 
-    pub async fn execute_skill(&self, skill: &SkillDefinition, context: &ExecutionContext)
-                              -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn execute_skill(
+        &self,
+        skill: &SkillDefinition,
+        context: &ExecutionContext,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Start performance tracking
         self.performance_tracker.start_execution();
 
@@ -962,8 +1102,11 @@ impl SandboxManager {
         }
     }
 
-    pub async fn execute(&self, skill: &SkillDefinition, context: &ExecutionContext)
-                        -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn execute(
+        &self,
+        skill: &SkillDefinition,
+        context: &ExecutionContext,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Simplified sandbox execution
         Ok(serde_json::json!({"result": "mock_skill_execution"}))
     }
@@ -1011,7 +1154,10 @@ impl SecurityEnforcer {
         }
     }
 
-    pub fn check_execution(&self, context: &ExecutionContext) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn check_execution(
+        &self,
+        context: &ExecutionContext,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Check for security violations during execution
         Ok(())
     }
@@ -1022,7 +1168,10 @@ impl InputValidator {
         Self {
             schema_validator: JSONSchemaValidator {
                 enabled: true,
-                strict_mode: matches!(security_level, MCPSecurityLevel::High | MCPSecurityLevel::Critical),
+                strict_mode: matches!(
+                    security_level,
+                    MCPSecurityLevel::High | MCPSecurityLevel::Critical
+                ),
             },
             content_scanner: ContentScanner {
                 malicious_patterns: vec![
@@ -1034,7 +1183,7 @@ impl InputValidator {
                 ],
             },
             size_limits: SizeLimits {
-                max_input_size: 1048576, // 1MB
+                max_input_size: 1048576,   // 1MB
                 max_output_size: 10485760, // 10MB
             },
         }
@@ -1044,22 +1193,21 @@ impl InputValidator {
 impl OutputFilter {
     pub fn new() -> Self {
         Self {
-            sanitization_rules: vec![
-                SanitizationRule {
-                    pattern: Regex::new(r"<script[^>]*>.*?</script>").unwrap(),
-                    replacement: "[SCRIPT_REMOVED]".to_string(),
-                },
-            ],
-            content_filters: vec![
-                ContentFilter {
-                    pattern: Regex::new(r"(?i)harmful|dangerous").unwrap(),
-                    action: FilterAction::Block,
-                },
-            ],
+            sanitization_rules: vec![SanitizationRule {
+                pattern: Regex::new(r"<script[^>]*>.*?</script>").unwrap(),
+                replacement: "[SCRIPT_REMOVED]".to_string(),
+            }],
+            content_filters: vec![ContentFilter {
+                pattern: Regex::new(r"(?i)harmful|dangerous").unwrap(),
+                action: FilterAction::Block,
+            }],
         }
     }
 
-    pub fn filter_output(&self, output: &serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub fn filter_output(
+        &self,
+        output: &serde_json::Value,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Apply sanitization and filtering
         Ok(output.clone())
     }
@@ -1143,7 +1291,11 @@ impl ObservabilityEngine {
         }
     }
 
-    pub async fn start_trace(&self, trace_id: &str, operation: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start_trace(
+        &self,
+        trace_id: &str,
+        operation: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let trace = TraceEntry {
             trace_id: trace_id.to_string(),
             operation: operation.to_string(),
@@ -1154,24 +1306,40 @@ impl ObservabilityEngine {
         };
 
         let mut traces = self.trace_store.write().await;
-        traces.entry(trace_id.to_string()).or_insert_with(Vec::new).push(trace);
+        traces
+            .entry(trace_id.to_string())
+            .or_insert_with(Vec::new)
+            .push(trace);
 
         Ok(())
     }
 
-    pub async fn end_trace(&self, trace_id: &str, success: bool) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn end_trace(
+        &self,
+        trace_id: &str,
+        success: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut traces = self.trace_store.write().await;
         if let Some(trace_list) = traces.get_mut(trace_id) {
             if let Some(trace) = trace_list.last_mut() {
                 trace.end_time = Some(chrono::Utc::now());
-                trace.status = if success { TraceStatus::Completed } else { TraceStatus::Failed };
+                trace.status = if success {
+                    TraceStatus::Completed
+                } else {
+                    TraceStatus::Failed
+                };
             }
         }
 
         Ok(())
     }
 
-    pub async fn record_metric(&self, name: &str, value: f64, tags: &[(&str, &str)]) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn record_metric(
+        &self,
+        name: &str,
+        value: f64,
+        tags: &[(&str, &str)],
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut tags_map = HashMap::new();
         for (key, value) in tags {
             tags_map.insert(key.to_string(), value.to_string());
@@ -1185,7 +1353,10 @@ impl ObservabilityEngine {
         };
 
         let mut metrics = self.metrics_store.write().await;
-        metrics.entry(name.to_string()).or_insert_with(Vec::new).push(metric);
+        metrics
+            .entry(name.to_string())
+            .or_insert_with(Vec::new)
+            .push(metric);
 
         Ok(())
     }
@@ -1195,14 +1366,12 @@ impl AlertManager {
     pub fn new() -> Self {
         Self {
             active_alerts: TokioRwLock::new(vec![]),
-            alert_policies: vec![
-                AlertPolicy {
-                    name: "high_cpu_usage".to_string(),
-                    condition: "cpu_usage > 90".to_string(),
-                    severity: AlertSeverity::Critical,
-                    actions: vec![AlertAction::Notify, AlertAction::Escalate],
-                },
-            ],
+            alert_policies: vec![AlertPolicy {
+                name: "high_cpu_usage".to_string(),
+                condition: "cpu_usage > 90".to_string(),
+                severity: AlertSeverity::Critical,
+                actions: vec![AlertAction::Notify, AlertAction::Escalate],
+            }],
         }
     }
 }

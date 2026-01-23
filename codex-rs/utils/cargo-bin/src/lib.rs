@@ -39,6 +39,7 @@ pub fn cargo_bin(name: &str) -> Result<PathBuf, CargoBinError> {
         }
     }
 
+    #[allow(deprecated)]
     match assert_cmd::Command::cargo_bin(name) {
         Ok(cmd) => {
             let abs = absolutize_from_buck_or_cwd(PathBuf::from(cmd.get_program()))?;

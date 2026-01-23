@@ -38,13 +38,13 @@ pub mod models_manager;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;
 pub use mcp_connection_manager::SandboxState;
+pub mod git_repository_parser;
 mod mcp_tool_call;
 mod message_history;
 mod model_provider_info;
 pub mod parse_command;
 pub mod path_utils;
 pub mod powershell;
-pub mod git_repository_parser;
 pub mod sandboxing;
 mod stream_events_utils;
 mod text_encoding;
@@ -146,7 +146,8 @@ pub mod compact;
 pub mod otel_init;
 
 // LLMOps, A2A Communication, Skill/MCP Integration, and Autonomous Orchestration
-pub mod llmops;
 pub mod a2a_communication;
-pub mod skill_mcp_integration;
+pub mod cowork_integration;
 pub mod autonomous_orchestration;
+pub mod llmops;
+pub mod skill_mcp_integration;

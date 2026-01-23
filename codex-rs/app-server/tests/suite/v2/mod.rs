@@ -1,10 +1,7 @@
 mod account;
-<<<<<<< HEAD
-=======
 mod analytics;
 mod config_rpc;
 mod initialize;
->>>>>>> upstream/main
 mod model_list;
 mod output_schema;
 mod rate_limits;

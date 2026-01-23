@@ -7,8 +7,20 @@ macro_rules! windows_modules {
 }
 
 windows_modules!(
-    acl, allow, audit, cap, dpapi, env, hide_users, identity, logging, policy, process,
-    sandbox_users, token, winutil
+    acl,
+    allow,
+    audit,
+    cap,
+    dpapi,
+    env,
+    hide_users,
+    identity,
+    logging,
+    policy,
+    process,
+    sandbox_users,
+    token,
+    winutil
 );
 
 #[cfg(target_os = "windows")]
@@ -51,12 +63,6 @@ pub use identity::sandbox_setup_is_complete;
 #[cfg(target_os = "windows")]
 pub use logging::log_note;
 #[cfg(target_os = "windows")]
-pub use sandbox_users::SandboxUserRecord;
-#[cfg(target_os = "windows")]
-pub use sandbox_users::SandboxUsersFile;
-#[cfg(target_os = "windows")]
-pub use sandbox_users::SetupMarker;
-#[cfg(target_os = "windows")]
 pub use logging::LOG_FILE_NAME;
 #[cfg(target_os = "windows")]
 pub use policy::parse_policy;
@@ -64,6 +70,12 @@ pub use policy::parse_policy;
 pub use policy::SandboxPolicy;
 #[cfg(target_os = "windows")]
 pub use process::create_process_as_user;
+#[cfg(target_os = "windows")]
+pub use sandbox_users::SandboxUserRecord;
+#[cfg(target_os = "windows")]
+pub use sandbox_users::SandboxUsersFile;
+#[cfg(target_os = "windows")]
+pub use sandbox_users::SetupMarker;
 #[cfg(target_os = "windows")]
 pub use setup::run_elevated_setup;
 #[cfg(target_os = "windows")]
@@ -241,13 +253,15 @@ mod windows_impl {
         let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
             match &policy {
                 SandboxPolicy::ReadOnly => {
-                    let psid = convert_string_sid_to_sid(&caps.readonly)
-                        .ok_or_else(|| anyhow::anyhow!("convert_string_sid_to_sid failed for readonly"))?;
+                    let psid = convert_string_sid_to_sid(&caps.readonly).ok_or_else(|| {
+                        anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
+                    })?;
                     super::token::create_readonly_token_with_cap(psid)?
                 }
                 SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid = convert_string_sid_to_sid(&caps.workspace)
-                        .ok_or_else(|| anyhow::anyhow!("convert_string_sid_to_sid failed for workspace"))?;
+                    let psid = convert_string_sid_to_sid(&caps.workspace).ok_or_else(|| {
+                        anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
+                    })?;
                     super::token::create_workspace_write_token_with_cap(psid)?
                 }
                 SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. } => {
@@ -289,7 +303,10 @@ mod windows_impl {
                     }
                     Err(e) => {
                         // エラーを記録する。失敗した場合は特に落とさず進む
-                        debug_log(&format!("add_allow_ace failed for {}: {:?}", p.display(), e), logs_base_dir);
+                        debug_log(
+                            &format!("add_allow_ace failed for {}: {:?}", p.display(), e),
+                            logs_base_dir,
+                        );
                     }
                 }
             }
@@ -301,7 +318,10 @@ mod windows_impl {
                         }
                     }
                     Err(e) => {
-                        debug_log(&format!("add_deny_write_ace failed for {}: {:?}", p.display(), e), logs_base_dir);
+                        debug_log(
+                            &format!("add_deny_write_ace failed for {}: {:?}", p.display(), e),
+                            logs_base_dir,
+                        );
                     }
                 }
             }
@@ -312,7 +332,11 @@ mod windows_impl {
         let (stdin_pair, stdout_pair, stderr_pair) = match unsafe { setup_stdio_pipes() } {
             Ok(res) => res,
             Err(e) => {
-                log_failure(&command, &format!("Failed to setup stdio pipes: {}", e), logs_base_dir);
+                log_failure(
+                    &command,
+                    &format!("Failed to setup stdio pipes: {}", e),
+                    logs_base_dir,
+                );
                 return Err(anyhow::anyhow!("Failed to setup stdio pipes: {}", e));
             }
         };
@@ -406,7 +430,9 @@ mod windows_impl {
                 }
                 buf.extend_from_slice(&tmp[..read_bytes as usize]);
             }
-            unsafe { CloseHandle(out_r); }
+            unsafe {
+                CloseHandle(out_r);
+            }
             let _ = tx_out.send(buf);
         });
         let t_err = std::thread::spawn(move || {
@@ -428,7 +454,9 @@ mod windows_impl {
                 }
                 buf.extend_from_slice(&tmp[..read_bytes as usize]);
             }
-            unsafe { CloseHandle(err_r); }
+            unsafe {
+                CloseHandle(err_r);
+            }
             let _ = tx_err.send(buf);
         });
 

@@ -8,20 +8,20 @@
 //! - Robust coordination and fault tolerance
 //! - Security, trust, and governance
 
+use async_trait::async_trait;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
-use serde::{Serialize, Deserialize};
-use async_trait::async_trait;
-use tokio::sync::{broadcast, mpsc, oneshot, RwLock as TokioRwLock};
+use tokio::sync::{RwLock as TokioRwLock, broadcast, mpsc, oneshot};
 use tokio::time;
-use regex::Regex;
 use uuid::Uuid;
 
 // Import existing components
 use crate::config::Config;
-use crate::security::{SecurityContext, AuditLogger};
 use crate::llmops::{LLMOpsManager, LLMRequest, LLMResponse};
+use crate::security::{AuditLogger, SecurityContext};
 
 /// A2A communication configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -438,7 +438,11 @@ pub enum A2AEvent {
 /// Message handler trait for extensibility
 #[async_trait]
 pub trait MessageHandler: Send + Sync {
-    async fn handle(&self, message: &A2AMessage, manager: &A2ACommunicationManager) -> Result<(), Box<dyn std::error::Error>>;
+    async fn handle(
+        &self,
+        message: &A2AMessage,
+        manager: &A2ACommunicationManager,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 /// Coordination manager for complex multi-agent workflows
@@ -469,7 +473,11 @@ pub enum CoordinationStatus {
 
 #[async_trait]
 pub trait CoordinationStrategy: Send + Sync {
-    async fn execute(&self, session: &mut CoordinationSession, manager: &A2ACommunicationManager) -> Result<(), Box<dyn std::error::Error>>;
+    async fn execute(
+        &self,
+        session: &mut CoordinationSession,
+        manager: &A2ACommunicationManager,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 impl A2ACommunicationManager {
@@ -510,7 +518,10 @@ impl A2ACommunicationManager {
     }
 
     /// Send message with reliability and security
-    pub async fn send_message(&self, message: A2AMessage) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn send_message(
+        &self,
+        message: A2AMessage,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // Validate message
         self.validate_message(&message).await?;
 
@@ -519,17 +530,16 @@ impl A2ACommunicationManager {
 
         // Route message based on receiver
         match &secure_message.receiver {
-            Some(receiver) => {
-                self.send_direct_message(secure_message).await
-            }
-            None => {
-                self.send_broadcast_message(secure_message).await
-            }
+            Some(receiver) => self.send_direct_message(secure_message).await,
+            None => self.send_broadcast_message(secure_message).await,
         }
     }
 
     /// Receive and process messages
-    pub async fn receive_message(&self, message: A2AMessage) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn receive_message(
+        &self,
+        message: A2AMessage,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Validate incoming message
         self.validate_incoming_message(&message).await?;
 
@@ -549,9 +559,12 @@ impl A2ACommunicationManager {
     }
 
     /// Initiate coordination session
-    pub async fn initiate_coordination(&self, coordination_type: CoordinationType,
-                                     participants: Vec<String>, context: HashMap<String, serde_json::Value>)
-                                     -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn initiate_coordination(
+        &self,
+        coordination_type: CoordinationType,
+        participants: Vec<String>,
+        context: HashMap<String, serde_json::Value>,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         let session_id = Uuid::new_v4().to_string();
 
         let session = CoordinationSession {
@@ -571,7 +584,11 @@ impl A2ACommunicationManager {
         }
 
         // Execute coordination strategy
-        if let Some(strategy) = self.coordination_manager.coordination_strategies.get(&coordination_type) {
+        if let Some(strategy) = self
+            .coordination_manager
+            .coordination_strategies
+            .get(&coordination_type)
+        {
             let mut session_clone = session.clone();
             tokio::spawn(async move {
                 if let Err(e) = strategy.execute(&mut session_clone, self).await {
@@ -580,13 +597,18 @@ impl A2ACommunicationManager {
             });
         }
 
-        let _ = self.event_sender.send(A2AEvent::CoordinationStarted(session_id.clone()));
+        let _ = self
+            .event_sender
+            .send(A2AEvent::CoordinationStarted(session_id.clone()));
 
         Ok(session_id)
     }
 
     /// Delegate task to appropriate agent
-    pub async fn delegate_task(&self, task: TaskMessage) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn delegate_task(
+        &self,
+        task: TaskMessage,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // Find suitable agent
         let suitable_agent = self.find_suitable_agent(&task).await?;
 
@@ -627,7 +649,11 @@ impl A2ACommunicationManager {
     }
 
     /// Update agent status
-    pub async fn update_agent_status(&self, status: AgentStatus, workload: f64) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn update_agent_status(
+        &self,
+        status: AgentStatus,
+        workload: f64,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let agent_state = AgentState {
             agent_id: self.identity.id.clone(),
             status,
@@ -671,11 +697,20 @@ impl A2ACommunicationManager {
     pub async fn get_system_status(&self) -> A2AStatus {
         let topology = self.topology.read().await;
         let agent_count = topology.agents.len();
-        let active_connections = topology.connections.values().map(|v| v.len()).sum::<usize>();
+        let active_connections = topology
+            .connections
+            .values()
+            .map(|v| v.len())
+            .sum::<usize>();
 
         let shared_state = &self.shared_state;
         let task_count = shared_state.task_states.read().await.len();
-        let active_coordinations = self.coordination_manager.active_coordinations.read().await.len();
+        let active_coordinations = self
+            .coordination_manager
+            .active_coordinations
+            .read()
+            .await
+            .len();
 
         A2AStatus {
             agent_count,
@@ -690,11 +725,18 @@ impl A2ACommunicationManager {
 
     // Private helper methods
 
-    async fn validate_message(&self, message: &A2AMessage) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_message(
+        &self,
+        message: &A2AMessage,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Size validation
         let message_size = serde_json::to_string(message)?.len();
         if message_size > self.config.max_message_size {
-            return Err(format!("Message size {} exceeds limit {}", message_size, self.config.max_message_size).into());
+            return Err(format!(
+                "Message size {} exceeds limit {}",
+                message_size, self.config.max_message_size
+            )
+            .into());
         }
 
         // TTL validation
@@ -710,7 +752,10 @@ impl A2ACommunicationManager {
         Ok(())
     }
 
-    async fn apply_security(&self, message: &A2AMessage) -> Result<A2AMessage, Box<dyn std::error::Error>> {
+    async fn apply_security(
+        &self,
+        message: &A2AMessage,
+    ) -> Result<A2AMessage, Box<dyn std::error::Error>> {
         let mut secure_message = message.clone();
 
         // Apply encryption if enabled
@@ -722,7 +767,10 @@ impl A2ACommunicationManager {
         Ok(secure_message)
     }
 
-    async fn send_direct_message(&self, message: A2AMessage) -> Result<String, Box<dyn std::error::Error>> {
+    async fn send_direct_message(
+        &self,
+        message: A2AMessage,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // Direct message routing logic
         // In production, this would use actual network communication
 
@@ -730,7 +778,10 @@ impl A2ACommunicationManager {
         Ok(message.id)
     }
 
-    async fn send_broadcast_message(&self, message: A2AMessage) -> Result<String, Box<dyn std::error::Error>> {
+    async fn send_broadcast_message(
+        &self,
+        message: A2AMessage,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         // Broadcast message routing logic
         // In production, this would broadcast to all connected agents
 
@@ -738,7 +789,10 @@ impl A2ACommunicationManager {
         Ok(message.id)
     }
 
-    async fn validate_incoming_message(&self, message: &A2AMessage) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_incoming_message(
+        &self,
+        message: &A2AMessage,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Similar to validate_message but for incoming messages
         self.validate_message(message).await?;
 
@@ -752,7 +806,10 @@ impl A2ACommunicationManager {
         Ok(())
     }
 
-    async fn update_trust_from_message(&self, message: &A2AMessage) -> Result<(), Box<dyn std::error::Error>> {
+    async fn update_trust_from_message(
+        &self,
+        message: &A2AMessage,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         if !self.config.enable_trust_management {
             return Ok(());
         }
@@ -769,24 +826,31 @@ impl A2ACommunicationManager {
                 _ => InteractionType::MessageExchange,
             },
             outcome: InteractionOutcome::Success, // Simplified
-            trust_delta: 0.01, // Small positive trust increase
+            trust_delta: 0.01,                    // Small positive trust increase
         };
 
-        self.trust_manager.record_interaction(&message.sender.id, interaction).await?;
+        self.trust_manager
+            .record_interaction(&message.sender.id, interaction)
+            .await?;
 
         Ok(())
     }
 
-    async fn find_suitable_agent(&self, task: &TaskMessage) -> Result<String, Box<dyn std::error::Error>> {
+    async fn find_suitable_agent(
+        &self,
+        task: &TaskMessage,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         let topology = self.topology.read().await;
 
         // Find agents with required capabilities and reasonable workload
-        let suitable_agents: Vec<_> = topology.agents.values()
+        let suitable_agents: Vec<_> = topology
+            .agents
+            .values()
             .filter(|agent| {
                 // Check if agent has required capabilities (simplified)
-                agent.capabilities.contains(&AgentCapability::TaskExecution) &&
-                agent.status != AgentStatus::Offline &&
-                agent.trust_score > 0.5
+                agent.capabilities.contains(&AgentCapability::TaskExecution)
+                    && agent.status != AgentStatus::Offline
+                    && agent.trust_score > 0.5
             })
             .collect();
 
@@ -795,26 +859,38 @@ impl A2ACommunicationManager {
         }
 
         // Select agent with lowest workload
-        let best_agent = suitable_agents.into_iter()
+        let best_agent = suitable_agents
+            .into_iter()
             .min_by(|a, b| a.workload.partial_cmp(&b.workload).unwrap())
             .unwrap();
 
         Ok(best_agent.id.clone())
     }
 
-    async fn get_agent_identity(&self, agent_id: &str) -> Result<AgentIdentity, Box<dyn std::error::Error>> {
+    async fn get_agent_identity(
+        &self,
+        agent_id: &str,
+    ) -> Result<AgentIdentity, Box<dyn std::error::Error>> {
         let topology = self.topology.read().await;
-        topology.agents.get(agent_id)
+        topology
+            .agents
+            .get(agent_id)
             .cloned()
             .ok_or_else(|| format!("Agent {} not found", agent_id).into())
     }
 
-    async fn verify_message_authenticity(&self, _message: &A2AMessage) -> Result<bool, Box<dyn std::error::Error>> {
+    async fn verify_message_authenticity(
+        &self,
+        _message: &A2AMessage,
+    ) -> Result<bool, Box<dyn std::error::Error>> {
         // Simplified authentication - in production, this would verify signatures
         Ok(true)
     }
 
-    async fn encrypt_payload(&self, _payload: &MessagePayload) -> Result<MessagePayload, Box<dyn std::error::Error>> {
+    async fn encrypt_payload(
+        &self,
+        _payload: &MessagePayload,
+    ) -> Result<MessagePayload, Box<dyn std::error::Error>> {
         // Simplified encryption - in production, this would encrypt the payload
         Ok(_payload.clone())
     }
@@ -846,7 +922,11 @@ impl FaultToleranceManager {
     }
 
     pub fn get_status(&self) -> String {
-        format!("Circuit breakers: {}, Fallbacks: {}", self.circuit_breakers.len(), self.fallback_strategies.len())
+        format!(
+            "Circuit breakers: {}, Fallbacks: {}",
+            self.circuit_breakers.len(),
+            self.fallback_strategies.len()
+        )
     }
 }
 
@@ -872,7 +952,11 @@ impl TrustManager {
         }
     }
 
-    pub async fn record_interaction(&self, agent_id: &str, interaction: InteractionRecord) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn record_interaction(
+        &self,
+        agent_id: &str,
+        interaction: InteractionRecord,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // Update reputation score
         {
             let mut scores = self.reputation_scores.write().await;
@@ -884,7 +968,10 @@ impl TrustManager {
         // Record interaction history
         {
             let mut history = self.interaction_history.write().await;
-            history.entry(agent_id.to_string()).or_insert_with(Vec::new).push(interaction);
+            history
+                .entry(agent_id.to_string())
+                .or_insert_with(Vec::new)
+                .push(interaction);
         }
 
         Ok(())

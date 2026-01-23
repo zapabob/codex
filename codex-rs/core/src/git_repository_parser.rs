@@ -30,10 +30,10 @@ pub struct Git4DCommit {
     pub branch: String,
     pub tags: Vec<String>,
     // 4D coordinates for visualization
-    pub x: f32,      // Branch position
-    pub y: f32,      // Time-normalized position
-    pub z: f32,      // Commit depth/impact
-    pub time: f32,   // Normalized timestamp
+    pub x: f32,    // Branch position
+    pub y: f32,    // Time-normalized position
+    pub z: f32,    // Commit depth/impact
+    pub time: f32, // Normalized timestamp
     // Additional metadata
     pub files_changed: usize,
     pub insertions: usize,
@@ -73,7 +73,9 @@ impl GitRepositoryParser {
     }
 
     /// Parse entire Git repository and return 4D commit data
-    pub async fn parse_repository(&self) -> Result<(Vec<Git4DCommit>, GitParseStats), GitParseError> {
+    pub async fn parse_repository(
+        &self,
+    ) -> Result<(Vec<Git4DCommit>, GitParseStats), GitParseError> {
         let start_time = std::time::Instant::now();
 
         // Open repository
@@ -107,13 +109,18 @@ impl GitRepositoryParser {
     }
 
     /// Collect all commits from repository
-    async fn collect_all_commits(&self, repo: &Repository) -> Result<Vec<CommitData>, GitParseError> {
+    async fn collect_all_commits(
+        &self,
+        repo: &Repository,
+    ) -> Result<Vec<CommitData>, GitParseError> {
         let mut commits = Vec::new();
-        let mut revwalk = repo.revwalk()
+        let mut revwalk = repo
+            .revwalk()
             .map_err(|e| GitParseError::Revwalk(e.to_string()))?;
 
         // Start from HEAD
-        revwalk.push_head()
+        revwalk
+            .push_head()
             .map_err(|e| GitParseError::Revwalk(e.to_string()))?;
 
         // Collect commits with parallel processing
@@ -158,8 +165,13 @@ impl GitRepositoryParser {
     }
 
     /// Process individual commit
-    fn process_commit(repo: &Repository, oid: Oid, config: &GitParseConfig) -> Result<CommitData, GitParseError> {
-        let commit = repo.find_commit(oid)
+    fn process_commit(
+        repo: &Repository,
+        oid: Oid,
+        config: &GitParseConfig,
+    ) -> Result<CommitData, GitParseError> {
+        let commit = repo
+            .find_commit(oid)
             .map_err(|e| GitParseError::CommitLookup(e.to_string()))?;
 
         // Filter by date range if specified
@@ -207,25 +219,29 @@ impl GitRepositoryParser {
     }
 
     /// Analyze commit diff to get statistics
-    fn analyze_commit_diff(repo: &Repository, commit: &Commit) -> Result<(usize, usize, usize), GitParseError> {
+    fn analyze_commit_diff(
+        repo: &Repository,
+        commit: &Commit,
+    ) -> Result<(usize, usize, usize), GitParseError> {
         let mut files_changed = 0;
         let mut insertions = 0;
         let mut deletions = 0;
 
         // Get parent commit for diff
         if commit.parent_count() > 0 {
-            let parent = commit.parent(0)
+            let parent = commit
+                .parent(0)
                 .map_err(|e| GitParseError::DiffAnalysis(e.to_string()))?;
-            let parent_tree = parent.tree()
+            let parent_tree = parent
+                .tree()
                 .map_err(|e| GitParseError::DiffAnalysis(e.to_string()))?;
-            let commit_tree = commit.tree()
+            let commit_tree = commit
+                .tree()
                 .map_err(|e| GitParseError::DiffAnalysis(e.to_string()))?;
 
-            let diff = repo.diff_tree_to_tree(
-                Some(&parent_tree),
-                Some(&commit_tree),
-                None,
-            ).map_err(|e| GitParseError::DiffAnalysis(e.to_string()))?;
+            let diff = repo
+                .diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)
+                .map_err(|e| GitParseError::DiffAnalysis(e.to_string()))?;
 
             for delta in diff.deltas() {
                 files_changed += 1;
@@ -242,7 +258,10 @@ impl GitRepositoryParser {
     }
 
     /// Transform commit data to 4D visualization structure
-    async fn transform_to_4d(&self, commits: Vec<CommitData>) -> Result<Vec<Git4DCommit>, GitParseError> {
+    async fn transform_to_4d(
+        &self,
+        commits: Vec<CommitData>,
+    ) -> Result<Vec<Git4DCommit>, GitParseError> {
         if commits.is_empty() {
             return Ok(Vec::new());
         }
@@ -269,9 +288,8 @@ impl GitRepositoryParser {
             }
 
             let branch = self.determine_branch(&commit_graph, commit.id);
-            let (x, y, z, time) = self.calculate_4d_coordinates(
-                &commit, branch, min_time, time_range
-            );
+            let (x, y, z, time) =
+                self.calculate_4d_coordinates(&commit, branch, min_time, time_range);
 
             git4d_commits.push(Git4DCommit {
                 id: commit.id,
@@ -282,7 +300,10 @@ impl GitRepositoryParser {
                 parents: commit.parents,
                 branch,
                 tags: Vec::new(), // TODO: Implement tag detection
-                x, y, z, time,
+                x,
+                y,
+                z,
+                time,
                 files_changed: commit.files_changed,
                 insertions: commit.insertions,
                 deletions: commit.deletions,
@@ -299,7 +320,8 @@ impl GitRepositoryParser {
         let mut graph = HashMap::new();
 
         for commit in commits {
-            graph.entry(commit.id)
+            graph
+                .entry(commit.id)
                 .or_insert_with(Vec::new)
                 .extend(&commit.parents);
         }
@@ -316,8 +338,13 @@ impl GitRepositoryParser {
     }
 
     /// Calculate 4D coordinates for visualization
-    fn calculate_4d_coordinates(&self, commit: &CommitData, branch: String,
-                               min_time: f32, time_range: f32) -> (f32, f32, f32, f32) {
+    fn calculate_4d_coordinates(
+        &self,
+        commit: &CommitData,
+        branch: String,
+        min_time: f32,
+        time_range: f32,
+    ) -> (f32, f32, f32, f32) {
         // X: Branch position (simple mapping for now)
         let x = match branch.as_str() {
             "main" => 0.0,
@@ -347,14 +374,16 @@ impl GitRepositoryParser {
 
     /// Count total branches in repository
     fn count_branches(&self, repo: &Repository) -> Result<usize, GitParseError> {
-        let branches = repo.branches(None)
+        let branches = repo
+            .branches(None)
             .map_err(|e| GitParseError::BranchAnalysis(e.to_string()))?;
         Ok(branches.count())
     }
 
     /// Count total tags in repository
     fn count_tags(&self, repo: &Repository) -> Result<usize, GitParseError> {
-        let tags = repo.tag_names(None)
+        let tags = repo
+            .tag_names(None)
             .map_err(|e| GitParseError::TagAnalysis(e.to_string()))?;
         Ok(tags.count())
     }
