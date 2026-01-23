@@ -2,13 +2,13 @@
 //!
 //! Rust-Python統合ブリッジ: CodexコアからPythonスクリプトを呼び出す
 
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
-use tokio::process::Command;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use anyhow::{Context, Result};
+use tokio::process::Command;
 
 /// ClaudeCowork機能タイプ
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,7 +66,7 @@ impl CoworkIntegrationManager {
         input_data: Option<serde_json::Value>,
     ) -> Result<CoworkExecutionResult> {
         let script_path = self.config.scripts_dir.join(script_name);
-        
+
         if !script_path.exists() {
             anyhow::bail!("Script not found: {}", script_path.display());
         }
@@ -80,10 +80,12 @@ impl CoworkIntegrationManager {
 
         // 環境変数設定
         cmd.env("CODEX_COWORK_MODE", "1");
-        cmd.env("CODEX_SCRIPTS_DIR", self.config.scripts_dir.to_string_lossy().to_string());
+        cmd.env(
+            "CODEX_SCRIPTS_DIR",
+            self.config.scripts_dir.to_string_lossy().to_string(),
+        );
 
-        let mut child = cmd.spawn()
-            .context("Failed to spawn Python process")?;
+        let mut child = cmd.spawn().context("Failed to spawn Python process")?;
 
         // 入力データを送信（JSON形式）
         if let Some(input) = input_data {
@@ -138,8 +140,9 @@ impl CoworkIntegrationManager {
     ) -> Result<CoworkExecutionResult> {
         let input_data = serde_json::to_value(&task)?;
         let args = vec!["--task".to_string(), serde_json::to_string(&task)?];
-        
-        self.execute_python_script("cowork_browser_automation.py", args, Some(input_data)).await
+
+        self.execute_python_script("cowork_browser_automation.py", args, Some(input_data))
+            .await
     }
 
     /// ドキュメント生成を実行
@@ -154,15 +157,16 @@ impl CoworkIntegrationManager {
             "output_path": output_path.to_string_lossy(),
             "content": content
         });
-        
+
         let args = vec![
             "--type".to_string(),
             format!("{:?}", doc_type),
             "--output".to_string(),
             output_path.to_string_lossy().to_string(),
         ];
-        
-        self.execute_python_script("cowork_document_generator.py", args, Some(input_data)).await
+
+        self.execute_python_script("cowork_document_generator.py", args, Some(input_data))
+            .await
     }
 
     /// セッション管理操作
@@ -171,9 +175,13 @@ impl CoworkIntegrationManager {
         operation: SessionOperation,
     ) -> Result<CoworkExecutionResult> {
         let input_data = serde_json::to_value(&operation)?;
-        let args = vec!["--operation".to_string(), serde_json::to_string(&operation)?];
-        
-        self.execute_python_script("cowork_session_manager.py", args, Some(input_data)).await
+        let args = vec![
+            "--operation".to_string(),
+            serde_json::to_string(&operation)?,
+        ];
+
+        self.execute_python_script("cowork_session_manager.py", args, Some(input_data))
+            .await
     }
 }
 

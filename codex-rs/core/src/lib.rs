@@ -147,7 +147,7 @@ pub mod otel_init;
 
 // LLMOps, A2A Communication, Skill/MCP Integration, and Autonomous Orchestration
 pub mod a2a_communication;
-pub mod cowork_integration;
 pub mod autonomous_orchestration;
+pub mod cowork_integration;
 pub mod llmops;
 pub mod skill_mcp_integration;
