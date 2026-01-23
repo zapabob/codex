@@ -33,6 +33,7 @@ use codex_protocol::protocol::InitialHistory;
 /// The returned `events_rx` yields non-approval events emitted by the sub-agent.
 /// Approval requests are handled via `parent_session` and are not surfaced.
 /// The returned `ops_tx` allows the caller to submit additional `Op`s to the sub-agent.
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn run_codex_thread_interactive(
     config: Config,
     auth_manager: Arc<AuthManager>,
@@ -278,6 +279,7 @@ async fn forward_ops(
 }
 
 /// Handle an ExecApprovalRequest by consulting the parent session and replying.
+#[allow(clippy::too_many_arguments)]
 async fn handle_exec_approval(
     codex: &Codex,
     id: String,
@@ -307,6 +309,7 @@ async fn handle_exec_approval(
 }
 
 /// Handle an ApplyPatchApprovalRequest by consulting the parent session and replying.
+#[allow(clippy::too_many_arguments)]
 async fn handle_patch_approval(
     codex: &Codex,
     id: String,

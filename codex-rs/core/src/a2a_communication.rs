@@ -11,17 +11,20 @@
 use async_trait::async_trait;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::sync::{Arc, Mutex, RwLock};
-use std::time::{Duration, Instant};
-use tokio::sync::{RwLock as TokioRwLock, broadcast, mpsc, oneshot};
-use tokio::time;
+use std::collections::{HashMap, VecDeque};
+use std::time::Duration;
+use tokio::sync::{RwLock as TokioRwLock, broadcast};
+use tracing::warn;
 use uuid::Uuid;
 
 // Import existing components
-use crate::config::Config;
-use crate::llmops::{LLMOpsManager, LLMRequest, LLMResponse};
-use crate::security::{AuditLogger, SecurityContext};
+use crate::security::SecurityContext;
+
+fn build_regex(pattern: &str) -> Regex {
+    Regex::new(pattern).unwrap_or_else(|err| {
+        panic!("Invalid regex pattern '{pattern}': {err}");
+    })
+}
 
 /// A2A communication configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,7 +41,7 @@ pub struct A2AConfig {
 }
 
 /// Agent identity and capabilities
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AgentIdentity {
     pub id: String,
     pub name: String,
@@ -148,7 +151,7 @@ pub struct CoordinationMessage {
     pub timeout: Duration,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum CoordinationType {
     TaskDelegation,
     ConsensusBuilding,
@@ -225,7 +228,7 @@ pub struct CommunicationTopology {
 }
 
 /// Shared state management with controlled access
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SharedState {
     pub global_context: TokioRwLock<HashMap<String, serde_json::Value>>,
     pub task_states: TokioRwLock<HashMap<String, TaskState>>,
@@ -354,7 +357,7 @@ pub enum ErrorAction {
 }
 
 /// Trust and reputation management
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct TrustManager {
     pub reputation_scores: TokioRwLock<HashMap<String, f64>>,
     pub interaction_history: TokioRwLock<HashMap<String, Vec<InteractionRecord>>>,
@@ -420,15 +423,17 @@ pub struct A2ACommunicationManager {
     trust_manager: TrustManager,
     message_queue: TokioRwLock<VecDeque<A2AMessage>>,
     event_sender: broadcast::Sender<A2AEvent>,
+    #[allow(dead_code)]
     message_handlers: HashMap<MessageType, Box<dyn MessageHandler>>,
     coordination_manager: CoordinationManager,
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum A2AEvent {
     AgentJoined(String),
     AgentLeft(String),
-    MessageReceived(A2AMessage),
+    MessageReceived(Box<A2AMessage>),
     TrustViolation(String),
     CoordinationStarted(String),
     ConsensusReached(String),
@@ -530,7 +535,7 @@ impl A2ACommunicationManager {
 
         // Route message based on receiver
         match &secure_message.receiver {
-            Some(receiver) => self.send_direct_message(secure_message).await,
+            Some(_) => self.send_direct_message(secure_message).await,
             None => self.send_broadcast_message(secure_message).await,
         }
     }
@@ -553,7 +558,9 @@ impl A2ACommunicationManager {
         }
 
         // Notify listeners
-        let _ = self.event_sender.send(A2AEvent::MessageReceived(message));
+        let _ = self
+            .event_sender
+            .send(A2AEvent::MessageReceived(Box::new(message)));
 
         Ok(())
     }
@@ -580,7 +587,7 @@ impl A2ACommunicationManager {
         // Register coordination
         {
             let mut coordinations = self.coordination_manager.active_coordinations.write().await;
-            coordinations.insert(session_id.clone(), session);
+            coordinations.insert(session_id.clone(), session.clone());
         }
 
         // Execute coordination strategy
@@ -590,11 +597,9 @@ impl A2ACommunicationManager {
             .get(&coordination_type)
         {
             let mut session_clone = session.clone();
-            tokio::spawn(async move {
-                if let Err(e) = strategy.execute(&mut session_clone, self).await {
-                    eprintln!("Coordination failed: {}", e);
-                }
-            });
+            if let Err(e) = strategy.execute(&mut session_clone, self).await {
+                warn!("Coordination failed: {e}");
+            }
         }
 
         let _ = self
@@ -611,10 +616,11 @@ impl A2ACommunicationManager {
     ) -> Result<String, Box<dyn std::error::Error>> {
         // Find suitable agent
         let suitable_agent = self.find_suitable_agent(&task).await?;
+        let task_id = task.task_id.clone();
 
         // Create task state
         let task_state = TaskState {
-            task_id: task.task_id.clone(),
+            task_id: task_id.clone(),
             status: TaskStatus::Pending,
             assigned_agent: Some(suitable_agent.clone()),
             progress: 0.0,
@@ -626,7 +632,7 @@ impl A2ACommunicationManager {
         // Update shared state
         {
             let mut task_states = self.shared_state.task_states.write().await;
-            task_states.insert(task.task_id.clone(), task_state);
+            task_states.insert(task_id.clone(), task_state);
         }
 
         // Send task delegation message
@@ -639,13 +645,13 @@ impl A2ACommunicationManager {
             priority: MessagePriority::Normal,
             ttl: Duration::from_secs(300),
             timestamp: chrono::Utc::now(),
-            correlation_id: Some(task.task_id.clone()),
+            correlation_id: Some(task_id.clone()),
             security_context: SecurityContext::default(),
         };
 
         self.send_message(message).await?;
 
-        Ok(task.task_id)
+        Ok(task_id)
     }
 
     /// Update agent status
@@ -656,7 +662,7 @@ impl A2ACommunicationManager {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let agent_state = AgentState {
             agent_id: self.identity.id.clone(),
-            status,
+            status: status.clone(),
             workload,
             current_tasks: Vec::new(), // Would be populated from active tasks
             capabilities: self.identity.capabilities.clone(),
@@ -700,7 +706,7 @@ impl A2ACommunicationManager {
         let active_connections = topology
             .connections
             .values()
-            .map(|v| v.len())
+            .map(std::vec::Vec::len)
             .sum::<usize>();
 
         let shared_state = &self.shared_state;
@@ -797,10 +803,10 @@ impl A2ACommunicationManager {
         self.validate_message(message).await?;
 
         // Additional validation for receiver
-        if let Some(receiver) = &message.receiver {
-            if receiver.id != self.identity.id {
-                return Err("Message not intended for this agent".into());
-            }
+        if let Some(receiver) = &message.receiver
+            && receiver.id != self.identity.id
+        {
+            return Err("Message not intended for this agent".into());
         }
 
         Ok(())
@@ -838,7 +844,7 @@ impl A2ACommunicationManager {
 
     async fn find_suitable_agent(
         &self,
-        task: &TaskMessage,
+        _task: &TaskMessage,
     ) -> Result<String, Box<dyn std::error::Error>> {
         let topology = self.topology.read().await;
 
@@ -849,7 +855,6 @@ impl A2ACommunicationManager {
             .filter(|agent| {
                 // Check if agent has required capabilities (simplified)
                 agent.capabilities.contains(&AgentCapability::TaskExecution)
-                    && agent.status != AgentStatus::Offline
                     && agent.trust_score > 0.5
             })
             .collect();
@@ -861,8 +866,12 @@ impl A2ACommunicationManager {
         // Select agent with lowest workload
         let best_agent = suitable_agents
             .into_iter()
-            .min_by(|a, b| a.workload.partial_cmp(&b.workload).unwrap())
-            .unwrap();
+            .max_by(|a, b| {
+                a.trust_score
+                    .partial_cmp(&b.trust_score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .ok_or("No suitable agents found")?;
 
         Ok(best_agent.id.clone())
     }
@@ -876,7 +885,7 @@ impl A2ACommunicationManager {
             .agents
             .get(agent_id)
             .cloned()
-            .ok_or_else(|| format!("Agent {} not found", agent_id).into())
+            .ok_or_else(|| format!("Agent {agent_id} not found").into())
     }
 
     async fn verify_message_authenticity(
@@ -896,6 +905,12 @@ impl A2ACommunicationManager {
     }
 }
 
+impl Default for FaultToleranceManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FaultToleranceManager {
     pub fn new() -> Self {
         Self {
@@ -908,12 +923,12 @@ impl FaultToleranceManager {
             fallback_strategies: HashMap::new(),
             error_patterns: vec![
                 ErrorPattern {
-                    pattern: Regex::new(r"timeout|Timeout").unwrap(),
+                    pattern: build_regex(r"timeout|Timeout"),
                     action: ErrorAction::Retry,
                     cooldown_duration: Duration::from_secs(5),
                 },
                 ErrorPattern {
-                    pattern: Regex::new(r"security|Security").unwrap(),
+                    pattern: build_regex(r"security|Security"),
                     action: ErrorAction::Isolate,
                     cooldown_duration: Duration::from_secs(60),
                 },
@@ -927,6 +942,12 @@ impl FaultToleranceManager {
             self.circuit_breakers.len(),
             self.fallback_strategies.len()
         )
+    }
+}
+
+impl Default for TrustManager {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -961,7 +982,7 @@ impl TrustManager {
         {
             let mut scores = self.reputation_scores.write().await;
             let current_score = scores.get(agent_id).unwrap_or(&0.5);
-            let new_score = (current_score + interaction.trust_delta).max(0.0).min(1.0);
+            let new_score = (current_score + interaction.trust_delta).clamp(0.0, 1.0);
             scores.insert(agent_id.to_string(), new_score);
         }
 
@@ -975,6 +996,12 @@ impl TrustManager {
         }
 
         Ok(())
+    }
+}
+
+impl Default for CoordinationManager {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

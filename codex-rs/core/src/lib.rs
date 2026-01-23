@@ -7,6 +7,7 @@
 
 pub mod api_bridge;
 mod apply_patch;
+pub mod audit_log;
 pub mod auth;
 pub mod bash;
 mod client;
@@ -39,13 +40,16 @@ pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;
 pub use mcp_connection_manager::SandboxState;
 pub mod git_repository_parser;
+pub mod mcp_dynamic_loader;
 mod mcp_tool_call;
 mod message_history;
 mod model_provider_info;
+pub mod organizations;
 pub mod parse_command;
 pub mod path_utils;
 pub mod powershell;
 pub mod sandboxing;
+pub mod security;
 mod stream_events_utils;
 mod text_encoding;
 pub mod token_data;

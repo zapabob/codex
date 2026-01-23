@@ -139,6 +139,7 @@ pub(crate) fn spawn_exit_watcher(
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn process_chunk(
     pending: &mut Vec<u8>,
     transcript: &Arc<Mutex<HeadTailBuffer>>,

@@ -56,6 +56,7 @@ pub struct UnifiedExecRuntime<'a> {
 }
 
 impl UnifiedExecRequest {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         command: Vec<String>,
         cwd: PathBuf,

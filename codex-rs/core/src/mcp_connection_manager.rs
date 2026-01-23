@@ -6,8 +6,7 @@
 //! in a single aggregated map using the fully-qualified tool name
 //! `"<server><MCP_TOOL_NAME_DELIMITER><tool>"` as the key.
 
-use std::collections::BTreeSet;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::env;
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -241,6 +240,7 @@ struct AsyncManagedClient {
 }
 
 impl AsyncManagedClient {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         server_name: String,
         config: McpServerConfig,
@@ -310,6 +310,7 @@ pub(crate) struct McpConnectionManager {
 }
 
 impl McpConnectionManager {
+    #[allow(clippy::too_many_arguments)]
     pub async fn initialize(
         &mut self,
         mcp_servers: &HashMap<String, McpServerConfig>,
@@ -664,6 +665,7 @@ impl McpConnectionManager {
     }
 
     /// Add a single MCP server dynamically (without reinitializing existing servers)
+    #[allow(clippy::too_many_arguments)]
     pub(crate) async fn add_server_dynamic(
         &mut self,
         server_name: String,
@@ -881,6 +883,7 @@ impl From<anyhow::Error> for StartupOutcomeError {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn start_server_task(
     server_name: String,
     client: Arc<RmcpClient>,

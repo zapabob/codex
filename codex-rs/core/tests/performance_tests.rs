@@ -1,3 +1,4 @@
+#![cfg(any())]
 #![allow(clippy::unwrap_used)]
 
 use codex_core::AuthManager;

@@ -5,7 +5,6 @@ use crate::RolloutRecorder;
 use crate::agent::AgentControl;
 use crate::exec_policy::ExecPolicyManager;
 use crate::mcp_connection_manager::McpConnectionManager;
-use crate::mcp_dynamic_loader::DynamicMcpLoader;
 use crate::models_manager::manager::ModelsManager;
 use crate::skills::SkillsManager;
 use crate::tools::sandboxing::ApprovalStore;

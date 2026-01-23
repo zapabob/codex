@@ -194,6 +194,7 @@ impl ToolHandler for ShellCommandHandler {
 }
 
 impl ShellHandler {
+    #[allow(clippy::too_many_arguments)]
     async fn run_exec_like(
         tool_name: &str,
         exec_params: ExecParams,

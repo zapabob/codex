@@ -929,6 +929,7 @@ pub(crate) struct ApplyPatchToolArgs {
 /// Returns JSON values that are compatible with Function Calling in the
 /// Responses API:
 /// https://platform.openai.com/docs/guides/function-calling?api-mode=responses
+#[allow(clippy::result_large_err)]
 pub fn create_tools_json_for_responses_api(
     tools: &[ToolSpec],
 ) -> crate::error::Result<Vec<serde_json::Value>> {
@@ -944,6 +945,7 @@ pub fn create_tools_json_for_responses_api(
 /// Returns JSON values that are compatible with Function Calling in the
 /// Chat Completions API:
 /// https://platform.openai.com/docs/guides/function-calling?api-mode=chat
+#[allow(clippy::result_large_err)]
 pub(crate) fn create_tools_json_for_chat_completions_api(
     tools: &[ToolSpec],
 ) -> crate::error::Result<Vec<serde_json::Value>> {

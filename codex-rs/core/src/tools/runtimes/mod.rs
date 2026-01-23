@@ -18,6 +18,7 @@ pub mod unified_exec;
 
 /// Shared helper to construct a CommandSpec from a tokenized command line.
 /// Validates that at least a program is present.
+#[allow(clippy::too_many_arguments, clippy::result_large_err)]
 pub(crate) fn build_command_spec(
     command: &[String],
     cwd: &Path,

@@ -110,6 +110,7 @@ impl ExecPolicyManager {
         self.policy.load_full()
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(crate) async fn create_exec_approval_requirement_for_command(
         &self,
         features: &Features,

@@ -5,9 +5,9 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Stdio;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
 
 /// ClaudeCowork機能タイプ
@@ -88,12 +88,12 @@ impl CoworkIntegrationManager {
         let mut child = cmd.spawn().context("Failed to spawn Python process")?;
 
         // 入力データを送信（JSON形式）
-        if let Some(input) = input_data {
-            if let Some(stdin) = child.stdin.as_mut() {
-                let json_input = serde_json::to_string(&input)?;
-                stdin.write_all(json_input.as_bytes()).await?;
-                stdin.flush().await?;
-            }
+        if let Some(input) = input_data
+            && let Some(stdin) = child.stdin.as_mut()
+        {
+            let json_input = serde_json::to_string(&input)?;
+            stdin.write_all(json_input.as_bytes()).await?;
+            stdin.flush().await?;
         }
 
         // 実行とタイムアウト処理
@@ -107,6 +107,11 @@ impl CoworkIntegrationManager {
 
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let stderr_value = if stderr.is_empty() {
+            None
+        } else {
+            Some(stderr.clone())
+        };
 
         // JSON出力をパース
         let result_data: serde_json::Value = if !stdout.is_empty() {
@@ -114,13 +119,13 @@ impl CoworkIntegrationManager {
                 serde_json::json!({
                     "success": output.status.success(),
                     "output": stdout,
-                    "error": if !stderr.is_empty() { Some(stderr) } else { None }
+                    "error": stderr_value.clone()
                 })
             })
         } else {
             serde_json::json!({
                 "success": output.status.success(),
-                "error": if !stderr.is_empty() { Some(stderr) } else { None }
+                "error": stderr_value
             })
         };
 

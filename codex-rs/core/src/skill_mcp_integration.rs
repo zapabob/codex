@@ -8,21 +8,21 @@
 //! - Observability, auditing, and infrastructure
 //! - Performance, scalability, and usability
 
-use async_trait::async_trait;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::sync::{Arc, Mutex, RwLock};
+use std::collections::{HashMap, VecDeque};
 use std::time::{Duration, Instant};
-use tokio::sync::{RwLock as TokioRwLock, broadcast, mpsc, oneshot};
-use tokio::time;
+use tokio::sync::{RwLock as TokioRwLock, broadcast};
 use uuid::Uuid;
 
 // Import existing components
-use crate::a2a_communication::{A2ACommunicationManager, A2AMessage, MessagePayload, MessageType};
-use crate::config::Config;
-use crate::llmops::{LLMOpsManager, LLMRequest, LLMResponse};
 use crate::security::{AuditLogger, SecurityContext};
+
+fn build_regex(pattern: &str) -> Regex {
+    Regex::new(pattern).unwrap_or_else(|err| {
+        panic!("Invalid regex pattern '{pattern}': {err}");
+    })
+}
 
 /// Skill/MCP integration configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,7 +55,7 @@ pub struct SkillDefinition {
     pub description: String,
     pub capabilities: Vec<SkillCapability>,
     pub input_schema: serde_json::Value,
-    pub output_schema: serde_json::Value,
+    pub output_schema: Option<serde_json::Value>,
     pub metadata: SkillMetadata,
     pub security_requirements: Vec<String>,
     pub resource_requirements: ResourceRequirements,
@@ -239,7 +239,7 @@ pub struct RetryPolicy {
 }
 
 /// Skill execution environment
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct SkillExecutionEnvironment {
     pub sandbox: SandboxManager,
     pub resource_monitor: ResourceMonitor,
@@ -313,11 +313,12 @@ pub enum AlertSeverity {
     Fatal,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct SecurityEnforcer {
     pub input_validator: InputValidator,
     pub output_filter: OutputFilter,
-    pub audit_logger: AuditLogger,
+    #[allow(dead_code)]
+    pub audit_logger: Option<AuditLogger>,
     pub intrusion_detector: IntrusionDetector,
 }
 
@@ -416,7 +417,7 @@ pub struct BottleneckDetector {
 }
 
 /// Context and prompt management
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ContextManager {
     pub short_term_memory: TokioRwLock<HashMap<String, serde_json::Value>>,
     pub long_term_memory: TokioRwLock<HashMap<String, serde_json::Value>>,
@@ -450,10 +451,12 @@ pub enum ContextPruningStrategy {
 
 /// Main Skill/MCP integration manager
 pub struct SkillMCPIntegrationManager {
+    #[allow(dead_code)]
     config: SkillMCPConfig,
     skill_registry: TokioRwLock<HashMap<String, SkillDefinition>>,
     mcp_resources: TokioRwLock<HashMap<String, MCPResource>>,
     mcp_tools: TokioRwLock<HashMap<String, MCPTool>>,
+    #[allow(dead_code)]
     mcp_connections: TokioRwLock<HashMap<String, MCPConnection>>,
     execution_environment: SkillExecutionEnvironment,
     context_manager: ContextManager,
@@ -473,10 +476,11 @@ pub enum SkillMCPEvent {
 }
 
 /// Observability and monitoring
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ObservabilityEngine {
     metrics_store: TokioRwLock<HashMap<String, Vec<MetricEntry>>>,
     trace_store: TokioRwLock<HashMap<String, Vec<TraceEntry>>>,
+    #[allow(dead_code)]
     alert_manager: AlertManager,
 }
 
@@ -506,7 +510,7 @@ pub enum TraceStatus {
     Cancelled,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct AlertManager {
     pub active_alerts: TokioRwLock<Vec<Alert>>,
     pub alert_policies: Vec<AlertPolicy>,
@@ -610,7 +614,7 @@ impl SkillMCPIntegrationManager {
         let execution_context = ExecutionContext {
             skill_id: skill_id.to_string(),
             input: input.clone(),
-            resource_allocation,
+            resource_allocation: resource_allocation.clone(),
             timeout: Duration::from_secs(skill.resource_requirements.timeout_seconds),
             trace_id: Uuid::new_v4().to_string(),
         };
@@ -646,11 +650,12 @@ impl SkillMCPIntegrationManager {
                 let filtered_output = self
                     .execution_environment
                     .security_enforcer
+                    .output_filter
                     .filter_output(&validated_output)?;
                 Ok(filtered_output)
             }
             Err(e) => {
-                self.handle_execution_error(skill_id, &e).await?;
+                self.handle_execution_error(skill_id, e.as_ref()).await?;
                 Err(e)
             }
         }
@@ -703,10 +708,10 @@ impl SkillMCPIntegrationManager {
         self.check_resource_access(&resource, context).await?;
 
         // Check cache
-        if resource.caching_policy.enabled {
-            if let Some(cached) = self.check_resource_cache(uri).await? {
-                return Ok(cached);
-            }
+        if resource.caching_policy.enabled
+            && let Some(cached) = self.check_resource_cache(uri).await?
+        {
+            return Ok(cached);
         }
 
         // Access resource
@@ -839,8 +844,8 @@ impl SkillMCPIntegrationManager {
 
     async fn validate_skill_input(
         &self,
-        skill: &SkillDefinition,
-        input: &serde_json::Value,
+        _skill: &SkillDefinition,
+        _input: &serde_json::Value,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Schema validation against input_schema
         // Simplified - in production, use a proper JSON schema validator
@@ -859,7 +864,7 @@ impl SkillMCPIntegrationManager {
                 "encrypted_communication" => {
                     // Ensure encryption
                 }
-                _ => return Err(format!("Unknown security requirement: {}", requirement).into()),
+                _ => return Err(format!("Unknown security requirement: {requirement}").into()),
             }
         }
         Ok(())
@@ -880,7 +885,7 @@ impl SkillMCPIntegrationManager {
 
     fn deallocate_resources(
         &self,
-        allocation: ResourceAllocation,
+        _allocation: ResourceAllocation,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified resource deallocation
         Ok(())
@@ -888,7 +893,7 @@ impl SkillMCPIntegrationManager {
 
     async fn validate_skill_output(
         &self,
-        skill: &SkillDefinition,
+        _skill: &SkillDefinition,
         output: &serde_json::Value,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Schema validation against output_schema
@@ -898,7 +903,7 @@ impl SkillMCPIntegrationManager {
     async fn handle_execution_error(
         &self,
         skill_id: &str,
-        error: &Box<dyn std::error::Error>,
+        _error: &dyn std::error::Error,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Log error and potentially trigger alerts
         self.observability_engine
@@ -956,8 +961,8 @@ impl SkillMCPIntegrationManager {
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified access control check
         for permission in &resource.access_control.required_permissions {
-            if !context.permissions.contains(permission) {
-                return Err(format!("Missing permission: {}", permission).into());
+            if !context.tags.contains_key(permission) {
+                return Err(format!("Missing permission: {permission}").into());
             }
         }
         Ok(())
@@ -965,7 +970,7 @@ impl SkillMCPIntegrationManager {
 
     async fn check_resource_cache(
         &self,
-        uri: &str,
+        _uri: &str,
     ) -> Result<Option<serde_json::Value>, Box<dyn std::error::Error>> {
         // Simplified cache check
         Ok(None)
@@ -973,7 +978,7 @@ impl SkillMCPIntegrationManager {
 
     async fn access_resource_via_mcp(
         &self,
-        resource: &MCPResource,
+        _resource: &MCPResource,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Simplified MCP resource access
         Ok(serde_json::json!({"data": "mock_resource_data"}))
@@ -981,8 +986,8 @@ impl SkillMCPIntegrationManager {
 
     async fn cache_resource_result(
         &self,
-        uri: &str,
-        result: &serde_json::Value,
+        _uri: &str,
+        _result: &serde_json::Value,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Simplified caching
         Ok(())
@@ -990,8 +995,8 @@ impl SkillMCPIntegrationManager {
 
     async fn validate_tool_parameters(
         &self,
-        tool: &MCPTool,
-        parameters: &serde_json::Value,
+        _tool: &MCPTool,
+        _parameters: &serde_json::Value,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Parameter validation against input_schema
         Ok(())
@@ -999,8 +1004,8 @@ impl SkillMCPIntegrationManager {
 
     async fn check_tool_execution_requirements(
         &self,
-        tool: &MCPTool,
-        context: &SecurityContext,
+        _tool: &MCPTool,
+        _context: &SecurityContext,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Check sandbox level, resource limits, etc.
         Ok(())
@@ -1008,8 +1013,8 @@ impl SkillMCPIntegrationManager {
 
     async fn execute_tool_via_mcp(
         &self,
-        tool: &MCPTool,
-        parameters: &serde_json::Value,
+        _tool: &MCPTool,
+        _parameters: &serde_json::Value,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Simplified MCP tool execution
         Ok(serde_json::json!({"result": "mock_tool_result"}))
@@ -1040,8 +1045,7 @@ impl SkillMCPIntegrationManager {
     }
 
     fn is_valid_semantic_version(&self, version: &str) -> bool {
-        let semver_regex =
-            Regex::new(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$").unwrap();
+        let semver_regex = build_regex(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$");
         semver_regex.is_match(version)
     }
 }
@@ -1104,11 +1108,17 @@ impl SandboxManager {
 
     pub async fn execute(
         &self,
-        skill: &SkillDefinition,
-        context: &ExecutionContext,
+        _skill: &SkillDefinition,
+        _context: &ExecutionContext,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Simplified sandbox execution
         Ok(serde_json::json!({"result": "mock_skill_execution"}))
+    }
+}
+
+impl Default for ResourceMonitor {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1147,16 +1157,16 @@ impl ResourceMonitor {
 impl SecurityEnforcer {
     pub fn new(security_level: MCPSecurityLevel) -> Self {
         Self {
-            input_validator: InputValidator::new(security_level.clone()),
+            input_validator: InputValidator::new(security_level),
             output_filter: OutputFilter::new(),
-            audit_logger: AuditLogger::new(),
+            audit_logger: None,
             intrusion_detector: IntrusionDetector::new(),
         }
     }
 
     pub fn check_execution(
         &self,
-        context: &ExecutionContext,
+        _context: &ExecutionContext,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Check for security violations during execution
         Ok(())
@@ -1174,12 +1184,9 @@ impl InputValidator {
                 ),
             },
             content_scanner: ContentScanner {
-                malicious_patterns: vec![
-                    Regex::new(r"<script[^>]*>").unwrap(),
-                    Regex::new(r"eval\s*\(").unwrap(),
-                ],
+                malicious_patterns: vec![build_regex(r"<script[^>]*>"), build_regex(r"eval\s*\(")],
                 sensitive_data_patterns: vec![
-                    Regex::new(r"\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b").unwrap(), // Credit card
+                    build_regex(r"\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b"), // Credit card
                 ],
             },
             size_limits: SizeLimits {
@@ -1190,15 +1197,21 @@ impl InputValidator {
     }
 }
 
+impl Default for OutputFilter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OutputFilter {
     pub fn new() -> Self {
         Self {
             sanitization_rules: vec![SanitizationRule {
-                pattern: Regex::new(r"<script[^>]*>.*?</script>").unwrap(),
+                pattern: build_regex(r"<script[^>]*>.*?</script>"),
                 replacement: "[SCRIPT_REMOVED]".to_string(),
             }],
             content_filters: vec![ContentFilter {
-                pattern: Regex::new(r"(?i)harmful|dangerous").unwrap(),
+                pattern: build_regex(r"(?i)harmful|dangerous"),
                 action: FilterAction::Block,
             }],
         }
@@ -1210,6 +1223,12 @@ impl OutputFilter {
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         // Apply sanitization and filtering
         Ok(output.clone())
+    }
+}
+
+impl Default for IntrusionDetector {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1225,6 +1244,12 @@ impl IntrusionDetector {
                 suspicious_patterns: vec![],
             },
         }
+    }
+}
+
+impl Default for PerformanceTracker {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1282,6 +1307,12 @@ impl ContextManager {
     }
 }
 
+impl Default for ObservabilityEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ObservabilityEngine {
     pub fn new() -> Self {
         Self {
@@ -1320,15 +1351,15 @@ impl ObservabilityEngine {
         success: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut traces = self.trace_store.write().await;
-        if let Some(trace_list) = traces.get_mut(trace_id) {
-            if let Some(trace) = trace_list.last_mut() {
-                trace.end_time = Some(chrono::Utc::now());
-                trace.status = if success {
-                    TraceStatus::Completed
-                } else {
-                    TraceStatus::Failed
-                };
-            }
+        if let Some(trace_list) = traces.get_mut(trace_id)
+            && let Some(trace) = trace_list.last_mut()
+        {
+            trace.end_time = Some(chrono::Utc::now());
+            trace.status = if success {
+                TraceStatus::Completed
+            } else {
+                TraceStatus::Failed
+            };
         }
 
         Ok(())
@@ -1359,6 +1390,12 @@ impl ObservabilityEngine {
             .push(metric);
 
         Ok(())
+    }
+}
+
+impl Default for AlertManager {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

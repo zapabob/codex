@@ -13,16 +13,19 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::{Duration, Instant};
 use tokio::sync::broadcast;
+use tracing::warn;
 
 // Import existing components
 use crate::security::{AuditLogger, SecurityContext};
 
 fn read_lock<T>(lock: &RwLock<T>) -> RwLockReadGuard<'_, T> {
-    lock.read().unwrap_or_else(|err| err.into_inner())
+    lock.read()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 fn write_lock<T>(lock: &RwLock<T>) -> RwLockWriteGuard<'_, T> {
-    lock.write().unwrap_or_else(|err| err.into_inner())
+    lock.write()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 fn build_regex(pattern: &str) -> Regex {
@@ -158,12 +161,13 @@ pub struct CostMetrics {
 }
 
 /// Security hardening for LLM interactions
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct LLMSecurityHardening {
     pub input_validation: InputValidator,
     pub output_filtering: OutputFilter,
     pub rate_limiting: RateLimiter,
-    pub audit_logger: AuditLogger,
+    #[allow(dead_code)]
+    pub audit_logger: Option<AuditLogger>,
 }
 
 #[derive(Debug, Clone)]
@@ -418,7 +422,7 @@ impl LLMOpsManager {
         let latency = start_time.elapsed().as_millis() as f64;
 
         // Post-request processing
-        match &result {
+        match result {
             Ok(response) => {
                 // Update cost tracking
                 self.update_cost_tracking(&model, response.tokens_used, estimated_cost);
@@ -445,7 +449,7 @@ impl LLMOpsManager {
                 let filtered_response = self.security_hardening.filter_output(&response.content)?;
                 Ok(LLMResponse {
                     content: filtered_response,
-                    ..response.clone()
+                    ..response
                 })
             }
             Err(e) => {
@@ -513,7 +517,7 @@ impl LLMOpsManager {
 
     async fn assess_model_security(
         &self,
-        model: &ModelVersion,
+        _model: &ModelVersion,
     ) -> Result<SecurityAssessment, Box<dyn std::error::Error>> {
         // Simplified security assessment
         // In production, this would involve comprehensive security testing
@@ -552,7 +556,7 @@ impl LLMOpsManager {
         // Security constraint validation
         for constraint in &prompt.security_constraints {
             if !self.validate_security_constraint(constraint) {
-                return Err(format!("Invalid security constraint: {}", constraint).into());
+                return Err(format!("Invalid security constraint: {constraint}").into());
             }
         }
 
@@ -626,8 +630,7 @@ impl LLMOpsManager {
                 current_cost + estimated_cost,
             ));
             return Err(format!(
-                "Cost budget exceeded: estimated ${:.2}, budget ${:.2}",
-                estimated_cost, hourly_budget
+                "Cost budget exceeded: estimated ${estimated_cost:.2}, budget ${hourly_budget:.2}"
             )
             .into());
         }
@@ -637,9 +640,9 @@ impl LLMOpsManager {
 
     async fn execute_with_monitoring(
         &self,
-        request: &LLMRequest,
+        _request: &LLMRequest,
         model: &ModelVersion,
-        prompt_template: &PromptTemplate,
+        _prompt_template: &PromptTemplate,
         trace_id: &str,
     ) -> Result<LLMResponse, Box<dyn std::error::Error>> {
         // This would integrate with actual LLM providers
@@ -699,6 +702,12 @@ pub struct LLMOpsStatus {
     pub observability_status: String,
 }
 
+impl Default for CostMetrics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CostMetrics {
     pub fn new() -> Self {
         let now = chrono::Utc::now();
@@ -718,13 +727,11 @@ impl LLMSecurityHardening {
         let input_validator = Self::create_input_validator(&security_level);
         let output_filter = Self::create_output_filter(&security_level);
         let rate_limiting = Self::create_rate_limiter(&security_level);
-        let audit_logger = AuditLogger::new();
-
         Ok(Self {
             input_validation: input_validator,
             output_filtering: output_filter,
             rate_limiting,
-            audit_logger,
+            audit_logger: None,
         })
     }
 
@@ -863,6 +870,12 @@ impl LLMSecurityHardening {
     }
 }
 
+impl Default for PerformanceMonitor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PerformanceMonitor {
     pub fn new() -> Self {
         Self {
@@ -899,7 +912,7 @@ impl PerformanceMonitor {
         };
 
         let mut history = write_lock(&self.metrics_history);
-        history.push_back(snapshot);
+        history.push_back(snapshot.clone());
 
         // Keep only last 1000 entries
         if history.len() > 1000 {
@@ -925,18 +938,24 @@ impl PerformanceMonitor {
 
     fn check_alerts(&self, snapshot: &PerformanceSnapshot) {
         if snapshot.latency_ms > self.alert_thresholds.max_latency_ms {
-            println!(
-                "??  Performance Alert: High latency detected: {:.2}ms",
+            warn!(
+                "Performance Alert: High latency detected: {:.2}ms",
                 snapshot.latency_ms
             );
         }
 
         if snapshot.success_rate < self.alert_thresholds.min_success_rate {
-            println!(
-                "??  Performance Alert: Low success rate: {:.2}%",
+            warn!(
+                "Performance Alert: Low success rate: {:.2}%",
                 snapshot.success_rate * 100.0
             );
         }
+    }
+}
+
+impl Default for ObservabilityEngine {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -966,29 +985,26 @@ impl ObservabilityEngine {
         let mut storage = write_lock(&self.trace_storage);
         storage
             .entry(trace.operation.clone())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(trace);
     }
 
     pub fn record_metric(&self, metric: MetricEntry) {
         let mut storage = write_lock(&self.metric_storage);
-        storage
-            .entry(metric.name.clone())
-            .or_insert_with(Vec::new)
-            .push(metric);
+        storage.entry(metric.name.clone()).or_default().push(metric);
     }
 
     pub fn get_status(&self) -> String {
         let trace_count = read_lock(&self.trace_storage)
             .values()
-            .map(|v| v.len())
+            .map(std::vec::Vec::len)
             .sum::<usize>();
         let metric_count = read_lock(&self.metric_storage)
             .values()
-            .map(|v| v.len())
+            .map(std::vec::Vec::len)
             .sum::<usize>();
 
-        format!("Traces: {}, Metrics: {}", trace_count, metric_count)
+        format!("Traces: {trace_count}, Metrics: {metric_count}")
     }
 }
 

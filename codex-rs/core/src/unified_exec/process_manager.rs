@@ -474,6 +474,7 @@ impl UnifiedExecProcessManager {
         UnifiedExecProcess::from_spawned(spawned, env.sandbox).await
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(super) async fn open_session_with_sandbox(
         &self,
         command: &[String],

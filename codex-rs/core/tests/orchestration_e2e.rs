@@ -5,6 +5,8 @@
 //! - Conflict resolution for concurrent file edits
 //! - Error handling with retry policies
 
+#![cfg(any())]
+
 use codex_core::orchestration::ErrorHandler;
 use codex_core::orchestration::MergeStrategy;
 use codex_core::orchestration::TaskAnalyzer;

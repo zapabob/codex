@@ -89,7 +89,9 @@ pub fn mask_secrets(text: &str) -> String {
 
 /// Log regex compilation error (only once)
 fn log_regex_error(regex_name: &str) {
-    let mut error = REGEX_COMPILATION_ERROR.lock().unwrap();
+    let mut error = REGEX_COMPILATION_ERROR
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     if error.is_none() {
         *error = Some(format!("Regex compilation failed for {regex_name}"));
         tracing::error!("Secret masking regex compilation failed: {}", regex_name);
@@ -203,6 +205,7 @@ mod tests {
     #[test]
     fn test_mask_debug_output() {
         #[derive(Debug)]
+        #[allow(dead_code)]
         struct TestStruct {
             api_key: String,
             token: String,

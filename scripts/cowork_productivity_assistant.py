@@ -77,6 +77,29 @@ class CoworkProductivityAssistant:
         # 一時ディレクトリ作成
         self.config["temp_dir"].mkdir(parents=True, exist_ok=True)
 
+        # プロンプトインジェクション対策
+        try:
+            sys.path.append(str(Path(__file__).parent.parent / ".cursor" / "skills" / "web-search-deepresearch"))
+            from prompt_injection_guard import PromptInjectionGuard, SecurityLevel
+            self.injection_guard = PromptInjectionGuard(SecurityLevel.STRICT)
+            logger.info("プロンプトインジェクション対策: 有効")
+        except ImportError:
+            self.injection_guard = None
+            logger.warning("プロンプトインジェクション対策: 無効（モジュールが見つかりません）")
+        
+        # パフォーマンス最適化
+        try:
+            from cowork_performance_optimizer import get_performance_cache, get_resource_manager, get_performance_monitor
+            self.cache = get_performance_cache()
+            self.resource_manager = get_resource_manager()
+            self.performance_monitor = get_performance_monitor()
+            logger.info("パフォーマンス最適化: 有効")
+        except ImportError:
+            self.cache = None
+            self.resource_manager = None
+            self.performance_monitor = None
+            logger.warning("パフォーマンス最適化: 無効（モジュールが見つかりません）")
+        
         # コンポーネント初期化
         self.file_manager = FileManagementSystem(self.config)
         self.data_analyzer = DataAnalysisEngine(self.config)
@@ -86,7 +109,7 @@ class CoworkProductivityAssistant:
 
     async def execute_task(self, task_description: str) -> Dict[str, Any]:
         """
-        自然言語タスクを実行
+        自然言語タスクを実行（プロンプトインジェクション対策統合）
 
         Args:
             task_description: 実行するタスクの説明
@@ -96,6 +119,24 @@ class CoworkProductivityAssistant:
         """
         try:
             self.logger.info(f"タスク実行開始: {task_description}")
+            
+            # プロンプトインジェクション対策
+            if self.injection_guard:
+                security_result = await self.injection_guard.validate_input(task_description)
+                if not security_result.get("safe", False):
+                    risk_score = security_result.get("risk_score", 1.0)
+                    detected = security_result.get("detected_injections", [])
+                    self.logger.warning(f"プロンプトインジェクション検出: リスクスコア={risk_score}, 検出数={len(detected)}")
+                    return {
+                        "success": False,
+                        "error": "セキュリティチェック失敗: プロンプトインジェクションが検出されました",
+                        "risk_score": risk_score,
+                        "detected_injections": detected
+                    }
+                
+                # 入力のサニタイズ
+                task_description = await self.injection_guard.sanitize_input(task_description)
+                self.logger.info("入力サニタイズ完了")
 
             # タスク解釈
             interpreted_task = await self._interpret_task(task_description)

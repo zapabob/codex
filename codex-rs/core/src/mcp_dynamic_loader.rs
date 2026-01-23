@@ -52,6 +52,8 @@ pub struct DynamicMcpLoader {
 
 impl DynamicMcpLoader {
     /// Create a new dynamic MCP loader
+    #[allow(dead_code)]
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         connection_manager: Arc<tokio::sync::RwLock<McpConnectionManager>>,
         store_mode: OAuthCredentialsStoreMode,

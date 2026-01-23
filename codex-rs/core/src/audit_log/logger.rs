@@ -81,6 +81,7 @@ impl AuditLogger {
     }
 
     /// Log agent execution completion
+    #[allow(clippy::too_many_arguments)]
     pub async fn log_agent_complete(
         &self,
         agent_name: &str,
@@ -212,6 +213,7 @@ impl AuditLogger {
     }
 
     /// Log token usage
+    #[allow(clippy::too_many_arguments)]
     pub async fn log_token_usage(
         &self,
         entity_id: &str,
@@ -243,6 +245,7 @@ impl AuditLogger {
     }
 
     /// Log security event
+    #[allow(clippy::too_many_arguments)]
     pub async fn log_security_event(
         &self,
         severity: SecuritySeverity,

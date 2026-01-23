@@ -35,6 +35,7 @@ pub enum StdioPolicy {
 /// For now, we take `SandboxPolicy` as a parameter to spawn_child() because
 /// we need to determine whether to set the
 /// `CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR` environment variable.
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn spawn_child_async(
     program: PathBuf,
     args: Vec<String>,

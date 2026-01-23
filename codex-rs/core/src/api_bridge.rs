@@ -103,6 +103,7 @@ fn extract_request_id(headers: Option<&HeaderMap>) -> Option<String> {
     })
 }
 
+#[allow(clippy::result_large_err)]
 pub(crate) fn auth_provider_from_auth(
     auth: Option<CodexAuth>,
     provider: &ModelProviderInfo,

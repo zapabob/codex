@@ -578,6 +578,7 @@ async fn emit_tool_call_begin(
         .await;
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn emit_tool_call_end(
     session: &Arc<Session>,
     turn: &TurnContext,

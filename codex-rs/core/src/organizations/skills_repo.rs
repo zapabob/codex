@@ -23,6 +23,7 @@ impl OrganizationSkillsRepository {
     }
 
     /// Share a skill with an organization
+    #[allow(clippy::too_many_arguments)]
     pub async fn share_skill(
         &self,
         org_id: &str,

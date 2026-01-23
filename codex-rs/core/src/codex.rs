@@ -223,6 +223,7 @@ fn maybe_push_chat_wire_api_deprecation(
 
 impl Codex {
     /// Spawn a new [`Codex`] and initialize the session.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) async fn spawn(
         config: Config,
         auth_manager: Arc<AuthManager>,
@@ -1210,6 +1211,7 @@ impl Session {
         rx_approve.await.unwrap_or_default()
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn request_patch_approval(
         &self,
         turn_context: &TurnContext,
@@ -2712,6 +2714,7 @@ async fn run_auto_compact(sess: &Arc<Session>, turn_context: &Arc<TurnContext>) 
         cwd = %turn_context.cwd.display()
     )
 )]
+#[allow(clippy::too_many_arguments)]
 async fn run_model_turn(
     sess: Arc<Session>,
     turn_context: Arc<TurnContext>,
@@ -2913,7 +2916,7 @@ async fn try_run_turn(
             .await
         {
             Ok(event) => event,
-            Err(codex_async_utils::CancelErr::Cancelled) => break Err(CodexErr::TurnAborted),
+            Err(_) => break Err(CodexErr::TurnAborted),
         };
 
         let event = match event {

@@ -56,6 +56,7 @@ fn write_session_file(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn write_session_file_with_provider(
     root: &Path,
     ts_str: &str,

@@ -93,6 +93,7 @@ impl SandboxManager {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn transform(
         &self,
         mut spec: CommandSpec,

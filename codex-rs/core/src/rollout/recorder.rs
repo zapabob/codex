@@ -95,6 +95,7 @@ impl RolloutRecorderParams {
 
 impl RolloutRecorder {
     /// List threads (rollout files) under the provided Codex home directory.
+    #[allow(clippy::too_many_arguments)]
     pub async fn list_threads(
         codex_home: &Path,
         page_size: usize,

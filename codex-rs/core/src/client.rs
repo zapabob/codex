@@ -262,6 +262,7 @@ impl ModelClientSession {
         }
     }
 
+    #[allow(clippy::result_large_err)]
     fn build_responses_request(&self, prompt: &Prompt) -> Result<ApiPrompt> {
         let model_info = self.state.model_info.clone();
         let instructions = prompt.get_full_instructions(&model_info).into_owned();

@@ -13,6 +13,7 @@ use codex_protocol::models::ResponseInputItem;
 
 /// Handles the specified tool call dispatches the appropriate
 /// `McpToolCallBegin` and `McpToolCallEnd` events to the `Session`.
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn handle_mcp_tool_call(
     sess: &Session,
     turn_context: &TurnContext,

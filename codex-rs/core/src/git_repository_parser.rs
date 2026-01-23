@@ -10,23 +10,19 @@
 //! - Parallel processing capabilities
 
 use async_trait::async_trait;
-use git2::{Commit, ObjectType, Oid, Repository, Revwalk};
+use git2::{Commit, Oid, Repository};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::path::Path;
-use std::sync::Arc;
-use tokio::sync::mpsc;
-use tokio::task;
+use std::collections::{HashMap, HashSet};
 
 /// Represents a parsed Git commit with 4D coordinates
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Git4DCommit {
-    pub id: Oid,
+    pub id: String,
     pub author: String,
     pub email: String,
     pub timestamp: i64,
     pub message: String,
-    pub parents: Vec<Oid>,
+    pub parents: Vec<String>,
     pub branch: String,
     pub tags: Vec<String>,
     // 4D coordinates for visualization
@@ -123,39 +119,9 @@ impl GitRepositoryParser {
             .push_head()
             .map_err(|e| GitParseError::Revwalk(e.to_string()))?;
 
-        // Collect commits with parallel processing
-        let (tx, mut rx) = mpsc::channel(100);
-
-        // Spawn commit processing tasks
-        let repo_arc = Arc::new(repo.clone());
-        for _ in 0..self.config.parallel_workers {
-            let tx_clone = tx.clone();
-            let repo_clone = repo_arc.clone();
-            let config_clone = self.config.clone();
-
-            tokio::spawn(async move {
-                while let Some(oid) = rx.recv().await {
-                    match Self::process_commit(&repo_clone, oid, &config_clone) {
-                        Ok(commit_data) => {
-                            let _ = tx_clone.send(commit_data).await;
-                        }
-                        Err(e) => {
-                            eprintln!("Error processing commit {}: {}", oid, e);
-                        }
-                    }
-                }
-            });
-        }
-
-        // Feed OIDs to workers
-        let mut oid_queue = Vec::new();
+        // Process commits sequentially
         for oid_result in revwalk {
             let oid = oid_result.map_err(|e| GitParseError::Revwalk(e.to_string()))?;
-            oid_queue.push(oid);
-        }
-
-        // Process commits
-        for oid in oid_queue {
             if let Ok(commit_data) = Self::process_commit(repo, oid, &self.config) {
                 commits.push(commit_data);
             }
@@ -243,7 +209,7 @@ impl GitRepositoryParser {
                 .diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)
                 .map_err(|e| GitParseError::DiffAnalysis(e.to_string()))?;
 
-            for delta in diff.deltas() {
+            for _delta in diff.deltas() {
                 files_changed += 1;
 
                 // Get diff statistics for this file
@@ -271,8 +237,10 @@ impl GitRepositoryParser {
         commits.sort_by_key(|c| c.timestamp);
 
         // Calculate time normalization
-        let min_time = commits.first().unwrap().timestamp as f32;
-        let max_time = commits.last().unwrap().timestamp as f32;
+        let (min_time, max_time) = match (commits.first(), commits.last()) {
+            (Some(first), Some(last)) => (first.timestamp as f32, last.timestamp as f32),
+            _ => return Ok(Vec::new()),
+        };
         let time_range = max_time - min_time;
 
         // Build commit graph for branch analysis
@@ -289,15 +257,19 @@ impl GitRepositoryParser {
 
             let branch = self.determine_branch(&commit_graph, commit.id);
             let (x, y, z, time) =
-                self.calculate_4d_coordinates(&commit, branch, min_time, time_range);
+                self.calculate_4d_coordinates(&commit, &branch, min_time, time_range);
 
             git4d_commits.push(Git4DCommit {
-                id: commit.id,
+                id: commit.id.to_string(),
                 author: commit.author,
                 email: commit.email,
                 timestamp: commit.timestamp,
                 message: commit.message,
-                parents: commit.parents,
+                parents: commit
+                    .parents
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
                 branch,
                 tags: Vec::new(), // TODO: Implement tag detection
                 x,
@@ -330,7 +302,7 @@ impl GitRepositoryParser {
     }
 
     /// Determine which branch a commit belongs to
-    fn determine_branch(&self, commit_graph: &HashMap<Oid, Vec<Oid>>, commit_id: Oid) -> String {
+    fn determine_branch(&self, _commit_graph: &HashMap<Oid, Vec<Oid>>, _commit_id: Oid) -> String {
         // Simple branch detection - in a real implementation,
         // this would analyze the commit graph more thoroughly
         // For now, assign commits to "main" branch
@@ -341,12 +313,12 @@ impl GitRepositoryParser {
     fn calculate_4d_coordinates(
         &self,
         commit: &CommitData,
-        branch: String,
+        branch: &str,
         min_time: f32,
         time_range: f32,
     ) -> (f32, f32, f32, f32) {
         // X: Branch position (simple mapping for now)
-        let x = match branch.as_str() {
+        let x = match branch {
             "main" => 0.0,
             "develop" => 1.0,
             _ => 0.5,
@@ -385,7 +357,7 @@ impl GitRepositoryParser {
         let tags = repo
             .tag_names(None)
             .map_err(|e| GitParseError::TagAnalysis(e.to_string()))?;
-        Ok(tags.count())
+        Ok(tags.len())
     }
 
     /// Calculate date range from commits
@@ -394,10 +366,13 @@ impl GitRepositoryParser {
             return (0, 0);
         }
 
-        let min_time = commits.iter().map(|c| c.timestamp).min().unwrap();
-        let max_time = commits.iter().map(|c| c.timestamp).max().unwrap();
+        let min_time = commits.iter().map(|c| c.timestamp).min();
+        let max_time = commits.iter().map(|c| c.timestamp).max();
 
-        (min_time, max_time)
+        match (min_time, max_time) {
+            (Some(min_time), Some(max_time)) => (min_time, max_time),
+            _ => (0, 0),
+        }
     }
 
     /// Estimate memory usage
@@ -436,13 +411,13 @@ pub enum GitParseError {
 impl std::fmt::Display for GitParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GitParseError::RepositoryOpen(msg) => write!(f, "Failed to open repository: {}", msg),
-            GitParseError::Revwalk(msg) => write!(f, "Revwalk error: {}", msg),
-            GitParseError::CommitLookup(msg) => write!(f, "Commit lookup error: {}", msg),
-            GitParseError::DiffAnalysis(msg) => write!(f, "Diff analysis error: {}", msg),
-            GitParseError::BranchAnalysis(msg) => write!(f, "Branch analysis error: {}", msg),
-            GitParseError::TagAnalysis(msg) => write!(f, "Tag analysis error: {}", msg),
-            GitParseError::Filtered(msg) => write!(f, "Commit filtered: {}", msg),
+            GitParseError::RepositoryOpen(msg) => write!(f, "Failed to open repository: {msg}"),
+            GitParseError::Revwalk(msg) => write!(f, "Revwalk error: {msg}"),
+            GitParseError::CommitLookup(msg) => write!(f, "Commit lookup error: {msg}"),
+            GitParseError::DiffAnalysis(msg) => write!(f, "Diff analysis error: {msg}"),
+            GitParseError::BranchAnalysis(msg) => write!(f, "Branch analysis error: {msg}"),
+            GitParseError::TagAnalysis(msg) => write!(f, "Tag analysis error: {msg}"),
+            GitParseError::Filtered(msg) => write!(f, "Commit filtered: {msg}"),
         }
     }
 }
@@ -450,12 +425,12 @@ impl std::fmt::Display for GitParseError {
 impl std::error::Error for GitParseError {}
 
 /// Async trait for repository parsing
-#[async_trait]
+#[async_trait(?Send)]
 pub trait RepositoryParser {
     async fn parse_repository(&self) -> Result<(Vec<Git4DCommit>, GitParseStats), GitParseError>;
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl RepositoryParser for GitRepositoryParser {
     async fn parse_repository(&self) -> Result<(Vec<Git4DCommit>, GitParseStats), GitParseError> {
         self.parse_repository().await

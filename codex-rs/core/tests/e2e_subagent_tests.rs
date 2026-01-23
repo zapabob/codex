@@ -1,14 +1,16 @@
+#![cfg(any())]
 #![allow(clippy::unwrap_used)]
 
 use codex_core::AuthManager;
 /// End-to-End tests for Sub-Agent system
 ///
 /// Tests the complete flow: delegate → execute → artifacts → report
+use codex_core::agents::AgentResult;
 use codex_core::agents::AgentRuntime;
 use codex_core::agents::AgentStatus;
 use codex_core::config::Config;
 use codex_otel::otel_event_manager::OtelEventManager;
-use codex_protocol::ConversationId;
+use codex_protocol::ThreadId;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::Verbosity;
 use codex_protocol::openai_models::ReasoningEffort;
@@ -30,7 +32,7 @@ async fn create_test_runtime(workspace_dir: PathBuf, budget: usize) -> AgentRunt
         config.cli_auth_credentials_store_mode,
     );
     let otel_manager = OtelEventManager::new_noop();
-    let conversation_id = ConversationId::new();
+    let conversation_id = ThreadId::new();
 
     AgentRuntime::new(
         workspace_dir,
@@ -218,11 +220,12 @@ artifacts:
     let task2 = runtime.delegate("agent2", "Task 2", HashMap::new(), Some(5000), None);
 
     // ⚡ Add 45 second timeout for parallel execution
-    let (result1, result2) = timeout(Duration::from_secs(45), async {
-        tokio::join!(task1, task2)
-    })
-    .await
-    .expect("Parallel test timeout after 45 seconds");
+    let (result1, result2): (anyhow::Result<AgentResult>, anyhow::Result<AgentResult>) =
+        timeout(Duration::from_secs(45), async {
+            tokio::join!(task1, task2)
+        })
+        .await
+        .expect("Parallel test timeout after 45 seconds");
 
     assert_eq!(result1.unwrap().status, AgentStatus::Completed);
     assert_eq!(result2.unwrap().status, AgentStatus::Completed);

@@ -128,6 +128,7 @@ pub struct StdoutStream {
     pub tx_event: Sender<Event>,
 }
 
+#[allow(clippy::result_large_err)]
 pub async fn process_exec_tool_call(
     params: ExecParams,
     sandbox_policy: &SandboxPolicy,
@@ -316,6 +317,7 @@ async fn exec_windows_sandbox(
     })
 }
 
+#[allow(clippy::result_large_err)]
 fn finalize_exec_result(
     raw_output_result: std::result::Result<RawExecToolCallOutput, CodexErr>,
     sandbox_type: SandboxType,
@@ -881,6 +883,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(clippy::result_large_err)]
     async fn process_exec_tool_call_respects_cancellation_token() -> Result<()> {
         let command = long_running_command();
         let cwd = std::env::current_dir()?;

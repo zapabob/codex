@@ -1,5 +1,6 @@
 pub mod config;
 pub mod metrics;
+pub mod otel_event_manager;
 pub mod otel_provider;
 pub mod traces;
 

@@ -108,6 +108,7 @@ impl AgentControl {
         Ok(thread.subscribe_status())
     }
 
+    #[allow(clippy::result_large_err)]
     fn upgrade(&self) -> CodexResult<Arc<ThreadManagerState>> {
         self.manager
             .upgrade()

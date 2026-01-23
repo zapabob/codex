@@ -1,1 +1,1 @@
-pub use crate::otel_manager::OtelManager as OtelEventManager;
+pub use crate::OtelManager as OtelEventManager;
