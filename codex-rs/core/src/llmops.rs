@@ -6,20 +6,30 @@
 //! - Security hardening and compliance
 //! - Observability and governance
 
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::sync::{Arc, Mutex, RwLock};
-use std::time::{Duration, Instant};
-use serde::{Serialize, Deserialize};
-use async_trait::async_trait;
-use tokio::sync::{broadcast, mpsc};
-use tokio::time;
 use regex::Regex;
-use openai_api_rs::v1::api::Client;
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
+use std::collections::{HashMap, VecDeque};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::time::{Duration, Instant};
+use tokio::sync::broadcast;
 
 // Import existing components
-use crate::config::{Config, ModelConfig};
-use crate::security::{SecurityContext, AuditLogger};
+use crate::security::{AuditLogger, SecurityContext};
+
+fn read_lock<T>(lock: &RwLock<T>) -> RwLockReadGuard<'_, T> {
+    lock.read().unwrap_or_else(|err| err.into_inner())
+}
+
+fn write_lock<T>(lock: &RwLock<T>) -> RwLockWriteGuard<'_, T> {
+    lock.write().unwrap_or_else(|err| err.into_inner())
+}
+
+fn build_regex(pattern: &str) -> Regex {
+    Regex::new(pattern).unwrap_or_else(|err| {
+        panic!("Invalid regex pattern '{pattern}': {err}");
+    })
+}
 
 /// LLMOps configuration following 2024 best practices
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -345,7 +355,7 @@ impl LLMOpsManager {
         model_with_security.security_assessment = security_assessment;
 
         // Register model
-        self.model_registry.write().unwrap().insert(model.id.clone(), model_with_security);
+        write_lock(&self.model_registry).insert(model.id.clone(), model_with_security);
 
         // Notify observers
         let _ = self.event_sender.send(LLMOpsEvent::ModelVersionUpdated(model.id));
@@ -359,7 +369,7 @@ impl LLMOpsManager {
         self.validate_prompt_template(&prompt).await?;
 
         // Register prompt
-        self.prompt_registry.write().unwrap().insert(prompt.id.clone(), prompt.clone());
+        write_lock(&self.prompt_registry).insert(prompt.id.clone(), prompt.clone());
 
         // Notify observers
         let _ = self.event_sender.send(LLMOpsEvent::PromptTemplateUpdated(prompt.id));
@@ -445,9 +455,9 @@ impl LLMOpsManager {
 
     /// Get system status and metrics
     pub fn get_system_status(&self) -> LLMOpsStatus {
-        let model_count = self.model_registry.read().unwrap().len();
-        let prompt_count = self.prompt_registry.read().unwrap().len();
-        let cost_metrics = self.cost_tracker.read().unwrap().clone();
+        let model_count = read_lock(&self.model_registry).len();
+        let prompt_count = read_lock(&self.prompt_registry).len();
+        let cost_metrics = read_lock(&self.cost_tracker).clone();
         let performance_metrics = self.performance_monitor.get_current_metrics();
 
         LLMOpsStatus {
@@ -534,22 +544,33 @@ impl LLMOpsManager {
     }
 
     fn is_valid_semantic_version(&self, version: &str) -> bool {
-        let semver_regex = Regex::new(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$").unwrap();
+        let semver_regex =
+            build_regex(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$");
         semver_regex.is_match(version)
     }
 
-    async fn select_model_and_prompt(&self, request: &LLMRequest) -> Result<(ModelVersion, PromptTemplate), Box<dyn std::error::Error>> {
+    async fn select_model_and_prompt(
+        &self,
+        request: &LLMRequest,
+    ) -> Result<(ModelVersion, PromptTemplate), Box<dyn std::error::Error>> {
         // Model selection based on capabilities and performance
-        let models = self.model_registry.read().unwrap();
-        let model = models.values()
+        let models = read_lock(&self.model_registry);
+        let model = models
+            .values()
             .filter(|m| m.capabilities.contains(&request.required_capability))
-            .min_by(|a, b| a.performance_metrics.cost_per_1k_tokens.partial_cmp(&b.performance_metrics.cost_per_1k_tokens).unwrap())
+            .min_by(|a, b| {
+                a.performance_metrics
+                    .cost_per_1k_tokens
+                    .partial_cmp(&b.performance_metrics.cost_per_1k_tokens)
+                    .unwrap_or(Ordering::Equal)
+            })
             .cloned()
             .ok_or("No suitable model found")?;
 
         // Prompt selection
-        let prompts = self.prompt_registry.read().unwrap();
-        let prompt = prompts.values()
+        let prompts = read_lock(&self.prompt_registry);
+        let prompt = prompts
+            .values()
             .find(|p| p.name == request.prompt_template)
             .cloned()
             .ok_or("Prompt template not found")?;
@@ -564,7 +585,7 @@ impl LLMOpsManager {
     }
 
     fn check_cost_budget(&self, estimated_cost: f64) -> Result<(), Box<dyn std::error::Error>> {
-        let current_cost = self.cost_tracker.read().unwrap().total_cost;
+        let current_cost = read_lock(&self.cost_tracker).total_cost;
         let hourly_budget = self.config.cost_budget_per_hour;
 
         // Simple hourly budget check
@@ -592,7 +613,7 @@ impl LLMOpsManager {
     }
 
     fn update_cost_tracking(&self, model: &ModelVersion, tokens_used: usize, actual_cost: f64) {
-        let mut cost_tracker = self.cost_tracker.write().unwrap();
+        let mut cost_tracker = write_lock(&self.cost_tracker);
         cost_tracker.total_cost += actual_cost;
         cost_tracker.tokens_used += tokens_used;
 
@@ -670,15 +691,15 @@ impl LLMSecurityHardening {
             SecurityLevel::Critical => 1000,
         };
 
-        let allowed_characters = Regex::new(r"[\w\s\.,!?\-\(\)\[\]{}:;\"']+").unwrap();
+        let allowed_characters = build_regex(r#"[\w\s\.,!?\-\(\)\[\]{}:;"']+"#);
         let forbidden_patterns = vec![
-            Regex::new(r"(?i)system\s+prompt|override\s+instructions").unwrap(),
-            Regex::new(r"(?i)ignore\s+previous\s+instructions").unwrap(),
+            build_regex(r"(?i)system\s+prompt|override\s+instructions"),
+            build_regex(r"(?i)ignore\s+previous\s+instructions"),
         ];
 
         let sanitization_rules = vec![
             SanitizationRule {
-                pattern: Regex::new(r"<script[^>]*>.*?</script>").unwrap(),
+                pattern: build_regex(r"<script[^>]*>.*?</script>"),
                 replacement: "[SCRIPT_REMOVED]".to_string(),
                 description: "Remove script tags".to_string(),
             },
@@ -702,7 +723,7 @@ impl LLMSecurityHardening {
 
         let content_filters = vec![
             ContentFilter {
-                pattern: Regex::new(r"(?i)harmful|dangerous|illegal").unwrap(),
+                pattern: build_regex(r"(?i)harmful|dangerous|illegal"),
                 severity: FilterSeverity::High,
                 action: FilterAction::Block,
             },
@@ -818,7 +839,7 @@ impl PerformanceMonitor {
             error_rate: if success { 0.0 } else { 1.0 },
         };
 
-        let mut history = self.metrics_history.write().unwrap();
+        let mut history = write_lock(&self.metrics_history);
         history.push_back(snapshot);
 
         // Keep only last 1000 entries
@@ -831,22 +852,25 @@ impl PerformanceMonitor {
     }
 
     pub fn get_current_metrics(&self) -> PerformanceSnapshot {
-        let history = self.metrics_history.read().unwrap();
+        let history = read_lock(&self.metrics_history);
         if history.is_empty() {
             return self.anomaly_detector.baseline_metrics.clone();
         }
 
         // Return most recent metrics
-        history.back().unwrap().clone()
+        history
+            .back()
+            .cloned()
+            .unwrap_or_else(|| self.anomaly_detector.baseline_metrics.clone())
     }
 
     fn check_alerts(&self, snapshot: &PerformanceSnapshot) {
         if snapshot.latency_ms > self.alert_thresholds.max_latency_ms {
-            println!("⚠️  Performance Alert: High latency detected: {:.2}ms", snapshot.latency_ms);
+            println!("??  Performance Alert: High latency detected: {:.2}ms", snapshot.latency_ms);
         }
 
         if snapshot.success_rate < self.alert_thresholds.min_success_rate {
-            println!("⚠️  Performance Alert: Low success rate: {:.2}%", snapshot.success_rate * 100.0);
+            println!("??  Performance Alert: Low success rate: {:.2}%", snapshot.success_rate * 100.0);
         }
     }
 }
