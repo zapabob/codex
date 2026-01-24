@@ -898,6 +898,7 @@ impl HistoryCell for SessionInfoCell {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn new_session_info(
     config: &Config,
     requested_model: &str,
@@ -999,6 +1000,7 @@ pub(crate) struct SessionHeaderHistoryCell {
 }
 
 impl SessionHeaderHistoryCell {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         model: String,
         reasoning_effort: Option<ReasoningEffortConfig>,
@@ -1014,6 +1016,7 @@ impl SessionHeaderHistoryCell {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new_with_style(
         model: String,
         model_style: Style,

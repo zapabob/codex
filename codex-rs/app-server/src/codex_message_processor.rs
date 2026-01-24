@@ -287,6 +287,7 @@ impl CodexMessageProcessor {
 
         Ok((thread_id, thread))
     }
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         auth_manager: Arc<AuthManager>,
         thread_manager: Arc<ThreadManager>,
@@ -2315,6 +2316,7 @@ impl CodexMessageProcessor {
         };
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn list_threads_common(
         &self,
         requested_page_size: usize,
@@ -3727,6 +3729,7 @@ impl CodexMessageProcessor {
             .await;
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn start_inline_review(
         &self,
         request_id: &RequestId,
@@ -4183,8 +4186,6 @@ impl CodexMessageProcessor {
         } else {
             None
         };
-        let session_source = self.thread_manager.session_source();
-
         let upload_result = tokio::task::spawn_blocking(move || {
             let rollout_path_ref = validated_rollout_path.as_deref();
             snapshot.upload_feedback(
@@ -4192,7 +4193,6 @@ impl CodexMessageProcessor {
                 reason.as_deref(),
                 include_logs,
                 rollout_path_ref,
-                Some(session_source),
             )
         })
         .await;
@@ -4417,6 +4417,7 @@ pub(crate) async fn read_event_msgs_from_rollout(
         .collect())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn extract_conversation_summary(
     path: PathBuf,
     head: &[serde_json::Value],

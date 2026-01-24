@@ -208,6 +208,7 @@ impl ResponsesEventError {
     }
 }
 
+#[allow(clippy::result_large_err)]
 pub fn process_responses_event(
     event: ResponsesStreamEvent,
 ) -> std::result::Result<Option<ResponseEvent>, ResponsesEventError> {

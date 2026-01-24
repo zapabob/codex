@@ -233,6 +233,7 @@ fn build_full_line(row: &GenericDisplayRow, desc_col: usize) -> Line<'static> {
 
 /// Render a list of rows using the provided ScrollState, with shared styling
 /// and behavior for selection popups.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn render_rows(
     area: Rect,
     buf: &mut Buffer,
@@ -319,6 +320,7 @@ pub(crate) fn render_rows(
 }
 
 /// Render rows as a single line each (no wrapping), truncating overflow with an ellipsis.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn render_rows_single_line(
     area: Rect,
     buf: &mut Buffer,

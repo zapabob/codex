@@ -39,6 +39,7 @@ impl RateLimitStatusPayload {
 )]
 pub enum PlanType {
     #[serde(rename = "free")]
+    #[default]
     Free,
     #[serde(rename = "go")]
     Go,
@@ -58,10 +59,4 @@ pub enum PlanType {
     Enterprise,
     #[serde(rename = "edu")]
     Edu,
-}
-
-impl Default for PlanType {
-    fn default() -> PlanType {
-        Self::Free
-    }
 }

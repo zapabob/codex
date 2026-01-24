@@ -319,6 +319,7 @@ struct Row {
 }
 
 impl PickerState {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         codex_home: PathBuf,
         requester: FrameRequester,

@@ -81,14 +81,19 @@ impl SessionTask for UserShellCommandTask {
             maybe_wrap_shell_lc_with_snapshot(&display_command, session_shell.as_ref());
 
         // Security check: Block dangerous commands even in user shell mode
-        let command_vec: Vec<String> = command
+        let command_vec: Vec<String> = self
+            .command
             .iter()
             .map(std::string::ToString::to_string)
             .collect();
         if command_might_be_dangerous(&command_vec) {
-            error!("Dangerous user shell command blocked: {:?}", command);
+            error!(
+                "Dangerous user shell command blocked: {:?}",
+                self.command
+            );
             let blocked_message = format!(
-                "Error: Dangerous command blocked for security reasons: {command:?}. Commands like 'rm -rf', 'sudo', and destructive git operations are not allowed."
+                "Error: Dangerous command blocked for security reasons: {command:?}. Commands like 'rm -rf', 'sudo', and destructive git operations are not allowed.",
+                command = self.command
             );
             let exec_output = ExecToolCallOutput {
                 exit_code: 1,
@@ -115,9 +120,9 @@ impl SessionTask for UserShellCommandTask {
                         call_id,
                         process_id: None,
                         turn_id: turn_context.sub_id.clone(),
-                        command: command.clone(),
+                        command: self.command.clone(),
                         cwd: turn_context.cwd.clone(),
-                        parsed_cmd: parse_command(&command),
+                        parsed_cmd: parse_command(&self.command),
                         source: ExecCommandSource::UserShell,
                         interaction_input: None,
                         stdout: String::new(),

@@ -41,6 +41,7 @@ impl ReqwestTransport {
         }
     }
 
+    #[allow(clippy::result_large_err)]
     fn build(&self, req: Request) -> Result<CodexRequestBuilder, TransportError> {
         let Request {
             method,

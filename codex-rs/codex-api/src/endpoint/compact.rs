@@ -36,6 +36,7 @@ impl<T: HttpTransport, A: AuthProvider> CompactClient<T, A> {
         self
     }
 
+    #[allow(clippy::result_large_err)]
     fn path(&self) -> Result<&'static str, ApiError> {
         match self.provider.wire {
             WireApi::Compact | WireApi::Responses => Ok("responses/compact"),

@@ -31,6 +31,7 @@ use crate::state::PendingRequest;
 use crate::state::ReaderEvent;
 use crate::state::State;
 
+#[allow(clippy::too_many_arguments)]
 pub fn start_reader(
     mut stdout: BufReader<ChildStdout>,
     stdin: Arc<Mutex<Option<std::process::ChildStdin>>>,

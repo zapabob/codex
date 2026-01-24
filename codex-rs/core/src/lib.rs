@@ -91,6 +91,7 @@ pub(crate) mod safety;
 pub mod seatbelt;
 pub mod shell;
 pub mod shell_snapshot;
+pub mod session_prefix;
 pub mod skills;
 pub mod spawn;
 pub mod terminal;

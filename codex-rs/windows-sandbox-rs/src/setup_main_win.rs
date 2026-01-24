@@ -56,7 +56,7 @@ use windows_sys::Win32::Storage::FileSystem::FILE_GENERIC_EXECUTE;
 use windows_sys::Win32::Storage::FileSystem::FILE_GENERIC_READ;
 use windows_sys::Win32::Storage::FileSystem::FILE_GENERIC_WRITE;
 
-const DENY_ACCESS: i32 = 3;
+const DENY_ACCESS: u32 = 3;
 
 mod read_acl_mutex;
 mod sandbox_users;
@@ -66,6 +66,8 @@ use sandbox_users::provision_sandbox_users;
 use sandbox_users::resolve_sandbox_users_group_sid;
 use sandbox_users::resolve_sid;
 use sandbox_users::sid_bytes_to_psid;
+use sandbox_users::SandboxUserRecord;
+use sandbox_users::SetupMarker;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct Payload {
@@ -232,6 +234,7 @@ fn lock_sandbox_dir(
     dir: &Path,
     real_user: &str,
     sandbox_group_sid: &[u8],
+    sandbox_group_access_mode: u32,
     log: &mut File,
 ) -> Result<()> {
     std::fs::create_dir_all(dir)?;

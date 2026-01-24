@@ -12,7 +12,6 @@ use std::time::Duration;
 use anyhow::Result;
 use anyhow::anyhow;
 use codex_protocol::ThreadId;
-use codex_protocol::protocol::SessionSource;
 use tracing::Event;
 use tracing::Level;
 use tracing::field::Visit;

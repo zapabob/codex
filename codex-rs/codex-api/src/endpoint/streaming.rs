@@ -56,6 +56,7 @@ impl<T: HttpTransport, A: AuthProvider> StreamingClient<T, A> {
         &self.provider
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(crate) async fn stream(
         &self,
         path: &str,

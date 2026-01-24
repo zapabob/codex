@@ -2458,7 +2458,7 @@ mod tests {
             last_heartbeat: "2025-11-01T00:00:00Z".to_string(),
         };
 
-        agents.insert("agent-1".to_string(), agent1.clone());
+        agents.insert("agent-1".to_string(), agent1);
 
         assert_eq!(agents.len(), 1);
         assert_eq!(agents.get("agent-1").unwrap().agent_id, "agent-1");

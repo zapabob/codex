@@ -368,6 +368,7 @@ fn run_setup_exe(payload: &ElevationPayload, needs_elevation: bool) -> Result<()
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn run_elevated_setup(
     policy: &SandboxPolicy,
     policy_cwd: &Path,
@@ -403,6 +404,7 @@ pub fn run_elevated_setup(
     run_setup_exe(&payload, needs_elevation)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_payload_roots(
     policy: &SandboxPolicy,
     policy_cwd: &Path,

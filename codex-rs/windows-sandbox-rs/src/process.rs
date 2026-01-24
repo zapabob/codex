@@ -61,6 +61,7 @@ unsafe fn ensure_inheritable_stdio(si: &mut STARTUPINFOW) -> Result<()> {
 /// # Safety
 /// Caller must provide a valid primary token handle (`h_token`) with appropriate access,
 /// and the `argv`, `cwd`, and `env_map` must remain valid for the duration of the call.
+#[allow(clippy::too_many_arguments)]
 pub unsafe fn create_process_as_user(
     h_token: HANDLE,
     argv: &[String],

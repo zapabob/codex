@@ -36,6 +36,7 @@ use windows_sys::Win32::Security::SID_NAME_USE;
 
 use super::dpapi_protect;
 use super::sandbox_dir;
+use super::sandbox_secrets_dir;
 use super::string_from_sid_bytes;
 use super::to_wide;
 use super::SETUP_VERSION;
@@ -58,6 +59,83 @@ const SID_USERS: &str = "S-1-5-32-545";
 const SID_AUTHENTICATED_USERS: &str = "S-1-5-11";
 const SID_EVERYONE: &str = "S-1-1-0";
 const SID_SYSTEM: &str = "S-1-5-18";
+
+#[allow(dead_code)]
+fn well_known_sid_str(name: &str) -> Option<&'static str> {
+    match name.to_ascii_lowercase().as_str() {
+        "administrators" => Some(SID_ADMINISTRATORS),
+        "users" => Some(SID_USERS),
+        "authenticated users" | "authenticated_users" => Some(SID_AUTHENTICATED_USERS),
+        "everyone" => Some(SID_EVERYONE),
+        "system" | "local system" | "localsystem" => Some(SID_SYSTEM),
+        _ => None,
+    }
+}
+
+#[allow(dead_code)]
+fn sid_bytes_from_string(sid_str: &str) -> Result<Vec<u8>> {
+    let sid_w = to_wide(OsStr::new(sid_str));
+    let mut sid_ptr: *mut c_void = std::ptr::null_mut();
+    let ok = unsafe { ConvertStringSidToSidW(sid_w.as_ptr(), &mut sid_ptr) };
+    if ok == 0 || sid_ptr.is_null() {
+        anyhow::bail!(
+            "ConvertStringSidToSidW failed for {sid_str}: {}",
+            std::io::Error::last_os_error()
+        );
+    }
+    let len = unsafe { GetLengthSid(sid_ptr) } as usize;
+    let mut buffer = vec![0u8; len];
+    let copied = unsafe { CopySid(len as u32, buffer.as_mut_ptr() as *mut c_void, sid_ptr) };
+    unsafe {
+        LocalFree(sid_ptr);
+    }
+    if copied == 0 {
+        anyhow::bail!("CopySid failed for {sid_str}");
+    }
+    Ok(buffer)
+}
+
+#[allow(dead_code)]
+fn lookup_account_name_for_sid(sid_str: &str) -> Result<String> {
+    let sid = sid_bytes_from_string(sid_str)?;
+    let mut name_len: u32 = 0;
+    let mut domain_len: u32 = 0;
+    let mut use_type: SID_NAME_USE = 0;
+    let ok = unsafe {
+        LookupAccountSidW(
+            std::ptr::null(),
+            sid.as_ptr() as *mut c_void,
+            std::ptr::null_mut(),
+            &mut name_len,
+            std::ptr::null_mut(),
+            &mut domain_len,
+            &mut use_type,
+        )
+    };
+    if ok == 0 && unsafe { GetLastError() } != ERROR_INSUFFICIENT_BUFFER {
+        anyhow::bail!("LookupAccountSidW failed for {sid_str}");
+    }
+    let mut name_buf = vec![0u16; name_len as usize];
+    let mut domain_buf = vec![0u16; domain_len as usize];
+    let ok = unsafe {
+        LookupAccountSidW(
+            std::ptr::null(),
+            sid.as_ptr() as *mut c_void,
+            name_buf.as_mut_ptr(),
+            &mut name_len,
+            domain_buf.as_mut_ptr(),
+            &mut domain_len,
+            &mut use_type,
+        )
+    };
+    if ok == 0 {
+        anyhow::bail!("LookupAccountSidW failed for {sid_str}");
+    }
+    if let Some(pos) = name_buf.iter().position(|c| *c == 0) {
+        name_buf.truncate(pos);
+    }
+    Ok(String::from_utf16_lossy(&name_buf))
+}
 
 #[allow(dead_code)]
 pub fn ensure_sandbox_users_group(log: &mut File) -> Result<()> {
@@ -157,7 +235,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 1,
             );
         } else {
-            super::log_line(
+            log_line(
                 log,
                 "LookupAccountSidW failed for Users SID; skipping Users group membership",
             )?;

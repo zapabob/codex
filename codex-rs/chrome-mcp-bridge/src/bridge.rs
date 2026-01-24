@@ -16,6 +16,7 @@ use tracing::{error, info};
 use crate::tools::get_chrome_tools;
 
 /// Bridge server that connects CLI and Chrome extension via MCP
+#[allow(dead_code)]
 pub struct BridgeServer {
     extension_connections: Arc<Mutex<HashMap<String, ExtensionConnection>>>,
     cli_connections: Arc<Mutex<HashMap<String, CliConnection>>>,
@@ -124,7 +125,7 @@ impl BridgeServer {
         // In a full implementation, this would use streamable HTTP MCP transport
         use tokio::net::TcpListener;
 
-        let listener = TcpListener::bind(format!("127.0.0.1:{}", port))
+        let listener = TcpListener::bind(format!("127.0.0.1:{port}"))
             .await
             .context("Failed to bind to port")?;
 
@@ -291,7 +292,7 @@ impl BridgeServer {
             _ => CallToolResult {
                 content: vec![ContentBlock::TextContent(TextContent {
                     r#type: "text".to_string(),
-                    text: format!("Unknown tool: {}", name),
+                    text: format!("Unknown tool: {name}"),
                     annotations: None,
                 })],
                 is_error: Some(true),

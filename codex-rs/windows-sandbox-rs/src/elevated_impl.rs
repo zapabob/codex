@@ -208,6 +208,7 @@ mod windows_impl {
     }
 
     /// Launches the command runner under the sandbox user and captures its output.
+    #[allow(clippy::too_many_arguments)]
     pub fn run_windows_sandbox_capture(
         policy_json_or_preset: &str,
         sandbox_policy_cwd: &Path,

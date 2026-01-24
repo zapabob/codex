@@ -207,6 +207,7 @@ fn policy_builder<'v, 'a>(eval: &Evaluator<'v, 'a, '_>) -> RefMut<'a, PolicyBuil
 
 #[starlark_module]
 fn policy_builtins(builder: &mut GlobalsBuilder) {
+    #[allow(clippy::too_many_arguments)]
     fn prefix_rule<'v>(
         pattern: UnpackList<Value<'v>>,
         decision: Option<&'v str>,
