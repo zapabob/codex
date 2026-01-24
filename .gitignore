@@ -114,6 +114,10 @@ _docs/Ryo_Minegishi_CV.*
 
 # Build artifacts
 codex-rs/codex.exe
+release-package/
+
+# Worktrees
+.codex-worktrees/
 
 # Development artifacts
 .cursor/commands/fix.md

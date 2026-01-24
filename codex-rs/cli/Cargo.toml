@@ -44,8 +44,6 @@ codex-rmcp-client = { workspace = true }
 codex-supervisor = { path = "../supervisor" }
 codex-stdio-to-uds = { workspace = true }
 codex-tui = { workspace = true }
-codex-tui2 = { workspace = true }
-codex-utils-absolute-path = { workspace = true }
 libc = { workspace = true }
 mcp-types = { workspace = true }
 owo-colors = { workspace = true }

@@ -123,6 +123,7 @@ pub async fn run_codex_tool_session(
         op: Op::UserInput {
             items: vec![UserInput::Text {
                 text: initial_prompt.clone(),
+                // MCP tool prompts are plain text with no UI element ranges.
                 text_elements: Vec::new(),
             }],
             final_output_json_schema: None,
@@ -169,7 +170,7 @@ pub async fn run_codex_tool_session_reply(
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: prompt,
-                // Plain text conversion has no UI element ranges.
+                // MCP tool prompts are plain text with no UI element ranges.
                 text_elements: Vec::new(),
             }],
             final_output_json_schema: None,
@@ -356,6 +357,7 @@ async fn run_codex_tool_session_inner(
                     | EventMsg::UndoStarted(_)
                     | EventMsg::UndoCompleted(_)
                     | EventMsg::ExitedReviewMode(_)
+                    | EventMsg::RequestUserInput(_)
                     | EventMsg::ContextCompacted(_)
                     | EventMsg::ThreadRolledBack(_)
                     | EventMsg::CollabAgentSpawnBegin(_)

@@ -66,6 +66,27 @@ pub enum SandboxMode {
 }
 
 #[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Display,
+    JsonSchema,
+    TS,
+    PartialOrd,
+    Ord,
+)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum Personality {
+    Friendly,
+    Pragmatic,
+}
+
+#[derive(
     Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS, Default,
 )]
 #[serde(rename_all = "lowercase")]
@@ -128,4 +149,73 @@ pub enum AltScreenMode {
     Always,
     /// Never use alternate screen (inline mode only).
     Never,
+}
+
+/// Initial collaboration mode to use when the TUI starts.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum ModeKind {
+    Plan,
+    Code,
+    PairProgramming,
+    Execute,
+    Custom,
+}
+
+/// Collaboration mode for a Codex session.
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, JsonSchema, TS)]
+#[serde(rename_all = "lowercase")]
+pub struct CollaborationMode {
+    pub mode: ModeKind,
+    pub settings: Settings,
+}
+
+impl CollaborationMode {
+    /// Returns a reference to the settings.
+    fn settings_ref(&self) -> &Settings {
+        &self.settings
+    }
+
+    pub fn model(&self) -> &str {
+        self.settings_ref().model.as_str()
+    }
+
+    pub fn reasoning_effort(&self) -> Option<ReasoningEffort> {
+        self.settings_ref().reasoning_effort
+    }
+
+    /// Updates the collaboration mode with new model and/or effort values.
+    ///
+    /// - `model`: `Some(s)` to update the model, `None` to keep the current model
+    /// - `effort`: `Some(Some(e))` to set effort to `e`, `Some(None)` to clear effort, `None` to keep current effort
+    /// - `developer_instructions`: `Some(s)` to update developer instructions, `None` to keep current
+    ///
+    /// Returns a new `CollaborationMode` with updated values, preserving the mode.
+    pub fn with_updates(
+        &self,
+        model: Option<String>,
+        effort: Option<Option<ReasoningEffort>>,
+        developer_instructions: Option<String>,
+    ) -> Self {
+        let settings = self.settings_ref();
+        let updated_settings = Settings {
+            model: model.unwrap_or_else(|| settings.model.clone()),
+            reasoning_effort: effort.unwrap_or(settings.reasoning_effort),
+            developer_instructions: developer_instructions
+                .or_else(|| settings.developer_instructions.clone()),
+        };
+
+        CollaborationMode {
+            mode: self.mode,
+            settings: updated_settings,
+        }
+    }
+}
+
+/// Settings for a collaboration mode.
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, JsonSchema, TS)]
+pub struct Settings {
+    pub model: String,
+    pub reasoning_effort: Option<ReasoningEffort>,
+    pub developer_instructions: Option<String>,
 }

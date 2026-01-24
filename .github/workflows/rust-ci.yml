@@ -68,7 +68,7 @@ jobs:
         working-directory: codex-rs
     steps:
       - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@1.90
+      - uses: dtolnay/rust-toolchain@1.92
         with:
           components: rustfmt
       - name: cargo fmt
@@ -86,7 +86,7 @@ jobs:
         working-directory: codex-rs
     steps:
       - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@1.90
+      - uses: dtolnay/rust-toolchain@1.92
       - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2
         with:
           tool: cargo-shear
@@ -337,7 +337,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@1.90
+      - uses: dtolnay/rust-toolchain@1.92
         with:
           targets: ${{ matrix.target }}
           components: clippy
@@ -424,11 +424,11 @@ jobs:
         name: Install musl build tools
         env:
           DEBIAN_FRONTEND: noninteractive
+          TARGET: ${{ matrix.target }}
+          APT_UPDATE_ARGS: -o Acquire::Retries=3
+          APT_INSTALL_ARGS: --no-install-recommends
         shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get -y update -o Acquire::Retries=3
-          sudo apt-get -y install --no-install-recommends musl-tools pkg-config
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-musl-build-tools.sh"
 
       - name: Install cargo-chef
         if: ${{ matrix.profile == 'release' }}
@@ -578,7 +578,7 @@ jobs:
       - name: Install DotSlash
         uses: facebook/install-dotslash@v2
 
-      - uses: dtolnay/rust-toolchain@1.90
+      - uses: dtolnay/rust-toolchain@1.92
         with:
           targets: ${{ matrix.target }}
 

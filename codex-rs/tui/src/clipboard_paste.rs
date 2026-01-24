@@ -150,9 +150,14 @@ pub fn paste_image_to_temp_png() -> Result<(PathBuf, PastedImageInfo), PasteImag
 /// - shell-escaped single paths (via `shlex`)
 pub fn normalize_pasted_path(pasted: &str) -> Option<PathBuf> {
     let pasted = pasted.trim();
+    let unquoted = pasted
+        .strip_prefix('"')
+        .and_then(|s| s.strip_suffix('"'))
+        .or_else(|| pasted.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
+        .unwrap_or(pasted);
 
     // file:// URL → filesystem path
-    if let Ok(url) = url::Url::parse(pasted)
+    if let Ok(url) = url::Url::parse(unquoted)
         && url.scheme() == "file"
     {
         return url.to_file_path().ok();
@@ -187,7 +192,11 @@ pub fn normalize_pasted_path(pasted: &str) -> Option<PathBuf> {
     // shell-escaped single path → unescaped
     let parts: Vec<String> = shlex::Shlex::new(pasted).collect();
     if parts.len() == 1 {
-        return parts.into_iter().next().map(PathBuf::from);
+        let part = parts.into_iter().next()?;
+        if let Some(path) = normalize_windows_path(&part) {
+            return Some(path);
+        }
+        return Some(PathBuf::from(part));
     }
 
     None
@@ -282,9 +291,39 @@ mod pasted_paths_tests {
     #[test]
     fn normalize_single_quoted_windows_path() {
         let input = r"'C:\\Users\\Alice\\My File.jpeg'";
+        let unquoted = r"C:\\Users\\Alice\\My File.jpeg";
         let result =
             normalize_pasted_path(input).expect("should trim single quotes on windows path");
-        assert_eq!(result, PathBuf::from(r"C:\\Users\\Alice\\My File.jpeg"));
+        #[cfg(target_os = "linux")]
+        let expected = if is_probably_wsl()
+            && let Some(converted) = convert_windows_path_to_wsl(unquoted)
+        {
+            converted
+        } else {
+            PathBuf::from(unquoted)
+        };
+        #[cfg(not(target_os = "linux"))]
+        let expected = PathBuf::from(unquoted);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn normalize_double_quoted_windows_path() {
+        let input = r#""C:\\Users\\Alice\\My File.jpeg""#;
+        let unquoted = r"C:\\Users\\Alice\\My File.jpeg";
+        let result =
+            normalize_pasted_path(input).expect("should trim double quotes on windows path");
+        #[cfg(target_os = "linux")]
+        let expected = if is_probably_wsl()
+            && let Some(converted) = convert_windows_path_to_wsl(unquoted)
+        {
+            converted
+        } else {
+            PathBuf::from(unquoted)
+        };
+        #[cfg(not(target_os = "linux"))]
+        let expected = PathBuf::from(unquoted);
+        assert_eq!(result, expected);
     }
 
     #[test]

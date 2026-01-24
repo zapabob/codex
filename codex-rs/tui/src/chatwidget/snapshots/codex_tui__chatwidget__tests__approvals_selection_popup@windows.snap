@@ -7,7 +7,7 @@ assertion_line: 1980
 >>>>>>> upstream/main
 expression: popup
 ---
-  Select Approval Mode
+  Update Model Permissions
 
 › 1. Read Only (current)  Codex can read files and answer questions. Codex
                           requires approval to make edits, run commands, or

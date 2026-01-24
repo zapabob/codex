@@ -123,9 +123,13 @@ pub async fn load_tasks(
     env: Option<&str>,
 ) -> anyhow::Result<Vec<TaskSummary>> {
     // In later milestones, add a small debounce, spinner, and error display.
-    let tasks = tokio::time::timeout(Duration::from_secs(5), backend.list_tasks(env)).await??;
+    let tasks = tokio::time::timeout(
+        Duration::from_secs(5),
+        backend.list_tasks(env, Some(20), None),
+    )
+    .await??;
     // Hide review-only tasks from the main list.
-    let filtered: Vec<TaskSummary> = tasks.into_iter().filter(|t| !t.is_review).collect();
+    let filtered: Vec<TaskSummary> = tasks.tasks.into_iter().filter(|t| !t.is_review).collect();
     Ok(filtered)
 }
 
@@ -380,7 +384,19 @@ mod tests {
                     attempt_total: Some(1),
                 });
             }
-            Ok(out)
+            let max = limit.unwrap_or(i64::MAX);
+            let max = max.min(20);
+            let mut limited = Vec::new();
+            for task in out {
+                if (limited.len() as i64) >= max {
+                    break;
+                }
+                limited.push(task);
+            }
+            Ok(codex_cloud_tasks_client::TaskListPage {
+                tasks: limited,
+                cursor: cursor.map(str::to_string),
+            })
         }
 
         async fn get_task_diff(&self, _id: &TaskId) -> Result<String> {

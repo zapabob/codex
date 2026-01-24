@@ -19,7 +19,7 @@ workspace = true
 [dependencies]
 aes-gcm = { workspace = true, optional = true }
 anyhow = { workspace = true }
-arc-swap = "1.7.1"
+arc-swap = "1.8.0"
 async-channel = { workspace = true }
 async-trait = { workspace = true }
 base64 = { workspace = true }
@@ -77,6 +77,7 @@ reqwest = { workspace = true, features = ["json", "stream"] }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_path_to_error = { workspace = true }
 serde_yaml = { workspace = true }
 sha1 = { workspace = true }
 sha2 = { workspace = true }

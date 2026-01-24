@@ -27,6 +27,8 @@ use codex_core::config::ConfigOverrides;
 use codex_core::config::find_codex_home;
 use codex_core::config::load_config_as_toml_with_cli_overrides;
 use codex_core::config::resolve_oss_provider;
+use codex_core::config_loader::ConfigLoadError;
+use codex_core::config_loader::format_config_error_with_source;
 use codex_core::git_info::get_git_repo_root;
 use codex_core::models_manager::manager::RefreshStrategy;
 use codex_core::protocol::AskForApproval;
@@ -182,7 +184,18 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         {
             Ok(config_toml) => config_toml,
             Err(err) => {
-                eprintln!("Error loading config.toml: {err}");
+                let config_error = err
+                    .get_ref()
+                    .and_then(|err| err.downcast_ref::<ConfigLoadError>())
+                    .map(ConfigLoadError::config_error);
+                if let Some(config_error) = config_error {
+                    eprintln!(
+                        "Error loading config.toml:\n{}",
+                        format_config_error_with_source(config_error)
+                    );
+                } else {
+                    eprintln!("Error loading config.toml: {err}");
+                }
                 std::process::exit(1);
             }
         }
@@ -231,6 +244,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         codex_linux_sandbox_exe,
         base_instructions: None,
         developer_instructions: None,
+        model_personality: None,
         compact_prompt: None,
         include_apply_patch_tool: None,
         show_raw_agent_reasoning: oss.then_some(true),
@@ -316,7 +330,12 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
     let default_effort = config.model_reasoning_effort;
     let default_summary = config.model_reasoning_summary;
 
-    if !skip_git_repo_check && get_git_repo_root(&default_cwd).is_none() {
+    // When --yolo (dangerously_bypass_approvals_and_sandbox) is set, also skip the git repo check
+    // since the user is explicitly running in an externally sandboxed environment.
+    if !skip_git_repo_check
+        && !dangerously_bypass_approvals_and_sandbox
+        && get_git_repo_root(&default_cwd).is_none()
+    {
         eprintln!("Not inside a trusted directory and --skip-git-repo-check was not specified.");
         std::process::exit(1);
     }
@@ -380,6 +399,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
                 .collect();
             items.push(UserInput::Text {
                 text: prompt_text.clone(),
+                // CLI input doesn't track UI element ranges, so none are available here.
                 text_elements: Vec::new(),
             });
             let output_schema = load_output_schema(output_schema_path.clone());
@@ -399,6 +419,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
                 .collect();
             items.push(UserInput::Text {
                 text: prompt_text.clone(),
+                // CLI input doesn't track UI element ranges, so none are available here.
                 text_elements: Vec::new(),
             });
             let output_schema = load_output_schema(output_schema_path);
@@ -478,6 +499,8 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
                     effort: default_effort,
                     summary: default_summary,
                     final_output_json_schema: output_schema,
+                    collaboration_mode: None,
+                    personality: None,
                 })
                 .await?;
             info!("Sent prompt with event ID: {task_id}");
@@ -533,17 +556,24 @@ async fn resolve_resume_path(
 ) -> anyhow::Result<Option<PathBuf>> {
     if args.last {
         let default_provider_filter = vec![config.model_provider_id.clone()];
-        match codex_core::RolloutRecorder::list_threads(
+        let filter_cwd = if args.all {
+            None
+        } else {
+            Some(config.cwd.as_path())
+        };
+        match codex_core::RolloutRecorder::find_latest_thread_path(
             &config.codex_home,
             1,
             None,
+            codex_core::ThreadSortKey::UpdatedAt,
             &[],
             Some(default_provider_filter.as_slice()),
             &config.model_provider_id,
+            filter_cwd,
         )
         .await
         {
-            Ok(page) => Ok(page.items.first().map(|it| it.path.clone())),
+            Ok(path) => Ok(path),
             Err(e) => {
                 error!("Error listing threads: {e}");
                 Ok(None)

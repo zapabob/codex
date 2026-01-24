@@ -14,6 +14,7 @@ use codex_common::approval_presets::ApprovalPreset;
 use codex_core::protocol::Event;
 use codex_core::protocol::RateLimitSnapshot;
 use codex_file_search::FileMatch;
+use codex_protocol::ThreadId;
 use codex_protocol::openai_models::ModelPreset;
 
 use crate::bottom_pane::ApprovalRequest;
@@ -22,6 +23,7 @@ use crate::history_cell::HistoryCell;
 use codex_core::features::Feature;
 use codex_core::protocol::AskForApproval;
 use codex_core::protocol::SandboxPolicy;
+use codex_protocol::config_types::CollaborationMode;
 use codex_protocol::openai_models::ReasoningEffort;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -41,6 +43,10 @@ pub(crate) enum WindowsSandboxFallbackReason {
 #[derive(Debug)]
 pub(crate) enum AppEvent {
     CodexEvent(Event),
+    /// Open the agent picker for switching active threads.
+    OpenAgentPicker,
+    /// Switch the active thread to the selected agent.
+    SelectAgentThread(ThreadId),
 
     /// Start a new session.
     NewSession,
@@ -48,8 +54,8 @@ pub(crate) enum AppEvent {
     /// Open the resume picker inside the running TUI session.
     OpenResumePicker,
 
-    /// Open the fork picker inside the running TUI session.
-    OpenForkPicker,
+    /// Fork the current session into a new thread.
+    ForkCurrentSession,
 
     /// Request to exit the application.
     ///
@@ -97,6 +103,9 @@ pub(crate) enum AppEvent {
     /// Update the current model slug in the running app and widget.
     UpdateModel(String),
 
+    /// Update the current collaboration mode in the running app and widget.
+    UpdateCollaborationMode(CollaborationMode),
+
     /// Persist the selected model and reasoning effort to the appropriate config.
     PersistModelSelection {
         model: String,
@@ -116,6 +125,7 @@ pub(crate) enum AppEvent {
     /// Open the confirmation prompt before enabling full access mode.
     OpenFullAccessConfirmation {
         preset: ApprovalPreset,
+        return_to_permissions: bool,
     },
 
     /// Open the Windows world-writable directories warning.
@@ -203,6 +213,24 @@ pub(crate) enum AppEvent {
     /// Re-open the approval presets popup.
     OpenApprovalsPopup,
 
+    /// Open the skills list popup.
+    OpenSkillsList,
+
+    /// Open the skills enable/disable picker.
+    OpenManageSkillsPopup,
+
+    /// Enable or disable a skill by path.
+    SetSkillEnabled {
+        path: PathBuf,
+        enabled: bool,
+    },
+
+    /// Notify that the manage skills popup was closed.
+    ManageSkillsClosed,
+
+    /// Re-open the permissions presets popup.
+    OpenPermissionsPopup,
+
     /// Open the branch picker option from the review popup.
     OpenReviewBranchPicker(PathBuf),
 
@@ -211,6 +239,12 @@ pub(crate) enum AppEvent {
 
     /// Open the custom prompt option from the review popup.
     OpenReviewCustomPrompt,
+
+    /// Submit a user message with an explicit collaboration mode.
+    SubmitUserMessageWithMode {
+        text: String,
+        collaboration_mode: CollaborationMode,
+    },
 
     /// Open the approval popup.
     FullScreenApprovalRequest(ApprovalRequest),

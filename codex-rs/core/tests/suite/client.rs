@@ -22,7 +22,10 @@ use codex_core::protocol::Op;
 use codex_core::protocol::SessionSource;
 use codex_otel::OtelManager;
 use codex_protocol::ThreadId;
+use codex_protocol::config_types::CollaborationMode;
+use codex_protocol::config_types::ModeKind;
 use codex_protocol::config_types::ReasoningSummary;
+use codex_protocol::config_types::Settings;
 use codex_protocol::config_types::Verbosity;
 use codex_protocol::models::FunctionCallOutputPayload;
 use codex_protocol::models::ReasoningItemContent;
@@ -44,6 +47,7 @@ use core_test_support::test_codex::test_codex;
 use core_test_support::wait_for_event;
 use dunce::canonicalize as normalize_path;
 use futures::StreamExt;
+use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::io::Write;
 use std::sync::Arc;
@@ -191,6 +195,7 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
         content: vec![codex_protocol::models::ContentItem::InputText {
             text: "resumed user message".to_string(),
         }],
+        end_turn: None,
     };
     let prior_user_json = serde_json::to_value(&prior_user).unwrap();
     writeln!(
@@ -211,6 +216,7 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
         content: vec![codex_protocol::models::ContentItem::OutputText {
             text: "resumed system instruction".to_string(),
         }],
+        end_turn: None,
     };
     let prior_system_json = serde_json::to_value(&prior_system).unwrap();
     writeln!(
@@ -231,6 +237,7 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
         content: vec![codex_protocol::models::ContentItem::OutputText {
             text: "resumed assistant message".to_string(),
         }],
+        end_turn: None,
     };
     let prior_item_json = serde_json::to_value(&prior_item).unwrap();
     writeln!(
@@ -823,7 +830,7 @@ async fn includes_no_effort_in_request() -> anyhow::Result<()> {
             .get("reasoning")
             .and_then(|t| t.get("effort"))
             .and_then(|v| v.as_str()),
-        None
+        Some("medium")
     );
 
     Ok(())
@@ -860,6 +867,64 @@ async fn includes_default_reasoning_effort_in_request_when_defined_by_model_info
             .and_then(|t| t.get("effort"))
             .and_then(|v| v.as_str()),
         Some("medium")
+    );
+
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn user_turn_collaboration_mode_overrides_model_and_effort() -> anyhow::Result<()> {
+    skip_if_no_network!(Ok(()));
+    let server = MockServer::start().await;
+
+    let resp_mock = mount_sse_once(&server, sse_completed("resp1")).await;
+    let TestCodex {
+        codex,
+        config,
+        session_configured,
+        ..
+    } = test_codex()
+        .with_model("gpt-5.1-codex")
+        .build(&server)
+        .await?;
+
+    let collaboration_mode = CollaborationMode {
+        mode: ModeKind::Custom,
+        settings: Settings {
+            model: "gpt-5.1".to_string(),
+            reasoning_effort: Some(ReasoningEffort::High),
+            developer_instructions: None,
+        },
+    };
+
+    codex
+        .submit(Op::UserTurn {
+            items: vec![UserInput::Text {
+                text: "hello".into(),
+                text_elements: Vec::new(),
+            }],
+            cwd: config.cwd.clone(),
+            approval_policy: config.approval_policy.value(),
+            sandbox_policy: config.sandbox_policy.get().clone(),
+            model: session_configured.model.clone(),
+            effort: Some(ReasoningEffort::Low),
+            summary: config.model_reasoning_summary,
+            collaboration_mode: Some(collaboration_mode),
+            final_output_json_schema: None,
+            personality: None,
+        })
+        .await?;
+
+    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+
+    let request_body = resp_mock.single_request().body_json();
+    assert_eq!(request_body["model"].as_str(), Some("gpt-5.1"));
+    assert_eq!(
+        request_body
+            .get("reasoning")
+            .and_then(|t| t.get("effort"))
+            .and_then(|v| v.as_str()),
+        Some("high")
     );
 
     Ok(())
@@ -1218,6 +1283,7 @@ async fn azure_responses_request_includes_store_and_reasoning_ids() {
         content: vec![ContentItem::OutputText {
             text: "message".into(),
         }],
+        end_turn: None,
     });
     prompt.input.push(ResponseItem::WebSearchCall {
         id: Some("web-search-id".into()),

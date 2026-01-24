@@ -387,6 +387,7 @@ mod tests {
             content: vec![ContentItem::InputText {
                 text: "hi".to_string(),
             }],
+            end_turn: None,
         }];
         let req = ChatRequestBuilder::new("gpt-test", "inst", &prompt_input, &[])
             .conversation_id(Some("conv-1".into()))
@@ -413,6 +414,7 @@ mod tests {
                 content: vec![ContentItem::InputText {
                     text: "read these".to_string(),
                 }],
+                end_turn: None,
             },
             ResponseItem::FunctionCall {
                 id: None,

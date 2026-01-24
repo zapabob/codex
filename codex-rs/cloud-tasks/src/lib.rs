@@ -402,11 +402,10 @@ fn summary_line(summary: &codex_cloud_tasks_client::DiffSummary, colorize: bool)
         let bullet = "•"
             .if_supports_color(Stream::Stdout, |t| t.dimmed())
             .to_string();
-        let file_label = "file"
+        let file_label = format!("file{}", if files == 1 { "" } else { "s" })
             .if_supports_color(Stream::Stdout, |t| t.dimmed())
             .to_string();
-        let plural = if files == 1 { "" } else { "s" };
-        format!("{adds_str}/{dels_str}  {bullet}  {files} {file_label}{plural}")
+        format!("{adds_str}/{dels_str}  {bullet}  {files} {file_label}")
     } else {
         format!(
             "+{adds}/-{dels} • {files} file{}",
@@ -482,6 +481,25 @@ fn format_task_status_lines(
     };
     lines.push(meta_parts.join(&sep));
     lines.push(summary_line(&task.summary, colorize));
+    lines
+}
+
+fn format_task_list_lines(
+    tasks: &[codex_cloud_tasks_client::TaskSummary],
+    base_url: &str,
+    now: chrono::DateTime<Utc>,
+    colorize: bool,
+) -> Vec<String> {
+    let mut lines = Vec::new();
+    for (idx, task) in tasks.iter().enumerate() {
+        lines.push(util::task_url(base_url, &task.id.0));
+        for line in format_task_status_lines(task, now, colorize) {
+            lines.push(format!("  {line}"));
+        }
+        if idx + 1 < tasks.len() {
+            lines.push(String::new());
+        }
+    }
     lines
 }
 
@@ -668,6 +686,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
         return match command {
             crate::cli::Command::Exec(args) => run_exec_command(args).await,
             crate::cli::Command::Status(args) => run_status_command(args).await,
+            crate::cli::Command::List(args) => run_list_command(args).await,
             crate::cli::Command::Apply(args) => run_apply_command(args).await,
             crate::cli::Command::Diff(args) => run_diff_command(args).await,
         };
@@ -2200,6 +2219,54 @@ mod tests {
                 "[PENDING] No diff task".to_string(),
                 "env-2  •  0s ago".to_string(),
                 "no diff".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn format_task_list_lines_formats_urls() {
+        let now = Utc::now();
+        let tasks = vec![
+            TaskSummary {
+                id: TaskId("task_1".to_string()),
+                title: "Example task".to_string(),
+                status: TaskStatus::Ready,
+                updated_at: now,
+                environment_id: Some("env-1".to_string()),
+                environment_label: Some("Env".to_string()),
+                summary: DiffSummary {
+                    files_changed: 3,
+                    lines_added: 5,
+                    lines_removed: 2,
+                },
+                is_review: false,
+                attempt_total: None,
+            },
+            TaskSummary {
+                id: TaskId("task_2".to_string()),
+                title: "No diff task".to_string(),
+                status: TaskStatus::Pending,
+                updated_at: now,
+                environment_id: Some("env-2".to_string()),
+                environment_label: None,
+                summary: DiffSummary::default(),
+                is_review: false,
+                attempt_total: Some(1),
+            },
+        ];
+        let lines = format_task_list_lines(&tasks, "https://chatgpt.com/backend-api", now, false);
+        assert_eq!(
+            lines,
+            vec![
+                "https://chatgpt.com/codex/tasks/task_1".to_string(),
+                "  [READY] Example task".to_string(),
+                "  Env  •  0s ago".to_string(),
+                "  +5/-2 • 3 files".to_string(),
+                String::new(),
+                "https://chatgpt.com/codex/tasks/task_2".to_string(),
+                "  [PENDING] No diff task".to_string(),
+                "  env-2  •  0s ago".to_string(),
+                "  no diff".to_string(),
             ]
         );
     }

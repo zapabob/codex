@@ -7,6 +7,9 @@ use crate::app_event::WindowsSandboxEnableMode;
 use crate::app_event::WindowsSandboxFallbackReason;
 use crate::app_event_sender::AppEventSender;
 use crate::bottom_pane::ApprovalRequest;
+use crate::bottom_pane::SelectionItem;
+use crate::bottom_pane::SelectionViewParams;
+use crate::bottom_pane::popup_consts::standard_popup_hint_line;
 use crate::chatwidget::ChatWidget;
 use crate::chatwidget::ExternalEditorState;
 use crate::diff_render::DiffSummary;
@@ -15,6 +18,8 @@ use crate::external_editor;
 use crate::file_search::FileSearchManager;
 use crate::history_cell;
 use crate::history_cell::HistoryCell;
+#[cfg(not(debug_assertions))]
+use crate::history_cell::UpdateAvailableHistoryCell;
 use crate::model_migration::ModelMigrationOutcome;
 use crate::model_migration::migration_copy_for_models;
 use crate::model_migration::run_model_migration_prompt;
@@ -26,17 +31,21 @@ use crate::tui;
 use crate::tui::TuiEvent;
 use crate::update_action::UpdateAction;
 use codex_ansi_escape::ansi_escape_line;
+use codex_app_server_protocol::ConfigLayerSource;
 use codex_core::AuthManager;
+use codex_core::CodexAuth;
 use codex_core::ThreadManager;
 use codex_core::config::Config;
 use codex_core::config::edit::ConfigEdit;
 use codex_core::config::edit::ConfigEditsBuilder;
+use codex_core::config_loader::ConfigLayerStackOrdering;
 #[cfg(target_os = "windows")]
 use codex_core::features::Feature;
 use codex_core::models_manager::manager::RefreshStrategy;
 use codex_core::models_manager::model_presets::HIDE_GPT_5_1_CODEX_MAX_MIGRATION_PROMPT_CONFIG;
 use codex_core::models_manager::model_presets::HIDE_GPT5_1_MIGRATION_PROMPT_CONFIG;
 use codex_core::protocol::DeprecationNoticeEvent;
+use codex_core::protocol::Event;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::FinalOutput;
 use codex_core::protocol::ListSkillsResponseEvent;
@@ -44,10 +53,13 @@ use codex_core::protocol::Op;
 use codex_core::protocol::SessionSource;
 use codex_core::protocol::SkillErrorInfo;
 use codex_core::protocol::TokenUsage;
+use codex_otel::OtelManager;
 use codex_protocol::ThreadId;
+use codex_protocol::items::TurnItem;
 use codex_protocol::openai_models::ModelPreset;
 use codex_protocol::openai_models::ModelUpgrade;
 use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
+use codex_protocol::protocol::SessionConfiguredEvent;
 use color_eyre::eyre::Result;
 use color_eyre::eyre::WrapErr;
 use crossterm::event::KeyCode;
@@ -58,6 +70,9 @@ use ratatui::text::Line;
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::Wrap;
 use std::collections::BTreeMap;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::collections::VecDeque;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -65,13 +80,16 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
+use std::time::Instant;
 use tokio::select;
+use tokio::sync::Mutex;
+use tokio::sync::broadcast;
+use tokio::sync::mpsc;
+use tokio::sync::mpsc::error::TryRecvError;
 use tokio::sync::mpsc::unbounded_channel;
 
-#[cfg(not(debug_assertions))]
-use crate::history_cell::UpdateAvailableHistoryCell;
-
 const EXTERNAL_EDITOR_HINT: &str = "Save and close external editor to continue.";
+const THREAD_EVENT_CHANNEL_CAPACITY: usize = 1024;
 
 #[derive(Debug, Clone)]
 pub struct AppExitInfo {
@@ -79,6 +97,17 @@ pub struct AppExitInfo {
     pub thread_id: Option<ThreadId>,
     pub update_action: Option<UpdateAction>,
     pub exit_reason: ExitReason,
+}
+
+impl AppExitInfo {
+    pub fn fatal(message: impl Into<String>) -> Self {
+        Self {
+            token_usage: TokenUsage::default(),
+            thread_id: None,
+            update_action: None,
+            exit_reason: ExitReason::Fatal(message.into()),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -145,10 +174,160 @@ fn emit_deprecation_notice(app_event_tx: &AppEventSender, notice: Option<Depreca
     )));
 }
 
+fn emit_project_config_warnings(app_event_tx: &AppEventSender, config: &Config) {
+    let mut disabled_folders = Vec::new();
+
+    for layer in config
+        .config_layer_stack
+        .get_layers(ConfigLayerStackOrdering::LowestPrecedenceFirst, true)
+    {
+        let ConfigLayerSource::Project { dot_codex_folder } = &layer.name else {
+            continue;
+        };
+        if layer.disabled_reason.is_none() {
+            continue;
+        }
+        disabled_folders.push((
+            dot_codex_folder.as_path().display().to_string(),
+            layer
+                .disabled_reason
+                .as_ref()
+                .map(ToString::to_string)
+                .unwrap_or_else(|| "Config folder disabled.".to_string()),
+        ));
+    }
+
+    if disabled_folders.is_empty() {
+        return;
+    }
+
+    let mut message = "The following config folders are disabled:\n".to_string();
+    for (index, (folder, reason)) in disabled_folders.iter().enumerate() {
+        let display_index = index + 1;
+        message.push_str(&format!("    {display_index}. {folder}\n"));
+        message.push_str(&format!("       {reason}\n"));
+    }
+
+    app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
+        history_cell::new_warning_event(message),
+    )));
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct SessionSummary {
     usage_line: String,
     resume_command: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct ThreadEventSnapshot {
+    session_configured: Option<Event>,
+    events: Vec<Event>,
+}
+
+#[derive(Debug)]
+struct ThreadEventStore {
+    session_configured: Option<Event>,
+    buffer: VecDeque<Event>,
+    user_message_ids: HashSet<String>,
+    capacity: usize,
+    active: bool,
+}
+
+impl ThreadEventStore {
+    fn new(capacity: usize) -> Self {
+        Self {
+            session_configured: None,
+            buffer: VecDeque::new(),
+            user_message_ids: HashSet::new(),
+            capacity,
+            active: false,
+        }
+    }
+
+    fn new_with_session_configured(capacity: usize, event: Event) -> Self {
+        let mut store = Self::new(capacity);
+        store.session_configured = Some(event);
+        store
+    }
+
+    fn push_event(&mut self, event: Event) {
+        match &event.msg {
+            EventMsg::SessionConfigured(_) => {
+                self.session_configured = Some(event);
+                return;
+            }
+            EventMsg::ItemCompleted(completed) => {
+                if let TurnItem::UserMessage(item) = &completed.item {
+                    if !event.id.is_empty() && self.user_message_ids.contains(&event.id) {
+                        return;
+                    }
+                    let legacy = Event {
+                        id: event.id,
+                        msg: item.as_legacy_event(),
+                    };
+                    self.push_legacy_event(legacy);
+                    return;
+                }
+            }
+            _ => {}
+        }
+
+        self.push_legacy_event(event);
+    }
+
+    fn push_legacy_event(&mut self, event: Event) {
+        if let EventMsg::UserMessage(_) = &event.msg
+            && !event.id.is_empty()
+            && !self.user_message_ids.insert(event.id.clone())
+        {
+            return;
+        }
+        self.buffer.push_back(event);
+        if self.buffer.len() > self.capacity
+            && let Some(removed) = self.buffer.pop_front()
+            && matches!(removed.msg, EventMsg::UserMessage(_))
+            && !removed.id.is_empty()
+        {
+            self.user_message_ids.remove(&removed.id);
+        }
+    }
+
+    fn snapshot(&self) -> ThreadEventSnapshot {
+        ThreadEventSnapshot {
+            session_configured: self.session_configured.clone(),
+            events: self.buffer.iter().cloned().collect(),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct ThreadEventChannel {
+    sender: mpsc::Sender<Event>,
+    receiver: Option<mpsc::Receiver<Event>>,
+    store: Arc<Mutex<ThreadEventStore>>,
+}
+
+impl ThreadEventChannel {
+    fn new(capacity: usize) -> Self {
+        let (sender, receiver) = mpsc::channel(capacity);
+        Self {
+            sender,
+            receiver: Some(receiver),
+            store: Arc::new(Mutex::new(ThreadEventStore::new(capacity))),
+        }
+    }
+
+    fn new_with_session_configured(capacity: usize, event: Event) -> Self {
+        let (sender, receiver) = mpsc::channel(capacity);
+        Self {
+            sender,
+            receiver: Some(receiver),
+            store: Arc::new(Mutex::new(ThreadEventStore::new_with_session_configured(
+                capacity, event,
+            ))),
+        }
+    }
 }
 
 fn should_show_model_migration_prompt(
@@ -269,7 +448,6 @@ async fn handle_model_migration_prompt_if_needed(
                     from_model: model.to_string(),
                     to_model: target_model.clone(),
                 });
-                config.model = Some(target_model.clone());
 
                 let mapped_effort = if let Some(reasoning_effort_mapping) = reasoning_effort_mapping
                     && let Some(reasoning_effort) = config.model_reasoning_effort
@@ -282,8 +460,8 @@ async fn handle_model_migration_prompt_if_needed(
                     config.model_reasoning_effort
                 };
 
+                config.model = Some(target_model.clone());
                 config.model_reasoning_effort = mapped_effort;
-
                 app_event_tx.send(AppEvent::UpdateModel(target_model.clone()));
                 app_event_tx.send(AppEvent::UpdateReasoningEffort(mapped_effort));
                 app_event_tx.send(AppEvent::PersistModelSelection {
@@ -313,12 +491,12 @@ async fn handle_model_migration_prompt_if_needed(
 
 pub(crate) struct App {
     pub(crate) server: Arc<ThreadManager>,
+    pub(crate) otel_manager: OtelManager,
     pub(crate) app_event_tx: AppEventSender,
     pub(crate) chat_widget: ChatWidget,
     pub(crate) auth_manager: Arc<AuthManager>,
     /// Config is stored here so we can recreate ChatWidgets as needed.
     pub(crate) config: Config,
-    pub(crate) current_model: String,
     pub(crate) active_profile: Option<String>,
 
     pub(crate) file_search: FileSearchManager,
@@ -337,6 +515,11 @@ pub(crate) struct App {
 
     // Esc-backtracking state grouped
     pub(crate) backtrack: crate::app_backtrack::BacktrackState,
+    /// When set, the next draw re-renders the transcript into terminal scrollback once.
+    ///
+    /// This is used after a confirmed thread rollback to ensure scrollback reflects the trimmed
+    /// transcript cells.
+    pub(crate) backtrack_render_pending: bool,
     pub(crate) feedback: codex_feedback::CodexFeedback,
     /// Set when the user confirms an update; propagated on exit.
     pub(crate) pending_update_action: Option<UpdateAction>,
@@ -345,16 +528,294 @@ pub(crate) struct App {
     /// stopping a thread (e.g., before starting a new one).
     suppress_shutdown_complete: bool,
 
+    windows_sandbox: WindowsSandboxState,
+
+    thread_event_channels: HashMap<ThreadId, ThreadEventChannel>,
+    active_thread_id: Option<ThreadId>,
+    active_thread_rx: Option<mpsc::Receiver<Event>>,
+    primary_thread_id: Option<ThreadId>,
+    primary_session_configured: Option<SessionConfiguredEvent>,
+    pending_primary_events: VecDeque<Event>,
+}
+
+#[derive(Default)]
+struct WindowsSandboxState {
+    setup_started_at: Option<Instant>,
     // One-shot suppression of the next world-writable scan after user confirmation.
     skip_world_writable_scan_once: bool,
 }
 
 impl App {
+    pub fn chatwidget_init_for_forked_or_resumed_thread(
+        &self,
+        tui: &mut tui::Tui,
+        cfg: codex_core::config::Config,
+    ) -> crate::chatwidget::ChatWidgetInit {
+        crate::chatwidget::ChatWidgetInit {
+            config: cfg,
+            frame_requester: tui.frame_requester(),
+            app_event_tx: self.app_event_tx.clone(),
+            // Fork/resume bootstraps here don't carry any prefilled message content.
+            initial_user_message: None,
+            enhanced_keys_supported: self.enhanced_keys_supported,
+            auth_manager: self.auth_manager.clone(),
+            models_manager: self.server.get_models_manager(),
+            feedback: self.feedback.clone(),
+            is_first_run: false,
+            model: Some(self.chat_widget.current_model().to_string()),
+            otel_manager: self.otel_manager.clone(),
+        }
+    }
+
     async fn shutdown_current_thread(&mut self) {
         if let Some(thread_id) = self.chat_widget.thread_id() {
+            // Clear any in-flight rollback guard when switching threads.
+            self.backtrack.pending_rollback = None;
             self.suppress_shutdown_complete = true;
             self.chat_widget.submit_op(Op::Shutdown);
             self.server.remove_thread(&thread_id).await;
+        }
+    }
+
+    fn ensure_thread_channel(&mut self, thread_id: ThreadId) -> &mut ThreadEventChannel {
+        self.thread_event_channels
+            .entry(thread_id)
+            .or_insert_with(|| ThreadEventChannel::new(THREAD_EVENT_CHANNEL_CAPACITY))
+    }
+
+    async fn set_thread_active(&mut self, thread_id: ThreadId, active: bool) {
+        if let Some(channel) = self.thread_event_channels.get_mut(&thread_id) {
+            let mut store = channel.store.lock().await;
+            store.active = active;
+        }
+    }
+
+    async fn activate_thread_channel(&mut self, thread_id: ThreadId) {
+        if self.active_thread_id.is_some() {
+            return;
+        }
+        self.set_thread_active(thread_id, true).await;
+        let receiver = if let Some(channel) = self.thread_event_channels.get_mut(&thread_id) {
+            channel.receiver.take()
+        } else {
+            None
+        };
+        self.active_thread_id = Some(thread_id);
+        self.active_thread_rx = receiver;
+    }
+
+    async fn store_active_thread_receiver(&mut self) {
+        let Some(active_id) = self.active_thread_id else {
+            return;
+        };
+        let Some(receiver) = self.active_thread_rx.take() else {
+            return;
+        };
+        if let Some(channel) = self.thread_event_channels.get_mut(&active_id) {
+            let mut store = channel.store.lock().await;
+            store.active = false;
+            channel.receiver = Some(receiver);
+        }
+    }
+
+    async fn activate_thread_for_replay(
+        &mut self,
+        thread_id: ThreadId,
+    ) -> Option<(mpsc::Receiver<Event>, ThreadEventSnapshot)> {
+        let channel = self.thread_event_channels.get_mut(&thread_id)?;
+        let receiver = channel.receiver.take()?;
+        let mut store = channel.store.lock().await;
+        store.active = true;
+        let snapshot = store.snapshot();
+        Some((receiver, snapshot))
+    }
+
+    async fn clear_active_thread(&mut self) {
+        if let Some(active_id) = self.active_thread_id.take() {
+            self.set_thread_active(active_id, false).await;
+        }
+        self.active_thread_rx = None;
+    }
+
+    async fn enqueue_thread_event(&mut self, thread_id: ThreadId, event: Event) -> Result<()> {
+        let (sender, store) = {
+            let channel = self.ensure_thread_channel(thread_id);
+            (channel.sender.clone(), Arc::clone(&channel.store))
+        };
+
+        let should_send = {
+            let mut guard = store.lock().await;
+            guard.push_event(event.clone());
+            guard.active
+        };
+
+        if should_send && let Err(err) = sender.send(event).await {
+            tracing::warn!("thread {thread_id} event channel closed: {err}");
+        }
+        Ok(())
+    }
+
+    async fn enqueue_primary_event(&mut self, event: Event) -> Result<()> {
+        if let Some(thread_id) = self.primary_thread_id {
+            return self.enqueue_thread_event(thread_id, event).await;
+        }
+
+        if let EventMsg::SessionConfigured(session) = &event.msg {
+            let thread_id = session.session_id;
+            self.primary_thread_id = Some(thread_id);
+            self.primary_session_configured = Some(session.clone());
+            self.ensure_thread_channel(thread_id);
+            self.activate_thread_channel(thread_id).await;
+
+            let pending = std::mem::take(&mut self.pending_primary_events);
+            for pending_event in pending {
+                self.enqueue_thread_event(thread_id, pending_event).await?;
+            }
+            self.enqueue_thread_event(thread_id, event).await?;
+        } else {
+            self.pending_primary_events.push_back(event);
+        }
+        Ok(())
+    }
+
+    fn open_agent_picker(&mut self) {
+        if self.thread_event_channels.is_empty() {
+            self.chat_widget
+                .add_info_message("No agents available yet.".to_string(), None);
+            return;
+        }
+
+        let mut thread_ids: Vec<ThreadId> = self.thread_event_channels.keys().cloned().collect();
+        thread_ids.sort_by_key(ToString::to_string);
+
+        let mut initial_selected_idx = None;
+        let items: Vec<SelectionItem> = thread_ids
+            .iter()
+            .enumerate()
+            .map(|(idx, thread_id)| {
+                if self.active_thread_id == Some(*thread_id) {
+                    initial_selected_idx = Some(idx);
+                }
+                let id = *thread_id;
+                SelectionItem {
+                    name: thread_id.to_string(),
+                    is_current: self.active_thread_id == Some(*thread_id),
+                    actions: vec![Box::new(move |tx| {
+                        tx.send(AppEvent::SelectAgentThread(id));
+                    })],
+                    dismiss_on_select: true,
+                    search_value: Some(thread_id.to_string()),
+                    ..Default::default()
+                }
+            })
+            .collect();
+
+        self.chat_widget.show_selection_view(SelectionViewParams {
+            title: Some("Agents".to_string()),
+            subtitle: Some("Select a thread to focus".to_string()),
+            footer_hint: Some(standard_popup_hint_line()),
+            items,
+            initial_selected_idx,
+            ..Default::default()
+        });
+    }
+
+    async fn select_agent_thread(&mut self, tui: &mut tui::Tui, thread_id: ThreadId) -> Result<()> {
+        if self.active_thread_id == Some(thread_id) {
+            return Ok(());
+        }
+
+        let thread = match self.server.get_thread(thread_id).await {
+            Ok(thread) => thread,
+            Err(err) => {
+                self.chat_widget.add_error_message(format!(
+                    "Failed to attach to agent thread {thread_id}: {err}"
+                ));
+                return Ok(());
+            }
+        };
+
+        let previous_thread_id = self.active_thread_id;
+        self.store_active_thread_receiver().await;
+        self.active_thread_id = None;
+        let Some((receiver, snapshot)) = self.activate_thread_for_replay(thread_id).await else {
+            self.chat_widget
+                .add_error_message(format!("Agent thread {thread_id} is already active."));
+            if let Some(previous_thread_id) = previous_thread_id {
+                self.activate_thread_channel(previous_thread_id).await;
+            }
+            return Ok(());
+        };
+
+        self.active_thread_id = Some(thread_id);
+        self.active_thread_rx = Some(receiver);
+
+        let init = self.chatwidget_init_for_forked_or_resumed_thread(tui, self.config.clone());
+        let codex_op_tx = crate::chatwidget::spawn_op_forwarder(thread);
+        self.chat_widget = ChatWidget::new_with_op_sender(init, codex_op_tx);
+
+        self.reset_for_thread_switch(tui)?;
+        self.replay_thread_snapshot(snapshot);
+        self.drain_active_thread_events(tui).await?;
+
+        Ok(())
+    }
+
+    fn reset_for_thread_switch(&mut self, tui: &mut tui::Tui) -> Result<()> {
+        self.overlay = None;
+        self.transcript_cells.clear();
+        self.deferred_history_lines.clear();
+        self.has_emitted_history_lines = false;
+        self.backtrack = BacktrackState::default();
+        self.backtrack_render_pending = false;
+        tui.terminal.clear_scrollback()?;
+        tui.terminal.clear()?;
+        Ok(())
+    }
+
+    fn reset_thread_event_state(&mut self) {
+        self.thread_event_channels.clear();
+        self.active_thread_id = None;
+        self.active_thread_rx = None;
+        self.primary_thread_id = None;
+        self.pending_primary_events.clear();
+    }
+
+    async fn drain_active_thread_events(&mut self, tui: &mut tui::Tui) -> Result<()> {
+        let Some(mut rx) = self.active_thread_rx.take() else {
+            return Ok(());
+        };
+
+        let mut disconnected = false;
+        loop {
+            match rx.try_recv() {
+                Ok(event) => self.handle_codex_event_now(event),
+                Err(TryRecvError::Empty) => break,
+                Err(TryRecvError::Disconnected) => {
+                    disconnected = true;
+                    break;
+                }
+            }
+        }
+
+        if !disconnected {
+            self.active_thread_rx = Some(rx);
+        } else {
+            self.clear_active_thread().await;
+        }
+
+        if self.backtrack_render_pending {
+            tui.frame_requester().schedule_frame();
+        }
+        Ok(())
+    }
+
+    fn replay_thread_snapshot(&mut self, snapshot: ThreadEventSnapshot) {
+        if let Some(event) = snapshot.session_configured {
+            self.handle_codex_event_replay(event);
+        }
+        for event in snapshot.events {
+            self.handle_codex_event_replay(event);
         }
     }
 
@@ -375,6 +836,7 @@ impl App {
         let (app_event_tx, mut app_event_rx) = unbounded_channel();
         let app_event_tx = AppEventSender::new(app_event_tx);
         emit_deprecation_notice(&app_event_tx, ollama_chat_support_notice);
+        emit_project_config_warnings(&app_event_tx, &config);
 
         let thread_manager = Arc::new(ThreadManager::new(
             config.codex_home.clone(),
@@ -404,6 +866,24 @@ impl App {
             model = updated_model;
         }
 
+        let auth = auth_manager.auth().await;
+        let auth_ref = auth.as_ref();
+        let model_info = thread_manager
+            .get_models_manager()
+            .get_model_info(model.as_str(), &config)
+            .await;
+        let otel_manager = OtelManager::new(
+            ThreadId::new(),
+            model.as_str(),
+            model_info.slug.as_str(),
+            auth_ref.and_then(CodexAuth::get_account_id),
+            auth_ref.and_then(CodexAuth::get_account_email),
+            auth_ref.map(|auth| auth.mode),
+            config.otel.log_user_prompt,
+            codex_core::terminal::user_agent(),
+            SessionSource::Cli,
+        );
+
         let enhanced_keys_supported = tui.enhanced_keys_supported();
         let mut chat_widget = match session_selection {
             SessionSelection::StartFresh | SessionSelection::Exit => {
@@ -411,14 +891,19 @@ impl App {
                     config: config.clone(),
                     frame_requester: tui.frame_requester(),
                     app_event_tx: app_event_tx.clone(),
-                    initial_prompt: initial_prompt.clone(),
-                    initial_images: initial_images.clone(),
+                    initial_user_message: crate::chatwidget::create_initial_user_message(
+                        initial_prompt.clone(),
+                        initial_images.clone(),
+                        // CLI prompt args are plain strings, so they don't provide element ranges.
+                        Vec::new(),
+                    ),
                     enhanced_keys_supported,
                     auth_manager: auth_manager.clone(),
                     models_manager: thread_manager.get_models_manager(),
                     feedback: feedback.clone(),
                     is_first_run,
-                    model: config.model.clone(),
+                    model: Some(model.clone()),
+                    otel_manager: otel_manager.clone(),
                 };
                 ChatWidget::new(init, thread_manager.clone())
             }
@@ -434,14 +919,19 @@ impl App {
                     config: config.clone(),
                     frame_requester: tui.frame_requester(),
                     app_event_tx: app_event_tx.clone(),
-                    initial_prompt: initial_prompt.clone(),
-                    initial_images: initial_images.clone(),
+                    initial_user_message: crate::chatwidget::create_initial_user_message(
+                        initial_prompt.clone(),
+                        initial_images.clone(),
+                        // CLI prompt args are plain strings, so they don't provide element ranges.
+                        Vec::new(),
+                    ),
                     enhanced_keys_supported,
                     auth_manager: auth_manager.clone(),
                     models_manager: thread_manager.get_models_manager(),
                     feedback: feedback.clone(),
                     is_first_run,
                     model: config.model.clone(),
+                    otel_manager: otel_manager.clone(),
                 };
                 ChatWidget::new_from_existing(init, resumed.thread, resumed.session_configured)
             }
@@ -457,14 +947,19 @@ impl App {
                     config: config.clone(),
                     frame_requester: tui.frame_requester(),
                     app_event_tx: app_event_tx.clone(),
-                    initial_prompt: initial_prompt.clone(),
-                    initial_images: initial_images.clone(),
+                    initial_user_message: crate::chatwidget::create_initial_user_message(
+                        initial_prompt.clone(),
+                        initial_images.clone(),
+                        // CLI prompt args are plain strings, so they don't provide element ranges.
+                        Vec::new(),
+                    ),
                     enhanced_keys_supported,
                     auth_manager: auth_manager.clone(),
                     models_manager: thread_manager.get_models_manager(),
                     feedback: feedback.clone(),
                     is_first_run,
                     model: config.model.clone(),
+                    otel_manager: otel_manager.clone(),
                 };
                 ChatWidget::new_from_existing(init, forked.thread, forked.session_configured)
             }
@@ -478,11 +973,11 @@ impl App {
 
         let mut app = Self {
             server: thread_manager.clone(),
+            otel_manager: otel_manager.clone(),
             app_event_tx,
             chat_widget,
             auth_manager: auth_manager.clone(),
             config,
-            current_model: model.clone(),
             active_profile,
             file_search,
             enhanced_keys_supported,
@@ -492,10 +987,17 @@ impl App {
             has_emitted_history_lines: false,
             commit_anim_running: Arc::new(AtomicBool::new(false)),
             backtrack: BacktrackState::default(),
+            backtrack_render_pending: false,
             feedback: feedback.clone(),
             pending_update_action: None,
             suppress_shutdown_complete: false,
-            skip_world_writable_scan_once: false,
+            windows_sandbox: WindowsSandboxState::default(),
+            thread_event_channels: HashMap::new(),
+            active_thread_id: None,
+            active_thread_rx: None,
+            primary_thread_id: None,
+            primary_session_configured: None,
+            pending_primary_events: VecDeque::new(),
         };
 
         // On startup, if Agent mode (workspace-write) or ReadOnly is active, warn about world-writable dirs on Windows.
@@ -548,13 +1050,45 @@ impl App {
 
         tui.frame_requester().schedule_frame();
 
+        let mut thread_created_rx = thread_manager.subscribe_thread_created();
+        let mut listen_for_threads = true;
+
         let exit_reason = loop {
             let control = select! {
                 Some(event) = app_event_rx.recv() => {
                     app.handle_event(tui, event).await?
                 }
+                active = async {
+                    if let Some(rx) = app.active_thread_rx.as_mut() {
+                        rx.recv().await
+                    } else {
+                        None
+                    }
+                }, if app.active_thread_rx.is_some() => {
+                    if let Some(event) = active {
+                        app.handle_active_thread_event(tui, event)?;
+                    } else {
+                        app.clear_active_thread().await;
+                    }
+                    AppRunControl::Continue
+                }
                 Some(event) = tui_events.next() => {
                     app.handle_tui_event(tui, event).await?
+                }
+                // Listen on new thread creation due to collab tools.
+                created = thread_created_rx.recv(), if listen_for_threads => {
+                    match created {
+                        Ok(thread_id) => {
+                            app.handle_thread_created(thread_id).await?;
+                        }
+                        Err(broadcast::error::RecvError::Lagged(_)) => {
+                            tracing::warn!("thread_created receiver lagged; skipping resync");
+                        }
+                        Err(broadcast::error::RecvError::Closed) => {
+                            listen_for_threads = false;
+                        }
+                    }
+                    AppRunControl::Continue
                 }
             };
             match control {
@@ -592,6 +1126,10 @@ impl App {
                     self.chat_widget.handle_paste(pasted);
                 }
                 TuiEvent::Draw => {
+                    if self.backtrack_render_pending {
+                        self.backtrack_render_pending = false;
+                        self.render_transcript_once(tui);
+                    }
                     self.chat_widget.maybe_post_pending_notification(tui);
                     if self
                         .chat_widget
@@ -620,31 +1158,31 @@ impl App {
     }
 
     async fn handle_event(&mut self, tui: &mut tui::Tui, event: AppEvent) -> Result<AppRunControl> {
-        let model_info = self
-            .server
-            .get_models_manager()
-            .get_model_info(self.current_model.as_str(), &self.config)
-            .await;
         match event {
             AppEvent::NewSession => {
+                let model = self.chat_widget.current_model().to_string();
                 let summary =
                     session_summary(self.chat_widget.token_usage(), self.chat_widget.thread_id());
                 self.shutdown_current_thread().await;
+                if let Err(err) = self.server.remove_and_close_all_threads().await {
+                    tracing::warn!(error = %err, "failed to close all threads");
+                }
                 let init = crate::chatwidget::ChatWidgetInit {
                     config: self.config.clone(),
                     frame_requester: tui.frame_requester(),
                     app_event_tx: self.app_event_tx.clone(),
-                    initial_prompt: None,
-                    initial_images: Vec::new(),
+                    // New sessions start without prefilled message content.
+                    initial_user_message: None,
                     enhanced_keys_supported: self.enhanced_keys_supported,
                     auth_manager: self.auth_manager.clone(),
                     models_manager: self.server.get_models_manager(),
                     feedback: self.feedback.clone(),
                     is_first_run: false,
-                    model: Some(self.current_model.clone()),
+                    model: Some(model),
+                    otel_manager: self.otel_manager.clone(),
                 };
                 self.chat_widget = ChatWidget::new(init, self.server.clone());
-                self.current_model = model_info.slug.clone();
+                self.reset_thread_event_state();
                 if let Some(summary) = summary {
                     let mut lines: Vec<Line<'static>> = vec![summary.usage_line.clone().into()];
                     if let Some(command) = summary.resume_command {
@@ -680,25 +1218,16 @@ impl App {
                         {
                             Ok(resumed) => {
                                 self.shutdown_current_thread().await;
-                                let init = crate::chatwidget::ChatWidgetInit {
-                                    config: self.config.clone(),
-                                    frame_requester: tui.frame_requester(),
-                                    app_event_tx: self.app_event_tx.clone(),
-                                    initial_prompt: None,
-                                    initial_images: Vec::new(),
-                                    enhanced_keys_supported: self.enhanced_keys_supported,
-                                    auth_manager: self.auth_manager.clone(),
-                                    models_manager: self.server.get_models_manager(),
-                                    feedback: self.feedback.clone(),
-                                    is_first_run: false,
-                                    model: Some(self.current_model.clone()),
-                                };
+                                let init = self.chatwidget_init_for_forked_or_resumed_thread(
+                                    tui,
+                                    self.config.clone(),
+                                );
                                 self.chat_widget = ChatWidget::new_from_existing(
                                     init,
                                     resumed.thread,
                                     resumed.session_configured,
                                 );
-                                self.current_model = model_info.slug.clone();
+                                self.reset_thread_event_state();
                                 if let Some(summary) = summary {
                                     let mut lines: Vec<Line<'static>> =
                                         vec![summary.usage_line.clone().into()];
@@ -728,73 +1257,52 @@ impl App {
                 // Leaving alt-screen may blank the inline viewport; force a redraw either way.
                 tui.frame_requester().schedule_frame();
             }
-            AppEvent::OpenForkPicker => {
-                match crate::resume_picker::run_fork_picker(
-                    tui,
-                    &self.config.codex_home,
-                    &self.config.model_provider_id,
-                    false,
-                )
-                .await?
-                {
-                    SessionSelection::Fork(path) => {
-                        let summary = session_summary(
-                            self.chat_widget.token_usage(),
-                            self.chat_widget.thread_id(),
-                        );
-                        match self
-                            .server
-                            .fork_thread(usize::MAX, self.config.clone(), path.clone())
-                            .await
-                        {
-                            Ok(forked) => {
-                                self.shutdown_current_thread().await;
-                                let init = crate::chatwidget::ChatWidgetInit {
-                                    config: self.config.clone(),
-                                    frame_requester: tui.frame_requester(),
-                                    app_event_tx: self.app_event_tx.clone(),
-                                    initial_prompt: None,
-                                    initial_images: Vec::new(),
-                                    enhanced_keys_supported: self.enhanced_keys_supported,
-                                    auth_manager: self.auth_manager.clone(),
-                                    models_manager: self.server.get_models_manager(),
-                                    feedback: self.feedback.clone(),
-                                    is_first_run: false,
-                                    model: Some(self.current_model.clone()),
-                                };
-                                self.chat_widget = ChatWidget::new_from_existing(
-                                    init,
-                                    forked.thread,
-                                    forked.session_configured,
-                                );
-                                self.current_model = model_info.slug.clone();
-                                if let Some(summary) = summary {
-                                    let mut lines: Vec<Line<'static>> =
-                                        vec![summary.usage_line.clone().into()];
-                                    if let Some(command) = summary.resume_command {
-                                        let spans = vec![
-                                            "To continue this session, run ".into(),
-                                            command.cyan(),
-                                        ];
-                                        lines.push(spans.into());
-                                    }
-                                    self.chat_widget.add_plain_history_lines(lines);
+            AppEvent::ForkCurrentSession => {
+                let summary =
+                    session_summary(self.chat_widget.token_usage(), self.chat_widget.thread_id());
+                if let Some(path) = self.chat_widget.rollout_path() {
+                    match self
+                        .server
+                        .fork_thread(usize::MAX, self.config.clone(), path.clone())
+                        .await
+                    {
+                        Ok(forked) => {
+                            self.shutdown_current_thread().await;
+                            let init = self.chatwidget_init_for_forked_or_resumed_thread(
+                                tui,
+                                self.config.clone(),
+                            );
+                            self.chat_widget = ChatWidget::new_from_existing(
+                                init,
+                                forked.thread,
+                                forked.session_configured,
+                            );
+                            self.reset_thread_event_state();
+                            if let Some(summary) = summary {
+                                let mut lines: Vec<Line<'static>> =
+                                    vec![summary.usage_line.clone().into()];
+                                if let Some(command) = summary.resume_command {
+                                    let spans = vec![
+                                        "To continue this session, run ".into(),
+                                        command.cyan(),
+                                    ];
+                                    lines.push(spans.into());
                                 }
-                            }
-                            Err(err) => {
-                                let path_display = path.display();
-                                self.chat_widget.add_error_message(format!(
-                                    "Failed to fork session from {path_display}: {err}"
-                                ));
+                                self.chat_widget.add_plain_history_lines(lines);
                             }
                         }
+                        Err(err) => {
+                            let path_display = path.display();
+                            self.chat_widget.add_error_message(format!(
+                                "Failed to fork current session from {path_display}: {err}"
+                            ));
+                        }
                     }
-                    SessionSelection::Exit
-                    | SessionSelection::StartFresh
-                    | SessionSelection::Resume(_) => {}
+                } else {
+                    self.chat_widget
+                        .add_error_message("Current session is not ready to fork yet.".to_string());
                 }
 
-                // Leaving alt-screen may blank the inline viewport; force a redraw either way.
                 tui.frame_requester().schedule_frame();
             }
             AppEvent::InsertHistoryCell(cell) => {
@@ -846,18 +1354,7 @@ impl App {
                 self.chat_widget.on_commit_tick();
             }
             AppEvent::CodexEvent(event) => {
-                if self.suppress_shutdown_complete
-                    && matches!(event.msg, EventMsg::ShutdownComplete)
-                {
-                    self.suppress_shutdown_complete = false;
-                    return Ok(AppRunControl::Continue);
-                }
-                if let EventMsg::ListSkillsResponse(response) = &event.msg {
-                    let cwd = self.chat_widget.config_ref().cwd.clone();
-                    let errors = errors_for_cwd(&cwd, response);
-                    emit_skill_load_warnings(&self.app_event_tx, &errors);
-                }
-                self.chat_widget.handle_codex_event(event);
+                self.enqueue_primary_event(event).await?;
             }
             AppEvent::Exit(mode) => match mode {
                 ExitMode::ShutdownFirst => self.chat_widget.submit_op(Op::Shutdown),
@@ -868,7 +1365,9 @@ impl App {
             AppEvent::FatalExitRequest(message) => {
                 return Ok(AppRunControl::Exit(ExitReason::Fatal(message)));
             }
-            AppEvent::CodexOp(op) => self.chat_widget.submit_op(op),
+            AppEvent::CodexOp(op) => {
+                self.chat_widget.submit_op(op);
+            }
             AppEvent::DiffResult(text) => {
                 // Clear the in-progress state in the bottom pane
                 self.chat_widget.on_diff_complete();
@@ -901,7 +1400,11 @@ impl App {
             }
             AppEvent::UpdateModel(model) => {
                 self.chat_widget.set_model(&model);
-                self.current_model = model;
+            }
+            AppEvent::UpdateCollaborationMode(mode) => {
+                let model = mode.model().to_string();
+                self.chat_widget.set_collaboration_mode(mode);
+                self.chat_widget.set_model(&model);
             }
             AppEvent::OpenReasoningPopup { model } => {
                 self.chat_widget.open_reasoning_popup(model);
@@ -909,8 +1412,12 @@ impl App {
             AppEvent::OpenAllModelsPopup { models } => {
                 self.chat_widget.open_all_models_popup(models);
             }
-            AppEvent::OpenFullAccessConfirmation { preset } => {
-                self.chat_widget.open_full_access_confirmation(preset);
+            AppEvent::OpenFullAccessConfirmation {
+                preset,
+                return_to_permissions,
+            } => {
+                self.chat_widget
+                    .open_full_access_confirmation(preset, return_to_permissions);
             }
             AppEvent::OpenWorldWritableWarningConfirmation {
                 preset,
@@ -943,7 +1450,16 @@ impl App {
                 self.chat_widget.open_windows_sandbox_enable_prompt(preset);
             }
             AppEvent::OpenWindowsSandboxFallbackPrompt { preset, reason } => {
+                self.otel_manager
+                    .counter("codex.windows_sandbox.fallback_prompt_shown", 1, &[]);
                 self.chat_widget.clear_windows_sandbox_setup_status();
+                if let Some(started_at) = self.windows_sandbox.setup_started_at.take() {
+                    self.otel_manager.record_duration(
+                        "codex.windows_sandbox.elevated_setup_duration_ms",
+                        started_at.elapsed(),
+                        &[("result", "failure")],
+                    );
+                }
                 self.chat_widget
                     .open_windows_sandbox_fallback_prompt(preset, reason);
             }
@@ -970,6 +1486,8 @@ impl App {
                     }
 
                     self.chat_widget.show_windows_sandbox_setup_status();
+                    self.windows_sandbox.setup_started_at = Some(Instant::now());
+                    let otel_manager = self.otel_manager.clone();
                     tokio::task::spawn_blocking(move || {
                         let result = codex_core::windows_sandbox::run_elevated_setup(
                             &policy,
@@ -979,11 +1497,23 @@ impl App {
                             codex_home.as_path(),
                         );
                         let event = match result {
-                            Ok(()) => AppEvent::EnableWindowsSandboxForAgentMode {
-                                preset: preset.clone(),
-                                mode: WindowsSandboxEnableMode::Elevated,
-                            },
+                            Ok(()) => {
+                                otel_manager.counter(
+                                    "codex.windows_sandbox.elevated_setup_success",
+                                    1,
+                                    &[],
+                                );
+                                AppEvent::EnableWindowsSandboxForAgentMode {
+                                    preset: preset.clone(),
+                                    mode: WindowsSandboxEnableMode::Elevated,
+                                }
+                            }
                             Err(err) => {
+                                otel_manager.counter(
+                                    "codex.windows_sandbox.elevated_setup_failure",
+                                    1,
+                                    &[],
+                                );
                                 tracing::error!(
                                     error = %err,
                                     "failed to run elevated Windows sandbox setup"
@@ -1006,6 +1536,13 @@ impl App {
                 #[cfg(target_os = "windows")]
                 {
                     self.chat_widget.clear_windows_sandbox_setup_status();
+                    if let Some(started_at) = self.windows_sandbox.setup_started_at.take() {
+                        self.otel_manager.record_duration(
+                            "codex.windows_sandbox.elevated_setup_duration_ms",
+                            started_at.elapsed(),
+                            &[("result", "success")],
+                        );
+                    }
                     let profile = self.active_profile.as_deref();
                     let feature_key = Feature::WindowsSandbox.key();
                     let elevated_key = Feature::WindowsSandboxElevated.key();
@@ -1048,6 +1585,8 @@ impl App {
                                         model: None,
                                         effort: None,
                                         summary: None,
+                                        collaboration_mode: None,
+                                        personality: None,
                                     },
                                 ));
                                 self.app_event_tx
@@ -1154,8 +1693,8 @@ impl App {
                 #[cfg(target_os = "windows")]
                 {
                     // One-shot suppression if the user just confirmed continue.
-                    if self.skip_world_writable_scan_once {
-                        self.skip_world_writable_scan_once = false;
+                    if self.windows_sandbox.skip_world_writable_scan_once {
+                        self.windows_sandbox.skip_world_writable_scan_once = false;
                         return Ok(AppRunControl::Continue);
                     }
 
@@ -1216,7 +1755,7 @@ impl App {
                 }
             }
             AppEvent::SkipNextWorldWritableScan => {
-                self.skip_world_writable_scan_once = true;
+                self.windows_sandbox.skip_world_writable_scan_once = true;
             }
             AppEvent::UpdateFullAccessWarningAcknowledged(ack) => {
                 self.chat_widget.set_full_access_warning_acknowledged(ack);
@@ -1294,6 +1833,42 @@ impl App {
             AppEvent::OpenApprovalsPopup => {
                 self.chat_widget.open_approvals_popup();
             }
+            AppEvent::OpenAgentPicker => {
+                self.open_agent_picker();
+            }
+            AppEvent::SelectAgentThread(thread_id) => {
+                self.select_agent_thread(tui, thread_id).await?;
+            }
+            AppEvent::OpenSkillsList => {
+                self.chat_widget.open_skills_list();
+            }
+            AppEvent::OpenManageSkillsPopup => {
+                self.chat_widget.open_manage_skills_popup();
+            }
+            AppEvent::SetSkillEnabled { path, enabled } => {
+                let edits = [ConfigEdit::SetSkillConfig {
+                    path: path.clone(),
+                    enabled,
+                }];
+                match ConfigEditsBuilder::new(&self.config.codex_home)
+                    .with_edits(edits)
+                    .apply()
+                    .await
+                {
+                    Ok(()) => {
+                        self.chat_widget.update_skill_enabled(path.clone(), enabled);
+                    }
+                    Err(err) => {
+                        let path_display = path.display();
+                        self.chat_widget.add_error_message(format!(
+                            "Failed to update skill config for {path_display}: {err}"
+                        ));
+                    }
+                }
+            }
+            AppEvent::OpenPermissionsPopup => {
+                self.chat_widget.open_permissions_popup();
+            }
             AppEvent::OpenReviewBranchPicker(cwd) => {
                 self.chat_widget.show_review_branch_picker(&cwd).await;
             }
@@ -1302,6 +1877,16 @@ impl App {
             }
             AppEvent::OpenReviewCustomPrompt => {
                 self.chat_widget.show_review_custom_prompt();
+            }
+            AppEvent::SubmitUserMessageWithMode {
+                text,
+                collaboration_mode,
+            } => {
+                self.chat_widget
+                    .submit_user_message_with_mode(text, collaboration_mode);
+            }
+            AppEvent::ManageSkillsClosed => {
+                self.chat_widget.handle_manage_skills_closed();
             }
             AppEvent::FullScreenApprovalRequest(request) => match request {
                 ApprovalRequest::ApplyPatch { cwd, changes, .. } => {
@@ -1343,6 +1928,103 @@ impl App {
         Ok(AppRunControl::Continue)
     }
 
+    fn handle_codex_event_now(&mut self, event: Event) {
+        if self.suppress_shutdown_complete && matches!(event.msg, EventMsg::ShutdownComplete) {
+            self.suppress_shutdown_complete = false;
+            return;
+        }
+        if let EventMsg::ListSkillsResponse(response) = &event.msg {
+            let cwd = self.chat_widget.config_ref().cwd.clone();
+            let errors = errors_for_cwd(&cwd, response);
+            emit_skill_load_warnings(&self.app_event_tx, &errors);
+        }
+        self.handle_backtrack_event(&event.msg);
+        self.chat_widget.handle_codex_event(event);
+    }
+
+    fn handle_codex_event_replay(&mut self, event: Event) {
+        self.handle_backtrack_event(&event.msg);
+        self.chat_widget.handle_codex_event_replay(event);
+    }
+
+    fn handle_active_thread_event(&mut self, tui: &mut tui::Tui, event: Event) -> Result<()> {
+        self.handle_codex_event_now(event);
+        if self.backtrack_render_pending {
+            tui.frame_requester().schedule_frame();
+        }
+        Ok(())
+    }
+
+    async fn handle_thread_created(&mut self, thread_id: ThreadId) -> Result<()> {
+        if self.thread_event_channels.contains_key(&thread_id) {
+            return Ok(());
+        }
+        let thread = match self.server.get_thread(thread_id).await {
+            Ok(thread) => thread,
+            Err(err) => {
+                tracing::warn!("failed to attach listener for thread {thread_id}: {err}");
+                return Ok(());
+            }
+        };
+        let event = Event {
+            id: String::new(),
+            msg: EventMsg::SessionConfigured(self.session_configured_for_thread(thread_id)),
+        };
+        let channel =
+            ThreadEventChannel::new_with_session_configured(THREAD_EVENT_CHANNEL_CAPACITY, event);
+        let sender = channel.sender.clone();
+        let store = Arc::clone(&channel.store);
+        self.thread_event_channels.insert(thread_id, channel);
+        tokio::spawn(async move {
+            loop {
+                let event = match thread.next_event().await {
+                    Ok(event) => event,
+                    Err(err) => {
+                        tracing::debug!("external thread {thread_id} listener stopped: {err}");
+                        break;
+                    }
+                };
+                let should_send = {
+                    let mut guard = store.lock().await;
+                    guard.push_event(event.clone());
+                    guard.active
+                };
+                if should_send && let Err(err) = sender.send(event).await {
+                    tracing::debug!("external thread {thread_id} channel closed: {err}");
+                    break;
+                }
+            }
+        });
+        Ok(())
+    }
+
+    fn session_configured_for_thread(&self, thread_id: ThreadId) -> SessionConfiguredEvent {
+        let mut session_configured =
+            self.primary_session_configured
+                .clone()
+                .unwrap_or_else(|| SessionConfiguredEvent {
+                    session_id: thread_id,
+                    forked_from_id: None,
+                    model: self.chat_widget.current_model().to_string(),
+                    model_provider_id: self.config.model_provider_id.clone(),
+                    approval_policy: *self.config.approval_policy.get(),
+                    sandbox_policy: self.config.sandbox_policy.get().clone(),
+                    cwd: self.config.cwd.clone(),
+                    reasoning_effort: None,
+                    history_log_id: 0,
+                    history_entry_count: 0,
+                    initial_messages: None,
+                    rollout_path: PathBuf::new(),
+                });
+        session_configured.session_id = thread_id;
+        session_configured.forked_from_id = None;
+        session_configured.history_log_id = 0;
+        session_configured.history_entry_count = 0;
+        session_configured.initial_messages = None;
+        session_configured.rollout_path = PathBuf::new();
+        session_configured
+    }
+
     fn reasoning_label(reasoning_effort: Option<ReasoningEffortConfig>) -> &'static str {
         match reasoning_effort {
             Some(ReasoningEffortConfig::Minimal) => "minimal",
@@ -1366,8 +2048,10 @@ impl App {
     }
 
     fn on_update_reasoning_effort(&mut self, effort: Option<ReasoningEffortConfig>) {
-        self.chat_widget.set_reasoning_effort(effort);
+        // TODO(aibrahim): Remove this and don't use config as a state object.
+        // Instead, explicitly pass the stored collaboration mode's effort into new sessions.
         self.config.model_reasoning_effort = effort;
+        self.chat_widget.set_reasoning_effort(effort);
     }
 
     async fn launch_external_editor(&mut self, tui: &mut tui::Tui) {
@@ -1552,12 +2236,16 @@ mod tests {
     use codex_core::CodexAuth;
     use codex_core::ThreadManager;
     use codex_core::config::ConfigBuilder;
+    use codex_core::models_manager::manager::ModelsManager;
     use codex_core::protocol::AskForApproval;
     use codex_core::protocol::Event;
     use codex_core::protocol::EventMsg;
     use codex_core::protocol::SandboxPolicy;
     use codex_core::protocol::SessionConfiguredEvent;
+    use codex_core::protocol::SessionSource;
+    use codex_otel::OtelManager;
     use codex_protocol::ThreadId;
+    use codex_protocol::user_input::TextElement;
     use insta::assert_snapshot;
     use pretty_assertions::assert_eq;
     use ratatui::prelude::Line;
@@ -1569,7 +2257,6 @@ mod tests {
     async fn make_test_app() -> App {
         let (chat_widget, app_event_tx, _rx, _op_rx) = make_chatwidget_manual_with_sender().await;
         let config = chat_widget.config_ref().clone();
-        let current_model = "gpt-5.2-codex".to_string();
         let server = Arc::new(ThreadManager::with_models_provider(
             CodexAuth::from_api_key("Test API Key"),
             config.model_provider.clone(),
@@ -1577,14 +2264,16 @@ mod tests {
         let auth_manager =
             AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
         let file_search = FileSearchManager::new(config.cwd.clone(), app_event_tx.clone());
+        let model = ModelsManager::get_model_offline(config.model.as_deref());
+        let otel_manager = test_otel_manager(&config, model.as_str());
 
         App {
             server,
+            otel_manager,
             app_event_tx,
             chat_widget,
             auth_manager,
             config,
-            current_model,
             active_profile: None,
             file_search,
             transcript_cells: Vec::new(),
@@ -1594,10 +2283,17 @@ mod tests {
             enhanced_keys_supported: false,
             commit_anim_running: Arc::new(AtomicBool::new(false)),
             backtrack: BacktrackState::default(),
+            backtrack_render_pending: false,
             feedback: codex_feedback::CodexFeedback::new(),
             pending_update_action: None,
             suppress_shutdown_complete: false,
-            skip_world_writable_scan_once: false,
+            windows_sandbox: WindowsSandboxState::default(),
+            thread_event_channels: HashMap::new(),
+            active_thread_id: None,
+            active_thread_rx: None,
+            primary_thread_id: None,
+            primary_session_configured: None,
+            pending_primary_events: VecDeque::new(),
         }
     }
 
@@ -1608,7 +2304,6 @@ mod tests {
     ) {
         let (chat_widget, app_event_tx, rx, op_rx) = make_chatwidget_manual_with_sender().await;
         let config = chat_widget.config_ref().clone();
-        let current_model = "gpt-5.2-codex".to_string();
         let server = Arc::new(ThreadManager::with_models_provider(
             CodexAuth::from_api_key("Test API Key"),
             config.model_provider.clone(),
@@ -1616,15 +2311,17 @@ mod tests {
         let auth_manager =
             AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
         let file_search = FileSearchManager::new(config.cwd.clone(), app_event_tx.clone());
+        let model = ModelsManager::get_model_offline(config.model.as_deref());
+        let otel_manager = test_otel_manager(&config, model.as_str());
 
         (
             App {
                 server,
+                otel_manager,
                 app_event_tx,
                 chat_widget,
                 auth_manager,
                 config,
-                current_model,
                 active_profile: None,
                 file_search,
                 transcript_cells: Vec::new(),
@@ -1634,13 +2331,35 @@ mod tests {
                 enhanced_keys_supported: false,
                 commit_anim_running: Arc::new(AtomicBool::new(false)),
                 backtrack: BacktrackState::default(),
+                backtrack_render_pending: false,
                 feedback: codex_feedback::CodexFeedback::new(),
                 pending_update_action: None,
                 suppress_shutdown_complete: false,
-                skip_world_writable_scan_once: false,
+                windows_sandbox: WindowsSandboxState::default(),
+                thread_event_channels: HashMap::new(),
+                active_thread_id: None,
+                active_thread_rx: None,
+                primary_thread_id: None,
+                primary_session_configured: None,
+                pending_primary_events: VecDeque::new(),
             },
             rx,
             op_rx,
+        )
+    }
+
+    fn test_otel_manager(config: &Config, model: &str) -> OtelManager {
+        let model_info = ModelsManager::construct_model_info_offline(model, config);
+        OtelManager::new(
+            ThreadId::new(),
+            model,
+            model_info.slug.as_str(),
+            None,
+            None,
+            None,
+            false,
+            "test".to_string(),
+            SessionSource::Cli,
         )
     }
 
@@ -1806,20 +2525,19 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn update_reasoning_effort_updates_config() {
+    async fn update_reasoning_effort_updates_collaboration_mode() {
         let mut app = make_test_app().await;
-        app.config.model_reasoning_effort = Some(ReasoningEffortConfig::Medium);
         app.chat_widget
             .set_reasoning_effort(Some(ReasoningEffortConfig::Medium));
 
         app.on_update_reasoning_effort(Some(ReasoningEffortConfig::High));
 
         assert_eq!(
-            app.config.model_reasoning_effort,
+            app.chat_widget.current_reasoning_effort(),
             Some(ReasoningEffortConfig::High)
         );
         assert_eq!(
-            app.chat_widget.config_ref().model_reasoning_effort,
+            app.config.model_reasoning_effort,
             Some(ReasoningEffortConfig::High)
         );
     }
@@ -1828,9 +2546,14 @@ mod tests {
     async fn backtrack_selection_with_duplicate_history_targets_unique_turn() {
         let (mut app, _app_event_rx, mut op_rx) = make_test_app_with_channels().await;
 
-        let user_cell = |text: &str| -> Arc<dyn HistoryCell> {
+        let user_cell = |text: &str,
+                         text_elements: Vec<TextElement>,
+                         local_image_paths: Vec<PathBuf>|
+         -> Arc<dyn HistoryCell> {
             Arc::new(UserHistoryCell {
                 message: text.to_string(),
+                text_elements,
+                local_image_paths,
             }) as Arc<dyn HistoryCell>
         };
         let agent_cell = |text: &str| -> Arc<dyn HistoryCell> {
@@ -1843,6 +2566,7 @@ mod tests {
         let make_header = |is_first| {
             let event = SessionConfiguredEvent {
                 session_id: ThreadId::new(),
+                forked_from_id: None,
                 model: "gpt-test".to_string(),
                 model_provider_id: "test-provider".to_string(),
                 approval_policy: AskForApproval::Never,
@@ -1856,24 +2580,34 @@ mod tests {
             };
             Arc::new(new_session_info(
                 app.chat_widget.config_ref(),
-                app.current_model.as_str(),
+                app.chat_widget.current_model(),
                 event,
                 is_first,
             )) as Arc<dyn HistoryCell>
         };
 
+        let placeholder = "[Image #1]";
+        let edited_text = format!("follow-up (edited) {placeholder}");
+        let edited_range = edited_text.len().saturating_sub(placeholder.len())..edited_text.len();
+        let edited_text_elements = vec![TextElement::new(edited_range.into(), None)];
+        let edited_local_image_paths = vec![PathBuf::from("/tmp/fake-image.png")];
+
         // Simulate a transcript with duplicated history (e.g., from prior backtracks)
         // and an edited turn appended after a session header boundary.
         app.transcript_cells = vec![
             make_header(true),
-            user_cell("first question"),
+            user_cell("first question", Vec::new(), Vec::new()),
             agent_cell("answer first"),
-            user_cell("follow-up"),
+            user_cell("follow-up", Vec::new(), Vec::new()),
             agent_cell("answer follow-up"),
             make_header(false),
-            user_cell("first question"),
+            user_cell("first question", Vec::new(), Vec::new()),
             agent_cell("answer first"),
-            user_cell("follow-up (edited)"),
+            user_cell(
+                &edited_text,
+                edited_text_elements.clone(),
+                edited_local_image_paths.clone(),
+            ),
             agent_cell("answer edited"),
         ];
 
@@ -1884,6 +2618,7 @@ mod tests {
             id: String::new(),
             msg: EventMsg::SessionConfigured(SessionConfiguredEvent {
                 session_id: base_id,
+                forked_from_id: None,
                 model: "gpt-test".to_string(),
                 model_provider_id: "test-provider".to_string(),
                 approval_policy: AskForApproval::Never,
@@ -1905,7 +2640,9 @@ mod tests {
             .confirm_backtrack_from_main()
             .expect("backtrack selection");
         assert_eq!(selection.nth_user_message, 1);
-        assert_eq!(selection.prefill, "follow-up (edited)");
+        assert_eq!(selection.prefill, edited_text);
+        assert_eq!(selection.text_elements, edited_text_elements);
+        assert_eq!(selection.local_image_paths, edited_local_image_paths);
 
         app.apply_backtrack_rollback(selection);
 
@@ -1926,6 +2663,7 @@ mod tests {
         let thread_id = ThreadId::new();
         let event = SessionConfiguredEvent {
             session_id: thread_id,
+            forked_from_id: None,
             model: "gpt-test".to_string(),
             model_provider_id: "test-provider".to_string(),
             approval_policy: AskForApproval::Never,
