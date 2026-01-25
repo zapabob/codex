@@ -88,6 +88,7 @@ impl OnboardingScreen {
         steps.push(Step::Welcome(WelcomeWidget::new(
             !matches!(login_status, LoginStatus::NotAuthenticated),
             tui.frame_requester(),
+            config.animations,
         )));
         if show_login_screen {
             let highlighted_mode = match forced_login_method {
@@ -310,6 +311,9 @@ impl WidgetRef for &OnboardingScreen {
             }
             let scratch_area = Rect::new(0, 0, width, max_h);
             let mut scratch = Buffer::empty(scratch_area);
+            if let Step::Welcome(widget) = step {
+                widget.update_layout_area(scratch_area);
+            }
             step.render_ref(scratch_area, &mut scratch);
             let h = used_rows(&scratch, width, max_h).min(max_h);
             if h > 0 {
