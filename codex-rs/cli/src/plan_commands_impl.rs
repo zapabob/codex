@@ -1,4 +1,4 @@
-﻿//! Plan command implementations
+//! Plan command implementations
 //!
 //! Implementation functions for Plan commands
 
@@ -63,7 +63,9 @@ pub async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
 
     let workspace_dir = std::env::current_dir()?;
     let collaboration_store = Arc::new(codex_core::orchestration::CollaborationStore::new());
-    let log_dir = Plan_dir.parent().unwrap().join("executions");
+    let log_dir = Plan_dir.parent()
+        .ok_or_else(|| anyhow::anyhow!("Plan directory has no parent: {}", Plan_dir.display()))?
+        .join("executions");
     let orchestrator = Arc::new(codex_core::orchestration::PlanOrchestrator::new(
         runtime,
         collaboration_store,
@@ -173,7 +175,9 @@ pub async fn rollback_execution(execution_id: &str, Plan_dir: &PathBuf) -> Resul
 
     let workspace_dir = std::env::current_dir()?;
     let collaboration_store = Arc::new(CollaborationStore::new());
-    let log_dir = Plan_dir.parent().unwrap().join("executions");
+    let log_dir = Plan_dir.parent()
+        .ok_or_else(|| anyhow::anyhow!("Plan directory has no parent: {}", Plan_dir.display()))?
+        .join("executions");
     let orchestrator = Arc::new(PlanOrchestrator::new(
         runtime,
         collaboration_store,
@@ -217,7 +221,9 @@ pub async fn list_executions(
 
     let workspace_dir = std::env::current_dir()?;
     let collaboration_store = Arc::new(CollaborationStore::new());
-    let log_dir = Plan_dir.parent().unwrap().join("executions");
+    let log_dir = Plan_dir.parent()
+        .ok_or_else(|| anyhow::anyhow!("Plan directory has no parent: {}", Plan_dir.display()))?
+        .join("executions");
     let orchestrator = Arc::new(PlanOrchestrator::new(
         runtime,
         collaboration_store,

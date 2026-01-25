@@ -68,8 +68,18 @@ impl CoworkIntegrationManager {
         let script_path = self.config.scripts_dir.join(script_name);
 
         if !script_path.exists() {
-            anyhow::bail!("Script not found: {}", script_path.display());
+            anyhow::bail!(
+                "Script not found: {} (scripts_dir: {})",
+                script_path.display(),
+                self.config.scripts_dir.display()
+            );
         }
+
+        tracing::debug!(
+            "Executing Python script: {} with args: {:?}",
+            script_path.display(),
+            args
+        );
 
         let mut cmd = Command::new(&self.config.python_path);
         cmd.arg(&script_path);
@@ -85,7 +95,15 @@ impl CoworkIntegrationManager {
             self.config.scripts_dir.to_string_lossy().to_string(),
         );
 
-        let mut child = cmd.spawn().context("Failed to spawn Python process")?;
+        let mut child = cmd
+            .spawn()
+            .with_context(|| {
+                format!(
+                    "Failed to spawn Python process: {} {}",
+                    self.config.python_path.display(),
+                    script_path.display()
+                )
+            })?;
 
         // 入力データを送信（JSON形式）
         if let Some(input) = input_data
@@ -115,11 +133,17 @@ impl CoworkIntegrationManager {
 
         // JSON出力をパース
         let result_data: serde_json::Value = if !stdout.is_empty() {
-            serde_json::from_str(&stdout).unwrap_or_else(|_| {
+            serde_json::from_str(&stdout).unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Failed to parse JSON output from script {}: {}",
+                    script_name,
+                    e
+                );
                 serde_json::json!({
                     "success": output.status.success(),
                     "output": stdout,
-                    "error": stderr_value.clone()
+                    "error": stderr_value.clone(),
+                    "parse_error": format!("Failed to parse JSON: {}", e)
                 })
             })
         } else {

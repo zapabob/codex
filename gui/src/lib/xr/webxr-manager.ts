@@ -57,9 +57,15 @@ export class WebXRManager extends EventEmitter {
       }
 
       // Check for hand tracking (Windows 11 25H2)
-      const handTrackingSupported = await xr.isSessionSupported('immersive-vr') &&
-        xr.getSystem().hasFeature('hand-tracking')
-      this.handTrackingSupported = handTrackingSupported
+      try {
+        const system = await xr.getSystem()
+        const handTrackingSupported = await xr.isSessionSupported('immersive-vr') &&
+          system.hasFeature('hand-tracking')
+        this.handTrackingSupported = handTrackingSupported
+      } catch (error) {
+        console.warn('WebXR Manager: Failed to check hand tracking support', error)
+        this.handTrackingSupported = false
+      }
 
       if (handTrackingSupported) {
         console.log('WebXR Manager: Hand tracking supported')

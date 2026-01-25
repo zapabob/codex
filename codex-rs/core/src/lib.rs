@@ -153,9 +153,19 @@ pub use event_mapping::parse_turn_item;
 pub mod compact;
 pub mod otel_init;
 
+// Orchestration module: protected with conditional compilation to preserve when merging with upstream
+#[cfg(feature = "custom-features")]
+pub mod orchestration;
+
 // LLMOps, A2A Communication, Skill/MCP Integration, and Autonomous Orchestration
+// Custom features: protected with conditional compilation to preserve when merging with upstream
+#[cfg(feature = "custom-features")]
 pub mod a2a_communication;
+#[cfg(feature = "custom-features")]
 pub mod autonomous_orchestration;
+#[cfg(feature = "custom-features")]
 pub mod cowork_integration;
+#[cfg(feature = "custom-features")]
 pub mod llmops;
+#[cfg(feature = "custom-features")]
 pub mod skill_mcp_integration;

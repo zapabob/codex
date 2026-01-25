@@ -5,6 +5,7 @@
 
 use crate::HashMap;
 use crate::Result;
+use anyhow::Context;
 use serde::Deserialize;
 use serde::Serialize;
 use std::sync::Arc;
@@ -245,7 +246,10 @@ impl ResourceMonitor {
 
             // Update system information
             {
-                let mut system = self.system.lock().unwrap();
+                let mut system = self.system.lock().unwrap_or_else(|e| {
+                    tracing::error!("Failed to acquire system lock in monitoring_loop: {}", e);
+                    e.into_inner()
+                });
                 system.refresh_all();
             }
 
@@ -259,7 +263,10 @@ impl ResourceMonitor {
     }
 
     async fn command_loop(mut self) -> Result<()> {
-        let mut rx = self.command_rx.lock().unwrap().take().unwrap();
+        let mut rx = self.command_rx.lock()
+            .map_err(|e| anyhow::anyhow!("Failed to acquire command_rx lock: {}", e))?
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("Command receiver already taken"))?;
 
         while let Some(cmd) = rx.recv().await {
             match cmd {
@@ -300,7 +307,10 @@ impl ResourceMonitor {
     }
 
     fn get_sensors_internal(&self) -> HardwareSensors {
-        let mut system = self.system.lock().unwrap();
+        let mut system = self.system.lock().unwrap_or_else(|e| {
+            tracing::error!("Failed to acquire system lock in get_sensors_internal: {}", e);
+            e.into_inner()
+        });
         system.refresh_all();
 
         // CPU information
@@ -368,7 +378,12 @@ impl ResourceMonitor {
         }
 
         // Concurrent tasks check
-        let active_count = self.execution_manager.lock().unwrap().active_tasks.len();
+        let active_count = self.execution_manager.lock()
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire execution_manager lock: {}", e);
+                e.into_inner()
+            })
+            .active_tasks.len();
         if active_count >= self.limits.max_concurrent_tasks {
             events.push(ResourceEvent::LimitExceeded {
                 resource_type: "concurrent_tasks".to_string(),
@@ -387,7 +402,11 @@ impl ResourceMonitor {
         estimated_memory_mb: u32,
         priority: TaskPriority,
     ) -> bool {
-        let mut manager = self.execution_manager.lock().unwrap();
+        let mut manager = self.execution_manager.lock()
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire execution_manager lock in request_execution_internal: {}", e);
+                e.into_inner()
+            });
 
         // Check concurrent limit
         if manager.active_tasks.len() >= manager.max_concurrent {
@@ -417,7 +436,11 @@ impl ResourceMonitor {
     }
 
     fn release_execution_internal(&self, task_id: &str) {
-        let mut manager = self.execution_manager.lock().unwrap();
+        let mut manager = self.execution_manager.lock()
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire execution_manager lock in release_execution_internal: {}", e);
+                e.into_inner()
+            });
         manager.active_tasks.remove(task_id);
     }
 
@@ -447,7 +470,11 @@ impl ResourceMonitor {
     }
 
     fn get_active_tasks_internal(&self) -> Vec<String> {
-        let manager = self.execution_manager.lock().unwrap();
+        let manager = self.execution_manager.lock()
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire execution_manager lock in get_active_tasks_internal: {}", e);
+                e.into_inner()
+            });
         manager.active_tasks.keys().cloned().collect()
     }
 

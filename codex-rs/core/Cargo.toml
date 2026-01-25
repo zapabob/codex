@@ -115,7 +115,7 @@ wildmatch = { workspace = true }
 lsp-types = "0.95"
 tower-lsp = "0.20"
 sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono"] }
-oauth2 = "4.4"
+oauth2 = "5"
 
 [features]
 deterministic_process_ids = []
@@ -123,6 +123,8 @@ test-support = []
 agent_security = ["ed25519-dalek", "aes-gcm"]
 windows-ai = ["codex-windows-ai"]
 cuda = ["cudarc"]
+# Custom features: preserve custom functionality when merging with upstream
+custom-features = []
 
 
 [target.'cfg(target_os = "linux")'.dependencies]

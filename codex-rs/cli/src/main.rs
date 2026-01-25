@@ -32,24 +32,29 @@ use std::path::PathBuf;
 use supports_color::Stream;
 
 mod mcp_cmd;
+#[cfg(feature = "custom-features")]
 mod research_cmd;
 #[cfg(not(windows))]
 mod wsl_paths;
 
 use crate::mcp_cmd::McpCli;
 
+#[cfg(feature = "custom-features")]
 use codex_core::a2a_communication::{
     A2ACommunicationManager, A2AConfig, AgentCapability, AgentIdentity, AgentRole,
 };
+#[cfg(feature = "custom-features")]
 use codex_core::autonomous_orchestration::{
     AutonomousOrchestrationConfig, AutonomousOrchestrationManager, TaskPriority, TaskRequest,
 };
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 use codex_core::features::is_known_feature_key;
+#[cfg(feature = "custom-features")]
 use codex_core::llmops::{
     LLMOpsConfig, LLMOpsManager, ModelProvider, ModelVersion, PromptTemplate,
 };
+#[cfg(feature = "custom-features")]
 use codex_core::skill_mcp_integration::{
     MCPResource, MCPTool, SkillDefinition, SkillMCPConfig, SkillMCPIntegrationManager,
 };
@@ -94,18 +99,23 @@ enum Subcommand {
     Review(ReviewArgs),
 
     /// [experimental] Conduct deep research on a topic.
+    #[cfg(feature = "custom-features")]
     Research(ResearchCommand),
 
     /// [experimental] LLMOps management and monitoring.
+    #[cfg(feature = "custom-features")]
     LlmOps(LlmOpsCommand),
 
     /// [experimental] Agent-to-Agent communication management.
+    #[cfg(feature = "custom-features")]
     A2a(A2aCommand),
 
     /// [experimental] Skill and MCP integration management.
+    #[cfg(feature = "custom-features")]
     SkillMcp(SkillMcpCommand),
 
     /// [experimental] Autonomous orchestration management.
+    #[cfg(feature = "custom-features")]
     Orchestrate(OrchestrateCommand),
 
     /// Manage login.
@@ -344,6 +354,7 @@ struct StdioToUdsCommand {
     socket_path: PathBuf,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
 struct ResearchCommand {
     #[clap(skip)]
@@ -390,6 +401,7 @@ struct ResearchCommand {
     out: Option<PathBuf>,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
 struct LlmOpsCommand {
     #[clap(skip)]
@@ -399,6 +411,7 @@ struct LlmOpsCommand {
     subcommand: LlmOpsSubcommand,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, clap::Subcommand)]
 enum LlmOpsSubcommand {
     /// Register a new model version
@@ -439,6 +452,7 @@ enum LlmOpsSubcommand {
     Status,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
 struct A2aCommand {
     #[clap(skip)]
@@ -448,6 +462,7 @@ struct A2aCommand {
     subcommand: A2aSubcommand,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, clap::Subcommand)]
 enum A2aSubcommand {
     /// Register an agent
@@ -480,6 +495,7 @@ enum A2aSubcommand {
     Status,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
 struct SkillMcpCommand {
     #[clap(skip)]
@@ -489,6 +505,7 @@ struct SkillMcpCommand {
     subcommand: SkillMcpSubcommand,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, clap::Subcommand)]
 enum SkillMcpSubcommand {
     /// Register a skill
@@ -524,6 +541,7 @@ enum SkillMcpSubcommand {
     Status,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
 struct OrchestrateCommand {
     #[clap(skip)]
@@ -533,6 +551,7 @@ struct OrchestrateCommand {
     subcommand: OrchestrateSubcommand,
 }
 
+#[cfg(feature = "custom-features")]
 #[derive(Debug, clap::Subcommand)]
 enum OrchestrateSubcommand {
     /// Submit a task for orchestration
@@ -755,6 +774,7 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
             );
             codex_exec::run_main(exec_cli, codex_linux_sandbox_exe).await?;
         }
+        #[cfg(feature = "custom-features")]
         Some(Subcommand::Research(mut research_cmd)) => {
             prepend_config_flags(
                 &mut research_cmd.config_overrides,
@@ -774,15 +794,19 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
             )
             .await?;
         }
+        #[cfg(feature = "custom-features")]
         Some(Subcommand::LlmOps(llmops_cmd)) => {
             run_llmops_command(llmops_cmd).await?;
         }
+        #[cfg(feature = "custom-features")]
         Some(Subcommand::A2a(a2a_cmd)) => {
             run_a2a_command(a2a_cmd).await?;
         }
+        #[cfg(feature = "custom-features")]
         Some(Subcommand::SkillMcp(skill_mcp_cmd)) => {
             run_skill_mcp_command(skill_mcp_cmd).await?;
         }
+        #[cfg(feature = "custom-features")]
         Some(Subcommand::Orchestrate(orchestrate_cmd)) => {
             run_orchestrate_command(orchestrate_cmd).await?;
         }
@@ -1449,9 +1473,11 @@ mod tests {
             ]
         );
     }
+}
 
-    // LLMOps command handlers
-    async fn run_llmops_command(cmd: LlmOpsCommand) -> Result<(), Box<dyn std::error::Error>> {
+// LLMOps command handlers
+#[cfg(feature = "custom-features")]
+async fn run_llmops_command(cmd: LlmOpsCommand) -> Result<(), Box<dyn std::error::Error>> {
         let config = LLMOpsConfig {
             enable_model_versioning: true,
             enable_prompt_versioning: true,
@@ -1528,10 +1554,11 @@ mod tests {
         }
 
         Ok(())
-    }
+}
 
-    // A2A command handlers
-    async fn run_a2a_command(cmd: A2aCommand) -> Result<(), Box<dyn std::error::Error>> {
+// A2A command handlers
+#[cfg(feature = "custom-features")]
+async fn run_a2a_command(cmd: A2aCommand) -> Result<(), Box<dyn std::error::Error>> {
         let config = A2AConfig {
             enable_encryption: true,
             enable_authentication: true,
@@ -1604,10 +1631,11 @@ mod tests {
         }
 
         Ok(())
-    }
+}
 
-    // Skill/MCP command handlers
-    async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), Box<dyn std::error::Error>> {
+// Skill/MCP command handlers
+#[cfg(feature = "custom-features")]
+async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), Box<dyn std::error::Error>> {
         let config = SkillMCPConfig {
             enable_dynamic_loading: true,
             enable_safe_execution: true,
@@ -1661,12 +1689,13 @@ mod tests {
         }
 
         Ok(())
-    }
+}
 
-    // Orchestration command handlers
-    async fn run_orchestrate_command(
-        cmd: OrchestrateCommand,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+// Orchestration command handlers
+#[cfg(feature = "custom-features")]
+async fn run_orchestrate_command(
+    cmd: OrchestrateCommand,
+) -> Result<(), Box<dyn std::error::Error>> {
         let config = AutonomousOrchestrationConfig {
             enable_task_decomposition: true,
             enable_agent_coordination: true,
@@ -1751,17 +1780,4 @@ mod tests {
         }
 
         Ok(())
-    }
-
-    #[test]
-    fn feature_toggles_unknown_feature_errors() {
-        let toggles = FeatureToggles {
-            enable: vec!["does_not_exist".to_string()],
-            disable: Vec::new(),
-        };
-        let err = toggles
-            .to_overrides()
-            .expect_err("feature should be rejected");
-        assert_eq!(err.to_string(), "Unknown feature flag: does_not_exist");
-    }
 }

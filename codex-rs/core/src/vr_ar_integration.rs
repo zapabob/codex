@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 use tokio::sync::broadcast;
 
 /// VR/AR integration for Git4D visualization
@@ -102,6 +103,8 @@ impl VRARIntegration {
 
     /// Initialize XR system for specific platform
     pub async fn initialize_platform(&mut self, platform: XRPlatform) -> Result<(), Box<dyn std::error::Error>> {
+        let init_start = Instant::now();
+        tracing::info!("Initializing XR platform: {:?}", platform);
         match platform {
             XRPlatform::OculusQuest2 | XRPlatform::OculusQuest3 => {
                 self.initialize_oculus().await?;
@@ -128,6 +131,7 @@ impl VRARIntegration {
 
     /// Update VR/AR state and process events
     pub async fn update(&mut self) -> Result<Vec<VREvent>, Box<dyn std::error::Error>> {
+        let update_start = Instant::now();
         let mut events = Vec::new();
 
         // Update XR system
@@ -148,6 +152,14 @@ impl VRARIntegration {
         // Update anchors
         for anchor_event in self.anchor_system.update().await? {
             events.push(anchor_event);
+        }
+
+        if !events.is_empty() {
+            tracing::debug!(
+                "VR/AR update: {} events processed in {:?}",
+                events.len(),
+                update_start.elapsed()
+            );
         }
 
         Ok(events)
@@ -326,13 +338,15 @@ impl AnchorSystem {
     }
 
     pub async fn add_anchor(&self, anchor: Anchor) -> Result<(), Box<dyn std::error::Error>> {
-        let mut anchors = self.anchors.lock().unwrap();
+        let mut anchors = self.anchors.lock()
+            .map_err(|e| format!("Failed to lock anchors: {}", e))?;
         anchors.insert(anchor.id.clone(), anchor);
         Ok(())
     }
 
     pub async fn find_nearest_anchor(&self, position: [f32; 3], max_distance: f32) -> Result<Option<Anchor>, Box<dyn std::error::Error>> {
-        let anchors = self.anchors.lock().unwrap();
+        let anchors = self.anchors.lock()
+            .map_err(|e| format!("Failed to lock anchors: {}", e))?;
 
         let mut nearest: Option<(&String, &Anchor, f32)> = None;
 
@@ -459,6 +473,6 @@ mod tests {
 
         let found = anchor_system.find_nearest_anchor([1.0, 2.0, 3.0], 1.0).await;
         assert!(found.is_ok());
-        assert!(found.unwrap().is_some());
+        assert!(found.expect("find_nearest_anchor should succeed").is_some());
     }
 }

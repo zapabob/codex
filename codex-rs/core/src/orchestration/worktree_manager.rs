@@ -10,6 +10,9 @@ use serde::Serialize;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
+use tracing::debug;
+use tracing::info;
+use tracing::warn;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorktreeInfo {
@@ -43,6 +46,7 @@ impl WorktreeManager {
 
     /// Create a new worktree for an agent
     pub fn create_worktree(&self, agent_name: &str, task_id: &str) -> Result<WorktreeInfo> {
+        info!("Creating worktree for agent: {} (task: {})", agent_name, task_id);
         let branch_name = format!("codex/{agent_name}/{task_id}");
         let worktree_name = format!("{agent_name}_{task_id}");
         let worktree_path = self.worktree_base.join(&worktree_name);
@@ -68,12 +72,15 @@ impl WorktreeManager {
         }
 
         // Create worktree
+        let worktree_path_str = worktree_path
+            .to_str()
+            .context("Worktree path contains invalid UTF-8")?;
         let output = Command::new("git")
             .current_dir(&self.repo_path)
             .args([
                 "worktree",
                 "add",
-                worktree_path.to_str().unwrap(),
+                worktree_path_str,
                 &branch_name,
             ])
             .output()
@@ -81,9 +88,11 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
+            warn!("Git worktree creation failed: {}", stderr);
             anyhow::bail!("Git worktree creation failed: {stderr}");
         }
 
+        info!("Successfully created worktree: {} at {}", worktree_name, worktree_path.display());
         Ok(WorktreeInfo {
             name: worktree_name,
             path: worktree_path,
@@ -94,15 +103,19 @@ impl WorktreeManager {
 
     /// Remove a worktree and its branch
     pub fn remove_worktree(&self, worktree_name: &str) -> Result<()> {
+        debug!("Removing worktree: {}", worktree_name);
         let worktree_path = self.worktree_base.join(worktree_name);
 
         if worktree_path.exists() {
+            let worktree_path_str = worktree_path
+                .to_str()
+                .context("Worktree path contains invalid UTF-8")?;
             let output = Command::new("git")
                 .current_dir(&self.repo_path)
                 .args([
                     "worktree",
                     "remove",
-                    worktree_path.to_str().unwrap(),
+                    worktree_path_str,
                     "--force",
                 ])
                 .output()
@@ -110,7 +123,9 @@ impl WorktreeManager {
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                eprintln!("Warning: Failed to remove worktree: {stderr}");
+                warn!("Failed to remove worktree: {}", stderr);
+            } else {
+                debug!("Successfully removed worktree: {}", worktree_name);
             }
         }
 
@@ -147,6 +162,7 @@ impl WorktreeManager {
                 && path.contains(".codex-worktrees")
             {
                 let agent = name.split('_').next().unwrap_or("unknown").to_string();
+                tracing::debug!("Found managed worktree: {} (agent: {})", name, agent);
 
                 worktrees.push(WorktreeInfo {
                     name: name.to_string(),
@@ -162,6 +178,7 @@ impl WorktreeManager {
 
     /// Merge a worktree branch back to main
     pub fn merge_worktree(&self, worktree_info: &WorktreeInfo, target_branch: &str) -> Result<()> {
+        info!("Merging worktree {} into branch {}", worktree_info.name, target_branch);
         // Switch to target branch
         let output = Command::new("git")
             .current_dir(&self.repo_path)
@@ -183,9 +200,11 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
+            warn!("Git merge failed: {}", stderr);
             anyhow::bail!("Git merge failed: {stderr}");
         }
 
+        info!("Successfully merged worktree {} into branch {}", worktree_info.name, target_branch);
         Ok(())
     }
 

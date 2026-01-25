@@ -28,6 +28,7 @@ use crate::client_common::Prompt;
 use crate::client_common::ResponseEvent;
 use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
+#[cfg(feature = "custom-features")]
 use crate::orchestration::CollaborationStore;
 use codex_otel::otel_manager::OtelManager as OtelEventManager;
 use codex_protocol::ConversationId;
@@ -67,6 +68,7 @@ pub struct AgentRuntime {
     /// Codexバイナリパス（MCP統合用）
     codex_binary_path: Option<PathBuf>,
     /// サブエージェント間の協調ストア
+    #[cfg(feature = "custom-features")]
     collaboration_store: Arc<CollaborationStore>,
     /// Reasoning effort設定
     reasoning_effort: ReasoningEffort,
@@ -104,6 +106,7 @@ impl AgentRuntime {
             provider,
             conversation_id,
             codex_binary_path: None,
+            #[cfg(feature = "custom-features")]
             collaboration_store: Arc::new(CollaborationStore::new()),
             reasoning_effort,
             reasoning_summary,
@@ -410,8 +413,11 @@ Only output the JSON, no explanation."#;
         }
 
         // コラボレーションストアに結果を保存
-        self.collaboration_store
-            .store_agent_result(agent_name.to_string(), result.clone());
+        #[cfg(feature = "custom-features")]
+        {
+            self.collaboration_store
+                .store_agent_result(agent_name.to_string(), result.clone());
+        }
 
         Ok(result)
     }
@@ -429,6 +435,7 @@ Only output the JSON, no explanation."#;
             provider: self.provider.clone(),
             conversation_id: self.conversation_id,
             codex_binary_path: self.codex_binary_path.clone(),
+            #[cfg(feature = "custom-features")]
             collaboration_store: self.collaboration_store.clone(),
             reasoning_effort: self.reasoning_effort,
             reasoning_summary: self.reasoning_summary,
@@ -457,18 +464,21 @@ Only output the JSON, no explanation."#;
 
         // 共有情報を入力へ取り込む
         let mut inputs = inputs;
-        let shared_context_snapshot = self.collaboration_store.get_all_context();
-        if !shared_context_snapshot.is_empty()
-            && let Ok(serialized) = serde_json::to_string(&shared_context_snapshot)
+        #[cfg(feature = "custom-features")]
         {
-            inputs.insert("shared_context".to_string(), serialized);
-        }
+            let shared_context_snapshot = self.collaboration_store.get_all_context();
+            if !shared_context_snapshot.is_empty()
+                && let Ok(serialized) = serde_json::to_string(&shared_context_snapshot)
+            {
+                inputs.insert("shared_context".to_string(), serialized);
+            }
 
-        let prior_results_snapshot = self.collaboration_store.get_all_results();
-        if !prior_results_snapshot.is_empty()
-            && let Ok(serialized) = serde_json::to_string(&prior_results_snapshot)
-        {
-            inputs.insert("collaboration_results".to_string(), serialized);
+            let prior_results_snapshot = self.collaboration_store.get_all_results();
+            if !prior_results_snapshot.is_empty()
+                && let Ok(serialized) = serde_json::to_string(&prior_results_snapshot)
+            {
+                inputs.insert("collaboration_results".to_string(), serialized);
+            }
         }
 
         // 予算を設定
@@ -584,8 +594,11 @@ Only output the JSON, no explanation."#;
         }
 
         // 実行結果を協調ストアに保存
-        self.collaboration_store
-            .store_agent_result(agent_name.to_string(), result.clone());
+        #[cfg(feature = "custom-features")]
+        {
+            self.collaboration_store
+                .store_agent_result(agent_name.to_string(), result.clone());
+        }
 
         Ok(result)
     }
@@ -1021,6 +1034,7 @@ impl AgentRuntime {
     }
 
     /// 協調ストアへの参照を取得
+    #[cfg(feature = "custom-features")]
     pub fn collaboration_store(&self) -> Arc<CollaborationStore> {
         self.collaboration_store.clone()
     }

@@ -1,9 +1,11 @@
 use crate::cuda_accelerator::{CudaGit4DAccelerator, GitCommitVertex, TransformationMatrix, RenderParameters};
 use crate::vr_ar_integration::{VRARIntegration, VRInteraction, VREvent, XRPlatform, Anchor, AnchorType};
+use anyhow::Context;
 use git2::{Repository, Commit, Oid};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time::{self, Duration};
 
@@ -45,7 +47,8 @@ pub struct Git4DVisualizationConfig {
 
 impl Git4DAcceleratedVisualizer {
     pub fn new(repo_path: &Path, config: Git4DVisualizationConfig) -> Result<Self, Box<dyn std::error::Error>> {
-        let repository = Repository::open(repo_path)?;
+        let repository = Repository::open(repo_path)
+            .with_context(|| format!("Failed to open git repository at: {}", repo_path.display()))?;
 
         // Initialize CUDA accelerator if enabled
         let cuda_accelerator = if config.enable_cuda {
@@ -92,18 +95,25 @@ impl Git4DAcceleratedVisualizer {
 
     /// Load and process Git commits for 4D visualization
     pub async fn load_commits(&self, config: &Git4DVisualizationConfig) -> Result<(), Box<dyn std::error::Error>> {
-        let mut commit_cache = self.commit_cache.lock().unwrap();
-        let mut branch_cache = self.branch_cache.lock().unwrap();
+        let start_time = Instant::now();
+        tracing::debug!("Starting to load commits (max_commits: {})", config.max_commits);
+
+        let mut commit_cache = self.commit_cache.lock()
+            .map_err(|e| format!("Failed to lock commit_cache: {}", e))?;
+        let mut branch_cache = self.branch_cache.lock()
+            .map_err(|e| format!("Failed to lock branch_cache: {}", e))?;
 
         // Clear existing data
         commit_cache.clear();
         branch_cache.clear();
 
         // Load branches
-        let branches = self.repository.branches(None)?;
+        let branches = self.repository.branches(None)
+            .context("Failed to get repository branches")?;
         let mut branch_id_counter = 0;
         let mut branch_ids = HashMap::new();
 
+        let branch_load_start = Instant::now();
         for (branch, _) in branches {
             if let Ok(Some(name)) = branch.name() {
                 if let Ok(Some(reference)) = branch.get() {
@@ -120,17 +130,27 @@ impl Git4DAcceleratedVisualizer {
                 }
             }
         }
+        tracing::debug!(
+            "Loaded {} branches in {:?}",
+            branch_ids.len(),
+            branch_load_start.elapsed()
+        );
+
+        tracing::debug!("Loaded {} branches in {:?}", branch_ids.len(), start_time.elapsed());
 
         // Process commits into 4D vertices
+        let vertex_process_start = Instant::now();
         let mut all_commits = Vec::new();
         let mut time_min = f64::INFINITY;
         let mut time_max = f64::NEG_INFINITY;
+        let total_commits: usize = branch_cache.values().map(|ids| ids.len()).sum();
 
         for (branch_name, commit_ids) in branch_cache.iter() {
             let branch_id = *branch_ids.get(branch_name).unwrap_or(&0);
 
             for (index, &commit_id) in commit_ids.iter().enumerate() {
-                if let Ok(commit) = self.repository.find_commit(commit_id) {
+                if let Ok(commit) = self.repository.find_commit(commit_id)
+                    .with_context(|| format!("Failed to find commit: {}", commit_id)) {
                     let time = commit.time().seconds() as f64;
                     time_min = time_min.min(time);
                     time_max = time_max.max(time);
@@ -152,23 +172,46 @@ impl Git4DAcceleratedVisualizer {
                 }
             }
         }
+        tracing::debug!(
+            "Processed {} commits into vertices in {:?}",
+            total_commits,
+            vertex_process_start.elapsed()
+        );
 
         // Update time range
         let time_range = ((time_min as f32).max(0.0), time_max as f32);
-        *self.time_range.lock().unwrap() = time_range;
+        *self.time_range.lock()
+            .map_err(|e| format!("Failed to lock time_range: {}", e))? = time_range;
 
         // Send loaded event
         let _ = self.event_sender.send(Git4DEvent::CommitsLoaded(all_commits));
         let _ = self.event_sender.send(Git4DEvent::BranchesUpdated(branch_cache.clone()));
+
+        tracing::info!(
+            "Completed loading commits: {} commits, {} branches, total time: {:?}",
+            all_commits.len(),
+            branch_ids.len(),
+            start_time.elapsed()
+        );
 
         Ok(())
     }
 
     /// Render Git4D visualization
     pub async fn render(&self, config: &Git4DVisualizationConfig) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let commit_cache = self.commit_cache.lock().unwrap();
-        let time_range = *self.time_range.lock().unwrap();
-        let visible_branches = self.visible_branches.lock().unwrap();
+        let render_start = Instant::now();
+        tracing::debug!(
+            "Starting render: {}x{}",
+            config.render_width,
+            config.render_height
+        );
+
+        let commit_cache = self.commit_cache.lock()
+            .map_err(|e| format!("Failed to lock commit_cache: {}", e))?;
+        let time_range = *self.time_range.lock()
+            .map_err(|e| format!("Failed to lock time_range: {}", e))?;
+        let visible_branches = self.visible_branches.lock()
+            .map_err(|e| format!("Failed to lock visible_branches: {}", e))?;
 
         // Filter visible commits
         let mut vertices: Vec<GitCommitVertex> = commit_cache.values()
@@ -243,11 +286,19 @@ impl Git4DAcceleratedVisualizer {
         // Send render complete event
         let _ = self.event_sender.send(Git4DEvent::RenderComplete(rgba_data.clone()));
 
+        tracing::debug!(
+            "Render completed: {} bytes, {} vertices, time: {:?}",
+            rgba_data.len(),
+            vertices.len(),
+            render_start.elapsed()
+        );
+
         Ok(rgba_data)
     }
 
     /// Process VR/AR interactions
     pub async fn process_vr_interactions(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        tracing::debug!("Starting VR/AR interaction processing");
         if let Some(vr_ar) = &mut self.vr_ar_integration {
             // Subscribe to VR events
             let mut event_receiver = vr_ar.subscribe_events();
@@ -286,8 +337,10 @@ impl Git4DAcceleratedVisualizer {
 
     /// Handle VR event
     async fn handle_vr_event(&mut self, event: VREvent) -> Result<(), Box<dyn std::error::Error>> {
+        tracing::debug!("Handling VR event: {:?}", event);
         match event {
             VREvent::GestureRecognized(gesture, hand) => {
+                tracing::debug!("Gesture recognized: {:?} with {:?}", gesture, hand);
                 if let Some(vr_ar) = &mut self.vr_ar_integration {
                     // Get hand position (simplified)
                     let position = [0.0, 0.0, 0.0]; // Would get from VR system
@@ -300,7 +353,12 @@ impl Git4DAcceleratedVisualizer {
             }
             VREvent::AnchorCreated(anchor) => {
                 // Handle anchor creation for Git commits
-                println!("Anchor created: {} at {:?}", anchor.id, anchor.position);
+                tracing::info!(
+                    "Anchor created: {} at {:?} (type: {:?})",
+                    anchor.id,
+                    anchor.position,
+                    anchor.anchor_type
+                );
             }
             _ => {}
         }
@@ -310,24 +368,30 @@ impl Git4DAcceleratedVisualizer {
 
     /// Handle VR interaction
     async fn handle_interaction(&mut self, interaction: VRInteraction) -> Result<(), Box<dyn std::error::Error>> {
+        tracing::debug!("Handling VR interaction: {:?}", interaction);
         match interaction {
             VRInteraction::SelectAnchor(anchor_id) => {
-                println!("Selected anchor: {}", anchor_id);
+                tracing::info!("Selected anchor: {}", anchor_id);
                 // Could highlight commit, show details, etc.
             }
             VRInteraction::CreateTimeAnchor(anchor_id) => {
-                println!("Created time anchor: {}", anchor_id);
+                tracing::info!("Created time anchor: {}", anchor_id);
                 // Could create time bookmark
             }
             VRInteraction::ToggleBranchVisibility => {
+                tracing::debug!("Toggling branch visibility");
                 // Toggle all branches or cycle through them
-                let mut visible_branches = self.visible_branches.lock().unwrap();
+                let mut visible_branches = self.visible_branches.lock()
+                    .map_err(|e| format!("Failed to lock visible_branches: {}", e))?;
                 if visible_branches.is_empty() {
                     // Show all branches
-                    let branch_cache = self.branch_cache.lock().unwrap();
+                    let branch_cache = self.branch_cache.lock()
+                        .map_err(|e| format!("Failed to lock branch_cache: {}", e))?;
                     for (branch_name, commits) in branch_cache.iter() {
                         if let Some(first_commit) = commits.first() {
-                            if let Ok(vertex) = self.commit_cache.lock().unwrap().get(first_commit) {
+                            if let Ok(vertex) = self.commit_cache.lock()
+                                .map_err(|e| format!("Failed to lock commit_cache: {}", e))?
+                                .get(first_commit) {
                                 visible_branches.insert(vertex.branch_id);
                             }
                         }
@@ -338,7 +402,7 @@ impl Git4DAcceleratedVisualizer {
             }
             VRInteraction::ZoomToFit => {
                 // Reset camera to show all commits
-                println!("Zoom to fit requested");
+                tracing::info!("Zoom to fit requested");
             }
             _ => {}
         }
@@ -348,6 +412,7 @@ impl Git4DAcceleratedVisualizer {
 
     /// Traverse commit graph to collect commits
     fn traverse_commits(&self, start_commit: &Commit, commits: &mut Vec<Oid>, max_commits: usize) -> Result<(), Box<dyn std::error::Error>> {
+        let traverse_start = Instant::now();
         let mut visited = HashSet::new();
         let mut queue = VecDeque::new();
 
@@ -361,7 +426,8 @@ impl Git4DAcceleratedVisualizer {
 
             commits.push(commit_id);
 
-            if let Ok(commit) = self.repository.find_commit(commit_id) {
+            if let Ok(commit) = self.repository.find_commit(commit_id)
+                .with_context(|| format!("Failed to find commit during traversal: {}", commit_id)) {
                 for parent in commit.parents() {
                     if !visited.contains(&parent.id()) {
                         visited.insert(parent.id());
@@ -370,6 +436,12 @@ impl Git4DAcceleratedVisualizer {
                 }
             }
         }
+
+        tracing::debug!(
+            "Traversed {} commits in {:?}",
+            commits.len(),
+            traverse_start.elapsed()
+        );
 
         Ok(())
     }
@@ -547,20 +619,27 @@ mod tests {
 
     #[tokio::test]
     async fn test_git4d_visualizer_creation() {
-        let temp_dir = TempDir::new().unwrap();
+        let temp_dir = TempDir::new()
+            .expect("Failed to create temporary directory");
         let repo_path = temp_dir.path();
 
         // Initialize a test git repo
-        let repo = git2::Repository::init(repo_path).unwrap();
+        let repo = git2::Repository::init(repo_path)
+            .expect("Failed to initialize test git repository");
 
         // Create initial commit
-        let sig = git2::Signature::now("Test Author", "test@example.com").unwrap();
+        let sig = git2::Signature::now("Test Author", "test@example.com")
+            .expect("Failed to create git signature");
         let tree_id = {
-            let mut index = repo.index().unwrap();
-            index.write_tree().unwrap()
+            let mut index = repo.index()
+                .expect("Failed to get repository index");
+            index.write_tree()
+                .expect("Failed to write tree to index")
         };
-        let tree = repo.find_tree(tree_id).unwrap();
-        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[]).unwrap();
+        let tree = repo.find_tree(tree_id)
+            .expect("Failed to find tree");
+        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[])
+            .expect("Failed to create initial commit");
 
         let config = Git4DVisualizationConfig {
             enable_cuda: false,
@@ -579,29 +658,39 @@ mod tests {
 
     #[tokio::test]
     async fn test_load_commits() {
-        let temp_dir = TempDir::new().unwrap();
+        let temp_dir = TempDir::new()
+            .expect("Failed to create temporary directory");
         let repo_path = temp_dir.path();
 
         // Initialize test repo with some commits
-        let repo = git2::Repository::init(repo_path).unwrap();
-        let sig = git2::Signature::now("Test Author", "test@example.com").unwrap();
+        let repo = git2::Repository::init(repo_path)
+            .expect("Failed to initialize test git repository");
+        let sig = git2::Signature::now("Test Author", "test@example.com")
+            .expect("Failed to create git signature");
 
         // Create a few commits
         for i in 0..3 {
             let tree_id = {
-                let mut index = repo.index().unwrap();
-                index.write_tree().unwrap()
+                let mut index = repo.index()
+                    .expect("Failed to get repository index");
+                index.write_tree()
+                    .expect("Failed to write tree to index")
             };
-            let tree = repo.find_tree(tree_id).unwrap();
+            let tree = repo.find_tree(tree_id)
+                .expect("Failed to find tree");
 
             let parent = if i > 0 {
-                Some(repo.head().unwrap().peel_to_commit().unwrap())
+                Some(repo.head()
+                    .expect("Failed to get HEAD reference")
+                    .peel_to_commit()
+                    .expect("Failed to peel HEAD to commit"))
             } else {
                 None
             };
 
             let parents = parent.as_ref().map(|p| vec![p]).unwrap_or_default();
-            repo.commit(Some("HEAD"), &sig, &sig, &format!("Commit {}", i), &tree, &parents).unwrap();
+            repo.commit(Some("HEAD"), &sig, &sig, &format!("Commit {}", i), &tree, &parents)
+                .expect(&format!("Failed to create commit {}", i));
         }
 
         let config = Git4DVisualizationConfig {
@@ -615,7 +704,8 @@ mod tests {
             render_height: 1080,
         };
 
-        let visualizer = Git4DAcceleratedVisualizer::new(repo_path, config).unwrap();
+        let visualizer = Git4DAcceleratedVisualizer::new(repo_path, config)
+            .expect("Failed to create Git4DAcceleratedVisualizer");
         assert!(visualizer.load_commits(&config).await.is_ok());
     }
 }
