@@ -13,19 +13,19 @@ todos:
     status: completed
   - id: merge_upstream
     content: upstream/mainをマージ（コンフリクト解決時に独自機能を保護）
-    status: in_progress
+    status: completed
   - id: verify_build
     content: ビルド確認（custom-featuresフラグ付き）
-    status: pending
+    status: completed
   - id: verify_types
     content: 型チェック確認
-    status: pending
+    status: completed
   - id: verify_tests
     content: テスト実行と独自機能の動作確認
-    status: pending
+    status: completed
   - id: update_docs
     content: 実装ログを更新
-    status: pending
+    status: completed
 isProject: false
 ---
 
