@@ -1804,6 +1804,7 @@ version = "2.11.1"
 dependencies = [
  "axum",
  "chrono",
+ "codex-core",
  "futures-util",
  "http 1.4.0",
  "serde",

@@ -2,6 +2,22 @@
 //!
 //! Defines the core data structures for plan mode, including the
 //! PlanBlock which represents a complete planning artifact.
+//!
+//! ## Alignment with Official Plan Mode
+//!
+//! The `PlanBlock` structure captures the structured output from the official Plan Mode
+//! collaboration template. Key fields align with the 2-phase approach:
+//!
+//! - **Phase 1 (Intent)**: `goal`, `assumptions`, `clarifying_questions`
+//! - **Phase 2 (Implementation)**: `approach`, `work_items`, `risks`, `eval`
+//!
+//! The `clarifying_questions` field should contain questions that:
+//! - Materially change the spec/plan, OR
+//! - Confirm/lock an assumption, OR
+//! - Choose between meaningful tradeoffs
+//!
+//! Questions should be batched (4-10 per interaction) to maintain momentum, following
+//! the official Plan Mode improvements from commits #9877 and #9874.
 
 use chrono::DateTime;
 use chrono::Utc;
@@ -262,6 +278,15 @@ pub struct PlanBlock {
 
 impl PlanBlock {
     /// Create a new Plan from a goal
+    ///
+    /// Initializes a PlanBlock in Drafting state. The plan should be populated following
+    /// the official Plan Mode 2-phase conversational approach:
+    ///
+    /// - **Phase 1**: Populate `goal`, `assumptions`, `clarifying_questions`
+    /// - **Phase 2**: Populate `approach`, `work_items`, `risks`, `eval`
+    ///
+    /// The `clarifying_questions` field should be used to batch important questions
+    /// (4-10 per interaction) that materially change the plan or capture tradeoffs.
     pub fn new(goal: String, title: String) -> Self {
         let now = Utc::now();
         let id = format!(

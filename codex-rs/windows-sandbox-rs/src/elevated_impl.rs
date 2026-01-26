@@ -126,7 +126,7 @@ mod windows_impl {
     /// Generates a unique named-pipe path used to communicate with the runner process.
     fn pipe_name(suffix: &str) -> String {
         let mut rng = SmallRng::from_entropy();
-        format!(r"\\.\pipe\codex-runner-{:x}-{}", rng.gen::<u128>(), suffix)
+        format!(r"\\.\pipe\codex-runner-{:x}-{}", rng.r#gen::<u128>(), suffix)
     }
 
     /// Creates a named pipe with permissive ACLs so the sandbox user can connect.
@@ -289,7 +289,7 @@ mod windows_impl {
         let base_tmp = sandbox_base.join("requests");
         std::fs::create_dir_all(&base_tmp)?;
         let mut rng = SmallRng::from_entropy();
-        let req_file = base_tmp.join(format!("request-{:x}.json", rng.gen::<u128>()));
+        let req_file = base_tmp.join(format!("request-{:x}.json", rng.r#gen::<u128>()));
         let payload = RunnerPayload {
             policy_json_or_preset: policy_json_or_preset.to_string(),
             sandbox_policy_cwd: sandbox_policy_cwd.to_path_buf(),

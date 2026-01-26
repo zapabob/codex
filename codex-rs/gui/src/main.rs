@@ -10,10 +10,8 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-// SSE implementation using manual response
 use axum::body::Body;
 use axum::http::header;
-use futures_util::Stream;
 use axum::routing::get;
 use axum::routing::post;
 use futures_util::stream;
@@ -1296,7 +1294,7 @@ async fn list_git4d_sessions() -> Json<Vec<Git4DSessionInfo>> {
 #[axum::debug_handler]
 async fn git4d_events_stream(
     Path(session_id): Path<String>,
-) -> Result<Sse<impl stream::Stream<Item = Result<Event, Infallible>>>, GuiError> {
+) -> Result<Response, GuiError> {
     use codex_core::git4d_accelerated::Git4DAcceleratedVisualizer;
     use tokio_stream::{wrappers::BroadcastStream, StreamExt as _};
     
@@ -1317,12 +1315,21 @@ async fn git4d_events_stream(
                 Err(_) => r#"{"type":"error","message":"receive_failed"}"#.to_string(),
             };
             
-            Ok::<Event, Infallible>(Event::default().data(event_data))
+            // Format as SSE event: "data: {json}\n\n"
+            format!("data: {}\n\n", event_data)
         });
     
-    Ok(Sse::new(stream).keep_alive(
-        KeepAlive::new()
-            .interval(Duration::from_secs(15))
-            .text("keep-alive-text".to_string()),
-    ))
+    // Create SSE response with proper headers
+    let body = Body::from_stream(stream);
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "text/event-stream")
+        .header(header::CACHE_CONTROL, "no-cache")
+        .header(header::CONNECTION, "keep-alive")
+        .body(body)
+        .map_err(|e| GuiError::Internal {
+            message: format!("Failed to create SSE response: {}", e),
+        })?;
+    
+    Ok(response)
 }

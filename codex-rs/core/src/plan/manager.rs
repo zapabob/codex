@@ -1,6 +1,39 @@
 //! Plan manager
 //!
 //! High-level API for creating, updating, approving, and exporting plan.
+//!
+//! ## Integration with Official Plan Mode
+//!
+//! This custom Plan module works in conjunction with the official Plan Mode collaboration
+//! template (`codex-rs/core/templates/collaboration_mode/plan.md`). The official template
+//! provides the conversational prompt structure for LLM interactions, while this module
+//! manages the structured `PlanBlock` data that results from those interactions.
+//!
+//! ### Official Plan Mode Improvements (commits #9877, #9874)
+//!
+//! The official Plan Mode follows a 2-phase conversational approach:
+//!
+//! **PHASE 1 — Intent chat**: Gather goal, success criteria, audience, scope, constraints,
+//! current state, and key preferences/tradeoffs. Bias toward questions over guessing.
+//!
+//! **PHASE 2 — Implementation chat**: Once intent is stable, gather decision-complete spec:
+//! approach, interfaces, data flow, edge cases, testing criteria, rollout/monitoring.
+//!
+//! Key principles:
+//! - Ask many questions, but only those that materially change the spec/plan
+//! - Batch questions (4-10) per `request_user_input` call
+//! - Explore discoverable facts first before asking
+//! - Ask preferences/tradeoffs early with 2-4 options + recommended default
+//!
+//! ### Custom Plan Features
+//!
+//! This module extends the official Plan Mode with advanced features:
+//! - **Budget management**: Token and time budgets per step and session
+//! - **Execution logging**: Detailed logs of plan execution with events
+//! - **Orchestration**: Support for single, orchestrated, and competition execution modes
+//! - **Research integration**: Deep research capabilities for plan creation
+//! - **Quality assurance**: QC analysis and quality gates
+//! - **State management**: Drafting, approval, execution, and completion states
 
 use super::persist::PlanPersister;
 use super::policy::ApprovalRole;
@@ -70,6 +103,25 @@ impl PlanManager {
     }
 
     /// Create a new Plan
+    ///
+    /// Creates a new PlanBlock in Drafting state. The Plan should be populated through
+    /// interactions following the official Plan Mode 2-phase approach:
+    ///
+    /// 1. **Intent chat**: Populate `goal`, `assumptions`, and `clarifying_questions`
+    /// 2. **Implementation chat**: Populate `approach`, `work_items`, `risks`, and `eval`
+    ///
+    /// See `codex-rs/core/templates/collaboration_mode/plan.md` for the official
+    /// conversational prompt structure.
+    ///
+    /// # Arguments
+    ///
+    /// * `goal` - High-level goal for the plan (from Phase 1)
+    /// * `title` - Descriptive title for the plan
+    /// * `created_by` - Optional identifier for the plan creator
+    ///
+    /// # Returns
+    ///
+    /// The unique Plan ID that can be used to retrieve or update the plan.
     #[allow(non_snake_case)]
     pub fn create_Plan(
         &self,
