@@ -43,6 +43,7 @@ mod subagent_tool;
 mod subagent_tool_handler;
 mod supervisor_tool;
 mod supervisor_tool_handler;
+mod windows_mcp_bridge;
 
 use crate::message_processor::MessageProcessor;
 use crate::outgoing_message::OutgoingMessage;

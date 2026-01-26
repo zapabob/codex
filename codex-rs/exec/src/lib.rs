@@ -25,7 +25,7 @@ use codex_core::auth::enforce_login_restrictions;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 use codex_core::config::find_codex_home;
-use codex_core::config::load_config_as_toml_with_cli_overrides;
+use codex_core::config::Config;
 use codex_core::config::resolve_oss_provider;
 use codex_core::config_loader::ConfigLoadError;
 use codex_core::config_loader::format_config_error_with_source;
@@ -175,9 +175,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
             }
         };
 
-        match load_config_as_toml_with_cli_overrides(
-            &codex_home,
-            &config_cwd,
+        match Config::load_with_cli_overrides(
             cli_kv_overrides.clone(),
         )
         .await

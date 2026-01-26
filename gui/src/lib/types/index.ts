@@ -156,9 +156,39 @@ export interface APIError {
   data?: any;
 }
 
+// WebSocket message data types
+export type ConversationUpdateData = {
+  conversationId: string;
+  updates: Record<string, unknown>;
+};
+
+export type AgentStatusData = {
+  agentId: string;
+  status: string;
+  progress?: number;
+};
+
+export type SystemMetricsData = {
+  cpu: number;
+  memory: number;
+  disk?: number;
+};
+
+export type NotificationData = {
+  message: string;
+  severity?: "info" | "warning" | "error";
+};
+
+export type WebSocketMessageData = 
+  | ConversationUpdateData 
+  | AgentStatusData 
+  | SystemMetricsData 
+  | NotificationData
+  | Record<string, unknown>;
+
 export interface WebSocketMessage {
   type: "conversation_update" | "agent_status" | "system_metrics" | "notification";
-  data: any;
+  data: WebSocketMessageData;
 }
 
 // Configuration Types
@@ -197,7 +227,7 @@ export interface AgentConfigForm {
   type: string;
   name: string;
   description?: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 // Component Props Types
@@ -227,16 +257,112 @@ export interface AsyncState<T> {
 }
 
 // Event Types
+export type ConversationEventData = {
+  messageId?: string;
+  message?: string;
+  status?: string;
+  agentId?: string;
+  [key: string]: unknown;
+};
+
+export type AgentEventData = {
+  status?: string;
+  taskId?: string;
+  error?: string;
+  [key: string]: unknown;
+};
+
 export interface ConversationEvent {
   type: "message_added" | "status_changed" | "agent_assigned";
   conversationId: string;
-  data: any;
+  data: ConversationEventData;
   timestamp: Date;
 }
 
 export interface AgentEvent {
   type: "status_changed" | "task_completed" | "error_occurred";
   agentId: string;
-  data: any;
+  data: AgentEventData;
   timestamp: Date;
+}
+
+// WebXR API Types
+export interface NavigatorXR {
+  xr?: XRSystem;
+}
+
+export interface XRSystem {
+  isSessionSupported(sessionType: XRSessionMode): Promise<boolean>;
+  requestSession(mode: XRSessionMode, options?: XRSessionInit): Promise<XRSession>;
+}
+
+export type XRSessionMode = 'inline' | 'immersive-vr' | 'immersive-ar';
+
+export interface XRSessionInit {
+  requiredFeatures?: string[];
+  optionalFeatures?: string[];
+}
+
+export interface XRSession extends EventTarget {
+  mode: XRSessionMode;
+  inputSources: XRInputSource[];
+  requestReferenceSpace(type: XRReferenceSpaceType): Promise<XRReferenceSpace>;
+  end(): Promise<void>;
+}
+
+export type XRReferenceSpaceType = 'viewer' | 'local' | 'local-floor' | 'bounded-floor' | 'unbounded';
+
+export interface XRReferenceSpace extends XRSpace {
+  getOffsetReferenceSpace(originOffset: XRRigidTransform): XRReferenceSpace;
+}
+
+export interface XRSpace extends EventTarget {}
+
+export interface XRRigidTransform {
+  position: DOMPointReadOnly;
+  orientation: DOMPointReadOnly;
+}
+
+export interface XRInputSource {
+  handedness: XRHandedness;
+  targetRayMode: XRTargetRayMode;
+  targetRaySpace: XRSpace;
+  gripSpace?: XRSpace;
+  profiles: string[];
+  gamepad?: Gamepad;
+  hand?: XRHand;
+}
+
+export type XRHandedness = 'none' | 'left' | 'right';
+export type XRTargetRayMode = 'gaze' | 'tracked-pointer' | 'screen';
+
+export interface XRHand {
+  size: number;
+  getJointPose(joint: XRHandJoint, baseSpace: XRSpace): XRJointPose | null;
+}
+
+export type XRHandJoint = 
+  | 'wrist'
+  | 'thumb-metacarpal' | 'thumb-phalanx-proximal' | 'thumb-phalanx-distal' | 'thumb-tip'
+  | 'index-finger-metacarpal' | 'index-finger-phalanx-proximal' | 'index-finger-phalanx-intermediate' | 'index-finger-phalanx-distal' | 'index-finger-tip'
+  | 'middle-finger-metacarpal' | 'middle-finger-phalanx-proximal' | 'middle-finger-phalanx-intermediate' | 'middle-finger-phalanx-distal' | 'middle-finger-tip'
+  | 'ring-finger-metacarpal' | 'ring-finger-phalanx-proximal' | 'ring-finger-phalanx-intermediate' | 'ring-finger-phalanx-distal' | 'ring-finger-tip'
+  | 'pinky-finger-metacarpal' | 'pinky-finger-phalanx-proximal' | 'pinky-finger-phalanx-intermediate' | 'pinky-finger-phalanx-distal' | 'pinky-finger-tip';
+
+export interface XRJointPose {
+  transform: XRRigidTransform;
+  radius: number;
+}
+
+// Git4D API Request Types
+export interface Git4DLaunchRequest {
+  mode: 'desktop' | 'vr' | 'ar';
+  repositoryPath: string;
+  virtualDesktop?: boolean;
+}
+
+export interface Git4DLaunchResponse {
+  sessionId: string;
+  platform?: string;
+  device_name?: string;
 }

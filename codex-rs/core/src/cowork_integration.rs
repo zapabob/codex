@@ -97,6 +97,21 @@ impl CoworkIntegrationManager {
             self.config.scripts_dir.to_string_lossy().to_string(),
         );
 
+        // サンドボックス設定（macOSライクサンドボックス統合）
+        if self.config.enable_sandbox {
+            // macOS Seatbeltスタイルのサンドボックス環境変数を設定
+            cmd.env("CODEX_SANDBOX_ENABLED", "1");
+            cmd.env("CODEX_SANDBOX_MODE", "macos-style");
+            
+            // ファイル共有とアクセス制御の設定
+            // サンドボックス内でのcowork機能の利用を許可
+            cmd.env("CODEX_COWORK_SANDBOXED", "1");
+            
+            // ネットワーク分離と許可リスト
+            // 必要に応じてネットワークアクセスを制限
+            cmd.env("CODEX_NETWORK_ISOLATION", "permissive");
+        }
+
         let mut child = cmd
             .spawn()
             .with_context(|| {

@@ -21,6 +21,8 @@ use crate::seatbelt::create_seatbelt_command_args;
 use crate::spawn::CODEX_SANDBOX_ENV_VAR;
 use crate::spawn::CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use crate::tools::sandboxing::SandboxablePreference;
+#[cfg(feature = "custom-features")]
+use crate::cowork_integration::CoworkIntegrationManager;
 pub use codex_protocol::models::SandboxPermissions;
 use std::collections::HashMap;
 use std::path::Path;
@@ -65,11 +67,31 @@ pub(crate) enum SandboxTransformError {
 }
 
 #[derive(Default)]
-pub struct SandboxManager;
+pub struct SandboxManager {
+    #[cfg(feature = "custom-features")]
+    cowork_manager: Option<CoworkIntegrationManager>,
+}
 
 impl SandboxManager {
     pub fn new() -> Self {
-        Self
+        Self {
+            #[cfg(feature = "custom-features")]
+            cowork_manager: None,
+        }
+    }
+
+    /// Create a new SandboxManager with cowork integration
+    #[cfg(feature = "custom-features")]
+    pub fn with_cowork(cowork_manager: CoworkIntegrationManager) -> Self {
+        Self {
+            cowork_manager: Some(cowork_manager),
+        }
+    }
+
+    /// Enable cowork functionality within sandbox
+    #[cfg(feature = "custom-features")]
+    pub fn enable_cowork_in_sandbox(&mut self, config: crate::cowork_integration::CoworkIntegrationConfig) {
+        self.cowork_manager = Some(CoworkIntegrationManager::new(config));
     }
 
     pub(crate) fn select_initial(

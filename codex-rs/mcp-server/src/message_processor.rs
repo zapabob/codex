@@ -5,6 +5,7 @@ use crate::codex_tool_config::CodexToolCallParam;
 use crate::codex_tool_config::CodexToolCallReplyParam;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_param;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_reply_param;
+use crate::windows_mcp_bridge::{handle_windows_25h2_tool, Windows25H2ToolParam};
 use crate::error_code::INVALID_REQUEST_ERROR_CODE;
 use crate::outgoing_message::OutgoingMessageSender;
 use codex_protocol::ThreadId;
@@ -305,11 +306,53 @@ impl MessageProcessor {
         params: <mcp_types::ListToolsRequest as mcp_types::ModelContextProtocolRequest>::Params,
     ) {
         tracing::trace!("tools/list -> {params:?}");
+        let mut tools = vec![
+            create_tool_for_codex_tool_call_param(),
+            create_tool_for_codex_tool_call_reply_param(),
+        ];
+
+        // Add Windows 11 25H2 tool if on Windows
+        #[cfg(target_os = "windows")]
+        {
+            use mcp_types::Tool;
+            use serde_json::json;
+            tools.push(Tool {
+                name: "windows-25h2".to_string(),
+                description: "Access Windows 11 25H2 specific features including AI acceleration, GPU statistics, and system information".to_string(),
+                input_schema: json!({
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": ["get-gpu-stats", "execute-with-ai", "check-ai-availability", "get-system-info", "enable-ai-acceleration"],
+                            "description": "Action to perform"
+                        },
+                        "params": {
+                            "type": "object",
+                            "description": "Optional parameters for the action",
+                            "properties": {
+                                "prompt": {
+                                    "type": "string",
+                                    "description": "Prompt for AI execution (required for execute-with-ai)"
+                                },
+                                "use_kernel_acceleration": {
+                                    "type": "boolean",
+                                    "description": "Use kernel driver acceleration (for execute-with-ai)"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "description": "Enable/disable AI acceleration (for enable-ai-acceleration)"
+                                }
+                            }
+                        }
+                    },
+                    "required": ["action"]
+                }),
+            });
+        }
+
         let result = ListToolsResult {
-            tools: vec![
-                create_tool_for_codex_tool_call_param(),
-                create_tool_for_codex_tool_call_reply_param(),
-            ],
+            tools,
             next_cursor: None,
         };
 
@@ -330,6 +373,9 @@ impl MessageProcessor {
             "codex-reply" => {
                 self.handle_tool_call_codex_session_reply(id, arguments)
                     .await
+            }
+            "windows-25h2" => {
+                self.handle_tool_call_windows_25h2(id, arguments).await;
             }
             _ => {
                 let result = CallToolResult {
@@ -640,5 +686,88 @@ impl MessageProcessor {
         params: <mcp_types::LoggingMessageNotification as mcp_types::ModelContextProtocolNotification>::Params,
     ) {
         tracing::info!("notifications/message -> params: {:?}", params);
+    }
+
+    async fn handle_tool_call_windows_25h2(
+        &self,
+        id: RequestId,
+        arguments: Option<serde_json::Value>,
+    ) {
+        let param: Windows25H2ToolParam = match arguments {
+            Some(json_val) => match serde_json::from_value(json_val) {
+                Ok(p) => p,
+                Err(e) => {
+                    let result = CallToolResult {
+                        content: vec![ContentBlock::TextContent(TextContent {
+                            r#type: "text".to_string(),
+                            text: format!("Failed to parse Windows 25H2 tool parameters: {e}"),
+                            annotations: None,
+                        })],
+                        is_error: Some(true),
+                        structured_content: None,
+                    };
+                    self.send_response::<mcp_types::CallToolRequest>(id, result)
+                        .await;
+                    return;
+                }
+            },
+            None => {
+                let result = CallToolResult {
+                    content: vec![ContentBlock::TextContent(TextContent {
+                        r#type: "text".to_string(),
+                        text: "Missing arguments for windows-25h2 tool".to_string(),
+                        annotations: None,
+                    })],
+                    is_error: Some(true),
+                    structured_content: None,
+                };
+                self.send_response::<mcp_types::CallToolRequest>(id, result)
+                    .await;
+                return;
+            }
+        };
+
+        match handle_windows_25h2_tool(param).await {
+            Ok(result) => {
+                let result_text = if result.success {
+                    format!(
+                        "{}\n\n{}",
+                        result.message.unwrap_or_default(),
+                        serde_json::to_string_pretty(&result.data).unwrap_or_default()
+                    )
+                } else {
+                    format!(
+                        "Error: {}\n\n{}",
+                        result.message.unwrap_or_else(|| "Unknown error".to_string()),
+                        serde_json::to_string_pretty(&result.data).unwrap_or_default()
+                    )
+                };
+
+                let call_result = CallToolResult {
+                    content: vec![ContentBlock::TextContent(TextContent {
+                        r#type: "text".to_string(),
+                        text: result_text,
+                        annotations: None,
+                    })],
+                    is_error: Some(!result.success),
+                    structured_content: None,
+                };
+                self.send_response::<mcp_types::CallToolRequest>(id, call_result)
+                    .await;
+            }
+            Err(e) => {
+                let result = CallToolResult {
+                    content: vec![ContentBlock::TextContent(TextContent {
+                        r#type: "text".to_string(),
+                        text: format!("Windows 25H2 tool execution failed: {e}"),
+                        annotations: None,
+                    })],
+                    is_error: Some(true),
+                    structured_content: None,
+                };
+                self.send_response::<mcp_types::CallToolRequest>(id, result)
+                    .await;
+            }
+        }
     }
 }

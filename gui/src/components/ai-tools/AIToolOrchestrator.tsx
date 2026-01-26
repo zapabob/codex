@@ -42,6 +42,17 @@ export function AIToolOrchestrator({
   const [selectedTask, setSelectedTask] = useState<DevelopmentTask | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
   const [executionProgress, setExecutionProgress] = useState(0)
+  const [naturalLanguagePrompt, setNaturalLanguagePrompt] = useState('')
+  const [selectedTools, setSelectedTools] = useState<string[]>([])
+  const [isExecutingNaturalLanguage, setIsExecutingNaturalLanguage] = useState(false)
+  const [naturalLanguageProgress, setNaturalLanguageProgress] = useState(0)
+
+  // Available AI tools for parallel execution
+  const availableAITools = aiTools.filter(tool => 
+    ['codex', 'opencode', 'claudecode', 'geminicli'].some(name => 
+      tool.name.toLowerCase().includes(name)
+    )
+  )
 
   // Simulate parallel execution
   useEffect(() => {
@@ -94,6 +105,82 @@ export function AIToolOrchestrator({
     setIsExecuting(false)
     setExecutionProgress(0)
     setSelectedTask(null)
+  }
+
+  const handleExecuteNaturalLanguagePrompt = async () => {
+    if (!naturalLanguagePrompt.trim() || selectedTools.length === 0) {
+      return
+    }
+
+    setIsExecutingNaturalLanguage(true)
+    setNaturalLanguageProgress(0)
+
+    try {
+      // Create a development task from natural language prompt
+      const task: DevelopmentTask = {
+        id: `task_${Date.now()}`,
+        title: naturalLanguagePrompt.substring(0, 50) + (naturalLanguagePrompt.length > 50 ? '...' : ''),
+        description: naturalLanguagePrompt,
+        assignedTools: selectedTools,
+        subtasks: selectedTools.map((toolId, index) => ({
+          id: `subtask_${Date.now()}_${index}`,
+          description: `Execute with ${availableAITools.find(t => t.id === toolId)?.name || toolId}`,
+          assignedTool: toolId,
+          status: 'pending' as const,
+          progress: 0,
+        })),
+        status: 'running' as const,
+        progress: 0,
+        complexity: 'medium' as const,
+        priority: 'high' as const,
+      }
+
+      // Execute task
+      onTaskExecute(task)
+
+      // Simulate parallel execution progress
+      const progressInterval = setInterval(() => {
+        setNaturalLanguageProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(progressInterval)
+            setIsExecutingNaturalLanguage(false)
+            
+            // Generate execution result
+            const result: ExecutionResult = {
+              taskId: task.id,
+              success: true,
+              integratedOutput: `Natural language prompt executed successfully using ${selectedTools.length} AI tools in parallel.`,
+              subtaskResults: task.subtasks.map(subtask => ({
+                subtaskId: subtask.id,
+                toolId: subtask.assignedTool,
+                success: true,
+                output: `Completed: ${subtask.description}`,
+                executionTime: Math.random() * 10 + 5,
+                qualityScore: 0.8 + Math.random() * 0.2,
+              })),
+              errors: [],
+              executionTime: Math.random() * 30 + 15,
+              qualityScore: 0.85 + Math.random() * 0.15,
+              recommendations: [
+                'Review results from all AI tools',
+                'Compare outputs for consistency',
+                'Integrate best solutions',
+              ],
+            }
+            onTaskComplete(task.id, result)
+            return 100
+          }
+          return prev + Math.random() * 10
+        })
+      }, 500)
+
+      // Cleanup on unmount
+      return () => clearInterval(progressInterval)
+    } catch (error) {
+      console.error('Failed to execute natural language prompt:', error)
+      setIsExecutingNaturalLanguage(false)
+      setNaturalLanguageProgress(0)
+    }
   }
 
   const getTaskComplexityColor = (complexity: DevelopmentTask['complexity']) => {
@@ -388,6 +475,112 @@ export function AIToolOrchestrator({
             ))}
           </div>
         )}
+      </Card>
+
+      {/* Natural Language Prompt Input */}
+      <Card className="p-6 border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Zap className="w-6 h-6 text-blue-600" />
+          Natural Language Prompt Execution
+        </h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Enter your prompt (CodexCLI, OPENCODE, ClaudeCode, GeminiCLI will execute in parallel)
+            </label>
+            <textarea
+              id="natural-language-prompt"
+              className="w-full p-4 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              rows={4}
+              placeholder="例: React 19のコンポーネントをTypeScriptで実装して、エラーハンドリングとローディング状態を追加してください..."
+              value={naturalLanguagePrompt}
+              onChange={(e) => setNaturalLanguagePrompt(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select AI Tools (Multiple selection)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {availableAITools.map((tool) => (
+                  <label
+                    key={tool.id}
+                    className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-blue-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedTools.includes(tool.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedTools([...selectedTools, tool.id])
+                        } else {
+                          setSelectedTools(selectedTools.filter(id => id !== tool.id))
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="text-sm font-medium">{tool.name}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {tool.status}
+                    </Badge>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              {selectedTools.length > 0 ? (
+                <span>
+                  {selectedTools.length} tool(s) selected: {selectedTools.map(id => 
+                    availableAITools.find(t => t.id === id)?.name
+                  ).filter(Boolean).join(', ')}
+                </span>
+              ) : (
+                <span className="text-orange-600">Please select at least one AI tool</span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setNaturalLanguagePrompt('')
+                  setSelectedTools([])
+                }}
+                disabled={isExecuting}
+              >
+                Clear
+              </Button>
+              <Button
+                onClick={handleExecuteNaturalLanguagePrompt}
+                disabled={isExecuting || !naturalLanguagePrompt.trim() || selectedTools.length === 0}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Execute in Parallel
+              </Button>
+            </div>
+          </div>
+
+          {isExecutingNaturalLanguage && (
+            <div className="mt-4 p-4 bg-blue-100 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-blue-900">Executing with {selectedTools.length} AI tools...</span>
+                <span className="text-sm text-blue-700">{naturalLanguageProgress}%</span>
+              </div>
+              <Progress value={naturalLanguageProgress} className="h-2" />
+              <div className="mt-2 text-sm text-blue-700">
+                Tools running: {selectedTools.map(id => 
+                  availableAITools.find(t => t.id === id)?.name
+                ).filter(Boolean).join(', ')}
+              </div>
+            </div>
+          )}
+        </div>
       </Card>
 
       {/* Quick Actions */}

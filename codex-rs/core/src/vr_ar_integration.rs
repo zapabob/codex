@@ -17,8 +17,11 @@ pub enum XRPlatform {
     OculusQuest2,
     OculusQuest3,
     AppleVisionPro,
-    VirtualDesktop,
+    AppleGlass,
+    HTCVive,
     SteamVR,
+    VirtualDesktop,
+    WindowsMixedReality,
     WebXR,
 }
 
@@ -109,14 +112,20 @@ impl VRARIntegration {
             XRPlatform::OculusQuest2 | XRPlatform::OculusQuest3 => {
                 self.initialize_oculus().await?;
             }
-            XRPlatform::AppleVisionPro => {
+            XRPlatform::AppleVisionPro | XRPlatform::AppleGlass => {
                 self.initialize_apple_vision().await?;
+            }
+            XRPlatform::HTCVive => {
+                self.initialize_vive().await?;
             }
             XRPlatform::VirtualDesktop => {
                 self.initialize_virtual_desktop().await?;
             }
             XRPlatform::SteamVR => {
                 self.initialize_steam_vr().await?;
+            }
+            XRPlatform::WindowsMixedReality => {
+                self.initialize_windows_mixed_reality().await?;
             }
             XRPlatform::WebXR => {
                 self.initialize_web_xr().await?;
@@ -254,6 +263,20 @@ impl VRARIntegration {
     async fn initialize_steam_vr(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         // SteamVR SDK initialization would go here
         println!("Initializing SteamVR integration...");
+        Ok(())
+    }
+
+    /// HTC VIVE (OpenXR) specific initialization
+    async fn initialize_vive(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        // HTC VIVE OpenXR SDK initialization would go here
+        println!("Initializing HTC VIVE (OpenXR) integration...");
+        Ok(())
+    }
+
+    /// Windows Mixed Reality specific initialization
+    async fn initialize_windows_mixed_reality(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        // Windows Mixed Reality SDK initialization would go here
+        println!("Initializing Windows Mixed Reality integration...");
         Ok(())
     }
 

@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "@react-three/fiber": "^8.15.12",
     "@react-three/drei": "^9.92.7",
     "@react-three/postprocessing": "^2.15.11",
@@ -21,8 +21,8 @@
     "axios": "^1.6.5"
   },
   "devDependencies": {
-    "@types/react": "^18.2.47",
-    "@types/react-dom": "^18.2.18",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@types/three": "^0.160.0",
     "@typescript-eslint/eslint-plugin": "^6.18.1",
     "@typescript-eslint/parser": "^6.18.1",

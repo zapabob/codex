@@ -51,7 +51,7 @@ pub struct AppExitInfo {
 }
 
 pub(crate) struct LegacyApp {
-    pub(crate) server: Arc<ConversationManager>,
+    pub(crate) server: Arc<ThreadManager>,
     pub(crate) app_event_tx: AppEventSender,
     pub(crate) chat_widget: ChatWidget,
     pub(crate) auth_manager: Arc<AuthManager>,
@@ -100,7 +100,7 @@ impl LegacyApp {
         let (app_event_tx, app_event_rx) = unbounded_channel();
         let app_event_tx = AppEventSender::new(app_event_tx);
 
-        let conversation_manager = Arc::new(ConversationManager::new(
+        let conversation_manager = Arc::new(ThreadManager::new(
             auth_manager.clone(),
             SessionSource::Cli,
         ));
@@ -743,7 +743,7 @@ mod tests {
     use crate::history_cell::new_session_info;
     use codex_core::AuthManager;
     use codex_core::CodexAuth;
-    use codex_core::ConversationManager;
+    use codex_core::ThreadManager;
     use codex_core::protocol::SessionConfiguredEvent;
     use codex_protocol::ConversationId;
     use ratatui::prelude::Line;
@@ -755,7 +755,7 @@ mod tests {
         let (chat_widget, app_event_tx, _rx, _op_rx) = make_chatwidget_manual_with_sender();
         let config = chat_widget.config_ref().clone();
 
-        let server = Arc::new(ConversationManager::with_auth(CodexAuth::from_api_key(
+        let server = Arc::new(ThreadManager::with_auth(CodexAuth::from_api_key(
             "Test API Key",
         )));
         let auth_manager =
@@ -1171,15 +1171,15 @@ impl LegacyApp {
         }
     }
 
-    /// Thin wrapper around ConversationManager::fork_conversation.
+    /// Thin wrapper around ThreadManager::fork_thread.
     async fn perform_fork(
         &self,
         path: PathBuf,
         nth_user_message: usize,
         cfg: codex_core::config::Config,
-    ) -> codex_core::error::Result<codex_core::NewConversation> {
+    ) -> codex_core::error::Result<codex_core::NewThread> {
         self.server
-            .fork_conversation(nth_user_message, cfg, path)
+            .fork_thread(nth_user_message, cfg, path)
             .await
     }
 
@@ -1188,7 +1188,7 @@ impl LegacyApp {
         &mut self,
         tui: &mut tui::Tui,
         cfg: codex_core::config::Config,
-        new_conv: codex_core::NewConversation,
+        new_conv: codex_core::NewThread,
         nth_user_message: usize,
         prefill: &str,
     ) {

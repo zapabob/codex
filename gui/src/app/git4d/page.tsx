@@ -8,6 +8,7 @@ import { GitBranch, Eye, Zap } from 'lucide-react';
 import { Git4DWebXRFramework } from '../../components/visualization/Git4DWebXRFramework';
 import { Git4DVisualization } from '../../components/visualization/Git4DVisualization';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
+import type { NavigatorXR, Git4DLaunchRequest, Git4DLaunchResponse } from '../../lib/types';
 
 /**
  * Git4D VR/AR Visualization Page
@@ -43,15 +44,20 @@ export default function Git4DPage() {
           
           if (mode === 'vr' || mode === 'ar') {
             if ('xr' in navigator) {
-              const xr = (navigator as any).xr;
-              try {
-                const sessionType = mode === 'vr' ? 'immersive-vr' : 'immersive-ar';
-                deviceAvailable = await xr.isSessionSupported(sessionType);
-                if (!deviceAvailable) {
-                  deviceWarning = `${mode.toUpperCase()} device not available. Falling back to desktop mode.`;
+              const xr = (navigator as NavigatorXR).xr;
+              if (xr) {
+                try {
+                  const sessionType = mode === 'vr' ? 'immersive-vr' : 'immersive-ar';
+                  deviceAvailable = await xr.isSessionSupported(sessionType);
+                  if (!deviceAvailable) {
+                    deviceWarning = `${mode.toUpperCase()} device not available. Falling back to desktop mode.`;
+                  }
+                } catch (err) {
+                  deviceWarning = `Failed to check ${mode.toUpperCase()} device availability: ${err instanceof Error ? err.message : 'Unknown error'}`;
+                  deviceAvailable = false;
                 }
-              } catch (err) {
-                deviceWarning = `Failed to check ${mode.toUpperCase()} device availability: ${err instanceof Error ? err.message : 'Unknown error'}`;
+              } else {
+                deviceWarning = 'WebXR not available in this browser. Falling back to desktop mode.';
                 deviceAvailable = false;
               }
             } else {
@@ -65,7 +71,7 @@ export default function Git4DPage() {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
           
           // VirtualDesktop検出結果をAPIリクエストに含める
-          const requestBody: any = {
+          const requestBody: Git4DLaunchRequest = {
             mode: deviceAvailable ? mode : 'desktop',
             repositoryPath: repositoryPath || '.',
           };
@@ -89,7 +95,7 @@ export default function Git4DPage() {
             throw new Error(errorData.message || `HTTP ${response.status}`);
           }
           
-          const data = await response.json();
+          const data = await response.json() as Git4DLaunchResponse;
           setSessionId(data.sessionId);
           
           // 検出されたプラットフォーム情報を保存

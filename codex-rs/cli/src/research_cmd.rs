@@ -1,5 +1,6 @@
 use anyhow::Context;
 use anyhow::Result;
+use chrono::Utc;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
 use codex_deep_research::GeminiSearchProvider;
@@ -138,59 +139,164 @@ pub async fn run_research_command(
 fn generate_markdown_report(report: &codex_deep_research::types::ResearchReport) -> String {
     let mut md = String::new();
 
+    // Title with timestamp
     md.push_str(&format!("# {}\n\n", report.query));
+    md.push_str(&format!(
+        "*Generated on: {}*\n\n",
+        chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+    ));
 
-    md.push_str("## Summary\n\n");
+    // Executive Summary
+    md.push_str("## Executive Summary\n\n");
     md.push_str(&format!("{}\n\n", report.summary));
 
-    md.push_str("## Metadata\n\n");
-    md.push_str(&format!("- **Strategy**: {:?}\n", report.strategy));
-    md.push_str(&format!("- **Depth**: {}\n", report.depth_reached));
-    md.push_str(&format!("- **Sources**: {}\n", report.sources.len()));
+    // Key Metrics Table
+    md.push_str("## Key Metrics\n\n");
+    md.push_str("| Metric | Value |\n");
+    md.push_str("|--------|-------|\n");
+    md.push_str(&format!("| **Strategy** | {:?} |\n", report.strategy));
+    md.push_str(&format!("| **Depth Reached** | {} |\n", report.depth_reached));
+    md.push_str(&format!("| **Total Sources** | {} |\n", report.sources.len()));
     md.push_str(&format!(
-        "- **Diversity Score**: {:.2}\n",
+        "| **Diversity Score** | {:.2} |\n",
         report.diversity_score
     ));
     md.push_str(&format!(
-        "- **Confidence**: {:?}\n\n",
+        "| **Confidence Level** | {:?} |\n\n",
         report.confidence_level
     ));
 
+    // Contradictions Section (Enhanced)
     if let Some(ref contradictions) = report.contradictions {
         if contradictions.contradiction_count > 0 {
-            md.push_str("## ⚠️ Contradictions\n\n");
+            md.push_str("## ⚠️ Contradictions Detected\n\n");
             md.push_str(&format!(
-                "{} contradictions detected:\n\n",
+                "**Total**: {} contradiction(s) found\n\n",
                 contradictions.contradiction_count
             ));
+            md.push_str("| # | Description | Severity |\n");
+            md.push_str("|---|-------------|----------|\n");
             for (i, contradiction) in contradictions.contradictions.iter().enumerate() {
-                md.push_str(&format!("{}. {}\n", i + 1, contradiction.description));
+                let severity = if contradiction.description.contains("critical") || 
+                    contradiction.description.contains("major") {
+                    "High"
+                } else if contradiction.description.contains("minor") {
+                    "Low"
+                } else {
+                    "Medium"
+                };
+                md.push_str(&format!(
+                    "| {} | {} | {} |\n",
+                    i + 1,
+                    contradiction.description,
+                    severity
+                ));
             }
             md.push_str("\n");
         }
     }
 
-    md.push_str("## Findings\n\n");
-    for (i, finding) in report.findings.iter().enumerate() {
-        md.push_str(&format!(
-            "### Finding {}\n\n{}\n\n**Confidence**: {:.2}\n\n",
-            i + 1,
-            finding.content,
-            finding.confidence
-        ));
+    // Findings Section (Enhanced with categorization)
+    md.push_str("## Detailed Findings\n\n");
+    if report.findings.is_empty() {
+        md.push_str("*No specific findings documented.*\n\n");
+    } else {
+        for (i, finding) in report.findings.iter().enumerate() {
+            md.push_str(&format!("### Finding {}: {}\n\n", 
+                i + 1,
+                finding.content.lines().next().unwrap_or("Untitled").chars().take(60).collect::<String>()
+            ));
+            md.push_str(&format!("{}\n\n", finding.content));
+            
+            // Confidence indicator
+            let confidence_bar = if finding.confidence >= 0.8 {
+                "████████████████████"
+            } else if finding.confidence >= 0.6 {
+                "████████████░░░░░░░░"
+            } else if finding.confidence >= 0.4 {
+                "████████░░░░░░░░░░░░"
+            } else {
+                "████░░░░░░░░░░░░░░░░"
+            };
+            md.push_str(&format!(
+                "**Confidence**: {:.1}% {}\n\n",
+                finding.confidence * 100.0,
+                confidence_bar
+            ));
+        }
     }
 
-    md.push_str("## Sources\n\n");
-    for (i, source) in report.sources.iter().enumerate() {
-        md.push_str(&format!(
-            "{}. [{}]({}) - Relevance: {:.2}\n   > {}\n\n",
-            i + 1,
-            source.title,
-            source.url,
-            source.relevance_score,
-            source.snippet
-        ));
+    // Sources Section (Enhanced with better organization)
+    md.push_str("## Sources & Citations\n\n");
+    if report.sources.is_empty() {
+        md.push_str("*No sources found.*\n\n");
+    } else {
+        // Group sources by relevance
+        let mut high_relevance: Vec<_> = report.sources.iter()
+            .filter(|s| s.relevance_score >= 0.7)
+            .collect();
+        let mut medium_relevance: Vec<_> = report.sources.iter()
+            .filter(|s| s.relevance_score >= 0.4 && s.relevance_score < 0.7)
+            .collect();
+        let mut low_relevance: Vec<_> = report.sources.iter()
+            .filter(|s| s.relevance_score < 0.4)
+            .collect();
+
+        if !high_relevance.is_empty() {
+            md.push_str("### High Relevance Sources\n\n");
+            for (i, source) in high_relevance.iter().enumerate() {
+                md.push_str(&format!(
+                    "{}. **[{}]({})** (Relevance: {:.1}%)\n",
+                    i + 1,
+                    source.title,
+                    source.url,
+                    source.relevance_score * 100.0
+                ));
+                md.push_str(&format!("   > {}\n\n", source.snippet));
+            }
+        }
+
+        if !medium_relevance.is_empty() {
+            md.push_str("### Medium Relevance Sources\n\n");
+            for (i, source) in medium_relevance.iter().enumerate() {
+                md.push_str(&format!(
+                    "{}. [{}]({}) (Relevance: {:.1}%)\n",
+                    i + 1,
+                    source.title,
+                    source.url,
+                    source.relevance_score * 100.0
+                ));
+                md.push_str(&format!("   > {}\n\n", source.snippet));
+            }
+        }
+
+        if !low_relevance.is_empty() {
+            md.push_str("### Additional Sources\n\n");
+            for (i, source) in low_relevance.iter().enumerate() {
+                md.push_str(&format!(
+                    "{}. [{}]({}) (Relevance: {:.1}%)\n\n",
+                    i + 1,
+                    source.title,
+                    source.url,
+                    source.relevance_score * 100.0
+                ));
+            }
+        }
     }
+
+    // Research Methodology
+    md.push_str("## Research Methodology\n\n");
+    md.push_str(&format!("- **Research Strategy**: {:?}\n", report.strategy));
+    md.push_str(&format!("- **Maximum Depth**: {}\n", report.depth_reached));
+    md.push_str(&format!("- **Source Diversity**: {:.2}\n", report.diversity_score));
+    md.push_str(&format!("- **Confidence Assessment**: {:?}\n\n", report.confidence_level));
+
+    // Footer
+    md.push_str("---\n\n");
+    md.push_str(&format!(
+        "*This report was generated by Codex DeepResearch on {}*\n",
+        chrono::Utc::now().format("%Y-%m-%d at %H:%M:%S UTC")
+    ));
 
     md
 }

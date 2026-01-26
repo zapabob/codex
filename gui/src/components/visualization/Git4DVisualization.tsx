@@ -37,7 +37,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer>();
   const cameraRef = useRef<THREE.PerspectiveCamera>();
   const animationFrameRef = useRef<number>();
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<THREE.OrbitControls | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeScale, setTimeScale] = useState(1);

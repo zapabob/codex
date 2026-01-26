@@ -9,6 +9,7 @@ import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { WebXRManager, VRExperience, ARAnchor, HandTrackingData } from '../../lib/xr/webxr-manager';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
+import type { NavigatorXR } from '../../lib/types';
 
 /**
  * Git4D WebXR Framework Component
@@ -35,7 +36,7 @@ export const Git4DWebXRFramework: React.FC = () => {
   useEffect(() => {
     const checkXRSupport = async () => {
       try {
-        const xr = (navigator as any).xr;
+        const xr = (navigator as NavigatorXR).xr;
         if (!xr) {
           setXrSupported(false);
           setError('WebXR is not supported in this browser');
