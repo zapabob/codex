@@ -10,10 +10,14 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use axum::response::sse::{Event, Sse};
+// SSE implementation using manual response
+use axum::body::Body;
+use axum::http::header;
+use futures_util::Stream;
 use axum::routing::get;
 use axum::routing::post;
 use futures_util::stream;
+use futures_util::stream::StreamExt;
 use std::convert::Infallible;
 use std::time::Duration;
 use chrono::DateTime;
@@ -1317,7 +1321,7 @@ async fn git4d_events_stream(
         });
     
     Ok(Sse::new(stream).keep_alive(
-        axum::response::sse::KeepAlive::new()
+        KeepAlive::new()
             .interval(Duration::from_secs(15))
             .text("keep-alive-text".to_string()),
     ))

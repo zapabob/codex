@@ -4,7 +4,7 @@ name = "codex-gui"
 version = { workspace = true }
 
 [dependencies]
-axum = { workspace = true, features = ["json", "macros", "tokio", "http1", "sse"] }
+axum = { workspace = true, features = ["json", "macros", "tokio", "http1"] }
 chrono = { version = "0.4", features = ["serde"] }
 http = "1.1"
 serde = { version = "1.0", features = ["derive"] }
