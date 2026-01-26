@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Typography, Paper, IconButton, Slider, FormControlLabel, Switch } from '@mui/material';
+import { Box, Typography, Paper, IconButton, Slider, FormControlLabel, Switch, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
 import { GitBranch, Play, Pause, RotateCcw, Settings } from 'lucide-react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
+import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 
 /**
  * Git4DVisualization Component Props
@@ -48,6 +49,9 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // VirtualDesktop最適化
+  const { preset, isVD, changePreset } = useVirtualDesktopOptimizer();
+
   // Mock git data - replace with real data from backend
   const [commits] = useState(() => generateMockCommits());
 
@@ -69,12 +73,27 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    
+    // VirtualDesktop最適化: レンダリング解像度を調整
+    const renderScale = isVD && (vrMode || arMode) ? preset.renderScale : 1.0;
+    const width = mountRef.current.clientWidth * renderScale;
+    const height = mountRef.current.clientHeight * renderScale;
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, preset.targetFps / 60)); // FPS制限に合わせて調整
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
     mountRef.current.appendChild(renderer.domElement);
+    
+    // VirtualDesktop検出時の最適化適用
+    if (isVD && (vrMode || arMode)) {
+      console.log('VirtualDesktop detected - applying optimizations', preset);
+      // ストリーミング最適化を適用
+      if (renderer.domElement) {
+        renderer.domElement.style.imageRendering = preset.renderScale < 1 ? 'pixelated' : 'auto';
+      }
+    }
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
@@ -88,9 +107,21 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     // Create commit visualization
     createCommitVisualization(scene, commits);
 
-    // Animation loop
-    const animate = () => {
+    // Animation loop with FPS limiting for VirtualDesktop
+    let lastFrameTime = 0;
+    const targetFrameTime = isVD && (vrMode || arMode) ? 1000 / preset.targetFps : 0; // 0 = no limit
+    
+    const animate = (currentTime: number) => {
       animationFrameRef.current = requestAnimationFrame(animate);
+
+      // FPS制限（VirtualDesktop用）
+      if (targetFrameTime > 0) {
+        const elapsed = currentTime - lastFrameTime;
+        if (elapsed < targetFrameTime) {
+          return; // Skip frame to maintain target FPS
+        }
+        lastFrameTime = currentTime;
+      }
 
       if (isPlaying) {
         // Rotate camera for dynamic view
@@ -101,14 +132,19 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
 
       renderer.render(scene, camera);
     };
-    animate();
+    animate(0);
 
     // Handle resize
     const handleResize = () => {
-      if (!mountRef.current) return;
+      if (!mountRef.current || !renderer) return;
       camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      
+      // VirtualDesktop最適化: レンダリング解像度を調整
+      const renderScale = isVD && (vrMode || arMode) ? preset.renderScale : 1.0;
+      const width = mountRef.current.clientWidth * renderScale;
+      const height = mountRef.current.clientHeight * renderScale;
+      renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
@@ -123,7 +159,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
       }
       renderer.dispose();
     };
-  }, [commits, isPlaying, timeScale]);
+  }, [commits, isPlaying, timeScale, isVD, vrMode, arMode, preset]);
 
   const createCommitVisualization = (scene: THREE.Scene, commits: any[]) => {
     commits.forEach((commit, index) => {
@@ -218,6 +254,14 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <GitBranch size={24} />
           <Typography variant="h6">Git4D Visualization</Typography>
+          {isVD && (vrMode || arMode) && (
+            <Chip 
+              label={`VirtualDesktop: ${preset.name}`} 
+              color="info" 
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          )}
           <Box sx={{ flex: 1 }} />
           <FormControlLabel
             control={
@@ -322,7 +366,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
         />
 
         {/* Stats */}
-        <Box sx={{ mt: 2, display: 'flex', gap: 4 }}>
+        <Box sx={{ mt: 2, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           <Typography variant="body2">
             Commits: {commits.length}
           </Typography>
@@ -332,6 +376,19 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
           <Typography variant="body2">
             Contributors: {new Set(commits.map(c => c.author)).size}
           </Typography>
+          {isVD && (vrMode || arMode) && (
+            <>
+              <Typography variant="body2">
+                Quality: {preset.name}
+              </Typography>
+              <Typography variant="body2">
+                Target FPS: {preset.targetFps}
+              </Typography>
+              <Typography variant="body2">
+                Render Scale: {preset.renderScale.toFixed(2)}x
+              </Typography>
+            </>
+          )}
         </Box>
       </Paper>
     </motion.div>

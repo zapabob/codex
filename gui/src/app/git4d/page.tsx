@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Box, Container, Typography, Paper, CircularProgress, Alert } from '@mui/material';
+import { Box, Container, Typography, Paper, CircularProgress, Alert, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
 import { GitBranch, Eye, Zap } from 'lucide-react';
 import { Git4DWebXRFramework } from '../../components/visualization/Git4DWebXRFramework';
 import { Git4DVisualization } from '../../components/visualization/Git4DVisualization';
+import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 
 /**
  * Git4D VR/AR Visualization Page
@@ -19,6 +20,10 @@ export default function Git4DPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detectedPlatform, setDetectedPlatform] = useState<string | null>(null);
+  
+  // VirtualDesktop検出
+  const { preset, isVD } = useVirtualDesktopOptimizer();
   
   // Get mode from URL params or default to 'desktop'
   const mode = (searchParams?.get('mode') || 'desktop') as 'desktop' | 'vr' | 'ar';
@@ -58,15 +63,25 @@ export default function Git4DPage() {
           }
           
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+          
+          // VirtualDesktop検出結果をAPIリクエストに含める
+          const requestBody: any = {
+            mode: deviceAvailable ? mode : 'desktop',
+            repositoryPath: repositoryPath || '.',
+          };
+          
+          // VirtualDesktop検出結果を追加（クライアント側検出）
+          if (isVD && (mode === 'vr' || mode === 'ar')) {
+            requestBody.virtualDesktop = true;
+            console.log('VirtualDesktop detected - sending detection result to API');
+          }
+          
           const response = await fetch(`${apiUrl}/api/visualization/git4d`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              mode: deviceAvailable ? mode : 'desktop',
-              repositoryPath: repositoryPath || '.',
-            }),
+            body: JSON.stringify(requestBody),
           });
           
           if (!response.ok) {
@@ -76,6 +91,21 @@ export default function Git4DPage() {
           
           const data = await response.json();
           setSessionId(data.sessionId);
+          
+          // 検出されたプラットフォーム情報を保存
+          if (data.platform) {
+            setDetectedPlatform(data.platform);
+            if (data.device_name) {
+              console.log(`Platform detected: ${data.platform} (${data.device_name})`);
+            } else {
+              console.log(`Platform detected: ${data.platform}`);
+            }
+          }
+          
+          // VirtualDesktop検出時の通知
+          if (isVD && (mode === 'vr' || mode === 'ar')) {
+            console.log(`VirtualDesktop optimizations applied: ${preset.name} (${preset.targetFps} FPS)`);
+          }
           
           // Show warning if device was not available
           if (deviceWarning) {
@@ -104,6 +134,22 @@ export default function Git4DPage() {
           <Typography variant="h3" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <GitBranch size={40} color="#1976d2" />
             Git4D VR/AR Visualization
+            {isVD && (mode === 'vr' || mode === 'ar') && (
+              <Chip 
+                label={`VirtualDesktop: ${preset.name}`} 
+                color="info" 
+                size="small"
+                sx={{ ml: 1 }}
+              />
+            )}
+            {detectedPlatform && detectedPlatform !== 'Desktop' && (
+              <Chip 
+                label={`Platform: ${detectedPlatform}`} 
+                color="success" 
+                size="small"
+                sx={{ ml: 1 }}
+              />
+            )}
           </Typography>
           <Typography variant="h6" color="text.secondary" paragraph>
             kamui4dを超える没入型4D Gitリポジトリ可視化システム
@@ -220,6 +266,13 @@ export default function Git4DPage() {
           </Alert>
         )}
         
+        {/* VirtualDesktop検出通知 */}
+        {isVD && (mode === 'vr' || mode === 'ar') && !error && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            VirtualDesktop detected - Streaming optimizations applied: {preset.name} quality ({preset.targetFps} FPS target, {preset.renderScale.toFixed(2)}x render scale)
+          </Alert>
+        )}
+        
         {isLoading && (
           <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
             <CircularProgress />
@@ -263,7 +316,8 @@ export default function Git4DPage() {
               <Typography variant="body2" color="text.secondary">
                 • VR: Quest 2/3, Windows Mixed Reality<br/>
                 • AR: Windows 11 25H2<br/>
-                • Hand Tracking: Windows 11, Quest Pro
+                • Hand Tracking: Windows 11, Quest Pro<br/>
+                • VirtualDesktop: Streaming optimization enabled
               </Typography>
             </Box>
 

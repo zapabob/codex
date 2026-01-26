@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Box, Typography, Paper, Button, IconButton, Alert } from '@mui/material';
+import { Box, Typography, Paper, Button, IconButton, Alert, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Vr, Smartphone, Monitor, RotateCcw, Play, Pause } from 'lucide-react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { WebXRManager, VRExperience, ARAnchor, HandTrackingData } from '../../lib/xr/webxr-manager';
+import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 
 /**
  * Git4D WebXR Framework Component
@@ -26,6 +27,9 @@ export const Git4DWebXRFramework: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
+
+  // VirtualDesktop最適化
+  const { preset, isVD, changePreset } = useVirtualDesktopOptimizer();
 
   // Initialize XR support check
   useEffect(() => {
@@ -120,6 +124,14 @@ export const Git4DWebXRFramework: React.FC = () => {
 
     try {
       setError(null);
+      
+      // VirtualDesktop検出時は最適化を適用
+      if (isVD) {
+        console.log('VirtualDesktop detected - applying streaming optimizations for VR');
+        // ストリーミング最適化を適用
+        document.documentElement.setAttribute('data-vd-mode', 'vr');
+      }
+      
       const experience = await xrManager.enterVR();
 
       if (experience) {
@@ -130,7 +142,7 @@ export const Git4DWebXRFramework: React.FC = () => {
     } catch (err) {
       setError(`VR mode entry failed: ${err}`);
     }
-  }, [xrManager, vrSupported]);
+  }, [xrManager, vrSupported, isVD]);
 
   // AR mode entry
   const enterARMode = useCallback(async () => {
@@ -138,6 +150,14 @@ export const Git4DWebXRFramework: React.FC = () => {
 
     try {
       setError(null);
+      
+      // VirtualDesktop検出時は最適化を適用
+      if (isVD) {
+        console.log('VirtualDesktop detected - applying streaming optimizations for AR');
+        // ストリーミング最適化を適用
+        document.documentElement.setAttribute('data-vd-mode', 'ar');
+      }
+      
       const experience = await xrManager.enterAR();
 
       if (experience) {
@@ -148,7 +168,7 @@ export const Git4DWebXRFramework: React.FC = () => {
     } catch (err) {
       setError(`AR mode entry failed: ${err}`);
     }
-  }, [xrManager, arSupported]);
+  }, [xrManager, arSupported, isVD]);
 
   // Exit XR mode
   const exitXRMode = useCallback(() => {
@@ -156,6 +176,8 @@ export const Git4DWebXRFramework: React.FC = () => {
       xrManager.exitXR();
       setCurrentMode('desktop');
       setHandTrackingEnabled(false);
+      // VirtualDesktopモード属性をクリア
+      document.documentElement.removeAttribute('data-vd-mode');
     }
   }, [xrManager]);
 
@@ -186,9 +208,18 @@ export const Git4DWebXRFramework: React.FC = () => {
     >
       <Paper elevation={3} sx={{ p: 3, mb: 2 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-          <Typography variant="h6" component="h2">
-            Git4D WebXR Framework
-          </Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h6" component="h2">
+              Git4D WebXR Framework
+            </Typography>
+            {isVD && (currentMode === 'vr' || currentMode === 'ar') && (
+              <Chip 
+                label={`VirtualDesktop: ${preset.name}`} 
+                color="info" 
+                size="small"
+              />
+            )}
+          </Box>
           <Box display="flex" gap={1}>
             <IconButton onClick={resetView} title="Reset View">
               <RotateCcw size={20} />
@@ -241,6 +272,9 @@ export const Git4DWebXRFramework: React.FC = () => {
             VR: {vrSupported ? 'Supported' : 'Not Supported'} |
             AR: {arSupported ? 'Supported' : 'Not Supported'} |
             Hand Tracking: {handTrackingEnabled ? 'Enabled' : 'Disabled'}
+            {isVD && (currentMode === 'vr' || currentMode === 'ar') && (
+              <> | VirtualDesktop: {preset.name} ({preset.targetFps} FPS, {preset.renderScale.toFixed(2)}x scale)</>
+            )}
           </Typography>
         </Box>
 
@@ -269,11 +303,20 @@ export const Git4DWebXRFramework: React.FC = () => {
             overflow: 'hidden'
           }}
         >
-          <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+          <Canvas 
+            camera={{ position: [0, 0, 5], fov: 75 }}
+            gl={{
+              antialias: isVD && (currentMode === 'vr' || currentMode === 'ar') ? preset.enablePostProcessing : true,
+              powerPreference: 'high-performance',
+            }}
+            dpr={isVD && (currentMode === 'vr' || currentMode === 'ar') ? Math.min(window.devicePixelRatio, preset.renderScale) : window.devicePixelRatio}
+          >
             <Git4DScene
               mode={currentMode}
               isPlaying={isPlaying}
               handTrackingEnabled={handTrackingEnabled}
+              isVD={isVD && (currentMode === 'vr' || currentMode === 'ar')}
+              preset={isVD && (currentMode === 'vr' || currentMode === 'ar') ? preset : null}
             />
           </Canvas>
         </Box>
@@ -297,9 +340,11 @@ interface Git4DSceneProps {
   mode: 'desktop' | 'vr' | 'ar';
   isPlaying: boolean;
   handTrackingEnabled: boolean;
+  isVD?: boolean;
+  preset?: { targetFps: number; renderScale: number; lodBias: number } | null;
 }
 
-const Git4DScene: React.FC<Git4DSceneProps> = ({ mode, isPlaying, handTrackingEnabled }) => {
+const Git4DScene: React.FC<Git4DSceneProps> = ({ mode, isPlaying, handTrackingEnabled, isVD = false, preset = null }) => {
   const { scene, camera } = useThree();
   const groupRef = useRef<THREE.Group>(null);
 
@@ -331,11 +376,28 @@ const Git4DScene: React.FC<Git4DSceneProps> = ({ mode, isPlaying, handTrackingEn
     };
   }, [scene, mode]);
 
-  // Animation frame
-  useFrame((state) => {
+  // Animation frame with FPS limiting for VirtualDesktop
+  const frameTimeRef = useRef(0);
+  const lastFrameTimeRef = useRef(0);
+  
+  useFrame((state, delta) => {
+    // FPS制限（VirtualDesktop用）
+    if (isVD && preset) {
+      const targetFrameTime = 1000 / preset.targetFps;
+      const currentTime = state.clock.elapsedTime * 1000;
+      const elapsed = currentTime - lastFrameTimeRef.current;
+      
+      if (elapsed < targetFrameTime) {
+        return; // Skip frame to maintain target FPS
+      }
+      lastFrameTimeRef.current = currentTime;
+    }
+    
     if (isPlaying && groupRef.current) {
       // Rotate the entire commit visualization
-      groupRef.current.rotation.y += 0.005;
+      // LOD調整: VirtualDesktop時は回転速度を調整
+      const rotationSpeed = isVD && preset ? 0.005 * (1 + preset.lodBias * 0.1) : 0.005;
+      groupRef.current.rotation.y += rotationSpeed;
     }
 
     if (mode === 'vr' || mode === 'ar') {
@@ -396,12 +458,14 @@ const CommitNode: React.FC<CommitNodeProps> = ({ commit, index, mode }) => {
     return '#4444ff'; // Balanced changes
   }, [commit]);
 
-  // Size based on impact
+  // Size based on impact (LOD調整対応)
   const size = React.useMemo(() => {
     const baseSize = 0.05;
     const impact = Math.min(commit.filesChanged / 10, 3);
-    return baseSize * (1 + impact);
-  }, [commit]);
+    // VirtualDesktop時はLOD調整を適用（lodBiasが大きいほどサイズを小さく）
+    const lodAdjustment = mode === 'vr' || mode === 'ar' ? 0.95 : 1.0;
+    return baseSize * (1 + impact) * lodAdjustment;
+  }, [commit, mode]);
 
   return (
     <group position={[commit.x, commit.y, commit.z]}>

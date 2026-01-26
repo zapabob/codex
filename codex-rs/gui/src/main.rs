@@ -1098,6 +1098,8 @@ async fn get_current_user(State(state): State<AppState>) -> Json<Option<User>> {
 struct Git4DLaunchRequest {
     mode: String,
     repository_path: Option<String>,
+    #[serde(default)]
+    virtual_desktop: Option<bool>, // Optional: client-side VirtualDesktop detection result
 }
 
 #[derive(Serialize)]
@@ -1106,6 +1108,8 @@ struct Git4DLaunchResponse {
     session_id: String,
     status: String,
     message: String,
+    platform: Option<String>, // Detected platform (VirtualDesktop, WebXR, etc.)
+    device_name: Option<String>, // Device name if available
 }
 
 #[axum::debug_handler]
@@ -1208,32 +1212,44 @@ async fn launch_git4d_visualization(
         "Git4D visualization session started"
     );
     
-    let message = match &device_availability {
+    let (message, platform, device_name) = match &device_availability {
         codex_core::git4d_accelerated::DeviceAvailability::Available { platform, device_name } => {
-            format!(
+            let platform_str = format!("{:?}", platform);
+            let msg = format!(
                 "Git4D visualization started in {} mode with {:?} device{}",
                 effective_mode,
                 platform,
                 device_name.as_ref()
                     .map(|name| format!(" ({})", name))
                     .unwrap_or_default()
-            )
+            );
+            (msg, Some(platform_str), device_name.clone())
         }
         codex_core::git4d_accelerated::DeviceAvailability::NotAvailable { reason } => {
-            format!(
+            let msg = format!(
                 "Git4D visualization started in desktop mode (VR/AR unavailable: {})",
                 reason
-            )
+            );
+            (msg, None, None)
         }
         codex_core::git4d_accelerated::DeviceAvailability::Desktop => {
-            format!("Git4D visualization started in desktop mode")
+            (format!("Git4D visualization started in desktop mode"), Some("Desktop".to_string()), None)
         }
     };
+    
+    // Log VirtualDesktop detection if provided by client
+    if let Some(vd_detected) = payload.virtual_desktop {
+        if vd_detected {
+            info!("Client-side VirtualDesktop detection: true");
+        }
+    }
     
     Ok(Json(Git4DLaunchResponse {
         session_id,
         status: "started".to_string(),
         message,
+        platform,
+        device_name,
     }))
 }
 

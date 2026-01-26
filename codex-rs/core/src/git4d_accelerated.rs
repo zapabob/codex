@@ -11,6 +11,52 @@ use std::time::Instant;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time::{self, Duration};
 
+/// Detect VirtualDesktop connection
+/// 
+/// Checks for VirtualDesktop streamer process and environment variables
+fn detect_virtual_desktop() -> bool {
+    // 1. 環境変数チェック
+    if std::env::var("VIRTUAL_DESKTOP_STREAMER").is_ok() {
+        tracing::debug!("VirtualDesktop detected via environment variable");
+        return true;
+    }
+    
+    // 2. プロセスチェック（Windows）
+    #[cfg(windows)]
+    {
+        use std::process::Command;
+        let output = Command::new("tasklist")
+            .arg("/FI")
+            .arg("IMAGENAME eq VirtualDesktop.Streamer.exe")
+            .output();
+        if let Ok(output) = output {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.contains("VirtualDesktop.Streamer.exe") {
+                tracing::debug!("VirtualDesktop detected via process check");
+                return true;
+            }
+        }
+    }
+    
+    // 3. レジストリチェック（Windows、オプション）
+    #[cfg(windows)]
+    {
+        // VirtualDesktopのインストールパスをチェック
+        let local_app_data = std::env::var("LOCALAPPDATA");
+        if let Ok(local_app_data) = local_app_data {
+            let vd_path = PathBuf::from(local_app_data)
+                .join("VirtualDesktop.Streamer")
+                .join("VirtualDesktop.Streamer.exe");
+            if vd_path.exists() {
+                tracing::debug!("VirtualDesktop detected via installation path");
+                return true;
+            }
+        }
+    }
+    
+    false
+}
+
 /// Accelerated Git4D visualization with CUDA and VR/AR support
 pub struct Git4DAcceleratedVisualizer {
     cuda_accelerator: Option<CudaGit4DAccelerator>,
@@ -111,6 +157,7 @@ static SESSIONS: Lazy<Arc<RwLock<HashMap<String, Git4DVisualizationSession>>>> =
 /// Check VR/AR device availability for Git4D visualization
 /// 
 /// Returns device availability status based on the requested mode
+/// VirtualDesktop is checked first for VR mode, then falls back to WebXR
 pub async fn check_vr_ar_device_availability(
     mode: &str,
 ) -> Result<DeviceAvailability, Box<dyn std::error::Error>> {
@@ -118,12 +165,40 @@ pub async fn check_vr_ar_device_availability(
         return Ok(DeviceAvailability::Desktop);
     }
     
+    // VRモード時はVirtualDesktopを優先的に検出
+    if mode == "vr" {
+        if detect_virtual_desktop() {
+            tracing::info!("VirtualDesktop detected for VR mode");
+            // VirtualDesktopプラットフォームとして初期化を試みる
+            match VRARIntegration::new() {
+                Ok(mut vr_integration) => {
+                    match vr_integration.initialize_platform(XRPlatform::VirtualDesktop).await {
+                        Ok(_) => {
+                            tracing::info!("VirtualDesktop platform initialized successfully");
+                            return Ok(DeviceAvailability::Available {
+                                platform: XRPlatform::VirtualDesktop,
+                                device_name: Some("VirtualDesktop Streamer".to_string()),
+                            });
+                        }
+                        Err(e) => {
+                            tracing::warn!("VirtualDesktop initialization failed: {}, falling back to WebXR", e);
+                            // VirtualDesktop初期化に失敗した場合はWebXRにフォールバック
+                        }
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("VR/AR integration not available: {}, falling back to WebXR", e);
+                }
+            }
+        }
+    }
+    
     // Try to initialize VR/AR integration to check device availability
     match VRARIntegration::new() {
         Ok(mut vr_integration) => {
             // Determine platform based on mode
             let platform = if mode == "vr" {
-                // Try WebXR first (browser-based VR)
+                // VirtualDesktopが検出されなかった場合、WebXRを試す
                 XRPlatform::WebXR
             } else if mode == "ar" {
                 // Try WebXR for AR (browser-based AR)
@@ -288,7 +363,8 @@ impl Git4DAcceleratedVisualizer {
         
         // Store session in global storage
         {
-            let mut sessions = SESSIONS.write().unwrap();
+            let mut sessions = SESSIONS.write()
+                .map_err(|e| anyhow::anyhow!("Failed to acquire write lock for session storage: {}", e))?;
             sessions.insert(session_id.clone(), session.clone());
         }
         
@@ -305,19 +381,31 @@ impl Git4DAcceleratedVisualizer {
     
     /// Get session by ID
     pub fn get_session(session_id: &str) -> Option<Git4DVisualizationSession> {
-        let sessions = SESSIONS.read().unwrap();
+        let sessions = SESSIONS.read()
+            .map_err(|e| {
+                tracing::error!("Failed to acquire read lock for session storage: {}", e);
+                e
+            })
+            .ok()?;
         sessions.get(session_id).cloned()
     }
     
     /// List all active sessions
     pub fn list_sessions() -> Vec<Git4DVisualizationSession> {
-        let sessions = SESSIONS.read().unwrap();
+        let sessions = match SESSIONS.read() {
+            Ok(sessions) => sessions,
+            Err(e) => {
+                tracing::error!("Failed to acquire read lock for session storage: {}", e);
+                return Vec::new();
+            }
+        };
         sessions.values().cloned().collect()
     }
     
     /// Update session status
     pub fn update_session_status(session_id: &str, status: SessionStatus) -> Result<(), String> {
-        let mut sessions = SESSIONS.write().unwrap();
+        let mut sessions = SESSIONS.write()
+            .map_err(|e| format!("Failed to acquire write lock for session storage: {}", e))?;
         if let Some(session) = sessions.get_mut(session_id) {
             session.status = status;
             session.last_activity = Instant::now();
@@ -329,7 +417,12 @@ impl Git4DAcceleratedVisualizer {
     
     /// Get session event receiver
     pub fn get_session_event_receiver(session_id: &str) -> Option<broadcast::Receiver<Git4DEvent>> {
-        let sessions = SESSIONS.read().unwrap();
+        let sessions = SESSIONS.read()
+            .map_err(|e| {
+                tracing::error!("Failed to acquire read lock for session storage: {}", e);
+                e
+            })
+            .ok()?;
         sessions.get(session_id)
             .and_then(|session| session.event_sender.as_ref())
             .map(|sender| sender.subscribe())
@@ -337,7 +430,12 @@ impl Git4DAcceleratedVisualizer {
     
     /// Remove session
     pub fn remove_session(session_id: &str) -> bool {
-        let mut sessions = SESSIONS.write().unwrap();
+        let mut sessions = SESSIONS.write()
+            .map_err(|e| {
+                tracing::error!("Failed to acquire write lock for session storage: {}", e);
+                e
+            })
+            .ok()?;
         sessions.remove(session_id).is_some()
     }
 
