@@ -170,19 +170,19 @@ mod windows_impl {
         let mut err_r: HANDLE = 0;
         let mut err_w: HANDLE = 0;
         if CreatePipe(&mut in_r, &mut in_w, ptr::null_mut(), 0) == 0 {
-            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
+            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
         }
         if CreatePipe(&mut out_r, &mut out_w, ptr::null_mut(), 0) == 0 {
             CloseHandle(in_r);
             CloseHandle(in_w);
-            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
+            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
         }
         if CreatePipe(&mut err_r, &mut err_w, ptr::null_mut(), 0) == 0 {
             CloseHandle(in_r);
             CloseHandle(in_w);
             CloseHandle(out_r);
             CloseHandle(out_w);
-            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
+            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
         }
         if SetHandleInformation(in_r, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
             CloseHandle(in_r);
@@ -191,7 +191,7 @@ mod windows_impl {
             CloseHandle(out_w);
             CloseHandle(err_r);
             CloseHandle(err_w);
-            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
+            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
         }
         if SetHandleInformation(out_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
             CloseHandle(in_r);
@@ -200,7 +200,7 @@ mod windows_impl {
             CloseHandle(out_w);
             CloseHandle(err_r);
             CloseHandle(err_w);
-            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
+            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
         }
         if SetHandleInformation(err_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
             CloseHandle(in_r);
@@ -209,7 +209,7 @@ mod windows_impl {
             CloseHandle(out_w);
             CloseHandle(err_r);
             CloseHandle(err_w);
-            return Err(std::io::Error::from_raw_os_error(GetLastError() as i32));
+            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
         }
         Ok(((in_r, in_w), (out_r, out_w), (err_r, err_w)))
     }

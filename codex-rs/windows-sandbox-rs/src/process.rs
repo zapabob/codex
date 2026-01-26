@@ -122,7 +122,7 @@ pub unsafe fn create_process_as_user(
         &mut pi,
     );
     if ok == 0 {
-        let err = GetLastError() as i32;
+        let err = unsafe { GetLastError() } as i32;
         let msg = format!(
             "CreateProcessAsUserW failed: {} ({}) | cwd={} | cmd={} | env_u16_len={} | si_flags={}",
             err,
