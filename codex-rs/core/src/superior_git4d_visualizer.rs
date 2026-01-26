@@ -579,7 +579,12 @@ impl CollaborationTracker {
                         collaborators: self.extract_collaborators(message),
                         collaboration_type: CollaborationType::PairProgramming,
                         intensity: 0.8,
-                        time_window: (commit.time().into(), commit.time().into()),
+                        time_window: (
+                            chrono::DateTime::<chrono::Utc>::from_timestamp(commit.time().seconds(), 0)
+                                .unwrap_or_else(|| chrono::Utc::now()),
+                            chrono::DateTime::<chrono::Utc>::from_timestamp(commit.time().seconds(), 0)
+                                .unwrap_or_else(|| chrono::Utc::now()),
+                        ),
                     });
                 }
             }

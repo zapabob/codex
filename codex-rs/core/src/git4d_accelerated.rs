@@ -430,12 +430,13 @@ impl Git4DAcceleratedVisualizer {
     
     /// Remove session
     pub fn remove_session(session_id: &str) -> bool {
-        let mut sessions = SESSIONS.write()
-            .map_err(|e| {
+        let mut sessions = match SESSIONS.write() {
+            Ok(s) => s,
+            Err(e) => {
                 tracing::error!("Failed to acquire write lock for session storage: {}", e);
-                e
-            })
-            .ok()?;
+                return false;
+            }
+        };
         sessions.remove(session_id).is_some()
     }
 
