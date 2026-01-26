@@ -83,8 +83,8 @@ impl SessionTask for UserShellCommandTask {
         // Security check: Block dangerous commands even in user shell mode
         let command_vec: Vec<String> = self
             .command
-            .iter()
-            .map(std::string::ToString::to_string)
+            .split_whitespace()
+            .map(|s| s.to_string())
             .collect();
         if command_might_be_dangerous(&command_vec) {
             error!(
@@ -120,9 +120,9 @@ impl SessionTask for UserShellCommandTask {
                         call_id,
                         process_id: None,
                         turn_id: turn_context.sub_id.clone(),
-                        command: self.command.clone(),
+                        command: command_vec.clone(),
                         cwd: turn_context.cwd.clone(),
-                        parsed_cmd: parse_command(&self.command),
+                        parsed_cmd: parse_command(&command_vec),
                         source: ExecCommandSource::UserShell,
                         interaction_input: None,
                         stdout: String::new(),

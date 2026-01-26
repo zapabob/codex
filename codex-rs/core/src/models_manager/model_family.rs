@@ -1,9 +1,9 @@
+use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::Verbosity;
 use codex_protocol::openai_models::ApplyPatchToolType;
 use codex_protocol::openai_models::ConfigShellToolType;
 use codex_protocol::openai_models::ModelInfo;
 use codex_protocol::openai_models::ReasoningEffort;
-use codex_protocol::openai_models::ReasoningSummaryFormat;
 
 use crate::config::Config;
 use crate::truncate::TruncationPolicy;
@@ -20,7 +20,7 @@ const GPT_5_2_CODEX_INSTRUCTIONS: &str = include_str!("../../gpt-5.2-codex_promp
 pub(crate) const CONTEXT_WINDOW_272K: i64 = 272_000;
 
 /// A model family is a group of models that share certain characteristics.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModelFamily {
     /// The full model slug used to derive this model family, e.g.
     /// "gpt-4.1-2025-04-14".
@@ -49,7 +49,7 @@ pub struct ModelFamily {
     pub default_reasoning_effort: Option<ReasoningEffort>,
 
     // Define if we need a special handling of reasoning summary
-    pub reasoning_summary_format: ReasoningSummaryFormat,
+    pub reasoning_summary_format: ReasoningSummary,
 
     /// Whether this model supports parallel tool calls when using the
     /// Responses API.
@@ -88,9 +88,8 @@ impl ModelFamily {
         if let Some(supports_reasoning_summaries) = config.model_supports_reasoning_summaries {
             self.supports_reasoning_summaries = supports_reasoning_summaries;
         }
-        if let Some(reasoning_summary_format) = config.model_reasoning_summary_format.as_ref() {
-            self.reasoning_summary_format = reasoning_summary_format.clone();
-        }
+        // model_reasoning_summary is ReasoningSummary (not Option), so we can use it directly
+        self.reasoning_summary_format = config.model_reasoning_summary;
         if let Some(context_window) = config.model_context_window {
             self.context_window = Some(context_window);
         }
@@ -117,11 +116,11 @@ impl ModelFamily {
             supported_reasoning_levels: _,
             shell_type,
             visibility: _,
-            minimal_client_version: _,
             supported_in_api: _,
             priority: _,
             upgrade: _,
             base_instructions,
+            model_instructions_template: _,
             supports_reasoning_summaries,
             support_verbosity,
             default_verbosity,
@@ -129,15 +128,16 @@ impl ModelFamily {
             truncation_policy,
             supports_parallel_tool_calls,
             context_window,
-            reasoning_summary_format,
+            auto_compact_token_limit: _,
+            effective_context_window_percent: _,
             experimental_supported_tools,
         } = model;
 
-        self.default_reasoning_effort = Some(default_reasoning_level);
-        self.shell_type = shell_type;
-        if let Some(base) = base_instructions {
-            self.base_instructions = base;
+        if let Some(default_reasoning_level) = default_reasoning_level {
+            self.default_reasoning_effort = Some(default_reasoning_level);
         }
+        self.shell_type = shell_type;
+        self.base_instructions = base_instructions;
         self.supports_reasoning_summaries = supports_reasoning_summaries;
         self.support_verbosity = support_verbosity;
         self.default_verbosity = default_verbosity;
@@ -145,7 +145,7 @@ impl ModelFamily {
         self.truncation_policy = truncation_policy.into();
         self.supports_parallel_tool_calls = supports_parallel_tool_calls;
         self.context_window = context_window;
-        self.reasoning_summary_format = reasoning_summary_format;
+        // reasoning_summary_format is not in ModelInfo, keep current value or use default
         self.experimental_supported_tools = experimental_supported_tools;
     }
 
@@ -176,7 +176,6 @@ macro_rules! model_family {
             context_window: Some(CONTEXT_WINDOW_272K),
             auto_compact_token_limit: None,
             supports_reasoning_summaries: false,
-            reasoning_summary_format: ReasoningSummaryFormat::None,
             supports_parallel_tool_calls: false,
             apply_patch_tool_type: None,
             base_instructions: BASE_INSTRUCTIONS.to_string(),
@@ -186,6 +185,7 @@ macro_rules! model_family {
             shell_type: ConfigShellToolType::Default,
             default_verbosity: None,
             default_reasoning_effort: None,
+            reasoning_summary_format: ReasoningSummary::Auto,
             truncation_policy: TruncationPolicy::Bytes(10_000),
         };
 
@@ -200,7 +200,7 @@ macro_rules! model_family {
 /// Internal offline helper for `ModelsManager` that returns a `ModelFamily` for the given
 /// model slug.
 #[allow(clippy::if_same_then_else)]
-pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
+pub fn find_family_for_model(slug: &str) -> ModelFamily {
     if slug.starts_with("o3") {
         model_family!(
             slug, "o3",
@@ -251,7 +251,7 @@ pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
         model_family!(
             slug, slug,
             supports_reasoning_summaries: true,
-            reasoning_summary_format: ReasoningSummaryFormat::Experimental,
+            reasoning_summary_format: ReasoningSummary::Auto,
             base_instructions: GPT_5_CODEX_INSTRUCTIONS.to_string(),
             experimental_supported_tools: vec![
                 "grep_files".to_string(),
@@ -271,7 +271,7 @@ pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
         model_family!(
             slug, slug,
             supports_reasoning_summaries: true,
-            reasoning_summary_format: ReasoningSummaryFormat::Experimental,
+            reasoning_summary_format: ReasoningSummary::Auto,
             base_instructions: GPT_5_2_CODEX_INSTRUCTIONS.to_string(),
             apply_patch_tool_type: Some(ApplyPatchToolType::Freeform),
             shell_type: ConfigShellToolType::ShellCommand,
@@ -300,7 +300,7 @@ pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
         model_family!(
             slug, slug,
             supports_reasoning_summaries: true,
-            reasoning_summary_format: ReasoningSummaryFormat::Experimental,
+            reasoning_summary_format: ReasoningSummary::Auto,
             base_instructions: GPT_5_2_CODEX_INSTRUCTIONS.to_string(),
             apply_patch_tool_type: Some(ApplyPatchToolType::Freeform),
             shell_type: ConfigShellToolType::ShellCommand,
@@ -313,7 +313,7 @@ pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
         model_family!(
             slug, slug,
             supports_reasoning_summaries: true,
-            reasoning_summary_format: ReasoningSummaryFormat::Experimental,
+            reasoning_summary_format: ReasoningSummary::Auto,
             base_instructions: GPT_5_2_CODEX_INSTRUCTIONS.to_string(),
             apply_patch_tool_type: Some(ApplyPatchToolType::Freeform),
             shell_type: ConfigShellToolType::ShellCommand,
@@ -326,7 +326,7 @@ pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
         model_family!(
             slug, slug,
             supports_reasoning_summaries: true,
-            reasoning_summary_format: ReasoningSummaryFormat::Experimental,
+            reasoning_summary_format: ReasoningSummary::Auto,
             base_instructions: GPT_5_1_CODEX_MAX_INSTRUCTIONS.to_string(),
             apply_patch_tool_type: Some(ApplyPatchToolType::Freeform),
             shell_type: ConfigShellToolType::ShellCommand,
@@ -342,7 +342,7 @@ pub(crate) fn find_family_for_model(slug: &str) -> ModelFamily {
         model_family!(
             slug, slug,
             supports_reasoning_summaries: true,
-            reasoning_summary_format: ReasoningSummaryFormat::Experimental,
+            reasoning_summary_format: ReasoningSummary::Auto,
             base_instructions: GPT_5_CODEX_INSTRUCTIONS.to_string(),
             apply_patch_tool_type: Some(ApplyPatchToolType::Freeform),
             shell_type: ConfigShellToolType::ShellCommand,
@@ -417,7 +417,6 @@ fn derive_default_model_family(model: &str) -> ModelFamily {
         context_window: None,
         auto_compact_token_limit: None,
         supports_reasoning_summaries: false,
-        reasoning_summary_format: ReasoningSummaryFormat::None,
         supports_parallel_tool_calls: false,
         apply_patch_tool_type: None,
         base_instructions: BASE_INSTRUCTIONS.to_string(),
@@ -427,6 +426,7 @@ fn derive_default_model_family(model: &str) -> ModelFamily {
         shell_type: ConfigShellToolType::Default,
         default_verbosity: None,
         default_reasoning_effort: None,
+        reasoning_summary_format: ReasoningSummary::Auto,
         truncation_policy: TruncationPolicy::Bytes(10_000),
     }
 }
@@ -444,18 +444,18 @@ mod tests {
             slug: slug.to_string(),
             display_name: slug.to_string(),
             description: Some(format!("{slug} desc")),
-            default_reasoning_level: effort,
+            default_reasoning_level: Some(effort),
             supported_reasoning_levels: vec![ReasoningEffortPreset {
                 effort,
                 description: effort.to_string(),
             }],
             shell_type: shell,
             visibility: ModelVisibility::List,
-            minimal_client_version: ClientVersion(0, 1, 0),
             supported_in_api: true,
             priority: 1,
             upgrade: None,
-            base_instructions: None,
+            base_instructions: "".to_string(),
+            model_instructions_template: None,
             supports_reasoning_summaries: false,
             support_verbosity: false,
             default_verbosity: None,
@@ -463,7 +463,8 @@ mod tests {
             truncation_policy: TruncationPolicyConfig::bytes(10_000),
             supports_parallel_tool_calls: false,
             context_window: None,
-            reasoning_summary_format: ReasoningSummaryFormat::None,
+            auto_compact_token_limit: None,
+            effective_context_window_percent: 95,
             experimental_supported_tools: Vec::new(),
         }
     }
@@ -527,25 +528,24 @@ mod tests {
             experimental_supported_tools: vec!["local".to_string()],
             truncation_policy: TruncationPolicy::Bytes(10_000),
             context_window: Some(100),
-            reasoning_summary_format: ReasoningSummaryFormat::None,
         );
 
         let updated = family.with_remote_overrides(vec![ModelInfo {
             slug: "gpt-5.1".to_string(),
             display_name: "gpt-5.1".to_string(),
             description: Some("desc".to_string()),
-            default_reasoning_level: ReasoningEffort::High,
+            default_reasoning_level: Some(ReasoningEffort::High),
             supported_reasoning_levels: vec![ReasoningEffortPreset {
                 effort: ReasoningEffort::High,
                 description: "High".to_string(),
             }],
             shell_type: ConfigShellToolType::ShellCommand,
             visibility: ModelVisibility::List,
-            minimal_client_version: ClientVersion(0, 1, 0),
             supported_in_api: true,
             priority: 10,
             upgrade: None,
-            base_instructions: Some("Remote instructions".to_string()),
+            base_instructions: "Remote instructions".to_string(),
+            model_instructions_template: None,
             supports_reasoning_summaries: true,
             support_verbosity: true,
             default_verbosity: Some(Verbosity::High),
@@ -553,7 +553,8 @@ mod tests {
             truncation_policy: TruncationPolicyConfig::tokens(2_000),
             supports_parallel_tool_calls: true,
             context_window: Some(400_000),
-            reasoning_summary_format: ReasoningSummaryFormat::Experimental,
+            auto_compact_token_limit: None,
+            effective_context_window_percent: 95,
             experimental_supported_tools: vec!["alpha".to_string(), "beta".to_string()],
         }]);
 
@@ -574,7 +575,7 @@ mod tests {
         assert_eq!(updated.context_window, Some(400_000));
         assert_eq!(
             updated.reasoning_summary_format,
-            ReasoningSummaryFormat::Experimental
+            ReasoningSummary::Auto
         );
         assert_eq!(
             updated.experimental_supported_tools,

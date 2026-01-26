@@ -154,9 +154,20 @@ pub use event_mapping::parse_turn_item;
 pub mod compact;
 pub mod otel_init;
 
+// Re-export model_family for backward compatibility
+pub use models_manager::model_family;
+
 // Orchestration module: protected with conditional compilation to preserve when merging with upstream
 #[cfg(feature = "custom-features")]
 pub mod orchestration;
+
+// Agents, Plan, and QC modules: protected with conditional compilation to preserve when merging with upstream
+#[cfg(feature = "custom-features")]
+pub mod agents;
+#[cfg(feature = "custom-features")]
+pub mod plan;
+#[cfg(feature = "custom-features")]
+pub mod qc;
 
 // LLMOps, A2A Communication, Skill/MCP Integration, and Autonomous Orchestration
 // Custom features: protected with conditional compilation to preserve when merging with upstream

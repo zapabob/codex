@@ -30,10 +30,12 @@ use crate::config::Config;
 use crate::model_provider_info::ModelProviderInfo;
 #[cfg(feature = "custom-features")]
 use crate::orchestration::CollaborationStore;
-use codex_otel::otel_manager::OtelManager as OtelEventManager;
-use codex_protocol::ConversationId;
+use codex_otel::OtelManager as OtelEventManager;
+use codex_protocol::ThreadId;
+type ConversationId = ThreadId;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::Verbosity;
+use codex_protocol::models::BaseInstructions;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::ResponseItem;
 use codex_protocol::openai_models::ReasoningEffort;
@@ -248,24 +250,30 @@ Only output the JSON, no explanation."#;
             id: None,
             role: "user".to_string(),
             content: vec![ContentItem::InputText { text: user_message }],
+            end_turn: None,
         }];
 
         let llm_prompt = Prompt {
             input: input_items,
             tools: vec![],
             parallel_tool_calls: false,
-            base_instructions_override: Some(system_prompt.to_string()),
+            base_instructions: BaseInstructions {
+                text: system_prompt.to_string(),
+            },
+            personality: None,
             output_schema: None,
         };
 
         // LLM呼び出し
         let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
-        let model_family = crate::models_manager::model_family::find_family_for_model(model)
-            .with_config_overrides(&self.config);
+        let model_info = crate::models_manager::model_info::with_config_overrides(
+            crate::models_manager::model_info::find_model_info_for_slug(model),
+            &self.config,
+        );
         let model_client = ModelClient::new(
             self.config.clone(),
             self.auth_manager.clone(),
-            model_family,
+            model_info,
             self.otel_manager.clone(),
             self.provider.clone(),
             Some(ReasoningEffort::Medium),
@@ -274,7 +282,8 @@ Only output the JSON, no explanation."#;
             codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
         );
 
-        let mut response_stream = model_client
+        let mut client_session = model_client.new_session();
+        let mut response_stream = client_session
             .stream(&llm_prompt)
             .await
             .context("Failed to generate agent definition")?;
@@ -633,12 +642,14 @@ Only output the JSON, no explanation."#;
 
         // 3. ModelClient作成
         let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
-        let model_family = crate::models_manager::model_family::find_family_for_model(model)
-            .with_config_overrides(&self.config);
+        let model_info = crate::models_manager::model_info::with_config_overrides(
+            crate::models_manager::model_info::find_model_info_for_slug(model),
+            &self.config,
+        );
         let client = ModelClient::new(
             self.config.clone(),
             self.auth_manager.clone(),
-            model_family,
+            model_info,
             self.otel_manager.clone(),
             self.provider.clone(),
             Some(ReasoningEffort::Medium),
@@ -654,6 +665,7 @@ Only output the JSON, no explanation."#;
             content: vec![ContentItem::InputText {
                 text: user_message.clone(),
             }],
+            end_turn: None,
         }];
 
         // 5. Prompt構築（エージェント権限からツールを生成）
@@ -663,7 +675,10 @@ Only output the JSON, no explanation."#;
             input: _input_items,
             tools,
             parallel_tool_calls: false,
-            base_instructions_override: None, // Responses API検証を回避するためNoneに設定
+            base_instructions: BaseInstructions {
+                text: String::new(), // デフォルトのベースインストラクション
+            },
+            personality: None,
             output_schema: None,
         };
 
@@ -674,7 +689,8 @@ Only output the JSON, no explanation."#;
         );
 
         // 6. LLM呼び出し
-        let mut stream = client.stream(&prompt).await?;
+        let mut client_session = client.new_session();
+        let mut stream = client_session.stream(&prompt).await?;
         let mut response_text = String::new();
         let mut total_tokens = 0;
 
@@ -909,7 +925,7 @@ artifacts:
             experimental_bearer_token: None,
             requires_openai_auth: false,
         };
-        let conversation_id = ConversationId::new();
+        let conversation_id = ThreadId::new();
         let otel_manager = OtelEventManager::new(
             conversation_id,
             "test-model",
@@ -993,7 +1009,7 @@ artifacts:
             experimental_bearer_token: None,
             requires_openai_auth: false,
         };
-        let conversation_id = ConversationId::new();
+        let conversation_id = ThreadId::new();
         let otel_manager = OtelEventManager::new(
             conversation_id,
             "test-model",
@@ -1334,24 +1350,30 @@ impl AgentRuntime {
             content: vec![ContentItem::InputText {
                 text: last_message.1.clone(),
             }],
+            end_turn: None,
         }];
 
         let prompt = Prompt {
             input: input_items,
             tools: vec![],
             parallel_tool_calls: false,
-            base_instructions_override: system_instructions,
+            base_instructions: BaseInstructions {
+                text: system_instructions.unwrap_or_default(),
+            },
+            personality: None,
             output_schema: None,
         };
 
         // ModelClient経由でLLM呼び出し
         let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
-        let model_family = crate::models_manager::model_family::find_family_for_model(model)
-            .with_config_overrides(&self.config);
+        let model_info = crate::models_manager::model_info::with_config_overrides(
+            crate::models_manager::model_info::find_model_info_for_slug(model),
+            &self.config,
+        );
         let model_client = ModelClient::new(
             self.config.clone(),
             self.auth_manager.clone(),
-            model_family,
+            model_info,
             self.otel_manager.clone(),
             self.provider.clone(),
             Some(ReasoningEffort::Medium),
@@ -1360,7 +1382,8 @@ impl AgentRuntime {
             codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
         );
 
-        let mut response_stream = model_client
+        let mut client_session = model_client.new_session();
+        let mut response_stream = client_session
             .stream(&prompt)
             .await
             .context("Failed to stream LLM response")?;

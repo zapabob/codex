@@ -14,7 +14,9 @@ use oauth2::Scope;
 use oauth2::TokenResponse;
 use oauth2::TokenUrl;
 use oauth2::basic::BasicClient;
-use oauth2::reqwest::async_http_client;
+use oauth2::EndpointSet;
+use oauth2::EndpointNotSet;
+use reqwest::Client as ReqwestClient;
 use serde::Deserialize;
 use serde::Serialize;
 use std::path::PathBuf;
@@ -36,8 +38,11 @@ pub struct TokenInfo {
 
 /// Microsoft 365 authentication manager
 pub struct AuthManager {
-    /// OAuth client
-    client: BasicClient,
+    /// OAuth client (fully configured with auth_uri and token_uri endpoints)
+    /// Type state pattern: EndpointSet for auth_uri and token_uri, EndpointNotSet for others
+    client: BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>,
+    /// HTTP client for async requests
+    http_client: ReqwestClient,
     /// Keyring store for secure token storage
     keyring: DefaultKeyringStore,
     /// Client ID
@@ -58,18 +63,31 @@ impl AuthManager {
             format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize");
         let token_url = format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token");
 
-        let client = BasicClient::new(
-            ClientId::new(client_id.clone()),
-            Some(ClientSecret::new("".to_string())), // Public client
-            AuthUrl::new(auth_url).context("Invalid auth URL")?,
-            Some(TokenUrl::new(token_url).context("Invalid token URL")?),
-        )
-        .set_redirect_uri(RedirectUrl::new(redirect_url).context("Invalid redirect URL")?);
+        let auth_url_parsed = AuthUrl::new(auth_url).context("Invalid auth URL")?;
+        let token_url_parsed = TokenUrl::new(token_url).context("Invalid token URL")?;
+        let redirect_url_parsed = RedirectUrl::new(redirect_url).context("Invalid redirect URL")?;
+
+        // Build client with all required endpoints set
+        // The type state pattern ensures authorize_url and exchange_code are only available
+        // when auth_uri and token_uri endpoints are configured
+        // After setting endpoints, the type becomes BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>
+        let client = BasicClient::new(ClientId::new(client_id.clone()))
+            .set_client_secret(ClientSecret::new("".to_string())) // Public client
+            .set_auth_uri(auth_url_parsed)
+            .set_token_uri(token_url_parsed)
+            .set_redirect_uri(redirect_url_parsed);
+
+        // Create HTTP client with redirect policy to prevent SSRF
+        let http_client = ReqwestClient::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .context("Failed to create HTTP client")?;
 
         let keyring = DefaultKeyringStore;
 
         Ok(Self {
             client,
+            http_client,
             keyring,
             client_id,
             tenant_id,
@@ -78,13 +96,14 @@ impl AuthManager {
 
     /// Get authorization URL for OAuth flow
     pub fn get_authorization_url(&self, scopes: Vec<String>) -> Result<(String, CsrfToken)> {
-        let scopes = scopes.into_iter().map(Scope::new);
+        // In oauth2 v5.0.0, authorize_url returns a builder that must be configured
+        let mut auth_request = self.client.authorize_url(CsrfToken::new_random);
+        
+        for scope in scopes {
+            auth_request = auth_request.add_scope(Scope::new(scope));
+        }
 
-        let (auth_url, csrf_token) = self
-            .client
-            .authorize_url(CsrfToken::new_random)
-            .add_scopes(scopes)
-            .url();
+        let (auth_url, csrf_token) = auth_request.url();
 
         Ok((auth_url.to_string(), csrf_token))
     }
@@ -95,25 +114,27 @@ impl AuthManager {
         code: AuthorizationCode,
         scopes: Vec<String>,
     ) -> Result<TokenInfo> {
-        let scopes: Vec<Scope> = scopes.into_iter().map(Scope::new).collect();
+        // In oauth2 v5.0.0, exchange_code returns a builder that must be configured
+        // The scopes parameter is not used in the exchange, but we keep it for API compatibility
+        let _scopes: Vec<Scope> = scopes.into_iter().map(Scope::new).collect();
 
         let token_result = self
             .client
             .exchange_code(code)
             .add_extra_param("client_id", &self.client_id)
-            .request_async(async_http_client)
+            .request_async(&self.http_client)
             .await
             .context("Failed to exchange authorization code")?;
 
-        let expires_at = token_result.expires_in().map(|duration| {
+        let expires_at = token_result.expires_in().map(|duration: std::time::Duration| {
             chrono::Utc::now() + chrono::Duration::seconds(duration.as_secs() as i64)
         });
 
         let token_info = TokenInfo {
             access_token: token_result.access_token().secret().clone(),
-            refresh_token: token_result.refresh_token().map(|t| t.secret().clone()),
+            refresh_token: token_result.refresh_token().map(|t: &oauth2::RefreshToken| t.secret().clone()),
             expires_at,
-            scopes: scopes.iter().map(|s| s.to_string()).collect(),
+            scopes: _scopes.iter().map(|s| s.to_string()).collect(),
         };
 
         // Store token securely

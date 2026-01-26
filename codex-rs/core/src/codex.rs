@@ -2959,6 +2959,26 @@ pub(crate) async fn run_turn(
 
     let mut client_session = turn_context.client.new_session();
 
+    // Get MCP tools for router creation
+    let mcp_tools = sess
+        .services
+        .mcp_connection_manager
+        .read()
+        .await
+        .list_all_tools()
+        .await;
+    
+    // Create router
+    let router = Arc::new(ToolRouter::from_config(
+        &turn_context.tools_config,
+        Some(
+            mcp_tools
+                .into_iter()
+                .map(|(name, tool)| (name, tool.tool))
+                .collect(),
+        ),
+    ));
+
     loop {
         // Note that pending_input would be something like a message the user
         // submitted through the UI while the model was running. Though the UI
@@ -2985,12 +3005,29 @@ pub(crate) async fn run_turn(
             })
             .map(|user_message| user_message.message())
             .collect::<Vec<String>>();
-        match run_sampling_request(
+        
+        // Create Prompt for try_run_sampling_request
+        let model_supports_parallel = turn_context
+            .client
+            .get_model_info()
+            .supports_parallel_tool_calls;
+        let base_instructions = sess.get_base_instructions().await;
+        let prompt = Prompt {
+            input: sampling_request_input.clone(),
+            tools: router.specs(),
+            parallel_tool_calls: model_supports_parallel,
+            base_instructions,
+            personality: turn_context.personality,
+            output_schema: turn_context.final_output_json_schema.clone(),
+        };
+        
+        match try_run_sampling_request(
+            Arc::clone(&router),
             Arc::clone(&sess),
             Arc::clone(&turn_context),
-            Arc::clone(&turn_diff_tracker),
             &mut client_session,
-            sampling_request_input,
+            Arc::clone(&turn_diff_tracker),
+            &prompt,
             cancellation_token.child_token(),
         )
         .await

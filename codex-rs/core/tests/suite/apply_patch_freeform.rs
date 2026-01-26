@@ -7,7 +7,7 @@ use std::fs;
 
 use codex_core::config::Config;
 use codex_core::features::Feature;
-use codex_core::model_family::find_family_for_model;
+use codex_core::models_manager::model_family::find_family_for_model;
 use codex_core::protocol::AskForApproval;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::Op;
