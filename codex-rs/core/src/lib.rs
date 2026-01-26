@@ -181,7 +181,7 @@ pub mod cowork_integration;
 pub mod llmops;
 #[cfg(feature = "custom-features")]
 pub mod skill_mcp_integration;
-#[cfg(feature = "custom-features")]
+#[cfg(all(feature = "custom-features", feature = "cuda"))]
 pub mod cuda_accelerator;
 #[cfg(feature = "custom-features")]
 pub mod git4d_accelerated;

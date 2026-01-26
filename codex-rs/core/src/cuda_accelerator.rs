@@ -1,4 +1,6 @@
+#[cfg(feature = "cuda")]
 use cudarc::driver::CudaDevice;
+#[cfg(feature = "cuda")]
 use cudarc::driver::CudaSlice;
 use std::sync::Arc;
 

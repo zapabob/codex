@@ -106,7 +106,7 @@ impl VRARIntegration {
 
     /// Initialize XR system for specific platform
     pub async fn initialize_platform(&mut self, platform: XRPlatform) -> Result<(), Box<dyn std::error::Error>> {
-        let init_start = Instant::now();
+        let _init_start = Instant::now();
         tracing::info!("Initializing XR platform: {:?}", platform);
         match platform {
             XRPlatform::OculusQuest2 | XRPlatform::OculusQuest3 => {
@@ -204,7 +204,7 @@ impl VRARIntegration {
     pub async fn handle_gesture_interaction(
         &mut self,
         gesture: HandGesture,
-        hand: HandType,
+        _hand: HandType,
         position: [f32; 3],
     ) -> Result<Option<VRInteraction>, Box<dyn std::error::Error>> {
         match gesture {

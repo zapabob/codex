@@ -20,6 +20,7 @@ use codex_windows_sandbox::sandbox_secrets_dir;
 use codex_windows_sandbox::string_from_sid_bytes;
 use codex_windows_sandbox::to_wide;
 use codex_windows_sandbox::SandboxUsersFile;
+use codex_windows_sandbox::SandboxUserRecord;
 use codex_windows_sandbox::LOG_FILE_NAME;
 use codex_windows_sandbox::SETUP_VERSION;
 use serde::Deserialize;
@@ -66,7 +67,6 @@ use sandbox_users::provision_sandbox_users;
 use sandbox_users::resolve_sandbox_users_group_sid;
 use sandbox_users::resolve_sid;
 use sandbox_users::sid_bytes_to_psid;
-use sandbox_users::SandboxUserRecord;
 use sandbox_users::SetupMarker;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -659,7 +659,7 @@ fn run_setup_full(payload: &Payload, log: &mut File, sbx_dir: &Path) -> Result<(
             &sandbox_dir(&payload.codex_home),
             &payload.real_user,
             &sandbox_group_sid,
-            GRANT_ACCESS,
+            GRANT_ACCESS as u32,
             log,
         )?;
         lock_sandbox_dir(

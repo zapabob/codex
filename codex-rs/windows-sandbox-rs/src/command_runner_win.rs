@@ -66,14 +66,16 @@ unsafe fn create_job_kill_on_close() -> Result<HANDLE> {
     if h == 0 {
         return Err(anyhow::anyhow!("CreateJobObjectW failed"));
     }
-    let mut limits: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = std::mem::zeroed();
+    let mut limits: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = unsafe { std::mem::zeroed() };
     limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-    let ok = SetInformationJobObject(
-        h,
-        JobObjectExtendedLimitInformation,
-        &mut limits as *mut _ as *mut _,
-        std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
-    );
+    let ok = unsafe {
+        SetInformationJobObject(
+            h,
+            JobObjectExtendedLimitInformation,
+            &mut limits as *mut _ as *mut _,
+            std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
+        )
+    };
     if ok == 0 {
         return Err(anyhow::anyhow!("SetInformationJobObject failed"));
     }

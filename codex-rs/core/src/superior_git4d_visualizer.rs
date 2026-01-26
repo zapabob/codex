@@ -39,7 +39,9 @@ use tokio::time::Instant;
 use tokio::time::{self};
 
 // Import existing components
+#[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::CudaGit4DAccelerator;
+#[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::GitCommitVertex;
 use crate::git4d_accelerated::Git4DAcceleratedVisualizer;
 use crate::git4d_accelerated::Git4DEvent;
@@ -116,7 +118,7 @@ pub struct CollaborationEvent {
     pub time_window: (chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CollaborationType {
     PairProgramming,
     CodeReview,
@@ -225,7 +227,7 @@ impl SentimentAnalyzer {
 
     pub async fn analyze_commit_sentiment(
         &self,
-        commit: &Commit,
+        commit: &Commit<'_>,
     ) -> Result<CommitSentiment, Box<dyn std::error::Error>> {
         let commit_id = commit.id();
 
@@ -250,6 +252,62 @@ impl SentimentAnalyzer {
 
         // AI-powered deep analysis
         let deep_sentiment = if let Some(client) = &self.ai_client {
+            self.analyze_with_ai(message, author)
+                .await
+                .unwrap_or(SentimentResult {
+                    score: 0.0,
+                    confidence: 0.0,
+                    emotions: HashMap::new(),
+                })
+        } else {
+            SentimentResult {
+                score: sentiment_score,
+                confidence: 0.5,
+                emotions: HashMap::new(),
+            }
+        };
+
+        let result = CommitSentiment {
+            commit_id,
+            sentiment_score: deep_sentiment.score,
+            confidence: deep_sentiment.confidence,
+            emotions: deep_sentiment.emotions,
+            keywords,
+        };
+
+        // Cache result
+        self.cache
+            .write()
+            .unwrap()
+            .insert(commit_id, result.clone());
+
+        Ok(result)
+    }
+
+    async fn analyze_commit_sentiment_inner(
+        &self,
+        commit_id: Oid,
+        message: &str,
+        author: &str,
+    ) -> Result<CommitSentiment, Box<dyn std::error::Error>> {
+        // Check cache first
+        if let Some(cached) = self.cache.read().unwrap().get(&commit_id) {
+            return Ok(cached.clone());
+        }
+
+        // Basic pattern-based analysis
+        let mut sentiment_score = 0.0;
+        let mut keywords = Vec::new();
+
+        for (pattern, score) in &self.sentiment_patterns {
+            if pattern.is_match(message) {
+                sentiment_score += score;
+                keywords.push(pattern.to_string());
+            }
+        }
+
+        // AI-powered deep analysis
+        let deep_sentiment = if let Some(_client) = &self.ai_client {
             self.analyze_with_ai(message, author)
                 .await
                 .unwrap_or(SentimentResult {
@@ -364,8 +422,8 @@ impl ImpactCalculator {
 
     pub async fn calculate_commit_impact(
         &self,
-        commit: &Commit,
-        diff: Option<&Diff>,
+        commit: &Commit<'_>,
+        diff: Option<&Diff<'_>>,
     ) -> Result<CommitImpact, Box<dyn std::error::Error>> {
         let commit_id = commit.id();
 
@@ -420,7 +478,7 @@ impl ImpactCalculator {
 
                 true
             },
-            Some(git2::DiffFormat::Patch),
+            None,
             None,
             None,
         )
@@ -512,7 +570,6 @@ impl ComplexityAnalyzer {
                 }
                 true
             },
-            None,
             None,
             None,
             None,
@@ -660,10 +717,21 @@ impl Git4DAnalyzer for SentimentAnalyzer {
     type AnalysisResult = CommitSentiment;
 
     async fn analyze(&self, commit: &Commit) -> Self::AnalysisResult {
-        self.analyze_commit_sentiment(commit)
+        // Extract commit information before async processing to avoid Send issues
+        // All commit data must be extracted synchronously before the async block
+        let commit_id = commit.id();
+        let message = commit.message().unwrap_or("").to_string();
+        let author = commit.author().name().unwrap_or("").to_string();
+        
+        // Now we can use the extracted data in async processing
+        // The commit reference is no longer needed, so we can drop it
+        drop(commit);
+        
+        // Use the extracted information for async processing
+        self.analyze_commit_sentiment_inner(commit_id, &message, &author)
             .await
             .unwrap_or_else(|_| CommitSentiment {
-                commit_id: commit.id(),
+                commit_id,
                 sentiment_score: 0.0,
                 confidence: 0.0,
                 emotions: HashMap::new(),
@@ -826,7 +894,7 @@ impl SuperiorGit4DVisualizer {
 
     async fn interpret_gesture_with_ai(
         &self,
-        gesture: crate::vr_ar_integration::HandGesture,
+        _gesture: crate::vr_ar_integration::HandGesture,
     ) -> Result<String, Box<dyn std::error::Error>> {
         // AI-powered gesture interpretation
         // This would use the AI client to understand complex gestures
@@ -868,7 +936,7 @@ impl SuperiorGit4DVisualizer {
 
     async fn parse_voice_command_with_ai(
         &self,
-        command: String,
+        _command: String,
     ) -> Result<String, Box<dyn std::error::Error>> {
         // Use AI to parse natural language voice commands
         Ok("show_collaboration_network".to_string()) // Placeholder

@@ -1,3 +1,4 @@
+#[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::{CudaGit4DAccelerator, GitCommitVertex, TransformationMatrix, RenderParameters};
 use crate::vr_ar_integration::{VRARIntegration, VRInteraction, VREvent, XRPlatform, Anchor, AnchorType};
 use anyhow::Context;
@@ -59,10 +60,14 @@ fn detect_virtual_desktop() -> bool {
 
 /// Accelerated Git4D visualization with CUDA and VR/AR support
 pub struct Git4DAcceleratedVisualizer {
+    #[cfg(all(feature = "custom-features", feature = "cuda"))]
     cuda_accelerator: Option<CudaGit4DAccelerator>,
     vr_ar_integration: Option<VRARIntegration>,
     repository: Repository,
+    #[cfg(all(feature = "custom-features", feature = "cuda"))]
     commit_cache: Mutex<HashMap<Oid, GitCommitVertex>>,
+    #[cfg(not(all(feature = "custom-features", feature = "cuda")))]
+    commit_cache: Mutex<HashMap<Oid, Oid>>,
     branch_cache: Mutex<HashMap<String, Vec<Oid>>>,
     time_range: Mutex<(f32, f32)>,
     visible_branches: Mutex<HashSet<u32>>,
@@ -814,7 +819,7 @@ impl Git4DAcceleratedVisualizer {
     }
 
     /// Get color for commit based on branch and author
-    fn get_commit_color(&self, commit: &Commit, branch_id: u32) -> [f32; 4] {
+    fn get_commit_color(&self, _commit: &Commit, branch_id: u32) -> [f32; 4] {
         // Color based on branch
         let hue = (branch_id as f32 * 137.5) % 360.0; // Golden angle approximation
         let saturation = 0.7;

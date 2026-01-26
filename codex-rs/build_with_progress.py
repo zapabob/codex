@@ -120,27 +120,16 @@ if __name__ == "__main__":
     if target_dir:
         print(f"CARGO_TARGET_DIR: {target_dir}")
     
-    # 高速差分ビルド（リリースモード）- TUI
-    print("高速差分ビルドを開始します... (codex-tui)")
-    success_tui = build_with_progress(
-        ["cargo", "build", "--manifest-path", "Cargo.toml", "-p", "codex-tui", "--release"],
-        "codex-tui (リリースビルド)"
+    # 高速差分ビルド（リリースモード）- ワークスペース全体
+    print("高速差分ビルドを開始します... (workspace, custom-features)")
+    success = build_with_progress(
+        ["cargo", "build", "--workspace", "--features", "custom-features", "--release"],
+        "Rustワークスペース (リリースビルド)"
     )
     
-    if not success_tui:
-        print("\nビルドに失敗しました (codex-tui)")
-        sys.exit(1)
-    
-    # CLIもビルド
-    print("\n高速差分ビルドを開始します... (codex-cli)")
-    success_cli = build_with_progress(
-        ["cargo", "build", "--manifest-path", "Cargo.toml", "-p", "codex-cli", "--release"],
-        "codex-cli (リリースビルド)"
-    )
-    
-    if success_tui and success_cli:
-        print("\nビルドが正常に完了しました！")
+    if success:
+        print("\n✅ ビルドが正常に完了しました！")
         sys.exit(0)
     else:
-        print("\nビルドに失敗しました")
+        print("\n❌ ビルドに失敗しました")
         sys.exit(1)
