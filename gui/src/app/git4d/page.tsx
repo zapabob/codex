@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
-import { Box, Container, Typography, Paper } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Box, Container, Typography, Paper, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
 import { GitBranch, Eye, Zap } from 'lucide-react';
 import { Git4DWebXRFramework } from '../../components/visualization/Git4DWebXRFramework';
+import { Git4DVisualization } from '../../components/visualization/Git4DVisualization';
 
 /**
  * Git4D VR/AR Visualization Page
@@ -13,6 +15,83 @@ import { Git4DWebXRFramework } from '../../components/visualization/Git4DWebXRFr
  * kamui4dを超える没入型4D Git可視化
  */
 export default function Git4DPage() {
+  const searchParams = useSearchParams();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Get mode from URL params or default to 'desktop'
+  const mode = (searchParams?.get('mode') || 'desktop') as 'desktop' | 'vr' | 'ar';
+  const repositoryPath = searchParams?.get('repository_path') || undefined;
+  
+  // Check device availability and launch visualization session
+  useEffect(() => {
+    const launchSession = async () => {
+      if (mode && mode !== 'desktop' && !sessionId) {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+          // Check device availability using WebXR Manager
+          let deviceAvailable = false;
+          let deviceWarning: string | null = null;
+          
+          if (mode === 'vr' || mode === 'ar') {
+            if ('xr' in navigator) {
+              const xr = (navigator as any).xr;
+              try {
+                const sessionType = mode === 'vr' ? 'immersive-vr' : 'immersive-ar';
+                deviceAvailable = await xr.isSessionSupported(sessionType);
+                if (!deviceAvailable) {
+                  deviceWarning = `${mode.toUpperCase()} device not available. Falling back to desktop mode.`;
+                }
+              } catch (err) {
+                deviceWarning = `Failed to check ${mode.toUpperCase()} device availability: ${err instanceof Error ? err.message : 'Unknown error'}`;
+                deviceAvailable = false;
+              }
+            } else {
+              deviceWarning = 'WebXR not supported in this browser. Falling back to desktop mode.';
+              deviceAvailable = false;
+            }
+          } else {
+            deviceAvailable = true; // Desktop mode always available
+          }
+          
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+          const response = await fetch(`${apiUrl}/api/visualization/git4d`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              mode: deviceAvailable ? mode : 'desktop',
+              repositoryPath: repositoryPath || '.',
+            }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+            throw new Error(errorData.message || `HTTP ${response.status}`);
+          }
+          
+          const data = await response.json();
+          setSessionId(data.sessionId);
+          
+          // Show warning if device was not available
+          if (deviceWarning) {
+            console.warn(deviceWarning);
+          }
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to launch visualization');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    launchSession();
+  }, [mode, repositoryPath, sessionId]);
+  
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <motion.div
@@ -134,8 +213,34 @@ export default function Git4DPage() {
           </Box>
         </Paper>
 
-        {/* Main WebXR Framework */}
-        <Git4DWebXRFramework />
+        {/* Main Visualization */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {isLoading && (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+            <CircularProgress />
+            <Typography variant="body1" sx={{ ml: 2 }}>
+              Launching Git4D visualization in {mode} mode...
+            </Typography>
+          </Box>
+        )}
+        
+        {!isLoading && !error && (
+          <Git4DVisualization 
+            mode={mode}
+            repositoryPath={repositoryPath}
+            sessionId={sessionId || undefined}
+          />
+        )}
+        
+        {/* Fallback to WebXR Framework if needed */}
+        {mode === 'desktop' && !sessionId && (
+          <Git4DWebXRFramework />
+        )}
 
         {/* Performance Metrics */}
         <Paper elevation={2} sx={{ p: 3, mt: 4 }}>

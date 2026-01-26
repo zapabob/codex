@@ -41,6 +41,9 @@ pub enum SlashCommand {
     Rollout,
     Ps,
     TestApproval,
+    Git4d,
+    Vr,
+    Ar,
 }
 
 impl SlashCommand {
@@ -74,6 +77,9 @@ impl SlashCommand {
             SlashCommand::Logout => "log out of Codex",
             SlashCommand::Rollout => "print the rollout file path",
             SlashCommand::TestApproval => "test approval request",
+            SlashCommand::Git4d => "launch Git 4D visualization with VR/AR support",
+            SlashCommand::Vr => "launch Git 4D visualization in VR mode",
+            SlashCommand::Ar => "launch Git 4D visualization in AR mode",
         }
     }
 
@@ -114,6 +120,9 @@ impl SlashCommand {
             SlashCommand::TestApproval => true,
             SlashCommand::Collab => true,
             SlashCommand::Agent => true,
+            SlashCommand::Git4d => true,
+            SlashCommand::Vr => true,
+            SlashCommand::Ar => true,
         }
     }
 

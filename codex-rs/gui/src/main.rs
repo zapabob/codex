@@ -10,8 +10,12 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
+use axum::response::sse::{Event, Sse};
 use axum::routing::get;
 use axum::routing::post;
+use futures_util::stream;
+use std::convert::Infallible;
+use std::time::Duration;
 use chrono::DateTime;
 use chrono::Utc;
 use http::Method;
@@ -107,6 +111,9 @@ async fn main() -> Result<(), GuiError> {
         .route("/api/conversations/{id}/messages", get(get_messages))
         .route("/api/conversations/{id}/messages", post(send_message))
         .route("/api/user", get(get_current_user))
+        .route("/api/visualization/git4d", post(launch_git4d_visualization))
+        .route("/api/visualization/git4d/sessions", get(list_git4d_sessions))
+        .route("/api/visualization/git4d/{session_id}/events", get(git4d_events_stream))
         .with_state(state)
         .layer(
             CorsLayer::new()
@@ -1083,4 +1090,219 @@ async fn get_current_user(State(state): State<AppState>) -> Json<Option<User>> {
     }
 
     Json(user)
+}
+
+// Git4D Visualization API
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Git4DLaunchRequest {
+    mode: String,
+    repository_path: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Git4DLaunchResponse {
+    session_id: String,
+    status: String,
+    message: String,
+}
+
+#[axum::debug_handler]
+async fn launch_git4d_visualization(
+    Json(payload): Json<Git4DLaunchRequest>,
+) -> Result<Json<Git4DLaunchResponse>, GuiError> {
+    use std::path::PathBuf;
+    
+    let mode = payload.mode.as_str();
+    let repository_path = payload.repository_path
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("."));
+    
+    // Validate mode
+    if !["desktop", "vr", "ar"].contains(&mode) {
+        return Err(GuiError::Validation {
+            field: "mode".to_string(),
+            message: format!("Invalid mode: {}. Must be one of: desktop, vr, ar", mode),
+        });
+    }
+    
+    // Validate repository path exists
+    if !repository_path.exists() {
+        return Err(GuiError::Validation {
+            field: "repository_path".to_string(),
+            message: format!("Repository path does not exist: {}", repository_path.display()),
+        });
+    }
+    
+    // Check if it's a git repository
+    let git_dir = repository_path.join(".git");
+    if !git_dir.exists() && !repository_path.is_file() {
+        // Try to find git repository in parent directories
+        let mut current = repository_path.clone();
+        let mut found_git = false;
+        for _ in 0..10 {
+            if current.join(".git").exists() {
+                found_git = true;
+                break;
+            }
+            if let Some(parent) = current.parent() {
+                current = parent.to_path_buf();
+            } else {
+                break;
+            }
+        }
+        
+        if !found_git {
+            return Err(GuiError::Validation {
+                field: "repository_path".to_string(),
+                message: format!("No git repository found at: {}", repository_path.display()),
+            });
+        }
+    }
+    
+    // Check VR/AR device availability (if mode is vr or ar)
+    let device_availability = if mode == "vr" || mode == "ar" {
+        codex_core::git4d_accelerated::check_vr_ar_device_availability(mode).await
+            .unwrap_or_else(|e| {
+                warn!("Failed to check device availability: {}", e);
+                codex_core::git4d_accelerated::DeviceAvailability::NotAvailable {
+                    reason: format!("Device check failed: {}", e),
+                }
+            })
+    } else {
+        codex_core::git4d_accelerated::DeviceAvailability::Desktop
+    };
+    
+    // Determine effective mode based on device availability
+    let effective_mode = match &device_availability {
+        codex_core::git4d_accelerated::DeviceAvailability::Available { .. } => mode.to_string(),
+        codex_core::git4d_accelerated::DeviceAvailability::NotAvailable { reason } => {
+            warn!(
+                "VR/AR device not available ({}), falling back to desktop mode",
+                reason
+            );
+            "desktop".to_string()
+        }
+        codex_core::git4d_accelerated::DeviceAvailability::Desktop => "desktop".to_string(),
+    };
+    
+    // Launch Git4D visualization session
+    let session = codex_core::git4d_accelerated::Git4DAcceleratedVisualizer::launch_for_gui(
+        repository_path.clone(),
+        effective_mode.clone(),
+    )
+    .await
+    .map_err(|e| GuiError::Validation {
+        field: "repository_path".to_string(),
+        message: format!("Failed to launch visualization: {}", e),
+    })?;
+    
+    let session_id = session.session_id.clone();
+    
+    info!(
+        session_id = session_id.as_str(),
+        mode = effective_mode.as_str(),
+        repository_path = ?repository_path,
+        device = ?device_availability,
+        "Git4D visualization session started"
+    );
+    
+    let message = match &device_availability {
+        codex_core::git4d_accelerated::DeviceAvailability::Available { platform, device_name } => {
+            format!(
+                "Git4D visualization started in {} mode with {:?} device{}",
+                effective_mode,
+                platform,
+                device_name.as_ref()
+                    .map(|name| format!(" ({})", name))
+                    .unwrap_or_default()
+            )
+        }
+        codex_core::git4d_accelerated::DeviceAvailability::NotAvailable { reason } => {
+            format!(
+                "Git4D visualization started in desktop mode (VR/AR unavailable: {})",
+                reason
+            )
+        }
+        codex_core::git4d_accelerated::DeviceAvailability::Desktop => {
+            format!("Git4D visualization started in desktop mode")
+        }
+    };
+    
+    Ok(Json(Git4DLaunchResponse {
+        session_id,
+        status: "started".to_string(),
+        message,
+    }))
+}
+
+// Git4D Session List API
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Git4DSessionInfo {
+    session_id: String,
+    mode: String,
+    repository_path: String,
+    status: String,
+    created_at: String,
+    last_activity: String,
+}
+
+#[axum::debug_handler]
+async fn list_git4d_sessions() -> Json<Vec<Git4DSessionInfo>> {
+    use codex_core::git4d_accelerated::{Git4DAcceleratedVisualizer, SessionStatus};
+    
+    let sessions = Git4DAcceleratedVisualizer::list_sessions();
+    
+    let session_infos: Vec<Git4DSessionInfo> = sessions
+        .into_iter()
+        .map(|session| {
+            Git4DSessionInfo {
+                session_id: session.session_id,
+                mode: session.mode,
+                repository_path: session.repository_path.to_string_lossy().to_string(),
+                status: format!("{:?}", session.status),
+                created_at: format!("{:?}", session.created_at.elapsed()),
+                last_activity: format!("{:?}", session.last_activity.elapsed()),
+            }
+        })
+        .collect();
+    
+    Json(session_infos)
+}
+
+// Git4D Events SSE Stream
+#[axum::debug_handler]
+async fn git4d_events_stream(
+    Path(session_id): Path<String>,
+) -> Result<Sse<impl stream::Stream<Item = Result<Event, Infallible>>>, GuiError> {
+    use codex_core::git4d_accelerated::Git4DAcceleratedVisualizer;
+    use tokio_stream::{wrappers::BroadcastStream, StreamExt as _};
+    
+    // Get session event receiver
+    let receiver = Git4DAcceleratedVisualizer::get_session_event_receiver(&session_id)
+        .ok_or_else(|| GuiError::Validation {
+            field: "session_id".to_string(),
+            message: format!("Session not found: {}", session_id),
+        })?;
+    
+    // Convert broadcast receiver to SSE stream
+    let stream = BroadcastStream::new(receiver)
+        .map(|msg| {
+            let event_data = match msg {
+                Ok(event) => {
+                    serde_json::to_string(&event).unwrap_or_else(|_| r#"{"type":"error","message":"serialization_failed"}"#.to_string())
+                }
+                Err(_) => r#"{"type":"error","message":"receive_failed"}"#.to_string(),
+            };
+            
+            Ok::<Event, Infallible>(Event::default().data(event_data))
+        });
+    
+    Ok(Sse::new(stream).keep_alive(
+        axum::response::sse::KeepAlive::new()
+            .interval(Duration::from_secs(15))
+            .text("keep-alive-text".to_string()),
+    ))
 }

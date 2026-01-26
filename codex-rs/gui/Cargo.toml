@@ -4,7 +4,7 @@ name = "codex-gui"
 version = { workspace = true }
 
 [dependencies]
-axum = { workspace = true, features = ["json", "macros", "tokio", "http1"] }
+axum = { workspace = true, features = ["json", "macros", "tokio", "http1", "sse"] }
 chrono = { version = "0.4", features = ["serde"] }
 http = "1.1"
 serde = { version = "1.0", features = ["derive"] }
@@ -22,3 +22,5 @@ tower-http = { version = "0.5", features = ["cors", "trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 uuid = { version = "1.11", features = ["v4", "serde"] }
+tokio-stream = "0.1"
+futures-util = "0.3"

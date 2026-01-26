@@ -25,6 +25,8 @@ pub enum CoworkFeature {
     FileManagement,
     /// データ分析
     DataAnalysis,
+    /// Git4D可視化
+    Git4DVisualization,
 }
 
 /// ClaudeCowork統合設定
@@ -212,6 +214,125 @@ impl CoworkIntegrationManager {
         self.execute_python_script("cowork_session_manager.py", args, Some(input_data))
             .await
     }
+}
+
+/// Git4D可視化を起動
+/// 
+/// GUI側のAPIエンドポイントを呼び出してGit4D可視化を起動します
+pub async fn launch_git4d_visualization(
+    repository_path: PathBuf,
+    mode: String,
+) -> Result<()> {
+    use reqwest::Client;
+    
+    // Validate repository path exists
+    if !repository_path.exists() {
+        anyhow::bail!(
+            "Repository path does not exist: {}. Please check the path and try again.",
+            repository_path.display()
+        );
+    }
+    
+    // Check if it's a git repository
+    let git_dir = repository_path.join(".git");
+    if !git_dir.exists() && !repository_path.is_file() {
+        // Try to find git repository in parent directories
+        let mut current = repository_path.clone();
+        let mut found_git = false;
+        for _ in 0..10 {
+            if current.join(".git").exists() {
+                found_git = true;
+                break;
+            }
+            if let Some(parent) = current.parent() {
+                current = parent.to_path_buf();
+            } else {
+                break;
+            }
+        }
+        
+        if !found_git {
+            anyhow::bail!(
+                "No git repository found at: {}. Please navigate to a git repository and try again.",
+                repository_path.display()
+            );
+        }
+    }
+    
+    // Validate mode
+    if !["desktop", "vr", "ar"].contains(&mode.as_str()) {
+        anyhow::bail!(
+            "Invalid visualization mode: {}. Must be one of: desktop, vr, ar",
+            mode
+        );
+    }
+    
+    // Check if GUI is running
+    let gui_port = std::env::var("CODEX_GUI_PORT")
+        .ok()
+        .and_then(|p| p.parse::<u16>().ok())
+        .unwrap_or(8787);
+    
+    let url = format!("http://localhost:{}/api/visualization/git4d", gui_port);
+    
+    let client = Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .context("Failed to create HTTP client")?;
+    
+    let payload = serde_json::json!({
+        "mode": mode,
+        "repository_path": repository_path.to_string_lossy().to_string(),
+    });
+    
+    tracing::debug!("Launching Git4D visualization: mode={}, path={:?}", mode, repository_path);
+    
+    // Attempt to connect to GUI API
+    let response = match client
+        .post(&url)
+        .json(&payload)
+        .send()
+        .await
+    {
+        Ok(res) => res,
+        Err(e) => {
+            if e.is_timeout() || e.is_connect() {
+                anyhow::bail!(
+                    "GUI server is not running or not accessible at {}. Please start the GUI server (codex-gui) and try again.",
+                    url
+                );
+            }
+            return Err(e).context("Failed to send request to GUI API");
+        }
+    };
+    
+    if !response.status().is_success() {
+        let status = response.status();
+        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+        
+        // Provide user-friendly error messages
+        let error_msg = match status.as_u16() {
+            404 => format!("Visualization endpoint not found. The GUI server may need to be updated."),
+            422 => format!("Invalid request parameters: {}", error_text),
+            500 => format!("Server error while launching visualization: {}", error_text),
+            _ => format!("GUI API returned error status {}: {}", status, error_text),
+        };
+        
+        anyhow::bail!("{}", error_msg);
+    }
+    
+    // Check response for VR/AR device availability warnings
+    if mode == "vr" || mode == "ar" {
+        let response_text = response.text().await.unwrap_or_default();
+        if response_text.contains("device not available") || response_text.contains("VR not available") {
+            tracing::warn!(
+                "VR/AR device may not be available. Visualization will start in desktop mode."
+            );
+        }
+    }
+    
+    tracing::info!("Git4D visualization launched successfully in {} mode", mode);
+    Ok(())
 }
 
 /// 実行結果

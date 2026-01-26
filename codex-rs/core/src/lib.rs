@@ -181,3 +181,7 @@ pub mod cowork_integration;
 pub mod llmops;
 #[cfg(feature = "custom-features")]
 pub mod skill_mcp_integration;
+#[cfg(feature = "custom-features")]
+pub mod git4d_accelerated;
+#[cfg(feature = "custom-features")]
+pub mod vr_ar_integration;

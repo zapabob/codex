@@ -9,12 +9,28 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 /**
+ * Git4DVisualization Component Props
+ */
+export interface Git4DVisualizationProps {
+  /** Visualization mode: 'desktop', 'vr', or 'ar' */
+  mode?: 'desktop' | 'vr' | 'ar';
+  /** Repository path (optional, defaults to current directory) */
+  repositoryPath?: string;
+  /** Session ID from API (optional) */
+  sessionId?: string;
+}
+
+/**
  * Git4DVisualization Component
  *
  * 4D Git repository visualization with time axis
  * Supports Quest 2/3 VR integration and Windows 11 25H2 AI acceleration
  */
-export const Git4DVisualization: React.FC = () => {
+export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({ 
+  mode = 'desktop',
+  repositoryPath,
+  sessionId 
+}) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
@@ -25,10 +41,12 @@ export const Git4DVisualization: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeScale, setTimeScale] = useState(1);
   const [showLabels, setShowLabels] = useState(true);
-  const [vrMode, setVrMode] = useState(false);
-  const [arMode, setArMode] = useState(false);
+  const [vrMode, setVrMode] = useState(mode === 'vr');
+  const [arMode, setArMode] = useState(mode === 'ar');
   const [windowsAiMode, setWindowsAiMode] = useState(false);
   const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Mock git data - replace with real data from backend
   const [commits] = useState(() => generateMockCommits());

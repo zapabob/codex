@@ -2665,6 +2665,14 @@ impl ChatWidget {
                     }),
                 }));
             }
+            SlashCommand::Git4d | SlashCommand::Vr | SlashCommand::Ar => {
+                let mode = match cmd {
+                    SlashCommand::Vr => "vr",
+                    SlashCommand::Ar => "ar",
+                    _ => "desktop",
+                };
+                self.launch_git4d_visualization(mode);
+            }
         }
     }
 
@@ -4825,6 +4833,53 @@ impl ChatWidget {
     pub(crate) fn add_error_message(&mut self, message: String) {
         self.add_to_history(history_cell::new_error_event(message));
         self.request_redraw();
+    }
+
+    fn launch_git4d_visualization(&mut self, mode: &str) {
+        let cwd = self.config.cwd.clone();
+        let app_event_tx = self.app_event_tx.clone();
+        
+        self.add_info_message(
+            format!("Launching Git4D visualization in {} mode...", mode),
+            Some("This may take a few seconds. Please wait...".to_string()),
+        );
+
+        // Launch Git4D visualization via cowork integration
+        tokio::spawn(async move {
+            match codex_core::cowork_integration::launch_git4d_visualization(cwd.clone(), mode.to_string()).await {
+                Ok(_) => {
+                    let _ = app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
+                        history_cell::new_info_event(
+                            format!("Git4D visualization launched successfully in {} mode!", mode),
+                            Some(format!("Visualization should open in your browser. If it doesn't, check that the GUI server is running at http://localhost:8787")),
+                        ),
+                    )));
+                }
+                Err(e) => {
+                    let error_msg = e.to_string();
+                    let hint = if error_msg.contains("not running") || error_msg.contains("not accessible") {
+                        Some("Make sure the GUI server is running: `cargo run -p codex-gui`".to_string())
+                    } else if error_msg.contains("No git repository") {
+                        Some("Navigate to a git repository directory and try again.".to_string())
+                    } else if error_msg.contains("does not exist") {
+                        Some("Check that the repository path is correct.".to_string())
+                    } else {
+                        None
+                    };
+                    
+                    let _ = app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
+                        if let Some(hint_text) = hint {
+                            history_cell::new_info_event(
+                                format!("Failed to launch Git4D visualization: {}", error_msg),
+                                Some(hint_text),
+                            )
+                        } else {
+                            history_cell::new_error_event(format!("Failed to launch Git4D visualization: {}", error_msg))
+                        },
+                    )));
+                }
+            }
+        });
     }
 
     pub(crate) fn add_mcp_output(&mut self) {

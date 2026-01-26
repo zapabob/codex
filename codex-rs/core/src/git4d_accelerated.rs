@@ -2,9 +2,11 @@ use crate::cuda_accelerator::{CudaGit4DAccelerator, GitCommitVertex, Transformat
 use crate::vr_ar_integration::{VRARIntegration, VRInteraction, VREvent, XRPlatform, Anchor, AnchorType};
 use anyhow::Context;
 use git2::{Repository, Commit, Oid};
+use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::path::Path;
-use std::sync::{Arc, Mutex};
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time::{self, Duration};
@@ -23,14 +25,32 @@ pub struct Git4DAcceleratedVisualizer {
     interaction_sender: mpsc::Sender<VRInteraction>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum Git4DEvent {
-    CommitsLoaded(Vec<GitCommitVertex>),
-    BranchesUpdated(HashMap<String, Vec<Oid>>),
-    CameraUpdated([f32; 3], [f32; 3]), // position, target
-    RenderComplete(Vec<u8>), // RGBA pixel data
-    InteractionProcessed(VRInteraction),
-    Error(String),
+    CommitsLoaded {
+        commits: Vec<GitCommitVertex>,
+    },
+    BranchesUpdated {
+        branches: HashMap<String, Vec<String>>, // Oid as string
+    },
+    CameraUpdated {
+        position: [f32; 3],
+        target: [f32; 3],
+    },
+    RenderComplete {
+        #[serde(skip)]
+        pixel_data: Vec<u8>, // Skip serialization for large data
+    },
+    InteractionProcessed {
+        interaction: String, // Serialize VRInteraction as string
+    },
+    Error {
+        message: String,
+    },
+    SessionStatusChanged {
+        status: String,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -43,6 +63,99 @@ pub struct Git4DVisualizationConfig {
     pub branch_spread: f32,
     pub render_width: u32,
     pub render_height: u32,
+}
+
+/// Device availability status
+#[derive(Debug, Clone, PartialEq)]
+pub enum DeviceAvailability {
+    Available {
+        platform: XRPlatform,
+        device_name: Option<String>,
+    },
+    NotAvailable {
+        reason: String,
+    },
+    Desktop,
+}
+
+/// Session status
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SessionStatus {
+    Starting,
+    Active,
+    Paused,
+    Stopping,
+    Stopped,
+    Error,
+}
+
+/// Git4D Visualization Session
+/// 
+/// Represents an active visualization session started from GUI
+#[derive(Debug, Clone)]
+pub struct Git4DVisualizationSession {
+    pub session_id: String,
+    pub repository_path: PathBuf,
+    pub mode: String,
+    pub config: Git4DVisualizationConfig,
+    pub created_at: Instant,
+    pub status: SessionStatus,
+    pub last_activity: Instant,
+    pub event_sender: Option<Arc<broadcast::Sender<Git4DEvent>>>,
+}
+
+/// Global session storage
+static SESSIONS: Lazy<Arc<RwLock<HashMap<String, Git4DVisualizationSession>>>> = 
+    Lazy::new(|| Arc::new(RwLock::new(HashMap::new())));
+
+/// Check VR/AR device availability for Git4D visualization
+/// 
+/// Returns device availability status based on the requested mode
+pub async fn check_vr_ar_device_availability(
+    mode: &str,
+) -> Result<DeviceAvailability, Box<dyn std::error::Error>> {
+    if mode == "desktop" {
+        return Ok(DeviceAvailability::Desktop);
+    }
+    
+    // Try to initialize VR/AR integration to check device availability
+    match VRARIntegration::new() {
+        Ok(mut vr_integration) => {
+            // Determine platform based on mode
+            let platform = if mode == "vr" {
+                // Try WebXR first (browser-based VR)
+                XRPlatform::WebXR
+            } else if mode == "ar" {
+                // Try WebXR for AR (browser-based AR)
+                XRPlatform::WebXR
+            } else {
+                return Ok(DeviceAvailability::Desktop);
+            };
+            
+            // Try to initialize the platform
+            match vr_integration.initialize_platform(platform.clone()).await {
+                Ok(_) => {
+                    tracing::info!("VR/AR device available: {:?}", platform);
+                    Ok(DeviceAvailability::Available {
+                        platform,
+                        device_name: Some(format!("{:?}", platform)),
+                    })
+                }
+                Err(e) => {
+                    tracing::warn!("VR/AR device not available: {}", e);
+                    Ok(DeviceAvailability::NotAvailable {
+                        reason: format!("Failed to initialize {:?}: {}", platform, e),
+                    })
+                }
+            }
+        }
+        Err(e) => {
+            tracing::warn!("VR/AR integration not available: {}", e);
+            Ok(DeviceAvailability::NotAvailable {
+                reason: format!("VR/AR integration failed: {}", e),
+            })
+        }
+    }
 }
 
 impl Git4DAcceleratedVisualizer {
@@ -91,6 +204,141 @@ impl Git4DAcceleratedVisualizer {
             interaction_receiver,
             interaction_sender,
         })
+    }
+
+    /// Launch Git4D visualization for GUI
+    /// 
+    /// Creates a new visualization session from GUI request
+    pub async fn launch_for_gui(
+        repository_path: PathBuf,
+        mode: String,
+    ) -> Result<Git4DVisualizationSession, Box<dyn std::error::Error>> {
+        use uuid::Uuid;
+        
+        let session_id = Uuid::new_v4().to_string();
+        
+        // Determine visualization mode settings
+        let enable_vr_ar = mode == "vr" || mode == "ar";
+        let vr_platform = if enable_vr_ar {
+            Some(XRPlatform::WebXR) // Default to WebXR for browser-based VR/AR
+        } else {
+            None
+        };
+        
+        let config = Git4DVisualizationConfig {
+            enable_cuda: true, // Try to enable CUDA if available
+            enable_vr_ar,
+            vr_platform,
+            max_commits: 10000,
+            time_compression: 1.0,
+            branch_spread: 2.0,
+            render_width: 1920,
+            render_height: 1080,
+        };
+        
+        // Verify repository exists
+        if !repository_path.exists() {
+            anyhow::bail!("Repository path does not exist: {}", repository_path.display());
+        }
+        
+        // Check device availability if VR/AR mode
+        let device_availability = if mode == "vr" || mode == "ar" {
+            check_vr_ar_device_availability(&mode).await?
+        } else {
+            DeviceAvailability::Desktop
+        };
+        
+        // If device is not available, fall back to desktop mode
+        let effective_mode = match device_availability {
+            DeviceAvailability::Available { .. } => mode.clone(),
+            DeviceAvailability::NotAvailable { reason } => {
+                tracing::warn!(
+                    "VR/AR device not available ({}), falling back to desktop mode",
+                    reason
+                );
+                "desktop".to_string()
+            }
+            DeviceAvailability::Desktop => "desktop".to_string(),
+        };
+        
+        // Update config if mode changed
+        let mut effective_config = config.clone();
+        if effective_mode != mode {
+            effective_config.enable_vr_ar = false;
+            effective_config.vr_platform = None;
+        }
+        
+        // Create visualizer to verify it can be initialized
+        let _visualizer = Self::new(&repository_path, effective_config.clone())?;
+        
+        // Create event sender for this session
+        let (event_sender, _) = broadcast::channel(100);
+        let event_sender_arc = Arc::new(event_sender);
+        
+        let session = Git4DVisualizationSession {
+            session_id: session_id.clone(),
+            repository_path: repository_path.clone(),
+            mode: effective_mode,
+            config: effective_config,
+            created_at: Instant::now(),
+            status: SessionStatus::Starting,
+            last_activity: Instant::now(),
+            event_sender: Some(event_sender_arc),
+        };
+        
+        // Store session in global storage
+        {
+            let mut sessions = SESSIONS.write().unwrap();
+            sessions.insert(session_id.clone(), session.clone());
+        }
+        
+        tracing::info!(
+            "Created Git4D visualization session: id={}, mode={}, path={:?}, device={:?}",
+            session_id,
+            session.mode,
+            repository_path,
+            device_availability
+        );
+        
+        Ok(session)
+    }
+    
+    /// Get session by ID
+    pub fn get_session(session_id: &str) -> Option<Git4DVisualizationSession> {
+        let sessions = SESSIONS.read().unwrap();
+        sessions.get(session_id).cloned()
+    }
+    
+    /// List all active sessions
+    pub fn list_sessions() -> Vec<Git4DVisualizationSession> {
+        let sessions = SESSIONS.read().unwrap();
+        sessions.values().cloned().collect()
+    }
+    
+    /// Update session status
+    pub fn update_session_status(session_id: &str, status: SessionStatus) -> Result<(), String> {
+        let mut sessions = SESSIONS.write().unwrap();
+        if let Some(session) = sessions.get_mut(session_id) {
+            session.status = status;
+            session.last_activity = Instant::now();
+            Ok(())
+        } else {
+            Err(format!("Session not found: {}", session_id))
+        }
+    }
+    
+    /// Get session event receiver
+    pub fn get_session_event_receiver(session_id: &str) -> Option<broadcast::Receiver<Git4DEvent>> {
+        let sessions = SESSIONS.read().unwrap();
+        sessions.get(session_id)
+            .and_then(|session| session.event_sender.as_ref())
+            .map(|sender| sender.subscribe())
+    }
+    
+    /// Remove session
+    pub fn remove_session(session_id: &str) -> bool {
+        let mut sessions = SESSIONS.write().unwrap();
+        sessions.remove(session_id).is_some()
     }
 
     /// Load and process Git commits for 4D visualization
@@ -184,8 +432,21 @@ impl Git4DAcceleratedVisualizer {
             .map_err(|e| format!("Failed to lock time_range: {}", e))? = time_range;
 
         // Send loaded event
-        let _ = self.event_sender.send(Git4DEvent::CommitsLoaded(all_commits));
-        let _ = self.event_sender.send(Git4DEvent::BranchesUpdated(branch_cache.clone()));
+        let _ = self.event_sender.send(Git4DEvent::CommitsLoaded {
+            commits: all_commits,
+        });
+        
+        // Convert Oid to String for serialization
+        let branches_string: HashMap<String, Vec<String>> = branch_cache
+            .iter()
+            .map(|(name, oids)| {
+                let oid_strings: Vec<String> = oids.iter().map(|oid| oid.to_string()).collect();
+                (name.clone(), oid_strings)
+            })
+            .collect();
+        let _ = self.event_sender.send(Git4DEvent::BranchesUpdated {
+            branches: branches_string,
+        });
 
         tracing::info!(
             "Completed loading commits: {} commits, {} branches, total time: {:?}",
@@ -254,7 +515,10 @@ impl Git4DAcceleratedVisualizer {
         };
 
         // Send camera update event
-        let _ = self.event_sender.send(Git4DEvent::CameraUpdated(camera_pos, camera_target));
+        let _ = self.event_sender.send(Git4DEvent::CameraUpdated {
+            position: camera_pos,
+            target: camera_target,
+        });
 
         // Transform vertices
         if let Some(cuda) = &self.cuda_accelerator {
@@ -284,7 +548,9 @@ impl Git4DAcceleratedVisualizer {
             .collect();
 
         // Send render complete event
-        let _ = self.event_sender.send(Git4DEvent::RenderComplete(rgba_data.clone()));
+        let _ = self.event_sender.send(Git4DEvent::RenderComplete {
+            pixel_data: rgba_data.clone(),
+        });
 
         tracing::debug!(
             "Render completed: {} bytes, {} vertices, time: {:?}",
@@ -347,7 +613,9 @@ impl Git4DAcceleratedVisualizer {
 
                     if let Some(interaction) = vr_ar.handle_gesture_interaction(gesture, hand, position).await? {
                         let _ = self.interaction_sender.send(interaction.clone()).await;
-                        let _ = self.event_sender.send(Git4DEvent::InteractionProcessed(interaction));
+                        let _ = self.event_sender.send(Git4DEvent::InteractionProcessed {
+                            interaction: format!("{:?}", interaction),
+                        });
                     }
                 }
             }
