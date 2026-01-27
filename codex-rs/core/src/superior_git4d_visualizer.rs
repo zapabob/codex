@@ -16,9 +16,14 @@ use git2::Diff;
 use git2::DiffOptions;
 use git2::Oid;
 use git2::Repository;
-use openai_api_rs::v1::api::Client;
-use openai_api_rs::v1::chat_completion::ChatCompletionRequest;
-use openai_api_rs::v1::chat_completion::{self};
+use std::str::FromStr;
+// OpenAI API integration - temporarily disabled due to dependency issues
+// #[cfg(feature = "openai-api-rs")]
+// use openai_api_rs::v1::api::Client;
+// #[cfg(feature = "openai-api-rs")]
+// use openai_api_rs::v1::chat_completion::ChatCompletionRequest;
+// #[cfg(feature = "openai-api-rs")]
+// use openai_api_rs::v1::chat_completion::{self};
 use regex::Regex;
 use serde::Deserialize;
 use serde::Serialize;
@@ -37,11 +42,12 @@ use tokio::sync::oneshot;
 use tokio::time::Duration;
 use tokio::time::Instant;
 use tokio::time::{self};
+use futures::future;
 
 // Import existing components
 #[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::CudaGit4DAccelerator;
-#[cfg(all(feature = "custom-features", feature = "cuda"))]
+#[cfg(feature = "custom-features")]
 use crate::cuda_accelerator::GitCommitVertex;
 use crate::git4d_accelerated::Git4DAcceleratedVisualizer;
 use crate::git4d_accelerated::Git4DEvent;
@@ -54,7 +60,8 @@ use crate::vr_ar_integration::XRPlatform;
 /// Superior Git4D Visualizer with AI, Quantum, and VR/AR enhancements
 pub struct SuperiorGit4DVisualizer {
     base_visualizer: Git4DAcceleratedVisualizer,
-    ai_client: Option<Client>,
+    // #[cfg(feature = "openai-api-rs")]
+    // ai_client: Option<Client>,
     sentiment_analyzer: SentimentAnalyzer,
     impact_calculator: ImpactCalculator,
     collaboration_tracker: CollaborationTracker,
@@ -91,6 +98,7 @@ pub enum SuperiorGit4DEvent {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitSentiment {
+    #[serde(with = "oid_serde")]
     pub commit_id: Oid,
     pub sentiment_score: f32, // -1.0 to 1.0
     pub confidence: f32,
@@ -100,6 +108,7 @@ pub struct CommitSentiment {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitImpact {
+    #[serde(with = "oid_serde")]
     pub commit_id: Oid,
     pub impact_score: f32, // 0.0 to 1.0
     pub lines_changed: usize,
@@ -111,11 +120,34 @@ pub struct CommitImpact {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CollaborationEvent {
+    #[serde(with = "oid_serde")]
     pub commit_id: Oid,
     pub collaborators: Vec<String>,
     pub collaboration_type: CollaborationType,
     pub intensity: f32,
     pub time_window: (chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>),
+}
+
+// Helper module for Oid serialization
+mod oid_serde {
+    use git2::Oid;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::str::FromStr;
+
+    pub fn serialize<S>(oid: &Oid, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        oid.to_string().serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Oid, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Oid::from_str(&s).map_err(serde::de::Error::custom)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -193,13 +225,14 @@ pub enum UserAction {
 
 /// Sentiment Analysis Engine using AI
 pub struct SentimentAnalyzer {
-    ai_client: Option<Client>,
+    // #[cfg(feature = "openai-api-rs")]
+    // ai_client: Option<Client>,
     cache: RwLock<HashMap<Oid, CommitSentiment>>,
     sentiment_patterns: Vec<(Regex, f32)>,
 }
 
 impl SentimentAnalyzer {
-    pub fn new(ai_client: Option<Client>) -> Self {
+    pub fn new(_ai_client: Option<()>) -> Self {
         let sentiment_patterns = vec![
             (
                 Regex::new(r"(?i)fix|bug|error|issue|problem").unwrap(),
@@ -219,7 +252,6 @@ impl SentimentAnalyzer {
         ];
 
         Self {
-            ai_client,
             cache: RwLock::new(HashMap::new()),
             sentiment_patterns,
         }
@@ -237,7 +269,7 @@ impl SentimentAnalyzer {
         }
 
         let message = commit.message().unwrap_or("");
-        let author = commit.author().name().unwrap_or("");
+        let author = commit.author().name().unwrap_or("").to_string();
 
         // Basic pattern-based analysis
         let mut sentiment_score = 0.0;
@@ -250,8 +282,8 @@ impl SentimentAnalyzer {
             }
         }
 
-        // AI-powered deep analysis
-        let deep_sentiment = if let Some(client) = &self.ai_client {
+        // AI-powered deep analysis (temporarily disabled)
+        let deep_sentiment = if false {
             self.analyze_with_ai(message, author)
                 .await
                 .unwrap_or(SentimentResult {
@@ -306,8 +338,8 @@ impl SentimentAnalyzer {
             }
         }
 
-        // AI-powered deep analysis
-        let deep_sentiment = if let Some(_client) = &self.ai_client {
+        // AI-powered deep analysis (temporarily disabled)
+        let deep_sentiment = if false {
             self.analyze_with_ai(message, author)
                 .await
                 .unwrap_or(SentimentResult {
@@ -342,60 +374,12 @@ impl SentimentAnalyzer {
 
     async fn analyze_with_ai(
         &self,
-        message: &str,
-        author: &str,
+        _message: &str,
+        _author: &str,
     ) -> Result<SentimentResult, Box<dyn std::error::Error>> {
-        if self.ai_client.is_none() {
-            return Ok(SentimentResult::default());
-        }
-
-        let prompt = format!(
-            "Analyze the sentiment and emotional content of this Git commit message by {}: '{}'
-
-Return a JSON object with:
-- score: float between -1.0 (very negative) and 1.0 (very positive)
-- confidence: float between 0.0 and 1.0
-- emotions: object with emotion names as keys and intensities as values
-
-Be precise and consider the context of software development.",
-            author, message
-        );
-
-        let request = ChatCompletionRequest::new(
-            "gpt-4-turbo-preview".to_string(),
-            vec![chat_completion::ChatCompletionMessage {
-                role: chat_completion::MessageRole::user,
-                content: chat_completion::Content::Text(prompt),
-            }],
-        );
-
-        let response = self
-            .ai_client
-            .as_ref()
-            .unwrap()
-            .chat_completion(request)
-            .await?;
-        let content = response.choices[0].message.content.as_str();
-
-        // Parse JSON response
-        let analysis: serde_json::Value = serde_json::from_str(content)?;
-        let score = analysis["score"].as_f64().unwrap_or(0.0) as f32;
-        let confidence = analysis["confidence"].as_f64().unwrap_or(0.5) as f32;
-
-        let emotions = if let Some(emotions_obj) = analysis["emotions"].as_object() {
-            emotions_obj
-                .iter()
-                .filter_map(|(k, v)| v.as_f64().map(|v| (k.clone(), v as f32)))
-                .collect()
-        } else {
-            HashMap::new()
-        };
-
-        Ok(SentimentResult {
-            score,
-            confidence,
-            emotions,
-        })
+        // OpenAI API integration temporarily disabled
+        // TODO: Re-enable when openai-api-rs dependency is properly configured
+        Ok(SentimentResult::default())
     }
 }
 
@@ -747,15 +731,13 @@ impl SuperiorGit4DVisualizer {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let base_visualizer = Git4DAcceleratedVisualizer::new(repo_path, config.base_config)?;
 
-        let ai_client = config
-            .openai_api_key
-            .as_ref()
-            .map(|key| Client::new(key.clone()));
+        // OpenAI API integration temporarily disabled
+        // let ai_client = config.openai_api_key.as_ref().map(|key| Client::new(key.clone()));
+        let _ai_client = None;
 
         Ok(Self {
             base_visualizer,
-            ai_client,
-            sentiment_analyzer: SentimentAnalyzer::new(ai_client.clone()),
+            sentiment_analyzer: SentimentAnalyzer::new(None),
             impact_calculator: ImpactCalculator::new(),
             collaboration_tracker: CollaborationTracker::new(),
             quantum_optimizer: QuantumOptimizer::new(),
@@ -768,7 +750,7 @@ impl SuperiorGit4DVisualizer {
     pub async fn load_commits_enhanced(&self) -> Result<(), Box<dyn std::error::Error>> {
         // Load base commits
         self.base_visualizer
-            .load_commits(&self.base_visualizer.config)
+            .load_commits(&self.config.base_config)
             .await?;
 
         // Get repository for additional analysis
@@ -786,35 +768,45 @@ impl SuperiorGit4DVisualizer {
         }
 
         // Parallel analysis using Rust 2024 async closures
-        let analysis_futures = commits.iter().map(|commit| {
-            let sentiment_future = self.sentiment_analyzer.analyze(commit);
-            let impact_future = self.impact_calculator.calculate_commit_impact(commit, None);
+        // Extract commit data synchronously to avoid Send issues
+        let commit_data: Vec<(Oid, String, String)> = commits.iter().map(|commit| {
+            let commit_id = commit.id();
+            let message = commit.message().unwrap_or("").to_string();
+            let author = commit.author().name().unwrap_or("").to_string();
+            (commit_id, message, author)
+        }).collect();
 
+        let sentiment_analyzer = &self.sentiment_analyzer;
+        let analysis_futures: Vec<_> = commit_data.into_iter().map(|(commit_id, message, author)| {
             async move {
-                let sentiment = sentiment_future.await.unwrap_or_else(|_| CommitSentiment {
-                    commit_id: commit.id(),
-                    sentiment_score: 0.0,
-                    confidence: 0.0,
-                    emotions: HashMap::new(),
-                    keywords: Vec::new(),
-                });
+                // Analyze sentiment using extracted data
+                let sentiment = sentiment_analyzer.analyze_commit_sentiment_inner(commit_id, &message, &author)
+                    .await
+                    .unwrap_or_else(|_| CommitSentiment {
+                        commit_id,
+                        sentiment_score: 0.0,
+                        confidence: 0.0,
+                        emotions: HashMap::new(),
+                        keywords: Vec::new(),
+                    });
 
-                let impact = impact_future.await.unwrap_or_else(|_| CommitImpact {
-                    commit_id: commit.id(),
+                // Calculate impact (simplified - would need commit data)
+                let impact = CommitImpact {
+                    commit_id,
                     impact_score: 0.1,
                     lines_changed: 0,
                     files_affected: 0,
                     complexity_delta: 0.0,
                     breaking_changes: false,
                     test_coverage_impact: None,
-                });
+                };
 
                 (sentiment, impact)
             }
-        });
+        }).collect();
 
         // Execute all analysis in parallel
-        let analysis_results: Vec<_> = futures::future::join_all(analysis_futures).await;
+        let analysis_results: Vec<(CommitSentiment, CommitImpact)> = future::join_all(analysis_futures).await;
 
         // Process results
         let sentiments: Vec<CommitSentiment> =
@@ -856,7 +848,7 @@ impl SuperiorGit4DVisualizer {
 
     /// Enhanced VR/AR interaction with gesture recognition
     pub async fn process_vr_interaction_enhanced(
-        &self,
+        &mut self,
         interaction: VRInteraction,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Process base VR interaction
@@ -882,8 +874,8 @@ impl SuperiorGit4DVisualizer {
         &self,
         gesture: crate::vr_ar_integration::HandGesture,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // Enhanced gesture processing with AI interpretation
-        if self.ai_client.is_some() {
+        // Enhanced gesture processing with AI interpretation (temporarily disabled)
+        if false {
             // Use AI to interpret complex gestures
             let interpretation = self.interpret_gesture_with_ai(gesture).await?;
             self.execute_gesture_action(interpretation).await?;
@@ -925,8 +917,8 @@ impl SuperiorGit4DVisualizer {
         &self,
         command: String,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // Enhanced voice command processing with NLP
-        if self.ai_client.is_some() {
+        // Enhanced voice command processing with NLP (temporarily disabled)
+        if false {
             let parsed_command = self.parse_voice_command_with_ai(command).await?;
             self.execute_voice_command(parsed_command).await?;
         }

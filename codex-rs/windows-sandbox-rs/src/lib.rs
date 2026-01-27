@@ -256,13 +256,13 @@ mod windows_impl {
         let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
             match &policy {
                 SandboxPolicy::ReadOnly => {
-                    let psid = convert_string_sid_to_sid(&caps.readonly).ok_or_else(|| {
+                    let psid = unsafe { convert_string_sid_to_sid(&caps.readonly) }.ok_or_else(|| {
                         anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
                     })?;
                     super::token::create_readonly_token_with_cap(psid)?
                 }
                 SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid = convert_string_sid_to_sid(&caps.workspace).ok_or_else(|| {
+                    let psid = unsafe { convert_string_sid_to_sid(&caps.workspace) }.ok_or_else(|| {
                         anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
                     })?;
                     super::token::create_workspace_write_token_with_cap(psid)?

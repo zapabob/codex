@@ -71,28 +71,32 @@ unsafe fn set_default_dacl(h_token: HANDLE, sids: &[*mut c_void]) -> Result<()> 
         })
         .collect();
     let mut p_new_dacl: *mut ACL = std::ptr::null_mut();
-    let res = SetEntriesInAclW(
-        entries.len() as u32,
-        entries.as_ptr(),
-        std::ptr::null_mut(),
-        &mut p_new_dacl,
-    );
+    let res = unsafe {
+        SetEntriesInAclW(
+            entries.len() as u32,
+            entries.as_ptr(),
+            std::ptr::null_mut(),
+            &mut p_new_dacl,
+        )
+    };
     if res != ERROR_SUCCESS {
         return Err(anyhow!("SetEntriesInAclW failed: {}", res));
     }
     let mut info = TokenDefaultDaclInfo {
         default_dacl: p_new_dacl,
     };
-    let ok = SetTokenInformation(
-        h_token,
-        TokenDefaultDacl,
-        &mut info as *mut _ as *mut c_void,
-        std::mem::size_of::<TokenDefaultDaclInfo>() as u32,
-    );
+    let ok = unsafe {
+        SetTokenInformation(
+            h_token,
+            TokenDefaultDacl,
+            &mut info as *mut _ as *mut c_void,
+            std::mem::size_of::<TokenDefaultDaclInfo>() as u32,
+        )
+    };
     if ok == 0 {
-        let err = GetLastError();
+        let err = unsafe { GetLastError() };
         if !p_new_dacl.is_null() {
-            LocalFree(p_new_dacl as HLOCAL);
+            unsafe { LocalFree(p_new_dacl as HLOCAL) };
         }
         return Err(anyhow!(
             "SetTokenInformation(TokenDefaultDacl) failed: {}",
@@ -310,9 +314,9 @@ pub unsafe fn create_workspace_write_token_with_cap_from(
     base_token: HANDLE,
     psid_capability: *mut c_void,
 ) -> Result<(HANDLE, *mut c_void)> {
-    let mut logon_sid_bytes = get_logon_sid_bytes(base_token)?;
+    let mut logon_sid_bytes = unsafe { get_logon_sid_bytes(base_token)? };
     let psid_logon = logon_sid_bytes.as_mut_ptr() as *mut c_void;
-    let mut everyone = world_sid()?;
+    let mut everyone = unsafe { world_sid()? };
     let psid_everyone = everyone.as_mut_ptr() as *mut c_void;
     let mut entries: [SID_AND_ATTRIBUTES; 3] = std::mem::zeroed();
     // Exact set and order: Capability, Logon, Everyone
@@ -349,9 +353,9 @@ pub unsafe fn create_readonly_token_with_cap_from(
     base_token: HANDLE,
     psid_capability: *mut c_void,
 ) -> Result<(HANDLE, *mut c_void)> {
-    let mut logon_sid_bytes = get_logon_sid_bytes(base_token)?;
+    let mut logon_sid_bytes = unsafe { get_logon_sid_bytes(base_token)? };
     let psid_logon = logon_sid_bytes.as_mut_ptr() as *mut c_void;
-    let mut everyone = world_sid()?;
+    let mut everyone = unsafe { world_sid()? };
     let psid_everyone = everyone.as_mut_ptr() as *mut c_void;
     let mut entries: [SID_AND_ATTRIBUTES; 3] = std::mem::zeroed();
     // Exact set and order: Capability, Logon, Everyone

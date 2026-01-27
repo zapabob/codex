@@ -43,18 +43,18 @@ pub fn make_env_block(env: &HashMap<String, String>) -> Vec<u16> {
 
 unsafe fn ensure_inheritable_stdio(si: &mut STARTUPINFOW) -> Result<()> {
     for kind in [STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, STD_ERROR_HANDLE] {
-        let h = GetStdHandle(kind);
+        let h = unsafe { GetStdHandle(kind) };
         if h == 0 || h == INVALID_HANDLE_VALUE {
-            return Err(anyhow!("GetStdHandle failed: {}", GetLastError()));
+            return Err(anyhow!("GetStdHandle failed: {}", unsafe { GetLastError() }));
         }
-        if SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
-            return Err(anyhow!("SetHandleInformation failed: {}", GetLastError()));
+        if unsafe { SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
+            return Err(anyhow!("SetHandleInformation failed: {}", unsafe { GetLastError() }));
         }
     }
     si.dwFlags |= STARTF_USESTDHANDLES;
-    si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-    si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    si.hStdInput = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
+    si.hStdOutput = unsafe { GetStdHandle(STD_OUTPUT_HANDLE) };
+    si.hStdError = unsafe { GetStdHandle(STD_ERROR_HANDLE) };
     Ok(())
 }
 
@@ -93,34 +93,36 @@ pub unsafe fn create_process_as_user(
             si.hStdOutput = stdout_h;
             si.hStdError = stderr_h;
             for h in [stdin_h, stdout_h, stderr_h] {
-                if SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
+                if unsafe { SetHandleInformation(h, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
                     return Err(anyhow!(
                         "SetHandleInformation failed for stdio handle: {}",
-                        GetLastError()
+                        unsafe { GetLastError() }
                     ));
                 }
             }
             true
         }
         None => {
-            ensure_inheritable_stdio(&mut si)?;
+            unsafe { ensure_inheritable_stdio(&mut si)? };
             true
         }
     };
 
-    let ok = CreateProcessAsUserW(
-        h_token,
-        std::ptr::null(),
-        cmdline.as_mut_ptr(),
-        std::ptr::null_mut(),
-        std::ptr::null_mut(),
-        inherit_handles as i32,
-        CREATE_UNICODE_ENVIRONMENT,
-        env_block.as_ptr() as *mut c_void,
-        to_wide(cwd).as_ptr(),
-        &si,
-        &mut pi,
-    );
+    let ok = unsafe {
+        CreateProcessAsUserW(
+            h_token,
+            std::ptr::null(),
+            cmdline.as_mut_ptr(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            inherit_handles as i32,
+            CREATE_UNICODE_ENVIRONMENT,
+            env_block.as_ptr() as *mut c_void,
+            to_wide(cwd).as_ptr(),
+            &si,
+            &mut pi,
+        )
+    };
     if ok == 0 {
         let err = unsafe { GetLastError() } as i32;
         let msg = format!(

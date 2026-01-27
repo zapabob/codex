@@ -2,9 +2,11 @@
 use cudarc::driver::CudaDevice;
 #[cfg(feature = "cuda")]
 use cudarc::driver::CudaSlice;
+#[cfg(feature = "cuda")]
 use std::sync::Arc;
 
 /// CUDA accelerated Git4D visualization
+#[cfg(feature = "cuda")]
 pub struct CudaGit4DAccelerator {
     device: Arc<CudaDevice>,
     vertex_kernel: cudarc::driver::CudaFunction,
@@ -38,6 +40,7 @@ pub struct RenderParameters {
     pub branch_filter: Vec<u32>,  // Visible branches
 }
 
+#[cfg(feature = "cuda")]
 impl CudaGit4DAccelerator {
     pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
         // Initialize CUDA device

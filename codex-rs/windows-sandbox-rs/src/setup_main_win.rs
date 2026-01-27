@@ -250,17 +250,17 @@ fn lock_sandbox_dir(
         (
             system_sid,
             FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE | DELETE,
-            GRANT_ACCESS,
+            GRANT_ACCESS as u32,
         ),
         (
             admins_sid,
             FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE | DELETE,
-            GRANT_ACCESS,
+            GRANT_ACCESS as u32,
         ),
         (
             real_sid,
             FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE,
-            GRANT_ACCESS,
+            GRANT_ACCESS as u32,
         ),
     ];
     unsafe {
@@ -279,7 +279,7 @@ fn lock_sandbox_dir(
             sids.push(psid);
             eas.push(EXPLICIT_ACCESS_W {
                 grfAccessPermissions: mask,
-                grfAccessMode: access_mode,
+                grfAccessMode: access_mode as i32,
                 grfInheritance: OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE,
                 Trustee: TRUSTEE_W {
                     pMultipleTrustee: std::ptr::null_mut(),
@@ -291,12 +291,14 @@ fn lock_sandbox_dir(
             });
         }
         let mut new_dacl: *mut ACL = std::ptr::null_mut();
-        let set = SetEntriesInAclW(
-            eas.len() as u32,
-            eas.as_ptr(),
-            std::ptr::null_mut(),
-            &mut new_dacl,
-        );
+        let set = unsafe {
+            SetEntriesInAclW(
+                eas.len() as u32,
+                eas.as_ptr(),
+                std::ptr::null_mut(),
+                &mut new_dacl,
+            )
+        };
         if set != 0 {
             return Err(anyhow::anyhow!(
                 "SetEntriesInAclW sandbox dir failed: {}",
@@ -304,15 +306,17 @@ fn lock_sandbox_dir(
             ));
         }
         let path_w = to_wide(dir.as_os_str());
-        let res = SetNamedSecurityInfoW(
-            path_w.as_ptr() as *mut u16,
-            SE_FILE_OBJECT,
-            DACL_SECURITY_INFORMATION,
-            std::ptr::null_mut(),
-            std::ptr::null_mut(),
-            new_dacl,
-            std::ptr::null_mut(),
-        );
+        let res = unsafe {
+            SetNamedSecurityInfoW(
+                path_w.as_ptr() as *mut u16,
+                SE_FILE_OBJECT,
+                DACL_SECURITY_INFORMATION,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                new_dacl,
+                std::ptr::null_mut(),
+            )
+        };
         if res != 0 {
             return Err(anyhow::anyhow!(
                 "SetNamedSecurityInfoW sandbox dir failed: {}",
@@ -360,14 +364,8 @@ fn write_secrets(
             password: BASE64.encode(online_blob),
         },
     };
-    let marker = SetupMarker {
-        version: SETUP_VERSION,
-        offline_username: offline_user.to_string(),
-        online_username: online_user.to_string(),
-        created_at: chrono::Utc::now().to_rfc3339(),
-        read_roots: Vec::new(),
-        write_roots: Vec::new(),
-    };
+    // SetupMarker will be created when needed
+    // let _marker = SetupMarker { ... };
     Ok(())
 }
 

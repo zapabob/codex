@@ -451,6 +451,8 @@ pub enum VRInteraction {
     RotateView(f32, f32, f32), // pitch, yaw, roll
     TranslateView(f32, f32, f32), // x, y, z
     ScaleView(f32),
+    Gesture(HandGesture),
+    VoiceCommand(String),
 }
 
 #[cfg(test)]

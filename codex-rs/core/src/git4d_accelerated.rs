@@ -1,5 +1,7 @@
+#[cfg(feature = "custom-features")]
+use crate::cuda_accelerator::{GitCommitVertex, TransformationMatrix, RenderParameters};
 #[cfg(all(feature = "custom-features", feature = "cuda"))]
-use crate::cuda_accelerator::{CudaGit4DAccelerator, GitCommitVertex, TransformationMatrix, RenderParameters};
+use crate::cuda_accelerator::CudaGit4DAccelerator;
 use crate::vr_ar_integration::{VRARIntegration, VRInteraction, VREvent, XRPlatform, Anchor, AnchorType};
 use anyhow::Context;
 use git2::{Repository, Commit, Oid};
@@ -63,11 +65,9 @@ pub struct Git4DAcceleratedVisualizer {
     #[cfg(all(feature = "custom-features", feature = "cuda"))]
     cuda_accelerator: Option<CudaGit4DAccelerator>,
     vr_ar_integration: Option<VRARIntegration>,
-    repository: Repository,
-    #[cfg(all(feature = "custom-features", feature = "cuda"))]
+    pub(crate) repository: Repository,
+    #[cfg(feature = "custom-features")]
     commit_cache: Mutex<HashMap<Oid, GitCommitVertex>>,
-    #[cfg(not(all(feature = "custom-features", feature = "cuda")))]
-    commit_cache: Mutex<HashMap<Oid, Oid>>,
     branch_cache: Mutex<HashMap<String, Vec<Oid>>>,
     time_range: Mutex<(f32, f32)>,
     visible_branches: Mutex<HashSet<u32>>,
@@ -244,6 +244,7 @@ impl Git4DAcceleratedVisualizer {
             .with_context(|| format!("Failed to open git repository at: {}", repo_path.display()))?;
 
         // Initialize CUDA accelerator if enabled
+        #[cfg(feature = "cuda")]
         let cuda_accelerator = if config.enable_cuda {
             match CudaGit4DAccelerator::new() {
                 Ok(acc) => Some(acc),
@@ -255,6 +256,8 @@ impl Git4DAcceleratedVisualizer {
         } else {
             None
         };
+        #[cfg(not(feature = "cuda"))]
+        let cuda_accelerator = None;
 
         // Initialize VR/AR integration if enabled
         let vr_ar_integration = if config.enable_vr_ar {
@@ -466,11 +469,12 @@ impl Git4DAcceleratedVisualizer {
         let mut branch_ids = HashMap::new();
 
         let branch_load_start = Instant::now();
-        for (branch, _) in branches {
+        for branch_result in branches {
+            let (branch, _) = branch_result?;
             if let Ok(Some(name)) = branch.name() {
                 if let Ok(Some(reference)) = branch.get() {
                     if let Ok(commit) = reference.peel_to_commit() {
-                        let mut commits = Vec::new();
+                        let mut commits: Vec<Oid> = Vec::new();
                         self.traverse_commits(&commit, &mut commits, config.max_commits)?;
 
                         branch_cache.insert(name.to_string(), commits.clone());
@@ -590,10 +594,19 @@ impl Git4DAcceleratedVisualizer {
         }
 
         // Calculate optimal camera position
-        let (camera_pos, camera_target) = if let Some(cuda) = &self.cuda_accelerator {
-            cuda.calculate_optimal_camera(&vertices)?
-        } else {
-            self.calculate_optimal_camera_cpu(&vertices)
+        let (camera_pos, camera_target) = {
+            #[cfg(all(feature = "custom-features", feature = "cuda"))]
+            {
+                if let Some(cuda) = &self.cuda_accelerator {
+                    cuda.calculate_optimal_camera(&vertices)?
+                } else {
+                    self.calculate_optimal_camera_cpu(&vertices)
+                }
+            }
+            #[cfg(not(all(feature = "custom-features", feature = "cuda")))]
+            {
+                self.calculate_optimal_camera_cpu(&vertices)
+            }
         };
 
         // Create transformation matrix (identity for now)
@@ -625,19 +638,37 @@ impl Git4DAcceleratedVisualizer {
         });
 
         // Transform vertices
-        if let Some(cuda) = &self.cuda_accelerator {
-            vertices = cuda.transform_vertices(&vertices, &transform, &params)?;
-        } else {
-            vertices = self.transform_vertices_cpu(&vertices, &transform, &params);
+        {
+            #[cfg(all(feature = "custom-features", feature = "cuda"))]
+            {
+                if let Some(cuda) = &self.cuda_accelerator {
+                    vertices = cuda.transform_vertices(&vertices, &transform, &params)?;
+                } else {
+                    vertices = self.transform_vertices_cpu(&vertices, &transform, &params);
+                }
+            }
+            #[cfg(not(all(feature = "custom-features", feature = "cuda")))]
+            {
+                vertices = self.transform_vertices_cpu(&vertices, &transform, &params);
+            }
         }
 
         // Render to framebuffer
         let mut framebuffer = vec![0u32; (config.render_width * config.render_height) as usize];
 
-        if let Some(cuda) = &self.cuda_accelerator {
-            cuda.render_to_framebuffer(&vertices, &mut framebuffer, &params)?;
-        } else {
-            self.render_to_framebuffer_cpu(&vertices, &mut framebuffer, &params);
+        {
+            #[cfg(all(feature = "custom-features", feature = "cuda"))]
+            {
+                if let Some(cuda) = &self.cuda_accelerator {
+                    cuda.render_to_framebuffer(&vertices, &mut framebuffer, &params)?;
+                } else {
+                    self.render_to_framebuffer_cpu(&vertices, &mut framebuffer, &params);
+                }
+            }
+            #[cfg(not(all(feature = "custom-features", feature = "cuda")))]
+            {
+                self.render_to_framebuffer_cpu(&vertices, &mut framebuffer, &params);
+            }
         }
 
         // Convert to RGBA bytes
@@ -672,21 +703,30 @@ impl Git4DAcceleratedVisualizer {
         if let Some(vr_ar) = &mut self.vr_ar_integration {
             // Subscribe to VR events
             let mut event_receiver = vr_ar.subscribe_events();
+            let mut pending_events = Vec::new();
 
             loop {
                 tokio::select! {
                     // Process VR events
                     event = event_receiver.recv() => {
                         if let Ok(event) = event {
-                            self.handle_vr_event(event).await?;
+                            pending_events.push(event);
                         }
                     }
 
                     // Process interactions
                     interaction = self.interaction_receiver.recv() => {
                         if let Some(interaction) = interaction {
+                            // Process pending events first
+                            for event in pending_events.drain(..) {
+                                self.handle_vr_event(event).await?;
+                            }
                             self.handle_interaction(interaction).await?;
                         } else {
+                            // Process any remaining events before breaking
+                            for event in pending_events.drain(..) {
+                                self.handle_vr_event(event).await?;
+                            }
                             break;
                         }
                     }
@@ -694,6 +734,11 @@ impl Git4DAcceleratedVisualizer {
                     // Periodic update
                     _ = time::sleep(Duration::from_millis(16)) => {
                         let events = vr_ar.update().await?;
+                        // Process pending events first
+                        for event in pending_events.drain(..) {
+                            self.handle_vr_event(event).await?;
+                        }
+                        // Then process new events
                         for event in events {
                             self.handle_vr_event(event).await?;
                         }
@@ -761,9 +806,9 @@ impl Git4DAcceleratedVisualizer {
                         .map_err(|e| format!("Failed to lock branch_cache: {}", e))?;
                     for (branch_name, commits) in branch_cache.iter() {
                         if let Some(first_commit) = commits.first() {
-                            if let Ok(vertex) = self.commit_cache.lock()
-                                .map_err(|e| format!("Failed to lock commit_cache: {}", e))?
-                                .get(first_commit) {
+                            let commit_cache = self.commit_cache.lock()
+                                .map_err(|e| format!("Failed to lock commit_cache: {}", e))?;
+                            if let Some(vertex) = commit_cache.get(first_commit) {
                                 visible_branches.insert(vertex.branch_id);
                             }
                         }
@@ -780,6 +825,11 @@ impl Git4DAcceleratedVisualizer {
         }
 
         Ok(())
+    }
+
+    /// Process VR interaction (public method for external use)
+    pub async fn process_vr_interaction(&mut self, interaction: VRInteraction) -> Result<(), Box<dyn std::error::Error>> {
+        self.handle_interaction(interaction).await
     }
 
     /// Traverse commit graph to collect commits

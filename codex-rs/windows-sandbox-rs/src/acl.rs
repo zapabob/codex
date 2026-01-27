@@ -280,10 +280,10 @@ unsafe fn ensure_allow_mask_aces_with_inheritance_impl(
     allow_mask: u32,
     inheritance: u32,
 ) -> Result<bool> {
-    let (p_dacl, p_sd) = fetch_dacl_handle(path)?;
+    let (p_dacl, p_sd) = unsafe { fetch_dacl_handle(path)? };
     let mut entries: Vec<EXPLICIT_ACCESS_W> = Vec::new();
     for sid in sids {
-        if dacl_mask_allows(p_dacl, &[*sid], allow_mask, true) {
+        if unsafe { dacl_mask_allows(p_dacl, &[*sid], allow_mask, true) } {
             continue;
         }
         entries.push(EXPLICIT_ACCESS_W {
@@ -360,7 +360,7 @@ pub unsafe fn ensure_allow_mask_aces_with_inheritance(
     allow_mask: u32,
     inheritance: u32,
 ) -> Result<bool> {
-    ensure_allow_mask_aces_with_inheritance_impl(path, sids, allow_mask, inheritance)
+    unsafe { ensure_allow_mask_aces_with_inheritance_impl(path, sids, allow_mask, inheritance) }
 }
 
 /// Ensure all provided SIDs have an allow ACE with the requested mask on the path.
@@ -373,12 +373,14 @@ pub unsafe fn ensure_allow_mask_aces(
     sids: &[*mut c_void],
     allow_mask: u32,
 ) -> Result<bool> {
-    ensure_allow_mask_aces_with_inheritance(
-        path,
-        sids,
-        allow_mask,
-        CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE,
-    )
+    unsafe {
+        ensure_allow_mask_aces_with_inheritance(
+            path,
+            sids,
+            allow_mask,
+            CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE,
+        )
+    }
 }
 
 /// Ensure all provided SIDs have a write-capable allow ACE on the path.
@@ -387,7 +389,7 @@ pub unsafe fn ensure_allow_mask_aces(
 /// # Safety
 /// Caller must pass valid SID pointers and an existing path; free the returned security descriptor with `LocalFree`.
 pub unsafe fn ensure_allow_write_aces(path: &Path, sids: &[*mut c_void]) -> Result<bool> {
-    ensure_allow_mask_aces(path, sids, WRITE_ALLOW_MASK)
+    unsafe { ensure_allow_mask_aces(path, sids, WRITE_ALLOW_MASK) }
 }
 
 /// Adds an allow ACE granting read/write/execute to the given SID on the target path.
@@ -413,7 +415,7 @@ pub unsafe fn add_allow_ace(path: &Path, psid: *mut c_void) -> Result<bool> {
         return Err(anyhow!("GetNamedSecurityInfoW failed: {}", code));
     }
     // Already has write? Skip costly DACL rewrite.
-    if dacl_has_write_allow_for_sid(p_dacl, psid) {
+    if unsafe { dacl_has_write_allow_for_sid(p_dacl, psid) } {
         if !p_sd.is_null() {
             unsafe { LocalFree(p_sd as HLOCAL) };
         }
@@ -483,7 +485,7 @@ pub unsafe fn add_deny_write_ace(path: &Path, psid: *mut c_void) -> Result<bool>
         return Err(anyhow!("GetNamedSecurityInfoW failed: {}", code));
     }
     let mut added = false;
-    if !dacl_has_write_deny_for_sid(p_dacl, psid) {
+    if !unsafe { dacl_has_write_deny_for_sid(p_dacl, psid) } {
         let trustee = TRUSTEE_W {
             pMultipleTrustee: std::ptr::null_mut(),
             MultipleTrusteeOperation: 0,
