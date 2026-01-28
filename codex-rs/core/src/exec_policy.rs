@@ -87,6 +87,15 @@ pub(crate) struct ExecPolicyManager {
     policy: ArcSwap<Policy>,
 }
 
+pub(crate) struct ExecApprovalRequest<'a> {
+    pub(crate) features: &'a Features,
+    pub(crate) command: &'a [String],
+    pub(crate) approval_policy: AskForApproval,
+    pub(crate) sandbox_policy: &'a SandboxPolicy,
+    pub(crate) sandbox_permissions: SandboxPermissions,
+    pub(crate) prefix_rule: Option<Vec<String>>,
+}
+
 impl ExecPolicyManager {
     pub(crate) fn new(policy: Arc<Policy>) -> Self {
         Self {
@@ -113,12 +122,16 @@ impl ExecPolicyManager {
     #[allow(clippy::too_many_arguments)]
     pub(crate) async fn create_exec_approval_requirement_for_command(
         &self,
-        features: &Features,
-        command: &[String],
-        approval_policy: AskForApproval,
-        sandbox_policy: &SandboxPolicy,
-        sandbox_permissions: SandboxPermissions,
+        req: ExecApprovalRequest<'_>,
     ) -> ExecApprovalRequirement {
+        let ExecApprovalRequest {
+            features,
+            command,
+            approval_policy,
+            sandbox_policy,
+            sandbox_permissions,
+            prefix_rule,
+        } = req;
         let exec_policy = self.current();
         let commands =
             parse_shell_lc_plain_commands(command).unwrap_or_else(|| vec![command.to_vec()]);
@@ -131,6 +144,12 @@ impl ExecPolicyManager {
             )
         };
         let evaluation = exec_policy.check_multiple(commands.iter(), &exec_policy_fallback);
+
+        let requested_amendment = derive_requested_execpolicy_amendment(
+            features,
+            prefix_rule.as_ref(),
+            &evaluation.matched_rules,
+        );
 
         match evaluation.decision {
             Decision::Forbidden => ExecApprovalRequirement::Forbidden {
@@ -145,9 +164,11 @@ impl ExecPolicyManager {
                     ExecApprovalRequirement::NeedsApproval {
                         reason: derive_prompt_reason(command, &evaluation),
                         proposed_execpolicy_amendment: if features.enabled(Feature::ExecPolicy) {
-                            try_derive_execpolicy_amendment_for_prompt_rules(
-                                &evaluation.matched_rules,
-                            )
+                            requested_amendment.or_else(|| {
+                                try_derive_execpolicy_amendment_for_prompt_rules(
+                                    &evaluation.matched_rules,
+                                )
+                            })
                         } else {
                             None
                         },
@@ -381,6 +402,30 @@ fn try_derive_execpolicy_amendment_for_allow_rules(
             } => Some(ExecPolicyAmendment::from(command.clone())),
             _ => None,
         })
+}
+
+fn derive_requested_execpolicy_amendment(
+    features: &Features,
+    prefix_rule: Option<&Vec<String>>,
+    matched_rules: &[RuleMatch],
+) -> Option<ExecPolicyAmendment> {
+    if !features.enabled(Feature::ExecPolicy) {
+        return None;
+    }
+
+    let prefix_rule = prefix_rule?;
+    if prefix_rule.is_empty() {
+        return None;
+    }
+
+    if matched_rules
+        .iter()
+        .any(|rule_match| is_policy_match(rule_match) && rule_match.decision() == Decision::Prompt)
+    {
+        return None;
+    }
+
+    Some(ExecPolicyAmendment::new(prefix_rule.clone()))
 }
 
 /// Only return a reason when a policy rule drove the prompt decision.
@@ -757,13 +802,14 @@ prefix_rule(pattern=["rm"], decision="forbidden")
 
         let manager = ExecPolicyManager::new(policy);
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &forbidden_script,
-                AskForApproval::OnRequest,
-                &SandboxPolicy::DangerFullAccess,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &forbidden_script,
+                approval_policy: AskForApproval::OnRequest,
+                sandbox_policy: &SandboxPolicy::DangerFullAccess,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -791,17 +837,18 @@ prefix_rule(
 
         let manager = ExecPolicyManager::new(policy);
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &[
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &[
                     "rm".to_string(),
                     "-rf".to_string(),
                     "/some/important/folder".to_string(),
                 ],
-                AskForApproval::OnRequest,
-                &SandboxPolicy::DangerFullAccess,
-                SandboxPermissions::UseDefault,
-            )
+                approval_policy: AskForApproval::OnRequest,
+                sandbox_policy: &SandboxPolicy::DangerFullAccess,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -824,13 +871,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::new(policy);
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::OnRequest,
-                &SandboxPolicy::DangerFullAccess,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::OnRequest,
+                sandbox_policy: &SandboxPolicy::DangerFullAccess,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -854,13 +902,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::new(policy);
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::Never,
-                &SandboxPolicy::DangerFullAccess,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::Never,
+                sandbox_policy: &SandboxPolicy::DangerFullAccess,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -877,13 +926,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::default();
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::UnlessTrusted,
-                &SandboxPolicy::ReadOnly,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::UnlessTrusted,
+                sandbox_policy: &SandboxPolicy::ReadOnly,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -891,6 +941,40 @@ prefix_rule(
             ExecApprovalRequirement::NeedsApproval {
                 reason: None,
                 proposed_execpolicy_amendment: Some(ExecPolicyAmendment::new(command))
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn request_rule_uses_prefix_rule() {
+        let command = vec![
+            "cargo".to_string(),
+            "install".to_string(),
+            "cargo-insta".to_string(),
+        ];
+        let manager = ExecPolicyManager::default();
+        let mut features = Features::with_defaults();
+        features.enable(Feature::RequestRule);
+
+        let requirement = manager
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &features,
+                command: &command,
+                approval_policy: AskForApproval::OnRequest,
+                sandbox_policy: &SandboxPolicy::ReadOnly,
+                sandbox_permissions: SandboxPermissions::RequireEscalated,
+                prefix_rule: Some(vec!["cargo".to_string(), "install".to_string()]),
+            })
+            .await;
+
+        assert_eq!(
+            requirement,
+            ExecApprovalRequirement::NeedsApproval {
+                reason: None,
+                proposed_execpolicy_amendment: Some(ExecPolicyAmendment::new(vec![
+                    "cargo".to_string(),
+                    "install".to_string(),
+                ])),
             }
         );
     }
@@ -911,13 +995,14 @@ prefix_rule(
 
         assert_eq!(
             ExecPolicyManager::new(policy)
-                .create_exec_approval_requirement_for_command(
-                    &Features::with_defaults(),
-                    &command,
-                    AskForApproval::UnlessTrusted,
-                    &SandboxPolicy::DangerFullAccess,
-                    SandboxPermissions::UseDefault,
-                )
+                .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                    features: &Features::with_defaults(),
+                    command: &command,
+                    approval_policy: AskForApproval::UnlessTrusted,
+                    sandbox_policy: &SandboxPolicy::DangerFullAccess,
+                    sandbox_permissions: SandboxPermissions::UseDefault,
+                    prefix_rule: None,
+                })
                 .await,
             ExecApprovalRequirement::NeedsApproval {
                 reason: None,
@@ -985,13 +1070,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::default();
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::UnlessTrusted,
-                &SandboxPolicy::ReadOnly,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::UnlessTrusted,
+                sandbox_policy: &SandboxPolicy::ReadOnly,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -1012,13 +1098,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::default();
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &features,
-                &command,
-                AskForApproval::UnlessTrusted,
-                &SandboxPolicy::ReadOnly,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &features,
+                command: &command,
+                approval_policy: AskForApproval::UnlessTrusted,
+                sandbox_policy: &SandboxPolicy::ReadOnly,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -1042,13 +1129,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::new(policy);
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::OnRequest,
-                &SandboxPolicy::DangerFullAccess,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::OnRequest,
+                sandbox_policy: &SandboxPolicy::DangerFullAccess,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -1069,13 +1157,14 @@ prefix_rule(
         ];
         let manager = ExecPolicyManager::default();
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::UnlessTrusted,
-                &SandboxPolicy::ReadOnly,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::UnlessTrusted,
+                sandbox_policy: &SandboxPolicy::ReadOnly,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -1107,13 +1196,14 @@ prefix_rule(
 
         assert_eq!(
             ExecPolicyManager::new(policy)
-                .create_exec_approval_requirement_for_command(
-                    &Features::with_defaults(),
-                    &command,
-                    AskForApproval::UnlessTrusted,
-                    &SandboxPolicy::ReadOnly,
-                    SandboxPermissions::UseDefault,
-                )
+                .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                    features: &Features::with_defaults(),
+                    command: &command,
+                    approval_policy: AskForApproval::UnlessTrusted,
+                    sandbox_policy: &SandboxPolicy::ReadOnly,
+                    sandbox_permissions: SandboxPermissions::UseDefault,
+                    prefix_rule: None,
+                })
                 .await,
             ExecApprovalRequirement::NeedsApproval {
                 reason: None,
@@ -1130,13 +1220,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::default();
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::OnRequest,
-                &SandboxPolicy::ReadOnly,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::OnRequest,
+                sandbox_policy: &SandboxPolicy::ReadOnly,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -1160,13 +1251,14 @@ prefix_rule(
 
         let manager = ExecPolicyManager::new(policy);
         let requirement = manager
-            .create_exec_approval_requirement_for_command(
-                &Features::with_defaults(),
-                &command,
-                AskForApproval::OnRequest,
-                &SandboxPolicy::ReadOnly,
-                SandboxPermissions::UseDefault,
-            )
+            .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                features: &Features::with_defaults(),
+                command: &command,
+                approval_policy: AskForApproval::OnRequest,
+                sandbox_policy: &SandboxPolicy::ReadOnly,
+                sandbox_permissions: SandboxPermissions::UseDefault,
+                prefix_rule: None,
+            })
             .await;
 
         assert_eq!(
@@ -1227,13 +1319,14 @@ prefix_rule(
         assert_eq!(
             expected_req,
             policy
-                .create_exec_approval_requirement_for_command(
-                    &features,
-                    &sneaky_command,
-                    AskForApproval::OnRequest,
-                    &SandboxPolicy::ReadOnly,
-                    permissions,
-                )
+                .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                    features: &features,
+                    command: &sneaky_command,
+                    approval_policy: AskForApproval::OnRequest,
+                    sandbox_policy: &SandboxPolicy::ReadOnly,
+                    sandbox_permissions: permissions,
+                    prefix_rule: None,
+                })
                 .await,
             "{pwsh_approval_reason}"
         );
@@ -1250,13 +1343,14 @@ prefix_rule(
                 ]))),
             },
             policy
-                .create_exec_approval_requirement_for_command(
-                    &features,
-                    &dangerous_command,
-                    AskForApproval::OnRequest,
-                    &SandboxPolicy::ReadOnly,
-                    permissions,
-                )
+                .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                    features: &features,
+                    command: &dangerous_command,
+                    approval_policy: AskForApproval::OnRequest,
+                    sandbox_policy: &SandboxPolicy::ReadOnly,
+                    sandbox_permissions: permissions,
+                    prefix_rule: None,
+                })
                 .await,
             r#"On all platforms, a forbidden command should require approval
             (unless AskForApproval::Never is specified)."#
@@ -1269,13 +1363,14 @@ prefix_rule(
                 reason: "`rm -rf /important/data` rejected: blocked by policy".to_string(),
             },
             policy
-                .create_exec_approval_requirement_for_command(
-                    &features,
-                    &dangerous_command,
-                    AskForApproval::Never,
-                    &SandboxPolicy::ReadOnly,
-                    permissions,
-                )
+                .create_exec_approval_requirement_for_command(ExecApprovalRequest {
+                    features: &features,
+                    command: &dangerous_command,
+                    approval_policy: AskForApproval::Never,
+                    sandbox_policy: &SandboxPolicy::ReadOnly,
+                    sandbox_permissions: permissions,
+                    prefix_rule: None,
+                })
                 .await,
             r#"On all platforms, a forbidden command should require approval
             (unless AskForApproval::Never is specified)."#

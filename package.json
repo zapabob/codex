@@ -1,82 +1,25 @@
 {
-  "name": "@zapabob/codex",
-  "version": "2.11.0",
-  "description": "ClaudeCode Integration - Revolutionary AI development with autonomous features, multi-model intelligence, and enterprise-grade privacy protection",
-  "keywords": [
-    "ai",
-    "claudecode-integration",
-    "coding-assistant",
-    "llm",
-    "multi-model",
-    "git-visualization",
-    "vr",
-    "ar",
-    "quest",
-    "vision-pro",
-    "cuda",
-    "kernel",
-    "sub-agents",
-    "mcp",
-    "deep-research",
-    "cowork-productivity",
-    "prompt-injection-protection",
-    "privacy-first",
-    "cost-optimization"
-  ],
-  "main": "index.js",
-  "bin": {
-    "codex": "./bin/codex"
-  },
+  "name": "codex-monorepo",
+  "private": true,
+  "description": "Tools for repo-wide maintenance.",
   "scripts": {
-    "postinstall": "node scripts/install-binary.js",
-    "prepublishOnly": "echo \"Building Codex v2.11.0 - ClaudeCode Integration\" && npm run build",
-    "build": "echo \"Codex v2.11.0 is pre-built - no additional build step required\"",
-    "test": "echo \"Run tests with: npm run test:integration\" && exit 1",
-    "test:integration": "echo \"Integration tests for ClaudeCode features would run here\""
+    "format": "prettier --check *.json *.md docs/*.md .github/workflows/*.yml **/*.js",
+    "format:fix": "prettier --write *.json *.md docs/*.md .github/workflows/*.yml **/*.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zapabob/codex.git"
-  },
-  "author": "zapabob <zapabob@github.com>",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/zapabob/codex/issues"
-  },
-  "homepage": "https://github.com/zapabob/codex#readme",
-  "os": [
-    "win32",
-    "darwin",
-    "linux"
-  ],
-  "cpu": [
-    "x64",
-    "arm64"
-  ],
-  "engines": {
-    "node": ">=22.0.0",
-    "pnpm": ">=8.0.0"
-  },
-  "packageManager": "pnpm@9.15.0",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "files": [
-    "bin/",
-    "scripts/install-binary.js",
-    "README.md",
-    "LICENSE"
-  ],
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "playwright": "^1.57.0"
+    "prettier": "^3.5.3"
   },
-  "pnpm": {
-    "overrides": {
-      "glob": ">=10.5.0",
-      "js-yaml": ">=4.1.1",
-      "body-parser": ">=2.2.1"
-    }
-  }
+  "resolutions": {
+    "braces": "^3.0.3",
+    "micromatch": "^4.0.8",
+    "semver": "^7.7.1"
+  },
+  "overrides": {
+    "punycode": "^2.3.1"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }

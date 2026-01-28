@@ -16,12 +16,16 @@ use crate::approvals::ElicitationRequestEvent;
 use crate::config_types::CollaborationMode;
 use crate::config_types::Personality;
 use crate::config_types::ReasoningSummary as ReasoningSummaryConfig;
+use crate::config_types::WindowsSandboxLevel;
 use crate::custom_prompts::CustomPrompt;
+use crate::dynamic_tools::DynamicToolCallRequest;
+use crate::dynamic_tools::DynamicToolResponse;
 use crate::items::TurnItem;
 use crate::message_history::HistoryEntry;
 use crate::models::BaseInstructions;
 use crate::models::ContentItem;
 use crate::models::ResponseItem;
+use crate::models::WebSearchAction;
 use crate::num_format::format_with_separators;
 use crate::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use crate::parse_command::ParsedCommand;
@@ -155,6 +159,10 @@ pub enum Op {
         #[serde(skip_serializing_if = "Option::is_none")]
         sandbox_policy: Option<SandboxPolicy>,
 
+        /// Updated Windows sandbox mode for tool execution.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        windows_sandbox_level: Option<WindowsSandboxLevel>,
+
         /// Updated model slug. When set, the model info is derived
         /// automatically.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -214,6 +222,14 @@ pub enum Op {
         id: String,
         /// User-provided answers.
         response: RequestUserInputResponse,
+    },
+
+    /// Resolve a dynamic tool call request.
+    DynamicToolResponse {
+        /// Call id for the in-flight request.
+        id: String,
+        /// Tool output payload.
+        response: DynamicToolResponse,
     },
 
     /// Append an entry to the persistent cross-session message history.
@@ -767,6 +783,8 @@ pub enum EventMsg {
 
     RequestUserInput(RequestUserInputEvent),
 
+    DynamicToolCallRequest(DynamicToolCallRequest),
+
     ElicitationRequest(ElicitationRequestEvent),
 
     ApplyPatchApprovalRequest(ApplyPatchApprovalRequestEvent),
@@ -1046,6 +1064,7 @@ impl HasLegacyEvent for ReasoningRawContentDeltaEvent {
 impl HasLegacyEvent for EventMsg {
     fn as_legacy_events(&self, show_raw_agent_reasoning: bool) -> Vec<EventMsg> {
         match self {
+            EventMsg::ItemStarted(event) => event.as_legacy_events(show_raw_agent_reasoning),
             EventMsg::ItemCompleted(event) => event.as_legacy_events(show_raw_agent_reasoning),
             EventMsg::AgentMessageContentDelta(event) => {
                 event.as_legacy_events(show_raw_agent_reasoning)
@@ -1407,6 +1426,7 @@ pub struct WebSearchBeginEvent {
 pub struct WebSearchEndEvent {
     pub call_id: String,
     pub query: String,
+    pub action: WebSearchAction,
 }
 
 // Conversation kept for backward compatibility.
@@ -2090,11 +2110,14 @@ pub struct SkillMetadata {
     pub description: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
-    /// Legacy short_description from SKILL.md. Prefer SKILL.toml interface.short_description.
+    /// Legacy short_description from SKILL.md. Prefer SKILL.json interface.short_description.
     pub short_description: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub interface: Option<SkillInterface>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub dependencies: Option<SkillDependencies>,
     pub path: PathBuf,
     pub scope: SkillScope,
     pub enabled: bool,
@@ -2114,6 +2137,31 @@ pub struct SkillInterface {
     pub brand_color: Option<String>,
     #[ts(optional)]
     pub default_prompt: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS, PartialEq, Eq)]
+pub struct SkillDependencies {
+    pub tools: Vec<SkillToolDependency>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS, PartialEq, Eq)]
+pub struct SkillToolDependency {
+    #[serde(rename = "type")]
+    #[ts(rename = "type")]
+    pub r#type: String,
+    pub value: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub transport: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub command: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub url: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
@@ -2380,6 +2428,9 @@ mod tests {
             item: TurnItem::WebSearch(WebSearchItem {
                 id: "search-1".into(),
                 query: "find docs".into(),
+                action: WebSearchAction::Search {
+                    query: Some("find docs".into()),
+                },
             }),
         };
 

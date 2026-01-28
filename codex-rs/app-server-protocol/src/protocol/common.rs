@@ -117,6 +117,10 @@ client_request_definitions! {
         params: v2::ThreadArchiveParams,
         response: v2::ThreadArchiveResponse,
     },
+    ThreadUnarchive => "thread/unarchive" {
+        params: v2::ThreadUnarchiveParams,
+        response: v2::ThreadUnarchiveResponse,
+    },
     ThreadRollback => "thread/rollback" {
         params: v2::ThreadRollbackParams,
         response: v2::ThreadRollbackResponse,
@@ -524,6 +528,12 @@ server_request_definitions! {
         response: v2::ToolRequestUserInputResponse,
     },
 
+    /// Execute a dynamic tool call on the client.
+    DynamicToolCall => "item/tool/call" {
+        params: v2::DynamicToolCallParams,
+        response: v2::DynamicToolCallResponse,
+    },
+
     /// DEPRECATED APIs below
     /// Request to approve a patch.
     /// This request is used for Turns started via the legacy APIs (i.e. SendUserTurn, SendUserMessage).
@@ -588,6 +598,7 @@ server_notification_definitions! {
     ReasoningSummaryTextDelta => "item/reasoning/summaryTextDelta" (v2::ReasoningSummaryTextDeltaNotification),
     ReasoningSummaryPartAdded => "item/reasoning/summaryPartAdded" (v2::ReasoningSummaryPartAddedNotification),
     ReasoningTextDelta => "item/reasoning/textDelta" (v2::ReasoningTextDeltaNotification),
+    /// Deprecated: Use `ContextCompaction` item type instead.
     ContextCompacted => "thread/compacted" (v2::ContextCompactedNotification),
     DeprecationNotice => "deprecationNotice" (v2::DeprecationNoticeNotification),
     ConfigWarning => "configWarning" (v2::ConfigWarningNotification),

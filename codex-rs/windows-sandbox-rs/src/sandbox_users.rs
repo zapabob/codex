@@ -34,25 +34,16 @@ use windows_sys::Win32::Security::LookupAccountNameW;
 use windows_sys::Win32::Security::LookupAccountSidW;
 use windows_sys::Win32::Security::SID_NAME_USE;
 
-use super::dpapi_protect;
-use super::sandbox_dir;
-use super::sandbox_secrets_dir;
-use super::string_from_sid_bytes;
-use super::to_wide;
-use super::SETUP_VERSION;
+use codex_windows_sandbox::dpapi_protect;
+use codex_windows_sandbox::sandbox_dir;
+use codex_windows_sandbox::sandbox_secrets_dir;
+use codex_windows_sandbox::string_from_sid_bytes;
+use codex_windows_sandbox::to_wide;
+use codex_windows_sandbox::SetupErrorCode;
+use codex_windows_sandbox::SetupFailure;
+use codex_windows_sandbox::SETUP_VERSION;
 
-#[allow(dead_code)]
-fn log_line(log: &mut File, msg: &str) -> Result<()> {
-    use std::io::Write;
-    writeln!(log, "{}", msg)?;
-    log.flush()?;
-    Ok(())
-}
-
-#[allow(dead_code)]
 pub const SANDBOX_USERS_GROUP: &str = "CodexSandboxUsers";
-
-#[allow(dead_code)]
 const SANDBOX_USERS_GROUP_COMMENT: &str = "Codex sandbox internal group (managed)";
 const SID_ADMINISTRATORS: &str = "S-1-5-32-544";
 const SID_USERS: &str = "S-1-5-32-545";
@@ -60,94 +51,14 @@ const SID_AUTHENTICATED_USERS: &str = "S-1-5-11";
 const SID_EVERYONE: &str = "S-1-1-0";
 const SID_SYSTEM: &str = "S-1-5-18";
 
-#[allow(dead_code)]
-fn well_known_sid_str(name: &str) -> Option<&'static str> {
-    match name.to_ascii_lowercase().as_str() {
-        "administrators" => Some(SID_ADMINISTRATORS),
-        "users" => Some(SID_USERS),
-        "authenticated users" | "authenticated_users" => Some(SID_AUTHENTICATED_USERS),
-        "everyone" => Some(SID_EVERYONE),
-        "system" | "local system" | "localsystem" => Some(SID_SYSTEM),
-        _ => None,
-    }
-}
-
-#[allow(dead_code)]
-fn sid_bytes_from_string(sid_str: &str) -> Result<Vec<u8>> {
-    let sid_w = to_wide(OsStr::new(sid_str));
-    let mut sid_ptr: *mut c_void = std::ptr::null_mut();
-    let ok = unsafe { ConvertStringSidToSidW(sid_w.as_ptr(), &mut sid_ptr) };
-    if ok == 0 || sid_ptr.is_null() {
-        anyhow::bail!(
-            "ConvertStringSidToSidW failed for {sid_str}: {}",
-            std::io::Error::last_os_error()
-        );
-    }
-    let len = unsafe { GetLengthSid(sid_ptr) } as usize;
-    let mut buffer = vec![0u8; len];
-    let copied = unsafe { CopySid(len as u32, buffer.as_mut_ptr() as *mut c_void, sid_ptr) };
-    unsafe {
-        LocalFree(sid_ptr);
-    }
-    if copied == 0 {
-        anyhow::bail!("CopySid failed for {sid_str}");
-    }
-    Ok(buffer)
-}
-
-#[allow(dead_code)]
-fn lookup_account_name_for_sid(sid_str: &str) -> Result<String> {
-    let sid = sid_bytes_from_string(sid_str)?;
-    let mut name_len: u32 = 0;
-    let mut domain_len: u32 = 0;
-    let mut use_type: SID_NAME_USE = 0;
-    let ok = unsafe {
-        LookupAccountSidW(
-            std::ptr::null(),
-            sid.as_ptr() as *mut c_void,
-            std::ptr::null_mut(),
-            &mut name_len,
-            std::ptr::null_mut(),
-            &mut domain_len,
-            &mut use_type,
-        )
-    };
-    if ok == 0 && unsafe { GetLastError() } != ERROR_INSUFFICIENT_BUFFER {
-        anyhow::bail!("LookupAccountSidW failed for {sid_str}");
-    }
-    let mut name_buf = vec![0u16; name_len as usize];
-    let mut domain_buf = vec![0u16; domain_len as usize];
-    let ok = unsafe {
-        LookupAccountSidW(
-            std::ptr::null(),
-            sid.as_ptr() as *mut c_void,
-            name_buf.as_mut_ptr(),
-            &mut name_len,
-            domain_buf.as_mut_ptr(),
-            &mut domain_len,
-            &mut use_type,
-        )
-    };
-    if ok == 0 {
-        anyhow::bail!("LookupAccountSidW failed for {sid_str}");
-    }
-    if let Some(pos) = name_buf.iter().position(|c| *c == 0) {
-        name_buf.truncate(pos);
-    }
-    Ok(String::from_utf16_lossy(&name_buf))
-}
-
-#[allow(dead_code)]
 pub fn ensure_sandbox_users_group(log: &mut File) -> Result<()> {
     ensure_local_group(SANDBOX_USERS_GROUP, SANDBOX_USERS_GROUP_COMMENT, log)
 }
 
-#[allow(dead_code)]
 pub fn resolve_sandbox_users_group_sid() -> Result<Vec<u8>> {
     resolve_sid(SANDBOX_USERS_GROUP)
 }
 
-#[allow(dead_code)]
 pub fn provision_sandbox_users(
     codex_home: &Path,
     offline_username: &str,
@@ -155,7 +66,7 @@ pub fn provision_sandbox_users(
     log: &mut File,
 ) -> Result<()> {
     ensure_sandbox_users_group(log)?;
-    log_line(
+    super::log_line(
         log,
         &format!("ensuring sandbox users offline={offline_username} online={online_username}"),
     )?;
@@ -173,14 +84,12 @@ pub fn provision_sandbox_users(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn ensure_sandbox_user(username: &str, password: &str, log: &mut File) -> Result<()> {
     ensure_local_user(username, password, log)?;
     ensure_local_group_member(SANDBOX_USERS_GROUP, username)?;
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<()> {
     let name_w = to_wide(OsStr::new(name));
     let pwd_w = to_wide(OsStr::new(password));
@@ -214,10 +123,11 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 std::ptr::null_mut(),
             );
             if upd != NERR_Success {
-                log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
-                return Err(anyhow::anyhow!(
-                    "failed to create/update user {name}, code {status}/{upd}"
-                ));
+                super::log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
+                return Err(anyhow::Error::new(SetupFailure::new(
+                    SetupErrorCode::HelperUserCreateOrUpdateFailed,
+                    format!("failed to create/update user {name}, code {status}/{upd}"),
+                )));
             }
         }
 
@@ -235,7 +145,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 1,
             );
         } else {
-            log_line(
+            super::log_line(
                 log,
                 "LookupAccountSidW failed for Users SID; skipping Users group membership",
             )?;
@@ -244,7 +154,6 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn ensure_local_group(name: &str, comment: &str, log: &mut File) -> Result<()> {
     const ERROR_ALIAS_EXISTS: u32 = 1379;
     const NERR_GROUP_EXISTS: u32 = 2223;
@@ -264,17 +173,19 @@ pub fn ensure_local_group(name: &str, comment: &str, log: &mut File) -> Result<(
             &mut parm_err as *mut _,
         );
         if status != NERR_Success && status != ERROR_ALIAS_EXISTS && status != NERR_GROUP_EXISTS {
-            log_line(
+            super::log_line(
                 log,
                 &format!("NetLocalGroupAdd failed for {name} code {status} parm_err={parm_err}"),
             )?;
-            anyhow::bail!("failed to create local group {name}, code {status}");
+            return Err(anyhow::Error::new(SetupFailure::new(
+                SetupErrorCode::HelperUsersGroupCreateFailed,
+                format!("failed to create local group {name}, code {status}"),
+            )));
         }
     }
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn ensure_local_group_member(group_name: &str, member_name: &str) -> Result<()> {
     // If the member is already in the group, NetLocalGroupAddMembers may
     // return an error code. We don't care.
@@ -295,7 +206,6 @@ pub fn ensure_local_group_member(group_name: &str, member_name: &str) -> Result<
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn resolve_sid(name: &str) -> Result<Vec<u8>> {
     if let Some(sid_str) = well_known_sid_str(name) {
         return sid_bytes_from_string(sid_str);
@@ -334,7 +244,104 @@ pub fn resolve_sid(name: &str) -> Result<Vec<u8>> {
     }
 }
 
-#[allow(dead_code)]
+fn well_known_sid_str(name: &str) -> Option<&'static str> {
+    match name {
+        "Administrators" => Some(SID_ADMINISTRATORS),
+        "Users" => Some(SID_USERS),
+        "Authenticated Users" => Some(SID_AUTHENTICATED_USERS),
+        "Everyone" => Some(SID_EVERYONE),
+        "SYSTEM" => Some(SID_SYSTEM),
+        _ => None,
+    }
+}
+
+fn sid_bytes_from_string(sid_str: &str) -> Result<Vec<u8>> {
+    let sid_w = to_wide(OsStr::new(sid_str));
+    let mut psid: *mut c_void = std::ptr::null_mut();
+    if unsafe { ConvertStringSidToSidW(sid_w.as_ptr(), &mut psid) } == 0 {
+        return Err(anyhow::anyhow!(
+            "ConvertStringSidToSidW failed for {sid_str}: {}",
+            unsafe { GetLastError() }
+        ));
+    }
+    let sid_len = unsafe { GetLengthSid(psid) };
+    if sid_len == 0 {
+        unsafe {
+            LocalFree(psid as _);
+        }
+        return Err(anyhow::anyhow!("GetLengthSid failed for {sid_str}"));
+    }
+    let mut out = vec![0u8; sid_len as usize];
+    let ok = unsafe { CopySid(sid_len, out.as_mut_ptr() as *mut c_void, psid) };
+    unsafe {
+        LocalFree(psid as _);
+    }
+    if ok == 0 {
+        return Err(anyhow::anyhow!("CopySid failed for {sid_str}"));
+    }
+    Ok(out)
+}
+
+fn lookup_account_name_for_sid(sid_str: &str) -> Result<String> {
+    let sid_w = to_wide(OsStr::new(sid_str));
+    let mut psid: *mut c_void = std::ptr::null_mut();
+    if unsafe { ConvertStringSidToSidW(sid_w.as_ptr(), &mut psid) } == 0 {
+        return Err(anyhow::anyhow!(
+            "ConvertStringSidToSidW failed for {sid_str}: {}",
+            unsafe { GetLastError() }
+        ));
+    }
+    let mut name_len: u32 = 0;
+    let mut domain_len: u32 = 0;
+    let mut use_type: SID_NAME_USE = 0;
+    let ok = unsafe {
+        LookupAccountSidW(
+            std::ptr::null(),
+            psid,
+            std::ptr::null_mut(),
+            &mut name_len,
+            std::ptr::null_mut(),
+            &mut domain_len,
+            &mut use_type,
+        )
+    };
+    if ok == 0 {
+        let err = unsafe { GetLastError() };
+        if err != ERROR_INSUFFICIENT_BUFFER {
+            unsafe {
+                LocalFree(psid as _);
+            }
+            return Err(anyhow::anyhow!(
+                "LookupAccountSidW preflight failed for {sid_str}: {err}"
+            ));
+        }
+    }
+    let mut name_buf: Vec<u16> = vec![0u16; name_len as usize];
+    let mut domain_buf: Vec<u16> = vec![0u16; domain_len as usize];
+    let ok = unsafe {
+        LookupAccountSidW(
+            std::ptr::null(),
+            psid,
+            name_buf.as_mut_ptr(),
+            &mut name_len,
+            domain_buf.as_mut_ptr(),
+            &mut domain_len,
+            &mut use_type,
+        )
+    };
+    unsafe {
+        LocalFree(psid as _);
+    }
+    if ok == 0 {
+        return Err(anyhow::anyhow!(
+            "LookupAccountSidW failed for {sid_str}: {}",
+            unsafe { GetLastError() }
+        ));
+    }
+    let name = String::from_utf16_lossy(&name_buf);
+    Ok(name.trim_end_matches('\0').to_string())
+}
+
 pub fn sid_bytes_to_psid(sid: &[u8]) -> Result<*mut c_void> {
     let sid_str = string_from_sid_bytes(sid).map_err(anyhow::Error::msg)?;
     let sid_w = to_wide(OsStr::new(&sid_str));
@@ -348,7 +355,6 @@ pub fn sid_bytes_to_psid(sid: &[u8]) -> Result<*mut c_void> {
     Ok(psid)
 }
 
-#[allow(dead_code)]
 fn random_password() -> String {
     const CHARS: &[u8] =
         b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
@@ -364,20 +370,20 @@ fn random_password() -> String {
 }
 
 #[derive(Serialize)]
-pub struct SandboxUserRecord {
-    pub username: String,
-    pub password: String,
+struct SandboxUserRecord {
+    username: String,
+    password: String,
 }
 
 #[derive(Serialize)]
-pub struct SandboxUsersFile {
-    pub version: u32,
-    pub offline: SandboxUserRecord,
-    pub online: SandboxUserRecord,
+struct SandboxUsersFile {
+    version: u32,
+    offline: SandboxUserRecord,
+    online: SandboxUserRecord,
 }
 
 #[derive(Serialize)]
-pub struct SetupMarker {
+struct SetupMarker {
     version: u32,
     offline_username: String,
     online_username: String,
@@ -386,7 +392,6 @@ pub struct SetupMarker {
     write_roots: Vec<PathBuf>,
 }
 
-#[allow(dead_code)]
 fn write_secrets(
     codex_home: &Path,
     offline_user: &str,
@@ -395,11 +400,37 @@ fn write_secrets(
     online_pwd: &str,
 ) -> Result<()> {
     let sandbox_dir = sandbox_dir(codex_home);
-    std::fs::create_dir_all(&sandbox_dir)?;
+    std::fs::create_dir_all(&sandbox_dir).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperUsersFileWriteFailed,
+            format!(
+                "failed to create sandbox dir {}: {err}",
+                sandbox_dir.display()
+            ),
+        ))
+    })?;
     let secrets_dir = sandbox_secrets_dir(codex_home);
-    std::fs::create_dir_all(&secrets_dir)?;
-    let offline_blob = dpapi_protect(offline_pwd.as_bytes())?;
-    let online_blob = dpapi_protect(online_pwd.as_bytes())?;
+    std::fs::create_dir_all(&secrets_dir).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperUsersFileWriteFailed,
+            format!(
+                "failed to create secrets dir {}: {err}",
+                secrets_dir.display()
+            ),
+        ))
+    })?;
+    let offline_blob = dpapi_protect(offline_pwd.as_bytes()).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperDpapiProtectFailed,
+            format!("dpapi protect failed for offline user: {err}"),
+        ))
+    })?;
+    let online_blob = dpapi_protect(online_pwd.as_bytes()).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperDpapiProtectFailed,
+            format!("dpapi protect failed for online user: {err}"),
+        ))
+    })?;
     let users = SandboxUsersFile {
         version: SETUP_VERSION,
         offline: SandboxUserRecord {
@@ -421,7 +452,35 @@ fn write_secrets(
     };
     let users_path = secrets_dir.join("sandbox_users.json");
     let marker_path = sandbox_dir.join("setup_marker.json");
-    std::fs::write(users_path, serde_json::to_vec_pretty(&users)?)?;
-    std::fs::write(marker_path, serde_json::to_vec_pretty(&marker)?)?;
+    let users_json = serde_json::to_vec_pretty(&users).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperUsersFileWriteFailed,
+            format!("serialize sandbox users failed: {err}"),
+        ))
+    })?;
+    std::fs::write(&users_path, users_json).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperUsersFileWriteFailed,
+            format!(
+                "write sandbox users file {} failed: {err}",
+                users_path.display()
+            ),
+        ))
+    })?;
+    let marker_json = serde_json::to_vec_pretty(&marker).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperSetupMarkerWriteFailed,
+            format!("serialize setup marker failed: {err}"),
+        ))
+    })?;
+    std::fs::write(&marker_path, marker_json).map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperSetupMarkerWriteFailed,
+            format!(
+                "write setup marker file {} failed: {err}",
+                marker_path.display()
+            ),
+        ))
+    })?;
     Ok(())
 }

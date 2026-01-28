@@ -13,11 +13,12 @@ use codex_core::config::find_codex_home;
 use codex_core::config::load_global_mcp_servers;
 use codex_core::config::types::McpServerConfig;
 use codex_core::config::types::McpServerTransportConfig;
+use codex_core::mcp::auth::McpOAuthLoginSupport;
 use codex_core::mcp::auth::compute_auth_statuses;
+use codex_core::mcp::auth::oauth_login_support;
 use codex_core::protocol::McpAuthStatus;
 use codex_rmcp_client::delete_oauth_tokens;
 use codex_rmcp_client::perform_oauth_login;
-use codex_rmcp_client::supports_oauth_login;
 
 /// Subcommands:
 /// - `list`   — list configured servers (with `--json`)
@@ -43,8 +44,6 @@ pub enum McpSubcommand {
     Remove(RemoveArgs),
     Login(LoginArgs),
     Logout(LogoutArgs),
-    /// Dynamic loading commands (runtime server management)
-    Dynamic(DynamicArgs),
 }
 
 #[derive(Debug, clap::Parser)]
@@ -65,6 +64,7 @@ pub struct GetArgs {
 }
 
 #[derive(Debug, clap::Parser)]
+#[command(override_usage = "codex mcp add [OPTIONS] <NAME> (--url <URL> | -- <COMMAND>...)")]
 pub struct AddArgs {
     /// Name for the MCP server configuration.
     pub name: String,
@@ -148,57 +148,6 @@ pub struct LogoutArgs {
     pub name: String,
 }
 
-/// Dynamic loading subcommands for runtime MCP server management
-#[derive(Debug, clap::Parser)]
-pub struct DynamicArgs {
-    #[command(subcommand)]
-    pub subcommand: DynamicSubcommand,
-}
-
-#[derive(Debug, clap::Subcommand)]
-pub enum DynamicSubcommand {
-    /// Add a server dynamically at runtime
-    Add(DynamicAddArgs),
-    /// Remove a server dynamically at runtime
-    Remove(DynamicRemoveArgs),
-    /// Reload a server with new configuration
-    Reload(DynamicReloadArgs),
-    /// List dynamically loaded servers
-    List,
-    /// Start watching configuration files for changes
-    Watch,
-}
-
-#[derive(Debug, clap::Parser)]
-pub struct DynamicAddArgs {
-    /// Name for the MCP server
-    pub name: String,
-    /// Path to server configuration file (TOML or YAML)
-    #[arg(long)]
-    pub config: Option<std::path::PathBuf>,
-    /// Command to launch the MCP server (for stdio transport)
-    #[arg(long, num_args = 1..)]
-    pub command: Option<Vec<String>>,
-    /// URL for streamable HTTP transport
-    #[arg(long)]
-    pub url: Option<String>,
-}
-
-#[derive(Debug, clap::Parser)]
-pub struct DynamicRemoveArgs {
-    /// Name of the MCP server to remove
-    pub name: String,
-}
-
-#[derive(Debug, clap::Parser)]
-pub struct DynamicReloadArgs {
-    /// Name of the MCP server to reload
-    pub name: String,
-    /// Path to new server configuration file
-    #[arg(long)]
-    pub config: Option<std::path::PathBuf>,
-}
-
 impl McpCli {
     pub async fn run(self) -> Result<()> {
         let McpCli {
@@ -225,50 +174,10 @@ impl McpCli {
             McpSubcommand::Logout(args) => {
                 run_logout(&config_overrides, args).await?;
             }
-            McpSubcommand::Dynamic(args) => {
-                run_dynamic(&config_overrides, args).await?;
-            }
         }
 
         Ok(())
     }
-}
-
-async fn run_dynamic(_config_overrides: &CliConfigOverrides, args: DynamicArgs) -> Result<()> {
-    // Note: Dynamic loading requires a running Codex instance with DynamicMcpLoader.
-    // This is a placeholder implementation that shows the command structure.
-    // Full implementation would require integration with the Codex runtime.
-
-    match args.subcommand {
-        DynamicSubcommand::Add(add_args) => {
-            eprintln!("Dynamic add command: {:?}", add_args);
-            eprintln!("Note: Dynamic loading requires a running Codex instance.");
-            eprintln!("This feature will be fully implemented when integrated with Codex runtime.");
-            // TODO: Implement actual dynamic add when Codex runtime integration is complete
-        }
-        DynamicSubcommand::Remove(remove_args) => {
-            eprintln!("Dynamic remove command: {:?}", remove_args);
-            eprintln!("Note: Dynamic loading requires a running Codex instance.");
-            // TODO: Implement actual dynamic remove
-        }
-        DynamicSubcommand::Reload(reload_args) => {
-            eprintln!("Dynamic reload command: {:?}", reload_args);
-            eprintln!("Note: Dynamic loading requires a running Codex instance.");
-            // TODO: Implement actual dynamic reload
-        }
-        DynamicSubcommand::List => {
-            eprintln!("Dynamic list command");
-            eprintln!("Note: Dynamic loading requires a running Codex instance.");
-            // TODO: Implement actual dynamic list
-        }
-        DynamicSubcommand::Watch => {
-            eprintln!("Dynamic watch command");
-            eprintln!("Note: File watching requires a running Codex instance.");
-            // TODO: Implement actual file watching
-        }
-    }
-
-    Ok(())
 }
 
 async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Result<()> {
@@ -339,6 +248,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
         tool_timeout_sec: None,
         enabled_tools: None,
         disabled_tools: None,
+        scopes: None,
     };
 
     servers.insert(name.clone(), new_entry);
@@ -351,33 +261,25 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
 
     println!("Added global MCP server '{name}'.");
 
-    if let McpServerTransportConfig::StreamableHttp {
-        url,
-        bearer_token_env_var: _,
-        http_headers,
-        env_http_headers,
-    } = transport
-    {
-        match supports_oauth_login(&url).await {
-            Ok(true) => {
-                println!("Detected OAuth support. Starting OAuth flow…");
-                perform_oauth_login(
-                    &name,
-                    &url,
-                    config.mcp_oauth_credentials_store_mode,
-                    http_headers.clone(),
-                    env_http_headers.clone(),
-                    &Vec::new(),
-                    config.mcp_oauth_callback_port,
-                )
-                .await?;
-                println!("Successfully logged in.");
-            }
-            Ok(false) => {}
-            Err(_) => println!(
-                "MCP server may or may not require login. Run `codex mcp login {name}` to login."
-            ),
+    match oauth_login_support(&transport).await {
+        McpOAuthLoginSupport::Supported(oauth_config) => {
+            println!("Detected OAuth support. Starting OAuth flow…");
+            perform_oauth_login(
+                &name,
+                &oauth_config.url,
+                config.mcp_oauth_credentials_store_mode,
+                oauth_config.http_headers,
+                oauth_config.env_http_headers,
+                &Vec::new(),
+                config.mcp_oauth_callback_port,
+            )
+            .await?;
+            println!("Successfully logged in.");
         }
+        McpOAuthLoginSupport::Unsupported => {}
+        McpOAuthLoginSupport::Unknown(_) => println!(
+            "MCP server may or may not require login. Run `codex mcp login {name}` to login."
+        ),
     }
 
     Ok(())
@@ -439,6 +341,11 @@ async fn run_login(config_overrides: &CliConfigOverrides, login_args: LoginArgs)
         } => (url.clone(), http_headers.clone(), env_http_headers.clone()),
         _ => bail!("OAuth login is only supported for streamable HTTP servers."),
     };
+
+    let mut scopes = scopes;
+    if scopes.is_empty() {
+        scopes = server.scopes.clone().unwrap_or_default();
+    }
 
     perform_oauth_login(
         &name,
