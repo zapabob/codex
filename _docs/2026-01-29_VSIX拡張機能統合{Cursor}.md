@@ -238,6 +238,30 @@ Platform-specific Sandbox
 
 ---
 
+## 修正履歴
+
+### 2026-01-29 (修正完了)
+- **PowerShellスクリプトの構文エラー修正**: `package-vsix.ps1`のエンコーディング問題を解決
+  - 絵文字を含む文字列をASCII文字（`[START]`, `[OK]`, `[ERROR]`等）に置換（エンコーディング問題回避）
+  - `$vsixPath`変数のスコープ問題を修正（`try`ブロック外で初期化）
+  - UTF-8 BOM付きで保存してPowerShell互換性を確保
+  - 構文チェック成功を確認
+  - スクリプト実行準備完了
+
+### 使用方法
+
+```powershell
+cd extensions/vscode-codex
+.\package-vsix.ps1 -Version 2.12.0 -Clean -Install
+```
+
+**パラメータ**:
+- `-Version`: VSIXバージョン（省略時はpackage.jsonから自動取得）
+- `-Clean`: クリーンビルド（既存のout/と*.vsixを削除）
+- `-Install`: パッケージング後にCursorに自動インストール
+
+---
+
 **実装者**: zapabob  
 **バージョン**: 2.12.0  
 **日付**: 2026-01-29

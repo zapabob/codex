@@ -65,7 +65,8 @@ Write-Host "  Commits behind upstream/main: $commitCount" -ForegroundColor Gray
 
 # 重要なコミットの特定
 Write-Status "Identifying important commits (security fixes, bug fixes, CVE)..."
-$importantCommits = git log main..upstream/main --oneline --grep="security\|CVE\|fix\|bug" --ignore-case 2>$null
+$allCommits = git log main..upstream/main --oneline 2>$null
+$importantCommits = $allCommits | Select-String -Pattern "security|CVE|fix|bug" -CaseSensitive:$false
 
 if ($importantCommits) {
     Write-Host "  Important commits found:" -ForegroundColor Yellow

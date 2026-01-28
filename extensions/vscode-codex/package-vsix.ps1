@@ -88,9 +88,10 @@ try {
 }
 
 # vsceパッケージング
-Write-ColorOutput Yellow "📦 VSIXパッケージング中..."
+Write-ColorOutput Yellow "[PACKAGE] VSIXパッケージング中..."
 Write-Progress-Bar -Percent 70 -Activity "Packaging" -Status "Creating VSIX file"
 
+$vsixPath = $null
 Push-Location $extensionRoot
 try {
     # vsceがインストールされているか確認
@@ -147,16 +148,20 @@ Write-ColorOutput Green "✅ MCP設定ファイル生成完了: $mcpConfigPath"
 
 # インストール（オプション）
 if ($Install) {
-    Write-ColorOutput Yellow "📥 VSIXインストール中..."
-    Write-Progress-Bar -Percent 95 -Activity "Installing" -Status "Installing VSIX to Cursor"
-    
-    $cursorPath = "$env:LOCALAPPDATA\Programs\cursor\Cursor.exe"
-    if (Test-Path $cursorPath) {
-        & $cursorPath --install-extension $vsixPath
-        Write-ColorOutput Green "✅ VSIXインストール完了（Cursor再起動が必要やで）"
+    if ($null -eq $vsixPath) {
+        Write-ColorOutput Red "[ERROR] VSIXファイルが見つかりません。パッケージングを先に実行してください。"
     } else {
-        Write-ColorOutput Yellow "⚠️  Cursorが見つからんかった。手動でインストールしてくれ:"
-        Write-ColorOutput Cyan "   code --install-extension $vsixPath"
+        Write-ColorOutput Yellow "[INSTALL] VSIXインストール中..."
+        Write-Progress-Bar -Percent 95 -Activity "Installing" -Status "Installing VSIX to Cursor"
+        
+        $cursorPath = "$env:LOCALAPPDATA\Programs\cursor\Cursor.exe"
+        if (Test-Path $cursorPath) {
+            & $cursorPath --install-extension $vsixPath
+            Write-ColorOutput Green "[OK] VSIXインストール完了（Cursor再起動が必要やで）"
+        } else {
+            Write-ColorOutput Yellow "[WARN] Cursorが見つからんかった。手動でインストールしてくれ:"
+            Write-ColorOutput Cyan "[INFO] code --install-extension $vsixPath"
+        }
     }
 }
 
