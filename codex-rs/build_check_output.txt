@@ -1,0 +1,7 @@
+﻿cargo : error: package ID specification `windows-sandbox-rs` did not match any packages
+発生場所 C:\Users\downl\AppData\Local\Temp\ps-script-611d030b-8963-4e60-b4f7-89f78658f50a.ps1:88 文字:48
++ ... -main\codex-rs; cargo check --package windows-sandbox-rs 2>&1 | Out-F ...
++                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: package ...ch any packages:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

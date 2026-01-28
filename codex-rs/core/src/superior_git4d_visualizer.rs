@@ -13,7 +13,6 @@
 use async_trait::async_trait;
 use git2::Commit;
 use git2::Diff;
-use git2::DiffOptions;
 use git2::Oid;
 use git2::Repository;
 use std::str::FromStr;
@@ -28,11 +27,7 @@ use regex::Regex;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::VecDeque;
-use std::future::Future;
 use std::path::Path;
-use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::RwLock;
@@ -284,7 +279,7 @@ impl SentimentAnalyzer {
 
         // AI-powered deep analysis (temporarily disabled)
         let deep_sentiment = if false {
-            self.analyze_with_ai(message, author)
+            self.analyze_with_ai(message, &author)
                 .await
                 .unwrap_or(SentimentResult {
                     score: 0.0,
@@ -340,7 +335,7 @@ impl SentimentAnalyzer {
 
         // AI-powered deep analysis (temporarily disabled)
         let deep_sentiment = if false {
-            self.analyze_with_ai(message, author)
+            self.analyze_with_ai(message, &author)
                 .await
                 .unwrap_or(SentimentResult {
                     score: 0.0,
@@ -693,24 +688,14 @@ impl QuantumOptimizer {
 pub trait Git4DAnalyzer {
     type AnalysisResult;
 
-    async fn analyze(&self, commit: &Commit) -> Self::AnalysisResult;
+    async fn analyze(&self, commit_id: Oid, message: String, author: String) -> Self::AnalysisResult;
 }
 
 #[async_trait]
 impl Git4DAnalyzer for SentimentAnalyzer {
     type AnalysisResult = CommitSentiment;
 
-    async fn analyze(&self, commit: &Commit) -> Self::AnalysisResult {
-        // Extract commit information before async processing to avoid Send issues
-        // All commit data must be extracted synchronously before the async block
-        let commit_id = commit.id();
-        let message = commit.message().unwrap_or("").to_string();
-        let author = commit.author().name().unwrap_or("").to_string();
-        
-        // Now we can use the extracted data in async processing
-        // The commit reference is no longer needed, so we can drop it
-        drop(commit);
-        
+    async fn analyze(&self, commit_id: Oid, message: String, author: String) -> Self::AnalysisResult {
         // Use the extracted information for async processing
         self.analyze_commit_sentiment_inner(commit_id, &message, &author)
             .await
@@ -729,11 +714,12 @@ impl SuperiorGit4DVisualizer {
         repo_path: &Path,
         config: SuperiorGit4DConfig,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        let base_visualizer = Git4DAcceleratedVisualizer::new(repo_path, config.base_config)?;
+        let base_config = config.base_config.clone();
+        let base_visualizer = Git4DAcceleratedVisualizer::new(repo_path, base_config)?;
 
         // OpenAI API integration temporarily disabled
         // let ai_client = config.openai_api_key.as_ref().map(|key| Client::new(key.clone()));
-        let _ai_client = None;
+        let _ai_client: Option<()> = None;
 
         Ok(Self {
             base_visualizer,

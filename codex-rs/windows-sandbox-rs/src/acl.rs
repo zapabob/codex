@@ -450,7 +450,7 @@ pub unsafe fn add_allow_ace(path: &Path, psid: *mut c_void) -> Result<bool> {
             )
         };
         if code3 == ERROR_SUCCESS {
-            added = !dacl_has_write_allow_for_sid(p_dacl, psid);
+            added = !unsafe { dacl_has_write_allow_for_sid(p_dacl, psid) };
         }
         if !p_new_dacl.is_null() {
             unsafe { LocalFree(p_new_dacl as HLOCAL) };

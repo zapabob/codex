@@ -4,10 +4,10 @@ overview: ビルドエラーを機能を損なわず修正し、警告0で差分
 todos:
   - id: fix_build_errors
     content: ビルドエラー修正（型エラー、条件付きコンパイル、Sendトレイト）
-    status: in_progress
+    status: completed
   - id: fix_warnings
     content: 警告0達成（unsafe関数、未使用変数）
-    status: pending
+    status: in_progress
   - id: incremental_build
     content: 差分高速ビルド実行と検証
     status: pending

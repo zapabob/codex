@@ -62,7 +62,7 @@ struct RunnerRequest {
 const WAIT_TIMEOUT: u32 = 0x0000_0102;
 
 unsafe fn create_job_kill_on_close() -> Result<HANDLE> {
-    let h = CreateJobObjectW(std::ptr::null_mut(), std::ptr::null());
+    let h = unsafe { CreateJobObjectW(std::ptr::null_mut(), std::ptr::null()) };
     if h == 0 {
         return Err(anyhow::anyhow!("CreateJobObjectW failed"));
     }

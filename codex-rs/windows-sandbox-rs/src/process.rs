@@ -77,14 +77,14 @@ pub unsafe fn create_process_as_user(
         .join(" ");
     let mut cmdline: Vec<u16> = to_wide(&cmdline_str);
     let env_block = make_env_block(env_map);
-    let mut si: STARTUPINFOW = std::mem::zeroed();
+    let mut si: STARTUPINFOW = unsafe { std::mem::zeroed() };
     si.cb = std::mem::size_of::<STARTUPINFOW>() as u32;
     // Some processes (e.g., PowerShell) can fail with STATUS_DLL_INIT_FAILED
     // if lpDesktop is not set when launching with a restricted token.
     // Point explicitly at the interactive desktop.
     let desktop = to_wide("Winsta0\\Default");
     si.lpDesktop = desktop.as_ptr() as *mut u16;
-    let mut pi: PROCESS_INFORMATION = std::mem::zeroed();
+    let mut pi: PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
     // Ensure handles are inheritable when custom stdio is supplied.
     let inherit_handles = match stdio {
         Some((stdin_h, stdout_h, stderr_h)) => {

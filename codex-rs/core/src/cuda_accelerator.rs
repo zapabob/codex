@@ -14,7 +14,9 @@ pub struct CudaGit4DAccelerator {
     render_kernel: cudarc::driver::CudaFunction,
 }
 
-#[derive(Debug, Clone)]
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitCommitVertex {
     pub position: [f32; 3],  // x, y, z coordinates
     pub time: f32,          // 4th dimension (time)

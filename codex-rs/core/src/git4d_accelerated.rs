@@ -2,7 +2,7 @@
 use crate::cuda_accelerator::{GitCommitVertex, TransformationMatrix, RenderParameters};
 #[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::CudaGit4DAccelerator;
-use crate::vr_ar_integration::{VRARIntegration, VRInteraction, VREvent, XRPlatform, Anchor, AnchorType};
+use crate::vr_ar_integration::{VRARIntegration, VRInteraction, VREvent, XRPlatform};
 use anyhow::Context;
 use git2::{Repository, Commit, Oid};
 use once_cell::sync::Lazy;
@@ -104,7 +104,7 @@ pub enum Git4DEvent {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Git4DVisualizationConfig {
     pub enable_cuda: bool,
     pub enable_vr_ar: bool,
@@ -216,9 +216,10 @@ pub async fn check_vr_ar_device_availability(
             match vr_integration.initialize_platform(platform.clone()).await {
                 Ok(_) => {
                     tracing::info!("VR/AR device available: {:?}", platform);
+                    let platform_clone = platform.clone();
                     Ok(DeviceAvailability::Available {
                         platform,
-                        device_name: Some(format!("{:?}", platform)),
+                        device_name: Some(format!("{:?}", platform_clone)),
                     })
                 }
                 Err(e) => {
@@ -244,7 +245,7 @@ impl Git4DAcceleratedVisualizer {
             .with_context(|| format!("Failed to open git repository at: {}", repo_path.display()))?;
 
         // Initialize CUDA accelerator if enabled
-        #[cfg(feature = "cuda")]
+        #[cfg(all(feature = "custom-features", feature = "cuda"))]
         let cuda_accelerator = if config.enable_cuda {
             match CudaGit4DAccelerator::new() {
                 Ok(acc) => Some(acc),
@@ -256,8 +257,6 @@ impl Git4DAcceleratedVisualizer {
         } else {
             None
         };
-        #[cfg(not(feature = "cuda"))]
-        let cuda_accelerator = None;
 
         // Initialize VR/AR integration if enabled
         let vr_ar_integration = if config.enable_vr_ar {
@@ -275,18 +274,35 @@ impl Git4DAcceleratedVisualizer {
         let (event_sender, _) = broadcast::channel(100);
         let (interaction_sender, interaction_receiver) = mpsc::channel(100);
 
-        Ok(Self {
-            cuda_accelerator,
-            vr_ar_integration,
-            repository,
-            commit_cache: Mutex::new(HashMap::new()),
-            branch_cache: Mutex::new(HashMap::new()),
-            time_range: Mutex::new((0.0, 1.0)),
-            visible_branches: Mutex::new(HashSet::new()),
-            event_sender,
-            interaction_receiver,
-            interaction_sender,
-        })
+        #[cfg(all(feature = "custom-features", feature = "cuda"))]
+        {
+            Ok(Self {
+                cuda_accelerator,
+                vr_ar_integration,
+                repository,
+                commit_cache: Mutex::new(HashMap::new()),
+                branch_cache: Mutex::new(HashMap::new()),
+                time_range: Mutex::new((0.0, 1.0)),
+                visible_branches: Mutex::new(HashSet::new()),
+                event_sender,
+                interaction_receiver,
+                interaction_sender,
+            })
+        }
+        #[cfg(not(all(feature = "custom-features", feature = "cuda")))]
+        {
+            Ok(Self {
+                vr_ar_integration,
+                repository,
+                commit_cache: Mutex::new(HashMap::new()),
+                branch_cache: Mutex::new(HashMap::new()),
+                time_range: Mutex::new((0.0, 1.0)),
+                visible_branches: Mutex::new(HashSet::new()),
+                event_sender,
+                interaction_receiver,
+                interaction_sender,
+            })
+        }
     }
 
     /// Launch Git4D visualization for GUI
@@ -321,7 +337,7 @@ impl Git4DAcceleratedVisualizer {
         
         // Verify repository exists
         if !repository_path.exists() {
-            anyhow::bail!("Repository path does not exist: {}", repository_path.display());
+            return Err(format!("Repository path does not exist: {}", repository_path.display()).into());
         }
         
         // Check device availability if VR/AR mode
@@ -332,16 +348,16 @@ impl Git4DAcceleratedVisualizer {
         };
         
         // If device is not available, fall back to desktop mode
-        let effective_mode = match device_availability {
-            DeviceAvailability::Available { .. } => mode.clone(),
+        let (effective_mode, device_availability_for_log) = match &device_availability {
+            DeviceAvailability::Available { .. } => (mode.clone(), format!("{:?}", device_availability)),
             DeviceAvailability::NotAvailable { reason } => {
                 tracing::warn!(
                     "VR/AR device not available ({}), falling back to desktop mode",
                     reason
                 );
-                "desktop".to_string()
+                ("desktop".to_string(), format!("NotAvailable: {}", reason))
             }
-            DeviceAvailability::Desktop => "desktop".to_string(),
+            DeviceAvailability::Desktop => ("desktop".to_string(), "Desktop".to_string()),
         };
         
         // Update config if mode changed
@@ -361,7 +377,7 @@ impl Git4DAcceleratedVisualizer {
         let session = Git4DVisualizationSession {
             session_id: session_id.clone(),
             repository_path: repository_path.clone(),
-            mode: effective_mode,
+            mode: effective_mode.clone(),
             config: effective_config,
             created_at: Instant::now(),
             status: SessionStatus::Starting,
@@ -377,11 +393,11 @@ impl Git4DAcceleratedVisualizer {
         }
         
         tracing::info!(
-            "Created Git4D visualization session: id={}, mode={}, path={:?}, device={:?}",
+            "Created Git4D visualization session: id={}, mode={}, path={:?}, device={}",
             session_id,
-            session.mode,
+            effective_mode,
             repository_path,
-            device_availability
+            device_availability_for_log
         );
         
         Ok(session)
@@ -472,17 +488,16 @@ impl Git4DAcceleratedVisualizer {
         for branch_result in branches {
             let (branch, _) = branch_result?;
             if let Ok(Some(name)) = branch.name() {
-                if let Ok(Some(reference)) = branch.get() {
-                    if let Ok(commit) = reference.peel_to_commit() {
-                        let mut commits: Vec<Oid> = Vec::new();
-                        self.traverse_commits(&commit, &mut commits, config.max_commits)?;
+                let reference = branch.get();
+                if let Ok(commit) = reference.peel_to_commit() {
+                    let mut commits: Vec<Oid> = Vec::new();
+                    self.traverse_commits(&commit, &mut commits, config.max_commits)?;
 
-                        branch_cache.insert(name.to_string(), commits.clone());
+                    branch_cache.insert(name.to_string(), commits.clone());
 
-                        // Assign branch ID
-                        branch_ids.insert(name.to_string(), branch_id_counter);
-                        branch_id_counter += 1;
-                    }
+                    // Assign branch ID
+                    branch_ids.insert(name.to_string(), branch_id_counter);
+                    branch_id_counter += 1;
                 }
             }
         }
@@ -540,6 +555,7 @@ impl Git4DAcceleratedVisualizer {
             .map_err(|e| format!("Failed to lock time_range: {}", e))? = time_range;
 
         // Send loaded event
+        let commits_count = all_commits.len();
         let _ = self.event_sender.send(Git4DEvent::CommitsLoaded {
             commits: all_commits,
         });
@@ -558,7 +574,7 @@ impl Git4DAcceleratedVisualizer {
 
         tracing::info!(
             "Completed loading commits: {} commits, {} branches, total time: {:?}",
-            all_commits.len(),
+            commits_count,
             branch_ids.len(),
             start_time.elapsed()
         );
@@ -700,48 +716,63 @@ impl Git4DAcceleratedVisualizer {
     /// Process VR/AR interactions
     pub async fn process_vr_interactions(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         tracing::debug!("Starting VR/AR interaction processing");
-        if let Some(vr_ar) = &mut self.vr_ar_integration {
-            // Subscribe to VR events
-            let mut event_receiver = vr_ar.subscribe_events();
-            let mut pending_events = Vec::new();
+        if self.vr_ar_integration.is_none() {
+            return Ok(());
+        }
 
-            loop {
-                tokio::select! {
-                    // Process VR events
-                    event = event_receiver.recv() => {
-                        if let Ok(event) = event {
-                            pending_events.push(event);
-                        }
+        // Subscribe to VR events (borrow temporarily)
+        let mut event_receiver = {
+            if let Some(vr_ar) = &mut self.vr_ar_integration {
+                vr_ar.subscribe_events()
+            } else {
+                return Ok(());
+            }
+        };
+        let mut pending_events = Vec::new();
+
+        loop {
+            tokio::select! {
+                // Process VR events
+                event = event_receiver.recv() => {
+                    if let Ok(event) = event {
+                        pending_events.push(event);
                     }
+                }
 
-                    // Process interactions
-                    interaction = self.interaction_receiver.recv() => {
-                        if let Some(interaction) = interaction {
-                            // Process pending events first
-                            for event in pending_events.drain(..) {
-                                self.handle_vr_event(event).await?;
-                            }
-                            self.handle_interaction(interaction).await?;
-                        } else {
-                            // Process any remaining events before breaking
-                            for event in pending_events.drain(..) {
-                                self.handle_vr_event(event).await?;
-                            }
-                            break;
-                        }
-                    }
-
-                    // Periodic update
-                    _ = time::sleep(Duration::from_millis(16)) => {
-                        let events = vr_ar.update().await?;
+                // Process interactions
+                interaction = self.interaction_receiver.recv() => {
+                    if let Some(interaction) = interaction {
                         // Process pending events first
                         for event in pending_events.drain(..) {
                             self.handle_vr_event(event).await?;
                         }
-                        // Then process new events
-                        for event in events {
+                        self.handle_interaction(interaction).await?;
+                    } else {
+                        // Process any remaining events before breaking
+                        for event in pending_events.drain(..) {
                             self.handle_vr_event(event).await?;
                         }
+                        break;
+                    }
+                }
+
+                // Periodic update
+                _ = time::sleep(Duration::from_millis(16)) => {
+                    // Borrow vr_ar temporarily to get events
+                    let events = {
+                        if let Some(vr_ar) = &mut self.vr_ar_integration {
+                            vr_ar.update().await?
+                        } else {
+                            Vec::new()
+                        }
+                    };
+                    // Process pending events first
+                    for event in pending_events.drain(..) {
+                        self.handle_vr_event(event).await?;
+                    }
+                    // Then process new events
+                    for event in events {
+                        self.handle_vr_event(event).await?;
                     }
                 }
             }
@@ -920,7 +951,7 @@ impl Git4DAcceleratedVisualizer {
             max_pos[2] - min_pos[2],
         ];
 
-        let max_diagonal = diagonal.iter().fold(0.0, |a, &b| a.max(b));
+        let max_diagonal = diagonal.iter().fold(0.0f32, |a, &b| a.max(b));
         let camera_distance = max_diagonal * 2.0;
 
         let camera_pos = [

@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -12,7 +13,7 @@ pub struct VRARIntegration {
     event_sender: broadcast::Sender<VREvent>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum XRPlatform {
     OculusQuest2,
     OculusQuest3,

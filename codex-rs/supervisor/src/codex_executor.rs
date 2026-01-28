@@ -2,14 +2,14 @@
 use anyhow::Context;
 use anyhow::Result;
 use codex_core::AuthManager;
-use codex_core::codex::Codex;
+use codex_core::CodexThread;
 use codex_core::config::Config;
 use codex_core::models_manager::manager::ModelsManager;
 use codex_core::protocol::EventMsg;
-use codex_core::protocol::InitialHistory;
 use codex_core::protocol::Op;
 use codex_core::protocol::SessionSource;
 use codex_core::skills::SkillsManager;
+use codex_core::ThreadManager;
 use codex_protocol::user_input::UserInput;
 use std::sync::Arc;
 use std::time::Duration;
@@ -34,6 +34,7 @@ pub struct CodexExecutor {
     auth_manager: Arc<AuthManager>,
     models_manager: Arc<ModelsManager>,
     skills_manager: Arc<SkillsManager>,
+    thread_manager: ThreadManager,
     metrics: ExecutionMetrics,
 }
 
@@ -50,13 +51,19 @@ pub struct ExecutionMetrics {
 impl CodexExecutor {
     /// Create a new CodexExecutor with configuration
     pub fn new(config: Config, auth_manager: Arc<AuthManager>) -> Self {
-        let models_manager = Arc::new(ModelsManager::new(Arc::clone(&auth_manager)));
+        let models_manager = Arc::new(ModelsManager::new(config.codex_home.clone(), Arc::clone(&auth_manager)));
         let skills_manager = Arc::new(SkillsManager::new(config.codex_home.clone()));
+        let thread_manager = ThreadManager::new(
+            config.codex_home.clone(),
+            Arc::clone(&auth_manager),
+            SessionSource::Exec,
+        );
         Self {
             config: Arc::new(config),
             auth_manager,
             models_manager,
             skills_manager,
+            thread_manager,
             metrics: ExecutionMetrics::default(),
         }
     }
@@ -98,29 +105,26 @@ impl CodexExecutor {
     /// Execute with Codex instance
     /// Best Practice: ハイブリッドアプローチ - 実際のLLM呼び出し
     async fn execute_with_codex(&self, prompt: &str) -> Result<String> {
-        // Spawn Codex instance
-        let codex_spawn = Codex::spawn(
-            (*self.config).clone(),
-            Arc::clone(&self.auth_manager),
-            Arc::clone(&self.models_manager),
-            Arc::clone(&self.skills_manager),
-            InitialHistory::New,
-            SessionSource::Exec,
-        )
-        .await
-        .context("Failed to spawn Codex instance")?;
+        // Start a new thread using ThreadManager
+        let new_thread = self
+            .thread_manager
+            .start_thread((*self.config).clone())
+            .await
+            .context("Failed to start Codex thread")?;
 
-        let mut codex = codex_spawn.codex;
-        let conversation_id = codex_spawn.conversation_id;
+        let thread = new_thread.thread;
+        let thread_id = new_thread.thread_id;
 
-        debug!("Codex instance spawned: {:?}", conversation_id);
+        debug!("Codex thread started: {:?}", thread_id);
 
         // Submit user turn with specialized prompt
-        let submission_id = codex
+        let submission_id = thread
             .submit(Op::UserInput {
                 items: vec![UserInput::Text {
                     text: prompt.to_string(),
+                    text_elements: Vec::new(),
                 }],
+                final_output_json_schema: None,
             })
             .await
             .context("Failed to submit user turn")?;
@@ -129,12 +133,12 @@ impl CodexExecutor {
 
         // Collect response with timeout
         let response = self
-            .collect_response(&mut codex, Duration::from_secs(60))
+            .collect_response(&thread, Duration::from_secs(60))
             .await
             .context("Failed to collect response")?;
 
         // Shutdown Codex session
-        codex
+        thread
             .submit(Op::Shutdown)
             .await
             .context("Failed to shutdown Codex")?;
@@ -148,7 +152,7 @@ impl CodexExecutor {
     /// Best Practice: エラーハンドリング - タイムアウトとエラー処理
     async fn collect_response(
         &self,
-        codex: &mut Codex,
+        thread: &CodexThread,
         timeout_duration: Duration,
     ) -> Result<String> {
         let mut response_text = String::new();
@@ -156,7 +160,7 @@ impl CodexExecutor {
 
         // Wait for events with timeout
         while !turn_completed {
-            let event = timeout(timeout_duration, codex.next_event())
+            let event = timeout(timeout_duration, thread.next_event())
                 .await
                 .context("Timeout waiting for Codex response")?
                 .context("Failed to receive event")?;
@@ -182,7 +186,7 @@ impl CodexExecutor {
                         response_text = msg.message;
                     }
                 }
-                EventMsg::TaskComplete(task_complete) => {
+                EventMsg::TurnComplete(task_complete) => {
                     info!("Task completed");
                     if response_text.is_empty()
                         && let Some(message) = task_complete.last_agent_message
@@ -267,7 +271,7 @@ impl CodexExecutor {
 /// Create default CodexExecutor for testing
 impl Default for CodexExecutor {
     fn default() -> Self {
-        let config = Config::load_from_disk_or_default()
+        let config = Config::load_default_with_cli_overrides(Vec::new())
             .expect("Failed to load default config for CodexExecutor");
         let auth_manager = AuthManager::shared(
             config.codex_home.clone(),
