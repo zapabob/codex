@@ -366,3 +366,38 @@ export interface Git4DLaunchResponse {
   platform?: string;
   device_name?: string;
 }
+
+// Plan Management Types
+export interface Plan {
+  id: string;
+  title: string;
+  goal: string;
+  approach: string;
+  mode: 'single' | 'orchestrated' | 'competition';
+  state: 'Drafting' | 'Pending' | 'Approved' | 'Rejected' | 'Executing' | 'Completed' | 'Failed';
+  created_at: string;
+  updated_at: string;
+  approved_by?: string | null;
+  rejected_reason?: string | null;
+  budget: {
+    session_cap?: number;
+    cap_min?: number;
+  };
+  work_items: Array<{
+    name: string;
+    files_touched: string[];
+    diff_contract: string;
+    tests: string[];
+  }>;
+  risks: Array<{
+    item: string;
+    mitigation: string;
+  }>;
+}
+
+export interface CreatePlanRequest {
+  title: string;
+  mode?: 'single' | 'orchestrated' | 'competition';
+  budget_tokens?: number;
+  budget_time?: number;
+}

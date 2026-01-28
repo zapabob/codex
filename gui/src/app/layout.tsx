@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppThemeProvider } from "@/components/templates/ThemeProvider";
 import { PWAProvider } from "@/components/pwa/PWAProvider";
 import { CodexProvider } from "@/lib/context/CodexContext";
+import { AuthProvider } from "@/lib/context/AuthContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -59,11 +60,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <PWAProvider>
-          <CodexProvider>
-            <AppThemeProvider>
-              {children}
-            </AppThemeProvider>
-          </CodexProvider>
+          <AuthProvider>
+            <CodexProvider>
+              <AppThemeProvider>
+                {children}
+              </AppThemeProvider>
+            </CodexProvider>
+          </AuthProvider>
         </PWAProvider>
       </body>
     </html>

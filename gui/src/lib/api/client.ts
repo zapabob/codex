@@ -14,6 +14,41 @@ import {
   LoginForm,
   NewConversationForm,
 } from '../types';
+
+// Plan types
+export interface Plan {
+  id: string;
+  title: string;
+  goal: string;
+  approach: string;
+  mode: 'single' | 'orchestrated' | 'competition';
+  state: 'Drafting' | 'Pending' | 'Approved' | 'Rejected' | 'Executing' | 'Completed' | 'Failed';
+  created_at: string;
+  updated_at: string;
+  approved_by?: string | null;
+  rejected_reason?: string | null;
+  budget: {
+    session_cap?: number;
+    cap_min?: number;
+  };
+  work_items: Array<{
+    name: string;
+    files_touched: string[];
+    diff_contract: string;
+    tests: string[];
+  }>;
+  risks: Array<{
+    item: string;
+    mitigation: string;
+  }>;
+}
+
+export interface CreatePlanRequest {
+  title: string;
+  mode?: 'single' | 'orchestrated' | 'competition';
+  budget_tokens?: number;
+  budget_time?: number;
+}
 import { AITool, AISession, DevelopmentTask } from '../types/ai-tools';
 import type {
   AccountInfo,
@@ -137,16 +172,107 @@ export class CodexAPIClient {
   }
 
   // Authentication
-  async login(credentials: LoginForm): Promise<{ token?: string; authUrl?: string }> {
-    const params = credentials.method === 'api-key'
-      ? { type: 'apiKey', apiKey: credentials.apiKey }
-      : { type: 'chatgpt' };
+  async login(credentials: { email: string; password: string }): Promise<{ token: string; user: { id: string; email: string; name?: string } }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
 
-    return this.httpRequest('account/login', params);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new CodexAPIError(
+          response.status,
+          errorData.error || `Failed to login: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to login: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
-  async logout(): Promise<void> {
-    return this.httpRequest('account/logout');
+  async register(credentials: { email: string; password: string; name?: string }): Promise<{ token: string; user: { id: string; email: string; name?: string } }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new CodexAPIError(
+          response.status,
+          errorData.error || `Failed to register: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to register: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async logout(request: { session_id: string }): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to logout: ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to logout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getSession(token: string): Promise<{ user: { id: string; email: string; name?: string }; expires_at: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/session?token=${encodeURIComponent(token)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to get session: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to get session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async getAccount(): Promise<AccountInfo> {
@@ -849,6 +975,271 @@ export class CodexAPIClient {
     endpoint.protocol = endpoint.protocol === 'https:' ? 'wss:' : 'ws:';
     endpoint.pathname = path.startsWith('/') ? path : `/${path}`;
     return endpoint.toString();
+  }
+
+  // Plan Management API
+  async listPlans(state?: string): Promise<Plan[]> {
+    try {
+      const url = state 
+        ? `${this.baseUrl}/api/plans?state=${encodeURIComponent(state)}`
+        : `${this.baseUrl}/api/plans`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to list plans: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to list plans: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async createPlan(data: CreatePlanRequest): Promise<Plan> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new CodexAPIError(
+          response.status,
+          errorData.message || `Failed to create plan: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to create plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getPlan(id: string): Promise<Plan> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to get plan: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to get plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async approvePlan(id: string): Promise<Plan> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans/${id}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new CodexAPIError(
+          response.status,
+          errorData.message || `Failed to approve plan: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to approve plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async rejectPlan(id: string, reason: string): Promise<Plan> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans/${id}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new CodexAPIError(
+          response.status,
+          errorData.message || `Failed to reject plan: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to reject plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async executePlan(id: string): Promise<{ status: string; output?: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans/${id}/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new CodexAPIError(
+          response.status,
+          errorData.message || `Failed to execute plan: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to execute plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async exportPlan(
+    id: string,
+    format: 'md' | 'json' | 'both' = 'both'
+  ): Promise<{ markdown?: string; json?: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans/${id}/export?format=${format}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to export plan: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to export plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async togglePlanMode(enabled: boolean): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans/mode`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ enabled }),
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to toggle plan mode: ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to toggle plan mode: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getPlanModeStatus(): Promise<{ enabled: boolean; timestamp: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/plans/mode/status`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        // Fallback to default if endpoint doesn't exist yet
+        return { enabled: false, timestamp: new Date().toISOString() };
+      }
+
+      return await response.json();
+    } catch (error) {
+      // Fallback to default on error
+      return { enabled: false, timestamp: new Date().toISOString() };
+    }
+  }
+
+  // Git4D Visualization API
+  async launchGit4D(request: { mode: 'desktop' | 'vr' | 'ar'; repositoryPath: string; virtualDesktop?: boolean }): Promise<{ sessionId: string; platform?: string; device_name?: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/visualization/git4d`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mode: request.mode,
+          repository_path: request.repositoryPath,
+          virtual_desktop: request.virtualDesktop,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new CodexAPIError(
+          response.status,
+          errorData.message || `Failed to launch Git4D: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to launch Git4D: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

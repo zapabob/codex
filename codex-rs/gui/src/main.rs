@@ -1,3 +1,5 @@
+mod api;
+
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -33,6 +35,7 @@ use tower_http::trace::TraceLayer;
 use tracing::info;
 use tracing::warn;
 use uuid::Uuid;
+use sqlx::SqlitePool;
 
 // MCP Connection structures
 #[derive(Serialize)]
@@ -100,10 +103,37 @@ async fn main() -> Result<(), GuiError> {
 
     let cli_path = std::env::var("CODEX_GUI_CLI_PATH").unwrap_or_else(|_| "codex".to_string());
 
-    let state = AppState::new(cli_path, action_definitions());
+    // Initialize SQLite database
+    let db_url = std::env::var("CODEX_GUI_DB_URL")
+        .unwrap_or_else(|_| "sqlite:codex-gui.db".to_string());
+    let db = SqlitePool::connect(&db_url)
+        .await
+        .map_err(|e| GuiError::Database(e.to_string()))?;
+
+    // JWT secret (in production, use a secure random secret)
+    let jwt_secret = std::env::var("CODEX_GUI_JWT_SECRET")
+        .unwrap_or_else(|_| "your-secret-key-change-in-production".to_string());
+
+    let state = AppState::new(cli_path.clone(), action_definitions());
     let cli_path_for_log = state.cli_path.clone();
 
+    // Auth state
+    let auth_state = api::auth::AuthState {
+        db: Arc::new(db.clone()),
+        jwt_secret,
+    };
+
+    // Plans state
+    let plans_state = api::plans::PlansState {
+        db: Arc::new(db.clone()),
+        cli_path: Arc::new(cli_path.clone()),
+    };
+
+    // VR state
+    let vr_state = api::vr::VRState {};
+
     let app = Router::new()
+        // Existing routes
         .route("/api/actions", get(list_actions))
         .route("/api/actions/{id}/execute", post(execute_action))
         .route("/api/mcp/connections", get(list_mcp_connections))
@@ -116,7 +146,28 @@ async fn main() -> Result<(), GuiError> {
         .route("/api/visualization/git4d", post(launch_git4d_visualization))
         .route("/api/visualization/git4d/sessions", get(list_git4d_sessions))
         .route("/api/visualization/git4d/{session_id}/events", get(git4d_events_stream))
+        // Auth routes
+        .route("/api/auth/login", post(api::auth::login))
+        .route("/api/auth/register", post(api::auth::register))
+        .route("/api/auth/logout", post(api::auth::logout))
+        .route("/api/auth/session", get(api::auth::get_session))
+        // Plans routes
+        .route("/api/plans", get(api::plans::list_plans))
+        .route("/api/plans", post(api::plans::create_plan))
+        .route("/api/plans/{id}", get(api::plans::get_plan))
+        .route("/api/plans/{id}/approve", post(api::plans::approve_plan))
+        .route("/api/plans/{id}/reject", post(api::plans::reject_plan))
+        .route("/api/plans/{id}/execute", post(api::plans::execute_plan))
+        .route("/api/plans/{id}/export", get(api::plans::export_plan))
+        .route("/api/plans/mode", post(api::plans::toggle_plan_mode))
+        .route("/api/plans/mode/status", get(api::plans::get_plan_mode_status))
+        // VR routes
+        .route("/api/vr/status", get(api::vr::get_vr_status))
+        .route("/api/vr/session", post(api::vr::create_vr_session))
         .with_state(state)
+        .layer(axum::extract::Extension(auth_state))
+        .layer(axum::extract::Extension(plans_state))
+        .layer(axum::extract::Extension(vr_state))
         .layer(
             CorsLayer::new()
                 .allow_methods([Method::GET, Method::POST])
@@ -800,6 +851,8 @@ enum GuiError {
     UnknownAction(String),
     #[error("failed to run command: {0}")]
     CommandIo(#[from] std::io::Error),
+    #[error("database error: {0}")]
+    Database(String),
 }
 
 impl IntoResponse for GuiError {
@@ -1327,9 +1380,7 @@ async fn git4d_events_stream(
         .header(header::CACHE_CONTROL, "no-cache")
         .header(header::CONNECTION, "keep-alive")
         .body(body)
-        .map_err(|e| GuiError::Internal {
-            message: format!("Failed to create SSE response: {}", e),
-        })?;
+        .map_err(|e| GuiError::Database(format!("Failed to create SSE response: {}", e)))?;
     
     Ok(response)
 }
