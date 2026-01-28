@@ -50,6 +50,7 @@ import {
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { Card } from '@/components/atoms/Card';
 import { useCodex } from '@/lib/context/CodexContext';
+import type { MCPConnection } from '@/lib/types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -86,7 +87,7 @@ export default function MCPPage() {
   const { state } = useCodex();
   const [activeTab, setActiveTab] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingServer, setEditingServer] = useState<any>(null);
+  const [editingServer, setEditingServer] = useState<MCPConnection | null>(null);
   const [newServer, setNewServer] = useState({
     name: '',
     type: '',
@@ -132,7 +133,7 @@ export default function MCPPage() {
     setNewServer({ name: '', type: '', url: '', enabled: true });
   };
 
-  const handleEditServer = (server: any) => {
+  const handleEditServer = (server: MCPConnection) => {
     setEditingServer(server);
   };
 

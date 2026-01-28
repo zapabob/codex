@@ -47,6 +47,45 @@ jobs:
       with:
         category: "/language:javascript"
 
+  rust-security-audit:
+    name: Rust Security Audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: codex-rs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-registry-
+
+      - name: Run cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          rust-version: stable
+          manifest-path: ./Cargo.toml
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Run cargo-audit
+        run: cargo audit --deny warnings
+        continue-on-error: false
+
   dependency-check:
     name: Dependency Vulnerability Check
     runs-on: ubuntu-latest

@@ -15,12 +15,25 @@ import {
   NewConversationForm,
 } from '../types';
 import { AITool, AISession, DevelopmentTask } from '../types/ai-tools';
+import type {
+  AccountInfo,
+  AgentContext,
+  AgentResult,
+  Tool,
+  Session,
+  Task,
+  FuzzySearchResult,
+  WebSocketMessage,
+  CLIBridgeTool,
+  CLIBridgeSession,
+  CLIBridgeTask,
+} from '../types/api';
 
 class CodexAPIError extends Error {
   constructor(
     public code: number,
     message: string,
-    public data?: any
+    public data?: unknown
   ) {
     super(message);
     this.name = 'CodexAPIError';
@@ -32,7 +45,7 @@ export class CodexAPIClient {
   private wsConnection?: WebSocket;
   private requestId = 0;
   private pendingRequests = new Map<string | number, {
-    resolve: (value: any) => void;
+    resolve: (value: unknown) => void;
     reject: (error: Error) => void;
   }>();
 
@@ -43,7 +56,7 @@ export class CodexAPIClient {
   // HTTP Request helper
   private async httpRequest<T>(
     method: string,
-    params?: any,
+    params?: unknown,
     endpoint?: string
   ): Promise<T> {
     const id = ++this.requestId;
@@ -85,7 +98,7 @@ export class CodexAPIClient {
   }
 
   // WebSocket connection for real-time updates
-  connectWebSocket(onMessage: (message: any) => void): void {
+  connectWebSocket(onMessage: (message: WebSocketMessage) => void): void {
     try {
       this.wsConnection = new WebSocket(`ws://localhost:8787`);
 
@@ -136,8 +149,8 @@ export class CodexAPIClient {
     return this.httpRequest('account/logout');
   }
 
-  async getAccount(): Promise<any> {
-    return this.httpRequest('account/read');
+  async getAccount(): Promise<AccountInfo> {
+    return this.httpRequest<AccountInfo>('account/read');
   }
 
   // Conversations
@@ -253,7 +266,7 @@ export class CodexAPIClient {
     }
   }
 
-  async runAgent(agentId: string, context: any): Promise<any> {
+  async runAgent(agentId: string, context: AgentContext): Promise<AgentResult> {
     try {
       // Map agent context to action values
       const values: Record<string, string> = {};
@@ -401,7 +414,7 @@ export class CodexAPIClient {
 
     // Parse text output for security findings
     const lines = (stdout + '\n' + stderr).split('\n');
-    let currentFinding: any = null;
+    let currentFinding: SecurityScan | null = null;
 
     for (const line of lines) {
       const severityMatch = line.match(/(critical|high|medium|low)/i);
@@ -472,7 +485,7 @@ export class CodexAPIClient {
 
     // Parse text output for research sources
     const lines = stdout.split('\n');
-    let currentSource: any = null;
+    let currentSource: ResearchResult | null = null;
 
     for (const line of lines) {
       const urlMatch = line.match(/https?:\/\/[^\s]+/);
@@ -638,7 +651,7 @@ export class CodexAPIClient {
   }
 
   // Execute codex CLI command via bridge
-  async executeCodexCommand(args: string[]): Promise<any> {
+  async executeCodexCommand(args: string[]): Promise<unknown> {
     try {
       // This method can be used by components with access to DualBridge
       // For components without bridge access, we'll use HTTP API
@@ -669,7 +682,7 @@ export class CodexAPIClient {
       if (response.ok) {
         const payload = await response.json();
         const tools = Array.isArray(payload.tools) ? payload.tools : payload;
-        return tools.map((tool: any) => ({
+        return tools.map((tool: Tool) => ({
           id: tool.id,
           name: tool.name ?? tool.id,
           status: tool.status ?? 'available',
@@ -691,7 +704,7 @@ export class CodexAPIClient {
       const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());
       const parsed = JSON.parse(status.stdout || '{}');
       if (Array.isArray(parsed.tools)) {
-        return parsed.tools.map((tool: any) => ({
+        return parsed.tools.map((tool: CLIBridgeTool) => ({
           id: tool.id,
           name: tool.name ?? tool.id,
           status: tool.status ?? 'available',
@@ -718,7 +731,7 @@ export class CodexAPIClient {
       if (response.ok) {
         const payload = await response.json();
         const sessions = Array.isArray(payload.sessions) ? payload.sessions : payload;
-        return sessions.map((session: any) => ({
+        return sessions.map((session: Session) => ({
           id: session.id,
           toolId: session.toolId ?? session.tool_id,
           taskId: session.taskId ?? session.task_id,
@@ -738,7 +751,7 @@ export class CodexAPIClient {
       const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());
       const parsed = JSON.parse(status.stdout || '{}');
       if (Array.isArray(parsed.sessions)) {
-        return parsed.sessions.map((session: any) => ({
+        return parsed.sessions.map((session: CLIBridgeSession) => ({
           id: session.id,
           toolId: session.toolId ?? session.tool_id,
           taskId: session.taskId ?? session.task_id,
@@ -763,7 +776,7 @@ export class CodexAPIClient {
       if (response.ok) {
         const payload = await response.json();
         const tasks = Array.isArray(payload.tasks) ? payload.tasks : payload;
-        return tasks.map((task: any) => ({
+        return tasks.map((task: Task) => ({
           id: task.id,
           title: task.title ?? task.id,
           description: task.description ?? '',
@@ -785,7 +798,7 @@ export class CodexAPIClient {
       const status = await this.executeCommand(['codex', 'status', '--json'], process.cwd());
       const parsed = JSON.parse(status.stdout || '{}');
       if (Array.isArray(parsed.tasks)) {
-        return parsed.tasks.map((task: any) => ({
+        return parsed.tasks.map((task: CLIBridgeTask) => ({
           id: task.id,
           title: task.title ?? task.id,
           description: task.description ?? '',
@@ -814,8 +827,8 @@ export class CodexAPIClient {
     });
   }
 
-  async fuzzyFileSearch(query: string, roots: string[]): Promise<any[]> {
-    return this.httpRequest('fuzzyFileSearch', { query, roots });
+  async fuzzyFileSearch(query: string, roots: string[]): Promise<FuzzySearchResult[]> {
+    return this.httpRequest<FuzzySearchResult[]>('fuzzyFileSearch', { query, roots });
   }
 
   // Utility methods

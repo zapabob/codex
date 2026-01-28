@@ -77,7 +77,7 @@ export function VirtualTerminal() {
 
       // Load available commands
       await loadAvailableCommands(result.sessionId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'ターミナルの初期化に失敗しました');
     }
   };
@@ -155,7 +155,7 @@ export function VirtualTerminal() {
           timestamp: new Date(),
         }]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'コマンド実行に失敗しました');
       setOutput(prev => [...prev, {
         type: 'error',

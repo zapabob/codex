@@ -8,6 +8,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
+import type { Git4DCommitData } from '../../lib/types/three';
 
 /**
  * Git4DVisualization Component Props
@@ -161,7 +162,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     };
   }, [commits, isPlaying, timeScale, isVD, vrMode, arMode, preset]);
 
-  const createCommitVisualization = (scene: THREE.Scene, commits: any[]) => {
+  const createCommitVisualization = (scene: THREE.Scene, commits: Git4DCommitData[]) => {
     commits.forEach((commit, index) => {
       // Create commit node
       const geometry = new THREE.SphereGeometry(0.1, 16, 16);

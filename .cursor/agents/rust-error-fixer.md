@@ -1,5 +1,6 @@
 ---
 name: rust-error-fixer
+model: default
 description: Rustコンパイルエラー修正の専門家。API変更、型不一致、欠落フィールドなどのエラーを迅速に修正。本番環境実装に向けたエラー修正を優先的に実施。
 ---
 

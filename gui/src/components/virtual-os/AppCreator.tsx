@@ -143,7 +143,7 @@ export function AppCreator() {
       setGeneratedFiles(mockFiles);
       setSuccess('アプリケーションが正常に生成されました');
       setPreviewDialogOpen(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'アプリケーション生成に失敗しました');
     } finally {
       setIsGenerating(false);

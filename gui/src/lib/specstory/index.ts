@@ -7,12 +7,19 @@ export interface SpecStoryConfig {
   saveInterval: number; // milliseconds
 }
 
+// SpecStoryデータ型
+export type SpecStoryData = 
+  | { type: 'conversation'; conversationId: string; [key: string]: unknown }
+  | { type: 'message'; messageId: string; content: string; [key: string]: unknown }
+  | { type: 'command'; command: string; args: string[]; result: unknown; [key: string]: unknown }
+  | Record<string, unknown>;
+
 export interface SpecStoryEntry {
   id: string;
   type: 'conversation' | 'message' | 'command';
   timestamp: string;
-  data: any;
-  metadata?: Record<string, any>;
+  data: SpecStoryData;
+  metadata?: Record<string, unknown>;
 }
 
 class SpecStoryManager {
@@ -120,7 +127,7 @@ class SpecStoryManager {
     }
   }
 
-  async saveCommand(command: string, args: string[], result: any): Promise<void> {
+  async saveCommand(command: string, args: string[], result: unknown): Promise<void> {
     const entry: SpecStoryEntry = {
       id: `cmd_${Date.now()}`,
       type: 'command',

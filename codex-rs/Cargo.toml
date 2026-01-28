@@ -297,6 +297,14 @@ unwrap_used = "deny"
 [workspace.metadata.cargo-shear]
 ignored = ["icu_provider", "openssl-sys", "codex-utils-readiness"]
 
+[profile.dev]
+# Enable incremental compilation for faster rebuilds
+incremental = true
+# Use more codegen units for faster compilation (trade-off: less optimization)
+codegen-units = 16
+# Keep debug info for better error messages
+debug = true
+
 [profile.release]
 lto = "fat"
 # Because we bundle some of these executables with the TypeScript CLI, we

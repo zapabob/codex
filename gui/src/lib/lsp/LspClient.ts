@@ -3,6 +3,33 @@
  * Provides real-time diagnostics, completion, and symbol search
  */
 
+// LSPメッセージ型
+export interface LspRequestMessage {
+  jsonrpc: '2.0';
+  id: number | string;
+  method: string;
+  params?: unknown;
+}
+
+export interface LspResponseMessage {
+  jsonrpc: '2.0';
+  id: number | string;
+  result?: unknown;
+  error?: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+}
+
+export interface LspNotificationMessage {
+  jsonrpc: '2.0';
+  method: string;
+  params?: unknown;
+}
+
+export type LspMessage = LspRequestMessage | LspResponseMessage | LspNotificationMessage;
+
 export interface LspDiagnostic {
   range: {
     start: { line: number; character: number };
@@ -51,7 +78,7 @@ export class LspClient {
   private ws: WebSocket | null = null;
   private requestId = 1;
   private pendingRequests = new Map<number, {
-    resolve: (value: any) => void;
+    resolve: (value: unknown) => void;
     reject: (error: Error) => void;
   }>();
   private diagnosticsCallbacks: Set<(diagnostics: Map<string, LspDiagnostic[]>) => void> = new Set();
@@ -104,7 +131,7 @@ export class LspClient {
   /**
    * Handle incoming messages from the LSP server
    */
-  private handleMessage(message: any): void {
+  private handleMessage(message: LspMessage): void {
     // Handle responses to requests
     if (message.id && this.pendingRequests.has(message.id)) {
       const { resolve, reject } = this.pendingRequests.get(message.id)!;
@@ -169,7 +196,7 @@ export class LspClient {
   /**
    * Send a request to the LSP server
    */
-  private async sendRequest(method: string, params: any): Promise<any> {
+  private async sendRequest<T = unknown>(method: string, params?: unknown): Promise<T> {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error('LSP client not connected');
     }

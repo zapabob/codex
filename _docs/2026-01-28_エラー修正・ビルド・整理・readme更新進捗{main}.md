@@ -51,12 +51,19 @@
 - **確認結果**: `cargo check`で未使用警告0件を確認
 - **完了日時**: 2026-01-28
 
-### ⚠️ Phase 4: 差分高速ビルド実行 - **進行中**
+### ✅ Phase 4: 差分高速ビルド実行 - **完了**
 
-- **ステータス**: ⏳ **ビルドエラー修正中**
-- **問題**: `codex-supervisor`のコンパイルエラー（7箇所）
-- **対応**: エラーを確認して修正中
-- **開始日時**: 2026-01-28
+- **ステータス**: ✅ **完了**
+- **修正内容**: 
+  - `codex-supervisor`のコンパイルエラー7箇所を修正
+    - `ModelsManager::new`に`codex_home`引数を追加
+    - `UserInput::Text`に`text_elements`フィールドを追加
+    - `Op::UserInput`に`final_output_json_schema`フィールドを追加
+    - `EventMsg::TaskComplete`を`EventMsg::TurnComplete`に変更
+    - `Config::load_from_disk_or_default`を`Config::load_default_with_cli_overrides`に変更
+    - `Codex::spawn`の代わりに`ThreadManager::start_thread`を使用
+- **確認結果**: `cargo check`でエラー0件を確認
+- **完了日時**: 2026-01-28
 
 ### ⏳ Phase 5-8: 未着手
 
@@ -291,8 +298,9 @@ si.hStdInput = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
   - Phase 2.3 (process.rs): ✅ 100% (完了)
   - Phase 2.4 (その他): ✅ 100% (完了)
 - **Phase 3**: ✅ 100% (完了)
-- **Phase 4-8**: ⏳ 0% (未着手)
-- **全体進捗**: **約37.5%** (Phase 1-3完了)
+- **Phase 4**: ✅ 100% (完了)
+- **Phase 5-8**: ⏳ 0% (未着手)
+- **全体進捗**: **約50%** (Phase 1-4完了)
 
 ## ⏱️ 見積もり時間
 
@@ -388,5 +396,5 @@ Phase 4: 差分高速ビルド (1-2時間)
 
 **最終更新日時**: 2026-01-28  
 **Worktree**: main  
-**ステータス**: Phase 1完了、Phase 2完了（E0133警告0件確認）  
-**次回アクション**: Phase 3 (未使用変数警告修正) に進む
+**ステータス**: Phase 1-4完了（ビルドエラー修正、unsafe警告修正、未使用変数修正、codex-supervisor修正完了）  
+**次回アクション**: Phase 5 (テスト・リンター・フォーマット) に進む

@@ -114,12 +114,14 @@ export class CyberpunkShaderMaterial extends THREE.ShaderMaterial {
  * 
  * ポストプロセスエフェクト（グリッチ、ブルーム、カラーパルス）
  */
+import type { EffectComposer, RenderPass, BloomPass, GlitchPass, ColorPass } from '../../lib/types/three';
+
 export class CyberpunkPostProcess {
-  private composer: any; // THREE.EffectComposer
-  private renderPass: any;
-  private bloomPass: any;
-  private glitchPass: any;
-  private colorPass: any;
+  private composer: EffectComposer | null = null;
+  private renderPass: RenderPass | null = null;
+  private bloomPass: BloomPass | null = null;
+  private glitchPass: GlitchPass | null = null;
+  private colorPass: ColorPass | null = null;
 
   constructor(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) {
     // Note: Requires THREE.EffectComposer and passes

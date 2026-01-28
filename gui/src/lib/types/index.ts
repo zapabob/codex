@@ -138,13 +138,13 @@ export interface NotificationItem {
 }
 
 // API Request/Response Types
-export interface APIRequest<T = any> {
+export interface APIRequest<T = unknown> {
   method: string;
   params?: T;
   id?: string | number;
 }
 
-export interface APIResponse<T = any> {
+export interface APIResponse<T = unknown> {
   id?: string | number;
   result?: T;
   error?: APIError;
@@ -153,7 +153,7 @@ export interface APIResponse<T = any> {
 export interface APIError {
   code: number;
   message: string;
-  data?: any;
+  data?: unknown;
 }
 
 // WebSocket message data types

@@ -62,7 +62,22 @@ export const GPUStatus: React.FC<GPUStatusProps> = ({
 
       const result = await apiClient.getGPUStatus();
       
-      const stats: GPUStats[] = (result.gpus || []).map((gpu: any) => ({
+      interface GPURawData {
+        name?: string;
+        vendor?: string;
+        usagePercent?: number;
+        memoryUsed?: number;
+        memoryTotal?: number;
+        memoryUsagePercent?: number;
+        temperature?: number;
+        powerUsage?: number;
+        clockSpeed?: number;
+        computeCapability?: string;
+        cudaVersion?: string;
+        directMLVersion?: string;
+      }
+      
+      const stats: GPUStats[] = (result.gpus || []).map((gpu: GPURawData) => ({
         name: gpu.name || 'Unknown GPU',
         vendor: (gpu.vendor || 'unknown').toLowerCase() as GPUStats['vendor'],
         usagePercent: gpu.usagePercent || 0,

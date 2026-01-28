@@ -56,7 +56,7 @@ export function TraySettings() {
       } else {
         setError('自動起動設定の更新に失敗しました');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || '自動起動設定の更新に失敗しました');
     } finally {
       setLoading(false);
@@ -85,7 +85,7 @@ export function TraySettings() {
       } else {
         setError('通知設定の更新に失敗しました');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || '通知設定の更新に失敗しました');
     } finally {
       setLoading(false);
@@ -100,7 +100,7 @@ export function TraySettings() {
         type: 'info',
       });
       setSuccess('テスト通知を送信しました');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'テスト通知の送信に失敗しました');
     }
   };

@@ -150,7 +150,22 @@ export function SecurityReports({ scanResults, alerts, metrics }: SecurityReport
     return recommendations
   }
 
-  const formatReportAsMarkdown = (data: any) => {
+  interface SecurityReportData {
+    reportPeriod: {
+      start: Date;
+      end: Date;
+    };
+    summary: {
+      totalScans: number;
+      totalFilesScanned: number;
+      totalThreatsFound: number;
+      avgScanTime: number;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  }
+
+  const formatReportAsMarkdown = (data: SecurityReportData) => {
     return `# Security Assessment Report
 
 **Report Period:** ${data.reportPeriod.start.toLocaleDateString()} - ${data.reportPeriod.end.toLocaleDateString()}

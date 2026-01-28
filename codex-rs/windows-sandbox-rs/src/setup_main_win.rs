@@ -67,7 +67,6 @@ use sandbox_users::provision_sandbox_users;
 use sandbox_users::resolve_sandbox_users_group_sid;
 use sandbox_users::resolve_sid;
 use sandbox_users::sid_bytes_to_psid;
-use sandbox_users::SetupMarker;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct Payload {
@@ -353,7 +352,7 @@ fn write_secrets(
     std::fs::create_dir_all(&sandbox_dir)?;
     let offline_blob = dpapi_protect(offline_pwd.as_bytes())?;
     let online_blob = dpapi_protect(online_pwd.as_bytes())?;
-    let users = SandboxUsersFile {
+    let _users = SandboxUsersFile {
         version: SETUP_VERSION,
         offline: SandboxUserRecord {
             username: offline_user.to_string(),

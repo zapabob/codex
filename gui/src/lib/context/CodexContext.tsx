@@ -14,6 +14,7 @@ import {
   User,
   WebSocketMessage,
 } from '../types';
+import type { AgentContext } from '../types/api';
 import { apiClient } from '../api/client';
 import { getSpecStory } from '../specstory';
 import { DualBridge, BridgeConfig } from '../bridge/dual-bridge';
@@ -339,7 +340,7 @@ interface CodexContextType {
   sendMessage: (content: string) => Promise<void>;
   loadConversations: () => Promise<void>;
   selectConversation: (conversation: Conversation) => Promise<void>;
-  runAgent: (agentId: string, context: any) => Promise<void>;
+  runAgent: (agentId: string, context: AgentContext) => Promise<void>;
   runSecurityScan: (type: string, target: string) => Promise<void>;
   runResearch: (query: string) => Promise<void>;
   runWebResearch: (query: string) => Promise<void>;
@@ -615,7 +616,7 @@ export function CodexProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_MESSAGES', payload: [] });
   };
 
-  const runAgent = async (agentId: string, context: any) => {
+  const runAgent = async (agentId: string, context: AgentContext) => {
     try {
       const result = await apiClient.runAgent(agentId, context);
 

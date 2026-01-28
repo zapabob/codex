@@ -10,6 +10,8 @@ import * as THREE from 'three';
 import { WebXRManager, VRExperience, ARAnchor, HandTrackingData } from '../../lib/xr/webxr-manager';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 import type { NavigatorXR } from '../../lib/types';
+import type { XRErrorLike } from '../../lib/types/webxr';
+import type { Git4DCommitData } from '../../lib/types/three';
 
 /**
  * Git4D WebXR Framework Component
@@ -81,9 +83,14 @@ export const Git4DWebXRFramework: React.FC = () => {
       setError(null);
     };
 
-    const handleXRError = (error: any) => {
+    const handleXRError = (error: XRErrorLike) => {
       console.error('XR error:', error);
-      setError(`XR Error: ${error.message || error}`);
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : error instanceof Error 
+        ? error.message 
+        : (error as { message?: string })?.message || String(error);
+      setError(`XR Error: ${errorMessage}`);
     };
 
     const handleHandTracking = (handData: HandTrackingData) => {
@@ -100,7 +107,7 @@ export const Git4DWebXRFramework: React.FC = () => {
       // Store anchor for Git commit placement
     };
 
-    const handleCommitSelected = (commitData: any) => {
+    const handleCommitSelected = (commitData: Git4DCommitData) => {
       console.log('Commit selected:', commitData);
       // Handle commit selection in VR/AR
     };
