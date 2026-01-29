@@ -1,27 +1,27 @@
 #![cfg(target_os = "windows")]
 
 use anyhow::Result;
-use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
-use rand::rngs::SmallRng;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use rand::RngCore;
 use rand::SeedableRng;
+use rand::rngs::SmallRng;
 use serde::Serialize;
-use std::ffi::c_void;
 use std::ffi::OsStr;
+use std::ffi::c_void;
 use std::fs::File;
 use std::path::Path;
 use std::path::PathBuf;
+use windows_sys::Win32::Foundation::ERROR_INSUFFICIENT_BUFFER;
 use windows_sys::Win32::Foundation::GetLastError;
 use windows_sys::Win32::Foundation::LocalFree;
-use windows_sys::Win32::Foundation::ERROR_INSUFFICIENT_BUFFER;
+use windows_sys::Win32::NetworkManagement::NetManagement::LOCALGROUP_INFO_1;
+use windows_sys::Win32::NetworkManagement::NetManagement::LOCALGROUP_MEMBERS_INFO_3;
 use windows_sys::Win32::NetworkManagement::NetManagement::NERR_Success;
 use windows_sys::Win32::NetworkManagement::NetManagement::NetLocalGroupAdd;
 use windows_sys::Win32::NetworkManagement::NetManagement::NetLocalGroupAddMembers;
 use windows_sys::Win32::NetworkManagement::NetManagement::NetUserAdd;
 use windows_sys::Win32::NetworkManagement::NetManagement::NetUserSetInfo;
-use windows_sys::Win32::NetworkManagement::NetManagement::LOCALGROUP_INFO_1;
-use windows_sys::Win32::NetworkManagement::NetManagement::LOCALGROUP_MEMBERS_INFO_3;
 use windows_sys::Win32::NetworkManagement::NetManagement::UF_DONT_EXPIRE_PASSWD;
 use windows_sys::Win32::NetworkManagement::NetManagement::UF_SCRIPT;
 use windows_sys::Win32::NetworkManagement::NetManagement::USER_INFO_1;
@@ -34,14 +34,27 @@ use windows_sys::Win32::Security::LookupAccountNameW;
 use windows_sys::Win32::Security::LookupAccountSidW;
 use windows_sys::Win32::Security::SID_NAME_USE;
 
+use codex_windows_sandbox::SETUP_VERSION;
+use codex_windows_sandbox::SetupErrorCode;
+use codex_windows_sandbox::SetupFailure;
 use codex_windows_sandbox::dpapi_protect;
 use codex_windows_sandbox::sandbox_dir;
 use codex_windows_sandbox::sandbox_secrets_dir;
 use codex_windows_sandbox::string_from_sid_bytes;
 use codex_windows_sandbox::to_wide;
-use codex_windows_sandbox::SetupErrorCode;
-use codex_windows_sandbox::SetupFailure;
-use codex_windows_sandbox::SETUP_VERSION;
+
+use std::io::Write;
+
+fn log_line(log: &mut File, msg: &str) -> Result<()> {
+    let ts = chrono::Utc::now().to_rfc3339();
+    writeln!(log, "[{ts}] {msg}").map_err(|err| {
+        anyhow::Error::new(SetupFailure::new(
+            SetupErrorCode::HelperLogFailed,
+            format!("failed to write setup log line: {err}"),
+        ))
+    })?;
+    Ok(())
+}
 
 pub const SANDBOX_USERS_GROUP: &str = "CodexSandboxUsers";
 const SANDBOX_USERS_GROUP_COMMENT: &str = "Codex sandbox internal group (managed)";
@@ -66,7 +79,7 @@ pub fn provision_sandbox_users(
     log: &mut File,
 ) -> Result<()> {
     ensure_sandbox_users_group(log)?;
-    super::log_line(
+    log_line(
         log,
         &format!("ensuring sandbox users offline={offline_username} online={online_username}"),
     )?;
@@ -123,7 +136,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 std::ptr::null_mut(),
             );
             if upd != NERR_Success {
-                super::log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
+                log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
                 return Err(anyhow::Error::new(SetupFailure::new(
                     SetupErrorCode::HelperUserCreateOrUpdateFailed,
                     format!("failed to create/update user {name}, code {status}/{upd}"),
@@ -145,7 +158,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 1,
             );
         } else {
-            super::log_line(
+            log_line(
                 log,
                 "LookupAccountSidW failed for Users SID; skipping Users group membership",
             )?;
@@ -173,7 +186,7 @@ pub fn ensure_local_group(name: &str, comment: &str, log: &mut File) -> Result<(
             &mut parm_err as *mut _,
         );
         if status != NERR_Success && status != ERROR_ALIAS_EXISTS && status != NERR_GROUP_EXISTS {
-            super::log_line(
+            log_line(
                 log,
                 &format!("NetLocalGroupAdd failed for {name} code {status} parm_err={parm_err}"),
             )?;
@@ -370,20 +383,20 @@ fn random_password() -> String {
 }
 
 #[derive(Serialize)]
-struct SandboxUserRecord {
+pub struct SandboxUserRecord {
     username: String,
     password: String,
 }
 
 #[derive(Serialize)]
-struct SandboxUsersFile {
+pub struct SandboxUsersFile {
     version: u32,
     offline: SandboxUserRecord,
     online: SandboxUserRecord,
 }
 
 #[derive(Serialize)]
-struct SetupMarker {
+pub struct SetupMarker {
     version: u32,
     offline_username: String,
     online_username: String,

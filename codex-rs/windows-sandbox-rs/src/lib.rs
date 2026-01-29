@@ -7,19 +7,7 @@ macro_rules! windows_modules {
 }
 
 windows_modules!(
-    acl,
-    allow,
-    audit,
-    cap,
-    dpapi,
-    env,
-    hide_users,
-    identity,
-    logging,
-    policy,
-    process,
-    sandbox_users,
-    token,
+    acl, allow, audit, cap, dpapi, env, hide_users, identity, logging, policy, process, token,
     winutil
 );
 
@@ -64,21 +52,17 @@ pub use identity::require_logon_sandbox_creds;
 #[cfg(target_os = "windows")]
 pub use identity::sandbox_setup_is_complete;
 #[cfg(target_os = "windows")]
-pub use logging::log_note;
-#[cfg(target_os = "windows")]
 pub use logging::LOG_FILE_NAME;
 #[cfg(target_os = "windows")]
-pub use policy::parse_policy;
+pub use logging::log_note;
 #[cfg(target_os = "windows")]
 pub use policy::SandboxPolicy;
 #[cfg(target_os = "windows")]
+pub use policy::parse_policy;
+#[cfg(target_os = "windows")]
 pub use process::create_process_as_user;
 #[cfg(target_os = "windows")]
-pub use sandbox_users::SandboxUserRecord;
-#[cfg(target_os = "windows")]
-pub use sandbox_users::SandboxUsersFile;
-#[cfg(target_os = "windows")]
-pub use sandbox_users::SetupMarker;
+pub use setup::SETUP_VERSION;
 #[cfg(target_os = "windows")]
 pub use setup::run_elevated_setup;
 #[cfg(target_os = "windows")]
@@ -88,7 +72,11 @@ pub use setup::sandbox_dir;
 #[cfg(target_os = "windows")]
 pub use setup::sandbox_secrets_dir;
 #[cfg(target_os = "windows")]
-pub use setup::SETUP_VERSION;
+pub use setup_error::SetupErrorCode;
+#[cfg(target_os = "windows")]
+pub use setup_error::SetupErrorReport;
+#[cfg(target_os = "windows")]
+pub use setup_error::SetupFailure;
 #[cfg(target_os = "windows")]
 pub use setup_error::extract_failure as extract_setup_failure;
 #[cfg(target_os = "windows")]
@@ -98,12 +86,6 @@ pub use setup_error::setup_error_path;
 #[cfg(target_os = "windows")]
 pub use setup_error::write_setup_error_report;
 #[cfg(target_os = "windows")]
-pub use setup_error::SetupErrorCode;
-#[cfg(target_os = "windows")]
-pub use setup_error::SetupErrorReport;
-#[cfg(target_os = "windows")]
-pub use setup_error::SetupFailure;
-#[cfg(target_os = "windows")]
 pub use token::convert_string_sid_to_sid;
 #[cfg(target_os = "windows")]
 pub use token::create_readonly_token_with_cap_from;
@@ -112,20 +94,20 @@ pub use token::create_workspace_write_token_with_cap_from;
 #[cfg(target_os = "windows")]
 pub use token::get_current_token_for_restriction;
 #[cfg(target_os = "windows")]
-pub use windows_impl::run_windows_sandbox_capture;
-#[cfg(target_os = "windows")]
 pub use windows_impl::CaptureResult;
+#[cfg(target_os = "windows")]
+pub use windows_impl::run_windows_sandbox_capture;
 #[cfg(target_os = "windows")]
 pub use winutil::string_from_sid_bytes;
 #[cfg(target_os = "windows")]
 pub use winutil::to_wide;
 
 #[cfg(not(target_os = "windows"))]
+pub use stub::CaptureResult;
+#[cfg(not(target_os = "windows"))]
 pub use stub::apply_world_writable_scan_and_denies;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_capture;
-#[cfg(not(target_os = "windows"))]
-pub use stub::CaptureResult;
 
 #[cfg(target_os = "windows")]
 mod windows_impl {
@@ -133,8 +115,8 @@ mod windows_impl {
     use super::acl::add_deny_write_ace;
     use super::acl::allow_null_device;
     use super::acl::revoke_ace;
-    use super::allow::compute_allow_paths;
     use super::allow::AllowDenyPaths;
+    use super::allow::compute_allow_paths;
     use super::cap::load_or_create_cap_sids;
     use super::env::apply_no_network_to_env;
     use super::env::ensure_non_interactive_pager;
@@ -143,8 +125,8 @@ mod windows_impl {
     use super::logging::log_failure;
     use super::logging::log_start;
     use super::logging::log_success;
-    use super::policy::parse_policy;
     use super::policy::SandboxPolicy;
+    use super::policy::parse_policy;
     use super::process::make_env_block;
     use super::token::convert_string_sid_to_sid;
     use super::winutil::format_last_error;
@@ -155,18 +137,18 @@ mod windows_impl {
     use std::ptr;
     use windows_sys::Win32::Foundation::CloseHandle;
     use windows_sys::Win32::Foundation::GetLastError;
-    use windows_sys::Win32::Foundation::SetHandleInformation;
     use windows_sys::Win32::Foundation::HANDLE;
     use windows_sys::Win32::Foundation::HANDLE_FLAG_INHERIT;
+    use windows_sys::Win32::Foundation::SetHandleInformation;
     use windows_sys::Win32::System::Pipes::CreatePipe;
+    use windows_sys::Win32::System::Threading::CREATE_UNICODE_ENVIRONMENT;
     use windows_sys::Win32::System::Threading::CreateProcessAsUserW;
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
-    use windows_sys::Win32::System::Threading::WaitForSingleObject;
-    use windows_sys::Win32::System::Threading::CREATE_UNICODE_ENVIRONMENT;
     use windows_sys::Win32::System::Threading::INFINITE;
     use windows_sys::Win32::System::Threading::PROCESS_INFORMATION;
     use windows_sys::Win32::System::Threading::STARTF_USESTDHANDLES;
     use windows_sys::Win32::System::Threading::STARTUPINFOW;
+    use windows_sys::Win32::System::Threading::WaitForSingleObject;
 
     type PipeHandles = ((HANDLE, HANDLE), (HANDLE, HANDLE), (HANDLE, HANDLE));
 
@@ -187,19 +169,25 @@ mod windows_impl {
         let mut err_r: HANDLE = 0;
         let mut err_w: HANDLE = 0;
         if unsafe { CreatePipe(&mut in_r, &mut in_w, ptr::null_mut(), 0) } == 0 {
-            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
+            return Err(std::io::Error::from_raw_os_error(
+                unsafe { GetLastError() } as i32
+            ));
         }
         if unsafe { CreatePipe(&mut out_r, &mut out_w, ptr::null_mut(), 0) } == 0 {
             unsafe { CloseHandle(in_r) };
             unsafe { CloseHandle(in_w) };
-            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
+            return Err(std::io::Error::from_raw_os_error(
+                unsafe { GetLastError() } as i32
+            ));
         }
         if unsafe { CreatePipe(&mut err_r, &mut err_w, ptr::null_mut(), 0) } == 0 {
             unsafe { CloseHandle(in_r) };
             unsafe { CloseHandle(in_w) };
             unsafe { CloseHandle(out_r) };
             unsafe { CloseHandle(out_w) };
-            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
+            return Err(std::io::Error::from_raw_os_error(
+                unsafe { GetLastError() } as i32
+            ));
         }
         if unsafe { SetHandleInformation(in_r, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
             unsafe { CloseHandle(in_r) };
@@ -208,7 +196,9 @@ mod windows_impl {
             unsafe { CloseHandle(out_w) };
             unsafe { CloseHandle(err_r) };
             unsafe { CloseHandle(err_w) };
-            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
+            return Err(std::io::Error::from_raw_os_error(
+                unsafe { GetLastError() } as i32
+            ));
         }
         if unsafe { SetHandleInformation(out_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
             unsafe { CloseHandle(in_r) };
@@ -217,7 +207,9 @@ mod windows_impl {
             unsafe { CloseHandle(out_w) };
             unsafe { CloseHandle(err_r) };
             unsafe { CloseHandle(err_w) };
-            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
+            return Err(std::io::Error::from_raw_os_error(
+                unsafe { GetLastError() } as i32
+            ));
         }
         if unsafe { SetHandleInformation(err_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
             unsafe { CloseHandle(in_r) };
@@ -226,7 +218,9 @@ mod windows_impl {
             unsafe { CloseHandle(out_w) };
             unsafe { CloseHandle(err_r) };
             unsafe { CloseHandle(err_w) };
-            return Err(std::io::Error::from_raw_os_error(unsafe { GetLastError() } as i32));
+            return Err(std::io::Error::from_raw_os_error(
+                unsafe { GetLastError() } as i32
+            ));
         }
         Ok(((in_r, in_w), (out_r, out_w), (err_r, err_w)))
     }
@@ -273,15 +267,17 @@ mod windows_impl {
         let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
             match &policy {
                 SandboxPolicy::ReadOnly => {
-                    let psid = unsafe { convert_string_sid_to_sid(&caps.readonly) }.ok_or_else(|| {
-                        anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
-                    })?;
+                    let psid =
+                        unsafe { convert_string_sid_to_sid(&caps.readonly) }.ok_or_else(|| {
+                            anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
+                        })?;
                     super::token::create_readonly_token_with_cap(psid)?
                 }
                 SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid = unsafe { convert_string_sid_to_sid(&caps.workspace) }.ok_or_else(|| {
-                        anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
-                    })?;
+                    let psid =
+                        unsafe { convert_string_sid_to_sid(&caps.workspace) }.ok_or_else(|| {
+                            anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
+                        })?;
                     super::token::create_workspace_write_token_with_cap(psid)?
                 }
                 SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. } => {
@@ -569,8 +565,8 @@ mod windows_impl {
 
 #[cfg(not(target_os = "windows"))]
 mod stub {
-    use anyhow::bail;
     use anyhow::Result;
+    use anyhow::bail;
     use codex_protocol::protocol::SandboxPolicy;
     use std::collections::HashMap;
     use std::path::Path;
