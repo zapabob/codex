@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- generic [ref=e1]:
+- generic [active] [ref=e1]:
   - alert [ref=e2]
   - generic [ref=e3]:
     - generic [ref=e5]:
@@ -15,7 +15,7 @@
               - img [ref=e15]
               - generic [ref=e19]: ダッシュボード
               - generic [ref=e22]: Ctrl+D
-          - listitem [ref=e24]:
+          - listitem "コード実行 コードを実行して結果を確認 Ctrl+C" [ref=e24]:
             - button "コード実行 Ctrl+C" [ref=e25] [cursor=pointer]:
               - img [ref=e27]
               - generic [ref=e31]: コード実行
@@ -25,8 +25,8 @@
               - img [ref=e39]
               - generic [ref=e45]: エージェント
               - generic [ref=e48]: Ctrl+A
-          - listitem "タスク管理 タスクの作成と管理 Ctrl+T" [ref=e50]:
-            - button "タスク管理 Ctrl+T" [active] [ref=e51] [cursor=pointer]:
+          - listitem [ref=e50]:
+            - button "タスク管理 Ctrl+T" [ref=e51] [cursor=pointer]:
               - img [ref=e53]
               - generic [ref=e57]: タスク管理
               - generic [ref=e60]: Ctrl+T
@@ -175,9 +175,9 @@
                   - paragraph [ref=e366]: ディスク使用率
                   - paragraph [ref=e367]: 23%
                 - progressbar [ref=e368]
-  - tooltip "タスク管理 タスクの作成と管理 Ctrl+T" [ref=e370]:
+  - tooltip "コード実行 コードを実行して結果を確認 Ctrl+C" [ref=e370]:
     - generic [ref=e372]:
-      - paragraph [ref=e373]: タスク管理
-      - generic [ref=e374]: タスクの作成と管理
-      - generic [ref=e376]: Ctrl+T
+      - paragraph [ref=e373]: コード実行
+      - generic [ref=e374]: コードを実行して結果を確認
+      - generic [ref=e376]: Ctrl+C
 ```

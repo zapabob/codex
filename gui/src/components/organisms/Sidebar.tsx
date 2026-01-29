@@ -44,10 +44,13 @@ export interface NavigationItem {
 
 export interface SidebarProps {
   open: boolean;
+  collapsed?: boolean;
   onClose: () => void;
   onNavigate: (item: NavigationItem) => void;
+  onToggleCollapse?: () => void;
   activeItem?: string;
   width?: number;
+  collapsedWidth?: number;
   sx?: SxProps<Theme>;
 }
 
@@ -59,6 +62,7 @@ const navigationItems: NavigationItem[] = [
     shortcut: 'Ctrl+D',
     description: 'システム概要とメトリクス'
   },
+  // ... other items remain the same
   { 
     id: 'code', 
     label: 'コード実行', 
@@ -162,14 +166,22 @@ const settingsItems: NavigationItem[] = [
   },
 ];
 
+import { IconButton } from '@mui/material';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 export const Sidebar: React.FC<SidebarProps> = ({
   open,
+  collapsed = false,
   onClose,
   onNavigate,
+  onToggleCollapse,
   activeItem,
   width = 280,
+  collapsedWidth = 72,
   sx,
 }) => {
+  const currentWidth = collapsed ? collapsedWidth : width;
+
   const handleItemClick = (item: NavigationItem) => {
     onNavigate(item);
     // Mobileではクリック後に閉じる
@@ -181,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const sidebarContent = (
     <Box
       sx={{
-        width,
+        width: currentWidth,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -189,32 +201,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
           theme.palette.mode === 'dark'
             ? 'linear-gradient(180deg, #0f1419 0%, #1d1b20 100%)'
             : 'linear-gradient(180deg, #fdfbff 0%, #e7e0ec 100%)',
+        transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflowX: 'hidden', // Hide overflow during transition
         ...sx,
       }}
     >
       {/* Header */}
-      <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'outline.variant' }}>
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 700,
-              background: 'linear-gradient(45deg, #0061a4, #565f71)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Codex Control
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            AI Assistant Platform
-          </Typography>
-        </motion.div>
+      <Box sx={{ 
+        p: collapsed ? 2 : 3, 
+        borderBottom: '1px solid', 
+        borderColor: 'outline.variant',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: collapsed ? 'center' : 'space-between',
+        height: 64, // Fixed height for header alignment
+      }}>
+        <AnimatePresence mode="wait">
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    background: 'linear-gradient(45deg, #0061a4, #565f71)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    lineHeight: 1.2,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Codex Control
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0, whiteSpace: 'nowrap' }}>
+                  AI Assistant Platform
+                </Typography>
+              </Box>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {onToggleCollapse && !collapsed && (
+           <IconButton onClick={onToggleCollapse} size="small" sx={{ ml: 1 }}>
+             <ChevronLeft size={20} />
+           </IconButton>
+        )}
       </Box>
 
       {/* Navigation */}
@@ -225,15 +262,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const isActive = activeItem === item.id;
 
             return (
-              <motion.div
+              <Tooltip
                 key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ x: 4 }}
-              >
-                <Tooltip
-                  title={
+                title={
+                  collapsed ? (
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
                         {item.label}
@@ -244,77 +276,79 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         </Typography>
                       )}
                       {item.shortcut && (
-                        <Chip
-                          label={item.shortcut}
-                          size="small"
-                          sx={{
-                            mt: 0.5,
-                            height: 18,
-                            fontSize: '0.65rem',
-                            bgcolor: 'rgba(255, 255, 255, 0.15)',
-                          }}
-                        />
+                         <Chip label={item.shortcut} size="small" sx={{ mt:0.5, height:18, fontSize:'0.65rem', bgcolor:'rgba(255,255,255,0.15)' }} />
                       )}
                     </Box>
-                  }
-                  placement="right"
-                  arrow
-                  enterDelay={300}
-                  leaveDelay={0}
-                >
-                  <ListItem disablePadding sx={{ mb: 0.5 }}>
-                    <ListItemButton
-                      onClick={() => handleItemClick(item)}
-                      sx={{
-                        borderRadius: 2,
-                        mx: 1,
-                        py: 1.5,
-                        position: 'relative',
+                  ) : '' // No tooltip if expanded (optional, or keep generic tooltip)
+                }
+                placement="right"
+                arrow
+              >
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                  <ListItemButton
+                    onClick={() => handleItemClick(item)}
+                    sx={{
+                      borderRadius: 2,
+                      mx: collapsed ? 0 : 1,
+                      justifyContent: collapsed ? 'center' : 'flex-start',
+                      px: collapsed ? 1 : 2,
+                      py: 1.5,
+                      position: 'relative',
+                      backgroundColor: isActive
+                        ? 'primary.main'
+                        : 'transparent',
+                      color: isActive
+                        ? 'primary.contrastText'
+                        : 'text.primary',
+                      '&:hover': {
                         backgroundColor: isActive
-                          ? 'primary.main'
-                          : 'transparent',
-                        color: isActive
-                          ? 'primary.contrastText'
-                          : 'text.primary',
-                        '&:hover': {
-                          backgroundColor: isActive
-                            ? 'primary.dark'
-                            : 'action.hover',
-                          },
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          left: 0,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          width: isActive ? 4 : 0,
-                          height: '60%',
-                          backgroundColor: 'primary.main',
-                          borderRadius: '0 4px 4px 0',
-                          transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          ? 'primary.dark'
+                          : 'action.hover',
                         },
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      // Active indicator line
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        left: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: isActive ? 4 : 0,
+                        height: '60%',
+                        backgroundColor: 'primary.main',
+                        borderRadius: '0 4px 4px 0',
+                        transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        display: collapsed ? 'none' : 'block',
+                      },
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: collapsed ? 0 : 40,
+                        color: 'inherit',
+                        transition: 'transform 0.2s',
+                        justifyContent: 'center',
+                        mr: collapsed ? 0 : 0,
+                        '&:hover': {
+                          transform: 'scale(1.1)',
+                        },
                       }}
                     >
-                      <ListItemIcon
-                        sx={{
-                          minWidth: 40,
-                          color: 'inherit',
-                          transition: 'transform 0.2s',
-                          '&:hover': {
-                            transform: 'scale(1.1)',
-                          },
-                        }}
-                      >
-                        <Icon size={20} />
-                      </ListItemIcon>
+                      <Icon size={20} />
+                    </ListItemIcon>
+                    
+                    {!collapsed && (
                       <ListItemText
                         primary={item.label}
                         primaryTypographyProps={{
                           fontSize: '0.875rem',
                           fontWeight: isActive ? 600 : 500,
+                          sx: { whiteSpace: 'nowrap' }
                         }}
                       />
+                    )}
+
+                    {!collapsed && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
                         {item.shortcut && (
                           <Chip
@@ -351,10 +385,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           </Box>
                         )}
                       </Box>
-                    </ListItemButton>
-                  </ListItem>
-                </Tooltip>
-              </motion.div>
+                    )}
+                  </ListItemButton>
+                </ListItem>
+              </Tooltip>
             );
           })}
         </List>
@@ -362,124 +396,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <Divider sx={{ my: 2, mx: 2 }} />
 
         <List sx={{ px: 1 }}>
-          {settingsItems.map((item, index) => {
-            const Icon = item.icon;
-            const isActive = activeItem === item.id;
-
-            return (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: (navigationItems.length + index) * 0.05 }}
-                whileHover={{ x: 4 }}
-              >
-                <Tooltip
-                  title={
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                        {item.label}
-                      </Typography>
-                      {item.description && (
-                        <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
-                          {item.description}
-                        </Typography>
-                      )}
-                      {item.shortcut && (
-                        <Chip
-                          label={item.shortcut}
-                          size="small"
-                          sx={{
-                            mt: 0.5,
-                            height: 18,
-                            fontSize: '0.65rem',
-                            bgcolor: 'rgba(255, 255, 255, 0.15)',
-                          }}
-                        />
-                      )}
-                    </Box>
-                  }
-                  placement="right"
-                  arrow
-                  enterDelay={300}
-                  leaveDelay={0}
-                >
-                  <ListItem disablePadding sx={{ mb: 0.5 }}>
-                    <ListItemButton
-                      onClick={() => handleItemClick(item)}
-                      sx={{
-                        borderRadius: 2,
-                        mx: 1,
-                        py: 1.5,
-                        position: 'relative',
-                        backgroundColor: isActive
-                          ? 'primary.main'
-                          : 'transparent',
-                        color: isActive
-                          ? 'primary.contrastText'
-                          : 'text.secondary',
-                        '&:hover': {
-                          backgroundColor: isActive
-                            ? 'primary.dark'
-                            : 'action.hover',
-                        },
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          left: 0,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          width: isActive ? 4 : 0,
-                          height: '60%',
-                          backgroundColor: 'primary.main',
-                          borderRadius: '0 4px 4px 0',
-                          transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        },
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                      }}
-                    >
-                      <ListItemIcon
-                        sx={{
-                          minWidth: 40,
-                          color: 'inherit',
-                          transition: 'transform 0.2s',
-                          '&:hover': {
-                            transform: 'scale(1.1)',
-                          },
-                        }}
-                      >
-                        <Icon size={20} />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.label}
-                        primaryTypographyProps={{
-                          fontSize: '0.875rem',
-                          fontWeight: isActive ? 600 : 500,
-                        }}
-                      />
-                      {item.shortcut && (
-                        <Chip
-                          label={item.shortcut}
-                          size="small"
-                          sx={{
-                            ml: 'auto',
-                            height: 20,
-                            fontSize: '0.7rem',
-                            bgcolor: isActive
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : 'rgba(0, 0, 0, 0.05)',
-                            color: 'inherit',
-                            display: { xs: 'none', md: 'flex' },
-                          }}
-                        />
-                      )}
-                    </ListItemButton>
-                  </ListItem>
-                </Tooltip>
-              </motion.div>
-            );
-          })}
+            {/* Settings Item - reusing similar logic */}
+            {settingsItems.map((item) => {
+                 const Icon = item.icon;
+                 const isActive = activeItem === item.id;
+                 return (
+                    <Tooltip key={item.id} title={collapsed ? item.label : ''} placement="right" arrow>
+                         <ListItem disablePadding sx={{ mb: 0.5 }}>
+                            <ListItemButton
+                                onClick={() => handleItemClick(item)}
+                                sx={{
+                                    borderRadius: 2,
+                                    mx: collapsed ? 0 : 1,
+                                    justifyContent: collapsed ? 'center' : 'flex-start',
+                                    px: collapsed ? 1 : 2,
+                                    py: 1.5,
+                                    backgroundColor: isActive ? 'primary.main' : 'transparent',
+                                    color: isActive ? 'primary.contrastText' : 'text.secondary',
+                                    '&:hover': { backgroundColor: isActive ? 'primary.dark' : 'action.hover' },
+                                }}
+                            >
+                                <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, color: 'inherit', justifyContent: 'center' }}>
+                                    <Icon size={20} />
+                                </ListItemIcon>
+                                {!collapsed && <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: '0.875rem' }} />}
+                            </ListItemButton>
+                         </ListItem>
+                    </Tooltip>
+                 )
+            })}
         </List>
+        
+        {/* Toggle Button at bottom if collapsed */}
+        {collapsed && onToggleCollapse && (
+            <Box sx={{ mt: 'auto', p: 2, display: 'flex', justifyContent: 'center' }}>
+                <IconButton onClick={onToggleCollapse}>
+                    <ChevronRight size={20} />
+                </IconButton>
+            </Box>
+        )}
       </Box>
     </Box>
   );

@@ -60,13 +60,17 @@ export class VirtualDesktopOptimizer {
   
   constructor() {
     this.currentPreset = VD_PRESETS['medium'] ?? VD_PRESETS['low']
-    this.detectVirtualDesktop()
-    this.detectDPI()
-    this.detectVRHeadset()
+    if (typeof window !== 'undefined') {
+      this.detectVirtualDesktop()
+      this.detectDPI()
+      this.detectVRHeadset()
+    }
   }
   
   // VirtualDesktop検出
   detectVirtualDesktop(): boolean {
+    if (typeof window === 'undefined') return false
+
     // UserAgentからVD検出を試みる
     const ua = navigator.userAgent.toLowerCase()
     
@@ -87,6 +91,8 @@ export class VirtualDesktopOptimizer {
   
   // VD接続チェック（レイテンシベース）
   private checkVDConnection(): boolean {
+    if (typeof window === 'undefined') return false
+
     // Performance APIでネットワークレイテンシをチェック
     if (!window.performance || !window.performance.getEntriesByType) {
       return false
@@ -104,6 +110,7 @@ export class VirtualDesktopOptimizer {
   
   // プリセット適用
   applyPreset(presetName: string): void {
+    if (typeof document === 'undefined') return
     const preset = VD_PRESETS[presetName]
     if (preset) {
       this.currentPreset = preset
@@ -118,6 +125,7 @@ export class VirtualDesktopOptimizer {
   
   // ストリーミング最適化適用
   optimizeForStreaming(): void {
+    if (typeof document === 'undefined') return
     // レンダリング解像度調整
     this.reduceRenderResolution()
     
@@ -132,6 +140,7 @@ export class VirtualDesktopOptimizer {
   }
   
   private reduceRenderResolution(): void {
+    if (typeof document === 'undefined') return
     const canvas = document.querySelector('canvas')
     if (canvas) {
       const scale = this.currentPreset.renderScale
@@ -140,16 +149,19 @@ export class VirtualDesktopOptimizer {
   }
   
   private reducePostProcessing(): void {
+    if (typeof document === 'undefined') return
     if (!this.currentPreset.enablePostProcessing) {
       document.documentElement.setAttribute('data-disable-postprocessing', 'true')
     }
   }
   
   private applyAggressiveLOD(): void {
+    if (typeof document === 'undefined') return
     document.documentElement.setAttribute('data-lod-bias', this.currentPreset.lodBias.toString())
   }
   
   private reduceNetworkLoad(): void {
+    if (typeof document === 'undefined') return
     // Delta updates only
     // Aggressive caching
     document.documentElement.setAttribute('data-cache-aggressive', 'true')
@@ -157,6 +169,7 @@ export class VirtualDesktopOptimizer {
   
   // FPS測定
   measureFPS(): number {
+    if (typeof window === 'undefined') return 0
     let lastTime = performance.now()
     let frameCount = 0
     let fps = 0
@@ -196,6 +209,7 @@ export class VirtualDesktopOptimizer {
    * DPI検出と調整
    */
   detectDPI(): number {
+    if (typeof window === 'undefined') return 1.0
     this.dpiScale = window.devicePixelRatio || 1.0
     
     if (this.dpiScale > 1.5) {
@@ -213,6 +227,7 @@ export class VirtualDesktopOptimizer {
    * VR Headset検出（Quest Link / Air Link / Steam VR）
    */
   detectVRHeadset(): string | null {
+    if (typeof navigator === 'undefined') return null
     // WebXR API経由でVRデバイス検出
     if ('xr' in navigator) {
       const xr = (navigator as any).xr;
@@ -242,6 +257,7 @@ export class VirtualDesktopOptimizer {
    * Quest専用最適化
    */
   private applyQuestOptimizations(): void {
+    if (typeof document === 'undefined') return
     console.log('🥽 Applying Quest-specific optimizations')
     
     // Quest 3は高解像度だがモバイルGPU

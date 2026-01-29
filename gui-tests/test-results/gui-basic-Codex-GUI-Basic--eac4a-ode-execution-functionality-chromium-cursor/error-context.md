@@ -11,120 +11,135 @@
       - generic [ref=e9]:
         - list [ref=e10]:
           - listitem [ref=e12]:
-            - button "ダッシュボード" [ref=e13] [cursor=pointer]:
+            - button "ダッシュボード Ctrl+D" [ref=e13] [cursor=pointer]:
               - img [ref=e15]
               - generic [ref=e19]: ダッシュボード
-          - listitem [ref=e21]:
-            - button "コード実行" [ref=e22] [cursor=pointer]:
-              - img [ref=e24]
-              - generic [ref=e28]: コード実行
-          - listitem [ref=e30]:
-            - button "エージェント" [ref=e31] [cursor=pointer]:
-              - img [ref=e33]
-              - generic [ref=e39]: エージェント
-          - listitem [ref=e41]:
-            - button "タスク管理" [ref=e42] [cursor=pointer]:
-              - img [ref=e44]
-              - generic [ref=e48]: タスク管理
+              - generic [ref=e22]: Ctrl+D
+          - listitem [ref=e24]:
+            - button "コード実行 Ctrl+C" [ref=e25] [cursor=pointer]:
+              - img [ref=e27]
+              - generic [ref=e31]: コード実行
+              - generic [ref=e34]: Ctrl+C
+          - listitem [ref=e36]:
+            - button "エージェント Ctrl+A" [ref=e37] [cursor=pointer]:
+              - img [ref=e39]
+              - generic [ref=e45]: エージェント
+              - generic [ref=e48]: Ctrl+A
           - listitem [ref=e50]:
-            - button "QC管理" [ref=e51] [cursor=pointer]:
+            - button "タスク管理 Ctrl+T" [ref=e51] [cursor=pointer]:
               - img [ref=e53]
-              - generic [ref=e57]: QC管理
-          - listitem [ref=e59]:
-            - button "セキュリティ" [ref=e60] [cursor=pointer]:
-              - img [ref=e62]
-              - generic [ref=e65]: セキュリティ
-          - listitem [ref=e67]:
-            - button "仮想OS" [ref=e68] [cursor=pointer]:
-              - img [ref=e70]
-              - generic [ref=e73]: 仮想OS
-          - listitem [ref=e75]:
-            - button "AIツール統合" [ref=e76] [cursor=pointer]:
-              - img [ref=e78]
-              - generic [ref=e82]: AIツール統合
-          - listitem [ref=e84]:
-            - button "Deep Research" [ref=e85] [cursor=pointer]:
-              - img [ref=e87]
-              - generic [ref=e91]: Deep Research
-          - listitem [ref=e93]:
-            - button "セキュリティ" [ref=e94] [cursor=pointer]:
-              - img [ref=e96]
-              - generic [ref=e99]: セキュリティ
-          - listitem [ref=e101]:
-            - button "MCPサーバー" [ref=e102] [cursor=pointer]:
-              - img [ref=e104]
-              - generic [ref=e108]: MCPサーバー
-          - listitem [ref=e110]:
-            - button "分析" [ref=e111] [cursor=pointer]:
-              - img [ref=e113]
-              - generic [ref=e116]: 分析
-          - listitem [ref=e118]:
-            - button "ドキュメント" [ref=e119] [cursor=pointer]:
-              - img [ref=e121]
-              - generic [ref=e125]: ドキュメント
-          - listitem [ref=e127]:
-            - button "パフォーマンス" [ref=e128] [cursor=pointer]:
-              - img [ref=e130]
-              - generic [ref=e133]: パフォーマンス
-        - separator [ref=e134]
-        - list [ref=e135]:
-          - listitem [ref=e137]:
-            - button "設定" [ref=e138] [cursor=pointer]:
-              - img [ref=e140]
-              - generic [ref=e144]: 設定
-    - main [ref=e145]:
-      - generic [ref=e147]:
-        - generic [ref=e149]: コード実行
-        - generic [ref=e150]:
-          - 'generic "Codexサーバー: 未接続" [ref=e152]':
-            - img [ref=e153]
-            - generic [ref=e160]: オフライン
-          - 'button "HTTP 404: Not Found" [ref=e162] [cursor=pointer]':
-            - img [ref=e163]
-          - button "テーマ切り替え (system)" [ref=e166] [cursor=pointer]:
-            - img [ref=e167]
-          - button "設定" [ref=e170] [cursor=pointer]:
-            - img [ref=e171]
-          - button "プロフィール" [ref=e175] [cursor=pointer]:
-            - img [ref=e176]
-      - generic [ref=e180]:
-        - generic [ref=e181]:
-          - generic [ref=e184]: コード実行設定
-          - generic [ref=e185]:
-            - generic [ref=e186]:
-              - generic [ref=e188]:
-                - generic [ref=e189]: 言語
-                - generic [ref=e190]:
-                  - combobox [ref=e191] [cursor=pointer]: JavaScript
+              - generic [ref=e57]: タスク管理
+              - generic [ref=e60]: Ctrl+T
+          - listitem [ref=e62]:
+            - button "QC管理 Ctrl+Q" [ref=e63] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e69]: QC管理
+              - generic [ref=e72]: Ctrl+Q
+          - listitem [ref=e74]:
+            - button "セキュリティ Ctrl+S" [ref=e75] [cursor=pointer]:
+              - img [ref=e77]
+              - generic [ref=e80]: セキュリティ
+              - generic [ref=e83]: Ctrl+S
+          - listitem [ref=e85]:
+            - button "仮想OS Ctrl+V" [ref=e86] [cursor=pointer]:
+              - img [ref=e88]
+              - generic [ref=e91]: 仮想OS
+              - generic [ref=e94]: Ctrl+V
+          - listitem [ref=e96]:
+            - button "AIツール統合 Ctrl+I" [ref=e97] [cursor=pointer]:
+              - img [ref=e99]
+              - generic [ref=e103]: AIツール統合
+              - generic [ref=e106]: Ctrl+I
+          - listitem [ref=e108]:
+            - button "Deep Research Ctrl+R" [ref=e109] [cursor=pointer]:
+              - img [ref=e111]
+              - generic [ref=e115]: Deep Research
+              - generic [ref=e118]: Ctrl+R
+          - listitem [ref=e120]:
+            - button "Web Research Ctrl+Shift+R" [ref=e121] [cursor=pointer]:
+              - img [ref=e123]
+              - generic [ref=e127]: Web Research
+              - generic [ref=e130]: Ctrl+Shift+R
+          - listitem [ref=e132]:
+            - button "MCPサーバー Ctrl+M" [ref=e133] [cursor=pointer]:
+              - img [ref=e135]
+              - generic [ref=e139]: MCPサーバー
+              - generic [ref=e142]: Ctrl+M
+          - listitem [ref=e144]:
+            - button "分析 Ctrl+L" [ref=e145] [cursor=pointer]:
+              - img [ref=e147]
+              - generic [ref=e150]: 分析
+              - generic [ref=e153]: Ctrl+L
+          - listitem [ref=e155]:
+            - button "ドキュメント Ctrl+O" [ref=e156] [cursor=pointer]:
+              - img [ref=e158]
+              - generic [ref=e162]: ドキュメント
+              - generic [ref=e165]: Ctrl+O
+          - listitem [ref=e167]:
+            - button "パフォーマンス Ctrl+P" [ref=e168] [cursor=pointer]:
+              - img [ref=e170]
+              - generic [ref=e173]: パフォーマンス
+              - generic [ref=e176]: Ctrl+P
+        - separator [ref=e177]
+        - list [ref=e178]:
+          - listitem [ref=e180]:
+            - button "設定 Ctrl+," [ref=e181] [cursor=pointer]:
+              - img [ref=e183]
+              - generic [ref=e187]: 設定
+              - generic [ref=e189]: Ctrl+,
+    - main [ref=e190]:
+      - generic [ref=e192]:
+        - generic [ref=e194]: コード実行
+        - generic [ref=e195]:
+          - 'generic "Codexサーバー: 未接続" [ref=e197]':
+            - img [ref=e198]
+            - generic [ref=e205]: オフライン
+          - 'button "HTTP 404: Not Found" [ref=e207] [cursor=pointer]':
+            - img [ref=e208]
+          - button "テーマ切り替え (system)" [ref=e211] [cursor=pointer]:
+            - img [ref=e212]
+          - button "設定" [ref=e215] [cursor=pointer]:
+            - img [ref=e216]
+          - button "プロフィール" [ref=e220] [cursor=pointer]:
+            - img [ref=e221]
+      - generic [ref=e225]:
+        - generic [ref=e226]:
+          - generic [ref=e229]: コード実行設定
+          - generic [ref=e230]:
+            - generic [ref=e231]:
+              - generic [ref=e233]:
+                - generic [ref=e234]: 言語
+                - generic [ref=e235]:
+                  - combobox [ref=e236] [cursor=pointer]: JavaScript
                   - textbox: javascript
                   - img
                   - group:
                     - generic: 言語
-              - generic [ref=e193]:
-                - generic [ref=e194]: ファイル名
-                - generic [ref=e195]:
-                  - textbox "ファイル名" [ref=e196]:
+              - generic [ref=e238]:
+                - generic [ref=e239]: ファイル名
+                - generic [ref=e240]:
+                  - textbox "ファイル名" [ref=e241]:
                     - /placeholder: script.js
                     - text: script.js
                   - group:
                     - generic: ファイル名
-              - generic [ref=e198]:
+              - generic [ref=e243]:
                 - button "実行" [disabled]:
                   - generic:
                     - img
                   - text: 実行
-                - button "保存" [ref=e199] [cursor=pointer]:
-                  - img [ref=e201]
+                - button "保存" [ref=e244] [cursor=pointer]:
+                  - img [ref=e246]
                   - text: 保存
-                - button "読み込み" [ref=e205] [cursor=pointer]:
-                  - img [ref=e207]
+                - button "読み込み" [ref=e250] [cursor=pointer]:
+                  - img [ref=e252]
                   - text: 読み込み
                 - button "クイック実行" [disabled]:
                   - img
-            - alert [ref=e209]:
-              - img [ref=e211]
-              - generic [ref=e213]: Codexサーバーに接続されていません。コード実行にはサーバー接続が必要です。
-        - generic [ref=e218]:
-          - textbox "ここにコードを入力してください..." [active] [ref=e219]: console.log("Hello from Playwright!");
+            - alert [ref=e254]:
+              - img [ref=e256]
+              - generic [ref=e258]: Codexサーバーに接続されていません。コード実行にはサーバー接続が必要です。
+        - generic [ref=e263]:
+          - textbox "ここにコードを入力してください..." [active] [ref=e264]: console.log("Hello from Playwright!");
           - group
 ```

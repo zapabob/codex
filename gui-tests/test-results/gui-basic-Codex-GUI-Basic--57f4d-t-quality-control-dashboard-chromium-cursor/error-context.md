@@ -1,0 +1,218 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]:
+        - heading "Codex Control" [level=6] [ref=e8]
+        - text: AI Assistant Platform
+      - generic [ref=e9]:
+        - list [ref=e10]:
+          - listitem [ref=e12]:
+            - button "ダッシュボード Ctrl+D" [ref=e13] [cursor=pointer]:
+              - img [ref=e15]
+              - generic [ref=e19]: ダッシュボード
+              - generic [ref=e22]: Ctrl+D
+          - listitem [ref=e24]:
+            - button "コード実行 Ctrl+C" [ref=e25] [cursor=pointer]:
+              - img [ref=e27]
+              - generic [ref=e31]: コード実行
+              - generic [ref=e34]: Ctrl+C
+          - listitem [ref=e36]:
+            - button "エージェント Ctrl+A" [ref=e37] [cursor=pointer]:
+              - img [ref=e39]
+              - generic [ref=e45]: エージェント
+              - generic [ref=e48]: Ctrl+A
+          - listitem [ref=e50]:
+            - button "タスク管理 Ctrl+T" [ref=e51] [cursor=pointer]:
+              - img [ref=e53]
+              - generic [ref=e57]: タスク管理
+              - generic [ref=e60]: Ctrl+T
+          - listitem [ref=e62]:
+            - button "QC管理 Ctrl+Q" [ref=e63] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e69]: QC管理
+              - generic [ref=e72]: Ctrl+Q
+          - listitem [ref=e74]:
+            - button "セキュリティ Ctrl+S" [ref=e75] [cursor=pointer]:
+              - img [ref=e77]
+              - generic [ref=e80]: セキュリティ
+              - generic [ref=e83]: Ctrl+S
+          - listitem [ref=e85]:
+            - button "仮想OS Ctrl+V" [ref=e86] [cursor=pointer]:
+              - img [ref=e88]
+              - generic [ref=e91]: 仮想OS
+              - generic [ref=e94]: Ctrl+V
+          - listitem [ref=e96]:
+            - button "AIツール統合 Ctrl+I" [ref=e97] [cursor=pointer]:
+              - img [ref=e99]
+              - generic [ref=e103]: AIツール統合
+              - generic [ref=e106]: Ctrl+I
+          - listitem [ref=e108]:
+            - button "Deep Research Ctrl+R" [ref=e109] [cursor=pointer]:
+              - img [ref=e111]
+              - generic [ref=e115]: Deep Research
+              - generic [ref=e118]: Ctrl+R
+          - listitem [ref=e120]:
+            - button "Web Research Ctrl+Shift+R" [ref=e121] [cursor=pointer]:
+              - img [ref=e123]
+              - generic [ref=e127]: Web Research
+              - generic [ref=e130]: Ctrl+Shift+R
+          - listitem [ref=e132]:
+            - button "MCPサーバー Ctrl+M" [ref=e133] [cursor=pointer]:
+              - img [ref=e135]
+              - generic [ref=e139]: MCPサーバー
+              - generic [ref=e142]: Ctrl+M
+          - listitem [ref=e144]:
+            - button "分析 Ctrl+L" [ref=e145] [cursor=pointer]:
+              - img [ref=e147]
+              - generic [ref=e150]: 分析
+              - generic [ref=e153]: Ctrl+L
+          - listitem [ref=e155]:
+            - button "ドキュメント Ctrl+O" [ref=e156] [cursor=pointer]:
+              - img [ref=e158]
+              - generic [ref=e162]: ドキュメント
+              - generic [ref=e165]: Ctrl+O
+          - listitem [ref=e167]:
+            - button "パフォーマンス Ctrl+P" [ref=e168] [cursor=pointer]:
+              - img [ref=e170]
+              - generic [ref=e173]: パフォーマンス
+              - generic [ref=e176]: Ctrl+P
+        - separator [ref=e177]
+        - list [ref=e178]:
+          - listitem [ref=e180]:
+            - button "設定 Ctrl+," [ref=e181] [cursor=pointer]:
+              - img [ref=e183]
+              - generic [ref=e187]: 設定
+              - generic [ref=e189]: Ctrl+,
+    - main [ref=e190]:
+      - generic [ref=e192]:
+        - generic [ref=e194]: Codex GUI
+        - generic [ref=e195]:
+          - 'generic "Codexサーバー: 未接続" [ref=e197]':
+            - img [ref=e198]
+            - generic [ref=e205]: オフライン
+          - 'button "HTTP 404: Not Found" [ref=e207] [cursor=pointer]':
+            - img [ref=e208]
+          - button "テーマ切り替え (system)" [ref=e211] [cursor=pointer]:
+            - img [ref=e212]
+          - button "設定" [ref=e215] [cursor=pointer]:
+            - img [ref=e216]
+          - button "プロフィール" [ref=e220] [cursor=pointer]:
+            - img [ref=e221]
+      - generic [ref=e225]:
+        - generic [ref=e226]:
+          - generic [ref=e227]:
+            - heading "QC管理" [level=1] [ref=e228]
+            - paragraph [ref=e229]: ANOVA-based statistical analysis and automated quality management
+          - generic [ref=e230]:
+            - generic [ref=e231]:
+              - generic [ref=e232]: 88.9%
+              - generic [ref=e233]: Overall Quality
+            - generic [ref=e234]: 1 Critical
+        - generic [ref=e235]:
+          - button "📊 Statistical Dashboard" [ref=e236] [cursor=pointer]:
+            - generic [ref=e237]: 📊
+            - text: Statistical Dashboard
+          - button "⚙️ QC Automation" [ref=e238] [cursor=pointer]:
+            - generic [ref=e239]: ⚙️
+            - text: QC Automation
+          - button "📈 Real-time Monitoring" [ref=e240] [cursor=pointer]:
+            - generic [ref=e241]: 📈
+            - text: Real-time Monitoring
+          - button "🚨 Alert System" [ref=e242] [cursor=pointer]:
+            - generic [ref=e243]: 🚨
+            - text: Alert System
+        - generic [ref=e245]:
+          - generic [ref=e246]:
+            - heading "ANOVA Analysis Results" [level=2] [ref=e247]
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - generic [ref=e250]: NaN
+                - generic [ref=e251]: F-Statistic
+              - generic [ref=e252]:
+                - generic [ref=e253]: NaN
+                - generic [ref=e254]: P-Value
+              - generic [ref=e255]:
+                - generic [ref=e256]: "3"
+                - generic [ref=e257]: Degrees of Freedom
+              - generic [ref=e259]: Not Significant
+            - generic [ref=e260]:
+              - heading "Group Statistics" [level=3] [ref=e261]
+              - generic [ref=e262]:
+                - generic [ref=e263]: Group 1
+                - generic [ref=e264]:
+                  - generic [ref=e265]: "Mean: 85.30"
+                  - generic [ref=e266]: "Variance: NaN"
+                  - generic [ref=e267]: "Count: 1"
+              - generic [ref=e268]:
+                - generic [ref=e269]: Group 2
+                - generic [ref=e270]:
+                  - generic [ref=e271]: "Mean: 92.10"
+                  - generic [ref=e272]: "Variance: NaN"
+                  - generic [ref=e273]: "Count: 1"
+              - generic [ref=e274]:
+                - generic [ref=e275]: Group 3
+                - generic [ref=e276]:
+                  - generic [ref=e277]: "Mean: 78.50"
+                  - generic [ref=e278]: "Variance: NaN"
+                  - generic [ref=e279]: "Count: 1"
+              - generic [ref=e280]:
+                - generic [ref=e281]: Group 4
+                - generic [ref=e282]:
+                  - generic [ref=e283]: "Mean: 94.20"
+                  - generic [ref=e284]: "Variance: NaN"
+                  - generic [ref=e285]: "Count: 1"
+          - generic [ref=e286]:
+            - generic [ref=e287]:
+              - generic [ref=e288]:
+                - heading "Code Quality Score" [level=3] [ref=e289]
+                - img [ref=e291]
+              - generic [ref=e294]: 85.3%
+              - generic [ref=e295]:
+                - generic [ref=e296]: WARNING
+                - generic [ref=e297]: "Target: 90%"
+            - generic [ref=e300]:
+              - generic [ref=e301]:
+                - heading "Test Coverage" [level=3] [ref=e302]
+                - img [ref=e304]
+              - generic [ref=e305]: 92.1%
+              - generic [ref=e306]:
+                - generic [ref=e307]: GOOD
+                - generic [ref=e308]: "Target: 95%"
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - heading "Performance Score" [level=3] [ref=e313]
+                - img [ref=e315]
+              - generic [ref=e318]: 78.5%
+              - generic [ref=e319]:
+                - generic [ref=e320]: CRITICAL
+                - generic [ref=e321]: "Target: 85%"
+            - generic [ref=e324]:
+              - generic [ref=e325]:
+                - heading "Security Rating" [level=3] [ref=e326]
+                - img [ref=e328]
+              - generic [ref=e331]: 94.2%
+              - generic [ref=e332]:
+                - generic [ref=e333]: GOOD
+                - generic [ref=e334]: "Target: 95%"
+          - generic [ref=e337]:
+            - img [ref=e340]
+            - img [ref=e343]
+            - img [ref=e346]
+            - generic [ref=e347]:
+              - heading "QC Process Summary" [level=3] [ref=e348]
+              - generic [ref=e349]:
+                - generic [ref=e350]:
+                  - generic [ref=e351]:
+                    - generic [ref=e352]: Daily Quality Check
+                    - generic [ref=e353]: completed
+                  - generic [ref=e355]: 100%
+                - generic [ref=e358]:
+                  - generic [ref=e359]:
+                    - generic [ref=e360]: Weekly ANOVA Analysis
+                    - generic [ref=e361]: running
+                  - generic [ref=e363]: 65%
+```

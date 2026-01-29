@@ -25,8 +25,8 @@
               - img [ref=e39]
               - generic [ref=e45]: エージェント
               - generic [ref=e48]: Ctrl+A
-          - listitem "タスク管理 タスクの作成と管理 Ctrl+T" [ref=e50]:
-            - button "タスク管理 Ctrl+T" [active] [ref=e51] [cursor=pointer]:
+          - listitem [ref=e50]:
+            - button "タスク管理 Ctrl+T" [ref=e51] [cursor=pointer]:
               - img [ref=e53]
               - generic [ref=e57]: タスク管理
               - generic [ref=e60]: Ctrl+T
@@ -60,8 +60,8 @@
               - img [ref=e123]
               - generic [ref=e127]: Web Research
               - generic [ref=e130]: Ctrl+Shift+R
-          - listitem [ref=e132]:
-            - button "MCPサーバー Ctrl+M" [ref=e133] [cursor=pointer]:
+          - listitem "MCPサーバー MCPサーバーの管理 Ctrl+M" [ref=e132]:
+            - button "MCPサーバー Ctrl+M" [active] [ref=e133] [cursor=pointer]:
               - img [ref=e135]
               - generic [ref=e139]: MCPサーバー
               - generic [ref=e142]: Ctrl+M
@@ -175,9 +175,9 @@
                   - paragraph [ref=e366]: ディスク使用率
                   - paragraph [ref=e367]: 23%
                 - progressbar [ref=e368]
-  - tooltip "タスク管理 タスクの作成と管理 Ctrl+T" [ref=e370]:
+  - tooltip "MCPサーバー MCPサーバーの管理 Ctrl+M" [ref=e370]:
     - generic [ref=e372]:
-      - paragraph [ref=e373]: タスク管理
-      - generic [ref=e374]: タスクの作成と管理
-      - generic [ref=e376]: Ctrl+T
+      - paragraph [ref=e373]: MCPサーバー
+      - generic [ref=e374]: MCPサーバーの管理
+      - generic [ref=e376]: Ctrl+M
 ```
