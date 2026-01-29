@@ -16,7 +16,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # ========== ビルド（全プラットフォーム） ==========
+  # ========== ビルド（�EプラチE��フォーム�E�E==========
   build-release:
     name: Build Release Binaries
     runs-on: ${{ matrix.os }}
@@ -98,7 +98,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
@@ -132,7 +132,7 @@ jobs:
           name: npm-package
           path: codex-cli/*.tgz
 
-  # ========== ドキュメント生成 ==========
+  # ========== ドキュメント生戁E==========
   generate-release-notes:
     name: Generate Release Notes
     runs-on: ubuntu-latest
@@ -153,30 +153,30 @@ jobs:
           echo "### ✨ New Features" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "#### Sub-Agent System" >> RELEASE_NOTES.md
-          echo "- ✅ Complete sub-agent implementation with 7 pre-defined agents" >> RELEASE_NOTES.md
-          echo "- ✅ Codex MCP integration (Phase 1-3 complete)" >> RELEASE_NOTES.md
-          echo "- ✅ Permission-based tool filtering" >> RELEASE_NOTES.md
-          echo "- ✅ Token budget management" >> RELEASE_NOTES.md
-          echo "- ✅ Full LLM ↔ Tool feedback loop" >> RELEASE_NOTES.md
+          echo "- ✁EComplete sub-agent implementation with 7 pre-defined agents" >> RELEASE_NOTES.md
+          echo "- ✁ECodex MCP integration (Phase 1-3 complete)" >> RELEASE_NOTES.md
+          echo "- ✁EPermission-based tool filtering" >> RELEASE_NOTES.md
+          echo "- ✁EToken budget management" >> RELEASE_NOTES.md
+          echo "- ✁EFull LLM ↁETool feedback loop" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "#### Deep Research Engine" >> RELEASE_NOTES.md
-          echo "- ✅ DuckDuckGo HTML scraping (no API key required)" >> RELEASE_NOTES.md
-          echo "- ✅ POST/GET retry mechanism (202 error handling)" >> RELEASE_NOTES.md
-          echo "- ✅ URL decoder with scraper integration" >> RELEASE_NOTES.md
-          echo "- ✅ Multi-source validation" >> RELEASE_NOTES.md
-          echo "- ✅ Citation-backed reports" >> RELEASE_NOTES.md
+          echo "- ✁EDuckDuckGo HTML scraping (no API key required)" >> RELEASE_NOTES.md
+          echo "- ✁EPOST/GET retry mechanism (202 error handling)" >> RELEASE_NOTES.md
+          echo "- ✁EURL decoder with scraper integration" >> RELEASE_NOTES.md
+          echo "- ✁EMulti-source validation" >> RELEASE_NOTES.md
+          echo "- ✁ECitation-backed reports" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "#### Cursor IDE Integration" >> RELEASE_NOTES.md
-          echo "- ✅ MCP server configuration optimized" >> RELEASE_NOTES.md
-          echo "- ✅ 10-15x faster startup time" >> RELEASE_NOTES.md
-          echo "- ✅ \`@codex\` and \`@codex-delegate\` commands" >> RELEASE_NOTES.md
+          echo "- ✁EMCP server configuration optimized" >> RELEASE_NOTES.md
+          echo "- ✁E10-15x faster startup time" >> RELEASE_NOTES.md
+          echo "- ✁E\`@codex\` and \`@codex-delegate\` commands" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "### 📊 Test Results" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
-          echo "- ✅ Deep Research: All tests passed" >> RELEASE_NOTES.md
-          echo "- ✅ Sub-Agent (researcher): All tests passed" >> RELEASE_NOTES.md
-          echo "- ✅ Clippy: 0 warnings" >> RELEASE_NOTES.md
-          echo "- ✅ Build: Success on Ubuntu, Windows, macOS" >> RELEASE_NOTES.md
+          echo "- ✁EDeep Research: All tests passed" >> RELEASE_NOTES.md
+          echo "- ✁ESub-Agent (researcher): All tests passed" >> RELEASE_NOTES.md
+          echo "- ✁EClippy: 0 warnings" >> RELEASE_NOTES.md
+          echo "- ✁EBuild: Success on Ubuntu, Windows, macOS" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "### 🚀 Quick Start" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
@@ -191,10 +191,10 @@ jobs:
           echo "" >> RELEASE_NOTES.md
           echo "### 📚 Documentation" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
-          echo "- [Complete Implementation Report](_docs/2025-10-11_全Phase完全完了最終レポート.md)" >> RELEASE_NOTES.md
-          echo "- [Phase 3 Implementation](_docs/2025-10-11_Phase3完全実装完了.md)" >> RELEASE_NOTES.md
-          echo "- [Test Results](_docs/2025-10-11_機能テスト結果.md)" >> RELEASE_NOTES.md
-          echo "- [Cursor IDE Integration](_docs/2025-10-11_CursorIDE統合完了.md)" >> RELEASE_NOTES.md
+          echo "- [Complete Implementation Report](_docs/2025-10-11_全Phase完�E完亁E��終レポ�EチEmd)" >> RELEASE_NOTES.md
+          echo "- [Phase 3 Implementation](_docs/2025-10-11_Phase3完�E実裁E��亁Emd)" >> RELEASE_NOTES.md
+          echo "- [Test Results](_docs/2025-10-11_機�EチE��ト結果.md)" >> RELEASE_NOTES.md
+          echo "- [Cursor IDE Integration](_docs/2025-10-11_CursorIDE統合完亁Emd)" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "### 💪 Contributors" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
@@ -202,7 +202,7 @@ jobs:
           echo "" >> RELEASE_NOTES.md
           echo "---" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
-          echo "**Status**: ✅ Production Ready" >> RELEASE_NOTES.md
+          echo "**Status**: ✁EProduction Ready" >> RELEASE_NOTES.md
           echo "**Build Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> RELEASE_NOTES.md
 
       - name: Upload release notes
@@ -211,7 +211,7 @@ jobs:
           name: release-notes
           path: RELEASE_NOTES.md
 
-  # ========== GitHub Release作成 ==========
+  # ========== GitHub Release作�E ==========
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
@@ -246,7 +246,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ========== npm公開（オプション） ==========
+  # ========== npm公開（オプション�E�E==========
   publish-npm:
     name: Publish to npm (Optional)
     runs-on: ubuntu-latest
@@ -259,7 +259,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
@@ -276,7 +276,7 @@ jobs:
           npm publish *.tgz --tag alpha --access public || echo "NPM publish skipped (token not set)"
         continue-on-error: true
 
-  # ========== 完了通知 ==========
+  # ========== 完亁E��知 ==========
   release-success:
     name: Release Success
     runs-on: ubuntu-latest
@@ -286,10 +286,10 @@ jobs:
       - name: Success notification
         run: |
           echo "🎉 Release completed successfully!"
-          echo "✅ Binaries built for all platforms"
-          echo "✅ npm package created"
-          echo "✅ GitHub Release created"
-          echo "✅ Documentation included"
+          echo "✁EBinaries built for all platforms"
+          echo "✁Enpm package created"
+          echo "✁EGitHub Release created"
+          echo "✁EDocumentation included"
           echo ""
           echo "Version: ${{ github.ref_name || github.event.inputs.version }}"
-          echo "Status: Released ✅"
+          echo "Status: Released ✁E

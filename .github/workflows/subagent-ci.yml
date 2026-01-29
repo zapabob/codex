@@ -17,7 +17,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # ========== Rust ビルド & テスト ==========
+  # ========== Rust ビルチE& チE��チE==========
   rust-build-test:
     name: Rust Build & Test (Sub-Agent + Deep Research)
     runs-on: ${{ matrix.os }}
@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -93,7 +93,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -129,7 +129,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -148,7 +148,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install yq (YAML validator)
         run: |
@@ -176,7 +176,7 @@ jobs:
           echo "Found agent definitions:"
           ls -la .codex/agents/*.yaml
 
-  # ========== Deep Research 統合テスト ==========
+  # ========== Deep Research 統合テスチE==========
   deep-research-test:
     name: Deep Research Integration Test
     runs-on: ubuntu-latest
@@ -185,7 +185,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -213,7 +213,7 @@ jobs:
         run: |
           echo "Deep Research feature is functional"
 
-  # ========== サブエージェント統合テスト ==========
+  # ========== サブエージェント統合テスチE==========
   subagent-test:
     name: Sub-Agent Integration Test
     runs-on: ubuntu-latest
@@ -222,7 +222,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -258,14 +258,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Check documentation exists
         run: |
-          test -f _docs/2025-10-11_全Phase完全完了最終レポート.md
+          test -f _docs/2025-10-11_全Phase完�E完亁E��終レポ�EチEmd
           test -f _docs/2025-10-11_CodexMCP化設計書.md
-          test -f _docs/2025-10-11_Phase3完全実装完了.md
-          test -f _docs/2025-10-11_機能テスト結果.md
+          test -f _docs/2025-10-11_Phase3完�E実裁E��亁Emd
+          test -f _docs/2025-10-11_機�EチE��ト結果.md
           echo "All documentation files exist"
 
       - name: Check README updates
@@ -273,7 +273,7 @@ jobs:
           grep -q "Sub-Agent System" README.md || (echo "README missing sub-agent section" && exit 1)
           echo "README is up to date"
 
-  # ========== セキュリティ監査 ==========
+  # ========== セキュリチE��監査 ==========
   security-audit:
     name: Security Audit (cargo-audit)
     runs-on: ubuntu-latest
@@ -281,7 +281,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -311,13 +311,13 @@ jobs:
       - name: Success notification
         run: |
           echo "🎉 All CI checks passed!"
-          echo "✅ Rust build & tests"
-          echo "✅ Clippy lints"
-          echo "✅ Rustfmt checks"
-          echo "✅ Agent definitions validated"
-          echo "✅ Deep Research tested"
-          echo "✅ Sub-Agent tested"
-          echo "✅ Documentation validated"
-          echo "✅ Security audit passed"
+          echo "✁ERust build & tests"
+          echo "✁EClippy lints"
+          echo "✁ERustfmt checks"
+          echo "✁EAgent definitions validated"
+          echo "✁EDeep Research tested"
+          echo "✁ESub-Agent tested"
+          echo "✁EDocumentation validated"
+          echo "✁ESecurity audit passed"
           echo ""
-          echo "Status: Production Ready ✅"
+          echo "Status: Production Ready ✁E

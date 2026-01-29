@@ -45,7 +45,7 @@ jobs:
     name: Local Bazel build on ${{ matrix.os }} for ${{ matrix.target }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       # Some integration tests rely on DotSlash being installed.
       # See https://github.com/openai/codex/pull/7617.

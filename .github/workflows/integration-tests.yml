@@ -71,9 +71,9 @@ jobs:
         # Verify results
         echo "Verifying results..."
         if grep -q "try\|catch\|error" calc.js; then
-          echo "✓ Error handling added successfully"
+          echo "✁EError handling added successfully"
         else
-          echo "✗ Error handling not found"
+          echo "✁EError handling not found"
           cat calc.js
         fi
 
@@ -148,14 +148,14 @@ jobs:
         # Verify multiple agents worked
         echo "Checking for authentication middleware..."
         if grep -q "auth\|jwt\|middleware" server.js; then
-          echo "✓ Authentication middleware added"
+          echo "✁EAuthentication middleware added"
         else
           echo "! Authentication middleware not found (may be expected)"
         fi
 
         echo "Checking for error handling..."
         if grep -q "try\|catch\|error" server.js; then
-          echo "✓ Error handling added"
+          echo "✁EError handling added"
         else
           echo "! Error handling not found"
         fi
@@ -199,7 +199,7 @@ jobs:
         echo "Basic execution time: ${EXECUTION_TIME}s"
 
         if (( $(echo "$EXECUTION_TIME < 5.0" | bc -l 2>/dev/null || echo "1") )); then
-          echo "✓ Performance within acceptable range"
+          echo "✁EPerformance within acceptable range"
         else
           echo "! Performance slower than expected: ${EXECUTION_TIME}s"
         fi
@@ -218,7 +218,7 @@ jobs:
         echo "Memory usage: ${MEM_MB}MB"
 
         if (( $(echo "$MEM_MB < 100" | bc -l 2>/dev/null || echo "0") )); then
-          echo "✓ Memory usage within acceptable range"
+          echo "✁EMemory usage within acceptable range"
         else
           echo "! Memory usage higher than expected: ${MEM_MB}MB"
         fi
@@ -251,7 +251,7 @@ jobs:
 
         # Run tests
         if npm test; then
-          echo "✓ Node.js API tests passed"
+          echo "✁ENode.js API tests passed"
         else
           echo "! Node.js API tests failed"
           exit 1
@@ -267,7 +267,7 @@ jobs:
 
         # Build check
         if timeout 120s npm run build; then
-          echo "✓ React Todo build passed"
+          echo "✁EReact Todo build passed"
         else
           echo "! React Todo build failed"
           exit 1
@@ -287,10 +287,10 @@ jobs:
               "${{ needs.subagent-integration.result }}" == "success" && \
               "${{ needs.benchmark-integration.result }}" == "success" && \
               "${{ needs.example-projects-test.result }}" == "success" ]]; then
-          echo "✅ All integration tests passed"
+          echo "✁EAll integration tests passed"
           echo "🎯 Codex is interview-ready!"
         else
-          echo "❌ Some integration tests failed"
+          echo "❁ESome integration tests failed"
           echo "Plan Mode: ${{ needs.plan-mode-integration.result }}"
           echo "Sub-Agent: ${{ needs.subagent-integration.result }}"
           echo "Benchmark: ${{ needs.benchmark-integration.result }}"

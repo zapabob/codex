@@ -140,7 +140,7 @@ jobs:
               INSTALL_DIR="$HOME/bin"
               mkdir -p "$INSTALL_DIR"
               cp "bin/$BINARY" "$INSTALL_DIR/codex.exe"
-              echo "✅ Installed to: $INSTALL_DIR/codex.exe"
+              echo "✁EInstalled to: $INSTALL_DIR/codex.exe"
               echo "💡 Add $INSTALL_DIR to your PATH"
           elif [[ "$OSTYPE" == "darwin"* ]]; then
               if [[ $(uname -m) == "arm64" ]]; then
@@ -150,12 +150,12 @@ jobs:
               fi
               sudo cp "bin/$BINARY" "/usr/local/bin/codex"
               sudo chmod +x "/usr/local/bin/codex"
-              echo "✅ Installed to: /usr/local/bin/codex"
+              echo "✁EInstalled to: /usr/local/bin/codex"
           else
               BINARY="codex-linux-x64"
               sudo cp "bin/$BINARY" "/usr/local/bin/codex"
               sudo chmod +x "/usr/local/bin/codex"
-              echo "✅ Installed to: /usr/local/bin/codex"
+              echo "✁EInstalled to: /usr/local/bin/codex"
           fi
 
           echo "🎉 Installation complete!"

@@ -162,7 +162,7 @@ jobs:
 
     - name: Comment PR with QA Results
       if: always() && github.event_name == 'pull_request' && steps.qa-analysis.outputs.qa_report_exists == 'true'
-      uses: actions/github-script@v6
+      uses: actions/github-script@v4
       with:
         script: |
           const fs = require('fs');
@@ -182,7 +182,7 @@ jobs:
           const evaluation = qaResults.evaluation;
 
           // Create comment body
-          let statusText = evaluation.block_reasons.length > 0 ? '❌ Issues Found' : '✅ Passed';
+          let statusText = evaluation.block_reasons.length > 0 ? '❁EIssues Found' : '✁EPassed';
           let timeText = new Date().toLocaleString();
           let comment = '## 🔬 QA Engineering Analysis Results\n\n';
           comment += '**Status:** ' + statusText + '\n';
@@ -210,7 +210,7 @@ jobs:
           }
 
           if (evaluation.warnings.length > 0) {
-            comment += '### ⚠️ Warnings\n';
+            comment += '### ⚠�E�EWarnings\n';
             comment += evaluation.warnings.map(warning => '- ' + warning).join('\n');
             comment += '\n\n';
           }
@@ -268,12 +268,12 @@ jobs:
     - name: Update Branch Protection
       if: steps.qa-gate.outputs.qa_passed == 'true'
       run: |
-        echo "✅ QA gates passed - branch protection satisfied"
+        echo "✁EQA gates passed - branch protection satisfied"
 
     - name: Fail PR on QA Issues
       if: steps.qa-gate.outputs.qa_passed == 'false'
       run: |
-        echo "❌ QA gates failed - blocking merge"
+        echo "❁EQA gates failed - blocking merge"
         echo "Please review the QA analysis report and address critical issues"
         exit 1
 

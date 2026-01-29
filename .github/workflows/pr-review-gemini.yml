@@ -55,7 +55,7 @@ jobs:
 
       # Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
 
@@ -110,5 +110,5 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          echo "✅ Gemini CLI PR Review completed!"
+          echo "✁EGemini CLI PR Review completed!"
           echo "Check the PR comments for detailed feedback."

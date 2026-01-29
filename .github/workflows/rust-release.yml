@@ -19,7 +19,7 @@ jobs:
   tag-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.92
       - name: Validate tag matches Cargo.toml version
         shell: bash
@@ -29,9 +29,9 @@ jobs:
 
           # 1. Must be a tag and match the regex
           [[ "${GITHUB_REF_TYPE}" == "tag" ]] \
-            || { echo "❌  Not a tag push"; exit 1; }
+            || { echo "❁E Not a tag push"; exit 1; }
           [[ "${GITHUB_REF_NAME}" =~ ^rust-v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)(\.[0-9]+)?)?$ ]] \
-            || { echo "❌  Tag '${GITHUB_REF_NAME}' doesn't match expected format"; exit 1; }
+            || { echo "❁E Tag '${GITHUB_REF_NAME}' doesn't match expected format"; exit 1; }
 
           # 2. Extract versions
           tag_ver="${GITHUB_REF_NAME#rust-v}"
@@ -40,9 +40,9 @@ jobs:
 
           # 3. Compare
           [[ "${tag_ver}" == "${cargo_ver}" ]] \
-            || { echo "❌  Tag ${tag_ver} ≠ Cargo.toml ${cargo_ver}"; exit 1; }
+            || { echo "❁E Tag ${tag_ver} ≠ Cargo.toml ${cargo_ver}"; exit 1; }
 
-          echo "✅  Tag and Cargo.toml agree (${tag_ver})"
+          echo "✁E Tag and Cargo.toml agree (${tag_ver})"
           echo "::endgroup::"
 
       - name: Verify config schema fixture
@@ -88,7 +88,7 @@ jobs:
             target: aarch64-pc-windows-msvc
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Install UBSan runtime (musl)
         if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl' }}
         shell: bash
@@ -402,7 +402,7 @@ jobs:
             zstd "${zstd_args[@]}" "$dest/$base"
           done
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
           # Upload the per-binary .zst files as well as the new .tar.gz
@@ -436,7 +436,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Generate release notes from tag commit message
         id: release_notes
@@ -510,7 +510,7 @@ jobs:
           run_install: false
 
       - name: Setup Node.js for npm packaging
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
@@ -575,7 +575,7 @@ jobs:
 
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"

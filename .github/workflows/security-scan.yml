@@ -150,9 +150,9 @@ jobs:
         const { execSync } = require('child_process');
         try {
           execSync('node ../codex-cli/codex sandbox-test file-access');
-          console.log('✓ File access test passed');
+          console.log('✁EFile access test passed');
         } catch (e) {
-          console.log('✗ File access test failed:', e.message);
+          console.log('✁EFile access test failed:', e.message);
         }
         " || true
 
@@ -162,9 +162,9 @@ jobs:
         const { execSync } = require('child_process');
         try {
           execSync('node ../codex-cli/codex sandbox-test network-access');
-          console.log('✓ Network isolation test passed');
+          console.log('✁ENetwork isolation test passed');
         } catch (e) {
-          console.log('✗ Network isolation test failed:', e.message);
+          console.log('✁ENetwork isolation test failed:', e.message);
         }
         " || true
 
@@ -174,9 +174,9 @@ jobs:
         const { execSync } = require('child_process');
         try {
           execSync('node ../codex-cli/codex sandbox-test process-creation');
-          console.log('✓ Process isolation test passed');
+          console.log('✁EProcess isolation test passed');
         } catch (e) {
-          console.log('✗ Process isolation test failed:', e.message);
+          console.log('✁EProcess isolation test failed:', e.message);
         }
         " || true
 
