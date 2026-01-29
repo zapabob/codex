@@ -100,11 +100,11 @@ cargo install --path cli
 
 ### 🔧 Configuration
 
-```toml
 # ~/.codex/config.toml
+
 [model]
-provider = "openai"  # or "anthropic", "gemini"
-model = "gpt-4o"
+provider = "openai" # or "anthropic", "gemini"
+model = "gpt-5.2codex"
 
 [sandbox]
 enabled = true
@@ -112,6 +112,7 @@ network_access = false
 
 [parallel]
 max_agents = 4
+
 ```
 
 ---
@@ -143,11 +144,13 @@ max_agents = 4
 ### 🛠️ 技術スタック
 
 ```
-言語:       Rust 1.93, TypeScript, Python
-ランタイム:  Tokio (非同期), Ratatui (TUI)
+
+言語: Rust 1.93, TypeScript, Python
+ランタイム: Tokio (非同期), Ratatui (TUI)
 プラットフォーム: Windows, macOS, Linux (x86_64, aarch64)
-CI/CD:      GitHub Actions (22ワークフロー)
+CI/CD: GitHub Actions (22ワークフロー)
 セキュリティ: Windows Sandbox, ACL, DPAPI
+
 ```
 
 ### 📊 v2.12.1 リリースノート
@@ -191,3 +194,4 @@ Apache License 2.0
 [Issues](https://github.com/zapabob/Codex/issues) | [Releases](https://github.com/zapabob/Codex/releases) | [Documentation](./_docs/)
 
 </div>
+```
