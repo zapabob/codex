@@ -1,0 +1,29 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+overrides:
+  braces: ^3.0.3
+  micromatch: ^4.0.8
+  semver: ^7.7.1
+
+importers:
+
+  .:
+    devDependencies:
+      prettier:
+        specifier: ^3.5.3
+        version: 3.8.1
+
+packages:
+
+  prettier@3.8.1:
+    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
+    engines: {node: '>=14'}
+    hasBin: true
+
+snapshots:
+
+  prettier@3.8.1: {}
