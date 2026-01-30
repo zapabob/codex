@@ -3292,10 +3292,11 @@ pub(crate) async fn run_turn(
         &turn_context.tools_config,
         Some(
             mcp_tools
-                .into_iter()
-                .map(|(name, tool)| (name, tool.tool))
+                .iter()
+                .map(|(name, info)| (name.clone(), info.tool.clone()))
                 .collect(),
         ),
+        &[],
     ));
 
     loop {
@@ -3328,12 +3329,27 @@ pub(crate) async fn run_turn(
             explicit_app_paths: &explicit_app_paths,
             skill_name_counts_lower: &skill_name_counts_lower,
         };
-        match run_sampling_request(
+        let turn_diff_tracker = Arc::new(tokio::sync::Mutex::new(
+            crate::turn_diff_tracker::TurnDiffTracker::new(),
+        ));
+        let prompt = crate::client_common::Prompt {
+            input: sampling_request_input,
+            tools: router.specs(),
+            parallel_tool_calls: false, // Default
+            base_instructions: codex_protocol::models::BaseInstructions {
+                text: String::new(),
+            }, // TODO: correct source?
+            personality: None,
+            output_schema: None,
+        };
+
+        match try_run_sampling_request(
+            Arc::clone(&router),
             Arc::clone(&sess),
             Arc::clone(&turn_context),
             &mut client_session,
-            sampling_request_input,
-            tool_selection,
+            turn_diff_tracker,
+            &prompt,
             cancellation_token.child_token(),
         )
         .await

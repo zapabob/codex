@@ -29,6 +29,7 @@ use crate::sandboxing::CommandSpec;
 use crate::sandboxing::ExecEnv;
 use crate::sandboxing::SandboxManager;
 use crate::sandboxing::SandboxPermissions;
+use crate::sandboxing::SandboxTransformError;
 use crate::spawn::StdioPolicy;
 use crate::spawn::spawn_child_async;
 use crate::text_encoding::bytes_to_string_smart;
@@ -191,9 +192,8 @@ pub async fn process_exec_tool_call(
             sandbox_type,
             sandbox_cwd,
             codex_linux_sandbox_exe.as_ref(),
-            windows_sandbox_level,
         )
-        .map_err(CodexErr::from)?;
+        .map_err(|err| SandboxTransformError::Transform(err.to_string()))?;
 
     // Route through the sandboxing module for a single, unified execution path.
     crate::sandboxing::execute_env(exec_env, sandbox_policy, stdout_stream).await
@@ -210,8 +210,8 @@ pub(crate) async fn execute_exec_env(
         env,
         expiration,
         sandbox,
-        windows_sandbox_level,
         sandbox_permissions,
+        // sandbox_permissions removed to avoid duplicate binding
         justification,
         arg0,
     } = env;
@@ -222,7 +222,7 @@ pub(crate) async fn execute_exec_env(
         expiration,
         env,
         sandbox_permissions,
-        windows_sandbox_level,
+        windows_sandbox_level: Default::default(),
         justification,
         arg0,
     };

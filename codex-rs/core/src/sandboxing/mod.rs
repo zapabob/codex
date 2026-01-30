@@ -6,6 +6,8 @@ sandbox placement and transformation of portable CommandSpec into a
 ready‑to‑spawn environment.
 */
 
+#[cfg(feature = "custom-features")]
+use crate::cowork_integration::CoworkIntegrationManager;
 use crate::exec::ExecExpiration;
 use crate::exec::ExecToolCallOutput;
 use crate::exec::SandboxType;
@@ -21,8 +23,6 @@ use crate::seatbelt::create_seatbelt_command_args;
 use crate::spawn::CODEX_SANDBOX_ENV_VAR;
 use crate::spawn::CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use crate::tools::sandboxing::SandboxablePreference;
-#[cfg(feature = "custom-features")]
-use crate::cowork_integration::CoworkIntegrationManager;
 pub use codex_protocol::models::SandboxPermissions;
 use std::collections::HashMap;
 use std::path::Path;
@@ -64,6 +64,8 @@ pub(crate) enum SandboxTransformError {
     #[cfg(not(target_os = "macos"))]
     #[error("seatbelt sandbox is only available on macOS")]
     SeatbeltUnavailable,
+    #[error("sandbox transformation error: {0}")]
+    Transform(String),
 }
 
 #[derive(Default)]
@@ -90,7 +92,10 @@ impl SandboxManager {
 
     /// Enable cowork functionality within sandbox
     #[cfg(feature = "custom-features")]
-    pub fn enable_cowork_in_sandbox(&mut self, config: crate::cowork_integration::CoworkIntegrationConfig) {
+    pub fn enable_cowork_in_sandbox(
+        &mut self,
+        config: crate::cowork_integration::CoworkIntegrationConfig,
+    ) {
         self.cowork_manager = Some(CoworkIntegrationManager::new(config));
     }
 
@@ -104,13 +109,13 @@ impl SandboxManager {
             SandboxablePreference::Require => {
                 // Require a platform sandbox when available; on Windows this
                 // respects the experimental_windows_sandbox feature.
-                crate::safety::get_platform_sandbox().unwrap_or(SandboxType::None)
+                crate::safety::get_platform_sandbox(false).unwrap_or(SandboxType::None)
             }
             SandboxablePreference::Auto => match policy {
                 SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. } => {
                     SandboxType::None
                 }
-                _ => crate::safety::get_platform_sandbox().unwrap_or(SandboxType::None),
+                _ => crate::safety::get_platform_sandbox(false).unwrap_or(SandboxType::None),
             },
         }
     }

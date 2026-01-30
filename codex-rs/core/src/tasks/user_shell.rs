@@ -87,10 +87,7 @@ impl SessionTask for UserShellCommandTask {
             .map(|s| s.to_string())
             .collect();
         if command_might_be_dangerous(&command_vec) {
-            error!(
-                "Dangerous user shell command blocked: {:?}",
-                self.command
-            );
+            error!("Dangerous user shell command blocked: {:?}", self.command);
             let blocked_message = format!(
                 "Error: Dangerous command blocked for security reasons: {command:?}. Commands like 'rm -rf', 'sudo', and destructive git operations are not allowed.",
                 command = self.command
@@ -166,7 +163,6 @@ impl SessionTask for UserShellCommandTask {
             // should use that instead of an "arbitrarily large" timeout here.
             expiration: USER_SHELL_TIMEOUT_MS.into(),
             sandbox: SandboxType::None,
-            windows_sandbox_level: turn_context.windows_sandbox_level,
             sandbox_permissions: SandboxPermissions::UseDefault,
             justification: None,
             arg0: None,

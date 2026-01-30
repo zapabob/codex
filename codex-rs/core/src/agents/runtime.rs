@@ -280,6 +280,7 @@ Only output the JSON, no explanation."#;
             ReasoningSummary::Detailed,
             self.conversation_id,
             codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
+            crate::transport_manager::TransportManager::new(),
         );
 
         let mut client_session = model_client.new_session();
@@ -656,6 +657,7 @@ Only output the JSON, no explanation."#;
             ReasoningSummary::Detailed,
             self.conversation_id,
             codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
+            crate::transport_manager::TransportManager::new(),
         );
 
         // 4. ResponseItem構築（Promptに渡す）
@@ -924,6 +926,7 @@ artifacts:
             stream_idle_timeout_ms: Some(300_000),
             experimental_bearer_token: None,
             requires_openai_auth: false,
+            supports_websockets: false,
         };
         let conversation_id = ThreadId::new();
         let otel_manager = OtelEventManager::new(
@@ -1008,6 +1011,7 @@ artifacts:
             stream_idle_timeout_ms: Some(300_000),
             experimental_bearer_token: None,
             requires_openai_auth: false,
+            supports_websockets: false,
         };
         let conversation_id = ThreadId::new();
         let otel_manager = OtelEventManager::new(
@@ -1380,6 +1384,7 @@ impl AgentRuntime {
             ReasoningSummary::Detailed,
             self.conversation_id,
             codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
+            crate::transport_manager::TransportManager::new(),
         );
 
         let mut client_session = model_client.new_session();

@@ -246,7 +246,7 @@ mod tests {
         let input: Vec<ResponseItem> = vec![];
         let tools: Vec<serde_json::Value> = vec![];
         let req = ResponsesApiRequest {
-            model: "gpt-5.1",
+            model: "gpt-5.2-codex",
             instructions: "i",
             input: &input,
             tools: &tools,
@@ -287,7 +287,7 @@ mod tests {
             create_text_param_for_request(None, &Some(schema.clone())).expect("text controls");
 
         let req = ResponsesApiRequest {
-            model: "gpt-5.1",
+            model: "gpt-5.2-codex",
             instructions: "i",
             input: &input,
             tools: &tools,
@@ -323,7 +323,7 @@ mod tests {
         let input: Vec<ResponseItem> = vec![];
         let tools: Vec<serde_json::Value> = vec![];
         let req = ResponsesApiRequest {
-            model: "gpt-5.1",
+            model: "gpt-5.2-codex",
             instructions: "i",
             input: &input,
             tools: &tools,

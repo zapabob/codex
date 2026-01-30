@@ -89,11 +89,9 @@ impl ToolOrchestrator {
         // 2) First attempt under the selected sandbox.
         let initial_sandbox = match tool.sandbox_mode_for_first_attempt(req) {
             SandboxOverride::BypassSandboxFirstAttempt => crate::exec::SandboxType::None,
-            SandboxOverride::NoOverride => self.sandbox.select_initial(
-                &turn_ctx.sandbox_policy,
-                tool.sandbox_preference(),
-                turn_ctx.windows_sandbox_level,
-            ),
+            SandboxOverride::NoOverride => self
+                .sandbox
+                .select_initial(&turn_ctx.sandbox_policy, tool.sandbox_preference()),
         };
 
         // Platform-specific flag gating is handled by SandboxManager::select_initial
