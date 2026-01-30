@@ -1,8 +1,10 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
    Compiling codex-execpolicy v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy)
     Checking codex-protocol v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\protocol)
     Checking codex-api v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\codex-api)
-    Checking codex-rmcp-client v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\rmcp-client)
     Checking codex-app-server-protocol v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\app-server-protocol)
+    Checking codex-rmcp-client v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\rmcp-client)
     Checking codex-windows-sandbox v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\windows-sandbox-rs)
 warning: unnecessary `unsafe` block
    --> windows-sandbox-rs\src\token.rs:171:40
@@ -36,25 +38,19 @@ warning: `codex-windows-sandbox` (lib) generated 3 warnings
     Checking codex-deep-research v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\deep-research)
     Checking codex-otel v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\otel)
     Checking codex-core v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
-error: encountered diff marker
-   --> core\src\client.rs:293:1
+error: this file contains an unclosed delimiter
+   --> core\src\tools\handlers\shell.rs:448:3
     |
-293 | <<<<<<< HEAD
-    | ^^^^^^^ between this marker and `=======` is the code that we're merging into
-294 |     #[allow(clippy::result_large_err)]
-295 | =======
-    | ------- between this marker and `>>>>>>>` is the incoming code
+196 | impl ShellHandler {
+    |                   - unclosed delimiter
 ...
-324 | >>>>>>> upstream/main
-    | ^^^^^^^ this marker concludes the conflict region
-    |
-    = note: conflict markers indicate that a merge was started but could not be completed due to merge conflicts
-            to resolve a conflict, keep only the code you want and then delete the lines containing conflict markers
-    = help: if you're having merge conflicts after pulling new code:
-            the top section is the code you already had and the bottom section is the remote code
-            if you're in the middle of a rebase:
-            the top section is the code being rebased onto and the bottom section is the code coming from the current commit being rebased
-    = note: for an explanation on these markers from the `git` documentation:
-            visit <https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_checking_out_conflicts>
+207 |     ) -> Result<ToolOutput, FunctionCallError> {
+    |                                                - this delimiter might not be properly closed...
+...
+318 | }
+    | - ...as it matches this but it has different indentation
+...
+448 | }
+    |  ^
 
 error: could not compile `codex-core` (lib) due to 1 previous error

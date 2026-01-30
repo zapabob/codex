@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-v2.12.1-blue)
+![Version](https://img.shields.io/badge/version-v2.13.0-blue)
 ![Rust](https://img.shields.io/badge/rust-1.93-orange)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
@@ -23,97 +23,67 @@
 
 ### 🎯 Project Overview
 
-This is an advanced fork of OpenAI's Codex project, enhanced with custom features for enterprise-grade AI development workflows. The project demonstrates expertise in:
+**Codex** is an evolved fork of the original OpenAI Codex project, re-engineered for **enterprise-scale AI development**. This project serves as a comprehensive portfolio demonstrating advanced capabilities in systems programming, distributed architectures, and AI integration.
 
-- **Systems Programming (Rust)**: High-performance CLI/TUI applications with memory safety
-- **Distributed Systems**: Parallel sub-agent execution and Git worktree management
-- **Security Engineering**: Windows sandbox implementation with ACL/token management
-- **AI/ML Integration**: Multi-model orchestration (OpenAI, Anthropic, Google Gemini)
+Designed to solve complex coding tasks autonomously, Codex leverages a **multi-agent architecture** to plan, execute, and verify software changes securely and efficiently.
 
-### 🚀 Key Features (v2.12.1)
+### 🚀 Key Features (v2.13.0)
 
-| Feature                               | Description                            | Technical Highlight                               |
-| ------------------------------------- | -------------------------------------- | ------------------------------------------------- |
-| **Parallel Sub-Agent Execution**      | Run multiple AI agents concurrently    | Async Rust with Tokio runtime                     |
-| **Git Worktree Parallel Development** | Manage multiple workspaces efficiently | Conflict prevention & auto-merge                  |
-| **Windows Security Sandbox**          | Isolated execution environment         | Win32 ACL, token restriction, firewall rules      |
-| **A2A Communication**                 | Agent-to-Agent messaging protocol      | JSON-RPC based inter-agent coordination           |
-| **QC Optimization Competition**       | Quality control evaluation system      | Parallel scoring with quantum-inspired algorithms |
-| **MCP (Model Context Protocol)**      | Multi-model context management         | Unified API for multiple LLM providers            |
+This release introduces significant enhancements to the GUI and system integration subsystems.
 
-### 🏗️ Architecture
+| Feature domain           | Capabilities                                                      | Technical Stack                                      |
+| :----------------------- | :---------------------------------------------------------------- | :--------------------------------------------------- |
+| **🤖 Autonomous Agents** | Parallel sub-agent execution for complex tasks                    | **Rust (Tokio)**, Async/Await, Actor Model           |
+| **🛡️ Security Sandbox**  | Windows-native isolation for untrusted code execution             | **Win32 API**, ACLs, Token Manipulation, Job Objects |
+| **🖥️ Modern GUI**        | Real-time dashboard with system metrics & CLI bridge              | **Next.js**, React, WebSocket, Tailwind CSS          |
+| **⚡ Performance**       | High-concurrency I/O and low-latency IPC                          | **gRPC (Tonic)**, Named Pipes, Shared Memory         |
+| **🔌 Interoperability**  | **Model Context Protocol (MCP)** support for universal LLM access | JSON-RPC, SSE (Server-Sent Events)                   |
 
-```
-codex-rs/
-├── cli/              # Command-line interface (Rust)
-├── tui/              # Terminal UI with ratatui
-├── core/             # Core orchestration engine
-│   ├── agents/       # Parallel executor, runtime
-│   ├── orchestration/# Worktree manager, QC evaluator
-│   ├── qc/           # Quality control optimization
-│   └── a2a_communication.rs
-├── windows-sandbox-rs/  # Windows security sandbox
-│   ├── acl.rs        # Access Control Lists
-│   ├── token.rs      # Token restriction
-│   └── sandbox_users.rs
-├── mcp-server/       # Model Context Protocol server
-└── protocol/         # Communication protocols
-```
+### 🏗️ Engineering Highlights
 
-### 💻 Technical Skills Demonstrated
+#### 1. Robust Systems Programming (Rust)
 
-#### Rust Systems Programming
+- **Memory Safety**: Leveraged Rust's ownership model to ensure thread safety without garbage collection pauses.
+- **Error Handling**: Comprehensive error propagation using `anyhow` and `thiserror` for resilient long-running processes.
+- **Cross-Platform Abstractions**: Unified APIs for file system and process management across Windows, macOS, and Linux.
 
-- Zero-cost abstractions with async/await
-- Memory safety without garbage collection
-- Cross-platform compilation (Windows/macOS/Linux)
-- FFI with Windows sys-calls
+#### 2. Advanced GUI & Visualization
 
-#### DevOps & CI/CD
+- **Real-Time Telemetry**: Implemented a Node.js backend (`gui/server.js`) pushing CPU/GPU/RAM metrics via WebSockets.
+- **Interactive Dashboard**: Responsive React frontend allowing users to monitor agent status and intervene when necessary.
+- **CLI Bridge**: Seamless integration to execute and pipe CLI commands directly from the web interface.
 
-- GitHub Actions with 22+ workflow files
-- Multi-platform build matrix (x86_64, aarch64)
-- Automated release management
-- Security scanning integration
+#### 3. Security Engineering
 
-#### Security Engineering
+- **Windows Sandbox**: Engineered a custom sandbox using low-level Win32 APIs to restrict file system network access for AI-generated scripts.
+- **Fine-Grained Permissions**: Implemented capability-based security ensuring agents operate with least privilege.
 
-- Windows sandbox implementation from scratch
-- ACL manipulation and token restriction
-- Firewall rule automation
-- DPAPI encryption for secrets
-
-### 📦 Installation
+### 📦 Installation & Build
 
 ```bash
 # Clone the repository
 git clone https://github.com/zapabob/Codex.git
 cd Codex
 
-# Build release binaries
+# Build Release Binaries (Rust)
 cd codex-rs
 cargo build --release
 
-# Install to ~/.cargo/bin
-cargo install --path cli
+# Start GUI (Optional)
+cd ../gui
+npm install
+node server.js
 ```
 
-### 🔧 Configuration
+### 👨‍💻 Author / Developer
 
-# ~/.codex/config.toml
+**Ryo Minegishi** - _Full Stack Engineer & AI Systems Architect_
 
-[model]
-provider = "openai" # or "anthropic", "gemini"
-model = "gpt-5.2codex"
+Demonstrating expertise in:
 
-[sandbox]
-enabled = true
-network_access = false
-
-[parallel]
-max_agents = 4
-
-```
+- **Languages**: Rust, TypeScript, Python, C++
+- **Cloud/Infra**: Docker, Kubernetes, GitHub Actions (CI/CD)
+- **AI/ML**: LLM Orchestration, Prompt Engineering, RAG Pipelines
 
 ---
 
@@ -123,67 +93,66 @@ max_agents = 4
 
 ### 🎯 プロジェクト概要
 
-このプロジェクトはOpenAIのCodexプロジェクトの高度なフォークであり、エンタープライズグレードのAI開発ワークフロー向けにカスタム機能を追加しています。以下の専門性を実証しています：
+**Codex** は、OpenAIのCodexプロジェクトをベースに、**エンタープライズレベルのAI開発**に耐えうるよう再設計された高度なフォークプロジェクトです。
 
-- **システムプログラミング (Rust)**: メモリ安全性を備えた高性能CLI/TUIアプリケーション
-- **分散システム**: 並列サブエージェント実行とGit worktree管理
-- **セキュリティエンジニアリング**: ACL/トークン管理によるWindowsサンドボックス実装
-- **AI/ML統合**: マルチモデルオーケストレーション (OpenAI、Anthropic、Google Gemini)
+本プロジェクトは、システムプログラミング、分散アーキテクチャ、そしてAI統合における高度な技術力を実証するポートフォリオとして機能します。**マルチエージェント・アーキテクチャ**を採用し、ソフトウェア変更の計画・実行・検証を自律的かつセキュアに行います。
 
-### 🚀 主要機能 (v2.12.1)
+### 🚀 主な機能 (v2.13.0)
 
-| 機能                                  | 説明                                   | 技術的ハイライト                                   |
-| ------------------------------------- | -------------------------------------- | -------------------------------------------------- |
-| **並列サブエージェント実行**          | 複数のAIエージェントを同時実行         | Tokioランタイムによる非同期Rust                    |
-| **Git Worktree並列開発**              | 複数ワークスペースの効率的管理         | コンフリクト防止と自動マージ                       |
-| **Windowsセキュリティサンドボックス** | 隔離された実行環境                     | Win32 ACL、トークン制限、ファイアウォールルール    |
-| **A2A通信**                           | エージェント間メッセージングプロトコル | JSON-RPCベースのエージェント間調整                 |
-| **QC最適化コンペティション**          | 品質管理評価システム                   | 量子インスパイアアルゴリズムによる並列スコアリング |
-| **MCP (Model Context Protocol)**      | マルチモデルコンテキスト管理           | 複数LLMプロバイダー向け統一API                     |
+v2.13.0では、GUIとシステム統合サブシステムに大幅な強化が施されました。
 
-### 🛠️ 技術スタック
+| 機能ドメイン            | 機能詳細                                              | 技術スタック                                |
+| :---------------------- | :---------------------------------------------------- | :------------------------------------------ |
+| **🤖 自律エージェント** | 複雑なタスクを並列実行するサブエージェント群          | **Rust (Tokio)**, Async/Await, Actor Model  |
+| **🛡️ セキュリティ**     | Windowsネイティブの隔離サンドボックス環境             | **Win32 API**, ACL制御, ジョブオブジェクト  |
+| **🖥️ モダンGUI**        | リアルタイムメトリクスとCLI連携を備えたダッシュボード | **Next.js**, React, WebSocket, Tailwind CSS |
+| **⚡ パフォーマンス**   | 高並行処理と低レイテンシIPC                           | **gRPC (Tonic)**, 名前付きパイプ            |
+| **🔌 相互運用性**       | **Model Context Protocol (MCP)** による汎用LLM接続    | JSON-RPC, SSE                               |
 
+### 🏗️ エンジニアリング・ハイライト
+
+#### 1. 堅牢なシステムプログラミング (Rust)
+
+- **メモリ安全性**: ガベージコレクションに頼らず、Rustの所有権モデルでスレッドセーフを確立。
+- **エラー処理**: `anyhow` や `thiserror` を駆使した、長時間稼働に耐える堅牢なエラーハンドリング設計。
+
+#### 2. 高度なGUIと可視化
+
+- **リアルタイム・テレメトリ**: Node.jsバックエンドによるCPU/GPU/メモリ使用率のWebSocket配信。
+- **インタラクティブ・ダッシュボード**: エージェントの状態監視と介入を可能にするReactフロントエンド。
+- **CLIブリッジ**: Webインターフェースから直接CLIコマンドを実行・パイプする機能の実装。
+
+#### 3. セキュリティエンジニアリング
+
+- **Windowsサンドボックス**: Win32 APIを直接操作し、AI生成スクリプトのファイル・ネットワークアクセスを厳格に制限。
+- **最小権限の原則**: ケーパビリティベースのセキュリティモデルによる権限管理。
+
+### 📦 インストールとビルド
+
+```bash
+# リポジトリのクローン
+git clone https://github.com/zapabob/Codex.git
+cd Codex
+
+# リリースビルド (Rust)
+cd codex-rs
+cargo build --release
+
+# GUIの起動 (オプション)
+cd ../gui
+npm install
+node server.js
 ```
 
-言語: Rust 1.93, TypeScript, Python
-ランタイム: Tokio (非同期), Ratatui (TUI)
-プラットフォーム: Windows, macOS, Linux (x86_64, aarch64)
-CI/CD: GitHub Actions (22ワークフロー)
-セキュリティ: Windows Sandbox, ACL, DPAPI
+### 👨‍💻 開発者 / Author
 
-```
+**Ryo Minegishi** - _Full Stack Engineer & AI Systems Architect_
 
-### 📊 v2.12.1 リリースノート
+スキルセット:
 
-#### 修正内容
-
-1. **windows-sandbox-rs モジュール構造修正**
-   - 二重モジュール宣言の問題を解決
-   - `sandbox_users.rs`のインポートパス修正
-   - ローカル`log_line`関数の実装
-
-2. **Upstream統合**
-   - OpenAI/codex公式リポジトリからの最新機能取り込み
-   - セキュリティ更新とバグ修正の適用
-   - 独自機能の完全保持
-
-3. **CI/CD修正**
-   - GitHub Actions @v6 → @v4 置換 (52箇所以上)
-   - 壊れたバリデーションの削除
-
-### 🎓 開発者について
-
-このプロジェクトは以下のスキルセットを持つエンジニアによって開発されています：
-
-- Rustによる高性能システムプログラミング
-- Windowsカーネル/セキュリティAPI
-- 分散システムとマルチエージェントアーキテクチャ
-- CI/CDパイプライン設計と自動化
-- AI/LLM統合とプロンプトエンジニアリング
-
-### 📄 ライセンス
-
-Apache License 2.0
+- **言語**: Rust, TypeScript, Python, C++
+- **インフラ**: Docker, Kubernetes, GitHub Actions
+- **AI/ML**: LLMオーケストレーション, RAGパイプライン, プロンプトエンジニアリング
 
 ---
 
@@ -194,4 +163,3 @@ Apache License 2.0
 [Issues](https://github.com/zapabob/Codex/issues) | [Releases](https://github.com/zapabob/Codex/releases) | [Documentation](./_docs/)
 
 </div>
-```
