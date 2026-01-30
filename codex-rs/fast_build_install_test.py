@@ -533,38 +533,15 @@ def main():
     target_dir = os.environ.get('CARGO_TARGET_DIR', 'target')
     print(f"\n📁 ビルドディレクトリ: {target_dir}")
     
-    # 0. クリーンビルド（cargo clean）
+    # 1. 高速差分ビルド（codex-cli & codex-tui）
     print("\n" + "="*70)
-    print("🧹 Phase 0: クリーンビルド (cargo clean)")
-    print("="*70)
-    
-    print("\n🧹 ビルドキャッシュをクリーン中...")
-    clean_start = time.time()
-    clean_result = subprocess.run(
-        ["cargo", "clean"],
-        capture_output=True,
-        text=True,
-        encoding='utf-8',
-        errors='replace'
-    )
-    clean_elapsed = time.time() - clean_start
-    
-    if clean_result.returncode == 0:
-        print(f"✅ クリーン完了 (経過: {clean_elapsed:.2f}秒)")
-    else:
-        print(f"⚠️  クリーンで警告がありましたが続行します (経過: {clean_elapsed:.2f}秒)")
-        if clean_result.stderr:
-            print(f"   警告: {clean_result.stderr[:200]}")
-    
-    # 1. 高速差分ビルド（codex-cli）
-    print("\n" + "="*70)
-    print("📦 Phase 1: 高速差分ビルド (codex-cli)")
+    print("📦 Phase 1: 高速差分ビルド (codex-cli, codex-tui)")
     print("="*70)
     
     build_success, build_errors, build_warnings, build_elapsed, build_count = build_with_progress(
-        ["cargo", "build", "--release", "-p", "codex-cli"],
-        "codex-cli (リリースビルド)",
-        total_estimated=80  # 推定クレート数
+        ["cargo", "build", "--release", "-p", "codex-cli", "-p", "codex-tui"],
+        "codex (リリースビルド)",
+        total_estimated=85  # 推定クレート数
     )
     
     if not build_success:
@@ -614,11 +591,19 @@ def main():
     print("📥 Phase 2: バイナリ上書きインストール")
     print("="*70)
     
-    install_path = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser('~')), '.cargo', 'bin', 'codex.exe')
+    install_path_cli = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser('~')), '.cargo', 'bin', 'codex.exe')
+    source_path_tui = os.path.join(target_dir, "release", "codex-tui.exe")
+    install_path_tui = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser('~')), '.cargo', 'bin', 'codex-tui.exe')
     
-    if not install_binary(source_path, install_path):
-        print("\n❌ インストールに失敗しました")
+    cli_installed = install_binary(source_path, install_path_cli)
+    tui_installed = os.path.exists(source_path_tui) and install_binary(source_path_tui, install_path_tui)
+    
+    if not cli_installed:
+        print("\n❌ CLIのインストールに失敗しました")
         sys.exit(1)
+    
+    if not tui_installed:
+        print("\n⚠️  TUIのインストールに失敗したか、バイナリが見つかりません")
     
     # 4. 実機テスト（CLI）
     print("\n" + "="*70)
@@ -626,6 +611,9 @@ def main():
     print("="*70)
     
     test_results = test_binary("codex")
+    print("\n🧪 実機テストを実行中 (TUI)...")
+    tui_test_results = test_binary("codex-tui")
+    test_results.extend(tui_test_results)
     
     # 5. GUI Playwrightテスト
     print("\n" + "="*70)
