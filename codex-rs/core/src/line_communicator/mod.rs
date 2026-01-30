@@ -9,59 +9,12 @@
 
 use crate::Result;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
 
-/// LINE message types
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LineMessageType {
-    Text,
-    Image,
-    File,
-    Location,
-    Sticker,
-}
-
-/// LINE message structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LineMessage {
-    pub message_id: String,
-    pub message_type: LineMessageType,
-    pub text: Option<String>,
-    pub sender_id: String,
-    pub sender_name: String,
-    pub timestamp: i64,
-    pub reply_token: Option<String>,
-}
-
-/// Development command from LINE
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum DevelopmentCommand {
-    ExecuteCode { code: String, language: String },
-    CreateFile { path: String, content: String },
-    ReadFile { path: String },
-    RunTests,
-    DeployApp,
-    StatusCheck,
-    CustomCommand { command: String, args: Vec<String> },
-}
-
-/// LINE API response
-#[derive(Debug, Deserialize)]
-struct LineApiResponse {
-    #[serde(rename = "message")]
-    message: Option<String>,
-}
-
-/// LINE Communicator configuration
-#[derive(Debug, Clone)]
-pub struct LineConfig {
-    pub channel_access_token: String,
-    pub channel_secret: String,
-    pub webhook_url: String,
-}
+mod types;
+pub use types::*;
 
 /// LINE Communicator
 pub struct LineCommunicator {
@@ -70,16 +23,6 @@ pub struct LineCommunicator {
     active_sessions: Arc<Mutex<HashMap<String, DevelopmentSession>>>,
     command_tx: mpsc::UnboundedSender<CommunicationCommand>,
     command_rx: Arc<Mutex<Option<mpsc::UnboundedReceiver<CommunicationCommand>>>>,
-}
-
-/// Development session for each user
-#[derive(Debug, Clone)]
-pub struct DevelopmentSession {
-    pub user_id: String,
-    pub user_name: String,
-    pub current_project: Option<String>,
-    pub last_activity: chrono::DateTime<chrono::Utc>,
-    pub permissions: Vec<String>,
 }
 
 /// Communication commands
@@ -105,15 +48,6 @@ pub enum CommunicationCommand {
     EndSession {
         user_id: String,
     },
-}
-
-/// Command execution result
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommandResult {
-    pub success: bool,
-    pub output: String,
-    pub execution_time_ms: u64,
-    pub error: Option<String>,
 }
 
 impl LineCommunicator {
@@ -478,49 +412,4 @@ impl Default for LineCommunicator {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_command() {
-        let communicator = LineCommunicator::default();
-
-        // Test code execution command
-        let command = communicator.parse_command("/code python print('hello')");
-        assert!(matches!(
-            command,
-            Some(DevelopmentCommand::ExecuteCode { .. })
-        ));
-
-        // Test file creation command
-        let file_command = communicator.parse_command("/file test.txt Hello World");
-        assert!(matches!(
-            file_command,
-            Some(DevelopmentCommand::CreateFile { .. })
-        ));
-
-        // Test invalid command
-        let invalid = communicator.parse_command("invalid command");
-        assert!(invalid.is_none());
-    }
-
-    #[test]
-    fn test_session_management() {
-        let communicator = LineCommunicator::default();
-
-        // Start session
-        communicator.start_development_session("user123", "Test User");
-
-        // Check session exists
-        let sessions = communicator.get_active_sessions();
-        assert_eq!(sessions.len(), 1);
-        assert_eq!(sessions[0].user_id, "user123");
-
-        // End session
-        communicator.end_development_session("user123");
-
-        // Check session is removed
-        let sessions_after = communicator.get_active_sessions();
-        assert_eq!(sessions_after.len(), 0);
-    }
-}
+mod tests;
