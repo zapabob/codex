@@ -826,7 +826,7 @@ impl Git4DAcceleratedVisualizer {
                     // Borrow vr_ar temporarily to get events
                     let events = {
                         if let Some(vr_ar) = &mut self.vr_ar_integration {
-                            vr_ar.update().await?
+                            vr_ar.update().await.map_err(|e| e.to_string().into())?
                         } else {
                             Vec::new()
                         }
@@ -861,7 +861,8 @@ impl Git4DAcceleratedVisualizer {
 
                     if let Some(interaction) = vr_ar
                         .handle_gesture_interaction(gesture, hand, position)
-                        .await?
+                        .await
+                        .map_err(|e| e.to_string().into())?
                     {
                         let _ = self.interaction_sender.send(interaction.clone()).await;
                         let _ = self.event_sender.send(Git4DEvent::InteractionProcessed {

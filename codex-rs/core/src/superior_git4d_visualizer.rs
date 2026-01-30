@@ -862,7 +862,7 @@ impl SuperiorGit4DVisualizer {
     pub async fn process_vr_interaction_enhanced(
         &mut self,
         interaction: VRInteraction,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Process base VR interaction
         self.base_visualizer
             .process_vr_interaction(interaction.clone())
@@ -885,7 +885,7 @@ impl SuperiorGit4DVisualizer {
     async fn process_gesture_enhanced(
         &self,
         gesture: crate::vr_ar_integration::HandGesture,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Enhanced gesture processing with AI interpretation (temporarily disabled)
         if false {
             // Use AI to interpret complex gestures
@@ -899,7 +899,7 @@ impl SuperiorGit4DVisualizer {
     async fn interpret_gesture_with_ai(
         &self,
         _gesture: crate::vr_ar_integration::HandGesture,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         // AI-powered gesture interpretation
         // This would use the AI client to understand complex gestures
         Ok("time_travel_backward".to_string()) // Placeholder
@@ -908,7 +908,7 @@ impl SuperiorGit4DVisualizer {
     async fn execute_gesture_action(
         &self,
         action: String,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Execute the interpreted action
         match action.as_str() {
             "time_travel_backward" => {
@@ -928,7 +928,7 @@ impl SuperiorGit4DVisualizer {
     async fn process_voice_command_enhanced(
         &self,
         command: String,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Enhanced voice command processing with NLP (temporarily disabled)
         if false {
             let parsed_command = self.parse_voice_command_with_ai(command).await?;
@@ -941,7 +941,7 @@ impl SuperiorGit4DVisualizer {
     async fn parse_voice_command_with_ai(
         &self,
         _command: String,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         // Use AI to parse natural language voice commands
         Ok("show_collaboration_network".to_string()) // Placeholder
     }
@@ -949,7 +949,7 @@ impl SuperiorGit4DVisualizer {
     async fn execute_voice_command(
         &self,
         command: String,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         match command.as_str() {
             "show_collaboration_network" => {
                 self.show_collaboration_network().await?;
@@ -964,22 +964,28 @@ impl SuperiorGit4DVisualizer {
     }
 
     // Placeholder methods for enhanced features
-    async fn time_travel_backward(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn time_travel_backward(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Implement time travel functionality
         Ok(())
     }
 
-    async fn focus_high_impact_commits(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn focus_high_impact_commits(
+        &self,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Focus on high-impact commits
         Ok(())
     }
 
-    async fn show_collaboration_network(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn show_collaboration_network(
+        &self,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Show collaboration network visualization
         Ok(())
     }
 
-    async fn analyze_sentiment_trends(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn analyze_sentiment_trends(
+        &self,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Analyze sentiment trends over time
         Ok(())
     }
@@ -993,7 +999,7 @@ impl SuperiorGit4DVisualizer {
     pub async fn export_enhanced_data(
         &self,
         format: &str,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         // Export 5D/6D visualization data
         match format {
             "json" => {
