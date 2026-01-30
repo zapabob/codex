@@ -135,3 +135,4 @@ codex-rs/build_error.txt
 codex-rs/build_log.txt
 gui/gui_build.txt
 gui/gui_build_utf8.txt
+gui/gui_build_final.txt
