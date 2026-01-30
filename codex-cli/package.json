@@ -1,58 +1,22 @@
 {
-  "name": "@zapabob/codex",
-  "version": "2.8.2",
-  "description": "AI-Native OS with 4D Git Visualization & VR/AR Support - The world's first AI operating system with kernel integration",
+  "name": "@openai/codex",
+  "version": "0.0.0-dev",
   "license": "Apache-2.0",
   "bin": {
     "codex": "bin/codex.js"
   },
   "type": "module",
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=16"
   },
-  "os": [
-    "darwin",
-    "linux",
-    "win32"
-  ],
-  "cpu": [
-    "x64",
-    "arm64"
-  ],
   "files": [
     "bin",
-    "vendor",
-    "README.md",
-    "LICENSE"
-  ],
-  "keywords": [
-    "ai",
-    "coding-assistant",
-    "llm",
-    "git-visualization",
-    "vr",
-    "ar",
-    "quest",
-    "vision-pro",
-    "cuda",
-    "kernel",
-    "sub-agents",
-    "mcp",
-    "deep-research"
+    "vendor"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zapabob/codex.git",
+    "url": "git+https://github.com/openai/codex.git",
     "directory": "codex-cli"
   },
-  "author": "zapabob <zapabob@github.com>",
-  "bugs": {
-    "url": "https://github.com/zapabob/codex/issues"
-  },
-  "homepage": "https://github.com/zapabob/codex#readme",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  }
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }

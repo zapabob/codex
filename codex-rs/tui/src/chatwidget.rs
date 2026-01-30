@@ -31,6 +31,7 @@ use std::time::Instant;
 use crate::version::CODEX_CLI_VERSION;
 use codex_app_server_protocol::AuthMode;
 use codex_backend_client::Client as BackendClient;
+use codex_chatgpt::connectors;
 use codex_core::config::Config;
 use codex_core::config::ConstraintResult;
 use codex_core::config::types::Notifications;
@@ -48,6 +49,7 @@ use codex_core::protocol::AgentReasoningRawContentDeltaEvent;
 use codex_core::protocol::AgentReasoningRawContentEvent;
 use codex_core::protocol::ApplyPatchApprovalRequestEvent;
 use codex_core::protocol::BackgroundEventEvent;
+use codex_core::protocol::CodexErrorInfo;
 use codex_core::protocol::CreditsSnapshot;
 use codex_core::protocol::DeprecationNoticeEvent;
 use codex_core::protocol::ErrorEvent;
@@ -131,6 +133,7 @@ const PLAN_IMPLEMENTATION_NO: &str = "No, stay in Plan mode";
 const PLAN_IMPLEMENTATION_CODING_MESSAGE: &str = "Implement the plan.";
 
 use crate::app_event::AppEvent;
+use crate::app_event::ConnectorsSnapshot;
 use crate::app_event::ExitMode;
 #[cfg(target_os = "windows")]
 use crate::app_event::WindowsSandboxEnableMode;
@@ -189,7 +192,9 @@ pub(crate) use self::agent::spawn_op_forwarder;
 mod session_header;
 use self::session_header::SessionHeader;
 mod skills;
-use self::skills::find_skill_mentions;
+use self::skills::collect_tool_mentions;
+use self::skills::find_app_mentions;
+use self::skills::find_skill_mentions_with_tool_mentions;
 use crate::streaming::controller::StreamController;
 use std::path::Path;
 
@@ -386,6 +391,42 @@ enum RateLimitSwitchPromptState {
     Shown,
 }
 
+#[derive(Debug, Clone, Default)]
+enum ConnectorsCacheState {
+    #[default]
+    Uninitialized,
+    Loading,
+    Ready(ConnectorsSnapshot),
+    Failed(String),
+}
+
+#[derive(Debug)]
+enum RateLimitErrorKind {
+    ModelCap {
+        model: String,
+        reset_after_seconds: Option<u64>,
+    },
+    UsageLimit,
+    Generic,
+}
+
+fn rate_limit_error_kind(info: &CodexErrorInfo) -> Option<RateLimitErrorKind> {
+    match info {
+        CodexErrorInfo::ModelCap {
+            model,
+            reset_after_seconds,
+        } => Some(RateLimitErrorKind::ModelCap {
+            model: model.clone(),
+            reset_after_seconds: *reset_after_seconds,
+        }),
+        CodexErrorInfo::UsageLimitExceeded => Some(RateLimitErrorKind::UsageLimit),
+        CodexErrorInfo::ResponseTooManyFailedAttempts {
+            http_status_code: Some(429),
+        } => Some(RateLimitErrorKind::Generic),
+        _ => None,
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(crate) enum ExternalEditorState {
     #[default]
@@ -460,6 +501,7 @@ pub(crate) struct ChatWidget {
     /// bottom pane is treated as "running" while this is populated, even if no agent turn is
     /// currently executing.
     mcp_startup_status: Option<HashMap<String, McpStartupStatus>>,
+    connectors_cache: ConnectorsCacheState,
     // Queue of interruptive UI events deferred during an active write cycle
     interrupts: InterruptManager,
     // Accumulates the current reasoning block text to extract a header
@@ -549,6 +591,7 @@ pub(crate) struct UserMessage {
     text: String,
     local_images: Vec<LocalImageAttachment>,
     text_elements: Vec<TextElement>,
+    mention_paths: HashMap<String, String>,
 }
 
 impl From<String> for UserMessage {
@@ -558,6 +601,7 @@ impl From<String> for UserMessage {
             local_images: Vec::new(),
             // Plain text conversion has no UI element ranges.
             text_elements: Vec::new(),
+            mention_paths: HashMap::new(),
         }
     }
 }
@@ -569,6 +613,7 @@ impl From<&str> for UserMessage {
             local_images: Vec::new(),
             // Plain text conversion has no UI element ranges.
             text_elements: Vec::new(),
+            mention_paths: HashMap::new(),
         }
     }
 }
@@ -594,6 +639,7 @@ pub(crate) fn create_initial_user_message(
             text,
             local_images,
             text_elements,
+            mention_paths: HashMap::new(),
         })
     }
 }
@@ -607,12 +653,14 @@ fn remap_placeholders_for_message(message: UserMessage, next_label: &mut usize) 
         text,
         text_elements,
         local_images,
+        mention_paths,
     } = message;
     if local_images.is_empty() {
         return UserMessage {
             text,
             text_elements,
             local_images,
+            mention_paths,
         };
     }
 
@@ -667,6 +715,7 @@ fn remap_placeholders_for_message(message: UserMessage, next_label: &mut usize) 
         text: rebuilt,
         local_images: remapped_images,
         text_elements: rebuilt_elements,
+        mention_paths,
     }
 }
 
@@ -732,6 +781,7 @@ impl ChatWidget {
         self.bottom_pane
             .set_history_metadata(event.history_log_id, event.history_entry_count);
         self.set_skills(None);
+        self.bottom_pane.set_connectors_snapshot(None);
         self.thread_id = Some(event.session_id);
         self.forked_from = event.forked_from_id;
         self.current_rollout_path = event.rollout_path.clone();
@@ -762,6 +812,9 @@ impl ChatWidget {
             cwds: Vec::new(),
             force_reload: true,
         });
+        if self.connectors_enabled() {
+            self.prefetch_connectors();
+        }
         if let Some(user_message) = self.initial_user_message.take() {
             self.submit_user_message(user_message);
         }
@@ -792,6 +845,25 @@ impl ChatWidget {
             rollout,
             self.app_event_tx.clone(),
             include_logs,
+        );
+        self.bottom_pane.show_view(Box::new(view));
+        self.request_redraw();
+    }
+
+    pub(crate) fn open_app_link_view(
+        &mut self,
+        title: String,
+        description: Option<String>,
+        instructions: String,
+        url: String,
+        is_installed: bool,
+    ) {
+        let view = crate::bottom_pane::AppLinkView::new(
+            title,
+            description,
+            instructions,
+            url,
+            is_installed,
         );
         self.bottom_pane.show_view(Box::new(view));
         self.request_redraw();
@@ -1112,6 +1184,24 @@ impl ChatWidget {
         self.maybe_show_pending_rate_limit_prompt();
     }
 
+    fn on_model_cap_error(&mut self, model: String, reset_after_seconds: Option<u64>) {
+        self.finalize_turn();
+
+        let mut message = format!("Model {model} is at capacity. Please try a different model.");
+        if let Some(seconds) = reset_after_seconds {
+            message.push_str(&format!(
+                " Try again in {}.",
+                format_duration_short(seconds)
+            ));
+        } else {
+            message.push_str(" Try again later.");
+        }
+
+        self.add_to_history(history_cell::new_warning_event(message));
+        self.request_redraw();
+        self.maybe_send_next_queued_input();
+    }
+
     fn on_error(&mut self, message: String) {
         self.finalize_turn();
         self.add_to_history(history_cell::new_error_event(message));
@@ -1240,6 +1330,7 @@ impl ChatWidget {
             text: self.bottom_pane.composer_text(),
             text_elements: self.bottom_pane.composer_text_elements(),
             local_images: self.bottom_pane.composer_local_images(),
+            mention_paths: HashMap::new(),
         };
 
         let mut to_merge: Vec<UserMessage> = self.queued_user_messages.drain(..).collect();
@@ -1251,6 +1342,7 @@ impl ChatWidget {
             text: String::new(),
             text_elements: Vec::new(),
             local_images: Vec::new(),
+            mention_paths: HashMap::new(),
         };
         let mut combined_offset = 0usize;
         let mut next_image_label = 1usize;
@@ -1272,6 +1364,7 @@ impl ChatWidget {
                     elem
                 }));
             combined.local_images.extend(message.local_images);
+            combined.mention_paths.extend(message.mention_paths);
         }
 
         Some(combined)
@@ -2023,6 +2116,7 @@ impl ChatWidget {
             unified_exec_processes: Vec::new(),
             agent_turn_running: false,
             mcp_startup_status: None,
+            connectors_cache: ConnectorsCacheState::default(),
             interrupts: InterruptManager::new(),
             reasoning_buffer: String::new(),
             full_reasoning_buffer: String::new(),
@@ -2065,6 +2159,10 @@ impl ChatWidget {
                 ),
         );
         widget.update_collaboration_mode_indicator();
+
+        widget
+            .bottom_pane
+            .set_connectors_enabled(widget.config.features.enabled(Feature::Apps));
 
         widget
     }
@@ -2156,6 +2254,7 @@ impl ChatWidget {
             unified_exec_processes: Vec::new(),
             agent_turn_running: false,
             mcp_startup_status: None,
+            connectors_cache: ConnectorsCacheState::default(),
             interrupts: InterruptManager::new(),
             reasoning_buffer: String::new(),
             full_reasoning_buffer: String::new(),
@@ -2282,6 +2381,7 @@ impl ChatWidget {
             unified_exec_processes: Vec::new(),
             agent_turn_running: false,
             mcp_startup_status: None,
+            connectors_cache: ConnectorsCacheState::default(),
             interrupts: InterruptManager::new(),
             reasoning_buffer: String::new(),
             full_reasoning_buffer: String::new(),
@@ -2431,6 +2531,7 @@ impl ChatWidget {
                             .bottom_pane
                             .take_recent_submission_images_with_placeholders(),
                         text_elements,
+                        mention_paths: self.bottom_pane.take_mention_paths(),
                     };
                     if self.is_session_configured() {
                         // Submitted is only emitted when steer is enabled (Enter sends immediately).
@@ -2453,6 +2554,7 @@ impl ChatWidget {
                             .bottom_pane
                             .take_recent_submission_images_with_placeholders(),
                         text_elements,
+                        mention_paths: self.bottom_pane.take_mention_paths(),
                     };
                     self.queue_user_message(user_message);
                 }
@@ -2676,6 +2778,9 @@ impl ChatWidget {
             SlashCommand::Mcp => {
                 self.add_mcp_output();
             }
+            SlashCommand::Apps => {
+                self.add_connectors_output();
+            }
             SlashCommand::Rollout => {
                 if let Some(path) = self.rollout_path() {
                     self.add_info_message(
@@ -2842,6 +2947,7 @@ impl ChatWidget {
             text,
             local_images,
             text_elements,
+            mention_paths,
         } = user_message;
         if text.is_empty() && local_images.is_empty() {
             return;
@@ -2880,12 +2986,30 @@ impl ChatWidget {
             });
         }
 
+        let mentions = collect_tool_mentions(&text, &mention_paths);
+        let mut skill_names_lower: HashSet<String> = HashSet::new();
+
         if let Some(skills) = self.bottom_pane.skills() {
-            let skill_mentions = find_skill_mentions(&text, skills);
+            skill_names_lower = skills
+                .iter()
+                .map(|skill| skill.name.to_ascii_lowercase())
+                .collect();
+            let skill_mentions = find_skill_mentions_with_tool_mentions(&mentions, skills);
             for skill in skill_mentions {
                 items.push(UserInput::Skill {
                     name: skill.name.clone(),
                     path: skill.path.clone(),
+                });
+            }
+        }
+
+        if let Some(apps) = self.connectors_for_mentions() {
+            let app_mentions = find_app_mentions(&mentions, apps, &skill_names_lower);
+            for app in app_mentions {
+                let app_id = app.id.as_str();
+                items.push(UserInput::Mention {
+                    name: app.name.clone(),
+                    path: format!("app://{app_id}"),
                 });
             }
         }
@@ -2901,6 +3025,7 @@ impl ChatWidget {
         let personality = self
             .config
             .model_personality
+            .filter(|_| self.config.features.enabled(Feature::Personality))
             .filter(|_| self.current_model_supports_personality());
         let op = Op::UserTurn {
             items,
@@ -3015,7 +3140,26 @@ impl ChatWidget {
                 self.on_rate_limit_snapshot(ev.rate_limits);
             }
             EventMsg::Warning(WarningEvent { message }) => self.on_warning(message),
-            EventMsg::Error(ErrorEvent { message, .. }) => self.on_error(message),
+            EventMsg::Error(ErrorEvent {
+                message,
+                codex_error_info,
+            }) => {
+                if let Some(info) = codex_error_info
+                    && let Some(kind) = rate_limit_error_kind(&info)
+                {
+                    match kind {
+                        RateLimitErrorKind::ModelCap {
+                            model,
+                            reset_after_seconds,
+                        } => self.on_model_cap_error(model, reset_after_seconds),
+                        RateLimitErrorKind::UsageLimit | RateLimitErrorKind::Generic => {
+                            self.on_error(message)
+                        }
+                    }
+                } else {
+                    self.on_error(message);
+                }
+            }
             EventMsg::McpStartupUpdate(ev) => self.on_mcp_startup_update(ev),
             EventMsg::McpStartupComplete(ev) => self.on_mcp_startup_complete(ev),
             EventMsg::TurnAborted(ev) => match ev.reason {
@@ -3296,10 +3440,35 @@ impl ChatWidget {
         }
     }
 
+    fn prefetch_connectors(&mut self) {
+        if !self.connectors_enabled() {
+            return;
+        }
+        if matches!(self.connectors_cache, ConnectorsCacheState::Loading) {
+            return;
+        }
+
+        self.connectors_cache = ConnectorsCacheState::Loading;
+        let config = self.config.clone();
+        let app_event_tx = self.app_event_tx.clone();
+        tokio::spawn(async move {
+            let result: Result<ConnectorsSnapshot, anyhow::Error> = async {
+                let connectors = connectors::list_connectors(&config).await?;
+                Ok(ConnectorsSnapshot { connectors })
+            }
+            .await;
+            let result = result.map_err(|err| format!("Failed to load apps: {err}"));
+            app_event_tx.send(AppEvent::ConnectorsLoaded(result));
+        });
+    }
+
     fn prefetch_rate_limits(&mut self) {
         self.stop_rate_limit_poller();
 
-        if self.auth_manager.auth_cached().map(|auth| auth.mode) != Some(AuthMode::ChatGPT) {
+        if !matches!(
+            self.auth_manager.auth_cached().map(|auth| auth.mode),
+            Some(AuthMode::ChatGPT | AuthMode::ChatgptAuthTokens)
+        ) {
             return;
         }
 
@@ -3312,7 +3481,7 @@ impl ChatWidget {
 
             loop {
                 if let Some(auth) = auth_manager.auth().await
-                    && auth.mode == AuthMode::ChatGPT
+                    && matches!(auth.mode, AuthMode::ChatGPT | AuthMode::ChatgptAuthTokens)
                     && let Some(snapshot) = fetch_rate_limits(base_url.clone(), auth).await
                 {
                     app_event_tx.send(AppEvent::RateLimitSnapshotFetched(snapshot));
@@ -3463,19 +3632,23 @@ impl ChatWidget {
             );
             return;
         }
+        if !self.current_model_supports_personality() {
+            let current_model = self.current_model();
+            self.add_error_message(format!(
+                "Current model ({current_model}) doesn't support personalities. Try /model to pick a different model."
+            ));
+            return;
+        }
         self.open_personality_popup_for_current_model();
     }
 
     fn open_personality_popup_for_current_model(&mut self) {
-        let current_model = self.current_model();
-        let current_personality = self.config.model_personality;
+        let current_personality = self
+            .config
+            .model_personality
+            .unwrap_or(Personality::Friendly);
         let personalities = [Personality::Friendly, Personality::Pragmatic];
         let supports_personality = self.current_model_supports_personality();
-        let disabled_message = (!supports_personality).then(|| {
-            format!(
-                "Current model ({current_model}) doesn't support personalities. Try /model to switch to a newer model."
-            )
-        });
 
         let items: Vec<SelectionItem> = personalities
             .into_iter()
@@ -3500,7 +3673,7 @@ impl ChatWidget {
                 SelectionItem {
                     name,
                     description,
-                    is_current: current_personality == Some(personality),
+                    is_current: current_personality == personality,
                     is_disabled: !supports_personality,
                     actions,
                     dismiss_on_select: true,
@@ -3512,11 +3685,8 @@ impl ChatWidget {
         let mut header = ColumnRenderable::new();
         header.push(Line::from("Select Personality".bold()));
         header.push(Line::from(
-            "Choose a communication style for future responses.".dim(),
+            "Choose a communication style for Codex. Disable in /experimental.".dim(),
         ));
-        if let Some(message) = disabled_message {
-            header.push(Line::from(message.red()));
-        }
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
             header: Box::new(header),
@@ -4722,6 +4892,9 @@ impl ChatWidget {
             self.refresh_model_display();
             self.request_redraw();
         }
+        if feature == Feature::Personality {
+            self.sync_personality_command_enabled();
+        }
         #[cfg(target_os = "windows")]
         if matches!(
             feature,
@@ -4788,7 +4961,6 @@ impl ChatWidget {
             mask.model = Some(model.to_string());
         }
         self.refresh_model_display();
-        self.sync_personality_command_enabled();
     }
 
     pub(crate) fn current_model(&self) -> &str {
@@ -4803,7 +4975,7 @@ impl ChatWidget {
 
     fn sync_personality_command_enabled(&mut self) {
         self.bottom_pane
-            .set_personality_command_enabled(self.current_model_supports_personality());
+            .set_personality_command_enabled(self.config.features.enabled(Feature::Personality));
     }
 
     fn current_model_supports_personality(&self) -> bool {
@@ -4977,6 +5149,21 @@ impl ChatWidget {
         self.request_redraw();
     }
 
+    fn connectors_enabled(&self) -> bool {
+        self.config.features.enabled(Feature::Apps)
+    }
+
+    fn connectors_for_mentions(&self) -> Option<&[connectors::AppInfo]> {
+        if !self.connectors_enabled() {
+            return None;
+        }
+
+        match &self.connectors_cache {
+            ConnectorsCacheState::Ready(snapshot) => Some(snapshot.connectors.as_slice()),
+            _ => None,
+        }
+    }
+
     /// Build a placeholder header cell while the session is configuring.
     fn placeholder_session_header_cell(config: &Config) -> Box<dyn HistoryCell> {
         let placeholder_style = Style::default().add_modifier(Modifier::DIM | Modifier::ITALIC);
@@ -5085,6 +5272,152 @@ impl ChatWidget {
         } else {
             self.submit_op(Op::ListMcpTools);
         }
+    }
+
+    pub(crate) fn add_connectors_output(&mut self) {
+        if !self.connectors_enabled() {
+            self.add_info_message(
+                "Apps are disabled.".to_string(),
+                Some("Enable the apps feature to use $ or /apps.".to_string()),
+            );
+            return;
+        }
+
+        match self.connectors_cache.clone() {
+            ConnectorsCacheState::Ready(snapshot) => {
+                if snapshot.connectors.is_empty() {
+                    self.add_info_message("No apps available.".to_string(), None);
+                } else {
+                    self.open_connectors_popup(&snapshot.connectors);
+                }
+            }
+            ConnectorsCacheState::Failed(err) => {
+                self.add_to_history(history_cell::new_error_event(err));
+                // Retry on demand so `/apps` can recover after transient failures.
+                self.prefetch_connectors();
+            }
+            ConnectorsCacheState::Loading => {
+                self.add_to_history(history_cell::new_info_event(
+                    "Apps are still loading.".to_string(),
+                    Some("Try again in a moment.".to_string()),
+                ));
+            }
+            ConnectorsCacheState::Uninitialized => {
+                self.prefetch_connectors();
+                self.add_to_history(history_cell::new_info_event(
+                    "Apps are still loading.".to_string(),
+                    Some("Try again in a moment.".to_string()),
+                ));
+            }
+        }
+        self.request_redraw();
+    }
+
+    fn open_connectors_popup(&mut self, connectors: &[connectors::AppInfo]) {
+        let total = connectors.len();
+        let installed = connectors
+            .iter()
+            .filter(|connector| connector.is_accessible)
+            .count();
+        let mut header = ColumnRenderable::new();
+        header.push(Line::from("Apps".bold()));
+        header.push(Line::from(
+            "Use $ to insert an installed app into your prompt.".dim(),
+        ));
+        header.push(Line::from(
+            format!("Installed {installed} of {total} available apps.").dim(),
+        ));
+        let mut items: Vec<SelectionItem> = Vec::with_capacity(connectors.len());
+        for connector in connectors {
+            let connector_label = connectors::connector_display_label(connector);
+            let connector_title = connector_label.clone();
+            let link_description = Self::connector_description(connector);
+            let description = Self::connector_brief_description(connector);
+            let search_value = format!("{connector_label} {}", connector.id);
+            let mut item = SelectionItem {
+                name: connector_label,
+                description: Some(description),
+                search_value: Some(search_value),
+                ..Default::default()
+            };
+            let is_installed = connector.is_accessible;
+            let (selected_label, missing_label, instructions) = if connector.is_accessible {
+                (
+                    "Press Enter to view the app link.",
+                    "App link unavailable.",
+                    "Manage this app in your browser.",
+                )
+            } else {
+                (
+                    "Press Enter to view the install link.",
+                    "Install link unavailable.",
+                    "Install this app in your browser, then reload Codex.",
+                )
+            };
+            if let Some(install_url) = connector.install_url.clone() {
+                let title = connector_title.clone();
+                let instructions = instructions.to_string();
+                let description = link_description.clone();
+                item.actions = vec![Box::new(move |tx| {
+                    tx.send(AppEvent::OpenAppLink {
+                        title: title.clone(),
+                        description: description.clone(),
+                        instructions: instructions.clone(),
+                        url: install_url.clone(),
+                        is_installed,
+                    });
+                })];
+                item.dismiss_on_select = true;
+                item.selected_description = Some(selected_label.to_string());
+            } else {
+                item.actions = vec![Box::new(move |tx| {
+                    tx.send(AppEvent::InsertHistoryCell(Box::new(
+                        history_cell::new_info_event(missing_label.to_string(), None),
+                    )));
+                })];
+                item.dismiss_on_select = true;
+                item.selected_description = Some(missing_label.to_string());
+            }
+            items.push(item);
+        }
+
+        self.bottom_pane.show_selection_view(SelectionViewParams {
+            header: Box::new(header),
+            footer_hint: Some(Self::connectors_popup_hint_line()),
+            items,
+            is_searchable: true,
+            search_placeholder: Some("Type to search apps".to_string()),
+            ..Default::default()
+        });
+    }
+
+    fn connectors_popup_hint_line() -> Line<'static> {
+        Line::from(vec![
+            "Press ".into(),
+            key_hint::plain(KeyCode::Esc).into(),
+            " to close.".into(),
+        ])
+    }
+
+    fn connector_brief_description(connector: &connectors::AppInfo) -> String {
+        let status_label = if connector.is_accessible {
+            "Connected"
+        } else {
+            "Can be installed"
+        };
+        match Self::connector_description(connector) {
+            Some(description) => format!("{status_label} · {description}"),
+            None => status_label.to_string(),
+        }
+    }
+
+    fn connector_description(connector: &connectors::AppInfo) -> Option<String> {
+        connector
+            .description
+            .as_deref()
+            .map(str::trim)
+            .filter(|description| !description.is_empty())
+            .map(str::to_string)
     }
 
     /// Forward file-search results to the bottom pane.
@@ -5269,6 +5602,19 @@ impl ChatWidget {
 
     fn on_list_skills(&mut self, ev: ListSkillsResponseEvent) {
         self.set_skills_from_response(&ev);
+    }
+
+    pub(crate) fn on_connectors_loaded(&mut self, result: Result<ConnectorsSnapshot, String>) {
+        self.connectors_cache = match result {
+            Ok(connectors) => ConnectorsCacheState::Ready(connectors),
+            Err(err) => ConnectorsCacheState::Failed(err),
+        };
+        if let ConnectorsCacheState::Ready(snapshot) = &self.connectors_cache {
+            self.bottom_pane
+                .set_connectors_snapshot(Some(snapshot.clone()));
+        } else {
+            self.bottom_pane.set_connectors_snapshot(None);
+        }
     }
 
     pub(crate) fn open_review_popup(&mut self) {
@@ -5686,6 +6032,18 @@ pub(crate) fn show_review_commit_picker_with_entries(
         search_placeholder: Some("Type to search commits".to_string()),
         ..Default::default()
     });
+}
+
+fn format_duration_short(seconds: u64) -> String {
+    if seconds < 60 {
+        "less than a minute".to_string()
+    } else if seconds < 3600 {
+        format!("{}m", seconds / 60)
+    } else if seconds < 86_400 {
+        format!("{}h", seconds / 3600)
+    } else {
+        format!("{}d", seconds / 86_400)
+    }
 }
 
 #[cfg(test)]

@@ -355,6 +355,7 @@ async fn interrupted_turn_restores_queued_messages_with_images_and_elements() {
             path: first_images[0].clone(),
         }],
         text_elements: first_elements,
+        mention_paths: HashMap::new(),
     });
     chat.queued_user_messages.push_back(UserMessage {
         text: second_text,
@@ -363,6 +364,7 @@ async fn interrupted_turn_restores_queued_messages_with_images_and_elements() {
             path: second_images[0].clone(),
         }],
         text_elements: second_elements,
+        mention_paths: HashMap::new(),
     });
     chat.refresh_queued_user_messages();
 
@@ -442,6 +444,7 @@ async fn remap_placeholders_uses_attachment_labels() {
         text,
         text_elements: elements,
         local_images: attachments,
+        mention_paths: HashMap::new(),
     };
     let mut next_label = 3usize;
     let remapped = remap_placeholders_for_message(message, &mut next_label);
@@ -502,6 +505,7 @@ async fn remap_placeholders_uses_byte_ranges_when_placeholder_missing() {
         text,
         text_elements: elements,
         local_images: attachments,
+        mention_paths: HashMap::new(),
     };
     let mut next_label = 3usize;
     let remapped = remap_placeholders_for_message(message, &mut next_label);
@@ -810,6 +814,7 @@ async fn make_chatwidget_manual(
         unified_exec_processes: Vec::new(),
         agent_turn_running: false,
         mcp_startup_status: None,
+        connectors_cache: ConnectorsCacheState::default(),
         interrupts: InterruptManager::new(),
         reasoning_buffer: String::new(),
         full_reasoning_buffer: String::new(),
@@ -2408,6 +2413,7 @@ async fn collab_mode_enabling_keeps_custom_until_selected() {
 #[tokio::test]
 async fn user_turn_includes_personality_from_config() {
     let (mut chat, _rx, mut op_rx) = make_chatwidget_manual(Some("bengalfox")).await;
+    chat.set_feature_enabled(Feature::Personality, true);
     chat.thread_id = Some(ThreadId::new());
     chat.set_model("bengalfox");
     chat.set_personality(Personality::Friendly);
@@ -3013,6 +3019,43 @@ async fn model_picker_hides_show_in_picker_false_models_from_cache() {
         !popup.contains("test-hidden-model"),
         "expected hidden model to be excluded from picker:\n{popup}"
     );
+}
+
+#[tokio::test]
+async fn model_cap_error_does_not_switch_models() {
+    let (mut chat, mut rx, mut op_rx) = make_chatwidget_manual(Some("boomslang")).await;
+    chat.set_model("boomslang");
+    while rx.try_recv().is_ok() {}
+    while op_rx.try_recv().is_ok() {}
+
+    chat.handle_codex_event(Event {
+        id: "err-1".to_string(),
+        msg: EventMsg::Error(ErrorEvent {
+            message: "model cap".to_string(),
+            codex_error_info: Some(CodexErrorInfo::ModelCap {
+                model: "boomslang".to_string(),
+                reset_after_seconds: Some(120),
+            }),
+        }),
+    });
+
+    while let Ok(event) = rx.try_recv() {
+        if let AppEvent::UpdateModel(model) = event {
+            assert_eq!(
+                model, "boomslang",
+                "did not expect model switch on model-cap error"
+            );
+        }
+    }
+
+    while let Ok(event) = op_rx.try_recv() {
+        if let Op::OverrideTurnContext { model, .. } = event {
+            assert!(
+                model.is_none(),
+                "did not expect OverrideTurnContext model update on model-cap error"
+            );
+        }
+    }
 }
 
 #[tokio::test]
