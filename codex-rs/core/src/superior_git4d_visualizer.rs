@@ -251,7 +251,7 @@ impl SentimentAnalyzer {
     pub async fn analyze_commit_sentiment(
         &self,
         commit: &Commit<'_>,
-    ) -> Result<CommitSentiment, Box<dyn std::error::Error>> {
+    ) -> Result<CommitSentiment, Box<dyn std::error::Error + Send + Sync>> {
         let commit_id = commit.id();
 
         // Check cache first
@@ -312,7 +312,7 @@ impl SentimentAnalyzer {
         commit_id: Oid,
         message: &str,
         author: &str,
-    ) -> Result<CommitSentiment, Box<dyn std::error::Error>> {
+    ) -> Result<CommitSentiment, Box<dyn std::error::Error + Send + Sync>> {
         // Check cache first
         if let Some(cached) = self.cache.read().unwrap().get(&commit_id) {
             return Ok(cached.clone());
@@ -367,7 +367,7 @@ impl SentimentAnalyzer {
         &self,
         _message: &str,
         _author: &str,
-    ) -> Result<SentimentResult, Box<dyn std::error::Error>> {
+    ) -> Result<SentimentResult, Box<dyn std::error::Error + Send + Sync>> {
         // OpenAI API integration temporarily disabled
         // TODO: Re-enable when openai-api-rs dependency is properly configured
         Ok(SentimentResult::default())
@@ -399,7 +399,7 @@ impl ImpactCalculator {
         &self,
         commit: &Commit<'_>,
         diff: Option<&Diff<'_>>,
-    ) -> Result<CommitImpact, Box<dyn std::error::Error>> {
+    ) -> Result<CommitImpact, Box<dyn std::error::Error + Send + Sync>> {
         let commit_id = commit.id();
 
         // Check cache
@@ -729,7 +729,7 @@ impl SuperiorGit4DVisualizer {
     pub fn new(
         repo_path: &Path,
         config: SuperiorGit4DConfig,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let base_config = config.base_config.clone();
         let base_visualizer = Git4DAcceleratedVisualizer::new(repo_path, base_config)?;
 
@@ -749,7 +749,9 @@ impl SuperiorGit4DVisualizer {
     }
 
     /// Enhanced commit loading with AI analysis and 5D/6D data
-    pub async fn load_commits_enhanced(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn load_commits_enhanced(
+        &self,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Load base commits
         self.base_visualizer
             .load_commits(&self.config.base_config)

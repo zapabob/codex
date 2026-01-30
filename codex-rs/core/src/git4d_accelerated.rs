@@ -165,7 +165,7 @@ static SESSIONS: Lazy<Arc<RwLock<HashMap<String, Git4DVisualizationSession>>>> =
 /// VirtualDesktop is checked first for VR mode, then falls back to WebXR
 pub async fn check_vr_ar_device_availability(
     mode: &str,
-) -> Result<DeviceAvailability, Box<dyn std::error::Error>> {
+) -> Result<DeviceAvailability, Box<dyn std::error::Error + Send + Sync>> {
     if mode == "desktop" {
         return Ok(DeviceAvailability::Desktop);
     }
@@ -252,7 +252,7 @@ impl Git4DAcceleratedVisualizer {
     pub fn new(
         repo_path: &Path,
         config: Git4DVisualizationConfig,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let repository = Repository::open(repo_path).with_context(|| {
             format!("Failed to open git repository at: {}", repo_path.display())
         })?;
@@ -324,7 +324,7 @@ impl Git4DAcceleratedVisualizer {
     pub async fn launch_for_gui(
         repository_path: PathBuf,
         mode: String,
-    ) -> Result<Git4DVisualizationSession, Box<dyn std::error::Error>> {
+    ) -> Result<Git4DVisualizationSession, Box<dyn std::error::Error + Send + Sync>> {
         use uuid::Uuid;
 
         let session_id = Uuid::new_v4().to_string();
@@ -492,7 +492,7 @@ impl Git4DAcceleratedVisualizer {
     pub async fn load_commits(
         &self,
         config: &Git4DVisualizationConfig,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let start_time = Instant::now();
         tracing::debug!(
             "Starting to load commits (max_commits: {})",
@@ -634,7 +634,7 @@ impl Git4DAcceleratedVisualizer {
     pub async fn render(
         &self,
         config: &Git4DVisualizationConfig,
-    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
         let render_start = Instant::now();
         tracing::debug!(
             "Starting render: {}x{}",
@@ -777,7 +777,9 @@ impl Git4DAcceleratedVisualizer {
     }
 
     /// Process VR/AR interactions
-    pub async fn process_vr_interactions(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn process_vr_interactions(
+        &mut self,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         tracing::debug!("Starting VR/AR interaction processing");
         if self.vr_ar_integration.is_none() {
             return Ok(());
@@ -845,7 +847,10 @@ impl Git4DAcceleratedVisualizer {
     }
 
     /// Handle VR event
-    async fn handle_vr_event(&mut self, event: VREvent) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_vr_event(
+        &mut self,
+        event: VREvent,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         tracing::debug!("Handling VR event: {:?}", event);
         match event {
             VREvent::GestureRecognized(gesture, hand) => {
@@ -884,7 +889,7 @@ impl Git4DAcceleratedVisualizer {
     async fn handle_interaction(
         &mut self,
         interaction: VRInteraction,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         tracing::debug!("Handling VR interaction: {:?}", interaction);
         match interaction {
             VRInteraction::SelectAnchor(anchor_id) => {
@@ -937,7 +942,7 @@ impl Git4DAcceleratedVisualizer {
     pub async fn process_vr_interaction(
         &mut self,
         interaction: VRInteraction,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         self.handle_interaction(interaction).await
     }
 
@@ -947,7 +952,7 @@ impl Git4DAcceleratedVisualizer {
         start_commit: &Commit,
         commits: &mut Vec<Oid>,
         max_commits: usize,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let traverse_start = Instant::now();
         let mut visited = HashSet::new();
         let mut queue = VecDeque::new();

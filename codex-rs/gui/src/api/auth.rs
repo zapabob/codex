@@ -96,7 +96,7 @@ pub async fn login(
     let session_id = Uuid::new_v4().to_string();
     sqlx::query::<sqlx::Sqlite>("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)")
         .bind(session_id)
-        .bind(user.id)
+        .bind(user.id.clone())
         .bind(exp as i64)
         .execute(&*state.db)
         .await

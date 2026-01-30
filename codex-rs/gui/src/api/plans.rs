@@ -1,14 +1,10 @@
 use axum::Json;
-use axum::extract::{Path, Query, State};
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use chrono::Utc;
+use axum::extract::{Extension, Path, Query};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::process::Command;
-use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct PlansState {

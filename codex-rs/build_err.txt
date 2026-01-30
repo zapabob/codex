@@ -1,60 +1,210 @@
-   Compiling codex-execpolicy v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy)
-    Checking codex-protocol v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\protocol)
-    Checking codex-api v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\codex-api)
-    Checking codex-rmcp-client v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\rmcp-client)
-    Checking codex-app-server-protocol v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\app-server-protocol)
-    Checking codex-windows-sandbox v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\windows-sandbox-rs)
-warning: unnecessary `unsafe` block
-   --> windows-sandbox-rs\src\token.rs:171:40
-    |
-171 |     let ok = unsafe { OpenProcessToken(unsafe { GetCurrentProcess() }, desired, &mut h) };
-    |              ------                    ^^^^^^ unnecessary `unsafe` block
-    |              |
-    |              because it's nested under this `unsafe` block
-    |
-    = note: `#[warn(unused_unsafe)]` (part of `#[warn(unused)]`) on by default
+   Compiling codex-execpolicy v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy)
+    Checking codex-protocol v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\protocol)
+    Checking codex-api v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\codex-api)
+    Checking codex-app-server-protocol v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\app-server-protocol)
+    Checking codex-rmcp-client v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\rmcp-client)
+    Checking codex-windows-sandbox v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\windows-sandbox-rs)
+    Checking codex-deep-research v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\deep-research)
+    Checking codex-otel v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\otel)
+    Checking codex-state v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\state)
+    Checking codex-core v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
+    Checking codex-gui v2.13.0 (C:\Users\downl\Desktop\codex-main\codex-rs\gui)
+error: unused imports: `Extension` and `Query`
+ --> gui\src\api\auth.rs:2:21
+  |
+2 | use axum::extract::{Extension, Query};
+  |                     ^^^^^^^^^  ^^^^^
+  |
+  = note: `-D unused-imports` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(unused_imports)]`
 
-warning: unnecessary `unsafe` block
-   --> windows-sandbox-rs\src\lib.rs:271:25
+error: unused import: `State`
+ --> gui\src\api\plans.rs:2:34
+  |
+2 | use axum::extract::{Path, Query, State};
+  |                                  ^^^^^
+
+error: unused import: `uuid::Uuid`
+  --> gui\src\api\plans.rs:11:5
+   |
+11 | use uuid::Uuid;
+   |     ^^^^^^^^^^
+
+error: unused import: `axum::extract::State`
+ --> gui\src\api\vr.rs:2:5
+  |
+2 | use axum::extract::State;
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+error: unused import: `std::sync::Arc`
+ --> gui\src\api\vr.rs:6:5
+  |
+6 | use std::sync::Arc;
+  |     ^^^^^^^^^^^^^^
+
+error: unused import: `Deserialize`
+ --> gui\src\types.rs:2:13
+  |
+2 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^
+
+error[E0382]: use of moved value: `user.id`
+   --> gui\src\api\auth.rs:108:17
     |
-267 |         let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
-    |                                                                       ------ because it's nested under this `unsafe` block
+ 99 |         .bind(user.id)
+    |               ------- value moved here
 ...
-271 |                         unsafe { convert_string_sid_to_sid(&caps.readonly) }.ok_or_else(|| {
-    |                         ^^^^^^ unnecessary `unsafe` block
-
-warning: unnecessary `unsafe` block
-   --> windows-sandbox-rs\src\lib.rs:278:25
+108 |             id: user.id,
+    |                 ^^^^^^^ value used here after move
     |
-267 |         let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
-    |                                                                       ------ because it's nested under this `unsafe` block
+    = note: move occurs because `user.id` has type `std::string::String`, which does not implement the `Copy` trait
+
+error[E0271]: expected `{closure@git4d.rs:229:53}` to return `Result<_, _>`, but it returns `String`
+   --> gui\src\api\git4d.rs:238:9
+    |
+229 |     let stream = BroadcastStream::new(receiver).map(|msg| {
+    |                                                     ----- this closure
 ...
-278 |                         unsafe { convert_string_sid_to_sid(&caps.workspace) }.ok_or_else(|| {
-    |                         ^^^^^^ unnecessary `unsafe` block
-
-warning: `codex-windows-sandbox` (lib) generated 3 warnings
-    Checking codex-deep-research v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\deep-research)
-    Checking codex-otel v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\otel)
-    Checking codex-core v2.12.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
-error: encountered diff marker
-   --> core\src\client.rs:293:1
-    |
-293 | <<<<<<< HEAD
-    | ^^^^^^^ between this marker and `=======` is the code that we're merging into
-294 |     #[allow(clippy::result_large_err)]
-295 | =======
-    | ------- between this marker and `>>>>>>>` is the incoming code
+238 |         format!("data: {}\n\n", event_data)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<_, _>`, found `String`
 ...
-324 | >>>>>>> upstream/main
-    | ^^^^^^^ this marker concludes the conflict region
+242 |     let body = Body::from_stream(stream);
+    |                ------------------------- closure used here
     |
-    = note: conflict markers indicate that a merge was started but could not be completed due to merge conflicts
-            to resolve a conflict, keep only the code you want and then delete the lines containing conflict markers
-    = help: if you're having merge conflicts after pulling new code:
-            the top section is the code you already had and the bottom section is the remote code
-            if you're in the middle of a rebase:
-            the top section is the code being rebased onto and the bottom section is the code coming from the current commit being rebased
-    = note: for an explanation on these markers from the `git` documentation:
-            visit <https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_checking_out_conflicts>
+    = note: expected enum `Result<_, _>`
+             found struct `std::string::String`
+    = note: required for `Map<BroadcastStream<Git4DEvent>, {closure@git4d.rs:229:53}>` to implement `tokio_stream::Stream`
+    = note: required for `Map<BroadcastStream<Git4DEvent>, {closure@git4d.rs:229:53}>` to implement `futures_core::stream::TryStream`
+    = note: the full name for the type has been written to 'C:\Users\downl\Desktop\codex-main\codex-rs\target\debug\deps\codex_gui-ecb490ddfdbca742.long-type-8161582890233843628.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+    = note: this error originates in the macro `format` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: could not compile `codex-core` (lib) due to 1 previous error
+error[E0271]: expected `{closure@git4d.rs:229:53}` to return `Result<_, _>`, but it returns `String`
+   --> gui\src\api\git4d.rs:238:9
+    |
+229 |     let stream = BroadcastStream::new(receiver).map(|msg| {
+    |                                                     ----- this closure
+...
+238 |         format!("data: {}\n\n", event_data)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<_, _>`, found `String`
+...
+242 |     let body = Body::from_stream(stream);
+    |                ------------------------- closure used here
+    |
+    = note: expected enum `Result<_, _>`
+             found struct `std::string::String`
+    = note: required for `Map<BroadcastStream<Git4DEvent>, {closure@git4d.rs:229:53}>` to implement `tokio_stream::Stream`
+    = note: required for `Map<BroadcastStream<Git4DEvent>, {closure@git4d.rs:229:53}>` to implement `futures_core::stream::TryStream`
+    = note: the full name for the type has been written to 'C:\Users\downl\Desktop\codex-main\codex-rs\target\debug\deps\codex_gui-ecb490ddfdbca742.long-type-216533359882134803.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+    = note: this error originates in the macro `format` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0271]: expected `{closure@git4d.rs:229:53}` to return `Result<_, _>`, but it returns `String`
+   --> gui\src\api\git4d.rs:238:9
+    |
+229 |     let stream = BroadcastStream::new(receiver).map(|msg| {
+    |                                                     ----- this closure
+...
+238 |         format!("data: {}\n\n", event_data)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<_, _>`, found `String`
+...
+242 |     let body = Body::from_stream(stream);
+    |                ------------------------- closure used here
+    |
+    = note: expected enum `Result<_, _>`
+             found struct `std::string::String`
+    = note: required for `Map<BroadcastStream<Git4DEvent>, {closure@git4d.rs:229:53}>` to implement `tokio_stream::Stream`
+    = note: required for `Map<BroadcastStream<Git4DEvent>, {closure@git4d.rs:229:53}>` to implement `futures_core::stream::TryStream`
+    = note: the full name for the type has been written to 'C:\Users\downl\Desktop\codex-main\codex-rs\target\debug\deps\codex_gui-ecb490ddfdbca742.long-type-15488730928970609526.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+    = note: this error originates in the macro `format` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `dyn StdError` cannot be sent between threads safely
+   --> gui\src\api\git4d.rs:30:1
+    |
+ 30 | #[axum::debug_handler]
+    | ^^^^^^^^^^^^^^^^^^^^^^ `dyn StdError` cannot be sent between threads safely
+    |
+    = help: the trait `Send` is not implemented for `dyn StdError`
+    = note: required for `Unique<dyn StdError>` to implement `Send`
+note: required because it appears within the type `Box<dyn StdError>`
+   --> C:\Users\downl\.rustup\toolchains\1.93.0-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\alloc\src\boxed.rs:234:12
+    |
+234 | pub struct Box<
+    |            ^^^
+note: required because it appears within the type `Result<VRARIntegration, Box<dyn StdError>>`
+   --> C:\Users\downl\.rustup\toolchains\1.93.0-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\core\src\result.rs:557:10
+    |
+557 | pub enum Result<T, E> {
+    |          ^^^^^^
+note: required because it's used within this `async` fn body
+   --> C:\Users\downl\Desktop\codex-main\codex-rs\core\src\git4d_accelerated.rs:168:61
+    |
+168 |   ) -> Result<DeviceAvailability, Box<dyn std::error::Error>> {
+    |  _____________________________________________________________^
+169 | |     if mode == "desktop" {
+170 | |         return Ok(DeviceAvailability::Desktop);
+...   |
+249 | | }
+    | |_^
+note: required because it's used within this `async` fn body
+   --> gui\src\api\git4d.rs:33:50
+    |
+ 33 |   ) -> Result<Json<Git4DLaunchResponse>, GuiError> {
+    |  __________________________________________________^
+ 34 | |     let mode = payload.mode.as_str();
+ 35 | |     let repository_path = payload
+ 36 | |         .repository_path
+...   |
+177 | |     }))
+178 | | }
+    | |_^
+note: required by a bound in `__axum_macros_check_launch_git4d_visualization_future::check`
+   --> gui\src\api\git4d.rs:30:1
+    |
+ 30 | #[axum::debug_handler]
+    | ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `check`
+    = note: this error originates in the attribute macro `axum::debug_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `fn(Json<...>) -> ... {launch_git4d_visualization}: Handler<_, _>` is not satisfied
+    --> gui\src\main.rs:93:18
+     |
+  93 |             post(api::git4d::launch_git4d_visualization),
+     |             ---- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Handler<_, _>` is not implemented for fn item `fn(Json<Git4DLaunchRequest>) -> ... {launch_git4d_visualization}`
+     |             |
+     |             required by a bound introduced by this call
+     |
+     = note: Consider using `#[axum::debug_handler]` to improve the error message
+help: the following other types implement trait `Handler<T, S>`
+    --> C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\axum-0.8.8\src\routing\method_routing.rs:1309:1
+     |
+1309 | / impl<S> Handler<(), S> for MethodRouter<S>
+1310 | | where
+1311 | |     S: Clone + 'static,
+     | |_______________________^ `MethodRouter<S>` implements `Handler<(), S>`
+     |
+    ::: C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\axum-0.8.8\src\handler\mod.rs:313:1
+     |
+ 313 | / impl<H, S, T, L> Handler<T, S> for Layered<L, H, T, S>
+ 314 | | where
+ 315 | |     L: Layer<HandlerService<H, T, S>> + Clone + Send + Sync + 'static,
+ 316 | |     H: Handler<T, S>,
+...    |
+ 320 | |     T: 'static,
+ 321 | |     S: 'static,
+     | |_______________^ `axum::handler::Layered<L, H, T, S>` implements `Handler<T, S>`
+note: required by a bound in `post`
+    --> C:\Users\downl\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\axum-0.8.8\src\routing\method_routing.rs:445:1
+     |
+ 445 | top_level_handler_fn!(post, POST);
+     | ^^^^^^^^^^^^^^^^^^^^^^----^^^^^^^
+     | |                     |
+     | |                     required by a bound in this function
+     | required by this bound in `post`
+     = note: the full name for the type has been written to 'C:\Users\downl\Desktop\codex-main\codex-rs\target\debug\deps\codex_gui-ecb490ddfdbca742.long-type-1779800061957082527.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+     = note: this error originates in the macro `top_level_handler_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+Some errors have detailed explanations: E0271, E0277, E0382.
+For more information about an error, try `rustc --explain E0271`.
+error: could not compile `codex-gui` (bin "codex-gui") due to 12 previous errors

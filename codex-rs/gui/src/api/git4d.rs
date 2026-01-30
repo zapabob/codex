@@ -235,7 +235,7 @@ pub async fn git4d_events_stream(Path(session_id): Path<String>) -> Result<Respo
         };
 
         // Format as SSE event: "data: {json}\n\n"
-        format!("data: {}\n\n", event_data)
+        Ok::<_, axum::Error>(format!("data: {}\n\n", event_data))
     });
 
     // Create SSE response with proper headers
