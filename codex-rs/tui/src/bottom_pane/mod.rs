@@ -66,10 +66,10 @@ mod skills_toggle_view;
 mod slash_commands;
 pub(crate) use footer::CollaborationModeIndicator;
 pub(crate) use list_selection_view::SelectionViewParams;
-mod feedback_view;
-pub(crate) use feedback_view::feedback_disabled_params;
-pub(crate) use feedback_view::feedback_selection_params;
-pub(crate) use feedback_view::feedback_upload_consent_params;
+mod feedback;
+pub(crate) use feedback::feedback_disabled_params;
+pub(crate) use feedback::feedback_selection_params;
+pub(crate) use feedback::feedback_upload_consent_params;
 pub(crate) use skills_toggle_view::SkillsToggleItem;
 pub(crate) use skills_toggle_view::SkillsToggleView;
 mod paste_burst;
@@ -79,7 +79,7 @@ mod scroll_state;
 mod selection_popup_common;
 mod textarea;
 mod unified_exec_footer;
-pub(crate) use feedback_view::FeedbackNoteView;
+pub(crate) use feedback::FeedbackNoteView;
 
 /// How long the "press again to quit" hint stays visible.
 ///

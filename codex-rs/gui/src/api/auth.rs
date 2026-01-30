@@ -94,8 +94,6 @@ pub async fn login(
 
     // Create session record
     let session_id = Uuid::new_v4().to_string();
-    // Create session record
-    let session_id = Uuid::new_v4().to_string();
     sqlx::query::<sqlx::Sqlite>("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)")
         .bind(session_id)
         .bind(user.id)
@@ -122,8 +120,6 @@ pub async fn register(
     init_db(&state.db).await?;
 
     // Check if user already exists
-    // Check if user already exists
-    // Check if user already exists
     let existing: Option<(String,)> =
         sqlx::query_as::<sqlx::Sqlite, (String,)>("SELECT id FROM users WHERE email = ?")
             .bind(request.email.clone())
@@ -139,8 +135,6 @@ pub async fn register(
     let password_hash = bcrypt::hash(&request.password, bcrypt::DEFAULT_COST)
         .map_err(|e| AuthError::PasswordHash(e.to_string()))?;
 
-    // Create user
-    let user_id = Uuid::new_v4().to_string();
     // Create user
     let user_id = Uuid::new_v4().to_string();
     sqlx::query::<sqlx::Sqlite>(
@@ -172,8 +166,6 @@ pub async fn register(
 
     // Create session record
     let session_id = Uuid::new_v4().to_string();
-    // Create session record
-    let session_id = Uuid::new_v4().to_string();
     sqlx::query::<sqlx::Sqlite>("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)")
         .bind(session_id)
         .bind(user_id.clone())
@@ -196,7 +188,6 @@ pub async fn logout(
     axum::extract::Extension(state): axum::extract::Extension<AuthState>,
     Json(request): Json<LogoutRequest>,
 ) -> Result<StatusCode, AuthError> {
-    // Remove session
     // Remove session
     sqlx::query::<sqlx::Sqlite>("DELETE FROM sessions WHERE id = ?")
         .bind(request.session_id)

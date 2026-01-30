@@ -20,13 +20,15 @@ use crate::app_event_sender::AppEventSender;
 use crate::history_cell;
 use crate::render::renderable::Renderable;
 
-use super::CancellationEvent;
-use super::bottom_pane_view::BottomPaneView;
-use super::popup_consts::standard_popup_hint_line;
-use super::textarea::TextArea;
-use super::textarea::TextAreaState;
+use crate::tui::bottom_pane::CancellationEvent;
+use crate::tui::bottom_pane::bottom_pane_view::BottomPaneView;
+use crate::tui::bottom_pane::popup_consts::standard_popup_hint_line;
+use crate::tui::bottom_pane::textarea::TextArea;
+use crate::tui::bottom_pane::textarea::TextAreaState;
 
-const BASE_ISSUE_URL: &str = "https://github.com/openai/codex/issues/new?template=2-bug-report.yml";
+use super::utils::{
+    BASE_ISSUE_URL, feedback_classification, feedback_title_and_placeholder, gutter,
+};
 
 /// Minimal input overlay to collect an optional feedback note, then upload
 /// both logs and rollout with classification + metadata.
@@ -117,6 +119,12 @@ impl FeedbackNoteView {
             }
         }
         self.complete = true;
+    }
+
+    fn input_height(&self, width: u16) -> u16 {
+        let usable_width = width.saturating_sub(2);
+        let text_height = self.textarea.desired_height(usable_width).clamp(1, 8);
+        text_height.saturating_add(1).min(9)
     }
 }
 
@@ -278,191 +286,11 @@ impl Renderable for FeedbackNoteView {
     }
 }
 
-impl FeedbackNoteView {
-    fn input_height(&self, width: u16) -> u16 {
-        let usable_width = width.saturating_sub(2);
-        let text_height = self.textarea.desired_height(usable_width).clamp(1, 8);
-        text_height.saturating_add(1).min(9)
-    }
-}
-
-fn gutter() -> Span<'static> {
-    "▌ ".cyan()
-}
-
-fn feedback_title_and_placeholder(category: FeedbackCategory) -> (String, String) {
-    match category {
-        FeedbackCategory::BadResult => (
-            "Tell us more (bad result)".to_string(),
-            "(optional) Write a short description to help us further".to_string(),
-        ),
-        FeedbackCategory::GoodResult => (
-            "Tell us more (good result)".to_string(),
-            "(optional) Write a short description to help us further".to_string(),
-        ),
-        FeedbackCategory::Bug => (
-            "Tell us more (bug)".to_string(),
-            "(optional) Write a short description to help us further".to_string(),
-        ),
-        FeedbackCategory::Other => (
-            "Tell us more (other)".to_string(),
-            "(optional) Write a short description to help us further".to_string(),
-        ),
-    }
-}
-
-fn feedback_classification(category: FeedbackCategory) -> &'static str {
-    match category {
-        FeedbackCategory::BadResult => "bad_result",
-        FeedbackCategory::GoodResult => "good_result",
-        FeedbackCategory::Bug => "bug",
-        FeedbackCategory::Other => "other",
-    }
-}
-
-// Build the selection popup params for feedback categories.
-pub(crate) fn feedback_selection_params(
-    app_event_tx: AppEventSender,
-) -> super::SelectionViewParams {
-    super::SelectionViewParams {
-        title: Some("How was this?".to_string()),
-        items: vec![
-            make_feedback_item(
-                app_event_tx.clone(),
-                "bug",
-                "Crash, error message, hang, or broken UI/behavior.",
-                FeedbackCategory::Bug,
-            ),
-            make_feedback_item(
-                app_event_tx.clone(),
-                "bad result",
-                "Output was off-target, incorrect, incomplete, or unhelpful.",
-                FeedbackCategory::BadResult,
-            ),
-            make_feedback_item(
-                app_event_tx.clone(),
-                "good result",
-                "Helpful, correct, high‑quality, or delightful result worth celebrating.",
-                FeedbackCategory::GoodResult,
-            ),
-            make_feedback_item(
-                app_event_tx,
-                "other",
-                "Slowness, feature suggestion, UX feedback, or anything else.",
-                FeedbackCategory::Other,
-            ),
-        ],
-        ..Default::default()
-    }
-}
-
-/// Build the selection popup params shown when feedback is disabled.
-pub(crate) fn feedback_disabled_params() -> super::SelectionViewParams {
-    super::SelectionViewParams {
-        title: Some("Sending feedback is disabled".to_string()),
-        subtitle: Some("This action is disabled by configuration.".to_string()),
-        footer_hint: Some(standard_popup_hint_line()),
-        items: vec![super::SelectionItem {
-            name: "Close".to_string(),
-            dismiss_on_select: true,
-            ..Default::default()
-        }],
-        ..Default::default()
-    }
-}
-
-fn make_feedback_item(
-    app_event_tx: AppEventSender,
-    name: &str,
-    description: &str,
-    category: FeedbackCategory,
-) -> super::SelectionItem {
-    let action: super::SelectionAction = Box::new(move |_sender: &AppEventSender| {
-        app_event_tx.send(AppEvent::OpenFeedbackConsent { category });
-    });
-    super::SelectionItem {
-        name: name.to_string(),
-        description: Some(description.to_string()),
-        actions: vec![action],
-        dismiss_on_select: true,
-        ..Default::default()
-    }
-}
-
-/// Build the upload consent popup params for a given feedback category.
-pub(crate) fn feedback_upload_consent_params(
-    app_event_tx: AppEventSender,
-    category: FeedbackCategory,
-    rollout_path: Option<std::path::PathBuf>,
-) -> super::SelectionViewParams {
-    use super::popup_consts::standard_popup_hint_line;
-    let yes_action: super::SelectionAction = Box::new({
-        let tx = app_event_tx.clone();
-        move |sender: &AppEventSender| {
-            let _ = sender;
-            tx.send(AppEvent::OpenFeedbackNote {
-                category,
-                include_logs: true,
-            });
-        }
-    });
-
-    let no_action: super::SelectionAction = Box::new({
-        let tx = app_event_tx;
-        move |sender: &AppEventSender| {
-            let _ = sender;
-            tx.send(AppEvent::OpenFeedbackNote {
-                category,
-                include_logs: false,
-            });
-        }
-    });
-
-    // Build header listing files that would be sent if user consents.
-    let mut header_lines: Vec<Box<dyn crate::render::renderable::Renderable>> = vec![
-        Line::from("Upload logs?".bold()).into(),
-        Line::from("").into(),
-        Line::from("The following files will be sent:".dim()).into(),
-        Line::from(vec!["  • ".into(), "codex-logs.log".into()]).into(),
-    ];
-    if let Some(path) = rollout_path.as_deref()
-        && let Some(name) = path.file_name().map(|s| s.to_string_lossy().to_string())
-    {
-        header_lines.push(Line::from(vec!["  • ".into(), name.into()]).into());
-    }
-
-    super::SelectionViewParams {
-        footer_hint: Some(standard_popup_hint_line()),
-        items: vec![
-            super::SelectionItem {
-                name: "Yes".to_string(),
-                description: Some(
-                    "Share the current Codex session logs with the team for troubleshooting."
-                        .to_string(),
-                ),
-                actions: vec![yes_action],
-                dismiss_on_select: true,
-                ..Default::default()
-            },
-            super::SelectionItem {
-                name: "No".to_string(),
-                description: Some("".to_string()),
-                actions: vec![no_action],
-                dismiss_on_select: true,
-                ..Default::default()
-            },
-        ],
-        header: Box::new(crate::render::renderable::ColumnRenderable::with(
-            header_lines,
-        )),
-        ..Default::default()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::app_event::AppEvent;
+    use crate::app_event::FeedbackCategory;
     use crate::app_event_sender::AppEventSender;
 
     fn render(view: &FeedbackNoteView, width: u16) -> String {

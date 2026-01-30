@@ -6,9 +6,7 @@ use anyhow::Result;
 use message::NativeResponse;
 use message::read_message;
 use message::write_response;
-use std::io;
 use tracing_subscriber;
-use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> Result<()> {

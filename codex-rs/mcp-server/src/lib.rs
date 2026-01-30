@@ -19,29 +19,45 @@ use tracing::error;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
+#[allow(dead_code)]
 mod auto_orchestrator_tool;
+#[allow(dead_code)]
 mod auto_orchestrator_tool_handler;
 mod codex_tool_config;
 mod codex_tool_runner;
 pub mod codex_tools;
+#[allow(dead_code)]
 mod custom_command_tool;
+#[allow(dead_code)]
 mod custom_command_tool_handler;
+#[allow(dead_code)]
 mod datetime_tool;
+#[allow(dead_code)]
 mod datetime_tool_handler;
+#[allow(dead_code)]
 mod deep_research_tool;
+#[allow(dead_code)]
 mod deep_research_tool_handler;
 mod error_code;
 mod exec_approval;
+#[allow(dead_code)]
 mod hook_tool;
+#[allow(dead_code)]
 mod hook_tool_handler;
+#[allow(dead_code)]
 mod lsp_tool_handler;
 pub(crate) mod message_processor;
+#[allow(dead_code)]
 mod microsoft365_tool_handler;
 mod outgoing_message;
 mod patch_approval;
+#[allow(dead_code)]
 mod subagent_tool;
+#[allow(dead_code)]
 mod subagent_tool_handler;
+#[allow(dead_code)]
 mod supervisor_tool;
+#[allow(dead_code)]
 mod supervisor_tool_handler;
 mod windows_mcp_bridge;
 
