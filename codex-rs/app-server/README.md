@@ -153,9 +153,6 @@ To continue a stored session, call `thread/resume` with the `thread.id` you prev
 { "id": 11, "result": { "thread": { "id": "thr_123", … } } }
 ```
 
-<<<<<<< HEAD
-You can also pass `modelContextWindow`, `modelAutoCompactTokenLimit`, or `compactPrompt` to tune context compression (auto-compaction) for long-running threads.
-=======
 To branch from a stored session, call `thread/fork` with the `thread.id`. This creates a new thread id and emits a `thread/started` notification for it:
 
 ```json
@@ -163,7 +160,8 @@ To branch from a stored session, call `thread/fork` with the `thread.id`. This c
 { "id": 12, "result": { "thread": { "id": "thr_456", … } } }
 { "method": "thread/started", "params": { "thread": { … } } }
 ```
->>>>>>> upstream/main
+
+You can also pass `modelContextWindow`, `modelAutoCompactTokenLimit`, or `compactPrompt` to tune context compression (auto-compaction) for long-running threads.
 
 ### Example: List threads (with pagination & filters)
 

@@ -503,6 +503,29 @@ fn format_task_list_lines(
     lines
 }
 
+async fn run_list_command(args: crate::cli::ListCommand) -> anyhow::Result<()> {
+    let ctx = init_backend("codex_cloud_tasks_list").await?;
+    let page = codex_cloud_tasks_client::CloudBackend::list_tasks(
+        &*ctx.backend,
+        args.environment.as_deref(),
+        Some(args.limit),
+        None,
+    )
+    .await?;
+
+    let now = Utc::now();
+    let colorize = supports_color::on(SupportStream::Stdout).is_some();
+    let base_url = util::normalize_base_url(
+        &std::env::var("CODEX_CLOUD_TASKS_BASE_URL")
+            .unwrap_or_else(|_| "https://chatgpt.com/backend-api".to_string()),
+    );
+
+    for line in format_task_list_lines(&page.tasks, &base_url, now, colorize) {
+        println!("{line}");
+    }
+    Ok(())
+}
+
 async fn run_status_command(args: crate::cli::StatusCommand) -> anyhow::Result<()> {
     let ctx = init_backend("codex_cloud_tasks_status").await?;
     let task_id = parse_task_id(&args.task_id)?;
@@ -522,8 +545,9 @@ async fn fetch_task_summary(
     backend: &dyn codex_cloud_tasks_client::CloudBackend,
     task_id: &codex_cloud_tasks_client::TaskId,
 ) -> anyhow::Result<codex_cloud_tasks_client::TaskSummary> {
-    let tasks = codex_cloud_tasks_client::CloudBackend::list_tasks(backend, None).await?;
-    tasks
+    let page =
+        codex_cloud_tasks_client::CloudBackend::list_tasks(backend, None, Some(100), None).await?;
+    page.tasks
         .into_iter()
         .find(|task| task.id == *task_id)
         .ok_or_else(|| anyhow!("task {} not found", task_id.0))

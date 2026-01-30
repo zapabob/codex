@@ -14,11 +14,11 @@ pub struct CudaGit4DAccelerator {
     render_kernel: cudarc::driver::CudaFunction,
 }
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitCommitVertex {
-    pub position: [f32; 3],  // x, y, z coordinates
+    pub position: [f32; 3], // x, y, z coordinates
     pub time: f32,          // 4th dimension (time)
     pub color: [f32; 4],    // RGBA color
     pub branch_id: u32,     // Branch identifier
@@ -38,8 +38,8 @@ pub struct RenderParameters {
     pub camera_target: [f32; 3],
     pub camera_up: [f32; 3],
     pub projection_matrix: [[f32; 4]; 4],
-    pub time_filter: (f32, f32),  // Time range filter
-    pub branch_filter: Vec<u32>,  // Visible branches
+    pub time_filter: (f32, f32), // Time range filter
+    pub branch_filter: Vec<u32>, // Visible branches
 }
 
 #[cfg(feature = "cuda")]
@@ -50,7 +50,11 @@ impl CudaGit4DAccelerator {
 
         // Load CUDA kernels
         let ptx = cudarc::nvrtc::compile_ptx(GIT4D_KERNELS)?;
-        device.load_ptx(ptx, "git4d", &["vertex_transform", "time_projection", "render_commits"])?;
+        device.load_ptx(
+            ptx,
+            "git4d",
+            &["vertex_transform", "time_projection", "render_commits"],
+        )?;
 
         let vertex_kernel = device.get_func("git4d", "vertex_transform").unwrap();
         let transform_kernel = device.get_func("git4d", "time_projection").unwrap();
@@ -258,6 +262,7 @@ impl CudaGit4DAccelerator {
 }
 
 // CUDA kernel code for Git4D visualization
+#[allow(dead_code)]
 const GIT4D_KERNELS: &str = r#"
 extern "C" __global__ void vertex_transform(
     const GitCommitVertex* vertices,
@@ -397,6 +402,7 @@ extern "C" __global__ void render_commits(
 "#;
 
 #[cfg(test)]
+#[cfg(feature = "cuda")]
 mod tests {
     use super::*;
 
@@ -432,7 +438,8 @@ mod tests {
 
         // Mock accelerator for testing
         // In real test, this would use actual CUDA device
-        let mock_accelerator = CudaGit4DAccelerator::new().unwrap_or_else(|_| panic!("CUDA not available"));
+        let mock_accelerator =
+            CudaGit4DAccelerator::new().unwrap_or_else(|_| panic!("CUDA not available"));
 
         match mock_accelerator.calculate_optimal_camera(&vertices) {
             Ok((camera_pos, target)) => {

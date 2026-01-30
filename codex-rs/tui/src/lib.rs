@@ -409,10 +409,23 @@ async fn run_ratatui_app(
                 UpdatePromptOutcome::Continue => {}
                 UpdatePromptOutcome::RunUpdate(action) => {
                     crate::tui::restore()?;
+                    // Map generic updates::UpdateAction to our AppExitInfo's update_action::UpdateAction
+                    let mapped_action = match action {
+                        crate::updates::UpdateAction::NpmGlobalLatest => {
+                            crate::update_action::UpdateAction::NpmGlobalLatest
+                        }
+                        crate::updates::UpdateAction::BunGlobalLatest => {
+                            crate::update_action::UpdateAction::BunGlobalLatest
+                        }
+                        crate::updates::UpdateAction::BrewUpgrade => {
+                            crate::update_action::UpdateAction::BrewUpgrade
+                        }
+                    };
+
                     return Ok(AppExitInfo {
                         token_usage: codex_core::protocol::TokenUsage::default(),
                         thread_id: None,
-                        update_action: Some(action),
+                        update_action: Some(mapped_action),
                         exit_reason: ExitReason::UserRequested,
                     });
                 }

@@ -290,6 +290,7 @@ impl ModelClientSession {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn try_switch_fallback_transport(&mut self) -> bool {
         let websocket_enabled = self.responses_websocket_enabled();
         let activated = self

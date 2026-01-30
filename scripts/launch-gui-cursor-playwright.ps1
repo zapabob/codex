@@ -17,7 +17,7 @@ if (-not $guiProcess) {
     Write-Host "🔄 GUIサーバーを起動中..." -ForegroundColor Yellow
 
     # GUIサーバー起動
-    Start-Process -FilePath "$env:USERPROFILE\.cargo\bin\codex-gui-new.exe" -ArgumentList "--port", $Port -NoNewWindow
+    Start-Process -FilePath "$env:USERPROFILE\.cargo\bin\codex-gui.exe" -ArgumentList "--port", $Port -NoNewWindow
 
     # 起動待機
     $maxRetries = 30
@@ -30,7 +30,8 @@ if (-not $guiProcess) {
                 Write-Host "✅ GUIサーバー起動完了 (ポート: $Port)" -ForegroundColor Green
                 break
             }
-        } catch {
+        }
+        catch {
             # 接続失敗は正常
         }
 
@@ -43,7 +44,8 @@ if (-not $guiProcess) {
         Write-Host "❌ GUIサーバー起動タイムアウト" -ForegroundColor Red
         exit 1
     }
-} else {
+}
+else {
     Write-Host "✅ GUIサーバーは既に実行中" -ForegroundColor Green
 }
 
@@ -76,7 +78,8 @@ if (Test-Path $cursorPath) {
         Write-Host "  URL: $url" -ForegroundColor Gray
     }
 
-} else {
+}
+else {
     Write-Host "❌ Cursorが見つかりません" -ForegroundColor Red
     Write-Host "Cursorがインストールされているか確認してください。" -ForegroundColor Red
     exit 1

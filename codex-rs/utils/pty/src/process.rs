@@ -1,8 +1,8 @@
 use core::fmt;
 use std::io;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::sync::Mutex as StdMutex;
+use std::sync::atomic::AtomicBool;
 
 use portable_pty::MasterPty;
 use portable_pty::SlavePty;
@@ -104,12 +104,14 @@ impl ProcessHandle {
     /// Attempts to kill the child and abort helper tasks.
     pub fn terminate(&self) {
         if let Ok(mut killer_opt) = self.killer.lock()
-            && let Some(mut killer) = killer_opt.take() {
+            && let Some(mut killer) = killer_opt.take()
+        {
             let _ = killer.kill();
         }
 
         if let Ok(mut h) = self.reader_handle.lock()
-            && let Some(handle) = h.take() {
+            && let Some(handle) = h.take()
+        {
             handle.abort();
         }
         if let Ok(mut handles) = self.reader_abort_handles.lock() {
@@ -118,11 +120,13 @@ impl ProcessHandle {
             }
         }
         if let Ok(mut h) = self.writer_handle.lock()
-            && let Some(handle) = h.take() {
+            && let Some(handle) = h.take()
+        {
             handle.abort();
         }
         if let Ok(mut h) = self.wait_handle.lock()
-            && let Some(handle) = h.take() {
+            && let Some(handle) = h.take()
+        {
             handle.abort();
         }
     }

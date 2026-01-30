@@ -9,7 +9,6 @@ use std::path::PathBuf;
 use std::process::Command;
 use tracing::debug;
 use tracing::error;
-use tracing::info;
 
 /// Create an implementation log using Python script
 pub async fn create_implementation_log(

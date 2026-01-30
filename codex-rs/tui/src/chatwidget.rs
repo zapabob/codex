@@ -1594,7 +1594,6 @@ impl ChatWidget {
         self.active_cell = Some(Box::new(history_cell::new_active_web_search_call(
             ev.call_id,
             String::new(),
-            self.config.animations,
         )));
         self.bump_active_cell_revision();
         self.request_redraw();
@@ -3418,6 +3417,7 @@ impl ChatWidget {
             &self.thread_id,
             self.forked_from,
             self.rate_limit_snapshot.as_ref(),
+            None, // plan_type
             Local::now(),
             self.model_display_name(),
             collaboration_mode,
@@ -5231,20 +5231,11 @@ impl ChatWidget {
         // Launch Git4D visualization via cowork integration
         // Launch Git4D visualization via cowork integration
         let mode_owned = mode.to_string();
-        let cwd_owned = if cfg!(target_os = "windows") {
-            PathBuf::from(cwd.to_string_lossy().into_owned())
-        } else {
-            cwd.clone()
-        };
-        // Simple clone might be enough if cwd is PathBuf. But to be safe if it's Cow or REF:
-        // Actually, just cwd.clone() or to_path_buf() is safer.
-        // Let's assume cwd is PathBuf or &Path.
-        let cwd_owned = PathBuf::from(cwd.to_string_lossy().to_string()); /* safest generic conversion */
         let app_event_tx_owned = app_event_tx.clone();
 
         tokio::spawn(async move {
             match codex_core::cowork_integration::launch_git4d_visualization(
-                cwd_owned,
+                cwd,
                 mode_owned.clone(),
             )
             .await

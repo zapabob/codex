@@ -1,7 +1,7 @@
 mod windows_impl {
     use crate::acl::allow_null_device;
-    use crate::allow::compute_allow_paths;
     use crate::allow::AllowDenyPaths;
+    use crate::allow::compute_allow_paths;
     use crate::cap::load_or_create_cap_sids;
     use crate::env::ensure_non_interactive_pager;
     use crate::env::inherit_path_env;
@@ -11,15 +11,15 @@ mod windows_impl {
     use crate::logging::log_note;
     use crate::logging::log_start;
     use crate::logging::log_success;
-    use crate::policy::parse_policy;
     use crate::policy::SandboxPolicy;
+    use crate::policy::parse_policy;
     use crate::token::convert_string_sid_to_sid;
     use crate::winutil::quote_windows_arg;
     use crate::winutil::to_wide;
     use anyhow::Result;
-    use rand::rngs::SmallRng;
     use rand::Rng;
     use rand::SeedableRng;
+    use rand::rngs::SmallRng;
     use std::collections::HashMap;
     use std::ffi::c_void;
     use std::fs;
@@ -43,11 +43,11 @@ mod windows_impl {
     use windows_sys::Win32::System::Pipes::PIPE_WAIT;
     use windows_sys::Win32::System::Threading::CreateProcessWithLogonW;
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
-    use windows_sys::Win32::System::Threading::WaitForSingleObject;
     use windows_sys::Win32::System::Threading::INFINITE;
     use windows_sys::Win32::System::Threading::LOGON_WITH_PROFILE;
     use windows_sys::Win32::System::Threading::PROCESS_INFORMATION;
     use windows_sys::Win32::System::Threading::STARTUPINFOW;
+    use windows_sys::Win32::System::Threading::WaitForSingleObject;
 
     /// Ensures the parent directory of a path exists before writing to it.
     /// Walks upward from `start` to locate the git worktree root, following gitfile redirects.
@@ -59,16 +59,16 @@ mod windows_impl {
                 return Some(cur);
             }
             if marker.is_file() {
-                if let Ok(txt) = std::fs::read_to_string(&marker) {
-                    if let Some(rest) = txt.trim().strip_prefix("gitdir:") {
-                        let gitdir = rest.trim();
-                        let resolved = if Path::new(gitdir).is_absolute() {
-                            PathBuf::from(gitdir)
-                        } else {
-                            cur.join(gitdir)
-                        };
-                        return resolved.parent().map(|p| p.to_path_buf()).or(Some(cur));
-                    }
+                if let Ok(txt) = std::fs::read_to_string(&marker)
+                    && let Some(rest) = txt.trim().strip_prefix("gitdir:")
+                {
+                    let gitdir = rest.trim();
+                    let resolved = if Path::new(gitdir).is_absolute() {
+                        PathBuf::from(gitdir)
+                    } else {
+                        cur.join(gitdir)
+                    };
+                    return resolved.parent().map(|p| p.to_path_buf()).or(Some(cur));
                 }
                 return Some(cur);
             }
@@ -112,12 +112,12 @@ mod windows_impl {
 
     /// Locates `codex-command-runner.exe` next to the current binary.
     fn find_runner_exe() -> PathBuf {
-        if let Ok(exe) = std::env::current_exe() {
-            if let Some(dir) = exe.parent() {
-                let candidate = dir.join("codex-command-runner.exe");
-                if candidate.exists() {
-                    return candidate;
-                }
+        if let Ok(exe) = std::env::current_exe()
+            && let Some(dir) = exe.parent()
+        {
+            let candidate = dir.join("codex-command-runner.exe");
+            if candidate.exists() {
+                return candidate;
             }
         }
         PathBuf::from("codex-command-runner.exe")
@@ -126,7 +126,11 @@ mod windows_impl {
     /// Generates a unique named-pipe path used to communicate with the runner process.
     fn pipe_name(suffix: &str) -> String {
         let mut rng = SmallRng::from_entropy();
-        format!(r"\\.\pipe\codex-runner-{:x}-{}", rng.r#gen::<u128>(), suffix)
+        format!(
+            r"\\.\pipe\codex-runner-{:x}-{}",
+            rng.r#gen::<u128>(),
+            suffix
+        )
     }
 
     /// Creates a named pipe with permissive ACLs so the sandbox user can connect.
@@ -495,8 +499,8 @@ pub use windows_impl::run_windows_sandbox_capture;
 
 #[cfg(not(target_os = "windows"))]
 mod stub {
-    use anyhow::bail;
     use anyhow::Result;
+    use anyhow::bail;
     use codex_protocol::protocol::SandboxPolicy;
     use std::collections::HashMap;
     use std::path::Path;

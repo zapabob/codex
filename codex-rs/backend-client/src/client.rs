@@ -1,7 +1,7 @@
 use crate::types::CodeTaskDetailsResponse;
 use crate::types::ConfigFileResponse;
 use crate::types::PaginatedListTaskListItem;
-use crate::types::RateLimitStatusDetails;
+// use crate::types::RateLimitStatusDetails;
 use crate::types::RateLimitStatusPayload;
 use crate::types::RateLimitWindowSnapshot;
 use crate::types::TurnAttemptsSiblingTurnsResponse;
@@ -9,7 +9,7 @@ use anyhow::Result;
 use codex_core::auth::CodexAuth;
 use codex_core::default_client::get_codex_user_agent;
 use codex_protocol::account::PlanType as AccountPlanType;
-use codex_protocol::protocol::CreditsSnapshot;
+// use codex_protocol::protocol::CreditsSnapshot;
 use codex_protocol::protocol::RateLimitSnapshot;
 use codex_protocol::protocol::RateLimitWindow;
 use reqwest::header::AUTHORIZATION;

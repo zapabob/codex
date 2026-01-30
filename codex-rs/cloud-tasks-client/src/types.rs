@@ -118,3 +118,10 @@ pub struct ApplyOutcome {
     pub conflict_paths: Vec<String>,
     pub skipped_paths: Vec<String>,
 }
+
+/// Task List Page - paginated task response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskListPage {
+    pub tasks: Vec<TaskSummary>,
+    pub cursor: Option<String>,
+}

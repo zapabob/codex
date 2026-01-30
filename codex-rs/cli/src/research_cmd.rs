@@ -155,8 +155,14 @@ fn generate_markdown_report(report: &codex_deep_research::types::ResearchReport)
     md.push_str("| Metric | Value |\n");
     md.push_str("|--------|-------|\n");
     md.push_str(&format!("| **Strategy** | {:?} |\n", report.strategy));
-    md.push_str(&format!("| **Depth Reached** | {} |\n", report.depth_reached));
-    md.push_str(&format!("| **Total Sources** | {} |\n", report.sources.len()));
+    md.push_str(&format!(
+        "| **Depth Reached** | {} |\n",
+        report.depth_reached
+    ));
+    md.push_str(&format!(
+        "| **Total Sources** | {} |\n",
+        report.sources.len()
+    ));
     md.push_str(&format!(
         "| **Diversity Score** | {:.2} |\n",
         report.diversity_score
@@ -177,8 +183,9 @@ fn generate_markdown_report(report: &codex_deep_research::types::ResearchReport)
             md.push_str("| # | Description | Severity |\n");
             md.push_str("|---|-------------|----------|\n");
             for (i, contradiction) in contradictions.contradictions.iter().enumerate() {
-                let severity = if contradiction.description.contains("critical") || 
-                    contradiction.description.contains("major") {
+                let severity = if contradiction.description.contains("critical")
+                    || contradiction.description.contains("major")
+                {
                     "High"
                 } else if contradiction.description.contains("minor") {
                     "Low"
@@ -202,12 +209,20 @@ fn generate_markdown_report(report: &codex_deep_research::types::ResearchReport)
         md.push_str("*No specific findings documented.*\n\n");
     } else {
         for (i, finding) in report.findings.iter().enumerate() {
-            md.push_str(&format!("### Finding {}: {}\n\n", 
+            md.push_str(&format!(
+                "### Finding {}: {}\n\n",
                 i + 1,
-                finding.content.lines().next().unwrap_or("Untitled").chars().take(60).collect::<String>()
+                finding
+                    .content
+                    .lines()
+                    .next()
+                    .unwrap_or("Untitled")
+                    .chars()
+                    .take(60)
+                    .collect::<String>()
             ));
             md.push_str(&format!("{}\n\n", finding.content));
-            
+
             // Confidence indicator
             let confidence_bar = if finding.confidence >= 0.8 {
                 "████████████████████"
@@ -232,13 +247,19 @@ fn generate_markdown_report(report: &codex_deep_research::types::ResearchReport)
         md.push_str("*No sources found.*\n\n");
     } else {
         // Group sources by relevance
-        let mut high_relevance: Vec<_> = report.sources.iter()
+        let mut high_relevance: Vec<_> = report
+            .sources
+            .iter()
             .filter(|s| s.relevance_score >= 0.7)
             .collect();
-        let mut medium_relevance: Vec<_> = report.sources.iter()
+        let mut medium_relevance: Vec<_> = report
+            .sources
+            .iter()
             .filter(|s| s.relevance_score >= 0.4 && s.relevance_score < 0.7)
             .collect();
-        let mut low_relevance: Vec<_> = report.sources.iter()
+        let mut low_relevance: Vec<_> = report
+            .sources
+            .iter()
             .filter(|s| s.relevance_score < 0.4)
             .collect();
 
@@ -288,8 +309,14 @@ fn generate_markdown_report(report: &codex_deep_research::types::ResearchReport)
     md.push_str("## Research Methodology\n\n");
     md.push_str(&format!("- **Research Strategy**: {:?}\n", report.strategy));
     md.push_str(&format!("- **Maximum Depth**: {}\n", report.depth_reached));
-    md.push_str(&format!("- **Source Diversity**: {:.2}\n", report.diversity_score));
-    md.push_str(&format!("- **Confidence Assessment**: {:?}\n\n", report.confidence_level));
+    md.push_str(&format!(
+        "- **Source Diversity**: {:.2}\n",
+        report.diversity_score
+    ));
+    md.push_str(&format!(
+        "- **Confidence Assessment**: {:?}\n\n",
+        report.confidence_level
+    ));
 
     // Footer
     md.push_str("---\n\n");

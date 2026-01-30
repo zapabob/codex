@@ -15,7 +15,7 @@ use git2::Commit;
 use git2::Diff;
 use git2::Oid;
 use git2::Repository;
-use std::str::FromStr;
+
 // OpenAI API integration - temporarily disabled due to dependency issues
 // #[cfg(feature = "openai-api-rs")]
 // use openai_api_rs::v1::api::Client;
@@ -28,15 +28,10 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
-use std::sync::Arc;
-use std::sync::Mutex;
+
 use std::sync::RwLock;
 use tokio::sync::broadcast;
-use tokio::sync::mpsc;
-use tokio::sync::oneshot;
-use tokio::time::Duration;
-use tokio::time::Instant;
-use tokio::time::{self};
+
 use futures::future;
 
 // Import existing components
@@ -47,20 +42,22 @@ use crate::cuda_accelerator::GitCommitVertex;
 use crate::git4d_accelerated::Git4DAcceleratedVisualizer;
 use crate::git4d_accelerated::Git4DEvent;
 use crate::git4d_accelerated::Git4DVisualizationConfig;
-use crate::vr_ar_integration::VRARIntegration;
-use crate::vr_ar_integration::VREvent;
 use crate::vr_ar_integration::VRInteraction;
-use crate::vr_ar_integration::XRPlatform;
 
 /// Superior Git4D Visualizer with AI, Quantum, and VR/AR enhancements
 pub struct SuperiorGit4DVisualizer {
     base_visualizer: Git4DAcceleratedVisualizer,
     // #[cfg(feature = "openai-api-rs")]
     // ai_client: Option<Client>,
+    #[allow(dead_code)]
     sentiment_analyzer: SentimentAnalyzer,
+    #[allow(dead_code)]
     impact_calculator: ImpactCalculator,
+    #[allow(dead_code)]
     collaboration_tracker: CollaborationTracker,
+    #[allow(dead_code)]
     quantum_optimizer: QuantumOptimizer,
+    #[allow(dead_code)]
     event_sender: broadcast::Sender<SuperiorGit4DEvent>,
     config: SuperiorGit4DConfig,
 }
@@ -127,7 +124,6 @@ pub struct CollaborationEvent {
 mod oid_serde {
     use git2::Oid;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
-    use std::str::FromStr;
 
     pub fn serialize<S>(oid: &Oid, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -436,8 +432,8 @@ impl ImpactCalculator {
     }
 
     fn calculate_from_diff(&self, commit: &Commit, diff: &Diff) -> CommitImpact {
-        let mut lines_added = 0;
-        let mut lines_deleted = 0;
+        let lines_added = 0;
+        let lines_deleted = 0;
         let mut files_affected = 0;
         let mut breaking_changes = false;
 
@@ -514,6 +510,7 @@ impl ImpactCalculator {
 }
 
 /// Code Complexity Analyzer
+#[allow(dead_code)]
 pub struct ComplexityAnalyzer {
     // Rust 2024: Using GATs for generic associated types
     cache: RwLock<HashMap<String, f32>>,
@@ -560,12 +557,14 @@ impl ComplexityAnalyzer {
 }
 
 /// Collaboration Tracker for multi-user interactions
+#[allow(dead_code)]
 pub struct CollaborationTracker {
     collaboration_events: RwLock<Vec<CollaborationEvent>>,
     user_sessions: RwLock<HashMap<String, UserSession>>,
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct UserSession {
     user_id: String,
     start_time: chrono::DateTime<chrono::Utc>,
@@ -616,10 +615,16 @@ impl CollaborationTracker {
                         collaboration_type: CollaborationType::PairProgramming,
                         intensity: 0.8,
                         time_window: (
-                            chrono::DateTime::<chrono::Utc>::from_timestamp(commit.time().seconds(), 0)
-                                .unwrap_or_else(|| chrono::Utc::now()),
-                            chrono::DateTime::<chrono::Utc>::from_timestamp(commit.time().seconds(), 0)
-                                .unwrap_or_else(|| chrono::Utc::now()),
+                            chrono::DateTime::<chrono::Utc>::from_timestamp(
+                                commit.time().seconds(),
+                                0,
+                            )
+                            .unwrap_or_else(|| chrono::Utc::now()),
+                            chrono::DateTime::<chrono::Utc>::from_timestamp(
+                                commit.time().seconds(),
+                                0,
+                            )
+                            .unwrap_or_else(|| chrono::Utc::now()),
                         ),
                     });
                 }
@@ -645,6 +650,7 @@ impl CollaborationTracker {
 }
 
 /// Quantum Optimizer using quantum computing principles
+#[allow(dead_code)]
 pub struct QuantumOptimizer {
     optimization_cache: RwLock<HashMap<String, QuantumOptimizationResult>>,
     quantum_enabled: bool,
@@ -660,7 +666,7 @@ impl QuantumOptimizer {
 
     pub async fn optimize_rendering_pipeline(
         &self,
-        vertices: &[GitCommitVertex],
+        _vertices: &[GitCommitVertex],
     ) -> QuantumOptimizationResult {
         if self.quantum_enabled {
             // Quantum-accelerated optimization would go here
@@ -688,14 +694,24 @@ impl QuantumOptimizer {
 pub trait Git4DAnalyzer {
     type AnalysisResult;
 
-    async fn analyze(&self, commit_id: Oid, message: String, author: String) -> Self::AnalysisResult;
+    async fn analyze(
+        &self,
+        commit_id: Oid,
+        message: String,
+        author: String,
+    ) -> Self::AnalysisResult;
 }
 
 #[async_trait]
 impl Git4DAnalyzer for SentimentAnalyzer {
     type AnalysisResult = CommitSentiment;
 
-    async fn analyze(&self, commit_id: Oid, message: String, author: String) -> Self::AnalysisResult {
+    async fn analyze(
+        &self,
+        commit_id: Oid,
+        message: String,
+        author: String,
+    ) -> Self::AnalysisResult {
         // Use the extracted information for async processing
         self.analyze_commit_sentiment_inner(commit_id, &message, &author)
             .await
@@ -755,44 +771,52 @@ impl SuperiorGit4DVisualizer {
 
         // Parallel analysis using Rust 2024 async closures
         // Extract commit data synchronously to avoid Send issues
-        let commit_data: Vec<(Oid, String, String)> = commits.iter().map(|commit| {
-            let commit_id = commit.id();
-            let message = commit.message().unwrap_or("").to_string();
-            let author = commit.author().name().unwrap_or("").to_string();
-            (commit_id, message, author)
-        }).collect();
+        let commit_data: Vec<(Oid, String, String)> = commits
+            .iter()
+            .map(|commit| {
+                let commit_id = commit.id();
+                let message = commit.message().unwrap_or("").to_string();
+                let author = commit.author().name().unwrap_or("").to_string();
+                (commit_id, message, author)
+            })
+            .collect();
 
         let sentiment_analyzer = &self.sentiment_analyzer;
-        let analysis_futures: Vec<_> = commit_data.into_iter().map(|(commit_id, message, author)| {
-            async move {
-                // Analyze sentiment using extracted data
-                let sentiment = sentiment_analyzer.analyze_commit_sentiment_inner(commit_id, &message, &author)
-                    .await
-                    .unwrap_or_else(|_| CommitSentiment {
+        let analysis_futures: Vec<_> = commit_data
+            .into_iter()
+            .map(|(commit_id, message, author)| {
+                async move {
+                    // Analyze sentiment using extracted data
+                    let sentiment = sentiment_analyzer
+                        .analyze_commit_sentiment_inner(commit_id, &message, &author)
+                        .await
+                        .unwrap_or_else(|_| CommitSentiment {
+                            commit_id,
+                            sentiment_score: 0.0,
+                            confidence: 0.0,
+                            emotions: HashMap::new(),
+                            keywords: Vec::new(),
+                        });
+
+                    // Calculate impact (simplified - would need commit data)
+                    let impact = CommitImpact {
                         commit_id,
-                        sentiment_score: 0.0,
-                        confidence: 0.0,
-                        emotions: HashMap::new(),
-                        keywords: Vec::new(),
-                    });
+                        impact_score: 0.1,
+                        lines_changed: 0,
+                        files_affected: 0,
+                        complexity_delta: 0.0,
+                        breaking_changes: false,
+                        test_coverage_impact: None,
+                    };
 
-                // Calculate impact (simplified - would need commit data)
-                let impact = CommitImpact {
-                    commit_id,
-                    impact_score: 0.1,
-                    lines_changed: 0,
-                    files_affected: 0,
-                    complexity_delta: 0.0,
-                    breaking_changes: false,
-                    test_coverage_impact: None,
-                };
-
-                (sentiment, impact)
-            }
-        }).collect();
+                    (sentiment, impact)
+                }
+            })
+            .collect();
 
         // Execute all analysis in parallel
-        let analysis_results: Vec<(CommitSentiment, CommitImpact)> = future::join_all(analysis_futures).await;
+        let analysis_results: Vec<(CommitSentiment, CommitImpact)> =
+            future::join_all(analysis_futures).await;
 
         // Process results
         let sentiments: Vec<CommitSentiment> =

@@ -4,7 +4,13 @@ name = "codex-gui"
 version = { workspace = true }
 
 [dependencies]
-axum = { workspace = true, features = ["json", "macros", "tokio", "http1"] }
+axum = { workspace = true, features = [
+    "json",
+    "macros",
+    "tokio",
+    "http1",
+    "query",
+] }
 chrono = { version = "0.4", features = ["serde"] }
 http = "1.1"
 serde = { version = "1.0", features = ["derive"] }
@@ -27,5 +33,9 @@ futures-util = "0.3"
 codex-core = { path = "../core", features = ["custom-features"] }
 jsonwebtoken = "9.3"
 sha2 = "0.10"
-sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono"] }
+sqlx = { version = "0.8", features = [
+    "runtime-tokio-rustls",
+    "sqlite",
+    "chrono",
+] }
 bcrypt = "0.15"

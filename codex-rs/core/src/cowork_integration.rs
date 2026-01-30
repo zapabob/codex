@@ -102,25 +102,23 @@ impl CoworkIntegrationManager {
             // macOS Seatbeltスタイルのサンドボックス環境変数を設定
             cmd.env("CODEX_SANDBOX_ENABLED", "1");
             cmd.env("CODEX_SANDBOX_MODE", "macos-style");
-            
+
             // ファイル共有とアクセス制御の設定
             // サンドボックス内でのcowork機能の利用を許可
             cmd.env("CODEX_COWORK_SANDBOXED", "1");
-            
+
             // ネットワーク分離と許可リスト
             // 必要に応じてネットワークアクセスを制限
             cmd.env("CODEX_NETWORK_ISOLATION", "permissive");
         }
 
-        let mut child = cmd
-            .spawn()
-            .with_context(|| {
-                format!(
-                    "Failed to spawn Python process: {} {}",
-                    self.config.python_path.display(),
-                    script_path.display()
-                )
-            })?;
+        let mut child = cmd.spawn().with_context(|| {
+            format!(
+                "Failed to spawn Python process: {} {}",
+                self.config.python_path.display(),
+                script_path.display()
+            )
+        })?;
 
         // 入力データを送信（JSON形式）
         if let Some(input) = input_data
@@ -232,14 +230,11 @@ impl CoworkIntegrationManager {
 }
 
 /// Git4D可視化を起動
-/// 
+///
 /// GUI側のAPIエンドポイントを呼び出してGit4D可視化を起動します
-pub async fn launch_git4d_visualization(
-    repository_path: PathBuf,
-    mode: String,
-) -> Result<()> {
+pub async fn launch_git4d_visualization(repository_path: PathBuf, mode: String) -> Result<()> {
     use reqwest::Client;
-    
+
     // Validate repository path exists
     if !repository_path.exists() {
         anyhow::bail!(
@@ -247,7 +242,7 @@ pub async fn launch_git4d_visualization(
             repository_path.display()
         );
     }
-    
+
     // Check if it's a git repository
     let git_dir = repository_path.join(".git");
     if !git_dir.exists() && !repository_path.is_file() {
@@ -265,7 +260,7 @@ pub async fn launch_git4d_visualization(
                 break;
             }
         }
-        
+
         if !found_git {
             anyhow::bail!(
                 "No git repository found at: {}. Please navigate to a git repository and try again.",
@@ -273,7 +268,7 @@ pub async fn launch_git4d_visualization(
             );
         }
     }
-    
+
     // Validate mode
     if !["desktop", "vr", "ar"].contains(&mode.as_str()) {
         anyhow::bail!(
@@ -281,34 +276,33 @@ pub async fn launch_git4d_visualization(
             mode
         );
     }
-    
+
     // Check if GUI is running
     let gui_port = std::env::var("CODEX_GUI_PORT")
         .ok()
         .and_then(|p| p.parse::<u16>().ok())
         .unwrap_or(8787);
-    
+
     let url = format!("http://localhost:{}/api/visualization/git4d", gui_port);
-    
+
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(5))
         .build()
         .context("Failed to create HTTP client")?;
-    
+
     let payload = serde_json::json!({
         "mode": mode,
         "repository_path": repository_path.to_string_lossy().to_string(),
     });
-    
-    tracing::debug!("Launching Git4D visualization: mode={}, path={:?}", mode, repository_path);
-    
+
+    tracing::debug!(
+        "Launching Git4D visualization: mode={}, path={:?}",
+        mode,
+        repository_path
+    );
+
     // Attempt to connect to GUI API
-    let response = match client
-        .post(&url)
-        .json(&payload)
-        .send()
-        .await
-    {
+    let response = match client.post(&url).json(&payload).send().await {
         Ok(res) => res,
         Err(e) => {
             if e.is_timeout() || e.is_connect() {
@@ -320,32 +314,39 @@ pub async fn launch_git4d_visualization(
             return Err(e).context("Failed to send request to GUI API");
         }
     };
-    
+
     if !response.status().is_success() {
         let status = response.status();
-        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-        
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+
         // Provide user-friendly error messages
         let error_msg = match status.as_u16() {
-            404 => format!("Visualization endpoint not found. The GUI server may need to be updated."),
+            404 => {
+                format!("Visualization endpoint not found. The GUI server may need to be updated.")
+            }
             422 => format!("Invalid request parameters: {}", error_text),
             500 => format!("Server error while launching visualization: {}", error_text),
             _ => format!("GUI API returned error status {}: {}", status, error_text),
         };
-        
+
         anyhow::bail!("{}", error_msg);
     }
-    
+
     // Check response for VR/AR device availability warnings
     if mode == "vr" || mode == "ar" {
         let response_text = response.text().await.unwrap_or_default();
-        if response_text.contains("device not available") || response_text.contains("VR not available") {
+        if response_text.contains("device not available")
+            || response_text.contains("VR not available")
+        {
             tracing::warn!(
                 "VR/AR device may not be available. Visualization will start in desktop mode."
             );
         }
     }
-    
+
     tracing::info!("Git4D visualization launched successfully in {} mode", mode);
     Ok(())
 }

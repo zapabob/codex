@@ -1,4 +1,5 @@
 #![allow(clippy::disallowed_methods)]
+#![allow(unsafe_op_in_unsafe_fn)]
 
 macro_rules! windows_modules {
     ($($name:ident),+ $(,)?) => {
@@ -267,17 +268,15 @@ mod windows_impl {
         let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
             match &policy {
                 SandboxPolicy::ReadOnly => {
-                    let psid =
-                        unsafe { convert_string_sid_to_sid(&caps.readonly) }.ok_or_else(|| {
-                            anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
-                        })?;
+                    let psid = convert_string_sid_to_sid(&caps.readonly).ok_or_else(|| {
+                        anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
+                    })?;
                     super::token::create_readonly_token_with_cap(psid)?
                 }
                 SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid =
-                        unsafe { convert_string_sid_to_sid(&caps.workspace) }.ok_or_else(|| {
-                            anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
-                        })?;
+                    let psid = convert_string_sid_to_sid(&caps.workspace).ok_or_else(|| {
+                        anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
+                    })?;
                     super::token::create_workspace_write_token_with_cap(psid)?
                 }
                 SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. } => {
@@ -287,15 +286,15 @@ mod windows_impl {
         };
 
         unsafe {
-            if is_workspace_write {
-                if let Ok(base) = super::token::get_current_token_for_restriction() {
-                    if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
-                        let mut tmp = bytes.clone();
-                        let psid2 = tmp.as_mut_ptr() as *mut std::ffi::c_void;
-                        allow_null_device(psid2);
-                    }
-                    CloseHandle(base);
+            if is_workspace_write
+                && let Ok(base) = super::token::get_current_token_for_restriction()
+            {
+                if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
+                    let mut tmp = bytes.clone();
+                    let psid2 = tmp.as_mut_ptr() as *mut std::ffi::c_void;
+                    allow_null_device(psid2);
                 }
+                CloseHandle(base);
             }
         }
 

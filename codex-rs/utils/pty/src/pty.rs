@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 use std::io::ErrorKind;
 use std::path::Path;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::sync::Mutex as StdMutex;
+use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
 use anyhow::Result;
-#[cfg(not(windows))]
-use portable_pty::native_pty_system;
 use portable_pty::CommandBuilder;
 use portable_pty::PtySize;
+#[cfg(not(windows))]
+use portable_pty::native_pty_system;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;

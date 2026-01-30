@@ -870,8 +870,6 @@ mod tests {
         use crate::config::ConfigBuilder;
         use crate::model_provider_info::ModelProviderInfo;
         use crate::model_provider_info::WireApi;
-        use codex_otel::otel_manager::OtelManager as OtelEventManager;
-        use codex_protocol::ConversationId;
 
         let temp_dir = TempDir::new().unwrap();
         let agents_dir = temp_dir.path().join(".codex/agents");
@@ -979,8 +977,6 @@ artifacts:
         use crate::config::ConfigBuilder;
         use crate::model_provider_info::ModelProviderInfo;
         use crate::model_provider_info::WireApi;
-        use codex_otel::otel_manager::OtelManager as OtelEventManager;
-        use codex_protocol::ConversationId;
 
         let temp_dir = TempDir::new().unwrap();
         let agents_dir = temp_dir.path().join(".codex/agents");

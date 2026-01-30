@@ -282,8 +282,8 @@ impl AuthManager {
         use base64::Engine;
         use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let key_bytes: [u8; 32] = rng.r#gen();
+        let mut rng = rand::rng();
+        let key_bytes: [u8; 32] = rng.random();
         let api_key = BASE64_STANDARD.encode(key_bytes);
 
         // Hash the key for storage

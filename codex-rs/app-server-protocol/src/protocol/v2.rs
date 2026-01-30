@@ -1146,6 +1146,17 @@ pub struct CommandExecParams {
     pub sandbox_policy: Option<SandboxPolicy>,
 }
 
+impl From<crate::protocol::v1::ExecOneOffCommandParams> for CommandExecParams {
+    fn from(value: crate::protocol::v1::ExecOneOffCommandParams) -> Self {
+        Self {
+            command: value.command,
+            timeout_ms: value.timeout_ms.map(|t| t as i64),
+            cwd: value.cwd,
+            sandbox_policy: value.sandbox_policy.map(SandboxPolicy::from),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]

@@ -8,11 +8,13 @@ use crate::connectors;
 use crate::skills::SkillMetadata;
 use crate::skills::injection::extract_tool_mentions;
 
+#[allow(dead_code)]
 pub(crate) struct CollectedToolMentions {
     pub(crate) plain_names: HashSet<String>,
     pub(crate) paths: HashSet<String>,
 }
 
+#[allow(dead_code)]
 pub(crate) fn collect_tool_mentions_from_messages(messages: &[String]) -> CollectedToolMentions {
     let mut plain_names = HashSet::new();
     let mut paths = HashSet::new();

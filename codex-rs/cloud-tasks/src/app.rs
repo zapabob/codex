@@ -123,13 +123,13 @@ pub async fn load_tasks(
     env: Option<&str>,
 ) -> anyhow::Result<Vec<TaskSummary>> {
     // In later milestones, add a small debounce, spinner, and error display.
-    let tasks = tokio::time::timeout(
+    let page = tokio::time::timeout(
         Duration::from_secs(5),
         backend.list_tasks(env, Some(20), None),
     )
     .await??;
     // Hide review-only tasks from the main list.
-    let filtered: Vec<TaskSummary> = tasks.tasks.into_iter().filter(|t| !t.is_review).collect();
+    let filtered: Vec<TaskSummary> = page.tasks.into_iter().filter(|t| !t.is_review).collect();
     Ok(filtered)
 }
 
@@ -363,7 +363,12 @@ mod tests {
 
     #[async_trait::async_trait]
     impl codex_cloud_tasks_client::CloudBackend for FakeBackend {
-        async fn list_tasks(&self, env: Option<&str>) -> Result<Vec<TaskSummary>> {
+        async fn list_tasks(
+            &self,
+            env: Option<&str>,
+            limit: Option<usize>,
+            cursor: Option<&str>,
+        ) -> Result<codex_cloud_tasks_client::TaskListPage> {
             let key = env.map(str::to_string);
             let titles = self
                 .by_env
@@ -384,11 +389,11 @@ mod tests {
                     attempt_total: Some(1),
                 });
             }
-            let max = limit.unwrap_or(i64::MAX);
+            let max = limit.unwrap_or(usize::MAX);
             let max = max.min(20);
             let mut limited = Vec::new();
             for task in out {
-                if (limited.len() as i64) >= max {
+                if limited.len() >= max {
                     break;
                 }
                 limited.push(task);

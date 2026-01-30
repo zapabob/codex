@@ -3274,7 +3274,7 @@ pub(crate) async fn run_turn(
     let mut last_agent_message: Option<String> = None;
     // Although from the perspective of codex.rs, TurnDiffTracker has the lifecycle of a Task which contains
     // many turns, from the perspective of the user, it is a single turn.
-    let turn_diff_tracker = Arc::new(tokio::sync::Mutex::new(TurnDiffTracker::new()));
+    let _turn_diff_tracker = Arc::new(tokio::sync::Mutex::new(TurnDiffTracker::new()));
 
     let mut client_session = turn_context.client.new_session();
 
@@ -3325,7 +3325,7 @@ pub(crate) async fn run_turn(
             })
             .map(|user_message| user_message.message())
             .collect::<Vec<String>>();
-        let tool_selection = SamplingRequestToolSelection {
+        let _tool_selection = SamplingRequestToolSelection {
             explicit_app_paths: &explicit_app_paths,
             skill_name_counts_lower: &skill_name_counts_lower,
         };
@@ -3423,6 +3423,7 @@ async fn run_auto_compact(sess: &Arc<Session>, turn_context: &Arc<TurnContext>) 
     }
 }
 
+#[allow(dead_code)]
 fn filter_connectors_for_input(
     connectors: Vec<connectors::AppInfo>,
     input: &[ResponseItem],
@@ -3467,6 +3468,7 @@ fn filter_connectors_for_input(
         .collect()
 }
 
+#[allow(dead_code)]
 fn connector_inserted_in_messages(
     connector: &connectors::AppInfo,
     mention_names_lower: &HashSet<String>,
@@ -3490,6 +3492,7 @@ fn connector_inserted_in_messages(
     connector_count == 1 && skill_count == 0 && mention_names_lower.contains(&mention_slug)
 }
 
+#[allow(dead_code)]
 fn filter_codex_apps_mcp_tools(
     mut mcp_tools: HashMap<String, crate::mcp_connection_manager::ToolInfo>,
     connectors: &[connectors::AppInfo],
@@ -3512,12 +3515,15 @@ fn filter_codex_apps_mcp_tools(
     mcp_tools
 }
 
+#[allow(dead_code)]
 fn codex_apps_connector_id(tool: &crate::mcp_connection_manager::ToolInfo) -> Option<&str> {
     tool.connector_id.as_deref()
 }
 
 struct SamplingRequestToolSelection<'a> {
+    #[allow(dead_code)]
     explicit_app_paths: &'a [String],
+    #[allow(dead_code)]
     skill_name_counts_lower: &'a HashMap<String, usize>,
 }
 
@@ -3530,6 +3536,7 @@ struct SamplingRequestToolSelection<'a> {
     )
 )]
 #[allow(clippy::too_many_arguments)]
+#[allow(dead_code)]
 async fn run_model_turn(
     sess: Arc<Session>,
     turn_context: Arc<TurnContext>,

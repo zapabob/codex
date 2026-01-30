@@ -37,6 +37,7 @@ mod flags;
 pub mod git_info;
 pub mod instructions;
 pub mod landlock;
+pub mod lock;
 pub mod lsp;
 pub mod mcp;
 mod mcp_connection_manager;

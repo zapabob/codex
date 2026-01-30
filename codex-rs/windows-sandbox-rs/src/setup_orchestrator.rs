@@ -9,20 +9,20 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
 
-use crate::allow::compute_allow_paths;
 use crate::allow::AllowDenyPaths;
+use crate::allow::compute_allow_paths;
 use crate::logging::log_note;
 use crate::policy::SandboxPolicy;
+use crate::setup_error::SetupErrorCode;
+use crate::setup_error::SetupFailure;
 use crate::setup_error::clear_setup_error_report;
 use crate::setup_error::failure;
 use crate::setup_error::read_setup_error_report;
-use crate::setup_error::SetupErrorCode;
-use crate::setup_error::SetupFailure;
-use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use anyhow::anyhow;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 
 use windows_sys::Win32::Foundation::CloseHandle;
 use windows_sys::Win32::Foundation::GetLastError;
@@ -203,10 +203,10 @@ fn canonical_existing(paths: &[PathBuf]) -> Vec<PathBuf> {
 
 pub(crate) fn gather_read_roots(command_cwd: &Path, policy: &SandboxPolicy) -> Vec<PathBuf> {
     let mut roots: Vec<PathBuf> = Vec::new();
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(dir) = exe.parent() {
-            roots.push(dir.to_path_buf());
-        }
+    if let Ok(exe) = std::env::current_exe()
+        && let Some(dir) = exe.parent()
+    {
+        roots.push(dir.to_path_buf());
     }
     for p in [
         PathBuf::from(r"C:\Windows"),
@@ -302,12 +302,12 @@ fn quote_arg(arg: &str) -> String {
 }
 
 fn find_setup_exe() -> PathBuf {
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(dir) = exe.parent() {
-            let candidate = dir.join("codex-windows-sandbox-setup.exe");
-            if candidate.exists() {
-                return candidate;
-            }
+    if let Ok(exe) = std::env::current_exe()
+        && let Some(dir) = exe.parent()
+    {
+        let candidate = dir.join("codex-windows-sandbox-setup.exe");
+        if candidate.exists() {
+            return candidate;
         }
     }
     PathBuf::from("codex-windows-sandbox-setup.exe")
@@ -338,11 +338,11 @@ fn run_setup_exe(
     codex_home: &Path,
 ) -> Result<()> {
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
-    use windows_sys::Win32::System::Threading::WaitForSingleObject;
     use windows_sys::Win32::System::Threading::INFINITE;
-    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
+    use windows_sys::Win32::System::Threading::WaitForSingleObject;
     use windows_sys::Win32::UI::Shell::SEE_MASK_NOCLOSEPROCESS;
     use windows_sys::Win32::UI::Shell::SHELLEXECUTEINFOW;
+    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
     let exe = find_setup_exe();
     let payload_json = serde_json::to_string(payload).map_err(|err| {
         failure(

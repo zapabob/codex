@@ -98,10 +98,7 @@ impl QcMerger {
         }
 
         // Select the result with the highest overall score
-        qc_reports.sort_by(|a, b| {
-            b.1.partial_cmp(&a.1)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        qc_reports.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         let (_best_idx, best_score, best_result) = &qc_reports[0];
 
         info!(
@@ -168,10 +165,7 @@ impl QcMerger {
         }
 
         // Select the worktree with the highest overall score
-        qc_reports.sort_by(|a, b| {
-            b.1.partial_cmp(&a.1)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        qc_reports.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         let (best_worktree, best_score) = &qc_reports[0];
 
         info!(

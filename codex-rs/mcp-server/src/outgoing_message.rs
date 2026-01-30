@@ -241,6 +241,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use serde_json::json;
     use std::path::Path;
+    use std::path::PathBuf;
     use tempfile::NamedTempFile;
 
     use super::*;

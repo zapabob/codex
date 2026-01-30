@@ -43,6 +43,7 @@ async fn test_add_server() {
         enabled_tools: None,
         disabled_tools: None,
         disabled_reason: None,
+        scopes: None,
     };
 
     let result = loader.add_server("test-server".to_string(), config).await;
@@ -86,6 +87,7 @@ async fn test_remove_server() {
         enabled_tools: None,
         disabled_tools: None,
         disabled_reason: None,
+        scopes: None,
     };
 
     loader

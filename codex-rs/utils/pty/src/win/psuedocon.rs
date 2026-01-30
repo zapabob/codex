@@ -22,9 +22,9 @@
 
 use super::WinChild;
 use crate::win::procthreadattr::ProcThreadAttributeList;
+use anyhow::Error;
 use anyhow::bail;
 use anyhow::ensure;
-use anyhow::Error;
 use filedescriptor::FileDescriptor;
 use filedescriptor::OwnedHandle;
 use lazy_static::lazy_static;
@@ -353,8 +353,8 @@ fn append_quoted(arg: &OsStr, cmdline: &mut Vec<u16>) {
 
 #[cfg(test)]
 mod tests {
-    use super::windows_build_number;
     use super::MIN_CONPTY_BUILD;
+    use super::windows_build_number;
 
     #[test]
     fn windows_build_number_returns_value() {

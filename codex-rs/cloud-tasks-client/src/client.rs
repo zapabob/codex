@@ -69,7 +69,12 @@ pub trait CloudBackend: Send + Sync {
     ) -> Result<Vec<TurnAttempt>>;
     async fn get_task_diff(&self, task_id: &TaskId) -> Result<String>;
     async fn get_task_text(&self, task_id: &TaskId) -> Result<TaskText>;
-    async fn list_tasks(&self, env: Option<&str>) -> Result<Vec<TaskSummary>>;
+    async fn list_tasks(
+        &self,
+        env: Option<&str>,
+        limit: Option<usize>,
+        cursor: Option<&str>,
+    ) -> Result<TaskListPage>;
 }
 
 /// HTTP Backend implementation
@@ -139,8 +144,16 @@ impl CloudBackend for HttpClient {
         })
     }
 
-    async fn list_tasks(&self, _env: Option<&str>) -> Result<Vec<TaskSummary>> {
-        Ok(vec![])
+    async fn list_tasks(
+        &self,
+        _env: Option<&str>,
+        _limit: Option<usize>,
+        _cursor: Option<&str>,
+    ) -> Result<TaskListPage> {
+        Ok(TaskListPage {
+            tasks: vec![],
+            cursor: None,
+        })
     }
 }
 
@@ -212,8 +225,16 @@ impl CloudBackend for MockClient {
         })
     }
 
-    async fn list_tasks(&self, _env: Option<&str>) -> Result<Vec<TaskSummary>> {
-        Ok(vec![])
+    async fn list_tasks(
+        &self,
+        _env: Option<&str>,
+        _limit: Option<usize>,
+        _cursor: Option<&str>,
+    ) -> Result<TaskListPage> {
+        Ok(TaskListPage {
+            tasks: vec![],
+            cursor: None,
+        })
     }
 }
 

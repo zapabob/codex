@@ -37,6 +37,13 @@ pub struct RateLimitingConfig {
     /// Burst size
     #[serde(default = "default_burst_size")]
     pub burst_size: usize,
+    /// Sliding window size in seconds
+    #[serde(default = "default_window_seconds")]
+    pub window_seconds: u64,
+}
+
+fn default_window_seconds() -> u64 {
+    1
 }
 
 fn default_true() -> bool {
@@ -137,8 +144,10 @@ pub fn load_security_config(config_path: &PathBuf) -> Result<SecurityConfig> {
 /// Convert TOML rate limiting config to internal config
 pub fn to_rate_limit_config(toml_config: &Option<RateLimitingConfig>) -> Option<RateLimitConfig> {
     toml_config.as_ref().map(|c| RateLimitConfig {
+        enabled: c.enabled,
         max_requests_per_sec: c.max_requests_per_sec,
         burst_size: c.burst_size,
+        window_seconds: c.window_seconds,
     })
 }
 

@@ -2398,6 +2398,7 @@ impl ChatComposer {
             collaboration_modes_enabled: self.collaboration_modes_enabled,
             is_wsl,
             context_window_percent: self.context_window_percent,
+            context_window_used_tokens: self.context_window_used_tokens,
         }
     }
 

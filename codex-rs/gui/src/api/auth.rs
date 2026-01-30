@@ -1,9 +1,9 @@
+use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::Json;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::sync::Arc;
@@ -123,13 +123,10 @@ pub async fn register(
     init_db(&state.db).await?;
 
     // Check if user already exists
-    let existing = sqlx::query!(
-        "SELECT id FROM users WHERE email = ?",
-        request.email
-    )
-    .fetch_optional(&*state.db)
-    .await
-    .map_err(|e| AuthError::Database(e.to_string()))?;
+    let existing = sqlx::query!("SELECT id FROM users WHERE email = ?", request.email)
+        .fetch_optional(&*state.db)
+        .await
+        .map_err(|e| AuthError::Database(e.to_string()))?;
 
     if existing.is_some() {
         return Err(AuthError::UserExists);
@@ -212,9 +209,7 @@ pub async fn get_session(
     axum::extract::Extension(state): axum::extract::Extension<AuthState>,
     axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
 ) -> Result<Json<SessionInfo>, AuthError> {
-    let token = params
-        .get("token")
-        .ok_or_else(|| AuthError::InvalidToken)?;
+    let token = params.get("token").ok_or_else(|| AuthError::InvalidToken)?;
     // Decode JWT token
     let token_data = decode::<Claims>(
         &token,

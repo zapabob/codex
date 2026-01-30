@@ -20,6 +20,8 @@ pub enum Command {
     Status(StatusCommand),
     /// Show diff output for a Codex Cloud task.
     Diff(DiffCommand),
+    /// List Codex Cloud tasks.
+    List(ListCommand),
     /// Apply a Codex Cloud task diff.
     Apply(ApplyCommand),
 }
@@ -74,6 +76,17 @@ pub struct ApplyCommand {
     /// Attempt number to apply (defaults to 1).
     #[arg(long = "attempt", value_name = "N")]
     pub attempt: Option<usize>,
+}
+
+#[derive(Debug, Args)]
+pub struct ListCommand {
+    /// Filter by environment identifier.
+    #[arg(long = "env", value_name = "ENV_ID")]
+    pub environment: Option<String>,
+
+    /// Limit the number of tasks to list (default 20).
+    #[arg(long = "limit", default_value_t = 20usize)]
+    pub limit: usize,
 }
 
 fn parse_attempts(input: &str) -> Result<usize, String> {

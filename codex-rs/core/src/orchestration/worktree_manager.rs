@@ -46,7 +46,10 @@ impl WorktreeManager {
 
     /// Create a new worktree for an agent
     pub fn create_worktree(&self, agent_name: &str, task_id: &str) -> Result<WorktreeInfo> {
-        info!("Creating worktree for agent: {} (task: {})", agent_name, task_id);
+        info!(
+            "Creating worktree for agent: {} (task: {})",
+            agent_name, task_id
+        );
         let branch_name = format!("codex/{agent_name}/{task_id}");
         let worktree_name = format!("{agent_name}_{task_id}");
         let worktree_path = self.worktree_base.join(&worktree_name);
@@ -77,12 +80,7 @@ impl WorktreeManager {
             .context("Worktree path contains invalid UTF-8")?;
         let output = Command::new("git")
             .current_dir(&self.repo_path)
-            .args([
-                "worktree",
-                "add",
-                worktree_path_str,
-                &branch_name,
-            ])
+            .args(["worktree", "add", worktree_path_str, &branch_name])
             .output()
             .context("Failed to create worktree")?;
 
@@ -92,7 +90,11 @@ impl WorktreeManager {
             anyhow::bail!("Git worktree creation failed: {stderr}");
         }
 
-        info!("Successfully created worktree: {} at {}", worktree_name, worktree_path.display());
+        info!(
+            "Successfully created worktree: {} at {}",
+            worktree_name,
+            worktree_path.display()
+        );
         Ok(WorktreeInfo {
             name: worktree_name,
             path: worktree_path,
@@ -112,12 +114,7 @@ impl WorktreeManager {
                 .context("Worktree path contains invalid UTF-8")?;
             let output = Command::new("git")
                 .current_dir(&self.repo_path)
-                .args([
-                    "worktree",
-                    "remove",
-                    worktree_path_str,
-                    "--force",
-                ])
+                .args(["worktree", "remove", worktree_path_str, "--force"])
                 .output()
                 .context("Failed to remove worktree")?;
 
@@ -178,7 +175,10 @@ impl WorktreeManager {
 
     /// Merge a worktree branch back to main
     pub fn merge_worktree(&self, worktree_info: &WorktreeInfo, target_branch: &str) -> Result<()> {
-        info!("Merging worktree {} into branch {}", worktree_info.name, target_branch);
+        info!(
+            "Merging worktree {} into branch {}",
+            worktree_info.name, target_branch
+        );
         // Switch to target branch
         let output = Command::new("git")
             .current_dir(&self.repo_path)
@@ -204,7 +204,10 @@ impl WorktreeManager {
             anyhow::bail!("Git merge failed: {stderr}");
         }
 
-        info!("Successfully merged worktree {} into branch {}", worktree_info.name, target_branch);
+        info!(
+            "Successfully merged worktree {} into branch {}",
+            worktree_info.name, target_branch
+        );
         Ok(())
     }
 

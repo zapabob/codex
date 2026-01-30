@@ -3,7 +3,8 @@
 
 param(
     [switch]$Headless = $false,
-    [switch]$Debug = $false
+    [switch]$Debug = $false,
+    [int]$Port = 3001
 )
 
 Write-Host "🎭 Cursorブラウザ + Playwright でCodex GUIテスト開始" -ForegroundColor Cyan
@@ -15,6 +16,7 @@ $env:CURSOR_EXECUTABLE_PATH = "$env:LOCALAPPDATA\Programs\cursor\Cursor.exe"
 if (-not (Test-Path $env:CURSOR_EXECUTABLE_PATH)) {
     $env:CURSOR_EXECUTABLE_PATH = "$env:ProgramFiles\Cursor\Cursor.exe"
 }
+$env:GUI_URL = "http://localhost:$Port"
 
 # プロジェクトルートに移動
 Set-Location $PSScriptRoot\..
@@ -30,7 +32,8 @@ $testArgs = @()
 
 if ($Headless) {
     $testArgs += "--headed=false"
-} else {
+}
+else {
     $testArgs += "--headed"
 }
 
@@ -41,7 +44,8 @@ if ($Debug) {
 # Cursorプロジェクトでテスト実行
 Write-Host "🚀 CursorブラウザでGUIテスト実行中..." -ForegroundColor Green
 Write-Host "プロジェクト: cursor" -ForegroundColor Gray
-Write-Host "ヘッドレスモード: $($Headless ? 'OFF' : 'ON')" -ForegroundColor Gray
+$HeadlessStr = if ($Headless) { 'ON' } else { 'OFF' }
+Write-Host "ヘッドレスモード: $HeadlessStr" -ForegroundColor Gray
 Write-Host ""
 
 try {
@@ -57,14 +61,16 @@ try {
         Write-Host ""
         Write-Host "✅ テスト成功！" -ForegroundColor Green
         Write-Host "CursorブラウザでのCodex GUIテストが正常に完了しました。" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host ""
         Write-Host "❌ テスト失敗" -ForegroundColor Red
         Write-Host "詳細は上記のエラーメッセージを確認してください。" -ForegroundColor Red
         exit 1
     }
 
-} catch {
+}
+catch {
     Write-Host ""
     Write-Host "❌ テスト実行エラー: $($_.Exception.Message)" -ForegroundColor Red
     exit 1

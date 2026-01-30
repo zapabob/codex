@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -106,7 +106,10 @@ impl VRARIntegration {
     }
 
     /// Initialize XR system for specific platform
-    pub async fn initialize_platform(&mut self, platform: XRPlatform) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn initialize_platform(
+        &mut self,
+        platform: XRPlatform,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let _init_start = Instant::now();
         tracing::info!("Initializing XR platform: {:?}", platform);
         match platform {
@@ -211,7 +214,11 @@ impl VRARIntegration {
         match gesture {
             HandGesture::Point => {
                 // Find nearest anchor to pointed position
-                if let Some(anchor) = self.anchor_system.find_nearest_anchor(position, 1.0).await? {
+                if let Some(anchor) = self
+                    .anchor_system
+                    .find_nearest_anchor(position, 1.0)
+                    .await?
+                {
                     return Ok(Some(VRInteraction::SelectAnchor(anchor.id)));
                 }
             }
@@ -289,7 +296,10 @@ impl VRARIntegration {
     }
 
     /// Create time anchor for temporal navigation
-    async fn create_time_anchor(&mut self, position: [f32; 3]) -> Result<String, Box<dyn std::error::Error>> {
+    async fn create_time_anchor(
+        &mut self,
+        position: [f32; 3],
+    ) -> Result<String, Box<dyn std::error::Error>> {
         let anchor_id = format!("time_{}", chrono::Utc::now().timestamp());
         let anchor = Anchor {
             id: anchor_id.clone(),
@@ -313,7 +323,9 @@ impl VRARIntegration {
 
 /// XR system abstraction
 pub struct XRSystem {
+    #[allow(dead_code)]
     controllers: Mutex<HashMap<String, VRController>>,
+    #[allow(dead_code)]
     connected_platforms: Mutex<Vec<XRPlatform>>,
 }
 
@@ -325,7 +337,9 @@ impl XRSystem {
         })
     }
 
-    pub async fn update_controllers(&self) -> Result<Option<VRController>, Box<dyn std::error::Error>> {
+    pub async fn update_controllers(
+        &self,
+    ) -> Result<Option<VRController>, Box<dyn std::error::Error>> {
         // Mock controller update - in real implementation, this would poll XR SDK
         Ok(None)
     }
@@ -333,6 +347,7 @@ impl XRSystem {
 
 /// Hand tracking system
 pub struct HandTrackingSystem {
+    #[allow(dead_code)]
     current_pose: Mutex<Option<HandPose>>,
 }
 
@@ -362,22 +377,31 @@ impl AnchorSystem {
     }
 
     pub async fn add_anchor(&self, anchor: Anchor) -> Result<(), Box<dyn std::error::Error>> {
-        let mut anchors = self.anchors.lock()
+        let mut anchors = self
+            .anchors
+            .lock()
             .map_err(|e| format!("Failed to lock anchors: {}", e))?;
         anchors.insert(anchor.id.clone(), anchor);
         Ok(())
     }
 
-    pub async fn find_nearest_anchor(&self, position: [f32; 3], max_distance: f32) -> Result<Option<Anchor>, Box<dyn std::error::Error>> {
-        let anchors = self.anchors.lock()
+    pub async fn find_nearest_anchor(
+        &self,
+        position: [f32; 3],
+        max_distance: f32,
+    ) -> Result<Option<Anchor>, Box<dyn std::error::Error>> {
+        let anchors = self
+            .anchors
+            .lock()
             .map_err(|e| format!("Failed to lock anchors: {}", e))?;
 
         let mut nearest: Option<(&String, &Anchor, f32)> = None;
 
         for (id, anchor) in anchors.iter() {
-            let distance = ((anchor.position[0] - position[0]).powi(2) +
-                          (anchor.position[1] - position[1]).powi(2) +
-                          (anchor.position[2] - position[2]).powi(2)).sqrt();
+            let distance = ((anchor.position[0] - position[0]).powi(2)
+                + (anchor.position[1] - position[1]).powi(2)
+                + (anchor.position[2] - position[2]).powi(2))
+            .sqrt();
 
             if distance <= max_distance {
                 match nearest {
@@ -420,9 +444,10 @@ impl GestureRecognizer {
         // Check if thumb and index finger are close (pinch gesture)
         let thumb_tip = pose.joints[4];
         let index_tip = pose.joints[8];
-        let distance = ((thumb_tip[0] - index_tip[0]).powi(2) +
-                       (thumb_tip[1] - index_tip[1]).powi(2) +
-                       (thumb_tip[2] - index_tip[2]).powi(2)).sqrt();
+        let distance = ((thumb_tip[0] - index_tip[0]).powi(2)
+            + (thumb_tip[1] - index_tip[1]).powi(2)
+            + (thumb_tip[2] - index_tip[2]).powi(2))
+        .sqrt();
 
         if distance < 0.05 {
             return Some(HandGesture::Pinch);
@@ -449,7 +474,7 @@ pub enum VRInteraction {
     CreateTimeAnchor(String),
     ToggleBranchVisibility,
     ZoomToFit,
-    RotateView(f32, f32, f32), // pitch, yaw, roll
+    RotateView(f32, f32, f32),    // pitch, yaw, roll
     TranslateView(f32, f32, f32), // x, y, z
     ScaleView(f32),
     Gesture(HandGesture),
@@ -497,7 +522,9 @@ mod tests {
 
         assert!(anchor_system.add_anchor(anchor).await.is_ok());
 
-        let found = anchor_system.find_nearest_anchor([1.0, 2.0, 3.0], 1.0).await;
+        let found = anchor_system
+            .find_nearest_anchor([1.0, 2.0, 3.0], 1.0)
+            .await;
         assert!(found.is_ok());
         assert!(found.expect("find_nearest_anchor should succeed").is_some());
     }

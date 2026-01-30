@@ -9,13 +9,13 @@ use oauth2::AuthorizationCode;
 use oauth2::ClientId;
 use oauth2::ClientSecret;
 use oauth2::CsrfToken;
+use oauth2::EndpointNotSet;
+use oauth2::EndpointSet;
 use oauth2::RedirectUrl;
 use oauth2::Scope;
 use oauth2::TokenResponse;
 use oauth2::TokenUrl;
 use oauth2::basic::BasicClient;
-use oauth2::EndpointSet;
-use oauth2::EndpointNotSet;
 use reqwest::Client as ReqwestClient;
 use serde::Deserialize;
 use serde::Serialize;
@@ -98,7 +98,7 @@ impl AuthManager {
     pub fn get_authorization_url(&self, scopes: Vec<String>) -> Result<(String, CsrfToken)> {
         // In oauth2 v5.0.0, authorize_url returns a builder that must be configured
         let mut auth_request = self.client.authorize_url(CsrfToken::new_random);
-        
+
         for scope in scopes {
             auth_request = auth_request.add_scope(Scope::new(scope));
         }
@@ -126,13 +126,17 @@ impl AuthManager {
             .await
             .context("Failed to exchange authorization code")?;
 
-        let expires_at = token_result.expires_in().map(|duration: std::time::Duration| {
-            chrono::Utc::now() + chrono::Duration::seconds(duration.as_secs() as i64)
-        });
+        let expires_at = token_result
+            .expires_in()
+            .map(|duration: std::time::Duration| {
+                chrono::Utc::now() + chrono::Duration::seconds(duration.as_secs() as i64)
+            });
 
         let token_info = TokenInfo {
             access_token: token_result.access_token().secret().clone(),
-            refresh_token: token_result.refresh_token().map(|t: &oauth2::RefreshToken| t.secret().clone()),
+            refresh_token: token_result
+                .refresh_token()
+                .map(|t: &oauth2::RefreshToken| t.secret().clone()),
             expires_at,
             scopes: _scopes.iter().map(|s| s.to_string()).collect(),
         };

@@ -84,6 +84,7 @@ pub struct ModelFamily {
 }
 
 impl ModelFamily {
+    #[allow(dead_code)]
     pub(crate) fn with_config_overrides(mut self, config: &Config) -> Self {
         if let Some(supports_reasoning_summaries) = config.model_supports_reasoning_summaries {
             self.supports_reasoning_summaries = supports_reasoning_summaries;
@@ -98,6 +99,7 @@ impl ModelFamily {
         }
         self
     }
+    #[allow(dead_code)]
     pub(super) fn with_remote_overrides(mut self, remote_models: Vec<ModelInfo>) -> Self {
         for model in remote_models {
             if model.slug == self.slug {
@@ -107,6 +109,7 @@ impl ModelFamily {
         self
     }
 
+    #[allow(dead_code)]
     fn apply_remote_overrides(&mut self, model: ModelInfo) {
         let ModelInfo {
             slug: _,
@@ -573,10 +576,7 @@ mod tests {
         assert_eq!(updated.truncation_policy, TruncationPolicy::Tokens(2_000));
         assert!(updated.supports_parallel_tool_calls);
         assert_eq!(updated.context_window, Some(400_000));
-        assert_eq!(
-            updated.reasoning_summary_format,
-            ReasoningSummary::Auto
-        );
+        assert_eq!(updated.reasoning_summary_format, ReasoningSummary::Auto);
         assert_eq!(
             updated.experimental_supported_tools,
             vec!["alpha".to_string(), "beta".to_string()]

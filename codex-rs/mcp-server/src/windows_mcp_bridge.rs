@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[cfg(target_os = "windows")]
-use codex_core::windows_ai_integration::{get_gpu_statistics, is_windows_ai_available, WindowsAiOptions};
+use codex_core::windows_ai_integration::{
+    WindowsAiOptions, get_gpu_statistics, is_windows_ai_available,
+};
 
 /// Windows 11 25H2 MCP Tool Parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,7 +53,9 @@ pub struct Windows25H2ToolResult {
 
 /// Handle Windows 11 25H2 MCP tool requests
 #[cfg(target_os = "windows")]
-pub async fn handle_windows_25h2_tool(param: Windows25H2ToolParam) -> Result<Windows25H2ToolResult> {
+pub async fn handle_windows_25h2_tool(
+    param: Windows25H2ToolParam,
+) -> Result<Windows25H2ToolResult> {
     match param.action {
         Windows25H2Action::GetGpuStats => {
             let stats = get_gpu_statistics().await?;
@@ -66,16 +70,21 @@ pub async fn handle_windows_25h2_tool(param: Windows25H2ToolParam) -> Result<Win
                 message: Some("GPU statistics retrieved successfully".to_string()),
             })
         }
-        Windows25H2Action::ExecuteWithAi { prompt, use_kernel_acceleration } => {
+        Windows25H2Action::ExecuteWithAi {
+            prompt,
+            use_kernel_acceleration,
+        } => {
             let options = WindowsAiOptions {
                 enabled: true,
                 kernel_accelerated: use_kernel_acceleration.unwrap_or(false),
                 use_gpu: true,
             };
-            
+
             #[cfg(feature = "windows-ai")]
             {
-                let result = codex_core::windows_ai_integration::execute_with_windows_ai(&prompt, &options).await?;
+                let result =
+                    codex_core::windows_ai_integration::execute_with_windows_ai(&prompt, &options)
+                        .await?;
                 Ok(Windows25H2ToolResult {
                     success: true,
                     data: serde_json::json!({
@@ -85,7 +94,7 @@ pub async fn handle_windows_25h2_tool(param: Windows25H2ToolParam) -> Result<Win
                     message: Some("Execution completed with Windows AI acceleration".to_string()),
                 })
             }
-            
+
             #[cfg(not(feature = "windows-ai"))]
             {
                 Ok(Windows25H2ToolResult {
@@ -115,7 +124,7 @@ pub async fn handle_windows_25h2_tool(param: Windows25H2ToolParam) -> Result<Win
         Windows25H2Action::GetSystemInfo => {
             let os_version = get_windows_version();
             let ai_available = is_windows_ai_available();
-            
+
             Ok(Windows25H2ToolResult {
                 success: true,
                 data: serde_json::json!({
@@ -129,7 +138,10 @@ pub async fn handle_windows_25h2_tool(param: Windows25H2ToolParam) -> Result<Win
                 message: Some("System information retrieved".to_string()),
             })
         }
-        Windows25H2Action::EnableAiAcceleration { enabled, kernel_accelerated } => {
+        Windows25H2Action::EnableAiAcceleration {
+            enabled,
+            kernel_accelerated,
+        } => {
             // This would typically update a global configuration
             // For now, we just return the status
             Ok(Windows25H2ToolResult {
@@ -150,7 +162,9 @@ pub async fn handle_windows_25h2_tool(param: Windows25H2ToolParam) -> Result<Win
 
 /// Handle Windows 11 25H2 MCP tool requests (non-Windows stub)
 #[cfg(not(target_os = "windows"))]
-pub async fn handle_windows_25h2_tool(_param: Windows25H2ToolParam) -> Result<Windows25H2ToolResult> {
+pub async fn handle_windows_25h2_tool(
+    _param: Windows25H2ToolParam,
+) -> Result<Windows25H2ToolResult> {
     Ok(Windows25H2ToolResult {
         success: false,
         data: serde_json::json!({
@@ -165,17 +179,20 @@ pub async fn handle_windows_25h2_tool(_param: Windows25H2ToolParam) -> Result<Wi
 fn get_windows_version() -> String {
     use std::os::windows::process::CommandExt;
     use std::process::Command;
-    
+
     // Try to get Windows version from system
     if let Ok(output) = Command::new("powershell")
-        .args(["-Command", "(Get-CimInstance Win32_OperatingSystem).Version"])
+        .args([
+            "-Command",
+            "(Get-CimInstance Win32_OperatingSystem).Version",
+        ])
         .output()
     {
         if let Ok(version) = String::from_utf8(output.stdout) {
             return version.trim().to_string();
         }
     }
-    
+
     "Unknown".to_string()
 }
 

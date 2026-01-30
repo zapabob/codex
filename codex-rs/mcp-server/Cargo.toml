@@ -17,6 +17,7 @@ workspace = true
 
 [features]
 cuda = ["dep:codex-cuda-runtime"]
+windows-ai = []
 
 [dependencies]
 anyhow = { workspace = true }

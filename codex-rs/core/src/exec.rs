@@ -162,7 +162,7 @@ pub async fn process_exec_tool_call(
         expiration,
         env,
         sandbox_permissions,
-        windows_sandbox_level,
+        windows_sandbox_level: _windows_sandbox_level,
         justification,
         arg0: _,
     } = params;

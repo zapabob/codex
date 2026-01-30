@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@babylonjs/core": "^7.0.0",
-    "@babylonjs/loaders": "^7.0.0",
     "@babylonjs/gui": "^7.0.0",
+    "@babylonjs/loaders": "^7.0.0",
     "@babylonjs/materials": "^7.0.0",
     "@babylonjs/post-processes": "^7.0.0",
     "@mediapipe/hands": "^0.4.1646424915",
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@babylonjs/inspector": "^7.0.0",
+    "@playwright/test": "^1.58.0",
     "@tauri-apps/cli": "^2.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",

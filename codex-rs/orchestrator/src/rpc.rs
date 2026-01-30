@@ -66,6 +66,44 @@ pub const ERROR_INTERNAL: i32 = -32603;
 pub const ERROR_CONFLICT: i32 = 409; // Lock conflict
 pub const ERROR_BACKPRESSURE: i32 = 429; // Queue full
 
+impl RpcResponse {
+    pub fn method_not_found(id: String, method: &str) -> Self {
+        RpcResponse {
+            id,
+            result: None,
+            error: Some(RpcError {
+                code: ERROR_METHOD_NOT_FOUND,
+                message: format!("Method not found: {}", method),
+                data: None,
+            }),
+        }
+    }
+
+    pub fn invalid_params(id: String, message: String) -> Self {
+        RpcResponse {
+            id,
+            result: None,
+            error: Some(RpcError {
+                code: ERROR_INVALID_PARAMS,
+                message,
+                data: None,
+            }),
+        }
+    }
+
+    pub fn internal_error(id: String, message: String) -> Self {
+        RpcResponse {
+            id,
+            result: None,
+            error: Some(RpcError {
+                code: ERROR_INTERNAL,
+                message,
+                data: None,
+            }),
+        }
+    }
+}
+
 // ========== RPC Methods (v1.0) ==========
 
 // ---------- Lock Methods ----------

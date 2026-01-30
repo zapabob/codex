@@ -359,6 +359,7 @@ impl std::fmt::Display for RetryLimitReachedError {
 pub struct UsageLimitReachedError {
     pub(crate) plan_type: Option<PlanType>,
     pub(crate) resets_at: Option<DateTime<Utc>>,
+    #[allow(dead_code)]
     pub(crate) rate_limits: Option<RateLimitSnapshot>,
 }
 

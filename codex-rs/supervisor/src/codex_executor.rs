@@ -3,13 +3,13 @@ use anyhow::Context;
 use anyhow::Result;
 use codex_core::AuthManager;
 use codex_core::CodexThread;
+use codex_core::ThreadManager;
 use codex_core::config::Config;
 use codex_core::models_manager::manager::ModelsManager;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::Op;
 use codex_core::protocol::SessionSource;
 use codex_core::skills::SkillsManager;
-use codex_core::ThreadManager;
 use codex_protocol::user_input::UserInput;
 use std::sync::Arc;
 use std::time::Duration;
@@ -31,8 +31,11 @@ use crate::subagent::AgentType;
 /// 5. 適切なツールとフレームワーク
 pub struct CodexExecutor {
     config: Arc<Config>,
+    #[allow(dead_code)]
     auth_manager: Arc<AuthManager>,
+    #[allow(dead_code)]
     models_manager: Arc<ModelsManager>,
+    #[allow(dead_code)]
     skills_manager: Arc<SkillsManager>,
     thread_manager: ThreadManager,
     metrics: ExecutionMetrics,
@@ -51,7 +54,10 @@ pub struct ExecutionMetrics {
 impl CodexExecutor {
     /// Create a new CodexExecutor with configuration
     pub fn new(config: Config, auth_manager: Arc<AuthManager>) -> Self {
-        let models_manager = Arc::new(ModelsManager::new(config.codex_home.clone(), Arc::clone(&auth_manager)));
+        let models_manager = Arc::new(ModelsManager::new(
+            config.codex_home.clone(),
+            Arc::clone(&auth_manager),
+        ));
         let skills_manager = Arc::new(SkillsManager::new(config.codex_home.clone()));
         let thread_manager = ThreadManager::new(
             config.codex_home.clone(),
