@@ -124,3 +124,5 @@ release-package/
 
 # Conversation history (contains potential secrets)
 .specstory/
+codex-rs/build_error.txt
+.txt
