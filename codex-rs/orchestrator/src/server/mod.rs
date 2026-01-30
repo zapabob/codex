@@ -15,6 +15,7 @@ use tokio::sync::{RwLock, mpsc};
 
 pub mod auth;
 pub mod config;
+pub mod connection;
 pub mod handlers;
 pub mod types;
 pub mod utils;

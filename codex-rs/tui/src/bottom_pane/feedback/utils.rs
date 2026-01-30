@@ -45,12 +45,11 @@ pub(super) fn make_feedback_item(
     name: &str,
     description: &str,
     category: FeedbackCategory,
-) -> crate::tui::bottom_pane::SelectionItem {
-    let action: crate::tui::bottom_pane::SelectionAction =
-        Box::new(move |_sender: &AppEventSender| {
-            app_event_tx.send(AppEvent::OpenFeedbackConsent { category });
-        });
-    crate::tui::bottom_pane::SelectionItem {
+) -> crate::bottom_pane::SelectionItem {
+    let action: crate::bottom_pane::SelectionAction = Box::new(move |_sender: &AppEventSender| {
+        app_event_tx.send(AppEvent::OpenFeedbackConsent { category });
+    });
+    crate::bottom_pane::SelectionItem {
         name: name.to_string(),
         description: Some(description.to_string()),
         actions: vec![action],

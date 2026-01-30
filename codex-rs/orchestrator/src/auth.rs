@@ -256,6 +256,9 @@ impl AuthManager {
             }
         }
 
+        // Clone scopes before dropping the read lock
+        let scopes = key_info.scopes.clone();
+
         // Update last used time
         drop(api_keys);
         {
@@ -268,7 +271,7 @@ impl AuthManager {
         Ok(AuthResult {
             user_id: format!("api_key:{}", hashed_key),
             roles: vec!["api_user".to_string()],
-            scopes: key_info.scopes.clone(),
+            scopes,
         })
     }
 

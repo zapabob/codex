@@ -4,8 +4,8 @@ use ratatui::style::Stylize;
 use ratatui::text::Line;
 
 use super::utils::make_feedback_item;
-use crate::tui::bottom_pane::popup_consts::standard_popup_hint_line;
-use crate::tui::bottom_pane::{SelectionAction, SelectionItem, SelectionViewParams};
+use crate::bottom_pane::popup_consts::standard_popup_hint_line;
+use crate::bottom_pane::{SelectionAction, SelectionItem, SelectionViewParams};
 
 // Build the selection popup params for feedback categories.
 pub(crate) fn feedback_selection_params(app_event_tx: AppEventSender) -> SelectionViewParams {

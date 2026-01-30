@@ -1,6 +1,6 @@
 use super::HistoryCell;
 use crate::render::line_utils::prefix_lines;
-use codex_core::protocol::{PlanItemArg, StepStatus, UpdatePlanArgs};
+use codex_protocol::plan_tool::{PlanItemArg, StepStatus, UpdatePlanArgs};
 use ratatui::prelude::*;
 use ratatui::style::{Style, Stylize};
 use unicode_width::UnicodeWidthStr;

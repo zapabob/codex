@@ -20,11 +20,16 @@ use crate::app_event_sender::AppEventSender;
 use crate::history_cell;
 use crate::render::renderable::Renderable;
 
-use crate::tui::bottom_pane::CancellationEvent;
-use crate::tui::bottom_pane::bottom_pane_view::BottomPaneView;
-use crate::tui::bottom_pane::popup_consts::standard_popup_hint_line;
-use crate::tui::bottom_pane::textarea::TextArea;
-use crate::tui::bottom_pane::textarea::TextAreaState;
+use crate::bottom_pane::CancellationEvent;
+use crate::bottom_pane::bottom_pane_view::BottomPaneView;
+use crate::bottom_pane::feedback::popups::render_command_palette;
+use crate::bottom_pane::feedback::popups::render_confirmation_dialog;
+use crate::bottom_pane::feedback::popups::render_help_popup;
+use crate::bottom_pane::feedback::popups::render_preview_popup;
+use crate::bottom_pane::feedback::state::FeedbackState;
+use crate::bottom_pane::popup_consts::standard_popup_hint_line;
+use crate::bottom_pane::textarea::TextArea;
+use crate::bottom_pane::textarea::TextAreaState;
 
 use super::utils::{
     BASE_ISSUE_URL, feedback_classification, feedback_title_and_placeholder, gutter,

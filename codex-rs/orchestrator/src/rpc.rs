@@ -102,6 +102,18 @@ impl RpcResponse {
             }),
         }
     }
+
+    pub fn error(id: impl Into<String>, code: i32, message: impl Into<String>) -> Self {
+        RpcResponse {
+            id: id.into(),
+            result: None,
+            error: Some(RpcError {
+                code,
+                message: message.into(),
+                data: None,
+            }),
+        }
+    }
 }
 
 // ========== RPC Methods (v1.0) ==========

@@ -20,11 +20,14 @@ pub struct VRARIntegration {
 }
 
 impl VRARIntegration {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let (event_sender, _) = broadcast::channel(100);
 
         Ok(Self {
-            xr_system: Arc::new(XRSystem::new()?),
+            xr_system: Arc::new(
+                XRSystem::new()
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
+            ),
             hand_tracking: HandTrackingSystem::new(),
             anchor_system: AnchorSystem::new(),
             gesture_recognizer: GestureRecognizer::new(),
@@ -36,7 +39,7 @@ impl VRARIntegration {
     pub async fn initialize_platform(
         &mut self,
         platform: XRPlatform,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let _init_start = Instant::now();
         tracing::info!("Initializing XR platform: {:?}", platform);
         // Platform specific initialization logic would go here, delegated to xr_system or handled here if it involves coordination
@@ -73,17 +76,29 @@ impl VRARIntegration {
     }
 
     /// Update VR/AR state and process events
-    pub async fn update(&mut self) -> Result<Vec<VREvent>, Box<dyn std::error::Error>> {
+    pub async fn update(
+        &mut self,
+    ) -> Result<Vec<VREvent>, Box<dyn std::error::Error + Send + Sync>> {
         let update_start = Instant::now();
         let mut events = Vec::new();
 
         // Update XR system
-        if let Some(controller_update) = self.xr_system.update_controllers().await? {
+        if let Some(controller_update) = self
+            .xr_system
+            .update_controllers()
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+        {
             events.push(VREvent::ControllerUpdate(controller_update));
         }
 
         // Update hand tracking
-        if let Some(hand_pose) = self.hand_tracking.update().await? {
+        if let Some(hand_pose) = self
+            .hand_tracking
+            .update()
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+        {
             events.push(VREvent::HandPoseUpdate(hand_pose.clone()));
 
             // Recognize gestures
@@ -93,7 +108,12 @@ impl VRARIntegration {
         }
 
         // Update anchors
-        for anchor_event in self.anchor_system.update().await? {
+        for anchor_event in self
+            .anchor_system
+            .update()
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+        {
             events.push(anchor_event);
         }
 
@@ -114,7 +134,7 @@ impl VRARIntegration {
         commit_id: &str,
         position: [f32; 3],
         rotation: [f32; 4],
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         let anchor = Anchor {
             id: format!("commit_{}", commit_id),
             position,
@@ -128,7 +148,10 @@ impl VRARIntegration {
             },
         };
 
-        self.anchor_system.add_anchor(anchor.clone()).await?;
+        self.anchor_system
+            .add_anchor(anchor.clone())
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
         let _ = self.event_sender.send(VREvent::AnchorCreated(anchor));
 
         Ok(format!("commit_{}", commit_id))
@@ -140,14 +163,15 @@ impl VRARIntegration {
         gesture: HandGesture,
         _hand: HandType,
         position: [f32; 3],
-    ) -> Result<Option<VRInteraction>, Box<dyn std::error::Error>> {
+    ) -> Result<Option<VRInteraction>, Box<dyn std::error::Error + Send + Sync>> {
         match gesture {
             HandGesture::Point => {
                 // Find nearest anchor to pointed position
                 if let Some(anchor) = self
                     .anchor_system
                     .find_nearest_anchor(position, 1.0)
-                    .await?
+                    .await
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
                 {
                     return Ok(Some(VRInteraction::SelectAnchor(anchor.id)));
                 }
@@ -180,7 +204,7 @@ impl VRARIntegration {
     async fn create_time_anchor(
         &mut self,
         position: [f32; 3],
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         let anchor_id = format!("time_{}", chrono::Utc::now().timestamp());
         let anchor = Anchor {
             id: anchor_id.clone(),
@@ -195,7 +219,10 @@ impl VRARIntegration {
             },
         };
 
-        self.anchor_system.add_anchor(anchor.clone()).await?;
+        self.anchor_system
+            .add_anchor(anchor.clone())
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
         let _ = self.event_sender.send(VREvent::AnchorCreated(anchor));
 
         Ok(anchor_id)
