@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/context/AuthContext'
 
 export default function LoginPage() {
-  const router = useRouter()
   const { signIn } = useAuth()
   
   const [email, setEmail] = useState('')

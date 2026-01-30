@@ -3,10 +3,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, Typography, Paper, Button, IconButton, Alert, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Vr, Smartphone, Monitor, RotateCcw, Play, Pause } from 'lucide-react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
+import { Box as BoxIcon, Smartphone, Monitor, RotateCcw, Play, Pause } from 'lucide-react';
+import { createXRStore, XR, VRButton } from '@react-three/xr';
 import * as THREE from 'three';
+
+const xrStore = createXRStore();
 import { WebXRManager, VRExperience, ARAnchor, HandTrackingData } from '../../lib/xr/webxr-manager';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 import type { NavigatorXR } from '../../lib/types';
@@ -249,10 +250,10 @@ export const Git4DWebXRFramework: React.FC = () => {
             Desktop
           </Button>
 
-          {vrSupported && (
+            {vrSupported && (
             <Button
               variant={currentMode === 'vr' ? 'contained' : 'outlined'}
-              startIcon={<Vr size={16} />}
+              startIcon={<BoxIcon size={16} />}
               onClick={enterVRMode}
               color="primary"
             >
@@ -311,21 +312,25 @@ export const Git4DWebXRFramework: React.FC = () => {
             overflow: 'hidden'
           }}
         >
+          <VRButton />
           <Canvas 
-            camera={{ position: [0, 0, 5], fov: 75 }}
+            // camera={{ position: [0, 0, 5], fov: 75 }} // Removed as PerspectiveCamera is now a child
             gl={{
               antialias: isVD && (currentMode === 'vr' || currentMode === 'ar') ? preset.enablePostProcessing : true,
               powerPreference: 'high-performance',
             }}
             dpr={isVD && (currentMode === 'vr' || currentMode === 'ar') ? Math.min(window.devicePixelRatio, preset.renderScale) : window.devicePixelRatio}
           >
-            <Git4DScene
-              mode={currentMode}
-              isPlaying={isPlaying}
-              handTrackingEnabled={handTrackingEnabled}
-              isVD={isVD && (currentMode === 'vr' || currentMode === 'ar')}
-              preset={isVD && (currentMode === 'vr' || currentMode === 'ar') ? preset : null}
-            />
+            <XR store={xrStore}>
+              <PerspectiveCamera makeDefault position={[0, 1.6, 5]} fov={75} />
+              <Git4DScene
+                mode={currentMode}
+                isPlaying={isPlaying}
+                handTrackingEnabled={handTrackingEnabled}
+                isVD={isVD && (currentMode === 'vr' || currentMode === 'ar')}
+                preset={isVD && (currentMode === 'vr' || currentMode === 'ar') ? preset : null}
+              />
+            </XR>
           </Canvas>
         </Box>
 
@@ -384,7 +389,11 @@ const Git4DScene: React.FC<Git4DSceneProps> = ({ mode, isPlaying, handTrackingEn
     };
   }, [scene, mode]);
 
-  // Animation frame with FPS limiting for VirtualDesktop
+  // Animation frame with FPS limiting
+  // Left and right controllers
+  const leftController = useXRController('left')
+  const rightController = useXRController('right');
+  
   const frameTimeRef = useRef(0);
   const lastFrameTimeRef = useRef(0);
   
