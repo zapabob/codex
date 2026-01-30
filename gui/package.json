@@ -40,10 +40,10 @@
     "mermaid": "^11.12.2",
     "next": "^14.2.35",
     "next-themes": "^0.4.6",
-    "react": "^19.2.4",
+    "react": "latest",
     "react-beautiful-dnd": "^13.1.1",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "^19.2.4",
+    "react-dom": "latest",
     "systeminformation": "^5.30.6",
     "tailwind-merge": "^3.3.1",
     "three": "^0.159.0",
@@ -55,8 +55,8 @@
   "devDependencies": {
     "@playwright/test": "^1.41.0",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
     "@types/three": "^0.181.0",
     "eslint": "^8",
     "eslint-config-next": "^16.1.1",
@@ -67,8 +67,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/react": "^19.0.0",
-      "@types/react-dom": "^19.0.0"
+      "@types/react": "latest",
+      "@types/react-dom": "latest"
     }
   }
 }

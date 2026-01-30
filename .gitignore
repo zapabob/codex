@@ -141,3 +141,10 @@ gui/gui_build_final_v2.txt
 codex-rs/build_error_utf8.txt
 gui/gui_error_utf8.txt
 codex-rs/build_error_utf8.txt
+gui/gui_build_final_1_tail_utf8.txt
+.gitignore
+.gitignore
+gui/gui_build_final_2.txt
+gui/gui_build_final_1_utf8.txt
+gui/gui_build_final_1.txt
+gui/gui_build_final_1_utf8.txt

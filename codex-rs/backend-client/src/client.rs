@@ -1,7 +1,7 @@
 use crate::types::CodeTaskDetailsResponse;
 use crate::types::ConfigFileResponse;
-use crate::types::CreditStatusDetails;
 use crate::types::PaginatedListTaskListItem;
+use crate::types::RateLimitStatusDetails;
 use crate::types::RateLimitStatusPayload;
 use crate::types::RateLimitWindowSnapshot;
 use crate::types::TurnAttemptsSiblingTurnsResponse;
@@ -335,7 +335,9 @@ impl Client {
         })
     }
 
-    fn map_credits(credits: Option<Option<Box<CreditStatusDetails>>>) -> Option<CreditsSnapshot> {
+    fn map_credits(
+        credits: Option<Option<Box<RateLimitStatusDetails>>>,
+    ) -> Option<CreditsSnapshot> {
         let details = match credits {
             Some(Some(details)) => *details,
             _ => return None,

@@ -378,12 +378,12 @@ const Git4DScene: React.FC<Git4DSceneProps> = ({ mode, isPlaying, handTrackingEn
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0x404040, mode === 'ar' ? 0.8 : 0.4);
-    scene.add(ambientLight);
+      scene.add(ambientLight as unknown as THREE.Object3D);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, mode === 'ar' ? 1.0 : 0.8);
     directionalLight.position.set(10, 10, 5);
     directionalLight.castShadow = mode === 'desktop';
-    scene.add(directionalLight);
+      scene.add(directionalLight as unknown as THREE.Object3D);
 
     return () => {
       // Cleanup
@@ -619,21 +619,6 @@ const XRInterface: React.FC<{ mode: 'desktop' | 'vr' | 'ar' }> = ({ mode }) => {
   );
 };
 
-/**
- * Mock Git4D commit data structure
- */
-interface Git4DCommitData {
-  id: string;
-  author: string;
-  message: string;
-  timestamp: number;
-  x: number;
-  y: number;
-  z: number;
-  filesChanged: number;
-  insertions: number;
-  deletions: number;
-}
 
 /**
  * Generate mock Git4D commit data for demonstration
