@@ -288,7 +288,6 @@ impl<'a> SandboxAttempt<'a> {
             self.sandbox,
             self.sandbox_cwd,
             self.codex_linux_sandbox_exe,
-            self.windows_sandbox_level,
         )
     }
 }

@@ -4,10 +4,13 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, Typography, Paper, Button, IconButton, Alert, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Box as BoxIcon, Smartphone, Monitor, RotateCcw, Play, Pause } from 'lucide-react';
-import { createXRStore, XR, VRButton } from '@react-three/xr';
+import { VRButton, XR, createXRStore, useXR, useXRControllerState } from '@react-three/xr';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 const xrStore = createXRStore();
+
 import { WebXRManager, VRExperience, ARAnchor, HandTrackingData } from '../../lib/xr/webxr-manager';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 import type { NavigatorXR } from '../../lib/types';
@@ -391,8 +394,8 @@ const Git4DScene: React.FC<Git4DSceneProps> = ({ mode, isPlaying, handTrackingEn
 
   // Animation frame with FPS limiting
   // Left and right controllers
-  const leftController = useXRController('left')
-  const rightController = useXRController('right');
+  const leftController = useXRControllerState('left')
+  const rightController = useXRControllerState('right');
   
   const frameTimeRef = useRef(0);
   const lastFrameTimeRef = useRef(0);

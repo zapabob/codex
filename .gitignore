@@ -138,3 +138,6 @@ gui/gui_build_utf8.txt
 gui/gui_build_final.txt
 gui/gui_build_final_utf8.txt
 gui/gui_build_final_v2.txt
+codex-rs/build_error_utf8.txt
+gui/gui_error_utf8.txt
+codex-rs/build_error_utf8.txt

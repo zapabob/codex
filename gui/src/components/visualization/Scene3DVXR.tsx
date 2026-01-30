@@ -2,9 +2,11 @@
 
 import { useRef, useMemo, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { VRButton, XR, useXR, useXRController } from '@react-three/xr'
+import { VRButton, XR, createXRStore, useXR, useXRControllerState } from '@react-three/xr'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import * as THREE from 'three'
+
+const xrStore = createXRStore()
 
 interface Commit3D {
   sha: string
@@ -39,8 +41,8 @@ function CommitNodesVR({
   const { isPresenting, player } = useXR()
   
   // Left and right controllers
-  const leftController = useXRController('left')
-  const rightController = useXRController('right')
+  const leftController = useXRControllerState('left')
+  const rightController = useXRControllerState('right')
 
   // Prepare instanced mesh data
   const { matrices, colors } = useMemo(() => {
@@ -183,7 +185,7 @@ export default function Scene3DVXR({
   return (
     <div className="w-full h-full">
       <Canvas>
-        <XR>
+        <XR store={xrStore}>
           <VRButton />
           
           <PerspectiveCamera makeDefault position={[0, 1.6, 5]} />
