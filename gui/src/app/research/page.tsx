@@ -7,7 +7,7 @@ import {
   Paper,
   TextField,
   Button,
-  Grid,
+
   Card as MuiCard,
   CardContent,
   Chip,
@@ -40,6 +40,7 @@ import {
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { Card } from '@/components/atoms/Card';
 import { useCodex } from '@/lib/context/CodexContext';
+import Grid2 from '@/mui/Grid2';
 
 interface ResearchSource {
   url: string;
@@ -179,9 +180,9 @@ export default function ResearchPage() {
               </Typography>
             </Paper>
           ) : (
-            <Grid container spacing={3}>
+            <Grid2 container spacing={3}>
               {state.researchResults.map((result) => (
-                <Grid item xs={12} key={result.id}>
+                <Grid2 xs={12} key={result.id}>
                   <MuiCard>
                     <CardContent>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -293,16 +294,16 @@ export default function ResearchPage() {
                       )}
                     </CardContent>
                   </MuiCard>
-                </Grid>
+                </Grid2>
               ))}
-            </Grid>
+            </Grid2>
           )}
         </Box>
 
         {/* Research Tips */}
         <Card header="研究のヒント" sx={{ mt: 4 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+          <Grid2 container spacing={2}>
+            <Grid2 xs={12} md={6}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                 効果的なクエリ例
               </Typography>
@@ -312,8 +313,8 @@ export default function ResearchPage() {
                 <li>ベストプラクティスを求める</li>
                 <li>パフォーマンスやセキュリティに関する質問</li>
               </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Grid2>
+            <Grid2 xs={12} md={6}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                 研究結果の活用
               </Typography>
@@ -323,8 +324,8 @@ export default function ResearchPage() {
                 <li>複数の視点から検討</li>
                 <li>実装前に検証</li>
               </Box>
-            </Grid>
-          </Grid>
+            </Grid2>
+          </Grid2>
         </Card>
       </Box>
     </DashboardLayout>

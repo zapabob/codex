@@ -74,6 +74,12 @@ pub struct Cli {
     /// Path to a JSON Schema file describing the model's final response shape.
     #[arg(long = "output-schema", value_name = "FILE")]
     pub output_schema: Option<PathBuf>,
+    #[arg(long, default_value_t = 0.5)]
+    pub auto_threshold: f64,
+    #[arg(long, value_enum, default_value_t = OrchestrationStrategy::Sequential)]
+    pub strategy: OrchestrationStrategy,
+    #[arg(long = "skill", value_name = "SKILL")]
+    pub skills: Vec<String>,
 
     #[clap(skip)]
     pub config_overrides: CliConfigOverrides,
@@ -243,6 +249,15 @@ pub enum Color {
     Never,
     #[default]
     Auto,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
+pub enum OrchestrationStrategy {
+    #[default]
+    Sequential,
+    Parallel,
+    Hybrid,
 }
 
 #[cfg(test)]

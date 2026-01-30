@@ -202,6 +202,15 @@ pub fn normalize_pasted_path(pasted: &str) -> Option<PathBuf> {
     None
 }
 
+/// Start of new helper function
+fn normalize_windows_path(path_str: &str) -> Option<PathBuf> {
+    let path = PathBuf::from(path_str);
+    if path.exists() {
+        return Some(path);
+    }
+    None
+}
+
 /// Infer an image format for the provided path based on its extension.
 pub fn pasted_image_format(path: &Path) -> EncodedImageFormat {
     match path

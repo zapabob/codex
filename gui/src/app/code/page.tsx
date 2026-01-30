@@ -14,14 +14,12 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Grid,
-  Divider,
+
   IconButton,
   Tooltip,
 } from '@mui/material';
 import {
   Play,
-  Square,
   Save,
   FolderOpen,
   Terminal,
@@ -175,7 +173,6 @@ export default function CodeExecutionPage() {
 
     try {
       let command: string;
-      const args: string[] = [];
 
       // Create temporary file and execute based on language
       switch (language) {

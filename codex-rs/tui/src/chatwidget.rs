@@ -5222,27 +5222,50 @@ impl ChatWidget {
     fn launch_git4d_visualization(&mut self, mode: &str) {
         let cwd = self.config.cwd.clone();
         let app_event_tx = self.app_event_tx.clone();
-        
+
         self.add_info_message(
             format!("Launching Git4D visualization in {} mode...", mode),
             Some("This may take a few seconds. Please wait...".to_string()),
         );
 
         // Launch Git4D visualization via cowork integration
+        // Launch Git4D visualization via cowork integration
+        let mode_owned = mode.to_string();
+        let cwd_owned = if cfg!(target_os = "windows") {
+            PathBuf::from(cwd.to_string_lossy().into_owned())
+        } else {
+            cwd.clone()
+        };
+        // Simple clone might be enough if cwd is PathBuf. But to be safe if it's Cow or REF:
+        // Actually, just cwd.clone() or to_path_buf() is safer.
+        // Let's assume cwd is PathBuf or &Path.
+        let cwd_owned = PathBuf::from(cwd.to_string_lossy().to_string()); /* safest generic conversion */
+        let app_event_tx_owned = app_event_tx.clone();
+
         tokio::spawn(async move {
-            match codex_core::cowork_integration::launch_git4d_visualization(cwd.clone(), mode.to_string()).await {
+            match codex_core::cowork_integration::launch_git4d_visualization(
+                cwd_owned,
+                mode_owned.clone(),
+            )
+            .await
+            {
                 Ok(_) => {
-                    let _ = app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
+                    let _ = app_event_tx_owned.send(AppEvent::InsertHistoryCell(Box::new(
                         history_cell::new_info_event(
-                            format!("Git4D visualization launched successfully in {} mode!", mode),
+                            format!("Git4D visualization launched successfully in {} mode!", mode_owned),
                             Some(format!("Visualization should open in your browser. If it doesn't, check that the GUI server is running at http://localhost:8787")),
                         ),
                     )));
                 }
                 Err(e) => {
                     let error_msg = e.to_string();
-                    let hint = if error_msg.contains("not running") || error_msg.contains("not accessible") {
-                        Some("Make sure the GUI server is running: `cargo run -p codex-gui`".to_string())
+                    let hint = if error_msg.contains("not running")
+                        || error_msg.contains("not accessible")
+                    {
+                        Some(
+                            "Make sure the GUI server is running: `cargo run -p codex-gui`"
+                                .to_string(),
+                        )
                     } else if error_msg.contains("No git repository") {
                         Some("Navigate to a git repository directory and try again.".to_string())
                     } else if error_msg.contains("does not exist") {
@@ -5250,15 +5273,18 @@ impl ChatWidget {
                     } else {
                         None
                     };
-                    
-                    let _ = app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
+
+                    let _ = app_event_tx_owned.send(AppEvent::InsertHistoryCell(Box::new(
                         if let Some(hint_text) = hint {
                             history_cell::new_info_event(
                                 format!("Failed to launch Git4D visualization: {}", error_msg),
                                 Some(hint_text),
                             )
                         } else {
-                            history_cell::new_error_event(format!("Failed to launch Git4D visualization: {}", error_msg))
+                            history_cell::new_error_event(format!(
+                                "Failed to launch Git4D visualization: {}",
+                                error_msg
+                            ))
                         },
                     )));
                 }

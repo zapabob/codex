@@ -1,0 +1,70 @@
+﻿
+> gui@2.13.0 build C:\Users\downl\Desktop\codex-main\gui
+> next build
+
+  笆ｲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+ 笨・Compiled successfully
+   Skipping linting
+   Checking validity of types ...
+node.exe : Failed to c
+ompile.
+発生場所 C:\Users\downl\Ap
+pData\Roaming\npm\pnpm
+.ps1:24 文字:5
++     & "node$exe"  "$
+basedir/node_modules/p
+npm/bin/pnpm.cjs" $arg
+s
++     ~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (Failed to    
+ compile.:String)     
+[], RemoteExcepti    o
+n
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+
+./src/app/(auth)/signu
+p/page.tsx:9:9
+Type error: 'router' i
+s declared but its val
+ue is never read.
+
+[0m [90m  7 |[39m[
+0m
+[0m [90m  8 |[39m 
+[36mexport[39m [36md
+efault[39m [36mfunct
+ion[39m [33mSignupPa
+ge[39m() {[0m
+[0m[31m[1m>[22m[3
+9m[90m  9 |[39m   [
+36mconst[39m router 
+[33m=[39m useRouter()
+[0m
+[0m [90m    |[39m  
+       [31m[1m^[22m
+[39m[0m
+[0m [90m 10 |[39m  
+ [36mconst[39m { sig
+nUp } [33m=[39m useA
+uth()[0m
+[0m [90m 11 |[39m  
+ [0m
+[0m [90m 12 |[39m  
+ [36mconst[39m [emai
+l[33m,[39m setEmail]
+ [33m=[39m useState(
+[32m''[39m)[0m
+Next.js build worker e
+xited with code: 1 and
+ signal: null
+窶右LIFECYCLE窶・Command failed with exit code 1.

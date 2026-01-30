@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
+
   Card as MuiCard,
   CardContent,
   CardActions,
@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  MenuItem,
   Alert,
   Table,
   TableBody,
@@ -51,6 +52,7 @@ import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { Card } from '@/components/atoms/Card';
 import { useCodex } from '@/lib/context/CodexContext';
 import type { MCPConnection } from '@/lib/types';
+import Grid2 from '@/mui/Grid2';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -177,8 +179,8 @@ export default function MCPPage() {
         </Typography>
 
         {/* MCP Stats */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
+        <Grid2 container spacing={3} sx={{ mb: 4 }}>
+          <Grid2 xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -194,9 +196,9 @@ export default function MCPPage() {
                 </Box>
               </Box>
             </Card>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} md={3}>
+          <Grid2 xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'success.main' }}>
@@ -212,9 +214,9 @@ export default function MCPPage() {
                 </Box>
               </Box>
             </Card>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} md={3}>
+          <Grid2 xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'info.main' }}>
@@ -230,9 +232,9 @@ export default function MCPPage() {
                 </Box>
               </Box>
             </Card>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} md={3}>
+          <Grid2 xs={12} md={3}>
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'warning.main' }}>
@@ -248,8 +250,8 @@ export default function MCPPage() {
                 </Box>
               </Box>
             </Card>
-          </Grid>
-        </Grid>
+          </Grid2>
+        </Grid2>
 
         {/* Server Management */}
         <MuiCard>
@@ -278,11 +280,11 @@ export default function MCPPage() {
               </Button>
             </Box>
 
-            <Grid container spacing={3}>
+            <Grid2 container spacing={3}>
               {state.mcpConnections.map((server) => {
                 const IconComponent = getServerIcon(server.type);
                 return (
-                  <Grid item xs={12} md={6} lg={4} key={server.id}>
+                  <Grid2 xs={12} md={6} lg={4} key={server.id}>
                     <MuiCard
                       sx={{
                         height: '100%',
@@ -364,10 +366,10 @@ export default function MCPPage() {
                         </Box>
                       </CardActions>
                     </MuiCard>
-                  </Grid>
+                  </Grid2>
                 );
               })}
-            </Grid>
+            </Grid2>
           </TabPanel>
 
           <TabPanel value={activeTab} index={1}>
@@ -376,8 +378,8 @@ export default function MCPPage() {
                 MCPサーバーのパフォーマンス監視と最適化を行います。
               </Alert>
 
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+              <Grid2 container spacing={3}>
+                <Grid2 xs={12} md={6}>
                   <Card header="応答時間分布">
                     <Box sx={{ textAlign: 'center', py: 2 }}>
                       <Typography variant="h3" sx={{ color: 'success.main', fontWeight: 700 }}>
@@ -393,9 +395,9 @@ export default function MCPPage() {
                       />
                     </Box>
                   </Card>
-                </Grid>
+                </Grid2>
 
-                <Grid item xs={12} md={6}>
+                <Grid2 xs={12} md={6}>
                   <Card header="エラー率">
                     <Box sx={{ textAlign: 'center', py: 2 }}>
                       <Typography variant="h3" sx={{ color: 'error.main', fontWeight: 700 }}>
@@ -412,8 +414,8 @@ export default function MCPPage() {
                       />
                     </Box>
                   </Card>
-                </Grid>
-              </Grid>
+                </Grid2>
+              </Grid2>
 
               <Card header="サーバー別パフォーマンス">
                 <TableContainer>
@@ -463,8 +465,8 @@ export default function MCPPage() {
               </Alert>
 
               <Card header="グローバル設定">
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                <Grid2 container spacing={3}>
+                  <Grid2 xs={12} md={6}>
                     <TextField
                       fullWidth
                       label="接続タイムアウト"
@@ -472,16 +474,16 @@ export default function MCPPage() {
                       helperText="秒単位"
                       type="number"
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 xs={12} md={6}>
                     <TextField
                       fullWidth
                       label="最大同時接続数"
                       defaultValue="10"
                       type="number"
                     />
-                  </Grid>
-                  <Grid item xs={12}>
+                  </Grid2>
+                  <Grid2 xs={12}>
                     <FormControlLabel
                       control={<Switch defaultChecked />}
                       label="自動再接続"
@@ -490,8 +492,8 @@ export default function MCPPage() {
                       control={<Switch defaultChecked />}
                       label="ヘルスチェック有効"
                     />
-                  </Grid>
-                </Grid>
+                  </Grid2>
+                </Grid2>
               </Card>
 
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
@@ -565,24 +567,24 @@ export default function MCPPage() {
                 fullWidth
                 label="サーバー名"
                 value={editingServer.name}
-                onChange={(e) => setEditingServer(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setEditingServer(editingServer ? { ...editingServer, name: e.target.value } : null)}
                 sx={{ mt: 2, mb: 2 }}
               />
               <TextField
                 fullWidth
                 label="接続URL"
                 value={editingServer.url || ''}
-                onChange={(e) => setEditingServer(prev => ({ ...prev, url: e.target.value }))}
+                onChange={(e) => setEditingServer(editingServer ? { ...editingServer, url: e.target.value } : null)}
                 sx={{ mb: 2 }}
               />
               <FormControlLabel
                 control={
                   <Switch
                     checked={editingServer.status === 'connected'}
-                    onChange={(e) => setEditingServer(prev => ({
-                      ...prev,
+                    onChange={(e) => setEditingServer(editingServer ? {
+                      ...editingServer,
                       status: e.target.checked ? 'connected' : 'disconnected'
-                    }))}
+                    } : null)}
                   />
                 }
                 label="有効化"

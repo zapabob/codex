@@ -49,6 +49,13 @@ pub(crate) const fn ctrl(key: KeyCode) -> KeyBinding {
     KeyBinding::new(key, KeyModifiers::CONTROL)
 }
 
+pub(crate) const fn ctrl_alt(key: KeyCode) -> KeyBinding {
+    KeyBinding::new(
+        key,
+        KeyModifiers::from_bits_truncate(KeyModifiers::CONTROL.bits() | KeyModifiers::ALT.bits()),
+    )
+}
+
 fn modifiers_to_string(modifiers: KeyModifiers) -> String {
     let mut result = String::new();
     if modifiers.contains(KeyModifiers::CONTROL) {

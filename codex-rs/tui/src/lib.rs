@@ -21,6 +21,7 @@ use codex_core::config::Config;
 use codex_core::config::ConfigBuilder;
 use codex_core::config::ConfigOverrides;
 use codex_core::config::find_codex_home;
+use codex_core::config::load_config_as_toml_with_cli_overrides;
 use codex_core::config::resolve_oss_provider;
 use codex_core::config_loader::ConfigLoadError;
 use codex_core::config_loader::format_config_error_with_source;
@@ -178,11 +179,7 @@ pub async fn run_main(
     };
 
     #[allow(clippy::print_stderr)]
-    let config = match Config::load_with_cli_overrides(
-        cli_kv_overrides.clone(),
-    )
-    .await
-    {
+    let config = match Config::load_with_cli_overrides(cli_kv_overrides.clone()).await {
         Ok(config) => config,
         Err(err) => {
             let config_error = err
@@ -200,6 +197,13 @@ pub async fn run_main(
             std::process::exit(1);
         }
     };
+
+    let config_toml = load_config_as_toml_with_cli_overrides(
+        &config.codex_home,
+        &config_cwd,
+        cli_kv_overrides.clone(),
+    )
+    .await?;
 
     let model_provider_override = if cli.oss {
         let resolved = resolve_oss_provider(

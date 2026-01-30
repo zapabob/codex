@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-  Grid,
   Typography,
   Box,
   Paper,
@@ -10,6 +9,7 @@ import {
   Avatar,
   LinearProgress,
 } from '@mui/material';
+import Grid2 from '@/mui/Grid2';
 import { motion } from 'framer-motion';
 import {
   DashboardLayout,
@@ -189,9 +189,9 @@ export default function Dashboard() {
       case 'vr-mode':
         setIsVRMode(!isVRMode);
         if (!isVRMode) {
-          xrManager.initializeVR();
+          xrManager.enterVR();
         } else {
-          xrManager.exitVR();
+          xrManager.exitXR();
         }
         break;
       case 'virtual-os':
@@ -230,9 +230,9 @@ export default function Dashboard() {
       </Box>
 
       {/* Stats Grid */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid2 container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} lg={3} key={stat.title}>
+          <Grid2 size={{ xs: 12, sm: 6, lg: 3 }} key={stat.title}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -240,14 +240,14 @@ export default function Dashboard() {
             >
               <StatCard {...stat} />
             </motion.div>
-          </Grid>
+          </Grid2>
         ))}
-      </Grid>
+      </Grid2>
 
       {/* Main Content */}
-      <Grid container spacing={3}>
+      <Grid2 container spacing={3}>
         {/* Quick Actions */}
-        <Grid item xs={12} md={6}>
+        <Grid2 size={{ xs: 12, md: 6 }}>
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -292,7 +292,7 @@ export default function Dashboard() {
                   startIcon={<Eye size={20} />}
                   onClick={() => handleQuickAction('vr-mode')}
                   variant="outlined"
-                  color={isVRMode ? "primary" : "inherit"}
+                  color={isVRMode ? "primary" : undefined}
                 >
                   {isVRMode ? 'VRモード終了' : 'VR/ARモード開始'}
                 </Button>
@@ -301,7 +301,7 @@ export default function Dashboard() {
                   startIcon={<Monitor size={20} />}
                   onClick={() => handleQuickAction('virtual-os')}
                   variant="outlined"
-                  color={isVirtualOS ? "primary" : "inherit"}
+                  color={isVirtualOS ? "primary" : undefined}
                 >
                   {isVirtualOS ? '仮想OS終了' : '仮想OS起動'}
                 </Button>
@@ -310,17 +310,17 @@ export default function Dashboard() {
                   startIcon={<GitBranch size={20} />}
                   onClick={() => handleQuickAction('git-4d')}
                   variant="outlined"
-                  color={showGit4D ? "primary" : "inherit"}
+                  color={showGit4D ? "primary" : undefined}
                 >
                   {showGit4D ? 'Git4D終了' : 'Git4D可視化'}
                 </Button>
               </Box>
             </Card>
           </motion.div>
-        </Grid>
+        </Grid2>
 
         {/* Recent Activity */}
-        <Grid item xs={12} md={6}>
+        <Grid2 size={{ xs: 12, md: 6 }}>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -328,10 +328,10 @@ export default function Dashboard() {
           >
             <RecentActivity activities={recentActivities} />
           </motion.div>
-        </Grid>
+        </Grid2>
 
         {/* Performance Overview */}
-        <Grid item xs={12}>
+        <Grid2 size={{ xs: 12 }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -413,8 +413,8 @@ export default function Dashboard() {
               </Box>
             </Card>
           </motion.div>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
 
       {/* VR/AR Mode */}
       {isVRMode && (

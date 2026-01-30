@@ -1,0 +1,745 @@
+src/app/mcp/page.tsx(29,3): error TS6133: 'Paper' is declared but its value is never read.
+src/app/page.tsx(7,3): error TS6133: 'Paper' is declared but its value is never read.
+src/app/page.tsx(30,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/app/page.tsx(137,18): error TS6133: 'clearError' is declared but its value is never read.
+src/app/qc/page.tsx(4,1): error TS6133: 'Card' is declared but its value is never read.
+src/app/qc/page.tsx(250,15): error TS2322: Type '"primary" | "ghost"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/app/research/page.tsx(45,11): error TS6196: 'ResearchSource' is declared but never used.
+src/app/security/page.tsx(4,1): error TS6133: 'Card' is declared but its value is never read.
+src/app/security/page.tsx(5,1): error TS6133: 'Badge' is declared but its value is never read.
+src/app/security/page.tsx(229,15): error TS2322: Type '"primary" | "ghost"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/app/tasks/page.tsx(15,3): error TS6133: 'SortableContext' is declared but its value is never read.
+src/app/tasks/page.tsx(17,3): error TS6133: 'verticalListSortingStrategy' is declared but its value is never read.
+src/app/tasks/page.tsx(64,10): error TS6133: 'activeId' is declared but its value is never read.
+src/app/tasks/page.tsx(272,15): error TS2322: Type '"primary" | "secondary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/app/tasks/page.tsx(278,15): error TS2322: Type '"primary" | "secondary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/app/tasks/page.tsx(284,15): error TS2322: Type '"primary" | "secondary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/app/virtual-os/page.tsx(4,1): error TS6133: 'Card' is declared but its value is never read.
+src/app/virtual-os/page.tsx(5,1): error TS6133: 'Badge' is declared but its value is never read.
+src/app/virtual-os/page.tsx(162,9): error TS6133: 'getStatusColor' is declared but its value is never read.
+src/app/virtual-os/page.tsx(214,15): error TS2322: Type '"primary" | "ghost"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/app/virtual-os/page.tsx(252,14): error TS2786: 'AIAssistant' cannot be used as a JSX component.
+  Its type '({ selectedEnvironment, onCodeGenerate, generations }: AIAssistantProps) => void' is not a valid JSX element type.
+    Type '({ selectedEnvironment, onCodeGenerate, generations }: AIAssistantProps) => void' is not assignable to type '(props: any) => ReactNode | Promise<ReactNode>'.
+      Type 'void' is not assignable to type 'ReactNode | Promise<ReactNode>'.
+src/app/vr/page.tsx(11,7): error TS6133: 'Scene3DVXR' is declared but its value is never read.
+src/app/vr/page.tsx(12,3): error TS2345: Argument of type '() => Promise<typeof import("C:/Users/downl/Desktop/codex-main/gui/src/components/visualization/Scene3DVXR") | null>' is not assignable to parameter of type 'DynamicOptions<Scene3DVXRProps> | Loader<Scene3DVXRProps>'.
+  Type '() => Promise<typeof import("C:/Users/downl/Desktop/codex-main/gui/src/components/visualization/Scene3DVXR") | null>' is not assignable to type '() => LoaderComponent<Scene3DVXRProps>'.
+    Type 'Promise<typeof import("C:/Users/downl/Desktop/codex-main/gui/src/components/visualization/Scene3DVXR") | null>' is not assignable to type 'LoaderComponent<Scene3DVXRProps>'.
+      Type 'typeof import("C:/Users/downl/Desktop/codex-main/gui/src/components/visualization/Scene3DVXR") | null' is not assignable to type 'ComponentType<Scene3DVXRProps> | ComponentModule<Scene3DVXRProps>'.
+        Type 'null' is not assignable to type 'ComponentType<Scene3DVXRProps> | ComponentModule<Scene3DVXRProps>'.
+src/app/vr/page.tsx(55,9): error TS6133: 'handleCommitClick' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(8,10): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'AITool'. Did you mean to use 'import AITool from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/AIToolOrchestrator.tsx(8,18): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'AISession'. Did you mean to use 'import AISession from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/AIToolOrchestrator.tsx(8,29): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'DevelopmentTask'. Did you mean to use 'import DevelopmentTask from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/AIToolOrchestrator.tsx(8,46): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'ExecutionResult'. Did you mean to use 'import ExecutionResult from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/AIToolOrchestrator.tsx(14,3): error TS6133: 'XCircle' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(15,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(17,3): error TS6133: 'Cpu' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(18,3): error TS6133: 'HardDrive' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(40,3): error TS6133: 'onSessionUpdate' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(58,13): error TS7030: Not all code paths return a value.
+src/components/ai-tools/AIToolOrchestrator.tsx(69,57): error TS7006: Parameter 'subtask' implicitly has an 'any' type.
+src/components/ai-tools/AIToolOrchestrator.tsx(110,46): error TS7030: Not all code paths return a value.
+src/components/ai-tools/AIToolOrchestrator.tsx(153,49): error TS7006: Parameter 'subtask' implicitly has an 'any' type.
+src/components/ai-tools/AIToolOrchestrator.tsx(186,34): error TS7030: Not all code paths return a value.
+src/components/ai-tools/AIToolOrchestrator.tsx(195,32): error TS7030: Not all code paths return a value.
+src/components/ai-tools/AIToolOrchestrator.tsx(204,30): error TS7030: Not all code paths return a value.
+src/components/ai-tools/AIToolOrchestrator.tsx(213,30): error TS7030: Not all code paths return a value.
+src/components/ai-tools/AIToolOrchestrator.tsx(223,9): error TS6133: 'availableTools' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(225,9): error TS6133: 'pendingTasks' is declared but its value is never read.
+src/components/ai-tools/AIToolOrchestrator.tsx(295,53): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/AIToolOrchestrator.tsx(339,59): error TS7006: Parameter 'cap' implicitly has an 'any' type.
+src/components/ai-tools/AIToolOrchestrator.tsx(339,64): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ai-tools/AIToolOrchestrator.tsx(393,25): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/ai-tools/AIToolOrchestrator.tsx(549,17): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/AIToolOrchestrator.tsx(591,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/AIToolOrchestrator.tsx(599,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/AIToolOrchestrator.tsx(607,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/AIToolOrchestrator.tsx(615,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/PerformanceMonitor.tsx(8,10): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'AITool'. Did you mean to use 'import AITool from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/PerformanceMonitor.tsx(8,18): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'AISession'. Did you mean to use 'import AISession from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/PerformanceMonitor.tsx(8,29): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'DevelopmentTask'. Did you mean to use 'import DevelopmentTask from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/PerformanceMonitor.tsx(8,46): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'ExecutionResult'. Did you mean to use 'import ExecutionResult from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/PerformanceMonitor.tsx(12,3): error TS6133: 'TrendingDown' is declared but its value is never read.
+src/components/ai-tools/PerformanceMonitor.tsx(14,3): error TS6133: 'Zap' is declared but its value is never read.
+src/components/ai-tools/PerformanceMonitor.tsx(15,3): error TS6133: 'BarChart3' is declared but its value is never read.
+src/components/ai-tools/PerformanceMonitor.tsx(16,3): error TS6133: 'PieChart' is declared but its value is never read.
+src/components/ai-tools/PerformanceMonitor.tsx(18,3): error TS6133: 'HardDrive' is declared but its value is never read.
+src/components/ai-tools/PerformanceMonitor.tsx(19,3): error TS6133: 'Network' is declared but its value is never read.
+src/components/ai-tools/PerformanceMonitor.tsx(22,3): error TS6133: 'XCircle' is declared but its value is never read.
+src/components/ai-tools/PerformanceMonitor.tsx(63,69): error TS7006: Parameter 'sr' implicitly has an 'any' type.
+src/components/ai-tools/PerformanceMonitor.tsx(236,17): error TS2322: Type '"primary" | "outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/ai-tools/PerformanceMonitor.tsx(237,17): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/ai-tools/PerformanceMonitor.tsx(245,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/PerformanceMonitor.tsx(245,37): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/ai-tools/ResultIntegrator.tsx(7,10): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'ExecutionResult'. Did you mean to use 'import ExecutionResult from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/ResultIntegrator.tsx(7,27): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'DevelopmentTask'. Did you mean to use 'import DevelopmentTask from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/ResultIntegrator.tsx(175,15): error TS2322: Type '"primary" | "outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/ai-tools/ResultIntegrator.tsx(176,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/ai-tools/ResultIntegrator.tsx(235,23): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/ResultIntegrator.tsx(236,23): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/ai-tools/ResultIntegrator.tsx(247,23): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/ResultIntegrator.tsx(248,23): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/ai-tools/ResultIntegrator.tsx(324,55): error TS7006: Parameter 'subtask' implicitly has an 'any' type.
+src/components/ai-tools/ResultIntegrator.tsx(324,64): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ai-tools/ResultIntegrator.tsx(364,49): error TS7006: Parameter 'error' implicitly has an 'any' type.
+src/components/ai-tools/ResultIntegrator.tsx(364,56): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ai-tools/ResultIntegrator.tsx(382,58): error TS7006: Parameter 'rec' implicitly has an 'any' type.
+src/components/ai-tools/ResultIntegrator.tsx(382,63): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ai-tools/ResultIntegrator.tsx(398,25): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/ResultIntegrator.tsx(403,25): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/ai-tools/TaskDistributor.tsx(7,10): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'AITool'. Did you mean to use 'import AITool from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/TaskDistributor.tsx(7,18): error TS2614: Module '"@/app/ai-tools/page"' has no exported member 'DevelopmentTask'. Did you mean to use 'import DevelopmentTask from "@/app/ai-tools/page"' instead?
+src/components/ai-tools/TaskDistributor.tsx(12,3): error TS6133: 'Settings' is declared but its value is never read.
+src/components/ai-tools/TaskDistributor.tsx(14,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/components/ai-tools/TaskDistributor.tsx(16,3): error TS6133: 'Clock' is declared but its value is never read.
+src/components/ai-tools/TaskDistributor.tsx(17,3): error TS6133: 'Zap' is declared but its value is never read.
+src/components/ai-tools/TaskDistributor.tsx(27,65): error TS6133: 'onTaskUpdate' is declared but its value is never read.
+src/components/ai-tools/TaskDistributor.tsx(101,80): error TS6133: 'total' is declared but its value is never read.
+src/components/ai-tools/TaskDistributor.tsx(173,30): error TS7030: Not all code paths return a value.
+src/components/ai-tools/TaskDistributor.tsx(182,28): error TS7030: Not all code paths return a value.
+src/components/ai-tools/TaskDistributor.tsx(295,48): error TS7006: Parameter 'toolId' implicitly has an 'any' type.
+src/components/ai-tools/TaskDistributor.tsx(311,39): error TS7006: Parameter 'subtask' implicitly has an 'any' type.
+src/components/ai-tools/TaskDistributor.tsx(369,45): error TS7006: Parameter 'cap' implicitly has an 'any' type.
+src/components/ai-tools/TaskDistributor.tsx(369,50): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/ai-tools/TaskDistributor.tsx(526,25): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/atoms/Button.tsx(77,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<ButtonTypeMap<{}, "button">>>>, "children"> & { ...; }, context?: any): string | ... 8 more ... | undefined', gave the following error.
+    Type '{ children: Element; prefix?: string | undefined; translate?: "yes" | "no" | undefined; content?: string | undefined; name?: string | undefined; form?: string | undefined; slot?: string | undefined; ... 309 more ...; transition: { ...; }; }' is not assignable to type 'Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<ButtonTypeMap<{}, "button">>>>, "children">'.
+      Types of property 'onDrag' are incompatible.
+        Type 'DragEventHandler<HTMLButtonElement> | undefined' is not assignable to type '((event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void) | undefined'.
+          Type 'DragEventHandler<HTMLButtonElement>' is not assignable to type '(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void'.
+            Types of parameters 'event' and 'event' are incompatible.
+              Type 'PointerEvent | MouseEvent | TouchEvent' is not assignable to type 'DragEvent<HTMLButtonElement>'.
+                Type 'PointerEvent' is missing the following properties from type 'DragEvent<HTMLButtonElement>': dataTransfer, nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+  Overload 2 of 2, '(props: Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<ButtonTypeMap<{}, "button">>>>, "children"> & { ...; }): string | ... 8 more ... | undefined', gave the following error.
+    Type '{ children: Element; prefix?: string | undefined; translate?: "yes" | "no" | undefined; content?: string | undefined; name?: string | undefined; form?: string | undefined; slot?: string | undefined; ... 309 more ...; transition: { ...; }; }' is not assignable to type 'Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<ButtonTypeMap<{}, "button">>>>, "children">'.
+      Types of property 'onDrag' are incompatible.
+        Type 'DragEventHandler<HTMLButtonElement> | undefined' is not assignable to type '((event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void) | undefined'.
+          Type 'DragEventHandler<HTMLButtonElement>' is not assignable to type '(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void'.
+            Types of parameters 'event' and 'event' are incompatible.
+              Type 'PointerEvent | MouseEvent | TouchEvent' is not assignable to type 'DragEvent<HTMLButtonElement>'.
+                Type 'PointerEvent' is missing the following properties from type 'DragEvent<HTMLButtonElement>': dataTransfer, nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/atoms/Card.tsx(82,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: Omit<MotionComponentProps<DefaultComponentProps<CardTypeMap<{}, "div">>>, "children"> & { children?: ReactNode | ... 1 more ... | MotionValueString; }, context?: any): string | ... 8 more ... | undefined', gave the following error.
+    Type '{ children: Element; prefix?: string | undefined; translate?: "yes" | "no" | undefined; content?: string | undefined; color?: string | undefined; slot?: string | undefined; ... 285 more ...; transition: { ...; }; }' is not assignable to type 'Omit<MotionComponentProps<DefaultComponentProps<CardTypeMap<{}, "div">>>, "children">'.
+      Types of property 'onDrag' are incompatible.
+        Type 'DragEventHandler<HTMLDivElement> | undefined' is not assignable to type '((event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void) | undefined'.
+          Type 'DragEventHandler<HTMLDivElement>' is not assignable to type '(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void'.
+            Types of parameters 'event' and 'event' are incompatible.
+              Type 'PointerEvent | MouseEvent | TouchEvent' is not assignable to type 'DragEvent<HTMLDivElement>'.
+                Type 'PointerEvent' is missing the following properties from type 'DragEvent<HTMLDivElement>': dataTransfer, nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+  Overload 2 of 2, '(props: Omit<MotionComponentProps<DefaultComponentProps<CardTypeMap<{}, "div">>>, "children"> & { children?: ReactNode | ... 1 more ... | MotionValueString; }): string | ... 8 more ... | undefined', gave the following error.
+    Type '{ children: Element; prefix?: string | undefined; translate?: "yes" | "no" | undefined; content?: string | undefined; color?: string | undefined; slot?: string | undefined; ... 285 more ...; transition: { ...; }; }' is not assignable to type 'Omit<MotionComponentProps<DefaultComponentProps<CardTypeMap<{}, "div">>>, "children">'.
+      Types of property 'onDrag' are incompatible.
+        Type 'DragEventHandler<HTMLDivElement> | undefined' is not assignable to type '((event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void) | undefined'.
+          Type 'DragEventHandler<HTMLDivElement>' is not assignable to type '(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void'.
+            Types of parameters 'event' and 'event' are incompatible.
+              Type 'PointerEvent | MouseEvent | TouchEvent' is not assignable to type 'DragEvent<HTMLDivElement>'.
+                Type 'PointerEvent' is missing the following properties from type 'DragEvent<HTMLDivElement>': dataTransfer, nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/atoms/IconButton.tsx(68,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<IconButtonTypeMap<{}, "button">>>>, "children"> & { ...; }, context?: any): string | ... 8 more ... | undefined', gave the following error.
+    Type '{ children: (ReactNode | Element)[]; prefix?: string | undefined; translate?: "yes" | "no" | undefined; content?: string | undefined; color?: OverridableStringUnion<"error" | "primary" | ... 5 more ... | "success", IconButtonPropsColorOverrides> | undefined; ... 306 more ...; transition: { ...; }; }' is not assignable to type 'Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<IconButtonTypeMap<{}, "button">>>>, "children">'.
+      Types of property 'onDrag' are incompatible.
+        Type 'DragEventHandler<HTMLButtonElement> | undefined' is not assignable to type '((event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void) | undefined'.
+          Type 'DragEventHandler<HTMLButtonElement>' is not assignable to type '(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void'.
+            Types of parameters 'event' and 'event' are incompatible.
+              Type 'PointerEvent | MouseEvent | TouchEvent' is not assignable to type 'DragEvent<HTMLButtonElement>'.
+                Type 'PointerEvent' is missing the following properties from type 'DragEvent<HTMLButtonElement>': dataTransfer, nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+  Overload 2 of 2, '(props: Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<IconButtonTypeMap<{}, "button">>>>, "children"> & { ...; }): string | ... 8 more ... | undefined', gave the following error.
+    Type '{ children: (ReactNode | Element)[]; prefix?: string | undefined; translate?: "yes" | "no" | undefined; content?: string | undefined; color?: OverridableStringUnion<"error" | "primary" | ... 5 more ... | "success", IconButtonPropsColorOverrides> | undefined; ... 306 more ...; transition: { ...; }; }' is not assignable to type 'Omit<MotionComponentProps<DefaultComponentProps<ExtendButtonBaseTypeMap<IconButtonTypeMap<{}, "button">>>>, "children">'.
+      Types of property 'onDrag' are incompatible.
+        Type 'DragEventHandler<HTMLButtonElement> | undefined' is not assignable to type '((event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void) | undefined'.
+          Type 'DragEventHandler<HTMLButtonElement>' is not assignable to type '(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => void'.
+            Types of parameters 'event' and 'event' are incompatible.
+              Type 'PointerEvent | MouseEvent | TouchEvent' is not assignable to type 'DragEvent<HTMLButtonElement>'.
+                Type 'PointerEvent' is missing the following properties from type 'DragEvent<HTMLButtonElement>': dataTransfer, nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/dynamic/ResourceManagedButton.tsx(46,10): error TS6133: 'error' is declared but its value is never read.
+src/components/dynamic/ResourceManagedButton.tsx(55,38): error TS2339: Property 'getResourceStatus' does not exist on type 'CodexAPIClient'.
+src/components/dynamic/ResourceManagedButton.tsx(105,17): error TS2339: Property 'acquireResource' does not exist on type 'CodexAPIClient'.
+src/components/dynamic/ResourceManagedButton.tsx(105,42): error TS7006: Parameter 'err' implicitly has an 'any' type.
+src/components/dynamic/ResourceManagedInput.tsx(56,10): error TS6133: 'isLoading' is declared but its value is never read.
+src/components/dynamic/ResourceManagedInput.tsx(70,38): error TS2339: Property 'getResourceStatus' does not exist on type 'CodexAPIClient'.
+src/components/dynamic/ResourceManagedInput.tsx(199,12): error TS2322: Type '{ type: "number"; value: string; onChange: (event: ChangeEvent<HTMLInputElement, Element>) => void; error: boolean; helperText: string | undefined; ... 309 more ...; SelectProps?: Partial<...> | undefined; }' is not assignable to type 'RefAttributes<HTMLInputElement>'.
+  Types of property 'ref' are incompatible.
+    Type '((instance: HTMLDivElement | null) => void | (() => VoidOrUndefinedOnly)) | RefObject<HTMLDivElement | null> | null | undefined' is not assignable to type 'Ref<HTMLInputElement> | undefined'.
+      Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'Ref<HTMLInputElement> | undefined'.
+        Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLInputElement | null>'.
+          Type 'HTMLDivElement | null' is not assignable to type 'HTMLInputElement | null'.
+            Type 'HTMLDivElement' is missing the following properties from type 'HTMLInputElement': accept, alt, autocomplete, capture, and 54 more.
+src/components/gantt/GanttChart.tsx(3,10): error TS6133: 'useEffect' is declared but its value is never read.
+src/components/gantt/GanttChart.tsx(114,54): error TS18047: 'progress' is possibly 'null'.
+src/components/gpu/GPUStatus.tsx(63,38): error TS2339: Property 'getGPUStatus' does not exist on type 'CodexAPIClient'.
+src/components/kanban/KanbanBoard.tsx(3,1): error TS6133: 'useDroppable' is declared but its value is never read.
+src/components/kanban/KanbanBoard.tsx(4,1): error TS6192: All imports in import declaration are unused.
+src/components/kanban/KanbanBoard.tsx(8,10): error TS6133: 'Task' is declared but its value is never read.
+src/components/kanban/KanbanBoard.tsx(8,28): error TS6133: 'TaskStatus' is declared but its value is never read.
+src/components/kanban/KanbanBoard.tsx(10,1): error TS6133: 'KanbanCard' is declared but its value is never read.
+src/components/mermaid/MermaidDiagram.tsx(42,9): error TS2353: Object literal may only specify known properties, and 'fontFamily' does not exist in type 'GanttDiagramConfig'.
+src/components/mermaid/MermaidDiagram.tsx(129,13): error TS6133: 'progress' is declared but its value is never read.
+src/components/mermaid/MermaidDiagram.tsx(214,15): error TS2322: Type '"primary" | "secondary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/OrchestratorStatusDashboard.tsx(15,3): error TS6133: 'CheckSquare' is declared but its value is never read.
+src/components/OrchestratorStatusDashboard.tsx(21,84): error TS2307: Cannot find module '@zapabob/codex-protocol-client/react' or its corresponding type declarations.
+src/components/OrchestratorStatusDashboard.tsx(22,36): error TS2307: Cannot find module '@zapabob/codex-protocol-client' or its corresponding type declarations.
+src/components/OrchestratorStatusDashboard.tsx(121,40): error TS7006: Parameter 'agent' implicitly has an 'any' type.
+src/components/OrchestratorStatusDashboard.tsx(140,12): error TS2304: Cannot find name 'ListChecked'.
+src/components/organisms/Sidebar.tsx(260,39): error TS6133: 'index' is declared but its value is never read.
+src/components/ParallelExecutionPanel.tsx(80,27): error TS2339: Property 'getResourceUsage' does not exist on type 'CodexContextType'.
+src/components/plan/PlanCreator.tsx(25,3): error TS6133: 'ListItemSecondaryAction' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(26,3): error TS6133: 'IconButton' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(27,3): error TS6133: 'Tooltip' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(34,3): error TS6133: 'Divider' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(46,3): error TS6133: 'Trash2' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(47,3): error TS6133: 'Copy' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(84,10): error TS6133: 'editDialogOpen' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(84,26): error TS6133: 'setEditDialogOpen' is declared but its value is never read.
+src/components/plan/PlanCreator.tsx(107,16): error TS2345: Argument of type 'Plan[]' is not assignable to parameter of type 'SetStateAction<Plan[]>'.
+  Type 'import("C:/Users/downl/Desktop/codex-main/gui/src/lib/api/client").Plan[]' is not assignable to type 'Plan[]'.
+    Type 'Plan' is missing the following properties from type 'Plan': budgetTokens, budgetTime, createdAt, updatedAt
+src/components/plan/PlanCreator.tsx(123,9): error TS2561: Object literal may only specify known properties, but 'budgetTokens' does not exist in type 'CreatePlanRequest'. Did you mean to write 'budget_tokens'?
+src/components/plan/PlanCreator.tsx(131,30): error TS2339: Property 'budgetTokens' does not exist on type 'Plan'.
+src/components/plan/PlanCreator.tsx(132,28): error TS2339: Property 'budgetTime' does not exist on type 'Plan'.
+src/components/plan/PlanCreator.tsx(133,9): error TS2322: Type '"Drafting" | "Pending" | "Approved" | "Rejected" | "Executing" | "Completed" | "Failed"' is not assignable to type '"completed" | "pending" | "drafting" | "approved" | "rejected" | "executing"'.
+  Type '"Drafting"' is not assignable to type '"completed" | "pending" | "drafting" | "approved" | "rejected" | "executing"'. Did you mean '"drafting"'?
+src/components/plan/PlanCreator.tsx(134,27): error TS2551: Property 'createdAt' does not exist on type 'Plan'. Did you mean 'created_at'?
+src/components/plan/PlanCreator.tsx(134,55): error TS2551: Property 'createdAt' does not exist on type 'Plan'. Did you mean 'created_at'?
+src/components/plan/PlanCreator.tsx(135,27): error TS2551: Property 'updatedAt' does not exist on type 'Plan'. Did you mean 'updated_at'?
+src/components/plan/PlanCreator.tsx(135,55): error TS2551: Property 'updatedAt' does not exist on type 'Plan'. Did you mean 'updated_at'?
+src/components/qc/AlertSystem.tsx(133,15): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/AlertSystem.tsx(134,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/AlertSystem.tsx(145,21): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/AlertSystem.tsx(145,39): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/AlertSystem.tsx(187,17): error TS2322: Type '"primary" | "outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/qc/AlertSystem.tsx(188,17): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/AlertSystem.tsx(207,15): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/AlertSystem.tsx(208,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/AlertSystem.tsx(220,15): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/AlertSystem.tsx(221,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/AlertSystem.tsx(246,17): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/AlertSystem.tsx(247,17): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/AlertSystem.tsx(289,23): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/AlertSystem.tsx(290,23): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/QCProcessAutomation.tsx(8,21): error TS6133: 'QualityMetric' is declared but its value is never read.
+src/components/qc/QCProcessAutomation.tsx(8,36): error TS6133: 'QCResult' is declared but its value is never read.
+src/components/qc/QCProcessAutomation.tsx(9,24): error TS6133: 'FileText' is declared but its value is never read.
+src/components/qc/QCProcessAutomation.tsx(18,10): error TS6133: 'selectedProcess' is declared but its value is never read.
+src/components/qc/QCProcessAutomation.tsx(210,15): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/QCProcessAutomation.tsx(211,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/QCProcessAutomation.tsx(251,25): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/QCProcessAutomation.tsx(252,25): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/QCProcessAutomation.tsx(259,25): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/QCProcessAutomation.tsx(260,25): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/QCProcessAutomation.tsx(327,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/qc/QCProcessAutomation.tsx(327,37): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/qc/RealTimeMonitoring.tsx(203,15): error TS2322: Type '"primary" | "destructive"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/qc/RealTimeMonitoring.tsx(277,36): error TS2322: Type '{ responsive: boolean; maintainAspectRatio: boolean; animation: { duration: number; easing: "easeInOutQuart"; }; plugins: { legend: { position: "top"; }; title: { display: boolean; text: string; font: { ...; }; }; tooltip: { ...; }; }; scales: { ...; }; interaction: { ...; }; }' is not assignable to type '_DeepPartialObject<CoreChartOptions<"line"> & ElementChartOptions<"line"> & PluginChartOptions<"line"> & DatasetChartOptions<"line"> & ScaleChartOptions<...> & LineControllerChartOptions>'.
+  The types of 'plugins.title.font' are incompatible between these types.
+    Type '{ size: number; weight: string; }' is not assignable to type '((ctx: ScriptableChartContext, options: AnyObject) => Partial<FontSpec> | undefined) | _DeepPartialObject<Partial<FontSpec>> | _DeepPartialObject<...> | undefined'.
+      Type '{ size: number; weight: string; }' is not assignable to type '_DeepPartialObject<ScriptableOptions<Partial<FontSpec>, ScriptableChartContext>>'.
+        Types of property 'weight' are incompatible.
+          Type 'string' is not assignable to type 'number | "bold" | "normal" | "bolder" | "lighter" | ((ctx: ScriptableChartContext, options: AnyObject) => number | "bold" | "normal" | "bolder" | "lighter" | null | undefined) | null | undefined'.
+src/components/qc/StatisticalDashboard.tsx(84,28): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/components/qc/StatisticalDashboard.tsx(166,28): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/components/qc/StatisticalDashboard.tsx(351,36): error TS2322: Type '{ responsive: boolean; maintainAspectRatio: boolean; plugins: { legend: { position: "top"; }; title: { display: boolean; text: string; font: { size: number; weight: string; }; }; }; scales: { y: { beginAtZero: boolean; max: number; title: { ...; }; }; }; }' is not assignable to type '_DeepPartialObject<CoreChartOptions<"line"> & ElementChartOptions<"line"> & PluginChartOptions<"line"> & DatasetChartOptions<"line"> & ScaleChartOptions<...> & LineControllerChartOptions>'.
+  The types of 'plugins.title.font' are incompatible between these types.
+    Type '{ size: number; weight: string; }' is not assignable to type '((ctx: ScriptableChartContext, options: AnyObject) => Partial<FontSpec> | undefined) | _DeepPartialObject<Partial<FontSpec>> | _DeepPartialObject<...> | undefined'.
+      Type '{ size: number; weight: string; }' is not assignable to type '_DeepPartialObject<ScriptableOptions<Partial<FontSpec>, ScriptableChartContext>>'.
+        Types of property 'weight' are incompatible.
+          Type 'string' is not assignable to type 'number | "bold" | "normal" | "bolder" | "lighter" | ((ctx: ScriptableChartContext, options: AnyObject) => number | "bold" | "normal" | "bolder" | "lighter" | null | undefined) | null | undefined'.
+src/components/qc/StatisticalDashboard.tsx(358,47): error TS2322: Type '{ responsive: boolean; maintainAspectRatio: boolean; plugins: { legend: { position: "bottom"; }; title: { display: boolean; text: string; font: { size: number; weight: string; }; }; }; }' is not assignable to type '_DeepPartialObject<CoreChartOptions<"doughnut"> & ElementChartOptions<"doughnut"> & PluginChartOptions<"doughnut"> & DatasetChartOptions<"doughnut"> & ScaleChartOptions<...> & DoughnutControllerChartOptions>'.
+  The types of 'plugins.title.font' are incompatible between these types.
+    Type '{ size: number; weight: string; }' is not assignable to type '((ctx: ScriptableChartContext, options: AnyObject) => Partial<FontSpec> | undefined) | _DeepPartialObject<Partial<FontSpec>> | _DeepPartialObject<...> | undefined'.
+      Type '{ size: number; weight: string; }' is not assignable to type '_DeepPartialObject<ScriptableOptions<Partial<FontSpec>, ScriptableChartContext>>'.
+        Types of property 'weight' are incompatible.
+          Type 'string' is not assignable to type 'number | "bold" | "normal" | "bolder" | "lighter" | ((ctx: ScriptableChartContext, options: AnyObject) => number | "bold" | "normal" | "bolder" | "lighter" | null | undefined) | null | undefined'.
+src/components/qc/StatisticalDashboard.tsx(365,38): error TS2322: Type '{ responsive: boolean; maintainAspectRatio: boolean; plugins: { legend: { display: boolean; }; title: { display: boolean; text: string; font: { size: number; weight: string; }; }; }; scales: { y: { beginAtZero: boolean; max: number; }; }; }' is not assignable to type '_DeepPartialObject<CoreChartOptions<"bar"> & ElementChartOptions<"bar"> & PluginChartOptions<"bar"> & DatasetChartOptions<"bar"> & ScaleChartOptions<...> & BarControllerChartOptions>'.
+  The types of 'plugins.title.font' are incompatible between these types.
+    Type '{ size: number; weight: string; }' is not assignable to type '((ctx: ScriptableChartContext, options: AnyObject) => Partial<FontSpec> | undefined) | _DeepPartialObject<Partial<FontSpec>> | _DeepPartialObject<...> | undefined'.
+      Type '{ size: number; weight: string; }' is not assignable to type '_DeepPartialObject<ScriptableOptions<Partial<FontSpec>, ScriptableChartContext>>'.
+        Types of property 'weight' are incompatible.
+          Type 'string' is not assignable to type 'number | "bold" | "normal" | "bolder" | "lighter" | ((ctx: ScriptableChartContext, options: AnyObject) => number | "bold" | "normal" | "bolder" | "lighter" | null | undefined) | null | undefined'.
+src/components/security/MalwareScanner.tsx(71,11): error TS6133: 'totalFiles' is declared but its value is never read.
+src/components/security/MalwareScanner.tsx(195,23): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/security/MalwareScanner.tsx(238,42): error TS2322: Type '"destructive"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/security/MalwareScanner.tsx(244,21): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/security/QuarantineManager.tsx(16,3): error TS6133: 'Download' is declared but its value is never read.
+src/components/security/QuarantineManager.tsx(18,3): error TS6133: 'Calendar' is declared but its value is never read.
+src/components/security/QuarantineManager.tsx(125,26): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/components/security/QuarantineManager.tsx(142,26): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/components/security/QuarantineManager.tsx(275,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/security/QuarantineManager.tsx(283,15): error TS2322: Type '"destructive"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/security/QuarantineManager.tsx(284,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/security/QuarantineManager.tsx(348,19): error TS2322: Type '"ghost"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/security/QuarantineManager.tsx(349,19): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/security/QuarantineManager.tsx(358,21): error TS2322: Type '"ghost"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/security/QuarantineManager.tsx(359,21): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/security/QuarantineManager.tsx(374,19): error TS2322: Type '"ghost"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/security/QuarantineManager.tsx(375,19): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/security/SecurityDashboard.tsx(169,9): error TS6133: 'getStatusColor' is declared but its value is never read.
+src/components/security/SecurityDashboard.tsx(371,48): error TS2322: Type '{ responsive: boolean; maintainAspectRatio: boolean; plugins: { legend: { position: "bottom"; }; title: { display: boolean; text: string; font: { size: number; weight: string; }; }; }; }' is not assignable to type '_DeepPartialObject<CoreChartOptions<"doughnut"> & ElementChartOptions<"doughnut"> & PluginChartOptions<"doughnut"> & DatasetChartOptions<"doughnut"> & ScaleChartOptions<...> & DoughnutControllerChartOptions>'.
+  The types of 'plugins.title.font' are incompatible between these types.
+    Type '{ size: number; weight: string; }' is not assignable to type '((ctx: ScriptableChartContext, options: AnyObject) => Partial<FontSpec> | undefined) | _DeepPartialObject<Partial<FontSpec>> | _DeepPartialObject<...> | undefined'.
+      Type '{ size: number; weight: string; }' is not assignable to type '_DeepPartialObject<ScriptableOptions<Partial<FontSpec>, ScriptableChartContext>>'.
+        Types of property 'weight' are incompatible.
+          Type 'string' is not assignable to type 'number | "bold" | "normal" | "bolder" | "lighter" | ((ctx: ScriptableChartContext, options: AnyObject) => number | "bold" | "normal" | "bolder" | "lighter" | null | undefined) | null | undefined'.
+src/components/security/SecurityDashboard.tsx(378,41): error TS2322: Type '{ responsive: boolean; maintainAspectRatio: boolean; plugins: { legend: { display: boolean; }; title: { display: boolean; text: string; font: { size: number; weight: string; }; }; }; scales: { y: { beginAtZero: boolean; title: { ...; }; }; }; }' is not assignable to type '_DeepPartialObject<CoreChartOptions<"bar"> & ElementChartOptions<"bar"> & PluginChartOptions<"bar"> & DatasetChartOptions<"bar"> & ScaleChartOptions<...> & BarControllerChartOptions>'.
+  The types of 'plugins.title.font' are incompatible between these types.
+    Type '{ size: number; weight: string; }' is not assignable to type '((ctx: ScriptableChartContext, options: AnyObject) => Partial<FontSpec> | undefined) | _DeepPartialObject<Partial<FontSpec>> | _DeepPartialObject<...> | undefined'.
+      Type '{ size: number; weight: string; }' is not assignable to type '_DeepPartialObject<ScriptableOptions<Partial<FontSpec>, ScriptableChartContext>>'.
+        Types of property 'weight' are incompatible.
+          Type 'string' is not assignable to type 'number | "bold" | "normal" | "bolder" | "lighter" | ((ctx: ScriptableChartContext, options: AnyObject) => number | "bold" | "normal" | "bolder" | "lighter" | null | undefined) | null | undefined'.
+src/components/security/SecurityDashboard.tsx(433,14): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityDashboard.tsx(436,15): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityDashboard.tsx(440,14): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityDashboard.tsx(443,15): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityDashboard.tsx(447,14): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityDashboard.tsx(450,15): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityDashboard.tsx(454,14): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityDashboard.tsx(457,15): error TS2304: Cannot find name 'Button'.
+src/components/security/SecurityMonitor.tsx(18,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/security/SecurityMonitor.tsx(19,3): error TS6133: 'TrendingDown' is declared but its value is never read.
+src/components/security/SecurityMonitor.tsx(20,3): error TS6133: 'Minus' is declared but its value is never read.
+src/components/security/SecurityMonitor.tsx(99,15): error TS2367: This comparison appears to be unintentional because the types '"medium" | "low"' and '"high"' have no overlap.
+src/components/security/SecurityMonitor.tsx(103,25): error TS2367: This comparison appears to be unintentional because the types '"medium"' and '"high"' have no overlap.
+src/components/security/SecurityMonitor.tsx(185,15): error TS2322: Type '"primary" | "destructive"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/security/SecurityReports.tsx(11,3): error TS6133: 'Calendar' is declared but its value is never read.
+src/components/security/SecurityReports.tsx(12,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/security/SecurityReports.tsx(17,3): error TS6133: 'PieChart' is declared but its value is never read.
+src/components/security/SecurityReports.tsx(183,28): error TS18046: 'data.summary.scanSuccessRate' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(188,23): error TS18046: 'data.alerts' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(189,19): error TS18046: 'data.alerts' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(190,15): error TS18046: 'data.alerts' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(191,17): error TS18046: 'data.alerts' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(192,14): error TS18046: 'data.alerts' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(193,19): error TS18046: 'data.alerts' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(194,21): error TS18046: 'data.alerts' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(198,31): error TS18046: 'data.systemHealth' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(199,29): error TS18046: 'data.systemHealth' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(199,58): error TS18046: 'data.systemHealth' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(200,33): error TS18046: 'data.systemHealth' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(201,44): error TS18046: 'data.systemHealth' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(228,3): error TS18046: 'data.recommendations' is of type 'unknown'.
+src/components/security/SecurityReports.tsx(228,28): error TS7006: Parameter 'rec' implicitly has an 'any' type.
+src/components/templates/DashboardLayout.tsx(1,27): error TS6133: 'useEffect' is declared but its value is never read.
+src/components/templates/DashboardLayout.tsx(39,9): error TS6133: 'pathname' is declared but its value is never read.
+src/components/tray/TraySettings.tsx(38,41): error TS2339: Property 'getAutostart' does not exist on type 'CodexAPIClient'.
+src/components/tray/TraySettings.tsx(52,38): error TS2339: Property 'setAutostart' does not exist on type 'CodexAPIClient'.
+src/components/tray/TraySettings.tsx(60,16): error TS18046: 'err' is of type 'unknown'.
+src/components/tray/TraySettings.tsx(72,38): error TS2339: Property 'setNotificationEnabled' does not exist on type 'CodexAPIClient'.
+src/components/tray/TraySettings.tsx(79,27): error TS2339: Property 'showNotification' does not exist on type 'CodexAPIClient'.
+src/components/tray/TraySettings.tsx(89,16): error TS18046: 'err' is of type 'unknown'.
+src/components/tray/TraySettings.tsx(97,23): error TS2339: Property 'showNotification' does not exist on type 'CodexAPIClient'.
+src/components/tray/TraySettings.tsx(104,16): error TS18046: 'err' is of type 'unknown'.
+src/components/virtual-os/AIAssistant.tsx(3,20): error TS6133: 'useEffect' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(4,1): error TS6133: 'Card' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(5,1): error TS6133: 'Badge' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(6,1): error TS6133: 'Button' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(8,1): error TS6192: All imports in import declaration are unused.
+src/components/virtual-os/AIAssistant.tsx(29,68): error TS6133: 'generations' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(30,18): error TS6133: 'setPrompt' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(31,20): error TS6133: 'setLanguage' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(32,10): error TS6133: 'isGenerating' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(33,10): error TS6133: 'generatedCode' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(34,10): error TS6133: 'explanation' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(35,10): error TS6133: 'suggestions' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(36,10): error TS6133: 'confidence' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(38,9): error TS6133: 'languages' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(48,9): error TS6133: 'promptTemplates' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(81,9): error TS6133: 'handleGenerate' is declared but its value is never read.
+src/components/virtual-os/AIAssistant.tsx(100,31): error TS2304: Cannot find name 'generateMockExplanation'.
+src/components/virtual-os/AppCreator.tsx(92,9): error TS6133: 'apiClient' is declared but its value is never read.
+src/components/virtual-os/AppCreator.tsx(147,16): error TS18046: 'err' is of type 'unknown'.
+src/components/virtual-os/AppCreator.tsx(163,9): error TS6133: 'selectedTemplateData' is declared but its value is never read.
+src/components/virtual-os/BrowserInterface.tsx(3,20): error TS6133: 'useEffect' is declared but its value is never read.
+src/components/virtual-os/BrowserInterface.tsx(36,9): error TS6133: 'iframeRef' is declared but its value is never read.
+src/components/virtual-os/BrowserInterface.tsx(146,17): error TS2322: Type '"primary" | "outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+  Type '"primary"' is not assignable to type '"text" | "outlined" | "contained" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(147,17): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(158,15): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(159,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(168,15): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(169,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(178,15): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(179,15): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(191,13): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(192,13): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(200,13): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(201,13): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(209,13): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(210,13): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(218,13): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(219,13): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/BrowserInterface.tsx(249,23): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/BrowserInterface.tsx(380,18): error TS2304: Cannot find name 'Terminal'.
+src/components/virtual-os/CodeEditor.tsx(4,1): error TS6133: 'Card' is declared but its value is never read.
+src/components/virtual-os/CodeEditor.tsx(10,3): error TS6133: 'Square' is declared but its value is never read.
+src/components/virtual-os/CodeEditor.tsx(12,3): error TS6133: 'Download' is declared but its value is never read.
+src/components/virtual-os/CodeEditor.tsx(15,3): error TS6133: 'FileText' is declared but its value is never read.
+src/components/virtual-os/CodeEditor.tsx(19,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/components/virtual-os/CodeEditor.tsx(304,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/CodeEditor.tsx(304,37): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/CodeEditor.tsx(310,21): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/CodeEditor.tsx(310,39): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/MacOSEmulator.tsx(14,3): error TS6133: 'Drawer' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(15,3): error TS6133: 'List' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(16,3): error TS6133: 'ListItem' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(17,3): error TS6133: 'ListItemIcon' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(18,3): error TS6133: 'ListItemText' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(25,3): error TS6133: 'Folder' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(26,3): error TS6133: 'Terminal' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(27,3): error TS6133: 'Settings' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(31,3): error TS6133: 'Square' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(32,11): error TS6133: 'MenuIcon' is declared but its value is never read.
+src/components/virtual-os/MacOSEmulator.tsx(67,9): error TS6133: 'apiClient' is declared but its value is never read.
+src/components/virtual-os/ResourceMonitor.tsx(21,3): error TS6133: 'PieChart' is declared but its value is never read.
+src/components/virtual-os/ResourceMonitor.tsx(61,10): error TS6133: 'selectedTimeframe' is declared but its value is never read.
+src/components/virtual-os/ResourceMonitor.tsx(61,29): error TS6133: 'setSelectedTimeframe' is declared but its value is never read.
+src/components/virtual-os/ResourceMonitor.tsx(201,13): error TS7034: Variable 'newAlerts' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/components/virtual-os/ResourceMonitor.tsx(234,29): error TS7005: Variable 'newAlerts' implicitly has an 'any[]' type.
+src/components/virtual-os/ResourceMonitor.tsx(265,9): error TS6133: 'getResourceColor' is declared but its value is never read.
+src/components/virtual-os/ResourceMonitor.tsx(606,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/ResourceMonitor.tsx(614,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/ResourceMonitor.tsx(622,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/VirtualEnvironmentManager.tsx(117,42): error TS6133: 'lastAccessed' is declared but its value is never read.
+src/components/virtual-os/VirtualEnvironmentManager.tsx(252,19): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/VirtualEnvironmentManager.tsx(253,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/VirtualEnvironmentManager.tsx(266,19): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/VirtualEnvironmentManager.tsx(267,19): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/VirtualEnvironmentManager.tsx(279,17): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/VirtualEnvironmentManager.tsx(280,17): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/VirtualEnvironmentManager.tsx(291,17): error TS2322: Type '"sm"' is not assignable to type '"small" | "medium" | "large" | undefined'.
+src/components/virtual-os/VirtualEnvironmentManager.tsx(292,17): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/VirtualEnvironmentManager.tsx(425,25): error TS2820: Type '"outline"' is not assignable to type '"text" | "outlined" | "contained" | undefined'. Did you mean '"outlined"'?
+src/components/virtual-os/VirtualTerminal.tsx(7,3): error TS6133: 'Paper' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(12,3): error TS6133: 'List' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(13,3): error TS6133: 'ListItem' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(14,3): error TS6133: 'ListItemText' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(15,3): error TS6133: 'Divider' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(23,3): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(25,3): error TS6133: 'History' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(27,3): error TS6133: 'Command' is declared but its value is never read.
+src/components/virtual-os/VirtualTerminal.tsx(31,11): error TS6196: 'TerminalHistoryEntry' is declared but never used.
+src/components/virtual-os/VirtualTerminal.tsx(72,38): error TS2339: Property 'createTerminalSession' does not exist on type 'CodexAPIClient'.
+src/components/virtual-os/VirtualTerminal.tsx(81,16): error TS18046: 'err' is of type 'unknown'.
+src/components/virtual-os/VirtualTerminal.tsx(87,38): error TS2339: Property 'listTerminalCommands' does not exist on type 'CodexAPIClient'.
+src/components/virtual-os/VirtualTerminal.tsx(120,38): error TS2339: Property 'executeTerminalCommand' does not exist on type 'CodexAPIClient'.
+src/components/virtual-os/VirtualTerminal.tsx(159,16): error TS18046: 'err' is of type 'unknown'.
+src/components/virtual-os/VirtualTerminal.tsx(162,18): error TS18046: 'err' is of type 'unknown'.
+src/components/visualization/CyberpunkShader.ts(120,11): error TS6133: 'composer' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(121,11): error TS6133: 'renderPass' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(122,11): error TS6133: 'bloomPass' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(123,11): error TS6133: 'glitchPass' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(124,11): error TS6133: 'colorPass' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(126,15): error TS6133: 'renderer' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(126,46): error TS6133: 'scene' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(126,66): error TS6133: 'camera' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(143,10): error TS6133: 'width' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(143,25): error TS6133: 'height' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(161,11): error TS6133: 'threeColor' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(206,10): error TS6133: 'time' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(319,38): error TS6133: 'renderer' is declared but its value is never read.
+src/components/visualization/CyberpunkShader.ts(339,13): error TS2345: Argument of type 'AmbientLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: AmbientLight, recursive?: boolean | undefined) => AmbientLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'AmbientLight': isAmbientLight, isLight, color, intensity, and 2 more.
+src/components/visualization/CyberpunkShader.ts(344,13): error TS2345: Argument of type 'PointLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: PointLight, recursive?: boolean | undefined) => PointLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'PointLight': isPointLight, intensity, distance, decay, and 5 more.
+src/components/visualization/CyberpunkShader.ts(348,13): error TS2345: Argument of type 'PointLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: PointLight, recursive?: boolean | undefined) => PointLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'PointLight': isPointLight, intensity, distance, decay, and 5 more.
+src/components/visualization/Git4DVisualization.tsx(6,45): error TS6133: 'Settings' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(7,1): error TS6192: All imports in import declaration are unused.
+src/components/visualization/Git4DVisualization.tsx(8,1): error TS6192: All imports in import declaration are unused.
+src/components/visualization/Git4DVisualization.tsx(33,3): error TS6133: 'repositoryPath' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(34,3): error TS6133: 'sessionId' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(37,20): error TS2554: Expected 1 arguments, but got 0.
+src/components/visualization/Git4DVisualization.tsx(38,23): error TS2554: Expected 1 arguments, but got 0.
+src/components/visualization/Git4DVisualization.tsx(39,21): error TS2554: Expected 1 arguments, but got 0.
+src/components/visualization/Git4DVisualization.tsx(40,29): error TS2554: Expected 1 arguments, but got 0.
+src/components/visualization/Git4DVisualization.tsx(41,9): error TS6133: 'controlsRef' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(41,36): error TS2694: Namespace '"C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/build/three.module"' has no exported member 'OrbitControls'.
+src/components/visualization/Git4DVisualization.tsx(50,10): error TS6133: 'isLoading' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(50,21): error TS6133: 'setIsLoading' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(51,10): error TS6133: 'error' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(51,17): error TS6133: 'setError' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(54,25): error TS6133: 'changePreset' is declared but its value is never read.
+src/components/visualization/Git4DVisualization.tsx(101,15): error TS2345: Argument of type 'AmbientLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: AmbientLight, recursive?: boolean | undefined) => AmbientLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'AmbientLight': isAmbientLight, isLight, color, intensity, and 2 more.
+src/components/visualization/Git4DVisualization.tsx(106,15): error TS2345: Argument of type 'DirectionalLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: DirectionalLight, recursive?: boolean | undefined) => DirectionalLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'DirectionalLight': isDirectionalLight, shadow, target, dispose, and 3 more.
+src/components/visualization/Git4DVisualization.tsx(109,38): error TS2345: Argument of type '{ id: string; message: string; author: string; timestamp: number; branch: number; x: number; y: number; z: number; parents: string[]; }[]' is not assignable to parameter of type 'Git4DCommitData[]'.
+  Type '{ id: string; message: string; author: string; timestamp: number; branch: number; x: number; y: number; z: number; parents: string[]; }' is missing the following properties from type 'Git4DCommitData': filesChanged, insertions, deletions
+src/components/visualization/Git4DVisualization.tsx(170,41): error TS18048: 'commit.branch' is possibly 'undefined'.
+src/components/visualization/Git4DVisualization.tsx(184,18): error TS2339: Property 'parents' does not exist on type 'Git4DCommitData'.
+src/components/visualization/Git4DVisualization.tsx(184,36): error TS2339: Property 'parents' does not exist on type 'Git4DCommitData'.
+src/components/visualization/Git4DVisualization.tsx(185,16): error TS2339: Property 'parents' does not exist on type 'Git4DCommitData'.
+src/components/visualization/Git4DWebXRFramework.tsx(7,39): error TS6133: 'useXR' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(39,25): error TS6133: 'changePreset' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(78,30): error TS6133: 'experience' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(84,30): error TS6133: 'experience' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(318,12): error TS2741: Property 'store' is missing in type '{}' but required in type 'Omit<Omit<{ store: XRStore; mode: XRSessionMode; onError?: ((error: any) => void) | undefined; children?: ReactNode | ((status: "unsupported" | "exited" | "entered") => ReactNode); } & Omit<...> & RefAttributes<...>, "ref">, "mode">'.
+src/components/visualization/Git4DWebXRFramework.tsx(381,17): error TS2345: Argument of type 'import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/build/three.module").Object3D<import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3DEventMap>' is not assignable to parameter of type 'import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3D<import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3DEventMap>'.
+  The types returned by 'applyQuaternion(...)' are incompatible between these types.
+    Type 'Object3D<Object3DEventMap>' is not assignable to type 'this'.
+      'this' could be instantiated with an arbitrary type which could be unrelated to 'Object3D<Object3DEventMap>'.
+src/components/visualization/Git4DWebXRFramework.tsx(386,17): error TS2345: Argument of type 'import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/build/three.module").Object3D<import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3DEventMap>' is not assignable to parameter of type 'import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3D<import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3DEventMap>'.
+  The types returned by 'applyQuaternion(...)' are incompatible between these types.
+    Type 'Object3D<Object3DEventMap>' is not assignable to type 'this'.
+      'this' could be instantiated with an arbitrary type which could be unrelated to 'Object3D<Object3DEventMap>'.
+src/components/visualization/Git4DWebXRFramework.tsx(390,20): error TS2345: Argument of type 'AmbientLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: AmbientLight, recursive?: boolean | undefined) => AmbientLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'AmbientLight': isAmbientLight, isLight, color, intensity, and 2 more.
+src/components/visualization/Git4DWebXRFramework.tsx(391,20): error TS2345: Argument of type 'DirectionalLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: DirectionalLight, recursive?: boolean | undefined) => DirectionalLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'DirectionalLight': isDirectionalLight, shadow, target, dispose, and 3 more.
+src/components/visualization/Git4DWebXRFramework.tsx(397,9): error TS6133: 'leftController' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(398,9): error TS6133: 'rightController' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(400,9): error TS6133: 'frameTimeRef' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(403,20): error TS6133: 'delta' is declared but its value is never read.
+src/components/visualization/Git4DWebXRFramework.tsx(470,58): error TS6133: 'index' is declared but its value is never read.
+src/components/visualization/Scene3D.tsx(108,3): error TS6133: 'commit' is declared but its value is never read.
+src/components/visualization/Scene3DVXR.tsx(37,3): error TS6133: 'selectedCommitSha' is declared but its value is never read.
+src/components/visualization/Scene3DVXR.tsx(40,10): error TS6133: 'hoveredIndex' is declared but its value is never read.
+src/components/visualization/Scene3DVXR.tsx(41,11): error TS2339: Property 'isPresenting' does not exist on type 'Readonly<{ body?: XRBody | undefined; session?: XRSession | undefined; mediaBinding?: XRMediaBinding | undefined; originReferenceSpace?: XRReferenceSpace | undefined; ... 9 more ...; emulator?: XRDevice | undefined; } & WithRecord<...>>'.
+src/components/visualization/Scene3DVXR.tsx(41,25): error TS2339: Property 'player' does not exist on type 'Readonly<{ body?: XRBody | undefined; session?: XRSession | undefined; mediaBinding?: XRMediaBinding | undefined; originReferenceSpace?: XRReferenceSpace | undefined; ... 9 more ...; emulator?: XRDevice | undefined; } & WithRecord<...>>'.
+src/components/visualization/Scene3DVXR.tsx(95,25): error TS2339: Property 'controller' does not exist on type 'XRControllerState'.
+src/components/visualization/Scene3DVXR.tsx(97,60): error TS2339: Property 'controller' does not exist on type 'XRControllerState'.
+src/components/visualization/Scene3DVXR.tsx(114,26): error TS2339: Property 'controller' does not exist on type 'XRControllerState'.
+src/components/visualization/Scene3DVXR.tsx(116,61): error TS2339: Property 'controller' does not exist on type 'XRControllerState'.
+src/components/visualization/Scene3DVXR.tsx(189,12): error TS2741: Property 'store' is missing in type '{}' but required in type 'Omit<Omit<{ store: XRStore; mode: XRSessionMode; onError?: ((error: any) => void) | undefined; children?: ReactNode | ((status: "unsupported" | "exited" | "entered") => ReactNode); } & Omit<...> & RefAttributes<...>, "ref">, "mode">'.
+src/components/vr/HandTracking.tsx(56,29): error TS2554: Expected 1 arguments, but got 0.
+src/components/vr/SpatialUI.tsx(3,28): error TS6133: 'useRef' is declared but its value is never read.
+src/components/vr/SpatialUI.tsx(4,15): error TS6133: 'Typography' is declared but its value is never read.
+src/components/vr/SpatialUI.tsx(4,27): error TS6133: 'Button' is declared but its value is never read.
+src/components/vr/VRInterface.tsx(56,3): error TS6133: 'onTimelineChange' is declared but its value is never read.
+src/components/vr/VRInterface.tsx(58,11): error TS2339: Property 'isPresenting' does not exist on type 'Readonly<{ body?: XRBody | undefined; session?: XRSession | undefined; mediaBinding?: XRMediaBinding | undefined; originReferenceSpace?: XRReferenceSpace | undefined; ... 9 more ...; emulator?: XRDevice | undefined; } & WithRecord<...>>'.
+src/components/vr/VRInterface.tsx(59,25): error TS6133: 'setTimelineValue' is declared but its value is never read.
+src/hooks/useKeyboardShortcuts.ts(53,9): error TS6133: 'metaMatch' is declared but its value is never read.
+src/lib/api/client.ts(4,3): error TS6133: 'APIError' is declared but its value is never read.
+src/lib/api/client.ts(14,3): error TS6133: 'LoginForm' is declared but its value is never read.
+src/lib/api/client.ts(82,11): error TS6133: 'pendingRequests' is declared but its value is never read.
+src/lib/api/client.ts(295,5): error TS6133: 'attachments' is declared but its value is never read.
+src/lib/api/client.ts(352,7): error TS2322: Type '{ id: string; name: string; type: string; status: "idle"; description: string; }[]' is not assignable to type 'Agent[]'.
+  Type '{ id: string; name: string; type: string; status: "idle"; description: string; }' is not assignable to type 'Agent'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type '"code-reviewer" | "test-gen" | "sec-audit" | "researcher" | "performance" | "debug" | "docs"'.
+src/lib/api/client.ts(402,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(404,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(406,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(410,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(412,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(413,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(415,11): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(418,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(421,27): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(422,27): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(423,28): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(424,29): error TS2322: Type '{}' is not assignable to type 'string'.
+src/lib/api/client.ts(458,9): error TS2741: Property 'success' is missing in type 'SecurityScan' but required in type 'AgentResult'.
+src/lib/api/client.ts(467,9): error TS2741: Property 'success' is missing in type 'ResearchResult' but required in type 'AgentResult'.
+src/lib/api/client.ts(467,16): error TS2352: Conversion of type '{ id: string; query: string; status: "completed" | "failed"; sources: { id: string; title: string; url: string; snippet: string; publishedAt?: string; }[]; startedAt: Date; completedAt: Date; }' to type 'ResearchResult' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'sources' are incompatible.
+    Type '{ id: string; title: string; url: string; snippet: string; publishedAt?: string | undefined; }[]' is not comparable to type 'ResearchSource[]'.
+      Property 'confidence' is missing in type '{ id: string; title: string; url: string; snippet: string; publishedAt?: string | undefined; }' but required in type 'ResearchSource'.
+src/lib/api/client.ts(476,9): error TS2741: Property 'success' is missing in type 'WebResearchResult' but required in type 'AgentResult'.
+src/lib/api/client.ts(487,9): error TS2741: Property 'success' is missing in type '{ status: string; output: string; error: string; exitCode: number | null; duration: number; }' but required in type 'AgentResult'.
+src/lib/api/client.ts(504,12): error TS2352: Conversion of type 'Promise<AgentResult>' to type 'Promise<ResearchResult>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'AgentResult' is missing the following properties from type 'ResearchResult': id, query, status, sources, startedAt
+src/lib/api/client.ts(508,12): error TS2352: Conversion of type 'Promise<AgentResult>' to type 'Promise<WebResearchResult>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'AgentResult' is missing the following properties from type 'WebResearchResult': id, query, status, startedAt
+src/lib/api/client.ts(549,25): error TS2345: Argument of type 'SecurityScan' is not assignable to parameter of type '{ id: string; severity: "medium" | "low" | "high" | "critical"; title: string; description: string; location?: { file: string; line?: number | undefined; } | undefined; recommendation: string; }'.
+  Type 'SecurityScan' is missing the following properties from type '{ id: string; severity: "medium" | "low" | "high" | "critical"; title: string; description: string; location?: { file: string; line?: number | undefined; } | undefined; recommendation: string; }': severity, title, description, recommendation
+src/lib/api/client.ts(553,11): error TS2353: Object literal may only specify known properties, and 'severity' does not exist in type 'SecurityScan'.
+src/lib/api/client.ts(562,28): error TS2339: Property 'location' does not exist on type 'SecurityScan'.
+src/lib/api/client.ts(568,31): error TS2339: Property 'description' does not exist on type 'SecurityScan'.
+src/lib/api/client.ts(569,28): error TS2339: Property 'description' does not exist on type 'SecurityScan'.
+src/lib/api/client.ts(571,28): error TS2339: Property 'recommendation' does not exist on type 'SecurityScan'.
+src/lib/api/client.ts(578,21): error TS2345: Argument of type 'SecurityScan' is not assignable to parameter of type '{ id: string; severity: "medium" | "low" | "high" | "critical"; title: string; description: string; location?: { file: string; line?: number | undefined; } | undefined; recommendation: string; }'.
+  Type 'SecurityScan' is missing the following properties from type '{ id: string; severity: "medium" | "low" | "high" | "critical"; title: string; description: string; location?: { file: string; line?: number | undefined; } | undefined; recommendation: string; }': severity, title, description, recommendation
+src/lib/api/client.ts(620,24): error TS2345: Argument of type 'ResearchResult' is not assignable to parameter of type '{ id: string; title: string; url: string; snippet: string; publishedAt?: string | undefined; }'.
+  Type 'ResearchResult' is missing the following properties from type '{ id: string; title: string; url: string; snippet: string; publishedAt?: string | undefined; }': title, url, snippet
+src/lib/api/client.ts(624,11): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'ResearchResult'.
+src/lib/api/client.ts(629,23): error TS2339: Property 'snippet' does not exist on type 'ResearchResult'.
+src/lib/api/client.ts(629,48): error TS2339: Property 'snippet' does not exist on type 'ResearchResult'.
+src/lib/api/client.ts(634,20): error TS2345: Argument of type 'ResearchResult' is not assignable to parameter of type '{ id: string; title: string; url: string; snippet: string; publishedAt?: string | undefined; }'.
+  Type 'ResearchResult' is missing the following properties from type '{ id: string; title: string; url: string; snippet: string; publishedAt?: string | undefined; }': title, url, snippet
+src/lib/api/client.ts(819,48): error TS2339: Property 'avgResponseTime' does not exist on type '{}'.
+src/lib/api/client.ts(820,44): error TS2339: Property 'successRate' does not exist on type '{}'.
+src/lib/api/client.ts(821,46): error TS2339: Property 'resourceUsage' does not exist on type '{}'.
+src/lib/api/client.ts(865,31): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number'.
+src/lib/api/client.ts(866,47): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number'.
+src/lib/api/client.ts(866,94): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number'.
+src/lib/api/client.ts(914,31): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number'.
+src/lib/bridge/dual-bridge.ts(213,11): error TS2322: Type '{ target: "gui" | "cli" | "mcp"; id: string; type?: BridgeMessageType | undefined; payload?: unknown; timestamp: number; source: "gui" | "cli"; }' is not assignable to type 'BridgeMessage'.
+  Types of property 'type' are incompatible.
+    Type 'BridgeMessageType | undefined' is not assignable to type 'BridgeMessageType'.
+      Type 'undefined' is not assignable to type 'BridgeMessageType'.
+src/lib/context/CodexContext.tsx(98,7): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/lib/context/CodexContext.tsx(107,7): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/lib/context/CodexContext.tsx(116,7): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/lib/context/CodexContext.tsx(125,7): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/lib/context/CodexContext.tsx(134,7): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/lib/context/CodexContext.tsx(145,7): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/lib/context/CodexContext.tsx(155,7): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/lib/context/CodexContext.tsx(367,28): error TS2339: Property 'conversation' does not exist on type 'WebSocketMessageData'.
+  Property 'conversation' does not exist on type 'ConversationUpdateData'.
+src/lib/context/CodexContext.tsx(370,37): error TS2339: Property 'conversation' does not exist on type 'WebSocketMessageData'.
+  Property 'conversation' does not exist on type 'ConversationUpdateData'.
+src/lib/context/CodexContext.tsx(376,28): error TS2339: Property 'agent' does not exist on type 'WebSocketMessageData'.
+  Property 'agent' does not exist on type 'ConversationUpdateData'.
+src/lib/context/CodexContext.tsx(379,37): error TS2339: Property 'agent' does not exist on type 'WebSocketMessageData'.
+  Property 'agent' does not exist on type 'ConversationUpdateData'.
+src/lib/context/CodexContext.tsx(387,35): error TS2339: Property 'metrics' does not exist on type 'WebSocketMessageData'.
+  Property 'metrics' does not exist on type 'ConversationUpdateData'.
+src/lib/context/CodexContext.tsx(394,35): error TS2339: Property 'notification' does not exist on type 'WebSocketMessageData'.
+  Property 'notification' does not exist on type 'ConversationUpdateData'.
+src/lib/context/CodexContext.tsx(400,32): error TS2345: Argument of type '(message: import("C:/Users/downl/Desktop/codex-main/gui/src/lib/types/index").WebSocketMessage) => void' is not assignable to parameter of type '(message: import("C:/Users/downl/Desktop/codex-main/gui/src/lib/types/api").WebSocketMessage) => void'.
+  Types of parameters 'message' and 'message' are incompatible.
+    Type 'import("C:/Users/downl/Desktop/codex-main/gui/src/lib/types/api").WebSocketMessage' is not assignable to type 'import("C:/Users/downl/Desktop/codex-main/gui/src/lib/types/index").WebSocketMessage'.
+      Types of property 'type' are incompatible.
+        Type 'string' is not assignable to type '"conversation_update" | "agent_status" | "system_metrics" | "notification"'.
+src/lib/context/CodexContext.tsx(465,13): error TS2322: Type '{ id: string; email: string; name: string | undefined; plan: {}; }' is not assignable to type 'string | boolean | Conversation | Message | Agent | MCPConnection | SecurityScan | ResearchResult | ... 8 more ... | null'.
+  Types of property 'plan' are incompatible.
+    Type '{}' is not assignable to type '"free" | "plus" | "pro" | undefined'.
+src/lib/context/CodexContext.tsx(504,24): error TS6133: 'email' is declared but its value is never read.
+src/lib/context/CodexContext.tsx(511,9): error TS2353: Object literal may only specify known properties, and 'method' does not exist in type '{ email: string; password: string; }'.
+src/lib/context/CodexContext.tsx(519,9): error TS2322: Type '{ id: string; email: string; name: string | undefined; plan: {}; }' is not assignable to type 'string | boolean | Conversation | Message | Agent | MCPConnection | SecurityScan | ResearchResult | ... 8 more ... | null'.
+  Types of property 'plan' are incompatible.
+    Type '{}' is not assignable to type '"free" | "plus" | "pro" | undefined'.
+src/lib/context/CodexContext.tsx(540,23): error TS2554: Expected 1 arguments, but got 0.
+src/lib/context/CodexContext.tsx(646,34): error TS6133: 'type' is declared but its value is never read.
+src/lib/context/CodexContext.tsx(648,36): error TS2339: Property 'runSecurityAudit' does not exist on type 'CodexAPIClient'.
+src/lib/context/CodexContext.tsx(757,5): error TS2322: Type '(agentId: string, context: AgentContext) => Promise<AgentResult>' is not assignable to type '(agentId: string, context: AgentContext) => Promise<void>'.
+  Type 'Promise<AgentResult>' is not assignable to type 'Promise<void>'.
+    Type 'AgentResult' is not assignable to type 'void'.
+src/lib/context/CodexContext.tsx(759,5): error TS2322: Type '(query: string) => Promise<ResearchResult>' is not assignable to type '(query: string) => Promise<void>'.
+  Type 'Promise<ResearchResult>' is not assignable to type 'Promise<void>'.
+    Type 'ResearchResult' is not assignable to type 'void'.
+src/lib/context/CodexContext.tsx(760,5): error TS2322: Type '(query: string) => Promise<WebResearchResult>' is not assignable to type '(query: string) => Promise<void>'.
+  Type 'Promise<WebResearchResult>' is not assignable to type 'Promise<void>'.
+    Type 'WebResearchResult' is not assignable to type 'void'.
+src/lib/lsp/LspClient.ts(136,17): error TS2339: Property 'id' does not exist on type 'LspMessage'.
+  Property 'id' does not exist on type 'LspNotificationMessage'.
+src/lib/lsp/LspClient.ts(136,56): error TS2339: Property 'id' does not exist on type 'LspMessage'.
+  Property 'id' does not exist on type 'LspNotificationMessage'.
+src/lib/lsp/LspClient.ts(137,68): error TS2339: Property 'id' does not exist on type 'LspMessage'.
+  Property 'id' does not exist on type 'LspNotificationMessage'.
+src/lib/lsp/LspClient.ts(138,43): error TS2339: Property 'id' does not exist on type 'LspMessage'.
+  Property 'id' does not exist on type 'LspNotificationMessage'.
+src/lib/lsp/LspClient.ts(140,19): error TS2339: Property 'error' does not exist on type 'LspMessage'.
+  Property 'error' does not exist on type 'LspRequestMessage'.
+src/lib/lsp/LspClient.ts(141,34): error TS2339: Property 'error' does not exist on type 'LspMessage'.
+  Property 'error' does not exist on type 'LspRequestMessage'.
+src/lib/lsp/LspClient.ts(143,25): error TS2339: Property 'result' does not exist on type 'LspMessage'.
+  Property 'result' does not exist on type 'LspRequestMessage'.
+src/lib/lsp/LspClient.ts(149,17): error TS2339: Property 'method' does not exist on type 'LspMessage'.
+  Property 'method' does not exist on type 'LspResponseMessage'.
+src/lib/lsp/LspClient.ts(150,38): error TS2339: Property 'params' does not exist on type 'LspMessage'.
+  Property 'params' does not exist on type 'LspResponseMessage'.
+src/lib/lsp/LspClient.ts(213,38): error TS2322: Type '(value: T | PromiseLike<T>) => void' is not assignable to type '(value: unknown) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'unknown' is not assignable to type 'T | PromiseLike<T>'.
+src/lib/lsp/LspClient.ts(275,24): error TS2339: Property 'items' does not exist on type '{}'.
+src/lib/lsp/LspClient.ts(276,21): error TS2339: Property 'items' does not exist on type '{}'.
+src/lib/specstory/index.ts(84,7): error TS2322: Type 'Conversation' is not assignable to type 'SpecStoryData'.
+  Type 'Conversation' is missing the following properties from type '{ [key: string]: unknown; type: "command"; command: string; args: string[]; result: unknown; }': type, command, args, result
+src/lib/specstory/index.ts(141,18): error TS18046: 'result' is of type 'unknown'.
+src/lib/specstory/index.ts(142,24): error TS18046: 'result' is of type 'unknown'.
+src/lib/specstory/index.ts(193,5): error TS2322: Type 'SpecStoryData[]' is not assignable to type 'Conversation[]'.
+  Type 'SpecStoryData' is not assignable to type 'Conversation'.
+    Type 'Record<string, unknown>' is missing the following properties from type 'Conversation': id, model, status, createdAt, and 2 more.
+src/lib/specstory/index.ts(203,5): error TS2322: Type 'unknown[]' is not assignable to type 'Message[]'.
+  Type 'unknown' is not assignable to type 'Message'.
+src/lib/theme.ts(11,7): error TS6133: 'robotoMono' is declared but its value is never read.
+src/lib/types/three.ts(6,1): error TS6133: 'THREE' is declared but its value is never read.
+src/lib/types/webxr.ts(7,18): error TS2430: Interface 'XRError' incorrectly extends interface 'Error'.
+  Types of property 'name' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/lib/visualization/animator.ts(101,12): error TS2551: Property 'updateProjectionMatrix' does not exist on type 'Camera'. Did you mean 'projectionMatrix'?
+src/lib/visualization/lod.ts(187,33): error TS2339: Property 'insert' does not exist on type 'never'.
+src/lib/xr/hand-tracking.ts(26,14): error TS2323: Cannot redeclare exported variable 'HandTrackingManager'.
+src/lib/xr/hand-tracking.ts(51,31): error TS2802: Type 'XRInputSourceArray' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/lib/xr/hand-tracking.ts(72,25): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+src/lib/xr/hand-tracking.ts(72,25): error TS18048: 'frame.getJointPose' is possibly 'undefined'.
+src/lib/xr/hand-tracking.ts(210,10): error TS2323: Cannot redeclare exported variable 'HandTrackingManager'.
+src/lib/xr/hand-tracking.ts(210,10): error TS2484: Export declaration conflicts with exported declaration of 'HandTrackingManager'.
+src/lib/xr/hand-tracking.ts(211,15): error TS2484: Export declaration conflicts with exported declaration of 'HandPose'.
+src/lib/xr/hand-tracking.ts(211,25): error TS2484: Export declaration conflicts with exported declaration of 'HandJoint'.
+src/lib/xr/spatial-audio.ts(100,35): error TS6133: 'sound' is declared but its value is never read.
+src/lib/xr/spatial-audio.ts(176,18): error TS6133: 'camera' is declared but its value is never read.
+src/lib/xr/vr-navigator.ts(158,7): error TS2739: Type 'Mesh<CircleGeometry, MeshBasicMaterial, Object3DEventMap>' is missing the following properties from type 'Object3D<Object3DEventMap>': setPointerCapture, releasePointerCapture, hasPointerCapture
+src/lib/xr/vr-navigator.ts(159,7): error TS2531: Object is possibly 'null'.
+src/lib/xr/vr-navigator.ts(167,5): error TS2531: Object is possibly 'null'.
+src/lib/xr/vr-navigator.ts(168,5): error TS2531: Object is possibly 'null'.
+src/lib/xr/vr-navigator.ts(169,5): error TS2531: Object is possibly 'null'.
+src/lib/xr/vr-navigator.ts(172,9): error TS2531: Object is possibly 'null'.
+src/lib/xr/vr-navigator.ts(173,26): error TS2345: Argument of type 'Object3D<Object3DEventMap> | null' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Type 'null' is not assignable to type 'Object3D<Object3DEventMap>'.
+src/lib/xr/vr-navigator.ts(182,41): error TS2345: Argument of type 'import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/build/three.module").Object3D<import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3DEventMap>' is not assignable to parameter of type 'import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3D<import("C:/Users/downl/Desktop/codex-main/gui/node_modules/.pnpm/@types+three@0.181.0/node_modules/@types/three/src/core/Object3D").Object3DEventMap>'.
+  The types returned by 'applyQuaternion(...)' are incompatible between these types.
+    Type 'Object3D<Object3DEventMap>' is not assignable to type 'this'.
+      'this' could be instantiated with an arbitrary type which could be unrelated to 'Object3D<Object3DEventMap>'.
+src/lib/xr/webxr-manager.ts(84,35): error TS2531: Object is possibly 'null'.
+src/lib/xr/webxr-manager.ts(104,9): error TS2322: Type 'XRSession | null' is not assignable to type 'XRSession'.
+  Type 'null' is not assignable to type 'XRSession'.
+src/lib/xr/webxr-manager.ts(133,35): error TS2531: Object is possibly 'null'.
+src/lib/xr/webxr-manager.ts(151,9): error TS2322: Type 'XRSession | null' is not assignable to type 'XRSession'.
+  Type 'null' is not assignable to type 'XRSession'.
+src/lib/xr/webxr-manager.ts(193,15): error TS2345: Argument of type 'AmbientLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: AmbientLight, recursive?: boolean | undefined) => AmbientLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'AmbientLight': isAmbientLight, isLight, color, intensity, and 2 more.
+src/lib/xr/webxr-manager.ts(197,15): error TS2345: Argument of type 'DirectionalLight' is not assignable to parameter of type 'Object3D<Object3DEventMap>'.
+  Types of property 'copy' are incompatible.
+    Type '(source: DirectionalLight, recursive?: boolean | undefined) => DirectionalLight' is not assignable to type '(object: Object3D<Object3DEventMap>, recursive?: boolean | undefined) => this'.
+      Types of parameters 'source' and 'object' are incompatible.
+        Type 'Object3D<Object3DEventMap>' is missing the following properties from type 'DirectionalLight': isDirectionalLight, shadow, target, dispose, and 3 more.
+src/lib/xr/webxr-manager.ts(213,45): error TS6133: 'event' is declared but its value is never read.
+src/lib/xr/webxr-manager.ts(365,28): error TS2802: Type 'MapIterator<ARAnchor>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.

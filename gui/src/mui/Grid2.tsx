@@ -20,7 +20,9 @@ const Grid2 = React.forwardRef<HTMLDivElement, Grid2Props>(
     if (size && typeof size === 'object') {
       Object.assign(sizeObject, size as Record<string, SizeValue>);
     } else if (size !== undefined) {
-      sizeObject.xs = size;
+      if (typeof size !== 'object') {
+          sizeObject.xs = size;
+      }
     }
 
     const responsiveSizes: Array<[Breakpoint, SizeValue | undefined]> = [
@@ -40,7 +42,7 @@ const Grid2 = React.forwardRef<HTMLDivElement, Grid2Props>(
     const nextProps: MuiGridProps = {
       ...rest,
       size: Object.keys(sizeObject).length > 0 ? sizeObject : size,
-    };
+    } as MuiGridProps;
 
     return <MuiGrid ref={ref} {...nextProps} />;
   },

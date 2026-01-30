@@ -5,9 +5,9 @@ use crate::codex_tool_config::CodexToolCallParam;
 use crate::codex_tool_config::CodexToolCallReplyParam;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_param;
 use crate::codex_tool_config::create_tool_for_codex_tool_call_reply_param;
-use crate::windows_mcp_bridge::{handle_windows_25h2_tool, Windows25H2ToolParam};
 use crate::error_code::INVALID_REQUEST_ERROR_CODE;
 use crate::outgoing_message::OutgoingMessageSender;
+use crate::windows_mcp_bridge::{Windows25H2ToolParam, handle_windows_25h2_tool};
 use codex_protocol::ThreadId;
 use codex_protocol::protocol::SessionSource;
 
@@ -316,38 +316,42 @@ impl MessageProcessor {
         {
             use mcp_types::Tool;
             use serde_json::json;
-            tools.push(Tool {
-                name: "windows-25h2".to_string(),
-                description: "Access Windows 11 25H2 specific features including AI acceleration, GPU statistics, and system information".to_string(),
-                input_schema: json!({
-                    "type": "object",
-                    "properties": {
-                        "action": {
-                            "type": "string",
-                            "enum": ["get-gpu-stats", "execute-with-ai", "check-ai-availability", "get-system-info", "enable-ai-acceleration"],
-                            "description": "Action to perform"
-                        },
-                        "params": {
-                            "type": "object",
-                            "description": "Optional parameters for the action",
-                            "properties": {
-                                "prompt": {
-                                    "type": "string",
-                                    "description": "Prompt for AI execution (required for execute-with-ai)"
-                                },
-                                "use_kernel_acceleration": {
-                                    "type": "boolean",
-                                    "description": "Use kernel driver acceleration (for execute-with-ai)"
-                                },
-                                "enabled": {
-                                    "type": "boolean",
-                                    "description": "Enable/disable AI acceleration (for enable-ai-acceleration)"
-                                }
+            let schema = json!({
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["get-gpu-stats", "execute-with-ai", "check-ai-availability", "get-system-info", "enable-ai-acceleration"],
+                        "description": "Action to perform"
+                    },
+                    "params": {
+                        "type": "object",
+                        "description": "Optional parameters for the action",
+                        "properties": {
+                            "prompt": {
+                                "type": "string",
+                                "description": "Prompt for AI execution (required for execute-with-ai)"
+                            },
+                            "use_kernel_acceleration": {
+                                "type": "boolean",
+                                "description": "Use kernel driver acceleration (for execute-with-ai)"
+                            },
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Enable/disable AI acceleration (for enable-ai-acceleration)"
                             }
                         }
-                    },
-                    "required": ["action"]
-                }),
+                    }
+                },
+                "required": ["action"]
+            });
+            tools.push(Tool {
+                name: "windows-25h2".to_string(),
+                description: Some("Access Windows 11 25H2 specific features including AI acceleration, GPU statistics, and system information".to_string()),
+                input_schema: serde_json::from_value(schema).expect("Failed to create input schema for windows-25h2 tool"),
+                output_schema: None,
+                annotations: None,
+                title: Some("Windows 25H2".to_string()),
             });
         }
 
@@ -738,7 +742,9 @@ impl MessageProcessor {
                 } else {
                     format!(
                         "Error: {}\n\n{}",
-                        result.message.unwrap_or_else(|| "Unknown error".to_string()),
+                        result
+                            .message
+                            .unwrap_or_else(|| "Unknown error".to_string()),
                         serde_json::to_string_pretty(&result.data).unwrap_or_default()
                     )
                 };

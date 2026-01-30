@@ -10,6 +10,7 @@ mod apply_patch;
 pub mod audit_log;
 pub mod auth;
 pub mod bash;
+pub mod chrome;
 mod client;
 mod client_common;
 pub mod codex;
@@ -36,6 +37,7 @@ mod flags;
 pub mod git_info;
 pub mod instructions;
 pub mod landlock;
+pub mod lsp;
 pub mod mcp;
 mod mcp_connection_manager;
 pub mod models_manager;
@@ -60,6 +62,7 @@ mod text_encoding;
 pub mod token_data;
 mod truncate;
 mod unified_exec;
+pub mod windows_ai_integration;
 pub mod windows_sandbox;
 pub use model_provider_info::CHAT_WIRE_API_DEPRECATION_SUMMARY;
 pub use model_provider_info::DEFAULT_LMSTUDIO_PORT;
@@ -93,9 +96,9 @@ pub mod project_doc;
 mod rollout;
 pub(crate) mod safety;
 pub mod seatbelt;
+pub mod session_prefix;
 pub mod shell;
 pub mod shell_snapshot;
-pub mod session_prefix;
 pub mod skills;
 pub mod spawn;
 pub mod state_db;
@@ -121,6 +124,7 @@ pub use rollout::list::read_session_meta_line;
 pub use rollout::rollout_date_parts;
 pub use transport_manager::TransportManager;
 mod function_tool;
+pub mod implementation_log;
 mod state;
 mod tasks;
 mod user_notification;
@@ -183,14 +187,14 @@ pub mod autonomous_orchestration;
 #[cfg(feature = "custom-features")]
 pub mod cowork_integration;
 #[cfg(feature = "custom-features")]
-pub mod llmops;
-#[cfg(feature = "custom-features")]
-pub mod skill_mcp_integration;
-#[cfg(feature = "custom-features")]
 pub mod cuda_accelerator;
 #[cfg(feature = "custom-features")]
 pub mod git4d_accelerated;
 #[cfg(feature = "custom-features")]
-pub mod vr_ar_integration;
+pub mod llmops;
+#[cfg(feature = "custom-features")]
+pub mod skill_mcp_integration;
 #[cfg(feature = "custom-features")]
 pub mod superior_git4d_visualizer;
+#[cfg(feature = "custom-features")]
+pub mod vr_ar_integration;

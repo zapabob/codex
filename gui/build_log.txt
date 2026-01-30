@@ -1,0 +1,16 @@
+
+> gui@2.13.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/app/page.tsx
+Module not found: Can't resolve '@mui/material/Grid2'
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+> Build failed because of webpack errors
