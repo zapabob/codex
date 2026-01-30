@@ -15,28 +15,25 @@ use crate::render::renderable::Renderable;
 use ratatui::prelude::*;
 use ratatui::widgets::{Paragraph, Wrap};
 use std::any::Any;
-use unicode_width::UnicodeWidthStr;
 
-pub(crate) use basic::{CompositeHistoryCell, PlainHistoryCell, PrefixedWrappedHistoryCell};
+pub(crate) use basic::{CompositeHistoryCell, PlainHistoryCell};
 pub(crate) use basic::{
     FinalMessageSeparator, new_error_event, new_info_event, new_patch_apply_failure,
     new_review_status_line, new_view_image_tool_call, new_warning_event,
 };
 pub(crate) use exec::{
-    AgentMessageCell, UnifiedExecInteractionCell, new_approval_decision_cell,
-    new_unified_exec_interaction, new_unified_exec_processes_output,
+    AgentMessageCell, new_approval_decision_cell, new_unified_exec_interaction,
+    new_unified_exec_processes_output,
 };
 pub(crate) use mcp::{
     McpToolCallCell, WebSearchCell, empty_mcp_output, new_active_mcp_tool_call,
     new_active_web_search_call, new_mcp_tools_output, new_web_search_call,
 };
-pub(crate) use patch::{PatchHistoryCell, new_patch_event};
-pub(crate) use plan::{PlanUpdateCell, new_plan_update};
-pub(crate) use reasoning::{ReasoningSummaryCell, new_reasoning_summary_block};
+pub(crate) use patch::new_patch_event;
+pub(crate) use plan::new_plan_update;
+pub(crate) use reasoning::new_reasoning_summary_block;
 pub(crate) use session::{SessionHeaderHistoryCell, SessionInfoCell, new_session_info};
-pub(crate) use update::{
-    DeprecationNoticeCell, UpdateAvailableHistoryCell, new_deprecation_notice,
-};
+pub(crate) use update::new_deprecation_notice;
 pub(crate) use user::{UserHistoryCell, new_user_prompt};
 
 /// Represents an event to display in the conversation history. Returns its
@@ -147,7 +144,7 @@ pub(crate) fn with_border_with_inner_width(
     // Top border: ╭─────╮
     out.push(Line::from(vec![
         "╭".into(),
-        horizontal.as_str().into(),
+        horizontal.clone().into(),
         "╮".into(),
     ]));
 
@@ -165,7 +162,7 @@ pub(crate) fn with_border_with_inner_width(
     // Bottom border: ╰─────╯
     out.push(Line::from(vec![
         "╰".into(),
-        horizontal.as_str().into(),
+        horizontal.clone().into(),
         "╯".into(),
     ]));
 

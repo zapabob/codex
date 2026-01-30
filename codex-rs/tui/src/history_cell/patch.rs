@@ -1,12 +1,11 @@
-
+use super::HistoryCell;
 use crate::diff_render::display_path_for;
 use crate::render::line_utils::prefix_lines;
-use codex_protocol::file_change::FileChange;
+use codex_protocol::protocol::FileChange;
 use ratatui::prelude::*;
 use ratatui::style::Stylize;
-use std::path::{Path, PathBuf};
 use std::collections::HashMap;
-use super::HistoryCell;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub(crate) struct PatchHistoryCell {
@@ -15,7 +14,7 @@ pub(crate) struct PatchHistoryCell {
 }
 
 impl HistoryCell for PatchHistoryCell {
-    fn display_lines(&self, width: u16) -> Vec<Line<'static>> {
+    fn display_lines(&self, _width: u16) -> Vec<Line<'static>> {
         let mut lines: Vec<Line<'static>> = Vec::new();
 
         // 1. Header line
@@ -36,29 +35,19 @@ impl HistoryCell for PatchHistoryCell {
         for (path, change) in changes {
             let display_path = display_path_for(path, &self.cwd);
             let summary = match change {
-                FileChange::Delete => "deleted".red(),
-                FileChange::New(content) => {
+                FileChange::Delete { .. } => "deleted".red(),
+                FileChange::Add { content } => {
                     format!("new file, {} lines", content.lines().count()).green()
                 }
-                FileChange::Modify(hunks) => {
-                    let mut insertions = 0;
-                    let mut deletions = 0;
-                    for hunk in hunks {
-                        for line in &hunk.lines {
-                            match line {
-                                crate::diff_view::DiffLine::Add(_) => insertions += 1,
-                                crate::diff_view::DiffLine::Delete(_) => deletions += 1,
-                                _ => {}
-                            }
-                        }
-                    }
-                    format!("{} lines changed (+{insertions}, -{deletions})", hunks.len()).dim()
+                FileChange::Update { unified_diff, .. } => {
+                    let (insertions, deletions) =
+                        crate::diff_render::calculate_add_remove_from_diff(unified_diff);
+                    format!("modified (+{insertions}, -{deletions})").dim()
                 }
             };
             file_lines.push(vec![display_path.bold(), " ".into(), summary].into());
         }
 
-        // 4. Prefix the file list with the tree structure
         lines.extend(prefix_lines(file_lines, "  └ ".dim(), "    ".into()));
 
         lines

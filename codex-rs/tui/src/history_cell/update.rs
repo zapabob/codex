@@ -2,10 +2,8 @@ use super::HistoryCell;
 use crate::update_action::UpdateAction;
 use crate::version::CODEX_CLI_VERSION;
 use ratatui::prelude::*;
-use ratatui::style::Modifier;
-use ratatui::style::Style;
+
 use ratatui::style::Stylize;
-use unicode_width::UnicodeWidthStr;
 
 #[cfg_attr(debug_assertions, allow(dead_code))]
 #[derive(Debug)]

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Custom Command Tool Handler
 use anyhow::Result;
 use mcp_types::CallToolResult;

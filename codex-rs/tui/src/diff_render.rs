@@ -76,6 +76,7 @@ impl From<DiffSummary> for Box<dyn Renderable> {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn create_diff_summary(
     changes: &HashMap<PathBuf, FileChange>,
     cwd: &Path,
@@ -90,7 +91,7 @@ pub(crate) fn create_diff_summary(
 struct Row {
     #[allow(dead_code)]
     path: PathBuf,
-    move_path: Option<PathBuf>,
+    _move_path: Option<PathBuf>,
     added: usize,
     removed: usize,
     change: FileChange,
@@ -113,7 +114,7 @@ fn collect_rows(changes: &HashMap<PathBuf, FileChange>) -> Vec<Row> {
         };
         rows.push(Row {
             path: path.clone(),
-            move_path,
+            _move_path: move_path,
             added,
             removed,
             change: change.clone(),
@@ -133,6 +134,7 @@ fn render_line_count_summary(added: usize, removed: usize) -> Vec<RtSpan<'static
     spans
 }
 
+#[allow(dead_code)]
 fn render_changes_block(rows: Vec<Row>, wrap_cols: usize, cwd: &Path) -> Vec<RtLine<'static>> {
     let mut out: Vec<RtLine<'static>> = Vec::new();
 
@@ -325,7 +327,7 @@ pub(crate) fn display_path_for(path: &Path, cwd: &Path) -> String {
     chosen.display().to_string()
 }
 
-fn calculate_add_remove_from_diff(diff: &str) -> (usize, usize) {
+pub(crate) fn calculate_add_remove_from_diff(diff: &str) -> (usize, usize) {
     if let Ok(patch) = diffy::Patch::from_str(diff) {
         patch
             .hunks()

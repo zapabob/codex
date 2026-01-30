@@ -10,8 +10,7 @@ use sha2::Digest;
 use sha2::Sha256;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::Duration;
-use std::time::SystemTime;
+
 use tokio::sync::RwLock;
 
 /// Session information
@@ -56,7 +55,7 @@ impl SessionManager {
         use base64::Engine;
         use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
 

@@ -35,7 +35,7 @@ impl OrchestratorServer {
         rate_limiter: &Arc<RateLimiter>,
         replay_protection: &Arc<ReplayProtection>,
         audit_logger: &Arc<Option<AuditLogger>>,
-        session_manager: &Arc<SessionManager>,
+        _session_manager: &Arc<SessionManager>,
     ) -> Result<()> {
         loop {
             // Read request
@@ -193,6 +193,9 @@ impl OrchestratorServer {
                 }
             }
 
+            // Extract idem_key for caching before request is potentially moved
+            let idem_key_clone = request.idem_key.clone();
+
             // Dispatch request
             let response = if Self::is_write_method(&request.method) {
                 Self::dispatch_write_request(request, write_queue, queue_size).await
@@ -212,10 +215,10 @@ impl OrchestratorServer {
             };
 
             // Cache response
-            if let Some(idem_key) = &request.idem_key {
+            if let Some(idem_key) = idem_key_clone {
                 let mut cache = idempotency_cache.write().await;
                 cache.insert(
-                    idem_key.clone(),
+                    idem_key,
                     IdempotencyEntry {
                         response: response.clone(),
                         expires_at: SystemTime::now() + std::time::Duration::from_secs(600),

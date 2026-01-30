@@ -5,7 +5,7 @@
 use crate::audit::AuditLoggerConfig;
 use crate::rate_limit::RateLimitConfig;
 use crate::replay_protection::ReplayProtectionConfig;
-use crate::security_headers::SecurityHeadersConfig;
+
 use anyhow::Context;
 use anyhow::Result;
 use serde::Deserialize;

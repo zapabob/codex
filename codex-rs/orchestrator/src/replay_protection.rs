@@ -33,7 +33,7 @@ impl Default for ReplayProtectionConfig {
 #[derive(Debug, Clone)]
 struct NonceEntry {
     /// When the nonce was first seen
-    first_seen: SystemTime,
+    _first_seen: SystemTime,
     /// When the nonce expires
     expires_at: SystemTime,
 }
@@ -90,7 +90,7 @@ impl ReplayProtection {
         entries.insert(
             nonce.to_string(),
             NonceEntry {
-                first_seen: now,
+                _first_seen: now,
                 expires_at,
             },
         );

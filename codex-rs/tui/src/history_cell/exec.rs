@@ -7,6 +7,7 @@ use crate::text_formatting::truncate_text;
 use crate::wrapping::{RtOptions, word_wrap_line, word_wrap_lines};
 use ratatui::prelude::*;
 use ratatui::style::Stylize;
+use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 #[derive(Debug)]

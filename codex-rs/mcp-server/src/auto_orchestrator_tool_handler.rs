@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Handler for auto-orchestrator tool calls via MCP.
 
 use crate::auto_orchestrator_tool::AutoOrchestratorToolParam;

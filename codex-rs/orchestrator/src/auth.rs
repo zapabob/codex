@@ -17,6 +17,7 @@ use serde::Serialize;
 use sha2::Digest;
 use sha2::Sha256;
 use std::collections::HashMap;
+
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -28,7 +29,7 @@ use tokio::sync::RwLock;
 #[derive(Clone)]
 pub struct AuthManager {
     /// Path to codex home directory
-    codex_home: PathBuf,
+    _codex_home: PathBuf,
     /// OAuth 2.0 issuer URL for token verification
     oauth_issuer: Option<String>,
     /// OAuth 2.0 audience
@@ -124,8 +125,8 @@ pub enum AuthError {
 impl AuthManager {
     /// Create a new authentication manager
     pub fn new(codex_home: &Path) -> Result<Self> {
-        let codex_home = codex_home.to_path_buf();
-        let api_keys_path = codex_home.join("api_keys.json");
+        let _codex_home_path = codex_home.to_path_buf();
+        let api_keys_path = _codex_home_path.join("api_keys.json");
 
         // Load existing API keys
         let api_keys = if api_keys_path.exists() {
@@ -137,7 +138,7 @@ impl AuthManager {
         };
 
         Ok(Self {
-            codex_home,
+            _codex_home: codex_home.to_path_buf(),
             oauth_issuer: None,   // Can be set from config
             oauth_audience: None, // Can be set from config
             token_cache: Arc::new(RwLock::new(HashMap::new())),
@@ -173,7 +174,7 @@ impl AuthManager {
         }
 
         // Decode token header to get algorithm
-        let header = decode_header(token)
+        let _header = decode_header(token)
             .map_err(|e| AuthError::VerificationFailed(format!("Invalid token header: {e}")))?;
 
         // For now, we'll use a simple validation approach

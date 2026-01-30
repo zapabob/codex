@@ -10,7 +10,7 @@ use crate::render::line_utils::push_owned_lines;
 use crate::wrapping::RtOptions;
 use crate::wrapping::word_wrap_lines;
 use ratatui::prelude::*;
-use ratatui::style::Style;
+
 use ratatui::style::Stylize;
 use std::path::{Path, PathBuf};
 use unicode_width::UnicodeWidthStr;

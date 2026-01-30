@@ -7,7 +7,7 @@ use chrono::DateTime;
 use chrono::Utc;
 use serde::Deserialize;
 use serde::Serialize;
-use std::path::Path;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
@@ -106,14 +106,12 @@ pub struct AuditLogger {
     /// Current log file handle
     log_file: Arc<RwLock<Option<tokio::fs::File>>>,
     /// Current log file path
-    current_log_path: Arc<RwLock<PathBuf>>,
+    _current_log_path: Arc<RwLock<PathBuf>>,
 }
 
 impl AuditLogger {
     /// Create a new audit logger
     pub async fn new(config: AuditLoggerConfig) -> Result<Self, AuditLoggerError> {
-        use codex_core::security::secret_masking::mask_secrets;
-
         let log_dir = if config.log_dir.starts_with("~") {
             dirs::home_dir()
                 .ok_or(AuditLoggerError::HomeDirNotFound)?
@@ -151,7 +149,7 @@ impl AuditLogger {
         Ok(Self {
             config,
             log_file: Arc::new(RwLock::new(Some(log_file))),
-            current_log_path: Arc::new(RwLock::new(log_path)),
+            _current_log_path: Arc::new(RwLock::new(log_path)),
         })
     }
 

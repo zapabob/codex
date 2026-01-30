@@ -1,8 +1,8 @@
 use super::HistoryCell;
 use super::basic::{PlainHistoryCell, PrefixedWrappedHistoryCell};
 use crate::exec_cell::TOOL_CALL_MAX_LINES;
-use crate::exec_cell::line_to_static;
 use crate::exec_cell::spinner;
+use crate::render::line_utils::line_to_static;
 use crate::render::line_utils::prefix_lines;
 use crate::text_formatting::format_and_truncate_tool_result;
 use crate::wrapping::{RtOptions, word_wrap_line};
@@ -19,7 +19,7 @@ use mcp_types::{EmbeddedResourceResource, Resource, ResourceLink, ResourceTempla
 use ratatui::prelude::*;
 use ratatui::style::Stylize;
 use ratatui::style::{Modifier, Style};
-use ratatui::widgets::Paragraph;
+
 use std::collections::HashMap;
 use std::io::Cursor;
 use std::time::{Duration, Instant};

@@ -2,7 +2,7 @@ use super::HistoryCell;
 use crate::render::line_utils::prefix_lines;
 use codex_protocol::plan_tool::{PlanItemArg, StepStatus, UpdatePlanArgs};
 use ratatui::prelude::*;
-use ratatui::style::{Style, Stylize};
+use ratatui::style::{Style, Styled, Stylize};
 use unicode_width::UnicodeWidthStr;
 
 #[derive(Debug)]

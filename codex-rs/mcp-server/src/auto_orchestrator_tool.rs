@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! MCP tool for automatic task orchestration.
 //!
 //! Automatically analyzes task complexity and orchestrates sub-agents if needed.

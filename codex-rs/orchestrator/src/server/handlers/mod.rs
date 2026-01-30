@@ -60,7 +60,7 @@ impl OrchestratorServer {
         _auth_manager: &Arc<AuthManager>,
         active_agents: &Arc<RwLock<HashMap<String, AgentState>>>,
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
-        token_budget: &Arc<RwLock<TokenBudget>>,
+        _token_budget: &Arc<RwLock<TokenBudget>>,
         _active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
         _plan_manager: &Arc<PlanManager>,

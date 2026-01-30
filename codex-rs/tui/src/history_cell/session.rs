@@ -9,8 +9,8 @@ use codex_core::config::Config;
 use codex_core::protocol::SessionConfiguredEvent;
 use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use ratatui::prelude::*;
+use ratatui::style::Style;
 use ratatui::style::Stylize;
-use ratatui::style::{Color, Style};
 use std::path::{Path, PathBuf};
 use unicode_width::UnicodeWidthStr;
 

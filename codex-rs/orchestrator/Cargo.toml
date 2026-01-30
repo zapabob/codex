@@ -12,7 +12,7 @@ async-channel = { workspace = true }
 async-trait = { workspace = true }
 base64 = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
-codex-core = { workspace = true }
+codex-core = { workspace = true, features = ["custom-features"] }
 dirs = { workspace = true }
 git2 = "0.19"
 hostname = "0.4"

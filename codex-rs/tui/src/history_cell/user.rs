@@ -1,7 +1,7 @@
 use super::HistoryCell;
 use crate::render::line_utils::prefix_lines;
 use crate::style::user_message_style;
-use crate::text_formatting::truncate_text;
+
 use crate::ui_consts::LIVE_PREFIX_COLS;
 use crate::wrapping::{RtOptions, word_wrap_lines};
 use codex_protocol::user_input::TextElement;
