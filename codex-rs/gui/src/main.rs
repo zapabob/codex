@@ -87,7 +87,7 @@ async fn main() -> Result<(), GuiError> {
             "/api/conversations/{id}/messages",
             post(api::conversations::send_message),
         )
-        .route("/api/user", get(api::api::user::get_current_user))
+        .route("/api/user", get(api::user::get_current_user))
         .route(
             "/api/visualization/git4d",
             post(api::git4d::launch_git4d_visualization),
