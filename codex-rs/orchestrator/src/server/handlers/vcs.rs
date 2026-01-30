@@ -29,7 +29,7 @@ impl OrchestratorServer {
                         Err(e) => {
                             return RpcResponse::internal_error(
                                 request.id.clone(),
-                                &format!("Failed to get tree: {e}"),
+                                format!("Failed to get tree: {e}"),
                             );
                         }
                     };
@@ -74,13 +74,13 @@ impl OrchestratorServer {
                     }
                     Err(e) => RpcResponse::internal_error(
                         request.id.clone(),
-                        &format!("Failed to compute diff: {e}"),
+                        format!("Failed to compute diff: {e}"),
                     ),
                 }
             }
             Err(e) => RpcResponse::internal_error(
                 request.id.clone(),
-                &format!("Not a git repository or failed to open: {e}"),
+                format!("Not a git repository or failed to open: {e}"),
             ),
         }
     }

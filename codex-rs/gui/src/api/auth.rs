@@ -62,11 +62,10 @@ pub async fn login(
     init_db(&state.db).await?;
 
     // Find user by email
-    let user = sqlx::query_as!(
-        UserRecord,
+    let user = sqlx::query_as::<sqlx::Sqlite, UserRecord>(
         "SELECT id, email, password_hash, name FROM users WHERE email = ?",
-        request.email
     )
+    .bind(request.email)
     .fetch_optional(&*state.db)
     .await
     .map_err(|e| AuthError::Database(e.to_string()))?;
@@ -95,15 +94,15 @@ pub async fn login(
 
     // Create session record
     let session_id = Uuid::new_v4().to_string();
-    sqlx::query!(
-        "INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)",
-        session_id,
-        user.id,
-        exp
-    )
-    .execute(&*state.db)
-    .await
-    .map_err(|e| AuthError::Database(e.to_string()))?;
+    // Create session record
+    let session_id = Uuid::new_v4().to_string();
+    sqlx::query::<sqlx::Sqlite>("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)")
+        .bind(session_id)
+        .bind(user.id)
+        .bind(exp as i64)
+        .execute(&*state.db)
+        .await
+        .map_err(|e| AuthError::Database(e.to_string()))?;
 
     Ok(Json(AuthResponse {
         token,
@@ -123,10 +122,14 @@ pub async fn register(
     init_db(&state.db).await?;
 
     // Check if user already exists
-    let existing = sqlx::query!("SELECT id FROM users WHERE email = ?", request.email)
-        .fetch_optional(&*state.db)
-        .await
-        .map_err(|e| AuthError::Database(e.to_string()))?;
+    // Check if user already exists
+    // Check if user already exists
+    let existing: Option<(String,)> =
+        sqlx::query_as::<sqlx::Sqlite, (String,)>("SELECT id FROM users WHERE email = ?")
+            .bind(request.email.clone())
+            .fetch_optional(&*state.db)
+            .await
+            .map_err(|e| AuthError::Database(e.to_string()))?;
 
     if existing.is_some() {
         return Err(AuthError::UserExists);
@@ -138,13 +141,15 @@ pub async fn register(
 
     // Create user
     let user_id = Uuid::new_v4().to_string();
-    sqlx::query!(
+    // Create user
+    let user_id = Uuid::new_v4().to_string();
+    sqlx::query::<sqlx::Sqlite>(
         "INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)",
-        user_id,
-        request.email,
-        password_hash,
-        request.name
     )
+    .bind(&user_id)
+    .bind(request.email.clone())
+    .bind(password_hash)
+    .bind(request.name.clone())
     .execute(&*state.db)
     .await
     .map_err(|e| AuthError::Database(e.to_string()))?;
@@ -167,15 +172,15 @@ pub async fn register(
 
     // Create session record
     let session_id = Uuid::new_v4().to_string();
-    sqlx::query!(
-        "INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)",
-        session_id,
-        user_id,
-        exp
-    )
-    .execute(&*state.db)
-    .await
-    .map_err(|e| AuthError::Database(e.to_string()))?;
+    // Create session record
+    let session_id = Uuid::new_v4().to_string();
+    sqlx::query::<sqlx::Sqlite>("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)")
+        .bind(session_id)
+        .bind(user_id.clone())
+        .bind(exp as i64)
+        .execute(&*state.db)
+        .await
+        .map_err(|e| AuthError::Database(e.to_string()))?;
 
     Ok(Json(AuthResponse {
         token,
@@ -192,7 +197,9 @@ pub async fn logout(
     Json(request): Json<LogoutRequest>,
 ) -> Result<StatusCode, AuthError> {
     // Remove session
-    sqlx::query!("DELETE FROM sessions WHERE id = ?", request.session_id)
+    // Remove session
+    sqlx::query::<sqlx::Sqlite>("DELETE FROM sessions WHERE id = ?")
+        .bind(request.session_id)
         .execute(&*state.db)
         .await
         .map_err(|e| AuthError::Database(e.to_string()))?;
@@ -221,27 +228,28 @@ pub async fn get_session(
     let user_id = token_data.claims.sub;
 
     // Get user info
-    let user = sqlx::query_as!(
-        UserRecord,
+    // Get user info
+    let user = sqlx::query_as::<sqlx::Sqlite, UserRecord>(
         "SELECT id, email, password_hash, name FROM users WHERE id = ?",
-        user_id
     )
+    .bind(user_id.clone())
     .fetch_optional(&*state.db)
     .await
     .map_err(|e| AuthError::Database(e.to_string()))?
     .ok_or_else(|| AuthError::UserNotFound)?;
 
     // Get session expiry
-    let session = sqlx::query!(
+    // Get session expiry
+    let session: Option<(i64,)> = sqlx::query_as::<sqlx::Sqlite, (i64,)>(
         "SELECT expires_at FROM sessions WHERE user_id = ? ORDER BY expires_at DESC LIMIT 1",
-        user_id
     )
+    .bind(user_id)
     .fetch_optional(&*state.db)
     .await
     .map_err(|e| AuthError::Database(e.to_string()))?;
 
     let expires_at = session
-        .map(|s| s.expires_at.to_string())
+        .map(|s| s.0.to_string())
         .unwrap_or_else(|| Utc::now().to_rfc3339());
 
     Ok(Json(SessionInfo {
@@ -254,6 +262,7 @@ pub async fn get_session(
     }))
 }
 
+#[derive(sqlx::FromRow)]
 struct UserRecord {
     id: String,
     email: String,
@@ -318,13 +327,15 @@ pub enum AuthError {
 impl IntoResponse for AuthError {
     fn into_response(self) -> axum::response::Response {
         let (status, message) = match self {
-            AuthError::InvalidCredentials => (StatusCode::UNAUTHORIZED, "Invalid credentials"),
-            AuthError::UserExists => (StatusCode::CONFLICT, "User already exists"),
-            AuthError::UserNotFound => (StatusCode::NOT_FOUND, "User not found"),
-            AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token"),
-            AuthError::Database(msg) => (StatusCode::INTERNAL_SERVER_ERROR, &msg),
-            AuthError::PasswordHash(msg) => (StatusCode::INTERNAL_SERVER_ERROR, &msg),
-            AuthError::TokenGeneration(msg) => (StatusCode::INTERNAL_SERVER_ERROR, &msg),
+            AuthError::InvalidCredentials => {
+                (StatusCode::UNAUTHORIZED, "Invalid credentials".to_string())
+            }
+            AuthError::UserExists => (StatusCode::CONFLICT, "User already exists".to_string()),
+            AuthError::UserNotFound => (StatusCode::NOT_FOUND, "User not found".to_string()),
+            AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token".to_string()),
+            AuthError::Database(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+            AuthError::PasswordHash(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+            AuthError::TokenGeneration(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 
         let body = Json(serde_json::json!({

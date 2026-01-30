@@ -67,9 +67,9 @@ pub const ERROR_CONFLICT: i32 = 409; // Lock conflict
 pub const ERROR_BACKPRESSURE: i32 = 429; // Queue full
 
 impl RpcResponse {
-    pub fn method_not_found(id: String, method: &str) -> Self {
+    pub fn method_not_found(id: impl Into<String>, method: &str) -> Self {
         RpcResponse {
-            id,
+            id: id.into(),
             result: None,
             error: Some(RpcError {
                 code: ERROR_METHOD_NOT_FOUND,
@@ -79,25 +79,25 @@ impl RpcResponse {
         }
     }
 
-    pub fn invalid_params(id: String, message: String) -> Self {
+    pub fn invalid_params(id: impl Into<String>, message: impl Into<String>) -> Self {
         RpcResponse {
-            id,
+            id: id.into(),
             result: None,
             error: Some(RpcError {
                 code: ERROR_INVALID_PARAMS,
-                message,
+                message: message.into(),
                 data: None,
             }),
         }
     }
 
-    pub fn internal_error(id: String, message: String) -> Self {
+    pub fn internal_error(id: impl Into<String>, message: impl Into<String>) -> Self {
         RpcResponse {
-            id,
+            id: id.into(),
             result: None,
             error: Some(RpcError {
                 code: ERROR_INTERNAL,
-                message,
+                message: message.into(),
                 data: None,
             }),
         }

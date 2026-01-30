@@ -21,7 +21,7 @@ impl OrchestratorServer {
                 }
             }
             Err(e) => {
-                RpcResponse::invalid_params(request.id.clone(), &format!("Invalid params: {e}"))
+                RpcResponse::invalid_params(request.id.clone(), format!("Invalid params: {e}"))
             }
         }
     }

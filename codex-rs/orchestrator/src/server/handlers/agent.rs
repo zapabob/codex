@@ -60,7 +60,7 @@ impl OrchestratorServer {
                 }
             }
             Err(e) => {
-                RpcResponse::invalid_params(request.id.clone(), &format!("Invalid params: {e}"))
+                RpcResponse::invalid_params(request.id.clone(), format!("Invalid params: {e}"))
             }
         }
     }
@@ -86,12 +86,12 @@ impl OrchestratorServer {
                 } else {
                     RpcResponse::invalid_params(
                         request.id.clone(),
-                        &format!("Agent {} not found", params.agent_id),
+                        format!("Agent {} not found", params.agent_id),
                     )
                 }
             }
             Err(e) => {
-                RpcResponse::invalid_params(request.id.clone(), &format!("Invalid params: {e}"))
+                RpcResponse::invalid_params(request.id.clone(), format!("Invalid params: {e}"))
             }
         }
     }

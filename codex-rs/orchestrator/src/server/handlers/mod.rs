@@ -1,8 +1,8 @@
+use super::types::{AgentState, SessionInfo, TaskInfo, TokenBudget};
 use crate::auth::AuthManager;
 use crate::rpc::{RpcRequest, RpcResponse};
 use crate::server::OrchestratorServer;
 use crate::server::config::OrchestratorConfig;
-use crate::server::types::{AgentState, SessionInfo, TaskInfo, TokenBudget};
 use codex_core::plan::manager::PlanManager;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -25,10 +25,10 @@ impl OrchestratorServer {
         active_agents: &Arc<RwLock<HashMap<String, AgentState>>>,
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
-        active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
+        _active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         queue_size: &Arc<RwLock<usize>>,
         config: &OrchestratorConfig,
-        auth_manager: &Arc<AuthManager>,
+        _auth_manager: &Arc<AuthManager>,
     ) -> RpcResponse {
         match request.method.as_str() {
             "status.get" => {
@@ -61,9 +61,9 @@ impl OrchestratorServer {
         active_agents: &Arc<RwLock<HashMap<String, AgentState>>>,
         active_tasks: &Arc<RwLock<HashMap<String, TaskInfo>>>,
         token_budget: &Arc<RwLock<TokenBudget>>,
-        active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
+        _active_sessions: &Arc<RwLock<HashMap<String, SessionInfo>>>,
         subscribers: &Arc<RwLock<HashMap<String, Vec<String>>>>,
-        plan_manager: &Arc<PlanManager>,
+        _plan_manager: &Arc<PlanManager>,
     ) -> RpcResponse {
         match request.method.as_str() {
             "lock.acquire" => Self::handle_lock_acquire(request, subscribers).await,

@@ -36,7 +36,7 @@ codex-common = { workspace = true, features = [
     "elapsed",
     "sandbox_summary",
 ] }
-codex-core = { workspace = true }
+codex-core = { workspace = true, features = ["custom-features"] }
 codex-feedback = { workspace = true }
 codex-file-search = { workspace = true }
 codex-login = { workspace = true }

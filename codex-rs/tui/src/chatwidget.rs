@@ -5249,6 +5249,7 @@ impl ChatWidget {
                     )));
                 }
                 Err(e) => {
+                    let e: anyhow::Error = e;
                     let error_msg = e.to_string();
                     let hint = if error_msg.contains("not running")
                         || error_msg.contains("not accessible")
