@@ -19,7 +19,7 @@ use codex_cloud_tasks::Cli as CloudTasksCli;
 use codex_common::CliConfigOverrides;
 use codex_exec::Cli as ExecCli;
 use codex_exec::Command as ExecCommand;
-use codex_exec::ReviewArgs;
+use codex_exec::cli::ReviewArgs;
 use codex_execpolicy::ExecPolicyCheckCommand;
 use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;
 use codex_tui::AppExitInfo;
@@ -53,6 +53,7 @@ use codex_core::config::edit::ConfigEditsBuilder;
 use codex_core::config::find_codex_home;
 use codex_core::features::Stage;
 use codex_core::features::is_known_feature_key;
+use codex_core::terminal::TerminalName;
 #[cfg(feature = "custom-features")]
 use codex_core::llmops::{
     LLMOpsConfig, LLMOpsManager, ModelProvider, ModelVersion, PromptTemplate,

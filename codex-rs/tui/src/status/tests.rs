@@ -107,6 +107,7 @@ async fn status_snapshot_includes_reasoning_details() {
         .expect("set sandbox policy");
 
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 1_200,
@@ -148,6 +149,7 @@ async fn status_snapshot_includes_reasoning_details() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -170,7 +172,6 @@ async fn status_snapshot_includes_forked_from() {
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.model_provider_id = "openai".to_string();
     config.cwd = PathBuf::from("/workspace/tests");
-
     let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 800,
@@ -223,6 +224,7 @@ async fn status_snapshot_includes_monthly_limit() {
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.model_provider_id = "openai".to_string();
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 800,
@@ -258,6 +260,7 @@ async fn status_snapshot_includes_monthly_limit() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -277,6 +280,7 @@ async fn status_snapshot_includes_monthly_limit() {
 async fn status_snapshot_shows_unlimited_credits() {
     let temp_home = TempDir::new().expect("temp home");
     let config = test_config(&temp_home).await;
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage::default();
     let captured_at = chrono::Local
         .with_ymd_and_hms(2024, 2, 3, 4, 5, 6)
@@ -303,6 +307,7 @@ async fn status_snapshot_shows_unlimited_credits() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -321,6 +326,7 @@ async fn status_snapshot_shows_unlimited_credits() {
 async fn status_snapshot_shows_positive_credits() {
     let temp_home = TempDir::new().expect("temp home");
     let config = test_config(&temp_home).await;
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage::default();
     let captured_at = chrono::Local
         .with_ymd_and_hms(2024, 3, 4, 5, 6, 7)
@@ -347,6 +353,7 @@ async fn status_snapshot_shows_positive_credits() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -365,6 +372,7 @@ async fn status_snapshot_shows_positive_credits() {
 async fn status_snapshot_hides_zero_credits() {
     let temp_home = TempDir::new().expect("temp home");
     let config = test_config(&temp_home).await;
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage::default();
     let captured_at = chrono::Local
         .with_ymd_and_hms(2024, 4, 5, 6, 7, 8)
@@ -391,6 +399,7 @@ async fn status_snapshot_hides_zero_credits() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -407,6 +416,7 @@ async fn status_snapshot_hides_zero_credits() {
 async fn status_snapshot_hides_when_has_no_credits_flag() {
     let temp_home = TempDir::new().expect("temp home");
     let config = test_config(&temp_home).await;
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage::default();
     let captured_at = chrono::Local
         .with_ymd_and_hms(2024, 5, 6, 7, 8, 9)
@@ -433,6 +443,7 @@ async fn status_snapshot_hides_when_has_no_credits_flag() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -451,6 +462,7 @@ async fn status_card_token_usage_excludes_cached_tokens() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 1_200,
@@ -474,6 +486,8 @@ async fn status_card_token_usage_excludes_cached_tokens() {
         &usage,
         &None,
         None,
+        None,
+        None,
         now,
         &model_slug,
         None,
@@ -495,6 +509,7 @@ async fn status_snapshot_truncates_in_narrow_terminal() {
     config.model_provider_id = "openai".to_string();
     config.model_reasoning_summary = ReasoningSummary::Detailed;
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 1_200,
@@ -531,6 +546,7 @@ async fn status_snapshot_truncates_in_narrow_terminal() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -553,6 +569,7 @@ async fn status_snapshot_shows_missing_limits_message() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 500,
@@ -576,6 +593,8 @@ async fn status_snapshot_shows_missing_limits_message() {
         &usage,
         &None,
         None,
+        None,
+        None,
         now,
         &model_slug,
         None,
@@ -597,6 +616,7 @@ async fn status_snapshot_includes_credits_and_limits() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 1_500,
@@ -640,6 +660,7 @@ async fn status_snapshot_includes_credits_and_limits() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -661,6 +682,7 @@ async fn status_snapshot_shows_empty_limits_message() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 500,
@@ -692,6 +714,7 @@ async fn status_snapshot_shows_empty_limits_message() {
         &None,
         None,
         Some(&rate_display),
+        None,
         captured_at,
         &model_slug,
         None,
@@ -713,6 +736,7 @@ async fn status_snapshot_shows_stale_limits_message() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 1_200,
@@ -753,6 +777,7 @@ async fn status_snapshot_shows_stale_limits_message() {
         &None,
         None,
         Some(&rate_display),
+        None,
         now,
         &model_slug,
         None,
@@ -774,6 +799,7 @@ async fn status_snapshot_cached_limits_hide_credits_without_flag() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
+    let auth_manager = test_auth_manager(&config);
 
     let usage = TokenUsage {
         input_tokens: 900,
@@ -818,6 +844,7 @@ async fn status_snapshot_cached_limits_hide_credits_without_flag() {
         &None,
         None,
         Some(&rate_display),
+        None,
         now,
         &model_slug,
         None,
@@ -838,6 +865,7 @@ async fn status_context_window_uses_last_usage() {
     let temp_home = TempDir::new().expect("temp home");
     let mut config = test_config(&temp_home).await;
     config.model_context_window = Some(272_000);
+    let auth_manager = test_auth_manager(&config);
 
     let total_usage = TokenUsage {
         input_tokens: 12_800,
@@ -871,6 +899,8 @@ async fn status_context_window_uses_last_usage() {
         Some(&token_info),
         &total_usage,
         &None,
+        None,
+        None,
         None,
         now,
         &model_slug,
