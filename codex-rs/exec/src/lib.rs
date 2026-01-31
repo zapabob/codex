@@ -4,7 +4,7 @@
 // For both modes, any other output must be written to stderr.
 #![deny(clippy::print_stdout)]
 
-mod cli;
+pub mod cli;
 mod event_processor;
 mod event_processor_with_human_output;
 pub mod event_processor_with_jsonl_output;
@@ -60,7 +60,6 @@ use tracing_subscriber::EnvFilter;
 use tracing_subscriber::prelude::*;
 
 use crate::cli::Command as ExecCommand;
-use crate::cli::ReviewArgs;
 use crate::event_processor::CodexStatus;
 use crate::event_processor::EventProcessor;
 use codex_core::default_client::set_default_originator;
