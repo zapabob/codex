@@ -12,6 +12,7 @@ pub mod exec_events;
 
 pub use cli::Cli;
 pub use cli::Command;
+pub use cli::ReviewArgs;
 use codex_common::oss::ensure_oss_provider_ready;
 use codex_common::oss::get_default_model_for_oss_provider;
 use codex_common::oss::ollama_chat_deprecation_notice;

@@ -1,6 +1,5 @@
 use anyhow::Context;
 use anyhow::Result;
-use chrono::Utc;
 use codex_deep_research::DeepResearcher;
 use codex_deep_research::DeepResearcherConfig;
 use codex_deep_research::GeminiSearchProvider;
@@ -247,17 +246,17 @@ fn generate_markdown_report(report: &codex_deep_research::types::ResearchReport)
         md.push_str("*No sources found.*\n\n");
     } else {
         // Group sources by relevance
-        let mut high_relevance: Vec<_> = report
+        let high_relevance: Vec<_> = report
             .sources
             .iter()
             .filter(|s| s.relevance_score >= 0.7)
             .collect();
-        let mut medium_relevance: Vec<_> = report
+        let medium_relevance: Vec<_> = report
             .sources
             .iter()
             .filter(|s| s.relevance_score >= 0.4 && s.relevance_score < 0.7)
             .collect();
-        let mut low_relevance: Vec<_> = report
+        let low_relevance: Vec<_> = report
             .sources
             .iter()
             .filter(|s| s.relevance_score < 0.4)

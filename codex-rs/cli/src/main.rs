@@ -19,7 +19,7 @@ use codex_cloud_tasks::Cli as CloudTasksCli;
 use codex_common::CliConfigOverrides;
 use codex_exec::Cli as ExecCli;
 use codex_exec::Command as ExecCommand;
-use codex_exec::cli::ReviewArgs;
+use codex_exec::ReviewArgs;
 use codex_execpolicy::ExecPolicyCheckCommand;
 use codex_responses_api_proxy::Args as ResponsesApiProxyArgs;
 use codex_tui::AppExitInfo;
@@ -62,7 +62,6 @@ use codex_core::llmops::{
 use codex_core::skill_mcp_integration::{
     MCPResource, MCPTool, SkillDefinition, SkillMCPConfig, SkillMCPIntegrationManager,
 };
-use codex_utils_absolute_path::AbsolutePathBuf;
 
 /// Codex CLI
 ///
