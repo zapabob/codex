@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // SubAgent MCP Tool Definition
 use mcp_types::Tool;
 use mcp_types::ToolInputSchema;

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Handler for datetime tool calls.
 
 use crate::datetime_tool::DateTimeToolParam;

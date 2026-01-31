@@ -24,7 +24,7 @@ anyhow = { workspace = true }
 chrono = { workspace = true }
 codex-arg0 = { workspace = true }
 codex-common = { workspace = true, features = ["cli"] }
-codex-core = { workspace = true }
+codex-core = { workspace = true, features = ["custom-features"] }
 codex-deep-research = { path = "../deep-research" }
 codex-microsoft365 = { path = "../microsoft365" }
 codex-protocol = { workspace = true }

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Microsoft 365 MCP tool handler
 //!
 //! Provides Word, Excel, PowerPoint, and Outlook operations as MCP tools

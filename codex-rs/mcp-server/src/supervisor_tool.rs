@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! MCP tool for Multi-Agent Supervisor coordination.
 
 use mcp_types::Tool;

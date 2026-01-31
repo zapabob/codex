@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! MCP tool for Deep Research capabilities.
 
 use mcp_types::Tool;

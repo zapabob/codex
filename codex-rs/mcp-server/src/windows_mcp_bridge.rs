@@ -74,14 +74,14 @@ pub async fn handle_windows_25h2_tool(
             prompt,
             use_kernel_acceleration,
         } => {
-            let options = WindowsAiOptions {
-                enabled: true,
-                kernel_accelerated: use_kernel_acceleration.unwrap_or(false),
-                use_gpu: true,
-            };
-
             #[cfg(feature = "windows-ai")]
             {
+                let options = WindowsAiOptions {
+                    enabled: true,
+                    kernel_accelerated: use_kernel_acceleration.unwrap_or(false),
+                    use_gpu: true,
+                };
+
                 let result =
                     codex_core::windows_ai_integration::execute_with_windows_ai(&prompt, &options)
                         .await?;
@@ -97,6 +97,8 @@ pub async fn handle_windows_25h2_tool(
 
             #[cfg(not(feature = "windows-ai"))]
             {
+                let _ = prompt;
+                let _ = use_kernel_acceleration;
                 Ok(Windows25H2ToolResult {
                     success: false,
                     data: serde_json::json!({
@@ -177,7 +179,6 @@ pub async fn handle_windows_25h2_tool(
 /// Get Windows version information
 #[cfg(target_os = "windows")]
 fn get_windows_version() -> String {
-    use std::os::windows::process::CommandExt;
     use std::process::Command;
 
     // Try to get Windows version from system

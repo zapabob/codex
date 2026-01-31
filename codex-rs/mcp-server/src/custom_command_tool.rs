@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Custom Command MCP Tool Definition
 use mcp_types::Tool;
 use mcp_types::ToolInputSchema;

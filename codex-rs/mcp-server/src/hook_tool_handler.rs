@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Hook Tool Handler
 use anyhow::Result;
 use mcp_types::CallToolResult;

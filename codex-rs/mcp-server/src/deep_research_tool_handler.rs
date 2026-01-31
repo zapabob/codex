@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Handler for deep research tool calls via MCP.
 
 use crate::deep_research_tool::DeepResearchToolParam;

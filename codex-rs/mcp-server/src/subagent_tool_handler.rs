@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // SubAgent Tool Handler (Stub Implementation)
 // Note: Full integration with codex_core::AsyncSubAgentIntegration pending
 use anyhow::Result;

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! LSP tool handler for MCP server
 //!
 //! Provides LSP diagnostics as MCP tools

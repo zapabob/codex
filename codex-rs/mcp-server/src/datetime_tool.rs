@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! MCP tool for getting current date and time.
 
 use mcp_types::Tool;
