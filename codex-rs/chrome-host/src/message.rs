@@ -4,6 +4,7 @@ use std::io::{self, Read, Write};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct NativeMessage {
+    #[allow(dead_code)]
     pub version: String,
     pub id: String,
     #[serde(rename = "type")]

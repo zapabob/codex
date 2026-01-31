@@ -39,6 +39,7 @@ codex-web-search = { path = "../web-search" }
 codex-execpolicy = { workspace = true }
 codex-login = { workspace = true }
 codex-mcp-server = { workspace = true }
+codex-otel = { workspace = true }
 codex-protocol = { workspace = true }
 codex-protocol-ts = { path = "../protocol-ts" }
 codex-responses-api-proxy = { workspace = true }
@@ -47,6 +48,9 @@ codex-supervisor = { path = "../supervisor" }
 codex-stdio-to-uds = { workspace = true }
 codex-tui = { workspace = true }
 libc = { workspace = true }
+git2 = { version = "0.19", default-features = false }
+futures = { workspace = true }
+dirs = "6"
 mcp-types = { workspace = true }
 owo-colors = { workspace = true }
 regex-lite = { workspace = true }

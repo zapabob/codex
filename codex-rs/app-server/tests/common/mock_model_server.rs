@@ -1,4 +1,5 @@
 // Mock model server for testing
+#![allow(dead_code)]
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 

@@ -91,7 +91,7 @@ pub(crate) fn create_diff_summary(
 struct Row {
     #[allow(dead_code)]
     path: PathBuf,
-    _move_path: Option<PathBuf>,
+    move_path: Option<PathBuf>,
     added: usize,
     removed: usize,
     change: FileChange,
@@ -114,7 +114,7 @@ fn collect_rows(changes: &HashMap<PathBuf, FileChange>) -> Vec<Row> {
         };
         rows.push(Row {
             path: path.clone(),
-            _move_path: move_path,
+            move_path,
             added,
             removed,
             change: change.clone(),

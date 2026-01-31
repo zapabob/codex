@@ -177,7 +177,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
     // we load config.toml here to determine project state.
     #[allow(clippy::print_stderr)]
     let config_toml = {
-        let codex_home = match find_codex_home() {
+        let _codex_home = match find_codex_home() {
             Ok(codex_home) => codex_home,
             Err(err) => {
                 eprintln!("Error finding codex home: {err}");

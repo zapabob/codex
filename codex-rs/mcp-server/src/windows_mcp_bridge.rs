@@ -7,10 +7,10 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+#[cfg(all(target_os = "windows", feature = "windows-ai"))]
+use codex_core::windows_ai_integration::WindowsAiOptions;
 #[cfg(target_os = "windows")]
-use codex_core::windows_ai_integration::{
-    WindowsAiOptions, get_gpu_statistics, is_windows_ai_available,
-};
+use codex_core::windows_ai_integration::{get_gpu_statistics, is_windows_ai_available};
 
 /// Windows 11 25H2 MCP Tool Parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]

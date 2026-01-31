@@ -1,7 +1,6 @@
 use anyhow::Context;
 use anyhow::Result;
 use codex_core::chrome::ChromeNlRequest;
-use codex_core::chrome::ChromeNlResponse;
 use codex_core::chrome::ChromeOrigin;
 use codex_core::chrome::parse_nl_command;
 use codex_deep_research::DeepResearcher;

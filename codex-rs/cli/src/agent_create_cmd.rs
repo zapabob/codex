@@ -14,7 +14,7 @@ use codex_core::config::Config;
 use codex_core::protocol::SessionSource;
 use codex_core::terminal;
 use codex_otel::otel_event_manager::OtelEventManager;
-use codex_protocol::ConversationId;
+use codex_protocol::ThreadId;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -55,7 +55,7 @@ pub async fn run_agent_create_command(
         true,
         config.cli_auth_credentials_store_mode,
     );
-    let auth_snapshot = auth_manager.auth();
+    let auth_snapshot = auth_manager.auth().await;
 
     if config.model_provider.requires_openai_auth
         && auth_snapshot.is_none()
@@ -68,11 +68,11 @@ pub async fn run_agent_create_command(
     }
 
     // Runtime初期化
-    let conversation_id = ConversationId::default();
+    let conversation_id = ThreadId::default();
     let model = config
         .model
         .as_deref()
-        .unwrap_or(config.review_model.as_str());
+        .unwrap_or(config.review_model.as_deref().unwrap_or("gpt-4o"));
     let otel_manager = OtelEventManager::new(
         conversation_id,
         model,
