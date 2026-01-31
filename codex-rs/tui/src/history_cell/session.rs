@@ -78,7 +78,7 @@ impl SessionHeaderHistoryCell {
         Self::format_directory_inner(&self.directory, max_width)
     }
 
-    fn format_directory_inner(directory: &Path, max_width: Option<usize>) -> String {
+    pub(crate) fn format_directory_inner(directory: &Path, max_width: Option<usize>) -> String {
         let formatted = if let Some(rel) = relativize_to_home(directory) {
             if rel.as_os_str().is_empty() {
                 "~".to_string()
