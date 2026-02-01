@@ -30,7 +30,7 @@ tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 uuid = { version = "1.11", features = ["v4", "serde"] }
 tokio-stream = { version = "0.1", features = ["sync"] }
 futures-util = "0.3"
-codex-core = { path = "../core", features = ["custom-features"] }
+codex-core = { path = "../core", features = ["custom-features", "git4d-base"] }
 jsonwebtoken = "9.3"
 sha2 = "0.10"
 sqlx = { version = "0.8", features = [

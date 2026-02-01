@@ -136,8 +136,8 @@ cuda = ["cudarc"]
 custom-features = []
 
 # --- Git4D Visualization Stack ---
-git4d-base = ["custom-features", "cuda"]           # Basic Git4D functionality with CUDA
-git4d-vr = ["git4d-base"]                           # VR/AR support
+git4d-base = ["custom-features", "cuda", "git4d-vr"]  # Basic Git4D functionality with CUDA + VR
+git4d-vr = []                                       # VR/AR support (now part of base)
 git4d-superior = ["git4d-base", "git4d-vr"]         # Advanced AI/quantum features
 
 # --- AI/Agent Communication Stack ---

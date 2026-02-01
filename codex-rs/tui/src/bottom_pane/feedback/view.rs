@@ -28,8 +28,8 @@ use crate::bottom_pane::textarea::TextArea;
 use crate::bottom_pane::textarea::TextAreaState;
 
 use super::utils::{
-    FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter,
-    issue_url_for_category,
+    BASE_ISSUE_URL, FeedbackAudience, feedback_classification, feedback_title_and_placeholder,
+    gutter, issue_url_for_category,
 };
 
 /// Minimal input overlay to collect an optional feedback note, then upload
@@ -430,7 +430,7 @@ mod tests {
         );
         let bug_url_non_employee =
             issue_url_for_category(FeedbackCategory::Bug, "t", FeedbackAudience::External);
-        let expected_external_url = format!("{BASE_BUG_ISSUE_URL}&steps=Uploaded%20thread:%20t");
+        let expected_external_url = format!("{BASE_ISSUE_URL}&steps=Uploaded%20thread:%20t");
         assert_eq!(
             bug_url_non_employee.as_deref(),
             Some(expected_external_url.as_str())

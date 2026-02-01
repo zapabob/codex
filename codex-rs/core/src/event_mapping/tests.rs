@@ -279,6 +279,7 @@ fn parses_web_search_call() {
         status: Some("completed".to_string()),
         action: Some(WebSearchAction::Search {
             query: Some("weather".to_string()),
+            queries: None,
         }),
     };
 
@@ -292,6 +293,7 @@ fn parses_web_search_call() {
                 query: "weather".to_string(),
                 action: WebSearchAction::Search {
                     query: Some("weather".to_string()),
+                    queries: None,
                 },
             }
         ),
