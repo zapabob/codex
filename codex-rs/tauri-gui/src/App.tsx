@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { writeText, readText } from "@tauri-apps/api/clipboard";
+import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Plans from "./pages/Plans";
@@ -14,21 +14,25 @@ import "./styles/cyberpunk-theme.css";
 function App() {
   const [selectedText, setSelectedText] = useState<string>("");
   const [notification, setNotification] = useState<string>("");
-  
+
   // Clipboard operations
-  const handleCopy = useCallback(async (text?: string) => {
-    try {
-      const textToCopy = text || selectedText || window.getSelection()?.toString() || "";
-      if (textToCopy) {
-        await writeText(textToCopy);
-        setNotification("📋 Copied to clipboard");
-        setTimeout(() => setNotification(""), 2000);
+  const handleCopy = useCallback(
+    async (text?: string) => {
+      try {
+        const textToCopy =
+          text || selectedText || window.getSelection()?.toString() || "";
+        if (textToCopy) {
+          await writeText(textToCopy);
+          setNotification("📋 Copied to clipboard");
+          setTimeout(() => setNotification(""), 2000);
+        }
+      } catch (error) {
+        console.error("Failed to copy:", error);
       }
-    } catch (error) {
-      console.error("Failed to copy:", error);
-    }
-  }, [selectedText]);
-  
+    },
+    [selectedText],
+  );
+
   const handlePaste = useCallback(async () => {
     try {
       const text = await readText();
@@ -38,27 +42,27 @@ function App() {
       return "";
     }
   }, []);
-  
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
       // Ctrl+C / Cmd+C - Copy
-      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
         const selection = window.getSelection()?.toString();
         if (selection) {
           e.preventDefault();
           await handleCopy(selection);
         }
       }
-      
+
       // Ctrl+V / Cmd+V - Paste (handled by individual components)
       // Can be extended per component as needed
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleCopy]);
-  
+
   useEffect(() => {
     // Listen for navigation events from tray
     const unlisten = listen<string>("navigate", (event) => {
@@ -75,9 +79,7 @@ function App() {
     <Router>
       <CyberpunkBackground />
       {notification && (
-        <div className="cyberpunk-notification">
-          {notification}
-        </div>
+        <div className="cyberpunk-notification">{notification}</div>
       )}
       <div className="app-container cyberpunk-container">
         <nav className="sidebar">
@@ -85,7 +87,7 @@ function App() {
             <h2>Codex AI</h2>
             <p className="version">v1.5.0</p>
           </div>
-          
+
           <div className="nav-links">
             <Link to="/" className="nav-link">
               📊 Dashboard
@@ -103,7 +105,7 @@ function App() {
               ⚙️ Settings
             </Link>
           </div>
-          
+
           <div className="nav-footer">
             <p>AI Native OS</p>
           </div>

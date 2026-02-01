@@ -406,6 +406,7 @@ struct ResearchCommand {
 
 #[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
+#[allow(dead_code)]
 struct LlmOpsCommand {
     #[clap(skip)]
     config_overrides: CliConfigOverrides,
@@ -457,6 +458,7 @@ enum LlmOpsSubcommand {
 
 #[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
+#[allow(dead_code)]
 struct A2aCommand {
     #[clap(skip)]
     config_overrides: CliConfigOverrides,
@@ -500,6 +502,7 @@ enum A2aSubcommand {
 
 #[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
+#[allow(dead_code)]
 struct SkillMcpCommand {
     #[clap(skip)]
     config_overrides: CliConfigOverrides,
@@ -546,6 +549,7 @@ enum SkillMcpSubcommand {
 
 #[cfg(feature = "custom-features")]
 #[derive(Debug, Parser)]
+#[allow(dead_code)]
 struct OrchestrateCommand {
     #[clap(skip)]
     config_overrides: CliConfigOverrides,
