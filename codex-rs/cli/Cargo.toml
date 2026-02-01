@@ -19,7 +19,13 @@ workspace = true
 cuda = []
 windows-ai = []
 # Custom features: preserve custom functionality when merging with upstream
-custom-features = ["codex-core/custom-features"]
+custom-features = [
+    "codex-core/custom-features",
+    "codex-core/a2a-comm",
+    "codex-core/autonomous",
+    "codex-core/llmops",
+    "codex-core/skill-mcp",
+]
 
 [dependencies]
 anyhow = { workspace = true }
