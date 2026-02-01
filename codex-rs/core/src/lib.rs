@@ -196,16 +196,11 @@ pub mod a2a_communication;
 pub mod autonomous_orchestration;
 
 // --- Enterprise Features ---
-#[cfg(feature = "enterprise")]
 pub mod agents;
-#[cfg(feature = "enterprise")]
 pub mod orchestration;
-#[cfg(feature = "enterprise")]
 pub mod plan;
-#[cfg(feature = "enterprise")]
 pub mod qc;
 
-#[cfg(feature = "cowork")]
 pub mod cowork_integration;
 
 #[cfg(feature = "skill-mcp")]
