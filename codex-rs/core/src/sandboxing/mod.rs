@@ -6,7 +6,7 @@ sandbox placement and transformation of portable CommandSpec into a
 ready‑to‑spawn environment.
 */
 
-#[cfg(feature = "custom-features")]
+#[cfg(feature = "cowork")]
 use crate::cowork_integration::CoworkIntegrationManager;
 use crate::exec::ExecExpiration;
 use crate::exec::ExecToolCallOutput;
@@ -70,20 +70,20 @@ pub(crate) enum SandboxTransformError {
 
 #[derive(Default)]
 pub struct SandboxManager {
-    #[cfg(feature = "custom-features")]
+    #[cfg(feature = "cowork")]
     cowork_manager: Option<CoworkIntegrationManager>,
 }
 
 impl SandboxManager {
     pub fn new() -> Self {
         Self {
-            #[cfg(feature = "custom-features")]
+            #[cfg(feature = "cowork")]
             cowork_manager: None,
         }
     }
 
     /// Create a new SandboxManager with cowork integration
-    #[cfg(feature = "custom-features")]
+    #[cfg(feature = "cowork")]
     pub fn with_cowork(cowork_manager: CoworkIntegrationManager) -> Self {
         Self {
             cowork_manager: Some(cowork_manager),
@@ -91,7 +91,7 @@ impl SandboxManager {
     }
 
     /// Enable cowork functionality within sandbox
-    #[cfg(feature = "custom-features")]
+    #[cfg(feature = "cowork")]
     pub fn enable_cowork_in_sandbox(
         &mut self,
         config: crate::cowork_integration::CoworkIntegrationConfig,
