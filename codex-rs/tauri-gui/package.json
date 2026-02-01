@@ -15,9 +15,11 @@
   "dependencies": {
     "@babylonjs/core": "^7.0.0",
     "@babylonjs/gui": "^7.0.0",
+    "@babylonjs/gui-editor": "^8.49.6",
     "@babylonjs/loaders": "^7.0.0",
     "@babylonjs/materials": "^7.0.0",
     "@babylonjs/post-processes": "^7.0.0",
+    "@babylonjs/serializers": "^8.49.6",
     "@mediapipe/hands": "^0.4.1646424915",
     "@react-three/drei": "^9.92.0",
     "@react-three/fiber": "^8.15.0",

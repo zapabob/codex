@@ -14,5 +14,19 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
-}));
 
+  // Mark problematic Babylon.js modules as external
+  optimizeDeps: {
+    exclude: ["@babylonjs/serializers", "@babylonjs/gui-editor"],
+  },
+  build: {
+    rollupOptions: {
+      external: [
+        "@babylonjs/core/Materials/PBR/openpbrMaterial.js",
+        "@babylonjs/core/Materials/Textures/textureMerger.js",
+        "@babylonjs/gui-editor",
+        "@babylonjs/serializers",
+      ],
+    },
+  },
+}));
