@@ -179,11 +179,11 @@ pub use models_manager::model_family;
 #[cfg(feature = "git4d-base")]
 pub mod git4d_accelerated;
 
+#[cfg(feature = "git4d-base")]
+pub mod cuda_accelerator;
+
 #[cfg(feature = "git4d-vr")]
 pub mod vr_ar_integration;
-
-#[cfg(feature = "git4d-cuda")]
-pub mod cuda_accelerator;
 
 #[cfg(feature = "git4d-superior")]
 pub mod superior_git4d_visualizer;
