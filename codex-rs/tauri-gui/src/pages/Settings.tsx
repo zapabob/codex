@@ -33,7 +33,7 @@ function Settings() {
 
       <div className="settings-section">
         <h2>General</h2>
-        
+
         <div className="setting-item">
           <div className="setting-info">
             <label>Auto-start on Windows boot</label>
@@ -72,7 +72,7 @@ function Settings() {
 
       <div className="settings-section">
         <h2>Notifications</h2>
-        
+
         <div className="setting-item">
           <div className="setting-info">
             <label>Enable desktop notifications</label>
@@ -110,7 +110,7 @@ function Settings() {
 
       <div className="settings-section">
         <h2>File Monitoring</h2>
-        
+
         <div className="setting-item">
           <div className="setting-info">
             <label>Monitored file extensions</label>
@@ -144,16 +144,16 @@ function Settings() {
         <button onClick={handleSaveSettings} className="btn btn-primary">
           Save Settings
         </button>
-        <button className="btn btn-secondary">
-          Reset to Defaults
-        </button>
+        <button className="btn btn-secondary">Reset to Defaults</button>
       </div>
 
       <div className="settings-section">
         <h2>About</h2>
         <div className="about-info">
-          <p><strong>Codex AI-Native OS</strong></p>
-          <p>Version: 0.1.0</p>
+          <p>
+            <strong>Codex AI-Native OS</strong>
+          </p>
+          <p>Version: 2.13.0</p>
           <p>Built with Tauri + React + Rust</p>
           <p className="copyright">© 2025 zapabob. All rights reserved.</p>
         </div>
@@ -163,4 +163,3 @@ function Settings() {
 }
 
 export default Settings;
-

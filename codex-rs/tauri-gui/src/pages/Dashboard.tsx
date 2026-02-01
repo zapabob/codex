@@ -143,7 +143,7 @@ function Dashboard() {
         />
         <StatusCard
           title="Version"
-          status={status?.version || "0.1.0"}
+          status={status?.version || "2.13.0"}
           icon="📦"
         />
       </div>
@@ -194,4 +194,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-

@@ -85,7 +85,7 @@ function App() {
         <nav className="sidebar">
           <div className="logo">
             <h2>Codex AI</h2>
-            <p className="version">v1.5.0</p>
+            <p className="version">v2.13.0</p>
           </div>
 
           <div className="nav-links">
