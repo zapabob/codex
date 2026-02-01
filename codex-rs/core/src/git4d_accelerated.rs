@@ -1,6 +1,4 @@
-#[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::CudaGit4DAccelerator;
-#[cfg(feature = "custom-features")]
 use crate::cuda_accelerator::{GitCommitVertex, RenderParameters, TransformationMatrix};
 use crate::vr_ar_integration::{VRARIntegration, VREvent, VRInteraction, XRPlatform};
 use anyhow::Context;

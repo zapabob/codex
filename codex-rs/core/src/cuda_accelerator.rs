@@ -5,9 +5,6 @@ use cudarc::driver::CudaSlice;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
 
-#[cfg(not(feature = "cuda"))]
-use anyhow::Result;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,6 +31,14 @@ pub struct RenderParameters {
     pub projection_matrix: [[f32; 4]; 4],
     pub time_filter: (f32, f32), // Time range filter
     pub branch_filter: Vec<u32>, // Visible branches
+}
+
+#[cfg(feature = "cuda")]
+pub struct CudaGit4DAccelerator {
+    device: Arc<CudaDevice>,
+    vertex_kernel: cudarc::driver::CudaFunction,
+    transform_kernel: cudarc::driver::CudaFunction,
+    render_kernel: cudarc::driver::CudaFunction,
 }
 
 #[cfg(feature = "cuda")]
@@ -252,6 +257,18 @@ impl CudaGit4DAccelerator {
         // This would implement GPU-accelerated ray-vertex intersection
         // For now, return empty result
         Ok(Vec::new())
+    }
+}
+
+#[cfg(not(feature = "cuda"))]
+pub struct CudaGit4DAccelerator;
+
+#[cfg(not(feature = "cuda"))]
+impl CudaGit4DAccelerator {
+    pub fn new() -> anyhow::Result<Self> {
+        Err(anyhow::anyhow!(
+            "CUDA support is not enabled. Build with --features cuda"
+        ))
     }
 }
 

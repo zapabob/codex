@@ -173,35 +173,43 @@ pub mod otel_init;
 // Re-export model_family for backward compatibility
 pub use models_manager::model_family;
 
-// Orchestration module: protected with conditional compilation to preserve when merging with upstream
-#[cfg(feature = "custom-features")]
-pub mod orchestration;
+// === Custom Features: Production-Ready Feature Gates ===
 
-// Agents, Plan, and QC modules: protected with conditional compilation to preserve when merging with upstream
-#[cfg(feature = "custom-features")]
+// --- Git4D Visualization Stack ---
+#[cfg(feature = "git4d-base")]
+pub mod git4d_accelerated;
+
+#[cfg(feature = "git4d-vr")]
+pub mod vr_ar_integration;
+
+#[cfg(feature = "git4d-cuda")]
+pub mod cuda_accelerator;
+
+#[cfg(feature = "git4d-superior")]
+pub mod superior_git4d_visualizer;
+
+// --- AI/Agent Communication Stack ---
+#[cfg(feature = "a2a-comm")]
+pub mod a2a_communication;
+
+#[cfg(feature = "autonomous")]
+pub mod autonomous_orchestration;
+
+// --- Enterprise Features ---
+#[cfg(feature = "enterprise")]
 pub mod agents;
-#[cfg(feature = "custom-features")]
+#[cfg(feature = "enterprise")]
+pub mod orchestration;
+#[cfg(feature = "enterprise")]
 pub mod plan;
-#[cfg(feature = "custom-features")]
+#[cfg(feature = "enterprise")]
 pub mod qc;
 
-// LLMOps, A2A Communication, Skill/MCP Integration, and Autonomous Orchestration
-// Custom features: protected with conditional compilation to preserve when merging with upstream
-#[cfg(feature = "custom-features")]
-pub mod a2a_communication;
-#[cfg(feature = "custom-features")]
-pub mod autonomous_orchestration;
-#[cfg(feature = "custom-features")]
+#[cfg(feature = "cowork")]
 pub mod cowork_integration;
-#[cfg(feature = "custom-features")]
-pub mod cuda_accelerator;
-#[cfg(feature = "custom-features")]
-pub mod git4d_accelerated;
-#[cfg(feature = "custom-features")]
-pub mod llmops;
-#[cfg(feature = "custom-features")]
+
+#[cfg(feature = "skill-mcp")]
 pub mod skill_mcp_integration;
-#[cfg(feature = "custom-features")]
-pub mod superior_git4d_visualizer;
-#[cfg(feature = "custom-features")]
-pub mod vr_ar_integration;
+
+#[cfg(feature = "llmops")]
+pub mod llmops;

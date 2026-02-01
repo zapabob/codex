@@ -130,8 +130,56 @@ test-support = []
 agent_security = ["ed25519-dalek", "aes-gcm"]
 windows-ai = ["codex-windows-ai"]
 cuda = ["cudarc"]
-# Custom features: preserve custom functionality when merging with upstream
+
+# === Custom Features: Granular Feature Flags for Production ===
+# Base feature - enables all custom modules
 custom-features = []
+
+# --- Git4D Visualization Stack ---
+git4d-base = ["custom-features"]                    # Basic Git4D functionality
+git4d-vr = ["git4d-base"]                           # VR/AR support
+git4d-cuda = ["git4d-base", "cuda"]                 # CUDA acceleration
+git4d-superior = ["git4d-base", "git4d-vr", "git4d-cuda"]  # Advanced AI/quantum features
+
+# --- AI/Agent Communication Stack ---
+a2a-comm = ["custom-features"]                      # Agent-to-agent communication
+autonomous = ["custom-features", "a2a-comm"]        # Autonomous orchestration with self-healing
+
+# --- Enterprise Features ---
+enterprise = ["custom-features"]                    # Enterprise features (QC, planning, conflict resolution)
+cowork = ["custom-features"]                        # Cowork integration
+skill-mcp = ["custom-features"]                     # Skill/MCP integration
+llmops = ["custom-features"]                        # LLMOps integration
+
+# --- Convenience Presets ---
+# Personal use: All features for individual developers
+personal = [
+    "custom-features",
+    "git4d-superior",
+    "a2a-comm",
+    "autonomous",
+    "llmops",
+    "skill-mcp",
+]
+
+# On-premises: Enterprise deployment features
+on-premises = [
+    "custom-features",
+    "git4d-base",
+    "enterprise",
+    "a2a-comm",
+    "cowork",
+    "llmops",
+    "skill-mcp",
+]
+
+# Production-stable: Verified stable features only
+production = [
+    "custom-features",
+    "git4d-base",
+    "enterprise",
+    "llmops",
+]
 
 
 [target.'cfg(target_os = "linux")'.dependencies]

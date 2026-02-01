@@ -15,7 +15,6 @@ use async_trait::async_trait;
 use git2::Commit;
 use git2::Diff;
 use git2::Oid;
-use git2::Repository;
 
 // OpenAI API integration - temporarily disabled due to dependency issues
 // #[cfg(feature = "openai-api-rs")]
@@ -34,9 +33,7 @@ use std::sync::RwLock;
 use tokio::sync::broadcast;
 
 // Import existing components
-#[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::CudaGit4DAccelerator;
-#[cfg(feature = "custom-features")]
 use crate::cuda_accelerator::GitCommitVertex;
 use crate::git4d_accelerated::Git4DAcceleratedVisualizer;
 use crate::git4d_accelerated::Git4DEvent;
@@ -739,7 +736,7 @@ impl SuperiorGit4DVisualizer {
     }
 
     /// Enhanced commit loading with AI analysis and 5D/6D data
-    pub async fn load_commits_enhanced(&self) -> anyhow::Result<()> {
+    pub async fn load_commits_enhanced(&self, interaction: VRInteraction) -> anyhow::Result<()> {
         // Process base VR interaction
         self.base_visualizer
             .process_vr_interaction(interaction.clone())

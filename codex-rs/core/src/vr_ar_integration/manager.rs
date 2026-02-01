@@ -37,10 +37,7 @@ impl VRARIntegration {
     }
 
     /// Initialize XR system for specific platform
-    pub async fn initialize_platform(
-        &mut self,
-        platform: XRPlatform,
-    ) -> Result<()> {
+    pub async fn initialize_platform(&mut self, platform: XRPlatform) -> Result<()> {
         let _init_start = Instant::now();
         tracing::info!("Initializing XR platform: {:?}", platform);
         // Platform specific initialization logic would go here, delegated to xr_system or handled here if it involves coordination
@@ -77,9 +74,7 @@ impl VRARIntegration {
     }
 
     /// Update VR/AR state and process events
-    pub async fn update(
-        &mut self,
-    ) -> Result<Vec<VREvent>> {
+    pub async fn update(&mut self) -> Result<Vec<VREvent>> {
         let update_start = Instant::now();
         let mut events = Vec::new();
 
@@ -202,10 +197,7 @@ impl VRARIntegration {
     }
 
     /// Create time anchor for temporal navigation
-    async fn create_time_anchor(
-        &mut self,
-        position: [f32; 3],
-    ) -> Result<String> {
+    async fn create_time_anchor(&mut self, position: [f32; 3]) -> Result<String> {
         let anchor_id = format!("time_{}", chrono::Utc::now().timestamp());
         let anchor = Anchor {
             id: anchor_id.clone(),
