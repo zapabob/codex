@@ -22,13 +22,6 @@
     ],
     "security": {
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'"
-    },
-    "trayIcon": {
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": false,
-      "menuOnLeftClick": false,
-      "title": "Codex",
-      "tooltip": "Codex - AI Coding Assistant"
     }
   },
   "bundle": {
@@ -57,4 +50,3 @@
   },
   "plugins": {}
 }
-

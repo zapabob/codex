@@ -3,7 +3,7 @@
 
 mod autostart;
 mod codex_bridge;
-mod commit_quality;
+// mod commit_quality; // Disabled - depends on non-existent codex_core::git module
 mod db;
 mod events;
 mod kernel_bridge;
@@ -197,8 +197,8 @@ async fn main() {
             kernel_bridge::kernel_optimize_process,
             kernel_bridge::kernel_allocate_memory,
             kernel_bridge::kernel_free_memory,
-            commit_quality::analyze_commit_quality,
-            commit_quality::analyze_commits_batch,
+            // commit_quality::analyze_commit_quality,
+            // commit_quality::analyze_commits_batch,
             orchestration::orchestrate_parallel,
             orchestration::get_orchestration_progress,
             orchestration::compare_agent_results,
