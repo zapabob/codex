@@ -1,6 +1,6 @@
 {
   "name": "codex-tauri",
-  "version": "2.7.0",
+  "version": "2.13.0",
   "type": "module",
   "description": "Codex AI-Native OS Resident GUI Client",
   "scripts": {
