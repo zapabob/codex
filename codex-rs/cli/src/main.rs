@@ -1795,7 +1795,7 @@ async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), anyhow::Error
         SkillMcpSubcommand::RegisterResource { uri, name } => {
             let resource = MCPResource {
                 uri,
-                name,
+                name: name.clone(),
                 description: format!("Resource {}", name),
                 mime_type: "application/json".to_string(),
                 metadata: std::collections::HashMap::new(),
