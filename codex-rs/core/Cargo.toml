@@ -172,10 +172,9 @@ on-premises = [
     "skill-mcp",
 ]
 
-# Production-stable: Verified stable features only
+# Production-stable: Verified stable features only (no CUDA/VR required)
 production = [
     "custom-features",
-    "git4d-base",
     "enterprise",
     "llmops",
 ]
