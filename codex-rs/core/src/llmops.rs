@@ -6,6 +6,7 @@
 //! - Security hardening and compliance
 //! - Observability and governance
 
+use anyhow::{Context, Result};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -102,6 +103,19 @@ pub struct PerformanceMetrics {
     pub last_updated: chrono::DateTime<chrono::Utc>,
 }
 
+impl Default for PerformanceMetrics {
+    fn default() -> Self {
+        Self {
+            average_latency_ms: 0.0,
+            throughput_tokens_per_sec: 0.0,
+            accuracy_score: 0.0,
+            reliability_score: 0.0,
+            cost_per_1k_tokens: 0.0,
+            last_updated: chrono::Utc::now(),
+        }
+    }
+}
+
 /// Security assessment for model compliance
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecurityAssessment {
@@ -118,6 +132,29 @@ pub struct BiasMetrics {
     pub gender_bias_score: f64,
     pub racial_bias_score: f64,
     pub cultural_bias_score: f64,
+}
+
+impl Default for BiasMetrics {
+    fn default() -> Self {
+        Self {
+            gender_bias_score: 0.0,
+            racial_bias_score: 0.0,
+            cultural_bias_score: 0.0,
+        }
+    }
+}
+
+impl Default for SecurityAssessment {
+    fn default() -> Self {
+        Self {
+            vulnerability_score: 0.0,
+            data_privacy_compliance: true,
+            prompt_injection_resistance: 0.0,
+            jailbreak_resistance: 0.0,
+            bias_assessment: BiasMetrics::default(),
+            last_assessed: chrono::Utc::now(),
+        }
+    }
 }
 
 /// Prompt management with versioning
@@ -147,6 +184,16 @@ pub struct PromptPerformance {
     pub expected_tokens: usize,
     pub complexity_score: f64,
     pub success_rate: f64,
+}
+
+impl Default for PromptPerformance {
+    fn default() -> Self {
+        Self {
+            expected_tokens: 0,
+            complexity_score: 0.0,
+            success_rate: 0.0,
+        }
+    }
 }
 
 /// Cost optimization and monitoring
@@ -330,8 +377,9 @@ pub enum GovernanceSeverity {
 }
 
 impl LLMOpsManager {
-    pub fn new(config: LLMOpsConfig) -> Result<Self, Box<dyn std::error::Error>> {
-        let security_hardening = LLMSecurityHardening::new(config.security_level.clone())?;
+    pub fn new(config: LLMOpsConfig) -> Result<Self> {
+        let security_hardening = LLMSecurityHardening::new(config.security_level.clone())
+            .context("Failed to initialize security hardening")?;
         let performance_monitor = PerformanceMonitor::new();
         let observability_engine = ObservabilityEngine::new();
 
@@ -350,10 +398,7 @@ impl LLMOpsManager {
     }
 
     /// Register a new model version
-    pub async fn register_model(
-        &self,
-        model: ModelVersion,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_model(&self, model: ModelVersion) -> Result<()> {
         // Validate model version
         self.validate_model_version(&model).await?;
 
@@ -374,10 +419,7 @@ impl LLMOpsManager {
     }
 
     /// Register a new prompt template
-    pub async fn register_prompt(
-        &self,
-        prompt: PromptTemplate,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_prompt(&self, prompt: PromptTemplate) -> Result<()> {
         // Validate prompt template
         self.validate_prompt_template(&prompt).await?;
 
@@ -393,10 +435,7 @@ impl LLMOpsManager {
     }
 
     /// Execute LLM request with full LLMOps monitoring
-    pub async fn execute_request(
-        &self,
-        request: LLMRequest,
-    ) -> Result<LLMResponse, Box<dyn std::error::Error>> {
+    pub async fn execute_request(&self, request: LLMRequest) -> Result<LLMResponse> {
         let start_time = Instant::now();
 
         // Pre-request validation and security checks
@@ -493,32 +532,28 @@ impl LLMOpsManager {
 
     // Private helper methods
 
-    async fn validate_model_version(
-        &self,
-        model: &ModelVersion,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_model_version(&self, model: &ModelVersion) -> Result<()> {
         // Semantic version validation
         if !self.is_valid_semantic_version(&model.version) {
-            return Err("Invalid semantic version format".into());
+            return Err(anyhow::anyhow!("Invalid semantic version format"));
         }
 
         // Capability validation
         if model.capabilities.is_empty() {
-            return Err("Model must have at least one capability".into());
+            return Err(anyhow::anyhow!("Model must have at least one capability"));
         }
 
         // Security validation
         if model.security_assessment.vulnerability_score > 0.7 {
-            return Err("Model security vulnerability score too high".into());
+            return Err(anyhow::anyhow!(
+                "Model security vulnerability score too high"
+            ));
         }
 
         Ok(())
     }
 
-    async fn assess_model_security(
-        &self,
-        _model: &ModelVersion,
-    ) -> Result<SecurityAssessment, Box<dyn std::error::Error>> {
+    async fn assess_model_security(&self, _model: &ModelVersion) -> Result<SecurityAssessment> {
         // Simplified security assessment
         // In production, this would involve comprehensive security testing
         Ok(SecurityAssessment {
@@ -535,28 +570,26 @@ impl LLMOpsManager {
         })
     }
 
-    async fn validate_prompt_template(
-        &self,
-        prompt: &PromptTemplate,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_prompt_template(&self, prompt: &PromptTemplate) -> Result<()> {
         // Template syntax validation
         if prompt.template.is_empty() {
-            return Err("Prompt template cannot be empty".into());
+            return Err(anyhow::anyhow!("Prompt template cannot be empty"));
         }
 
         // Variable validation
         for var in &prompt.variables {
             if var.required && !prompt.template.contains(&format!("{{{}}}", var.name)) {
-                return Err(
-                    format!("Required variable '{}' not found in template", var.name).into(),
-                );
+                return Err(anyhow::anyhow!(
+                    "Required variable '{}' not found in template",
+                    var.name
+                ));
             }
         }
 
         // Security constraint validation
         for constraint in &prompt.security_constraints {
             if !self.validate_security_constraint(constraint) {
-                return Err(format!("Invalid security constraint: {constraint}").into());
+                return Err(anyhow::anyhow!("Invalid security constraint: {constraint}"));
             }
         }
 
@@ -583,7 +616,7 @@ impl LLMOpsManager {
     async fn select_model_and_prompt(
         &self,
         request: &LLMRequest,
-    ) -> Result<(ModelVersion, PromptTemplate), Box<dyn std::error::Error>> {
+    ) -> Result<(ModelVersion, PromptTemplate)> {
         // Model selection based on capabilities and performance
         let models = read_lock(&self.model_registry);
         let model = models
@@ -596,7 +629,7 @@ impl LLMOpsManager {
                     .unwrap_or(Ordering::Equal)
             })
             .cloned()
-            .ok_or("No suitable model found")?;
+            .ok_or_else(|| anyhow::anyhow!("No suitable model found"))?;
 
         // Prompt selection
         let prompts = read_lock(&self.prompt_registry);
@@ -604,23 +637,19 @@ impl LLMOpsManager {
             .values()
             .find(|p| p.name == request.prompt_template)
             .cloned()
-            .ok_or("Prompt template not found")?;
+            .ok_or_else(|| anyhow::anyhow!("Prompt template not found"))?;
 
         Ok((model, prompt))
     }
 
-    fn estimate_request_cost(
-        &self,
-        model: &ModelVersion,
-        request: &LLMRequest,
-    ) -> Result<f64, Box<dyn std::error::Error>> {
+    fn estimate_request_cost(&self, model: &ModelVersion, request: &LLMRequest) -> Result<f64> {
         let estimated_tokens = request.estimated_input_tokens
             + (request.max_output_tokens.unwrap_or(1000) as f64 * 0.5) as usize;
         let cost_per_1k = model.performance_metrics.cost_per_1k_tokens;
         Ok((estimated_tokens as f64 / 1000.0) * cost_per_1k)
     }
 
-    fn check_cost_budget(&self, estimated_cost: f64) -> Result<(), Box<dyn std::error::Error>> {
+    fn check_cost_budget(&self, estimated_cost: f64) -> Result<()> {
         let current_cost = read_lock(&self.cost_tracker).total_cost;
         let hourly_budget = self.config.cost_budget_per_hour;
 
@@ -629,10 +658,9 @@ impl LLMOpsManager {
             let _ = self.event_sender.send(LLMOpsEvent::CostThresholdExceeded(
                 current_cost + estimated_cost,
             ));
-            return Err(format!(
+            return Err(anyhow::anyhow!(
                 "Cost budget exceeded: estimated ${estimated_cost:.2}, budget ${hourly_budget:.2}"
-            )
-            .into());
+            ));
         }
 
         Ok(())
@@ -644,7 +672,7 @@ impl LLMOpsManager {
         model: &ModelVersion,
         _prompt_template: &PromptTemplate,
         trace_id: &str,
-    ) -> Result<LLMResponse, Box<dyn std::error::Error>> {
+    ) -> Result<LLMResponse> {
         // This would integrate with actual LLM providers
         // For now, return a mock response
 
@@ -723,7 +751,7 @@ impl CostMetrics {
 }
 
 impl LLMSecurityHardening {
-    pub fn new(security_level: SecurityLevel) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(security_level: SecurityLevel) -> Result<Self> {
         let input_validator = Self::create_input_validator(&security_level);
         let output_filter = Self::create_output_filter(&security_level);
         let rate_limiting = Self::create_rate_limiter(&security_level);
@@ -802,26 +830,25 @@ impl LLMSecurityHardening {
         }
     }
 
-    pub fn validate_input(&self, input: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn validate_input(&self, input: &str) -> Result<()> {
         // Length check
         if input.len() > self.input_validation.max_length {
-            return Err(format!(
+            return Err(anyhow::anyhow!(
                 "Input too long: {} > {}",
                 input.len(),
                 self.input_validation.max_length
-            )
-            .into());
+            ));
         }
 
         // Character validation
         if !self.input_validation.allowed_characters.is_match(input) {
-            return Err("Input contains invalid characters".into());
+            return Err(anyhow::anyhow!("Input contains invalid characters"));
         }
 
         // Forbidden pattern check
         for pattern in &self.input_validation.forbidden_patterns {
             if pattern.is_match(input) {
-                return Err("Input contains forbidden patterns".into());
+                return Err(anyhow::anyhow!("Input contains forbidden patterns"));
             }
         }
 
@@ -837,7 +864,7 @@ impl LLMSecurityHardening {
         Ok(())
     }
 
-    pub fn filter_output(&self, output: &str) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn filter_output(&self, output: &str) -> Result<String> {
         let mut filtered = output.to_string();
 
         // Content filtering
@@ -845,11 +872,10 @@ impl LLMSecurityHardening {
             if filter.pattern.is_match(&filtered) {
                 match filter.action {
                     FilterAction::Block => {
-                        return Err(format!(
+                        return Err(anyhow::anyhow!(
                             "Output blocked due to content filter: {}",
                             filter.pattern
-                        )
-                        .into());
+                        ));
                     }
                     FilterAction::Sanitize => {
                         filtered = filter
@@ -1009,7 +1035,7 @@ impl ObservabilityEngine {
 }
 
 impl RateLimiter {
-    pub fn check_limits(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn check_limits(&self) -> Result<()> {
         // Simplified rate limiting - in production, this would track actual usage
         Ok(())
     }

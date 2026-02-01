@@ -1,3 +1,4 @@
+use anyhow::Result;
 use futures::future::join_all;
 use serde::Deserialize;
 use serde::Serialize;
@@ -130,7 +131,7 @@ pub struct ExecutionResult {
 }
 
 impl AIToolManager {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self> {
         let (event_sender, _) = broadcast::channel(100);
         let execution_engine = Arc::new(AsyncExecutionEngine::new());
         let task_distributor = TaskDistributor::new();
@@ -154,7 +155,7 @@ impl AIToolManager {
     pub async fn execute_task_parallel(
         &self,
         task: DevelopmentTask,
-    ) -> Result<TaskExecutionResult, Box<dyn std::error::Error>> {
+    ) -> Result<TaskExecutionResult> {
         // Distribute task across available AI tools
         let subtasks = self.task_distributor.distribute_task(task.clone())?;
 
@@ -231,12 +232,17 @@ impl AIToolManager {
         tool_id: &str,
         task_description: &str,
         working_directory: Option<&str>,
-    ) -> Result<String, Box<dyn std::error::Error>> {
-        let tool = self.tools.get(tool_id).ok_or("AI tool not found")?;
+    ) -> Result<String> {
+        let tool = self
+            .tools
+            .get(tool_id)
+            .ok_or_else(|| anyhow::anyhow!("AI tool not found"))?;
 
         // Check resource availability
         if self.get_active_sessions_for_tool(tool_id).await >= tool.max_concurrent_sessions {
-            return Err("Maximum concurrent sessions reached for this tool".into());
+            return Err(anyhow::anyhow!(
+                "Maximum concurrent sessions reached for this tool"
+            ));
         }
 
         // Create session
@@ -281,7 +287,7 @@ impl AIToolManager {
     }
 
     /// Stop an active session
-    pub async fn stop_session(&self, session_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn stop_session(&self, session_id: &str) -> Result<()> {
         let mut sessions = self.active_sessions.lock().unwrap();
         if let Some(session) = sessions.get_mut(session_id) {
             if let Some(mut process) = session.process_handle.take() {
@@ -426,10 +432,7 @@ impl AsyncExecutionEngine {
         }
     }
 
-    pub async fn execute_subtask(
-        &self,
-        subtask: SubTask,
-    ) -> Result<ExecutionResult, Box<dyn std::error::Error>> {
+    pub async fn execute_subtask(&self, subtask: SubTask) -> Result<ExecutionResult> {
         let tool = subtask.tool.clone();
 
         // Start tool process
@@ -486,7 +489,7 @@ impl AsyncExecutionEngine {
                 })
             }
             Ok(Err(e)) => Err(e.into()),
-            Err(_) => Err("Execution timeout".into()),
+            Err(_) => Err(anyhow::anyhow!("Execution timeout")),
         }
     }
 
@@ -496,7 +499,7 @@ impl AsyncExecutionEngine {
         task_id: &str,
         task_description: &str,
         working_directory: Option<&str>,
-    ) -> Result<tokio::process::Child, Box<dyn std::error::Error>> {
+    ) -> Result<tokio::process::Child> {
         let mut command = tokio::process::Command::new(&tool.command[0]);
 
         // Add remaining command arguments
@@ -570,10 +573,7 @@ impl TaskDistributor {
         }
     }
 
-    pub fn distribute_task(
-        &self,
-        task: DevelopmentTask,
-    ) -> Result<Vec<SubTask>, Box<dyn std::error::Error>> {
+    pub fn distribute_task(&self, task: DevelopmentTask) -> Result<Vec<SubTask>> {
         // Analyze task complexity and requirements
         let subtask_count = match task.complexity {
             TaskComplexity::Simple => 1,
@@ -711,7 +711,7 @@ impl ResultIntegrator {
         original_task: DevelopmentTask,
         results: Vec<ExecutionResult>,
         errors: Vec<String>,
-    ) -> Result<TaskExecutionResult, Box<dyn std::error::Error>> {
+    ) -> Result<TaskExecutionResult> {
         // Determine integration strategy
         let strategy = self.select_integration_strategy(&original_task);
 
@@ -749,10 +749,7 @@ impl ResultIntegrator {
         }
     }
 
-    async fn merge_results(
-        &self,
-        results: Vec<ExecutionResult>,
-    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+    async fn merge_results(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult> {
         let mut combined_output = String::new();
         let mut total_quality = 0.0;
 
@@ -774,15 +771,12 @@ impl ResultIntegrator {
         })
     }
 
-    async fn select_best_quality(
-        &self,
-        results: Vec<ExecutionResult>,
-    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+    async fn select_best_quality(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult> {
         let best_result = results
             .into_iter()
             .filter(|r| r.success)
             .max_by(|a, b| a.quality_score.partial_cmp(&b.quality_score).unwrap())
-            .ok_or("No successful results")?;
+            .ok_or_else(|| anyhow::anyhow!("No successful results"))?;
 
         Ok(IntegratedResult {
             success: true,
@@ -792,10 +786,7 @@ impl ResultIntegrator {
         })
     }
 
-    async fn combine_results(
-        &self,
-        results: Vec<ExecutionResult>,
-    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+    async fn combine_results(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult> {
         // Combine complementary results
         let mut combined_output = String::new();
         let mut all_files = HashSet::new();
@@ -823,15 +814,12 @@ impl ResultIntegrator {
         })
     }
 
-    async fn vote_on_results(
-        &self,
-        results: Vec<ExecutionResult>,
-    ) -> Result<IntegratedResult, Box<dyn std::error::Error>> {
+    async fn vote_on_results(&self, results: Vec<ExecutionResult>) -> Result<IntegratedResult> {
         // Simple voting mechanism - most common successful result
         let successful_results: Vec<_> = results.into_iter().filter(|r| r.success).collect();
 
         if successful_results.is_empty() {
-            return Err("No successful results to vote on".into());
+            return Err(anyhow::anyhow!("No successful results to vote on"));
         }
 
         // For simplicity, return the first successful result

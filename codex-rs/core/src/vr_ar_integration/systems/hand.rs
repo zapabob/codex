@@ -1,4 +1,5 @@
 use crate::vr_ar_integration::types::HandPose;
+use anyhow::Result;
 use std::sync::Mutex;
 
 /// Hand tracking system
@@ -14,7 +15,7 @@ impl HandTrackingSystem {
         }
     }
 
-    pub async fn update(&self) -> Result<Option<HandPose>, Box<dyn std::error::Error>> {
+    pub async fn update(&self) -> Result<Option<HandPose>> {
         // Mock hand tracking update
         Ok(None)
     }

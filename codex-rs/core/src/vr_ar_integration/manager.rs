@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
@@ -20,7 +21,7 @@ pub struct VRARIntegration {
 }
 
 impl VRARIntegration {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn new() -> Result<Self> {
         let (event_sender, _) = broadcast::channel(100);
 
         Ok(Self {
@@ -39,7 +40,7 @@ impl VRARIntegration {
     pub async fn initialize_platform(
         &mut self,
         platform: XRPlatform,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<()> {
         let _init_start = Instant::now();
         tracing::info!("Initializing XR platform: {:?}", platform);
         // Platform specific initialization logic would go here, delegated to xr_system or handled here if it involves coordination
@@ -78,7 +79,7 @@ impl VRARIntegration {
     /// Update VR/AR state and process events
     pub async fn update(
         &mut self,
-    ) -> Result<Vec<VREvent>, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<Vec<VREvent>> {
         let update_start = Instant::now();
         let mut events = Vec::new();
 
@@ -134,7 +135,7 @@ impl VRARIntegration {
         commit_id: &str,
         position: [f32; 3],
         rotation: [f32; 4],
-    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<String> {
         let anchor = Anchor {
             id: format!("commit_{}", commit_id),
             position,
@@ -163,7 +164,7 @@ impl VRARIntegration {
         gesture: HandGesture,
         _hand: HandType,
         position: [f32; 3],
-    ) -> Result<Option<VRInteraction>, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<Option<VRInteraction>> {
         match gesture {
             HandGesture::Point => {
                 // Find nearest anchor to pointed position
@@ -204,7 +205,7 @@ impl VRARIntegration {
     async fn create_time_anchor(
         &mut self,
         position: [f32; 3],
-    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<String> {
         let anchor_id = format!("time_{}", chrono::Utc::now().timestamp());
         let anchor = Anchor {
             id: anchor_id.clone(),

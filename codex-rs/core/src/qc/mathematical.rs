@@ -6,6 +6,7 @@
 //! - Cost-benefit analysis
 //! - Linear programming for resource constraints
 
+use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -143,7 +144,7 @@ pub mod cuda_math {
     }
 
     impl CudaLinearAlgebra {
-        pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+        pub fn new() -> Result<Self> {
             let device = CudaDevice::new(0)?;
 
             // Load PTX with matrix-vector multiplication kernel
@@ -164,7 +165,7 @@ pub mod cuda_math {
             matrix: &[Vec<f64>],
             vector: &[f64],
             result: &mut [f64],
-        ) -> Result<(), Box<dyn std::error::Error>> {
+        ) -> Result<()> {
             let rows = matrix.len();
             let cols = matrix[0].len();
 

@@ -292,7 +292,7 @@ impl LineCommunicator {
         let sessions = self.active_sessions.lock().unwrap();
         let session = sessions
             .get(user_id)
-            .ok_or("No active development session")?;
+            .ok_or_else(|| anyhow::anyhow!("No active development session"))?;
 
         // Execute command based on type
         match command {

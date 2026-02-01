@@ -4,6 +4,7 @@
 //! leveraging Rust 2024 features: GATs, generic const expressions, and
 //! improved async lifetime capture.
 
+use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -377,7 +378,7 @@ impl<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
     }
 
     /// Start real-time monitoring with advanced async (Rust 2024)
-    pub async fn start_monitoring<R>(&self, rules: Vec<R>) -> Result<(), Box<dyn std::error::Error>>
+    pub async fn start_monitoring<R>(&self, rules: Vec<R>) -> Result<()>
     where
         R: MonitoringRule + Send + Sync + 'static,
         R::Context: Send + Sync + Clone + Default,
@@ -447,7 +448,7 @@ impl<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
     pub async fn add_snapshot(
         &self,
         metrics: HashMap<String, f64>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let snapshot = QualitySnapshot {
             timestamp: chrono::Utc::now(),
             metrics,
@@ -491,7 +492,7 @@ impl<const ALERT_BUFFER_SIZE: usize, const METRIC_HISTORY_SIZE: usize>
         rules: &[R],
         history: &Arc<Mutex<VecDeque<QualitySnapshot>>>,
         alert_sender: &mpsc::UnboundedSender<QualityAlert>,
-    ) -> Result<(), Box<dyn std::error::Error>>
+    ) -> Result<()>
     where
         R: MonitoringRule + Send + Sync,
         R::Context: Send + Sync + Clone + Default,

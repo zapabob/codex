@@ -5,14 +5,8 @@ use cudarc::driver::CudaSlice;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
 
-/// CUDA accelerated Git4D visualization
-#[cfg(feature = "cuda")]
-pub struct CudaGit4DAccelerator {
-    device: Arc<CudaDevice>,
-    vertex_kernel: cudarc::driver::CudaFunction,
-    transform_kernel: cudarc::driver::CudaFunction,
-    render_kernel: cudarc::driver::CudaFunction,
-}
+#[cfg(not(feature = "cuda"))]
+use anyhow::Result;
 
 use serde::{Deserialize, Serialize};
 
@@ -44,7 +38,7 @@ pub struct RenderParameters {
 
 #[cfg(feature = "cuda")]
 impl CudaGit4DAccelerator {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self> {
         // Initialize CUDA device
         let device = CudaDevice::new(0)?;
 
@@ -74,7 +68,7 @@ impl CudaGit4DAccelerator {
         vertices: &[GitCommitVertex],
         transform: &TransformationMatrix,
         params: &RenderParameters,
-    ) -> Result<Vec<GitCommitVertex>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<GitCommitVertex>> {
         if vertices.is_empty() {
             return Ok(Vec::new());
         }
@@ -120,7 +114,7 @@ impl CudaGit4DAccelerator {
         vertices: &[GitCommitVertex],
         time_axis: f32,
         w_axis: f32,
-    ) -> Result<Vec<[f32; 3]>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<[f32; 3]>> {
         if vertices.is_empty() {
             return Ok(Vec::new());
         }
@@ -162,7 +156,7 @@ impl CudaGit4DAccelerator {
         vertices: &[GitCommitVertex],
         framebuffer: &mut [u32],
         params: &RenderParameters,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         if vertices.is_empty() {
             return Ok(());
         }
@@ -205,7 +199,7 @@ impl CudaGit4DAccelerator {
     pub fn calculate_optimal_camera(
         &self,
         vertices: &[GitCommitVertex],
-    ) -> Result<([f32; 3], [f32; 3]), Box<dyn std::error::Error>> {
+    ) -> Result<([f32; 3], [f32; 3])> {
         if vertices.is_empty() {
             return Ok(([0.0, 0.0, 10.0], [0.0, 0.0, 0.0]));
         }
@@ -254,7 +248,7 @@ impl CudaGit4DAccelerator {
         ray_origin: [f32; 3],
         ray_direction: [f32; 3],
         max_distance: f32,
-    ) -> Result<Vec<(usize, f32)>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<(usize, f32)>> {
         // This would implement GPU-accelerated ray-vertex intersection
         // For now, return empty result
         Ok(Vec::new())

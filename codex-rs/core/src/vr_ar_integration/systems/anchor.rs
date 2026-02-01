@@ -1,4 +1,5 @@
 use crate::vr_ar_integration::types::{Anchor, VREvent};
+use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -14,11 +15,11 @@ impl AnchorSystem {
         }
     }
 
-    pub async fn add_anchor(&self, anchor: Anchor) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn add_anchor(&self, anchor: Anchor) -> Result<()> {
         let mut anchors = self
             .anchors
             .lock()
-            .map_err(|e| format!("Failed to lock anchors: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock anchors: {}", e))?;
         anchors.insert(anchor.id.clone(), anchor);
         Ok(())
     }
@@ -27,11 +28,11 @@ impl AnchorSystem {
         &self,
         position: [f32; 3],
         max_distance: f32,
-    ) -> Result<Option<Anchor>, Box<dyn std::error::Error>> {
+    ) -> Result<Option<Anchor>> {
         let anchors = self
             .anchors
             .lock()
-            .map_err(|e| format!("Failed to lock anchors: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock anchors: {}", e))?;
 
         let mut nearest: Option<(&String, &Anchor, f32)> = None;
 
@@ -57,7 +58,7 @@ impl AnchorSystem {
         Ok(nearest.map(|(_, anchor, _)| anchor.clone()))
     }
 
-    pub async fn update(&self) -> Result<Vec<VREvent>, Box<dyn std::error::Error>> {
+    pub async fn update(&self) -> Result<Vec<VREvent>> {
         // Mock anchor updates
         Ok(Vec::new())
     }

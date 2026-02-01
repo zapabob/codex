@@ -53,15 +53,15 @@ use codex_core::config::edit::ConfigEditsBuilder;
 use codex_core::config::find_codex_home;
 use codex_core::features::Stage;
 use codex_core::features::is_known_feature_key;
-use codex_core::terminal::TerminalName;
 #[cfg(feature = "custom-features")]
 use codex_core::llmops::{
     LLMOpsConfig, LLMOpsManager, ModelProvider, ModelVersion, PromptTemplate,
 };
 #[cfg(feature = "custom-features")]
 use codex_core::skill_mcp_integration::{
-    MCPResource, MCPTool, SkillDefinition, SkillMCPConfig, SkillMCPIntegrationManager,
+    MCPResource, SkillDefinition, SkillMCPConfig, SkillMCPIntegrationManager,
 };
+use codex_core::terminal::TerminalName;
 
 /// Codex CLI
 ///
@@ -1612,7 +1612,7 @@ mod tests {
 
 // LLMOps command handlers
 #[cfg(feature = "custom-features")]
-async fn run_llmops_command(cmd: LlmOpsCommand) -> Result<(), Box<dyn std::error::Error>> {
+async fn run_llmops_command(cmd: LlmOpsCommand) -> Result<(), anyhow::Error> {
     let config = LLMOpsConfig {
         enable_model_versioning: true,
         enable_prompt_versioning: true,
@@ -1693,7 +1693,7 @@ async fn run_llmops_command(cmd: LlmOpsCommand) -> Result<(), Box<dyn std::error
 
 // A2A command handlers
 #[cfg(feature = "custom-features")]
-async fn run_a2a_command(cmd: A2aCommand) -> Result<(), Box<dyn std::error::Error>> {
+async fn run_a2a_command(cmd: A2aCommand) -> Result<(), anyhow::Error> {
     let config = A2AConfig {
         enable_encryption: true,
         enable_authentication: true,
@@ -1742,7 +1742,7 @@ async fn run_a2a_command(cmd: A2aCommand) -> Result<(), Box<dyn std::error::Erro
                 .collect();
 
             let agent = AgentIdentity {
-                id: agent_id,
+                id: agent_id.clone(),
                 name: format!("Agent {}", agent_id),
                 role: role_enum,
                 capabilities: caps,
@@ -1770,7 +1770,7 @@ async fn run_a2a_command(cmd: A2aCommand) -> Result<(), Box<dyn std::error::Erro
 
 // Skill/MCP command handlers
 #[cfg(feature = "custom-features")]
-async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), Box<dyn std::error::Error>> {
+async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), anyhow::Error> {
     let config = SkillMCPConfig {
         enable_dynamic_loading: true,
         enable_safe_execution: true,
@@ -1828,9 +1828,7 @@ async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), Box<dyn std::
 
 // Orchestration command handlers
 #[cfg(feature = "custom-features")]
-async fn run_orchestrate_command(
-    cmd: OrchestrateCommand,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn run_orchestrate_command(cmd: OrchestrateCommand) -> Result<(), anyhow::Error> {
     let config = AutonomousOrchestrationConfig {
         enable_task_decomposition: true,
         enable_agent_coordination: true,

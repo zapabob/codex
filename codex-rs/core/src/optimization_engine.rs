@@ -150,7 +150,7 @@ impl LinearProgrammingSolver {
             }
 
             if leaving_row.is_none() {
-                return Err("Problem is unbounded".into());
+                return Err(anyhow::anyhow!("Problem is unbounded"));
             }
 
             let leaving_row = leaving_row.unwrap();

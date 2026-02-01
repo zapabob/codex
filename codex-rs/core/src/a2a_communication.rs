@@ -8,6 +8,7 @@
 //! - Robust coordination and fault tolerance
 //! - Security, trust, and governance
 
+use anyhow::Result;
 use async_trait::async_trait;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -443,11 +444,7 @@ pub enum A2AEvent {
 /// Message handler trait for extensibility
 #[async_trait]
 pub trait MessageHandler: Send + Sync {
-    async fn handle(
-        &self,
-        message: &A2AMessage,
-        manager: &A2ACommunicationManager,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    async fn handle(&self, message: &A2AMessage, manager: &A2ACommunicationManager) -> Result<()>;
 }
 
 /// Coordination manager for complex multi-agent workflows
@@ -482,7 +479,7 @@ pub trait CoordinationStrategy: Send + Sync {
         &self,
         session: &mut CoordinationSession,
         manager: &A2ACommunicationManager,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    ) -> Result<()>;
 }
 
 impl A2ACommunicationManager {
@@ -523,10 +520,7 @@ impl A2ACommunicationManager {
     }
 
     /// Send message with reliability and security
-    pub async fn send_message(
-        &self,
-        message: A2AMessage,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn send_message(&self, message: A2AMessage) -> Result<String> {
         // Validate message
         self.validate_message(&message).await?;
 
@@ -541,10 +535,7 @@ impl A2ACommunicationManager {
     }
 
     /// Receive and process messages
-    pub async fn receive_message(
-        &self,
-        message: A2AMessage,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn receive_message(&self, message: A2AMessage) -> Result<()> {
         // Validate incoming message
         self.validate_incoming_message(&message).await?;
 
@@ -571,7 +562,7 @@ impl A2ACommunicationManager {
         coordination_type: CoordinationType,
         participants: Vec<String>,
         context: HashMap<String, serde_json::Value>,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String> {
         let session_id = Uuid::new_v4().to_string();
 
         let session = CoordinationSession {
@@ -610,10 +601,7 @@ impl A2ACommunicationManager {
     }
 
     /// Delegate task to appropriate agent
-    pub async fn delegate_task(
-        &self,
-        task: TaskMessage,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn delegate_task(&self, task: TaskMessage) -> Result<String> {
         // Find suitable agent
         let suitable_agent = self.find_suitable_agent(&task).await?;
         let task_id = task.task_id.clone();
@@ -655,11 +643,7 @@ impl A2ACommunicationManager {
     }
 
     /// Update agent status
-    pub async fn update_agent_status(
-        &self,
-        status: AgentStatus,
-        workload: f64,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn update_agent_status(&self, status: AgentStatus, workload: f64) -> Result<()> {
         let agent_state = AgentState {
             agent_id: self.identity.id.clone(),
             status: status.clone(),
@@ -731,37 +715,31 @@ impl A2ACommunicationManager {
 
     // Private helper methods
 
-    async fn validate_message(
-        &self,
-        message: &A2AMessage,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_message(&self, message: &A2AMessage) -> Result<()> {
         // Size validation
         let message_size = serde_json::to_string(message)?.len();
         if message_size > self.config.max_message_size {
-            return Err(format!(
+            return Err(anyhow::anyhow!(
                 "Message size {} exceeds limit {}",
-                message_size, self.config.max_message_size
-            )
-            .into());
+                message_size,
+                self.config.max_message_size
+            ));
         }
 
         // TTL validation
         if message.ttl > Duration::from_secs(self.config.message_ttl_seconds) {
-            return Err("Message TTL too long".into());
+            return Err(anyhow::anyhow!("Message TTL too long"));
         }
 
         // Security validation
         if self.config.enable_authentication && !self.verify_message_authenticity(message).await? {
-            return Err("Message authentication failed".into());
+            return Err(anyhow::anyhow!("Message authentication failed"));
         }
 
         Ok(())
     }
 
-    async fn apply_security(
-        &self,
-        message: &A2AMessage,
-    ) -> Result<A2AMessage, Box<dyn std::error::Error>> {
+    async fn apply_security(&self, message: &A2AMessage) -> Result<A2AMessage> {
         let mut secure_message = message.clone();
 
         // Apply encryption if enabled
@@ -773,10 +751,7 @@ impl A2ACommunicationManager {
         Ok(secure_message)
     }
 
-    async fn send_direct_message(
-        &self,
-        message: A2AMessage,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    async fn send_direct_message(&self, message: A2AMessage) -> Result<String> {
         // Direct message routing logic
         // In production, this would use actual network communication
 
@@ -784,10 +759,7 @@ impl A2ACommunicationManager {
         Ok(message.id)
     }
 
-    async fn send_broadcast_message(
-        &self,
-        message: A2AMessage,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    async fn send_broadcast_message(&self, message: A2AMessage) -> Result<String> {
         // Broadcast message routing logic
         // In production, this would broadcast to all connected agents
 
@@ -795,10 +767,7 @@ impl A2ACommunicationManager {
         Ok(message.id)
     }
 
-    async fn validate_incoming_message(
-        &self,
-        message: &A2AMessage,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_incoming_message(&self, message: &A2AMessage) -> Result<()> {
         // Similar to validate_message but for incoming messages
         self.validate_message(message).await?;
 
@@ -806,16 +775,13 @@ impl A2ACommunicationManager {
         if let Some(receiver) = &message.receiver
             && receiver.id != self.identity.id
         {
-            return Err("Message not intended for this agent".into());
+            return Err(anyhow::anyhow!("Message not intended for this agent"));
         }
 
         Ok(())
     }
 
-    async fn update_trust_from_message(
-        &self,
-        message: &A2AMessage,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn update_trust_from_message(&self, message: &A2AMessage) -> Result<()> {
         if !self.config.enable_trust_management {
             return Ok(());
         }
@@ -842,10 +808,7 @@ impl A2ACommunicationManager {
         Ok(())
     }
 
-    async fn find_suitable_agent(
-        &self,
-        _task: &TaskMessage,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    async fn find_suitable_agent(&self, _task: &TaskMessage) -> Result<String> {
         let topology = self.topology.read().await;
 
         // Find agents with required capabilities and reasonable workload
@@ -860,7 +823,7 @@ impl A2ACommunicationManager {
             .collect();
 
         if suitable_agents.is_empty() {
-            return Err("No suitable agents found".into());
+            return Err(anyhow::anyhow!("No suitable agents found"));
         }
 
         // Select agent with lowest workload
@@ -871,35 +834,26 @@ impl A2ACommunicationManager {
                     .partial_cmp(&b.trust_score)
                     .unwrap_or(std::cmp::Ordering::Equal)
             })
-            .ok_or("No suitable agents found")?;
+            .ok_or_else(|| anyhow::anyhow!("No suitable agents found"))?;
 
         Ok(best_agent.id.clone())
     }
 
-    async fn get_agent_identity(
-        &self,
-        agent_id: &str,
-    ) -> Result<AgentIdentity, Box<dyn std::error::Error>> {
+    async fn get_agent_identity(&self, agent_id: &str) -> Result<AgentIdentity> {
         let topology = self.topology.read().await;
         topology
             .agents
             .get(agent_id)
             .cloned()
-            .ok_or_else(|| format!("Agent {agent_id} not found").into())
+            .ok_or_else(|| anyhow::anyhow!("Agent {agent_id} not found"))
     }
 
-    async fn verify_message_authenticity(
-        &self,
-        _message: &A2AMessage,
-    ) -> Result<bool, Box<dyn std::error::Error>> {
+    async fn verify_message_authenticity(&self, _message: &A2AMessage) -> Result<bool> {
         // Simplified authentication - in production, this would verify signatures
         Ok(true)
     }
 
-    async fn encrypt_payload(
-        &self,
-        _payload: &MessagePayload,
-    ) -> Result<MessagePayload, Box<dyn std::error::Error>> {
+    async fn encrypt_payload(&self, _payload: &MessagePayload) -> Result<MessagePayload> {
         // Simplified encryption - in production, this would encrypt the payload
         Ok(_payload.clone())
     }
@@ -977,7 +931,7 @@ impl TrustManager {
         &self,
         agent_id: &str,
         interaction: InteractionRecord,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         // Update reputation score
         {
             let mut scores = self.reputation_scores.write().await;

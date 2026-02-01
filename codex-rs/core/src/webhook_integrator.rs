@@ -185,11 +185,13 @@ impl WebhookIntegrator {
         };
 
         // Send to all configured services
-        let configs = self.configs.lock()
-            .unwrap_or_else(|e| {
-                tracing::error!("Failed to acquire configs lock in notify_commit_pushed: {}", e);
-                e.into_inner()
-            });
+        let configs = self.configs.lock().unwrap_or_else(|e| {
+            tracing::error!(
+                "Failed to acquire configs lock in notify_commit_pushed: {}",
+                e
+            );
+            e.into_inner()
+        });
         for (service, config) in configs.iter() {
             if config.enabled {
                 let _ = self.send_event(*service, event.clone()).await;
@@ -214,11 +216,10 @@ impl WebhookIntegrator {
             author: author.to_string(),
         };
 
-        let configs = self.configs.lock()
-            .unwrap_or_else(|e| {
-                tracing::error!("Failed to acquire configs lock in notify_pr_created: {}", e);
-                e.into_inner()
-            });
+        let configs = self.configs.lock().unwrap_or_else(|e| {
+            tracing::error!("Failed to acquire configs lock in notify_pr_created: {}", e);
+            e.into_inner()
+        });
         for (service, config) in configs.iter() {
             if config.enabled {
                 let _ = self.send_event(*service, event.clone()).await;
@@ -230,7 +231,9 @@ impl WebhookIntegrator {
 
     /// Run the webhook integrator
     pub async fn run(self) -> Result<()> {
-        let mut rx = self.command_rx.lock()
+        let mut rx = self
+            .command_rx
+            .lock()
             .map_err(|e| anyhow::anyhow!("Failed to acquire command_rx lock: {}", e))?
             .take()
             .ok_or_else(|| anyhow::anyhow!("Command receiver already taken"))?;
@@ -268,9 +271,13 @@ impl WebhookIntegrator {
         service: WebhookService,
         event: WebhookEvent,
     ) -> Result<()> {
-        let configs = self.configs.lock()
+        let configs = self
+            .configs
+            .lock()
             .map_err(|e| anyhow::anyhow!("Failed to acquire configs lock: {}", e))?;
-        let config = configs.get(&service).ok_or("Webhook not configured")?;
+        let config = configs
+            .get(&service)
+            .ok_or_else(|| anyhow::anyhow!("Webhook not configured"))?;
 
         if !config.enabled {
             return Ok(());
@@ -297,11 +304,13 @@ impl WebhookIntegrator {
     }
 
     fn configure_webhook_internal(&self, config: WebhookConfig) {
-        let mut configs = self.configs.lock()
-            .unwrap_or_else(|e| {
-                tracing::error!("Failed to acquire configs lock in configure_webhook_internal: {}", e);
-                e.into_inner()
-            });
+        let mut configs = self.configs.lock().unwrap_or_else(|e| {
+            tracing::error!(
+                "Failed to acquire configs lock in configure_webhook_internal: {}",
+                e
+            );
+            e.into_inner()
+        });
         configs.insert(config.service, config);
     }
 

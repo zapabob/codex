@@ -1,3 +1,4 @@
+use anyhow::Result;
 use bollard::Docker;
 use bollard::container::Config;
 use bollard::container::CreateContainerOptions;
@@ -79,7 +80,7 @@ pub struct VirtualOSConfig {
 }
 
 impl ContainerManager {
-    pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new() -> Result<Self> {
         let docker = Docker::connect_with_local_defaults()?;
 
         // Test Docker connection
@@ -96,11 +97,7 @@ impl ContainerManager {
     }
 
     /// Create a new virtual development environment
-    pub async fn create_environment(
-        &self,
-        name: &str,
-        config: &VirtualOSConfig,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn create_environment(&self, name: &str, config: &VirtualOSConfig) -> Result<String> {
         let env_id = format!("codex_env_{}_{}", name, chrono::Utc::now().timestamp());
 
         // Check resource availability
@@ -109,7 +106,7 @@ impl ContainerManager {
             .check_availability(&config.default_resources)
             .await?
         {
-            return Err("Insufficient resources available".into());
+            return Err(anyhow::anyhow!("Insufficient resources available"));
         }
 
         // Ensure base image exists
@@ -172,10 +169,7 @@ impl ContainerManager {
     }
 
     /// Start an existing container
-    pub async fn start_container(
-        &self,
-        container_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start_container(&self, container_id: &str) -> Result<()> {
         let start_options = StartContainerOptions::<String> {
             ..Default::default()
         };
@@ -196,10 +190,7 @@ impl ContainerManager {
     }
 
     /// Stop a running container
-    pub async fn stop_container(
-        &self,
-        container_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn stop_container(&self, container_id: &str) -> Result<()> {
         self.docker.stop_container(container_id, None).await?;
 
         // Update status
@@ -214,9 +205,11 @@ impl ContainerManager {
     }
 
     /// Remove a container and clean up resources
-    pub async fn remove_environment(&self, env_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn remove_environment(&self, env_id: &str) -> Result<()> {
         let containers = self.containers.lock().unwrap();
-        let environment = containers.get(env_id).ok_or("Environment not found")?;
+        let environment = containers
+            .get(env_id)
+            .ok_or_else(|| anyhow::anyhow!("Environment not found"))?;
 
         // Stop container if running
         if environment.status == ContainerStatus::Running {
@@ -252,12 +245,14 @@ impl ContainerManager {
         code: &str,
         language: &str,
         timeout: Duration,
-    ) -> Result<ExecutionResult, Box<dyn std::error::Error>> {
+    ) -> Result<ExecutionResult> {
         let containers = self.containers.lock().unwrap();
-        let environment = containers.get(env_id).ok_or("Environment not found")?;
+        let environment = containers
+            .get(env_id)
+            .ok_or_else(|| anyhow::anyhow!("Environment not found"))?;
 
         if environment.status != ContainerStatus::Running {
-            return Err("Environment is not running".into());
+            return Err(anyhow::anyhow!("Environment is not running"));
         }
 
         // Create execution script based on language
@@ -299,13 +294,11 @@ impl ContainerManager {
     }
 
     /// Install browser in container
-    pub async fn install_browser(
-        &self,
-        env_id: &str,
-        browser: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn install_browser(&self, env_id: &str, browser: &str) -> Result<()> {
         let containers = self.containers.lock().unwrap();
-        let environment = containers.get(env_id).ok_or("Environment not found")?;
+        let environment = containers
+            .get(env_id)
+            .ok_or_else(|| anyhow::anyhow!("Environment not found"))?;
 
         let install_commands = match browser {
             "chrome" => vec![
@@ -340,9 +333,11 @@ impl ContainerManager {
         prompt: &str,
         language: &str,
         context: &CodeGenerationContext,
-    ) -> Result<GeneratedCode, Box<dyn std::error::Error>> {
+    ) -> Result<GeneratedCode> {
         let containers = self.containers.lock().unwrap();
-        let environment = containers.get(env_id).ok_or("Environment not found")?;
+        let environment = containers
+            .get(env_id)
+            .ok_or_else(|| anyhow::anyhow!("Environment not found"))?;
 
         // This would integrate with AI models running in the container
         // For now, return a placeholder
@@ -361,13 +356,11 @@ impl ContainerManager {
     }
 
     /// Get container logs
-    pub async fn get_logs(
-        &self,
-        env_id: &str,
-        lines: usize,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn get_logs(&self, env_id: &str, lines: usize) -> Result<String> {
         let containers = self.containers.lock().unwrap();
-        let environment = containers.get(env_id).ok_or("Environment not found")?;
+        let environment = containers
+            .get(env_id)
+            .ok_or_else(|| anyhow::anyhow!("Environment not found"))?;
 
         let logs = self
             .docker
@@ -405,7 +398,7 @@ impl ContainerManager {
     }
 
     // Private helper methods
-    async fn ensure_image(&self, image: &str) -> Result<(), Box<dyn std::error::Error>> {
+    async fn ensure_image(&self, image: &str) -> Result<()> {
         let images = self
             .docker
             .list_images(Some(bollard::image::ListImagesOptions::<String> {
@@ -438,7 +431,7 @@ impl ContainerManager {
         &self,
         env_id: &str,
         config: &VirtualOSConfig,
-    ) -> Result<Config<String>, Box<dyn std::error::Error>> {
+    ) -> Result<Config<String>> {
         let exposed_ports = HashMap::from([
             ("8080/tcp".to_string(), HashMap::new()), // Web server
             ("3000/tcp".to_string(), HashMap::new()), // Development server
@@ -471,7 +464,7 @@ impl ContainerManager {
         &self,
         container_id: &str,
         config: &VirtualOSConfig,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         // Install development tools
         for tool in &config.development_tools {
             match tool.as_str() {
@@ -522,11 +515,7 @@ impl ContainerManager {
         Ok(())
     }
 
-    async fn install_browser_by_id(
-        &self,
-        container_id: &str,
-        browser: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_browser_by_id(&self, container_id: &str, browser: &str) -> Result<()> {
         match browser {
             "chrome" => {
                 let commands = vec![
@@ -549,11 +538,7 @@ impl ContainerManager {
         Ok(())
     }
 
-    async fn execute_command(
-        &self,
-        container_id: &str,
-        command: &[&str],
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn execute_command(&self, container_id: &str, command: &[&str]) -> Result<()> {
         let exec = bollard::exec::CreateExecOptions {
             cmd: Some(command.to_vec()),
             ..Default::default()
@@ -569,7 +554,7 @@ impl ContainerManager {
         &self,
         container_id: &str,
         status: ContainerStatus,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let mut containers = self.containers.lock().unwrap();
         for env in containers.values_mut() {
             if env.container_id == container_id {
@@ -580,11 +565,7 @@ impl ContainerManager {
         Ok(())
     }
 
-    fn create_execution_script(
-        &self,
-        code: &str,
-        language: &str,
-    ) -> Result<(String, Vec<String>), Box<dyn std::error::Error>> {
+    fn create_execution_script(&self, code: &str, language: &str) -> Result<(String, Vec<String>)> {
         match language {
             "javascript" | "js" => {
                 let script_path = "/tmp/script.js".to_string();
@@ -636,10 +617,7 @@ impl ResourceManager {
         }
     }
 
-    pub async fn check_availability(
-        &self,
-        requested: &ResourceAllocation,
-    ) -> Result<bool, Box<dyn std::error::Error>> {
+    pub async fn check_availability(&self, requested: &ResourceAllocation) -> Result<bool> {
         let allocated = self.allocated_resources.lock().unwrap();
 
         let total_allocated = allocated.values().fold(
@@ -671,13 +649,13 @@ impl ResourceManager {
         &self,
         env_id: &str,
         resources: &ResourceAllocation,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let mut allocated = self.allocated_resources.lock().unwrap();
         allocated.insert(env_id.to_string(), resources.clone());
         Ok(())
     }
 
-    pub async fn release_resources(&self, env_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn release_resources(&self, env_id: &str) -> Result<()> {
         let mut allocated = self.allocated_resources.lock().unwrap();
         allocated.remove(env_id);
         Ok(())

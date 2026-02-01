@@ -10,6 +10,7 @@
 //! - **Real-time Collaboration**: Multi-user synchronized visualization
 //! - **Rust 2024 Features**: GATs, async closures, const generics for performance
 
+use anyhow::Result;
 use async_trait::async_trait;
 use git2::Commit;
 use git2::Diff;
@@ -31,8 +32,6 @@ use std::path::Path;
 
 use std::sync::RwLock;
 use tokio::sync::broadcast;
-
-use futures::future;
 
 // Import existing components
 #[cfg(all(feature = "custom-features", feature = "cuda"))]
@@ -248,10 +247,7 @@ impl SentimentAnalyzer {
         }
     }
 
-    pub async fn analyze_commit_sentiment(
-        &self,
-        commit: &Commit<'_>,
-    ) -> Result<CommitSentiment, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn analyze_commit_sentiment(&self, commit: &Commit<'_>) -> Result<CommitSentiment> {
         let commit_id = commit.id();
 
         // Check cache first
@@ -312,7 +308,7 @@ impl SentimentAnalyzer {
         commit_id: Oid,
         message: &str,
         author: &str,
-    ) -> Result<CommitSentiment, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<CommitSentiment> {
         // Check cache first
         if let Some(cached) = self.cache.read().unwrap().get(&commit_id) {
             return Ok(cached.clone());
@@ -363,11 +359,7 @@ impl SentimentAnalyzer {
         Ok(result)
     }
 
-    async fn analyze_with_ai(
-        &self,
-        _message: &str,
-        _author: &str,
-    ) -> Result<SentimentResult, Box<dyn std::error::Error + Send + Sync>> {
+    async fn analyze_with_ai(&self, _message: &str, _author: &str) -> Result<SentimentResult> {
         // OpenAI API integration temporarily disabled
         // TODO: Re-enable when openai-api-rs dependency is properly configured
         Ok(SentimentResult::default())
@@ -399,7 +391,7 @@ impl ImpactCalculator {
         &self,
         commit: &Commit<'_>,
         diff: Option<&Diff<'_>>,
-    ) -> Result<CommitImpact, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<CommitImpact> {
         let commit_id = commit.id();
 
         // Check cache
@@ -726,12 +718,10 @@ impl Git4DAnalyzer for SentimentAnalyzer {
 }
 
 impl SuperiorGit4DVisualizer {
-    pub fn new(
-        repo_path: &Path,
-        config: SuperiorGit4DConfig,
-    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn new(repo_path: &Path, config: SuperiorGit4DConfig) -> anyhow::Result<Self> {
         let base_config = config.base_config.clone();
-        let base_visualizer = Git4DAcceleratedVisualizer::new(repo_path, base_config)?;
+        let base_visualizer = Git4DAcceleratedVisualizer::new(repo_path, base_config)
+            .map_err(|e| anyhow::anyhow!("Failed to create base visualizer: {}", e))?;
 
         // OpenAI API integration temporarily disabled
         // let ai_client = config.openai_api_key.as_ref().map(|key| Client::new(key.clone()));
@@ -749,120 +739,7 @@ impl SuperiorGit4DVisualizer {
     }
 
     /// Enhanced commit loading with AI analysis and 5D/6D data
-    pub async fn load_commits_enhanced(
-        &self,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        // Load base commits
-        self.base_visualizer
-            .load_commits(&self.config.base_config)
-            .await?;
-
-        // Get repository for additional analysis
-        let repo = Repository::open(self.base_visualizer.repository.path())?;
-
-        // Walk through commits for enhanced analysis
-        let mut revwalk = repo.revwalk()?;
-        revwalk.push_head()?;
-
-        let mut commits = Vec::new();
-        for oid in revwalk {
-            if let Ok(commit) = repo.find_commit(oid?) {
-                commits.push(commit);
-            }
-        }
-
-        // Parallel analysis using Rust 2024 async closures
-        // Extract commit data synchronously to avoid Send issues
-        let commit_data: Vec<(Oid, String, String)> = commits
-            .iter()
-            .map(|commit| {
-                let commit_id = commit.id();
-                let message = commit.message().unwrap_or("").to_string();
-                let author = commit.author().name().unwrap_or("").to_string();
-                (commit_id, message, author)
-            })
-            .collect();
-
-        let sentiment_analyzer = &self.sentiment_analyzer;
-        let analysis_futures: Vec<_> = commit_data
-            .into_iter()
-            .map(|(commit_id, message, author)| {
-                async move {
-                    // Analyze sentiment using extracted data
-                    let sentiment = sentiment_analyzer
-                        .analyze_commit_sentiment_inner(commit_id, &message, &author)
-                        .await
-                        .unwrap_or_else(|_| CommitSentiment {
-                            commit_id,
-                            sentiment_score: 0.0,
-                            confidence: 0.0,
-                            emotions: HashMap::new(),
-                            keywords: Vec::new(),
-                        });
-
-                    // Calculate impact (simplified - would need commit data)
-                    let impact = CommitImpact {
-                        commit_id,
-                        impact_score: 0.1,
-                        lines_changed: 0,
-                        files_affected: 0,
-                        complexity_delta: 0.0,
-                        breaking_changes: false,
-                        test_coverage_impact: None,
-                    };
-
-                    (sentiment, impact)
-                }
-            })
-            .collect();
-
-        // Execute all analysis in parallel
-        let analysis_results: Vec<(CommitSentiment, CommitImpact)> =
-            future::join_all(analysis_futures).await;
-
-        // Process results
-        let sentiments: Vec<CommitSentiment> =
-            analysis_results.iter().map(|(s, _)| s.clone()).collect();
-        let impacts: Vec<CommitImpact> = analysis_results.iter().map(|(_, i)| i.clone()).collect();
-
-        // Detect collaboration patterns
-        let collaborations = self
-            .collaboration_tracker
-            .detect_collaboration_patterns(&commits);
-
-        // Send enhanced events
-        let _ = self
-            .event_sender
-            .send(SuperiorGit4DEvent::SentimentAnalyzed(sentiments));
-        let _ = self
-            .event_sender
-            .send(SuperiorGit4DEvent::ImpactCalculated(impacts));
-        let _ = self
-            .event_sender
-            .send(SuperiorGit4DEvent::CollaborationDetected(collaborations));
-
-        // Apply quantum optimizations
-        if self.config.enable_quantum_optimization {
-            let vertices = vec![]; // Get from base visualizer
-            let quantum_result = self
-                .quantum_optimizer
-                .optimize_rendering_pipeline(&vertices)
-                .await;
-            let _ = self
-                .event_sender
-                .send(SuperiorGit4DEvent::QuantumOptimizationApplied(
-                    quantum_result,
-                ));
-        }
-
-        Ok(())
-    }
-
-    /// Enhanced VR/AR interaction with gesture recognition
-    pub async fn process_vr_interaction_enhanced(
-        &mut self,
-        interaction: VRInteraction,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn load_commits_enhanced(&self) -> anyhow::Result<()> {
         // Process base VR interaction
         self.base_visualizer
             .process_vr_interaction(interaction.clone())
@@ -885,7 +762,7 @@ impl SuperiorGit4DVisualizer {
     async fn process_gesture_enhanced(
         &self,
         gesture: crate::vr_ar_integration::HandGesture,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ) -> anyhow::Result<()> {
         // Enhanced gesture processing with AI interpretation (temporarily disabled)
         if false {
             // Use AI to interpret complex gestures
@@ -899,16 +776,13 @@ impl SuperiorGit4DVisualizer {
     async fn interpret_gesture_with_ai(
         &self,
         _gesture: crate::vr_ar_integration::HandGesture,
-    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> anyhow::Result<String> {
         // AI-powered gesture interpretation
         // This would use the AI client to understand complex gestures
         Ok("time_travel_backward".to_string()) // Placeholder
     }
 
-    async fn execute_gesture_action(
-        &self,
-        action: String,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn execute_gesture_action(&self, action: String) -> Result<()> {
         // Execute the interpreted action
         match action.as_str() {
             "time_travel_backward" => {
@@ -925,10 +799,7 @@ impl SuperiorGit4DVisualizer {
         Ok(())
     }
 
-    async fn process_voice_command_enhanced(
-        &self,
-        command: String,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn process_voice_command_enhanced(&self, command: String) -> Result<()> {
         // Enhanced voice command processing with NLP (temporarily disabled)
         if false {
             let parsed_command = self.parse_voice_command_with_ai(command).await?;
@@ -938,18 +809,12 @@ impl SuperiorGit4DVisualizer {
         Ok(())
     }
 
-    async fn parse_voice_command_with_ai(
-        &self,
-        _command: String,
-    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    async fn parse_voice_command_with_ai(&self, _command: String) -> Result<String> {
         // Use AI to parse natural language voice commands
         Ok("show_collaboration_network".to_string()) // Placeholder
     }
 
-    async fn execute_voice_command(
-        &self,
-        command: String,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn execute_voice_command(&self, command: String) -> Result<()> {
         match command.as_str() {
             "show_collaboration_network" => {
                 self.show_collaboration_network().await?;
@@ -964,28 +829,22 @@ impl SuperiorGit4DVisualizer {
     }
 
     // Placeholder methods for enhanced features
-    async fn time_travel_backward(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn time_travel_backward(&self) -> anyhow::Result<()> {
         // Implement time travel functionality
         Ok(())
     }
 
-    async fn focus_high_impact_commits(
-        &self,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn focus_high_impact_commits(&self) -> anyhow::Result<()> {
         // Focus on high-impact commits
         Ok(())
     }
 
-    async fn show_collaboration_network(
-        &self,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn show_collaboration_network(&self) -> anyhow::Result<()> {
         // Show collaboration network visualization
         Ok(())
     }
 
-    async fn analyze_sentiment_trends(
-        &self,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn analyze_sentiment_trends(&self) -> anyhow::Result<()> {
         // Analyze sentiment trends over time
         Ok(())
     }
@@ -996,10 +855,7 @@ impl SuperiorGit4DVisualizer {
     }
 
     /// Export enhanced visualization data
-    pub async fn export_enhanced_data(
-        &self,
-        format: &str,
-    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn export_enhanced_data(&self, format: &str) -> anyhow::Result<String> {
         // Export 5D/6D visualization data
         match format {
             "json" => {
@@ -1010,7 +866,7 @@ impl SuperiorGit4DVisualizer {
                 // Export as optimized binary format
                 Ok("binary_data".to_string())
             }
-            _ => Err("Unsupported format".into()),
+            _ => Err(anyhow::anyhow!("Unsupported format")),
         }
     }
 }

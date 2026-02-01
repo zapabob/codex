@@ -8,6 +8,7 @@
 //! - Observability, auditing, and infrastructure
 //! - Performance, scalability, and usability
 
+use anyhow::Result;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
@@ -130,6 +131,27 @@ pub struct RateLimits {
     pub concurrent_requests: u32,
 }
 
+impl Default for RateLimits {
+    fn default() -> Self {
+        Self {
+            requests_per_minute: 60,
+            requests_per_hour: 1000,
+            concurrent_requests: 10,
+        }
+    }
+}
+
+impl Default for ResourceAccessControl {
+    fn default() -> Self {
+        Self {
+            required_permissions: vec![],
+            allowed_roles: vec![],
+            rate_limits: RateLimits::default(),
+            audit_required: false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachingPolicy {
     pub enabled: bool,
@@ -144,6 +166,23 @@ pub enum CacheInvalidationStrategy {
     VersionBased,
     Manual,
     Never,
+}
+
+impl Default for CacheInvalidationStrategy {
+    fn default() -> Self {
+        CacheInvalidationStrategy::TimeBased
+    }
+}
+
+impl Default for CachingPolicy {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            ttl_seconds: 3600,
+            max_size_bytes: 10485760, // 10MB
+            invalidation_strategy: CacheInvalidationStrategy::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -563,10 +602,7 @@ impl SkillMCPIntegrationManager {
     }
 
     /// Register a new skill
-    pub async fn register_skill(
-        &self,
-        skill: SkillDefinition,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_skill(&self, skill: SkillDefinition) -> Result<()> {
         // Validate skill definition
         self.validate_skill_definition(&skill).await?;
 
@@ -592,13 +628,16 @@ impl SkillMCPIntegrationManager {
         &self,
         skill_id: &str,
         input: serde_json::Value,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value> {
         let start_time = Instant::now();
 
         // Get skill definition
         let skill = {
             let registry = self.skill_registry.read().await;
-            registry.get(skill_id).cloned().ok_or("Skill not found")?
+            registry
+                .get(skill_id)
+                .cloned()
+                .ok_or_else(|| anyhow::anyhow!("Skill not found"))?
         };
 
         // Validate input against schema
@@ -662,10 +701,7 @@ impl SkillMCPIntegrationManager {
     }
 
     /// Register MCP resource
-    pub async fn register_mcp_resource(
-        &self,
-        resource: MCPResource,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_mcp_resource(&self, resource: MCPResource) -> Result<()> {
         // Validate resource
         self.validate_mcp_resource(&resource).await?;
 
@@ -679,7 +715,7 @@ impl SkillMCPIntegrationManager {
     }
 
     /// Register MCP tool
-    pub async fn register_mcp_tool(&self, tool: MCPTool) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register_mcp_tool(&self, tool: MCPTool) -> Result<()> {
         // Validate tool
         self.validate_mcp_tool(&tool).await?;
 
@@ -697,11 +733,14 @@ impl SkillMCPIntegrationManager {
         &self,
         uri: &str,
         context: &SecurityContext,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value> {
         // Get resource definition
         let resource = {
             let resources = self.mcp_resources.read().await;
-            resources.get(uri).cloned().ok_or("Resource not found")?
+            resources
+                .get(uri)
+                .cloned()
+                .ok_or_else(|| anyhow::anyhow!("Resource not found"))?
         };
 
         // Check access control
@@ -740,13 +779,16 @@ impl SkillMCPIntegrationManager {
         tool_name: &str,
         parameters: serde_json::Value,
         context: &SecurityContext,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value> {
         let start_time = Instant::now();
 
         // Get tool definition
         let tool = {
             let tools = self.mcp_tools.read().await;
-            tools.get(tool_name).cloned().ok_or("Tool not found")?
+            tools
+                .get(tool_name)
+                .cloned()
+                .ok_or_else(|| anyhow::anyhow!("Tool not found"))?
         };
 
         // Validate parameters
@@ -796,13 +838,10 @@ impl SkillMCPIntegrationManager {
 
     // Private helper methods
 
-    async fn validate_skill_definition(
-        &self,
-        skill: &SkillDefinition,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_skill_definition(&self, skill: &SkillDefinition) -> Result<()> {
         // Validate semantic version
         if !self.is_valid_semantic_version(&skill.version) {
-            return Err("Invalid semantic version".into());
+            return Err(anyhow::anyhow!("Invalid semantic version"));
         }
 
         // Validate schemas
@@ -813,31 +852,25 @@ impl SkillMCPIntegrationManager {
 
         // Validate resource requirements
         if skill.resource_requirements.cpu_cores <= 0.0 {
-            return Err("Invalid CPU core requirement".into());
+            return Err(anyhow::anyhow!("Invalid CPU core requirement"));
         }
 
         Ok(())
     }
 
-    fn validate_json_schema(
-        &self,
-        schema: &serde_json::Value,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn validate_json_schema(&self, schema: &serde_json::Value) -> Result<()> {
         // Basic schema validation
         if !schema.is_object() {
-            return Err("Schema must be an object".into());
+            return Err(anyhow::anyhow!("Schema must be an object"));
         }
         Ok(())
     }
 
-    fn check_resource_availability(
-        &self,
-        requirements: &ResourceRequirements,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn check_resource_availability(&self, requirements: &ResourceRequirements) -> Result<()> {
         // Simplified resource check - in production, this would check actual system resources
         if requirements.memory_mb > 8192 {
             // 8GB limit
-            return Err("Insufficient memory".into());
+            return Err(anyhow::anyhow!("Insufficient memory"));
         }
         Ok(())
     }
@@ -846,16 +879,13 @@ impl SkillMCPIntegrationManager {
         &self,
         _skill: &SkillDefinition,
         _input: &serde_json::Value,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         // Schema validation against input_schema
         // Simplified - in production, use a proper JSON schema validator
         Ok(())
     }
 
-    async fn enforce_security_requirements(
-        &self,
-        skill: &SkillDefinition,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn enforce_security_requirements(&self, skill: &SkillDefinition) -> Result<()> {
         for requirement in &skill.security_requirements {
             match requirement.as_str() {
                 "authentication_required" => {
@@ -864,7 +894,11 @@ impl SkillMCPIntegrationManager {
                 "encrypted_communication" => {
                     // Ensure encryption
                 }
-                _ => return Err(format!("Unknown security requirement: {requirement}").into()),
+                _ => {
+                    return Err(anyhow::anyhow!(
+                        "Unknown security requirement: {requirement}"
+                    ));
+                }
             }
         }
         Ok(())
@@ -873,7 +907,7 @@ impl SkillMCPIntegrationManager {
     fn allocate_resources(
         &self,
         requirements: &ResourceRequirements,
-    ) -> Result<ResourceAllocation, Box<dyn std::error::Error>> {
+    ) -> Result<ResourceAllocation> {
         // Simplified resource allocation
         Ok(ResourceAllocation {
             id: Uuid::new_v4().to_string(),
@@ -883,10 +917,7 @@ impl SkillMCPIntegrationManager {
         })
     }
 
-    fn deallocate_resources(
-        &self,
-        _allocation: ResourceAllocation,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn deallocate_resources(&self, _allocation: ResourceAllocation) -> Result<()> {
         // Simplified resource deallocation
         Ok(())
     }
@@ -895,7 +926,7 @@ impl SkillMCPIntegrationManager {
         &self,
         _skill: &SkillDefinition,
         output: &serde_json::Value,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value> {
         // Schema validation against output_schema
         Ok(output.clone())
     }
@@ -904,7 +935,7 @@ impl SkillMCPIntegrationManager {
         &self,
         skill_id: &str,
         _error: &dyn std::error::Error,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         // Log error and potentially trigger alerts
         self.observability_engine
             .record_metric("skill_execution_error", 1.0, &[("skill_id", skill_id)])
@@ -917,7 +948,7 @@ impl SkillMCPIntegrationManager {
         skill_id: &str,
         duration: Duration,
         success: bool,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let success_value = if success { 1.0 } else { 0.0 };
         self.observability_engine
             .record_metric(
@@ -936,19 +967,16 @@ impl SkillMCPIntegrationManager {
         Ok(())
     }
 
-    async fn validate_mcp_resource(
-        &self,
-        resource: &MCPResource,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_mcp_resource(&self, resource: &MCPResource) -> Result<()> {
         if resource.uri.is_empty() {
-            return Err("Resource URI cannot be empty".into());
+            return Err(anyhow::anyhow!("Resource URI cannot be empty"));
         }
         Ok(())
     }
 
-    async fn validate_mcp_tool(&self, tool: &MCPTool) -> Result<(), Box<dyn std::error::Error>> {
+    async fn validate_mcp_tool(&self, tool: &MCPTool) -> Result<()> {
         if tool.name.is_empty() {
-            return Err("Tool name cannot be empty".into());
+            return Err(anyhow::anyhow!("Tool name cannot be empty"));
         }
         self.validate_json_schema(&tool.input_schema)?;
         Ok(())
@@ -958,37 +986,27 @@ impl SkillMCPIntegrationManager {
         &self,
         resource: &MCPResource,
         context: &SecurityContext,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         // Simplified access control check
         for permission in &resource.access_control.required_permissions {
             if !context.tags.contains_key(permission) {
-                return Err(format!("Missing permission: {permission}").into());
+                return Err(anyhow::anyhow!("Missing permission: {permission}"));
             }
         }
         Ok(())
     }
 
-    async fn check_resource_cache(
-        &self,
-        _uri: &str,
-    ) -> Result<Option<serde_json::Value>, Box<dyn std::error::Error>> {
+    async fn check_resource_cache(&self, _uri: &str) -> Result<Option<serde_json::Value>> {
         // Simplified cache check
         Ok(None)
     }
 
-    async fn access_resource_via_mcp(
-        &self,
-        _resource: &MCPResource,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    async fn access_resource_via_mcp(&self, _resource: &MCPResource) -> Result<serde_json::Value> {
         // Simplified MCP resource access
         Ok(serde_json::json!({"data": "mock_resource_data"}))
     }
 
-    async fn cache_resource_result(
-        &self,
-        _uri: &str,
-        _result: &serde_json::Value,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn cache_resource_result(&self, _uri: &str, _result: &serde_json::Value) -> Result<()> {
         // Simplified caching
         Ok(())
     }
@@ -997,7 +1015,7 @@ impl SkillMCPIntegrationManager {
         &self,
         _tool: &MCPTool,
         _parameters: &serde_json::Value,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         // Parameter validation against input_schema
         Ok(())
     }
@@ -1006,7 +1024,7 @@ impl SkillMCPIntegrationManager {
         &self,
         _tool: &MCPTool,
         _context: &SecurityContext,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         // Check sandbox level, resource limits, etc.
         Ok(())
     }
@@ -1015,7 +1033,7 @@ impl SkillMCPIntegrationManager {
         &self,
         _tool: &MCPTool,
         _parameters: &serde_json::Value,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value> {
         // Simplified MCP tool execution
         Ok(serde_json::json!({"result": "mock_tool_result"}))
     }
@@ -1025,7 +1043,7 @@ impl SkillMCPIntegrationManager {
         tool_name: &str,
         duration: Duration,
         success: bool,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let success_value = if success { 1.0 } else { 0.0 };
         self.observability_engine
             .record_metric(
@@ -1071,7 +1089,7 @@ impl SkillExecutionEnvironment {
         &self,
         skill: &SkillDefinition,
         context: &ExecutionContext,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value> {
         // Start performance tracking
         self.performance_tracker.start_execution();
 
@@ -1110,7 +1128,7 @@ impl SandboxManager {
         &self,
         _skill: &SkillDefinition,
         _context: &ExecutionContext,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value> {
         // Simplified sandbox execution
         Ok(serde_json::json!({"result": "mock_skill_execution"}))
     }
@@ -1164,10 +1182,7 @@ impl SecurityEnforcer {
         }
     }
 
-    pub fn check_execution(
-        &self,
-        _context: &ExecutionContext,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn check_execution(&self, _context: &ExecutionContext) -> Result<()> {
         // Check for security violations during execution
         Ok(())
     }
@@ -1217,10 +1232,7 @@ impl OutputFilter {
         }
     }
 
-    pub fn filter_output(
-        &self,
-        output: &serde_json::Value,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub fn filter_output(&self, output: &serde_json::Value) -> Result<serde_json::Value> {
         // Apply sanitization and filtering
         Ok(output.clone())
     }
@@ -1322,11 +1334,7 @@ impl ObservabilityEngine {
         }
     }
 
-    pub async fn start_trace(
-        &self,
-        trace_id: &str,
-        operation: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start_trace(&self, trace_id: &str, operation: &str) -> Result<()> {
         let trace = TraceEntry {
             trace_id: trace_id.to_string(),
             operation: operation.to_string(),
@@ -1345,11 +1353,7 @@ impl ObservabilityEngine {
         Ok(())
     }
 
-    pub async fn end_trace(
-        &self,
-        trace_id: &str,
-        success: bool,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn end_trace(&self, trace_id: &str, success: bool) -> Result<()> {
         let mut traces = self.trace_store.write().await;
         if let Some(trace_list) = traces.get_mut(trace_id)
             && let Some(trace) = trace_list.last_mut()
@@ -1365,12 +1369,7 @@ impl ObservabilityEngine {
         Ok(())
     }
 
-    pub async fn record_metric(
-        &self,
-        name: &str,
-        value: f64,
-        tags: &[(&str, &str)],
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn record_metric(&self, name: &str, value: f64, tags: &[(&str, &str)]) -> Result<()> {
         let mut tags_map = HashMap::new();
         for (key, value) in tags {
             tags_map.insert(key.to_string(), value.to_string());

@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -12,16 +13,14 @@ pub struct XRSystem {
 }
 
 impl XRSystem {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self> {
         Ok(Self {
             controllers: Mutex::new(HashMap::new()),
             connected_platforms: Mutex::new(Vec::new()),
         })
     }
 
-    pub async fn update_controllers(
-        &self,
-    ) -> Result<Option<VRController>, Box<dyn std::error::Error>> {
+    pub async fn update_controllers(&self) -> Result<Option<VRController>> {
         // Mock controller update - in real implementation, this would poll XR SDK
         Ok(None)
     }
