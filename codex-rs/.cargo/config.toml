@@ -1,2 +1,13 @@
+[build]
+rustc-wrapper = "sccache"
+jobs = 8
+
 [target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "link-arg=/STACK:16777216"]  # 16MB stack to fix stack buffer overrun
+rustflags = ["-C", "link-arg=/STACK:16777216", "-C", "linker=rust-lld.exe"]
+
+[profile.dev-fast]
+inherits = "dev"
+codegen-units = 256
+incremental = true
+lto = "off"
+opt-level = 0
