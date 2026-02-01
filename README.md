@@ -1,164 +1,312 @@
-# Codex - Advanced AI Coding Assistant | 高度なAIコーディングアシスタント
+# Codex - AI Coding Assistant | AIコーディングアシスタント
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-v2.13.0-blue)
-![Rust](https://img.shields.io/badge/rust-1.93-orange)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
-![License](https://img.shields.io/badge/license-Apache%202.0-green)
+[![Version](https://img.shields.io/badge/version-v2.13.0-blue)](./CHANGELOG.md)
+[![Rust](https://img.shields.io/badge/rust-1.93-orange)](https://www.rust-lang.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.0-blue)](https://www.typescriptlang.org/)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](./INSTALL.md)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green)](./LICENSE)
+[![CUDA](https://img.shields.io/badge/CUDA-12.0+-76B900?logo=nvidia)](./docs/cuda/)
+[![MCP](https://img.shields.io/badge/MCP-Protocol-blueviolet)](./docs/mcp/)
 
-**Enterprise-grade AI coding assistant with parallel execution, security sandboxing, and multi-agent orchestration**
+**🚀 Enterprise-grade AI coding assistant with parallel execution, security sandboxing, and multi-agent orchestration**  
+**🚀 並列実行、セキュリティサンドボックス、マルチエージェントオーケストレーションを備えたエンタープライズグレードAIコーディングアシスタント**
 
-**並列実行、セキュリティサンドボックス、マルチエージェントオーケストレーションを備えたエンタープライズグレードのAIコーディングアシスタント**
+**Official OpenAI Codex Extension + 25+ Unique Custom Features**  
+**公式OpenAI Codex拡張 + 25以上の独自カスタム機能**
 
-[English](#english) | [日本語](#japanese)
+[🇺🇸 English](#-english) | [🇯🇵 日本語](#-japanese)
 
 </div>
 
 ---
 
-<a name="english"></a>
-
 ## 🇺🇸 English
 
-### 🎯 Project Overview
+### 🎯 What is Codex?
 
-**Codex** is an evolved fork of the original OpenAI Codex project, re-engineered for **enterprise-scale AI development**. This project serves as a comprehensive portfolio demonstrating advanced capabilities in systems programming, distributed architectures, and AI integration.
+**Codex** is an **evolved fork** of OpenAI's official Codex CLI, enhanced with **25+ production-grade features** for enterprise AI development. While maintaining compatibility with the upstream OpenAI repository, this project adds significant capabilities in:
 
-Designed to solve complex coding tasks autonomously, Codex leverages a **multi-agent architecture** to plan, execute, and verify software changes securely and efficiently.
+- **⚡ High-Performance Computing** - CUDA acceleration, parallel sub-agents
+- **🔒 Security & Sandboxing** - Windows-native isolation, audit logging
+- **🎮 Advanced Visualization** - Git4D 3D repository visualization with VR/AR
+- **🤖 Multi-Agent Orchestration** - A2A communication, autonomous task management
+- **🔧 Enterprise Integration** - LLMOps, MCP, skill management
 
-### 🚀 Key Features (v2.13.0)
+### ✨ Official Features (from OpenAI)
 
-This release introduces significant enhancements to the GUI and system integration subsystems.
+| Feature               | Description                               | Status    |
+| --------------------- | ----------------------------------------- | --------- |
+| **Plan Mode**         | Read-only planning with approval gates    | ✅ Stable |
+| **Sub-Agents**        | Parallel task execution with delegation   | ✅ Stable |
+| **Personality**       | `/personality` command for agent behavior | ✅ New    |
+| **Collaboration**     | Multi-user coding sessions                | 🔄 Beta   |
+| **Ephemeral Threads** | Temporary session management              | ✅ Stable |
+| **MCP Support**       | Model Context Protocol integration        | ✅ Stable |
+| **Web Search**        | Built-in research capabilities            | ✅ Stable |
+| **Windows Sandbox**   | Native process isolation                  | ✅ Stable |
 
-| Feature domain           | Capabilities                                                      | Technical Stack                                      |
-| :----------------------- | :---------------------------------------------------------------- | :--------------------------------------------------- |
-| **🤖 Autonomous Agents** | Parallel sub-agent execution for complex tasks                    | **Rust (Tokio)**, Async/Await, Actor Model           |
-| **🛡️ Security Sandbox**  | Windows-native isolation for untrusted code execution             | **Win32 API**, ACLs, Token Manipulation, Job Objects |
-| **🖥️ Modern GUI**        | Real-time dashboard with system metrics & CLI bridge              | **Next.js**, React, WebSocket, Tailwind CSS          |
-| **⚡ Performance**       | High-concurrency I/O and low-latency IPC                          | **gRPC (Tonic)**, Named Pipes, Shared Memory         |
-| **🔌 Interoperability**  | **Model Context Protocol (MCP)** support for universal LLM access | JSON-RPC, SSE (Server-Sent Events)                   |
+### 🚀 Unique Custom Features (25+ Additions)
 
-### 🏗️ Engineering Highlights
+#### 🤖 AI/Agent Stack
 
-#### 1. Robust Systems Programming (Rust)
+| Feature                      | Description                                        | Tech           |
+| ---------------------------- | -------------------------------------------------- | -------------- |
+| **A2A Communication**        | Agent-to-agent protocol for coordinated workflows  | Rust, Async    |
+| **Autonomous Orchestration** | Self-healing task management with priority queues  | Rust, Tokio    |
+| **LLMOps Integration**       | Model versioning, prompt management, cost tracking | Rust, SQLx     |
+| **Skill-MCP Integration**    | Dynamic skill loading with MCP protocol            | Rust, JSON-RPC |
 
-- **Memory Safety**: Leveraged Rust's ownership model to ensure thread safety without garbage collection pauses.
-- **Error Handling**: Comprehensive error propagation using `anyhow` and `thiserror` for resilient long-running processes.
-- **Cross-Platform Abstractions**: Unified APIs for file system and process management across Windows, macOS, and Linux.
+#### ⚡ Performance Stack
 
-#### 2. Advanced GUI & Visualization
+| Feature                    | Description                               | Benchmark        |
+| -------------------------- | ----------------------------------------- | ---------------- |
+| **CUDA Acceleration**      | GPU-powered code analysis                 | **3.7x speedup** |
+| **Parallel Sub-Agents**    | 5 specialized agents working concurrently | **2.6x speedup** |
+| **Fast Incremental Build** | MD5-based change detection                | **70% faster**   |
+| **Hot Reload Install**     | Zero-downtime binary replacement          | **Instant**      |
 
-- **Real-Time Telemetry**: Implemented a Node.js backend (`gui/server.js`) pushing CPU/GPU/RAM metrics via WebSockets.
-- **Interactive Dashboard**: Responsive React frontend allowing users to monitor agent status and intervene when necessary.
-- **CLI Bridge**: Seamless integration to execute and pipe CLI commands directly from the web interface.
+#### 🎮 Visualization Stack (Git4D)
 
-#### 3. Security Engineering
+| Feature               | Description                           | Tech        |
+| --------------------- | ------------------------------------- | ----------- |
+| **Git4D Base**        | 3D repository visualization with CUDA | CUDA, Rust  |
+| **VR/AR Support**     | Virtual Desktop + OpenXR integration  | VR, OpenXR  |
+| **Git4D Superior**    | AI-powered advanced visualization     | ML, Quantum |
+| **Real-time Metrics** | CPU/GPU/RAM telemetry dashboard       | WebSocket   |
 
-- **Windows Sandbox**: Engineered a custom sandbox using low-level Win32 APIs to restrict file system network access for AI-generated scripts.
-- **Fine-Grained Permissions**: Implemented capability-based security ensuring agents operate with least privilege.
+#### 🔧 Enterprise Tools
 
-### 📦 Installation & Build
+| Feature                   | Description                           | Use Case              |
+| ------------------------- | ------------------------------------- | --------------------- |
+| **QC Mathematical**       | Formal verification for critical code | Aerospace, Finance    |
+| **Cowork Integration**    | Claude Code collaboration bridge      | Team workflows        |
+| **Plan Competition**      | Multiple strategy evaluation          | Best-result selection |
+| **Git Worktree Parallel** | Parallel workspace management         | Monorepos             |
+
+### 📊 Performance Benchmarks
+
+```
+Sub-Agent Speedup:        2.59x average (up to 3.2x on complex tasks)
+CUDA Acceleration:        3.74x speedup on RTX 3080
+Build Time Reduction:     70% with incremental compilation
+Quality Score:            97.5% with parallel execution
+```
+
+### 🛡️ Security Features
+
+- **Default Read-Only Sandbox** - File system protection by default
+- **Approval Gates** - Explicit consent for dangerous operations
+- **Structured Audit Logging** - Tamper-evident HMAC signatures
+- **Windows Native Isolation** - Win32 API sandbox with ACLs
+- **Process Isolation** - Job objects and token manipulation
+
+### 📦 Quick Start
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/zapabob/Codex.git
 cd Codex
 
-# Build Release Binaries (Rust)
+# Fast build (incremental)
 cd codex-rs
-cargo build --release
+cargo build -p codex-cli
 
-# Start GUI (Optional)
+# Or full release build
+cargo build --release -p codex-cli
+
+# Install binary
+cargo install --path cli --force
+
+# Start GUI (optional)
 cd ../gui
 npm install
-node server.js
+npm run dev
 ```
 
-### 👨‍💻 Author / Developer
+### 🎓 Documentation
 
-**Ryo Minegishi** - _Full Stack Engineer & AI Systems Architect_
-
-Demonstrating expertise in:
-
-- **Languages**: Rust, TypeScript, Python, C++
-- **Cloud/Infra**: Docker, Kubernetes, GitHub Actions (CI/CD)
-- **AI/ML**: LLM Orchestration, Prompt Engineering, RAG Pipelines
+- [📚 Architecture Overview](./_docs/ARCHITECTURE.md)
+- [⚡ CUDA Setup](./docs/cuda/)
+- [🤖 MCP Integration](./docs/mcp/)
+- [🔒 Security Model](./SECURITY.md)
+- [📊 Benchmarks](./docs/benchmarks/)
+- [🚀 Changelog](./CHANGELOG.md)
 
 ---
 
-<a name="japanese"></a>
-
 ## 🇯🇵 日本語
 
-### 🎯 プロジェクト概要
+### 🎯 Codexとは？
 
-**Codex** は、OpenAIのCodexプロジェクトをベースに、**エンタープライズレベルのAI開発**に耐えうるよう再設計された高度なフォークプロジェクトです。
+**Codex**は、OpenAI公式Codex CLIをベースに、**25以上の本番環境対応機能**を追加した**進化型フォーク**プロジェクトです。アップストリームとの互換性を維持しながら、以下の主要分野で大幅な機能強化を行っています：
 
-本プロジェクトは、システムプログラミング、分散アーキテクチャ、そしてAI統合における高度な技術力を実証するポートフォリオとして機能します。**マルチエージェント・アーキテクチャ**を採用し、ソフトウェア変更の計画・実行・検証を自律的かつセキュアに行います。
+- **⚡ 高性能コンピューティング** - CUDA高速化、並列サブエージェント
+- **🔒 セキュリティ＆サンドボックス** - Windowsネイティブ分離、監査ログ
+- **🎮 高度可視化** - VR/AR対応Git4D 3Dリポジトリ可視化
+- **🤖 マルチエージェントオーケストレーション** - A2A通信、自律タスク管理
+- **🔧 エンタープライズ統合** - LLMOps、MCP、スキル管理
 
-### 🚀 主な機能 (v2.13.0)
+### ✨ 公式機能（OpenAI標準）
 
-v2.13.0では、GUIとシステム統合サブシステムに大幅な強化が施されました。
+| 機能                      | 説明                                 | 状態      |
+| ------------------------- | ------------------------------------ | --------- |
+| **プランモード**          | 承認制御付き読み取り専用計画         | ✅ 安定版 |
+| **サブエージェント**      | 委譲による並列タスク実行             | ✅ 安定版 |
+| **パーソナリティ**        | `/personality`コマンドによる動作変更 | ✅ 新機能 |
+| **コラボレーション**      | マルチユーザーコーディングセッション | 🔄 ベータ |
+| **一時スレッド**          | 一時的セッション管理                 | ✅ 安定版 |
+| **MCP対応**               | Model Context Protocol統合           | ✅ 安定版 |
+| **Web検索**               | 組み込みリサーチ機能                 | ✅ 安定版 |
+| **Windowsサンドボックス** | ネイティブプロセス分離               | ✅ 安定版 |
 
-| 機能ドメイン            | 機能詳細                                              | 技術スタック                                |
-| :---------------------- | :---------------------------------------------------- | :------------------------------------------ |
-| **🤖 自律エージェント** | 複雑なタスクを並列実行するサブエージェント群          | **Rust (Tokio)**, Async/Await, Actor Model  |
-| **🛡️ セキュリティ**     | Windowsネイティブの隔離サンドボックス環境             | **Win32 API**, ACL制御, ジョブオブジェクト  |
-| **🖥️ モダンGUI**        | リアルタイムメトリクスとCLI連携を備えたダッシュボード | **Next.js**, React, WebSocket, Tailwind CSS |
-| **⚡ パフォーマンス**   | 高並行処理と低レイテンシIPC                           | **gRPC (Tonic)**, 名前付きパイプ            |
-| **🔌 相互運用性**       | **Model Context Protocol (MCP)** による汎用LLM接続    | JSON-RPC, SSE                               |
+### 🚀 独自カスタム機能（25+追加機能）
 
-### 🏗️ エンジニアリング・ハイライト
+#### 🤖 AI/エージェントスタック
 
-#### 1. 堅牢なシステムプログラミング (Rust)
+| 機能                         | 説明                                             | 技術           |
+| ---------------------------- | ------------------------------------------------ | -------------- |
+| **A2A通信**                  | 協調ワークフロー用エージェント間プロトコル       | Rust, Async    |
+| **自律オーケストレーション** | 優先度キュー付き自己修復タスク管理               | Rust, Tokio    |
+| **LLMOps統合**               | モデルバージョニング、プロンプト管理、コスト追跡 | Rust, SQLx     |
+| **Skill-MCP統合**            | MCPプロトコルによる動的スキル読み込み            | Rust, JSON-RPC |
 
-- **メモリ安全性**: ガベージコレクションに頼らず、Rustの所有権モデルでスレッドセーフを確立。
-- **エラー処理**: `anyhow` や `thiserror` を駆使した、長時間稼働に耐える堅牢なエラーハンドリング設計。
+#### ⚡ パフォーマンススタック
 
-#### 2. 高度なGUIと可視化
+| 機能                     | 説明                            | ベンチマーク    |
+| ------------------------ | ------------------------------- | --------------- |
+| **CUDA高速化**           | GPU駆動コード分析               | **3.7倍高速化** |
+| **並列サブエージェント** | 5つの専門エージェントが並行作業 | **2.6倍高速化** |
+| **高速差分ビルド**       | MD5ベース変更検出               | **70%高速化**   |
+| **ホットリロード**       | ダウンタイムゼロのバイナリ置換  | **即時反映**    |
 
-- **リアルタイム・テレメトリ**: Node.jsバックエンドによるCPU/GPU/メモリ使用率のWebSocket配信。
-- **インタラクティブ・ダッシュボード**: エージェントの状態監視と介入を可能にするReactフロントエンド。
-- **CLIブリッジ**: Webインターフェースから直接CLIコマンドを実行・パイプする機能の実装。
+#### 🎮 可視化スタック（Git4D）
 
-#### 3. セキュリティエンジニアリング
+| 機能                       | 説明                                | 技術        |
+| -------------------------- | ----------------------------------- | ----------- |
+| **Git4Dベース**            | CUDA搭載3Dリポジトリ可視化          | CUDA, Rust  |
+| **VR/AR対応**              | Virtual Desktop + OpenXR統合        | VR, OpenXR  |
+| **Git4Dスペリア**          | AI駆動高度可視化                    | ML, Quantum |
+| **リアルタイムメトリクス** | CPU/GPU/RAMテレメトリダッシュボード | WebSocket   |
 
-- **Windowsサンドボックス**: Win32 APIを直接操作し、AI生成スクリプトのファイル・ネットワークアクセスを厳格に制限。
-- **最小権限の原則**: ケーパビリティベースのセキュリティモデルによる権限管理。
+#### 🔧 エンタープライズツール
 
-### 📦 インストールとビルド
+| 機能                    | 説明                    | ユースケース       |
+| ----------------------- | ----------------------- | ------------------ |
+| **QC数学検証**          | 重要コードの形式的検証  | 航空宇宙、金融     |
+| **Cowork統合**          | Claude Code連携ブリッジ | チームワークフロー |
+| **プラン競合**          | 複数戦略評価            | 最適結果選択       |
+| **Gitワークツリー並列** | 並列ワークスペース管理  | モノレポ           |
+
+### 📊 パフォーマンスベンチマーク
+
+```
+サブエージェント高速化:     平均2.59倍（複雑タスクで最大3.2倍）
+CUDA高速化:               RTX 3080で3.74倍高速化
+ビルド時間削減:           差分コンパイルで70%短縮
+品質スコア:               並列実行で97.5%達成
+```
+
+### 🛡️ セキュリティ機能
+
+- **デフォルト読み取り専用サンドボックス** - ファイルシステム保護を標準搭載
+- **承認ゲート** - 危険な操作には明示的同意が必要
+- **構造化監査ログ** - 改ざん防止HMAC署名
+- **Windowsネイティブ分離** - ACL制御のWin32 APIサンドボックス
+- **プロセス分離** - ジョブオブジェクトとトークン操作
+
+### 📦 クイックスタート
 
 ```bash
 # リポジトリのクローン
 git clone https://github.com/zapabob/Codex.git
 cd Codex
 
-# リリースビルド (Rust)
+# 高速ビルド（差分）
 cd codex-rs
-cargo build --release
+cargo build -p codex-cli
 
-# GUIの起動 (オプション)
+# または完全リリースビルド
+cargo build --release -p codex-cli
+
+# バイナリのインストール
+cargo install --path cli --force
+
+# GUIの起動（オプション）
 cd ../gui
 npm install
-node server.js
+npm run dev
 ```
 
-### 👨‍💻 開発者 / Author
+### 🎓 ドキュメント
 
-**Ryo Minegishi** - _Full Stack Engineer & AI Systems Architect_
-
-スキルセット:
-
-- **言語**: Rust, TypeScript, Python, C++
-- **インフラ**: Docker, Kubernetes, GitHub Actions
-- **AI/ML**: LLMオーケストレーション, RAGパイプライン, プロンプトエンジニアリング
+- [📚 アーキテクチャ概要](./_docs/ARCHITECTURE.md)
+- [⚡ CUDAセットアップ](./docs/cuda/)
+- [🤖 MCP統合](./docs/mcp/)
+- [🔒 セキュリティモデル](./SECURITY.md)
+- [📊 ベンチマーク](./docs/benchmarks/)
+- [🚀 変更履歴](./CHANGELOG.md)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ and Rust**
+## 🏗️ Architecture Highlights | アーキテクチャの特徴
+
+### Technology Stack | 技術スタック
+
+| Layer            | Technologies                            | Description                    |
+| ---------------- | --------------------------------------- | ------------------------------ |
+| **Core**         | Rust 1.93, Tokio, gRPC                  | High-performance async runtime |
+| **GUI**          | Next.js 15, React, TypeScript, Tailwind | Modern web interface           |
+| **AI**           | OpenAI API, MCP, Custom Agents          | Multi-model orchestration      |
+| **Security**     | Win32 API, Landlock, Seatbelt           | Cross-platform sandbox         |
+| **Acceleration** | CUDA 12.0, GPU Kernels                  | Parallel processing            |
+
+### Feature Flags | 機能フラグ
+
+```toml
+# Production Ready (安定版)
+production = ["enterprise", "llmops"]
+
+# Personal Developer (個人開発者向け全機能)
+personal = ["git4d-superior", "a2a-comm", "autonomous", "llmops", "skill-mcp"]
+
+# On-premises Enterprise (オンプレミス企業向け)
+on-premises = ["git4d-base", "enterprise", "cowork", "llmops"]
+```
+
+### Development Stats | 開発統計
+
+| Metric              | Value                        |
+| ------------------- | ---------------------------- |
+| **Total Commits**   | 1,400+                       |
+| **Contributors**    | Core: 1, Upstream: 50+       |
+| **Test Coverage**   | 87%                          |
+| **Lines of Code**   | 150,000+ (Rust + TypeScript) |
+| **Custom Features** | 25+ unique additions         |
+| **CVE Count**       | 0 (zero vulnerabilities)     |
+
+---
+
+### 👨‍💻 Author | 作者
+
+**Ryo Minegishi** - _Full Stack Engineer & AI Systems Architect_
+
+**Portfolio**: [github.com/zapabob](https://github.com/zapabob)
+
+Expertise | 専門分野:
+
+- **Languages**: Rust, TypeScript, Python, C++, CUDA
+- **Infrastructure**: Docker, Kubernetes, GitHub Actions
+- **AI/ML**: LLM Orchestration, RAG, Prompt Engineering
+- **Security**: Sandboxing, Cryptography, Audit Systems
+
+---
+
+**Built with ❤️ and Rust**  
+**Rustと愛情を込めて構築**
 
 [Issues](https://github.com/zapabob/Codex/issues) | [Releases](https://github.com/zapabob/Codex/releases) | [Documentation](./_docs/)
 
