@@ -99,7 +99,7 @@ const PRESETS: &[ModelPreset] = &[
 ];
 
 pub fn builtin_model_presets(auth_mode: Option<AuthMode>) -> Vec<ModelPreset> {
-    let allow_codex_mini = matches!(auth_mode, Some(AuthMode::ChatGPT));
+    let allow_codex_mini = matches!(auth_mode, Some(AuthMode::Chatgpt));
     PRESETS
         .iter()
         .filter(|preset| allow_codex_mini || preset.id != "gpt-5-codex-mini")

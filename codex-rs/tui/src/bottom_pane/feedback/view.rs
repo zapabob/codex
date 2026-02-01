@@ -28,8 +28,8 @@ use crate::bottom_pane::textarea::TextArea;
 use crate::bottom_pane::textarea::TextAreaState;
 
 use super::utils::{
-    feedback_classification, feedback_title_and_placeholder, gutter, issue_url_for_category,
-    FeedbackAudience,
+    FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter,
+    issue_url_for_category,
 };
 
 /// Minimal input overlay to collect an optional feedback note, then upload
@@ -97,6 +97,7 @@ impl FeedbackNoteView {
             Ok(()) => {
                 let issue_url =
                     issue_url_for_category(self.category, &thread_id, self.feedback_audience);
+                let prefix = gutter();
                 let mut lines = vec![Line::from(match issue_url.as_ref() {
                     Some(_) if self.feedback_audience == FeedbackAudience::OpenAiEmployee => {
                         format!("{prefix} Please report this in #codex-feedback:")
@@ -141,7 +142,6 @@ impl FeedbackNoteView {
                 }
                 self.app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
                     history_cell::PlainHistoryCell::new(lines),
-                )));
                 )));
             }
             Err(e) => {
@@ -317,7 +317,6 @@ impl Renderable for FeedbackNoteView {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

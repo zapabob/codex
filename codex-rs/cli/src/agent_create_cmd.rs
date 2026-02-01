@@ -83,7 +83,12 @@ pub async fn run_agent_create_command(
         auth_snapshot
             .as_ref()
             .and_then(|auth| auth.get_account_email()),
-        auth_snapshot.as_ref().map(|auth| auth.mode),
+        auth_snapshot
+            .as_ref()
+            .map(|auth| match auth.internal_auth_mode() {
+                codex_core::auth::AuthMode::ApiKey => codex_app_server_protocol::AuthMode::ApiKey,
+                codex_core::auth::AuthMode::Chatgpt => codex_app_server_protocol::AuthMode::Chatgpt,
+            }),
         config.otel.log_user_prompt,
         terminal::user_agent(),
         SessionSource::Cli,

@@ -176,9 +176,10 @@ impl PlanStreamController {
             .collect::<Vec<_>>();
         out_lines.extend(plan_lines);
 
-        Some(Box::new(history_cell::new_proposed_plan_stream(
+        // TODO: new_proposed_plan_stream was removed in upstream; using AgentMessageCell as temporary replacement
+        Some(Box::new(history_cell::AgentMessageCell::new(
             out_lines,
-            is_stream_continuation,
+            !is_stream_continuation,
         )))
     }
 }

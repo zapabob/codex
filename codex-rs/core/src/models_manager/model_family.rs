@@ -123,7 +123,7 @@ impl ModelFamily {
             priority: _,
             upgrade: _,
             base_instructions,
-            model_instructions_template: _,
+            model_messages: _,
             supports_reasoning_summaries,
             support_verbosity,
             default_verbosity,
@@ -134,6 +134,7 @@ impl ModelFamily {
             auto_compact_token_limit: _,
             effective_context_window_percent: _,
             experimental_supported_tools,
+            ..
         } = model;
 
         if let Some(default_reasoning_level) = default_reasoning_level {
@@ -457,7 +458,7 @@ mod tests {
             priority: 1,
             upgrade: None,
             base_instructions: "".to_string(),
-            model_instructions_template: None,
+            model_messages: None,
             supports_reasoning_summaries: false,
             support_verbosity: false,
             default_verbosity: None,
@@ -547,7 +548,7 @@ mod tests {
             priority: 10,
             upgrade: None,
             base_instructions: "Remote instructions".to_string(),
-            model_instructions_template: None,
+            model_messages: None,
             supports_reasoning_summaries: true,
             support_verbosity: true,
             default_verbosity: Some(Verbosity::High),

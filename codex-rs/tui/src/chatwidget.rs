@@ -964,7 +964,10 @@ impl ChatWidget {
         if plan_text.is_empty() {
             return;
         }
-        self.add_to_history(history_cell::new_proposed_plan(plan_text));
+        // TODO: new_proposed_plan was removed in upstream; using PlainHistoryCell as temporary replacement
+        self.add_to_history(history_cell::PlainHistoryCell::new(vec![
+            ratatui::text::Line::from(plan_text),
+        ]));
     }
 
     fn on_agent_reasoning_delta(&mut self, delta: String) {
@@ -1046,10 +1049,7 @@ impl ChatWidget {
                     .bottom_pane
                     .status_widget()
                     .map(super::status_indicator_widget::StatusIndicatorWidget::elapsed_seconds);
-                self.add_to_history(history_cell::FinalMessageSeparator::new(
-                    elapsed_seconds,
-                    runtime_metrics,
-                ));
+                self.add_to_history(history_cell::FinalMessageSeparator::new(elapsed_seconds));
             }
             self.needs_final_message_separator = false;
             self.had_work_activity = false;
@@ -1902,10 +1902,7 @@ impl ChatWidget {
                     .status_widget()
                     .map(super::status_indicator_widget::StatusIndicatorWidget::elapsed_seconds)
                     .map(|current| self.worked_elapsed_from(current));
-                self.add_to_history(history_cell::FinalMessageSeparator::new(
-                    elapsed_seconds,
-                    None,
-                ));
+                self.add_to_history(history_cell::FinalMessageSeparator::new(elapsed_seconds));
                 self.needs_final_message_separator = false;
                 self.had_work_activity = false;
             } else if self.needs_final_message_separator {
@@ -3666,13 +3663,10 @@ impl ChatWidget {
     }
 
     pub(crate) fn add_ps_output(&mut self) {
-        let processes = self
+        let processes: Vec<String> = self
             .unified_exec_processes
             .iter()
-            .map(|process| history_cell::UnifiedExecProcessDetails {
-                command_display: process.command_display.clone(),
-                recent_chunks: process.recent_chunks.clone(),
-            })
+            .map(|process| process.command_display.clone())
             .collect();
         self.add_to_history(history_cell::new_unified_exec_processes_output(processes));
     }
