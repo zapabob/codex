@@ -28,8 +28,8 @@ use crate::bottom_pane::textarea::TextArea;
 use crate::bottom_pane::textarea::TextAreaState;
 
 use super::utils::{
-    BASE_ISSUE_URL, FeedbackAudience, feedback_classification, feedback_title_and_placeholder,
-    gutter, issue_url_for_category,
+    FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter,
+    issue_url_for_category,
 };
 
 /// Minimal input overlay to collect an optional feedback note, then upload
@@ -324,6 +324,7 @@ mod tests {
     use crate::app_event::AppEvent;
     use crate::app_event::FeedbackCategory;
     use crate::app_event_sender::AppEventSender;
+    use crate::bottom_pane::feedback::utils::BASE_ISSUE_URL;
 
     fn render(view: &FeedbackNoteView, width: u16) -> String {
         let height = view.desired_height(width);
