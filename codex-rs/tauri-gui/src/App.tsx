@@ -8,6 +8,7 @@ import Plans from "./pages/Plans";
 import GitVR from "./pages/GitVR";
 import Orchestration from "./pages/Orchestration";
 import { CyberpunkBackground } from "./components/CyberpunkBackground";
+import { APP_VERSION_DISPLAY } from "./version";
 import "./App.css";
 import "./styles/cyberpunk-theme.css";
 
@@ -85,7 +86,7 @@ function App() {
         <nav className="sidebar">
           <div className="logo">
             <h2>Codex AI</h2>
-            <p className="version">v2.13.0</p>
+            <p className="version">{APP_VERSION_DISPLAY}</p>
           </div>
 
           <div className="nav-links">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { APP_VERSION } from "../version";
 import "../styles/Settings.css";
 
 function Settings() {
@@ -77,7 +78,7 @@ function Settings() {
           <div className="setting-info">
             <label>Enable desktop notifications</label>
             <p className="setting-description">
-              Show notifications for file changes and blueprint events
+              Show notifications for file changes and plan events
             </p>
           </div>
           <label className="toggle">
@@ -153,7 +154,7 @@ function Settings() {
           <p>
             <strong>Codex AI-Native OS</strong>
           </p>
-          <p>Version: 2.13.0</p>
+          <p>Version: {APP_VERSION}</p>
           <p>Built with Tauri + React + Rust</p>
           <p className="copyright">© 2025 zapabob. All rights reserved.</p>
         </div>

@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import StatusCard from "../components/StatusCard";
 import RecentChanges from "../components/RecentChanges";
 import KernelStatus from "../components/KernelStatus";
+import { DEFAULT_VERSION } from "../version";
 import "../styles/Dashboard.css";
 
 interface Status {
@@ -92,20 +93,20 @@ function Dashboard() {
     }
   };
 
-  const handleNewBlueprint = async () => {
-    const description = prompt("Blueprint description:");
+  const handleNewPlan = async () => {
+    const description = prompt("Plan description:");
     if (!description) return;
 
     try {
-      const result = await invoke("codex_create_blueprint", {
+      const result = await invoke("codex_create_plan", {
         description,
         mode: "orchestrated",
       });
-      console.log("Blueprint created:", result);
-      alert("Blueprint created successfully!");
+      console.log("Plan created:", result);
+      alert("Plan created successfully!");
     } catch (error) {
-      console.error("Failed to create blueprint:", error);
-      alert(`Failed to create blueprint: ${error}`);
+      console.error("Failed to create plan:", error);
+      alert(`Failed to create plan: ${error}`);
     }
   };
 
@@ -143,7 +144,7 @@ function Dashboard() {
         />
         <StatusCard
           title="Version"
-          status={status?.version || "2.13.0"}
+          status={status?.version || DEFAULT_VERSION}
           icon="📦"
         />
       </div>
@@ -174,8 +175,8 @@ function Dashboard() {
       <div className="quick-actions">
         <h2>Quick Actions</h2>
         <div className="action-buttons">
-          <button onClick={handleNewBlueprint} className="btn btn-action">
-            📋 New Blueprint
+          <button onClick={handleNewPlan} className="btn btn-action">
+            📋 New Plan
           </button>
           <button onClick={handleResearch} className="btn btn-action">
             🔍 Deep Research
