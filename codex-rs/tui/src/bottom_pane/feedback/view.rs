@@ -28,7 +28,8 @@ use crate::bottom_pane::textarea::TextArea;
 use crate::bottom_pane::textarea::TextAreaState;
 
 use super::utils::{
-    BASE_ISSUE_URL, feedback_classification, feedback_title_and_placeholder, gutter,
+    feedback_classification, feedback_title_and_placeholder, gutter, issue_url_for_category,
+    FeedbackAudience,
 };
 
 /// Minimal input overlay to collect an optional feedback note, then upload
@@ -39,6 +40,7 @@ pub(crate) struct FeedbackNoteView {
     rollout_path: Option<PathBuf>,
     app_event_tx: AppEventSender,
     include_logs: bool,
+    feedback_audience: FeedbackAudience,
 
     // UI state
     textarea: TextArea,
@@ -53,6 +55,7 @@ impl FeedbackNoteView {
         rollout_path: Option<PathBuf>,
         app_event_tx: AppEventSender,
         include_logs: bool,
+        feedback_audience: FeedbackAudience,
     ) -> Self {
         Self {
             category,
@@ -60,6 +63,7 @@ impl FeedbackNoteView {
             rollout_path,
             app_event_tx,
             include_logs,
+            feedback_audience,
             textarea: TextArea::new(),
             textarea_state: RefCell::new(TextAreaState::default()),
             complete: false,
@@ -91,26 +95,53 @@ impl FeedbackNoteView {
 
         match result {
             Ok(()) => {
-                let issue_url = format!("{BASE_ISSUE_URL}&steps=Uploaded%20thread:%20{thread_id}");
-                let prefix = if self.include_logs {
-                    "• Feedback uploaded."
-                } else {
-                    "• Feedback recorded (no logs)."
-                };
+                let issue_url =
+                    issue_url_for_category(self.category, &thread_id, self.feedback_audience);
+                let mut lines = vec![Line::from(match issue_url.as_ref() {
+                    Some(_) if self.feedback_audience == FeedbackAudience::OpenAiEmployee => {
+                        format!("{prefix} Please report this in #codex-feedback:")
+                    }
+                    Some(_) => format!("{prefix} Please open an issue using the following URL:"),
+                    None => format!("{prefix} Thanks for the feedback!"),
+                })];
+                match issue_url {
+                    Some(url) if self.feedback_audience == FeedbackAudience::OpenAiEmployee => {
+                        lines.extend([
+                            "".into(),
+                            Line::from(vec!["  ".into(), url.cyan().underlined()]),
+                            "".into(),
+                            Line::from("  Share this and add some info about your problem:"),
+                            Line::from(vec![
+                                "    ".into(),
+                                format!("go/codex-feedback/{thread_id}").bold(),
+                            ]),
+                        ]);
+                    }
+                    Some(url) => {
+                        lines.extend([
+                            "".into(),
+                            Line::from(vec!["  ".into(), url.cyan().underlined()]),
+                            "".into(),
+                            Line::from(vec![
+                                "  Or mention your thread ID ".into(),
+                                std::mem::take(&mut thread_id).bold(),
+                                " in an existing issue.".into(),
+                            ]),
+                        ]);
+                    }
+                    None => {
+                        lines.extend([
+                            "".into(),
+                            Line::from(vec![
+                                "  Thread ID: ".into(),
+                                std::mem::take(&mut thread_id).bold(),
+                            ]),
+                        ]);
+                    }
+                }
                 self.app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
-                    history_cell::PlainHistoryCell::new(vec![
-                        Line::from(format!(
-                            "{prefix} Please open an issue using the following URL:"
-                        )),
-                        "".into(),
-                        Line::from(vec!["  ".into(), issue_url.cyan().underlined()]),
-                        "".into(),
-                        Line::from(vec![
-                            "  Or mention your thread ID ".into(),
-                            std::mem::take(&mut thread_id).bold(),
-                            " in an existing issue.".into(),
-                        ]),
-                    ]),
+                    history_cell::PlainHistoryCell::new(lines),
+                )));
                 )));
             }
             Err(e) => {
@@ -287,6 +318,7 @@ impl Renderable for FeedbackNoteView {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -328,7 +360,14 @@ mod tests {
         let (tx_raw, _rx) = tokio::sync::mpsc::unbounded_channel::<AppEvent>();
         let tx = AppEventSender::new(tx_raw);
         let snapshot = codex_feedback::CodexFeedback::new().snapshot(None);
-        FeedbackNoteView::new(category, snapshot, None, tx, true)
+        FeedbackNoteView::new(
+            category,
+            snapshot,
+            None,
+            tx,
+            true,
+            FeedbackAudience::External,
+        )
     }
 
     #[test]
@@ -357,5 +396,45 @@ mod tests {
         let view = make_view(FeedbackCategory::Other);
         let rendered = render(&view, 60);
         insta::assert_snapshot!("feedback_view_other", rendered);
+    }
+    #[test]
+    fn issue_url_available_for_bug_bad_result_and_other() {
+        let bug_url = issue_url_for_category(
+            FeedbackCategory::Bug,
+            "thread-1",
+            FeedbackAudience::OpenAiEmployee,
+        );
+        let expected_slack_url = "http://go/codex-feedback-internal".to_string();
+        assert_eq!(bug_url.as_deref(), Some(expected_slack_url.as_str()));
+
+        let bad_result_url = issue_url_for_category(
+            FeedbackCategory::BadResult,
+            "thread-2",
+            FeedbackAudience::OpenAiEmployee,
+        );
+        assert!(bad_result_url.is_some());
+
+        let other_url = issue_url_for_category(
+            FeedbackCategory::Other,
+            "thread-3",
+            FeedbackAudience::OpenAiEmployee,
+        );
+        assert!(other_url.is_some());
+
+        assert!(
+            issue_url_for_category(
+                FeedbackCategory::GoodResult,
+                "t",
+                FeedbackAudience::OpenAiEmployee
+            )
+            .is_none()
+        );
+        let bug_url_non_employee =
+            issue_url_for_category(FeedbackCategory::Bug, "t", FeedbackAudience::External);
+        let expected_external_url = format!("{BASE_BUG_ISSUE_URL}&steps=Uploaded%20thread:%20t");
+        assert_eq!(
+            bug_url_non_employee.as_deref(),
+            Some(expected_external_url.as_str())
+        );
     }
 }

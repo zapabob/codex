@@ -23,12 +23,18 @@ impl GitSha {
     }
 }
 
+/// Authentication mode for OpenAI-backed providers.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Display, JsonSchema, TS)]
 #[serde(rename_all = "lowercase")]
 pub enum AuthMode {
+    /// OpenAI API key provided by the caller and stored by Codex.
     ApiKey,
-    ChatGPT,
+    /// ChatGPT OAuth managed by Codex (tokens persisted and refreshed by Codex).
+    Chatgpt,
     /// [UNSTABLE] FOR OPENAI INTERNAL USE ONLY - DO NOT USE.
+    ///
+    /// ChatGPT auth tokens are supplied by an external host app and are only
+    /// stored in memory. Token refresh must be handled by the external host app.
     #[serde(rename = "chatgptAuthTokens")]
     #[ts(rename = "chatgptAuthTokens")]
     #[strum(serialize = "chatgptAuthTokens")]
@@ -121,6 +127,10 @@ client_request_definitions! {
     ThreadArchive => "thread/archive" {
         params: v2::ThreadArchiveParams,
         response: v2::ThreadArchiveResponse,
+    },
+    ThreadSetName => "thread/name/set" {
+        params: v2::ThreadSetNameParams,
+        response: v2::ThreadSetNameResponse,
     },
     ThreadUnarchive => "thread/unarchive" {
         params: v2::ThreadUnarchiveParams,
@@ -588,6 +598,7 @@ server_notification_definitions! {
     /// NEW NOTIFICATIONS
     Error => "error" (v2::ErrorNotification),
     ThreadStarted => "thread/started" (v2::ThreadStartedNotification),
+    ThreadNameUpdated => "thread/name/updated" (v2::ThreadNameUpdatedNotification),
     ThreadTokenUsageUpdated => "thread/tokenUsage/updated" (v2::ThreadTokenUsageUpdatedNotification),
     TurnStarted => "turn/started" (v2::TurnStartedNotification),
     TurnCompleted => "turn/completed" (v2::TurnCompletedNotification),
@@ -598,6 +609,8 @@ server_notification_definitions! {
     /// This event is internal-only. Used by Codex Cloud.
     RawResponseItemCompleted => "rawResponseItem/completed" (v2::RawResponseItemCompletedNotification),
     AgentMessageDelta => "item/agentMessage/delta" (v2::AgentMessageDeltaNotification),
+    /// EXPERIMENTAL - proposed plan streaming deltas for plan items.
+    PlanDelta => "item/plan/delta" (v2::PlanDeltaNotification),
     CommandExecutionOutputDelta => "item/commandExecution/outputDelta" (v2::CommandExecutionOutputDeltaNotification),
     TerminalInteraction => "item/commandExecution/terminalInteraction" (v2::TerminalInteractionNotification),
     FileChangeOutputDelta => "item/fileChange/outputDelta" (v2::FileChangeOutputDeltaNotification),

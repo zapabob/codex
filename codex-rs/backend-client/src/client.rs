@@ -338,12 +338,17 @@ impl Client {
     fn map_plan_type(plan_type: crate::types::PlanType) -> AccountPlanType {
         match plan_type {
             crate::types::PlanType::Free => AccountPlanType::Free,
+            crate::types::PlanType::Go => AccountPlanType::Go,
             crate::types::PlanType::Plus => AccountPlanType::Plus,
             crate::types::PlanType::Pro => AccountPlanType::Pro,
             crate::types::PlanType::Team => AccountPlanType::Team,
             crate::types::PlanType::Business => AccountPlanType::Business,
             crate::types::PlanType::Enterprise => AccountPlanType::Enterprise,
-            crate::types::PlanType::Education | crate::types::PlanType::Edu => AccountPlanType::Edu,
+            crate::types::PlanType::Edu | crate::types::PlanType::Education => AccountPlanType::Edu,
+            crate::types::PlanType::Guest
+            | crate::types::PlanType::FreeWorkspace
+            | crate::types::PlanType::Quorum
+            | crate::types::PlanType::K12 => AccountPlanType::Unknown,
             _ => AccountPlanType::Unknown,
         }
     }
