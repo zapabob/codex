@@ -17,15 +17,16 @@ codex-core = { path = "../../core" }
 
 # External dependencies
 anyhow = "1"
-serde = "1"
+serde = { version = "1", features = ["derive"] }
 serde_json = "1.0"
 tauri = { version = "2.0", features = ["tray-icon"] }
 tauri-plugin-notification = "2.0"
 tauri-plugin-shell = "2.0"
 thiserror = "2"
-tokio = "1"
+tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+which = "7"
 
 # File system watcher
 notify = "8"

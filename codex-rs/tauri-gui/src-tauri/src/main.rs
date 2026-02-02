@@ -1,5 +1,14 @@
+//! Codex Tauri GUI - Main Application Entry Point
+//!
+//! Integrates Codex CLI, OpenCode CLI, and various AI tools through a unified interface.
+//! Provides system tray, global shortcuts, file watching, and parallel orchestration capabilities.
+
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![deny(warnings)]
+#![deny(missing_docs)]
+#![deny(clippy::all)]
+#![deny(clippy::pedantic)]
 
 mod autostart;
 mod codex_bridge;
@@ -7,6 +16,7 @@ mod codex_bridge;
 mod db;
 mod events;
 mod kernel_bridge;
+mod opencode_bridge;
 mod orchestration;
 mod shortcuts;
 mod tray;
@@ -15,20 +25,28 @@ mod watcher;
 
 use std::sync::Arc;
 use tauri::State;
-use tokio::sync::RwLock;
-use tracing::error;
-use tracing::info;
+use tokio::sync::{Mutex, RwLock};
+use tracing::{debug, error, info};
 
-// Application state
+/// Application state containing database and watcher status
 #[derive(Clone)]
 pub struct AppState {
+    /// SQLite database for storing file changes and application state
     pub db: Arc<RwLock<db::Database>>,
+    /// Flag indicating if file watcher is running
     pub watcher_running: Arc<RwLock<bool>>,
 }
 
-// Orchestration state (separate from AppState)
+/// Orchestration state for parallel agent execution
 pub struct OrchestratorState {
+    /// Parallel orchestration manager
     pub orchestration: orchestration::OrchestrationState,
+}
+
+/// OpenCode CLI bridge state
+pub struct OpenCodeState {
+    /// Bridge for communicating with OpenCode CLI
+    pub bridge: Arc<Mutex<opencode_bridge::OpenCodeBridge>>,
 }
 
 // Tauri commands
@@ -134,6 +152,92 @@ async fn enable_autostart(enabled: bool) -> Result<(), String> {
     autostart::set_autostart(enabled).map_err(|e| e.to_string())
 }
 
+/// Initialize OpenCode bridge
+#[tauri::command]
+async fn opencode_initialize(state: State<'_, OpenCodeState>) -> Result<(), String> {
+    let mut bridge = state.bridge.lock().await;
+    bridge
+        .initialize()
+        .await
+        .map_err(|e| format!("Failed to initialize OpenCode: {e}"))
+}
+
+/// Execute a prompt using OpenCode CLI
+#[tauri::command]
+async fn opencode_execute(
+    state: State<'_, OpenCodeState>,
+    prompt: String,
+    timeout_seconds: Option<u64>,
+) -> Result<serde_json::Value, String> {
+    let bridge = state.bridge.lock().await;
+    let timeout = timeout_seconds.map(std::time::Duration::from_secs);
+
+    debug!("Executing OpenCode prompt: {}", prompt);
+
+    let result = bridge
+        .execute_prompt(prompt, timeout)
+        .await
+        .map_err(|e| format!("OpenCode execution failed: {e}"))?;
+
+    Ok(serde_json::json!({
+        "success": result.success,
+        "output": result.output,
+        "duration_ms": result.duration_ms,
+        "files_modified": result.files_modified,
+    }))
+}
+
+/// List available OpenCode agents
+#[tauri::command]
+async fn opencode_list_agents(
+    state: State<'_, OpenCodeState>,
+) -> Result<Vec<serde_json::Value>, String> {
+    let bridge = state.bridge.lock().await;
+
+    debug!("Listing OpenCode agents");
+
+    let agents = bridge
+        .list_agents()
+        .await
+        .map_err(|e| format!("Failed to list agents: {e}"))?;
+
+    let agents_json: Vec<serde_json::Value> = agents
+        .into_iter()
+        .map(|agent| {
+            serde_json::json!({
+                "id": agent.id,
+                "name": agent.name,
+                "description": agent.description,
+                "capabilities": agent.capabilities,
+                "available": agent.available,
+            })
+        })
+        .collect();
+
+    Ok(agents_json)
+}
+
+/// Get OpenCode authentication status
+#[tauri::command]
+async fn opencode_get_auth_status(
+    state: State<'_, OpenCodeState>,
+) -> Result<serde_json::Value, String> {
+    let bridge = state.bridge.lock().await;
+
+    debug!("Getting OpenCode auth status");
+
+    let status = bridge
+        .get_auth_status()
+        .await
+        .map_err(|e| format!("Failed to get auth status: {e}"))?;
+
+    Ok(serde_json::json!({
+        "authenticated": status.authenticated,
+        "provider": status.provider,
+        "model": status.model,
+    }))
+}
+
 #[tokio::main]
 async fn main() {
     // Initialize tracing
@@ -157,11 +261,20 @@ async fn main() {
         orchestration: orchestration::OrchestrationState::new(),
     };
 
+    // Initialize OpenCode bridge with default configuration
+    let opencode_config = opencode_bridge::OpenCodeConfig::default();
+    let opencode_state = OpenCodeState {
+        bridge: Arc::new(Mutex::new(opencode_bridge::OpenCodeBridge::new(
+            opencode_config,
+        ))),
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
         .manage(app_state)
         .manage(orchestrator_state)
+        .manage(opencode_state)
         .setup(|app| {
             // Setup system tray
             tray::create_tray(app.handle())?;
@@ -186,6 +299,10 @@ async fn main() {
             stop_file_watcher,
             get_recent_changes,
             enable_autostart,
+            opencode_initialize,
+            opencode_execute,
+            opencode_list_agents,
+            opencode_get_auth_status,
             codex_bridge::codex_create_plan,
             codex_bridge::codex_execute_plan,
             codex_bridge::codex_list_plans,

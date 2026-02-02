@@ -12,3 +12,6 @@
 *.log
 _docs/build_*.txt
 _docs/build_*.log
+
+*.tar.gz
+dist/

@@ -997,7 +997,7 @@ dependencies = [
  "url",
  "uuid",
  "walkdir",
- "which",
+ "which 8.0.0",
  "wildmatch",
 ]
 
@@ -1149,7 +1149,7 @@ dependencies = [
  "tracing",
  "urlencoding",
  "webbrowser",
- "which",
+ "which 8.0.0",
 ]
 
 [[package]]
@@ -1192,6 +1192,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "which 7.0.3",
  "windows 0.58.0",
 ]
 
@@ -9027,6 +9028,18 @@ dependencies = [
  "thiserror 2.0.18",
  "windows 0.61.3",
  "windows-core 0.61.2",
+]
+
+[[package]]
+name = "which"
+version = "7.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24d643ce3fd3e5b54854602a080f34fb10ab75e0b813ee32d00ca2b44fa74762"
+dependencies = [
+ "either",
+ "env_home",
+ "rustix",
+ "winsafe",
 ]
 
 [[package]]
