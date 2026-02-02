@@ -222,7 +222,7 @@ pub struct OpenCodeBridge {
 
 impl OpenCodeBridge {
     /// Create a new OpenCode bridge with configuration
-    pub const fn new(config: OpenCodeConfig) -> Self {
+    pub fn new(config: OpenCodeConfig) -> Self {
         Self {
             config,
             process: None,
@@ -330,8 +330,8 @@ impl OpenCodeBridge {
 
         {
             let mut stdin_guard = stdin.lock().await;
-            stdin_guard.write_all(request_line.as_bytes()).await?;
-            stdin_guard.flush().await?;
+            stdin_guard.write_all(request_line.as_bytes())?;
+            stdin_guard.flush()?;
         }
 
         // Read response with timeout
