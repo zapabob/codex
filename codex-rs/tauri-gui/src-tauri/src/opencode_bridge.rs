@@ -17,7 +17,7 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::sync::Mutex;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 /// Error types for OpenCode bridge operations
 #[derive(Debug, Error)]
@@ -365,7 +365,7 @@ impl OpenCodeBridge {
                     // Timeout on read, check if process is still alive
                     drop(stdout_guard);
                     if let Some(ref process) = self.process {
-                        let proc_guard = process.lock().await;
+                        let mut proc_guard = process.lock().await;
                         match proc_guard.try_wait() {
                             Ok(Some(_)) => {
                                 return Err(OpenCodeError::ProcessTerminated);
