@@ -1,3 +1,8 @@
+---
+name: qa-service
+description: Continuous Quality Assurance service agent that monitors development activities in real-time, automatically triggering quality analysis on code changes. Provides background processing for comprehensive QA validation across parallel development environments, ensuring consistent quality standards throughout the development lifecycle.
+---
+
 # QA Service Agent Skill
 
 ## Overview
@@ -62,14 +67,14 @@ codex $qa-service "Manage QA service lifecycle and configuration"
 ### QA Service Status Report
 ```
 🔬 QA Service Status Report - Continuous Quality Assurance
-═══════════════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════════════╁E
 Service Status: Active (Running)
 Uptime: 2h 34m 12s
 Monitoring: 4 worktrees
 Last Activity: 2026-01-04 15:47:23 UTC
 
 📊 Service Statistics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Total QA Runs: 127
 Successful QA Runs: 118 (92.9% success rate)
 Failed QA Runs: 9 (7.1% failure rate)
@@ -78,27 +83,27 @@ Change Events Detected: 456
 Average QA Duration: 34.2 seconds
 
 🎯 Active Monitoring
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Worktrees Being Monitored:
 ├── auth-feature (3 changes pending)
-│   ├── Last QA: ✅ PASSED (2 min ago)
-│   ├── Quality Score: A- (Good)
-│   └── Next Scheduled: Auto (on changes)
+━E  ├── Last QA: ✁EPASSED (2 min ago)
+━E  ├── Quality Score: A- (Good)
+━E  └── Next Scheduled: Auto (on changes)
 ├── payment-feature (1 change pending)
-│   ├── Last QA: 🔄 RUNNING (45s elapsed)
-│   ├── Quality Score: B+ (Good)
-│   └── Next Scheduled: Auto (on changes)
+━E  ├── Last QA: 🔄 RUNNING (45s elapsed)
+━E  ├── Quality Score: B+ (Good)
+━E  └── Next Scheduled: Auto (on changes)
 ├── ui-feature (12 changes pending)
-│   ├── Last QA: ❌ FAILED (5 min ago)
-│   ├── Quality Score: C (Needs Attention)
-│   └── Next Scheduled: Manual review required
+━E  ├── Last QA: ❁EFAILED (5 min ago)
+━E  ├── Quality Score: C (Needs Attention)
+━E  └── Next Scheduled: Manual review required
 └── api-feature (0 changes pending)
-    ├── Last QA: ✅ PASSED (12 min ago)
+    ├── Last QA: ✁EPASSED (12 min ago)
     ├── Quality Score: A (Excellent)
     └── Next Scheduled: Auto (on changes)
 
-⚙️ Service Configuration
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚙︁EService Configuration
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Monitoring Paths: ./worktrees/
 QA Interval: 300 seconds (5 minutes)
 File Change Debounce: 2.0 seconds
@@ -107,19 +112,19 @@ Auto-restart on Failure: Enabled
 Log Retention: 7 days
 
 📈 Quality Trends (Last 24 hours)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┌─────────────────────┬─────────┬─────────┬─────────────┬─────────────┐
-│ Time Period         │ QA Runs │ Success │ Avg Score   │ Issues Found│
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+┌─────────────────────┬─────────┬─────────┬─────────────┬─────────────━E
+━ETime Period         ━EQA Runs ━ESuccess ━EAvg Score   ━EIssues Found━E
 ├─────────────────────┼─────────┼─────────┼─────────────┼─────────────┤
-│ 00:00 - 06:00       │ 12      │ 100%    │ A-          │ 3           │
-│ 06:00 - 12:00       │ 28      │ 93%     │ B+          │ 12          │
-│ 12:00 - 18:00       │ 45      │ 91%     │ B           │ 18          │
-│ 18:00 - 24:00       │ 42      │ 88%     │ B-          │ 25          │
-└─────────────────────┴─────────┴─────────┴─────────────┴─────────────┘
+━E00:00 - 06:00       ━E12      ━E100%    ━EA-          ━E3           ━E
+━E06:00 - 12:00       ━E28      ━E93%     ━EB+          ━E12          ━E
+━E12:00 - 18:00       ━E45      ━E91%     ━EB           ━E18          ━E
+━E18:00 - 24:00       ━E42      ━E88%     ━EB-          ━E25          ━E
+└─────────────────────┴─────────┴─────────┴─────────────┴─────────────━E
 
 🚨 Active Alerts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. ⚠️ ui-feature: Multiple QA failures detected
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+1. ⚠�E�Eui-feature: Multiple QA failures detected
    - Last 3 QA runs failed
    - Issues: Security vulnerabilities, performance bottlenecks
    - Recommendation: Code review and fixes required
@@ -130,7 +135,7 @@ Log Retention: 7 days
    - Recommendation: Team training on best practices
 
 🔄 Current QA Executions
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. payment-feature (PID: 18473)
    - Progress: 68% complete
    - ETA: 23 seconds
@@ -142,29 +147,29 @@ Log Retention: 7 days
    - Current Phase: Performance Benchmarking
 
 💡 Service Recommendations
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. Address ui-feature QA failures immediately
 2. Schedule team training on security best practices
 3. Consider increasing QA frequency for high-activity worktrees
 4. Review and optimize QA analysis performance
 
 📁 Service Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 ├── qa-service-logs/
-│   ├── qa-service.log (2.3MB)
-│   ├── error.log (145KB)
-│   └── audit.log (892KB)
+━E  ├── qa-service.log (2.3MB)
+━E  ├── error.log (145KB)
+━E  └── audit.log (892KB)
 ├── qa-metrics/
-│   ├── quality-trends.json
-│   ├── performance-metrics.json
-│   └── worktree-stats.json
+━E  ├── quality-trends.json
+━E  ├── performance-metrics.json
+━E  └── worktree-stats.json
 └── qa-reports/
     ├── latest-qa-summary.md
     ├── quality-dashboard.html
     └── alert-history.json
 
 ⚡ Performance Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 CPU Usage: 12.3% average
 Memory Usage: 245MB peak
 Disk I/O: 1.2GB transferred
@@ -172,7 +177,7 @@ Network: 0MB (local monitoring only)
 Uptime: 99.7% availability
 
 🎯 Next Maintenance Window
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Scheduled: 2026-01-05 02:00 UTC
 Tasks: Log rotation, metric aggregation, service restart
 Estimated Duration: 15 minutes
@@ -316,7 +321,7 @@ codex $qa-service "Resume QA monitoring"
 ```bash
 # QA service automatically monitors new worktrees
 codex $worktree-manager "Create feature worktree"
-# → QA service automatically starts monitoring
+# ↁEQA service automatically starts monitoring
 
 # Manual QA trigger
 codex $qa-service "Run QA analysis on auth-feature worktree"

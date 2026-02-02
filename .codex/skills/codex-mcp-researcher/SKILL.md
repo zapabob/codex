@@ -1,3 +1,8 @@
+---
+name: codex-mcp-researcher
+description: Perform codex-mcp-researcher tasks
+---
+
 # Codex-Mcp-Researcher Agent Skill
 
 ## Overview

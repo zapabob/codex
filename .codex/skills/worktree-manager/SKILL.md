@@ -1,3 +1,8 @@
+---
+name: worktree-manager
+description: Advanced Git worktree management agent that orchestrates parallel development environments with integrated quality assurance and automated workflow management. Enables concurrent feature development, isolated testing environments, and seamless integration with CI/CD pipelines.
+---
+
 # Worktree Manager Agent Skill
 
 ## Overview
@@ -64,75 +69,75 @@ codex $worktree-manager "Manage worktree lifecycle: create, develop, qa, merge, 
 
 ### Worktree Management Report
 ```
-🏗️ Worktree Manager Report - Parallel Development Environment
-═══════════════════════════════════════════════════════════════════════════════
+🏗�E�EWorktree Manager Report - Parallel Development Environment
+══════════════════════════════════════════════════════════════════════════════╁E
 Operation: Create Parallel Environment
 Timestamp: 2026-01-04 15:30:00 UTC
 Duration: 45.2 seconds
 
 📊 Environment Summary
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Total Worktrees: 4 (3 active, 1 inactive)
 Active Branches: feature/auth, feature/payment, feature/ui
 Base Branch: main
 Repository: /path/to/project
 
 🌿 Worktree Status Overview
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┌─────────────────┬────────────┬────────────┬────────────┬─────────────────┐
-│ Worktree        │ Branch     │ Status     │ QA Status  │ Last Activity   │
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+┌─────────────────┬────────────┬────────────┬────────────┬─────────────────━E
+━EWorktree        ━EBranch     ━EStatus     ━EQA Status  ━ELast Activity   ━E
 ├─────────────────┼────────────┼────────────┼────────────┼─────────────────┤
-│ auth-feature    │ feature/auth │ active    │ qa_passed │ 15:28:33        │
-│ payment-feature │ feature/pay │ active    │ qa_running│ 15:29:45        │
-│ ui-feature      │ feature/ui  │ active    │ qa_pending│ 15:30:00        │
-│ old-experiment  │ experiment  │ inactive  │ qa_failed │ 2026-01-03      │
-└─────────────────┴────────────┴────────────┴────────────┴─────────────────┘
+━Eauth-feature    ━Efeature/auth ━Eactive    ━Eqa_passed ━E15:28:33        ━E
+━Epayment-feature ━Efeature/pay ━Eactive    ━Eqa_running━E15:29:45        ━E
+━Eui-feature      ━Efeature/ui  ━Eactive    ━Eqa_pending━E15:30:00        ━E
+━Eold-experiment  ━Eexperiment  ━Einactive  ━Eqa_failed ━E2026-01-03      ━E
+└─────────────────┴────────────┴────────────┴────────────┴─────────────────━E
 
-🖥️ Terminal Management
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🖥�E�ETerminal Management
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Active Terminals: 3
 ├─ auth-feature (PID: 12345) - /path/to/project/auth-feature
 ├─ payment-feature (PID: 12346) - /path/to/project/payment-feature
 └─ ui-feature (PID: 12347) - /path/to/project/ui-feature
 
 🔬 QA Integration Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 QA Service: Active (monitoring 3 worktrees)
 Recent QA Results:
-├── auth-feature: ✅ PASSED (security: A+, performance: A)
+├── auth-feature: ✁EPASSED (security: A+, performance: A)
 ├── payment-feature: 🔄 RUNNING (45% complete)
 └── ui-feature: ⏳ PENDING (waiting for changes)
 
 📁 Worktree Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 ├── worktrees/auth-feature/artifacts/qa_report.json
 ├── worktrees/payment-feature/artifacts/qa_report.json
 ├── worktrees/ui-feature/artifacts/ (empty - awaiting development)
 └── .worktrees.json (management metadata)
 
-⚙️ Configuration
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚙︁EConfiguration
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Max Concurrent Worktrees: 5
 Auto QA: Enabled
 Cleanup Policy: 7 days inactive
 Terminal Auto-launch: Enabled
 
 🚀 Recommended Actions
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. Start development in ui-feature worktree
 2. Monitor QA results in payment-feature
 3. Consider merging auth-feature (QA passed)
 4. Review and cleanup old-experiment worktree
 
 💡 Parallel Development Tips
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 - Each worktree has isolated node_modules and build artifacts
 - QA runs automatically on file changes (debounced 2s)
 - Use 'worktree-manager merge <name>' when ready to integrate
 - Terminals auto-close on worktree removal
 
 📈 Performance Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Worktree Creation Time: 2.3s average
 QA Execution Time: 45.2s average
 Terminal Launch Time: 1.1s average
@@ -241,14 +246,14 @@ project/
 ├── .git/                          # Main repository
 ├── main-workspace/               # Primary development
 ├── worktrees/                    # Worktree container
-│   ├── feature-auth/            # Feature worktree
-│   │   ├── .git -> ../.git      # Git link
-│   │   ├── src/                 # Isolated source
-│   │   ├── node_modules/        # Isolated dependencies
-│   │   ├── artifacts/           # QA reports, builds
-│   │   └── .worktree_metadata   # Worktree info
-│   ├── feature-payment/         # Another feature
-│   └── experimental-ui/         # Experimental work
+━E  ├── feature-auth/            # Feature worktree
+━E  ━E  ├── .git -> ../.git      # Git link
+━E  ━E  ├── src/                 # Isolated source
+━E  ━E  ├── node_modules/        # Isolated dependencies
+━E  ━E  ├── artifacts/           # QA reports, builds
+━E  ━E  └── .worktree_metadata   # Worktree info
+━E  ├── feature-payment/         # Another feature
+━E  └── experimental-ui/         # Experimental work
 ├── .worktrees.json              # Management metadata
 └── worktree-artifacts/          # Shared artifacts
 ```

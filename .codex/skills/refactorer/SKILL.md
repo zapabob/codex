@@ -1,3 +1,8 @@
+---
+name: refactorer
+description: Refactor code to improve maintainability, performance, and readability. Identify code smells, extract reusable components, optimize algorithms, and reduce technical debt.
+---
+
 # Refactorer Agent Skill
 
 ## Overview

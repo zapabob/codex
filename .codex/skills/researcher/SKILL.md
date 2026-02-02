@@ -1,3 +1,8 @@
+---
+name: researcher
+description: Deep research with multi-source validation, citation, and comprehensive reporting
+---
+
 # Researcher Agent Skill
 
 ## Overview

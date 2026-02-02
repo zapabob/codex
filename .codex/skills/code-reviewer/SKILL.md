@@ -1,3 +1,8 @@
+---
+name: code-reviewer
+description: Advanced code analysis agent that performs comprehensive code reviews focusing on security, performance, maintainability, and best practices. Generates actionable feedback with severity levels and automated fix suggestions.
+---
+
 # Code Reviewer Agent Skill
 
 ## Overview

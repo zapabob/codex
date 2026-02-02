@@ -1,3 +1,8 @@
+---
+name: sec-audit
+description: Security audit with CVE scanning, dependency analysis, and vulnerability patching
+---
+
 # Sec-Audit Agent Skill
 
 ## Overview

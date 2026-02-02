@@ -1,3 +1,8 @@
+---
+name: performance-scout
+description: Provide quick performance triage from logs, benchmarks, and runtime counters.
+---
+
 # Performance-Scout Agent Skill
 
 ## Overview

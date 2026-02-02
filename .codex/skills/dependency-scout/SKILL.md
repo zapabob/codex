@@ -1,3 +1,8 @@
+---
+name: dependency-scout
+description: Lightweight dependency insight agent for quick manifest scans, transitive surfacing, and license notes.
+---
+
 # Dependency-Scout Agent Skill
 
 ## Overview

@@ -1,3 +1,8 @@
+---
+name: orchestrator
+description: Intelligent multi-agent workflow orchestrator that coordinates specialized Codex skills for complex task execution. Implements official OpenAI Agents SDK patterns including guardrails, handoffs, and worker agents with MCP-centric architecture for seamless integration.
+---
+
 # Orchestrator Agent Skill
 
 ## Overview
@@ -6,7 +11,7 @@ Intelligent multi-agent workflow orchestrator that coordinates specialized Codex
 
 ## Capabilities
 
-- **Task Decomposition**: Complex tasks → dependency-aware subtasks with intelligent planning
+- **Task Decomposition**: Complex tasks ↁEdependency-aware subtasks with intelligent planning
 - **Multi-Agent Coordination**: Parallel execution with worker agent assignment and handoffs
 - **MCP Integration**: Direct Codex skill invocation via Model Context Protocol
 - **Quality Assurance**: Built-in guardrails for security, performance, and best practices
@@ -67,14 +72,14 @@ codex $orchestrator "Optimize application performance: identify bottlenecks, imp
 ### Workflow Execution Report
 ```
 🎯 Orchestrator Workflow Report
-═══════════════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════════════╁E
 Task: Implement user authentication system
 Started: 2026-01-04 14:30:00 UTC
 Duration: 245.8 seconds
-Status: ✅ COMPLETED
+Status: ✁ECOMPLETED
 
 📊 Workflow Statistics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Total Tasks: 8
 Completed Tasks: 8 (100.0%)
 Failed Tasks: 0 (0.0%)
@@ -83,45 +88,45 @@ MCP Calls: 12 successful
 Handoffs: 3 inter-agent transitions
 
 🔄 Task Execution Flow
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. 🔍 supervisor_analysis (Supervisor) - 2.3s ✅
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+1. 🔍 supervisor_analysis (Supervisor) - 2.3s ✁E
    └── Analyzed requirements and created execution plan
 
-2. 🏗️ architect_analysis (Architect) - 8.7s ✅
+2. 🏗�E�Earchitect_analysis (Architect) - 8.7s ✁E
    └── Designed system architecture and data models
 
-3. 🔒 security_review (QA Engineer) - 12.4s ✅
+3. 🔒 security_review (QA Engineer) - 12.4s ✁E
    └── Security audit and vulnerability assessment
 
-4. 📝 code_generation (Executor) - 45.2s ✅
+4. 📝 code_generation (Executor) - 45.2s ✁E
    └── Generated authentication API and models
 
-5. 🧪 test_generation (Test Gen) - 23.1s ✅
+5. 🧪 test_generation (Test Gen) - 23.1s ✁E
    └── Created comprehensive test suite
 
-6. 🔍 code_review (Code Reviewer) - 18.9s ✅
+6. 🔍 code_review (Code Reviewer) - 18.9s ✁E
    └── Code quality analysis and best practices check
 
-7. 📊 performance_analysis (QA Engineer) - 15.6s ✅
+7. 📊 performance_analysis (QA Engineer) - 15.6s ✁E
    └── Performance benchmarking and optimization
 
-8. 🚀 deployment_prep (Build Manager) - 9.2s ✅
+8. 🚀 deployment_prep (Build Manager) - 9.2s ✁E
    └── Build configuration and deployment preparation
 
-🛡️ Guardrail Results
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Security Guardrail: ✅ PASSED (0 violations)
-Quality Guardrail: ✅ PASSED (2 warnings addressed)
-Performance Guardrail: ✅ PASSED (all metrics within limits)
+🛡�E�EGuardrail Results
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+Security Guardrail: ✁EPASSED (0 violations)
+Quality Guardrail: ✁EPASSED (2 warnings addressed)
+Performance Guardrail: ✁EPASSED (all metrics within limits)
 
-🤝 Agent Handoffs
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Supervisor → Architect: Requirements analysis complete
-2. Architect → Executor: Design specifications ready
-3. Executor → QA Engineer: Implementation ready for review
+🤁EAgent Handoffs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+1. Supervisor ↁEArchitect: Requirements analysis complete
+2. Architect ↁEExecutor: Design specifications ready
+3. Executor ↁEQA Engineer: Implementation ready for review
 
 📁 Generated Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 ├── 📄 src/auth/mod.rs (2.3KB) - Authentication module
 ├── 📄 src/auth/models.rs (1.8KB) - User and session models
 ├── 📄 src/auth/handlers.rs (4.2KB) - API endpoint handlers
@@ -129,14 +134,14 @@ Performance Guardrail: ✅ PASSED (all metrics within limits)
 ├── 📄 docs/api/auth.md (2.9KB) - API documentation
 └── 📄 artifacts/workflow_report.json (8.7KB) - Execution details
 
-⚠️ Resolved Issues
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠�E�EResolved Issues
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 - Addressed SQL injection vulnerability in login handler
 - Fixed race condition in session management
 - Improved error handling for edge cases
 
-✅ Quality Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✁EQuality Metrics
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Code Coverage: 92%
 Cyclomatic Complexity: 4.2 (target: <10)
 Security Score: A+ (Excellent)
@@ -144,28 +149,28 @@ Performance Grade: A (Very Good)
 Maintainability: 87/100
 
 🎯 Next Recommended Actions
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. Deploy to staging environment for integration testing
 2. Monitor performance metrics in production
 3. Schedule regular security audits
 4. Consider implementing rate limiting for auth endpoints
 
 💡 Workflow Insights
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Most efficient path: Architect → Executor → QA Engineer
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+- Most efficient path: Architect ↁEExecutor ↁEQA Engineer
 - Bottleneck identified: Test generation (23.1s - consider parallelization)
 - Skill utilization: QA Engineer (3 calls), Executor (2 calls), Architect (1 call)
 - MCP performance: Average response time 2.1s, 100% success rate
 
 📈 Performance Trends
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Task Completion Rate: 100% (8/8 successful)
 Average Task Duration: 17.2s
 Parallelization Efficiency: 78% (vs sequential: 138.4s saved)
 Resource Utilization: CPU 65%, Memory 2.1GB peak
 
 🏆 Workflow Quality Score: A+ (Excellent)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 ```
 
 ### JSON Output (for CI/CD Integration)
@@ -216,7 +221,7 @@ Resource Utilization: CPU 65%, Memory 2.1GB peak
     "docs/api/auth.md"
   ],
   "insights": {
-    "optimal_path": "Architect → Executor → QA Engineer",
+    "optimal_path": "Architect ↁEExecutor ↁEQA Engineer",
     "bottlenecks": ["test_generation"],
     "recommendations": [
       "Deploy to staging",
@@ -231,7 +236,7 @@ Resource Utilization: CPU 65%, Memory 2.1GB peak
 
 ### Sequential Execution Pattern
 ```
-Task A → Task B → Task C
+Task A ↁETask B ↁETask C
 ```
 - Dependencies are strictly enforced
 - Each task completes before the next begins
@@ -239,9 +244,9 @@ Task A → Task B → Task C
 
 ### Parallel Execution Pattern
 ```
-     ┌─ Task A ─┐
+     ┌─ Task A ─━E
 Task X ─┼─ Task B ─┼─ Task D
-     └─ Task C ─┘
+     └─ Task C ─━E
 ```
 - Independent tasks run concurrently
 - Dependencies determine execution order
@@ -249,7 +254,7 @@ Task X ─┼─ Task B ─┼─ Task D
 
 ### Handoff Pattern (Agents SDK)
 ```
-Agent A → Handoff → Agent B → Handoff → Agent C
+Agent A ↁEHandoff ↁEAgent B ↁEHandoff ↁEAgent C
 ```
 - Context and state transfer between agents
 - Specialized agent for each phase
@@ -257,7 +262,7 @@ Agent A → Handoff → Agent B → Handoff → Agent C
 
 ### Guardrail Pattern
 ```
-Task → Guardrail Check → [Pass: Continue | Fail: Block/Retry]
+Task ↁEGuardrail Check ↁE[Pass: Continue | Fail: Block/Retry]
 ```
 - Pre/post-execution validation
 - Automatic issue detection and correction
@@ -365,15 +370,15 @@ Task → Guardrail Check → [Pass: Continue | Fail: Block/Retry]
 ```bash
 # Complex feature development
 codex $orchestrator "Implement e-commerce checkout system"
-# → Automatically coordinates architect, executor, qa-engineer, etc.
+# ↁEAutomatically coordinates architect, executor, qa-engineer, etc.
 
 # Code refactoring campaign
 codex $orchestrator "Modernize legacy codebase to current standards"
-# → Parallel execution across multiple modules
+# ↁEParallel execution across multiple modules
 
 # Security remediation
 codex $orchestrator "Fix all OWASP Top 10 vulnerabilities"
-# → Comprehensive security audit and fixes
+# ↁEComprehensive security audit and fixes
 ```
 
 ### CI/CD Pipeline Integration

@@ -1,8 +1,13 @@
+---
+name: ts-reviewer
+description: TypeScript/JavaScript専用コードレビュー・型安�E性・React/Next.jsベスト�EラクチE��ス
+---
+
 # Ts-Reviewer Agent Skill
 
 ## Overview
 
-TypeScript/JavaScript専用コードレビュー・型安全性・React/Next.jsベストプラクティス
+TypeScript/JavaScript専用コードレビュー・型安�E性・React/Next.jsベスト�EラクチE��ス
 
 ## Capabilities
 

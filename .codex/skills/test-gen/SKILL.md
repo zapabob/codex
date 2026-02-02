@@ -1,3 +1,8 @@
+---
+name: test-gen
+description: Generate comprehensive test suites including unit, integration, and e2e tests
+---
+
 # Test-Gen Agent Skill
 
 ## Overview

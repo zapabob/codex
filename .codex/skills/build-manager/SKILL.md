@@ -1,3 +1,8 @@
+---
+name: build-manager
+description: Advanced build management agent that provides high-performance incremental compilation, hot reload capabilities, and intelligent build orchestration. Features MD5-based change detection, process management, and multi-platform deployment support with tqdm progress visualization.
+---
+
 # Build Manager Agent Skill
 
 ## Overview
@@ -68,13 +73,13 @@ codex $build-manager "Analyze build performance and suggest optimization strateg
 ### Build Report
 ```
 🚀 Build Manager Report - Incremental Build
-═══════════════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════════════╁E
 Build Type: Incremental (MD5-based change detection)
 Target: release
 Platform: x86_64-unknown-linux-gnu
 
 📊 Build Statistics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Files Processed: 1,234
 Changed Files: 23 (1.8%)
 Build Time: 45.2s (ETA: 67% faster than full rebuild)
@@ -82,44 +87,44 @@ Peak Memory: 2.1GB
 CPU Cores Used: 6/8
 
 ⚡ Performance Optimizations Applied
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Incremental Compilation: Enabled (CARGO_INCREMENTAL=1)
-✅ Parallel Jobs: 6 cores (75% of available)
-✅ sccache: Disabled (conflicts with incremental)
-✅ LTO: Disabled for faster iteration
-✅ Debug Info: Stripped for release
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+✁EIncremental Compilation: Enabled (CARGO_INCREMENTAL=1)
+✁EParallel Jobs: 6 cores (75% of available)
+✁Esccache: Disabled (conflicts with incremental)
+✁ELTO: Disabled for faster iteration
+✁EDebug Info: Stripped for release
 
 📁 Build Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 ├── target/release/codex (8.2MB) - Main binary
 ├── target/release/deps/ (245MB) - Dependencies
 ├── target/release/build/ (89MB) - Build artifacts
 └── target/release/incremental/ (156MB) - Incremental cache
 
 🔄 Hot Reload Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Process Detection: ✅ Found 3 running instances
-Termination: ✅ Graceful shutdown completed
-Binary Replacement: ✅ Atomic copy successful
-Restart: ✅ New process started (PID: 12345)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+Process Detection: ✁EFound 3 running instances
+Termination: ✁EGraceful shutdown completed
+Binary Replacement: ✁EAtomic copy successful
+Restart: ✁ENew process started (PID: 12345)
 
-⚠️ Build Warnings
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠�E�EBuild Warnings
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 - Large binary size: Consider stripping debug symbols
 - Memory usage high: Monitor for OOM in production
 - Dependencies: 47 crates updated, review for breaking changes
 
-✅ Build Verification
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Compilation: ✅ PASSED
-- Linking: ✅ PASSED
-- Tests: ✅ PASSED (1,247 tests in 23.4s)
-- Linting: ✅ PASSED (clippy)
-- Formatting: ✅ PASSED (rustfmt)
-- Security: ✅ PASSED (no vulnerabilities)
+✁EBuild Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+- Compilation: ✁EPASSED
+- Linking: ✁EPASSED
+- Tests: ✁EPASSED (1,247 tests in 23.4s)
+- Linting: ✁EPASSED (clippy)
+- Formatting: ✁EPASSED (rustfmt)
+- Security: ✁EPASSED (no vulnerabilities)
 
 🎯 Next Steps
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. Deploy to staging environment
 2. Run integration tests
 3. Monitor performance metrics
@@ -338,15 +343,15 @@ verbose_output = true
 ```bash
 # Fast development iteration
 codex $build-manager "Incremental dev build"
-# → Only rebuilds changed files
+# ↁEOnly rebuilds changed files
 
 # Production release
 codex $build-manager "Optimized release build with LTO"
-# → Full optimization for performance
+# ↁEFull optimization for performance
 
 # Hot reload deployment
 codex $build-manager "Build and hot-reload to staging"
-# → Zero-downtime deployment
+# ↁEZero-downtime deployment
 ```
 
 ### CI/CD Integration

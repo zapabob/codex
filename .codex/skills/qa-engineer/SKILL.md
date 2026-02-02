@@ -1,3 +1,8 @@
+---
+name: qa-engineer
+description: Comprehensive Quality Assurance agent that performs advanced code analysis using mathematical optimization, quantum computing principles, and software engineering best practices. Automatically evaluates code quality, performance, and architectural integrity before integration, ensuring production-ready code through rigorous automated review.
+---
+
 # QA Engineer Agent Skill
 
 ## Overview
@@ -84,17 +89,17 @@ Security: A+ (Excellent)
 
 📈 Optimization Scores
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Mathematical Complexity: O(log n) → O(1) potential
-Quantum Gate Count: 15 gates → 8 gates optimization
-Memory Efficiency: 94% → 98% improvement potential
-CPU Utilization: 67% → 45% reduction opportunity
+Mathematical Complexity: O(log n) ↁEO(1) potential
+Quantum Gate Count: 15 gates ↁE8 gates optimization
+Memory Efficiency: 94% ↁE98% improvement potential
+CPU Utilization: 67% ↁE45% reduction opportunity
 
-🏗️ Architecture Assessment
+🏗�E�EArchitecture Assessment
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SOLID Principles: ✅ All compliant
-Clean Architecture: ✅ Layers properly separated
-Design Patterns: ✅ Appropriate usage
-Dependency Injection: ✅ Implemented correctly
+SOLID Principles: ✁EAll compliant
+Clean Architecture: ✁ELayers properly separated
+Design Patterns: ✁EAppropriate usage
+Dependency Injection: ✁EImplemented correctly
 
 🔍 Code Quality Analysis
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -125,11 +130,11 @@ Testability Score: 9.5/10
 
 🏆 Best Practices Compliance
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ DRY Principle: No code duplication detected
-✅ KISS Principle: Simple, clear implementations
-✅ YAGNI Principle: No unnecessary complexity
-✅ Single Responsibility: All classes focused
-✅ Open/Closed: Extensible without modification
+✁EDRY Principle: No code duplication detected
+✁EKISS Principle: Simple, clear implementations
+✁EYAGNI Principle: No unnecessary complexity
+✁ESingle Responsibility: All classes focused
+✁EOpen/Closed: Extensible without modification
 
 🚨 Critical Issues Found
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

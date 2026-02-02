@@ -1,3 +1,8 @@
+---
+name: cicd-integration
+description: Comprehensive CI/CD integration agent that manages continuous integration and deployment pipelines with automated quality assurance, multi-platform support, and intelligent workflow orchestration. Seamlessly integrates with GitHub Actions, GitLab CI, Jenkins, CircleCI, and Azure DevOps for end-to-end DevOps automation.
+---
+
 # CI/CD Integration Agent Skill
 
 ## Overview
@@ -70,66 +75,66 @@ codex $cicd-integration "Analyze and optimize CI/CD pipeline performance and res
 ### CI/CD Pipeline Report
 ```
 🚀 CI/CD Integration Report - Multi-Platform Pipeline Setup
-═══════════════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════════════╁E
 Project: zapabob/codex
 Generated: 2026-01-04 16:30:00 UTC
 Platforms: GitHub Actions, GitLab CI, Jenkins
 Duration: 45.2 seconds
 
 📊 Pipeline Overview
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Total Pipelines: 3
 Active Stages: 5 (test, qa, build, deploy, monitor)
 Quality Gates: 4 (code-review, qa-analysis, security, performance)
 Environments: development, staging, production
 
 🔄 Pipeline Flow
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. 🔍 Code Analysis (GitHub Actions)
-   ├── Lint & Format: ✅ PASSED
-   ├── Type Check: ✅ PASSED
-   ├── Security Scan: ✅ PASSED
+   ├── Lint & Format: ✁EPASSED
+   ├── Type Check: ✁EPASSED
+   ├── Security Scan: ✁EPASSED
    └── Duration: 2.3 minutes
 
 2. 🧪 Testing & QA (All Platforms)
-   ├── Unit Tests: ✅ PASSED (94% coverage)
-   ├── Integration Tests: ✅ PASSED
-   ├── QA Analysis: ✅ PASSED (A- grade)
+   ├── Unit Tests: ✁EPASSED (94% coverage)
+   ├── Integration Tests: ✁EPASSED
+   ├── QA Analysis: ✁EPASSED (A- grade)
    └── Duration: 8.7 minutes
 
 3. 📦 Build & Package (Parallel)
-   ├── Linux Build: ✅ PASSED (x86_64)
-   ├── macOS Build: ✅ PASSED (x86_64, arm64)
-   ├── Windows Build: ✅ PASSED (x86_64)
-   ├── Docker Images: ✅ PASSED (3 variants)
+   ├── Linux Build: ✁EPASSED (x86_64)
+   ├── macOS Build: ✁EPASSED (x86_64, arm64)
+   ├── Windows Build: ✁EPASSED (x86_64)
+   ├── Docker Images: ✁EPASSED (3 variants)
    └── Duration: 12.4 minutes
 
 4. 🚀 Deployment (Staged)
-   ├── Development: ✅ DEPLOYED
-   ├── Staging: ✅ DEPLOYED
+   ├── Development: ✁EDEPLOYED
+   ├── Staging: ✁EDEPLOYED
    ├── Production: ⏳ PENDING (manual approval)
-   └── Rollback Plan: ✅ GENERATED
+   └── Rollback Plan: ✁EGENERATED
 
 5. 📊 Monitoring & Alerts (Continuous)
-   ├── Health Checks: ✅ ACTIVE
-   ├── Performance Monitoring: ✅ ACTIVE
-   ├── Error Tracking: ✅ ACTIVE
-   └── Alert Rules: ✅ CONFIGURED
+   ├── Health Checks: ✁EACTIVE
+   ├── Performance Monitoring: ✁EACTIVE
+   ├── Error Tracking: ✁EACTIVE
+   └── Alert Rules: ✁ECONFIGURED
 
-🛡️ Quality Gates Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┌─────────────────┬────────────┬────────────┬─────────────────┬─────────────┐
-│ Gate            │ Status     │ Platform   │ Duration        │ Confidence  │
+🛡�E�EQuality Gates Status
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+┌─────────────────┬────────────┬────────────┬─────────────────┬─────────────━E
+━EGate            ━EStatus     ━EPlatform   ━EDuration        ━EConfidence  ━E
 ├─────────────────┼────────────┼────────────┼─────────────────┼─────────────┤
-│ Code Review     │ ✅ PASSED  │ All        │ 3.2s            │ 98%         │
-│ Security Scan   │ ✅ PASSED  │ GitHub     │ 45.7s           │ 95%         │
-│ QA Analysis     │ ✅ PASSED  │ All        │ 127.3s          │ 92%         │
-│ Performance     │ ✅ PASSED  │ Jenkins    │ 89.4s           │ 88%         │
-│ Manual Review   │ ⏳ PENDING │ Production │ -               │ -           │
-└─────────────────┴────────────┴────────────┴─────────────────┴─────────────┘
+━ECode Review     ━E✁EPASSED  ━EAll        ━E3.2s            ━E98%         ━E
+━ESecurity Scan   ━E✁EPASSED  ━EGitHub     ━E45.7s           ━E95%         ━E
+━EQA Analysis     ━E✁EPASSED  ━EAll        ━E127.3s          ━E92%         ━E
+━EPerformance     ━E✁EPASSED  ━EJenkins    ━E89.4s           ━E88%         ━E
+━EManual Review   ━E⏳ PENDING ━EProduction ━E-               ━E-           ━E
+└─────────────────┴────────────┴────────────┴─────────────────┴─────────────━E
 
 📁 Generated Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 GitHub Actions:
 ├── .github/workflows/ci.yml (2.3KB)
 ├── .github/workflows/qa.yml (3.1KB)
@@ -164,8 +169,8 @@ Monitoring:
 ├── monitoring/alert-rules.yml (1.6KB)
 └── monitoring/health-checks.sh (0.9KB)
 
-⚙️ Configuration Files
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚙︁EConfiguration Files
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 ├── cicd-config.yml (3.2KB) - Main CI/CD configuration
 ├── environments/dev.yml (1.8KB) - Development environment
 ├── environments/staging.yml (2.1KB) - Staging environment
@@ -174,7 +179,7 @@ Monitoring:
 └── scripts/deploy.sh (3.7KB) - Deployment automation
 
 📊 Performance Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Total Pipeline Time: 28.7 minutes
 Average Stage Time: 5.7 minutes
 Resource Utilization: 67% CPU, 2.3GB RAM
@@ -182,8 +187,8 @@ Cost Efficiency: $0.23 per build
 Success Rate: 94.2% (last 30 days)
 
 🚨 Active Alerts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. ⚠️ Performance Regression
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+1. ⚠�E�EPerformance Regression
    - Pipeline duration increased by 23%
    - Affected: QA Analysis stage
    - Recommendation: Optimize QA rules or increase compute resources
@@ -194,16 +199,16 @@ Success Rate: 94.2% (last 30 days)
    - Recommendation: Implement resource limits or scale compute
 
 🔗 Integration Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-GitHub Actions: ✅ Connected (12 workflows active)
-GitLab CI: ✅ Connected (8 pipelines active)
-Jenkins: ✅ Connected (5 jobs active)
-Docker Registry: ✅ Connected (14 images)
-Kubernetes: ✅ Connected (3 clusters)
-Monitoring: ✅ Connected (8 dashboards)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+GitHub Actions: ✁EConnected (12 workflows active)
+GitLab CI: ✁EConnected (8 pipelines active)
+Jenkins: ✁EConnected (5 jobs active)
+Docker Registry: ✁EConnected (14 images)
+Kubernetes: ✁EConnected (3 clusters)
+Monitoring: ✁EConnected (8 dashboards)
 
 💡 Optimization Recommendations
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. Implement build caching to reduce pipeline time by ~40%
 2. Add parallel test execution to reduce QA stage time by ~50%
 3. Configure auto-scaling for high-load periods
@@ -211,7 +216,7 @@ Monitoring: ✅ Connected (8 dashboards)
 5. Add chaos engineering tests to improve resilience
 
 🎯 Next Steps
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 1. Review and approve production deployment
 2. Monitor first production deployment
 3. Configure automated rollbacks for failures
@@ -219,14 +224,14 @@ Monitoring: ✅ Connected (8 dashboards)
 5. Implement feature flags for safer deployments
 
 📈 Success Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Deployment Frequency: 12/day (target: 10-15/day)
 Change Failure Rate: 3.2% (target: <5%)
 Mean Time to Recovery: 8.4 minutes (target: <10min)
 Lead Time for Changes: 2.1 hours (target: <4 hours)
 
 🏆 Quality Score: A+ (Excellent CI/CD Implementation)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
 Automation Level: 92%
 Reliability Score: 94%
 Performance Rating: A-
@@ -313,35 +318,35 @@ Monitoring Coverage: 98%
 
 ### Multi-Platform Orchestration
 ```
-┌─────────────────┐    ┌──────────────────┐
-│   CI/CD Agent   │────│   Platform APIs  │
-│   Orchestrator  │    │                  │
-│                 │    └──────────────────┘
-└─────────────────┘             │
-         │                      │
+┌─────────────────━E   ┌──────────────────━E
+━E  CI/CD Agent   │────━E  Platform APIs  ━E
+━E  Orchestrator  ━E   ━E                 ━E
+━E                ━E   └──────────────────━E
+└─────────────────━E            ━E
+         ━E                     ━E
          ├──────────────────────┤
-         │                      │
-    ┌────▼────┐    ┌─────────────┐    ┌─────────────┐
-    │ GitHub   │    │   GitLab    │    │   Jenkins   │
-    │ Actions  │    │     CI     │    │             │
-    └─────────┘    └─────────────┘    └─────────────┘
-         │              │              │
-         └──────────────┼──────────────┘
-                        │
-               ┌────────▼────────┐
-               │  Unified Status │
-               │   & Reporting   │
-               └─────────────────┘
+         ━E                     ━E
+    ┌────▼────━E   ┌─────────────━E   ┌─────────────━E
+    ━EGitHub   ━E   ━E  GitLab    ━E   ━E  Jenkins   ━E
+    ━EActions  ━E   ━E    CI     ━E   ━E            ━E
+    └─────────━E   └─────────────━E   └─────────────━E
+         ━E             ━E             ━E
+         └──────────────┼──────────────━E
+                        ━E
+               ┌────────▼────────━E
+               ━E Unified Status ━E
+               ━E  & Reporting   ━E
+               └─────────────────━E
 ```
 
 ### Quality Gate Pipeline
 ```
-Code Push/PR → Lint & Format → Security Scan → Unit Tests
-       ↓                                               │
-Build & Package ← QA Analysis ← Integration Tests ←───┘
-       ↓
-Deploy to Dev → Deploy to Staging → Manual Review → Deploy to Prod
-       ↓              ↓                      ↓              ↓
+Code Push/PR ↁELint & Format ↁESecurity Scan ↁEUnit Tests
+       ↁE                                              ━E
+Build & Package ↁEQA Analysis ↁEIntegration Tests ←───━E
+       ↁE
+Deploy to Dev ↁEDeploy to Staging ↁEManual Review ↁEDeploy to Prod
+       ↁE             ↁE                     ↁE             ↁE
 Health Checks   Performance Tests   Security Tests   Monitoring
 ```
 

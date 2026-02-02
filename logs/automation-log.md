@@ -1,0 +1,1 @@
+## 2026-02-02 19:28:31 Cowork productivity automation\n- Added YAML frontmatter to 22 skills missing metadata for MCP loader compatibility.\n- Updated .codex/mcp-servers.yaml to launch Playwright MCP via npx @playwright/mcp@latest for reliability.\n- Warmed Playwright MCP binary via npx --help (downloads & verifies).\n

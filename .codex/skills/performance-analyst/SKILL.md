@@ -1,3 +1,8 @@
+---
+name: performance-analyst
+description: Investigate performance regressions using profiling artifacts, flamegraphs, and runtime metrics.
+---
+
 # Performance-Analyst Agent Skill
 
 ## Overview

@@ -1,3 +1,8 @@
+---
+name: qc-optimizer
+description: Before merging to main, orchestrate full-stack QC: run unit/abnormal/comprehensive tests, apply statistical + quantum-inspired optimization heuristics, and log merge decisions.
+---
+
 # Qc-Optimizer Agent Skill
 
 ## Overview

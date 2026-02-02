@@ -79,13 +79,9 @@ servers:
 
   # Playwright - Browser automation and scraping
   playwright:
-    command: "playwright-mcp-server"
-    args: ["--browser", "chromium", "--headless", "true"]
-    env:
-      PLAYWRIGHT_BROWSER: "chromium"
-      PLAYWRIGHT_HEADLESS: "true"
-      PLAYWRIGHT_TIMEOUT: "30000"
-      PLAYWRIGHT_VIEWPORT: "1280x720"
+    command: "npx"
+    args: ["-y", "@playwright/mcp@latest"]
+    env: {}
     capabilities:
       - "web-scraping"
       - "browser-automation"

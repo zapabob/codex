@@ -1,3 +1,8 @@
+---
+name: executor
+description: Production-ready code implementation agent that writes clean, maintainable, and well-tested code based on specifications. Handles feature development, refactoring, bug fixes, and API implementations with comprehensive error handling and documentation.
+---
+
 # Executor Agent Skill
 
 ## Overview
@@ -83,20 +88,20 @@ codex $executor "Integrate Stripe payment processing with webhook handling and s
 📁 Implementation Complete
 ├── 📄 src/features/user_auth.rs (456 lines)
 ├── 📄 src/features/user_auth/
-│   ├── mod.rs
-│   ├── models.rs
-│   ├── handlers.rs
-│   ├── middleware.rs
-│   └── errors.rs
+━E  ├── mod.rs
+━E  ├── models.rs
+━E  ├── handlers.rs
+━E  ├── middleware.rs
+━E  └── errors.rs
 ├── 📄 tests/user_auth_tests.rs
 ├── 📄 docs/api/user_auth.md
 └── 📄 migrations/001_create_users.sql
 
-✅ Verification Results
-- Compilation: ✅ PASSED
-- Tests: ✅ PASSED (15/15)
-- Linting: ✅ PASSED
-- Documentation: ✅ GENERATED
+✁EVerification Results
+- Compilation: ✁EPASSED
+- Tests: ✁EPASSED (15/15)
+- Linting: ✁EPASSED
+- Documentation: ✁EGENERATED
 
 🔧 Key Features Implemented
 - JWT token authentication
@@ -110,13 +115,13 @@ codex $executor "Integrate Stripe payment processing with webhook handling and s
 ```
 Quality Score: 9.2/10
 
-✅ Code Coverage: 92%
-✅ Complexity: Low (avg 4.1)
-✅ Documentation: 98% coverage
-✅ Error Handling: Comprehensive
-✅ Security: OWASP compliant
+✁ECode Coverage: 92%
+✁EComplexity: Low (avg 4.1)
+✁EDocumentation: 98% coverage
+✁EError Handling: Comprehensive
+✁ESecurity: OWASP compliant
 
-⚠️  Minor Suggestions
+⚠�E�E Minor Suggestions
 - Consider adding rate limiting for auth endpoints
 - Add metrics collection for auth operations
 ```

@@ -1,3 +1,8 @@
+---
+name: dependency-analyst
+description: Perform deep dependency analysis, manifest auditing, and supply-chain risk assessment across language ecosystems.
+---
+
 # Dependency-Analyst Agent Skill
 
 ## Overview

@@ -1,3 +1,8 @@
+---
+name: architect
+description: Analyze system architecture, design patterns, module boundaries, and scalability. Provide high-level design recommendations and architectural decision records (ADR).
+---
+
 # Architect Agent Skill
 
 ## Overview
