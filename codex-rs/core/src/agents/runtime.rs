@@ -473,6 +473,8 @@ Only output the JSON, no explanation."#;
         };
 
         // 共有情報を入力へ取り込む
+        let inputs = inputs;
+        #[cfg(feature = "custom-features")]
         let mut inputs = inputs;
         #[cfg(feature = "custom-features")]
         {
