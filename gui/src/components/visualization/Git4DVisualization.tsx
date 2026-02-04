@@ -57,6 +57,8 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const [sessionPlatform, setSessionPlatform] = useState<string | null>(null);
   const [sessionDeviceName, setSessionDeviceName] = useState<string | null>(null);
   const [sessionList, setSessionList] = useState<Git4DSessionInfo[]>([]);
+  const [eventStreamStatus, setEventStreamStatus] = useState<'idle' | 'connecting' | 'open' | 'error'>('idle');
+  const [git4dEvents, setGit4dEvents] = useState<Array<{ timestamp: string; payload: string }>>([]);
 
   // VirtualDesktop optimization
   const { preset, isVD } = useVirtualDesktopOptimizer();
@@ -124,6 +126,45 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
       cancelled = true;
     };
   }, [mode, repositoryPath, sessionId, isVD]);
+
+  useEffect(() => {
+    if (!activeSessionId) {
+      setEventStreamStatus('idle');
+      return;
+    }
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+    const source = new EventSource(`${apiUrl}/api/visualization/git4d/${activeSessionId}/events`);
+    setEventStreamStatus('connecting');
+
+    source.onopen = () => {
+      setEventStreamStatus('open');
+    };
+
+    source.onerror = () => {
+      setEventStreamStatus('error');
+    };
+
+    source.onmessage = (event) => {
+      const timestamp = new Date().toISOString();
+      let payload = event.data;
+      try {
+        payload = JSON.stringify(JSON.parse(event.data));
+      } catch {
+        // keep raw payload
+      }
+
+      setGit4dEvents((prev) => {
+        const next = [{ timestamp, payload }, ...prev];
+        return next.slice(0, 5);
+      });
+    };
+
+    return () => {
+      source.close();
+      setEventStreamStatus('idle');
+    };
+  }, [activeSessionId]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -368,6 +409,11 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
             />
           )}
           <Box sx={{ flex: 1 }} />
+          {isLoading && (
+            <Typography variant="caption" color="warning.main">
+              Launching session…
+            </Typography>
+          )}
           <FormControlLabel
             control={
               <Switch
@@ -498,6 +544,54 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
                 Render Scale: {preset.renderScale.toFixed(2)}x
               </Typography>
             </>
+          )}
+        </Box>
+
+        {/* Git4D SSE Events */}
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Git4D Events (SSE)
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1, flexWrap: 'wrap' }}>
+            <Chip
+              label={`SSE: ${
+                eventStreamStatus === 'open'
+                  ? 'Connected'
+                  : eventStreamStatus === 'connecting'
+                    ? 'Connecting'
+                    : eventStreamStatus === 'error'
+                      ? 'Error'
+                      : 'Idle'
+              }`}
+              color={
+                eventStreamStatus === 'open'
+                  ? 'success'
+                  : eventStreamStatus === 'connecting'
+                    ? 'warning'
+                    : eventStreamStatus === 'error'
+                      ? 'error'
+                      : 'default'
+              }
+              size="small"
+            />
+            {activeSessionId && (
+              <Typography variant="caption" color="text.secondary">
+                Session {activeSessionId.slice(0, 8)}…
+              </Typography>
+            )}
+          </Box>
+          {git4dEvents.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No events received yet.
+            </Typography>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              {git4dEvents.map((evt, idx) => (
+                <Typography key={`${evt.timestamp}-${idx}`} variant="caption" color="text.secondary">
+                  [{evt.timestamp}] {evt.payload}
+                </Typography>
+              ))}
+            </Box>
           )}
         </Box>
       </Paper>

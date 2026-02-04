@@ -25,3 +25,9 @@
 - Launched AR session: 9266c89b-53fc-44f2-b759-2dd7383caa2f (platform WebXR).
 - /api/visualization/git4d/sessions listed desktop/vr/ar sessions.
 - cargo test -p codex-core --features cuda test_gpu_validation_suite_creation stalled; terminated cargo processes 1960/13152.
+
+## 2026-02-04 Git4D GUI SSE + CUDA quick test
+- Added Git4DVisualization backend boot/health/session listing and SSE event stream UI.
+- Git4D page now shows session ID chip (deviceName camelCase fix).
+- Added test_gpu_validation_suite_creation_quick with reduced timeouts.
+- cargo test -p codex-core --features cuda test_gpu_validation_suite_creation_quick stalled during compile; terminated cargo PIDs 13980/36908.

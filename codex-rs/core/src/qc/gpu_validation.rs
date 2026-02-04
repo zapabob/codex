@@ -508,6 +508,23 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_gpu_validation_suite_creation_quick() {
+        let config = GPUValidationConfig {
+            enable_cuda_validation: true,
+            enable_performance_benchmarking: false,
+            enable_memory_validation: false,
+            enable_kernel_validation: false,
+            benchmark_iterations: 1,
+            validation_timeout_seconds: 10,
+            min_performance_threshold: 1.0,
+            memory_stress_test_mb: 64,
+        };
+
+        let suite = GPUValidationSuite::new(config);
+        assert!(suite.run_full_validation().await.is_ok());
+    }
+
+    #[tokio::test]
     async fn test_memory_validation() {
         let config = GPUValidationConfig {
             enable_cuda_validation: false,

@@ -28,6 +28,12 @@
 ## CUDA/GPU validation
 - cargo check -p codex-core --features cuda: success
 - cargo test -p codex-core --features cuda test_gpu_validation_suite_creation started but stalled; terminated cargo PIDs 1960/13152.
+- Added quick-mode test (test_gpu_validation_suite_creation_quick) with reduced timeouts and benchmarks.
+- cargo test -p codex-core --features cuda test_gpu_validation_suite_creation_quick started but stalled during compile; terminated cargo PIDs 13980/36908.
+
+## GUI updates
+- Git4DVisualization now launches backend session automatically and displays backend status, session, platform, and SSE event stream.
+- Git4D page shows session ID chip when available.
 
 ## Cleanup
 - Stopped codex-gui after validation
