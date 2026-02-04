@@ -132,6 +132,7 @@ impl ConvexFunction {
 /// CUDA-accelerated linear algebra operations for optimization
 #[cfg(feature = "cuda")]
 pub mod cuda_math {
+    use anyhow::Result;
     use cudarc::driver::CudaDevice;
     use cudarc::driver::LaunchAsync;
     use cudarc::driver::LaunchConfig;

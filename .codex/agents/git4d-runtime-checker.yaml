@@ -1,0 +1,31 @@
+﻿name: "git4d-runtime-checker"
+goal: "Validate codex-gui Git4D endpoints and runtime launch flow (health, sessions, launch)."
+tools:
+  mcp:
+    - read_file
+    - grep
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+      - "./logs"
+  net:
+    allow:
+      - "http://localhost:*"
+  shell:
+    exec:
+      - cargo
+      - powershell
+      - curl
+policies:
+  context:
+    max_tokens: 20000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Git4D API endpoints respond (health, launch, sessions)"
+  - "Launch returns session_id in desktop mode when VR/AR unavailable"
+artifacts:
+  - "artifacts/git4d-runtime-check.md"

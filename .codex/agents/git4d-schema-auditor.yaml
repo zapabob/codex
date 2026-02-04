@@ -1,0 +1,23 @@
+﻿name: "git4d-schema-auditor"
+goal: "Check alignment between Git4D design docs and prisma schema (visualizations, sessions, comments)."
+tools:
+  mcp:
+    - read_file
+    - grep
+    - codebase_search
+  fs:
+    read: true
+    write:
+      - "./artifacts"
+      - "./logs"
+policies:
+  context:
+    max_tokens: 12000
+    retention: "job"
+  secrets:
+    redact: true
+success_criteria:
+  - "Schema includes visualization_type=4d and Git4D storage tables"
+  - "Report differences vs design docs"
+artifacts:
+  - "artifacts/git4d-schema-audit.md"

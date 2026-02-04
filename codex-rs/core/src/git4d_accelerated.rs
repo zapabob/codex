@@ -684,6 +684,20 @@ impl Git4DAcceleratedVisualizer {
         };
 
         // Create render parameters
+        let (branch_filter, branch_filter_count) = {
+            let mut filter = [0u32; 32];
+            let mut count = 0u32;
+
+            if !visible_branches.is_empty() {
+                for (idx, branch_id) in visible_branches.iter().take(32).enumerate() {
+                    filter[idx] = *branch_id;
+                    count += 1;
+                }
+            }
+
+            (filter, count)
+        };
+
         let params = RenderParameters {
             viewport_width: config.render_width,
             viewport_height: config.render_height,
@@ -692,7 +706,8 @@ impl Git4DAcceleratedVisualizer {
             camera_up: [0.0, 1.0, 0.0],
             projection_matrix: self.create_projection_matrix(config),
             time_filter: time_range,
-            branch_filter: visible_branches.iter().cloned().collect(),
+            branch_filter,
+            branch_filter_count,
         };
 
         // Send camera update event
@@ -1053,8 +1068,9 @@ impl Git4DAcceleratedVisualizer {
                 }
 
                 // Apply branch filtering
-                let branch_visible = params.branch_filter.is_empty()
-                    || params.branch_filter.contains(&vertex.branch_id);
+                let branch_visible = params.branch_filter_count == 0
+                    || params.branch_filter[..params.branch_filter_count as usize]
+                        .contains(&vertex.branch_id);
 
                 if !branch_visible {
                     transformed.color[3] = 0.0;

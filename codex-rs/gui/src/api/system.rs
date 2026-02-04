@@ -1,5 +1,15 @@
 use crate::types::SystemMetrics;
 use axum::Json;
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct HealthStatus {
+    pub status: &'static str,
+}
+
+pub async fn health() -> Json<HealthStatus> {
+    Json(HealthStatus { status: "ok" })
+}
 
 // System Metrics handler
 pub async fn get_system_metrics() -> Json<SystemMetrics> {

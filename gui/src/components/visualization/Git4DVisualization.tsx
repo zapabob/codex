@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, Typography, Paper, IconButton, Slider, FormControlLabel, Switch, Chip } from '@mui/material';
@@ -9,6 +9,8 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 import type { Git4DCommitData } from '../../lib/types/three';
+import { apiClient } from '../../lib/api/client';
+import type { Git4DSessionInfo } from '../../lib/types';
 
 /**
  * Git4DVisualization Component Props
@@ -49,12 +51,79 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backendStatus, setBackendStatus] = useState<'ok' | 'offline' | 'loading'>('loading');
+  const [backendMessage, setBackendMessage] = useState<string | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(sessionId ?? null);
+  const [sessionPlatform, setSessionPlatform] = useState<string | null>(null);
+  const [sessionDeviceName, setSessionDeviceName] = useState<string | null>(null);
+  const [sessionList, setSessionList] = useState<Git4DSessionInfo[]>([]);
 
-  // VirtualDesktop最適化
-  const { preset, isVD, changePreset } = useVirtualDesktopOptimizer();
+  // VirtualDesktop optimization
+  const { preset, isVD } = useVirtualDesktopOptimizer();
 
   // Mock git data - replace with real data from backend
   const [commits] = useState(() => generateMockCommits());
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const bootstrapBackend = async () => {
+      setBackendStatus('loading');
+      setBackendMessage(null);
+
+      try {
+        const health = await apiClient.getHealth();
+        if (cancelled) return;
+        setBackendStatus(health.status === 'ok' ? 'ok' : 'offline');
+      } catch (err) {
+        if (cancelled) return;
+        setBackendStatus('offline');
+        setBackendMessage(err instanceof Error ? err.message : 'Backend unreachable');
+        return;
+      }
+
+      if (sessionId) {
+        setActiveSessionId(sessionId);
+      } else {
+        setIsLoading(true);
+        try {
+          const response = await apiClient.launchGit4D({
+            mode,
+            repositoryPath: repositoryPath || '.',
+            virtualDesktop: isVD && (mode === 'vr' || mode === 'ar'),
+          });
+          if (cancelled) return;
+          setActiveSessionId(response.sessionId);
+          setSessionPlatform(response.platform ?? null);
+          setSessionDeviceName(response.deviceName ?? null);
+        } catch (err) {
+          if (cancelled) return;
+          setError(err instanceof Error ? err.message : 'Failed to launch Git4D backend session');
+        } finally {
+          if (!cancelled) {
+            setIsLoading(false);
+          }
+        }
+      }
+
+      try {
+        const sessions = await apiClient.getGit4DSessions();
+        if (!cancelled) {
+          setSessionList(sessions);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setBackendMessage(err instanceof Error ? err.message : 'Failed to list sessions');
+        }
+      }
+    };
+
+    bootstrapBackend();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, repositoryPath, sessionId, isVD]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -75,22 +144,22 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     
-    // VirtualDesktop最適化: レンダリング解像度を調整
+    // VirtualDesktop譛驕ｩ蛹・ 繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ隗｣蜒丞ｺｦ繧定ｪｿ謨ｴ
     const renderScale = isVD && (vrMode || arMode) ? preset.renderScale : 1.0;
     const width = mountRef.current.clientWidth * renderScale;
     const height = mountRef.current.clientHeight * renderScale;
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, preset.targetFps / 60)); // FPS制限に合わせて調整
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, preset.targetFps / 60)); // FPS蛻ｶ髯舌↓蜷医ｏ縺帙※隱ｿ謨ｴ
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
     mountRef.current.appendChild(renderer.domElement);
     
-    // VirtualDesktop検出時の最適化適用
+    // VirtualDesktop讀懷・譎ゅ・譛驕ｩ蛹夜←逕ｨ
     if (isVD && (vrMode || arMode)) {
       console.log('VirtualDesktop detected - applying optimizations', preset);
-      // ストリーミング最適化を適用
+      // 繧ｹ繝医Μ繝ｼ繝溘Φ繧ｰ譛驕ｩ蛹悶ｒ驕ｩ逕ｨ
       if (renderer.domElement) {
         renderer.domElement.style.imageRendering = preset.renderScale < 1 ? 'pixelated' : 'auto';
       }
@@ -115,8 +184,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     const animate = (currentTime: number) => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
-      // FPS制限（VirtualDesktop用）
-      if (targetFrameTime > 0) {
+      // FPS蛻ｶ髯撰ｼ・irtualDesktop逕ｨ・・      if (targetFrameTime > 0) {
         const elapsed = currentTime - lastFrameTime;
         if (elapsed < targetFrameTime) {
           return; // Skip frame to maintain target FPS
@@ -141,7 +209,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
       camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
       camera.updateProjectionMatrix();
       
-      // VirtualDesktop最適化: レンダリング解像度を調整
+      // VirtualDesktop譛驕ｩ蛹・ 繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ隗｣蜒丞ｺｦ繧定ｪｿ謨ｴ
       const renderScale = isVD && (vrMode || arMode) ? preset.renderScale : 1.0;
       const width = mountRef.current.clientWidth * renderScale;
       const height = mountRef.current.clientHeight * renderScale;
@@ -252,13 +320,49 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
           color: 'white',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1, flexWrap: 'wrap' }}>
           <GitBranch size={24} />
           <Typography variant="h6">Git4D Visualization</Typography>
           {isVD && (vrMode || arMode) && (
             <Chip 
               label={`VirtualDesktop: ${preset.name}`} 
               color="info" 
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          )}
+          <Chip
+            label={`Backend: ${
+              backendStatus === 'ok'
+                ? 'OK'
+                : backendStatus === 'loading'
+                  ? 'Checking…'
+                  : 'Offline'
+            }`}
+            color={backendStatus === 'ok' ? 'success' : backendStatus === 'loading' ? 'warning' : 'error'}
+            size="small"
+            sx={{ ml: 1 }}
+          />
+          {activeSessionId && (
+            <Chip
+              label={`Session: ${activeSessionId.slice(0, 8)}…`}
+              color="primary"
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          )}
+          {sessionPlatform && (
+            <Chip
+              label={`Platform: ${sessionPlatform}${sessionDeviceName ? ` (${sessionDeviceName})` : ''}`}
+              color="success"
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          )}
+          {sessionList.length > 0 && (
+            <Chip
+              label={`Sessions: ${sessionList.length}`}
+              color="secondary"
               size="small"
               sx={{ ml: 1 }}
             />
@@ -315,6 +419,11 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
             label="Hand Tracking"
           />
         </Box>
+        {backendMessage && (
+          <Typography variant="caption" color="error" sx={{ display: 'block', mb: 2 }}>
+            Backend note: {backendMessage}
+          </Typography>
+        )}
 
         {/* Controls */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>

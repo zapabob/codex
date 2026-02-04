@@ -13,6 +13,10 @@ import {
   SystemMetrics,
   LoginForm,
   NewConversationForm,
+  Git4DLaunchRequest,
+  Git4DLaunchResponse,
+  Git4DSessionInfo,
+  HealthStatus,
 } from '../types';
 
 // Plan types
@@ -1211,7 +1215,7 @@ export class CodexAPIClient {
   }
 
   // Git4D Visualization API
-  async launchGit4D(request: { mode: 'desktop' | 'vr' | 'ar'; repositoryPath: string; virtualDesktop?: boolean }): Promise<{ sessionId: string; platform?: string; device_name?: string }> {
+  async launchGit4D(request: Git4DLaunchRequest): Promise<Git4DLaunchResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/api/visualization/git4d`, {
         method: 'POST',
@@ -1239,6 +1243,56 @@ export class CodexAPIClient {
         throw error;
       }
       throw new CodexAPIError(-1, `Failed to launch Git4D: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getGit4DSessions(): Promise<Git4DSessionInfo[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/visualization/git4d/sessions`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to list Git4D sessions: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to list Git4D sessions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getHealth(): Promise<HealthStatus> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new CodexAPIError(
+          response.status,
+          `Failed to read health status: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof CodexAPIError) {
+        throw error;
+      }
+      throw new CodexAPIError(-1, `Failed to read health status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

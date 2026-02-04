@@ -364,7 +364,20 @@ export interface Git4DLaunchRequest {
 export interface Git4DLaunchResponse {
   sessionId: string;
   platform?: string;
-  device_name?: string;
+  deviceName?: string;
+}
+
+export interface Git4DSessionInfo {
+  sessionId: string;
+  mode: string;
+  repositoryPath: string;
+  status: string;
+  createdAt: string;
+  lastActivity: string;
+}
+
+export interface HealthStatus {
+  status: string;
 }
 
 // Plan Management Types

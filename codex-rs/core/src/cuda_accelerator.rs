@@ -46,6 +46,9 @@
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "cuda")]
+use cudarc::driver::LaunchAsync;
+
 /// A single vertex representing a Git commit in 4D space-time.
 ///
 /// This struct is designed to be GPU-friendly with packed data layout
@@ -65,6 +68,11 @@ pub struct GitCommitVertex {
     pub commit_hash: u64,
 }
 
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::DeviceRepr for GitCommitVertex {}
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::ValidAsZeroBits for GitCommitVertex {}
+
 /// 4x4 transformation matrix for vertex operations.
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -72,6 +80,11 @@ pub struct TransformationMatrix {
     /// Column-major 4x4 matrix
     pub matrix: [[f32; 4]; 4],
 }
+
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::DeviceRepr for TransformationMatrix {}
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::ValidAsZeroBits for TransformationMatrix {}
 
 impl Default for TransformationMatrix {
     fn default() -> Self {
@@ -109,6 +122,11 @@ pub struct RenderParameters {
     /// Number of valid entries in branch_filter
     pub branch_filter_count: u32,
 }
+
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::DeviceRepr for RenderParameters {}
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::ValidAsZeroBits for RenderParameters {}
 
 impl Default for RenderParameters {
     fn default() -> Self {
@@ -240,7 +258,7 @@ impl CudaGit4DAccelerator {
 
         let transform_device = self
             .device
-            .htod_copy(vec![transform.matrix])
+            .htod_copy(vec![*transform])
             .map_err(|e| anyhow::anyhow!("Failed to copy transform matrix: {}", e))?;
 
         let params_device = self
@@ -266,9 +284,9 @@ impl CudaGit4DAccelerator {
         };
 
         unsafe {
-            self.device
+            self.vertex_kernel
+                .clone()
                 .launch(
-                    &self.vertex_kernel,
                     cfg,
                     (
                         &vertices_device,
@@ -323,7 +341,7 @@ impl CudaGit4DAccelerator {
 
         let mut output_positions = self
             .device
-            .alloc_zeros::<[f32; 3]>(num_vertices)
+            .alloc_zeros::<f32>(num_vertices * 3)
             .map_err(|e| anyhow::anyhow!("Failed to allocate output: {}", e))?;
 
         // Calculate grid dimensions
@@ -337,9 +355,9 @@ impl CudaGit4DAccelerator {
         };
 
         unsafe {
-            self.device
+            self.transform_kernel
+                .clone()
                 .launch(
-                    &self.transform_kernel,
                     cfg,
                     (
                         &vertices_device,
@@ -353,10 +371,15 @@ impl CudaGit4DAccelerator {
         }
 
         // Copy results back
-        let result = self
+        let flat = self
             .device
             .dtoh_sync_copy(&output_positions)
             .map_err(|e| anyhow::anyhow!("Failed to copy projection results: {}", e))?;
+
+        let result = flat
+            .chunks_exact(3)
+            .map(|chunk| [chunk[0], chunk[1], chunk[2]])
+            .collect();
 
         Ok(result)
     }
@@ -382,7 +405,7 @@ impl CudaGit4DAccelerator {
         }
 
         let num_vertices = vertices.len();
-        let framebuffer_size = framebuffer.len();
+        let _framebuffer_size = framebuffer.len();
 
         // Allocate device memory
         let vertices_device = self
@@ -411,9 +434,9 @@ impl CudaGit4DAccelerator {
         };
 
         unsafe {
-            self.device
+            self.render_kernel
+                .clone()
                 .launch(
-                    &self.render_kernel,
                     cfg,
                     (
                         &vertices_device,
@@ -640,7 +663,7 @@ typedef struct {
 
 extern "C" __global__ void vertex_transform(
     const GitCommitVertex* vertices,
-    const float transform[4][4],
+    const TransformationMatrix* transform,
     const RenderParameters* params,
     GitCommitVertex* output,
     unsigned int num_vertices
@@ -679,7 +702,7 @@ extern "C" __global__ void vertex_transform(
     for (int i = 0; i < 4; ++i) {
         transformed[i] = 0.0f;
         for (int j = 0; j < 4; ++j) {
-            transformed[i] += transform[i][j] * pos[j];
+            transformed[i] += transform->matrix[i][j] * pos[j];
         }
     }
 

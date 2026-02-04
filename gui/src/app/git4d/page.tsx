@@ -101,8 +101,8 @@ export default function Git4DPage() {
           // 検出されたプラットフォーム情報を保存
           if (data.platform) {
             setDetectedPlatform(data.platform);
-            if (data.device_name) {
-              console.log(`Platform detected: ${data.platform} (${data.device_name})`);
+            if (data.deviceName) {
+              console.log(`Platform detected: ${data.platform} (${data.deviceName})`);
             } else {
               console.log(`Platform detected: ${data.platform}`);
             }
@@ -152,6 +152,14 @@ export default function Git4DPage() {
               <Chip 
                 label={`Platform: ${detectedPlatform}`} 
                 color="success" 
+                size="small"
+                sx={{ ml: 1 }}
+              />
+            )}
+            {sessionId && (
+              <Chip
+                label={`Session: ${sessionId.slice(0, 8)}…`}
+                color="primary"
                 size="small"
                 sx={{ ml: 1 }}
               />

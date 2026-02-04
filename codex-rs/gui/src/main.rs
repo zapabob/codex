@@ -65,6 +65,7 @@ async fn main() -> Result<(), GuiError> {
     let app = Router::new()
         // Existing routes
         .route("/api/actions", get(api::actions::list_actions))
+        .route("/api/health", get(api::system::health))
         .route(
             "/api/actions/{id}/execute",
             post(api::actions::execute_action),
