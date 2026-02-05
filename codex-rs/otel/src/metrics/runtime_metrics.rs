@@ -1,9 +1,15 @@
 use crate::metrics::names::API_CALL_COUNT_METRIC;
 use crate::metrics::names::API_CALL_DURATION_METRIC;
+use crate::metrics::names::RESPONSES_API_INFERENCE_TIME_DURATION_METRIC;
+use crate::metrics::names::RESPONSES_API_OVERHEAD_DURATION_METRIC;
 use crate::metrics::names::SSE_EVENT_COUNT_METRIC;
 use crate::metrics::names::SSE_EVENT_DURATION_METRIC;
 use crate::metrics::names::TOOL_CALL_COUNT_METRIC;
 use crate::metrics::names::TOOL_CALL_DURATION_METRIC;
+use crate::metrics::names::WEBSOCKET_EVENT_COUNT_METRIC;
+use crate::metrics::names::WEBSOCKET_EVENT_DURATION_METRIC;
+use crate::metrics::names::WEBSOCKET_REQUEST_COUNT_METRIC;
+use crate::metrics::names::WEBSOCKET_REQUEST_DURATION_METRIC;
 use opentelemetry_sdk::metrics::data::AggregatedMetrics;
 use opentelemetry_sdk::metrics::data::Metric;
 use opentelemetry_sdk::metrics::data::MetricData;
@@ -26,11 +32,21 @@ pub struct RuntimeMetricsSummary {
     pub tool_calls: RuntimeMetricTotals,
     pub api_calls: RuntimeMetricTotals,
     pub streaming_events: RuntimeMetricTotals,
+    pub websocket_calls: RuntimeMetricTotals,
+    pub websocket_events: RuntimeMetricTotals,
+    pub responses_api_overhead_ms: u64,
+    pub responses_api_inference_time_ms: u64,
 }
 
 impl RuntimeMetricsSummary {
     pub fn is_empty(self) -> bool {
-        self.tool_calls.is_empty() && self.api_calls.is_empty() && self.streaming_events.is_empty()
+        self.tool_calls.is_empty()
+            && self.api_calls.is_empty()
+            && self.streaming_events.is_empty()
+            && self.websocket_calls.is_empty()
+            && self.websocket_events.is_empty()
+            && self.responses_api_overhead_ms == 0
+            && self.responses_api_inference_time_ms == 0
     }
 
     pub(crate) fn from_snapshot(snapshot: &ResourceMetrics) -> Self {
@@ -46,10 +62,26 @@ impl RuntimeMetricsSummary {
             count: sum_counter(snapshot, SSE_EVENT_COUNT_METRIC),
             duration_ms: sum_histogram_ms(snapshot, SSE_EVENT_DURATION_METRIC),
         };
+        let websocket_calls = RuntimeMetricTotals {
+            count: sum_counter(snapshot, WEBSOCKET_REQUEST_COUNT_METRIC),
+            duration_ms: sum_histogram_ms(snapshot, WEBSOCKET_REQUEST_DURATION_METRIC),
+        };
+        let websocket_events = RuntimeMetricTotals {
+            count: sum_counter(snapshot, WEBSOCKET_EVENT_COUNT_METRIC),
+            duration_ms: sum_histogram_ms(snapshot, WEBSOCKET_EVENT_DURATION_METRIC),
+        };
+        let responses_api_overhead_ms =
+            sum_histogram_ms(snapshot, RESPONSES_API_OVERHEAD_DURATION_METRIC);
+        let responses_api_inference_time_ms =
+            sum_histogram_ms(snapshot, RESPONSES_API_INFERENCE_TIME_DURATION_METRIC);
         Self {
             tool_calls,
             api_calls,
             streaming_events,
+            websocket_calls,
+            websocket_events,
+            responses_api_overhead_ms,
+            responses_api_inference_time_ms,
         }
     }
 }

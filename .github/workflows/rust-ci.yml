@@ -72,7 +72,7 @@ jobs:
         with:
           components: rustfmt
       - name: cargo fmt
-        run: cargo fmt -- --check
+        run: cargo fmt -- --config imports_granularity=Item --check
       - name: Verify codegen for mcp-types
         run: ./mcp-types/check_lib_rs.py
 
@@ -96,11 +96,11 @@ jobs:
 
   # --- Fast incremental build and install job -----------------------------------
   fast_build_install:
-    name: Fast Build & Install  EWindows Latest (Avast Safe)
+    name: Fast Build & Install 窶・Windows Latest (Avast Safe)
     runs-on: windows-latest
     needs: changed
     if: ${{ needs.changed.outputs.codex == 'true' || github.event_name == 'push' }}
-    timeout-minutes: 30  # Increased for Avast-safe builds
+    timeout-minutes: 30 # Increased for Avast-safe builds
     steps:
       - uses: actions/checkout@v4
 
@@ -162,8 +162,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Disable real-time monitoring temporarily
         run: |
@@ -177,14 +177,14 @@ jobs:
 
       - name: Kill existing codex processes
         run: |
-          # PowerShellでプロセスを検知・終亁E
+          # PowerShell縺ｧ繝励Ο繧ｻ繧ｹ繧呈､懃衍繝ｻ邨ゆｺ・
           $processes = Get-Process | Where-Object { $_.ProcessName -like "*codex*" }
           if ($processes) {
             Write-Host "Terminating existing codex processes..."
             foreach ($proc in $processes) {
               Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
             }
-            # 終亁E��E��E
+            # 邨ゆｺ・ｾ・ｩ・
             Start-Sleep -Seconds 3
           }
 
@@ -202,7 +202,7 @@ jobs:
       - name: Fast incremental build and install
         working-directory: codex-rs
         run: |
-          # 高速差刁E��ルド実衁E
+          # 鬮倬溷ｷｮ蛻・ン繝ｫ繝牙ｮ溯｡・
           cargo build --release -p codex-cli 2>&1 | ForEach-Object {
             $line = $_
             Write-Host $line
@@ -211,17 +211,17 @@ jobs:
             }
           }
 
-          # プロセスキル付きインスト�Eル
+          # 繝励Ο繧ｻ繧ｹ繧ｭ繝ｫ莉倥″繧､繝ｳ繧ｹ繝医・繝ｫ
           Write-Host "Installing with process kill..."
           cargo install --path cli --force --root ~/.cargo
 
       - name: Verify installation and cleanup
         run: |
-          # インスト�Eル検証
+          # 繧､繝ｳ繧ｹ繝医・繝ｫ讀懆ｨｼ
           $version = codex --version 2>&1
           Write-Host "Codex installed: $version"
 
-          # 最終�EロセスクリーンアチE�E
+          # 譛邨ゅ・繝ｭ繧ｻ繧ｹ繧ｯ繝ｪ繝ｼ繝ｳ繧｢繝・・
           $remaining = Get-Process | Where-Object { $_.ProcessName -like "*codex*" -and $_.Id -ne $PID }
           if ($remaining) {
             Write-Host "Cleaning up remaining processes..."
@@ -242,7 +242,7 @@ jobs:
 
   # --- CI to validate on different os/targets --------------------------------
   lint_build:
-    name: Lint/Build  E${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' && ' (release)' || '' }}
+    name: Lint/Build 窶・${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' && ' (release)' || '' }}
     runs-on: ${{ matrix.runs_on || matrix.runner }}
     timeout-minutes: 30
     needs: changed
@@ -252,7 +252,7 @@ jobs:
       run:
         working-directory: codex-rs
     env:
-      # Enable incremental builds for faster CI
+      # Enable incremental builds for faster CI (Custom Optimized)
       USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') && 'true' || 'true' }}
       CARGO_INCREMENTAL: "1"
       SCCACHE_CACHE_SIZE: ${{ startsWith(matrix.runner, 'windows') && '5G' || '10G' }}
@@ -261,6 +261,8 @@ jobs:
       RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') && '1' || '1' }}
       # Enable faster linking with Windows-specific optimizations
       RUSTFLAGS: ${{ startsWith(matrix.runner, 'windows') && '-C target-cpu=native -C opt-level=2 -C link-args=/DEBUG:NONE' || '-C target-cpu=native -C opt-level=2' }}
+      # Keep cargo-based CI independent of system bwrap build deps. (Upstream)
+      CODEX_BWRAP_ENABLE_FFI: "0"
 
     strategy:
       fail-fast: false
@@ -589,7 +591,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "### sccache stats  E${{ matrix.target }} (${{ matrix.profile }})";
+            echo "### sccache stats 窶・${{ matrix.target }} (${{ matrix.profile }})";
             echo;
             echo '```';
             sccache --show-stats || true;
@@ -615,7 +617,7 @@ jobs:
           exit 1
 
   tests:
-    name: Tests  E${{ matrix.runner }} - ${{ matrix.target }}
+    name: Tests 窶・${{ matrix.runner }} - ${{ matrix.target }}
     runs-on: ${{ matrix.runs_on || matrix.runner }}
     timeout-minutes: 30
     needs: changed
@@ -628,9 +630,11 @@ jobs:
       USE_SCCACHE: ${{ startsWith(matrix.runner, 'windows') && 'false' || 'true' }}
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: 10G
-      # Optimize for Windows memory usage
+      # Optimize for Windows memory usage (Custom)
       CARGO_BUILD_JOBS: ${{ startsWith(matrix.runner, 'windows') && '2' || '4' }}
       RUST_BACKTRACE: ${{ startsWith(matrix.runner, 'windows') && '0' || '1' }}
+      # Keep cargo-based CI independent of system bwrap build deps. (Upstream)
+      CODEX_BWRAP_ENABLE_FFI: "0"
 
     strategy:
       fail-fast: false
@@ -665,8 +669,7 @@ jobs:
               labels: codex-windows-arm64
 
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v6
       # Some integration tests rely on DotSlash being installed.
       # See https://github.com/openai/codex/pull/7617.
       - name: Install DotSlash
@@ -777,7 +780,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "### sccache stats  E${{ matrix.target }} (tests)";
+            echo "### sccache stats 窶・${{ matrix.target }} (tests)";
             echo;
             echo '```';
             sccache --show-stats || true;
@@ -826,6 +829,6 @@ jobs:
       - name: CI/CD Success Notification
         if: success()
         run: |
-          echo "🎉 CI/CD Pipeline completed successfully!"
+          echo "�脂 CI/CD Pipeline completed successfully!"
           echo "All quality checks, builds, and tests passed."
           echo "Ready for deployment or merge."

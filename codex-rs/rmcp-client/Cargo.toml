@@ -16,6 +16,7 @@ codex-keyring-store = { workspace = true }
 codex-protocol = { workspace = true }
 codex-utils-home-dir = { workspace = true }
 futures = { workspace = true, default-features = false, features = ["std"] }
+<<<<<<< HEAD
 keyring = { workspace = true, features = [
     "apple-native",
     "crypto-rust",
@@ -23,6 +24,9 @@ keyring = { workspace = true, features = [
     "windows-native",
 ] }
 mcp-types = { path = "../mcp-types" }
+=======
+keyring = { workspace = true, features = ["crypto-rust"] }
+>>>>>>> upstream/main
 oauth2 = "5"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",

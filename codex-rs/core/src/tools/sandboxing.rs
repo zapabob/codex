@@ -274,7 +274,11 @@ pub(crate) struct SandboxAttempt<'a> {
     pub(crate) manager: &'a SandboxManager,
     pub(crate) sandbox_cwd: &'a Path,
     pub codex_linux_sandbox_exe: Option<&'a std::path::PathBuf>,
+<<<<<<< HEAD
     #[allow(dead_code)]
+=======
+    pub use_linux_sandbox_bwrap: bool,
+>>>>>>> upstream/main
     pub windows_sandbox_level: codex_protocol::config_types::WindowsSandboxLevel,
 }
 
@@ -283,6 +287,7 @@ impl<'a> SandboxAttempt<'a> {
         &self,
         spec: CommandSpec,
     ) -> Result<crate::sandboxing::ExecEnv, SandboxTransformError> {
+<<<<<<< HEAD
         self.manager.transform(
             spec,
             self.policy,
@@ -290,6 +295,18 @@ impl<'a> SandboxAttempt<'a> {
             self.sandbox_cwd,
             self.codex_linux_sandbox_exe,
         )
+=======
+        self.manager
+            .transform(crate::sandboxing::SandboxTransformRequest {
+                spec,
+                policy: self.policy,
+                sandbox: self.sandbox,
+                sandbox_policy_cwd: self.sandbox_cwd,
+                codex_linux_sandbox_exe: self.codex_linux_sandbox_exe,
+                use_linux_sandbox_bwrap: self.use_linux_sandbox_bwrap,
+                windows_sandbox_level: self.windows_sandbox_level,
+            })
+>>>>>>> upstream/main
     }
 }
 
