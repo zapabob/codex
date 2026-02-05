@@ -30,11 +30,8 @@ members = [
     "lmstudio",
     "login",
     "mcp-server",
-<<<<<<< HEAD
     "microsoft365",
     "mcp-types",
-=======
->>>>>>> upstream/main
     "network-proxy",
     "ollama",
     "orchestrator",
@@ -92,11 +89,8 @@ codex-cli = { path = "cli" }
 codex-client = { path = "codex-client" }
 codex-common = { path = "common" }
 codex-core = { path = "core" }
-<<<<<<< HEAD
 codex-cuda-runtime = { path = "cuda-runtime" }
-=======
 codex-secrets = { path = "secrets" }
->>>>>>> upstream/main
 codex-exec = { path = "exec" }
 codex-execpolicy = { path = "execpolicy" }
 codex-experimental-api-macros = { path = "codex-experimental-api-macros" }
@@ -133,11 +127,8 @@ exec_server_test_support = { path = "exec-server/tests/common" }
 mcp_test_support = { path = "mcp-server/tests/common" }
 
 # External
-<<<<<<< HEAD
 aes-gcm = "0.10"
-=======
 age = "0.11.1"
->>>>>>> upstream/main
 allocative = "0.3.3"
 ansi-to-tui = "7.0.0"
 anyhow = "1"
@@ -285,11 +276,8 @@ walkdir = "2.5.0"
 webbrowser = "1.0"
 which = "8"
 wildmatch = "2.6.1"
-<<<<<<< HEAD
 zstd = "0.13"
-=======
 zip = "2.4.2"
->>>>>>> upstream/main
 
 wiremock = "0.6"
 zeroize = "1.8.2"

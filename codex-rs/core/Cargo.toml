@@ -49,11 +49,8 @@ codex-utils-string = { workspace = true }
 codex-windows-ai = { workspace = true, optional = true }
 codex-state = { workspace = true }
 codex-windows-sandbox = { package = "codex-windows-sandbox", path = "../windows-sandbox-rs" }
-<<<<<<< HEAD
 cudarc = { workspace = true, optional = true }
 dashmap = "5.5"
-=======
->>>>>>> upstream/main
 dirs = { workspace = true }
 dunce = { workspace = true }
 ed25519-dalek = { workspace = true, optional = true }
@@ -71,11 +68,8 @@ indoc = { workspace = true }
 keyring = { workspace = true, features = ["crypto-rust"] }
 libc = { workspace = true }
 multimap = { workspace = true }
-<<<<<<< HEAD
 num_cpus = { workspace = true }
-=======
 notify = { workspace = true }
->>>>>>> upstream/main
 once_cell = { workspace = true }
 os_info = { workspace = true }
 parking_lot = "0.12"
@@ -128,7 +122,6 @@ uuid = { workspace = true, features = ["serde", "v4", "v5"] }
 walkdir = { workspace = true }
 which = { workspace = true }
 wildmatch = { workspace = true }
-<<<<<<< HEAD
 lsp-types = "0.95"
 tower-lsp = "0.20"
 sqlx = { version = "0.8", features = [
@@ -138,9 +131,7 @@ sqlx = { version = "0.8", features = [
 ] }
 oauth2 = "5"
 openai-api-rs = { version = "9.0", optional = true }
-=======
 zip = { workspace = true }
->>>>>>> upstream/main
 
 [features]
 deterministic_process_ids = []
@@ -154,19 +145,28 @@ cuda = ["cudarc"]
 custom-features = []
 
 # --- Git4D Visualization Stack ---
-git4d-base = ["custom-features", "cuda", "git4d-vr"]  # Basic Git4D functionality with CUDA + VR
-git4d-vr = []                                       # VR/AR support (now part of base)
-git4d-superior = ["git4d-base", "git4d-vr"]         # Advanced AI/quantum features
+git4d-base = [
+    "custom-features",
+    "cuda",
+    "git4d-vr",
+] # Basic Git4D functionality with CUDA + VR
+git4d-vr = [] # VR/AR support (now part of base)
+git4d-superior = ["git4d-base", "git4d-vr"] # Advanced AI/quantum features
 
 # --- AI/Agent Communication Stack ---
-a2a-comm = ["custom-features"]                      # Agent-to-agent communication
-autonomous = ["custom-features", "a2a-comm"]        # Autonomous orchestration with self-healing
+a2a-comm = ["custom-features"] # Agent-to-agent communication
+autonomous = [
+    "custom-features",
+    "a2a-comm",
+] # Autonomous orchestration with self-healing
 
 # --- Enterprise Features ---
-enterprise = ["custom-features"]                    # Enterprise features (QC, planning, conflict resolution)
-cowork = ["custom-features"]                        # Cowork integration
-skill-mcp = ["custom-features"]                     # Skill/MCP integration
-llmops = ["custom-features"]                        # LLMOps integration
+enterprise = [
+    "custom-features",
+] # Enterprise features (QC, planning, conflict resolution)
+cowork = ["custom-features"] # Cowork integration
+skill-mcp = ["custom-features"] # Skill/MCP integration
+llmops = ["custom-features"] # LLMOps integration
 
 # --- Convenience Presets ---
 # Personal use: All features for individual developers
@@ -191,11 +191,7 @@ on-premises = [
 ]
 
 # Production-stable: Verified stable features only (no CUDA/VR required)
-production = [
-    "custom-features",
-    "enterprise",
-    "llmops",
-]
+production = ["custom-features", "enterprise", "llmops"]
 
 
 [target.'cfg(target_os = "linux")'.dependencies]
