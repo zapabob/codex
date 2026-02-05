@@ -30,12 +30,9 @@ codex-microsoft365 = { path = "../microsoft365" }
 codex-protocol = { workspace = true }
 codex-web-search = { path = "../web-search" }
 codex-utils-json-to-toml = { workspace = true }
-<<<<<<< HEAD
 codex-cuda-runtime = { workspace = true, optional = true }
 mcp-types = { workspace = true }
-=======
 rmcp = { workspace = true }
->>>>>>> upstream/main
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
