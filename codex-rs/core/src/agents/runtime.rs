@@ -27,6 +27,7 @@ use crate::client::ModelClient;
 use crate::client_common::Prompt;
 use crate::client_common::ResponseEvent;
 use crate::config::Config;
+use crate::features::Feature;
 use crate::model_provider_info::ModelProviderInfo;
 #[cfg(feature = "custom-features")]
 use crate::orchestration::CollaborationStore;
@@ -44,8 +45,9 @@ use codex_rmcp_client::RmcpClient;
 use codex_rmcp_client::SendElicitation;
 use futures::FutureExt;
 use futures::StreamExt;
-use mcp_types::InitializeRequestParams;
-use mcp_types::RequestId;
+use rmcp::model::InitializeRequestParam;
+use rmcp::model::ProtocolVersion;
+use rmcp::model::RequestId;
 
 /// サブエージェントランタイム
 pub struct AgentRuntime {
@@ -251,6 +253,7 @@ Only output the JSON, no explanation."#;
             role: "user".to_string(),
             content: vec![ContentItem::InputText { text: user_message }],
             end_turn: None,
+            phase: None,
         }];
 
         let llm_prompt = Prompt {
@@ -271,21 +274,27 @@ Only output the JSON, no explanation."#;
             &self.config,
         );
         let model_client = ModelClient::new(
-            self.config.clone(),
             self.auth_manager.clone(),
-            model_info,
-            self.otel_manager.clone(),
-            self.provider.clone(),
-            Some(ReasoningEffort::Medium),
-            ReasoningSummary::Detailed,
             self.conversation_id,
-            codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
-            crate::transport_manager::TransportManager::new(),
+            self.provider.clone(),
+            codex_protocol::protocol::SessionSource::Cli,
+            self.config.model_verbosity,
+            self.config.features.enabled(Feature::ResponsesWebsockets),
+            self.config.features.enabled(Feature::EnableRequestCompression),
+            self.config.features.enabled(Feature::RuntimeMetrics),
+            None,
         );
 
         let mut client_session = model_client.new_session();
         let mut response_stream = client_session
-            .stream(&llm_prompt)
+            .stream(
+                &llm_prompt,
+                &model_info,
+                &self.otel_manager,
+                Some(self.reasoning_effort),
+                self.reasoning_summary,
+                None,
+            )
             .await
             .context("Failed to generate agent definition")?;
 
@@ -650,16 +659,15 @@ Only output the JSON, no explanation."#;
             &self.config,
         );
         let client = ModelClient::new(
-            self.config.clone(),
             self.auth_manager.clone(),
-            model_info,
-            self.otel_manager.clone(),
-            self.provider.clone(),
-            Some(ReasoningEffort::Medium),
-            ReasoningSummary::Detailed,
             self.conversation_id,
-            codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
-            crate::transport_manager::TransportManager::new(),
+            self.provider.clone(),
+            codex_protocol::protocol::SessionSource::Cli,
+            self.config.model_verbosity,
+            self.config.features.enabled(Feature::ResponsesWebsockets),
+            self.config.features.enabled(Feature::EnableRequestCompression),
+            self.config.features.enabled(Feature::RuntimeMetrics),
+            None,
         );
 
         // 4. ResponseItem構築（Promptに渡す）
@@ -670,6 +678,7 @@ Only output the JSON, no explanation."#;
                 text: user_message.clone(),
             }],
             end_turn: None,
+            phase: None,
         }];
 
         // 5. Prompt構築（エージェント権限からツールを生成）
@@ -694,7 +703,16 @@ Only output the JSON, no explanation."#;
 
         // 6. LLM呼び出し
         let mut client_session = client.new_session();
-        let mut stream = client_session.stream(&prompt).await?;
+        let mut stream = client_session
+            .stream(
+                &prompt,
+                &model_info,
+                &self.otel_manager,
+                Some(self.reasoning_effort),
+                self.reasoning_summary,
+                None,
+            )
+            .await?;
         let mut response_text = String::new();
         let mut total_tokens = 0;
 
