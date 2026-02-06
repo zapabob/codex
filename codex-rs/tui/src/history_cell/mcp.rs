@@ -13,9 +13,10 @@ use codex_core::config::types::McpServerTransportConfig;
 use codex_core::protocol::McpAuthStatus;
 use codex_core::protocol::McpInvocation;
 use codex_core::web_search::web_search_detail;
+use codex_protocol::mcp::{CallToolResult, Resource, ResourceTemplate};
 use codex_protocol::models::WebSearchAction;
 use image::{DynamicImage, ImageReader};
-use mcp_types::{EmbeddedResourceResource, Resource, ResourceLink, ResourceTemplate};
+use mcp_types::{EmbeddedResourceResource, ResourceLink};
 use ratatui::prelude::*;
 use ratatui::style::Stylize;
 use ratatui::style::{Modifier, Style};
@@ -31,7 +32,7 @@ pub(crate) struct McpToolCallCell {
     invocation: McpInvocation,
     start_time: Instant,
     duration: Option<Duration>,
-    result: Option<Result<mcp_types::CallToolResult, String>>,
+    result: Option<Result<CallToolResult, String>>,
     #[allow(dead_code)]
     animations_enabled: bool,
 }
@@ -59,7 +60,7 @@ impl McpToolCallCell {
     pub(crate) fn complete(
         &mut self,
         duration: Duration,
-        result: Result<mcp_types::CallToolResult, String>,
+        result: Result<CallToolResult, String>,
     ) -> Option<Box<dyn HistoryCell>> {
         let image_cell = try_new_completed_mcp_tool_call_with_image_output(&result)
             .map(|cell| Box::new(cell) as Box<dyn HistoryCell>);
@@ -82,7 +83,11 @@ impl McpToolCallCell {
         self.result = Some(Err("interrupted".to_string()));
     }
 
-    fn render_content_block(block: &mcp_types::ContentBlock, width: usize) -> String {
+    fn render_content_block(block: &serde_json::Value, width: usize) -> String {
+        let block: mcp_types::ContentBlock = match serde_json::from_value(block.clone()) {
+            Ok(b) => b,
+            Err(_) => return "<invalid content block>".to_string(),
+        };
         match block {
             mcp_types::ContentBlock::TextContent(text) => {
                 format_and_truncate_tool_result(&text.text, TOOL_CALL_MAX_LINES, width)
@@ -147,7 +152,7 @@ impl HistoryCell for McpToolCallCell {
 
         if let Some(result) = &self.result {
             match result {
-                Ok(mcp_types::CallToolResult { content, .. }) => {
+                Ok(CallToolResult { content, .. }) => {
                     if !content.is_empty() {
                         for block in content {
                             let text = Self::render_content_block(block, detail_wrap_width);
@@ -316,7 +321,7 @@ impl HistoryCell for CompletedMcpToolCallWithImageOutput {
 }
 
 fn try_new_completed_mcp_tool_call_with_image_output(
-    result: &Result<mcp_types::CallToolResult, String>,
+    result: &Result<CallToolResult, String>,
 ) -> Option<CompletedMcpToolCallWithImageOutput> {
     let image = result
         .as_ref()
@@ -328,7 +333,8 @@ fn try_new_completed_mcp_tool_call_with_image_output(
     Some(CompletedMcpToolCallWithImageOutput { _image: image })
 }
 
-fn decode_mcp_image(block: &mcp_types::ContentBlock) -> Option<DynamicImage> {
+fn decode_mcp_image(block: &serde_json::Value) -> Option<DynamicImage> {
+    let block: mcp_types::ContentBlock = serde_json::from_value(block.clone()).ok()?;
     let image = match block {
         mcp_types::ContentBlock::ImageContent(image) => image,
         _ => return None,
@@ -380,9 +386,9 @@ pub(crate) fn empty_mcp_output() -> PlainHistoryCell {
 /// Render MCP tools grouped by connection using the fully-qualified tool names.
 pub(crate) fn new_mcp_tools_output(
     config: &Config,
-    tools: HashMap<String, mcp_types::Tool>,
-    resources: HashMap<String, Vec<Resource>>,
-    resource_templates: HashMap<String, Vec<ResourceTemplate>>,
+    tools: HashMap<String, codex_protocol::mcp::Tool>,
+    resources: HashMap<String, Vec<codex_protocol::mcp::Resource>>,
+    resource_templates: HashMap<String, Vec<codex_protocol::mcp::ResourceTemplate>>,
     auth_statuses: &HashMap<String, McpAuthStatus>,
 ) -> PlainHistoryCell {
     let mut lines: Vec<Line<'static>> = vec![

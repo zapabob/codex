@@ -60,6 +60,7 @@ git2 = { version = "0.19", default-features = false }
 futures = { workspace = true }
 dirs = "6"
 mcp-types = { workspace = true }
+rmcp = { workspace = true }
 owo-colors = { workspace = true }
 regex-lite = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

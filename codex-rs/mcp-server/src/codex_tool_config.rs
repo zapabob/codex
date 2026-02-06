@@ -253,7 +253,7 @@ pub(crate) fn create_tool_for_codex_tool_call_reply_param() -> Tool {
     }
 }
 
-fn create_tool_input_schema(
+pub(crate) fn create_tool_input_schema(
     schema: schemars::schema::RootSchema,
     panic_message: &str,
 ) -> Arc<JsonObject> {

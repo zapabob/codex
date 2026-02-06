@@ -9,8 +9,8 @@ use codex_core::config::types::McpServerConfig;
 use codex_core::config::types::McpServerTransportConfig;
 use codex_core::protocol::McpAuthStatus;
 use codex_core::protocol::McpInvocation;
-use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use codex_protocol::models::WebSearchAction;
+use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use codex_protocol::parse_command::ParsedCommand;
 use codex_protocol::plan_tool::{PlanItemArg, StepStatus, UpdatePlanArgs};
 use dirs::home_dir;
@@ -18,13 +18,10 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::collections::HashMap;
 
-use mcp_types::CallToolResult;
+use codex_protocol::mcp::CallToolResult;
+use codex_protocol::mcp::Tool;
 use mcp_types::ContentBlock;
 use mcp_types::ImageContent;
-use mcp_types::ResourceLink;
-use mcp_types::TextContent;
-use mcp_types::Tool;
-use mcp_types::ToolInputSchema;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -176,14 +173,14 @@ async fn mcp_tools_output_masks_sensitive_values() {
         Tool {
             annotations: None,
             description: None,
-            input_schema: ToolInputSchema {
-                properties: None,
-                required: None,
-                r#type: "object".to_string(),
-            },
+            input_schema: json!({
+                "type": "object"
+            }),
             name: "list".to_string(),
             output_schema: None,
             title: None,
+            icons: None,
+            meta: None,
         },
     );
     tools.insert(
@@ -191,14 +188,14 @@ async fn mcp_tools_output_masks_sensitive_values() {
         Tool {
             annotations: None,
             description: None,
-            input_schema: ToolInputSchema {
-                properties: None,
-                required: None,
-                r#type: "object".to_string(),
-            },
+            input_schema: json!({
+                "type": "object"
+            }),
             name: "ping".to_string(),
             output_schema: None,
             title: None,
+            icons: None,
+            meta: None,
         },
     );
 
@@ -251,7 +248,10 @@ fn web_search_history_cell_snapshot() {
     let cell = new_web_search_call(
         "call-1".to_string(),
         query.clone(),
-        WebSearchAction::Search { query: Some(query) },
+        WebSearchAction::Search {
+            query: Some(query),
+            queries: None,
+        },
     );
     let rendered = render_lines(&cell.display_lines(64)).join("\n");
 
@@ -264,7 +264,10 @@ fn web_search_history_cell_wraps_with_indented_continuation() {
     let cell = new_web_search_call(
         "call-1".to_string(),
         query.clone(),
-        WebSearchAction::Search { query: Some(query) },
+        WebSearchAction::Search {
+            query: Some(query),
+            queries: None,
+        },
     );
     let rendered = render_lines(&cell.display_lines(64));
 
@@ -283,7 +286,10 @@ fn web_search_history_cell_short_query_does_not_wrap() {
     let cell = new_web_search_call(
         "call-1".to_string(),
         query.clone(),
-        WebSearchAction::Search { query: Some(query) },
+        WebSearchAction::Search {
+            query: Some(query),
+            queries: None,
+        },
     );
     let rendered = render_lines(&cell.display_lines(64));
 
@@ -296,7 +302,10 @@ fn web_search_history_cell_transcript_snapshot() {
     let cell = new_web_search_call(
         "call-1".to_string(),
         query.clone(),
-        WebSearchAction::Search { query: Some(query) },
+        WebSearchAction::Search {
+            query: Some(query),
+            queries: None,
+        },
     );
     let rendered = render_lines(&cell.transcript_lines(64)).join("\n");
 
@@ -332,13 +341,13 @@ fn completed_mcp_tool_call_success_snapshot() {
     };
 
     let result = CallToolResult {
-        content: vec![ContentBlock::TextContent(TextContent {
-            annotations: None,
-            text: "Found styling guidance in styles.md".into(),
-            r#type: "text".into(),
+        content: vec![serde_json::json!({
+            "type": "text",
+            "text": "Found styling guidance in styles.md"
         })],
         is_error: None,
         structured_content: None,
+        meta: None,
     };
 
     let mut cell = new_active_mcp_tool_call("call-2".into(), invocation, true);
@@ -364,15 +373,19 @@ fn completed_mcp_tool_call_image_after_text_returns_extra_cell() {
 
     let result = CallToolResult {
         content: vec![
-            ContentBlock::TextContent(TextContent {
-                annotations: None,
-                text: "Here is the image:".into(),
-                r#type: "text".into(),
+            serde_json::json!({
+                "type": "text",
+                "text": "Here is the image:"
             }),
-            image_block(SMALL_PNG_BASE64),
+            serde_json::json!({
+                "type": "image",
+                "data": SMALL_PNG_BASE64,
+                "mimeType": "image/png"
+            }),
         ],
         is_error: None,
         structured_content: None,
+        meta: None,
     };
 
     let mut cell = new_active_mcp_tool_call("call-image".into(), invocation, true);
@@ -395,9 +408,21 @@ fn completed_mcp_tool_call_skips_invalid_image_blocks() {
     };
 
     let result = CallToolResult {
-        content: vec![image_block("not-base64"), image_block(SMALL_PNG_BASE64)],
+        content: vec![
+            serde_json::json!({
+                "type": "image",
+                "data": "not-base64",
+                "mimeType": "image/png"
+            }),
+            serde_json::json!({
+                "type": "image",
+                "data": SMALL_PNG_BASE64,
+                "mimeType": "image/png"
+            }),
+        ],
         is_error: None,
         structured_content: None,
+        meta: None,
     };
 
     let mut cell = new_active_mcp_tool_call("call-image-2".into(), invocation, true);
@@ -444,26 +469,21 @@ fn completed_mcp_tool_call_multiple_outputs_snapshot() {
 
     let result = CallToolResult {
         content: vec![
-            ContentBlock::TextContent(TextContent {
-                annotations: None,
-                text:
-                    "Found styling guidance in styles.md and additional notes in CONTRIBUTING.md."
-                        .into(),
-                r#type: "text".into(),
+            serde_json::json!({
+                "type": "text",
+                "text": "Found styling guidance in styles.md and additional notes in CONTRIBUTING.md."
             }),
-            ContentBlock::ResourceLink(ResourceLink {
-                annotations: None,
-                description: Some("Link to styles documentation".into()),
-                mime_type: None,
-                name: "styles.md".into(),
-                size: None,
-                title: Some("Styles".into()),
-                r#type: "resource_link".into(),
-                uri: "file:///docs/styles.md".into(),
+            serde_json::json!({
+                "type": "resource",
+                "uri": "file:///docs/styles.md",
+                "name": "styles.md",
+                "description": "Link to styles documentation",
+                "title": "Styles"
             }),
         ],
         is_error: None,
         structured_content: None,
+        meta: None,
     };
 
     let mut cell = new_active_mcp_tool_call("call-4".into(), invocation, true);
@@ -489,13 +509,13 @@ fn completed_mcp_tool_call_wrapped_outputs_snapshot() {
     };
 
     let result = CallToolResult {
-        content: vec![ContentBlock::TextContent(TextContent {
-            annotations: None,
-            text: "Line one of the response, which is quite long and needs wrapping.\nLine two continues the response with more detail.".into(),
-            r#type: "text".into(),
+        content: vec![serde_json::json!({
+            "type": "text",
+            "text": "Line one of the response, which is quite long and needs wrapping.\nLine two continues the response with more detail."
         })],
         is_error: None,
         structured_content: None,
+        meta: None,
     };
 
     let mut cell = new_active_mcp_tool_call("call-5".into(), invocation, true);
@@ -522,19 +542,18 @@ fn completed_mcp_tool_call_multiple_outputs_inline_snapshot() {
 
     let result = CallToolResult {
         content: vec![
-            ContentBlock::TextContent(TextContent {
-                annotations: None,
-                text: "Latency summary: p50=120ms, p95=480ms.".into(),
-                r#type: "text".into(),
+            serde_json::json!({
+                "type": "text",
+                "text": "Latency summary: p50=120ms, p95=480ms."
             }),
-            ContentBlock::TextContent(TextContent {
-                annotations: None,
-                text: "No anomalies detected.".into(),
-                r#type: "text".into(),
+            serde_json::json!({
+                "type": "text",
+                "text": "No anomalies detected."
             }),
         ],
         is_error: None,
         structured_content: None,
+        meta: None,
     };
 
     let mut cell = new_active_mcp_tool_call("call-6".into(), invocation, true);

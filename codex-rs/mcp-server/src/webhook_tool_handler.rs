@@ -10,6 +10,7 @@ use serde_json::Value;
 use tracing::debug;
 use tracing::info;
 
+#[allow(unused)]
 pub(crate) async fn handle_webhook_tool_call(arguments: Option<Value>) -> Result<CallToolResult> {
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     debug!("Webhook tool call with args: {:?}", args);
@@ -40,7 +41,7 @@ pub(crate) async fn handle_webhook_tool_call(arguments: Option<Value>) -> Result
                     annotations: None,
                 })],
                 is_error: Some(!response.success),
-                structured_content: response.body.map(|b| vec![b]),
+                structured_content: response.body,
             })
         }
         Err(e) => {

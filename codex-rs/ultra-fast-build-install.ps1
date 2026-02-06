@@ -1,7 +1,7 @@
 # Ultra Fast Build & Install Script for Codex + OpenCode
 # Features: Parallel builds, differential detection, robust process kill, atomic installation
 # Author: AI-Assisted Implementation
-# Version: 1.0.0
+# Version: 1.4.0
 
 #requires -Version 5.1
 
@@ -67,8 +67,8 @@ function Get-LockingProcesses {
         if ($handlePath) {
             $output = & $handlePath.Source $Path 2>&1
             $pids = $output | Select-String "pid:\s+(\d+)" | ForEach-Object { $_.Matches.Groups[1].Value }
-            foreach ($pid in $pids) {
-                $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+            foreach ($lockingPid in $pids) {
+                $proc = Get-Process -Id $lockingPid -ErrorAction SilentlyContinue
                 if ($proc) { $processes += $proc }
             }
         }
@@ -79,7 +79,7 @@ function Get-LockingProcesses {
             # Return generic process info
             $processes += [PSCustomObject]@{
                 ProcessName = "Unknown"
-                Id = 0
+                Id          = 0
             }
         }
     }
@@ -89,8 +89,8 @@ function Get-LockingProcesses {
 function Stop-ProcessRobust {
     param(
         [string]$ProcessName,
-        [int]$MaxAttempts = 3,
-        [int]$WaitSeconds = 5
+        [int]$MaxAttempts = 2,
+        [int]$WaitSeconds = 2
     )
     
     for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
@@ -99,34 +99,25 @@ function Stop-ProcessRobust {
             return $true
         }
         
-        Write-Status "Attempting to stop $ProcessName (attempt $attempt/$MaxAttempts)..."
+        Write-Status "Aggressively stopping $ProcessName (attempt $attempt/$MaxAttempts)..."
         
-        foreach ($proc in $procs) {
-            try {
-                Stop-Process -Id $proc.Id -Force -ErrorAction Stop
-                Write-Success "Stopped process: $($proc.ProcessName) (PID: $($proc.Id))"
-            }
-            catch {
-                Write-WarningMsg "Failed to stop process $($proc.ProcessName) (PID: $($proc.Id)): $_"
-                
-                # Try taskkill as fallback
-                try {
-                    $null = & taskkill /F /IM $ProcessName /T 2>&1
-                    Write-Success "Used taskkill for $ProcessName"
-                }
-                catch {
-                    Write-WarningMsg "taskkill also failed for $ProcessName"
-                }
-            }
+        # Use taskkill /F /T immediately for high speed
+        try {
+            $null = & taskkill /F /IM "$ProcessName.exe" /T 2>&1
+            Start-Sleep -Seconds $WaitSeconds
+        }
+        catch {
+            Write-WarningMsg "taskkill failed for $ProcessName"
         }
         
-        Start-Sleep -Seconds $WaitSeconds
+        $procs = Get-Process $ProcessName -ErrorAction SilentlyContinue
+        if (-not $procs) { return $true }
     }
     
     # Final check
     $remaining = Get-Process $ProcessName -ErrorAction SilentlyContinue
     if ($remaining) {
-        Write-ErrorMsg "Failed to kill all $ProcessName processes after $MaxAttempts attempts"
+        Write-ErrorMsg "Failed to kill all $ProcessName processes. It might be stuck."
         return $false
     }
     return $true
@@ -136,65 +127,35 @@ function Install-BinaryAtomic {
     param(
         [string]$Source,
         [string]$Destination,
-        [int]$MaxRetries = 5
+        [int]$MaxRetries = 3
     )
     
     if (-not (Test-Path $Source)) {
         throw "Source file not found: $Source"
     }
     
-    $retryCount = 0
-    $backoffSeconds = 1
-    
-    while ($retryCount -lt $MaxRetries) {
+    for ($i = 0; $i -lt $MaxRetries; $i++) {
         try {
-            # Check if destination is locked
+            # Skip if destination is already newer or equal to source
             if (Test-Path $Destination) {
-                if (Test-FileLocked $Destination) {
-                    Write-WarningMsg "$Destination is locked. Finding locking processes..."
-                    $lockingProcs = Get-LockingProcesses $Destination
-                    foreach ($proc in $lockingProcs) {
-                        if ($proc.Id -ne 0) {
-                            Write-Status "Killing locking process: $($proc.ProcessName) (PID: $($proc.Id))"
-                            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-                        }
-                    }
-                    Start-Sleep -Seconds $backoffSeconds
-                    $retryCount++
-                    $backoffSeconds *= 2
-                    continue
+                $srcTime = (Get-Item $Source).LastWriteTime
+                $destTime = (Get-Item $Destination).LastWriteTime
+                if ($destTime -ge $srcTime) {
+                    Write-Success "Skipping installation: $(Split-Path $Destination -Leaf) is already up-to-date"
+                    return $true
                 }
             }
             
-            # Atomic copy: write to temp then rename
-            $tempDest = "$Destination.tmp.$PID"
-            Copy-Item $Source $tempDest -Force -ErrorAction Stop
-            
-            # If destination exists, backup first
-            if (Test-Path $Destination) {
-                $backup = "$Destination.backup.$PID"
-                Move-Item $Destination $backup -Force -ErrorAction Stop
-            }
-            
-            # Atomic rename
-            Move-Item $tempDest $Destination -Force -ErrorAction Stop
-            
-            # Clean up backup
-            if (Test-Path "$Destination.backup.$PID") {
-                Remove-Item "$Destination.backup.$PID" -Force -ErrorAction SilentlyContinue
-            }
-            
+            # Direct copy-paste (overwrite) as requested for ultra-fast performance
+            Copy-Item $Source $Destination -Force -ErrorAction Stop
             Write-Success "Installed: $(Split-Path $Destination -Leaf)"
             return $true
         }
         catch {
-            Write-WarningMsg "Install attempt $retryCount failed: $_"
-            $retryCount++
-            if ($retryCount -lt $MaxRetries) {
-                Write-Status "Retrying in $backoffSeconds seconds..."
-                Start-Sleep -Seconds $backoffSeconds
-                $backoffSeconds *= 2
-            }
+            Write-WarningMsg "Failed to overwrite $Destination. Retrying after process check..."
+            $binName = [System.IO.Path]::GetFileNameWithoutExtension($Destination)
+            Stop-ProcessRobust -ProcessName $binName
+            Start-Sleep -Milliseconds 500
         }
     }
     
@@ -205,64 +166,23 @@ function Install-BinaryAtomic {
 
 #region Build Cache Management
 
-function Get-BuildCache {
-    param([string]$CacheFile)
-    
-    if (Test-Path $CacheFile) {
-        try {
-            $content = Get-Content $CacheFile -Raw -ErrorAction Stop
-            $cache = $content | ConvertFrom-Json -ErrorAction Stop
-            return $cache
-        }
-        catch {
-            Write-WarningMsg "Failed to parse build cache, starting fresh"
-        }
-    }
-    return @{}
-}
-
-function Save-BuildCache {
-    param(
-        [string]$CacheFile,
-        [hashtable]$Cache
-    )
-    
-    try {
-        $Cache | ConvertTo-Json -Depth 10 | Set-Content $CacheFile -Force
-    }
-    catch {
-        Write-WarningMsg "Failed to save build cache: $_"
-    }
-}
-
-function Get-SourceHash {
+function Get-SourceTimestamp {
     param(
         [string]$PackagePath,
         [string[]]$Extensions = @("*.rs", "*.toml", "*.lock")
     )
     
-    $hashes = @()
+    $maxTime = [DateTime]::MinValue
     foreach ($ext in $Extensions) {
         $files = Get-ChildItem -Path $PackagePath -Recurse -Filter $ext -File -ErrorAction SilentlyContinue
         foreach ($file in $files) {
-            $hash = Get-FileHash256 $file.FullName
-            if ($hash) {
-                $hashes += "$($file.FullName):$hash"
+            if ($file.LastWriteTime -gt $maxTime) {
+                $maxTime = $file.LastWriteTime
             }
         }
     }
     
-    # Sort for consistent hashing
-    $sortedHashes = $hashes | Sort-Object
-    $combined = $sortedHashes -join "|"
-    
-    if ($combined) {
-        $sha256 = [System.Security.Cryptography.SHA256]::Create()
-        $bytes = [System.Text.Encoding]::UTF8.GetBytes($combined)
-        $hash = $sha256.ComputeHash($bytes)
-        return [BitConverter]::ToString($hash).Replace("-", "").ToLower()
-    }
-    return $null
+    return $maxTime.Ticks # Using Ticks as a simple numeric represention
 }
 
 function Test-DifferentialBuild {
@@ -272,101 +192,48 @@ function Test-DifferentialBuild {
         [hashtable]$Cache
     )
     
-    $currentHash = Get-SourceHash $PackagePath
-    $cachedHash = $Cache[$PackageName]
+    $currentTime = Get-SourceTimestamp $PackagePath
+    $cachedTime = $Cache[$PackageName]
     
-    if (-not $cachedHash) {
+    if (-not $cachedTime) {
         Write-Status "No cache for $PackageName, full build required"
-        return $true, $currentHash
+        return $true, $currentTime
     }
     
-    if ($currentHash -ne $cachedHash) {
+    if ($currentTime -gt $cachedTime) {
         Write-Status "Changes detected in $PackageName, rebuild required"
-        return $true, $currentHash
+        return $true, $currentTime
     }
     
     Write-Success "No changes in $PackageName, skipping build"
-    return $false, $currentHash
+    return $false, $currentTime
 }
 
 #endregion
 
-#region Parallel Build Functions
+# Note: Invoke-ParallelBuild is deprecated for recursive cargo builds in the same workspace 
+# to avoid "Waiting for file lock on package cache". 
+# Combined cargo builds are handled in the main script now.
 
-function Invoke-ParallelBuild {
-    param(
-        [Parameter(Mandatory)]
-        [hashtable]$BuildJobs,
-        [int]$MaxParallel = 4
-    )
-    
-    $runspacePool = [runspacefactory]::CreateRunspacePool(1, $MaxParallel)
-    $runspacePool.Open()
-    
-    $runspaces = @()
-    $results = @{}
-    
-    foreach ($jobName in $BuildJobs.Keys) {
-        $job = $BuildJobs[$jobName]
-        
-        $powershell = [powershell]::Create().AddScript({
-            param($WorkingDirectory, $Command, $PackageName)
-            
-            Set-Location $WorkingDirectory
-            
-            $output = @{
-                PackageName = $PackageName
-                Success = $false
-                Output = ""
-                Error = ""
-                Duration = 0
-            }
-            
-            $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-            
-            try {
-                $process = Start-Process -FilePath "cargo" -ArgumentList $Command -NoNewWindow -Wait -PassThru -RedirectStandardOutput "output.txt" -RedirectStandardError "error.txt"
-                
-                $output.Output = Get-Content "output.txt" -Raw -ErrorAction SilentlyContinue
-                $output.Error = Get-Content "error.txt" -Raw -ErrorAction SilentlyContinue
-                
-                $output.Success = ($process.ExitCode -eq 0)
-            }
-            catch {
-                $output.Error = $_.Exception.Message
-            }
-            finally {
-                $stopwatch.Stop()
-                $output.Duration = $stopwatch.Elapsed.TotalSeconds
-                Remove-Item "output.txt", "error.txt" -Force -ErrorAction SilentlyContinue
-            }
-            
-            return $output
-        }).AddArgument($job.WorkingDirectory).AddArgument($job.Command).AddArgument($job.PackageName)
-        
-        $powershell.RunspacePool = $runspacePool
-        
-        $runspaces += [PSCustomObject]@{
-            Pipe = $powershell
-            Status = $powershell.BeginInvoke()
-            JobName = $jobName
+# region Build Cache Management (Added back)
+function Get-BuildCache {
+    param([string]$CacheFile)
+    if (Test-Path $CacheFile) {
+        try {
+            $content = Get-Content $CacheFile -Raw -ErrorAction Stop
+            return $content | ConvertFrom-Json -ErrorAction Stop
         }
+        catch { Write-WarningMsg "Failed to parse build cache, starting fresh" }
     }
-    
-    # Wait for completion and collect results
-    foreach ($rs in $runspaces) {
-        $result = $rs.Pipe.EndInvoke($rs.Status)
-        $results[$rs.JobName] = $result[0]
-        $rs.Pipe.Dispose()
-    }
-    
-    $runspacePool.Close()
-    $runspacePool.Dispose()
-    
-    return $results
+    return @{}
 }
 
-#endregion
+function Save-BuildCache {
+    param([string]$CacheFile, [hashtable]$Cache)
+    try { $Cache | ConvertTo-Json -Depth 10 | Set-Content $CacheFile -Force }
+    catch { Write-WarningMsg "Failed to save build cache: $_" }
+}
+# endregion
 
 #region Main Script
 
@@ -452,38 +319,50 @@ foreach ($pkg in $packages) {
     }
 }
 
-# Step 4: Parallel Build Phase 1 - CLI and TUI
-$phase1Jobs = @{}
-if ($buildsRequired.ContainsKey("codex-cli")) {
-    $phase1Jobs["codex-cli"] = @{
-        WorkingDirectory = $scriptPath
-        Command = "build --release $($buildsRequired["codex-cli"].Features) -p codex-cli -j $MaxParallelJobs"
-        PackageName = "codex-cli"
-    }
-}
+# Step 4: Combined Build for CLI and TUI
+$pkgsToBuild = @()
+if ($buildsRequired.ContainsKey("codex-cli")) { $pkgsToBuild += "codex-cli" }
+if ($buildsRequired.ContainsKey("codex-tui")) { $pkgsToBuild += "codex-tui" }
 
-if ($buildsRequired.ContainsKey("codex-tui")) {
-    $phase1Jobs["codex-tui"] = @{
-        WorkingDirectory = $scriptPath
-        Command = "build --release -p codex-tui -j $MaxParallelJobs"
-        PackageName = "codex-tui"
-    }
-}
-
-if ($phase1Jobs.Count -gt 0) {
-    Write-Status "Step 4: Building CLI and TUI in parallel ($($phase1Jobs.Count) jobs)..."
-    $phase1Results = Invoke-ParallelBuild -BuildJobs $phase1Jobs -MaxParallel $MaxParallelJobs
+if ($pkgsToBuild.Count -gt 0) {
+    Write-Status "Step 4: Building $($pkgsToBuild -join ', ') in combined cargo process..."
     
-    foreach ($jobName in $phase1Results.Keys) {
-        $result = $phase1Results[$jobName]
-        if ($result.Success) {
-            Write-Success "$jobName built successfully in $($result.Duration.ToString('F1'))s"
+    $pkgArgs = $pkgsToBuild | ForEach-Object { "-p $_" }
+    $cargoCmd = "build --release $($pkgArgs -join ' ') -j $MaxParallelJobs $($packages[0].Features)"
+    
+    # Combined build with corruption auto-recovery
+    $attempts = 0
+    $maxBuildAttempts = 2
+    
+    while ($attempts -lt $maxBuildAttempts) {
+        $attempts++
+        Write-Status "Build attempt $attempts..."
+        
+        # Help with LNK1207: delete problematic PDBs before build
+        $pdbs = Get-ChildItem -Path "target\release" -Filter "*.pdb" -Recurse -ErrorAction SilentlyContinue
+        if ($pdbs) { $pdbs | Remove-Item -Force -ErrorAction SilentlyContinue }
+
+        # Capture output to detect corruption
+        $outputFile = "build_output_$PID.txt"
+        $process = Start-Process -FilePath "cargo" -ArgumentList $cargoCmd -NoNewWindow -Wait -PassThru -RedirectStandardError $outputFile
+        
+        $buildExitCode = $process.ExitCode
+        $buildOutput = Get-Content $outputFile -Raw -ErrorAction SilentlyContinue
+        Remove-Item $outputFile -Force -ErrorAction SilentlyContinue
+        
+        if ($buildExitCode -eq 0) {
+            Write-Success "Build successful in $($buildStopwatch.Elapsed.TotalSeconds.ToString('F1'))s"
+            break
+        }
+        
+        # Check for metadata corruption
+        if ($buildOutput -match "corrupt metadata|invalid metadata|E0786|Unsupported archive identifier") {
+            Write-WarningMsg "Metadata corruption detected (E0786). Attempting auto-fix by clearing deps..."
+            Remove-Item "target\release\deps" -Force -Recurse -ErrorAction SilentlyContinue
+            continue # Retry build
         }
         else {
-            Write-ErrorMsg "$jobName build failed!"
-            if ($result.Error) {
-                Write-Host $result.Error -ForegroundColor Red
-            }
+            Write-ErrorMsg "Build failed with exit code $buildExitCode"
             exit 1
         }
     }

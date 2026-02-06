@@ -183,7 +183,22 @@ pub async fn run_main(
     };
 
     #[allow(clippy::print_stderr)]
-    let config = match Config::load_with_cli_overrides(cli_kv_overrides.clone()).await {
+    let config_toml = match load_config_as_toml_with_cli_overrides(
+        &codex_home,
+        &config_cwd,
+        cli_kv_overrides.clone(),
+    )
+    .await
+    {
+        Ok(config) => config,
+        Err(err) => {
+            eprintln!("Error loading config.toml as TOML: {err}");
+            std::process::exit(1);
+        }
+    };
+
+    #[allow(clippy::print_stderr)]
+    let _config = match Config::load_with_cli_overrides(cli_kv_overrides.clone()).await {
         Ok(config) => config,
         Err(err) => {
             let config_error = err

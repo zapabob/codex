@@ -35,6 +35,8 @@ pub(crate) use reasoning::new_reasoning_summary_block;
 pub(crate) use session::{SessionHeaderHistoryCell, SessionInfoCell, new_session_info};
 pub(crate) use update::new_deprecation_notice;
 pub(crate) use user::{UserHistoryCell, new_user_prompt};
+pub mod request_user_input;
+pub(crate) use request_user_input::RequestUserInputResultCell;
 
 /// Represents an event to display in the conversation history. Returns its
 /// `Vec<Line<'static>>` representation to make it easier to display in a

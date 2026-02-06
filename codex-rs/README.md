@@ -65,7 +65,6 @@ graph TD
 
 ## 🛠️ Technology Stack | 技術スタック
 
-<<<<<<< HEAD
 | Layer       | Technology                                    |
 | ----------- | --------------------------------------------- |
 | **Runtime** | Rust (Tokio) - Async performance              |
@@ -73,10 +72,6 @@ graph TD
 | **GUI**     | Vite + React / Tauri - Native desktop control |
 | **Safety**  | Windows Sandbox / Landlock / Seatbelt         |
 | **Sync**    | DashMap - Thread-safe state management        |
-=======
-To run Codex non-interactively, run `codex exec PROMPT` (you can also pass the prompt via `stdin`) and Codex will work on your task until it decides that it is done and exits. Output is printed to the terminal directly. You can set the `RUST_LOG` environment variable to see more about what's going on.
-Use `codex exec --ephemeral ...` to run without persisting session rollout files to disk.
->>>>>>> upstream/main
 
 ## 📂 Code Organization | コード構成
 

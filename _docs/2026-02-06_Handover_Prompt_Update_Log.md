@@ -1,0 +1,31 @@
+# 2026-02-06 Handover Prompt Update Log
+
+## 概要
+
+プロジェクトの引き継ぎ精度を高めるため、既存のメタプロンプト (`_docs/2026-02-06_引き継ぎメタプロンプト_セマンティクス更新.md`) に最新のビルドエラー（Compilation Errors）および CI ワークフローの問題を統合し、バージョンを `2.14.0` に更新しました。
+
+## 変更内容
+
+### 1. メタプロンプトの更新 (Handover Meta-Prompt v2.14.0)
+
+- **バージョン管理**: セマンティクスバージョンを `2.14.0` に統一。
+- **ビルドシステム**: `ultra-fast-build-install.ps1` (v1.3.0) の最新情報を反映。
+- **エラー統合**: 最新の `@[current_problems]` から以下の重篤な問題を主要セクションとして追加。
+  - **`mcp-server`**: `external_mcp_manager` (dirs import, macro info), `external_mcp_tool_handler` (OutgoingMessage variant), `external_mcp_tool` (Tool struct fields) における多数のコンパイルエラー。
+  - `core`: `WireApi`, `ResponseItem` のフィールド不足。
+  - `tui`: モジュール競合 (`history_cell`)。
+  - CI: GitHub Actions の入力エラーとシークレット警告。
+- **インフラ最適化課題**: 以下を「保留中のタスク」として明記。
+  - `SKILL.md` の UTF-8 統一。
+  - `qc-optimizer/SKILL.md` の YAML 修正。
+  - `serena` の stdout JSON-RPC 排他制御。
+
+## 検証結果
+
+- [x] メタプロンプトファイルに上記の内容が正確に反映されていることを確認。
+- [x] ソフトウェア工学的ベストプラクティス（Rust 2024, 1000行ルール, 実装ログ）の遵守を明文化。
+- [x] 次のアクション（Next Actionable Steps）を定義し、移行直後の迷いを排除。
+
+## ステータス
+
+完了

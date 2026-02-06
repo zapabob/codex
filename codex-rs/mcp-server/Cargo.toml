@@ -46,11 +46,14 @@ tokio = { workspace = true, features = [
 ] }
 tracing = { workspace = true, features = ["log"] }
 tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
+dirs = { workspace = true }
+log = { workspace = true }
 
 [dev-dependencies]
 core_test_support = { workspace = true }
 mcp_test_support = { workspace = true }
 os_info = { workspace = true }
 pretty_assertions = { workspace = true }
+shlex.workspace = true
 tempfile = { workspace = true }
 wiremock = { workspace = true }

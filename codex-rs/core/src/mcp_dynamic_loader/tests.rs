@@ -17,6 +17,7 @@ async fn test_add_server() {
         sandbox_policy: SandboxPolicy::ReadOnly,
         codex_linux_sandbox_exe: None,
         sandbox_cwd: std::path::PathBuf::from("/"),
+        use_linux_sandbox_bwrap: false,
     };
 
     let connection_manager = Arc::new(tokio::sync::RwLock::new(McpConnectionManager::default()));
@@ -61,6 +62,7 @@ async fn test_remove_server() {
         sandbox_policy: SandboxPolicy::ReadOnly,
         codex_linux_sandbox_exe: None,
         sandbox_cwd: std::path::PathBuf::from("/"),
+        use_linux_sandbox_bwrap: false,
     };
 
     let connection_manager = Arc::new(tokio::sync::RwLock::new(McpConnectionManager::default()));

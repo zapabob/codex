@@ -123,9 +123,8 @@ release-package/
 .cursor/commands/fix.md
 
 # Conversation history (contains potential secrets)
-.specstory/
-codex-rs/build_error.txt
-.txt
+*.txt
+C:\Users\downl\Desktop\codex-main\.specstory\history\2026-01-16_05-43Z-未来のai開発と統合エコシステム.md
 codex-rs/build_error.txt
 codex-rs/build_error.txt
 codex-rs/build_log_utf8.txt

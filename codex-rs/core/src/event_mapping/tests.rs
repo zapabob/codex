@@ -30,6 +30,7 @@ fn parses_user_message_with_text_and_two_images() {
             },
         ],
         end_turn: None,
+        phase: None,
     };
 
     let turn_item = parse_turn_item(&item).expect("expected user message turn item");
@@ -72,6 +73,7 @@ fn skips_local_image_label_text() {
             },
         ],
         end_turn: None,
+        phase: None,
     };
 
     let turn_item = parse_turn_item(&item).expect("expected user message turn item");
@@ -113,6 +115,7 @@ fn skips_unnamed_image_label_text() {
             },
         ],
         end_turn: None,
+        phase: None,
     };
 
     let turn_item = parse_turn_item(&item).expect("expected user message turn item");
@@ -142,6 +145,7 @@ fn skips_user_instructions_and_env() {
                 text: "<user_instructions>test_text</user_instructions>".to_string(),
             }],
             end_turn: None,
+            phase: None,
         },
         ResponseItem::Message {
             id: None,
@@ -150,6 +154,7 @@ fn skips_user_instructions_and_env() {
                 text: "<environment_context>test_text</environment_context>".to_string(),
             }],
             end_turn: None,
+            phase: None,
         },
         ResponseItem::Message {
             id: None,
@@ -158,6 +163,7 @@ fn skips_user_instructions_and_env() {
                 text: "# AGENTS.md instructions for test_directory\n\n<INSTRUCTIONS>\ntest_text\n</INSTRUCTIONS>".to_string(),
             }],
             end_turn: None,
+            phase: None,
         },
         ResponseItem::Message {
             id: None,
@@ -167,6 +173,7 @@ fn skips_user_instructions_and_env() {
                     .to_string(),
             }],
             end_turn: None,
+            phase: None,
         },
         ResponseItem::Message {
             id: None,
@@ -175,6 +182,7 @@ fn skips_user_instructions_and_env() {
                 text: "<user_shell_command>echo 42</user_shell_command>".to_string(),
             }],
             end_turn: None,
+            phase: None,
         },
     ];
 
@@ -193,6 +201,7 @@ fn parses_agent_message() {
             text: "Hello from Codex".to_string(),
         }],
         end_turn: None,
+        phase: None,
     };
 
     let turn_item = parse_turn_item(&item).expect("expected agent message turn item");

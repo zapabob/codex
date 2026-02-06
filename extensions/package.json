@@ -13,12 +13,7 @@
     "Testing",
     "Linters"
   ],
-  "activationEvents": [
-    "onCommand:codex.delegateAgent",
-    "onCommand:codex.deepResearch",
-    "onCommand:codex.listAgents",
-    "onCommand:codex.reviewCode"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

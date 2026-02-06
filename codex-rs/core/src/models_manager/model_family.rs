@@ -469,6 +469,7 @@ mod tests {
             auto_compact_token_limit: None,
             effective_context_window_percent: 95,
             experimental_supported_tools: Vec::new(),
+            input_modalities: codex_protocol::openai_models::default_input_modalities(),
         }
     }
 
@@ -559,6 +560,7 @@ mod tests {
             auto_compact_token_limit: None,
             effective_context_window_percent: 95,
             experimental_supported_tools: vec!["alpha".to_string(), "beta".to_string()],
+            input_modalities: codex_protocol::openai_models::default_input_modalities(),
         }]);
 
         assert_eq!(

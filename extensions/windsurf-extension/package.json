@@ -21,12 +21,7 @@
     "deep-research",
     "windsurf"
   ],
-  "activationEvents": [
-    "onCommand:codex.research",
-    "onCommand:codex.review",
-    "onCommand:codex.testGen",
-    "onCommand:codex.secAudit"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

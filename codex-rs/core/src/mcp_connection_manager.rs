@@ -1231,7 +1231,7 @@ mod mcp_init_error_display_tests {}
 mod tests {
     use super::*;
     use codex_protocol::protocol::McpAuthStatus;
-    use mcp_types::ToolInputSchema;
+
     use rmcp::model::JsonObject;
     use std::collections::BTreeSet;
     use std::sync::Arc;

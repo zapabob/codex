@@ -139,6 +139,11 @@ impl SlashCommand {
             | SlashCommand::Feedback
             | SlashCommand::Quit
             | SlashCommand::Exit => true,
+            SlashCommand::Qc
+            | SlashCommand::DevMode
+            | SlashCommand::Git4d
+            | SlashCommand::Vr
+            | SlashCommand::Ar => false,
             SlashCommand::Rollout => true,
             SlashCommand::TestApproval => true,
             SlashCommand::Collab => true,

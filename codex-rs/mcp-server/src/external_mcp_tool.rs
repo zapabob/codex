@@ -2,8 +2,8 @@
 //!
 //! MCP tool for interacting with external MCP servers
 
-use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 /// Parameters for listing external MCP servers
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -97,8 +97,13 @@ pub struct ErrorResponse {
 pub fn create_external_mcp_list_servers_tool() -> mcp_types::Tool {
     mcp_types::Tool {
         name: "external_mcp_list_servers".to_string(),
-        description: Some("List all available external MCP servers configured in .cursor/mcp.json".to_string()),
-        input_schema: schemars::schema_for!(ListExternalServersParam),
+        description: Some(
+            "List all available external MCP servers configured in .cursor/mcp.json".to_string(),
+        ),
+        input_schema: create_tool_input_schema(schemars::schema_for!(ListExternalServersParam)),
+        annotations: None,
+        output_schema: None,
+        title: None,
     }
 }
 
@@ -107,7 +112,10 @@ pub fn create_external_mcp_get_server_status_tool() -> mcp_types::Tool {
     mcp_types::Tool {
         name: "external_mcp_get_server_status".to_string(),
         description: Some("Get the status of a specific external MCP server".to_string()),
-        input_schema: schemars::schema_for!(GetServerStatusParam),
+        input_schema: create_tool_input_schema(schemars::schema_for!(GetServerStatusParam)),
+        annotations: None,
+        output_schema: None,
+        title: None,
     }
 }
 
@@ -116,7 +124,10 @@ pub fn create_external_mcp_start_server_tool() -> mcp_types::Tool {
     mcp_types::Tool {
         name: "external_mcp_start_server".to_string(),
         description: Some("Start an external MCP server".to_string()),
-        input_schema: schemars::schema_for!(StartExternalServerParam),
+        input_schema: create_tool_input_schema(schemars::schema_for!(StartExternalServerParam)),
+        annotations: None,
+        output_schema: None,
+        title: None,
     }
 }
 
@@ -125,7 +136,10 @@ pub fn create_external_mcp_stop_server_tool() -> mcp_types::Tool {
     mcp_types::Tool {
         name: "external_mcp_stop_server".to_string(),
         description: Some("Stop an external MCP server".to_string()),
-        input_schema: schemars::schema_for!(StopExternalServerParam),
+        input_schema: create_tool_input_schema(schemars::schema_for!(StopExternalServerParam)),
+        annotations: None,
+        output_schema: None,
+        title: None,
     }
 }
 
@@ -134,7 +148,10 @@ pub fn create_external_mcp_send_request_tool() -> mcp_types::Tool {
     mcp_types::Tool {
         name: "external_mcp_send_request".to_string(),
         description: Some("Send a request to an external MCP server".to_string()),
-        input_schema: schemars::schema_for!(SendExternalRequestParam),
+        input_schema: create_tool_input_schema(schemars::schema_for!(SendExternalRequestParam)),
+        annotations: None,
+        output_schema: None,
+        title: None,
     }
 }
 
@@ -143,6 +160,42 @@ pub fn create_external_mcp_get_server_config_tool() -> mcp_types::Tool {
     mcp_types::Tool {
         name: "external_mcp_get_server_config".to_string(),
         description: Some("Get configuration for an external MCP server".to_string()),
-        input_schema: schemars::schema_for!(GetServerConfigParam),
+        input_schema: create_tool_input_schema(schemars::schema_for!(GetServerConfigParam)),
+        annotations: None,
+        output_schema: None,
+        title: None,
+    }
+}
+
+fn create_tool_input_schema(schema: schemars::schema::RootSchema) -> mcp_types::ToolInputSchema {
+    let schema_value = serde_json::to_value(&schema).unwrap_or_default();
+    let schema_object = schema_value.as_object().unwrap();
+
+    let mut properties = None;
+    let mut required = None;
+    let mut type_ = "object".to_string();
+
+    if let Some(p) = schema_object.get("properties") {
+        properties = Some(p.clone());
+    }
+    if let Some(r) = schema_object.get("required") {
+        if let Some(arr) = r.as_array() {
+            required = Some(
+                arr.iter()
+                    .map(|v| v.as_str().unwrap_or_default().to_string())
+                    .collect(),
+            );
+        }
+    }
+    if let Some(t) = schema_object.get("type") {
+        if let Some(s) = t.as_str() {
+            type_ = s.to_string();
+        }
+    }
+
+    mcp_types::ToolInputSchema {
+        properties,
+        required,
+        r#type: type_,
     }
 }

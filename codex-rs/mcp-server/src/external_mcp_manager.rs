@@ -6,11 +6,12 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::process::Command;
+
 use std::process::Stdio;
 use std::sync::Arc;
 use tokio::process::Command as TokioCommand;
 use tokio::sync::Mutex;
+use tracing::info;
 
 /// External MCP server configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,6 +26,7 @@ pub struct ExternalMcpServer {
 
 /// MCP configuration file structure
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct McpConfig {
     /// MCP servers configuration
     pub mcp_servers: HashMap<String, ExternalMcpServer>,
@@ -32,6 +34,7 @@ pub struct McpConfig {
 
 /// External MCP server connection
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct McpServerConnection {
     /// Server name
     pub name: String,
@@ -44,6 +47,7 @@ pub struct McpServerConnection {
 }
 
 /// External MCP server manager
+#[allow(unused)]
 pub struct ExternalMcpManager {
     /// Configuration file path
     config_path: PathBuf,
@@ -68,6 +72,7 @@ impl ExternalMcpManager {
     }
 
     /// Load MCP configuration from file
+    #[allow(dead_code)]
     pub async fn load_config(&self) -> Result<McpConfig, String> {
         if !self.config_path.exists() {
             return Err(format!(
@@ -87,6 +92,7 @@ impl ExternalMcpManager {
     }
 
     /// Initialize all external MCP servers
+    #[allow(dead_code)]
     pub async fn initialize_servers(&self) -> Result<(), String> {
         let config = self.load_config().await?;
 
@@ -175,14 +181,14 @@ impl ExternalMcpManager {
 
     /// Get server status
     pub async fn get_server_status(&self, name: &str) -> Result<ServerStatus, String> {
-        let connections = self.connections.lock().await;
+        let mut connections = self.connections.lock().await;
 
         let connection = connections
-            .get(name)
+            .get_mut(name)
             .ok_or_else(|| format!("Server '{}' not found", name))?;
 
         let status = if connection.connected {
-            if let Some(ref child) = connection.process {
+            if let Some(ref mut child) = connection.process {
                 match child.try_wait() {
                     Ok(Some(exit_status)) => {
                         if exit_status.success() {
@@ -208,7 +214,7 @@ impl ExternalMcpManager {
     pub async fn send_request(
         &self,
         server_name: &str,
-        request: serde_json::Value,
+        _request: serde_json::Value,
     ) -> Result<serde_json::Value, String> {
         let connections = self.connections.lock().await;
 

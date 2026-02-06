@@ -280,7 +280,9 @@ Only output the JSON, no explanation."#;
             codex_protocol::protocol::SessionSource::Cli,
             self.config.model_verbosity,
             self.config.features.enabled(Feature::ResponsesWebsockets),
-            self.config.features.enabled(Feature::EnableRequestCompression),
+            self.config
+                .features
+                .enabled(Feature::EnableRequestCompression),
             self.config.features.enabled(Feature::RuntimeMetrics),
             None,
         );
@@ -665,7 +667,9 @@ Only output the JSON, no explanation."#;
             codex_protocol::protocol::SessionSource::Cli,
             self.config.model_verbosity,
             self.config.features.enabled(Feature::ResponsesWebsockets),
-            self.config.features.enabled(Feature::EnableRequestCompression),
+            self.config
+                .features
+                .enabled(Feature::EnableRequestCompression),
             self.config.features.enabled(Feature::RuntimeMetrics),
             None,
         );
@@ -934,7 +938,7 @@ artifacts:
             name: "Test Provider".to_string(),
             base_url: Some("https://api.openai.com/v1".to_string()),
             env_key: Some("OPENAI_API_KEY".to_string()),
-            wire_api: WireApi::Chat,
+            wire_api: WireApi::Responses,
             env_key_instructions: None,
             query_params: None,
             http_headers: None,
@@ -1017,7 +1021,7 @@ artifacts:
             name: "Test Provider".to_string(),
             base_url: Some("https://api.openai.com/v1".to_string()),
             env_key: Some("OPENAI_API_KEY".to_string()),
-            wire_api: WireApi::Chat,
+            wire_api: WireApi::Responses,
             env_key_instructions: None,
             query_params: None,
             http_headers: None,
@@ -1399,7 +1403,9 @@ impl AgentRuntime {
             codex_protocol::protocol::SessionSource::Cli,
             self.config.model_verbosity,
             self.config.features.enabled(Feature::ResponsesWebsockets),
-            self.config.features.enabled(Feature::EnableRequestCompression),
+            self.config
+                .features
+                .enabled(Feature::EnableRequestCompression),
             self.config.features.enabled(Feature::RuntimeMetrics),
             None,
         );

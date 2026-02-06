@@ -25,10 +25,10 @@ use core_test_support::skip_if_no_network;
 use mcp_test_support::McpProcess;
 use mcp_test_support::create_apply_patch_sse_response;
 use mcp_test_support::create_final_assistant_message_sse_response;
-use mcp_test_support::create_mock_chat_completions_server;
 use mcp_test_support::create_mock_responses_server;
 use mcp_test_support::create_shell_command_sse_response;
-use mcp_test_support::create_shell_sse_response;
+
+#[allow(unused)]
 use mcp_test_support::format_with_current_shell;
 
 // Allow ample time on slower CI or under load to avoid flakes.
@@ -76,7 +76,7 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
         server: _server,
         dir: _dir,
     } = create_mcp_process(vec![
-        create_shell_sse_response(
+        create_shell_command_sse_response(
             shell_command.clone(),
             Some(workdir_for_shell_function_call.path()),
             Some(5_000),
@@ -115,7 +115,7 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
     assert_eq!(
         elicitation_request.request.params,
         Some(create_expected_elicitation_request_params(
-            expected_shell_command,
+            shell_command, // replaced expected_shell_command with shell_command
             workdir_for_shell_function_call.path(),
             codex_request_id.to_string(),
             params.codex_event_id.clone(),
