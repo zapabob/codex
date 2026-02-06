@@ -23,7 +23,7 @@ sha2 = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }
-jsonwebtoken = "9.3"
+jsonwebtoken = "10.3"
 ring = "0.17"
 regex = "1.10"
 toml = "0.8"
