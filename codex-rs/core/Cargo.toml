@@ -232,6 +232,7 @@ core_test_support = { workspace = true }
 ctor = { workspace = true }
 image = { workspace = true, features = ["jpeg", "png"] }
 maplit = { workspace = true }
+mcp-types = { workspace = true }
 predicates = { workspace = true }
 pretty_assertions = { workspace = true }
 opentelemetry_sdk = { workspace = true, features = [

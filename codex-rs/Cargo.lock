@@ -1732,6 +1732,7 @@ dependencies = [
  "libc",
  "lsp-types 0.95.1",
  "maplit",
+ "mcp-types",
  "multimap",
  "notify",
  "num_cpus",

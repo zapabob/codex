@@ -1234,7 +1234,6 @@ mod tests {
     use mcp_types::ToolInputSchema;
     use rmcp::model::JsonObject;
     use std::collections::BTreeSet;
-    use std::collections::HashSet;
     use std::sync::Arc;
 
     fn create_test_tool(server_name: &str, tool_name: &str) -> ToolInfo {

@@ -9,7 +9,6 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::codex::TurnContext;
-use crate::command_safety::is_dangerous_command::command_might_be_dangerous;
 use crate::exec::ExecToolCallOutput;
 use crate::exec::SandboxType;
 use crate::exec::StdoutStream;
@@ -147,7 +146,6 @@ pub(crate) async fn execute_user_shell_command(
         // should use that instead of an "arbitrarily large" timeout here.
         expiration: USER_SHELL_TIMEOUT_MS.into(),
         sandbox: SandboxType::None,
-        windows_sandbox_level: turn_context.windows_sandbox_level,
         sandbox_permissions: SandboxPermissions::UseDefault,
         justification: None,
         arg0: None,
@@ -165,7 +163,7 @@ pub(crate) async fn execute_user_shell_command(
         .await;
 
     match exec_result {
-        Err(CancelErr::Cancelled) => {
+        Err(_cancelled) => {
             let aborted_message = "command aborted by user".to_string();
             let exec_output = ExecToolCallOutput {
                 exit_code: -1,

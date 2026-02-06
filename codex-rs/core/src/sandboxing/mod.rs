@@ -24,6 +24,7 @@ use crate::spawn::CODEX_SANDBOX_ENV_VAR;
 use crate::spawn::CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use crate::tools::sandboxing::SandboxablePreference;
 pub use codex_protocol::models::SandboxPermissions;
+use codex_protocol::config_types::WindowsSandboxLevel;
 use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
@@ -71,6 +72,7 @@ pub enum SandboxPreference {
 }
 
 #[derive(Debug, thiserror::Error)]
+#[allow(dead_code)]
 pub(crate) enum SandboxTransformError {
     #[error("missing codex-linux-sandbox executable path")]
     MissingLinuxSandboxExecutable,
@@ -145,7 +147,7 @@ impl SandboxManager {
             sandbox_policy_cwd,
             codex_linux_sandbox_exe,
             use_linux_sandbox_bwrap,
-            windows_sandbox_level,
+            windows_sandbox_level: _windows_sandbox_level,
         } = request;
         let mut env = spec.env;
         if !policy.has_full_network_access() {

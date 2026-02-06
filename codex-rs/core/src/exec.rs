@@ -29,7 +29,6 @@ use crate::sandboxing::CommandSpec;
 use crate::sandboxing::ExecEnv;
 use crate::sandboxing::SandboxManager;
 use crate::sandboxing::SandboxPermissions;
-use crate::sandboxing::SandboxTransformError;
 use crate::spawn::StdioPolicy;
 use crate::spawn::spawn_child_async;
 use crate::text_encoding::bytes_to_string_smart;

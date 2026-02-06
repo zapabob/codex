@@ -1099,15 +1099,16 @@ impl AgentRuntime {
         .context("Failed to spawn Codex MCP server")?;
 
         // Initialize MCP session
-        let init_params = InitializeRequestParams {
-            client_info: mcp_types::Implementation {
+        let init_params = InitializeRequestParam {
+            client_info: rmcp::model::Implementation {
                 name: "codex-subagent-runtime".to_string(),
                 version: env!("CARGO_PKG_VERSION").to_string(),
-                title: None,
-                user_agent: None,
+                title: Some("Codex Subagent Runtime".into()),
+                icons: None,
+                website_url: None,
             },
-            protocol_version: "0.1.0".to_string(),
-            capabilities: mcp_types::ClientCapabilities {
+            protocol_version: ProtocolVersion::V_2025_06_18,
+            capabilities: rmcp::model::ClientCapabilities {
                 elicitation: None,
                 experimental: None,
                 sampling: None,
@@ -1371,6 +1372,7 @@ impl AgentRuntime {
                 text: last_message.1.clone(),
             }],
             end_turn: None,
+            phase: None,
         }];
 
         let prompt = Prompt {
@@ -1391,21 +1393,27 @@ impl AgentRuntime {
             &self.config,
         );
         let model_client = ModelClient::new(
-            self.config.clone(),
             self.auth_manager.clone(),
-            model_info,
-            self.otel_manager.clone(),
-            self.provider.clone(),
-            Some(ReasoningEffort::Medium),
-            ReasoningSummary::Detailed,
             self.conversation_id,
-            codex_protocol::protocol::SessionSource::Cli, // zapabob: デフォルトはCLI
-            crate::transport_manager::TransportManager::new(),
+            self.provider.clone(),
+            codex_protocol::protocol::SessionSource::Cli,
+            self.config.model_verbosity,
+            self.config.features.enabled(Feature::ResponsesWebsockets),
+            self.config.features.enabled(Feature::EnableRequestCompression),
+            self.config.features.enabled(Feature::RuntimeMetrics),
+            None,
         );
 
         let mut client_session = model_client.new_session();
         let mut response_stream = client_session
-            .stream(&prompt)
+            .stream(
+                &prompt,
+                &model_info,
+                &self.otel_manager,
+                Some(self.reasoning_effort),
+                self.reasoning_summary,
+                None,
+            )
             .await
             .context("Failed to stream LLM response")?;
 
