@@ -69,8 +69,6 @@ pub fn generate_types(out_dir: &Path, prettier: Option<&Path>) -> Result<()> {
     Ok(())
 }
 
-<<<<<<< HEAD
-=======
 #[derive(Clone, Copy, Debug)]
 pub struct GenerateTsOptions {
     pub generate_indices: bool,
@@ -90,8 +88,15 @@ impl Default for GenerateTsOptions {
     }
 }
 
->>>>>>> upstream/main
 pub fn generate_ts(out_dir: &Path, prettier: Option<&Path>) -> Result<()> {
+    generate_ts_with_options(out_dir, prettier, GenerateTsOptions::default())
+}
+
+pub fn generate_ts_with_options(
+    out_dir: &Path,
+    prettier: Option<&Path>,
+    options: GenerateTsOptions,
+) -> Result<()> {
     let v2_out_dir = out_dir.join("v2");
     ensure_dir(out_dir)?;
     ensure_dir(&v2_out_dir)?;
@@ -104,10 +109,6 @@ pub fn generate_ts(out_dir: &Path, prettier: Option<&Path>) -> Result<()> {
     export_server_responses(out_dir)?;
     ServerNotification::export_all_to(out_dir)?;
 
-<<<<<<< HEAD
-    generate_index_ts(out_dir)?;
-    generate_index_ts(&v2_out_dir)?;
-=======
     if !options.experimental_api {
         filter_experimental_ts(out_dir)?;
     }
@@ -116,25 +117,31 @@ pub fn generate_ts(out_dir: &Path, prettier: Option<&Path>) -> Result<()> {
         generate_index_ts(out_dir)?;
         generate_index_ts(&v2_out_dir)?;
     }
->>>>>>> upstream/main
 
     // Ensure our header is present on all TS files (root + subdirs like v2/).
-    let ts_files = ts_files_in_recursive(out_dir)?;
-    for file in &ts_files {
-        prepend_header_if_missing(file)?;
+    if options.ensure_headers {
+        let ts_files = ts_files_in_recursive(out_dir)?;
+        for file in &ts_files {
+            prepend_header_if_missing(file)?;
+        }
     }
 
     // Optionally run Prettier on all generated TS files.
-    if let Some(prettier_bin) = prettier
-        && !ts_files.is_empty()
-    {
-        let status = Command::new(prettier_bin)
-            .arg("--write")
-            .args(ts_files.iter().map(|p| p.as_os_str()))
-            .status()
-            .with_context(|| format!("Failed to invoke Prettier at {}", prettier_bin.display()))?;
-        if !status.success() {
-            return Err(anyhow!("Prettier failed with status {status}"));
+    if options.run_prettier {
+        if let Some(prettier_bin) = prettier {
+            let ts_files = ts_files_in_recursive(out_dir)?;
+            if !ts_files.is_empty() {
+                let status = Command::new(prettier_bin)
+                    .arg("--write")
+                    .args(ts_files.iter().map(|p| p.as_os_str()))
+                    .status()
+                    .with_context(|| {
+                        format!("Failed to invoke Prettier at {}", prettier_bin.display())
+                    })?;
+                if !status.success() {
+                    return Err(anyhow!("Prettier failed with status {status}"));
+                }
+            }
         }
     }
 
@@ -1416,9 +1423,6 @@ mod tests {
 
         let _guard = TempDirGuard(output_dir.clone());
 
-<<<<<<< HEAD
-        generate_ts(&output_dir, None)?;
-=======
         // Avoid doing more work than necessary to keep the test from timing out.
         let options = GenerateTsOptions {
             generate_indices: false,
@@ -1427,7 +1431,6 @@ mod tests {
             experimental_api: false,
         };
         generate_ts_with_options(&output_dir, None, options)?;
->>>>>>> upstream/main
 
         let client_request_ts = fs::read_to_string(output_dir.join("ClientRequest.ts"))?;
         assert_eq!(client_request_ts.contains("mock/experimentalMethod"), false);

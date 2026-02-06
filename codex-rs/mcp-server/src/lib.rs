@@ -28,23 +28,6 @@ mod auto_orchestrator_tool;
 mod auto_orchestrator_tool_handler;
 mod codex_tool_config;
 mod codex_tool_runner;
-<<<<<<< HEAD
-pub mod codex_tools;
-#[allow(dead_code)]
-mod custom_command_tool;
-#[allow(dead_code)]
-mod custom_command_tool_handler;
-#[allow(dead_code)]
-mod datetime_tool;
-#[allow(dead_code)]
-mod datetime_tool_handler;
-#[allow(dead_code)]
-mod deep_research_tool;
-#[allow(dead_code)]
-mod deep_research_tool_handler;
-mod error_code;
-=======
->>>>>>> upstream/main
 mod exec_approval;
 #[allow(dead_code)]
 mod hook_tool;
@@ -112,29 +95,6 @@ pub async fn run_main(
             let reader = BufReader::new(stdin);
             let mut lines = reader.lines();
 
-<<<<<<< HEAD
-            loop {
-                match lines.next_line().await {
-                    Ok(Some(line)) => {
-                        match serde_json::from_str::<JSONRPCMessage>(&line) {
-                            Ok(msg) => {
-                                if incoming_tx.send(msg).await.is_err() {
-                                    // Receiver gone – nothing left to do.
-                                    break;
-                                }
-                            }
-                            Err(e) => error!("Failed to deserialize JSONRPCMessage: {e}"),
-                        }
-                    }
-                    Ok(None) => {
-                        debug!("stdin reader finished (EOF)");
-                        break;
-                    }
-                    Err(e) => {
-                        error!("Failed to read line from stdin: {e}");
-                        break;
-                    }
-=======
             while let Some(line) = lines.next_line().await.unwrap_or_default() {
                 match serde_json::from_str::<IncomingMessage>(&line) {
                     Ok(msg) => {
@@ -144,7 +104,6 @@ pub async fn run_main(
                         }
                     }
                     Err(e) => error!("Failed to deserialize JSON-RPC message: {e}"),
->>>>>>> upstream/main
                 }
             }
         }

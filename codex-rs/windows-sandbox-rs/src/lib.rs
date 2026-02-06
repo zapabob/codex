@@ -72,13 +72,9 @@ pub use identity::sandbox_setup_is_complete;
 #[cfg(target_os = "windows")]
 pub use logging::LOG_FILE_NAME;
 #[cfg(target_os = "windows")]
-<<<<<<< HEAD
 pub use logging::log_note;
-=======
-pub use path_normalization::canonicalize_path;
 #[cfg(target_os = "windows")]
-pub use policy::parse_policy;
->>>>>>> upstream/main
+pub use path_normalization::canonicalize_path;
 #[cfg(target_os = "windows")]
 pub use policy::SandboxPolicy;
 #[cfg(target_os = "windows")]
@@ -156,11 +152,7 @@ mod windows_impl {
     use super::logging::log_failure;
     use super::logging::log_start;
     use super::logging::log_success;
-<<<<<<< HEAD
-=======
     use super::path_normalization::canonicalize_path;
-    use super::policy::parse_policy;
->>>>>>> upstream/main
     use super::policy::SandboxPolicy;
     use super::policy::parse_policy;
     use super::process::make_env_block;
@@ -303,32 +295,28 @@ mod windows_impl {
             anyhow::bail!("DangerFullAccess and ExternalSandbox are not supported for sandboxing")
         }
         let caps = load_or_create_cap_sids(codex_home)?;
-<<<<<<< HEAD
-        let (h_token, psid_to_use): (HANDLE, *mut std::ffi::c_void) = unsafe {
+        let (h_token, psid_generic, psid_workspace): (
+            HANDLE,
+            *mut std::ffi::c_void,
+            Option<*mut std::ffi::c_void>,
+        ) = unsafe {
             match &policy {
                 SandboxPolicy::ReadOnly => {
                     let psid = convert_string_sid_to_sid(&caps.readonly).ok_or_else(|| {
                         anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
                     })?;
-                    super::token::create_readonly_token_with_cap(psid)?
-                }
-                SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid = convert_string_sid_to_sid(&caps.workspace).ok_or_else(|| {
-                        anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
-                    })?;
-                    super::token::create_workspace_write_token_with_cap(psid)?
-=======
-        let (h_token, psid_generic, psid_workspace): (HANDLE, *mut c_void, Option<*mut c_void>) = unsafe {
-            match &policy {
-                SandboxPolicy::ReadOnly => {
-                    let psid = convert_string_sid_to_sid(&caps.readonly).unwrap();
                     let (h, _) = super::token::create_readonly_token_with_cap(psid)?;
                     (h, psid, None)
                 }
                 SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid_generic = convert_string_sid_to_sid(&caps.workspace).unwrap();
+                    let psid_generic =
+                        convert_string_sid_to_sid(&caps.workspace).ok_or_else(|| {
+                            anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
+                        })?;
                     let ws_sid = workspace_cap_sid_for_cwd(codex_home, cwd)?;
-                    let psid_workspace = convert_string_sid_to_sid(&ws_sid).unwrap();
+                    let psid_workspace = convert_string_sid_to_sid(&ws_sid).ok_or_else(|| {
+                        anyhow::anyhow!("convert_string_sid_to_sid failed for workspace_cwd")
+                    })?;
                     let base = super::token::get_current_token_for_restriction()?;
                     let h_res = create_workspace_write_token_with_caps_from(
                         base,
@@ -337,7 +325,6 @@ mod windows_impl {
                     windows_sys::Win32::Foundation::CloseHandle(base);
                     let h = h_res?;
                     (h, psid_generic, Some(psid_workspace))
->>>>>>> upstream/main
                 }
                 SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. } => {
                     unreachable!("DangerFullAccess handled above")
@@ -361,23 +348,8 @@ mod windows_impl {
         let persist_aces = is_workspace_write;
         let AllowDenyPaths { allow, deny } =
             compute_allow_paths(&policy, sandbox_policy_cwd, &current_dir, &env_map);
-<<<<<<< HEAD
-        let mut guards: Vec<(PathBuf, *mut std::ffi::c_void)> = Vec::new();
-        unsafe {
-            for p in &allow {
-                match add_allow_ace(p, psid_to_use) {
-                    Ok(added) => {
-                        if added {
-                            if persist_aces {
-                                if p.is_dir() {
-                                    // best-effort seeding omitted intentionally
-                                }
-                            } else {
-                                guards.push((p.clone(), psid_to_use));
-                            }
-=======
         let canonical_cwd = canonicalize_path(&current_dir);
-        let mut guards: Vec<(PathBuf, *mut c_void)> = Vec::new();
+        let mut guards: Vec<(PathBuf, *mut std::ffi::c_void)> = Vec::new();
         unsafe {
             for p in &allow {
                 let psid = if is_workspace_write && is_command_cwd_root(p, &canonical_cwd) {
@@ -385,15 +357,16 @@ mod windows_impl {
                 } else {
                     psid_generic
                 };
-                if let Ok(added) = add_allow_ace(p, psid) {
-                    if added {
-                        if persist_aces {
-                            if p.is_dir() {
-                                // best-effort seeding omitted intentionally
+                match add_allow_ace(p, psid) {
+                    Ok(added) => {
+                        if added {
+                            if persist_aces {
+                                if p.is_dir() {
+                                    // best-effort seeding omitted intentionally
+                                }
+                            } else {
+                                guards.push((p.clone(), psid));
                             }
-                        } else {
-                            guards.push((p.clone(), psid));
->>>>>>> upstream/main
                         }
                     }
                     Err(e) => {
@@ -406,11 +379,10 @@ mod windows_impl {
                 }
             }
             for p in &deny {
-<<<<<<< HEAD
-                match add_deny_write_ace(p, psid_to_use) {
+                match add_deny_write_ace(p, psid_generic) {
                     Ok(added) => {
                         if added && !persist_aces {
-                            guards.push((p.clone(), psid_to_use));
+                            guards.push((p.clone(), psid_generic));
                         }
                     }
                     Err(e) => {
@@ -418,11 +390,6 @@ mod windows_impl {
                             &format!("add_deny_write_ace failed for {}: {:?}", p.display(), e),
                             logs_base_dir,
                         );
-=======
-                if let Ok(added) = add_deny_write_ace(p, psid_generic) {
-                    if added && !persist_aces {
-                        guards.push((p.clone(), psid_generic));
->>>>>>> upstream/main
                     }
                 }
             }

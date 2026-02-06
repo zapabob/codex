@@ -1231,14 +1231,11 @@ mod mcp_init_error_display_tests {}
 mod tests {
     use super::*;
     use codex_protocol::protocol::McpAuthStatus;
-<<<<<<< HEAD
     use mcp_types::ToolInputSchema;
-    use std::collections::BTreeSet;
-=======
     use rmcp::model::JsonObject;
+    use std::collections::BTreeSet;
     use std::collections::HashSet;
     use std::sync::Arc;
->>>>>>> upstream/main
 
     fn create_test_tool(server_name: &str, tool_name: &str) -> ToolInfo {
         ToolInfo {

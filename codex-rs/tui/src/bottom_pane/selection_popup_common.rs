@@ -342,12 +342,7 @@ fn build_full_line(row: &GenericDisplayRow, desc_col: usize) -> Line<'static> {
 
 /// Render a list of rows using the provided ScrollState, with shared styling
 /// and behavior for selection popups.
-<<<<<<< HEAD
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn render_rows(
-=======
 fn render_rows_inner(
->>>>>>> upstream/main
     area: Rect,
     buf: &mut Buffer,
     rows_all: &[GenericDisplayRow],
@@ -523,13 +518,9 @@ pub(crate) fn render_rows_with_col_width_mode(
 }
 
 /// Render rows as a single line each (no wrapping), truncating overflow with an ellipsis.
-<<<<<<< HEAD
-#[allow(clippy::too_many_arguments)]
-=======
 ///
 /// This path always uses viewport-local width alignment and is best for dense
 /// list UIs where multi-line descriptions would add too much vertical churn.
->>>>>>> upstream/main
 pub(crate) fn render_rows_single_line(
     area: Rect,
     buf: &mut Buffer,

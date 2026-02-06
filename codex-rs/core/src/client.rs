@@ -320,26 +320,6 @@ impl ModelClientSession {
         self.client.state.disable_websockets.load(Ordering::Relaxed)
     }
 
-<<<<<<< HEAD
-    #[allow(dead_code)]
-    pub(crate) fn try_switch_fallback_transport(&mut self) -> bool {
-        let websocket_enabled = self.responses_websocket_enabled();
-        let activated = self
-            .transport_manager
-            .activate_http_fallback(websocket_enabled);
-        if activated {
-            warn!("falling back to HTTP");
-            self.state.otel_manager.counter(
-                "codex.transport.fallback_to_http",
-                1,
-                &[("from_wire_api", "responses_websocket")],
-            );
-
-            self.connection = None;
-            self.websocket_last_items.clear();
-        }
-        activated
-=======
     fn activate_http_fallback(&self, websocket_enabled: bool) -> bool {
         websocket_enabled
             && !self
@@ -347,7 +327,6 @@ impl ModelClientSession {
                 .state
                 .disable_websockets
                 .swap(true, Ordering::Relaxed)
->>>>>>> upstream/main
     }
 
     fn responses_websocket_enabled(&self) -> bool {

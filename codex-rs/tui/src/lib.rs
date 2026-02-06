@@ -202,21 +202,12 @@ pub async fn run_main(
         }
     };
 
-<<<<<<< HEAD
-    let config_toml = load_config_as_toml_with_cli_overrides(
-        &config.codex_home,
-        &config_cwd,
-        cli_kv_overrides.clone(),
-    )
-    .await?;
-=======
     if let Err(err) =
         codex_core::personality_migration::maybe_migrate_personality(&codex_home, &config_toml)
             .await
     {
         tracing::warn!(error = %err, "failed to run personality migration");
     }
->>>>>>> upstream/main
 
     let cloud_auth_manager = AuthManager::shared(
         codex_home.to_path_buf(),

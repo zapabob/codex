@@ -173,8 +173,6 @@ if __name__ == '__main__':
 }
 
 #[tokio::test]
-<<<<<<< HEAD
-=======
 async fn python_getpwuid_works_under_sandbox() {
     core_test_support::skip_if_sandbox!();
     #[cfg(target_os = "linux")]
@@ -221,7 +219,6 @@ async fn python_getpwuid_works_under_sandbox() {
 }
 
 #[tokio::test]
->>>>>>> upstream/main
 async fn sandbox_distinguishes_command_and_policy_cwds() {
     core_test_support::skip_if_sandbox!();
     #[cfg(target_os = "linux")]

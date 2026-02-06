@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-pub mod export;
-=======
 mod experimental_api;
-mod export;
->>>>>>> upstream/main
+pub mod export;
 mod jsonrpc_lite;
 mod protocol;
 mod schema_fixtures;

@@ -9,12 +9,9 @@ pub use mcp_process::McpProcess;
 pub use mock_model_server::create_mock_responses_server;
 pub use responses::create_apply_patch_sse_response;
 pub use responses::create_final_assistant_message_sse_response;
-<<<<<<< HEAD
-pub use responses::create_shell_sse_response;
-=======
 pub use responses::create_shell_command_sse_response;
+pub use responses::create_shell_sse_response;
 use rmcp::model::JsonRpcResponse;
->>>>>>> upstream/main
 use serde::de::DeserializeOwned;
 
 pub fn to_response<T: DeserializeOwned>(

@@ -125,12 +125,7 @@ impl SlashCommand {
             | SlashCommand::ElevateSandbox
             | SlashCommand::Experimental
             | SlashCommand::Review
-<<<<<<< HEAD
-            | SlashCommand::Qc
-            | SlashCommand::DevMode
-=======
             | SlashCommand::Plan
->>>>>>> upstream/main
             | SlashCommand::Logout => false,
             SlashCommand::Diff
             | SlashCommand::Rename
@@ -148,13 +143,7 @@ impl SlashCommand {
             SlashCommand::TestApproval => true,
             SlashCommand::Collab => true,
             SlashCommand::Agent => true,
-<<<<<<< HEAD
-            SlashCommand::Git4d => true,
-            SlashCommand::Vr => true,
-            SlashCommand::Ar => true,
-=======
             SlashCommand::Statusline => false,
->>>>>>> upstream/main
         }
     }
 

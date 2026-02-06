@@ -623,11 +623,7 @@ impl OtelManager {
     }
 
     #[allow(clippy::too_many_arguments)]
-<<<<<<< HEAD
-    pub fn tool_result(
-=======
     pub fn tool_result_with_tags(
->>>>>>> upstream/main
         &self,
         tool_name: &str,
         call_id: &str,

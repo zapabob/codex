@@ -3779,14 +3779,9 @@ pub(crate) async fn run_turn(
             Arc::clone(&sess),
             Arc::clone(&turn_context),
             &mut client_session,
-<<<<<<< HEAD
+            turn_metadata_header.as_deref(),
             turn_diff_tracker,
             &prompt,
-=======
-            turn_metadata_header.as_deref(),
-            sampling_request_input,
-            tool_selection,
->>>>>>> upstream/main
             cancellation_token.child_token(),
         )
         .await

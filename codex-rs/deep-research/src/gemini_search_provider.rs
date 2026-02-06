@@ -142,7 +142,8 @@ impl GeminiSearchProvider {
         // Parse the result
         let mut results = Vec::new();
         for item in result.content {
-            if let mcp_types::ContentBlock::TextContent(text_content) = item {
+            // Extract text from the annotated content
+            if let rmcp::model::RawContent::Text(ref text_content) = item.raw {
                 let text = &text_content.text;
                 // Try to parse as JSON array first
                 if let Ok(json_results) = serde_json::from_str::<Vec<serde_json::Value>>(text) {

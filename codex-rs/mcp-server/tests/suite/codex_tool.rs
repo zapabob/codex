@@ -25,14 +25,11 @@ use core_test_support::skip_if_no_network;
 use mcp_test_support::McpProcess;
 use mcp_test_support::create_apply_patch_sse_response;
 use mcp_test_support::create_final_assistant_message_sse_response;
-<<<<<<< HEAD
 use mcp_test_support::create_mock_chat_completions_server;
-use mcp_test_support::create_shell_sse_response;
-=======
 use mcp_test_support::create_mock_responses_server;
 use mcp_test_support::create_shell_command_sse_response;
+use mcp_test_support::create_shell_sse_response;
 use mcp_test_support::format_with_current_shell;
->>>>>>> upstream/main
 
 // Allow ample time on slower CI or under load to avoid flakes.
 const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(20);
@@ -115,17 +112,6 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
             .clone()
             .ok_or_else(|| anyhow::anyhow!("elicitation_request.params must be set"))?,
     )?;
-<<<<<<< HEAD
-    let expected_elicitation_request = create_expected_elicitation_request(
-        elicitation_request_id.clone(),
-        shell_command.clone(),
-        workdir_for_shell_function_call.path(),
-        codex_request_id.to_string(),
-        params.codex_event_id.clone(),
-        params.thread_id,
-    )?;
-    assert_eq!(expected_elicitation_request, elicitation_request);
-=======
     assert_eq!(
         elicitation_request.request.params,
         Some(create_expected_elicitation_request_params(
@@ -136,7 +122,6 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
             params.thread_id,
         )?)
     );
->>>>>>> upstream/main
 
     // Accept the `git init` request by responding to the elicitation.
     mcp_process
@@ -438,13 +423,7 @@ async fn codex_tool_passes_base_instructions() -> anyhow::Result<()> {
     Ok(())
 }
 
-<<<<<<< HEAD
-#[allow(clippy::too_many_arguments)]
-fn create_expected_patch_approval_elicitation_request(
-    elicitation_request_id: RequestId,
-=======
 fn create_expected_patch_approval_elicitation_request_params(
->>>>>>> upstream/main
     changes: HashMap<PathBuf, FileChange>,
     grant_root: Option<PathBuf>,
     reason: Option<String>,
@@ -486,18 +465,7 @@ pub struct McpHandle {
 }
 
 async fn create_mcp_process(responses: Vec<String>) -> anyhow::Result<McpHandle> {
-<<<<<<< HEAD
-    // Ensure local wiremock calls bypass any configured proxy, otherwise loopback requests fail.
-    // SAFETY: environment variables are scoped to this process; setting them avoids proxying local mock calls.
-    unsafe {
-        std::env::set_var("NO_PROXY", "127.0.0.1,localhost");
-        std::env::set_var("no_proxy", "127.0.0.1,localhost");
-    }
-
-    let server = create_mock_chat_completions_server(responses).await;
-=======
     let server = create_mock_responses_server(responses).await;
->>>>>>> upstream/main
     let codex_home = TempDir::new()?;
     create_config_toml(codex_home.path(), &server.uri())?;
     let mut mcp_process = McpProcess::new(codex_home.path()).await?;

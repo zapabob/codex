@@ -136,15 +136,7 @@ impl SandboxManager {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn transform(
         &self,
-<<<<<<< HEAD
-        mut spec: CommandSpec,
-        policy: &SandboxPolicy,
-        sandbox: SandboxType,
-        sandbox_policy_cwd: &Path,
-        codex_linux_sandbox_exe: Option<&PathBuf>,
-=======
         request: SandboxTransformRequest<'_>,
->>>>>>> upstream/main
     ) -> Result<ExecEnv, SandboxTransformError> {
         let SandboxTransformRequest {
             mut spec,

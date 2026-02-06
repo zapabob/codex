@@ -505,26 +505,23 @@ impl McpSearchProvider {
     /// Parse search results from MCP tool response
     fn parse_search_results(
         &self,
-        content: Vec<mcp_types::ContentBlock>,
+        content: Vec<rmcp::model::Content>,
     ) -> Result<Vec<SearchResult>> {
         let mut results = Vec::new();
 
         for item in content {
-            match item {
-                mcp_types::ContentBlock::TextContent(text_content) => {
-                    let text = &text_content.text;
-                    // Try to parse as JSON array of search results
-                    if let Ok(json_results) = serde_json::from_str::<Vec<serde_json::Value>>(text) {
-                        for json_result in json_results {
-                            if let Ok(result) = self.parse_single_result(json_result) {
-                                results.push(result);
-                            }
+            if let rmcp::model::RawContent::Text(ref text_content) = item.raw {
+                let text = &text_content.text;
+                // Try to parse as JSON array of search results
+                if let Ok(json_results) = serde_json::from_str::<Vec<serde_json::Value>>(text) {
+                    for json_result in json_results {
+                        if let Ok(result) = self.parse_single_result(json_result) {
+                            results.push(result);
                         }
                     }
                 }
-                _ => {
-                    debug!("Ignoring non-text content in MCP response");
-                }
+            } else {
+                debug!("Ignoring non-text content in MCP response");
             }
         }
 
@@ -567,8 +564,8 @@ impl McpSearchProvider {
                 Ok(result) => {
                     // Extract text from result
                     for item in result.content {
-                        if let mcp_types::ContentBlock::TextContent(text_content) = item {
-                            return Ok(text_content.text);
+                        if let rmcp::model::RawContent::Text(ref text_content) = item.raw {
+                            return Ok(text_content.text.clone());
                         }
                     }
                 }
