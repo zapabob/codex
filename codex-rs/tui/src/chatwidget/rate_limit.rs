@@ -6,8 +6,8 @@ pub(crate) const RATE_LIMIT_SWITCH_PROMPT_THRESHOLD: f64 = 90.0;
 
 #[derive(Default)]
 pub(crate) struct RateLimitWarningState {
-    secondary_index: usize,
-    primary_index: usize,
+    pub(crate) secondary_index: usize,
+    pub(crate) primary_index: usize,
 }
 
 impl RateLimitWarningState {

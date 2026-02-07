@@ -88,11 +88,9 @@ fn ps_output_multiline_snapshot() {
     let cell = new_unified_exec_processes_output(vec![
         UnifiedExecProcessDetails {
             command_display: "echo hello\nand then some extra text".to_string(),
-            recent_chunks: Vec::new(),
         },
         UnifiedExecProcessDetails {
             command_display: "rg \"foo\" src".to_string(),
-            recent_chunks: Vec::new(),
         },
     ]);
     let rendered = render_lines(&cell.display_lines(40)).join("\n");
@@ -105,7 +103,6 @@ fn ps_output_long_command_snapshot() {
         command_display: String::from(
             "rg \"foo\" src --glob '**/*.rs' --max-count 1000 --no-ignore --hidden --follow --glob '!target/**'",
         ),
-        recent_chunks: Vec::new(),
     }]);
     let rendered = render_lines(&cell.display_lines(36)).join("\n");
     insta::assert_snapshot!(rendered);
@@ -117,7 +114,6 @@ fn ps_output_many_sessions_snapshot() {
         (0..20)
             .map(|idx| UnifiedExecProcessDetails {
                 command_display: format!("command {idx}"),
-                recent_chunks: Vec::new(),
             })
             .collect(),
     );

@@ -1577,13 +1577,11 @@ impl ChatWidget {
         {
             existing.call_id = ev.call_id.clone();
             existing.command_display = command_display;
-            existing.recent_chunks.clear();
         } else {
             self.unified_exec_processes.push(UnifiedExecProcessSummary {
                 key,
                 call_id: ev.call_id.clone(),
                 command_display,
-                recent_chunks: Vec::new(),
             });
         }
         self.sync_unified_exec_footer();
@@ -1609,29 +1607,8 @@ impl ChatWidget {
     }
 
     /// Record recent stdout/stderr lines for the unified exec footer.
-    fn track_unified_exec_output_chunk(&mut self, call_id: &str, chunk: &[u8]) {
-        let Some(process) = self
-            .unified_exec_processes
-            .iter_mut()
-            .find(|process| process.call_id == call_id)
-        else {
-            return;
-        };
-
-        let text = String::from_utf8_lossy(chunk);
-        for line in text
-            .lines()
-            .map(str::trim_end)
-            .filter(|line| !line.is_empty())
-        {
-            process.recent_chunks.push(line.to_string());
-        }
-
-        const MAX_RECENT_CHUNKS: usize = 3;
-        if process.recent_chunks.len() > MAX_RECENT_CHUNKS {
-            let drop_count = process.recent_chunks.len() - MAX_RECENT_CHUNKS;
-            process.recent_chunks.drain(0..drop_count);
-        }
+    fn track_unified_exec_output_chunk(&mut self, _call_id: &str, _chunk: &[u8]) {
+        // No-op: recent_chunks telemetry removed.
     }
 
     fn clear_unified_exec_processes(&mut self) {

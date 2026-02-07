@@ -8,8 +8,6 @@ pub(crate) struct UnifiedExecProcessSummary {
     pub(crate) call_id: String,
     #[allow(dead_code)]
     pub(crate) command_display: String,
-    #[allow(dead_code)]
-    pub(crate) recent_chunks: Vec<String>,
 }
 
 pub(crate) struct UnifiedExecWaitState {
