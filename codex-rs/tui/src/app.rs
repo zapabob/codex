@@ -986,6 +986,7 @@ impl App {
             auth_ref.and_then(CodexAuth::get_account_id),
             auth_ref.and_then(CodexAuth::get_account_email),
             auth_mode,
+            codex_core::default_client::originator().value,
             config.otel.log_user_prompt,
             codex_core::terminal::user_agent(),
             SessionSource::Cli,
@@ -1056,6 +1057,7 @@ impl App {
                 ChatWidget::new_from_existing(init, resumed.thread, resumed.session_configured)
             }
             SessionSelection::Fork(path) => {
+                otel_manager.counter("codex.thread.fork", 1, &[("source", "cli_subcommand")]);
                 let forked = thread_manager
                     .fork_thread(usize::MAX, config.clone(), path.clone())
                     .await
@@ -1433,6 +1435,8 @@ impl App {
                 tui.frame_requester().schedule_frame();
             }
             AppEvent::ForkCurrentSession => {
+                self.otel_manager
+                    .counter("codex.thread.fork", 1, &[("source", "slash_command")]);
                 let summary = session_summary(
                     self.chat_widget.token_usage(),
                     self.chat_widget.thread_id(),
@@ -2786,6 +2790,7 @@ mod tests {
             None,
             None,
             None,
+            "test_originator".to_string(),
             false,
             "test".to_string(),
             SessionSource::Cli,

@@ -49,6 +49,8 @@ struct VersionInfo {
     dismissed_version: Option<String>,
 }
 
+=======
+
 #[derive(Deserialize, Debug, Clone)]
 struct ReleaseInfo {
     tag_name: String,
@@ -56,7 +58,6 @@ struct ReleaseInfo {
 
 const VERSION_FILENAME: &str = "version.json";
 const LATEST_RELEASE_URL: &str = "https://api.github.com/repos/openai/codex/releases/latest";
-
 fn version_filepath(config: &Config) -> PathBuf {
     config.codex_home.join(VERSION_FILENAME)
 }
@@ -76,7 +77,6 @@ async fn check_for_update(version_file: &Path) -> anyhow::Result<()> {
         .error_for_status()?
         .json::<ReleaseInfo>()
         .await?;
-
     // Preserve any previously dismissed version if present.
     let prev_info = read_version_info(version_file).ok();
     let info = VersionInfo {

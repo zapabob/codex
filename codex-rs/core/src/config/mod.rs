@@ -1,6 +1,7 @@
 use crate::auth::AuthCredentialsStoreMode;
 use crate::config::edit::ConfigEdit;
 use crate::config::edit::ConfigEditsBuilder;
+use crate::config::types::AppsConfigToml;
 use crate::config::types::DEFAULT_OTEL_ENVIRONMENT;
 use crate::config::types::History;
 use crate::config::types::McpServerConfig;
@@ -21,6 +22,7 @@ use crate::config::types::UriBasedFileOpener;
 use crate::config_loader::CloudRequirementsLoader;
 use crate::config_loader::ConfigLayerStack;
 use crate::config_loader::ConfigRequirements;
+use crate::config_loader::ConstrainedWithSource;
 use crate::config_loader::LoaderOverrides;
 use crate::config_loader::McpServerIdentity;
 use crate::config_loader::McpServerRequirement;
@@ -115,6 +117,9 @@ pub struct Config {
     /// Provenance for how this [`Config`] was derived (merged layers + enforced
     /// requirements).
     pub config_layer_stack: ConfigLayerStack,
+
+    /// Warnings collected during config load that should be shown on startup.
+    pub startup_warnings: Vec<String>,
 
     /// Optional override of model selection.
     pub model: Option<String>,
@@ -601,6 +606,41 @@ fn constrain_mcp_servers(
     })
 }
 
+fn apply_requirement_constrained_value<T>(
+    field_name: &'static str,
+    configured_value: T,
+    constrained_value: &mut ConstrainedWithSource<T>,
+    startup_warnings: &mut Vec<String>,
+) -> std::io::Result<()>
+where
+    T: Clone + std::fmt::Debug + Send + Sync,
+{
+    if let Err(err) = constrained_value.set(configured_value) {
+        let fallback_value = constrained_value.get().clone();
+        tracing::warn!(
+            error = %err,
+            ?fallback_value,
+            requirement_source = ?constrained_value.source,
+            "configured value is disallowed by requirements; falling back to required value for {field_name}"
+        );
+        let message = format!(
+            "Configured value for `{field_name}` is disallowed by requirements; falling back to required value {fallback_value:?}. Details: {err}"
+        );
+        startup_warnings.push(message);
+
+        constrained_value.set(fallback_value).map_err(|fallback_err| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!(
+                    "configured value for `{field_name}` is disallowed by requirements ({err}); fallback to a requirement-compliant value also failed ({fallback_err})"
+                ),
+            )
+        })?;
+    }
+
+    Ok(())
+}
+
 fn mcp_server_matches_requirement(
     requirement: &McpServerRequirement,
     server: &McpServerConfig,
@@ -985,6 +1025,10 @@ pub struct ConfigToml {
     /// Defaults to `true`.
     pub feedback: Option<crate::config::types::FeedbackConfigToml>,
 
+    /// Settings for app-specific controls.
+    #[serde(default)]
+    pub apps: Option<AppsConfigToml>,
+
     /// OTEL configuration.
     pub otel: Option<crate::config::types::OtelConfigToml>,
 
@@ -1288,14 +1332,10 @@ fn resolve_web_search_mode(
 
 pub(crate) fn resolve_web_search_mode_for_turn(
     explicit_mode: Option<WebSearchMode>,
-    is_azure_responses_endpoint: bool,
     sandbox_policy: &SandboxPolicy,
 ) -> WebSearchMode {
     if let Some(mode) = explicit_mode {
         return mode;
-    }
-    if is_azure_responses_endpoint {
-        return WebSearchMode::Disabled;
     }
     if matches!(sandbox_policy, SandboxPolicy::DangerFullAccess) {
         WebSearchMode::Live
@@ -1324,6 +1364,7 @@ impl Config {
     ) -> std::io::Result<Self> {
         let requirements = config_layer_stack.requirements().clone();
         let user_instructions = Self::load_instructions(Some(&codex_home));
+        let mut startup_warnings = Vec::new();
 
         // Destructure ConfigOverrides fully to ensure all overrides are applied.
         let ConfigOverrides {
@@ -1590,12 +1631,18 @@ impl Config {
             enforce_residency,
         } = requirements;
 
-        constrained_approval_policy
-            .set(approval_policy)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("{e}")))?;
-        constrained_sandbox_policy
-            .set(sandbox_policy)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("{e}")))?;
+        apply_requirement_constrained_value(
+            "approval_policy",
+            approval_policy,
+            &mut constrained_approval_policy,
+            &mut startup_warnings,
+        )?;
+        apply_requirement_constrained_value(
+            "sandbox_mode",
+            sandbox_policy,
+            &mut constrained_sandbox_policy,
+            &mut startup_warnings,
+        )?;
 
         let mcp_servers = constrain_mcp_servers(cfg.mcp_servers.clone(), mcp_servers.as_ref())
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("{e}")))?;
@@ -1608,6 +1655,7 @@ impl Config {
             model_provider_id,
             model_provider,
             cwd: resolved_cwd,
+            startup_warnings,
             approval_policy: constrained_approval_policy.value,
             sandbox_policy: constrained_sandbox_policy.value,
             enforce_residency: enforce_residency.value,
@@ -1873,6 +1921,7 @@ mod tests {
                 cwd: None,
             },
             enabled: true,
+            required: false,
             disabled_reason: None,
             startup_timeout_sec: None,
             tool_timeout_sec: None,
@@ -1891,6 +1940,7 @@ mod tests {
                 env_http_headers: None,
             },
             enabled: true,
+            required: false,
             disabled_reason: None,
             startup_timeout_sec: None,
             tool_timeout_sec: None,
@@ -2413,14 +2463,14 @@ trust_level = "trusted"
 
     #[test]
     fn web_search_mode_for_turn_defaults_to_cached_when_unset() {
-        let mode = resolve_web_search_mode_for_turn(None, false, &SandboxPolicy::ReadOnly);
+        let mode = resolve_web_search_mode_for_turn(None, &SandboxPolicy::ReadOnly);
 
         assert_eq!(mode, WebSearchMode::Cached);
     }
 
     #[test]
     fn web_search_mode_for_turn_defaults_to_live_for_danger_full_access() {
-        let mode = resolve_web_search_mode_for_turn(None, false, &SandboxPolicy::DangerFullAccess);
+        let mode = resolve_web_search_mode_for_turn(None, &SandboxPolicy::DangerFullAccess);
 
         assert_eq!(mode, WebSearchMode::Live);
     }
@@ -2429,18 +2479,10 @@ trust_level = "trusted"
     fn web_search_mode_for_turn_prefers_explicit_value() {
         let mode = resolve_web_search_mode_for_turn(
             Some(WebSearchMode::Cached),
-            false,
             &SandboxPolicy::DangerFullAccess,
         );
 
         assert_eq!(mode, WebSearchMode::Cached);
-    }
-
-    #[test]
-    fn web_search_mode_for_turn_disables_for_azure_responses_endpoint() {
-        let mode = resolve_web_search_mode_for_turn(None, true, &SandboxPolicy::DangerFullAccess);
-
-        assert_eq!(mode, WebSearchMode::Disabled);
     }
 
     #[test]
@@ -2643,25 +2685,27 @@ profile = "project"
     }
 
     #[test]
-    fn responses_websockets_feature_does_not_change_wire_api() -> std::io::Result<()> {
-        let codex_home = TempDir::new()?;
-        let mut entries = BTreeMap::new();
-        entries.insert("responses_websockets".to_string(), true);
-        let cfg = ConfigToml {
-            features: Some(crate::features::FeaturesToml { entries }),
-            ..Default::default()
-        };
+    fn responses_websocket_features_do_not_change_wire_api() -> std::io::Result<()> {
+        for feature_key in ["responses_websockets", "responses_websockets_v2"] {
+            let codex_home = TempDir::new()?;
+            let mut entries = BTreeMap::new();
+            entries.insert(feature_key.to_string(), true);
+            let cfg = ConfigToml {
+                features: Some(crate::features::FeaturesToml { entries }),
+                ..Default::default()
+            };
 
-        let config = Config::load_from_base_config_with_overrides(
-            cfg,
-            ConfigOverrides::default(),
-            codex_home.path().to_path_buf(),
-        )?;
+            let config = Config::load_from_base_config_with_overrides(
+                cfg,
+                ConfigOverrides::default(),
+                codex_home.path().to_path_buf(),
+            )?;
 
-        assert_eq!(
-            config.model_provider.wire_api,
-            crate::model_provider_info::WireApi::Responses
-        );
+            assert_eq!(
+                config.model_provider.wire_api,
+                crate::model_provider_info::WireApi::Responses
+            );
+        }
 
         Ok(())
     }
@@ -2765,6 +2809,7 @@ profile = "project"
                     cwd: None,
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: Some(Duration::from_secs(3)),
                 tool_timeout_sec: Some(Duration::from_secs(5)),
@@ -2921,6 +2966,7 @@ bearer_token = "secret"
                     cwd: None,
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: None,
                 tool_timeout_sec: None,
@@ -2991,6 +3037,7 @@ ZIG_VAR = "3"
                     cwd: None,
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: None,
                 tool_timeout_sec: None,
@@ -3041,6 +3088,7 @@ ZIG_VAR = "3"
                     cwd: Some(cwd_path.clone()),
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: None,
                 tool_timeout_sec: None,
@@ -3089,6 +3137,7 @@ ZIG_VAR = "3"
                     env_http_headers: None,
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: Some(Duration::from_secs(2)),
                 tool_timeout_sec: None,
@@ -3153,6 +3202,7 @@ startup_timeout_sec = 2.0
                     )])),
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: Some(Duration::from_secs(2)),
                 tool_timeout_sec: None,
@@ -3229,6 +3279,7 @@ X-Auth = "DOCS_AUTH"
                     )])),
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: Some(Duration::from_secs(2)),
                 tool_timeout_sec: None,
@@ -3258,6 +3309,7 @@ X-Auth = "DOCS_AUTH"
                     env_http_headers: None,
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: None,
                 tool_timeout_sec: None,
@@ -3325,6 +3377,7 @@ url = "https://example.com/mcp"
                         )])),
                     },
                     enabled: true,
+                    required: false,
                     disabled_reason: None,
                     startup_timeout_sec: Some(Duration::from_secs(2)),
                     tool_timeout_sec: None,
@@ -3344,6 +3397,7 @@ url = "https://example.com/mcp"
                         cwd: None,
                     },
                     enabled: true,
+                    required: false,
                     disabled_reason: None,
                     startup_timeout_sec: None,
                     tool_timeout_sec: None,
@@ -3426,6 +3480,7 @@ url = "https://example.com/mcp"
                     cwd: None,
                 },
                 enabled: false,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: None,
                 tool_timeout_sec: None,
@@ -3456,6 +3511,51 @@ url = "https://example.com/mcp"
     }
 
     #[tokio::test]
+    async fn replace_mcp_servers_serializes_required_flag() -> anyhow::Result<()> {
+        let codex_home = TempDir::new()?;
+
+        let servers = BTreeMap::from([(
+            "docs".to_string(),
+            McpServerConfig {
+                transport: McpServerTransportConfig::Stdio {
+                    command: "docs-server".to_string(),
+                    args: Vec::new(),
+                    env: None,
+                    env_vars: Vec::new(),
+                    cwd: None,
+                },
+                enabled: true,
+                required: true,
+                disabled_reason: None,
+                startup_timeout_sec: None,
+                tool_timeout_sec: None,
+                enabled_tools: None,
+                disabled_tools: None,
+                scopes: None,
+            },
+        )]);
+
+        apply_blocking(
+            codex_home.path(),
+            None,
+            &[ConfigEdit::ReplaceMcpServers(servers.clone())],
+        )?;
+
+        let config_path = codex_home.path().join(CONFIG_TOML_FILE);
+        let serialized = std::fs::read_to_string(&config_path)?;
+        assert!(
+            serialized.contains("required = true"),
+            "serialized config missing required flag:\n{serialized}"
+        );
+
+        let loaded = load_global_mcp_servers(codex_home.path()).await?;
+        let docs = loaded.get("docs").expect("docs entry");
+        assert!(docs.required);
+
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn replace_mcp_servers_serializes_tool_filters() -> anyhow::Result<()> {
         let codex_home = TempDir::new()?;
 
@@ -3470,6 +3570,7 @@ url = "https://example.com/mcp"
                     cwd: None,
                 },
                 enabled: true,
+                required: false,
                 disabled_reason: None,
                 startup_timeout_sec: None,
                 tool_timeout_sec: None,
@@ -3865,6 +3966,7 @@ model_verbosity = "high"
                 codex_home: fixture.codex_home(),
                 log_dir: fixture.codex_home().join("log"),
                 config_layer_stack: Default::default(),
+                startup_warnings: Vec::new(),
                 history: History::default(),
                 ephemeral: false,
                 file_opener: UriBasedFileOpener::VsCode,
@@ -3952,6 +4054,7 @@ model_verbosity = "high"
             codex_home: fixture.codex_home(),
             log_dir: fixture.codex_home().join("log"),
             config_layer_stack: Default::default(),
+            startup_warnings: Vec::new(),
             history: History::default(),
             ephemeral: false,
             file_opener: UriBasedFileOpener::VsCode,
@@ -4054,6 +4157,7 @@ model_verbosity = "high"
             codex_home: fixture.codex_home(),
             log_dir: fixture.codex_home().join("log"),
             config_layer_stack: Default::default(),
+            startup_warnings: Vec::new(),
             history: History::default(),
             ephemeral: false,
             file_opener: UriBasedFileOpener::VsCode,
@@ -4142,6 +4246,7 @@ model_verbosity = "high"
             codex_home: fixture.codex_home(),
             log_dir: fixture.codex_home().join("log"),
             config_layer_stack: Default::default(),
+            startup_warnings: Vec::new(),
             history: History::default(),
             ephemeral: false,
             file_opener: UriBasedFileOpener::VsCode,
@@ -4693,7 +4798,7 @@ mcp_oauth_callback_port = 5678
     }
 
     #[tokio::test]
-    async fn explicit_sandbox_mode_still_errors_when_disallowed_by_requirements()
+    async fn explicit_sandbox_mode_falls_back_when_disallowed_by_requirements()
     -> std::io::Result<()> {
         let codex_home = TempDir::new()?;
         std::fs::write(
@@ -4712,19 +4817,15 @@ mcp_oauth_callback_port = 5678
             enforce_residency: None,
         };
 
-        let err = ConfigBuilder::default()
+        let config = ConfigBuilder::default()
             .codex_home(codex_home.path().to_path_buf())
             .fallback_cwd(Some(codex_home.path().to_path_buf()))
             .cloud_requirements(CloudRequirementsLoader::new(
                 async move { Some(requirements) },
             ))
             .build()
-            .await
-            .expect_err("explicit disallowed mode should still fail");
-        assert_eq!(err.kind(), std::io::ErrorKind::InvalidInput);
-        let message = err.to_string();
-        assert!(message.contains("invalid value for `sandbox_mode`"));
-        assert!(message.contains("set by cloud requirements"));
+            .await?;
+        assert_eq!(*config.sandbox_policy.get(), SandboxPolicy::ReadOnly);
         Ok(())
     }
 
@@ -4761,7 +4862,7 @@ trust_level = "untrusted"
     }
 
     #[tokio::test]
-    async fn explicit_approval_policy_still_errors_when_disallowed_by_requirements()
+    async fn explicit_approval_policy_falls_back_when_disallowed_by_requirements()
     -> std::io::Result<()> {
         let codex_home = TempDir::new()?;
         std::fs::write(
@@ -4770,7 +4871,7 @@ trust_level = "untrusted"
 "#,
         )?;
 
-        let err = ConfigBuilder::default()
+        let config = ConfigBuilder::default()
             .codex_home(codex_home.path().to_path_buf())
             .fallback_cwd(Some(codex_home.path().to_path_buf()))
             .cloud_requirements(CloudRequirementsLoader::new(async {
@@ -4780,12 +4881,8 @@ trust_level = "untrusted"
                 })
             }))
             .build()
-            .await
-            .expect_err("explicit disallowed approval policy should fail");
-        assert_eq!(err.kind(), std::io::ErrorKind::InvalidInput);
-        let message = err.to_string();
-        assert!(message.contains("invalid value for `approval_policy`"));
-        assert!(message.contains("set by cloud requirements"));
+            .await?;
+        assert_eq!(config.approval_policy.value(), AskForApproval::OnRequest);
         Ok(())
     }
 }
