@@ -49,7 +49,19 @@ struct VersionInfo {
     dismissed_version: Option<String>,
 }
 
-=======
+impl VersionInfo {
+    fn new(
+        latest_version: String,
+        last_checked_at: DateTime<Utc>,
+        dismissed_version: Option<String>,
+    ) -> Self {
+        Self {
+            latest_version,
+            last_checked_at,
+            dismissed_version,
+        }
+    }
+}
 
 #[derive(Deserialize, Debug, Clone)]
 struct ReleaseInfo {
