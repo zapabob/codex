@@ -1,59 +1,41 @@
-# Codex-X Project Handover: QA Agent & A2A Implementation
+# Project Handover: GUI Integration & Migration
 
-## Project Context
-**Codex-X** is an advanced AI coding assistant with a Rust backend (`codex-rs`) and a React/Vite frontend (`codex-gui-x`).
-The current objective is to implement the **QA Agent (Supreme Auditor)**, which uses an **Agent-to-Agent (A2A)** communication bus to orchestrate code quality checks, optimizations, and automated worktree merging.
+## Current Objective
+Migrate legacy GUI features (Visualization, VR, Plans, Virtual OS) from the legacy `gui` (Next.js) project to the new `codex-gui-x` (Vite) project.
 
 ## Current Status (2026-02-07)
+- **Component Migration**: All core components from `gui/src/components` have been moved to `codex-gui-x/src/components`.
+- **Backend Sync**: Resolved `schemars` trait bound errors in `codex-rs/core/src/config/mod.rs` to allow clean back-and-forth between TOML and JSON.
+- **Frontend Integration**: Updated `App.tsx` with navigation for the new views.
+- **Refactoring Progress**:
+  - `PlanCreator.tsx`: Fixed API client instantiation, imports, and property mapping (snake_case from API to local camelCase).
+  - `VirtualEnvironmentManager.tsx`: Standardized MUI props (`small` vs `sm`, `outlined` vs `outline`), resolved React purity issues (`Date.now()` during render).
+  - `Git4DVisualization.tsx`: Updated Three.js type definitions and resolved hook dependency warnings.
+- **Build Status**: `npm run build` currently reports **344 errors**. These are mostly concentrated in:
+  - WebXR API types (missing `@types/webxr` or explicit definitions).
+  - Property mismatches in MUI components that were slightly different between Next.js and Vite environments.
+  - Remaining snake_case vs camelCase mapping issues in some components.
 
-### 1. Infrastructure: A2A Communication
-- **Protocol**: `A2ABroadcast` and `A2AMessage` are defined in `app-server-protocol/src/protocol/v2.rs`.
-- **Backend (`codex-rs`)**:
-    - Implemented `a2a_broadcast` in `codex_message_processor.rs`. It forwards messages to all connected clients via `ServerNotification::A2AMessage`.
-    - Integrated `QAAgent::handle_message` to intercept and respond to specific message types (`audit`, `optimize`, etc.).
-- **Frontend (`codex-gui-x`)**:
-    - `A2ABus.ts`: Implements the decentralized message bus. Updated `A2AMessage` type to include `audit_result`.
-    - `QAAuditor.tsx`: sends `audit` requests and now listens for `audit_result` to display findings in a "Critical Compliance" panel.
-
-### 2. Logic: QA Agent
-- **Module**: Created `app-server/src/qa_agent.rs`.
-- **Capabilities**:
-    - `run_audit`: Currently checks if `cargo` is installed and returns a mock finding alongside a real "Cargo found" check.
-    - `suggest_optimization`: Returning mocked optimization suggestions.
-    - `handle_merge_request`: Stubbed auto-merge approval.
-
-### 3. Recent Changes & Files
-- `codex-rs/app-server/src/codex_message_processor.rs`: Fixed syntax error (missing brace) in `process_request`.
-- `codex-rs/app-server/src/qa_agent.rs`: New module.
-- `codex-rs/app-server/src/lib.rs`: Registered `qa_agent`.
-- `codex-gui-x/src/components/orchestration/QAAuditor.tsx`: UI updates for findings.
-- `codex-gui-x/src/lib/api/A2ABus.ts`: Type definitions.
+## Recent Changes & Important Files
+- `codex-gui-x/src/components/plan/PlanCreator.tsx`: Major clean-up.
+- `codex-gui-x/src/components/virtual-os/VirtualEnvironmentManager.tsx`: MUI standardization.
+- `codex-gui-x/src/components/visualization/Git4DVisualization.tsx`: Three.js integration fix.
+- `codex-gui-x/src/lib/types/virtual-os.ts`: Shared types for the Virtual OS module.
+- `codex-gui-x/src/mui/Grid2.tsx`: Recreated MUI Grid2 component for Vite compatibility.
 
 ## Pending Tasks (Next Steps)
+1. **Resolve Build Errors**:
+   - Install `@types/webxr` or provide global type definitions for `XR` types used in `webxr-manager.ts`.
+   - Fix remaining `createdAt` vs `created_at` in rendering sections of `PlanCreator.tsx`.
+   - Double-check all MUI `Button` and `Select` components for prop compatibility.
+2. **WebXR Support**: Ensure hand tracking and VR scenes correctly initialize with `@react-three/xr`.
+3. **Manual Verification**: Run `npm run dev` and navigate through all new views to ensure no runtime crashes.
 
-1.  **Verify Backend Build**:
-    - A `cargo check` was running (ID: `538fca43...`) to verify the syntax fix in `codex_message_processor.rs`.
-    - **Action**: Check `build_log_fixed.txt` or run `cargo check -p codex-app-server` to confirm `codex-rs` compiles clean.
-
-2.  **End-to-End Verification**:
-    - Launch backend (`cargo run`) and frontend (`npm run dev`).
-    - Open `QAAuditor` in the browser.
-    - Click "FORCE GLOBAL AUDIT".
-    - **Success Criteria**: The UI should show "Cargo found: ..." in the findings list, confirming the backend received the broadcast, processed it in `qa_agent`, and sent back an `audit_result`.
-
-3.  **Expand QA Capabilities**:
-    - **Linter**: Parse actual `cargo check --message-format=json` output in `qa_agent.rs` and return real errors.
-    - **Optimizer**: Integrate with the LLM client to generate real code improvements.
-    - **Merger**: Implement `git merge` logic in `handle_merge_request`.
-
-4.  **UI Enhancements**:
-    - Update `WorktreeDashboard.tsx` to visualize agent status.
-
-## Known Issues / Notes
-- **Lint Errors in Frontend**: usage of `any` was fixed, but double check `QAAuditor.tsx` types.
-- **Backend Build**: The previous build failed due to a missing brace/semicolon. The fix was applied but looking at the log is required to confirm.
+## Environment Notes
+- Vite environment variables use `import.meta.env.VITE_API_URL` instead of `process.env.NEXT_PUBLIC_API_URL`.
+- Path aliases are configured for `@/` pointing to `src/`.
 
 ## Artifacts
 - `task.md`: Current task tracking.
-- `implementation_plan.md`: Detailed plan for the QA logic.
-- `walkthrough.md`: Steps to verify the audit feature.
+- `implementation_plan.md`: Initial plan for migration.
+- `walkthrough.md`: Proof of work (so far).

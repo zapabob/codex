@@ -1048,6 +1048,30 @@ pub struct ConfigToml {
     pub experimental_use_freeform_apply_patch: Option<bool>,
     /// Preferred OSS provider for local models, e.g. "lmstudio" or "ollama".
     pub oss_provider: Option<String>,
+
+    /// Experimental: Use RMCP client
+    #[serde(default)]
+    pub experimental_use_rmcp_client: Option<bool>,
+
+    /// Sandbox configuration (for config.toml compatibility)
+    #[serde(default)]
+    pub sandbox: Option<serde_json::Value>,
+
+    /// Approval configuration (for config.toml compatibility)
+    #[serde(default)]
+    pub approval: Option<serde_json::Value>,
+
+    /// Subagents configuration (for config.toml compatibility)
+    #[serde(default)]
+    pub subagents: Option<serde_json::Value>,
+
+    /// Deep research configuration (for config.toml compatibility)
+    #[serde(default)]
+    pub deep_research: Option<serde_json::Value>,
+
+    /// Audit configuration (for config.toml compatibility)
+    #[serde(default)]
+    pub audit: Option<serde_json::Value>,
 }
 
 impl From<ConfigToml> for UserSavedConfig {

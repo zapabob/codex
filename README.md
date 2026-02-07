@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-v2.14.0-blue)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.14.1-blue)](./CHANGELOG.md)
 [![Rust](https://img.shields.io/badge/rust-2024-orange)](https://www.rust-lang.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-5.0-blue)](https://www.typescriptlang.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](./INSTALL.md)
@@ -35,12 +35,13 @@ Key pillars of this project include:
 - **🤖 Autonomous Swarms** - Parallel sub-agents with A2A (Agent-to-Agent) coordination.
 - **🎮 Immersive Repositories** - Git4D 3D visualization with VR/AR support.
 
-### 🌟 Latest in v2.14.0 & Official Merge
+### 🌟 Latest in v2.14.1 & Official Merge
 
 We have recently integrated the latest "Official" repository features while maintaining our unique competitive edge.
 
-#### 🆕 v2.14.0 Highlights (System Semantics)
+#### 🆕 v2.14.1 Highlights (System Semantics)
 
+- **Agent-to-Agent (A2A) Swarm Intelligence**: Real-time message broadcasting and coordination between backend, frontend, and QA agents.
 - **Unified Protocol Layers**: Strict alignment with `codex_protocol` and MCP 1.0.
 - **Enhanced Slash Commands**: New context-aware commands: `/qc` (Formal Verification), `/git4d` (Visualization), `/vr` (Immersive Mode).
 - **Crate Reliability**: 0-warning compilation for `mcp-server`, `tui`, and `core` using Rust 2024 best practices.
@@ -51,6 +52,7 @@ We have recently integrated the latest "Official" repository features while main
 - **Git Worktree Orchestration**: Manage parallel feature development via `git worktree` directly from the AI agent.
 - **QC Optimization Competition**: Benchmarking LLM outputs using multi-strategy evaluation to pick the most optimal code path.
 - **Parallel Sub-Agents**: Orchestrate specialized agents (Backend, Frontend, QA) concurrently for 2.6x development speedup.
+- **Git4D & VR/AR Visualization**: 3D codebase visualization with VR/AR support for immersive architectural reviews.
 
 ### 🚀 Technical Excellence Stack
 
@@ -100,12 +102,13 @@ cargo build --release -p codex-cli
 - **🤖 自律型エージェント群** - A2A通信を介した並列サブエージェントによる高度な協調。
 - **🎮 イマーシブ・リポジトリ** - VR/ARに対応したGit4D 3D可視化。
 
-### 🌟 v2.14.0 & 公式統合の最新機能
+### 🌟 v2.14.1 & 公式統合の最新機能
 
 公式リポジトリの最新機能を完全に取り込みつつ、独自の強力な機能を統合しました。
 
-#### 🆕 v2.14.0 ハイライト (システム・セマンティクス)
+#### 🆕 v2.14.1 ハイライト (システム・セマンティクス)
 
+- **Agent-to-Agent (A2A) 群知能**: バックエンド、フロントエンド、QAエージェント間でのリアルタイムメッセージブロードキャストと協調動作を実現。
 - **統合プロトコル層**: `codex_protocol` および MCP 1.0 への厳格な準拠。
 - **拡張スラッシュコマンド**: `/qc`（形式検証）、`/git4d`（可視化）、`/vr`（没入モード）等の新コマンド。
 - **信頼性の向上**: Rust 2024のベストプラクティスを適用し、主要クレートの警告ゼロ化を達成。
@@ -116,6 +119,7 @@ cargo build --release -p codex-cli
 - **Gitワークツリー・オーケストレーション**: AIエージェントから直接 `git worktree` を操作し、並列開発をインテリジェントに管理。
 - **QC最適化コンペティション**: 複数のLLM戦略を評価・比較し、最も優れたコード提案を自動選択。
 - **並列サブエージェント**: バックエンド、フロントエンド、QAなど、専門エージェントを同時稼働させ、開発速度を2.6倍に向上。
+- **Git4D & VR/AR 可視化**: コードベースを3D空間にマッピングし、VR/ARデバイスでの没入型アーキテクチャレビューを実現。
 
 ### 🚀 技術スタックと卓越性
 

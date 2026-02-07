@@ -12,14 +12,22 @@ import {
   User,
   Bot,
   Layout,
-  ShieldCheck
+  ShieldCheck,
+  Eye,
+  Box as BoxIcon,
+  ClipboardList,
+  Monitor
 } from 'lucide-react'
 
 import { useBridge } from './hooks/useBridge'
 import { WorktreeDashboard } from './components/orchestration/WorktreeDashboard'
 import { QAAuditor } from './components/orchestration/QAAuditor'
+import { Git4DVisualization } from './components/visualization/Git4DVisualization'
+import VRInterface from './components/vr/VRInterface'
+import { PlanCreator } from './components/plan/PlanCreator'
+import { VirtualEnvironmentManager } from './components/virtual-os/VirtualEnvironmentManager'
 
-type View = 'chat' | 'orchestration' | 'auditor'
+type View = 'chat' | 'orchestration' | 'auditor' | 'visualization' | 'vr' | 'plans' | 'virtual-os'
 
 function App() {
   const { connected } = useBridge()
@@ -45,6 +53,21 @@ function App() {
         return <WorktreeDashboard repoPath={repoPath} />;
       case 'auditor':
         return <QAAuditor />;
+      case 'visualization':
+        return <Git4DVisualization repositoryPath={repoPath} />;
+      case 'vr':
+        return <VRInterface commits={[]} />;
+      case 'plans':
+        return <PlanCreator />;
+      case 'virtual-os':
+        return (
+          <VirtualEnvironmentManager 
+            environments={[]} 
+            onEnvironmentSelect={() => {}} 
+            onEnvironmentCreate={() => {}} 
+            onEnvironmentDelete={() => {}} 
+          />
+        );
       case 'chat':
       default:
         return (
@@ -138,6 +161,38 @@ function App() {
           >
             <ShieldCheck size={14} />
             <span>QA Auditor</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('visualization')}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-sm ${currentView === 'visualization' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'hover:bg-muted'}`}
+          >
+            <Eye size={14} />
+            <span>Visualization</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('vr')}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-sm ${currentView === 'vr' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'hover:bg-muted'}`}
+          >
+            <BoxIcon size={14} />
+            <span>VR/AR</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('plans')}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-sm ${currentView === 'plans' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'hover:bg-muted'}`}
+          >
+            <ClipboardList size={14} />
+            <span>Plans</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('virtual-os')}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-sm ${currentView === 'virtual-os' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'hover:bg-muted'}`}
+          >
+            <Monitor size={14} />
+            <span>Virtual OS</span>
           </button>
 
           <div className="text-[10px] font-bold text-muted-foreground uppercase px-3 py-2 tracking-wider mt-4">
