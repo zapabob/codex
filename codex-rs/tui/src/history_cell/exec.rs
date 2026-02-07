@@ -113,7 +113,6 @@ pub(crate) fn new_unified_exec_interaction(
 #[derive(Debug)]
 pub(crate) struct UnifiedExecProcessDetails {
     pub(crate) command_display: String,
-    pub(crate) recent_chunks: Vec<String>,
 }
 
 #[derive(Debug)]

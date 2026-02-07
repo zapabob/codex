@@ -61,7 +61,6 @@ use codex_core::protocol::AgentReasoningRawContentDeltaEvent;
 use codex_core::protocol::AgentReasoningRawContentEvent;
 use codex_core::protocol::ApplyPatchApprovalRequestEvent;
 use codex_core::protocol::BackgroundEventEvent;
-use codex_core::protocol::CodexErrorInfo;
 use codex_core::protocol::CreditsSnapshot;
 use codex_core::protocol::DeprecationNoticeEvent;
 use codex_core::protocol::ErrorEvent;
@@ -116,7 +115,6 @@ use codex_protocol::config_types::Personality;
 use codex_protocol::config_types::Settings;
 #[cfg(target_os = "windows")]
 use codex_protocol::config_types::WindowsSandboxLevel;
-use codex_protocol::models::local_image_label_text;
 use codex_protocol::parse_command::ParsedCommand;
 use codex_protocol::request_user_input::RequestUserInputEvent;
 use codex_protocol::user_input::TextElement;
@@ -221,7 +219,7 @@ mod unified_exec;
 mod user_message;
 
 pub(crate) use self::init::ChatWidgetInit;
-use self::rate_limit::{
+pub(crate) use self::rate_limit::{
     NUDGE_MODEL_SLUG, RATE_LIMIT_SWITCH_PROMPT_THRESHOLD, RateLimitErrorKind,
     RateLimitSwitchPromptState, RateLimitWarningState, get_limits_duration, rate_limit_error_kind,
 };
@@ -230,7 +228,7 @@ use self::unified_exec::{
     is_unified_exec_source,
 };
 pub(crate) use self::user_message::UserMessage;
-use self::user_message::{create_initial_user_message, remap_placeholders_for_message};
+pub(crate) use self::user_message::{create_initial_user_message, remap_placeholders_for_message};
 use crate::streaming::commit_tick::CommitTickScope;
 use crate::streaming::commit_tick::run_commit_tick;
 use crate::streaming::controller::PlanStreamController;
@@ -4071,7 +4069,6 @@ impl ChatWidget {
             .iter()
             .map(|process| history_cell::UnifiedExecProcessDetails {
                 command_display: process.command_display.clone(),
-                recent_chunks: process.recent_chunks.clone(),
             })
             .collect();
         self.add_to_history(history_cell::new_unified_exec_processes_output(processes));

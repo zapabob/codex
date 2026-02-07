@@ -84,6 +84,7 @@ pub async fn run_agent_create_command(
             .as_ref()
             .and_then(|auth| auth.get_account_email()),
         auth_snapshot.as_ref().map(|auth| auth.auth_mode().into()),
+        String::from("codex-cli"),
         config.otel.log_user_prompt,
         terminal::user_agent(),
         SessionSource::Cli,
