@@ -1,7 +1,7 @@
 {
   "name": "codex-gui-x",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.14.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -32,6 +32,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
+    "@types/webxr": "^0.5.24",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.24",
     "eslint": "^9.39.1",

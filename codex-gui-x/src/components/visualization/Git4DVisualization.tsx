@@ -3,6 +3,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { GitBranch, Play, Pause, RotateCcw } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  Chip,
+  IconButton,
+  Switch,
+  FormControlLabel,
+  Slider,
+  Paper,
+} from '@mui/material';
 import * as THREE from 'three';
 import { useVirtualDesktopOptimizer } from '../../utils/virtualdesktop-optimizer';
 import type { Git4DCommitData } from '../../lib/types/three';
@@ -37,7 +47,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer>();
   const cameraRef = useRef<THREE.PerspectiveCamera>();
   const animationFrameRef = useRef<number>();
-  const controlsRef = useRef<any>(null);
+  // const controlsRef = useRef<any>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeScale, setTimeScale] = useState(1);
@@ -47,7 +57,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const [windowsAiMode, setWindowsAiMode] = useState(false);
   const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'ok' | 'offline' | 'loading'>('loading');
   const [backendMessage, setBackendMessage] = useState<string | null>(null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(sessionId ?? null);
@@ -205,12 +215,12 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
-    scene.add(ambientLight as any);
+    scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(10, 10, 5);
     directionalLight.castShadow = true;
-    scene.add(directionalLight as any);
+    scene.add(directionalLight);
 
     // Create commit visualization
     createCommitVisualization(scene, commits);
@@ -270,8 +280,8 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     };
   }, [commits, isPlaying, timeScale, isVD, vrMode, arMode, preset, createCommitVisualization]);
 
-  const createCommitVisualization = (scene: THREE.Scene, commits: Git4DCommitData[]) => {
-    commits.forEach((commit, index) => {
+  const createCommitVisualization = React.useCallback((scene: THREE.Scene, commits: Git4DCommitData[]) => {
+    commits.forEach((commit, _index) => {
       // Create commit node
       const geometry = new THREE.SphereGeometry(0.1, 16, 16);
       const material = new THREE.MeshPhongMaterial({
@@ -285,7 +295,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
         commit.y,
         commit.z
       );
-      sphere.userData = { commit, index };
+      sphere.userData = { commit, _index };
       scene.add(sphere);
 
       // Add connection lines to parent commits
@@ -315,7 +325,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
         // Label implementation would go here
       }
     });
-  };
+  }, [showLabels]);
 
   const generateMockCommits = () => {
     const commits = [];

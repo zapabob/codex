@@ -44,7 +44,7 @@ import {
 import { Card } from '../atoms/Card';
 import { CodexAPIClient } from '../../lib/api/client';
 
-interface Plan {
+interface LocalPlan {
   id: string;
   title: string;
   mode: 'single' | 'orchestrated' | 'competition';
@@ -65,7 +65,7 @@ interface PlanBlock {
 }
 
 interface PlanCreatorProps {
-  onPlanCreated?: (plan: Plan) => void;
+  onPlanCreated?: (plan: LocalPlan) => void;
   onPlanExecuted?: (planId: string) => void;
 }
 
@@ -73,10 +73,10 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
   onPlanCreated,
   onPlanExecuted,
 }) => {
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<LocalPlan[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [executeDialogOpen, setExecuteDialogOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<LocalPlan | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -89,21 +89,21 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
 
   const apiClient = React.useMemo(() => new CodexAPIClient(), []);
 
-  useEffect(() => {
-    loadPlans();
-  }, [loadPlans]);
-
   const loadPlans = React.useCallback(async () => {
     try {
       setIsLoading(true);
       const fetchedPlans = await apiClient.listPlans();
-      setPlans(fetchedPlans as unknown as Plan[] || []);
+      setPlans(fetchedPlans as unknown as LocalPlan[] || []);
     } catch (error) {
       console.error('Failed to load plans:', error);
     } finally {
       setIsLoading(false);
     }
   }, [apiClient]);
+
+  useEffect(() => {
+    loadPlans();
+  }, [loadPlans]);
 
   const handleCreatePlan = async () => {
     if (!newPlan.title.trim()) return;
@@ -113,11 +113,11 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
       const result = await apiClient.createPlan({
         title: newPlan.title,
         mode: newPlan.mode,
-        budgetTokens: newPlan.budgetTokens,
-        budgetTime: newPlan.budgetTime,
+        budget_tokens: newPlan.budgetTokens,
+        budget_time: newPlan.budgetTime,
       });
 
-      const createdPlan: Plan = {
+      const createdPlan: LocalPlan = {
         id: result.id || `plan-${Date.now()}`,
         title: result.title || newPlan.title,
         mode: result.mode || newPlan.mode,
@@ -145,7 +145,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
       await apiClient.approvePlan(planId);
       
       setPlans(plans.map(p => 
-        p.id === planId ? { ...p, state: 'approved' as const, updatedAt: new Date() } : p
+        p.id === planId ? { ...p, state: 'approved' as const, updated_at: new Date().toISOString() } : p
       ));
     } catch (error) {
       console.error('Failed to approve plan:', error);
@@ -160,7 +160,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
       await apiClient.executePlan(planId);
       
       setPlans(plans.map(p => 
-        p.id === planId ? { ...p, state: 'executing' as const, updatedAt: new Date() } : p
+        p.id === planId ? { ...p, state: 'executing' as const, updated_at: new Date().toISOString() } : p
       ));
       
       setExecuteDialogOpen(false);
@@ -178,7 +178,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
       await apiClient.rejectPlan(planId, reason);
       
       setPlans(plans.map(p => 
-        p.id === planId ? { ...p, state: 'rejected' as const, updatedAt: new Date() } : p
+        p.id === planId ? { ...p, state: 'rejected' as const, updated_at: new Date().toISOString() } : p
       ));
     } catch (error) {
       console.error('Failed to reject plan:', error);
@@ -187,7 +187,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
     }
   };
 
-  const getStateIcon = (state: Plan['state']) => {
+  const getStateIcon = (state: LocalPlan['state']) => {
     switch (state) {
       case 'approved':
         return <CheckCircle size={16} color="#4caf50" />;
@@ -202,7 +202,7 @@ export const PlanCreator: React.FC<PlanCreatorProps> = ({
     }
   };
 
-  const getStateColor = (state: Plan['state']) => {
+  const getStateColor = (state: LocalPlan['state']) => {
     switch (state) {
       case 'approved':
         return 'success';

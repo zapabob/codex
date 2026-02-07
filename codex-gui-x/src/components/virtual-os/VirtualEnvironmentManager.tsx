@@ -247,7 +247,7 @@ export function VirtualEnvironmentManager({
               </div>
               <div className="flex items-center gap-1">
                 <Activity className="w-3 h-3" />
-                <span>Uptime: {formatUptime(env.createdAt, env.lastAccessed)}</span>
+                <span>Uptime: {formatUptime(env.createdAt)}</span>
               </div>
             </div>
 
@@ -282,8 +282,8 @@ export function VirtualEnvironmentManager({
               )}
 
               <Button
-                size="sm"
-                variant="outline"
+                size="small"
+                variant="outlined"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleEnvironmentAction(env, 'delete')
@@ -294,8 +294,8 @@ export function VirtualEnvironmentManager({
               </Button>
 
               <Button
-                size="sm"
-                variant="outline"
+                size="small"
+                variant="outlined"
                 onClick={(e) => {
                   e.stopPropagation()
                   // Open settings
