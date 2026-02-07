@@ -16,13 +16,13 @@ jobs:
       contents: read
     outputs:
       codex_output: ${{ steps.codex.outputs.final-message }}
-    env:
-      CODEX_OPENAI_API_KEY: ${{ secrets.CODEX_OPENAI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
       - id: codex
         uses: openai/codex-action@main
+        env:
+          CODEX_OPENAI_API_KEY: ${{ secrets.CODEX_OPENAI_API_KEY }}
         with:
           openai-api-key: ${{ env.CODEX_OPENAI_API_KEY }}
           allow-users: "*"

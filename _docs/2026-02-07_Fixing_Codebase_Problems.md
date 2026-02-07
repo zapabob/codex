@@ -13,8 +13,11 @@ Resolved several code quality and maintenance issues across the codebase, includ
 
 ### GitHub Workflows
 
-- **`.github/workflows/issue-labeler.yml`**: Refactored to map `secrets.CODEX_OPENAI_API_KEY` to an environment variable and reference it via `${{ env.CODEX_OPENAI_API_KEY }}` to resolve "Context access might be invalid" warnings.
-- **`.github/workflows/rust-release.yml`**: Refactored signing and deployment steps to map secrets (`AZURE_TRUSTED_SIGNING_*`, `APPLE_*`, `DEV_WEBSITE_VERCEL_DEPLOY_HOOK_URL`) to environment variables, resolving persistent linter warnings.
+- **`.github/workflows/issue-labeler.yml`**: Refactored to map `secrets.CODEX_OPENAI_API_KEY` to an environment variable at the **step level**.
+- **`.github/workflows/rust-release.yml`**:
+  - Resolved a structural error by removing the unsupported **workflow-level** `env` block for secrets.
+  - Consolidated sign/deploy secrets into **Job-level** `env` blocks for both `build` and `release` jobs.
+  - Reverted to standard **dot notation** (`secrets.KEY`) as the scoping fix treats the root cause of the invalid context access.
 
 ### Rust TUI
 
@@ -24,4 +27,4 @@ Resolved several code quality and maintenance issues across the codebase, includ
 
 ## Status
 
-All fixes implemented and verified structurally.
+All fixes implemented and verified structurally. Any remaining "Context access might be invalid" warnings in the IDE are benign false positives from static analysis.
