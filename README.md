@@ -42,10 +42,11 @@ We have recently integrated the latest "Official" repository features while main
 #### 🆕 v2.14.1 Highlights (System Semantics)
 
 - **Agent-to-Agent (A2A) Swarm Intelligence**: Real-time message broadcasting and coordination between backend, frontend, and QA agents.
+- **QA Agent (Real-time Linting)**: Autonomous quality assurance agent that performs real-time static analysis and self-correction.
+- **Codex GUI-X**: Next-gen frontend built with **Next.js 15**, **React 19**, and **Material UI**, featuring immersive 3D codebase visualization.
 - **Unified Protocol Layers**: Strict alignment with `codex_protocol` and MCP 1.0.
 - **Enhanced Slash Commands**: New context-aware commands: `/qc` (Formal Verification), `/git4d` (Visualization), `/vr` (Immersive Mode).
 - **Crate Reliability**: 0-warning compilation for `mcp-server`, `tui`, and `core` using Rust 2024 best practices.
-- **Type Safety**: Unified `CallToolResult` handling across disparate handler types.
 
 #### 🤝 Merged Power Features (Official Integration)
 
@@ -59,7 +60,7 @@ We have recently integrated the latest "Official" repository features while main
 | Component        | Technology        | Impact                                               |
 | ---------------- | ----------------- | ---------------------------------------------------- |
 | **Backend**      | Rust 2024 / Tokio | Sub-millisecond latency & thread-safe orchestration. |
-| **Frontend**     | Next.js 15 / TS   | Real-time telemetry & intuitive AI interaction.      |
+| **Frontend**     | Next.js 15 / MUI  | Real-time telemetry & intuitive AI interaction.      |
 | **AI Protocol**  | MCP / JSON-RPC    | Extensible tool-use across any LLM provider.         |
 | **Acceleration** | CUDA 12 / GPU     | 3.7x faster codebase analysis & semantic search.     |
 | **Security**     | Win32 Job Objects | Secure, isolated execution of untrusted code.        |
@@ -109,10 +110,11 @@ cargo build --release -p codex-cli
 #### 🆕 v2.14.1 ハイライト (システム・セマンティクス)
 
 - **Agent-to-Agent (A2A) 群知能**: バックエンド、フロントエンド、QAエージェント間でのリアルタイムメッセージブロードキャストと協調動作を実現。
+- **QAエージェント (リアルタイムLint)**: リアルタイムの静的解析と自動修正を行う自律型品質保証エージェント。
+- **Codex GUI-X**: **Next.js 15**, **React 19**, **Material UI** で構築された次世代フロントエンド。没入型3D可視化機能を搭載。
 - **統合プロトコル層**: `codex_protocol` および MCP 1.0 への厳格な準拠。
 - **拡張スラッシュコマンド**: `/qc`（形式検証）、`/git4d`（可視化）、`/vr`（没入モード）等の新コマンド。
 - **信頼性の向上**: Rust 2024のベストプラクティスを適用し、主要クレートの警告ゼロ化を達成。
-- **型定義の統一**: 分散していたハンドラー間の `CallToolResult` 処理を一本化。
 
 #### 🤝 統合された公式パワー機能 (Official Integration)
 
@@ -123,13 +125,13 @@ cargo build --release -p codex-cli
 
 ### 🚀 技術スタックと卓越性
 
-| コンポーネント     | 採用技術                | メリット                                         |
-| ------------------ | ----------------------- | ------------------------------------------------ |
-| **バックエンド**   | Rust 2024 / Tokio       | ミリ秒単位の低遅延とスレッドセーフなタスク制御。 |
-| **フロントエンド** | Next.js 15 / TypeScript | リアルタイム・テレメトリと直感的なAI操作。       |
-| **AIプロトコル**   | MCP / JSON-RPC          | LLMプロバイダーを問わない拡張可能なツール利用。  |
-| **高速化**         | CUDA 12 / GPU           | 3.7倍高速なコード解析とセマンティック検索。      |
-| **セキュリティ**   | Win32 Job Objects       | 信頼できないコードを安全に分離・実行。           |
+| コンポーネント     | 採用技術          | メリット                                         |
+| ------------------ | ----------------- | ------------------------------------------------ |
+| **バックエンド**   | Rust 2024 / Tokio | ミリ秒単位の低遅延とスレッドセーフなタスク制御。 |
+| **フロントエンド** | Next.js 15 / MUI  | リアルタイム・テレメトリと直感的なAI操作。       |
+| **AIプロトコル**   | MCP / JSON-RPC    | LLMプロバイダーを問わない拡張可能なツール利用。  |
+| **高速化**         | CUDA 12 / GPU     | 3.7倍高速なコード解析とセマンティック検索。      |
+| **セキュリティ**   | Win32 Job Objects | 信頼できないコードを安全に分離・実行。           |
 
 ### 📊 パフォーマンス・ベンチマーク
 
