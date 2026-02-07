@@ -111,4 +111,78 @@ impl QAAgent {
                 .as_millis() as u64,
         }))
     }
+    fn parse_cargo_line(line: &str) -> Option<serde_json::Value> {
+        let json_msg = serde_json::from_str::<serde_json::Value>(line).ok()?;
+        if json_msg.get("reason").and_then(|r| r.as_str()) == Some("compiler-message") {
+            if let Some(message) = json_msg.get("message") {
+                let level = message
+                    .get("level")
+                    .and_then(|l| l.as_str())
+                    .map(|l| match l {
+                        "error" => "critical",
+                        "warning" => "warning",
+                        "note" => "info",
+                        "help" => "info",
+                        "failure" => "critical",
+                        _ => "info",
+                    })
+                    .unwrap_or("info");
+
+                let text = message
+                    .get("message")
+                    .and_then(|m| m.as_str())
+                    .unwrap_or("");
+
+                let mut location = "unknown".to_string();
+                if let Some(spans) = message.get("spans").and_then(|s| s.as_array()) {
+                    if let Some(first_span) = spans.first() {
+                        let file = first_span
+                            .get("file_name")
+                            .and_then(|f| f.as_str())
+                            .unwrap_or("?");
+                        let line = first_span
+                            .get("line_start")
+                            .and_then(|l| l.as_u64())
+                            .unwrap_or(0);
+                        location = format!("{}:{}", file, line);
+                    }
+                }
+
+                return Some(json!({
+                    "severity": level,
+                    "message": text,
+                    "location": location
+                }));
+            }
+        }
+        None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_cargo_line() {
+        let input = r#"{"reason":"compiler-message","package_id":"foo 0.1.0 (path+file:///foo)","message":{"children":[],"code":null,"level":"warning","message":"unused variable: `x`","spans":[{"byte_end":23,"byte_start":22,"column_end":10,"column_start":9,"file_name":"src/main.rs","is_primary":true,"label":null,"line_end":2,"line_start":2,"suggested_replacement":null,"suggestion_applicability":null,"text":[{"highlight_end":10,"highlight_start":9,"text":"    let x = 5;"}]}],"rendered":"warning: unused variable: `x`\n --> src/main.rs:2:9\n  |\n2 |     let x = 5;\n  |         ^ help: if this is intentional, prefix it with an underscore: `_x`\n  |\n  = note: `#[warn(unused_variables)]` on by default\n\n"},"target":{"kind":["bin"],"crate_types":["bin"],"name":"foo","src_path":"/foo/src/main.rs","edition":"2021","doc":true,"doctest":false,"test":true}}"#;
+
+        let finding = QAAgent::parse_cargo_line(input).expect("Should parse");
+        assert_eq!(finding["severity"], "warning");
+        assert_eq!(finding["message"], "unused variable: `x`");
+        assert_eq!(finding["location"], "src/main.rs:2");
+    }
+
+    #[test]
+    fn test_parse_error_level() {
+        let input = r#"{"reason":"compiler-message","message":{"level":"error","message":"oops","spans":[]}}"#;
+        let finding = QAAgent::parse_cargo_line(input).expect("Should parse");
+        assert_eq!(finding["severity"], "critical");
+    }
+
+    #[test]
+    fn test_parse_ignore_non_compiler_message() {
+        let input = r#"{"reason":"build-script-executed","package_id":"foo 0.1.0 (path+file:///foo)","linked_libs":[],"linked_paths":[],"cfgs":[],"env":[],"out_dir":"/foo/target/debug/build/foo-123","custom_build_target":"debug"}"#;
+        assert!(QAAgent::parse_cargo_line(input).is_none());
+    }
 }

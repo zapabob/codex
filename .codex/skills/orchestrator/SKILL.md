@@ -11,7 +11,7 @@ Intelligent multi-agent workflow orchestrator that coordinates specialized Codex
 
 ## Capabilities
 
-- **Task Decomposition**: Complex tasks ↁEdependency-aware subtasks with intelligent planning
+- **Task Decomposition**: Complex tasks âEdependency-aware subtasks with intelligent planning
 - **Multi-Agent Coordination**: Parallel execution with worker agent assignment and handoffs
 - **MCP Integration**: Direct Codex skill invocation via Model Context Protocol
 - **Quality Assurance**: Built-in guardrails for security, performance, and best practices
@@ -71,15 +71,15 @@ codex $orchestrator "Optimize application performance: identify bottlenecks, imp
 
 ### Workflow Execution Report
 ```
-🎯 Orchestrator Workflow Report
-══════════════════════════════════════════════════════════════════════════════╁E
+ð¯ Orchestrator Workflow Report
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Task: Implement user authentication system
 Started: 2026-01-04 14:30:00 UTC
 Duration: 245.8 seconds
-Status: ✁ECOMPLETED
+Status: âECOMPLETED
 
-📊 Workflow Statistics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Workflow Statistics
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Total Tasks: 8
 Completed Tasks: 8 (100.0%)
 Failed Tasks: 0 (0.0%)
@@ -87,90 +87,90 @@ Parallel Execution: 3 concurrent workers
 MCP Calls: 12 successful
 Handoffs: 3 inter-agent transitions
 
-🔄 Task Execution Flow
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-1. 🔍 supervisor_analysis (Supervisor) - 2.3s ✁E
-   └── Analyzed requirements and created execution plan
+ð Task Execution Flow
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+1. ð supervisor_analysis (Supervisor) - 2.3s âE
+   âââ Analyzed requirements and created execution plan
 
-2. 🏗�E�Earchitect_analysis (Architect) - 8.7s ✁E
-   └── Designed system architecture and data models
+2. ðEEarchitect_analysis (Architect) - 8.7s âE
+   âââ Designed system architecture and data models
 
-3. 🔒 security_review (QA Engineer) - 12.4s ✁E
-   └── Security audit and vulnerability assessment
+3. ð security_review (QA Engineer) - 12.4s âE
+   âââ Security audit and vulnerability assessment
 
-4. 📝 code_generation (Executor) - 45.2s ✁E
-   └── Generated authentication API and models
+4. ð code_generation (Executor) - 45.2s âE
+   âââ Generated authentication API and models
 
-5. 🧪 test_generation (Test Gen) - 23.1s ✁E
-   └── Created comprehensive test suite
+5. ð§ª test_generation (Test Gen) - 23.1s âE
+   âââ Created comprehensive test suite
 
-6. 🔍 code_review (Code Reviewer) - 18.9s ✁E
-   └── Code quality analysis and best practices check
+6. ð code_review (Code Reviewer) - 18.9s âE
+   âââ Code quality analysis and best practices check
 
-7. 📊 performance_analysis (QA Engineer) - 15.6s ✁E
-   └── Performance benchmarking and optimization
+7. ð performance_analysis (QA Engineer) - 15.6s âE
+   âââ Performance benchmarking and optimization
 
-8. 🚀 deployment_prep (Build Manager) - 9.2s ✁E
-   └── Build configuration and deployment preparation
+8. ð deployment_prep (Build Manager) - 9.2s âE
+   âââ Build configuration and deployment preparation
 
-🛡�E�EGuardrail Results
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-Security Guardrail: ✁EPASSED (0 violations)
-Quality Guardrail: ✁EPASSED (2 warnings addressed)
-Performance Guardrail: ✁EPASSED (all metrics within limits)
+ð¡EEGuardrail Results
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+Security Guardrail: âEPASSED (0 violations)
+Quality Guardrail: âEPASSED (2 warnings addressed)
+Performance Guardrail: âEPASSED (all metrics within limits)
 
-🤁EAgent Handoffs
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-1. Supervisor ↁEArchitect: Requirements analysis complete
-2. Architect ↁEExecutor: Design specifications ready
-3. Executor ↁEQA Engineer: Implementation ready for review
+ð¤EAgent Handoffs
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+1. Supervisor âEArchitect: Requirements analysis complete
+2. Architect âEExecutor: Design specifications ready
+3. Executor âEQA Engineer: Implementation ready for review
 
-📁 Generated Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-├── 📄 src/auth/mod.rs (2.3KB) - Authentication module
-├── 📄 src/auth/models.rs (1.8KB) - User and session models
-├── 📄 src/auth/handlers.rs (4.2KB) - API endpoint handlers
-├── 📄 tests/auth_tests.rs (3.1KB) - Comprehensive test suite
-├── 📄 docs/api/auth.md (2.9KB) - API documentation
-└── 📄 artifacts/workflow_report.json (8.7KB) - Execution details
+ð Generated Artifacts
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+âââ ð src/auth/mod.rs (2.3KB) - Authentication module
+âââ ð src/auth/models.rs (1.8KB) - User and session models
+âââ ð src/auth/handlers.rs (4.2KB) - API endpoint handlers
+âââ ð tests/auth_tests.rs (3.1KB) - Comprehensive test suite
+âââ ð docs/api/auth.md (2.9KB) - API documentation
+âââ ð artifacts/workflow_report.json (8.7KB) - Execution details
 
-⚠�E�EResolved Issues
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+â EEResolved Issues
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 - Addressed SQL injection vulnerability in login handler
 - Fixed race condition in session management
 - Improved error handling for edge cases
 
-✁EQuality Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+âEQuality Metrics
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Code Coverage: 92%
 Cyclomatic Complexity: 4.2 (target: <10)
 Security Score: A+ (Excellent)
 Performance Grade: A (Very Good)
 Maintainability: 87/100
 
-🎯 Next Recommended Actions
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¯ Next Recommended Actions
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 1. Deploy to staging environment for integration testing
 2. Monitor performance metrics in production
 3. Schedule regular security audits
 4. Consider implementing rate limiting for auth endpoints
 
-💡 Workflow Insights
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-- Most efficient path: Architect ↁEExecutor ↁEQA Engineer
+ð¡ Workflow Insights
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+- Most efficient path: Architect âEExecutor âEQA Engineer
 - Bottleneck identified: Test generation (23.1s - consider parallelization)
 - Skill utilization: QA Engineer (3 calls), Executor (2 calls), Architect (1 call)
 - MCP performance: Average response time 2.1s, 100% success rate
 
-📈 Performance Trends
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Performance Trends
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Task Completion Rate: 100% (8/8 successful)
 Average Task Duration: 17.2s
 Parallelization Efficiency: 78% (vs sequential: 138.4s saved)
 Resource Utilization: CPU 65%, Memory 2.1GB peak
 
-🏆 Workflow Quality Score: A+ (Excellent)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Workflow Quality Score: A+ (Excellent)
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 ```
 
 ### JSON Output (for CI/CD Integration)
@@ -221,7 +221,7 @@ Resource Utilization: CPU 65%, Memory 2.1GB peak
     "docs/api/auth.md"
   ],
   "insights": {
-    "optimal_path": "Architect ↁEExecutor ↁEQA Engineer",
+    "optimal_path": "Architect âEExecutor âEQA Engineer",
     "bottlenecks": ["test_generation"],
     "recommendations": [
       "Deploy to staging",
@@ -236,7 +236,7 @@ Resource Utilization: CPU 65%, Memory 2.1GB peak
 
 ### Sequential Execution Pattern
 ```
-Task A ↁETask B ↁETask C
+Task A âETask B âETask C
 ```
 - Dependencies are strictly enforced
 - Each task completes before the next begins
@@ -244,9 +244,9 @@ Task A ↁETask B ↁETask C
 
 ### Parallel Execution Pattern
 ```
-     ┌─ Task A ─━E
-Task X ─┼─ Task B ─┼─ Task D
-     └─ Task C ─━E
+     ââ Task A ââE
+Task X ââ¼â Task B ââ¼â Task D
+     ââ Task C ââE
 ```
 - Independent tasks run concurrently
 - Dependencies determine execution order
@@ -254,7 +254,7 @@ Task X ─┼─ Task B ─┼─ Task D
 
 ### Handoff Pattern (Agents SDK)
 ```
-Agent A ↁEHandoff ↁEAgent B ↁEHandoff ↁEAgent C
+Agent A âEHandoff âEAgent B âEHandoff âEAgent C
 ```
 - Context and state transfer between agents
 - Specialized agent for each phase
@@ -262,7 +262,7 @@ Agent A ↁEHandoff ↁEAgent B ↁEHandoff ↁEAgent C
 
 ### Guardrail Pattern
 ```
-Task ↁEGuardrail Check ↁE[Pass: Continue | Fail: Block/Retry]
+Task âEGuardrail Check âE[Pass: Continue | Fail: Block/Retry]
 ```
 - Pre/post-execution validation
 - Automatic issue detection and correction
@@ -370,15 +370,15 @@ Task ↁEGuardrail Check ↁE[Pass: Continue | Fail: Block/Retry]
 ```bash
 # Complex feature development
 codex $orchestrator "Implement e-commerce checkout system"
-# ↁEAutomatically coordinates architect, executor, qa-engineer, etc.
+# âEAutomatically coordinates architect, executor, qa-engineer, etc.
 
 # Code refactoring campaign
 codex $orchestrator "Modernize legacy codebase to current standards"
-# ↁEParallel execution across multiple modules
+# âEParallel execution across multiple modules
 
 # Security remediation
 codex $orchestrator "Fix all OWASP Top 10 vulnerabilities"
-# ↁEComprehensive security audit and fixes
+# âEComprehensive security audit and fixes
 ```
 
 ### CI/CD Pipeline Integration

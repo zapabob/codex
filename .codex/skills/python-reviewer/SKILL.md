@@ -1,13 +1,13 @@
 ---
 name: python-reviewer
-description: Python専用コードレビュー・型ヒント�EDjango/FastAPIベスト�EラクチE��ス
+description: Pythonå°ç¨ã³ã¼ãã¬ãã¥ã¼ã»åãã³ããEDjango/FastAPIãã¹ããEã©ã¯ãE£ã¹
 ---
 
 # Python-Reviewer Agent Skill
 
 ## Overview
 
-Python専用コードレビュー・型ヒント�EDjango/FastAPIベスト�EラクチE��ス
+Pythonå°ç¨ã³ã¼ãã¬ãã¥ã¼ã»åãã³ããEDjango/FastAPIãã¹ããEã©ã¯ãE£ã¹
 
 ## Capabilities
 

@@ -72,59 +72,59 @@ codex $build-manager "Analyze build performance and suggest optimization strateg
 
 ### Build Report
 ```
-🚀 Build Manager Report - Incremental Build
-══════════════════════════════════════════════════════════════════════════════╁E
+ð Build Manager Report - Incremental Build
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Build Type: Incremental (MD5-based change detection)
 Target: release
 Platform: x86_64-unknown-linux-gnu
 
-📊 Build Statistics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Build Statistics
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Files Processed: 1,234
 Changed Files: 23 (1.8%)
 Build Time: 45.2s (ETA: 67% faster than full rebuild)
 Peak Memory: 2.1GB
 CPU Cores Used: 6/8
 
-⚡ Performance Optimizations Applied
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-✁EIncremental Compilation: Enabled (CARGO_INCREMENTAL=1)
-✁EParallel Jobs: 6 cores (75% of available)
-✁Esccache: Disabled (conflicts with incremental)
-✁ELTO: Disabled for faster iteration
-✁EDebug Info: Stripped for release
+â¡ Performance Optimizations Applied
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+âEIncremental Compilation: Enabled (CARGO_INCREMENTAL=1)
+âEParallel Jobs: 6 cores (75% of available)
+âEsccache: Disabled (conflicts with incremental)
+âELTO: Disabled for faster iteration
+âEDebug Info: Stripped for release
 
-📁 Build Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-├── target/release/codex (8.2MB) - Main binary
-├── target/release/deps/ (245MB) - Dependencies
-├── target/release/build/ (89MB) - Build artifacts
-└── target/release/incremental/ (156MB) - Incremental cache
+ð Build Artifacts
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+âââ target/release/codex (8.2MB) - Main binary
+âââ target/release/deps/ (245MB) - Dependencies
+âââ target/release/build/ (89MB) - Build artifacts
+âââ target/release/incremental/ (156MB) - Incremental cache
 
-🔄 Hot Reload Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-Process Detection: ✁EFound 3 running instances
-Termination: ✁EGraceful shutdown completed
-Binary Replacement: ✁EAtomic copy successful
-Restart: ✁ENew process started (PID: 12345)
+ð Hot Reload Status
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+Process Detection: âEFound 3 running instances
+Termination: âEGraceful shutdown completed
+Binary Replacement: âEAtomic copy successful
+Restart: âENew process started (PID: 12345)
 
-⚠�E�EBuild Warnings
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+â EEBuild Warnings
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 - Large binary size: Consider stripping debug symbols
 - Memory usage high: Monitor for OOM in production
 - Dependencies: 47 crates updated, review for breaking changes
 
-✁EBuild Verification
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-- Compilation: ✁EPASSED
-- Linking: ✁EPASSED
-- Tests: ✁EPASSED (1,247 tests in 23.4s)
-- Linting: ✁EPASSED (clippy)
-- Formatting: ✁EPASSED (rustfmt)
-- Security: ✁EPASSED (no vulnerabilities)
+âEBuild Verification
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+- Compilation: âEPASSED
+- Linking: âEPASSED
+- Tests: âEPASSED (1,247 tests in 23.4s)
+- Linting: âEPASSED (clippy)
+- Formatting: âEPASSED (rustfmt)
+- Security: âEPASSED (no vulnerabilities)
 
-🎯 Next Steps
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¯ Next Steps
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 1. Deploy to staging environment
 2. Run integration tests
 3. Monitor performance metrics
@@ -343,15 +343,15 @@ verbose_output = true
 ```bash
 # Fast development iteration
 codex $build-manager "Incremental dev build"
-# ↁEOnly rebuilds changed files
+# âEOnly rebuilds changed files
 
 # Production release
 codex $build-manager "Optimized release build with LTO"
-# ↁEFull optimization for performance
+# âEFull optimization for performance
 
 # Hot reload deployment
 codex $build-manager "Build and hot-reload to staging"
-# ↁEZero-downtime deployment
+# âEZero-downtime deployment
 ```
 
 ### CI/CD Integration
@@ -447,7 +447,7 @@ codex $build-manager "Fresh build"
 - [Agent Skills Guide](https://developers.openai.com/codex/skills)
 - [Cargo Build System](https://doc.rust-lang.org/cargo/)
 - [Rust Performance Book](https://nnethercote.github.io/perf-book/)
-- [Build Systems à la Carte](https://www.microsoft.com/en-us/research/uploads/prod/2018/03/build-systems.pdf)
+- [Build Systems Ã  la Carte](https://www.microsoft.com/en-us/research/uploads/prod/2018/03/build-systems.pdf)
 
 ---
 

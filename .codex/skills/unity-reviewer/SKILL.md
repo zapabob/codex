@@ -1,13 +1,13 @@
 ---
 name: unity-reviewer
-description: Unity C#専用コードレビュー・パフォーマンス最適化�EUnityベスト�EラクチE��ス
+description: Unity C#å°ç¨ã³ã¼ãã¬ãã¥ã¼ã»ããã©ã¼ãã³ã¹æé©åãEUnityãã¹ããEã©ã¯ãE£ã¹
 ---
 
 # Unity-Reviewer Agent Skill
 
 ## Overview
 
-Unity C#専用コードレビュー・パフォーマンス最適化�EUnityベスト�EラクチE��ス
+Unity C#å°ç¨ã³ã¼ãã¬ãã¥ã¼ã»ããã©ã¼ãã³ã¹æé©åãEUnityãã¹ããEã©ã¯ãE£ã¹
 
 ## Capabilities
 

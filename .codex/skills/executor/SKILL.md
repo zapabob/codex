@@ -85,25 +85,25 @@ codex $executor "Integrate Stripe payment processing with webhook handling and s
 
 ### Implementation Package
 ```
-📁 Implementation Complete
-├── 📄 src/features/user_auth.rs (456 lines)
-├── 📄 src/features/user_auth/
-━E  ├── mod.rs
-━E  ├── models.rs
-━E  ├── handlers.rs
-━E  ├── middleware.rs
-━E  └── errors.rs
-├── 📄 tests/user_auth_tests.rs
-├── 📄 docs/api/user_auth.md
-└── 📄 migrations/001_create_users.sql
+ð Implementation Complete
+âââ ð src/features/user_auth.rs (456 lines)
+âââ ð src/features/user_auth/
+âE  âââ mod.rs
+âE  âââ models.rs
+âE  âââ handlers.rs
+âE  âââ middleware.rs
+âE  âââ errors.rs
+âââ ð tests/user_auth_tests.rs
+âââ ð docs/api/user_auth.md
+âââ ð migrations/001_create_users.sql
 
-✁EVerification Results
-- Compilation: ✁EPASSED
-- Tests: ✁EPASSED (15/15)
-- Linting: ✁EPASSED
-- Documentation: ✁EGENERATED
+âEVerification Results
+- Compilation: âEPASSED
+- Tests: âEPASSED (15/15)
+- Linting: âEPASSED
+- Documentation: âEGENERATED
 
-🔧 Key Features Implemented
+ð§ Key Features Implemented
 - JWT token authentication
 - Password hashing with bcrypt
 - Role-based access control
@@ -115,13 +115,13 @@ codex $executor "Integrate Stripe payment processing with webhook handling and s
 ```
 Quality Score: 9.2/10
 
-✁ECode Coverage: 92%
-✁EComplexity: Low (avg 4.1)
-✁EDocumentation: 98% coverage
-✁EError Handling: Comprehensive
-✁ESecurity: OWASP compliant
+âECode Coverage: 92%
+âEComplexity: Low (avg 4.1)
+âEDocumentation: 98% coverage
+âEError Handling: Comprehensive
+âESecurity: OWASP compliant
 
-⚠�E�E Minor Suggestions
+â EE Minor Suggestions
 - Consider adding rate limiting for auth endpoints
 - Add metrics collection for auth operations
 ```

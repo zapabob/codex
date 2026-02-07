@@ -66,15 +66,15 @@ codex $qa-service "Manage QA service lifecycle and configuration"
 
 ### QA Service Status Report
 ```
-🔬 QA Service Status Report - Continuous Quality Assurance
-══════════════════════════════════════════════════════════════════════════════╁E
+ð¬ QA Service Status Report - Continuous Quality Assurance
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Service Status: Active (Running)
 Uptime: 2h 34m 12s
 Monitoring: 4 worktrees
 Last Activity: 2026-01-04 15:47:23 UTC
 
-📊 Service Statistics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Service Statistics
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Total QA Runs: 127
 Successful QA Runs: 118 (92.9% success rate)
 Failed QA Runs: 9 (7.1% failure rate)
@@ -82,28 +82,28 @@ Files Processed: 2,847
 Change Events Detected: 456
 Average QA Duration: 34.2 seconds
 
-🎯 Active Monitoring
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¯ Active Monitoring
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Worktrees Being Monitored:
-├── auth-feature (3 changes pending)
-━E  ├── Last QA: ✁EPASSED (2 min ago)
-━E  ├── Quality Score: A- (Good)
-━E  └── Next Scheduled: Auto (on changes)
-├── payment-feature (1 change pending)
-━E  ├── Last QA: 🔄 RUNNING (45s elapsed)
-━E  ├── Quality Score: B+ (Good)
-━E  └── Next Scheduled: Auto (on changes)
-├── ui-feature (12 changes pending)
-━E  ├── Last QA: ❁EFAILED (5 min ago)
-━E  ├── Quality Score: C (Needs Attention)
-━E  └── Next Scheduled: Manual review required
-└── api-feature (0 changes pending)
-    ├── Last QA: ✁EPASSED (12 min ago)
-    ├── Quality Score: A (Excellent)
-    └── Next Scheduled: Auto (on changes)
+âââ auth-feature (3 changes pending)
+âE  âââ Last QA: âEPASSED (2 min ago)
+âE  âââ Quality Score: A- (Good)
+âE  âââ Next Scheduled: Auto (on changes)
+âââ payment-feature (1 change pending)
+âE  âââ Last QA: ð RUNNING (45s elapsed)
+âE  âââ Quality Score: B+ (Good)
+âE  âââ Next Scheduled: Auto (on changes)
+âââ ui-feature (12 changes pending)
+âE  âââ Last QA: âEFAILED (5 min ago)
+âE  âââ Quality Score: C (Needs Attention)
+âE  âââ Next Scheduled: Manual review required
+âââ api-feature (0 changes pending)
+    âââ Last QA: âEPASSED (12 min ago)
+    âââ Quality Score: A (Excellent)
+    âââ Next Scheduled: Auto (on changes)
 
-⚙︁EService Configuration
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+âï¸EService Configuration
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Monitoring Paths: ./worktrees/
 QA Interval: 300 seconds (5 minutes)
 File Change Debounce: 2.0 seconds
@@ -111,31 +111,31 @@ Max Concurrent QA: 2
 Auto-restart on Failure: Enabled
 Log Retention: 7 days
 
-📈 Quality Trends (Last 24 hours)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-┌─────────────────────┬─────────┬─────────┬─────────────┬─────────────━E
-━ETime Period         ━EQA Runs ━ESuccess ━EAvg Score   ━EIssues Found━E
-├─────────────────────┼─────────┼─────────┼─────────────┼─────────────┤
-━E00:00 - 06:00       ━E12      ━E100%    ━EA-          ━E3           ━E
-━E06:00 - 12:00       ━E28      ━E93%     ━EB+          ━E12          ━E
-━E12:00 - 18:00       ━E45      ━E91%     ━EB           ━E18          ━E
-━E18:00 - 24:00       ━E42      ━E88%     ━EB-          ━E25          ━E
-└─────────────────────┴─────────┴─────────┴─────────────┴─────────────━E
+ð Quality Trends (Last 24 hours)
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+âââââââââââââââââââââââ¬ââââââââââ¬ââââââââââ¬ââââââââââââââ¬ââââââââââââââE
+âETime Period         âEQA Runs âESuccess âEAvg Score   âEIssues FoundâE
+âââââââââââââââââââââââ¼ââââââââââ¼ââââââââââ¼ââââââââââââââ¼ââââââââââââââ¤
+âE00:00 - 06:00       âE12      âE100%    âEA-          âE3           âE
+âE06:00 - 12:00       âE28      âE93%     âEB+          âE12          âE
+âE12:00 - 18:00       âE45      âE91%     âEB           âE18          âE
+âE18:00 - 24:00       âE42      âE88%     âEB-          âE25          âE
+âââââââââââââââââââââââ´ââââââââââ´ââââââââââ´ââââââââââââââ´ââââââââââââââE
 
-🚨 Active Alerts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-1. ⚠�E�Eui-feature: Multiple QA failures detected
+ð¨ Active Alerts
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+1. â EEui-feature: Multiple QA failures detected
    - Last 3 QA runs failed
    - Issues: Security vulnerabilities, performance bottlenecks
    - Recommendation: Code review and fixes required
 
-2. 📉 Quality Trend: Declining code quality scores
+2. ð Quality Trend: Declining code quality scores
    - Average score dropped from A- to B- in 6 hours
    - Primary issues: Algorithmic complexity, error handling
    - Recommendation: Team training on best practices
 
-🔄 Current QA Executions
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Current QA Executions
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 1. payment-feature (PID: 18473)
    - Progress: 68% complete
    - ETA: 23 seconds
@@ -146,38 +146,38 @@ Log Retention: 7 days
    - ETA: 4 minutes 12 seconds
    - Current Phase: Performance Benchmarking
 
-💡 Service Recommendations
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¡ Service Recommendations
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 1. Address ui-feature QA failures immediately
 2. Schedule team training on security best practices
 3. Consider increasing QA frequency for high-activity worktrees
 4. Review and optimize QA analysis performance
 
-📁 Service Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-├── qa-service-logs/
-━E  ├── qa-service.log (2.3MB)
-━E  ├── error.log (145KB)
-━E  └── audit.log (892KB)
-├── qa-metrics/
-━E  ├── quality-trends.json
-━E  ├── performance-metrics.json
-━E  └── worktree-stats.json
-└── qa-reports/
-    ├── latest-qa-summary.md
-    ├── quality-dashboard.html
-    └── alert-history.json
+ð Service Artifacts
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+âââ qa-service-logs/
+âE  âââ qa-service.log (2.3MB)
+âE  âââ error.log (145KB)
+âE  âââ audit.log (892KB)
+âââ qa-metrics/
+âE  âââ quality-trends.json
+âE  âââ performance-metrics.json
+âE  âââ worktree-stats.json
+âââ qa-reports/
+    âââ latest-qa-summary.md
+    âââ quality-dashboard.html
+    âââ alert-history.json
 
-⚡ Performance Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+â¡ Performance Metrics
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 CPU Usage: 12.3% average
 Memory Usage: 245MB peak
 Disk I/O: 1.2GB transferred
 Network: 0MB (local monitoring only)
 Uptime: 99.7% availability
 
-🎯 Next Maintenance Window
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¯ Next Maintenance Window
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Scheduled: 2026-01-05 02:00 UTC
 Tasks: Log rotation, metric aggregation, service restart
 Estimated Duration: 15 minutes
@@ -321,7 +321,7 @@ codex $qa-service "Resume QA monitoring"
 ```bash
 # QA service automatically monitors new worktrees
 codex $worktree-manager "Create feature worktree"
-# ↁEQA service automatically starts monitoring
+# âEQA service automatically starts monitoring
 
 # Manual QA trigger
 codex $qa-service "Run QA analysis on auth-feature worktree"

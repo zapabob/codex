@@ -69,75 +69,75 @@ codex $worktree-manager "Manage worktree lifecycle: create, develop, qa, merge, 
 
 ### Worktree Management Report
 ```
-🏗�E�EWorktree Manager Report - Parallel Development Environment
-══════════════════════════════════════════════════════════════════════════════╁E
+ðEEWorktree Manager Report - Parallel Development Environment
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Operation: Create Parallel Environment
 Timestamp: 2026-01-04 15:30:00 UTC
 Duration: 45.2 seconds
 
-📊 Environment Summary
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Environment Summary
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Total Worktrees: 4 (3 active, 1 inactive)
 Active Branches: feature/auth, feature/payment, feature/ui
 Base Branch: main
 Repository: /path/to/project
 
-🌿 Worktree Status Overview
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-┌─────────────────┬────────────┬────────────┬────────────┬─────────────────━E
-━EWorktree        ━EBranch     ━EStatus     ━EQA Status  ━ELast Activity   ━E
-├─────────────────┼────────────┼────────────┼────────────┼─────────────────┤
-━Eauth-feature    ━Efeature/auth ━Eactive    ━Eqa_passed ━E15:28:33        ━E
-━Epayment-feature ━Efeature/pay ━Eactive    ━Eqa_running━E15:29:45        ━E
-━Eui-feature      ━Efeature/ui  ━Eactive    ━Eqa_pending━E15:30:00        ━E
-━Eold-experiment  ━Eexperiment  ━Einactive  ━Eqa_failed ━E2026-01-03      ━E
-└─────────────────┴────────────┴────────────┴────────────┴─────────────────━E
+ð¿ Worktree Status Overview
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+âââââââââââââââââââ¬âââââââââââââ¬âââââââââââââ¬âââââââââââââ¬ââââââââââââââââââE
+âEWorktree        âEBranch     âEStatus     âEQA Status  âELast Activity   âE
+âââââââââââââââââââ¼âââââââââââââ¼âââââââââââââ¼âââââââââââââ¼ââââââââââââââââââ¤
+âEauth-feature    âEfeature/auth âEactive    âEqa_passed âE15:28:33        âE
+âEpayment-feature âEfeature/pay âEactive    âEqa_runningâE15:29:45        âE
+âEui-feature      âEfeature/ui  âEactive    âEqa_pendingâE15:30:00        âE
+âEold-experiment  âEexperiment  âEinactive  âEqa_failed âE2026-01-03      âE
+âââââââââââââââââââ´âââââââââââââ´âââââââââââââ´âââââââââââââ´ââââââââââââââââââE
 
-🖥�E�ETerminal Management
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¥EETerminal Management
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Active Terminals: 3
-├─ auth-feature (PID: 12345) - /path/to/project/auth-feature
-├─ payment-feature (PID: 12346) - /path/to/project/payment-feature
-└─ ui-feature (PID: 12347) - /path/to/project/ui-feature
+ââ auth-feature (PID: 12345) - /path/to/project/auth-feature
+ââ payment-feature (PID: 12346) - /path/to/project/payment-feature
+ââ ui-feature (PID: 12347) - /path/to/project/ui-feature
 
-🔬 QA Integration Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¬ QA Integration Status
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 QA Service: Active (monitoring 3 worktrees)
 Recent QA Results:
-├── auth-feature: ✁EPASSED (security: A+, performance: A)
-├── payment-feature: 🔄 RUNNING (45% complete)
-└── ui-feature: ⏳ PENDING (waiting for changes)
+âââ auth-feature: âEPASSED (security: A+, performance: A)
+âââ payment-feature: ð RUNNING (45% complete)
+âââ ui-feature: â³ PENDING (waiting for changes)
 
-📁 Worktree Artifacts
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
-├── worktrees/auth-feature/artifacts/qa_report.json
-├── worktrees/payment-feature/artifacts/qa_report.json
-├── worktrees/ui-feature/artifacts/ (empty - awaiting development)
-└── .worktrees.json (management metadata)
+ð Worktree Artifacts
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
+âââ worktrees/auth-feature/artifacts/qa_report.json
+âââ worktrees/payment-feature/artifacts/qa_report.json
+âââ worktrees/ui-feature/artifacts/ (empty - awaiting development)
+âââ .worktrees.json (management metadata)
 
-⚙︁EConfiguration
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+âï¸EConfiguration
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Max Concurrent Worktrees: 5
 Auto QA: Enabled
 Cleanup Policy: 7 days inactive
 Terminal Auto-launch: Enabled
 
-🚀 Recommended Actions
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Recommended Actions
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 1. Start development in ui-feature worktree
 2. Monitor QA results in payment-feature
 3. Consider merging auth-feature (QA passed)
 4. Review and cleanup old-experiment worktree
 
-💡 Parallel Development Tips
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð¡ Parallel Development Tips
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 - Each worktree has isolated node_modules and build artifacts
 - QA runs automatically on file changes (debounced 2s)
 - Use 'worktree-manager merge <name>' when ready to integrate
 - Terminals auto-close on worktree removal
 
-📈 Performance Metrics
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━E
+ð Performance Metrics
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââE
 Worktree Creation Time: 2.3s average
 QA Execution Time: 45.2s average
 Terminal Launch Time: 1.1s average
@@ -243,19 +243,19 @@ codex $worktree-manager "Cleanup inactive worktrees older than 7 days"
 ### Directory Structure
 ```
 project/
-├── .git/                          # Main repository
-├── main-workspace/               # Primary development
-├── worktrees/                    # Worktree container
-━E  ├── feature-auth/            # Feature worktree
-━E  ━E  ├── .git -> ../.git      # Git link
-━E  ━E  ├── src/                 # Isolated source
-━E  ━E  ├── node_modules/        # Isolated dependencies
-━E  ━E  ├── artifacts/           # QA reports, builds
-━E  ━E  └── .worktree_metadata   # Worktree info
-━E  ├── feature-payment/         # Another feature
-━E  └── experimental-ui/         # Experimental work
-├── .worktrees.json              # Management metadata
-└── worktree-artifacts/          # Shared artifacts
+âââ .git/                          # Main repository
+âââ main-workspace/               # Primary development
+âââ worktrees/                    # Worktree container
+âE  âââ feature-auth/            # Feature worktree
+âE  âE  âââ .git -> ../.git      # Git link
+âE  âE  âââ src/                 # Isolated source
+âE  âE  âââ node_modules/        # Isolated dependencies
+âE  âE  âââ artifacts/           # QA reports, builds
+âE  âE  âââ .worktree_metadata   # Worktree info
+âE  âââ feature-payment/         # Another feature
+âE  âââ experimental-ui/         # Experimental work
+âââ .worktrees.json              # Management metadata
+âââ worktree-artifacts/          # Shared artifacts
 ```
 
 ### Isolation Benefits
