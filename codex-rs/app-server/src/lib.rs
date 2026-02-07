@@ -57,7 +57,8 @@ mod fuzzy_file_search;
 mod message_processor;
 mod models;
 mod outgoing_message;
-pub mod transport;
+pub mod qa_agent;
+mod transport;
 pub use transport::AppServerTransport;
 
 fn config_warning_from_error(

@@ -268,6 +268,27 @@ client_request_definitions! {
         response: v2::ReviewStartResponse,
     },
 
+    WorktreeList => "worktree/list" {
+        params: v2::WorktreeListParams,
+        response: v2::WorktreeListResponse,
+    },
+    WorktreeCreate => "worktree/create" {
+        params: v2::WorktreeCreateParams,
+        response: v2::WorktreeCreateResponse,
+    },
+    WorktreeRemove => "worktree/remove" {
+        params: v2::WorktreeRemoveParams,
+        response: v2::WorktreeRemoveResponse,
+    },
+    WorktreeMerge => "worktree/merge" {
+        params: v2::WorktreeMergeParams,
+        response: v2::WorktreeMergeResponse,
+    },
+    A2ABroadcast => "a2a/broadcast" {
+        params: v2::A2ABroadcastParams,
+        response: v2::A2ABroadcastResponse,
+    },
+
     ModelList => "model/list" {
         params: v2::ModelListParams,
         response: v2::ModelListResponse,
@@ -728,6 +749,7 @@ server_notification_definitions! {
     ContextCompacted => "thread/compacted" (v2::ContextCompactedNotification),
     DeprecationNotice => "deprecationNotice" (v2::DeprecationNoticeNotification),
     ConfigWarning => "configWarning" (v2::ConfigWarningNotification),
+    A2AMessage => "a2a/message" (v2::A2AMessage),
 
     /// Notifies the user of world-writable directories on Windows, which cannot be protected by the sandbox.
     WindowsWorldWritableWarning => "windows/worldWritableWarning" (v2::WindowsWorldWritableWarningNotification),

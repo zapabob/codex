@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 6%;
+  --card-foreground: 0 0% 98%;
+  --primary: 142 71% 45%;
+  --primary-foreground: 144 100% 97%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+  --border: 240 4% 16%;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+}
+
+.chat-bubble-user {
+  @apply bg-muted text-foreground p-4 rounded-2xl max-w-[80%];
+}
+
+.chat-bubble-agent {
+  @apply text-foreground p-4 rounded-2xl max-w-full;
+}

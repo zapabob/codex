@@ -10,6 +10,8 @@ use crate::outgoing_message::OutgoingNotification;
 use chrono::DateTime;
 use chrono::SecondsFormat;
 use chrono::Utc;
+use codex_app_server_protocol::A2ABroadcastParams;
+use codex_app_server_protocol::A2ABroadcastResponse;
 use codex_app_server_protocol::Account;
 use codex_app_server_protocol::AccountLoginCompletedNotification;
 use codex_app_server_protocol::AccountUpdatedNotification;
@@ -144,6 +146,15 @@ use codex_app_server_protocol::TurnSteerResponse;
 use codex_app_server_protocol::UserInfoResponse;
 use codex_app_server_protocol::UserInput as V2UserInput;
 use codex_app_server_protocol::UserSavedConfig;
+use codex_app_server_protocol::WorktreeCreateParams;
+use codex_app_server_protocol::WorktreeCreateResponse;
+use codex_app_server_protocol::WorktreeInfo as ApiWorktreeInfo;
+use codex_app_server_protocol::WorktreeListParams;
+use codex_app_server_protocol::WorktreeListResponse;
+use codex_app_server_protocol::WorktreeMergeParams;
+use codex_app_server_protocol::WorktreeMergeResponse;
+use codex_app_server_protocol::WorktreeRemoveParams;
+use codex_app_server_protocol::WorktreeRemoveResponse;
 use codex_app_server_protocol::build_turns_from_event_msgs;
 use codex_backend_client::Client as BackendClient;
 use codex_chatgpt::connectors;
@@ -184,6 +195,7 @@ use codex_core::find_thread_path_by_id_str;
 use codex_core::git_info::git_diff_to_remote;
 use codex_core::mcp::collect_mcp_snapshot;
 use codex_core::mcp::group_tools_by_server;
+use codex_core::orchestration::worktree_manager::WorktreeManager;
 use codex_core::parse_cursor;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::Op;
@@ -737,7 +749,47 @@ impl CodexMessageProcessor {
                 self.upload_feedback(to_connection_request_id(request_id), params)
                     .await;
             }
+            ClientRequest::WorktreeList { request_id, params } => {
+                self.worktree_list(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::WorktreeCreate { request_id, params } => {
+                self.worktree_create(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::WorktreeRemove { request_id, params } => {
+                self.worktree_remove(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::WorktreeMerge { request_id, params } => {
+                self.worktree_merge(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::A2ABroadcast { request_id, params } => {
+                self.a2a_broadcast(to_connection_request_id(request_id), params)
+                    .await;
+            }
         }
+    }
+
+    async fn a2a_broadcast(&self, request_id: ConnectionRequestId, params: A2ABroadcastParams) {
+        // Broadcast the message to all connected clients
+        self.outgoing
+            .send_server_notification(ServerNotification::A2AMessage(params.message.clone()))
+            .await;
+
+        // Inspect message with QA Agent
+        if let Ok(Some(response)) = crate::qa_agent::QAAgent::handle_message(&params.message).await
+        {
+            self.outgoing
+                .send_server_notification(ServerNotification::A2AMessage(response))
+                .await;
+        }
+
+        // Respond with success to the sender
+        self.outgoing
+            .send_response(request_id, A2ABroadcastResponse { success: true })
+            .await;
     }
 
     async fn login_v2(&mut self, request_id: ConnectionRequestId, params: LoginAccountParams) {
@@ -2036,6 +2088,132 @@ impl CodexMessageProcessor {
         self.outgoing
             .send_response(request_id, ThreadSetNameResponse {})
             .await;
+    }
+
+    async fn worktree_list(&self, request_id: ConnectionRequestId, params: WorktreeListParams) {
+        let manager = match WorktreeManager::new(&params.repo_path) {
+            Ok(manager) => manager,
+            Err(err) => {
+                self.send_internal_error(
+                    request_id,
+                    format!("failed to create worktree manager: {err}"),
+                )
+                .await;
+                return;
+            }
+        };
+
+        match manager.list_worktrees() {
+            Ok(worktrees) => {
+                let worktrees = worktrees
+                    .into_iter()
+                    .map(|w| ApiWorktreeInfo {
+                        name: w.name,
+                        path: w.path,
+                        branch: w.branch,
+                        agent: w.agent,
+                    })
+                    .collect();
+                self.outgoing
+                    .send_response(request_id, WorktreeListResponse { worktrees })
+                    .await;
+            }
+            Err(err) => {
+                self.send_internal_error(request_id, format!("failed to list worktrees: {err}"))
+                    .await;
+            }
+        }
+    }
+
+    async fn worktree_create(&self, request_id: ConnectionRequestId, params: WorktreeCreateParams) {
+        let manager = match WorktreeManager::new(&params.repo_path) {
+            Ok(manager) => manager,
+            Err(err) => {
+                self.send_internal_error(
+                    request_id,
+                    format!("failed to create worktree manager: {err}"),
+                )
+                .await;
+                return;
+            }
+        };
+
+        match manager.create_worktree(&params.agent_name, &params.task_id) {
+            Ok(w) => {
+                let worktree = ApiWorktreeInfo {
+                    name: w.name,
+                    path: w.path,
+                    branch: w.branch,
+                    agent: w.agent,
+                };
+                self.outgoing
+                    .send_response(request_id, WorktreeCreateResponse { worktree })
+                    .await;
+            }
+            Err(err) => {
+                self.send_internal_error(request_id, format!("failed to create worktree: {err}"))
+                    .await;
+            }
+        }
+    }
+
+    async fn worktree_remove(&self, request_id: ConnectionRequestId, params: WorktreeRemoveParams) {
+        let manager = match WorktreeManager::new(&params.repo_path) {
+            Ok(manager) => manager,
+            Err(err) => {
+                self.send_internal_error(
+                    request_id,
+                    format!("failed to create worktree manager: {err}"),
+                )
+                .await;
+                return;
+            }
+        };
+
+        match manager.remove_worktree(&params.worktree_name) {
+            Ok(_) => {
+                self.outgoing
+                    .send_response(request_id, WorktreeRemoveResponse { success: true })
+                    .await;
+            }
+            Err(err) => {
+                self.send_internal_error(request_id, format!("failed to remove worktree: {err}"))
+                    .await;
+            }
+        }
+    }
+
+    async fn worktree_merge(&self, request_id: ConnectionRequestId, params: WorktreeMergeParams) {
+        let manager = match WorktreeManager::new(&params.repo_path) {
+            Ok(manager) => manager,
+            Err(err) => {
+                self.send_internal_error(
+                    request_id,
+                    format!("failed to create worktree manager: {err}"),
+                )
+                .await;
+                return;
+            }
+        };
+
+        let core_worktree = codex_core::orchestration::worktree_manager::WorktreeInfo {
+            name: params.worktree.name,
+            path: params.worktree.path,
+            branch: params.worktree.branch,
+            agent: params.worktree.agent,
+        };
+
+        match manager.merge_worktree(&core_worktree, &params.target_branch) {
+            Ok(_) => {
+                self.outgoing
+                    .send_response(request_id, WorktreeMergeResponse { success: true })
+                    .await;
+            }
+            Err(err) => {
+                self.send_internal_error(request_id, format!("failed to merge worktree: {err}"))
+                    .await;
+            }
+        }
     }
 
     async fn thread_unarchive(
