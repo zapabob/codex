@@ -1830,6 +1830,7 @@ async fn construct_mcp_tool_call_end_notification(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::outgoing_message::OutgoingEnvelope;
     use crate::outgoing_message::OutgoingMessage;
     use crate::outgoing_message::OutgoingMessageSender;
     use anyhow::Result;

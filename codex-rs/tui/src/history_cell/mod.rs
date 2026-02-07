@@ -19,11 +19,11 @@ use std::any::Any;
 pub(crate) use basic::{CompositeHistoryCell, PlainHistoryCell};
 pub(crate) use basic::{
     FinalMessageSeparator, new_error_event, new_info_event, new_patch_apply_failure,
-    new_review_status_line, new_view_image_tool_call, new_warning_event,
+    new_review_status_line, new_view_image_tool_call, new_warning_event, runtime_metrics_label,
 };
 pub(crate) use exec::{
-    AgentMessageCell, new_approval_decision_cell, new_unified_exec_interaction,
-    new_unified_exec_processes_output,
+    AgentMessageCell, UnifiedExecProcessDetails, new_approval_decision_cell,
+    new_unified_exec_interaction, new_unified_exec_processes_output,
 };
 pub(crate) use mcp::{
     McpToolCallCell, WebSearchCell, empty_mcp_output, new_active_mcp_tool_call,

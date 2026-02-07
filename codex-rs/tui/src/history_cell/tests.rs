@@ -18,6 +18,8 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::collections::HashMap;
 
+use crate::history_cell::exec::UnifiedExecProcessDetails;
+
 use codex_protocol::mcp::CallToolResult;
 use codex_protocol::mcp::Tool;
 
@@ -84,8 +86,14 @@ fn ps_output_empty_snapshot() {
 #[test]
 fn ps_output_multiline_snapshot() {
     let cell = new_unified_exec_processes_output(vec![
-        "echo hello\nand then some extra text".to_string(),
-        "rg \"foo\" src".to_string(),
+        UnifiedExecProcessDetails {
+            command_display: "echo hello\nand then some extra text".to_string(),
+            recent_chunks: Vec::new(),
+        },
+        UnifiedExecProcessDetails {
+            command_display: "rg \"foo\" src".to_string(),
+            recent_chunks: Vec::new(),
+        },
     ]);
     let rendered = render_lines(&cell.display_lines(40)).join("\n");
     insta::assert_snapshot!(rendered);
@@ -93,17 +101,26 @@ fn ps_output_multiline_snapshot() {
 
 #[test]
 fn ps_output_long_command_snapshot() {
-    let cell = new_unified_exec_processes_output(vec![String::from(
-        "rg \"foo\" src --glob '**/*.rs' --max-count 1000 --no-ignore --hidden --follow --glob '!target/**'",
-    )]);
+    let cell = new_unified_exec_processes_output(vec![UnifiedExecProcessDetails {
+        command_display: String::from(
+            "rg \"foo\" src --glob '**/*.rs' --max-count 1000 --no-ignore --hidden --follow --glob '!target/**'",
+        ),
+        recent_chunks: Vec::new(),
+    }]);
     let rendered = render_lines(&cell.display_lines(36)).join("\n");
     insta::assert_snapshot!(rendered);
 }
 
 #[test]
 fn ps_output_many_sessions_snapshot() {
-    let cell =
-        new_unified_exec_processes_output((0..20).map(|idx| format!("command {idx}")).collect());
+    let cell = new_unified_exec_processes_output(
+        (0..20)
+            .map(|idx| UnifiedExecProcessDetails {
+                command_display: format!("command {idx}"),
+                recent_chunks: Vec::new(),
+            })
+            .collect(),
+    );
     let rendered = render_lines(&cell.display_lines(32)).join("\n");
     insta::assert_snapshot!(rendered);
 }
@@ -128,6 +145,7 @@ async fn mcp_tools_output_masks_sensitive_values() {
         enabled_tools: None,
         disabled_tools: None,
         scopes: None,
+        required: false,
     };
     let mut servers = config.mcp_servers.get().clone();
     servers.insert("docs".to_string(), stdio_config);
@@ -150,6 +168,7 @@ async fn mcp_tools_output_masks_sensitive_values() {
         enabled_tools: None,
         disabled_tools: None,
         scopes: None,
+        required: false,
     };
     servers.insert("http".to_string(), http_config);
     config

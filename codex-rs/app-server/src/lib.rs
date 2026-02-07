@@ -19,6 +19,7 @@ use crate::message_processor::MessageProcessorArgs;
 use crate::outgoing_message::ConnectionId;
 use crate::outgoing_message::OutgoingEnvelope;
 use crate::outgoing_message::OutgoingMessageSender;
+use crate::transport::AppServerTransport;
 use crate::transport::CHANNEL_CAPACITY;
 use crate::transport::ConnectionState;
 use crate::transport::TransportEvent;
@@ -57,12 +58,9 @@ mod fuzzy_file_search;
 mod message_processor;
 mod models;
 mod outgoing_message;
-mod transport;
+pub mod transport;
+pub use transport::AppServerTransport;
 
-/// Size of the bounded channels used to communicate between tasks. The value
-/// is a balance between throughput and memory usage – 128 messages should be
-/// plenty for an interactive CLI.
-pub(crate) const CHANNEL_CAPACITY: usize = 128;
 fn config_warning_from_error(
     summary: impl Into<String>,
     err: &std::io::Error,

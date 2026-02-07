@@ -280,6 +280,7 @@ Only output the JSON, no explanation."#;
             codex_protocol::protocol::SessionSource::Cli,
             self.config.model_verbosity,
             self.config.features.enabled(Feature::ResponsesWebsockets),
+            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
             self.config
                 .features
                 .enabled(Feature::EnableRequestCompression),
@@ -667,6 +668,7 @@ Only output the JSON, no explanation."#;
             codex_protocol::protocol::SessionSource::Cli,
             self.config.model_verbosity,
             self.config.features.enabled(Feature::ResponsesWebsockets),
+            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
             self.config
                 .features
                 .enabled(Feature::EnableRequestCompression),
@@ -958,6 +960,7 @@ artifacts:
             None,
             None,
             None,
+            "test-originator".to_string(),
             false,
             "test".to_string(),
             codex_protocol::protocol::SessionSource::Cli,
@@ -1041,6 +1044,7 @@ artifacts:
             None,
             None,
             None,
+            "test-originator".to_string(),
             false,
             "test".to_string(),
             codex_protocol::protocol::SessionSource::Cli,
@@ -1403,6 +1407,7 @@ impl AgentRuntime {
             codex_protocol::protocol::SessionSource::Cli,
             self.config.model_verbosity,
             self.config.features.enabled(Feature::ResponsesWebsockets),
+            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
             self.config
                 .features
                 .enabled(Feature::EnableRequestCompression),

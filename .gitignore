@@ -124,6 +124,7 @@ release-package/
 
 # Conversation history (contains potential secrets)
 *.txt
+*.py
 C:\Users\downl\Desktop\codex-main\.specstory\history\2026-01-16_05-43Z-未来のai開発と統合エコシステム.md
 codex-rs/build_error.txt
 codex-rs/build_error.txt
@@ -145,3 +146,4 @@ gui/gui_build_final_2.txt
 gui/gui_build_final_1_utf8.txt
 gui/gui_build_final_1.txt
 gui/gui_build_final_1_utf8.txt
+codex-rs/check_error.txt

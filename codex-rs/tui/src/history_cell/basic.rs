@@ -9,6 +9,7 @@ use crate::render::line_utils::prefix_lines;
 use crate::render::line_utils::push_owned_lines;
 use crate::wrapping::RtOptions;
 use crate::wrapping::word_wrap_lines;
+use codex_otel::RuntimeMetricsSummary;
 use ratatui::prelude::*;
 
 use ratatui::style::Stylize;
@@ -152,24 +153,65 @@ pub(crate) fn new_view_image_tool_call(path: PathBuf, cwd: &Path) -> PlainHistor
 #[derive(Debug)]
 pub(crate) struct FinalMessageSeparator {
     elapsed_seconds: Option<u64>,
+    runtime_metrics: Option<RuntimeMetricsSummary>,
 }
+
 impl FinalMessageSeparator {
     /// Creates a separator; `elapsed_seconds` typically comes from the status indicator timer.
-    pub(crate) fn new(elapsed_seconds: Option<u64>) -> Self {
-        Self { elapsed_seconds }
+    pub(crate) fn new(
+        elapsed_seconds: Option<u64>,
+        runtime_metrics: Option<RuntimeMetricsSummary>,
+    ) -> Self {
+        Self {
+            elapsed_seconds,
+            runtime_metrics,
+        }
     }
 }
+
+pub(crate) fn runtime_metrics_label(summary: &RuntimeMetricsSummary) -> Option<Line<'static>> {
+    let total = summary.responses_api_inference_time_ms + summary.responses_api_overhead_ms;
+    if total == 0 {
+        return None;
+    }
+    Some(Line::from(vec![
+        "Metrics: ".dim(),
+        format!("{}ms", total).into(),
+        " (".into(),
+        format!("inf: {}ms", summary.responses_api_inference_time_ms).dim(),
+        ", ".into(),
+        format!("ovh: {}ms", summary.responses_api_overhead_ms).dim(),
+        ")".into(),
+    ]))
+}
+
 impl HistoryCell for FinalMessageSeparator {
     fn display_lines(&self, width: u16) -> Vec<Line<'static>> {
         use crate::status_indicator_widget::fmt_elapsed_compact;
         let elapsed_seconds = self.elapsed_seconds.map(fmt_elapsed_compact);
-        if let Some(elapsed_seconds) = elapsed_seconds {
-            let worked_for = format!("─ Worked for {elapsed_seconds} ─");
-            let worked_for_width = worked_for.width();
+
+        let mut text = String::new();
+        if let Some(s) = elapsed_seconds {
+            text.push_str(&format!("Worked for {}", s));
+        }
+
+        if let Some(metrics) = &self.runtime_metrics {
+            let total = metrics.responses_api_inference_time_ms + metrics.responses_api_overhead_ms;
+            if total > 0 {
+                if !text.is_empty() {
+                    text.push_str(" · ");
+                }
+                text.push_str(&format!("API: {}ms", total));
+            }
+        }
+
+        if !text.is_empty() {
+            let label = format!("─ {} ─", text);
+            let label_width = label.width();
             vec![
                 Line::from_iter([
-                    worked_for,
-                    "─".repeat((width as usize).saturating_sub(worked_for_width)),
+                    label,
+                    "─".repeat((width as usize).saturating_sub(label_width)),
                 ])
                 .dim(),
             ]

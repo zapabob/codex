@@ -111,12 +111,18 @@ pub(crate) fn new_unified_exec_interaction(
 }
 
 #[derive(Debug)]
+pub(crate) struct UnifiedExecProcessDetails {
+    pub(crate) command_display: String,
+    pub(crate) recent_chunks: Vec<String>,
+}
+
+#[derive(Debug)]
 struct UnifiedExecProcessesCell {
-    processes: Vec<String>,
+    processes: Vec<UnifiedExecProcessDetails>,
 }
 
 impl UnifiedExecProcessesCell {
-    fn new(processes: Vec<String>) -> Self {
+    fn new(processes: Vec<UnifiedExecProcessDetails>) -> Self {
         Self { processes }
     }
 }
@@ -143,10 +149,11 @@ impl HistoryCell for UnifiedExecProcessesCell {
         let truncation_suffix = " [...]";
         let truncation_suffix_width = UnicodeWidthStr::width(truncation_suffix);
         let mut shown = 0usize;
-        for command in &self.processes {
+        for process in &self.processes {
             if shown >= max_processes {
                 break;
             }
+            let command = &process.command_display;
             let (snippet, snippet_truncated) = {
                 let (first_line, has_more_lines) = match command.split_once('\n') {
                     Some((first, _)) => (first, true),
@@ -204,7 +211,9 @@ impl HistoryCell for UnifiedExecProcessesCell {
     }
 }
 
-pub(crate) fn new_unified_exec_processes_output(processes: Vec<String>) -> CompositeHistoryCell {
+pub(crate) fn new_unified_exec_processes_output(
+    processes: Vec<UnifiedExecProcessDetails>,
+) -> CompositeHistoryCell {
     let command = PlainHistoryCell::new(vec!["/ps".magenta().into()]);
     let summary = UnifiedExecProcessesCell::new(processes);
     CompositeHistoryCell::new(vec![Box::new(command), Box::new(summary)])

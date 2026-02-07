@@ -214,6 +214,23 @@ use self::skills::find_skill_mentions_with_tool_mentions;
 use crate::mention_codec::LinkedMention;
 use crate::mention_codec::encode_history_mentions;
 use crate::streaming::chunking::AdaptiveChunkingPolicy;
+
+mod init;
+mod rate_limit;
+mod unified_exec;
+mod user_message;
+
+pub(crate) use self::init::ChatWidgetInit;
+use self::rate_limit::{
+    NUDGE_MODEL_SLUG, RATE_LIMIT_SWITCH_PROMPT_THRESHOLD, RateLimitErrorKind,
+    RateLimitSwitchPromptState, RateLimitWarningState, get_limits_duration, rate_limit_error_kind,
+};
+use self::unified_exec::{
+    UnifiedExecProcessSummary, UnifiedExecWaitState, UnifiedExecWaitStreak, is_standard_tool_call,
+    is_unified_exec_source,
+};
+pub(crate) use self::user_message::UserMessage;
+use self::user_message::{create_initial_user_message, remap_placeholders_for_message};
 use crate::streaming::commit_tick::CommitTickScope;
 use crate::streaming::commit_tick::run_commit_tick;
 use crate::streaming::controller::PlanStreamController;
@@ -244,180 +261,6 @@ struct RunningCommand {
     source: ExecCommandSource,
 }
 
-struct UnifiedExecProcessSummary {
-    key: String,
-    call_id: String,
-    command_display: String,
-    recent_chunks: Vec<String>,
-}
-
-struct UnifiedExecWaitState {
-    command_display: String,
-}
-
-impl UnifiedExecWaitState {
-    fn new(command_display: String) -> Self {
-        Self { command_display }
-    }
-
-    fn is_duplicate(&self, command_display: &str) -> bool {
-        self.command_display == command_display
-    }
-}
-
-#[derive(Clone, Debug)]
-struct UnifiedExecWaitStreak {
-    process_id: String,
-    command_display: Option<String>,
-}
-
-impl UnifiedExecWaitStreak {
-    fn new(process_id: String, command_display: Option<String>) -> Self {
-        Self {
-            process_id,
-            command_display: command_display.filter(|display| !display.is_empty()),
-        }
-    }
-
-    fn update_command_display(&mut self, command_display: Option<String>) {
-        if self.command_display.is_some() {
-            return;
-        }
-        self.command_display = command_display.filter(|display| !display.is_empty());
-    }
-}
-
-fn is_unified_exec_source(source: ExecCommandSource) -> bool {
-    matches!(
-        source,
-        ExecCommandSource::UnifiedExecStartup | ExecCommandSource::UnifiedExecInteraction
-    )
-}
-
-fn is_standard_tool_call(parsed_cmd: &[ParsedCommand]) -> bool {
-    !parsed_cmd.is_empty()
-        && parsed_cmd
-            .iter()
-            .all(|parsed| !matches!(parsed, ParsedCommand::Unknown { .. }))
-}
-
-const RATE_LIMIT_WARNING_THRESHOLDS: [f64; 3] = [75.0, 90.0, 95.0];
-const NUDGE_MODEL_SLUG: &str = "gpt-5.1-codex-mini";
-const RATE_LIMIT_SWITCH_PROMPT_THRESHOLD: f64 = 90.0;
-
-#[derive(Default)]
-struct RateLimitWarningState {
-    secondary_index: usize,
-    primary_index: usize,
-}
-
-impl RateLimitWarningState {
-    fn take_warnings(
-        &mut self,
-        secondary_used_percent: Option<f64>,
-        secondary_window_minutes: Option<i64>,
-        primary_used_percent: Option<f64>,
-        primary_window_minutes: Option<i64>,
-    ) -> Vec<String> {
-        let reached_secondary_cap =
-            matches!(secondary_used_percent, Some(percent) if percent == 100.0);
-        let reached_primary_cap = matches!(primary_used_percent, Some(percent) if percent == 100.0);
-        if reached_secondary_cap || reached_primary_cap {
-            return Vec::new();
-        }
-
-        let mut warnings = Vec::new();
-
-        if let Some(secondary_used_percent) = secondary_used_percent {
-            let mut highest_secondary: Option<f64> = None;
-            while self.secondary_index < RATE_LIMIT_WARNING_THRESHOLDS.len()
-                && secondary_used_percent >= RATE_LIMIT_WARNING_THRESHOLDS[self.secondary_index]
-            {
-                highest_secondary = Some(RATE_LIMIT_WARNING_THRESHOLDS[self.secondary_index]);
-                self.secondary_index += 1;
-            }
-            if let Some(threshold) = highest_secondary {
-                let limit_label = secondary_window_minutes
-                    .map(get_limits_duration)
-                    .unwrap_or_else(|| "weekly".to_string());
-                let remaining_percent = 100.0 - threshold;
-                warnings.push(format!(
-                    "Heads up, you have less than {remaining_percent:.0}% of your {limit_label} limit left. Run /status for a breakdown."
-                ));
-            }
-        }
-
-        if let Some(primary_used_percent) = primary_used_percent {
-            let mut highest_primary: Option<f64> = None;
-            while self.primary_index < RATE_LIMIT_WARNING_THRESHOLDS.len()
-                && primary_used_percent >= RATE_LIMIT_WARNING_THRESHOLDS[self.primary_index]
-            {
-                highest_primary = Some(RATE_LIMIT_WARNING_THRESHOLDS[self.primary_index]);
-                self.primary_index += 1;
-            }
-            if let Some(threshold) = highest_primary {
-                let limit_label = primary_window_minutes
-                    .map(get_limits_duration)
-                    .unwrap_or_else(|| "5h".to_string());
-                let remaining_percent = 100.0 - threshold;
-                warnings.push(format!(
-                    "Heads up, you have less than {remaining_percent:.0}% of your {limit_label} limit left. Run /status for a breakdown."
-                ));
-            }
-        }
-
-        warnings
-    }
-}
-
-pub(crate) fn get_limits_duration(windows_minutes: i64) -> String {
-    const MINUTES_PER_HOUR: i64 = 60;
-    const MINUTES_PER_DAY: i64 = 24 * MINUTES_PER_HOUR;
-    const MINUTES_PER_WEEK: i64 = 7 * MINUTES_PER_DAY;
-    const MINUTES_PER_MONTH: i64 = 30 * MINUTES_PER_DAY;
-    const ROUNDING_BIAS_MINUTES: i64 = 3;
-
-    let windows_minutes = windows_minutes.max(0);
-
-    if windows_minutes <= MINUTES_PER_DAY.saturating_add(ROUNDING_BIAS_MINUTES) {
-        let adjusted = windows_minutes.saturating_add(ROUNDING_BIAS_MINUTES);
-        let hours = std::cmp::max(1, adjusted / MINUTES_PER_HOUR);
-        format!("{hours}h")
-    } else if windows_minutes <= MINUTES_PER_WEEK.saturating_add(ROUNDING_BIAS_MINUTES) {
-        "weekly".to_string()
-    } else if windows_minutes <= MINUTES_PER_MONTH.saturating_add(ROUNDING_BIAS_MINUTES) {
-        "monthly".to_string()
-    } else {
-        "annual".to_string()
-    }
-}
-
-/// Common initialization parameters shared by all `ChatWidget` constructors.
-pub(crate) struct ChatWidgetInit {
-    pub(crate) config: Config,
-    pub(crate) frame_requester: FrameRequester,
-    pub(crate) app_event_tx: AppEventSender,
-    pub(crate) initial_user_message: Option<UserMessage>,
-    pub(crate) enhanced_keys_supported: bool,
-    pub(crate) auth_manager: Arc<AuthManager>,
-    pub(crate) models_manager: Arc<ModelsManager>,
-    pub(crate) feedback: codex_feedback::CodexFeedback,
-    pub(crate) is_first_run: bool,
-    pub(crate) feedback_audience: FeedbackAudience,
-    pub(crate) model: Option<String>,
-    // Shared latch so we only warn once about invalid status-line item IDs.
-    pub(crate) status_line_invalid_items_warned: Arc<AtomicBool>,
-    pub(crate) otel_manager: OtelManager,
-}
-
-#[derive(Default)]
-enum RateLimitSwitchPromptState {
-    #[default]
-    Idle,
-    Pending,
-    Shown,
-}
-
 #[derive(Debug, Clone, Default)]
 enum ConnectorsCacheState {
     #[default]
@@ -425,33 +268,6 @@ enum ConnectorsCacheState {
     Loading,
     Ready(ConnectorsSnapshot),
     Failed(String),
-}
-
-#[derive(Debug)]
-enum RateLimitErrorKind {
-    ModelCap {
-        model: String,
-        reset_after_seconds: Option<u64>,
-    },
-    UsageLimit,
-    Generic,
-}
-
-fn rate_limit_error_kind(info: &CodexErrorInfo) -> Option<RateLimitErrorKind> {
-    match info {
-        CodexErrorInfo::ModelCap {
-            model,
-            reset_after_seconds,
-        } => Some(RateLimitErrorKind::ModelCap {
-            model: model.clone(),
-            reset_after_seconds: *reset_after_seconds,
-        }),
-        CodexErrorInfo::UsageLimitExceeded => Some(RateLimitErrorKind::UsageLimit),
-        CodexErrorInfo::ResponseTooManyFailedAttempts {
-            http_status_code: Some(429),
-        } => Some(RateLimitErrorKind::Generic),
-        _ => None,
-    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -638,138 +454,6 @@ pub(crate) struct ActiveCellTranscriptKey {
     pub(crate) animation_tick: Option<u64>,
 }
 
-pub(crate) struct UserMessage {
-    text: String,
-    local_images: Vec<LocalImageAttachment>,
-    text_elements: Vec<TextElement>,
-    mention_bindings: Vec<MentionBinding>,
-}
-
-impl From<String> for UserMessage {
-    fn from(text: String) -> Self {
-        Self {
-            text,
-            local_images: Vec::new(),
-            // Plain text conversion has no UI element ranges.
-            text_elements: Vec::new(),
-            mention_bindings: Vec::new(),
-        }
-    }
-}
-
-impl From<&str> for UserMessage {
-    fn from(text: &str) -> Self {
-        Self {
-            text: text.to_string(),
-            local_images: Vec::new(),
-            // Plain text conversion has no UI element ranges.
-            text_elements: Vec::new(),
-            mention_bindings: Vec::new(),
-        }
-    }
-}
-
-pub(crate) fn create_initial_user_message(
-    text: Option<String>,
-    local_image_paths: Vec<PathBuf>,
-    text_elements: Vec<TextElement>,
-) -> Option<UserMessage> {
-    let text = text.unwrap_or_default();
-    if text.is_empty() && local_image_paths.is_empty() {
-        None
-    } else {
-        let local_images = local_image_paths
-            .into_iter()
-            .enumerate()
-            .map(|(idx, path)| LocalImageAttachment {
-                placeholder: local_image_label_text(idx + 1),
-                path,
-            })
-            .collect();
-        Some(UserMessage {
-            text,
-            local_images,
-            text_elements,
-            mention_bindings: Vec::new(),
-        })
-    }
-}
-
-// When merging multiple queued drafts (e.g., after interrupt), each draft starts numbering
-// its attachments at [Image #1]. Reassign placeholder labels based on the attachment list so
-// the combined local_image_paths order matches the labels, even if placeholders were moved
-// in the text (e.g., [Image #2] appearing before [Image #1]).
-fn remap_placeholders_for_message(message: UserMessage, next_label: &mut usize) -> UserMessage {
-    let UserMessage {
-        text,
-        text_elements,
-        local_images,
-        mention_bindings,
-    } = message;
-    if local_images.is_empty() {
-        return UserMessage {
-            text,
-            text_elements,
-            local_images,
-            mention_bindings,
-        };
-    }
-
-    let mut mapping: HashMap<String, String> = HashMap::new();
-    let mut remapped_images = Vec::new();
-    for attachment in local_images {
-        let new_placeholder = local_image_label_text(*next_label);
-        *next_label += 1;
-        mapping.insert(attachment.placeholder.clone(), new_placeholder.clone());
-        remapped_images.push(LocalImageAttachment {
-            placeholder: new_placeholder,
-            path: attachment.path,
-        });
-    }
-
-    let mut elements = text_elements;
-    elements.sort_by_key(|elem| elem.byte_range.start);
-
-    let mut cursor = 0usize;
-    let mut rebuilt = String::new();
-    let mut rebuilt_elements = Vec::new();
-    for mut elem in elements {
-        let start = elem.byte_range.start.min(text.len());
-        let end = elem.byte_range.end.min(text.len());
-        if let Some(segment) = text.get(cursor..start) {
-            rebuilt.push_str(segment);
-        }
-
-        let original = text.get(start..end).unwrap_or("");
-        let placeholder = elem.placeholder(&text);
-        let replacement = placeholder
-            .and_then(|ph| mapping.get(ph))
-            .map(String::as_str)
-            .unwrap_or(original);
-
-        let elem_start = rebuilt.len();
-        rebuilt.push_str(replacement);
-        let elem_end = rebuilt.len();
-
-        if let Some(remapped) = placeholder.and_then(|ph| mapping.get(ph)) {
-            elem.set_placeholder(Some(remapped.clone()));
-        }
-        elem.byte_range = (elem_start..elem_end).into();
-        rebuilt_elements.push(elem);
-        cursor = end;
-    }
-    if let Some(segment) = text.get(cursor..) {
-        rebuilt.push_str(segment);
-    }
-
-    UserMessage {
-        text: rebuilt,
-        local_images: remapped_images,
-        text_elements: rebuilt_elements,
-        mention_bindings,
-    }
-}
-
 impl ChatWidget {
     /// Synchronize the bottom-pane "task running" indicator with the current lifecycles.
     ///
@@ -951,7 +635,7 @@ impl ChatWidget {
     }
 
     fn log_websocket_timing_totals(&mut self, delta: RuntimeMetricsSummary) {
-        if let Some(label) = history_cell::runtime_metrics_label(delta.responses_api_summary()) {
+        if let Some(label) = history_cell::runtime_metrics_label(&delta.responses_api_summary()) {
             self.add_plain_history_lines(vec![
                 vec!["• ".dim(), format!("WebSocket timing: {label}").dark_gray()].into(),
             ]);
@@ -1279,7 +963,11 @@ impl ChatWidget {
                     .bottom_pane
                     .status_widget()
                     .map(super::status_indicator_widget::StatusIndicatorWidget::elapsed_seconds);
-                self.add_to_history(history_cell::FinalMessageSeparator::new(elapsed_seconds));            }
+                self.add_to_history(history_cell::FinalMessageSeparator::new(
+                    elapsed_seconds,
+                    Some(self.turn_runtime_metrics.clone()),
+                ));
+            }
             self.turn_runtime_metrics = RuntimeMetricsSummary::default();
             self.needs_final_message_separator = false;
             self.had_work_activity = false;
@@ -2174,7 +1862,10 @@ impl ChatWidget {
                     .status_widget()
                     .map(super::status_indicator_widget::StatusIndicatorWidget::elapsed_seconds)
                     .map(|current| self.worked_elapsed_from(current));
-                self.add_to_history(history_cell::FinalMessageSeparator::new(elapsed_seconds));
+                self.add_to_history(history_cell::FinalMessageSeparator::new(
+                    elapsed_seconds,
+                    Some(self.turn_runtime_metrics.clone()),
+                ));
                 self.needs_final_message_separator = false;
                 self.had_work_activity = false;
             } else if self.needs_final_message_separator {
@@ -4375,10 +4066,13 @@ impl ChatWidget {
     }
 
     pub(crate) fn add_ps_output(&mut self) {
-        let processes: Vec<String> = self
+        let processes = self
             .unified_exec_processes
             .iter()
-            .map(|process| process.command_display.clone())
+            .map(|process| history_cell::UnifiedExecProcessDetails {
+                command_display: process.command_display.clone(),
+                recent_chunks: process.recent_chunks.clone(),
+            })
             .collect();
         self.add_to_history(history_cell::new_unified_exec_processes_output(processes));
     }
