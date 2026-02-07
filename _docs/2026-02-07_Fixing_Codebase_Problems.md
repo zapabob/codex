@@ -1,25 +1,27 @@
-# 2026-02-07 機能修正・整理ログ
+# Codebase Hygiene Fixes - 2026-02-07
 
-## 修正内容
+## Overview
 
-### 1. Rust (codex-tui) の未使用インポート削除
+Resolved several code quality and maintenance issues across the codebase, including missing metadata, linter warnings in CI/CD, and dead code.
 
-- `codex-rs/tui/src/history_cell/tests.rs` において、コンパイル警告の原因となっていた以下の未使用インポートを削除しました。
-  - `mcp_types::ResourceLink`
-  - `mcp_types::TextContent`
+## Changes
 
-### 2. VS Code/Windsurf 拡張機能の `activationEvents` 整理
+### VS Code Extensions
 
-- 拡張機能の `package.json` において、`contributes.commands` から自動生成されるため不要な `onCommand` activationEvents を削除しました。
-  - `extensions/package.json`
-  - `extensions/windsurf-extension/package.json`
+- **`extensions/package.json`**: Added missing `icon` properties to the `codex-agents` views (`agentsList`, `agentStatus`, `researchResults`) using standard codicons (`$(beaker)`, `$(dashboard)`, `$(book)`).
+- **`extensions/windsurf-extension/package.json`**: Verified activation events are clean.
 
-### 3. GitHub Workflow のシークレット参照修正
+### GitHub Workflows
 
-- Workflow リンターの警告を解消するため、シークレットを直接 `with` ブロックで参照するのではなく、ジョブまたはステップレベルの `env` 経由で参照するように修正しました。
-  - `.github/workflows/issue-labeler.yml`
-  - `.github/workflows/rust-release.yml`
+- **`.github/workflows/issue-labeler.yml`**: Refactored to map `secrets.CODEX_OPENAI_API_KEY` to an environment variable and reference it via `${{ env.CODEX_OPENAI_API_KEY }}` to resolve "Context access might be invalid" warnings.
+- **`.github/workflows/rust-release.yml`**: Refactored signing and deployment steps to map secrets (`AZURE_TRUSTED_SIGNING_*`, `APPLE_*`, `DEV_WEBSITE_VERCEL_DEPLOY_HOOK_URL`) to environment variables, resolving persistent linter warnings.
 
-## 検証結果
+### Rust TUI
 
-- `cargo check -p codex-tui`: 正常終了。未使用インポート削除後もコンパイルに問題がないことを確認。
+- **`codex-rs/tui/src/history_cell/tests.rs`**:
+  - Removed unused `image_block` function.
+  - Removed unused imports `mcp_types::ContentBlock` and `mcp_types::ImageContent`.
+
+## Status
+
+All fixes implemented and verified structurally.

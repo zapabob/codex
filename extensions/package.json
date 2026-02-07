@@ -47,15 +47,18 @@
       "codex-agents": [
         {
           "id": "codex.agentsList",
-          "name": "Sub-Agents"
+          "name": "Sub-Agents",
+          "icon": "$(beaker)"
         },
         {
           "id": "codex.agentStatus",
-          "name": "Agent Status"
+          "name": "Agent Status",
+          "icon": "$(dashboard)"
         },
         {
           "id": "codex.researchResults",
-          "name": "Research Results"
+          "name": "Research Results",
+          "icon": "$(book)"
         }
       ]
     },

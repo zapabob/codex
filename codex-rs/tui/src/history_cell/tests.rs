@@ -20,8 +20,7 @@ use std::collections::HashMap;
 
 use codex_protocol::mcp::CallToolResult;
 use codex_protocol::mcp::Tool;
-use mcp_types::ContentBlock;
-use mcp_types::ImageContent;
+
 use std::time::Duration;
 use std::time::Instant;
 
@@ -49,15 +48,6 @@ fn render_lines(lines: &[Line<'static>]) -> Vec<String> {
 
 fn render_transcript(cell: &dyn HistoryCell) -> Vec<String> {
     render_lines(&cell.transcript_lines(u16::MAX))
-}
-
-fn image_block(data: &str) -> ContentBlock {
-    ContentBlock::ImageContent(ImageContent {
-        annotations: None,
-        data: data.to_string(),
-        mime_type: "image/png".into(),
-        r#type: "image".into(),
-    })
 }
 
 #[test]
