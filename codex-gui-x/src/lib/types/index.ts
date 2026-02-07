@@ -67,9 +67,11 @@ export interface SecurityScan {
   id: string;
   type: "dependency" | "code" | "secrets";
   status: "running" | "completed" | "failed";
+  success: boolean;
   findings: SecurityFinding[];
   startedAt: Date;
   completedAt?: Date;
+  [key: string]: unknown;
 }
 
 export interface SecurityFinding {
@@ -88,27 +90,31 @@ export interface ResearchResult {
   id: string;
   query: string;
   status: "searching" | "analyzing" | "completed" | "failed";
+  success: boolean;
   sources: ResearchSource[];
   summary?: string;
   startedAt: Date;
   completedAt?: Date;
+  [key: string]: unknown;
 }
 
 export interface WebResearchResult {
   id: string;
   query: string;
   status: "completed" | "failed";
+  success: boolean;
   output: string;
   startedAt: Date;
   completedAt?: Date;
   error?: string;
+  [key: string]: unknown;
 }
 
 export interface ResearchSource {
   url: string;
   title: string;
   snippet: string;
-  confidence: number;
+  confidence?: number;
   publishedAt?: Date;
 }
 
@@ -316,7 +322,7 @@ export interface XRReferenceSpace extends XRSpace {
   getOffsetReferenceSpace(originOffset: XRRigidTransform): XRReferenceSpace;
 }
 
-export interface XRSpace extends EventTarget {}
+export type XRSpace = EventTarget;
 
 export interface XRRigidTransform {
   position: DOMPointReadOnly;
