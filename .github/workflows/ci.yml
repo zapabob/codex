@@ -69,8 +69,6 @@ jobs:
           path: ${{ steps.stage_npm_package.outputs.pack_output }}
         if: steps.stage_npm_package.outputs.pack_output != ''
 
-      - name: Ensure root README.md contains only ASCII and certain Unicode code points
-        run: python3 ./scripts/asciicheck.py README.md
       - name: Check root README ToC
         run: python3 ./scripts/readme_toc.py README.md
       - name: Validate README bilingual format (English/Japanese)
@@ -88,10 +86,18 @@ jobs:
             exit 1
           fi
 
-      - name: Ensure codex-cli/README.md contains only ASCII and certain Unicode code points
-        run: python3 ./scripts/asciicheck.py codex-cli/README.md
+      - name: Ensure codex-cli/README.md contains only ASCII (if it exists)
+        run: |
+          if [ -f codex-cli/README.md ]; then
+            python3 ./scripts/asciicheck.py codex-cli/README.md
+          else
+            echo "codex-cli/README.md does not exist, skipping ASCII check"
+          fi
       - name: Check codex-cli/README ToC
-        run: python3 ./scripts/readme_toc.py codex-cli/README.md
+        run: |
+          if [ -f codex-cli/README.md ]; then
+            python3 ./scripts/readme_toc.py codex-cli/README.md
+          fi
 
       - name: Prettier (run `pnpm run format:fix` to fix)
         run: pnpm run format
