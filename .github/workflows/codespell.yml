@@ -19,6 +19,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create .codespellignore if not exists
+        run: |
+          if [ ! -f .codespellignore ]; then
+            echo "# Codespell ignore words list" > .codespellignore
+          fi
+
       - name: Annotate locations with typos
         uses: codespell-project/codespell-problem-matcher@9ba2c57125d4908eade4308f32c4ff814c184633 # v1
       - name: Codespell

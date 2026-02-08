@@ -2,12 +2,12 @@ name: Security Scan
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
     # Run daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 
 jobs:
   security-audit:
@@ -19,33 +19,33 @@ jobs:
       actions: read
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run npm audit
-      run: npm audit --audit-level high
+      - name: Run npm audit
+        run: npm audit --audit-level high
 
-    - name: Run security scan with CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: javascript, typescript
+      - name: Run security scan with CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
 
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:javascript"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
 
   rust-security-audit:
     name: Rust Security Audit
@@ -75,7 +75,7 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           rust-version: stable
-          manifest-path: ./Cargo.toml
+          manifest-path: codex-rs/Cargo.toml
 
       - name: Install cargo-audit
         uses: taiki-e/install-action@v2
@@ -91,112 +91,112 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run OWASP Dependency Check
-      uses: dependency-check/Dependency-Check_Action@main
-      with:
-        project: 'Codex'
-        path: '.'
-        format: 'ALL'
-        args: >
-          --enableRetired
-          --enableExperimental
-          --nvdValidForHours 24
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "Codex"
+          path: "."
+          format: "ALL"
+          args: >
+            --enableRetired
+            --enableExperimental
+            --nvdValidForHours 24
 
-    - name: Upload dependency check results
-      uses: actions/upload-artifact@v4
-      with:
-        name: dependency-check-report
-        path: reports/
+      - name: Upload dependency check results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports/
 
   sandbox-security-test:
     name: Sandbox Security Test
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build Codex
-      run: npm run build
+      - name: Build Codex
+        run: npm run build
 
-    - name: Run sandbox escape tests
-      run: |
-        # Create test sandbox
-        mkdir -p /tmp/sandbox-test
-        cd /tmp/sandbox-test
+      - name: Run sandbox escape tests
+        run: |
+          # Create test sandbox
+          mkdir -p /tmp/sandbox-test
+          cd /tmp/sandbox-test
 
-        # Test 1: File system isolation
-        echo "Testing file system isolation..."
-        timeout 30s node -e "
-        const { execSync } = require('child_process');
-        try {
-          execSync('node ../codex-cli/codex sandbox-test file-access');
-          console.log('✁EFile access test passed');
-        } catch (e) {
-          console.log('✁EFile access test failed:', e.message);
-        }
-        " || true
+          # Test 1: File system isolation
+          echo "Testing file system isolation..."
+          timeout 30s node -e "
+          const { execSync } = require('child_process');
+          try {
+            execSync('node ../codex-cli/codex sandbox-test file-access');
+            console.log('✁EFile access test passed');
+          } catch (e) {
+            console.log('✁EFile access test failed:', e.message);
+          }
+          " || true
 
-        # Test 2: Network isolation
-        echo "Testing network isolation..."
-        timeout 30s node -e "
-        const { execSync } = require('child_process');
-        try {
-          execSync('node ../codex-cli/codex sandbox-test network-access');
-          console.log('✁ENetwork isolation test passed');
-        } catch (e) {
-          console.log('✁ENetwork isolation test failed:', e.message);
-        }
-        " || true
+          # Test 2: Network isolation
+          echo "Testing network isolation..."
+          timeout 30s node -e "
+          const { execSync } = require('child_process');
+          try {
+            execSync('node ../codex-cli/codex sandbox-test network-access');
+            console.log('✁ENetwork isolation test passed');
+          } catch (e) {
+            console.log('✁ENetwork isolation test failed:', e.message);
+          }
+          " || true
 
-        # Test 3: Process isolation
-        echo "Testing process isolation..."
-        timeout 30s node -e "
-        const { execSync } = require('child_process');
-        try {
-          execSync('node ../codex-cli/codex sandbox-test process-creation');
-          console.log('✁EProcess isolation test passed');
-        } catch (e) {
-          console.log('✁EProcess isolation test failed:', e.message);
-        }
-        " || true
+          # Test 3: Process isolation
+          echo "Testing process isolation..."
+          timeout 30s node -e "
+          const { execSync } = require('child_process');
+          try {
+            execSync('node ../codex-cli/codex sandbox-test process-creation');
+            console.log('✁EProcess isolation test passed');
+          } catch (e) {
+            console.log('✁EProcess isolation test failed:', e.message);
+          }
+          " || true
 
   secrets-detection:
     name: Secrets Detection
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Run TruffleHog
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        base: main
-        head: HEAD
-        extra_args: --debug --only-verified
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
 
   container-security:
     name: Container Security Scan
@@ -204,28 +204,28 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Build test container
-      run: |
-        if [ -f "Dockerfile" ]; then
-          docker build -t codex-test .
-        else
-          echo "No Dockerfile found, skipping container scan"
-        fi
+      - name: Build test container
+        run: |
+          if [ -f "Dockerfile" ]; then
+            docker build -t codex-test .
+          else
+            echo "No Dockerfile found, skipping container scan"
+          fi
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      if: success()
-      with:
-        scan-type: 'image'
-        scan-ref: 'codex-test'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        if: success()
+        with:
+          scan-type: "image"
+          scan-ref: "codex-test"
+          format: "sarif"
+          output: "trivy-results.sarif"
 
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      if: success()
-      with:
-        sarif_file: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: success()
+        with:
+          sarif_file: "trivy-results.sarif"
