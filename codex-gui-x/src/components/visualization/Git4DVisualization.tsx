@@ -43,10 +43,10 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   sessionId 
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene>();
-  const rendererRef = useRef<THREE.WebGLRenderer>();
-  const cameraRef = useRef<THREE.PerspectiveCamera>();
-  const animationFrameRef = useRef<number>();
+  const sceneRef = useRef<THREE.Scene>(undefined);
+  const rendererRef = useRef<THREE.WebGLRenderer>(undefined);
+  const cameraRef = useRef<THREE.PerspectiveCamera>(undefined);
+  const animationFrameRef = useRef<number>(undefined);
   // const controlsRef = useRef<any>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -57,7 +57,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const [windowsAiMode, setWindowsAiMode] = useState(false);
   const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'ok' | 'offline' | 'loading'>('loading');
   const [backendMessage, setBackendMessage] = useState<string | null>(null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(sessionId ?? null);
@@ -173,6 +173,53 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     };
   }, [activeSessionId]);
 
+  const createCommitVisualization = React.useCallback((scene: THREE.Scene, commits: Git4DCommitData[]) => {
+    commits.forEach((commit, _index) => {
+      // Create commit node
+      const geometry = new THREE.SphereGeometry(0.1, 16, 16);
+      const material = new THREE.MeshPhongMaterial({
+        color: new THREE.Color().setHSL((commit.branch || 0) / 10, 0.8, 0.6),
+        emissive: new THREE.Color(0x111111),
+      });
+
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.set(
+        commit.x,
+        commit.y,
+        commit.z
+      );
+      sphere.userData = { commit, _index };
+      scene.add(sphere);
+
+      // Add connection lines to parent commits
+      if (commit.parents && commit.parents.length > 0) {
+        commit.parents.forEach((parentId: string) => {
+          const parentCommit = commits.find(c => c.id === parentId);
+          if (parentCommit) {
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(commit.x, commit.y, commit.z),
+              new THREE.Vector3(parentCommit.x, parentCommit.y, parentCommit.z),
+            ]);
+
+            const lineMaterial = new THREE.LineBasicMaterial({
+              color: 0x666666,
+              transparent: true,
+              opacity: 0.6,
+            });
+
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(line);
+          }
+        });
+      }
+
+      // Add labels if enabled
+      if (showLabels) {
+        // Label implementation would go here
+      }
+    });
+  }, [showLabels]);
+
   useEffect(() => {
     if (!mountRef.current) return;
 
@@ -192,22 +239,22 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     
-    // VirtualDesktop譛驕ｩ蛹・ 繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ隗｣蜒丞ｺｦ繧定ｪｿ謨ｴ
+    // VirtualDesktop最適化: レンダリング解像度を調整
     const renderScale = isVD && (vrMode || arMode) ? preset.renderScale : 1.0;
     const width = mountRef.current.clientWidth * renderScale;
     const height = mountRef.current.clientHeight * renderScale;
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, preset.targetFps / 60)); // FPS蛻ｶ髯舌↓蜷医ｏ縺帙※隱ｿ謨ｴ
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, preset.targetFps / 60)); // FPS制限に合わせて調整
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
     mountRef.current.appendChild(renderer.domElement);
     
-    // VirtualDesktop讀懷・譎ゅ・譛驕ｩ蛹夜←逕ｨ
+    // VirtualDesktop検出時の最適化適用
     if (isVD && (vrMode || arMode)) {
       console.log('VirtualDesktop detected - applying optimizations', preset);
-      // 繧ｹ繝医Μ繝ｼ繝溘Φ繧ｰ譛驕ｩ蛹悶ｒ驕ｩ逕ｨ
+      // ストリーミング最適化を適用
       if (renderer.domElement) {
         renderer.domElement.style.imageRendering = preset.renderScale < 1 ? 'pixelated' : 'auto';
       }
@@ -258,7 +305,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
       camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
       camera.updateProjectionMatrix();
       
-      // VirtualDesktop譛驕ｩ蛹・ 繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ隗｣蜒丞ｺｦ繧定ｪｿ謨ｴ
+      // VirtualDesktop最適化: レンダリング解像度を調整
       const renderScale = isVD && (vrMode || arMode) ? preset.renderScale : 1.0;
       const width = mountRef.current.clientWidth * renderScale;
       const height = mountRef.current.clientHeight * renderScale;
@@ -279,53 +326,6 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
       renderer.dispose();
     };
   }, [commits, isPlaying, timeScale, isVD, vrMode, arMode, preset, createCommitVisualization]);
-
-  const createCommitVisualization = React.useCallback((scene: THREE.Scene, commits: Git4DCommitData[]) => {
-    commits.forEach((commit, _index) => {
-      // Create commit node
-      const geometry = new THREE.SphereGeometry(0.1, 16, 16);
-      const material = new THREE.MeshPhongMaterial({
-        color: new THREE.Color().setHSL((commit.branch || 0) / 10, 0.8, 0.6),
-        emissive: new THREE.Color(0x111111),
-      });
-
-      const sphere = new THREE.Mesh(geometry, material);
-      sphere.position.set(
-        commit.x,
-        commit.y,
-        commit.z
-      );
-      sphere.userData = { commit, _index };
-      scene.add(sphere);
-
-      // Add connection lines to parent commits
-      if (commit.parents && commit.parents.length > 0) {
-        commit.parents.forEach((parentId: string) => {
-          const parentCommit = commits.find(c => c.id === parentId);
-          if (parentCommit) {
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-              new THREE.Vector3(commit.x, commit.y, commit.z),
-              new THREE.Vector3(parentCommit.x, parentCommit.y, parentCommit.z),
-            ]);
-
-            const lineMaterial = new THREE.LineBasicMaterial({
-              color: 0x666666,
-              transparent: true,
-              opacity: 0.6,
-            });
-
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            scene.add(line);
-          }
-        });
-      }
-
-      // Add labels if enabled
-      if (showLabels) {
-        // Label implementation would go here
-      }
-    });
-  }, [showLabels]);
 
   const generateMockCommits = () => {
     const commits = [];
@@ -477,6 +477,11 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
             label="Hand Tracking"
           />
         </Box>
+        {error && (
+          <Typography variant="body2" color="error" sx={{ mb: 2, p: 1, border: '1px solid currentColor', borderRadius: 1 }}>
+            Error: {error}
+          </Typography>
+        )}
         {backendMessage && (
           <Typography variant="caption" color="error" sx={{ display: 'block', mb: 2 }}>
             Backend note: {backendMessage}
