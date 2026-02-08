@@ -24,7 +24,7 @@ jobs:
         env:
           CODEX_OPENAI_API_KEY: ${{ secrets.CODEX_OPENAI_API_KEY }}
         with:
-          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          openai-api-key: ${{ env.CODEX_OPENAI_API_KEY }}
           allow-users: "*"
           prompt: |
             You are an assistant that reviews GitHub issues for the repository.
