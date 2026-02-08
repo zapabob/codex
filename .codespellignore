@@ -4,3 +4,24 @@ arent
 ot
 LOD
 Ue
+# Short word false positives in HTML reports
+fo
+te
+bu
+ue
+nd
+Te
+Fo
+Bu
+Nd
+AER
+# Archive HTML files (generated reports)
+./archive/
+# History files (auto-generated)
+./.specstory/
+# Build artifacts
+.codex/
+# Short words in HTML (false positives)
+The
+And
+For
