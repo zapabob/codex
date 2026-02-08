@@ -24,3 +24,6 @@ jobs:
         with:
           rust-version: stable
           manifest-path: codex-rs/Cargo.toml
+        env:
+          CARGO_NET_GIT_FETCH_WITH_CLI: true
+          RUSTC_WRAPPER: ""

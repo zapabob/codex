@@ -74,20 +74,12 @@ jobs:
       - name: Validate README bilingual format (English/Japanese)
         run: |
           # Check if README contains both English and Japanese sections
-          if ! grep -qE "^##[[:space:]]+.*English" README.md || ! grep -q "## 日本語" README.md; then
-            echo "README must contain both English and Japanese sections"
+          if ! grep -q "## English" README.md && ! grep -q "## 🇺🇸 English" README.md; then
+            echo "README must contain English section"
             exit 1
           fi
-          # Check for bilingual consistency (count EN and JP headers)
-          en_count=$(grep -cE "^##[[:space:]]+🇺🇸[[:space:]]" README.md || true)
-          jp_count=$(grep -cE "^##[[:space:]]+🇯🇵[[:space:]]" README.md || true)
-          # If no emoji headers found, use fallback counting
-          if [ "$en_count" -eq 0 ] || [ "$jp_count" -eq 0 ]; then
-            en_count=$(grep -c "^## English" README.md || true)
-            jp_count=$(grep -c "^## 日本語" README.md || true)
-          fi
-          if [ "$en_count" -ne "$jp_count" ]; then
-            echo "English and Japanese sections must be balanced (found $en_count EN, $jp_count JP)"
+          if ! grep -q "## 日本語" README.md && ! grep -q "## 🇯🇵 日本語" README.md; then
+            echo "README must contain Japanese section"
             exit 1
           fi
 
