@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Codex - AI Coding Assistant</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+        color: #fff;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+      header {
+        text-align: center;
+        padding: 60px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        margin-bottom: 40px;
+      }
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        background: linear-gradient(90deg, #00d4ff, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .subtitle {
+        font-size: 1.2rem;
+        color: #a0a0c0;
+        margin-bottom: 30px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 15px 40px;
+        background: linear-gradient(90deg, #00d4ff, #7c3aed);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 30px;
+        font-weight: bold;
+        transition: transform 0.3s;
+      }
+      .btn:hover {
+        transform: scale(1.05);
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 60px;
+      }
+      .feature {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 30px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .feature h3 {
+        margin-bottom: 15px;
+        color: #00d4ff;
+      }
+      .version {
+        color: #7c3aed;
+        font-size: 0.9rem;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Codex</h1>
+        <p class="subtitle">
+          Next-generation AI Coding Assistant | 次世代AIコーディングアシスタント
+        </p>
+        <p class="version">Current Release: v2.14.1</p>
+        <a
+          href="https://github.com/zapabob/codex/releases/tag/v2.14.1"
+          class="btn"
+          >Download v2.14.1</a
+        >
+      </header>
+      <div class="features">
+        <div class="feature">
+          <h3>🚀 High Performance</h3>
+          <p>
+            Rust 2024 core with sub-millisecond latency and thread-safe
+            orchestration.
+          </p>
+        </div>
+        <div class="feature">
+          <h3>🔒 Enterprise Security</h3>
+          <p>
+            Zero-trust sandboxing with native Windows isolation and audit
+            trails.
+          </p>
+        </div>
+        <div class="feature">
+          <h3>🤖 Autonomous Agents</h3>
+          <p>
+            Parallel sub-agents with A2A coordination for 2.6x development
+            speedup.
+          </p>
+        </div>
+        <div class="feature">
+          <h3>🎮 VR/AR Visualization</h3>
+          <p>Git4D 3D visualization with immersive architectural reviews.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
