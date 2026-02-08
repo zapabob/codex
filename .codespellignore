@@ -19,6 +19,15 @@ AER
 ./archive/
 # Build artifacts
 .codex/
+# Build error logs (generated)
+./codex-rs/build_error*.txt
+./gui/gui_build_final*.txt
+# Generated docs with encoding issues
+./gui/_docs/
+# Generated _docs
+./_docs/
+# Playwright reports (generated)
+./gui/playwright-report/
 # Short words in HTML (false positives)
 The
 And
@@ -72,3 +81,14 @@ vEw
 Stess
 EHR
 Splitted
+emai
+Lik
+conver
+hel
+nce
+definitio
+ane
+strin
+valu
+additiona
+fle
