@@ -66,7 +66,7 @@ export function SecurityPage() {
       </nav>
 
       <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {activeTab === 'dashboard' && <SecurityDashboard metrics={metrics} alerts={alerts} status="secure" />}
+        {activeTab === 'dashboard' && <SecurityDashboard metrics={metrics} alerts={alerts} />}
         {activeTab === 'scanner' && <MalwareScanner onScanComplete={() => {}} />}
         {activeTab === 'quarantine' && <QuarantineManager onFileRestored={() => {}} onFileDeleted={() => {}} />}
         {activeTab === 'monitor' && <SecurityMonitor />}

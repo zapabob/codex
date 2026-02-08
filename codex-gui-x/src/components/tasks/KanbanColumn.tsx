@@ -1,5 +1,5 @@
 import type { TaskColumn, TaskStatus } from '../../types/tasks'
-import { KanbanCard } from './KanbanCard'
+import { KanbanCard } from './KanbanCard.tsx'
 import { Badge } from '../atoms/Badge'
 
 interface KanbanColumnProps {
