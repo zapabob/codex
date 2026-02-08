@@ -19,8 +19,10 @@ AER
 ./archive/
 # Build artifacts
 .codex/
-# Build error logs (generated)
+# Generated build logs (skip all build error and log files)
 ./codex-rs/build_error*.txt
+./codex-rs/build_log*.txt
+./codex-rs/check_error*.txt
 ./gui/gui_build_final*.txt
 # Generated docs with encoding issues
 ./gui/_docs/
@@ -92,3 +94,13 @@ strin
 valu
 additiona
 fle
+ANDLE
+erro
+dentifier
+DEFAUL
+variabl
+thi
+previou
+AGS
+Windo
+cripts
