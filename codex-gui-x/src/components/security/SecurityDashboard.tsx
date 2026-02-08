@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,20 +11,17 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js'
-import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import { Line, Doughnut } from 'react-chartjs-2'
 import { Card } from '../atoms/Card'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import type { SecurityMetrics, SecurityAlert, SecurityStatus } from '../../types/security'
 import {
   Shield,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
   Activity,
   FileText,
-  Clock,
-  TrendingUp
+  XCircle,
+  AlertTriangle
 } from 'lucide-react'
 
 ChartJS.register(
@@ -45,22 +42,10 @@ interface SecurityDashboardProps {
   status: SecurityStatus
 }
 
-export function SecurityDashboard({ metrics, alerts, status }: SecurityDashboardProps) {
+export function SecurityDashboard({ metrics, alerts }: SecurityDashboardProps) {
   const [now] = useState(() => Date.now())
-  const securityBreakdown = useMemo(() => {
-    const threatScore = Math.max(0, 100 - (metrics.threatsDetected * 10))
-    const scanScore = metrics.lastScan ? Math.min(100, (now - metrics.lastScan.getTime()) / (24 * 60 * 60 * 1000) * -10 + 100) : 50
-    const alertScore = Math.max(0, 100 - (alerts.filter(a => !a.resolved).length * 5))
-    const quarantineScore = Math.max(0, 100 - (metrics.quarantinedFiles * 2))
-
-    return {
-      threatScore,
-      scanScore,
-      alertScore,
-      quarantineScore,
-      overall: (threatScore + scanScore + alertScore + quarantineScore) / 4
     }
-  }, [metrics, alerts])
+  }, [metrics, alerts, now])
 
   const chartTheme = {
     textColor: 'rgba(255, 255, 255, 0.7)',

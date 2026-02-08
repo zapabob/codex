@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { SecurityDashboard } from './SecurityDashboard'
 import { MalwareScanner } from './MalwareScanner'
 import { QuarantineManager } from './QuarantineManager'
 import { SecurityMonitor } from './SecurityMonitor'
-import { Badge } from '../atoms/Badge'
-import { SecurityMetrics, SecurityAlert, SecurityStatus } from '../../types/security'
-import { Shield, Search, Lock, Activity, FileBarChart } from 'lucide-react'
+import type { SecurityMetrics, SecurityAlert } from '../../types/security'
+import { Shield, Search, Lock, Activity } from 'lucide-react'
 
 export function SecurityPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'scanner' | 'quarantine' | 'monitor'>('dashboard')
-  const [metrics, setMetrics] = useState<SecurityMetrics>({
+  const [metrics] = useState<SecurityMetrics>({
     lastScan: new Date(),
     totalScans: 42,
     threatsDetected: 2,
@@ -18,7 +17,7 @@ export function SecurityPage() {
     systemHealth: 94,
     realTimeMonitoring: true
   })
-  const [alerts, setAlerts] = useState<SecurityAlert[]>([
+  const [alerts] = useState<SecurityAlert[]>([
     { id: 'a1', type: 'malware', severity: 'critical', title: 'Suspicious Execution', description: 'Unauthorized binary attempted memory injection', affectedFiles: ['sys_init.exe'], timestamp: new Date(), resolved: false }
   ])
 
@@ -57,7 +56,7 @@ export function SecurityPage() {
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as 'dashboard' | 'scanner' | 'quarantine' | 'monitor')}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-2xl shadow-primary/30 scale-105' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}`}
           >
             <tab.icon size={16} />

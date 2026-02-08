@@ -1,27 +1,28 @@
-import React, { forwardRef } from 'react';
-import { LinearProgress, LinearProgressProps, Box, Typography, SxProps, Theme } from '@mui/material';
-import { motion } from 'framer-motion';
+import { forwardRef } from 'react';
+import { LinearProgress, Box, Typography } from '@mui/material';
+import type { LinearProgressProps, SxProps, Theme } from '@mui/material';
 
-export interface ProgressProps extends Omit<LinearProgressProps, 'sx'> {
+export interface ProgressProps extends Partial<LinearProgressProps> {
   value: number;
   label?: string;
   showValue?: boolean;
+  className?: string;
   sx?: SxProps<Theme>;
 }
 
 export const Progress = forwardRef<HTMLDivElement, ProgressProps>(
-  ({ value, label, showValue = false, sx, ...props }, ref) => {
+  ({ value, label, showValue = false, className, sx, ...props }, ref) => {
     return (
-      <Box sx={{ width: '100%', ...sx }} ref={ref}>
+      <Box ref={ref} className={className} sx={{ width: '100%', ...sx }}>
         {(label || showValue) && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             {label && (
-              <Typography variant="caption" sx={{ flexGrow: 1, fontWeight: 600, color: 'text.secondary' }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                 {label}
               </Typography>
             )}
             {showValue && (
-              <Typography variant="caption" sx={{ fontWeight: 700, fontMono: true }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>
                 {Math.round(value)}%
               </Typography>
             )}
@@ -47,5 +48,3 @@ export const Progress = forwardRef<HTMLDivElement, ProgressProps>(
 );
 
 Progress.displayName = 'Progress';
-
-export default Progress;

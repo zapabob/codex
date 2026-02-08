@@ -1,5 +1,6 @@
-import React, { forwardRef } from 'react';
-import { Box, Typography, SxProps, Theme } from '@mui/material';
+import { forwardRef } from 'react';
+import { Box } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import { motion } from 'framer-motion';
 
 export interface BadgeProps {
@@ -53,7 +54,7 @@ export const Badge = forwardRef<HTMLDivElement, BadgeProps>(
         case 'secondary':
           return {
             ...styles,
-            bgcolor: `${colorValue}22`, // 13% opacity
+            bgcolor: `${colorValue}22`,
             color: colorValue,
           };
         case 'ghost':
@@ -74,7 +75,6 @@ export const Badge = forwardRef<HTMLDivElement, BadgeProps>(
     return (
       <MotionBox
         ref={ref}
-        component="span"
         sx={getStyles()}
         className={className}
         initial={{ scale: 0.9, opacity: 0 }}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,9 +18,11 @@ import { Activity, ShieldCheck, Zap, Globe, HardDrive, Cpu } from 'lucide-react'
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 export function SecurityMonitor() {
-  const [activeEvents, setActiveEvents] = useState<any[]>([])
+  const [activeEvents, setActiveEvents] = useState<{ id: number; type: string; msg: string; time: string }[]>([])
   const [monitoring, setMonitoring] = useState(false)
   const [dataPoints, setDataPoints] = useState<number[]>([40, 45, 42, 48, 44, 46, 50])
+
+  // monitoring logic doesn't strictly need a ref if we just use setInterval in effect
 
   useEffect(() => {
     if (!monitoring) return

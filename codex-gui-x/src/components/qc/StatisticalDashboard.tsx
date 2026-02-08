@@ -14,7 +14,7 @@ import {
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import { Card } from '../atoms/Card'
 import { Badge } from '../atoms/Badge'
-import type { QualityMetric, QCProcess, AnovaResult } from '../../types/qc'
+import type { QualityMetric, AnovaResult } from '../../types/qc'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 ChartJS.register(

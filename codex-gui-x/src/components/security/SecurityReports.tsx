@@ -1,15 +1,11 @@
 import { useState } from 'react'
 import { Card } from '../atoms/Card'
-import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
-import { ScanResult, SecurityAlert, SecurityMetrics } from '../../types/security'
+import type { ScanResult, SecurityAlert, SecurityMetrics } from '../../types/security'
 import {
   FileText,
   Download,
-  Calendar,
   Shield,
-  AlertTriangle,
-  CheckCircle,
   BarChart3,
   Clock
 } from 'lucide-react'
@@ -23,6 +19,14 @@ interface SecurityReportsProps {
 export function SecurityReports({ scanResults, alerts, metrics }: SecurityReportsProps) {
   const [selectedTimeRange, setSelectedTimeRange] = useState<'24h' | '7d' | '30d' | '90d'>('7d')
   const [isGenerating, setIsGenerating] = useState(false)
+
+  // Summary data could be used here if needed
+  const summaryInfo = {
+    totalScans: metrics.totalScans,
+    detected: alerts.length,
+    resultsCount: scanResults.length
+  };
+  console.log('Report Summary:', summaryInfo);
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -43,7 +47,7 @@ export function SecurityReports({ scanResults, alerts, metrics }: SecurityReport
             <div className="flex items-center gap-3">
                 <select 
                     value={selectedTimeRange}
-                    onChange={(e) => setSelectedTimeRange(e.target.value as any)}
+                    onChange={(e) => setSelectedTimeRange(e.target.value as '24h' | '7d' | '30d' | '90d')}
                     className="bg-muted/30 border border-border rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-primary/50"
                 >
                     <option value="24h">L-24 Hours</option>

@@ -70,7 +70,7 @@ export function QCPage() {
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as 'dashboard' | 'automation' | 'monitoring' | 'alerts')}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-[1.5rem] text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-105' : 'hover:bg-muted font-medium'}`}
           >
             <tab.icon size={16} />

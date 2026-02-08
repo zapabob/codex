@@ -1,4 +1,8 @@
-import { useRef } from 'react'
+import { useMemo } from 'react'
+import type {
+  ChartData,
+  ChartOptions
+} from 'chart.js'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,7 +15,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import { Task } from '../../types/tasks'
+import type { Task } from '../../types/tasks'
 import { Card } from '../atoms/Card'
 import { Badge } from '../atoms/Badge'
 import { Briefcase, CheckCircle2, Clock, AlertCircle, BarChart3, TrendingUp } from 'lucide-react'
@@ -23,7 +27,7 @@ interface GanttChartProps {
 }
 
 export function GanttChart({ tasks }: GanttChartProps) {
-  const chartData = {
+  const chartData: ChartData<'bar'> = useMemo(() => ({
     labels: tasks.map(t => t.title),
     datasets: [{
       label: 'Phase Completion (%)',
@@ -38,9 +42,9 @@ export function GanttChart({ tasks }: GanttChartProps) {
       borderWidth: 1,
       borderRadius: 12,
     }]
-  }
+  }), [tasks])
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<'bar'> = useMemo(() => ({
     indexAxis: 'y' as const,
     responsive: true,
     maintainAspectRatio: false,
@@ -59,7 +63,7 @@ export function GanttChart({ tasks }: GanttChartProps) {
         x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: 'rgba(255, 255, 255, 0.5)', font: { size: 10 } } },
         y: { grid: { display: false }, ticks: { color: 'rgba(255, 255, 255, 0.7)', font: { size: 11, weight: 'bold' as const } } }
     }
-  }
+  }), [])
 
   const stats = {
     total: tasks.length,
@@ -108,7 +112,7 @@ export function GanttChart({ tasks }: GanttChartProps) {
         <div className="p-6">
             <h3 className="text-lg font-bold mb-4 italic">Dependency Logic</h3>
             <div className="space-y-3">
-                {tasks.slice(0, 3).map((t, i) => (
+                {tasks.slice(0, 3).map((_, i) => (
                     <div key={i} className="p-4 rounded-xl bg-muted/20 border border-border flex items-center gap-4 group hover:bg-muted/30 transition-all">
                         <AlertCircle size={16} className="text-indigo-400" />
                         <div className="flex-1">

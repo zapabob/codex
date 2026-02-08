@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { KanbanBoard } from './KanbanBoard'
 import { GanttChart } from './GanttChart'
-import { Task, TaskColumn } from '../../types/tasks'
+import type { Task, TaskColumn } from '../../types/tasks'
 import { Layout, BarChart, Plus, Filter, Search } from 'lucide-react'
 import { Button } from '../atoms/Button'
 
@@ -64,7 +64,7 @@ export function TasksPage() {
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as 'kanban' | 'gantt')}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-2xl shadow-primary/30 scale-105' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}`}
           >
             <tab.icon size={16} />

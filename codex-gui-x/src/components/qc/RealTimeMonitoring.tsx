@@ -13,7 +13,7 @@ import { Line } from 'react-chartjs-2'
 import { Card } from '../atoms/Card'
 import { Button } from '../atoms/Button'
 import type { QualityMetric, QCProcess } from '../../types/qc'
-import { Activity, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { Activity, XCircle } from 'lucide-react'
 
 ChartJS.register(
   CategoryScale,
@@ -27,16 +27,15 @@ ChartJS.register(
 
 interface RealTimeMonitoringProps {
   metrics: QualityMetric[]
-  processes: QCProcess[]
 }
 
-export function RealTimeMonitoring({ metrics, processes }: RealTimeMonitoringProps) {
+export function RealTimeMonitoring({ metrics }: RealTimeMonitoringProps) {
   const [isMonitoring, setIsMonitoring] = useState(false)
   const [realtimeData, setRealtimeData] = useState<Array<{
     timestamp: Date
     metrics: Record<string, number>
   }>>([])
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<any>(null)
 
   const toggleMonitoring = () => {
     if (isMonitoring) {
