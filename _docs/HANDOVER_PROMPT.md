@@ -1,41 +1,47 @@
-# Project Handover: GUI Integration & Migration
+# Handover Meta-Prompt: GUI Enhancement & Production Readiness
 
-## Current Objective
-Migrate legacy GUI features (Visualization, VR, Plans, Virtual OS) from the legacy `gui` (Next.js) project to the new `codex-gui-x` (Vite) project.
+## Context & Objectives
+You are taking over a project focused on the **Codex** ecosystem. The immediate priority is to improve the GUI and prepare it for production-level implementation.
 
-## Current Status (2026-02-07)
-- **Component Migration**: All core components from `gui/src/components` have been moved to `codex-gui-x/src/components`.
-- **Backend Sync**: Resolved `schemars` trait bound errors in `codex-rs/core/src/config/mod.rs` to allow clean back-and-forth between TOML and JSON.
-- **Frontend Integration**: Updated `App.tsx` with navigation for the new views.
-- **Refactoring Progress**:
-  - `PlanCreator.tsx`: Fixed API client instantiation, imports, and property mapping (snake_case from API to local camelCase).
-  - `VirtualEnvironmentManager.tsx`: Standardized MUI props (`small` vs `sm`, `outlined` vs `outline`), resolved React purity issues (`Date.now()` during render).
-  - `Git4DVisualization.tsx`: Updated Three.js type definitions and resolved hook dependency warnings.
-- **Build Status**: `npm run build` currently reports **344 errors**. These are mostly concentrated in:
-  - WebXR API types (missing `@types/webxr` or explicit definitions).
-  - Property mismatches in MUI components that were slightly different between Next.js and Vite environments.
-  - Remaining snake_case vs camelCase mapping issues in some components.
+### Current State
+1. **Dual GUI Environments**:
+    - **`gui/` (Legacy/Next.js)**: A comprehensive but slow Next.js application. Uses `pnpm` for dependencies. Contains the existing `gui-tests` suite (Playwright).
+    - **`codex-gui-x/` (New/Vite)**: A high-performance Vite-based React application. This is the preferred direction for future development but currently lacks full test coverage.
+2. **Recent Fixes**:
+    - Cleaned `config.toml` (removed invalid/experimental keys to align with strict schema).
+    - Fixed `Git4DVisualization.tsx` (Vite) TypeScript errors (hoisting, `useRef` init) and added error display.
+    - Updated `issue-labeler.yml` for correct secret handling.
+    - Successfully built and installed `codex 2.14.1` using 12-core parallel build.
 
-## Recent Changes & Important Files
-- `codex-gui-x/src/components/plan/PlanCreator.tsx`: Major clean-up.
-- `codex-gui-x/src/components/virtual-os/VirtualEnvironmentManager.tsx`: MUI standardization.
-- `codex-gui-x/src/components/visualization/Git4DVisualization.tsx`: Three.js integration fix.
-- `codex-gui-x/src/lib/types/virtual-os.ts`: Shared types for the Virtual OS module.
-- `codex-gui-x/src/mui/Grid2.tsx`: Recreated MUI Grid2 component for Vite compatibility.
+### GUI Test Suite Findings (`gui-tests`)
+- **Results**: 6 Pass / 19 Fail.
+- **Critical Issues**: Persistent timeouts due to slow hydration in the Next.js `gui` app. Mismatched selectors for Japanese labels (e.g., `エージェント`).
+- **Dependency Note**: The `gui/` directory **MUST** use `pnpm` to avoid dependency conflicts encountered with standard `npm`.
 
-## Pending Tasks (Next Steps)
-1. **Resolve Build Errors**:
-   - Install `@types/webxr` or provide global type definitions for `XR` types used in `webxr-manager.ts`.
-   - Fix remaining `createdAt` vs `created_at` in rendering sections of `PlanCreator.tsx`.
-   - Double-check all MUI `Button` and `Select` components for prop compatibility.
-2. **WebXR Support**: Ensure hand tracking and VR scenes correctly initialize with `@react-three/xr`.
-3. **Manual Verification**: Run `npm run dev` and navigate through all new views to ensure no runtime crashes.
+## Priority Tasks for the Next Agent
 
-## Environment Notes
-- Vite environment variables use `import.meta.env.VITE_API_URL` instead of `process.env.NEXT_PUBLIC_API_URL`.
-- Path aliases are configured for `@/` pointing to `src/`.
+### 1. GUI Consolidation & Optimization
+- **Goal**: Move features from `gui/` (Next.js) to `codex-gui-x/` (Vite) to leverage the faster build system and cleaner architecture.
+- **Focus**: Port the `DashboardLayout`, `Sidebar`, and specialized views (QC, Security, Tasks) to the Vite environment.
+- **Refinement**: Implement "Production Grade" UI/UX. Use the rich aesthetics guidelines (glassmorphism, micro-animations, curated palettes) to ensure a premium feel.
 
-## Artifacts
-- `task.md`: Current task tracking.
-- `implementation_plan.md`: Initial plan for migration.
-- `walkthrough.md`: Proof of work (so far).
+### 2. Test Alignment
+- **Goal**: Align `gui-tests` with the actual UI state.
+- **Action**: Update Playwright selectors in `gui-tests/tests/gui-basic.spec.js` to match the current DOM structure.
+- **Target**: Eventually point the tests to `codex-gui-x` once the features are migrated.
+
+### 3. Production Readiness
+- **Binary Stability**: Ensure the `codex` command remains functional and correctly handles the cleaned `config.toml`.
+- **Error Handling**: Expand the visible error reporting (like the one added to `Git4DVisualization.tsx`) across all major UI components.
+- **Verification**: Run `npm run typecheck` in the target GUI project and ensure zero errors.
+
+## Instructions
+1. **Read these artifacts first**:
+    - `_docs/2026-02-08_codebase-cleanup.md`
+    - `C:\Users\downl\.gemini\antigravity\brain\46dc582d-3238-41c2-b089-1ce9f35b5ae5\walkthrough-gui-tests.md`
+2. **Standard Workflow**:
+    - Create an implementation plan before major migrations.
+    - Use `pnpm` for the legacy `gui` and `npm` for `codex-gui-x`.
+    - Maintain the Implementation Log in `_docs/` following the `yyyy-mm-dd_feature.md` format.
+
+Good luck.

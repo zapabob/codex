@@ -26,8 +26,11 @@ import { Git4DVisualization } from './components/visualization/Git4DVisualizatio
 import VRInterface from './components/vr/VRInterface'
 import { PlanCreator } from './components/plan/PlanCreator'
 import { VirtualEnvironmentManager } from './components/virtual-os/VirtualEnvironmentManager'
+import { QCPage } from './components/qc/QCPage'
+import { SecurityPage } from './components/security/SecurityPage'
+import { TasksPage } from './components/tasks/TasksPage'
 
-type View = 'chat' | 'orchestration' | 'auditor' | 'visualization' | 'vr' | 'plans' | 'virtual-os'
+type View = 'chat' | 'orchestration' | 'auditor' | 'visualization' | 'vr' | 'plans' | 'virtual-os' | 'qc' | 'security' | 'tasks'
 
 function App() {
   const { connected } = useBridge()
@@ -68,6 +71,12 @@ function App() {
             onEnvironmentDelete={() => {}} 
           />
         );
+      case 'qc':
+        return <QCPage />;
+      case 'security':
+        return <SecurityPage />;
+      case 'tasks':
+        return <TasksPage />;
       case 'chat':
       default:
         return (
@@ -157,10 +166,34 @@ function App() {
           </button>
           <button 
             onClick={() => setCurrentView('auditor')}
-            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-sm ${currentView === 'auditor' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'hover:bg-muted'}`}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-all text-sm group ${currentView === 'auditor' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'hover:bg-muted/50 hover:translate-x-1'}`}
           >
-            <ShieldCheck size={14} />
+            <ShieldCheck size={14} className="group-hover:scale-110 transition-transform" />
             <span>QA Auditor</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('qc')}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-all text-sm group ${currentView === 'qc' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' : 'hover:bg-muted/50 hover:translate-x-1'}`}
+          >
+            <Zap size={14} className="group-hover:scale-110 transition-transform" />
+            <span>QC管理</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('security')}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-all text-sm group ${currentView === 'security' ? 'bg-red-500/15 text-red-400 border border-red-500/30' : 'hover:bg-muted/50 hover:translate-x-1'}`}
+          >
+            <ShieldCheck size={14} className="group-hover:scale-110 transition-transform" />
+            <span>セキュリティ</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentView('tasks')}
+            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-all text-sm group ${currentView === 'tasks' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' : 'hover:bg-muted/50 hover:translate-x-1'}`}
+          >
+            <ClipboardList size={14} className="group-hover:scale-110 transition-transform" />
+            <span>タスク管理</span>
           </button>
 
           <button 
