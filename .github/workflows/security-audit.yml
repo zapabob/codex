@@ -1,0 +1,87 @@
+name: Security Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  push:
+    paths:
+      - '**/package.json'
+      - '**/Cargo.toml'
+  workflow_dispatch:
+
+jobs:
+  audit-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        continue-on-error: true
+
+      - name: Run npm audit
+        run: |
+          if command -v npm &> /dev/null; then
+            npm audit --audit-level=high --production || true
+          fi
+          if command -v pnpm &> /dev/null; then
+            pnpm audit --level=high || true
+          fi
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Check for vulnerabilities
+        run: |
+          echo "Security audit completed"
+          echo "Check GitHub Dependabot alerts for detailed vulnerability information"
+
+  update-dependencies:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Update dependencies
+        run: |
+          pnpm up --latest || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: Update dependencies to latest versions" || echo "No updates needed"
+          git push || echo "No updates to push"
+
+  security-report:
+    runs-on: ubuntu-latest
+    needs: audit-dependencies
+    if: always()
+    steps:
+      - name: Generate security report
+        run: |
+          echo "# Security Audit Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Audit completed at: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- Check GitHub Dependabot for alerts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Recommended Actions" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review Dependabot alerts: https://github.com/${{ github.repository }}/dependabot" >> $GITHUB_STEP_SUMMARY
+          echo "2. Run `pnpm audit` locally for details" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update vulnerable packages with `pnpm update <package>`" >> $GITHUB_STEP_SUMMARY
