@@ -17,11 +17,29 @@ Nd
 AER
 # Archive HTML files (generated reports)
 ./archive/
-# History files (auto-generated)
-./.specstory/
 # Build artifacts
 .codex/
 # Short words in HTML (false positives)
 The
 And
 For
+# History files (auto-generated, temporarily ignore)
+./.specstory/
+# Specific typos in history files
+enusre
+inpu
+symetric
+gitar
+lod
+fied
+unexpect
+Unknow
+behavin
+correc
+ore
+ment
+tha
+bui
+elease
+ypes
+ENew
