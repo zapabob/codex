@@ -74,7 +74,7 @@ jobs:
       - name: Validate README bilingual format (English/Japanese)
         run: |
           # Check if README contains both English and Japanese sections
-          if ! grep -q "## English" README.md || ! grep -q "## 日本語" README.md; then
+          if ! grep -qE "^##[[:space:]]*English" README.md || ! grep -q "## 日本語" README.md; then
             echo "README must contain both English and Japanese sections"
             exit 1
           fi
