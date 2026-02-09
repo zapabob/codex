@@ -1,8 +1,25 @@
 # Codex - AI Coding Assistant | AIコーディングアシスタント
 
+\*\*
+
+<div align="center">
+  <img src="docs/assets/hero-banner.png" alt="Codex AI Banner" width="100%">
+</div>
+
+## 📜 Development History / 開発履歴
+
+| Version     | Key Features & Implementation Details (English)                                                    | 実装履歴・主要機能 (日本語)                                                                               |
+| :---------- | :------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| **v2.15.1** | **A2A Swarm Intelligence**: Real-time agent coordination. **GUI-X**: Next.js 15/React 19 frontend. | **A2Aスウォーム・インテリジェンス**: エージェント間リアルタイム協調。**GUI-X**: Next.js 15/React 19採用。 |
+| **v2.12.0** | **QC Optimization**: LLM output benchmarking. **CUDA 12**: 3.7x faster semantic search.            | **QC最適化**: LLM出力のベンチマーク比較。**CUDA 12**: セマンティック検索の3.7倍高速化。                   |
+| **v2.10.0** | **Rust 2024**: Memory safety & high-concurrency core. **MCP 1.0**: Standardized tool-use.          | **Rust 2024**: メモリ安全性と高並列コア。**MCP 1.0**: 標準化されたツール利用プロトコル。                  |
+| **v2.5.0**  | **Zero-Trust Sandbox**: Win32 Job Objects isolation. **Git Worktree**: Parallel agent dev.         | **ゼロトラスト・サンドボックス**: Win32 Job Objectsによる隔離。**Git Worktree**: エージェント並列開発。   |
+
+\*\*
+
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-v2.5.1-blue)](./docs/v2.5.1_Release_Details.md)
+[![Version](https://img.shields.io/badge/version-v2.15.1-blue)](./docs/v2.15.1_Release_Details.md)
 [![Rust](https://img.shields.io/badge/rust-2024-orange)](https://www.rust-lang.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-5.0-blue)](https://www.typescriptlang.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](./INSTALL.md)
@@ -32,7 +49,7 @@ Key pillars of this project include:
 - **🤖 Autonomous Swarms** - Parallel sub-agents (Backend, QA, Frontend) with A2A coordination.
 - **🎮 Immersive Repositories** - Git4D 3D visualization with VR/AR support.
 
-### 🌟 Latest in v2.5.1 (Unique & Official Features)
+### 🌟 Latest in v2.15.1 (Unique & Official Features)
 
 We emphasize **technical excellence** and **innovation** by integrating the best of official features with our unique competitive additions.
 
@@ -66,7 +83,7 @@ We emphasize **technical excellence** and **innovation** by integrating the best
 - **🤖 自律型エージェント群** - A2A通信を介した並列サブエージェント（Backend, QA, Frontend）の協調。
 - **🎮 イマーシブ・リポジトリ** - VR/ARに対応したGit4D 3D可視化。
 
-### 🌟 v2.5.1 最新機能 (独自機能 & 公式統合)
+### 🌟 v2.15.1 最新機能 (独自機能 & 公式統合)
 
 公式の最新機能を完全に取り込みつつ、他にはない独自の**技術的卓越性**と**革新性**を強調しています。
 
@@ -108,6 +125,6 @@ This repository showcases mastery in **high-performance systems**, **AI orchestr
 **Built with ❤️ and Rust 2024**  
 **Rust 2024と情熱を持って構築**
 
-[Issues](https://github.com/zapabob/Codex/issues) | [Releases](https://github.com/zapabob/Codex/releases) | [Documentation](./docs/v2.5.1_Release_Details.md)
+[Issues](https://github.com/zapabob/Codex/issues) | [Releases](https://github.com/zapabob/Codex/releases) | [Documentation](./docs/v2.15.1_Release_Details.md)
 
 </div>
