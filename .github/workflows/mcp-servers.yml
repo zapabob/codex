@@ -1,0 +1,51 @@
+name: mcp-servers
+
+on:
+  pull_request:
+    paths:
+      - "mcp-servers/**"
+  push:
+    branches: [main]
+    paths:
+      - "mcp-servers/**"
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        server:
+          - mcp-vrchat-server
+          - mcp-blender-server
+          - mcp-ymm4-server
+          - mcp-yolo-server
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+
+      - name: Build MCP server
+        working-directory: mcp-servers/${{ matrix.server }}
+        run: cargo build --release
+
+      - name: Run tests
+        working-directory: mcp-servers/${{ matrix.server }}
+        run: cargo test
+
+      - name: Check clippy
+        working-directory: mcp-servers/${{ matrix.server }}
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  all-servers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: build-test
+    steps:
+      - name: All servers passed
+        run: echo "All MCP servers built and tested successfully"

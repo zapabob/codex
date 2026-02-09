@@ -15,7 +15,7 @@ permissions:
 jobs:
   prepare:
     # Prevent scheduled runs on forks (no secrets, wastes Actions minutes)
-    if: github.repository == 'openai/codex'
+    if: github.repository == 'zapabob/Codex'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: Update models.json
-        if: ${{ secrets.CODEX_OPENAI_API_KEY != '' }}
+        if: secrets.CODEX_OPENAI_API_KEY != ''
         env:
           OPENAI_API_KEY: ${{ secrets.CODEX_OPENAI_API_KEY }}
         run: |
@@ -49,7 +49,7 @@ jobs:
           curl --http1.1 --fail --show-error --location "${headers[@]}" "${url}" | jq '.' > codex-rs/core/models.json
 
       - name: Open pull request (if changed)
-        if: ${{ secrets.CODEX_OPENAI_API_KEY != '' }}
+        if: secrets.CODEX_OPENAI_API_KEY != ''
         uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "Update models.json"
