@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: Update models.json
-        if: secrets.CODEX_OPENAI_API_KEY != ''
+        if: github.repository == 'zapabob/Codex'
         env:
           OPENAI_API_KEY: ${{ secrets.CODEX_OPENAI_API_KEY }}
         run: |
@@ -49,8 +49,8 @@ jobs:
           curl --http1.1 --fail --show-error --location "${headers[@]}" "${url}" | jq '.' > codex-rs/core/models.json
 
       - name: Open pull request (if changed)
-        if: secrets.CODEX_OPENAI_API_KEY != ''
-        uses: peter-evans/create-pull-request@v8
+        if: github.repository == 'zapabob/Codex'
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "Update models.json"
           title: "Update models.json"

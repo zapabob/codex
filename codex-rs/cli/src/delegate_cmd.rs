@@ -204,12 +204,10 @@ pub async fn run_delegate_command(
     match result.status {
         AgentStatus::Completed => Ok(()),
         AgentStatus::Failed => {
-            if let Some(err) = result.error {
-                bail!("agent '{agent}' failed: {err}");
-            }
-            bail!("agent '{agent}' failed");
+            let message = result.error.unwrap_or_else(|| "unknown error".to_string());
+            return Err(anyhow!("agent '{agent}' failed: {message}"));
         }
-        other => bail!("agent '{agent}' ended with status {other:?}"),
+        other => return Err(anyhow!("agent '{agent}' ended with status {other:?}")),
     }
 }
 

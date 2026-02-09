@@ -2087,7 +2087,7 @@ impl ChatWidget {
                 .as_ref()
                 .is_some_and(|wait| wait.is_duplicate(&command_display));
         if is_wait_interaction {
-            self.last_unified_wait = Some(UnifiedExecWaitState::new(command_display));
+            self.last_unified_wait = Some(UnifiedExecWaitState::new(command_display.to_owned()));
         } else {
             self.last_unified_wait = None;
         }
@@ -5336,10 +5336,10 @@ impl ChatWidget {
             0,
             Box::new({
                 let otel = self.otel_manager.clone();
-                move |_tx| {
+                move |_tx: &AppEventSender| {
                     otel.counter("codex.windows_sandbox.elevated_prompt_decline", 1, &[]);
                 }
-            }),
+            }) as Box<dyn Fn(&AppEventSender) + Send + Sync + 'static>,
         );
 
         let accept_otel = self.otel_manager.clone();
@@ -5431,10 +5431,10 @@ impl ChatWidget {
             0,
             Box::new({
                 let otel = self.otel_manager.clone();
-                move |_tx| {
+                move |_tx: &AppEventSender| {
                     otel.counter("codex.windows_sandbox.fallback_stay_current", 1, &[]);
                 }
-            }),
+            }) as Box<dyn Fn(&AppEventSender) + Send + Sync + 'static>,
         );
         let items = vec![
             SelectionItem {
