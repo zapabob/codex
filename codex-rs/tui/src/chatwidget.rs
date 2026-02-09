@@ -20,6 +20,11 @@
 //! is in progress and while MCP server startup is in progress. Those lifecycles are tracked
 //! independently (`agent_turn_running` and `mcp_startup_status`) and synchronized via
 //! `update_task_running_state`.
+//!
+//! For preamble-capable models, assistant output may include commentary before
+//! the final answer. During streaming we hide the status row to avoid duplicate
+//! progress indicators; once commentary completes and stream queues drain, we
+//! re-show it so users still see turn-in-progress state between output bursts.
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
@@ -115,6 +120,9 @@ use codex_protocol::config_types::Personality;
 use codex_protocol::config_types::Settings;
 #[cfg(target_os = "windows")]
 use codex_protocol::config_types::WindowsSandboxLevel;
+use codex_protocol::items::AgentMessageItem;
+use codex_protocol::models::MessagePhase;
+use codex_protocol::models::local_image_label_text;
 use codex_protocol::parse_command::ParsedCommand;
 use codex_protocol::request_user_input::RequestUserInputEvent;
 use codex_protocol::user_input::TextElement;
@@ -356,6 +364,8 @@ pub(crate) struct ChatWidget {
     current_status_header: String,
     // Previous status header to restore after a transient stream retry.
     retry_status_header: Option<String>,
+    // Set when commentary output completes; once stream queues go idle we restore the status row.
+    pending_status_indicator_restore: bool,
     thread_id: Option<ThreadId>,
     thread_name: Option<String>,
     forked_from: Option<ThreadId>,
@@ -488,6 +498,37 @@ impl ChatWidget {
             self.add_boxed_history(cell);
         }
         self.adaptive_chunking.reset();
+    }
+
+    fn stream_controllers_idle(&self) -> bool {
+        self.stream_controller
+            .as_ref()
+            .map(|controller| controller.queued_lines() == 0)
+            .unwrap_or(true)
+            && self
+                .plan_stream_controller
+                .as_ref()
+                .map(|controller| controller.queued_lines() == 0)
+                .unwrap_or(true)
+    }
+
+    /// Restore the status indicator only after commentary completion is pending,
+    /// the turn is still running, and all stream queues have drained.
+    ///
+    /// This gate prevents flicker while normal output is still actively
+    /// streaming, but still restores a visible "working" affordance when a
+    /// commentary block ends before the turn itself has completed.
+    fn maybe_restore_status_indicator_after_stream_idle(&mut self) {
+        if !self.pending_status_indicator_restore
+            || !self.bottom_pane.is_task_running()
+            || !self.stream_controllers_idle()
+        {
+            return;
+        }
+
+        self.bottom_pane.ensure_status_indicator();
+        self.set_status_header(self.current_status_header.clone());
+        self.pending_status_indicator_restore = false;
     }
 
     /// Update the status indicator header and details.
@@ -860,24 +901,29 @@ impl ChatWidget {
         } else {
             text
         };
+        // Plan commit ticks can hide the status row; remember whether we streamed plan output so
+        // completion can restore it once stream queues are idle.
+        let should_restore_after_stream = self.plan_stream_controller.is_some();
         self.plan_delta_buffer.clear();
         self.plan_item_active = false;
         self.saw_plan_item_this_turn = true;
-        if let Some(mut controller) = self.plan_stream_controller.take()
-            && let Some(cell) = controller.finalize()
-        {
+        let finalized_streamed_cell =
+            if let Some(mut controller) = self.plan_stream_controller.take() {
+                controller.finalize()
+            } else {
+                None
+            };
+        if let Some(cell) = finalized_streamed_cell {
             self.add_boxed_history(cell);
             // TODO: Replace streamed output with the final plan item text if plan streaming is
             // removed or if we need to reconcile mismatches between streamed and final content.
-            return;
+        } else if !plan_text.is_empty() {
+            self.add_to_history(history_cell::new_proposed_plan(plan_text));
         }
-        if plan_text.is_empty() {
-            return;
+        if should_restore_after_stream {
+            self.pending_status_indicator_restore = true;
+            self.maybe_restore_status_indicator_after_stream_idle();
         }
-        // TODO: new_proposed_plan was removed in upstream; using PlainHistoryCell as temporary replacement
-        self.add_to_history(history_cell::PlainHistoryCell::new(vec![
-            ratatui::text::Line::from(plan_text),
-        ]));
     }
 
     fn on_agent_reasoning_delta(&mut self, delta: String) {
@@ -938,6 +984,7 @@ impl ChatWidget {
         self.quit_shortcut_key = None;
         self.update_task_running_state();
         self.retry_status_header = None;
+        self.pending_status_indicator_restore = false;
         self.bottom_pane.set_interrupt_hint_visible(true);
         self.set_status_header(String::from("Working"));
         self.full_reasoning_buffer.clear();
@@ -972,6 +1019,7 @@ impl ChatWidget {
             self.request_status_line_branch_refresh();
         }
         // Mark task stopped and request redraw now that all content is in history.
+        self.pending_status_indicator_restore = false;
         self.agent_turn_running = false;
         self.update_task_running_state();
         self.running_commands.clear();
@@ -1203,6 +1251,7 @@ impl ChatWidget {
         self.adaptive_chunking.reset();
         self.stream_controller = None;
         self.plan_stream_controller = None;
+        self.pending_status_indicator_restore = false;
         self.request_status_line_branch_refresh();
         self.maybe_show_pending_rate_limit_prompt();
     }
@@ -1738,7 +1787,22 @@ impl ChatWidget {
         if self.retry_status_header.is_none() {
             self.retry_status_header = Some(self.current_status_header.clone());
         }
+        self.bottom_pane.ensure_status_indicator();
         self.set_status(message, additional_details);
+    }
+
+    /// Handle completion of an `AgentMessage` turn item.
+    ///
+    /// Commentary completion sets a deferred restore flag so the status row
+    /// returns once stream queues are idle. Final-answer completion (or absent
+    /// phase for legacy models) clears the flag to preserve historical behavior.
+    fn on_agent_message_item_completed(&mut self, item: AgentMessageItem) {
+        self.pending_status_indicator_restore = match item.phase {
+            // Models that don't support preambles only output AgentMessageItems on turn completion.
+            Some(MessagePhase::FinalAnswer) | None => false,
+            Some(MessagePhase::Commentary) => true,
+        };
+        self.maybe_restore_status_indicator_after_stream_idle();
     }
 
     /// Periodic tick for stream commits. In smooth mode this preserves one-line pacing, while
@@ -1761,9 +1825,8 @@ impl ChatWidget {
     ///
     /// `scope` controls whether this call may commit in smooth mode or only when catch-up
     /// is currently active. While lines are actively streaming we hide the status row to avoid
-    /// duplicate "in progress" affordances, but once all stream controllers go idle for this
-    /// turn we restore the status row if the task is still running so users keep a live
-    /// spinner/shimmer signal between preamble output and subsequent tool activity.
+    /// duplicate "in progress" affordances. Restoration is gated separately so we only re-show
+    /// the row after commentary completion once stream queues are idle.
     fn run_commit_tick_with_scope(&mut self, scope: CommitTickScope) {
         let now = Instant::now();
         let outcome = run_commit_tick(
@@ -1779,10 +1842,7 @@ impl ChatWidget {
         }
 
         if outcome.has_controller && outcome.all_idle {
-            if self.bottom_pane.is_task_running() {
-                self.bottom_pane.ensure_status_indicator();
-                self.set_status_header(self.current_status_header.clone());
-            }
+            self.maybe_restore_status_indicator_after_stream_idle();
             self.app_event_tx.send(AppEvent::StopCommitAnimation);
         }
 
@@ -2208,6 +2268,7 @@ impl ChatWidget {
             full_reasoning_buffer: String::new(),
             current_status_header: String::from("Working"),
             retry_status_header: None,
+            pending_status_indicator_restore: false,
             thread_id: None,
             thread_name: None,
             forked_from: None,
@@ -2370,6 +2431,7 @@ impl ChatWidget {
             full_reasoning_buffer: String::new(),
             current_status_header: String::from("Working"),
             retry_status_header: None,
+            pending_status_indicator_restore: false,
             thread_id: None,
             thread_name: None,
             forked_from: None,
@@ -2521,6 +2583,7 @@ impl ChatWidget {
             full_reasoning_buffer: String::new(),
             current_status_header: String::from("Working"),
             retry_status_header: None,
+            pending_status_indicator_restore: false,
             thread_id: None,
             thread_name: None,
             forked_from: None,
@@ -3025,6 +3088,18 @@ impl ChatWidget {
                     _ => "desktop",
                 };
                 self.launch_git4d_visualization(mode);
+            }
+            SlashCommand::VrChat => {
+                self.insert_str("!codex vrchat-dev --task \"\"");
+            }
+            SlashCommand::Blender => {
+                self.insert_str("!codex blender-cad --task \"\"");
+            }
+            SlashCommand::Yukkuri => {
+                self.insert_str("!codex yukkuri-movie --task \"\"");
+            }
+            SlashCommand::Yolo => {
+                self.insert_str("!codex yolo-auto --task \"\"");
             }
         }
     }
@@ -3619,6 +3694,8 @@ impl ChatWidget {
             EventMsg::CollabWaitingEnd(ev) => self.on_collab_event(collab::waiting_end(ev)),
             EventMsg::CollabCloseBegin(_) => {}
             EventMsg::CollabCloseEnd(ev) => self.on_collab_event(collab::close_end(ev)),
+            EventMsg::CollabResumeBegin(ev) => self.on_collab_event(collab::resume_begin(ev)),
+            EventMsg::CollabResumeEnd(ev) => self.on_collab_event(collab::resume_end(ev)),
             EventMsg::ThreadRolledBack(_) => {}
             EventMsg::RawResponseItem(_)
             | EventMsg::ItemStarted(_)
@@ -3627,8 +3704,12 @@ impl ChatWidget {
             | EventMsg::ReasoningRawContentDelta(_)
             | EventMsg::DynamicToolCallRequest(_) => {}
             EventMsg::ItemCompleted(event) => {
-                if let codex_protocol::items::TurnItem::Plan(plan_item) = event.item {
-                    self.on_plan_item_completed(plan_item.text);
+                let item = event.item;
+                if let codex_protocol::items::TurnItem::Plan(plan_item) = &item {
+                    self.on_plan_item_completed(plan_item.text.clone());
+                }
+                if let codex_protocol::items::TurnItem::AgentMessage(item) = item {
+                    self.on_agent_message_item_completed(item);
                 }
             }
         }
@@ -4082,12 +4163,7 @@ impl ChatWidget {
     fn prefetch_rate_limits(&mut self) {
         self.stop_rate_limit_poller();
 
-        if !self
-            .auth_manager
-            .auth_cached()
-            .as_ref()
-            .is_some_and(CodexAuth::is_chatgpt_auth)
-        {
+        if !self.should_prefetch_rate_limits() {
             return;
         }
 
@@ -4110,6 +4186,17 @@ impl ChatWidget {
         });
 
         self.rate_limit_poller = Some(handle);
+    }
+
+    fn should_prefetch_rate_limits(&self) -> bool {
+        if !self.config.model_provider.requires_openai_auth {
+            return false;
+        }
+
+        self.auth_manager
+            .auth_cached()
+            .as_ref()
+            .is_some_and(CodexAuth::is_chatgpt_auth)
     }
 
     fn lower_cost_preset(&self) -> Option<ModelPreset> {
@@ -6492,6 +6579,12 @@ impl ChatWidget {
     pub(crate) fn thread_name(&self) -> Option<String> {
         self.thread_name.clone()
     }
+
+    /// Returns the current thread's precomputed rollout path.
+    ///
+    /// For fresh non-ephemeral threads this path may exist before the file is
+    /// materialized; rollout persistence is deferred until the first user
+    /// message is recorded.
     pub(crate) fn rollout_path(&self) -> Option<PathBuf> {
         self.current_rollout_path.clone()
     }

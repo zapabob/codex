@@ -314,7 +314,7 @@ impl Codex {
         // Resolve base instructions for the session. Priority order:
         // 1. config.base_instructions override
         // 2. conversation history => session_meta.base_instructions
-        // 3. base_intructions for current model
+        // 3. base_instructions for current model
         let model_info = models_manager.get_model_info(model.as_str(), &config).await;
         let base_instructions = config
             .base_instructions
@@ -559,7 +559,7 @@ impl TurnContext {
 
     async fn build_turn_metadata_header(&self) -> Option<String> {
         self.turn_metadata_header
-            .get_or_init(|| async { build_turn_metadata_header(self.cwd.as_path()).await })
+            .get_or_init(|| async { build_turn_metadata_header(self.cwd.clone()).await })
             .await
             .clone()
     }
@@ -733,10 +733,22 @@ impl Session {
             session_configuration.collaboration_mode.reasoning_effort();
         per_turn_config.model_reasoning_summary = session_configuration.model_reasoning_summary;
         per_turn_config.personality = session_configuration.personality;
-        per_turn_config.web_search_mode = Some(resolve_web_search_mode_for_turn(
-            per_turn_config.web_search_mode,
+        let resolved_web_search_mode = resolve_web_search_mode_for_turn(
+            &per_turn_config.web_search_mode,
             session_configuration.sandbox_policy.get(),
-        ));
+        );
+        if let Err(err) = per_turn_config
+            .web_search_mode
+            .set(resolved_web_search_mode)
+        {
+            let fallback_value = per_turn_config.web_search_mode.value();
+            tracing::warn!(
+                error = %err,
+                ?resolved_web_search_mode,
+                ?fallback_value,
+                "resolved web_search_mode is disallowed by requirements; keeping constrained value"
+            );
+        }
         per_turn_config.features = config.features.clone();
         per_turn_config
     }
@@ -794,7 +806,7 @@ impl Session {
         let tools_config = ToolsConfig::new(&ToolsConfigParams {
             model_info: &model_info,
             features: &per_turn_config.features,
-            web_search_mode: per_turn_config.web_search_mode,
+            web_search_mode: Some(per_turn_config.web_search_mode.value()),
         });
 
         let cwd = session_configuration.cwd.clone();
@@ -1085,10 +1097,14 @@ impl Session {
         // Warm a websocket in the background so the first turn can reuse it.
         // This performs only connection setup; user input is still sent later via response.create
         // when submit_turn() runs.
-        sess.services.model_client.pre_establish_connection(
-            sess.services.otel_manager.clone(),
-            session_configuration.cwd.clone(),
-        );
+        let turn_metadata_header = resolve_turn_metadata_header_with_timeout(
+            build_turn_metadata_header(session_configuration.cwd.clone()),
+            None,
+        )
+        .boxed();
+        sess.services
+            .model_client
+            .pre_establish_connection(sess.services.otel_manager.clone(), turn_metadata_header);
 
         // Dispatch the SessionConfiguredEvent first and then report any errors.
         // If resuming, include converted initial messages in the payload so UIs can render them immediately.
@@ -1192,6 +1208,18 @@ impl Session {
             && let Err(e) = rec.flush().await
         {
             warn!("failed to flush rollout recorder: {e}");
+        }
+    }
+
+    pub(crate) async fn ensure_rollout_materialized(&self) {
+        let recorder = {
+            let guard = self.services.rollout.lock().await;
+            guard.clone()
+        };
+        if let Some(rec) = recorder
+            && let Err(e) = rec.persist().await
+        {
+            warn!("failed to materialize rollout recorder: {e}");
         }
     }
 
@@ -1310,6 +1338,10 @@ impl Session {
                     let mut state = self.state.lock().await;
                     state.initial_context_seeded = true;
                 }
+
+                // Forked threads should remain file-backed immediately after startup.
+                self.ensure_rollout_materialized().await;
+
                 // Flush after seeding history and any persisted rollout copy.
                 self.flush_rollout().await;
             }
@@ -2332,6 +2364,7 @@ impl Session {
         let turn_item = TurnItem::UserMessage(UserMessageItem::new(input));
         self.emit_turn_item_started(turn_context, &turn_item).await;
         self.emit_turn_item_completed(turn_context, turn_item).await;
+        self.ensure_rollout_materialized().await;
     }
 
     pub(crate) async fn notify_background_event(
@@ -3525,7 +3558,15 @@ async fn spawn_review_thread(
     let mut per_turn_config = (*config).clone();
     per_turn_config.model = Some(model.clone());
     per_turn_config.features = review_features.clone();
-    per_turn_config.web_search_mode = Some(review_web_search_mode);
+    if let Err(err) = per_turn_config.web_search_mode.set(review_web_search_mode) {
+        let fallback_value = per_turn_config.web_search_mode.value();
+        tracing::warn!(
+            error = %err,
+            ?review_web_search_mode,
+            ?fallback_value,
+            "review web_search_mode is disallowed by requirements; keeping constrained value"
+        );
+    }
 
     let otel_manager = parent_turn_context
         .otel_manager
@@ -4527,6 +4568,7 @@ async fn emit_agent_message_in_plan_mode(
                 TurnItem::AgentMessage(codex_protocol::items::AgentMessageItem {
                     id: agent_message_id.clone(),
                     content: Vec::new(),
+                    phase: None,
                 })
             });
         sess.emit_turn_item_started(turn_context, &start_item).await;
