@@ -50,6 +50,10 @@ pub enum SlashCommand {
     Git4d,
     Vr,
     Ar,
+    VrChat,
+    Blender,
+    Yukkuri,
+    Yolo,
 }
 
 impl SlashCommand {
@@ -92,6 +96,10 @@ impl SlashCommand {
             SlashCommand::Git4d => "launch Git 4D visualization with VR/AR support",
             SlashCommand::Vr => "launch Git 4D visualization in VR mode",
             SlashCommand::Ar => "launch Git 4D visualization in AR mode",
+            SlashCommand::VrChat => "launch Git 4D visualization in VRChat mode",
+            SlashCommand::Blender => "launch Git 4D visualization in Blender mode",
+            SlashCommand::Yukkuri => "launch Git 4D visualization in Yukkuri mode",
+            SlashCommand::Yolo => "enable YOLO mode for agent orchestration",
         }
     }
 
@@ -148,6 +156,10 @@ impl SlashCommand {
             SlashCommand::TestApproval => true,
             SlashCommand::Collab => true,
             SlashCommand::Agent => true,
+            SlashCommand::VrChat
+            | SlashCommand::Blender
+            | SlashCommand::Yukkuri
+            | SlashCommand::Yolo => false,
             SlashCommand::Statusline => false,
         }
     }

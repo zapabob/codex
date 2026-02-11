@@ -122,7 +122,6 @@ use codex_protocol::config_types::Settings;
 use codex_protocol::config_types::WindowsSandboxLevel;
 use codex_protocol::items::AgentMessageItem;
 use codex_protocol::models::MessagePhase;
-use codex_protocol::models::local_image_label_text;
 use codex_protocol::parse_command::ParsedCommand;
 use codex_protocol::request_user_input::RequestUserInputEvent;
 use codex_protocol::user_input::TextElement;
@@ -918,7 +917,15 @@ impl ChatWidget {
             // TODO: Replace streamed output with the final plan item text if plan streaming is
             // removed or if we need to reconcile mismatches between streamed and final content.
         } else if !plan_text.is_empty() {
-            self.add_to_history(history_cell::new_proposed_plan(plan_text));
+            self.add_to_history(history_cell::new_plan_update(
+                codex_protocol::plan_tool::UpdatePlanArgs {
+                    explanation: None,
+                    plan: vec![codex_protocol::plan_tool::PlanItemArg {
+                        step: plan_text,
+                        status: codex_protocol::plan_tool::StepStatus::Pending,
+                    }],
+                },
+            ));
         }
         if should_restore_after_stream {
             self.pending_status_indicator_restore = true;
