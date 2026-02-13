@@ -4,8 +4,8 @@
 /// repository-level locks.
 use anyhow::Result;
 use clap::Parser;
-use codex_common::CliConfigOverrides;
 use codex_core::lock::RepositoryLock;
+use codex_utils_cli::CliConfigOverrides;
 use std::path::Path;
 use std::path::PathBuf;
 

@@ -300,17 +300,21 @@ async fn run_dom_via_mcp(args: &ChromeDomArgs) -> Result<Result<()>> {
             .await
             .context("Failed to create MCP client")?;
 
-    let init_params = mcp_model::InitializeRequestParam {
+    let init_params = mcp_model::InitializeRequestParams {
+        meta: None,
         protocol_version: mcp_model::ProtocolVersion::V_2025_06_18,
         capabilities: mcp_model::ClientCapabilities {
             experimental: None,
+            extensions: None,
             roots: None,
             sampling: None,
             elicitation: None,
+            tasks: None,
         },
         client_info: mcp_model::Implementation {
             name: "codex-cli".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
+            description: None,
             icons: None,
             title: None,
             website_url: None,
@@ -319,7 +323,7 @@ async fn run_dom_via_mcp(args: &ChromeDomArgs) -> Result<Result<()>> {
 
     let send_elicitation: codex_rmcp_client::SendElicitation = Box::new(
         |_request_id: mcp_model::NumberOrString,
-         _elicitation: mcp_model::CreateElicitationRequestParam| {
+         _elicitation: mcp_model::CreateElicitationRequestParams| {
             async move { anyhow::bail!("Elicitation not supported") }.boxed()
         },
     );
@@ -424,17 +428,21 @@ async fn run_console_via_mcp(args: &ChromeConsoleArgs) -> Result<Result<()>> {
             .await
             .context("Failed to create MCP client")?;
 
-    let init_params = mcp_model::InitializeRequestParam {
+    let init_params = mcp_model::InitializeRequestParams {
+        meta: None,
         protocol_version: mcp_model::ProtocolVersion::V_2025_06_18,
         capabilities: mcp_model::ClientCapabilities {
             experimental: None,
+            extensions: None,
             roots: None,
             sampling: None,
             elicitation: None,
+            tasks: None,
         },
         client_info: mcp_model::Implementation {
             name: "codex-cli".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
+            description: None,
             icons: None,
             title: None,
             website_url: None,
@@ -443,7 +451,7 @@ async fn run_console_via_mcp(args: &ChromeConsoleArgs) -> Result<Result<()>> {
 
     let send_elicitation: codex_rmcp_client::SendElicitation = Box::new(
         |_request_id: mcp_model::NumberOrString,
-         _elicitation: mcp_model::CreateElicitationRequestParam| {
+         _elicitation: mcp_model::CreateElicitationRequestParams| {
             async move { anyhow::bail!("Elicitation not supported") }.boxed()
         },
     );
@@ -548,17 +556,21 @@ async fn run_network_via_mcp(args: &ChromeNetworkArgs) -> Result<Result<()>> {
             .await
             .context("Failed to create MCP client")?;
 
-    let init_params = mcp_model::InitializeRequestParam {
+    let init_params = mcp_model::InitializeRequestParams {
+        meta: None,
         protocol_version: mcp_model::ProtocolVersion::V_2025_06_18,
         capabilities: mcp_model::ClientCapabilities {
             experimental: None,
+            extensions: None,
             roots: None,
             sampling: None,
             elicitation: None,
+            tasks: None,
         },
         client_info: mcp_model::Implementation {
             name: "codex-cli".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
+            description: None,
             icons: None,
             title: None,
             website_url: None,
@@ -567,7 +579,7 @@ async fn run_network_via_mcp(args: &ChromeNetworkArgs) -> Result<Result<()>> {
 
     let send_elicitation: codex_rmcp_client::SendElicitation = Box::new(
         |_request_id: mcp_model::NumberOrString,
-         _elicitation: mcp_model::CreateElicitationRequestParam| {
+         _elicitation: mcp_model::CreateElicitationRequestParams| {
             async move { anyhow::bail!("Elicitation not supported") }.boxed()
         },
     );

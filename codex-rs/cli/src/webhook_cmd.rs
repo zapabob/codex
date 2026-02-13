@@ -4,10 +4,10 @@ use anyhow::Context;
 use anyhow::Result;
 use anyhow::bail;
 use clap::Parser;
-use codex_common::CliConfigOverrides;
 use codex_core::integrations::WebhookClient;
 use codex_core::integrations::WebhookPayload;
 use codex_core::integrations::WebhookService;
+use codex_utils_cli::CliConfigOverrides;
 use serde_json::Value;
 use std::io::Read;
 

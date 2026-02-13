@@ -98,7 +98,7 @@ impl ResourceManager {
         );
 
         // Refresh to get initial data
-        sys.refresh_cpu_all();
+        sys.refresh_cpu();
         sys.refresh_memory();
 
         let cpu_cores = sys.cpus().len();

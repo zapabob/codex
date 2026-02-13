@@ -58,28 +58,10 @@ pub struct UnifiedExecRuntime<'a> {
     manager: &'a UnifiedExecProcessManager,
 }
 
-
 // --- Fork custom additions ---
-impl UnifiedExecRequest {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        command: Vec<String>,
-        cwd: PathBuf,
-        env: HashMap<String, String>,
-        tty: bool,
-        sandbox_permissions: SandboxPermissions,
-        justification: Option<String>,
-        exec_approval_requirement: ExecApprovalRequirement,
-    ) -> Self {
-        Self {
-            command,
-            cwd,
-            env,
-            tty,
-            sandbox_permissions,
-            justification,
-            exec_approval_requirement,
+
 // --- End fork additions ---
+
 impl<'a> UnifiedExecRuntime<'a> {
     pub fn new(manager: &'a UnifiedExecProcessManager) -> Self {
         Self { manager }
@@ -104,6 +86,7 @@ impl Approvable<UnifiedExecRequest> for UnifiedExecRuntime<'_> {
             command: canonicalize_command_for_approval(&req.command),
             cwd: req.cwd.clone(),
             tty: req.tty,
+
             sandbox_permissions: req.sandbox_permissions,
         }]
     }

@@ -1,5 +1,4 @@
 use clap::Parser;
-use codex_arg0::arg0_dispatch_or_else;
 use codex_tui::Cli;
 use codex_tui::run_main;
 use codex_utils_cli::CliConfigOverrides;

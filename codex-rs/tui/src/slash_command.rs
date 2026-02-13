@@ -55,6 +55,13 @@ pub enum SlashCommand {
     MemoryDrop,
     #[strum(serialize = "debug-m-update")]
     MemoryUpdate,
+    Git4d,
+    Vr,
+    Ar,
+    VrChat,
+    Blender,
+    Yukkuri,
+    Yolo,
 }
 
 impl SlashCommand {

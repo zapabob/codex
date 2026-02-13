@@ -30,6 +30,9 @@ pub use self::paginated_list_task_list_item_::PaginatedListTaskListItem;
 pub mod additional_rate_limit_details;
 pub use self::additional_rate_limit_details::AdditionalRateLimitDetails;
 
+pub mod credit_status_details;
+pub use self::credit_status_details::CreditStatusDetails;
+
 pub mod rate_limit_status_payload;
 pub use self::rate_limit_status_payload::PlanType;
 pub use self::rate_limit_status_payload::RateLimitStatusPayload;

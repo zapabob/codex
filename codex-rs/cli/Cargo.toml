@@ -15,18 +15,6 @@ path = "src/lib.rs"
 [lints]
 workspace = true
 
-[features]
-cuda = []
-windows-ai = []
-# Custom features: preserve custom functionality when merging with upstream
-custom-features = [
-    "codex-core/custom-features",
-    "codex-core/a2a-comm",
-    "codex-core/autonomous",
-    "codex-core/llmops",
-    "codex-core/skill-mcp",
-]
-
 [dependencies]
 anyhow = { workspace = true }
 chrono = { workspace = true }
@@ -38,34 +26,31 @@ codex-app-server-test-client = { workspace = true }
 codex-arg0 = { workspace = true }
 codex-chatgpt = { workspace = true }
 codex-cloud-tasks = { path = "../cloud-tasks" }
+codex-deep-research = { workspace = true }
 codex-utils-cli = { workspace = true }
 codex-core = { workspace = true }
-codex-deep-research = { path = "../deep-research" }
 codex-exec = { workspace = true }
-codex-web-search = { path = "../web-search" }
 codex-execpolicy = { workspace = true }
 codex-login = { workspace = true }
 codex-mcp-server = { workspace = true }
 codex-otel = { workspace = true }
 codex-protocol = { workspace = true }
-codex-protocol-ts = { path = "../protocol-ts" }
 codex-responses-api-proxy = { workspace = true }
 codex-rmcp-client = { workspace = true }
-codex-supervisor = { path = "../supervisor" }
 codex-stdio-to-uds = { workspace = true }
+codex-supervisor = { workspace = true }
 codex-tui = { workspace = true }
-codex-utils-absolute-path = { workspace = true }
-libc = { workspace = true }
-git2 = { version = "0.19", default-features = false }
+codex-web-search = { workspace = true }
+dirs = { workspace = true }
 futures = { workspace = true }
-dirs = "6"
-mcp-types = { workspace = true }
-rmcp = { workspace = true }
+git2 = { workspace = true }
+libc = { workspace = true }
 owo-colors = { workspace = true }
 regex-lite = { workspace = true }
+rmcp = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-slug = "0.1.4"
+slug = { workspace = true }
 supports-color = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = [
@@ -82,6 +67,10 @@ walkdir = { workspace = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 codex_windows_sandbox = { package = "codex-windows-sandbox", path = "../windows-sandbox-rs" }
+
+[features]
+default = []
+cuda = []
 
 [dev-dependencies]
 assert_cmd = { workspace = true }

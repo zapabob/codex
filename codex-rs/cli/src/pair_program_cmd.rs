@@ -1,7 +1,6 @@
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
-use codex_common::CliConfigOverrides;
 use codex_core::config::Config;
 use codex_supervisor::CoordinationStrategy;
 use codex_supervisor::MergeStrategy;
@@ -10,6 +9,7 @@ use codex_supervisor::MultiAgentEvaluationReport;
 use codex_supervisor::MultiAgentEvaluator;
 use codex_supervisor::SimpleEvaluationStrategy;
 use codex_supervisor::SupervisorConfig;
+use codex_utils_cli::CliConfigOverrides;
 use serde_json::to_string_pretty;
 use std::collections::HashSet;
 use std::fs;

@@ -170,7 +170,6 @@ use codex_app_server_protocol::WorktreeMergeParams;
 use codex_app_server_protocol::WorktreeMergeResponse;
 use codex_app_server_protocol::WorktreeRemoveParams;
 use codex_app_server_protocol::WorktreeRemoveResponse;
-use codex_app_server_protocol::build_turns_from_event_msgs;
 // --- End fork additions ---
 use codex_backend_client::Client as BackendClient;
 use codex_chatgpt::connectors;

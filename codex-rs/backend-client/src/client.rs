@@ -8,7 +8,7 @@ use anyhow::Result;
 use codex_core::auth::CodexAuth;
 use codex_core::default_client::get_codex_user_agent;
 use codex_protocol::account::PlanType as AccountPlanType;
-// use codex_protocol::protocol::CreditsSnapshot;
+use codex_protocol::protocol::CreditsSnapshot;
 use codex_protocol::protocol::RateLimitSnapshot;
 use codex_protocol::protocol::RateLimitWindow;
 use reqwest::header::AUTHORIZATION;
@@ -310,8 +310,14 @@ impl Client {
         let mut snapshots = vec![Self::make_rate_limit_snapshot(
             Some("codex".to_string()),
             None,
-            payload.rate_limit.flatten().map(|details| *details),
-            payload.credits.flatten().map(|details| *details),
+            payload
+                .rate_limit
+                .as_ref()
+                .and_then(|details| details.as_ref().map(|d| (**d).clone())),
+            payload
+                .credits
+                .as_ref()
+                .and_then(|details| details.as_ref().map(|d| (**d).clone())),
             plan_type,
         )];
         if let Some(additional) = payload.additional_rate_limits.flatten() {
@@ -319,7 +325,10 @@ impl Client {
                 Self::make_rate_limit_snapshot(
                     Some(details.metered_feature),
                     Some(details.limit_name),
-                    details.rate_limit.flatten().map(|rate_limit| *rate_limit),
+                    details
+                        .rate_limit
+                        .as_ref()
+                        .and_then(|rl| rl.as_ref().map(|d| (**d).clone())),
                     None,
                     plan_type,
                 )
@@ -373,7 +382,7 @@ impl Client {
         Some(CreditsSnapshot {
             has_credits: details.has_credits,
             unlimited: details.unlimited,
-            balance: details.balance.flatten(),
+            balance: details.balance.clone().flatten(),
         })
     }
 

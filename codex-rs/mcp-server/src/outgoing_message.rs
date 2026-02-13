@@ -292,7 +292,7 @@ mod tests {
 
         let thread_id = ThreadId::new();
         let rollout_file = NamedTempFile::new()?;
-        let cwd = rollout_file
+        let _cwd = rollout_file
             .path()
             .parent()
             .unwrap_or_else(|| Path::new("."))
@@ -341,7 +341,7 @@ mod tests {
 
         let conversation_id = ThreadId::new();
         let rollout_file = NamedTempFile::new()?;
-        let cwd = rollout_file
+        let _cwd = rollout_file
             .path()
             .parent()
             .unwrap_or_else(|| Path::new("."))

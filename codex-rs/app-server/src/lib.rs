@@ -61,6 +61,7 @@ mod fuzzy_file_search;
 mod message_processor;
 mod models;
 mod outgoing_message;
+mod qa_agent;
 mod thread_state;
 mod transport;
 pub use transport::AppServerTransport;

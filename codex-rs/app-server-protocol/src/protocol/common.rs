@@ -827,6 +827,11 @@ server_notification_definitions! {
     /// Deprecated: use `account/login/completed` instead.
     LoginChatGptComplete(v1::LoginChatGptCompleteNotification),
     SessionConfigured(v1::SessionConfiguredNotification),
+
+    #[serde(rename = "a2a/message")]
+    #[ts(rename = "a2a/message")]
+    #[strum(serialize = "a2a/message")]
+    A2AMessage(v2::A2AMessage),
 }
 
 client_notification_definitions! {

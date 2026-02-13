@@ -1,4 +1,10 @@
+use super::headers::{build_conversation_headers, insert_header, subagent_header};
+use crate::ApiError;
+use crate::common::{Reasoning, ResponsesApiRequest, TextControls};
+use crate::provider::Provider;
 use codex_protocol::models::ResponseItem;
+use codex_protocol::protocol::SessionSource;
+use http::header::HeaderMap;
 use serde_json::Value;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -8,13 +14,12 @@ pub enum Compression {
     Zstd,
 }
 
-pub(crate) fn attach_item_ids(payload_json: &mut Value, original_items: &[ResponseItem]) {
-
-// --- Fork custom additions ---
 pub struct ResponsesRequest {
     pub body: Value,
     pub headers: HeaderMap,
     pub compression: Compression,
+}
+
 #[derive(Default)]
 pub struct ResponsesRequestBuilder<'a> {
     model: Option<&'a str>,
@@ -31,6 +36,8 @@ pub struct ResponsesRequestBuilder<'a> {
     store_override: Option<bool>,
     headers: HeaderMap,
     compression: Compression,
+}
+
 impl<'a> ResponsesRequestBuilder<'a> {
     pub fn new(model: &'a str, instructions: &'a str, input: &'a [ResponseItem]) -> Self {
         Self {
@@ -38,39 +45,64 @@ impl<'a> ResponsesRequestBuilder<'a> {
             instructions: Some(instructions),
             input: Some(input),
             ..Default::default()
+        }
+    }
+
     pub fn tools(mut self, tools: &'a [Value]) -> Self {
         self.tools = Some(tools);
         self
+    }
+
     pub fn parallel_tool_calls(mut self, enabled: bool) -> Self {
         self.parallel_tool_calls = enabled;
         self
+    }
+
     pub fn reasoning(mut self, reasoning: Option<Reasoning>) -> Self {
         self.reasoning = reasoning;
         self
+    }
+
     pub fn include(mut self, include: Vec<String>) -> Self {
         self.include = include;
         self
+    }
+
     pub fn prompt_cache_key(mut self, key: Option<String>) -> Self {
         self.prompt_cache_key = key;
         self
+    }
+
     pub fn text(mut self, text: Option<TextControls>) -> Self {
         self.text = text;
         self
+    }
+
     pub fn conversation(mut self, conversation_id: Option<String>) -> Self {
         self.conversation_id = conversation_id;
         self
+    }
+
     pub fn session_source(mut self, source: Option<SessionSource>) -> Self {
         self.session_source = source;
         self
+    }
+
     pub fn store_override(mut self, store: Option<bool>) -> Self {
         self.store_override = store;
         self
+    }
+
     pub fn extra_headers(mut self, headers: HeaderMap) -> Self {
         self.headers = headers;
         self
+    }
+
     pub fn compression(mut self, compression: Compression) -> Self {
         self.compression = compression;
         self
+    }
+
     #[allow(clippy::result_large_err)]
     pub fn build(self, provider: &Provider) -> Result<ResponsesRequest, ApiError> {
         let model = self
@@ -87,11 +119,11 @@ impl<'a> ResponsesRequestBuilder<'a> {
             .store_override
             .unwrap_or_else(|| provider.is_azure_responses_endpoint());
         let req = ResponsesApiRequest {
-            model,
-            instructions,
-            input,
-            tools,
-            tool_choice: "auto",
+            model: model.to_string(),
+            instructions: instructions.to_string(),
+            input: input.to_vec(),
+            tools: tools.to_vec(),
+            tool_choice: "auto".to_string(),
             parallel_tool_calls: self.parallel_tool_calls,
             reasoning: self.reasoning,
             store,
@@ -99,20 +131,26 @@ impl<'a> ResponsesRequestBuilder<'a> {
             include: self.include,
             prompt_cache_key: self.prompt_cache_key,
             text: self.text,
+        };
         let mut body = serde_json::to_value(&req)
             .map_err(|e| ApiError::Stream(format!("failed to encode responses request: {e}")))?;
         if store && provider.is_azure_responses_endpoint() {
             attach_item_ids(&mut body, input);
+        }
         let mut headers = self.headers;
         headers.extend(build_conversation_headers(self.conversation_id));
         if let Some(subagent) = subagent_header(&self.session_source) {
             insert_header(&mut headers, "x-openai-subagent", &subagent);
+        }
         Ok(ResponsesRequest {
             body,
             headers,
             compression: self.compression,
-fn attach_item_ids(payload_json: &mut Value, original_items: &[ResponseItem]) {
-// --- End fork additions ---
+        })
+    }
+}
+
+pub(crate) fn attach_item_ids(payload_json: &mut Value, original_items: &[ResponseItem]) {
     let Some(input_value) = payload_json.get_mut("input") else {
         return;
     };

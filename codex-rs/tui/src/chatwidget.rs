@@ -280,24 +280,6 @@ enum ConnectorsCacheState {
     Failed(String),
 }
 
-#[derive(Debug)]
-enum RateLimitErrorKind {
-    ServerOverloaded,
-    UsageLimit,
-    Generic,
-}
-
-fn rate_limit_error_kind(info: &CodexErrorInfo) -> Option<RateLimitErrorKind> {
-    match info {
-        CodexErrorInfo::ServerOverloaded => Some(RateLimitErrorKind::ServerOverloaded),
-        CodexErrorInfo::UsageLimitExceeded => Some(RateLimitErrorKind::UsageLimit),
-        CodexErrorInfo::ResponseTooManyFailedAttempts {
-            http_status_code: Some(429),
-        } => Some(RateLimitErrorKind::Generic),
-        _ => None,
-    }
-}
-
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(crate) enum ExternalEditorState {
     #[default]
@@ -3672,9 +3654,9 @@ impl ChatWidget {
                         RateLimitErrorKind::ServerOverloaded => {
                             self.on_server_overloaded_error(message)
                         }
-                        RateLimitErrorKind::UsageLimit | RateLimitErrorKind::Generic => {
-                            self.on_error(message)
-                        }
+                        RateLimitErrorKind::ModelCap { .. }
+                        | RateLimitErrorKind::UsageLimit
+                        | RateLimitErrorKind::Generic => self.on_error(message),
                     }
                 } else {
                     self.on_error(message);

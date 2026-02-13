@@ -1,10 +1,10 @@
 use anyhow::Context;
 use anyhow::Result;
-use codex_common::CliConfigOverrides;
 use codex_core::agent_interpreter::AgentAction;
 use codex_core::agent_interpreter::AgentInterpreter;
 use codex_core::agent_interpreter::WebhookServiceKind;
 use codex_core::agents::AgentAliases;
+use codex_utils_cli::CliConfigOverrides;
 use std::path::PathBuf;
 
 pub async fn run_ask_command(

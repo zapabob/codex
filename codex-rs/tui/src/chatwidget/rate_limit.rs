@@ -100,7 +100,9 @@ pub(crate) enum RateLimitSwitchPromptState {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub(crate) enum RateLimitErrorKind {
+    ServerOverloaded,
     ModelCap {
         model: String,
         reset_after_seconds: Option<u64>,
@@ -118,6 +120,7 @@ pub(crate) fn rate_limit_error_kind(info: &CodexErrorInfo) -> Option<RateLimitEr
             model: model.clone(),
             reset_after_seconds: *reset_after_seconds,
         }),
+        CodexErrorInfo::ServerOverloaded => Some(RateLimitErrorKind::ServerOverloaded),
         CodexErrorInfo::UsageLimitExceeded => Some(RateLimitErrorKind::UsageLimit),
         CodexErrorInfo::ResponseTooManyFailedAttempts {
             http_status_code: Some(429),

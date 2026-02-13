@@ -13,7 +13,7 @@ pub mod auth;
 
 // --- Fork custom additions ---
 pub mod audit_log;
-pub mod bash;
+
 pub mod chrome;
 // --- End fork additions ---
 mod client;
@@ -65,7 +65,7 @@ mod model_provider_info;
 
 // --- Fork custom additions ---
 pub mod organizations;
-pub mod parse_command;
+
 // --- End fork additions ---
 pub mod path_utils;
 pub mod personality_migration;
@@ -116,7 +116,7 @@ pub mod project_doc;
 mod rollout;
 pub(crate) mod safety;
 pub mod seatbelt;
-pub mod session_prefix;
+
 pub mod shell;
 pub mod shell_snapshot;
 pub mod skills;
@@ -150,6 +150,7 @@ pub use rollout::rollout_date_parts;
 pub use rollout::session_index::find_thread_names_by_ids;
 mod function_tool;
 pub mod implementation_log;
+pub mod security;
 mod state;
 mod tasks;
 mod user_shell_command;

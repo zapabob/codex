@@ -45,7 +45,7 @@ use codex_rmcp_client::RmcpClient;
 use codex_rmcp_client::SendElicitation;
 use futures::FutureExt;
 use futures::StreamExt;
-use rmcp::model::InitializeRequestParam;
+use rmcp::model::InitializeRequestParams;
 use rmcp::model::ProtocolVersion;
 use rmcp::model::RequestId;
 
@@ -741,6 +741,7 @@ Only output the JSON, no explanation."#;
                 ResponseEvent::Completed {
                     response_id: _,
                     token_usage: Some(usage),
+                    can_append: _,
                 } => {
                     debug!("Agent '{}': Response completed", agent_def.name);
                     // Use actual token usage from API
@@ -753,6 +754,7 @@ Only output the JSON, no explanation."#;
                 ResponseEvent::Completed {
                     response_id: _,
                     token_usage: None,
+                    can_append: _,
                 } => {
                     debug!("Agent '{}': Response completed", agent_def.name);
                 }
@@ -1107,11 +1109,13 @@ impl AgentRuntime {
         .context("Failed to spawn Codex MCP server")?;
 
         // Initialize MCP session
-        let init_params = InitializeRequestParam {
+        let init_params = InitializeRequestParams {
+            meta: None,
             client_info: rmcp::model::Implementation {
                 name: "codex-subagent-runtime".to_string(),
                 version: env!("CARGO_PKG_VERSION").to_string(),
                 title: Some("Codex Subagent Runtime".into()),
+                description: None,
                 icons: None,
                 website_url: None,
             },
@@ -1119,8 +1123,10 @@ impl AgentRuntime {
             capabilities: rmcp::model::ClientCapabilities {
                 elicitation: None,
                 experimental: None,
+                extensions: None,
                 sampling: None,
                 roots: None,
+                tasks: None,
             },
         };
 
@@ -1445,6 +1451,7 @@ impl AgentRuntime {
                 ResponseEvent::Completed {
                     response_id: _,
                     token_usage,
+                    can_append: _,
                 } => {
                     // 実際のトークン使用量をキャプチャ
                     if let Some(usage) = token_usage {

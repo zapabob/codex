@@ -14,7 +14,7 @@ async fn test_add_server() {
     let (tx_event, _rx_event) = unbounded();
     let cancel_token = CancellationToken::new();
     let sandbox_state = SandboxState {
-        sandbox_policy: SandboxPolicy::ReadOnly,
+        sandbox_policy: SandboxPolicy::new_read_only_policy(),
         codex_linux_sandbox_exe: None,
         sandbox_cwd: std::path::PathBuf::from("/"),
         use_linux_sandbox_bwrap: false,
@@ -60,7 +60,7 @@ async fn test_remove_server() {
     let (tx_event, _rx_event) = unbounded();
     let cancel_token = CancellationToken::new();
     let sandbox_state = SandboxState {
-        sandbox_policy: SandboxPolicy::ReadOnly,
+        sandbox_policy: SandboxPolicy::new_read_only_policy(),
         codex_linux_sandbox_exe: None,
         sandbox_cwd: std::path::PathBuf::from("/"),
         use_linux_sandbox_bwrap: false,

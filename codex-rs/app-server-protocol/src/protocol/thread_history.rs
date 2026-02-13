@@ -56,6 +56,14 @@ pub fn build_turns_from_rollout_items(items: &[RolloutItem]) -> Vec<Turn> {
     builder.finish()
 }
 
+pub fn build_turns_from_event_msgs(events: &[EventMsg]) -> Vec<Turn> {
+    let mut builder = ThreadHistoryBuilder::new();
+    for event in events {
+        builder.handle_event(event);
+    }
+    builder.finish()
+}
+
 struct ThreadHistoryBuilder {
     turns: Vec<Turn>,
     current_turn: Option<PendingTurn>,

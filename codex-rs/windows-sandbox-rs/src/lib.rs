@@ -124,8 +124,6 @@ pub use windows_impl::run_windows_sandbox_legacy_preflight;
 #[cfg(target_os = "windows")]
 pub use windows_impl::CaptureResult;
 #[cfg(target_os = "windows")]
-pub use windows_impl::run_windows_sandbox_capture;
-#[cfg(target_os = "windows")]
 pub use winutil::string_from_sid_bytes;
 #[cfg(target_os = "windows")]
 pub use winutil::to_wide;
@@ -142,8 +140,6 @@ pub use stub::apply_world_writable_scan_and_denies;
 pub use stub::run_windows_sandbox_capture;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_legacy_preflight;
-#[cfg(not(target_os = "windows"))]
-pub use stub::CaptureResult;
 
 #[cfg(target_os = "windows")]
 mod windows_impl {
@@ -603,10 +599,10 @@ mod windows_impl {
 
     pub fn run_windows_sandbox_legacy_preflight(
         sandbox_policy: &SandboxPolicy,
-        sandbox_policy_cwd: &Path,
-        codex_home: &Path,
-        cwd: &Path,
-        env_map: &HashMap<String, String>,
+        sandbox_policy_cwd: &std::path::Path,
+        codex_home: &std::path::Path,
+        cwd: &std::path::Path,
+        env_map: &std::collections::HashMap<String, String>,
     ) -> Result<()> {
         let is_workspace_write = matches!(sandbox_policy, SandboxPolicy::WorkspaceWrite { .. });
         if !is_workspace_write {

@@ -7,6 +7,10 @@ pub use codex_backend_openapi_models::models::RateLimitStatusPayload;
 pub use codex_backend_openapi_models::models::RateLimitWindowSnapshot;
 pub use codex_backend_openapi_models::models::TaskListItem;
 
+pub use codex_protocol::protocol::CreditsSnapshot;
+
+pub use codex_backend_openapi_models::models::CreditStatusDetails;
+
 use serde::Deserialize;
 use serde::de::Deserializer;
 use serde_json::Value;

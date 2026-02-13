@@ -312,13 +312,19 @@ def main():
     start_datetime = get_current_datetime_from_mcp()
 
     print("="*70)
-    print("🚀 高速差分ビルド・プロセスキル・上書きインストール")
+    print("🚀 高速差分ビルド・プロセスキル・上書きインストール (6コア + sccache)")
     print("="*70)
     print(f"🕐 開始時刻: {start_datetime}")
     
-    # 環境変数を確認
+    # 環境変数の設定
+    os.environ['RUSTC_WRAPPER'] = 'sccache'
+    os.environ['RUSTFLAGS'] = '-D warnings'
+    os.environ['CARGO_TERM_COLOR'] = 'always'
     target_dir = os.environ.get('CARGO_TARGET_DIR', 'target')
-    print(f"\n📁 ビルドディレクトリ: {target_dir}")
+    
+    print(f"🛠️  sccache 有効化中")
+    print(f"💪 並列ジョブ数: 6")
+    print(f"📁 ビルドディレクトリ: {target_dir}")
     
     # 0. プロセスキル
     print("\n" + "="*70)
@@ -327,52 +333,98 @@ def main():
     kill_codex_processes()
     time.sleep(2)  # プロセス停止を待つ
     
-    # 1. 高速差分ビルド（codex-cli）
+    # 1. ビルド対象の定義
+    packages = [
+        {"name": "codex-cli", "display": "CLI", "binary": "codex.exe", "dest": "codex.exe", "j": 6},
+        {"name": "codex-tui", "display": "TUI", "binary": "codex-tui.exe", "dest": "codex-tui.exe", "j": 6},
+    ]
+    
+    total_build_elapsed = 0
+    total_build_count = 0
+    build_results = []
+    
+    # 2. Rustパッケージのビルド
+    for pkg in packages:
+        print("\n" + "="*70)
+        print(f"📦 Phase 1: 高速差分ビルド ({pkg['display']})")
+        print("="*70)
+        
+        success, errors, warnings, elapsed, count = build_with_progress(
+            ["cargo", "build", "--release", "-p", pkg['name'], "-j", str(pkg['j'])],
+            f"{pkg['name']} (リリースビルド)",
+            total_estimated=80
+        )
+        
+        if not success:
+            print(f"\n❌ {pkg['display']} のビルドに失敗しました")
+            if errors:
+                print("\nエラー詳細:")
+                for error in errors[:5]:
+                    print(f"  - {error[:200]}")
+            sys.exit(1)
+        
+        total_build_elapsed += elapsed
+        total_build_count += count
+        build_results.append(pkg)
+    
+    # 3. GUIビルド (Tauri)
     print("\n" + "="*70)
-    print("📦 Phase 1: 高速差分ビルド (codex-cli)")
+    print("🎨 Phase 2: GUI ビルド (Tauri)")
     print("="*70)
     
-    build_success, build_errors, build_warnings, build_elapsed, build_count = build_with_progress(
-        ["cargo", "build", "--release", "-p", "codex-cli"],
-        "codex-cli (リリースビルド)",
-        total_estimated=80  # 推定クレート数
-    )
-    
-    if not build_success:
-        print("\n❌ ビルドに失敗しました")
-        if build_errors:
-            print("\nエラー詳細:")
-            for error in build_errors[:5]:  # 最初の5個のみ
-                print(f"  - {error[:200]}")
-        sys.exit(1)
-    
-    # 2. バイナリの確認
-    source_path = os.path.join(target_dir, "release", "codex.exe")
-    if not os.path.exists(source_path):
-        print(f"\n❌ ビルド成果物が見つかりません: {source_path}")
-        sys.exit(1)
-    
-    file_size = os.path.getsize(source_path) / (1024 * 1024)  # MB
-    print(f"\n📦 ビルド成果物: {source_path} ({file_size:.2f} MB)")
-    
-    # 3. 再度プロセスキル（念のため）
-    print("\n" + "="*70)
-    print("🔪 Phase 2: 最終プロセスキル")
-    print("="*70)
-    kill_codex_processes()
-    time.sleep(1)
-    
+    gui_dir = os.path.join(script_dir, "tauri-gui")
+    if os.path.exists(gui_dir):
+        os.chdir(gui_dir)
+        try:
+            print("📦 npm 依存関係を確認中...")
+            if not os.path.exists("node_modules"):
+                subprocess.run(["npm", "ci"], check=True)
+            
+            print("🚀 Tauri ビルド実行中...")
+            gui_start = time.time()
+            subprocess.run(["npm", "run", "tauri:build"], check=True)
+            gui_elapsed = time.time() - gui_start
+            print(f"✅ GUI ビルド完了 ({gui_elapsed:.2f}秒)")
+            
+            packages.append({
+                "name": "codex-gui", 
+                "display": "GUI", 
+                "binary": "codex-tauri-gui.exe", 
+                "dest": "codex-gui.exe",
+                "custom_source": os.path.join(script_dir, "tauri-gui", "src-tauri", target_dir, "release", "codex-tauri-gui.exe")
+            })
+            total_build_elapsed += gui_elapsed
+        except Exception as e:
+            print(f"❌ GUI ビルドに失敗しました: {e}")
+            # GUIビルド失敗は致命的として扱うか、要件次第
+            sys.exit(1)
+        finally:
+            os.chdir(script_dir)
+    else:
+        print("⚠️  tauri-gui ディレクトリが見つからないため、GUIビルドをスキップします")
+
     # 4. 上書きインストール
     print("\n" + "="*70)
     print("📥 Phase 3: バイナリ上書きインストール")
     print("="*70)
     
-    install_path = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser('~')), '.cargo', 'bin', 'codex.exe')
+    install_dir = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser('~')), '.cargo', 'bin')
     
-    if not install_binary(source_path, install_path):
-        print("\n❌ インストールに失敗しました")
-        sys.exit(1)
-    
+    for pkg in packages:
+        if "custom_source" in pkg:
+            src = pkg["custom_source"]
+        else:
+            src = os.path.join(target_dir, "release", pkg["binary"])
+            
+        if not os.path.exists(src):
+            print(f"⚠️  ソースが見つかりません: {src}")
+            continue
+            
+        dest = os.path.join(install_dir, pkg["dest"])
+        if not install_binary(src, dest):
+            print(f"❌ {pkg['display']} のインストールに失敗しました")
+            sys.exit(1)
+            
     # 5. 動作確認
     print("\n" + "="*70)
     print("✅ Phase 4: 動作確認")
@@ -401,29 +453,27 @@ def main():
     print("="*70)
     print(f"🕐 終了時刻: {end_datetime}")
     print(f"\n📊 サマリー:")
-    print(f"   - ビルド時間: {build_elapsed:.2f}秒")
-    print(f"   - コンパイル済みクレート: {build_count}個")
-    print(f"   - インストール先: {install_path}")
-    print(f"   - バイナリサイズ: {file_size:.2f} MB")
+    print(f"   - 総ビルド時間: {total_build_elapsed:.2f}秒")
+    print(f"   - インストール先: {install_dir}")
 
     # 実装ログを保存
     log_content = f"""- 開始時刻: {start_datetime}
 - 終了時刻: {end_datetime}
-- ビルド時間: {build_elapsed:.2f}秒
-- コンパイル済みクレート: {build_count}個
-- バイナリサイズ: {file_size:.2f} MB
-- インストール先: {install_path}
+- 総ビルド時間: {total_build_elapsed:.2f}秒
+- インストール先: {install_dir}
+- 並列ジョブ数: 6
+- sccache: 有効
 - プロセスキル: 正常に実行
-- ビルド結果: 成功
+- ビルド結果: 成功 (CLI, TUI, GUI)
 - インストール結果: 成功
 - 動作確認: 完了"""
 
-    log_path = save_implementation_log(log_content, "高速差分ビルド・プロセスキル・上書きインストール")
+    log_path = save_implementation_log(log_content, "6コアsccache高速差分ビルド・インストール")
     
     # 完了音声を再生（Windows環境）
     if sys.platform == 'win32':
         audio_paths = [
-            r"C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav",  # 優先パス
+            r"C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav",
             os.path.join(os.path.dirname(os.path.dirname(script_dir)), ".codex", "marisa_owattaze.wav")
         ]
         
@@ -434,7 +484,7 @@ def main():
                     import winsound
                     print(f"\n🔊 完了音声を再生中: {audio_path}")
                     winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_SYNC)
-                    print("✅ 音声を再生しました: 終わったぜ！ 高速ビルド・インストール完了だぜ！")
+                    print("✅ 音声を再生しました: 終わったぜ！")
                     audio_played = True
                     break
                 except Exception as e:

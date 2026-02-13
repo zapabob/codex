@@ -4301,7 +4301,7 @@ pub(crate) async fn run_turn(
         .await;
 
     // Create router
-    let router = Arc::new(ToolRouter::from_config(
+    let _router = Arc::new(ToolRouter::from_config(
         &turn_context.tools_config,
         Some(
             mcp_tools
@@ -4567,6 +4567,35 @@ fn collect_explicit_app_ids_from_skill_items(
     }
 
     connector_ids
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn run_sampling_request(
+    sess: Arc<Session>,
+    turn_context: Arc<TurnContext>,
+    client_session: &mut ModelClientSession,
+    turn_metadata_header: Option<&str>,
+    input: Vec<ResponseItem>,
+    explicitly_enabled_connectors: &HashSet<String>,
+    skills_outcome: Option<&SkillLoadOutcome>,
+    cancellation_token: CancellationToken,
+) -> CodexResult<SamplingRequestResult> {
+    // The "turn diff" tracks changes to the turn context across multiple
+    // sampling requests within a single logical turn.
+    let turn_diff_tracker = Arc::new(tokio::sync::Mutex::new(TurnDiffTracker::new()));
+
+    run_model_turn(
+        sess,
+        turn_context,
+        turn_diff_tracker,
+        client_session,
+        turn_metadata_header,
+        input,
+        explicitly_enabled_connectors,
+        skills_outcome,
+        cancellation_token,
+    )
+    .await
 }
 
 fn filter_connectors_for_input(

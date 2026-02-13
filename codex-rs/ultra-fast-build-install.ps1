@@ -261,7 +261,14 @@ Write-Status "Working directory: $(Get-Location)"
 Write-Status "Install directory: $InstallDir"
 
 # Environment setup
-$env:RUSTC_WRAPPER = ""
+# Environment setup
+if ($env:USE_SCCACHE -eq "1" -or $env:RUSTC_WRAPPER -eq "sccache") {
+    $env:RUSTC_WRAPPER = "sccache"
+    Write-Status "sccache enabled via RUSTC_WRAPPER"
+}
+elseif (-not $env:RUSTC_WRAPPER) {
+    $env:RUSTC_WRAPPER = ""
+}
 $env:RUSTFLAGS = "-D warnings"
 $env:CARGO_TERM_COLOR = "always"
 
@@ -297,7 +304,7 @@ $buildsRequired = @{}
 $sourceHashes = @{}
 
 $packages = @(
-    @{ Name = "codex-cli"; Path = "cli"; Features = "--features custom-features" },
+    @{ Name = "codex-cli"; Path = "cli"; Features = "" },
     @{ Name = "codex-tui"; Path = "tui"; Features = "" },
     @{ Name = "codex-tauri-gui"; Path = "tauri-gui/src-tauri"; Features = ""; IsTauri = $true }
 )
@@ -328,7 +335,7 @@ if ($pkgsToBuild.Count -gt 0) {
     Write-Status "Step 4: Building $($pkgsToBuild -join ', ') in combined cargo process..."
     
     $pkgArgs = $pkgsToBuild | ForEach-Object { "-p $_" }
-    $cargoCmd = "build --release $($pkgArgs -join ' ') -j $MaxParallelJobs $($packages[0].Features)"
+    $cargoCmd = "build --release $($pkgArgs -join ' ') -j $MaxParallelJobs --all-features"
     
     # Combined build with corruption auto-recovery
     $attempts = 0

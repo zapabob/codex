@@ -27,7 +27,7 @@ use crate::tools::sandboxing::SandboxablePreference;
 use codex_network_proxy::NetworkProxy;
 use codex_protocol::config_types::WindowsSandboxLevel;
 pub use codex_protocol::models::SandboxPermissions;
-use codex_protocol::config_types::WindowsSandboxLevel;
+
 use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;

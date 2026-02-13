@@ -1162,6 +1162,10 @@ pub enum CodexErrorInfo {
     ContextWindowExceeded,
     UsageLimitExceeded,
     ServerOverloaded,
+    ModelCap {
+        model: String,
+        reset_after_seconds: Option<u64>,
+    },
     HttpConnectionFailed {
         http_status_code: Option<u16>,
     },
@@ -1201,6 +1205,7 @@ impl CodexErrorInfo {
             | Self::SandboxError
             | Self::ResponseStreamDisconnected { .. }
             | Self::ResponseTooManyFailedAttempts { .. }
+            | Self::ModelCap { .. }
             | Self::Other => true,
         }
     }

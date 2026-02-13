@@ -61,11 +61,16 @@ members = [
     "codex-api",
     "state",
     "codex-experimental-api-macros",
+    "microsoft365",
+    "chatgpt",
+    "supervisor",
+    "web-search",
+    "deep-research",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "0.0.0"
+version = "2.16.0"
 # Track the edition for all workspace crates in one place. Individual
 # crates can still override this value, but keeping it here means new
 # crates created with `cargo new -w ...` automatically inherit the 2024
@@ -91,6 +96,7 @@ codex-client = { path = "codex-client" }
 codex-cloud-requirements = { path = "cloud-requirements" }
 codex-config = { path = "config" }
 codex-core = { path = "core" }
+codex-deep-research = { path = "deep-research" }
 codex-exec = { path = "exec" }
 codex-execpolicy = { path = "execpolicy" }
 codex-experimental-api-macros = { path = "codex-experimental-api-macros" }
@@ -103,9 +109,12 @@ codex-linux-sandbox = { path = "linux-sandbox" }
 codex-lmstudio = { path = "lmstudio" }
 codex-login = { path = "login" }
 codex-mcp-server = { path = "mcp-server" }
+codex-microsoft365 = { path = "microsoft365" }
+mcp-types = { path = "mcp-types" }
 codex-network-proxy = { path = "network-proxy" }
 codex-ollama = { path = "ollama" }
 codex-otel = { path = "otel" }
+codex-supervisor = { path = "supervisor" }
 codex-process-hardening = { path = "process-hardening" }
 codex-protocol = { path = "protocol" }
 codex-responses-api-proxy = { path = "responses-api-proxy" }
@@ -132,6 +141,7 @@ codex-utils-rustls-provider = { path = "utils/rustls-provider" }
 codex-utils-sandbox-summary = { path = "utils/sandbox-summary" }
 codex-utils-sanitizer = { path = "utils/sanitizer" }
 codex-utils-string = { path = "utils/string" }
+codex-web-search = { path = "web-search" }
 codex-windows-sandbox = { path = "windows-sandbox-rs" }
 core_test_support = { path = "core/tests/common" }
 exec_server_test_support = { path = "exec-server/tests/common" }
@@ -166,6 +176,10 @@ diffy = "0.4.2"
 dirs = "6"
 dotenvy = "0.15.7"
 dunce = "1.0.4"
+dashmap = "6.0"
+git2 = "0.19"
+lsp-types = "0.95"
+sysinfo = "0.30"
 encoding_rs = "0.8.35"
 env-flags = "0.1.1"
 env_logger = "0.11.5"
@@ -228,6 +242,7 @@ semver = "1.0"
 sentry = "0.46.0"
 serde = "1"
 serde_json = "1"
+slug = "0.1"
 serde_path_to_error = "0.1.20"
 serde_with = "3.16"
 serde_yaml = "0.9"

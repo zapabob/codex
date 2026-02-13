@@ -20,14 +20,12 @@ use codex_core::protocol::Submission;
 use codex_protocol::ThreadId;
 use codex_protocol::protocol::SessionSource;
 use rmcp::model::CallToolRequestParams;
-use rmcp::model::CallToolResult;
 
 // --- Fork custom additions ---
+use mcp_types::CallToolResult as McpCallToolResult;
 use mcp_types::ContentBlock;
 use mcp_types::ModelContextProtocolRequest;
 use mcp_types::TextContent;
-use rmcp::model::CallToolRequestParam;
-use mcp_types::CallToolResult;
 // --- End fork additions ---
 use rmcp::model::ClientNotification;
 use rmcp::model::ClientRequest;
@@ -373,7 +371,7 @@ impl MessageProcessor {
                         )
                         .await
                     {
-                        let result = CallToolResult {
+                        let result = McpCallToolResult {
                             content: vec![ContentBlock::TextContent(TextContent {
                                 r#type: "text".to_string(),
                                 text: format!("External tool execution failed: {e}"),
@@ -385,7 +383,7 @@ impl MessageProcessor {
                         self.outgoing.send_response(id, result).await;
                     }
                 } else {
-                    let result = CallToolResult {
+                    let result = McpCallToolResult {
                         content: vec![ContentBlock::TextContent(TextContent {
                             r#type: "text".to_string(),
                             text: "Missing arguments for external tool".to_string(),
@@ -398,7 +396,7 @@ impl MessageProcessor {
                 }
             }
             _ => {
-                let result = CallToolResult {
+                let result = McpCallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
                         text: format!("Unknown tool '{name}'"),
@@ -426,7 +424,7 @@ impl MessageProcessor {
                 {
                     Ok(cfg) => cfg,
                     Err(e) => {
-                        let result = CallToolResult {
+                        let result = McpCallToolResult {
                             content: vec![ContentBlock::TextContent(TextContent {
                                 r#type: "text".to_string(),
                                 text: format!(
@@ -442,7 +440,7 @@ impl MessageProcessor {
                     }
                 },
                 Err(e) => {
-                    let result = CallToolResult {
+                    let result = McpCallToolResult {
                         content: vec![ContentBlock::TextContent(TextContent {
                             r#type: "text".to_string(),
                             text: format!("Failed to parse configuration for Codex tool: {e}"),
@@ -456,7 +454,7 @@ impl MessageProcessor {
                 }
             },
             None => {
-                let result = CallToolResult {
+                let result = McpCallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
                         text:
@@ -507,7 +505,7 @@ impl MessageProcessor {
                 Ok(params) => params,
                 Err(e) => {
                     tracing::error!("Failed to parse Codex tool call reply parameters: {e}");
-                    let result = CallToolResult {
+                    let result = McpCallToolResult {
                         content: vec![ContentBlock::TextContent(TextContent {
                             r#type: "text".to_string(),
                             text: format!("Failed to parse configuration for Codex tool: {e}"),
@@ -524,7 +522,7 @@ impl MessageProcessor {
                 tracing::error!(
                     "Missing arguments for codex-reply tool-call; the `thread_id` and `prompt` fields are required."
                 );
-                let result = CallToolResult {
+                let result = McpCallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
                         text: "Missing arguments for codex-reply tool-call; the `thread_id` and `prompt` fields are required.".to_string(),
@@ -542,7 +540,7 @@ impl MessageProcessor {
             Ok(id) => id,
             Err(e) => {
                 tracing::error!("Failed to parse thread_id: {e}");
-                let result = CallToolResult {
+                let result = McpCallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
                         text: format!("Failed to parse thread_id: {e}"),
@@ -685,7 +683,7 @@ impl MessageProcessor {
             Some(json_val) => match serde_json::from_value(json_val) {
                 Ok(p) => p,
                 Err(e) => {
-                    let result = CallToolResult {
+                    let result = McpCallToolResult {
                         content: vec![ContentBlock::TextContent(TextContent {
                             r#type: "text".to_string(),
                             text: format!("Failed to parse Windows 25H2 tool parameters: {e}"),
@@ -700,7 +698,7 @@ impl MessageProcessor {
                 }
             },
             None => {
-                let result = CallToolResult {
+                let result = McpCallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
                         text: "Missing arguments for windows-25h2 tool".to_string(),
@@ -733,7 +731,7 @@ impl MessageProcessor {
                     )
                 };
 
-                let call_result = CallToolResult {
+                let call_result = McpCallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
                         text: result_text,
@@ -746,7 +744,7 @@ impl MessageProcessor {
                     .await;
             }
             Err(e) => {
-                let result = CallToolResult {
+                let result = McpCallToolResult {
                     content: vec![ContentBlock::TextContent(TextContent {
                         r#type: "text".to_string(),
                         text: format!("Windows 25H2 tool execution failed: {e}"),
@@ -785,6 +783,7 @@ fn to_rmcp_tool(tool: mcp_types::Tool) -> rmcp::model::Tool {
         output_schema: None,
         annotations: None,
         icons: None,
+        execution: None,
         meta: None,
     }
 }

@@ -97,6 +97,12 @@ pub enum CodexErrorInfo {
         #[ts(rename = "httpStatusCode")]
         http_status_code: Option<u16>,
     },
+    ModelCap {
+        model: String,
+        #[serde(rename = "resetAfterSeconds")]
+        #[ts(rename = "resetAfterSeconds")]
+        reset_after_seconds: Option<u64>,
+    },
     /// Failed to connect to the response SSE stream.
     ResponseStreamConnectionFailed {
         #[serde(rename = "httpStatusCode")]
@@ -129,6 +135,13 @@ impl From<CoreCodexErrorInfo> for CodexErrorInfo {
             CoreCodexErrorInfo::ContextWindowExceeded => CodexErrorInfo::ContextWindowExceeded,
             CoreCodexErrorInfo::UsageLimitExceeded => CodexErrorInfo::UsageLimitExceeded,
             CoreCodexErrorInfo::ServerOverloaded => CodexErrorInfo::ServerOverloaded,
+            CoreCodexErrorInfo::ModelCap {
+                model,
+                reset_after_seconds,
+            } => CodexErrorInfo::ModelCap {
+                model,
+                reset_after_seconds,
+            },
             CoreCodexErrorInfo::HttpConnectionFailed { http_status_code } => {
                 CodexErrorInfo::HttpConnectionFailed { http_status_code }
             }

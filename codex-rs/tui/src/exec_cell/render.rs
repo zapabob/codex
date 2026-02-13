@@ -13,8 +13,6 @@ use crate::wrapping::RtOptions;
 use crate::wrapping::word_wrap_line;
 use crate::wrapping::word_wrap_lines;
 use codex_ansi_escape::ansi_escape_line;
-use codex_core::bash::extract_bash_command;
-use codex_core::protocol::ExecCommandSource;
 use codex_protocol::parse_command::ParsedCommand;
 use codex_utils_elapsed::format_duration;
 use itertools::Itertools;

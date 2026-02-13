@@ -99,3 +99,7 @@ fn local_personality_messages_for_slug(slug: &str) -> Option<ModelMessages> {
         _ => None,
     }
 }
+
+pub fn find_model_info_for_slug(slug: &str) -> ModelInfo {
+    model_info_from_slug(slug)
+}
