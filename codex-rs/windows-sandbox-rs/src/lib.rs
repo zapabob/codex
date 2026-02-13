@@ -88,6 +88,8 @@ pub use setup::run_elevated_setup;
 #[cfg(target_os = "windows")]
 pub use setup::run_setup_refresh;
 #[cfg(target_os = "windows")]
+pub use setup::run_setup_refresh_with_extra_read_roots;
+#[cfg(target_os = "windows")]
 pub use setup::sandbox_dir;
 #[cfg(target_os = "windows")]
 pub use setup::sandbox_secrets_dir;
@@ -116,6 +118,10 @@ pub use token::create_workspace_write_token_with_caps_from;
 #[cfg(target_os = "windows")]
 pub use token::get_current_token_for_restriction;
 #[cfg(target_os = "windows")]
+pub use windows_impl::run_windows_sandbox_capture;
+#[cfg(target_os = "windows")]
+pub use windows_impl::run_windows_sandbox_legacy_preflight;
+#[cfg(target_os = "windows")]
 pub use windows_impl::CaptureResult;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
@@ -134,6 +140,10 @@ pub use stub::CaptureResult;
 pub use stub::apply_world_writable_scan_and_denies;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_capture;
+#[cfg(not(target_os = "windows"))]
+pub use stub::run_windows_sandbox_legacy_preflight;
+#[cfg(not(target_os = "windows"))]
+pub use stub::CaptureResult;
 
 #[cfg(target_os = "windows")]
 mod windows_impl {
@@ -294,6 +304,11 @@ mod windows_impl {
         ) {
             anyhow::bail!("DangerFullAccess and ExternalSandbox are not supported for sandboxing")
         }
+        if !policy.has_full_disk_read_access() {
+            anyhow::bail!(
+                "Restricted read-only access is not yet supported by the Windows sandbox backend"
+            );
+        }
         let caps = load_or_create_cap_sids(codex_home)?;
         let (h_token, psid_generic, psid_workspace): (
             HANDLE,
@@ -301,10 +316,8 @@ mod windows_impl {
             Option<*mut std::ffi::c_void>,
         ) = unsafe {
             match &policy {
-                SandboxPolicy::ReadOnly => {
-                    let psid = convert_string_sid_to_sid(&caps.readonly).ok_or_else(|| {
-                        anyhow::anyhow!("convert_string_sid_to_sid failed for readonly")
-                    })?;
+                SandboxPolicy::ReadOnly { .. } => {
+                    let psid = convert_string_sid_to_sid(&caps.readonly).unwrap();
                     let (h, _) = super::token::create_readonly_token_with_cap(psid)?;
                     (h, psid, None)
                 }
@@ -588,6 +601,50 @@ mod windows_impl {
         })
     }
 
+    pub fn run_windows_sandbox_legacy_preflight(
+        sandbox_policy: &SandboxPolicy,
+        sandbox_policy_cwd: &Path,
+        codex_home: &Path,
+        cwd: &Path,
+        env_map: &HashMap<String, String>,
+    ) -> Result<()> {
+        let is_workspace_write = matches!(sandbox_policy, SandboxPolicy::WorkspaceWrite { .. });
+        if !is_workspace_write {
+            return Ok(());
+        }
+
+        ensure_codex_home_exists(codex_home)?;
+        let caps = load_or_create_cap_sids(codex_home)?;
+        let psid_generic =
+            unsafe { convert_string_sid_to_sid(&caps.workspace) }.expect("valid workspace SID");
+        let ws_sid = workspace_cap_sid_for_cwd(codex_home, cwd)?;
+        let psid_workspace =
+            unsafe { convert_string_sid_to_sid(&ws_sid) }.expect("valid workspace SID");
+        let current_dir = cwd.to_path_buf();
+        let AllowDenyPaths { allow, deny } =
+            compute_allow_paths(sandbox_policy, sandbox_policy_cwd, &current_dir, env_map);
+        let canonical_cwd = canonicalize_path(&current_dir);
+
+        unsafe {
+            for p in &allow {
+                let psid = if is_command_cwd_root(p, &canonical_cwd) {
+                    psid_workspace
+                } else {
+                    psid_generic
+                };
+                let _ = add_allow_ace(p, psid);
+            }
+            for p in &deny {
+                let _ = add_deny_write_ace(p, psid_generic);
+            }
+            allow_null_device(psid_generic);
+            allow_null_device(psid_workspace);
+            let _ = protect_workspace_codex_dir(&current_dir, psid_workspace);
+        }
+
+        Ok(())
+    }
+
     #[cfg(test)]
     mod tests {
         use super::should_apply_network_block;
@@ -596,6 +653,7 @@ mod windows_impl {
         fn workspace_policy(network_access: bool) -> SandboxPolicy {
             SandboxPolicy::WorkspaceWrite {
                 writable_roots: Vec::new(),
+                read_only_access: Default::default(),
                 network_access,
                 exclude_tmpdir_env_var: false,
                 exclude_slash_tmp: false,
@@ -614,7 +672,9 @@ mod windows_impl {
 
         #[test]
         fn applies_network_block_for_read_only() {
-            assert!(should_apply_network_block(&SandboxPolicy::ReadOnly));
+            assert!(should_apply_network_block(
+                &SandboxPolicy::new_read_only_policy()
+            ));
         }
     }
 }
@@ -653,6 +713,16 @@ mod stub {
         _env_map: &HashMap<String, String>,
         _sandbox_policy: &SandboxPolicy,
         _logs_base_dir: Option<&Path>,
+    ) -> Result<()> {
+        bail!("Windows sandbox is only available on Windows")
+    }
+
+    pub fn run_windows_sandbox_legacy_preflight(
+        _sandbox_policy: &SandboxPolicy,
+        _sandbox_policy_cwd: &Path,
+        _codex_home: &Path,
+        _cwd: &Path,
+        _env_map: &HashMap<String, String>,
     ) -> Result<()> {
         bail!("Windows sandbox is only available on Windows")
     }

@@ -100,7 +100,7 @@
           "type": "string"
         },
         {
-          "description": "*All* commands are auto‑approved, but they are expected to run inside a sandbox where network access is disabled and writes are confined to a specific set of paths. If the command fails, it will be escalated to the user to approve execution without a sandbox.",
+          "description": "DEPRECATED: *All* commands are auto‑approved, but they are expected to run inside a sandbox where network access is disabled and writes are confined to a specific set of paths. If the command fails, it will be escalated to the user to approve execution without a sandbox. Prefer `OnRequest` for interactive runs or `Never` for non-interactive runs.",
           "enum": [
             "on-failure"
           ],
@@ -188,6 +188,9 @@
             "apps": {
               "type": "boolean"
             },
+            "apps_mcp_gateway": {
+              "type": "boolean"
+            },
             "child_agents_md": {
               "type": "boolean"
             },
@@ -221,6 +224,12 @@
             "include_apply_patch_tool": {
               "type": "boolean"
             },
+            "js_repl": {
+              "type": "boolean"
+            },
+            "js_repl_tools_only": {
+              "type": "boolean"
+            },
             "memory_tool": {
               "type": "boolean"
             },
@@ -243,6 +252,9 @@
               "type": "boolean"
             },
             "runtime_metrics": {
+              "type": "boolean"
+            },
+            "search_tool": {
               "type": "boolean"
             },
             "shell_snapshot": {
@@ -287,6 +299,9 @@
         "include_apply_patch_tool": {
           "type": "boolean"
         },
+        "js_repl_node_path": {
+          "$ref": "#/definitions/AbsolutePathBuf"
+        },
         "model": {
           "type": "string"
         },
@@ -328,6 +343,14 @@
         },
         "web_search": {
           "$ref": "#/definitions/WebSearchMode"
+        },
+        "windows": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/WindowsToml"
+            }
+          ],
+          "default": null
         }
       },
       "type": "object"
@@ -607,6 +630,14 @@
         "log_user_prompt": {
           "description": "Log user prompt in traces",
           "type": "boolean"
+        },
+        "metrics_exporter": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/OtelExporterKind"
+            }
+          ],
+          "description": "Optional metrics exporter"
         },
         "trace_exporter": {
           "allOf": [
@@ -1133,6 +1164,22 @@
       ],
       "type": "string"
     },
+    "WindowsSandboxModeToml": {
+      "enum": [
+        "elevated",
+        "unelevated"
+      ],
+      "type": "string"
+    },
+    "WindowsToml": {
+      "additionalProperties": false,
+      "properties": {
+        "sandbox": {
+          "$ref": "#/definitions/WindowsSandboxModeToml"
+        }
+      },
+      "type": "object"
+    },
     "WireApi": {
       "description": "Wire protocol that the provider speaks.",
       "oneOf": [
@@ -1231,6 +1278,9 @@
         "apps": {
           "type": "boolean"
         },
+        "apps_mcp_gateway": {
+          "type": "boolean"
+        },
         "child_agents_md": {
           "type": "boolean"
         },
@@ -1264,6 +1314,12 @@
         "include_apply_patch_tool": {
           "type": "boolean"
         },
+        "js_repl": {
+          "type": "boolean"
+        },
+        "js_repl_tools_only": {
+          "type": "boolean"
+        },
         "memory_tool": {
           "type": "boolean"
         },
@@ -1286,6 +1342,9 @@
           "type": "boolean"
         },
         "runtime_metrics": {
+          "type": "boolean"
+        },
+        "search_tool": {
           "type": "boolean"
         },
         "shell_snapshot": {
@@ -1382,6 +1441,14 @@
     "instructions": {
       "description": "System instructions.",
       "type": "string"
+    },
+    "js_repl_node_path": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/AbsolutePathBuf"
+        }
+      ],
+      "description": "Optional absolute path to the Node runtime used by `js_repl`."
     },
     "log_dir": {
       "allOf": [
@@ -1621,6 +1688,15 @@
         }
       ],
       "description": "Controls the web search tool mode: disabled, cached, or live."
+    },
+    "windows": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/WindowsToml"
+        }
+      ],
+      "default": null,
+      "description": "Windows-specific configuration."
     },
     "windows_wsl_setup_acknowledged": {
       "description": "Tracks whether the Windows onboarding screen has been acknowledged.",

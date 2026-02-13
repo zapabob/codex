@@ -38,7 +38,7 @@ codex-app-server-test-client = { workspace = true }
 codex-arg0 = { workspace = true }
 codex-chatgpt = { workspace = true }
 codex-cloud-tasks = { path = "../cloud-tasks" }
-codex-common = { workspace = true, features = ["cli"] }
+codex-utils-cli = { workspace = true }
 codex-core = { workspace = true }
 codex-deep-research = { path = "../deep-research" }
 codex-exec = { workspace = true }

@@ -2,8 +2,9 @@
 Runtime: unified exec
 
 Handles approval + sandbox orchestration for unified exec requests, delegating to
-the process manager to spawn PTYs once an ExecEnv is prepared.
+the process manager to spawn PTYs once an ExecRequest is prepared.
 */
+use crate::command_canonicalization::canonicalize_command_for_approval;
 use crate::error::CodexErr;
 use crate::error::SandboxErr;
 use crate::exec::ExecExpiration;
@@ -27,6 +28,7 @@ use crate::tools::sandboxing::with_cached_approval;
 use crate::unified_exec::UnifiedExecError;
 use crate::unified_exec::UnifiedExecProcess;
 use crate::unified_exec::UnifiedExecProcessManager;
+use codex_network_proxy::NetworkProxy;
 use codex_protocol::protocol::ReviewDecision;
 use futures::future::BoxFuture;
 use std::collections::HashMap;
@@ -37,6 +39,7 @@ pub struct UnifiedExecRequest {
     pub command: Vec<String>,
     pub cwd: PathBuf,
     pub env: HashMap<String, String>,
+    pub network: Option<NetworkProxy>,
     pub tty: bool,
     pub sandbox_permissions: SandboxPermissions,
     pub justification: Option<String>,
@@ -55,6 +58,8 @@ pub struct UnifiedExecRuntime<'a> {
     manager: &'a UnifiedExecProcessManager,
 }
 
+
+// --- Fork custom additions ---
 impl UnifiedExecRequest {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -74,10 +79,7 @@ impl UnifiedExecRequest {
             sandbox_permissions,
             justification,
             exec_approval_requirement,
-        }
-    }
-}
-
+// --- End fork additions ---
 impl<'a> UnifiedExecRuntime<'a> {
     pub fn new(manager: &'a UnifiedExecProcessManager) -> Self {
         Self { manager }
@@ -99,7 +101,7 @@ impl Approvable<UnifiedExecRequest> for UnifiedExecRuntime<'_> {
 
     fn approval_keys(&self, req: &UnifiedExecRequest) -> Vec<Self::ApprovalKey> {
         vec![UnifiedExecApprovalKey {
-            command: req.command.clone(),
+            command: canonicalize_command_for_approval(&req.command),
             cwd: req.cwd.clone(),
             tty: req.tty,
             sandbox_permissions: req.sandbox_permissions,
@@ -173,7 +175,8 @@ impl<'a> ToolRuntime<UnifiedExecRequest, UnifiedExecProcess> for UnifiedExecRunt
     ) -> Result<UnifiedExecProcess, ToolError> {
         let base_command = &req.command;
         let session_shell = ctx.session.user_shell();
-        let command = maybe_wrap_shell_lc_with_snapshot(base_command, session_shell.as_ref());
+        let command =
+            maybe_wrap_shell_lc_with_snapshot(base_command, session_shell.as_ref(), &req.cwd);
         let command = if matches!(session_shell.shell_type, ShellType::PowerShell)
             && ctx.session.features().enabled(Feature::PowershellUtf8)
         {
@@ -182,17 +185,21 @@ impl<'a> ToolRuntime<UnifiedExecRequest, UnifiedExecProcess> for UnifiedExecRunt
             command
         };
 
+        let mut env = req.env.clone();
+        if let Some(network) = req.network.as_ref() {
+            network.apply_to_env(&mut env);
+        }
         let spec = build_command_spec(
             &command,
             &req.cwd,
-            &req.env,
+            &env,
             ExecExpiration::DefaultTimeout,
             req.sandbox_permissions,
             req.justification.clone(),
         )
         .map_err(|_| ToolError::Rejected("missing command line for PTY".to_string()))?;
         let exec_env = attempt
-            .env_for(spec)
+            .env_for(spec, req.network.as_ref())
             .map_err(|err| ToolError::Codex(err.into()))?;
         self.manager
             .open_session_with_exec_env(&exec_env, req.tty)

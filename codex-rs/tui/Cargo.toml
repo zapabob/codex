@@ -32,26 +32,27 @@ codex-arg0 = { workspace = true }
 codex-backend-client = { workspace = true }
 codex-chatgpt = { workspace = true }
 codex-cloud-requirements = { workspace = true }
-codex-common = { workspace = true, features = [
-    "cli",
-    "elapsed",
-    "sandbox_summary",
-] }
-codex-core = { workspace = true, features = ["custom-features"] }
+codex-core = { workspace = true }
 codex-feedback = { workspace = true }
 codex-file-search = { workspace = true }
 codex-login = { workspace = true }
 codex-otel = { workspace = true }
 codex-protocol = { workspace = true }
 codex-state = { workspace = true }
+codex-utils-approval-presets = { workspace = true }
 codex-utils-absolute-path = { workspace = true }
+codex-utils-cli = { workspace = true }
+codex-utils-elapsed = { workspace = true }
+codex-utils-fuzzy-match = { workspace = true }
+codex-utils-oss = { workspace = true }
+codex-utils-sandbox-summary = { workspace = true }
 color-eyre = { workspace = true }
 crossterm = { workspace = true, features = ["bracketed-paste", "event-stream"] }
 derive_more = { workspace = true, features = ["is_variant"] }
 diffy = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }
-image = { workspace = true, features = ["jpeg", "png"] }
+image = { workspace = true, features = ["jpeg", "png", "gif", "webp"] }
 itertools = { workspace = true }
 lazy_static = { workspace = true }
 pathdiff = { workspace = true }
@@ -67,7 +68,6 @@ ratatui-macros = { workspace = true }
 regex-lite = { workspace = true }
 reqwest = { version = "0.12", features = ["json"] }
 rmcp = { workspace = true }
-mcp-types = { path = "../mcp-types" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
 shlex = { workspace = true }
@@ -96,6 +96,7 @@ tree-sitter-highlight = { workspace = true }
 unicode-segmentation = { workspace = true }
 unicode-width = { workspace = true }
 url = { workspace = true }
+webbrowser = { workspace = true }
 uuid = { workspace = true }
 
 codex-windows-sandbox = { workspace = true }
@@ -120,7 +121,7 @@ arboard = { workspace = true }
 
 [dev-dependencies]
 codex-cli = { workspace = true }
-codex-core = { workspace = true, features = ["test-support"] }
+codex-core = { workspace = true }
 codex-utils-cargo-bin = { workspace = true }
 codex-utils-pty = { workspace = true }
 assert_matches = { workspace = true }

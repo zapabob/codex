@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - 2026-02-13 - "Upstream Sync & Security Hardening"
+
+### 🚀 Major Features
+
+**This release merges 226 upstream commits from openai/codex, incorporating the latest security fixes, bug fixes, and new features while preserving all custom zapabob extensions.**
+
+### ✅ Added (from upstream)
+
+- **Apps MCP Gateway** (`apps_mcp_gateway`) - New gateway for apps integration
+- **Shell Tool MCP** - Patched zsh build pipeline for improved shell execution
+- **Thread/List CWD** - Added `cwd` as optional field to thread/list API
+- **Feature Flags Testing** - Verify enabled-by-default feature flags are stable
+- **TurnContextItem Persistence** - Complete state persisted via canonical conversion
+- **Approvals Scenarios** - More comprehensive approval workflow testing
+
+### 🔒 Security (from upstream)
+
+- **DNS Rebinding Fix** - Resolved DNS rebinding vulnerability in network proxy
+- **Sandbox Bypass Fix** - Fixed sandbox bypass vulnerability
+- **Exec Policy Path Confusion** - Resolved path confusion in exec policy
+- **Case-Insensitivity Vulnerability** - Fixed case-insensitive matching exploit
+- **Git Command Safety** - Removed git commands from dangerous command checks
+
+### 🐛 Fixed (from upstream)
+
+- **NUX Display** - Don't show NUX for upgrade-target models that are hidden
+- **App Loading Logic** - Fixed app loading sequence
+- **TUI Improvements** - Delta streaming, compaction events, approvals UI
+
+### 📦 Preserved Custom Features (zapabob)
+
+- `codex-gui-x/` - Custom GUI implementation
+- `prism-mcp-server/`, `prism-web/` - Prism MCP integrations
+- WebXR Git visualization with cyberpunk effects
+- AI tool orchestration (task distribution, result integration)
+- Bilingual README and GH Pages
+- Fast build system and hot reload installation
+- CI/CD customizations and release packaging
+
+### 🔧 Technical Details
+
+- **Merge Strategy**: `git merge upstream/main` with Python-automated conflict resolution
+- **Conflicts Resolved**: 51 files (0 failures)
+- **Upstream Commits Merged**: 226
+- **Files Changed**: 594 files (+41,384 / -11,057 lines)
+- **Module Restructuring**: `codex-rs/common/` merged into `codex-rs/utils/cli/`, hooks module restructured
+
+### 📈 Dependencies
+
+- pnpm 10.28.2, node >=22
+- Various Cargo dependency updates (axum, clap, tokio, etc.)
+
+---
+
 ## [2.9.0] - 2026-01-04 - "Fast Build & Hot Reload System"
 
 ### 🚀 Major Features
@@ -67,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **This release transforms Codex from a personal project into enterprise-ready tooling with comprehensive documentation, benchmarks, and security hardening.**
 
 ### ✅ Added
+
 - **Interview-Focused Documentation Suite**
   - `docs/plan/README.md` - 5-minute Plan Mode quickstart guide
   - `docs/benchmarks/` - Performance measurement methodology (Sub-agents: 2.6x speedup, CUDA: 3.7x speedup)
@@ -89,6 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Approval gates for risky operations (shell, network, package install)
 
 ### 🔧 Changed
+
 - **README.md** - Complete rewrite for interview-readiness
   - Removed "production-ready" claims, replaced with "stable/experimental" status
   - Added "Why Codex?" and "Safety model" sections
@@ -101,17 +157,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Included adoption-focused use cases
 
 ### 🐛 Fixed
+
 - Build system compilation errors (22 fixed)
 - Type safety improvements throughout codebase
 - Repository organization (6,979 files systematically organized)
 
 ### 📈 Performance
+
 - **Sub-agent Speedup**: 2.59x average across test cases
 - **CUDA Acceleration**: 3.74x speedup on RTX 3080
 - **Quality Maintenance**: 97.5% average quality score with parallel execution
 - **Build Performance**: sccache integration for faster incremental builds
 
 ### 🔒 Security
+
 - Default sandbox: read-only mode
 - Explicit approval required for file writes, shell commands, network access
 - Comprehensive audit logging with tamper-evident signatures
@@ -120,6 +179,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.8.0] - 2025-12-15 - "CUDA Acceleration & Quality Assurance"
 
 ### ✅ Added
+
 - **CUDA Acceleration Support**
   - GPU-accelerated code analysis and generation
   - RTX 30xx/40xx series compatibility
@@ -131,6 +191,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Type safety enforcement
 
 ### 📈 Performance
+
 - **CUDA Benchmark Results**:
   - Large codebase analysis: 3.67x speedup
   - Parallel compilation: 3.61x speedup
@@ -141,6 +202,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.7.5] - 2025-11-28 - "Sub-Agent Orchestration"
 
 ### ✅ Added
+
 - **Parallel Sub-Agent System**
   - Backend, Frontend, Database, Security, QA agents
   - Intelligent task decomposition
@@ -152,6 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comparative analysis tools
 
 ### 📊 Metrics
+
 - **Sub-Agent Speedup**: 2.1x → 2.4x improvement
 - **Quality Scores**: 94.2% → 96.1% improvement
 - **Task Success Rate**: 95% across orchestrated workflows
@@ -159,6 +222,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.7.0] - 2025-11-10 - "Plan Mode Foundation"
 
 ### ✅ Added
+
 - **Plan Mode Execution**
   - Read-only planning phase
   - Approval gates before execution
@@ -170,6 +234,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Privacy-preserving local research
 
 ### 🔒 Security
+
 - Basic sandbox implementation
 - Process isolation groundwork
 - Audit logging foundation
@@ -177,6 +242,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.6.0] - 2025-10-25 - "MCP Integration & Research"
 
 ### ✅ Added
+
 - **MCP (Model Context Protocol) Support**
   - Standardized AI agent communication
   - Extensible tool integration
@@ -190,6 +256,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.5.0] - 2025-10-08 - "Multi-Agent Architecture"
 
 ### ✅ Added
+
 - **Agent Orchestration System**
   - Multiple specialized AI agents
   - Task delegation and coordination
@@ -203,6 +270,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2025-09-15 - "OpenAI Codex Extension"
 
 ### ✅ Added
+
 - **Core CLI Extension**
   - Plan execution workflows
   - Sub-agent delegation
@@ -214,12 +282,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Performance benchmarks
 
 ### 🔄 Changed
+
 - Complete architecture redesign for multi-agent support
 - Enhanced security model with sandboxing
 
 ## [1.5.0] - 2025-08-20 - "Research & Documentation"
 
 ### ✅ Added
+
 - **Research Workflows**
   - Automated literature review
   - Citation management
@@ -233,6 +303,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-07-10 - "Initial Release"
 
 ### ✅ Added
+
 - **Basic CLI Functionality**
   - Command-line interface
   - Basic AI agent integration
@@ -244,6 +315,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration system
 
 ### 📈 Initial Metrics
+
 - **User Adoption**: 500+ installations
 - **Feature Completeness**: 75%
 - **Stability**: Beta level
@@ -252,12 +324,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 📊 Development Velocity
 
-| Period | Commits | Features | Bug Fixes | Documentation |
-|--------|---------|----------|-----------|---------------|
-| Q4 2025 | 450 | 28 | 89 | 156 |
-| Q3 2025 | 380 | 22 | 67 | 123 |
-| Q2 2025 | 290 | 18 | 45 | 98 |
-| Q1 2025 | 210 | 15 | 32 | 76 |
+| Period  | Commits | Features | Bug Fixes | Documentation |
+| ------- | ------- | -------- | --------- | ------------- |
+| Q4 2025 | 450     | 28       | 89        | 156           |
+| Q3 2025 | 380     | 22       | 67        | 123           |
+| Q2 2025 | 290     | 18       | 45        | 98            |
+| Q1 2025 | 210     | 15       | 32        | 76            |
 
 ## 🎯 Roadmap Alignment
 

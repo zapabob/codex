@@ -365,6 +365,13 @@ fn should_show_model_migration_prompt(
         return false;
     }
 
+    if !available_models
+        .iter()
+        .any(|preset| preset.model == target_model && preset.show_in_picker)
+    {
+        return false;
+    }
+
     if available_models
         .iter()
         .any(|preset| preset.model == current_model && preset.upgrade.is_some())
@@ -401,7 +408,7 @@ fn target_preset_for_upgrade<'a>(
 ) -> Option<&'a ModelPreset> {
     available_models
         .iter()
-        .find(|preset| preset.model == target_model)
+        .find(|preset| preset.model == target_model && preset.show_in_picker)
 }
 
 async fn handle_model_migration_prompt_if_needed(
@@ -626,9 +633,16 @@ impl App {
             .wrap_err_with(|| format!("Failed to rebuild config for cwd {cwd_display}"))
     }
 
+    async fn refresh_in_memory_config_from_disk(&mut self) -> Result<()> {
+        let mut config = self.rebuild_config_for_cwd(self.config.cwd.clone()).await?;
+        self.apply_runtime_policy_overrides(&mut config);
+        self.config = config;
+        Ok(())
+    }
+
     fn apply_runtime_policy_overrides(&mut self, config: &mut Config) {
         if let Some(policy) = self.runtime_approval_policy_override.as_ref()
-            && let Err(err) = config.approval_policy.set(*policy)
+            && let Err(err) = config.permissions.approval_policy.set(*policy)
         {
             tracing::warn!(%err, "failed to carry forward approval policy override");
             self.chat_widget.add_error_message(format!(
@@ -636,13 +650,24 @@ impl App {
             ));
         }
         if let Some(policy) = self.runtime_sandbox_policy_override.as_ref()
-            && let Err(err) = config.sandbox_policy.set(policy.clone())
+            && let Err(err) = config.permissions.sandbox_policy.set(policy.clone())
         {
             tracing::warn!(%err, "failed to carry forward sandbox policy override");
             self.chat_widget.add_error_message(format!(
                 "Failed to carry forward sandbox policy override: {err}"
             ));
         }
+    }
+
+    fn open_url_in_browser(&mut self, url: String) {
+        if let Err(err) = webbrowser::open(&url) {
+            self.chat_widget
+                .add_error_message(format!("Failed to open browser for {url}: {err}"));
+            return;
+        }
+
+        self.chat_widget
+            .add_info_message(format!("Opened {url} in your browser."), None);
     }
 
     async fn shutdown_current_thread(&mut self) {
@@ -771,7 +796,14 @@ impl App {
         Ok(())
     }
 
-    fn open_agent_picker(&mut self) {
+    async fn open_agent_picker(&mut self) {
+        let thread_ids: Vec<ThreadId> = self.thread_event_channels.keys().cloned().collect();
+        for thread_id in thread_ids {
+            if self.server.get_thread(thread_id).await.is_err() {
+                self.thread_event_channels.remove(&thread_id);
+            }
+        }
+
         if self.thread_event_channels.is_empty() {
             self.chat_widget
                 .add_info_message("No agents available yet.".to_string(), None);
@@ -926,6 +958,7 @@ impl App {
         session_selection: SessionSelection,
         feedback: codex_feedback::CodexFeedback,
         is_first_run: bool,
+        should_prompt_windows_sandbox_nux_at_startup: bool,
     ) -> Result<AppExitInfo> {
         use tokio_stream::StreamExt;
         let (app_event_tx, mut app_event_rx) = unbounded_channel();
@@ -1059,7 +1092,7 @@ impl App {
             SessionSelection::Fork(path) => {
                 otel_manager.counter("codex.thread.fork", 1, &[("source", "cli_subcommand")]);
                 let forked = thread_manager
-                    .fork_thread(usize::MAX, config.clone(), path.clone())
+                    .fork_thread(usize::MAX, config.clone(), path.clone(), false)
                     .await
                     .wrap_err_with(|| {
                         let path_display = path.display();
@@ -1089,7 +1122,8 @@ impl App {
             }
         };
 
-        chat_widget.maybe_prompt_windows_sandbox_enable();
+        chat_widget
+            .maybe_prompt_windows_sandbox_enable(should_prompt_windows_sandbox_nux_at_startup);
 
         let file_search = FileSearchManager::new(config.cwd.clone(), app_event_tx.clone());
         #[cfg(not(debug_assertions))]
@@ -1136,9 +1170,9 @@ impl App {
             let should_check = WindowsSandboxLevel::from_config(&app.config)
                 != WindowsSandboxLevel::Disabled
                 && matches!(
-                    app.config.sandbox_policy.get(),
+                    app.config.permissions.sandbox_policy.get(),
                     codex_core::protocol::SandboxPolicy::WorkspaceWrite { .. }
-                        | codex_core::protocol::SandboxPolicy::ReadOnly
+                        | codex_core::protocol::SandboxPolicy::ReadOnly { .. }
                 )
                 && !app
                     .config
@@ -1150,7 +1184,7 @@ impl App {
                 let env_map: std::collections::HashMap<String, String> = std::env::vars().collect();
                 let tx = app.app_event_tx.clone();
                 let logs_base_dir = app.config.codex_home.clone();
-                let sandbox_policy = app.config.sandbox_policy.get().clone();
+                let sandbox_policy = app.config.permissions.sandbox_policy.get().clone();
                 Self::spawn_world_writable_scan(cwd, env_map, logs_base_dir, sandbox_policy, tx);
             }
         }
@@ -1339,14 +1373,7 @@ impl App {
                 tui.frame_requester().schedule_frame();
             }
             AppEvent::OpenResumePicker => {
-                match crate::resume_picker::run_resume_picker(
-                    tui,
-                    &self.config.codex_home,
-                    &self.config.model_provider_id,
-                    false,
-                )
-                .await?
-                {
+                match crate::resume_picker::run_resume_picker(tui, &self.config, false).await? {
                     SessionSelection::Resume(path) => {
                         let current_cwd = self.config.cwd.clone();
                         let resume_cwd = match crate::resolve_cwd_for_resume_or_fork(
@@ -1450,7 +1477,7 @@ impl App {
                     if path.exists() {
                         match self
                             .server
-                            .fork_thread(usize::MAX, self.config.clone(), path.clone())
+                            .fork_thread(usize::MAX, self.config.clone(), path.clone(), false)
                             .await
                         {
                             Ok(forked) => {
@@ -1526,6 +1553,11 @@ impl App {
                     }
                 }
             }
+            AppEvent::ApplyThreadRollback { num_turns } => {
+                if self.apply_non_pending_thread_rollback(num_turns) {
+                    tui.frame_requester().schedule_frame();
+                }
+            }
             AppEvent::StartCommitAnimation => {
                 if self
                     .commit_anim_running
@@ -1580,19 +1612,30 @@ impl App {
                 tui.frame_requester().schedule_frame();
             }
             AppEvent::OpenAppLink {
+                app_id,
                 title,
                 description,
                 instructions,
                 url,
                 is_installed,
+                is_enabled,
             } => {
-                self.chat_widget.open_app_link_view(
-                    title,
-                    description,
-                    instructions,
-                    url,
-                    is_installed,
-                );
+                self.chat_widget
+                    .open_app_link_view(crate::bottom_pane::AppLinkViewParams {
+                        app_id,
+                        title,
+                        description,
+                        instructions,
+                        url,
+                        is_installed,
+                        is_enabled,
+                    });
+            }
+            AppEvent::OpenUrlInBrowser { url } => {
+                self.open_url_in_browser(url);
+            }
+            AppEvent::RefreshConnectors { force_refetch } => {
+                self.chat_widget.refresh_connectors(force_refetch);
             }
             AppEvent::StartFileSearch(query) => {
                 self.file_search.on_user_query(query);
@@ -1603,8 +1646,8 @@ impl App {
             AppEvent::RateLimitSnapshotFetched(snapshot) => {
                 self.chat_widget.on_rate_limit_snapshot(Some(snapshot));
             }
-            AppEvent::ConnectorsLoaded(result) => {
-                self.chat_widget.on_connectors_loaded(result);
+            AppEvent::ConnectorsLoaded { result, is_final } => {
+                self.chat_widget.on_connectors_loaded(result, is_final);
             }
             AppEvent::UpdateReasoningEffort(effort) => {
                 self.on_update_reasoning_effort(effort);
@@ -1766,6 +1809,99 @@ impl App {
                     let _ = preset;
                 }
             }
+            AppEvent::BeginWindowsSandboxLegacySetup { preset } => {
+                #[cfg(target_os = "windows")]
+                {
+                    let policy = preset.sandbox.clone();
+                    let policy_cwd = self.config.cwd.clone();
+                    let command_cwd = policy_cwd.clone();
+                    let env_map: std::collections::HashMap<String, String> =
+                        std::env::vars().collect();
+                    let codex_home = self.config.codex_home.clone();
+                    let tx = self.app_event_tx.clone();
+
+                    self.chat_widget.show_windows_sandbox_setup_status();
+                    tokio::task::spawn_blocking(move || {
+                        if let Err(err) = codex_core::windows_sandbox::run_legacy_setup_preflight(
+                            &policy,
+                            policy_cwd.as_path(),
+                            command_cwd.as_path(),
+                            &env_map,
+                            codex_home.as_path(),
+                        ) {
+                            tracing::warn!(
+                                error = %err,
+                                "failed to preflight non-admin Windows sandbox setup"
+                            );
+                        }
+                        tx.send(AppEvent::EnableWindowsSandboxForAgentMode {
+                            preset,
+                            mode: WindowsSandboxEnableMode::Legacy,
+                        });
+                    });
+                }
+                #[cfg(not(target_os = "windows"))]
+                {
+                    let _ = preset;
+                }
+            }
+            AppEvent::BeginWindowsSandboxGrantReadRoot { path } => {
+                #[cfg(target_os = "windows")]
+                {
+                    self.chat_widget
+                        .add_to_history(history_cell::new_info_event(
+                            format!("Granting sandbox read access to {path} ..."),
+                            None,
+                        ));
+
+                    let policy = self.config.permissions.sandbox_policy.get().clone();
+                    let policy_cwd = self.config.cwd.clone();
+                    let command_cwd = self.config.cwd.clone();
+                    let env_map: std::collections::HashMap<String, String> =
+                        std::env::vars().collect();
+                    let codex_home = self.config.codex_home.clone();
+                    let tx = self.app_event_tx.clone();
+
+                    tokio::task::spawn_blocking(move || {
+                        let requested_path = PathBuf::from(path);
+                        let event = match codex_core::windows_sandbox_read_grants::grant_read_root_non_elevated(
+                            &policy,
+                            policy_cwd.as_path(),
+                            command_cwd.as_path(),
+                            &env_map,
+                            codex_home.as_path(),
+                            requested_path.as_path(),
+                        ) {
+                            Ok(canonical_path) => AppEvent::WindowsSandboxGrantReadRootCompleted {
+                                path: canonical_path,
+                                error: None,
+                            },
+                            Err(err) => AppEvent::WindowsSandboxGrantReadRootCompleted {
+                                path: requested_path,
+                                error: Some(err.to_string()),
+                            },
+                        };
+                        tx.send(event);
+                    });
+                }
+                #[cfg(not(target_os = "windows"))]
+                {
+                    let _ = path;
+                }
+            }
+            AppEvent::WindowsSandboxGrantReadRootCompleted { path, error } => match error {
+                Some(err) => {
+                    self.chat_widget
+                        .add_to_history(history_cell::new_error_event(format!("Error: {err}")));
+                }
+                None => {
+                    self.chat_widget
+                        .add_to_history(history_cell::new_info_event(
+                            format!("Sandbox read access granted for {}", path.display()),
+                            None,
+                        ));
+                }
+            },
             AppEvent::EnableWindowsSandboxForAgentMode { preset, mode } => {
                 #[cfg(target_os = "windows")]
                 {
@@ -1778,33 +1914,27 @@ impl App {
                         );
                     }
                     let profile = self.active_profile.as_deref();
-                    let feature_key = Feature::WindowsSandbox.key();
-                    let elevated_key = Feature::WindowsSandboxElevated.key();
                     let elevated_enabled = matches!(mode, WindowsSandboxEnableMode::Elevated);
-                    let mut builder =
-                        ConfigEditsBuilder::new(&self.config.codex_home).with_profile(profile);
-                    if elevated_enabled {
-                        builder = builder.set_feature_enabled(elevated_key, true);
-                    } else {
-                        builder = builder
-                            .set_feature_enabled(feature_key, true)
-                            .set_feature_enabled(elevated_key, false);
-                    }
+                    let builder = ConfigEditsBuilder::new(&self.config.codex_home)
+                        .with_profile(profile)
+                        .set_windows_sandbox_mode(if elevated_enabled {
+                            "elevated"
+                        } else {
+                            "unelevated"
+                        })
+                        .clear_legacy_windows_sandbox_keys();
                     match builder.apply().await {
                         Ok(()) => {
                             if elevated_enabled {
+                                self.config.set_windows_sandbox_enabled(false);
                                 self.config.set_windows_elevated_sandbox_enabled(true);
-                                self.chat_widget
-                                    .set_feature_enabled(Feature::WindowsSandboxElevated, true);
                             } else {
                                 self.config.set_windows_sandbox_enabled(true);
                                 self.config.set_windows_elevated_sandbox_enabled(false);
-                                self.chat_widget
-                                    .set_feature_enabled(Feature::WindowsSandbox, true);
-                                self.chat_widget
-                                    .set_feature_enabled(Feature::WindowsSandboxElevated, false);
                             }
-                            self.chat_widget.clear_forced_auto_mode_downgrade();
+                            self.chat_widget.set_windows_sandbox_mode(
+                                self.config.permissions.windows_sandbox_mode,
+                            );
                             let windows_sandbox_level =
                                 WindowsSandboxLevel::from_config(&self.config);
                             if let Some((sample_paths, extra_count, failed_scan)) =
@@ -1849,17 +1979,15 @@ impl App {
                                     .send(AppEvent::UpdateAskForApprovalPolicy(preset.approval));
                                 self.app_event_tx
                                     .send(AppEvent::UpdateSandboxPolicy(preset.sandbox.clone()));
-                                self.chat_widget.add_info_message(
-                                    match mode {
-                                        WindowsSandboxEnableMode::Elevated => {
-                                            "Enabled elevated agent sandbox.".to_string()
-                                        }
-                                        WindowsSandboxEnableMode::Legacy => {
-                                            "Enabled non-elevated agent sandbox.".to_string()
-                                        }
-                                    },
-                                    None,
-                                );
+                                let _ = mode;
+                                self.chat_widget.add_plain_history_lines(vec![
+                                    Line::from(vec!["• ".dim(), "Sandbox ready".into()]),
+                                    Line::from(vec![
+                                        "  ".into(),
+                                        "Codex can now safely edit files and execute commands in your computer"
+                                            .dark_gray(),
+                                    ]),
+                                ]);
                             }
                         }
                         Err(err) => {
@@ -1952,7 +2080,7 @@ impl App {
             }
             AppEvent::UpdateAskForApprovalPolicy(policy) => {
                 self.runtime_approval_policy_override = Some(policy);
-                if let Err(err) = self.config.approval_policy.set(policy) {
+                if let Err(err) = self.config.permissions.approval_policy.set(policy) {
                     tracing::warn!(%err, "failed to set approval policy on app config");
                     self.chat_widget
                         .add_error_message(format!("Failed to set approval policy: {err}"));
@@ -1965,30 +2093,24 @@ impl App {
                 let policy_is_workspace_write_or_ro = matches!(
                     &policy,
                     codex_core::protocol::SandboxPolicy::WorkspaceWrite { .. }
-                        | codex_core::protocol::SandboxPolicy::ReadOnly
+                        | codex_core::protocol::SandboxPolicy::ReadOnly { .. }
                 );
+                let policy_for_chat = policy.clone();
 
-                if let Err(err) = self.config.sandbox_policy.set(policy.clone()) {
+                if let Err(err) = self.config.permissions.sandbox_policy.set(policy) {
                     tracing::warn!(%err, "failed to set sandbox policy on app config");
                     self.chat_widget
                         .add_error_message(format!("Failed to set sandbox policy: {err}"));
                     return Ok(AppRunControl::Continue);
                 }
-                #[cfg(target_os = "windows")]
-                if !matches!(&policy, codex_core::protocol::SandboxPolicy::ReadOnly)
-                    || WindowsSandboxLevel::from_config(&self.config)
-                        != WindowsSandboxLevel::Disabled
-                {
-                    self.config.forced_auto_mode_downgraded_on_windows = false;
-                }
-                if let Err(err) = self.chat_widget.set_sandbox_policy(policy) {
+                if let Err(err) = self.chat_widget.set_sandbox_policy(policy_for_chat) {
                     tracing::warn!(%err, "failed to set sandbox policy on chat config");
                     self.chat_widget
                         .add_error_message(format!("Failed to set sandbox policy: {err}"));
                     return Ok(AppRunControl::Continue);
                 }
                 self.runtime_sandbox_policy_override =
-                    Some(self.config.sandbox_policy.get().clone());
+                    Some(self.config.permissions.sandbox_policy.get().clone());
 
                 // If sandbox policy becomes workspace-write or read-only, run the Windows world-writable scan.
                 #[cfg(target_os = "windows")]
@@ -2009,7 +2131,7 @@ impl App {
                             std::env::vars().collect();
                         let tx = self.app_event_tx.clone();
                         let logs_base_dir = self.config.codex_home.clone();
-                        let sandbox_policy = self.config.sandbox_policy.get().clone();
+                        let sandbox_policy = self.config.permissions.sandbox_policy.get().clone();
                         Self::spawn_world_writable_scan(
                             cwd,
                             env_map,
@@ -2160,7 +2282,7 @@ impl App {
                 self.chat_widget.open_approvals_popup();
             }
             AppEvent::OpenAgentPicker => {
-                self.open_agent_picker();
+                self.open_agent_picker().await;
             }
             AppEvent::SelectAgentThread(thread_id) => {
                 self.select_agent_thread(tui, thread_id).await?;
@@ -2183,11 +2305,66 @@ impl App {
                 {
                     Ok(()) => {
                         self.chat_widget.update_skill_enabled(path.clone(), enabled);
+                        if let Err(err) = self.refresh_in_memory_config_from_disk().await {
+                            tracing::warn!(
+                                error = %err,
+                                "failed to refresh config after skill toggle"
+                            );
+                        }
                     }
                     Err(err) => {
                         let path_display = path.display();
                         self.chat_widget.add_error_message(format!(
                             "Failed to update skill config for {path_display}: {err}"
+                        ));
+                    }
+                }
+            }
+            AppEvent::SetAppEnabled { id, enabled } => {
+                let edits = if enabled {
+                    vec![
+                        ConfigEdit::ClearPath {
+                            segments: vec!["apps".to_string(), id.clone(), "enabled".to_string()],
+                        },
+                        ConfigEdit::ClearPath {
+                            segments: vec![
+                                "apps".to_string(),
+                                id.clone(),
+                                "disabled_reason".to_string(),
+                            ],
+                        },
+                    ]
+                } else {
+                    vec![
+                        ConfigEdit::SetPath {
+                            segments: vec!["apps".to_string(), id.clone(), "enabled".to_string()],
+                            value: false.into(),
+                        },
+                        ConfigEdit::SetPath {
+                            segments: vec![
+                                "apps".to_string(),
+                                id.clone(),
+                                "disabled_reason".to_string(),
+                            ],
+                            value: "user".into(),
+                        },
+                    ]
+                };
+                match ConfigEditsBuilder::new(&self.config.codex_home)
+                    .with_edits(edits)
+                    .apply()
+                    .await
+                {
+                    Ok(()) => {
+                        self.chat_widget.update_connector_enabled(&id, enabled);
+                        if let Err(err) = self.refresh_in_memory_config_from_disk().await {
+                            tracing::warn!(error = %err, "failed to refresh config after app toggle");
+                        }
+                        self.chat_widget.submit_op(Op::ReloadUserConfig);
+                    }
+                    Err(err) => {
+                        self.chat_widget.add_error_message(format!(
+                            "Failed to update app config for {id}: {err}"
                         ));
                     }
                 }
@@ -2307,7 +2484,6 @@ impl App {
     }
 
     fn handle_codex_event_replay(&mut self, event: Event) {
-        self.handle_backtrack_event(&event.msg);
         self.chat_widget.handle_codex_event_replay(event);
     }
 
@@ -2346,6 +2522,7 @@ impl App {
                 history_log_id: 0,
                 history_entry_count: 0,
                 initial_messages: None,
+                network_proxy: None,
                 rollout_path: thread.rollout_path(),
             }),
         };
@@ -2602,18 +2779,17 @@ mod tests {
     use crate::history_cell::HistoryCell;
     use crate::history_cell::UserHistoryCell;
     use crate::history_cell::new_session_info;
-    use codex_core::AuthManager;
     use codex_core::CodexAuth;
-    use codex_core::ThreadManager;
     use codex_core::config::ConfigBuilder;
     use codex_core::config::ConfigOverrides;
-    use codex_core::models_manager::manager::ModelsManager;
     use codex_core::protocol::AskForApproval;
     use codex_core::protocol::Event;
     use codex_core::protocol::EventMsg;
     use codex_core::protocol::SandboxPolicy;
     use codex_core::protocol::SessionConfiguredEvent;
     use codex_core::protocol::SessionSource;
+    use codex_core::protocol::ThreadRolledBackEvent;
+    use codex_core::protocol::UserMessageEvent;
     use codex_otel::OtelManager;
     use codex_protocol::ThreadId;
     use codex_protocol::user_input::TextElement;
@@ -2686,17 +2862,33 @@ mod tests {
         Ok(())
     }
 
+    #[tokio::test]
+    async fn open_agent_picker_prunes_missing_threads() -> Result<()> {
+        let mut app = make_test_app().await;
+        let thread_id = ThreadId::new();
+        app.thread_event_channels
+            .insert(thread_id, ThreadEventChannel::new(1));
+
+        app.open_agent_picker().await;
+
+        assert_eq!(app.thread_event_channels.contains_key(&thread_id), false);
+        Ok(())
+    }
+
     async fn make_test_app() -> App {
         let (chat_widget, app_event_tx, _rx, _op_rx) = make_chatwidget_manual_with_sender().await;
         let config = chat_widget.config_ref().clone();
-        let server = Arc::new(ThreadManager::with_models_provider(
+        let server = Arc::new(
+            codex_core::test_support::thread_manager_with_models_provider(
+                CodexAuth::from_api_key("Test API Key"),
+                config.model_provider.clone(),
+            ),
+        );
+        let auth_manager = codex_core::test_support::auth_manager_from_auth(
             CodexAuth::from_api_key("Test API Key"),
-            config.model_provider.clone(),
-        ));
-        let auth_manager =
-            AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+        );
         let file_search = FileSearchManager::new(config.cwd.clone(), app_event_tx.clone());
-        let model = ModelsManager::get_model_offline(config.model.as_deref());
+        let model = codex_core::test_support::get_model_offline(config.model.as_deref());
         let otel_manager = test_otel_manager(&config, model.as_str());
 
         App {
@@ -2742,14 +2934,17 @@ mod tests {
     ) {
         let (chat_widget, app_event_tx, rx, op_rx) = make_chatwidget_manual_with_sender().await;
         let config = chat_widget.config_ref().clone();
-        let server = Arc::new(ThreadManager::with_models_provider(
+        let server = Arc::new(
+            codex_core::test_support::thread_manager_with_models_provider(
+                CodexAuth::from_api_key("Test API Key"),
+                config.model_provider.clone(),
+            ),
+        );
+        let auth_manager = codex_core::test_support::auth_manager_from_auth(
             CodexAuth::from_api_key("Test API Key"),
-            config.model_provider.clone(),
-        ));
-        let auth_manager =
-            AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+        );
         let file_search = FileSearchManager::new(config.cwd.clone(), app_event_tx.clone());
-        let model = ModelsManager::get_model_offline(config.model.as_deref());
+        let model = codex_core::test_support::get_model_offline(config.model.as_deref());
         let otel_manager = test_otel_manager(&config, model.as_str());
 
         (
@@ -2793,7 +2988,7 @@ mod tests {
     }
 
     fn test_otel_manager(config: &Config, model: &str) -> OtelManager {
-        let model_info = ModelsManager::construct_model_info_offline(model, config);
+        let model_info = codex_core::test_support::construct_model_info_offline(model, config);
         OtelManager::new(
             ThreadId::new(),
             model,
@@ -2808,8 +3003,21 @@ mod tests {
         )
     }
 
+    fn app_enabled_in_effective_config(config: &Config, app_id: &str) -> Option<bool> {
+        config
+            .config_layer_stack
+            .effective_config()
+            .as_table()
+            .and_then(|table| table.get("apps"))
+            .and_then(TomlValue::as_table)
+            .and_then(|apps| apps.get(app_id))
+            .and_then(TomlValue::as_table)
+            .and_then(|app| app.get("enabled"))
+            .and_then(TomlValue::as_bool)
+    }
+
     fn all_model_presets() -> Vec<ModelPreset> {
-        codex_core::models_manager::model_presets::all_model_presets().clone()
+        codex_core::test_support::all_model_presets().clone()
     }
 
     fn model_migration_copy_to_plain_text(
@@ -2838,25 +3046,25 @@ mod tests {
         let seen = BTreeMap::new();
         assert!(should_show_model_migration_prompt(
             "gpt-5",
-            "gpt-5.1",
+            "gpt-5.2-codex",
             &seen,
             &all_model_presets()
         ));
         assert!(should_show_model_migration_prompt(
             "gpt-5-codex",
-            "gpt-5.1-codex",
+            "gpt-5.2-codex",
             &seen,
             &all_model_presets()
         ));
         assert!(should_show_model_migration_prompt(
             "gpt-5-codex-mini",
-            "gpt-5.1-codex-mini",
+            "gpt-5.2-codex",
             &seen,
             &all_model_presets()
         ));
         assert!(should_show_model_migration_prompt(
             "gpt-5.1-codex",
-            "gpt-5.1-codex-max",
+            "gpt-5.2-codex",
             &seen,
             &all_model_presets()
         ));
@@ -2887,7 +3095,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn model_migration_prompt_skips_when_target_missing() {
+    async fn model_migration_prompt_skips_when_target_missing_or_hidden() {
         let mut available = all_model_presets();
         let mut current = available
             .iter()
@@ -2905,7 +3113,7 @@ mod tests {
         available.retain(|preset| preset.model != "gpt-5-codex");
         available.push(current.clone());
 
-        assert!(should_show_model_migration_prompt(
+        assert!(!should_show_model_migration_prompt(
             &current.model,
             "missing-target",
             &BTreeMap::new(),
@@ -2913,6 +3121,21 @@ mod tests {
         ));
 
         assert!(target_preset_for_upgrade(&available, "missing-target").is_none());
+
+        let mut with_hidden_target = all_model_presets();
+        let target = with_hidden_target
+            .iter_mut()
+            .find(|preset| preset.model == "gpt-5.2-codex")
+            .expect("target preset present");
+        target.show_in_picker = false;
+
+        assert!(!should_show_model_migration_prompt(
+            "gpt-5-codex",
+            "gpt-5.2-codex",
+            &BTreeMap::new(),
+            &with_hidden_target,
+        ));
+        assert!(target_preset_for_upgrade(&with_hidden_target, "gpt-5.2-codex").is_none());
     }
 
     #[tokio::test]
@@ -2988,6 +3211,45 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn refresh_in_memory_config_from_disk_loads_latest_apps_state() -> Result<()> {
+        let mut app = make_test_app().await;
+        let codex_home = tempdir()?;
+        app.config.codex_home = codex_home.path().to_path_buf();
+        let app_id = "connector_1".to_string();
+
+        assert_eq!(app_enabled_in_effective_config(&app.config, &app_id), None);
+
+        ConfigEditsBuilder::new(&app.config.codex_home)
+            .with_edits([
+                ConfigEdit::SetPath {
+                    segments: vec!["apps".to_string(), app_id.clone(), "enabled".to_string()],
+                    value: false.into(),
+                },
+                ConfigEdit::SetPath {
+                    segments: vec![
+                        "apps".to_string(),
+                        app_id.clone(),
+                        "disabled_reason".to_string(),
+                    ],
+                    value: "user".into(),
+                },
+            ])
+            .apply()
+            .await
+            .expect("persist app toggle");
+
+        assert_eq!(app_enabled_in_effective_config(&app.config, &app_id), None);
+
+        app.refresh_in_memory_config_from_disk().await?;
+
+        assert_eq!(
+            app_enabled_in_effective_config(&app.config, &app_id),
+            Some(false)
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn backtrack_selection_with_duplicate_history_targets_unique_turn() {
         let (mut app, _app_event_rx, mut op_rx) = make_test_app_with_channels().await;
 
@@ -3016,12 +3278,13 @@ mod tests {
                 model: "gpt-test".to_string(),
                 model_provider_id: "test-provider".to_string(),
                 approval_policy: AskForApproval::Never,
-                sandbox_policy: SandboxPolicy::ReadOnly,
+                sandbox_policy: SandboxPolicy::new_read_only_policy(),
                 cwd: PathBuf::from("/home/user/project"),
                 reasoning_effort: None,
                 history_log_id: 0,
                 history_entry_count: 0,
                 initial_messages: None,
+                network_proxy: None,
                 rollout_path: Some(PathBuf::new()),
             };
             Arc::new(new_session_info(
@@ -3069,12 +3332,13 @@ mod tests {
                 model: "gpt-test".to_string(),
                 model_provider_id: "test-provider".to_string(),
                 approval_policy: AskForApproval::Never,
-                sandbox_policy: SandboxPolicy::ReadOnly,
+                sandbox_policy: SandboxPolicy::new_read_only_policy(),
                 cwd: PathBuf::from("/home/user/project"),
                 reasoning_effort: None,
                 history_log_id: 0,
                 history_entry_count: 0,
                 initial_messages: None,
+                network_proxy: None,
                 rollout_path: Some(PathBuf::new()),
             }),
         });
@@ -3104,6 +3368,211 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn replayed_initial_messages_apply_rollback_in_queue_order() {
+        let (mut app, mut app_event_rx, _op_rx) = make_test_app_with_channels().await;
+
+        let session_id = ThreadId::new();
+        app.handle_codex_event_replay(Event {
+            id: String::new(),
+            msg: EventMsg::SessionConfigured(SessionConfiguredEvent {
+                session_id,
+                forked_from_id: None,
+                thread_name: None,
+                model: "gpt-test".to_string(),
+                model_provider_id: "test-provider".to_string(),
+                approval_policy: AskForApproval::Never,
+                sandbox_policy: SandboxPolicy::new_read_only_policy(),
+                cwd: PathBuf::from("/home/user/project"),
+                reasoning_effort: None,
+                history_log_id: 0,
+                history_entry_count: 0,
+                initial_messages: Some(vec![
+                    EventMsg::UserMessage(UserMessageEvent {
+                        message: "first prompt".to_string(),
+                        images: None,
+                        local_images: Vec::new(),
+                        text_elements: Vec::new(),
+                    }),
+                    EventMsg::UserMessage(UserMessageEvent {
+                        message: "second prompt".to_string(),
+                        images: None,
+                        local_images: Vec::new(),
+                        text_elements: Vec::new(),
+                    }),
+                    EventMsg::ThreadRolledBack(ThreadRolledBackEvent { num_turns: 1 }),
+                    EventMsg::UserMessage(UserMessageEvent {
+                        message: "third prompt".to_string(),
+                        images: None,
+                        local_images: Vec::new(),
+                        text_elements: Vec::new(),
+                    }),
+                ]),
+                network_proxy: None,
+                rollout_path: Some(PathBuf::new()),
+            }),
+        });
+
+        let mut saw_rollback = false;
+        while let Ok(event) = app_event_rx.try_recv() {
+            match event {
+                AppEvent::InsertHistoryCell(cell) => {
+                    let cell: Arc<dyn HistoryCell> = cell.into();
+                    app.transcript_cells.push(cell);
+                }
+                AppEvent::ApplyThreadRollback { num_turns } => {
+                    saw_rollback = true;
+                    crate::app_backtrack::trim_transcript_cells_drop_last_n_user_turns(
+                        &mut app.transcript_cells,
+                        num_turns,
+                    );
+                }
+                _ => {}
+            }
+        }
+
+        assert!(saw_rollback);
+        let user_messages: Vec<String> = app
+            .transcript_cells
+            .iter()
+            .filter_map(|cell| {
+                cell.as_any()
+                    .downcast_ref::<UserHistoryCell>()
+                    .map(|cell| cell.message.clone())
+            })
+            .collect();
+        assert_eq!(
+            user_messages,
+            vec!["first prompt".to_string(), "third prompt".to_string()]
+        );
+    }
+
+    #[tokio::test]
+    async fn live_rollback_during_replay_is_applied_in_app_event_order() {
+        let (mut app, mut app_event_rx, _op_rx) = make_test_app_with_channels().await;
+
+        let session_id = ThreadId::new();
+        app.handle_codex_event_replay(Event {
+            id: String::new(),
+            msg: EventMsg::SessionConfigured(SessionConfiguredEvent {
+                session_id,
+                forked_from_id: None,
+                thread_name: None,
+                model: "gpt-test".to_string(),
+                model_provider_id: "test-provider".to_string(),
+                approval_policy: AskForApproval::Never,
+                sandbox_policy: SandboxPolicy::new_read_only_policy(),
+                cwd: PathBuf::from("/home/user/project"),
+                reasoning_effort: None,
+                history_log_id: 0,
+                history_entry_count: 0,
+                initial_messages: Some(vec![
+                    EventMsg::UserMessage(UserMessageEvent {
+                        message: "first prompt".to_string(),
+                        images: None,
+                        local_images: Vec::new(),
+                        text_elements: Vec::new(),
+                    }),
+                    EventMsg::UserMessage(UserMessageEvent {
+                        message: "second prompt".to_string(),
+                        images: None,
+                        local_images: Vec::new(),
+                        text_elements: Vec::new(),
+                    }),
+                ]),
+                network_proxy: None,
+                rollout_path: Some(PathBuf::new()),
+            }),
+        });
+
+        // Simulate a live rollback arriving before queued replay inserts are drained.
+        app.handle_codex_event_now(Event {
+            id: "live-rollback".to_string(),
+            msg: EventMsg::ThreadRolledBack(ThreadRolledBackEvent { num_turns: 1 }),
+        });
+
+        let mut saw_rollback = false;
+        while let Ok(event) = app_event_rx.try_recv() {
+            match event {
+                AppEvent::InsertHistoryCell(cell) => {
+                    let cell: Arc<dyn HistoryCell> = cell.into();
+                    app.transcript_cells.push(cell);
+                }
+                AppEvent::ApplyThreadRollback { num_turns } => {
+                    saw_rollback = true;
+                    crate::app_backtrack::trim_transcript_cells_drop_last_n_user_turns(
+                        &mut app.transcript_cells,
+                        num_turns,
+                    );
+                }
+                _ => {}
+            }
+        }
+
+        assert!(saw_rollback);
+        let user_messages: Vec<String> = app
+            .transcript_cells
+            .iter()
+            .filter_map(|cell| {
+                cell.as_any()
+                    .downcast_ref::<UserHistoryCell>()
+                    .map(|cell| cell.message.clone())
+            })
+            .collect();
+        assert_eq!(user_messages, vec!["first prompt".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn queued_rollback_syncs_overlay_and_clears_deferred_history() {
+        let mut app = make_test_app().await;
+        app.transcript_cells = vec![
+            Arc::new(UserHistoryCell {
+                message: "first".to_string(),
+                text_elements: Vec::new(),
+                local_image_paths: Vec::new(),
+            }) as Arc<dyn HistoryCell>,
+            Arc::new(AgentMessageCell::new(
+                vec![Line::from("after first")],
+                false,
+            )) as Arc<dyn HistoryCell>,
+            Arc::new(UserHistoryCell {
+                message: "second".to_string(),
+                text_elements: Vec::new(),
+                local_image_paths: Vec::new(),
+            }) as Arc<dyn HistoryCell>,
+            Arc::new(AgentMessageCell::new(
+                vec![Line::from("after second")],
+                false,
+            )) as Arc<dyn HistoryCell>,
+        ];
+        app.overlay = Some(Overlay::new_transcript(app.transcript_cells.clone()));
+        app.deferred_history_lines = vec![Line::from("stale buffered line")];
+        app.backtrack.overlay_preview_active = true;
+        app.backtrack.nth_user_message = 1;
+
+        let changed = app.apply_non_pending_thread_rollback(1);
+
+        assert!(changed);
+        assert!(app.backtrack_render_pending);
+        assert!(app.deferred_history_lines.is_empty());
+        assert_eq!(app.backtrack.nth_user_message, 0);
+        let user_messages: Vec<String> = app
+            .transcript_cells
+            .iter()
+            .filter_map(|cell| {
+                cell.as_any()
+                    .downcast_ref::<UserHistoryCell>()
+                    .map(|cell| cell.message.clone())
+            })
+            .collect();
+        assert_eq!(user_messages, vec!["first".to_string()]);
+        let overlay_cell_count = match app.overlay.as_ref() {
+            Some(Overlay::Transcript(t)) => t.committed_cell_count(),
+            _ => panic!("expected transcript overlay"),
+        };
+        assert_eq!(overlay_cell_count, app.transcript_cells.len());
+    }
+
+    #[tokio::test]
     async fn new_session_requests_shutdown_for_previous_conversation() {
         let (mut app, mut app_event_rx, mut op_rx) = make_test_app_with_channels().await;
 
@@ -3115,12 +3584,13 @@ mod tests {
             model: "gpt-test".to_string(),
             model_provider_id: "test-provider".to_string(),
             approval_policy: AskForApproval::Never,
-            sandbox_policy: SandboxPolicy::ReadOnly,
+            sandbox_policy: SandboxPolicy::new_read_only_policy(),
             cwd: PathBuf::from("/home/user/project"),
             reasoning_effort: None,
             history_log_id: 0,
             history_entry_count: 0,
             initial_messages: None,
+            network_proxy: None,
             rollout_path: Some(PathBuf::new()),
         };
 

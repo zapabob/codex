@@ -1,8 +1,8 @@
 [package]
-edition.workspace = true
-license.workspace = true
 name = "codex-mcp-server"
 version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "codex-mcp-server"
@@ -15,23 +15,13 @@ path = "src/lib.rs"
 [lints]
 workspace = true
 
-[features]
-cuda = ["dep:codex-cuda-runtime"]
-windows-ai = []
-
 [dependencies]
 anyhow = { workspace = true }
-chrono = { workspace = true }
 codex-arg0 = { workspace = true }
-codex-common = { workspace = true, features = ["cli"] }
-codex-core = { workspace = true, features = ["custom-features"] }
-codex-deep-research = { path = "../deep-research" }
-codex-microsoft365 = { path = "../microsoft365" }
+codex-core = { workspace = true }
 codex-protocol = { workspace = true }
-codex-web-search = { path = "../web-search" }
+codex-utils-cli = { workspace = true }
 codex-utils-json-to-toml = { workspace = true }
-codex-cuda-runtime = { workspace = true, optional = true }
-mcp-types = { workspace = true }
 rmcp = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -46,14 +36,11 @@ tokio = { workspace = true, features = [
 ] }
 tracing = { workspace = true, features = ["log"] }
 tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
-dirs = { workspace = true }
-log = { workspace = true }
 
 [dev-dependencies]
 core_test_support = { workspace = true }
 mcp_test_support = { workspace = true }
 os_info = { workspace = true }
 pretty_assertions = { workspace = true }
-shlex.workspace = true
 tempfile = { workspace = true }
 wiremock = { workspace = true }
