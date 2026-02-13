@@ -17,23 +17,7 @@ from pathlib import Path
 
 # MCPサーバーから現在日時を取得する関数
 def get_current_datetime_from_mcp():
-    """MCPサーバー経由で現在日時を取得（フォールバック付き）"""
-    try:
-        # まずPowerShellで日時を取得
-        result = subprocess.run(
-            ["powershell", "-Command", "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-            encoding='utf-8',
-            errors='replace'
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except Exception as e:
-        print(f"PowerShell日時取得失敗: {e}")
-
-    # フォールバック: Pythonのdatetimeを使用
+    """現在日時を取得（Python標準機能を使用）"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def save_implementation_log(log_content, feature_name="高速差分ビルド"):
@@ -77,10 +61,10 @@ def save_implementation_log(log_content, feature_name="高速差分ビルド"):
         return None
 
 # Windows環境での文字エンコーディング対策
-if sys.platform == 'win32':
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+# if sys.platform == 'win32':
+#     import io
+#     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+#     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 class BuildProgressTracker:
     """ビルド進捗を追跡してtqdm風に表示"""
@@ -171,19 +155,15 @@ def kill_codex_processes():
     
     try:
         if sys.platform == 'win32':
-            # Windows: PowerShellでプロセスを停止
-            result = subprocess.run(
-                ["powershell", "-Command", 
-                 "Get-Process | Where-Object { $_.ProcessName -like '*codex*' -or $_.Path -like '*codex*' } | Stop-Process -Force -ErrorAction SilentlyContinue"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                encoding='utf-8',
-                errors='replace'
-            )
-            if result.returncode == 0 or 'not found' in result.stderr.lower():
-                print("   ✅ プロセス停止完了")
-                return True
+            # Windows: taskkillを使用 (PowerShell回避)
+            # codex.exe, codex-tui.exe, codex-gui.exe などをまとめて停止
+            # /F (強制), /IM (イメージ名), /T (子プロセスも)
+            subprocess.run(["taskkill", "/F", "/IM", "codex.exe", "/T"], capture_output=True)
+            subprocess.run(["taskkill", "/F", "/IM", "codex-tui.exe", "/T"], capture_output=True)
+            subprocess.run(["taskkill", "/F", "/IM", "codex-gui.exe", "/T"], capture_output=True)
+            subprocess.run(["taskkill", "/F", "/IM", "codex-tauri-gui.exe", "/T"], capture_output=True)
+            print("   ✅ プロセス停止コマンド送信完了")
+            return True
         else:
             # Unix系: pkillを使用
             subprocess.run(["pkill", "-f", "codex"], capture_output=True, timeout=10)
