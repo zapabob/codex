@@ -6,6 +6,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 
 use codex_app_server_protocol::FuzzyFileSearchResult;
+use codex_app_server_protocol::FuzzyFileSearchSessionCompletedNotification;
 use codex_app_server_protocol::FuzzyFileSearchSessionUpdatedNotification;
 use codex_app_server_protocol::ServerNotification;
 use codex_file_search as file_search;
@@ -191,6 +192,20 @@ impl SessionReporterImpl {
             outgoing.send_server_notification(notification).await;
         });
     }
+
+    fn send_complete(&self) {
+        if self.shared.canceled.load(Ordering::Relaxed) {
+            return;
+        }
+        let session_id = self.shared.session_id.clone();
+        let outgoing = self.shared.outgoing.clone();
+        self.shared.runtime.spawn(async move {
+            let notification = ServerNotification::FuzzyFileSearchSessionCompleted(
+                FuzzyFileSearchSessionCompletedNotification { session_id },
+            );
+            outgoing.send_server_notification(notification).await;
+        });
+    }
 }
 
 impl file_search::SessionReporter for SessionReporterImpl {
@@ -198,7 +213,9 @@ impl file_search::SessionReporter for SessionReporterImpl {
         self.send_snapshot(snapshot);
     }
 
-    fn on_complete(&self) {}
+    fn on_complete(&self) {
+        self.send_complete();
+    }
 }
 
 fn collect_files(snapshot: &file_search::FileSearchSnapshot) -> Vec<FuzzyFileSearchResult> {

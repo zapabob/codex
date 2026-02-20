@@ -10,6 +10,10 @@ use crate::bottom_pane::MentionBinding;
 pub(crate) struct UserMessage {
     pub(crate) text: String,
     pub(crate) local_images: Vec<LocalImageAttachment>,
+    /// Remote image attachments represented as URLs (e.g. data URLs)
+    /// provided by app-server clients. Unlike `local_images`, these are not
+    /// created by TUI image attach/paste flows.
+    pub(crate) remote_image_urls: Vec<String>,
     pub(crate) text_elements: Vec<TextElement>,
     pub(crate) mention_bindings: Vec<MentionBinding>,
 }
@@ -19,6 +23,7 @@ impl From<String> for UserMessage {
         Self {
             text,
             local_images: Vec::new(),
+            remote_image_urls: Vec::new(),
             // Plain text conversion has no UI element ranges.
             text_elements: Vec::new(),
             mention_bindings: Vec::new(),
@@ -31,6 +36,7 @@ impl From<&str> for UserMessage {
         Self {
             text: text.to_string(),
             local_images: Vec::new(),
+            remote_image_urls: Vec::new(),
             // Plain text conversion has no UI element ranges.
             text_elements: Vec::new(),
             mention_bindings: Vec::new(),
@@ -58,6 +64,7 @@ pub(crate) fn create_initial_user_message(
         Some(UserMessage {
             text,
             local_images,
+            remote_image_urls: Vec::new(),
             text_elements,
             mention_bindings: Vec::new(),
         })
@@ -76,6 +83,7 @@ pub(crate) fn remap_placeholders_for_message(
         text,
         text_elements,
         local_images,
+        remote_image_urls,
         mention_bindings,
     } = message;
     if local_images.is_empty() {
@@ -83,6 +91,7 @@ pub(crate) fn remap_placeholders_for_message(
             text,
             text_elements,
             local_images,
+            remote_image_urls,
             mention_bindings,
         };
     }
@@ -137,6 +146,7 @@ pub(crate) fn remap_placeholders_for_message(
     UserMessage {
         text: rebuilt,
         local_images: remapped_images,
+        remote_image_urls,
         text_elements: rebuilt_elements,
         mention_bindings,
     }

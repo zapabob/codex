@@ -44,20 +44,21 @@ jobs:
             6. iOS — Issues with the Codex iOS app.
 
             - Additionally add zero or more of the following labels that are relevant to the issue content. Prefer a small set of precise labels over many broad ones.
-            1. windows-os  EBugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).
-            2. mcp  ETopics involving Model Context Protocol servers/clients.
-            3. mcp-server  EProblems related to the codex mcp-server command, where codex runs as an MCP server.
-            4. azure  EProblems or requests tied to Azure OpenAI deployments.
-            5. model-behavior  EUndesirable LLM behavior: forgetting goals, refusing work, hallucinating environment details, quota misreports, or other reasoning/performance anomalies.
-            6. code-review  EIssues related to the code review feature or functionality.
-            7. auth - Problems related to authentication, login, or access tokens.
-            8. codex-exec - Problems related to the "codex exec" command or functionality.
-            9. context-management - Problems related to compaction, context windows, or available context reporting.
-            10. custom-model - Problems that involve using custom model providers, local models, or OSS models.
-            11. rate-limits - Problems related to token limits, rate limits, or token usage reporting.
-            12. sandbox - Issues related to local sandbox environments or tool call approvals to override sandbox restrictions.
-            13. tool-calls - Problems related to specific tool call invocations including unexpected errors, failures, or hangs.
-            14. TUI - Problems with the terminal user interface (TUI) including keyboard shortcuts, copy & pasting, menus, or screen update issues.
+            1. windows-os — Bugs or friction specific to Windows environments (always when PowerShell is mentioned, path handling, copy/paste, OS-specific auth or tooling failures).
+            2. mcp — Topics involving Model Context Protocol servers/clients.
+            3. mcp-server — Problems related to the codex mcp-server command, where codex runs as an MCP server.
+            4. azure — Problems or requests tied to Azure OpenAI deployments.
+            5. model-behavior — Undesirable LLM behavior: forgetting goals, refusing work, hallucinating environment details, quota misreports, or other reasoning/performance anomalies.
+            6. code-review — Issues related to the code review feature or functionality.
+            7. safety-check - Issues related to cyber risk detection or trusted access verification.
+            8. auth - Problems related to authentication, login, or access tokens.
+            9. codex-exec - Problems related to the "codex exec" command or functionality.
+            10. context-management - Problems related to compaction, context windows, or available context reporting.
+            11. custom-model - Problems that involve using custom model providers, local models, or OSS models.
+            12. rate-limits - Problems related to token limits, rate limits, or token usage reporting.
+            13. sandbox - Issues related to local sandbox environments or tool call approvals to override sandbox restrictions.
+            14. tool-calls - Problems related to specific tool call invocations including unexpected errors, failures, or hangs.
+            15. TUI - Problems with the terminal user interface (TUI) including keyboard shortcuts, copy & pasting, menus, or screen update issues.
 
             Issue number: ${{ github.event.issue.number }}
 

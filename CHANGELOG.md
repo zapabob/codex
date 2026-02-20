@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0] - 2026-02-20 - "Upstream Sync & API Refinements"
+
+### 🚀 Major Features
+
+**This release merges the latest upstream commits from openai/codex, incorporating new API changes, bug fixes, and security updates while preserving all custom zapabob extensions.**
+
+### ✨ Added (from upstream)
+
+- **MCP OAuth Support** - Enhanced MCP server authentication with OAuth flow
+- **Permissions Proxy** - New permissions proxy layer for fine-grained access control
+- **Auth Plan Support** - Session info now includes auth plan for better UX
+- **AnimationEnabled API Change** - Frame scheduler replaces direct animations_enabled flag
+- **Apps Tools Cache Context** - New cache context parameter for MCP client initialization
+- **Model Catalog Integration** - ModelsManager and ThreadManager now accept optional model catalog
+
+### 🔒 Security (from upstream)
+
+- **CVE-2026-24842** - Addressed identified security vulnerability
+- Dependency updates across Node.js ecosystem (pnpm audit fixes)
+
+### 🔧 Fixed
+
+- `find_model_info_for_slug` renamed to `model_info_from_slug` (API alignment)
+- `CancelErr` struct pattern matching updated (was enum variant, now struct)
+- `ToolRouter::from_config` app_tools parameter added
+- `UnifiedExecProcessDetails` now includes `recent_chunks` field
+- `spinner()` function signature simplified (removed `animations_enabled` parameter)
+- History cell module structure aligned with upstream flat layout
+
+### 🛠️ Custom Features Preserved (zapabob)
+
+- Deep Research multi-source module (`codex-rs/deep-research/`)
+- Supervisor agent lifecycle management (`codex-rs/supervisor/`)
+- Remote image URLs support in UserMessage
+- Git4D feature gates maintained
+- Web search call animations support
+
+---
+
 ## [2.16.0] - 2026-02-13 - "Upstream Sync & Security Hardening"
 
 ### 🚀 Major Features

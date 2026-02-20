@@ -105,7 +105,7 @@ jobs:
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libubsan1
           fi
 
-      - uses: dtolnay/rust-toolchain@1.93
+      - uses: dtolnay/rust-toolchain@1.93.0
         with:
           targets: ${{ matrix.target }}
 
@@ -251,11 +251,11 @@ jobs:
           set -euo pipefail
           if command -v apt-get >/dev/null 2>&1; then
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential bison autoconf gettext
+            DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential bison autoconf gettext libncursesw5-dev
           elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y git gcc gcc-c++ make bison autoconf gettext
+            dnf install -y git gcc gcc-c++ make bison autoconf gettext ncurses-devel
           elif command -v yum >/dev/null 2>&1; then
-            yum install -y git gcc gcc-c++ make bison autoconf gettext
+            yum install -y git gcc gcc-c++ make bison autoconf gettext ncurses-devel
           else
             echo "Unsupported package manager in container"
             exit 1
@@ -391,11 +391,11 @@ jobs:
           set -euo pipefail
           if command -v apt-get >/dev/null 2>&1; then
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential bison autoconf gettext
+            DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential bison autoconf gettext libncursesw5-dev
           elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y git gcc gcc-c++ make bison autoconf gettext
+            dnf install -y git gcc gcc-c++ make bison autoconf gettext ncurses-devel
           elif command -v yum >/dev/null 2>&1; then
-            yum install -y git gcc gcc-c++ make bison autoconf gettext
+            yum install -y git gcc gcc-c++ make bison autoconf gettext ncurses-devel
           else
             echo "Unsupported package manager in container"
             exit 1
@@ -408,9 +408,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 https://git.code.sf.net/p/zsh/code /tmp/zsh
+          git clone https://git.code.sf.net/p/zsh/code /tmp/zsh
           cd /tmp/zsh
-          git fetch --depth 1 origin 77045ef899e53b9598bebc5a41db93a548a40ca6
           git checkout 77045ef899e53b9598bebc5a41db93a548a40ca6
           git apply "${GITHUB_WORKSPACE}/shell-tool-mcp/patches/zsh-exec-wrapper.patch"
           ./Util/preconfig
@@ -487,9 +486,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 https://git.code.sf.net/p/zsh/code /tmp/zsh
+          git clone https://git.code.sf.net/p/zsh/code /tmp/zsh
           cd /tmp/zsh
-          git fetch --depth 1 origin 77045ef899e53b9598bebc5a41db93a548a40ca6
           git checkout 77045ef899e53b9598bebc5a41db93a548a40ca6
           git apply "${GITHUB_WORKSPACE}/shell-tool-mcp/patches/zsh-exec-wrapper.patch"
           ./Util/preconfig

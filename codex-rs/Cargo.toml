@@ -54,6 +54,7 @@ members = [
     "utils/elapsed",
     "utils/sandbox-summary",
     "utils/sanitizer",
+    "utils/sleep-inhibitor",
     "utils/approval-presets",
     "utils/oss",
     "utils/fuzzy-match",
@@ -70,7 +71,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "2.16.0"
+version = "2.17.0"
 # Track the edition for all workspace crates in one place. Individual
 # crates can still override this value, but keeping it here means new
 # crates created with `cargo new -w ...` automatically inherit the 2024
@@ -140,6 +141,7 @@ codex-utils-readiness = { path = "utils/readiness" }
 codex-utils-rustls-provider = { path = "utils/rustls-provider" }
 codex-utils-sandbox-summary = { path = "utils/sandbox-summary" }
 codex-utils-sanitizer = { path = "utils/sanitizer" }
+codex-utils-sleep-inhibitor = { path = "utils/sleep-inhibitor" }
 codex-utils-string = { path = "utils/string" }
 codex-web-search = { path = "web-search" }
 codex-windows-sandbox = { path = "windows-sandbox-rs" }
@@ -153,7 +155,6 @@ allocative = "0.3.3"
 ansi-to-tui = "7.0.0"
 anyhow = "1"
 arboard = { version = "3", features = ["wayland-data-control"] }
-askama = "0.15.4"
 assert_cmd = "2"
 assert_matches = "1.5.0"
 async-channel = "2.3.1"
@@ -182,7 +183,7 @@ lsp-types = "0.95"
 sysinfo = "0.30"
 encoding_rs = "0.8.35"
 env-flags = "0.1.1"
-env_logger = "0.11.5"
+env_logger = "0.11.9"
 eventsource-stream = "0.2.3"
 futures = { version = "0.3", default-features = false }
 globset = "0.4"

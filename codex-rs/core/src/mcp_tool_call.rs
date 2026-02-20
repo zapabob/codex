@@ -3,6 +3,8 @@ use std::time::Instant;
 
 use tracing::error;
 
+use crate::analytics_client::AppInvocation;
+use crate::analytics_client::build_track_events_context;
 use crate::codex::Session;
 use crate::codex::TurnContext;
 use crate::mcp::CODEX_APPS_MCP_SERVER_NAME;
@@ -103,6 +105,7 @@ pub(crate) async fn handle_mcp_tool_call(
                     tool_call_end_event.clone(),
                 )
                 .await;
+                maybe_track_codex_app_used(sess.as_ref(), turn_context, &server, &tool_name).await;
                 result
             }
             McpToolApprovalDecision::Decline => {
@@ -167,6 +170,7 @@ pub(crate) async fn handle_mcp_tool_call(
     });
 
     notify_mcp_tool_call_event(sess.as_ref(), turn_context, tool_call_end_event.clone()).await;
+    maybe_track_codex_app_used(sess.as_ref(), turn_context, &server, &tool_name).await;
 
     let status = if result.is_ok() { "ok" } else { "error" };
     turn_context
@@ -211,6 +215,50 @@ async fn notify_mcp_tool_call_event(sess: &Session, turn_context: &TurnContext, 
     sess.send_event(turn_context, event).await;
 }
 
+struct McpAppUsageMetadata {
+    connector_id: Option<String>,
+    app_name: Option<String>,
+}
+
+async fn maybe_track_codex_app_used(
+    sess: &Session,
+    turn_context: &TurnContext,
+    server: &str,
+    tool_name: &str,
+) {
+    if server != CODEX_APPS_MCP_SERVER_NAME {
+        return;
+    }
+    let metadata = lookup_mcp_app_usage_metadata(sess, server, tool_name).await;
+    let (connector_id, app_name) = metadata
+        .map(|metadata| (metadata.connector_id, metadata.app_name))
+        .unwrap_or((None, None));
+    let invoke_type = if let Some(connector_id) = connector_id.as_deref() {
+        let mentioned_connector_ids = sess.get_connector_selection().await;
+        if mentioned_connector_ids.contains(connector_id) {
+            "explicit"
+        } else {
+            "implicit"
+        }
+    } else {
+        "implicit"
+    };
+
+    let tracking = build_track_events_context(
+        turn_context.model_info.slug.clone(),
+        sess.conversation_id.to_string(),
+        turn_context.sub_id.clone(),
+    );
+    sess.services.analytics_events_client.track_app_used(
+        tracking,
+        AppInvocation {
+            connector_id,
+            app_name,
+            invoke_type: Some(invoke_type.to_string()),
+        },
+    );
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum McpToolApprovalDecision {
     Accept,
@@ -235,7 +283,7 @@ const MCP_TOOL_APPROVAL_CANCEL: &str = "Cancel";
 #[derive(Debug, Serialize)]
 struct McpToolApprovalKey {
     server: String,
-    connector_id: String,
+    connector_id: Option<String>,
     tool_name: String,
 }
 
@@ -249,36 +297,29 @@ async fn maybe_request_mcp_tool_approval(
     if is_full_access_mode(turn_context) {
         return None;
     }
-    if server != CODEX_APPS_MCP_SERVER_NAME {
-        return None;
-    }
 
     let metadata = lookup_mcp_tool_metadata(sess, server, tool_name).await?;
     if !requires_mcp_tool_approval(&metadata.annotations) {
         return None;
     }
-    let approval_key = metadata
-        .connector_id
-        .as_deref()
-        .map(|connector_id| McpToolApprovalKey {
-            server: server.to_string(),
-            connector_id: connector_id.to_string(),
-            tool_name: tool_name.to_string(),
-        });
-    if let Some(key) = approval_key.as_ref()
-        && mcp_tool_approval_is_remembered(sess, key).await
-    {
+    let approval_key = McpToolApprovalKey {
+        server: server.to_string(),
+        connector_id: metadata.connector_id.clone(),
+        tool_name: tool_name.to_string(),
+    };
+    if mcp_tool_approval_is_remembered(sess, &approval_key).await {
         return Some(McpToolApprovalDecision::Accept);
     }
 
     let question_id = format!("{MCP_TOOL_APPROVAL_QUESTION_ID_PREFIX}_{call_id}");
     let question = build_mcp_tool_approval_question(
         question_id.clone(),
+        server,
         tool_name,
         metadata.tool_title.as_deref(),
         metadata.connector_name.as_deref(),
         &metadata.annotations,
-        approval_key.is_some(),
+        true,
     );
     let args = RequestUserInputArgs {
         questions: vec![question],
@@ -287,10 +328,8 @@ async fn maybe_request_mcp_tool_approval(
         .request_user_input(turn_context, call_id.to_string(), args)
         .await;
     let decision = parse_mcp_tool_approval_response(response, &question_id);
-    if matches!(decision, McpToolApprovalDecision::AcceptAndRemember)
-        && let Some(key) = approval_key
-    {
-        remember_mcp_tool_approval(sess, key).await;
+    if matches!(decision, McpToolApprovalDecision::AcceptAndRemember) {
+        remember_mcp_tool_approval(sess, approval_key).await;
     }
     Some(decision)
 }
@@ -333,8 +372,34 @@ async fn lookup_mcp_tool_metadata(
     })
 }
 
+async fn lookup_mcp_app_usage_metadata(
+    sess: &Session,
+    server: &str,
+    tool_name: &str,
+) -> Option<McpAppUsageMetadata> {
+    let tools = sess
+        .services
+        .mcp_connection_manager
+        .read()
+        .await
+        .list_all_tools()
+        .await;
+
+    tools.into_values().find_map(|tool_info| {
+        if tool_info.server_name == server && tool_info.tool_name == tool_name {
+            Some(McpAppUsageMetadata {
+                connector_id: tool_info.connector_id,
+                app_name: tool_info.connector_name,
+            })
+        } else {
+            None
+        }
+    })
+}
+
 fn build_mcp_tool_approval_question(
     question_id: String,
+    server: &str,
     tool_name: &str,
     tool_title: Option<&str>,
     connector_name: Option<&str>,
@@ -353,7 +418,13 @@ fn build_mcp_tool_approval_question(
     let tool_label = tool_title.unwrap_or(tool_name);
     let app_label = connector_name
         .map(|name| format!("The {name} app"))
-        .unwrap_or_else(|| "This app".to_string());
+        .unwrap_or_else(|| {
+            if server == CODEX_APPS_MCP_SERVER_NAME {
+                "This app".to_string()
+            } else {
+                format!("The {server} MCP server")
+            }
+        });
     let question = format!(
         "{app_label} wants to run the tool \"{tool_label}\", which {reason}. Allow this action?"
     );
@@ -496,6 +567,52 @@ mod tests {
     fn approval_not_required_when_read_only_true() {
         let annotations = annotations(Some(true), Some(true), Some(true));
         assert_eq!(requires_mcp_tool_approval(&annotations), false);
+    }
+
+    #[test]
+    fn custom_mcp_tool_question_mentions_server_name() {
+        let question = build_mcp_tool_approval_question(
+            "q".to_string(),
+            "custom_server",
+            "run_action",
+            Some("Run Action"),
+            None,
+            &annotations(Some(false), Some(true), None),
+            true,
+        );
+
+        assert_eq!(question.header, "Approve app tool call?");
+        assert_eq!(
+            question.question,
+            "The custom_server MCP server wants to run the tool \"Run Action\", which may modify or delete data. Allow this action?"
+        );
+        assert!(
+            question
+                .options
+                .expect("options")
+                .into_iter()
+                .map(|option| option.label)
+                .any(|label| label == MCP_TOOL_APPROVAL_ACCEPT_AND_REMEMBER)
+        );
+    }
+
+    #[test]
+    fn codex_apps_tool_question_keeps_legacy_app_label() {
+        let question = build_mcp_tool_approval_question(
+            "q".to_string(),
+            CODEX_APPS_MCP_SERVER_NAME,
+            "run_action",
+            Some("Run Action"),
+            None,
+            &annotations(Some(false), Some(true), None),
+            true,
+        );
+
+        assert!(
+            question
+                .question
+                .starts_with("This app wants to run the tool \"Run Action\"")
+        );
     }
 
     #[test]
