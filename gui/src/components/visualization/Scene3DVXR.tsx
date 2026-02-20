@@ -34,7 +34,7 @@ interface Scene3DVXRProps {
 function CommitNodesVR({
   commits,
   onCommitClick,
-  selectedCommitSha,
+  
 }: Scene3DVXRProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -180,7 +180,7 @@ function VRScene({ commits, onCommitClick, selectedCommitSha }: Scene3DVXRProps)
 export default function Scene3DVXR({
   commits,
   onCommitClick,
-  selectedCommitSha,
+  
 }: Scene3DVXRProps) {
   return (
     <div className="w-full h-full">

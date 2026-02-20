@@ -11,11 +11,11 @@ import {
   Square,
   Zap,
   CheckCircle,
-  XCircle,
-  AlertTriangle,
+  
+  
   Clock,
-  Cpu,
-  HardDrive,
+  
+  
   Activity,
   Users,
   Target,
@@ -37,7 +37,6 @@ export function AIToolOrchestrator({
   sessions,
   onTaskExecute,
   onTaskComplete,
-  onSessionUpdate
 }: AIToolOrchestratorProps) {
   const [selectedTask, setSelectedTask] = useState<DevelopmentTask | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)

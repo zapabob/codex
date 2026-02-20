@@ -355,8 +355,8 @@ export function createCyberpunkScene(renderer: THREE.WebGLRenderer): {
   const glitchEffect = new CyberpunkGlitchEffect();
 
   return {
-    scene,
-    camera,
+    
+    
     particleSystem,
     glitchEffect,
   };

@@ -11,24 +11,24 @@ import {
   MenuItem,
   TextField,
   InputAdornment,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
+  
+  
+  
+  
+  
   Avatar,
   Chip,
 } from '@mui/material';
 import {
   Search,
   Apple,
-  Folder,
-  Terminal,
-  Settings,
+  
+  
+  
   X,
   Minimize2,
   Maximize2,
-  Square,
+  
   Menu as MenuIcon,
 } from 'lucide-react';
 import { CodexAPIClient } from '@/lib/api/client';

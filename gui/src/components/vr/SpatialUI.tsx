@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Box, Typography, Button, Card as MuiCard } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Card as MuiCard } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**

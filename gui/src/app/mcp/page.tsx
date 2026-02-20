@@ -26,7 +26,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Tooltip,
   IconButton,
   LinearProgress,

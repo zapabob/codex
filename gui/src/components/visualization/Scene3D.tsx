@@ -22,7 +22,7 @@ interface Scene3DProps {
 }
 
 function CommitNode({ 
-  commit, 
+   
   position, 
   isSelected, 
   onClick 

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import {
   Typography,
   Box,
-  Paper,
+  
   Chip,
   Avatar,
   LinearProgress,
@@ -27,7 +27,7 @@ import {
   Code,
   Shield,
   Zap,
-  TrendingUp,
+  
   Users,
   Activity,
   Settings,

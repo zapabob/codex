@@ -9,12 +9,11 @@ import {
   Plus,
   Target,
   GitBranch,
-  Settings,
+  
   CheckCircle,
-  AlertTriangle,
+  
   Users,
-  Clock,
-  Zap
+  
 } from 'lucide-react'
 
 interface TaskDistributorProps {

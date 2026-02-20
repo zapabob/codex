@@ -53,7 +53,7 @@ export function VRPanel({ position, children }: {
 export default function VRInterface({
   commits,
   selectedCommit,
-  onTimelineChange,
+  
 }: VRInterfaceProps) {
   const { isPresenting } = useXR()
   const [timelineValue, setTimelineValue] = useState(0)

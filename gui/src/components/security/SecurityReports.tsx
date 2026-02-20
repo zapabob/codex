@@ -8,13 +8,13 @@ import { ScanResult, SecurityAlert, SecurityMetrics } from '@/app/security/page'
 import {
   FileText,
   Download,
-  Calendar,
-  TrendingUp,
+  
+  
   Shield,
   AlertTriangle,
   CheckCircle,
   BarChart3,
-  PieChart,
+  
   Clock
 } from 'lucide-react'
 

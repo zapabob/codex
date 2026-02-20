@@ -5,8 +5,8 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/atoms/Button'
 import { Progress } from '@/components/ui/progress'
-import { QCProcess, QualityMetric, QCResult } from '@/app/qc/page'
-import { Play, Square, FileText, Download, Settings } from 'lucide-react'
+import { QCProcess, QCResult } from '@/app/qc/page'
+import { Play, Square, Download, Settings } from 'lucide-react'
 
 interface QCProcessAutomationProps {
   processes: QCProcess[]

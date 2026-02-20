@@ -15,9 +15,8 @@ import {
   HardDrive,
   Cpu,
   Zap,
-  TrendingUp,
-  TrendingDown,
-  Minus
+  
+  
 } from 'lucide-react'
 
 interface SecurityMonitorProps {

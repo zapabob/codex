@@ -13,7 +13,7 @@ import {
   TextField,
   Button,
   Tooltip,
-  Divider,
+  
   InputBase,
   alpha,
 } from "@mui/material";
@@ -292,7 +292,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 onSelect={() => onSelectThread(thread.id)}
                 onMenuOpen={(e) => handleMenuOpen(e, thread.id)}
                 formatDate={formatDate}
-                isPinned
               />
             ))}
           </>

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, Typography, Paper, Button, IconButton, Alert, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Box as BoxIcon, Smartphone, Monitor, RotateCcw, Play, Pause } from 'lucide-react';
-import { VRButton, XR, createXRStore, useXR, useXRControllerState } from '@react-three/xr';
+import { VRButton, XR, createXRStore, useXRControllerState } from '@react-three/xr';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
@@ -467,7 +467,7 @@ interface CommitNodeProps {
   mode: 'desktop' | 'vr' | 'ar';
 }
 
-const CommitNode: React.FC<CommitNodeProps> = ({ commit, index, mode }) => {
+const CommitNode: React.FC<CommitNodeProps> = ({ commit, mode }) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
   // Color based on commit properties

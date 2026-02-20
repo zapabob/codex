@@ -7,16 +7,15 @@ import { Button } from '@/components/atoms/Button'
 import { VirtualEnvironment, CodeExecution } from '@/app/virtual-os/page'
 import {
   Play,
-  Square,
+  
   Save,
-  Download,
+  
   Upload,
   Terminal,
-  FileText,
+  
   Clock,
   CheckCircle,
   XCircle,
-  AlertTriangle
 } from 'lucide-react'
 
 interface CodeEditorProps {

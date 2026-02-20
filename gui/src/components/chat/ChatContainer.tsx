@@ -14,7 +14,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   welcomeMode = false,
 }) => {
   const {
-    threads,
+    
     activeThreadId,
     setActiveThread,
     addMessage,

@@ -18,7 +18,7 @@ import {
   AlertTriangle,
   CheckCircle,
   BarChart3,
-  PieChart,
+  
   Clock,
   Settings
 } from 'lucide-react'

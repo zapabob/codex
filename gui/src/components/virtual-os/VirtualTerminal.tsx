@@ -4,15 +4,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
-  Paper,
+  
   TextField,
   IconButton,
   Alert,
   Chip,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
+  
+  
+  
+  
   Tooltip,
   Autocomplete,
 } from '@mui/material';
@@ -20,11 +20,11 @@ import {
   Terminal,
   Play,
   XCircle,
-  CheckCircle,
+  
   AlertTriangle,
-  History,
+  
   FolderOpen,
-  Command,
+  
 } from 'lucide-react';
 import { CodexAPIClient } from '@/lib/api/client';
 

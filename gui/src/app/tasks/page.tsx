@@ -12,9 +12,9 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import {
-  SortableContext,
+  
   arrayMove,
-  verticalListSortingStrategy,
+  
 } from '@dnd-kit/sortable'
 import { createPortal } from 'react-dom'
 

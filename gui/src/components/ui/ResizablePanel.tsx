@@ -2,7 +2,7 @@ import React, {
   useState,
   useCallback,
   useRef,
-  useEffect,
+  
   ReactNode,
 } from "react";
 import { Box, IconButton, Typography, Tooltip, Collapse } from "@mui/material";
@@ -28,7 +28,7 @@ interface ResizablePanelProps {
 }
 
 export const ResizablePanel: React.FC<ResizablePanelProps> = ({
-  id,
+  
   title,
   children,
   icon,

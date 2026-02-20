@@ -9,17 +9,17 @@ import { AITool, AISession, DevelopmentTask, ExecutionResult } from '@/app/ai-to
 import {
   Activity,
   TrendingUp,
-  TrendingDown,
+  
   Clock,
-  Zap,
-  BarChart3,
-  PieChart,
+  
+  
+  
   Cpu,
-  HardDrive,
-  Network,
+  
+  
   AlertTriangle,
   CheckCircle,
-  XCircle,
+  
   RefreshCw
 } from 'lucide-react'
 

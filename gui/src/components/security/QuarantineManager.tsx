@@ -13,9 +13,9 @@ import {
   RotateCcw,
   Trash2,
   Eye,
-  Download,
+  
   FileText,
-  Calendar,
+  
   HardDrive
 } from 'lucide-react'
 
@@ -345,7 +345,7 @@ export function QuarantineManager({ onFileRestored, onFileDeleted }: QuarantineM
 
               <div className="w-24 flex gap-1 justify-center">
                 <Button
-                  variant="ghost"
+                  variant="outlined"
                   size="sm"
                   onClick={() => handleViewDetails(file)}
                   title="View Details"
@@ -355,7 +355,7 @@ export function QuarantineManager({ onFileRestored, onFileDeleted }: QuarantineM
 
                 {file.canRestore ? (
                   <Button
-                    variant="ghost"
+                    variant="outlined"
                     size="sm"
                     onClick={() => {
                       handleSelectFile(file.id)
@@ -371,7 +371,7 @@ export function QuarantineManager({ onFileRestored, onFileDeleted }: QuarantineM
                 )}
 
                 <Button
-                  variant="ghost"
+                  variant="outlined"
                   size="sm"
                   onClick={() => {
                     handleSelectFile(file.id)
