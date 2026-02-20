@@ -1,629 +1,315 @@
-name: QA Engineering Analysis
-
-
-
-on:
-
-  push:
-
-    branches: [ main, develop ]
-
-  pull_request:
-
-    branches: [ main, develop ]
-
-    types: [opened, synchronize, reopened, ready_for_review]
-
-
-
-concurrency:
-
-  group: qa-analysis-${{ github.ref }}
-
-  cancel-in-progress: true
-
-
-
-jobs:
-
-  qa-analysis:
-
-    name: Comprehensive QA Analysis
-
-    runs-on: ubuntu-latest
-
-    if: github.event.pull_request.draft == false
-
-
-
-    strategy:
-
-      matrix:
-
-        python-version: [3.8, 3.9, '3.10', '3.11']
-
-
-
-    steps:
-
-    - name: Checkout code
-
-      uses: actions/checkout@v4
-
-      with:
-
-        fetch-depth: 0
-
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-
-
-    - name: Set up Python ${{ matrix.python-version }}
-
-      uses: actions/setup-python@v4
-
-      with:
-
-        python-version: ${{ matrix.python-version }}
-
-
-
-    - name: Cache pip dependencies
-
-      uses: actions/cache@v3
-
-      with:
-
-        path: ~/.cache/pip
-
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
-
-        restore-keys: |
-
-          ${{ runner.os }}-pip-${{ matrix.python-version }}-
-
-          ${{ runner.os }}-pip-
-
-
-
-    - name: Install dependencies
-
-      run: |
-
-        python -m pip install --upgrade pip
-
-        pip install -r tools/codex-supervisor/requirements.txt
-
-        # Install additional QA dependencies
-
-        pip install pytest pytest-cov pytest-xdist mypy black isort flake8 bandit safety
-
-
-
-    - name: Install Codex QA Skills
-
-      run: |
-
-        # For demo purposes, we'll simulate skill installation
-
-        # In real usage: codex $skill-install https://github.com/zapabob/codex-qa-engineer-skill
-
-        mkdir -p .codex/skills/qa-engineer/scripts
-
-        cp -r tools/codex-supervisor/* .codex/skills/qa-engineer/
-
-        cp .codex/skills/qa-engineer/scripts/run_qa-engineer.py .codex/skills/qa-engineer/scripts/run_qa-engineer.py
-
-
-
-    - name: Run Security Analysis
-
-      run: |
-
-        echo "白 Running Security Analysis..."
-
-        python -m bandit -r . --exclude tests/,.git/,tools/ || true
-
-        python -m safety check || true
-
-
-
-    - name: Run Code Quality Checks
-
-      run: |
-
-        echo "棟 Running Code Quality Checks..."
-
-        python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.git,__pycache__,build,dist
-
-        python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.git,__pycache__,build,dist
-
-
-
-    - name: Run Type Checking
-
-      run: |
-
-        echo "剥 Running Type Checking..."
-
-        python -m mypy . --ignore-missing-imports --no-strict-optional || true
-
-
-
-    - name: Run Performance Analysis
-
-      run: |
-
-        echo "笞｡ Running Performance Analysis..."
-
-        python -m pytest --cov=. --cov-report=xml --cov-report=html --cov-fail-under=80 -x
-
-
-
-    - name: Run QA Engineering Analysis
-
-      id: qa-analysis
-
-      run: |
-
-        echo "ｧｪ Running Comprehensive QA Analysis..."
-
-
-
-        # Get branch information
-
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-
-          SOURCE_BRANCH="${{ github.head_ref }}"
-
-          TARGET_BRANCH="${{ github.base_ref }}"
-
-        else
-
-          SOURCE_BRANCH="${{ github.ref_name }}"
-
-          TARGET_BRANCH="main"
-
-        fi
-
-
-
-        echo "Source branch: $SOURCE_BRANCH"
-
-        echo "Target branch: $TARGET_BRANCH"
-
-
-
-        # Run QA analysis
-
-        python tools/premerge_qa_hook.py "$SOURCE_BRANCH" "$TARGET_BRANCH"
-
-        QA_EXIT_CODE=$?
-
-
-
-        echo "qa_exit_code=$QA_EXIT_CODE" >> $GITHUB_OUTPUT
-
-
-
-        # Always generate report regardless of QA result
-
-        if [ -f "merge-qa-results.json" ]; then
-
-          echo "qa_report_exists=true" >> $GITHUB_OUTPUT
-
-        else
-
-          echo "qa_report_exists=false" >> $GITHUB_OUTPUT
-
-        fi
-
-
-
-    - name: Upload QA Report
-
-      if: steps.qa-analysis.outputs.qa_report_exists == 'true'
-
-      uses: actions/upload-artifact@v3
-
-      with:
-
-        name: qa-analysis-report-${{ matrix.python-version }}
-
-        path: |
-
-          merge-qa-reports/
-
-          merge-qa-results.json
-
-          qa-metrics-report.md
-
-        retention-days: 30
-
-
-
-    - name: Upload Coverage Report
-
-      uses: codecov/codecov-action@v3
-
-      with:
-
-        file: ./coverage.xml
-
-        flags: qa-analysis
-
-        name: QA Analysis Coverage
-
-
-
-    - name: Send Slack Notification
-
-      if: always() && github.event_name == 'pull_request'
-
-      uses: 8398a7/action-slack@v3
-
-      with:
-
-        status: ${{ job.status }}
-
-        text: |
-
-          溌 QA Analysis Results for PR #${{ github.event.number }}
-
-          投 Status: ${{ job.status }}
-
-          迫 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>
-
-          統 ${{ github.event.pull_request.title }}
-
-        channel: '#qa-notifications'
-
-      env:
-
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      continue-on-error: true
-
-
-
-    - name: Send Discord Notification
-
-      if: always() && github.event_name == 'pull_request'
-
-      uses: Ilshidur/action-discord@master
-
-      with:
-
-        args: |
-
-          溌 **QA Analysis Complete**
-
-          **PR:** #${{ github.event.number }} - ${{ github.event.pull_request.title }}
-
-          args: |
-
-            溌 **QA Analysis Complete**
-
-            **PR:** #${{ github.event.number }} - ${{ github.event.pull_request.title }}
-
-            **Status:** ${{ job.status }}
-
-            **Status:** ${{ job.status }}
-
-            **Details:** <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>
-
-          channel: 'qa-alerts'
-
-        env:
-
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-
-        continue-on-error: true
-
-
-
-    - name: Comment PR with QA Results
-
-      if: always() && github.event_name == 'pull_request' && steps.qa-analysis.outputs.qa_report_exists == 'true'
-
-      uses: actions/github-script@v4
-
-      with:
-
-        script: |
-
-          const fs = require('fs');
-
-          const path = require('path');
-
-
-
-          // Read QA results
-
-          let qaResults = {};
-
-          try {
-
-            const qaFile = fs.readFileSync('merge-qa-results.json', 'utf8');
-
-            qaResults = JSON.parse(qaFile);
-
-          } catch (error) {
-
-            console.log('Could not read QA results file');
-
-            return;
-
-          }
-
-
-
-          const qa = qaResults.qa_report;
-
-          const evaluation = qaResults.evaluation;
-
-
-
-          // Create comment body
-
-          let statusText = evaluation.block_reasons.length > 0 ? '笶・Issues Found' : '笨・Passed';
-
-          let timeText = new Date().toLocaleString();
-
-          let comment = '## 溌 QA Engineering Analysis Results\n\n';
-
-          comment += '**Status:** ' + statusText + '\n';
-
-          comment += '**Analysis Time:** ' + timeText;
-
-          comment += '\n\n### 投 Quality Scores\n';
-
-          comment += '| Category | Score |\n';
-
-          comment += '|----------|-------|\n';
-
-          comment += '| Algorithmic Complexity | ' + qa.metrics.algorithmic_complexity + ' |\n';
-
-          comment += '| Quantum Optimization | ' + qa.metrics.quantum_optimization + ' |\n';
-
-          comment += '| Software Engineering | ' + qa.metrics.software_engineering + ' |\n';
-
-          comment += '| Code Quality | ' + qa.metrics.code_quality + ' |\n';
-
-          comment += '| Performance | ' + qa.metrics.performance + ' |\n';
-
-          comment += '| Security | ' + qa.metrics.security + ' |\n';
-
-          comment += '\n### 嶋 Issues Summary\n';
-
-          comment += '- **Total Issues:** ' + qa.issues.length + '\n';
-
-          comment += '- **Critical:** ' + qa.issues.filter(i => i.severity === 'CRITICAL').length + '\n';
-
-          comment += '- **High:** ' + qa.issues.filter(i => i.severity === 'HIGH').length + '\n';
-
-          comment += '- **Medium:** ' + qa.issues.filter(i => i.severity === 'MEDIUM').length + '\n';
-
-          comment += '- **Low:** ' + qa.issues.filter(i => i.severity === 'LOW').length;
-
-
-
-          if (evaluation.block_reasons.length > 0) {
-
-            comment += '\n### 圻 Blocking Issues\n';
-
-            comment += evaluation.block_reasons.map(reason => '- ' + reason).join('\n');
-
-            comment += '\n\n';
-
-          }
-
-
-
-          if (evaluation.warnings.length > 0) {
-
-            comment += '### 笞・・Warnings\n';
-
-            comment += evaluation.warnings.map(warning => '- ' + warning).join('\n');
-
-            comment += '\n\n';
-
-          }
-
-
-
-          if (evaluation.recommendations.length > 0) {
-
-            comment += '### 庁 Recommendations\n';
-
-            comment += evaluation.recommendations.map(rec => '- ' + rec).join('\n');
-
-            comment += '\n\n';
-
-          }
-
-
-
-          comment += '\n### 迫 Full Report\n';
-
-          comment += '塘 [View Detailed Report](' + process.env.GITHUB_SERVER_URL + '/' + process.env.GITHUB_REPOSITORY + '/actions/runs/' + process.env.GITHUB_RUN_ID + ')';
-
-          comment += '\n\n*Generated by Codex QA Engineering System*';
-
-
-
-          // Post comment
-
-          github.rest.issues.createComment({
-
-            issue_number: context.issue.number,
-
-            owner: context.repo.owner,
-
-            repo: context.repo.repo,
-
-            body: comment
-
-          });
-
-
-
-  qa-gate-check:
-
-    name: QA Gate Check
-
-    runs-on: ubuntu-latest
-
-    if: github.event_name == 'pull_request'
-
-    needs: qa-analysis
-
-
-
-    steps:
-
-    - name: Checkout code
-
-      uses: actions/checkout@v4
-
-
-
-    - name: Check QA Results
-
-      run: |
-
-        # Download QA results from previous job
-
-        echo "Checking QA gate requirements..."
-
-
-
-        # In a real implementation, this would check the uploaded artifacts
-
-        # For now, we'll simulate the check
-
-        if [ -f "merge-qa-results.json" ]; then
-
-          echo "QA results found"
-
-          QA_PASSED=$(python -c "
-
-          import json
-
-          with open('merge-qa-results.json') as f:
-
-              data = json.load(f)
-
-          print('true' if data.get('merge_allowed', False) else 'false')
-
-          ")
-
-        else
-
-          echo "No QA results found, assuming pass for demo"
-
-          QA_PASSED="true"
-
-        fi
-
-
-
-        echo "qa_passed=$QA_PASSED" >> $GITHUB_OUTPUT
-
-
-
-    - name: Update Branch Protection
-
-      if: steps.qa-gate.outputs.qa_passed == 'true'
-
-      run: |
-
-        echo "笨・QA gates passed - branch protection satisfied"
-
-
-
-    - name: Fail PR on QA Issues
-
-      if: steps.qa-gate.outputs.qa_passed == 'false'
-
-      run: |
-
-        echo "笶・QA gates failed - blocking merge"
-
-        echo "Please review the QA analysis report and address critical issues"
-
-        exit 1
-
-
-
-  nightly-qa-audit:
-
-    name: Nightly QA Audit
-
-    runs-on: ubuntu-latest
-
-    if: github.event_name == 'schedule'
-
-
-
-    steps:
-
-    - name: Checkout code
-
-      uses: actions/checkout@v4
-
-      with:
-
-        fetch-depth: 0
-
-
-
-    - name: Run Comprehensive QA Audit
-
-      run: |
-
-        echo "嫌 Running nightly QA audit..."
-
-
-
-        # Run full QA analysis
-
-        python tools/qa_engineer.py --comprehensive --output-format json
-
-
-
-        # Generate trend reports
-
-        python tools/qa_metrics_analyzer.py --generate-trends
-
-
-
-    - name: Upload Audit Report
-
-      uses: actions/upload-artifact@v3
-
-      with:
-
-        name: nightly-qa-audit
-
-        path: |
-
-          qa-audit-report.json
-
-          qa-trends-report.md
-
-        retention-days: 90
-
-
-
-    - name: Send Audit Summary
-
-      if: always()
-
-      run: |
-
-        # Send summary to stakeholders
-
-        echo "投 Nightly QA Audit completed"
-
-        echo "塘 View full report in artifacts"
+name: QA Engineering Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: qa-analysis-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa-analysis:
+    name: Comprehensive QA Analysis
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10', '3.11']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r tools/codex-supervisor/requirements.txt
+        # Install additional QA dependencies
+        pip install pytest pytest-cov pytest-xdist mypy black isort flake8 bandit safety
+
+    - name: Install Codex QA Skills
+      run: |
+        # For demo purposes, we'll simulate skill installation
+        # In real usage: codex $skill-install https://github.com/zapabob/codex-qa-engineer-skill
+        mkdir -p .codex/skills/qa-engineer/scripts
+        cp -r tools/codex-supervisor/* .codex/skills/qa-engineer/
+        cp .codex/skills/qa-engineer/scripts/run_qa-engineer.py .codex/skills/qa-engineer/scripts/run_qa-engineer.py
+
+    - name: Run Security Analysis
+      run: |
+        echo "白 Running Security Analysis..."
+        python -m bandit -r . --exclude tests/,.git/,tools/ || true
+        python -m safety check || true
+
+    - name: Run Code Quality Checks
+      run: |
+        echo "棟 Running Code Quality Checks..."
+        python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.git,__pycache__,build,dist
+        python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.git,__pycache__,build,dist
+
+    - name: Run Type Checking
+      run: |
+        echo "剥 Running Type Checking..."
+        python -m mypy . --ignore-missing-imports --no-strict-optional || true
+
+    - name: Run Performance Analysis
+      run: |
+        echo "笞｡ Running Performance Analysis..."
+        python -m pytest --cov=. --cov-report=xml --cov-report=html --cov-fail-under=80 -x
+
+    - name: Run QA Engineering Analysis
+      id: qa-analysis
+      run: |
+        echo "ｧｪ Running Comprehensive QA Analysis..."
+
+        # Get branch information
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          SOURCE_BRANCH="${{ github.head_ref }}"
+          TARGET_BRANCH="${{ github.base_ref }}"
+        else
+          SOURCE_BRANCH="${{ github.ref_name }}"
+          TARGET_BRANCH="main"
+        fi
+
+        echo "Source branch: $SOURCE_BRANCH"
+        echo "Target branch: $TARGET_BRANCH"
+
+        # Run QA analysis
+        python tools/premerge_qa_hook.py "$SOURCE_BRANCH" "$TARGET_BRANCH"
+        QA_EXIT_CODE=$?
+
+        echo "qa_exit_code=$QA_EXIT_CODE" >> $GITHUB_OUTPUT
+
+        # Always generate report regardless of QA result
+        if [ -f "merge-qa-results.json" ]; then
+          echo "qa_report_exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "qa_report_exists=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload QA Report
+      if: steps.qa-analysis.outputs.qa_report_exists == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: qa-analysis-report-${{ matrix.python-version }}
+        path: |
+          merge-qa-reports/
+          merge-qa-results.json
+          qa-metrics-report.md
+        retention-days: 30
+
+    - name: Upload Coverage Report
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: qa-analysis
+        name: QA Analysis Coverage
+
+    - name: Send Slack Notification
+      if: always() && github.event_name == 'pull_request'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          溌 QA Analysis Results for PR #${{ github.event.number }}
+          投 Status: ${{ job.status }}
+          迫 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>
+          統 ${{ github.event.pull_request.title }}
+        channel: '#qa-notifications'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      continue-on-error: true
+
+    - name: Send Discord Notification
+      if: always() && github.event_name == 'pull_request'
+      uses: Ilshidur/action-discord@master
+      with:
+        args: |
+          溌 **QA Analysis Complete**
+          **PR:** #${{ github.event.number }} - ${{ github.event.pull_request.title }}
+          args: |
+            溌 **QA Analysis Complete**
+            **PR:** #${{ github.event.number }} - ${{ github.event.pull_request.title }}
+            **Status:** ${{ job.status }}
+            **Status:** ${{ job.status }}
+            **Details:** <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+          channel: 'qa-alerts'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        continue-on-error: true
+
+    - name: Comment PR with QA Results
+      if: always() && github.event_name == 'pull_request' && steps.qa-analysis.outputs.qa_report_exists == 'true'
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          // Read QA results
+          let qaResults = {};
+          try {
+            const qaFile = fs.readFileSync('merge-qa-results.json', 'utf8');
+            qaResults = JSON.parse(qaFile);
+          } catch (error) {
+            console.log('Could not read QA results file');
+            return;
+          }
+
+          const qa = qaResults.qa_report;
+          const evaluation = qaResults.evaluation;
+
+          // Create comment body
+          let statusText = evaluation.block_reasons.length > 0 ? '笶・Issues Found' : '笨・Passed';
+          let timeText = new Date().toLocaleString();
+          let comment = '## 溌 QA Engineering Analysis Results\n\n';
+          comment += '**Status:** ' + statusText + '\n';
+          comment += '**Analysis Time:** ' + timeText;
+          comment += '\n\n### 投 Quality Scores\n';
+          comment += '| Category | Score |\n';
+          comment += '|----------|-------|\n';
+          comment += '| Algorithmic Complexity | ' + qa.metrics.algorithmic_complexity + ' |\n';
+          comment += '| Quantum Optimization | ' + qa.metrics.quantum_optimization + ' |\n';
+          comment += '| Software Engineering | ' + qa.metrics.software_engineering + ' |\n';
+          comment += '| Code Quality | ' + qa.metrics.code_quality + ' |\n';
+          comment += '| Performance | ' + qa.metrics.performance + ' |\n';
+          comment += '| Security | ' + qa.metrics.security + ' |\n';
+          comment += '\n### 嶋 Issues Summary\n';
+          comment += '- **Total Issues:** ' + qa.issues.length + '\n';
+          comment += '- **Critical:** ' + qa.issues.filter(i => i.severity === 'CRITICAL').length + '\n';
+          comment += '- **High:** ' + qa.issues.filter(i => i.severity === 'HIGH').length + '\n';
+          comment += '- **Medium:** ' + qa.issues.filter(i => i.severity === 'MEDIUM').length + '\n';
+          comment += '- **Low:** ' + qa.issues.filter(i => i.severity === 'LOW').length;
+
+          if (evaluation.block_reasons.length > 0) {
+            comment += '\n### 圻 Blocking Issues\n';
+            comment += evaluation.block_reasons.map(reason => '- ' + reason).join('\n');
+            comment += '\n\n';
+          }
+
+          if (evaluation.warnings.length > 0) {
+            comment += '### 笞・・Warnings\n';
+            comment += evaluation.warnings.map(warning => '- ' + warning).join('\n');
+            comment += '\n\n';
+          }
+
+          if (evaluation.recommendations.length > 0) {
+            comment += '### 庁 Recommendations\n';
+            comment += evaluation.recommendations.map(rec => '- ' + rec).join('\n');
+            comment += '\n\n';
+          }
+
+          comment += '\n### 迫 Full Report\n';
+          comment += '塘 [View Detailed Report](' + process.env.GITHUB_SERVER_URL + '/' + process.env.GITHUB_REPOSITORY + '/actions/runs/' + process.env.GITHUB_RUN_ID + ')';
+          comment += '\n\n*Generated by Codex QA Engineering System*';
+
+          // Post comment
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  qa-gate-check:
+    name: QA Gate Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: qa-analysis
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check QA Results
+      run: |
+        # Download QA results from previous job
+        echo "Checking QA gate requirements..."
+
+        # In a real implementation, this would check the uploaded artifacts
+        # For now, we'll simulate the check
+        if [ -f "merge-qa-results.json" ]; then
+          echo "QA results found"
+          QA_PASSED=$(python -c "
+          import json
+          with open('merge-qa-results.json') as f:
+              data = json.load(f)
+          print('true' if data.get('merge_allowed', False) else 'false')
+          ")
+        else
+          echo "No QA results found, assuming pass for demo"
+          QA_PASSED="true"
+        fi
+
+        echo "qa_passed=$QA_PASSED" >> $GITHUB_OUTPUT
+
+    - name: Update Branch Protection
+      if: steps.qa-gate.outputs.qa_passed == 'true'
+      run: |
+        echo "笨・QA gates passed - branch protection satisfied"
+
+    - name: Fail PR on QA Issues
+      if: steps.qa-gate.outputs.qa_passed == 'false'
+      run: |
+        echo "笶・QA gates failed - blocking merge"
+        echo "Please review the QA analysis report and address critical issues"
+        exit 1
+
+  nightly-qa-audit:
+    name: Nightly QA Audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run Comprehensive QA Audit
+      run: |
+        echo "嫌 Running nightly QA audit..."
+
+        # Run full QA analysis
+        python tools/qa_engineer.py --comprehensive --output-format json
+
+        # Generate trend reports
+        python tools/qa_metrics_analyzer.py --generate-trends
+
+    - name: Upload Audit Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: nightly-qa-audit
+        path: |
+          qa-audit-report.json
+          qa-trends-report.md
+        retention-days: 90
+
+    - name: Send Audit Summary
+      if: always()
+      run: |
+        # Send summary to stakeholders
+        echo "投 Nightly QA Audit completed"
+        echo "塘 View full report in artifacts"
