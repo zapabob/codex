@@ -478,7 +478,7 @@ jobs:
   # --- Gatherer job that you mark as the ONLY required status -----------------
   results:
     name: CI results (required)
-    needs: [changed, general, cargo_shear, lint_build, tests]
+    needs: [changed, general, cargo_shear, fast_build_install, tests]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -487,7 +487,7 @@ jobs:
         run: |
           echo "general: ${{ needs.general.result }}"
           echo "shear  : ${{ needs.cargo_shear.result }}"
-          echo "lint   : ${{ needs.lint_build.result }}"
+          echo "lint   : ${{ needs.fast_build_install.result }}"
           echo "tests  : ${{ needs.tests.result }}"
 
           # If nothing relevant changed (PR touching only root README, etc.),
@@ -500,7 +500,7 @@ jobs:
           # Otherwise require the jobs to have succeeded
           [[ '${{ needs.general.result }}' == 'success' ]] || { echo 'general failed'; exit 1; }
           [[ '${{ needs.cargo_shear.result }}' == 'success' ]] || { echo 'cargo_shear failed'; exit 1; }
-          [[ '${{ needs.lint_build.result }}' == 'success' ]] || { echo 'lint_build failed'; exit 1; }
+          [[ '${{ needs.fast_build_install.result }}' == 'success' ]] || { echo 'fast_build_install failed'; exit 1; }
           [[ '${{ needs.tests.result }}' == 'success' ]] || { echo 'tests failed'; exit 1; }
 
       - name: sccache summary note
