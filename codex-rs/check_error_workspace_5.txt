@@ -1,9 +1,0 @@
-error: failed to select a version for `tauri`.
-    ... required by package `codex-tauri-gui v2.2.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tauri-gui\src-tauri)`
-versions that meet the requirements `^2.0` (locked to 2.9.2) are: 2.9.2
-
-package `codex-tauri-gui` depends on `tauri` with feature `cuda` but `tauri` does not have that feature.
- package `tauri` does have feature `uuid`
-
-
-failed to select a version for `tauri` which could resolve this conflict
