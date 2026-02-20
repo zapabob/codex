@@ -1,151 +1,154 @@
-# Repository Structure Guide / リポジトリ構造ガイド
+# Repository Structure
 
-**For AI tech recruiters**: This document provides a quick navigation guide to understand the codebase structure at a glance.
+Codex v2.17.0 — Enterprise AI Engineering Platform  
+Last updated: 2026-02-20
 
-**AIテック企業採用担当者向け**: このドキュメントは、コードベース構造を一目で理解するためのクイックナビゲーションガイドです。
+## Top-Level Layout
 
----
+```
+codex-main/
+│
+├── codex-rs/           # 🦀 Rust workspace (69 crates) — Core platform
+├── gui/                # ⚛️  Next.js 14 frontend GUI (port 1919)
+├── codex-cli/          # 🖥️  Node.js CLI wrapper
+├── codex-gui-x/        # 🌐 Extended GUI (Next.js 15 / React 19 / WebXR)
+├── codex-supervisor/   # 🤖 Multi-agent supervisor (standalone)
+│
+├── docs/               # 📚 Technical documentation
+├── _docs/              # 📝 Implementation logs (dev diary)
+├── examples/           # 💡 Usage examples
+├── extensions/         # 🔌 IDE extensions (VSCode, Windsurf, Codex-Viz)
+│
+├── mcp-servers/        # 🔧 MCP server implementations
+├── prism-mcp-server/   # 🔭 Prism MCP integration server
+├── shell-tool-mcp/     # 🐚 Shell tool MCP server
+│
+├── scripts/            # 🔨 Build & automation scripts
+├── tools/              # 🛠️  Development tools
+├── sdk/                # 📦 SDK (TypeScript client)
+│
+├── releases/           # 📦 Release archives (tar.gz, notes)
+├── logs/               # 📊 Build & check logs
+│   ├── build/          # Cargo/Next.js build outputs
+│   ├── tui/            # TUI-specific logs
+│   └── checks/         # Lint/audit outputs
+├── archive/            # 🗃️  Archived files & temp scripts
+│
+├── portfolio/          # 🎯 Project portfolio documentation
+├── social_announcements/ # 📣 Release announcements
+├── qa-reports/         # ✅ QA test reports
+│
+├── .codex/             # 🤖 Codex agent definitions (YAML)
+│   └── agents/         # Specialized agent configs
+├── .cursor/            # 🖱️  Cursor IDE configuration
+│   ├── skills/         # Agent skills (SKILL.md)
+│   └── plans/          # Execution plans
+│
+├── README.md           # Project overview
+├── ARCHITECTURE.md     # System architecture
+├── STRUCTURE.md        # This file
+├── CHANGELOG.md        # Version history
+├── CONTRIBUTING.md     # Contribution guide
+├── SECURITY.md         # Security policy
+├── CLAUDE.md           # AI assistant guidance
+└── AGENT.md            # Agent behavior spec
+```
 
-## 📁 Top-Level Organization / トップレベル構成
+## Core Rust Workspace (`codex-rs/`)
 
-### Core Implementation / コア実装
+The Rust workspace follows a layered architecture:
 
-| Directory | Purpose | Key Files | Status |
-|-----------|---------|-----------|--------|
-| `codex-rs/` | **Rust core** (CLI, TUI, orchestration, agents) | `core/src/plan/`, `core/src/agents/`, `core/src/qc/` | ✅ Production |
-| `codex-cli/` | **Node.js CLI** (official OpenAI/codex compatible) | `bin/codex.js` | ✅ Production |
-| `gui/` | **Web GUI** (Next.js, Plan management, visualization) | `src/app/`, `src/lib/xr/` | ✅ Production |
-| `extensions/` | **IDE extensions** (VS Code, Chrome, etc.) | `vscode-codex/`, `codex-viz-web/` | ✅ Production |
+### Entry Points
+| Crate | Binary | Purpose |
+|-------|--------|---------|
+| `cli` | `codex` | Main TUI/CLI entry point |
+| `gui` | `codex-gui` | WebSocket backend for Next.js GUI |
+| `mcp-server` | `codex-mcp-server` | MCP protocol server |
 
-### Documentation & Evidence / ドキュメントと証拠
+### Core Layer
+| Crate | Purpose |
+|-------|---------|
+| `core` | Orchestration engine, tool routing, agent runtime |
+| `backend-client` | OpenAI API HTTP client (SSE streaming) |
+| `protocol` | Wire protocol types (CLI ↔ App Server) |
+| `config` | Configuration types (`~/.codex/config.toml`) |
+| `state` | SQLite-backed session persistence |
 
-| Directory | Purpose | Key Files | Status |
-|-----------|---------|-----------|--------|
-| `docs/` | **User guides, architecture, benchmarks** | `plan/README.md`, `benchmarks/`, `architecture/` | ✅ Complete |
-| `portfolio/` | **Recruiter navigation** (see this first) | `README.md` (start here) | ✅ Complete |
-| `_docs/` | **Implementation logs** (development history) | Daily logs with dates | ✅ Complete |
-| `ARCHITECTURE.md` | **System architecture** (high-level design) | Complete system overview | ✅ Complete |
+### UI Layer
+| Crate | Purpose |
+|-------|---------|
+| `tui` | Terminal UI (Ratatui) with slash commands |
+| `app-server` | WebSocket/SSE server for GUI |
+| `app-server-protocol` | Schema definitions (v2 protocol) |
 
-### Development Tools / 開発ツール
+### Extended Features (zapabob)
+| Crate | Purpose |
+|-------|---------|
+| `deep-research` | Multi-source research (DuckDuckGo/Gemini/Brave) |
+| `supervisor` | Multi-agent supervisor (Planner/Assigner/Executor) |
+| `otel` | OpenTelemetry tracing integration |
 
-| Directory | Purpose | Key Files | Status |
-|-----------|---------|-----------|--------|
-| `scripts/` | **Build, test, deployment scripts** | `fast_build.py`, `build_and_install.py` | ✅ Active |
-| `tools/` | **Development utilities** | QA integration, orchestrator | ✅ Active |
-| `.codex/` | **Agent definitions** (YAML configs) | `agents/*.yaml`, `skills/` | ✅ Active |
-| `.cursor/` | **Cursor IDE config** (MCP, rules) | `mcp.json`, `rules/` | ✅ Active |
+### Security/Platform
+| Crate | Purpose |
+|-------|---------|
+| `windows-sandbox-rs` | Win32 Job Objects sandboxing |
+| `linux-sandbox` | Landlock + seccomp-bpf |
+| `process-hardening` | Cross-platform process hardening |
+| `execpolicy` | Execution policy enforcement |
 
-### Examples & Testing / サンプルとテスト
+## GUI (`gui/`)
 
-| Directory | Purpose | Key Files | Status |
-|-----------|---------|-----------|--------|
-| `examples/` | **Production-ready samples** | `node-api/`, `react-todo/` | ✅ Complete |
-| `gui-tests/` | **E2E tests** (Playwright) | `tests/gui-basic.spec.js` | ✅ Active |
-| `tests/` | **Unit/integration tests** | Various test suites | ✅ Active |
+Next.js 14 application:
 
-### Specialized Components / 専門コンポーネント
+```
+gui/
+├── src/
+│   ├── app/            # 21 pages (App Router)
+│   │   ├── page.tsx    # Dashboard
+│   │   ├── git4d/      # 4D Git visualization
+│   │   ├── vr/         # VR/AR interface
+│   │   ├── virtual-os/ # AI-powered virtual OS
+│   │   ├── security/   # Security dashboard
+│   │   ├── qc/         # Quality control
+│   │   └── ...
+│   ├── components/     # 60+ React components
+│   │   ├── visualization/ # Three.js / WebXR
+│   │   ├── ai-tools/   # AI orchestration UI
+│   │   ├── virtual-os/ # Virtual OS components
+│   │   └── ...
+│   ├── lib/
+│   │   ├── bridge/     # CLI-GUI bridge (WebSocket)
+│   │   └── api/        # API client (JSON-RPC)
+│   └── store/          # Zustand state management
+└── tests/              # Playwright E2E tests
+```
 
-| Directory | Purpose | Key Files | Status |
-|-----------|---------|-----------|--------|
-| `prism-web/` | **Prism web app** (separate product) | `app/`, `components/` | ✅ Complete |
-| `prism-mcp-server/` | **Prism MCP integration** | `src/index.ts` | ✅ Complete |
-| `shell-tool-mcp/` | **Shell tool MCP server** | `src/` | ✅ Complete |
-| `sdk/` | **TypeScript SDK** | `typescript/` | ✅ Complete |
-| `kernel-extensions/` | **Kernel modules** (Linux/Windows) | `linux/`, `windows/` | ✅ Experimental |
+## Agent Definitions (`.codex/agents/`)
 
-### Configuration & CI/CD / 設定とCI/CD
+Specialized YAML-defined agents:
 
-| Directory | Purpose | Key Files | Status |
-|-----------|---------|-----------|--------|
-| `.github/` | **GitHub Actions, templates** | `workflows/`, `ISSUE_TEMPLATE/` | ✅ Active |
-| `.devcontainer/` | **Dev container config** | `devcontainer.json` | ✅ Active |
-| `patches/` | **Dependency patches** | `*.patch` | ✅ Active |
+| Agent | Capability |
+|-------|-----------|
+| `code-reviewer` | Automated code review |
+| `test-gen` | Test suite generation |
+| `sec-audit` | Security vulnerability audit |
+| `researcher` | Deep research and synthesis |
+| `vrchat-dev` | VRChat SDK3 development |
+| `blender-cad` | Blender Python automation |
+| `yukkuri-movie` | YMM4/VOICEVOX automation |
+| `web-search-deepresearch` | Multi-source web research |
 
----
+## Documentation (`docs/`)
 
-## 🎯 Quick Navigation / クイックナビゲーション
-
-### For Recruiters / 採用担当者向け
-
-1. **Start here**: `portfolio/README.md` (5-minute overview)
-2. **Architecture**: `ARCHITECTURE.md` (system design)
-3. **Evidence**: `docs/benchmarks/` (performance proof)
-4. **Examples**: `examples/README.md` (real-world demos)
-
-### For Developers / 開発者向け
-
-1. **Core code**: `codex-rs/` (Rust implementation)
-2. **CLI**: `codex-cli/` (Node.js CLI)
-3. **GUI**: `gui/` (Web interface)
-4. **Scripts**: `scripts/` (build automation)
-
-### For Contributors / コントリビュータ向け
-
-1. **Contributing guide**: `CONTRIBUTING.md`
-2. **Repository structure**: `.github/REPOSITORY_STRUCTURE.md`
-3. **Agent definitions**: `.codex/agents/`
-4. **Skills**: `.codex/skills/`
-
----
-
-## 📊 File Count Summary / ファイル数サマリー
-
-| Category | Count | Notes |
-|----------|-------|-------|
-| Rust source files | 1,139+ | `codex-rs/**/*.rs` |
-| TypeScript/TSX | 100+ | `gui/`, `extensions/`, `prism-web/` |
-| Documentation | 888+ | `docs/**/*.md` |
-| Implementation logs | 15+ | `_docs/*.md` |
-| Scripts | 150+ | `scripts/**/*.{ps1,py,sh}` |
-| Tests | 200+ | Various test suites |
-
----
-
-## 🔍 Finding Specific Features / 特定機能の探し方
-
-### Plan Mode
-- **Implementation**: `codex-rs/core/src/plan/`
-- **Documentation**: `docs/plan/README.md`
-- **CLI commands**: `codex-rs/cli/src/plan_commands.rs`
-
-### Sub-Agents
-- **Implementation**: `codex-rs/core/src/agents/`
-- **Documentation**: `docs/agents/README.md`
-- **Agent definitions**: `.codex/agents/*.yaml`
-
-### QC Agent
-- **Implementation**: `codex-rs/core/src/qc/`
-- **Quantum optimization**: `codex-rs/core/src/qc/quantum.rs`
-- **Mathematical optimization**: `codex-rs/core/src/qc/mathematical.rs`
-
-### Deep Research
-- **Implementation**: `codex-rs/deep-research/`
-- **Documentation**: `docs/research/README.md`
-- **MCP integration**: `codex-rs/deep-research/src/mcp_search_provider.rs`
-
-### A2A Communication
-- **Implementation**: `codex-rs/core/src/a2a_communication.rs`
-- **Conflict prevention**: `codex-rs/core/src/orchestration/conflict_prevention.rs`
-
-### Git Worktree
-- **Implementation**: `codex-rs/core/src/orchestration/worktree_manager.rs`
-- **Competition runner**: `codex-rs/core/src/orchestration/integrated_competition.rs`
-
-### GUI & Visualization
-- **Main GUI**: `gui/` (Next.js)
-- **3D/4D Visualizer**: `extensions/codex-viz-web/`
-- **Prism**: `prism-web/`
-
----
-
-## 📚 Related Documents / 関連ドキュメント
-
-- **Repository Structure**: `.github/REPOSITORY_STRUCTURE.md` (detailed)
-- **Architecture**: `ARCHITECTURE.md` (system design)
-- **Portfolio Guide**: `portfolio/README.md` (recruiter navigation)
-- **Contributing**: `CONTRIBUTING.md` (how to contribute)
-
----
-
-**Last Updated**: 2026-01-29  
-**Maintained by**: [@zapabob](https://github.com/zapabob)
+```
+docs/
+├── README.md           # Documentation index
+├── agents/             # Agent system documentation
+├── gui/                # GUI setup and API
+├── plan/               # Planning system
+├── research/           # Deep research docs
+├── vr/                 # VR/AR documentation
+├── git/                # Git integration
+├── benchmarks/         # Performance benchmarks
+└── zapabob/            # zapabob extension docs
+```
