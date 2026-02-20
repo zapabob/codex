@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig, devices } from '@playwright/test';
+import { resolve } from 'path';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -50,7 +51,7 @@ export default defineConfig({
           '--disable-features=VizDisplayCompositor',
           '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         ],
-        headless: false, // Run with visible browser for Cursor integration
+        headless: !!process.env.CI, // Headless in CI, visible locally for Cursor integration
       },
     },
   ],
@@ -58,7 +59,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: 'cd /d C:\\Users\\downl\\Desktop\\codex-main\\gui && npm run dev',
+      command: `cd "${resolve(__dirname, '../gui')}" && npm run dev`,
       port: 3000,
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000, // 120 seconds for Next.js dev server
