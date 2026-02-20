@@ -3155,16 +3155,27 @@ impl ChatWidget {
                 self.launch_git4d_visualization(mode);
             }
             SlashCommand::VrChat => {
-                self.insert_str("!codex vrchat-dev --task \"\"");
+                self.insert_str(
+                    "!codex delegate vrchat-dev --task \"VRChat ",
+                );
             }
             SlashCommand::Blender => {
-                self.insert_str("!codex blender-cad --task \"\"");
+                self.insert_str(
+                    "!codex delegate blender-cad --task \"Blender CAD: ",
+                );
             }
             SlashCommand::Yukkuri => {
-                self.insert_str("!codex yukkuri-movie --task \"\"");
+                self.insert_str(
+                    "!codex delegate yukkuri-movie --task \"YMM4: ",
+                );
             }
             SlashCommand::Yolo => {
                 self.insert_str("!codex yolo-auto --task \"\"");
+            }
+            SlashCommand::DeepResearch => {
+                self.insert_str(
+                    "!codex delegate web-search-deepresearch --task \"research: ",
+                );
             }
         }
     }

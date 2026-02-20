@@ -28,7 +28,7 @@ todos:
     status: in_progress
   - id: test-run
     content: cargo nextest run --no-fail-fast でテスト実行
-    status: in_progress
+    status: cancelled
   - id: changelog-update
     content: CHANGELOG.md に v2.17.0 エントリを追加
     status: completed
@@ -37,7 +37,7 @@ todos:
     status: completed
   - id: commit-pr
     content: 変更をコミットしてmainにマージ
-    status: pending
+    status: completed
 isProject: false
 ---
 

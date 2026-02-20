@@ -62,6 +62,8 @@ pub enum SlashCommand {
     Blender,
     Yukkuri,
     Yolo,
+    #[strum(serialize = "research")]
+    DeepResearch,
 }
 
 impl SlashCommand {
@@ -110,10 +112,11 @@ impl SlashCommand {
             SlashCommand::Git4d => "launch Git 4D visualization with VR/AR support",
             SlashCommand::Vr => "launch Git 4D visualization in VR mode",
             SlashCommand::Ar => "launch Git 4D visualization in AR mode",
-            SlashCommand::VrChat => "launch Git 4D visualization in VRChat mode",
-            SlashCommand::Blender => "launch Git 4D visualization in Blender mode",
-            SlashCommand::Yukkuri => "launch Git 4D visualization in Yukkuri mode",
+            SlashCommand::VrChat => "VRChat world/avatar dev: UdonSharp, Modular Avatar, liltoon, SDK3",
+            SlashCommand::Blender => "Blender CAD: STEP import, Geometry Nodes, RTX rendering, FBX/glTF export",
+            SlashCommand::Yukkuri => "ゆっくりMovieMaker4: YMM4 project gen, VOICEVOX synthesis, timeline automation",
             SlashCommand::Yolo => "enable YOLO mode for agent orchestration",
+            SlashCommand::DeepResearch => "deep web research: multi-source, quality-assessed, structured report",
         }
     }
 
@@ -180,7 +183,8 @@ impl SlashCommand {
             SlashCommand::VrChat
             | SlashCommand::Blender
             | SlashCommand::Yukkuri
-            | SlashCommand::Yolo => false,
+            | SlashCommand::Yolo
+            | SlashCommand::DeepResearch => false,
             SlashCommand::Statusline => false,
         }
     }
