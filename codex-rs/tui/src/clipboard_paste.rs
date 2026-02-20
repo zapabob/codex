@@ -211,6 +211,43 @@ fn normalize_windows_path(path_str: &str) -> Option<PathBuf> {
     None
 }
 
+/// Returns true if the process is running inside Windows Subsystem for Linux (WSL).
+///
+/// This is detected by checking whether `/proc/version` contains "Microsoft" or "WSL",
+/// which is the standard indicator set by the WSL kernel.
+#[cfg(target_os = "linux")]
+pub fn is_probably_wsl() -> bool {
+    std::fs::read_to_string("/proc/version")
+        .map(|v| {
+            let lower = v.to_lowercase();
+            lower.contains("microsoft") || lower.contains("wsl")
+        })
+        .unwrap_or(false)
+}
+
+/// Convert a Windows-style path (e.g. `C:\Users\Alice\file.txt`) to its WSL
+/// equivalent (e.g. `/mnt/c/Users/Alice/file.txt`).
+///
+/// Returns `None` if `path_str` does not look like a Windows drive-letter path.
+#[cfg(target_os = "linux")]
+pub fn convert_windows_path_to_wsl(path_str: &str) -> Option<PathBuf> {
+    let path_str = path_str.trim();
+    // Match drive letter paths: C:\ or C:/ or C:\\
+    let chars: Vec<char> = path_str.chars().collect();
+    if chars.len() >= 3
+        && chars[0].is_ascii_alphabetic()
+        && chars[1] == ':'
+        && (chars[2] == '\\' || chars[2] == '/')
+    {
+        let drive = chars[0].to_ascii_lowercase();
+        let rest = &path_str[3..];
+        let linux_rest = rest.replace('\\', "/");
+        Some(PathBuf::from(format!("/mnt/{drive}/{linux_rest}")))
+    } else {
+        None
+    }
+}
+
 /// Infer an image format for the provided path based on its extension.
 pub fn pasted_image_format(path: &Path) -> EncodedImageFormat {
     match path
