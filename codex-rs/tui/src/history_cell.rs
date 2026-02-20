@@ -1480,7 +1480,6 @@ pub(crate) struct WebSearchCell {
     action: Option<WebSearchAction>,
     start_time: Instant,
     completed: bool,
-    animations_enabled: bool,
 }
 
 impl WebSearchCell {
@@ -1488,7 +1487,6 @@ impl WebSearchCell {
         call_id: String,
         query: String,
         action: Option<WebSearchAction>,
-        animations_enabled: bool,
     ) -> Self {
         Self {
             call_id,
@@ -1496,7 +1494,6 @@ impl WebSearchCell {
             action,
             start_time: Instant::now(),
             completed: false,
-            animations_enabled,
         }
     }
 
@@ -1532,12 +1529,8 @@ impl HistoryCell for WebSearchCell {
     }
 }
 
-pub(crate) fn new_active_web_search_call(
-    call_id: String,
-    query: String,
-    animations_enabled: bool,
-) -> WebSearchCell {
-    WebSearchCell::new(call_id, query, None, animations_enabled)
+pub(crate) fn new_active_web_search_call(call_id: String, query: String) -> WebSearchCell {
+    WebSearchCell::new(call_id, query, None)
 }
 
 pub(crate) fn new_web_search_call(
@@ -1545,7 +1538,7 @@ pub(crate) fn new_web_search_call(
     query: String,
     action: WebSearchAction,
 ) -> WebSearchCell {
-    let mut cell = WebSearchCell::new(call_id, query, Some(action), false);
+    let mut cell = WebSearchCell::new(call_id, query, Some(action));
     cell.complete();
     cell
 }
@@ -2004,10 +1997,12 @@ pub(crate) fn new_plan_update(update: UpdatePlanArgs) -> PlanUpdateCell {
     PlanUpdateCell { explanation, plan }
 }
 
+#[allow(dead_code)]
 pub(crate) fn new_proposed_plan(plan_markdown: String) -> ProposedPlanCell {
     ProposedPlanCell { plan_markdown }
 }
 
+#[allow(dead_code)]
 pub(crate) fn new_proposed_plan_stream(
     lines: Vec<Line<'static>>,
     is_stream_continuation: bool,
@@ -2019,11 +2014,13 @@ pub(crate) fn new_proposed_plan_stream(
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub(crate) struct ProposedPlanCell {
     plan_markdown: String,
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub(crate) struct ProposedPlanStreamCell {
     lines: Vec<Line<'static>>,
     is_stream_continuation: bool,

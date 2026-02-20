@@ -2253,140 +2253,75 @@ impl AgentRuntime {
 
 
         for tool in allowed_tools {
-
             let tool_desc = match tool.as_str() {
-
-                "codex_read_file" => {
-
-                    "- codex_read_file(path: str) -> str\n  \
-
-                     Read a file from the workspace using Codex.\n  \
-
-                     Safe, read-only operation."
-
-                }
-
-                "codex_grep" => {
-
-                    "- codex_grep(pattern: str, path: Optional[str]) -> List[str]\n  \
-
-                     Search for patterns in files using Codex grep.\n  \
-
-                     Safe, read-only operation."
-
-                }
-
-                "codex_codebase_search" => {
-
-                    "- codex_codebase_search(query: str, target_directories: Optional[List[str]]) -> List[str]\n  \
-
-                     Semantic code search using Codex.\n  \
-
-                     Safe, read-only operation."
-
-                }
-
-                "codex_apply_patch" => {
-
-                    "- codex_apply_patch(patch: str) -> str\n  \
-
-                     Apply a code patch using Codex.\n  \
-
-                     Requires write permission."
-
-                }
-
-                "codex_shell" => {
-
-                    "- codex_shell(command: str) -> str\n  \
-
-                     Execute a shell command via Codex (restricted).\n  \
-
-                     Requires shell permission."
-
-                }
-
-                "codex-supervisor" => {
-
-                    "- codex-supervisor(goal: str, strategy: Optional[str]) -> SupervisorReport\n  \
-
-                     Plan and coordinate multiple Codex subagents through the Supervisor layer.\n  \
-
-                     Use when you need structured collaboration across specialists."
-
-                }
-
-                "codex-deep-research" => {
-
-                    "- codex-deep-research(query: str, strategy: Optional[str], max_depth: Optional[int]) -> ResearchReport\n  \
-
-                     Run Codex DeepResearcher for multi-source investigations with citations.\n  \
-
-                     Ideal for comprehensive research and evidence gathering."
-
-                }
-
-                "codex-subagent" => {
-
-                    "- codex-subagent(action: str, agent_type: Optional[str], task: Optional[str], task_id: Optional[str]) -> ToolResult\n  \
-
-                     Manage Codex subagents: start tasks, auto-dispatch, check inbox, status, thinking, or token usage.\n  \
-
-                     Delegate work to specialist agents and retrieve their outputs."
-
-                }
-
-                "codex-custom-command" => {
-
-                    "- codex-custom-command(action: str, command_name: Optional[str], context: Optional[str]) -> ToolResult\n  \
-
-                     Execute curated multi-step workflows (e.g., analyze_code, deep_research) mapped to subagents.\n  \
-
-                     Handy for quick access to predefined automation."
-
-                }
-
-                "codex-hook" => {
-
-                    "- codex-hook(event: str, context: Optional[str]) -> HookAck\n  \
-
-                     Trigger lifecycle hooks such as on_subagent_start/on_task_complete for integrations.\n  \
-
-                     Use to capture workflow events or integrate external systems."
-
-                }
-
-                "codex-auto-orchestrate" => {
-
-                    "- codex-auto-orchestrate(goal: str, strategy: Optional[str]) -> OrchestrationReport\n  \
-
-                     Automatically analyze goals and dispatch the optimal mix of subagents.\n  \
-
-                     Best for high-level objectives that benefit from autonomous planning."
-
-                }
-
+                "codex_read_file" => concat!(
+                    "- codex_read_file(path: str) -> str\n  ",
+                    "Read a file from the workspace using Codex.\n  ",
+                    "Safe, read-only operation."
+                ),
+                "codex_grep" => concat!(
+                    "- codex_grep(pattern: str, path: Optional[str]) -> List[str]\n  ",
+                    "Search for patterns in files using Codex grep.\n  ",
+                    "Safe, read-only operation."
+                ),
+                "codex_codebase_search" => concat!(
+                    "- codex_codebase_search(query: str, target_directories: Optional[List[str]]) -> List[str]\n  ",
+                    "Semantic code search using Codex.\n  ",
+                    "Safe, read-only operation."
+                ),
+                "codex_apply_patch" => concat!(
+                    "- codex_apply_patch(patch: str) -> str\n  ",
+                    "Apply a code patch using Codex.\n  ",
+                    "Requires write permission."
+                ),
+                "codex_shell" => concat!(
+                    "- codex_shell(command: str) -> str\n  ",
+                    "Execute a shell command via Codex (restricted).\n  ",
+                    "Requires shell permission."
+                ),
+                "codex-supervisor" => concat!(
+                    "- codex-supervisor(goal: str, strategy: Optional[str]) -> SupervisorReport\n  ",
+                    "Plan and coordinate multiple Codex subagents through the Supervisor layer.\n  ",
+                    "Use when you need structured collaboration across specialists."
+                ),
+                "codex-deep-research" => concat!(
+                    "- codex-deep-research(query: str, strategy: Optional[str], max_depth: Optional[int]) -> ResearchReport\n  ",
+                    "Run Codex DeepResearcher for multi-source investigations with citations.\n  ",
+                    "Ideal for comprehensive research and evidence gathering."
+                ),
+                "codex-subagent" => concat!(
+                    "- codex-subagent(action: str, agent_type: Optional[str], task: Optional[str], task_id: Optional[str]) -> ToolResult\n  ",
+                    "Manage Codex subagents: start tasks, auto-dispatch, check inbox, status, thinking, or token usage.\n  ",
+                    "Delegate work to specialist agents and retrieve their outputs."
+                ),
+                "codex-custom-command" => concat!(
+                    "- codex-custom-command(action: str, command_name: Optional[str], context: Optional[str]) -> ToolResult\n  ",
+                    "Execute curated multi-step workflows (e.g., analyze_code, deep_research) mapped to subagents.\n  ",
+                    "Handy for quick access to predefined automation."
+                ),
+                "codex-hook" => concat!(
+                    "- codex-hook(event: str, context: Optional[str]) -> HookAck\n  ",
+                    "Trigger lifecycle hooks such as on_subagent_start/on_task_complete for integrations.\n  ",
+                    "Use to capture workflow events or integrate external systems."
+                ),
+                "codex-auto-orchestrate" => concat!(
+                    "- codex-auto-orchestrate(goal: str, strategy: Optional[str]) -> OrchestrationReport\n  ",
+                    "Automatically analyze goals and dispatch the optimal mix of subagents.\n  ",
+                    "Best for high-level objectives that benefit from autonomous planning."
+                ),
                 _ => continue,
-
             };
-
             desc.push_str(tool_desc);
-
             desc.push_str("\n\n");
-
         }
 
 
 
-        desc.push_str(
-
-            "To use these tools, output a tool call in the following format:\n\
-
-             TOOL_CALL: tool_name(arg1=\"value1\", arg2=\"value2\")\n\n\
-
-             The results will be provided to you for further analysis.",
-
-        );
+        desc.push_str(concat!(
+            "To use these tools, output a tool call in the following format:\n",
+            "TOOL_CALL: tool_name(arg1=\"value1\", arg2=\"value2\")\n\n",
+            "The results will be provided to you for further analysis.",
+        ));
 
 
 
@@ -2458,53 +2393,16 @@ impl AgentRuntime {
 
 
         let system_prompt = format!(
-
-            "You are a specialized sub-agent with the following role:\n\
-
-             \n\
-
-             Agent: {}\n\
-
-             Goal: {}\n\
-
-             \n\
-
-             Success Criteria:\n{}\n\
-
-             \n\
-
-             Inputs provided:\n{}\n\
-
-             \n\
-
-             {}\n\
-
-             \n\
-
-             Please analyze the task and use the available Codex MCP tools to complete it.\
-
-             When you need to use a tool, output it in the specified format.\
-
-             After all tool calls are complete, provide a final summary.",
-
+            "You are a specialized sub-agent with the following role:\n\nAgent: {}\nGoal: {}\n\nSuccess Criteria:\n{}\n\nInputs provided:\n{}\n\n{}\n\nPlease analyze the task and use the available Codex MCP tools to complete it. When you need to use a tool, output it in the specified format. After all tool calls are complete, provide a final summary.",
             agent_def.name,
-
             agent_def.goal,
-
             agent_def.success_criteria.join("\n- "),
-
             inputs
-
                 .iter()
-
                 .map(|(k, v)| format!("- {k}: {v}"))
-
                 .collect::<Vec<_>>()
-
                 .join("\n"),
-
             tools_description
-
         );
 
 

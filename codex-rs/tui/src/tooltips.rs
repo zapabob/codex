@@ -86,6 +86,7 @@ pub(crate) fn get_tooltip(plan: Option<PlanType>) -> Option<String> {
     pick_tooltip(&mut rng).map(str::to_string)
 }
 
+#[allow(dead_code)]
 pub fn random_tooltip() -> Option<String> {
     get_tooltip(None)
 }

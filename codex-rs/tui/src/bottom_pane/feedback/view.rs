@@ -319,6 +319,7 @@ impl Renderable for FeedbackNoteView {
 }
 
 // Build the selection popup params for feedback categories.
+#[allow(dead_code)]
 pub(crate) fn feedback_selection_params(
     app_event_tx: AppEventSender,
 ) -> crate::bottom_pane::SelectionViewParams {
@@ -361,6 +362,7 @@ pub(crate) fn feedback_selection_params(
 }
 
 /// Build the selection popup params shown when feedback is disabled.
+#[allow(dead_code)]
 pub(crate) fn feedback_disabled_params() -> crate::bottom_pane::SelectionViewParams {
     crate::bottom_pane::SelectionViewParams {
         title: Some("Sending feedback is disabled".to_string()),
@@ -375,6 +377,7 @@ pub(crate) fn feedback_disabled_params() -> crate::bottom_pane::SelectionViewPar
     }
 }
 
+#[allow(dead_code)]
 fn make_feedback_item(
     app_event_tx: AppEventSender,
     name: &str,
@@ -394,6 +397,7 @@ fn make_feedback_item(
 }
 
 /// Build the upload consent popup params for a given feedback category.
+#[allow(dead_code)]
 pub(crate) fn feedback_upload_consent_params(
     app_event_tx: AppEventSender,
     category: FeedbackCategory,

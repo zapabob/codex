@@ -1723,7 +1723,6 @@ impl ChatWidget {
         self.active_cell = Some(Box::new(history_cell::new_active_web_search_call(
             ev.call_id,
             String::new(),
-            self.config.animations,
         )));
         self.bump_active_cell_revision();
         self.request_redraw();
