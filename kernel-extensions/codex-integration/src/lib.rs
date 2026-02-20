@@ -48,6 +48,12 @@ pub struct GpuStats {
 
 impl KernelModuleStats {
     /// Read statistics from kernel modules via /proc
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err` if reading from `/proc/ai_scheduler`, `/proc/ai_memory`,
+    /// or `/proc/ai_gpu` fails due to I/O errors (missing module is ignored).
+    #[must_use = "caller should inspect the returned statistics"]
     pub fn read() -> io::Result<Self> {
         Ok(Self {
             scheduler: Self::read_scheduler().ok(),
@@ -163,6 +169,7 @@ impl KernelModuleStats {
     }
     
     /// Check if any kernel module is loaded
+    #[must_use]
     pub fn is_available(&self) -> bool {
         self.scheduler.is_some() || self.memory.is_some() || self.gpu.is_some()
     }

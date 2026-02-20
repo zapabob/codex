@@ -54,12 +54,14 @@ impl AiTaskInfo {
 
 /// Check if GPU is available for scheduling
 #[inline]
+#[must_use]
 pub fn is_gpu_available() -> bool {
     GPU_AVAILABLE.load(Ordering::Acquire) != 0
 }
 
 /// Get current GPU utilization
 #[inline]
+#[must_use]
 pub fn get_gpu_utilization() -> u32 {
     GPU_UTILIZATION.load(Ordering::Acquire)
 }
@@ -79,6 +81,10 @@ pub fn set_gpu_utilization(util: u32) {
 }
 
 /// Register AI task
+///
+/// # Errors
+///
+/// Returns `Err` if the maximum number of AI tasks (1024) has been reached.
 pub fn register_ai_task(_pid: u32) -> Result<(), &'static str> {
     let count = AI_TASK_COUNT.fetch_add(1, Ordering::AcqRel);
     
@@ -97,11 +103,13 @@ pub fn unregister_ai_task(_pid: u32) {
 
 /// Get AI task count
 #[inline]
+#[must_use]
 pub fn get_ai_task_count() -> u64 {
     AI_TASK_COUNT.load(Ordering::Acquire)
 }
 
 /// Scheduling decision
+#[must_use]
 pub fn should_schedule_on_gpu(task: &AiTaskInfo) -> bool {
     task.should_use_gpu() && is_gpu_available()
 }
