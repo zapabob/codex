@@ -63,7 +63,7 @@ Windows の NTFS では制限がないため、ローカルでは問題なかっ
 
 **修正**: `pnpm-lock.yaml` の `overrides` セクションに不足エントリを手動追加
 
-## 修正コミット一覧
+## 修正コミット一覧 (全フェーズ)
 
 | コミット | 内容 |
 |---------|------|
@@ -72,16 +72,39 @@ Windows の NTFS では制限がないため、ローカルでは問題なかっ
 | `48c86ac99` | fix: codespell playwright-report、pnpm lockfile、gitignore |
 | `522898cfd` | fix: check-hidden=false で .specstory/ をスキップ |
 | `8df09f09c` | fix: archive/ と logs/ を codespell スキップ |
+| `c31beac91` | fix: .specstory を codespell スキップリストに追加 |
+| `16b877121` | fix: docs/, extensions/, build log txt を codespell スキップ |
+| `f0c2ea81a` | fix: ビルドログ .txt を git tracking から削除 |
+| `ecff33980` | fix: さらなるビルドログ削除、ドイツ語 wordlist 追加、タイポ修正 |
+| `6fd46b957` | fix: integration-tests.yml 重複 job 削除、i18n 語句追加 |
+| `134d9f31e` | fix: gui-tests npm install、mcp-integration pnpm 順序修正 |
+| `64c2b1c0f` | fix: TruffleHog 設定修正、kernel-ci Rust toolchain 修正 |
+| `48ddb9865` | fix: rust-ci.yml checkout@v6→v4、py-3→python3 修正 |
+| `f31ef9202` | fix: is_probably_wsl / convert_windows_path_to_wsl 関数追加 |
+| `c2e0240bc` | fix: playwright.config.js パス修正、headless CI モード追加 |
 
-## CI 結果
+## CI 結果 (最新: f31ef9202 時点)
 
 | ワークフロー | 修正前 | 修正後 |
 |------------|--------|--------|
 | rust-clippy analyze | failure | **success** |
 | cargo-deny | failure | **success** |
-| Codespell | failure | 修正中 |
-| ci (build-test) | failure | 修正中 |
-| sdk | failure | 修正中 |
+| Codespell | failure | **success** |
+| ci (build-test) | failure | 一部修正済 |
+| sdk | failure | 修正中 (is_probably_wsl 追加) |
+| rust-ci.yml | failure | 修正済 (checkout v6→v4) |
+| Security Scan | failure | 修正済 (TruffleHog 設定) |
+| AI Kernel Modules CI | failure | 修正済 (toolchain 変更) |
+| integration-tests | failure | 修正済 (重複 job 削除) |
+| gui-tests | failure | 修正済 (npm install + relative path) |
+
+## 残課題
+
+- `mcp-integration-test` - codex-gemini-cli-mcp-server ビルド失敗
+- `subagent-ci.yml` - 調査中
+- `qa-ci.yml` - pytest カバレッジ 80% 要件
+- `Bazel (experimental)` - ARM64 ビルド問題
+- `Security Scan` - TruffleHog 設定改善
 
 ## 作成ファイル
 
