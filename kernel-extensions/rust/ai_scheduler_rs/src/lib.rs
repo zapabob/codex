@@ -37,6 +37,7 @@ pub struct AiTaskInfo {
 
 impl AiTaskInfo {
     /// Create new AI task info
+    #[must_use]
     pub const fn new(pid: u32) -> Self {
         Self {
             pid,
@@ -47,6 +48,7 @@ impl AiTaskInfo {
     }
     
     /// Check if task should use GPU
+    #[must_use]
     pub const fn should_use_gpu(&self) -> bool {
         matches!(self.task_type, TaskType::AiInference)
     }
