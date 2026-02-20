@@ -2,6 +2,7 @@
 edition = "2024"
 name = "codex-responses-api-proxy"
 version = { workspace = true }
+license = { workspace = true }
 
 [lib]
 name = "codex_responses_api_proxy"

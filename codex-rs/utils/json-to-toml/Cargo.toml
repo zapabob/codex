@@ -1,6 +1,7 @@
 [package]
 edition.workspace = true
 name = "codex-utils-json-to-toml"
+license = { workspace = true }
 version.workspace = true
 
 [dependencies]

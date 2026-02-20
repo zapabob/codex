@@ -1,5 +1,6 @@
 [package]
 name = "codex-git"
+license = { workspace = true }
 version.workspace = true
 edition.workspace = true
 readme = "README.md"

@@ -2,6 +2,7 @@
 edition = "2024"
 name = "codex-stdio-to-uds"
 version = { workspace = true }
+license = { workspace = true }
 
 [[bin]]
 name = "codex-stdio-to-uds"

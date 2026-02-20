@@ -2,6 +2,7 @@
 description = "MCP server that wraps Gemini CLI for Codex and Cursor IDE integration with OAuth 2.0 + PKCE"
 edition.workspace = true
 name = "codex-gemini-cli-mcp-server"
+license = { workspace = true }
 version.workspace = true
 
 [lib]

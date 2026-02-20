@@ -1,6 +1,7 @@
 [package]
 edition.workspace = true
 name = "codex-supervisor"
+license = { workspace = true }
 version.workspace = true
 
 [dependencies]

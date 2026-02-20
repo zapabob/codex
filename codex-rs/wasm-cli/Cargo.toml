@@ -2,6 +2,7 @@
 edition = "2024"
 name = "codex-wasm-cli"
 version = "0.83.0"
+license = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]

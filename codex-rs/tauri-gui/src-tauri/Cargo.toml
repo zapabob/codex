@@ -4,6 +4,7 @@ description = "Codex AI-Native OS Resident GUI Client"
 edition = "2024"
 name = "codex-tauri-gui"
 version = "2.13.0"
+license = { workspace = true }
 
 [features]
 cuda = []

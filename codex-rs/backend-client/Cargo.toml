@@ -1,6 +1,7 @@
 [package]
 name = "codex-backend-client"
 version = { workspace = true }
+license = { workspace = true }
 edition = "2024"
 publish = false
 
