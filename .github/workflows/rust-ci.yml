@@ -206,12 +206,18 @@ jobs:
           echo "RUSTFLAGS=-C target-cpu=native -C opt-level=2 -C link-args=/DEBUG:NONE" >> $env:GITHUB_ENV
 
       - name: Setup Windows Defender exclusions
+        if: ${{ runner.os == 'Windows' }}
         run: |
           $exclusions = @("$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup", "$(pwd)", "C:\Program Files\Git")
           foreach ($path in $exclusions) {
             Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
           }
 
+      - name: Configure compiler flags
+        if: ${{ runner.os != 'Windows' }}
+        shell: bash
+        run: |
+          sanitize_flags() { echo "$1" | tr -s ' ' | sed 's/^ //;s/ $//'; }
           cflags="$(sanitize_flags "${CFLAGS-}")"
           cxxflags="$(sanitize_flags "${CXXFLAGS-}")"
           echo "CFLAGS=${cflags}" >> "$GITHUB_ENV"
@@ -238,7 +244,7 @@ jobs:
 
       - name: Upload Cargo timings (clippy)
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: cargo-timings-rust-ci-clippy-${{ matrix.target }}-${{ matrix.profile }}
           path: codex-rs/target/**/cargo-timings/cargo-timing.html
@@ -282,7 +288,7 @@ jobs:
           key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1
 
   tests:
-    name: Tests 窶・${{ matrix.runner }} - ${{ matrix.target }}
+    name: Tests 遯ｶ繝ｻ${{ matrix.runner }} - ${{ matrix.target }}
     runs-on: ${{ matrix.runs_on || matrix.runner }}
     timeout-minutes: 30
     needs: changed
@@ -420,7 +426,7 @@ jobs:
 
       - name: Upload Cargo timings (nextest)
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: cargo-timings-rust-ci-nextest-${{ matrix.target }}-${{ matrix.profile }}
           path: codex-rs/target/**/cargo-timings/cargo-timing.html
@@ -456,7 +462,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "### sccache stats 窶・${{ matrix.target }} (tests)";
+            echo "### sccache stats 遯ｶ繝ｻ${{ matrix.target }} (tests)";
             echo;
             echo '```';
             sccache --show-stats || true;
