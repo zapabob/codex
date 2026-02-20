@@ -1,295 +1,590 @@
-name: Release Sub-Agent Features
-
-on:
-  push:
-    tags:
-      - "v*" # v0.47.0-alpha.2 縺ｪ縺ｩ縺ｮ繧ｿ繧ｰ縺ｧ繝医Μ繧ｬ繝ｼ
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release (e.g., 0.47.0-alpha.2)"
-        required: true
-        default: "0.47.0-alpha.2"
-
-env:
-  RUST_BACKTRACE: 1
-  CARGO_TERM_COLOR: always
-
-jobs:
-  # ========== 繝薙Ν繝会ｼ亥・繝励Λ繝・ヨ繝輔か繝ｼ繝・・==========
-  build-release:
-    name: Build Release Binaries
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            artifact_name: codex-linux-x64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact_name: codex-windows-x64
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            artifact_name: codex-macos-x64
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            artifact_name: codex-macos-arm64
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            codex-rs/target
-          key: ${{ runner.os }}-${{ matrix.target }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Build codex CLI (Release)
-        working-directory: codex-rs
-        run: cargo build --release --target ${{ matrix.target }} -p codex-cli
-
-      - name: Package binary (Unix)
-        if: runner.os != 'Windows'
-        working-directory: codex-rs
-        run: |
-          mkdir -p ../dist
-          cp target/${{ matrix.target }}/release/codex ../dist/codex
-          chmod +x ../dist/codex
-          tar -czf ../dist/${{ matrix.artifact_name }}.tar.gz -C ../dist codex
-          sha256sum ../dist/${{ matrix.artifact_name }}.tar.gz > ../dist/${{ matrix.artifact_name }}.tar.gz.sha256
-
-      - name: Package binary (Windows)
-        if: runner.os == 'Windows'
-        working-directory: codex-rs
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path ..\dist
-          Copy-Item target\${{ matrix.target }}\release\codex.exe ..\dist\codex.exe
-          Compress-Archive -Path ..\dist\codex.exe -DestinationPath ..\dist\${{ matrix.artifact_name }}.zip
-          (Get-FileHash ..\dist\${{ matrix.artifact_name }}.zip -Algorithm SHA256).Hash | Out-File -FilePath ..\dist\${{ matrix.artifact_name }}.zip.sha256
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: |
-            dist/*
-
-  # ========== npm 繝代ャ繧ｱ繝ｼ繧ｸ繝ｳ繧ｰ ==========
-  npm-package:
-    name: Package for npm
-    runs-on: ubuntu-latest
-    needs: [build-release]
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-
-      - name: Install dependencies
-        working-directory: codex-cli
-        run: pnpm install
-
-      - name: Update version
-        working-directory: codex-cli
-        run: |
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${VERSION#v}"  # Remove 'v' prefix
-          npm version "$VERSION" --no-git-tag-version
-
-      - name: Package npm
-        working-directory: codex-cli
-        run: pnpm pack
-
-      - name: Upload npm package
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-package
-          path: codex-cli/*.tgz
-
-  # ========== 繝峨く繝･繝｡繝ｳ繝育函謌・==========
-  generate-release-notes:
-    name: Generate Release Notes
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Generate changelog
-        id: changelog
-        run: |
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
-          echo "## 脂 zapabob/codex ${VERSION}" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### 笨ｨ New Features" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "#### Sub-Agent System" >> RELEASE_NOTES.md
-          echo "- 笨・Complete sub-agent implementation with 7 pre-defined agents" >> RELEASE_NOTES.md
-          echo "- 笨・Codex MCP integration (Phase 1-3 complete)" >> RELEASE_NOTES.md
-          echo "- 笨・Permission-based tool filtering" >> RELEASE_NOTES.md
-          echo "- 笨・Token budget management" >> RELEASE_NOTES.md
-          echo "- 笨・Full LLM 竊・Tool feedback loop" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "#### Deep Research Engine" >> RELEASE_NOTES.md
-          echo "- 笨・DuckDuckGo HTML scraping (no API key required)" >> RELEASE_NOTES.md
-          echo "- 笨・POST/GET retry mechanism (202 error handling)" >> RELEASE_NOTES.md
-          echo "- 笨・URL decoder with scraper integration" >> RELEASE_NOTES.md
-          echo "- 笨・Multi-source validation" >> RELEASE_NOTES.md
-          echo "- 笨・Citation-backed reports" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "#### Cursor IDE Integration" >> RELEASE_NOTES.md
-          echo "- 笨・MCP server configuration optimized" >> RELEASE_NOTES.md
-          echo "- 笨・10-15x faster startup time" >> RELEASE_NOTES.md
-          echo "- 笨・\`@codex\` and \`@codex-delegate\` commands" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### 投 Test Results" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "- 笨・Deep Research: All tests passed" >> RELEASE_NOTES.md
-          echo "- 笨・Sub-Agent (researcher): All tests passed" >> RELEASE_NOTES.md
-          echo "- 笨・Clippy: 0 warnings" >> RELEASE_NOTES.md
-          echo "- 笨・Build: Success on Ubuntu, Windows, macOS" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### 噫 Quick Start" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "\`\`\`bash" >> RELEASE_NOTES.md
-          echo "# Deep Research" >> RELEASE_NOTES.md
-          echo "codex research \"Your topic\" --depth 3" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "# Sub-Agent Delegation" >> RELEASE_NOTES.md
-          echo "codex delegate code-reviewer --scope ./src" >> RELEASE_NOTES.md
-          echo "codex delegate test-gen --scope ./src/auth" >> RELEASE_NOTES.md
-          echo "\`\`\`" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### 答 Documentation" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "- [Complete Implementation Report](_docs/2025-10-11_蜈ｨPhase螳悟・螳御ｺ・怙邨ゅΞ繝昴・繝・md)" >> RELEASE_NOTES.md
-          echo "- [Phase 3 Implementation](_docs/2025-10-11_Phase3螳悟・螳溯｣・ｮ御ｺ・md)" >> RELEASE_NOTES.md
-          echo "- [Test Results](_docs/2025-10-11_讖溯・繝・せ繝育ｵ先棡.md)" >> RELEASE_NOTES.md
-          echo "- [Cursor IDE Integration](_docs/2025-10-11_CursorIDE邨ｱ蜷亥ｮ御ｺ・md)" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### 潮 Contributors" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "Special thanks to the user's genius idea: \"Make Codex an MCP server and have sub-agents call it via MCP\"" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "---" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "**Status**: 笨・Production Ready" >> RELEASE_NOTES.md
-          echo "**Build Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> RELEASE_NOTES.md
-
-      - name: Upload release notes
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: RELEASE_NOTES.md
-
-  # ========== GitHub Release菴懈・ ==========
-  create-release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [build-release, npm-package, generate-release-notes]
-    timeout-minutes: 15
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
-          name: zapabob/codex ${{ github.ref_name || github.event.inputs.version }}
-          body_path: artifacts/release-notes/RELEASE_NOTES.md
-          files: |
-            artifacts/codex-linux-x64/*
-            artifacts/codex-windows-x64/*
-            artifacts/codex-macos-x64/*
-            artifacts/codex-macos-arm64/*
-            artifacts/npm-package/*.tgz
-          draft: false
-          prerelease: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # ========== npm蜈ｬ髢具ｼ医が繝励す繝ｧ繝ｳ・・==========
-  publish-npm:
-    name: Publish to npm (Optional)
-    runs-on: ubuntu-latest
-    needs: [create-release]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Download npm package
-        uses: actions/download-artifact@v4
-        with:
-          name: npm-package
-          path: .
-
-      - name: Publish to npm
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          npm publish *.tgz --tag alpha --access public || echo "NPM publish skipped (token not set)"
-        continue-on-error: true
-
-  # ========== 螳御ｺ・夂衍 ==========
-  release-success:
-    name: Release Success
-    runs-on: ubuntu-latest
-    needs: [create-release]
-
-    steps:
-      - name: Success notification
-        run: |
-          echo "脂 Release completed successfully!"
-          echo "笨・Binaries built for all platforms"
-          echo "笨・npm package created"
-          echo "笨・GitHub Release created"
-          echo "笨・Documentation included"
-          echo ""
-          echo "Version: ${{ github.ref_name || github.event.inputs.version }}"
-          echo "Status: Released 笨・
+name: Release Sub-Agent Features
+
+
+
+on:
+
+  push:
+
+    tags:
+
+      - "v*" # v0.47.0-alpha.2 
+
+  workflow_dispatch:
+
+    inputs:
+
+      version:
+
+        description: "Version to release (e.g., 0.47.0-alpha.2)"
+
+        required: true
+
+        default: "0.47.0-alpha.2"
+
+
+
+env:
+
+  RUST_BACKTRACE: 1
+
+  CARGO_TERM_COLOR: always
+
+
+
+jobs:
+
+  # ========== ==========
+
+  build-release:
+
+    name: Build Release Binaries
+
+    runs-on: ${{ matrix.os }}
+
+    timeout-minutes: 45
+
+    strategy:
+
+      matrix:
+
+        include:
+
+          - os: ubuntu-latest
+
+            target: x86_64-unknown-linux-gnu
+
+            artifact_name: codex-linux-x64
+
+          - os: windows-latest
+
+            target: x86_64-pc-windows-msvc
+
+            artifact_name: codex-windows-x64
+
+          - os: macos-latest
+
+            target: x86_64-apple-darwin
+
+            artifact_name: codex-macos-x64
+
+          - os: macos-latest
+
+            target: aarch64-apple-darwin
+
+            artifact_name: codex-macos-arm64
+
+
+
+    steps:
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v5
+
+
+
+      - name: Install Rust toolchain
+
+        uses: dtolnay/rust-toolchain@stable
+
+        with:
+
+          targets: ${{ matrix.target }}
+
+
+
+      - name: Cache Cargo
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: |
+
+            ~/.cargo/registry
+
+            ~/.cargo/git
+
+            codex-rs/target
+
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+
+
+
+      - name: Build codex CLI (Release)
+
+        working-directory: codex-rs
+
+        run: cargo build --release --target ${{ matrix.target }} -p codex-cli
+
+
+
+      - name: Package binary (Unix)
+
+        if: runner.os != 'Windows'
+
+        working-directory: codex-rs
+
+        run: |
+
+          mkdir -p ../dist
+
+          cp target/${{ matrix.target }}/release/codex ../dist/codex
+
+          chmod +x ../dist/codex
+
+          tar -czf ../dist/${{ matrix.artifact_name }}.tar.gz -C ../dist codex
+
+          sha256sum ../dist/${{ matrix.artifact_name }}.tar.gz > ../dist/${{ matrix.artifact_name }}.tar.gz.sha256
+
+
+
+      - name: Package binary (Windows)
+
+        if: runner.os == 'Windows'
+
+        working-directory: codex-rs
+
+        shell: pwsh
+
+        run: |
+
+          New-Item -ItemType Directory -Force -Path ..\dist
+
+          Copy-Item target\${{ matrix.target }}\release\codex.exe ..\dist\codex.exe
+
+          Compress-Archive -Path ..\dist\codex.exe -DestinationPath ..\dist\${{ matrix.artifact_name }}.zip
+
+          (Get-FileHash ..\dist\${{ matrix.artifact_name }}.zip -Algorithm SHA256).Hash | Out-File -FilePath ..\dist\${{ matrix.artifact_name }}.zip.sha256
+
+
+
+      - name: Upload artifacts
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: ${{ matrix.artifact_name }}
+
+          path: |
+
+            dist/*
+
+
+
+  # ========== npm  ==========
+
+  npm-package:
+
+    name: Package for npm
+
+    runs-on: ubuntu-latest
+
+    needs: [build-release]
+
+    timeout-minutes: 20
+
+
+
+    steps:
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v5
+
+
+
+      - name: Setup Node.js
+
+        uses: actions/setup-node@v4
+
+        with:
+
+          node-version: "22"
+
+          registry-url: "https://registry.npmjs.org"
+
+
+
+      - name: Setup pnpm
+
+        uses: pnpm/action-setup@v4
+
+
+
+      - name: Download all artifacts
+
+        uses: actions/download-artifact@v4
+
+        with:
+
+          path: dist
+
+
+
+      - name: Install dependencies
+
+        working-directory: codex-cli
+
+        run: pnpm install
+
+
+
+      - name: Update version
+
+        working-directory: codex-cli
+
+        run: |
+
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+
+          VERSION="${VERSION#v}"  # Remove 'v' prefix
+
+          npm version "$VERSION" --no-git-tag-version
+
+
+
+      - name: Package npm
+
+        working-directory: codex-cli
+
+        run: pnpm pack
+
+
+
+      - name: Upload npm package
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: npm-package
+
+          path: codex-cli/*.tgz
+
+
+
+  # ========== ==========
+
+  generate-release-notes:
+
+    name: Generate Release Notes
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
+
+
+    steps:
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v5
+
+        with:
+
+          fetch-depth: 0
+
+
+
+      - name: Generate changelog
+
+        id: changelog
+
+        run: |
+
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+
+          echo "##  zapabob/codex ${VERSION}" > RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "###  New Features" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "#### Sub-Agent System" >> RELEASE_NOTES.md
+
+          echo "- Complete sub-agent implementation with 7 pre-defined agents" >> RELEASE_NOTES.md
+
+          echo "- Codex MCP integration (Phase 1-3 complete)" >> RELEASE_NOTES.md
+
+          echo "- Permission-based tool filtering" >> RELEASE_NOTES.md
+
+          echo "- Token budget management" >> RELEASE_NOTES.md
+
+          echo "- Full LLM Tool feedback loop" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "#### Deep Research Engine" >> RELEASE_NOTES.md
+
+          echo "- DuckDuckGo HTML scraping (no API key required)" >> RELEASE_NOTES.md
+
+          echo "- POST/GET retry mechanism (202 error handling)" >> RELEASE_NOTES.md
+
+          echo "- URL decoder with scraper integration" >> RELEASE_NOTES.md
+
+          echo "- Multi-source validation" >> RELEASE_NOTES.md
+
+          echo "- Citation-backed reports" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "#### Cursor IDE Integration" >> RELEASE_NOTES.md
+
+          echo "- MCP server configuration optimized" >> RELEASE_NOTES.md
+
+          echo "- 10-15x faster startup time" >> RELEASE_NOTES.md
+
+          echo "- \`@codex\` and \`@codex-delegate\` commands" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "###  Test Results" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "- Deep Research: All tests passed" >> RELEASE_NOTES.md
+
+          echo "- Sub-Agent (researcher): All tests passed" >> RELEASE_NOTES.md
+
+          echo "- Clippy: 0 warnings" >> RELEASE_NOTES.md
+
+          echo "- Build: Success on Ubuntu, Windows, macOS" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "###  Quick Start" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "\`\`\`bash" >> RELEASE_NOTES.md
+
+          echo "# Deep Research" >> RELEASE_NOTES.md
+
+          echo "codex research \"Your topic\" --depth 3" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "# Sub-Agent Delegation" >> RELEASE_NOTES.md
+
+          echo "codex delegate code-reviewer --scope ./src" >> RELEASE_NOTES.md
+
+          echo "codex delegate test-gen --scope ./src/auth" >> RELEASE_NOTES.md
+
+          echo "\`\`\`" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "###  Documentation" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "- [Complete Implementation Report](_docs/2025-10-11_Phasemd)" >> RELEASE_NOTES.md
+
+          echo "- [Phase 3 Implementation](_docs/2025-10-11_Phase3md)" >> RELEASE_NOTES.md
+
+          echo "- [Test Results](_docs/2025-10-11_.md)" >> RELEASE_NOTES.md
+
+          echo "- [Cursor IDE Integration](_docs/2025-10-11_CursorIDEmd)" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "###  Contributors" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "Special thanks to the user's genius idea: \"Make Codex an MCP server and have sub-agents call it via MCP\"" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "---" >> RELEASE_NOTES.md
+
+          echo "" >> RELEASE_NOTES.md
+
+          echo "**Status**: Production Ready" >> RELEASE_NOTES.md
+
+          echo "**Build Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> RELEASE_NOTES.md
+
+
+
+      - name: Upload release notes
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: release-notes
+
+          path: RELEASE_NOTES.md
+
+
+
+  # ========== GitHub Release ==========
+
+  create-release:
+
+    name: Create GitHub Release
+
+    runs-on: ubuntu-latest
+
+    needs: [build-release, npm-package, generate-release-notes]
+
+    timeout-minutes: 15
+
+    permissions:
+
+      contents: write
+
+
+
+    steps:
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v5
+
+
+
+      - name: Download all artifacts
+
+        uses: actions/download-artifact@v4
+
+        with:
+
+          path: artifacts
+
+
+
+      - name: Create Release
+
+        uses: softprops/action-gh-release@v2
+
+        with:
+
+          tag_name: ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
+
+          name: zapabob/codex ${{ github.ref_name || github.event.inputs.version }}
+
+          body_path: artifacts/release-notes/RELEASE_NOTES.md
+
+          files: |
+
+            artifacts/codex-linux-x64/*
+
+            artifacts/codex-windows-x64/*
+
+            artifacts/codex-macos-x64/*
+
+            artifacts/codex-macos-arm64/*
+
+            artifacts/npm-package/*.tgz
+
+          draft: false
+
+          prerelease: true
+
+        env:
+
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+  # ========== npm==========
+
+  publish-npm:
+
+    name: Publish to npm (Optional)
+
+    runs-on: ubuntu-latest
+
+    needs: [create-release]
+
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    timeout-minutes: 10
+
+
+
+    steps:
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v5
+
+
+
+      - name: Setup Node.js
+
+        uses: actions/setup-node@v4
+
+        with:
+
+          node-version: "22"
+
+          registry-url: "https://registry.npmjs.org"
+
+
+
+      - name: Download npm package
+
+        uses: actions/download-artifact@v4
+
+        with:
+
+          name: npm-package
+
+          path: .
+
+
+
+      - name: Publish to npm
+
+        run: |
+
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+          npm publish *.tgz --tag alpha --access public || echo "NPM publish skipped (token not set)"
+
+        continue-on-error: true
+
+
+
+  # ==========  ==========
+
+  release-success:
+
+    name: Release Success
+
+    runs-on: ubuntu-latest
+
+    needs: [create-release]
+
+
+
+    steps:
+
+      - name: Success notification
+
+        run: |
+
+          echo " Release completed successfully!"
+
+          echo "Binaries built for all platforms"
+
+          echo "npm package created"
+
+          echo "GitHub Release created"
+
+          echo "Documentation included"
+
+          echo ""
+
+          echo "Version: ${{ github.ref_name || github.event.inputs.version }}"
+
+          echo "Status: Released 
+

@@ -288,7 +288,7 @@ jobs:
           key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1
 
   tests:
-    name: Tests 遯ｶ繝ｻ${{ matrix.runner }} - ${{ matrix.target }}
+    name: Tests ${{ matrix.runner }} - ${{ matrix.target }}
     runs-on: ${{ matrix.runs_on || matrix.runner }}
     timeout-minutes: 30
     needs: changed
@@ -462,7 +462,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "### sccache stats 遯ｶ繝ｻ${{ matrix.target }} (tests)";
+            echo "### sccache stats ${{ matrix.target }} (tests)";
             echo;
             echo '```';
             sccache --show-stats || true;

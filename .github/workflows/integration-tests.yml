@@ -1,4 +1,4 @@
-﻿name: Integration Tests
+name: Integration Tests
 
 on:
   push:
@@ -335,9 +335,9 @@ jobs:
           # Verify results
           echo "Verifying results..."
           if grep -q "try\|catch\|error" calc.js; then
-            echo "笨・Error handling added successfully"
+            echo "Error handling added successfully"
           else
-            echo "笨・Error handling not found"
+            echo "Error handling not found"
             cat calc.js
           fi
 
