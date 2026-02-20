@@ -1,6 +1,0 @@
-﻿/// Launch Deep Research (Temporarily disabled)
-fn launch_deep_research(_args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
-    println!("  Deep research functionality is temporarily disabled");
-    println!(" This feature will be available after dependency resolution");
-    Ok(())
-}

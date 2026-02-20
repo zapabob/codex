@@ -182,7 +182,7 @@ function Get-SourceTimestamp {
         }
     }
     
-    return $maxTime.Ticks # Using Ticks as a simple numeric represention
+    return $maxTime.Ticks # Using Ticks as a simple numeric representation
 }
 
 function Test-DifferentialBuild {

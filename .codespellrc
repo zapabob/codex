@@ -3,4 +3,4 @@
 skip = .git*,.specstory,vendor,*-lock.yaml,*.lock,.codespellrc,*test.ts,*.jsonl,frame*.txt,*.snap,*.snap.new,*meriyah.umd.min.js,*package-lock.json,*yarn.lock,*pnpm-lock.yaml,*/playwright-report/*,*/test-results/*,*/dist/*,*/build/*,*/.next/*,archive,logs,docs,_docs,extensions,*_utf8.txt,*_error*.txt,*build_err*.txt,*check_error*.txt
 check-hidden = false
 ignore-regex = ^\s*"image/\S+": ".*|\b(afterAll)\b
-ignore-words-list = ratatui,ser,iTerm,iterm2,iterm,te,TE,LOD,Coo,vEw,lod,arent,ENew,gitar,elease,ypes,ment,tha,bui,enusre,inpu,fied,symetric
+ignore-words-list = ratatui,ser,iTerm,iterm2,iterm,te,TE,LOD,Coo,vEw,lod,arent,ENew,gitar,elease,ypes,ment,tha,bui,enusre,inpu,fied,symetric,Sie,unexpect,correc,Unknow,behavin,TRE,ore

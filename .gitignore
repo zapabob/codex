@@ -160,3 +160,12 @@ codex-rs/build_err_3.txt
 # Exclude specstory history files with very long Japanese names (>255 bytes)
 .specstory/history/2026-01-28_17-09Z-@*
 
+
+# Build log files (auto-generated, should not be tracked)
+codex-rs/*.txt
+!codex-rs/tui/tooltips.txt
+!codex-rs/node-version.txt
+codex-rs/codex-rs/
+codex-rs/tui/build_errors.txt
+codex-rs/tui/check_output*.txt
+
