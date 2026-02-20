@@ -111,6 +111,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -135,15 +140,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install tqdm requests
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Add pnpm to PATH
-        run: |
-          echo "$env:APPDATA\pnpm" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install Node.js dependencies
         run: pnpm install --frozen-lockfile
@@ -224,6 +220,10 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Install gui-tests dependencies
+        working-directory: gui-tests
+        run: npm install
 
       - name: Install Playwright browsers
         working-directory: gui-tests
