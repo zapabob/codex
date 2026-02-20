@@ -156,3 +156,7 @@ codex-rs/build_err.txt
 codex-rs/build_err_2.txt
 codex-rs/build_err_2.txt
 codex-rs/build_err_3.txt
+
+# Exclude specstory history files with very long Japanese names (>255 bytes)
+.specstory/history/2026-01-28_17-09Z-@*
+
