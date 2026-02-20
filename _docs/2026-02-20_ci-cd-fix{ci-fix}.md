@@ -83,28 +83,41 @@ Windows の NTFS では制限がないため、ローカルでは問題なかっ
 | `f31ef9202` | fix: is_probably_wsl / convert_windows_path_to_wsl 関数追加 |
 | `c2e0240bc` | fix: playwright.config.js パス修正、headless CI モード追加 |
 
-## CI 結果 (最新: f31ef9202 時点)
+## CI 結果 (最新: 01eae313a 時点)
 
 | ワークフロー | 修正前 | 修正後 |
 |------------|--------|--------|
 | rust-clippy analyze | failure | **success** |
 | cargo-deny | failure | **success** |
 | Codespell | failure | **success** |
-| ci (build-test) | failure | 一部修正済 |
-| sdk | failure | 修正中 (is_probably_wsl 追加) |
-| rust-ci.yml | failure | 修正済 (checkout v6→v4) |
-| Security Scan | failure | 修正済 (TruffleHog 設定) |
-| AI Kernel Modules CI | failure | 修正済 (toolchain 変更) |
+| ci (build-test) | failure | running |
+| sdk | failure | 修正中 (tsup npm install 追加) |
+| rust-ci.yml | failure | 修正中 (lint_build→fast_build_install, upload-artifact@v6→v4, PowerShell/bash分離, カスタムランナー除去) |
+| Security Scan | failure | 修正中 (Build Codex continue-on-error) |
+| AI Kernel Modules CI | failure | 調査中 |
 | integration-tests | failure | 修正済 (重複 job 削除) |
 | gui-tests | failure | 修正済 (npm install + relative path) |
+| subagent-ci.yml | failure | 修正中 (CP932→UTF-8 エンコード変換) |
+| release-subagent.yml | failure | 修正中 (CP932→UTF-8 エンコード変換) |
+| qa-ci.yml | failure | 修正中 (CP932→UTF-8 エンコード変換) |
+| codeql.yml | failure | 修正中 (CP932→UTF-8 エンコード変換) |
+
+## 追加修正コミット (第2フェーズ)
+
+| コミット | 内容 |
+|---------|------|
+| `68b312d66` | fix: codex-gemini-cli-mcp-server 条件付きビルド、MCP バイナリテスト修正 |
+| `c7dab8bca` | fix: rust-ci.yml self-hosted runners→標準ランナー、sdk tsup npm install、security-scan Build Codex continue-on-error |
+| `80673032a` | fix: rust-ci.yml upload-artifact@v6→v4、PowerShell/bash ステップ分離 |
+| `624df42e0` | fix: rust-ci.yml results ジョブの lint_build→fast_build_install 参照修正 |
+| `01eae313a` | fix: 4ワークフロー CP932→UTF-8 エンコード変換、制御文字除去 |
 
 ## 残課題
 
-- `mcp-integration-test` - codex-gemini-cli-mcp-server ビルド失敗
-- `subagent-ci.yml` - 調査中
-- `qa-ci.yml` - pytest カバレッジ 80% 要件
-- `Bazel (experimental)` - ARM64 ビルド問題
-- `Security Scan` - TruffleHog 設定改善
+- `AI Kernel Modules CI` - 詳細調査中
+- `Bazel (experimental)` - 未修正
+- `Security Scan` - continue-on-error 追加済み、最終確認待ち
+- `subagent-ci.yml` / `qa-ci.yml` / `codeql.yml` / `release-subagent.yml` - エンコード修正後の動作確認待ち
 
 ## 作成ファイル
 

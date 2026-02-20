@@ -118,11 +118,11 @@ pub use token::create_workspace_write_token_with_caps_from;
 #[cfg(target_os = "windows")]
 pub use token::get_current_token_for_restriction;
 #[cfg(target_os = "windows")]
+pub use windows_impl::CaptureResult;
+#[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_legacy_preflight;
-#[cfg(target_os = "windows")]
-pub use windows_impl::CaptureResult;
 #[cfg(target_os = "windows")]
 pub use winutil::string_from_sid_bytes;
 #[cfg(target_os = "windows")]
