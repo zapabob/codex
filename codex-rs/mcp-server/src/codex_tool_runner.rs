@@ -215,14 +215,19 @@ async fn run_codex_tool_session_inner(
                     .await;
 
                 match event.msg {
-                    EventMsg::ExecApprovalRequest(ExecApprovalRequestEvent {
-                        command,
-                        cwd,
-                        call_id,
-                        reason: _,
-                        parsed_cmd,
-                        ..
-                    }) => {
+                    EventMsg::ExecApprovalRequest(ev) => {
+                        let approval_id = ev.effective_approval_id();
+                        let ExecApprovalRequestEvent {
+                            turn_id: _,
+                            command,
+                            cwd,
+                            call_id,
+                            approval_id: _,
+                            reason: _,
+                            proposed_execpolicy_amendment: _,
+                            parsed_cmd,
+                            network_approval_context: _,
+                        } = ev;
                         handle_exec_approval_request(
                             command,
                             cwd,
@@ -232,6 +237,7 @@ async fn run_codex_tool_session_inner(
                             request_id_str.clone(),
                             event.id.clone(),
                             call_id,
+                            approval_id,
                             parsed_cmd,
                             thread_id,
                         )
@@ -354,6 +360,8 @@ async fn run_codex_tool_session_inner(
                     | EventMsg::ExitedReviewMode(_)
                     | EventMsg::RequestUserInput(_)
                     | EventMsg::DynamicToolCallRequest(_)
+                    | EventMsg::ContextCompacted(_)
+                    | EventMsg::ModelReroute(_)
                     | EventMsg::ThreadRolledBack(_)
                     | EventMsg::CollabAgentSpawnBegin(_)
                     | EventMsg::CollabAgentSpawnEnd(_)

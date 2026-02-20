@@ -242,6 +242,7 @@ pub(crate) async fn maybe_install_mcp_dependencies(
             oauth_config.env_http_headers,
             &[],
             config.mcp_oauth_callback_port,
+            config.mcp_oauth_callback_url.as_deref(),
         )
         .await
         {
@@ -432,6 +433,7 @@ mod tests {
             interface: None,
             dependencies: Some(SkillDependencies { tools }),
             policy: None,
+            permissions: None,
             path: PathBuf::from("skill"),
             scope: SkillScope::User,
         }

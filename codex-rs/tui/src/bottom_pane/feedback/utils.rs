@@ -37,6 +37,10 @@ pub(crate) fn feedback_title_and_placeholder(category: FeedbackCategory) -> (Str
             "Tell us more (bug)".to_string(),
             "(optional) Write a short description to help us further".to_string(),
         ),
+        FeedbackCategory::SafetyCheck => (
+            "Tell us more (safety check)".to_string(),
+            "(optional) Share what was refused and why it should have been allowed".to_string(),
+        ),
         FeedbackCategory::Other => (
             "Tell us more (other)".to_string(),
             "(optional) Write a short description to help us further".to_string(),
@@ -49,6 +53,7 @@ pub(crate) fn feedback_classification(category: FeedbackCategory) -> &'static st
         FeedbackCategory::BadResult => "bad_result",
         FeedbackCategory::GoodResult => "good_result",
         FeedbackCategory::Bug => "bug",
+        FeedbackCategory::SafetyCheck => "safety_check",
         FeedbackCategory::Other => "other",
     }
 }
@@ -62,14 +67,15 @@ pub(crate) fn issue_url_for_category(
     // the external GitHub behavior identical while routing internal users to
     // the internal go link.
     match category {
-        FeedbackCategory::Bug | FeedbackCategory::BadResult | FeedbackCategory::Other => {
-            Some(match feedback_audience {
-                FeedbackAudience::OpenAiEmployee => slack_feedback_url(thread_id),
-                FeedbackAudience::External => {
-                    format!("{BASE_ISSUE_URL}&steps=Uploaded%20thread:%20{thread_id}")
-                }
-            })
-        }
+        FeedbackCategory::Bug
+        | FeedbackCategory::BadResult
+        | FeedbackCategory::SafetyCheck
+        | FeedbackCategory::Other => Some(match feedback_audience {
+            FeedbackAudience::OpenAiEmployee => slack_feedback_url(thread_id),
+            FeedbackAudience::External => {
+                format!("{BASE_ISSUE_URL}&steps=Uploaded%20thread:%20{thread_id}")
+            }
+        }),
         FeedbackCategory::GoodResult => None,
     }
 }

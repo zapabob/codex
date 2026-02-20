@@ -57,12 +57,14 @@ impl CodexExecutor {
         let models_manager = Arc::new(ModelsManager::new(
             config.codex_home.clone(),
             Arc::clone(&auth_manager),
+            None, // no custom model catalog
         ));
         let skills_manager = Arc::new(SkillsManager::new(config.codex_home.clone()));
         let thread_manager = ThreadManager::new(
             config.codex_home.clone(),
             Arc::clone(&auth_manager),
             SessionSource::Exec,
+            None, // no custom model catalog
         );
         Self {
             config: Arc::new(config),

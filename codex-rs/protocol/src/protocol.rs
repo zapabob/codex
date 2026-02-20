@@ -32,6 +32,7 @@ use crate::mcp::Tool as McpTool;
 use crate::message_history::HistoryEntry;
 use crate::models::BaseInstructions;
 use crate::models::ContentItem;
+use crate::models::MessagePhase;
 use crate::models::ResponseItem;
 use crate::models::WebSearchAction;
 use crate::num_format::format_with_separators;
@@ -54,6 +55,8 @@ pub use crate::approvals::ApplyPatchApprovalRequestEvent;
 pub use crate::approvals::ElicitationAction;
 pub use crate::approvals::ExecApprovalRequestEvent;
 pub use crate::approvals::ExecPolicyAmendment;
+pub use crate::approvals::NetworkApprovalContext;
+pub use crate::approvals::NetworkApprovalProtocol;
 pub use crate::request_user_input::RequestUserInputEvent;
 
 /// Open/close tags for special user-input blocks. Used across crates to avoid
@@ -283,13 +286,14 @@ pub enum Op {
     },
 
     /// Request the list of remote skills available via ChatGPT sharing.
-    ListRemoteSkills,
+    ListRemoteSkills {
+        hazelnut_scope: RemoteSkillHazelnutScope,
+        product_surface: RemoteSkillProductSurface,
+        enabled: Option<bool>,
+    },
 
     /// Download a remote skill by id into the local skills cache.
-    DownloadRemoteSkill {
-        hazelnut_id: String,
-        is_preload: bool,
-    },
+    DownloadRemoteSkill { hazelnut_id: String },
 
     /// Request the agent to summarize the current conversation context.
     /// The agent will use its existing context (either conversation history or previous response id)
@@ -374,9 +378,39 @@ pub enum AskForApproval {
     #[default]
     OnRequest,
 
+    /// Fine-grained rejection controls for approval prompts.
+    ///
+    /// When a field is `true`, prompts of that category are automatically
+    /// rejected instead of shown to the user.
+    Reject(RejectConfig),
+
     /// Never ask the user to approve commands. Failures are immediately returned
     /// to the model, and never escalated to the user for approval.
     Never,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, TS)]
+pub struct RejectConfig {
+    /// Reject approval prompts related to sandbox escalation.
+    pub sandbox_approval: bool,
+    /// Reject prompts triggered by execpolicy `prompt` rules.
+    pub rules: bool,
+    /// Reject MCP elicitation prompts.
+    pub mcp_elicitations: bool,
+}
+
+impl RejectConfig {
+    pub const fn rejects_sandbox_approval(self) -> bool {
+        self.sandbox_approval
+    }
+
+    pub const fn rejects_rules_approval(self) -> bool {
+        self.rules
+    }
+
+    pub const fn rejects_mcp_elicitations(self) -> bool {
+        self.mcp_elicitations
+    }
 }
 
 /// Represents whether outbound network access is available to the agent.
@@ -432,6 +466,17 @@ impl ReadOnlyAccess {
         matches!(self, ReadOnlyAccess::FullAccess)
     }
 
+    /// Returns true if platform defaults should be included for restricted read access.
+    pub fn include_platform_defaults(&self) -> bool {
+        matches!(
+            self,
+            ReadOnlyAccess::Restricted {
+                include_platform_defaults: true,
+                ..
+            }
+        )
+    }
+
     /// Returns the readable roots for restricted read access.
     ///
     /// For [`ReadOnlyAccess::FullAccess`], returns an empty list because
@@ -439,53 +484,12 @@ impl ReadOnlyAccess {
     pub fn get_readable_roots_with_cwd(&self, cwd: &Path) -> Vec<AbsolutePathBuf> {
         let mut roots: Vec<AbsolutePathBuf> = match self {
             ReadOnlyAccess::FullAccess => return Vec::new(),
-            ReadOnlyAccess::Restricted {
-                include_platform_defaults,
-                readable_roots,
-            } => {
+            ReadOnlyAccess::Restricted { readable_roots, .. } => {
                 let mut roots = readable_roots.clone();
-                if *include_platform_defaults {
-                    #[cfg(target_os = "macos")]
-                    for platform_path in [
-                        "/bin", "/dev", "/etc", "/Library", "/private", "/sbin", "/System", "/tmp",
-                        "/usr",
-                    ] {
-                        #[allow(clippy::expect_used)]
-                        roots.push(
-                            AbsolutePathBuf::from_absolute_path(platform_path)
-                                .expect("platform defaults should be absolute"),
-                        );
-                    }
-
-                    #[cfg(target_os = "linux")]
-                    for platform_path in ["/bin", "/dev", "/etc", "/lib", "/lib64", "/tmp", "/usr"]
-                    {
-                        #[allow(clippy::expect_used)]
-                        roots.push(
-                            AbsolutePathBuf::from_absolute_path(platform_path)
-                                .expect("platform defaults should be absolute"),
-                        );
-                    }
-
-                    #[cfg(target_os = "windows")]
-                    for platform_path in [
-                        r"C:\Windows",
-                        r"C:\Program Files",
-                        r"C:\Program Files (x86)",
-                        r"C:\ProgramData",
-                    ] {
-                        #[allow(clippy::expect_used)]
-                        roots.push(
-                            AbsolutePathBuf::from_absolute_path(platform_path)
-                                .expect("platform defaults should be absolute"),
-                        );
-                    }
-
-                    match AbsolutePathBuf::from_absolute_path(cwd) {
-                        Ok(cwd_root) => roots.push(cwd_root),
-                        Err(err) => {
-                            error!("Ignoring invalid cwd {cwd:?} for sandbox readable root: {err}");
-                        }
+                match AbsolutePathBuf::from_absolute_path(cwd) {
+                    Ok(cwd_root) => roots.push(cwd_root),
+                    Err(err) => {
+                        error!("Ignoring invalid cwd {cwd:?} for sandbox readable root: {err}");
                     }
                 }
                 roots
@@ -664,6 +668,20 @@ impl SandboxPolicy {
             SandboxPolicy::ExternalSandbox { network_access } => network_access.is_enabled(),
             SandboxPolicy::ReadOnly { .. } => false,
             SandboxPolicy::WorkspaceWrite { network_access, .. } => *network_access,
+        }
+    }
+
+    /// Returns true if platform defaults should be included for restricted read access.
+    pub fn include_platform_defaults(&self) -> bool {
+        if self.has_full_disk_read_access() {
+            return false;
+        }
+        match self {
+            SandboxPolicy::ReadOnly { access } => access.include_platform_defaults(),
+            SandboxPolicy::WorkspaceWrite {
+                read_only_access, ..
+            } => read_only_access.include_platform_defaults(),
+            SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. } => false,
         }
     }
 
@@ -897,6 +915,9 @@ pub enum EventMsg {
     /// Warning issued while processing a submission. Unlike `Error`, this
     /// indicates the turn continued but the user should still be notified.
     Warning(WarningEvent),
+
+    /// Model routing changed from the requested model to a different model.
+    ModelReroute(ModelRerouteEvent),
 
     /// Conversation history was compacted (either automatically or manually).
     ContextCompacted(ContextCompactedEvent),
@@ -1362,6 +1383,20 @@ pub struct WarningEvent {
     pub message: String,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
+pub enum ModelRerouteReason {
+    HighRiskCyberActivity,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+pub struct ModelRerouteEvent {
+    pub from_model: String,
+    pub to_model: String,
+    pub reason: ModelRerouteReason,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct ContextCompactedEvent;
 
@@ -1598,6 +1633,8 @@ impl fmt::Display for FinalOutput {
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct AgentMessageEvent {
     pub message: String,
+    #[serde(default)]
+    pub phase: Option<MessagePhase>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
@@ -1847,6 +1884,7 @@ pub enum SubAgentSource {
         parent_thread_id: ThreadId,
         depth: i32,
     },
+    MemoryConsolidation,
     Other(String),
 }
 
@@ -1868,6 +1906,7 @@ impl fmt::Display for SubAgentSource {
         match self {
             SubAgentSource::Review => f.write_str("review"),
             SubAgentSource::Compact => f.write_str("compact"),
+            SubAgentSource::MemoryConsolidation => f.write_str("memory_consolidation"),
             SubAgentSource::ThreadSpawn {
                 parent_thread_id,
                 depth,
@@ -2423,6 +2462,26 @@ pub struct RemoteSkillSummary {
     pub description: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[serde(rename_all = "kebab-case")]
+#[ts(rename_all = "kebab-case")]
+pub enum RemoteSkillHazelnutScope {
+    WorkspaceShared,
+    AllShared,
+    Personal,
+    Example,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(rename_all = "lowercase")]
+pub enum RemoteSkillProductSurface {
+    Chatgpt,
+    Codex,
+    Api,
+    Atlas,
+}
+
 /// Response payload for `Op::ListRemoteSkills`.
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS)]
 pub struct ListRemoteSkillsResponseEvent {
@@ -2809,6 +2868,26 @@ mod tests {
         };
         assert!(enabled.has_full_disk_write_access());
         assert!(enabled.has_full_network_access());
+    }
+
+    #[test]
+    fn reject_config_mcp_elicitation_flag_is_field_driven() {
+        assert!(
+            RejectConfig {
+                sandbox_approval: false,
+                rules: false,
+                mcp_elicitations: true,
+            }
+            .rejects_mcp_elicitations()
+        );
+        assert!(
+            !RejectConfig {
+                sandbox_approval: false,
+                rules: false,
+                mcp_elicitations: false,
+            }
+            .rejects_mcp_elicitations()
+        );
     }
 
     #[test]

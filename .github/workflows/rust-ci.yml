@@ -67,8 +67,8 @@ jobs:
       run:
         working-directory: codex-rs
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.93
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.93.0
         with:
           components: rustfmt
       - name: cargo fmt
@@ -85,8 +85,8 @@ jobs:
       run:
         working-directory: codex-rs
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.93
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.93.0
       - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2
         with:
           tool: cargo-shear
@@ -205,7 +205,7 @@ jobs:
             fi
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${packages[@]}"
           fi
-      - uses: dtolnay/rust-toolchain@1.93
+      - uses: dtolnay/rust-toolchain@1.93.0
         with:
           components: rustfmt
 
@@ -370,7 +370,7 @@ jobs:
       - name: Install DotSlash
         uses: facebook/install-dotslash@v2
 
-      - uses: dtolnay/rust-toolchain@1.93
+      - uses: dtolnay/rust-toolchain@1.93.0
         with:
           targets: ${{ matrix.target }}
 
@@ -437,6 +437,17 @@ jobs:
         with:
           tool: nextest
           version: 0.9.103
+
+      - name: Enable unprivileged user namespaces (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          # Required for bubblewrap to work on Linux CI runners.
+          sudo sysctl -w kernel.unprivileged_userns_clone=1
+          # Ubuntu 24.04+ can additionally gate unprivileged user namespaces
+          # behind AppArmor.
+          if sudo sysctl -a 2>/dev/null | grep -q '^kernel.apparmor_restrict_unprivileged_userns'; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
 
       - name: tests
         id: test
