@@ -3,7 +3,6 @@ edition.workspace = true
 license.workspace = true
 name = "codex-core"
 version.workspace = true
-build = "build.rs"
 
 [lib]
 doctest = false
@@ -22,7 +21,7 @@ anyhow = { workspace = true }
 arc-swap = "1.8.2"
 async-channel = { workspace = true }
 async-trait = { workspace = true }
-dashmap = { workspace = true }
+askama = { workspace = true }
 base64 = { workspace = true }
 bm25 = { workspace = true }
 chardetng = { workspace = true }
@@ -34,8 +33,8 @@ codex-apply-patch = { workspace = true }
 codex-async-utils = { workspace = true }
 codex-client = { workspace = true }
 codex-config = { workspace = true }
-codex-deep-research = { workspace = true }
 codex-shell-command = { workspace = true }
+codex-skills = { workspace = true }
 codex-execpolicy = { workspace = true }
 codex-file-search = { workspace = true }
 codex-git = { workspace = true }
@@ -50,33 +49,26 @@ codex-utils-absolute-path = { workspace = true }
 codex-utils-home-dir = { workspace = true }
 codex-utils-pty = { workspace = true }
 codex-utils-readiness = { workspace = true }
-codex-utils-sanitizer = { workspace = true }
+codex-secrets = { workspace = true }
 codex-utils-string = { workspace = true }
-codex-web-search = { workspace = true }
-
+codex-utils-stream-parser = { workspace = true }
 codex-windows-sandbox = { package = "codex-windows-sandbox", path = "../windows-sandbox-rs" }
-
+csv = { workspace = true }
 dirs = { workspace = true }
 dunce = { workspace = true }
 encoding_rs = { workspace = true }
 env-flags = { workspace = true }
 eventsource-stream = { workspace = true }
 futures = { workspace = true }
-git2 = { workspace = true }
-hostname = "0.4"
 http = { workspace = true }
-include_dir = { workspace = true }
+iana-time-zone = { workspace = true }
 indexmap = { workspace = true }
-indoc = { workspace = true }
 keyring = { workspace = true, features = ["crypto-rust"] }
 libc = { workspace = true }
-lsp-types = { workspace = true }
-num_cpus = "1.16.0"
 notify = { workspace = true }
 once_cell = { workspace = true }
 os_info = { workspace = true }
 rand = { workspace = true }
-regex = { workspace = true }
 regex-lite = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 rmcp = { workspace = true, default-features = false, features = [
@@ -88,15 +80,11 @@ rmcp = { workspace = true, default-features = false, features = [
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-serde_path_to_error = { workspace = true }
 serde_yaml = { workspace = true }
 sha1 = { workspace = true }
 sha2 = { workspace = true }
 shlex = { workspace = true }
 similar = { workspace = true }
-sqlx = { workspace = true }
-sysinfo = { workspace = true }
-
 tempfile = { workspace = true }
 test-case = "3.3.1"
 test-log = { workspace = true }
@@ -121,7 +109,6 @@ toml_edit = { workspace = true }
 tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v4", "v5"] }
-walkdir = { workspace = true }
 which = { workspace = true }
 wildmatch = { workspace = true }
 zip = { workspace = true }
@@ -154,6 +141,9 @@ windows-sys = { version = "0.52", features = [
 [target.'cfg(any(target_os = "freebsd", target_os = "openbsd"))'.dependencies]
 keyring = { workspace = true, features = ["sync-secret-service"] }
 
+[target.'cfg(unix)'.dependencies]
+codex-shell-escalation = { workspace = true }
+
 [dev-dependencies]
 assert_cmd = { workspace = true }
 assert_matches = { workspace = true }
@@ -161,6 +151,7 @@ codex-arg0 = { workspace = true }
 codex-otel = { workspace = true, features = [
     "disable-default-metrics-exporter",
 ] }
+codex-test-macros = { workspace = true }
 codex-utils-cargo-bin = { workspace = true }
 core_test_support = { workspace = true }
 ctor = { workspace = true }
@@ -183,18 +174,3 @@ zstd = { workspace = true }
 
 [package.metadata.cargo-shear]
 ignored = ["openssl-sys"]
-
-[features]
-default = []
-custom-features = []
-agent_security = []
-git4d-base = []
-git4d-vr = []
-git4d-superior = []
-a2a-comm = []
-autonomous = []
-skill-mcp = []
-llmops = []
-cuda = []
-cowork = []
-windows-ai = []

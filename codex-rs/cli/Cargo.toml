@@ -28,6 +28,7 @@ codex-chatgpt = { workspace = true }
 codex-cloud-tasks = { path = "../cloud-tasks" }
 codex-deep-research = { workspace = true }
 codex-utils-cli = { workspace = true }
+codex-config = { workspace = true }
 codex-core = { workspace = true }
 codex-exec = { workspace = true }
 codex-execpolicy = { workspace = true }

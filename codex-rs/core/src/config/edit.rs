@@ -1,9 +1,9 @@
-use crate::config::CONFIG_TOML_FILE;
 use crate::config::types::McpServerConfig;
 use crate::config::types::Notice;
 use crate::path_utils::resolve_symlink_write_paths;
 use crate::path_utils::write_atomically;
 use anyhow::Context;
+use codex_config::CONFIG_TOML_FILE;
 use codex_protocol::config_types::Personality;
 use codex_protocol::config_types::TrustLevel;
 use codex_protocol::openai_models::ReasoningEffort;
@@ -53,6 +53,14 @@ pub enum ConfigEdit {
     },
     /// Remove the value stored at the exact dotted path.
     ClearPath { segments: Vec<String> },
+}
+
+/// Produces a config edit that sets `[tui] theme = "<name>"`.
+pub fn syntax_theme_edit(name: &str) -> ConfigEdit {
+    ConfigEdit::SetPath {
+        segments: vec!["tui".to_string(), "theme".to_string()],
+        value: value(name.to_string()),
+    }
 }
 
 pub fn status_line_items_edit(items: &[String]) -> ConfigEdit {
@@ -186,6 +194,11 @@ mod document_helpers {
             && !scopes.is_empty()
         {
             entry["scopes"] = array_from_iter(scopes.iter().cloned());
+        }
+        if let Some(resource) = &config.oauth_resource
+            && !resource.is_empty()
+        {
+            entry["oauth_resource"] = value(resource.clone());
         }
 
         entry
@@ -831,6 +844,30 @@ impl ConfigEditsBuilder {
         self
     }
 
+    pub fn set_realtime_microphone(mut self, microphone: Option<&str>) -> Self {
+        let segments = vec!["audio".to_string(), "microphone".to_string()];
+        match microphone {
+            Some(microphone) => self.edits.push(ConfigEdit::SetPath {
+                segments,
+                value: value(microphone),
+            }),
+            None => self.edits.push(ConfigEdit::ClearPath { segments }),
+        }
+        self
+    }
+
+    pub fn set_realtime_speaker(mut self, speaker: Option<&str>) -> Self {
+        let segments = vec!["audio".to_string(), "speaker".to_string()];
+        match speaker {
+            Some(speaker) => self.edits.push(ConfigEdit::SetPath {
+                segments,
+                value: value(speaker),
+            }),
+            None => self.edits.push(ConfigEdit::ClearPath { segments }),
+        }
+        self
+    }
+
     pub fn clear_legacy_windows_sandbox_keys(mut self) -> Self {
         for key in [
             "experimental_windows_sandbox",
@@ -1433,6 +1470,7 @@ gpt-5 = "gpt-5.1"
                 enabled_tools: Some(vec!["one".to_string(), "two".to_string()]),
                 disabled_tools: None,
                 scopes: None,
+                oauth_resource: None,
             },
         );
 
@@ -1457,6 +1495,7 @@ gpt-5 = "gpt-5.1"
                 enabled_tools: None,
                 disabled_tools: Some(vec!["forbidden".to_string()]),
                 scopes: None,
+                oauth_resource: Some("https://resource.example.com".to_string()),
             },
         );
 
@@ -1475,6 +1514,7 @@ bearer_token_env_var = \"TOKEN\"
 enabled = false
 startup_timeout_sec = 5.0
 disabled_tools = [\"forbidden\"]
+oauth_resource = \"https://resource.example.com\"
 
 [mcp_servers.http.http_headers]
 Z-Header = \"z\"
@@ -1524,6 +1564,7 @@ foo = { command = "cmd" }
                 enabled_tools: None,
                 disabled_tools: None,
                 scopes: None,
+                oauth_resource: None,
             },
         );
 
@@ -1570,6 +1611,7 @@ foo = { command = "cmd" } # keep me
                 enabled_tools: None,
                 disabled_tools: None,
                 scopes: None,
+                oauth_resource: None,
             },
         );
 
@@ -1615,6 +1657,7 @@ foo = { command = "cmd", args = ["--flag"] } # keep me
                 enabled_tools: None,
                 disabled_tools: None,
                 scopes: None,
+                oauth_resource: None,
             },
         );
 
@@ -1661,6 +1704,7 @@ foo = { command = "cmd" }
                 enabled_tools: None,
                 disabled_tools: None,
                 scopes: None,
+                oauth_resource: None,
             },
         );
 
@@ -1794,6 +1838,50 @@ model_reasoning_effort = "high"
             .and_then(|tbl| tbl.get("hide_full_access_warning"))
             .and_then(toml::Value::as_bool);
         assert_eq!(notice, Some(true));
+    }
+
+    #[test]
+    fn blocking_builder_set_realtime_audio_persists_and_clears() {
+        let tmp = tempdir().expect("tmpdir");
+        let codex_home = tmp.path();
+
+        ConfigEditsBuilder::new(codex_home)
+            .set_realtime_microphone(Some("USB Mic"))
+            .set_realtime_speaker(Some("Desk Speakers"))
+            .apply_blocking()
+            .expect("persist realtime audio");
+
+        let raw = std::fs::read_to_string(codex_home.join(CONFIG_TOML_FILE)).expect("read config");
+        let config: TomlValue = toml::from_str(&raw).expect("parse config");
+        let realtime_audio = config
+            .get("audio")
+            .and_then(TomlValue::as_table)
+            .expect("audio table should exist");
+        assert_eq!(
+            realtime_audio.get("microphone").and_then(TomlValue::as_str),
+            Some("USB Mic")
+        );
+        assert_eq!(
+            realtime_audio.get("speaker").and_then(TomlValue::as_str),
+            Some("Desk Speakers")
+        );
+
+        ConfigEditsBuilder::new(codex_home)
+            .set_realtime_microphone(None)
+            .apply_blocking()
+            .expect("clear realtime microphone");
+
+        let raw = std::fs::read_to_string(codex_home.join(CONFIG_TOML_FILE)).expect("read config");
+        let config: TomlValue = toml::from_str(&raw).expect("parse config");
+        let realtime_audio = config
+            .get("audio")
+            .and_then(TomlValue::as_table)
+            .expect("audio table should exist");
+        assert_eq!(realtime_audio.get("microphone"), None);
+        assert_eq!(
+            realtime_audio.get("speaker").and_then(TomlValue::as_str),
+            Some("Desk Speakers")
+        );
     }
 
     #[test]

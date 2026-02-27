@@ -85,7 +85,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isStreami
             {formatTimestamp(message.timestamp)}
           </Typography>
           {isStreaming && (
-            <Chip label="Streaming" size="small" color="info" sx={{ height: 20, fontSize: 10 }} />}
+            <Chip label="Streaming" size="small" color="info" sx={{ height: 20, fontSize: 10 }} />
+          )}
         </Box>
 
         <Paper

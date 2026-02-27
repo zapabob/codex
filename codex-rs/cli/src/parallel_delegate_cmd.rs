@@ -1,10 +1,11 @@
-//! Parallel agent delegation command
+﻿//! Parallel agent delegation command.
 
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::bail;
 use codex_core::AuthManager;
+use codex_core::agents::AgentAliases;
 use codex_core::agents::AgentRuntime;
 use codex_core::agents::AgentStatus;
 use codex_core::auth::CODEX_API_KEY_ENV_VAR;
@@ -23,7 +24,19 @@ use crate::resolve_runtime_budget;
 
 const DEFAULT_SUBAGENT_RUNTIME_BUDGET: i64 = 200_000;
 
-/// Run the parallel delegate command
+fn resolve_agent_name(raw: &str, aliases: &AgentAliases) -> String {
+    let trimmed = raw.trim();
+    let lower = trimmed.to_ascii_lowercase();
+    match lower.as_str() {
+        "backend" => "executor".to_string(),
+        "qa" => "code-reviewer".to_string(),
+        "milspec" => "sec-audit".to_string(),
+        "gui" => "ts-reviewer".to_string(),
+        _ => aliases.resolve(trimmed),
+    }
+}
+
+/// Run the parallel delegate command.
 pub async fn run_parallel_delegate_command(
     agents: Vec<String>,
     goals: Vec<String>,
@@ -33,7 +46,6 @@ pub async fn run_parallel_delegate_command(
     out: Option<PathBuf>,
     config_overrides: CliConfigOverrides,
 ) -> Result<()> {
-    // エージェント数の検証
     if agents.is_empty() {
         bail!("No agents specified");
     }
@@ -46,7 +58,17 @@ pub async fn run_parallel_delegate_command(
         );
     }
 
-    // 設定読み込み
+    let aliases = AgentAliases::load().unwrap_or_else(|err| {
+        eprintln!("Warning: failed to load aliases.yaml, using defaults: {err}");
+        AgentAliases::default()
+    });
+
+    let requested_agents = agents;
+    let resolved_agents: Vec<String> = requested_agents
+        .iter()
+        .map(|agent| resolve_agent_name(agent, &aliases))
+        .collect();
+
     let cli_overrides = config_overrides
         .parse_overrides()
         .map_err(|err| anyhow!("failed to parse -c overrides: {err}"))?;
@@ -58,7 +80,6 @@ pub async fn run_parallel_delegate_command(
 
     let workspace_dir = config.cwd.clone();
 
-    // 認証確認
     let auth_manager = AuthManager::shared(
         config.codex_home.clone(),
         true,
@@ -76,7 +97,6 @@ pub async fn run_parallel_delegate_command(
         );
     }
 
-    // Runtime初期化
     let conversation_id = ThreadId::default();
     let model = config
         .model
@@ -114,16 +134,16 @@ pub async fn run_parallel_delegate_command(
         config.model_verbosity.unwrap_or_default(),
     );
 
-    println!("🚀 Starting parallel delegation...");
-    println!("   Agents: {:?}", agents);
+    println!("Starting parallel delegation...");
+    println!("Requested agents: {:?}", requested_agents);
+    println!("Resolved agents:  {:?}", resolved_agents);
     if let Some(minutes) = deadline {
-        println!("   Deadline: {} minutes", minutes);
+        println!("Deadline: {minutes} minutes");
     }
     println!();
 
-    // エージェント設定の準備
     let mut agent_configs = Vec::new();
-    for (i, agent_name) in agents.iter().enumerate() {
+    for (i, resolved_agent_name) in resolved_agents.iter().enumerate() {
         let goal = goals
             .get(i)
             .cloned()
@@ -148,33 +168,43 @@ pub async fn run_parallel_delegate_command(
             inputs.insert("scope".to_string(), path.display().to_string());
         }
 
-        println!("📋 Agent {}/{}: {}", i + 1, agents.len(), agent_name);
-        println!("   Goal: {}", goal);
+        println!(
+            "Agent {}/{}: {} -> {}",
+            i + 1,
+            resolved_agents.len(),
+            requested_agents[i],
+            resolved_agent_name
+        );
+        println!("  Goal: {goal}");
         if let Some(ref path) = resolved_scope {
-            println!("   Scope: {}", path.display());
+            println!("  Scope: {}", path.display());
         }
         if let Some(b) = budget {
-            println!("   Budget: {} tokens", b);
+            println!("  Budget: {b} tokens");
         }
         println!();
 
-        agent_configs.push((agent_name.clone(), goal, inputs, budget));
+        agent_configs.push((resolved_agent_name.clone(), goal, inputs, budget));
     }
 
-    println!("⏳ Executing {} agents in parallel...", agents.len());
+    println!("Executing {} agents in parallel...", resolved_agents.len());
     println!();
 
-    // 並列実行
     let results = runtime
         .delegate_parallel(agent_configs, deadline)
         .await
         .context("parallel agent execution failed")?;
 
-    // 結果表示
-    println!("\n📊 Execution Results:");
+    println!("\nExecution results:");
     let mut success_count = 0;
     for (i, result) in results.iter().enumerate() {
-        println!("\n  Agent {}/{}: {}", i + 1, results.len(), agents[i]);
+        println!(
+            "\n  Agent {}/{}: {} -> {}",
+            i + 1,
+            results.len(),
+            requested_agents[i],
+            resolved_agents[i]
+        );
         println!("    Status: {:?}", result.status);
         println!("    Tokens used: {}", result.tokens_used);
         println!("    Duration: {:.2}s", result.duration_secs);
@@ -191,24 +221,26 @@ pub async fn run_parallel_delegate_command(
         }
 
         if let Some(ref error) = result.error {
-            eprintln!("    ⚠️  Error: {error}");
+            eprintln!("    Error: {error}");
         }
     }
 
-    println!("\n✅ Parallel delegation completed!");
-    println!("   Success: {}/{}", success_count, agents.len());
+    println!("\nParallel delegation completed.");
+    println!("Success: {}/{}", success_count, resolved_agents.len());
 
     if let Some(out_file) = out {
         let report = serde_json::json!({
-            "agents": agents,
+            "requested_agents": requested_agents,
+            "resolved_agents": resolved_agents,
             "results": results,
             "success_count": success_count,
-            "total_count": agents.len(),
+            "total_count": results.len(),
         });
         std::fs::write(&out_file, serde_json::to_string_pretty(&report)?)
             .context("failed to write results")?;
-        println!("\n📄 Results saved to: {}", out_file.display());
+        println!("\nResults saved to: {}", out_file.display());
     }
 
     Ok(())
 }
+

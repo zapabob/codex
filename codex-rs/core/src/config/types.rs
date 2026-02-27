@@ -27,6 +27,7 @@ pub const DEFAULT_MEMORIES_MAX_ROLLOUTS_PER_STARTUP: usize = 16;
 pub const DEFAULT_MEMORIES_MAX_ROLLOUT_AGE_DAYS: i64 = 30;
 pub const DEFAULT_MEMORIES_MIN_ROLLOUT_IDLE_HOURS: i64 = 6;
 pub const DEFAULT_MEMORIES_MAX_RAW_MEMORIES_FOR_GLOBAL: usize = 1_024;
+pub const DEFAULT_MEMORIES_MAX_UNUSED_DAYS: i64 = 30;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -98,6 +99,10 @@ pub struct McpServerConfig {
     /// Optional OAuth scopes to request during MCP login.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scopes: Option<Vec<String>>,
+
+    /// Optional OAuth resource parameter to include during MCP login (RFC 8707).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub oauth_resource: Option<String>,
 }
 
 // Raw MCP config shape used for deserialization and JSON Schema generation.
@@ -142,6 +147,8 @@ pub(crate) struct RawMcpServerConfig {
     pub disabled_tools: Option<Vec<String>>,
     #[serde(default)]
     pub scopes: Option<Vec<String>>,
+    #[serde(default)]
+    pub oauth_resource: Option<String>,
 }
 
 impl<'de> Deserialize<'de> for McpServerConfig {
@@ -165,6 +172,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
         let enabled_tools = raw.enabled_tools.clone();
         let disabled_tools = raw.disabled_tools.clone();
         let scopes = raw.scopes.clone();
+        let oauth_resource = raw.oauth_resource.clone();
 
         fn throw_if_set<E, T>(transport: &str, field: &str, value: Option<&T>) -> Result<(), E>
         where
@@ -188,6 +196,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
             throw_if_set("stdio", "bearer_token", raw.bearer_token.as_ref())?;
             throw_if_set("stdio", "http_headers", raw.http_headers.as_ref())?;
             throw_if_set("stdio", "env_http_headers", raw.env_http_headers.as_ref())?;
+            throw_if_set("stdio", "oauth_resource", raw.oauth_resource.as_ref())?;
             McpServerTransportConfig::Stdio {
                 command,
                 args: raw.args.clone().unwrap_or_default(),
@@ -221,6 +230,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
             enabled_tools,
             disabled_tools,
             scopes,
+            oauth_resource,
         })
     }
 }
@@ -361,8 +371,14 @@ pub struct FeedbackConfigToml {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 pub struct MemoriesToml {
+    /// When `false`, newly created threads are stored with `memory_mode = "disabled"` in the state DB.
+    pub generate_memories: Option<bool>,
+    /// When `false`, skip injecting memory usage instructions into developer prompts.
+    pub use_memories: Option<bool>,
     /// Maximum number of recent raw memories retained for global consolidation.
     pub max_raw_memories_for_global: Option<usize>,
+    /// Maximum number of days since a memory was last used before it becomes ineligible for phase 2 selection.
+    pub max_unused_days: Option<i64>,
     /// Maximum age of the threads used for memories.
     pub max_rollout_age_days: Option<i64>,
     /// Maximum number of rollout candidates processed per pass.
@@ -378,7 +394,10 @@ pub struct MemoriesToml {
 /// Effective memories settings after defaults are applied.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MemoriesConfig {
+    pub generate_memories: bool,
+    pub use_memories: bool,
     pub max_raw_memories_for_global: usize,
+    pub max_unused_days: i64,
     pub max_rollout_age_days: i64,
     pub max_rollouts_per_startup: usize,
     pub min_rollout_idle_hours: i64,
@@ -389,7 +408,10 @@ pub struct MemoriesConfig {
 impl Default for MemoriesConfig {
     fn default() -> Self {
         Self {
+            generate_memories: true,
+            use_memories: true,
             max_raw_memories_for_global: DEFAULT_MEMORIES_MAX_RAW_MEMORIES_FOR_GLOBAL,
+            max_unused_days: DEFAULT_MEMORIES_MAX_UNUSED_DAYS,
             max_rollout_age_days: DEFAULT_MEMORIES_MAX_ROLLOUT_AGE_DAYS,
             max_rollouts_per_startup: DEFAULT_MEMORIES_MAX_ROLLOUTS_PER_STARTUP,
             min_rollout_idle_hours: DEFAULT_MEMORIES_MIN_ROLLOUT_IDLE_HOURS,
@@ -403,10 +425,16 @@ impl From<MemoriesToml> for MemoriesConfig {
     fn from(toml: MemoriesToml) -> Self {
         let defaults = Self::default();
         Self {
+            generate_memories: toml.generate_memories.unwrap_or(defaults.generate_memories),
+            use_memories: toml.use_memories.unwrap_or(defaults.use_memories),
             max_raw_memories_for_global: toml
                 .max_raw_memories_for_global
                 .unwrap_or(defaults.max_raw_memories_for_global)
                 .min(4096),
+            max_unused_days: toml
+                .max_unused_days
+                .unwrap_or(defaults.max_unused_days)
+                .clamp(0, 365),
             max_rollout_age_days: toml
                 .max_rollout_age_days
                 .unwrap_or(defaults.max_rollout_age_days)
@@ -425,20 +453,58 @@ impl From<MemoriesToml> for MemoriesConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum AppDisabledReason {
-    Unknown,
-    User,
+pub enum AppToolApproval {
+    #[default]
+    Auto,
+    Prompt,
+    Approve,
 }
 
-impl fmt::Display for AppDisabledReason {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            AppDisabledReason::Unknown => write!(f, "unknown"),
-            AppDisabledReason::User => write!(f, "user"),
-        }
-    }
+/// Default settings that apply to all apps.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default, JsonSchema)]
+#[schemars(deny_unknown_fields)]
+pub struct AppsDefaultConfig {
+    /// When `false`, apps are disabled unless overridden by per-app settings.
+    #[serde(default = "default_enabled")]
+    pub enabled: bool,
+
+    /// Whether tools with `destructive_hint = true` are allowed by default.
+    #[serde(
+        default = "default_enabled",
+        skip_serializing_if = "std::clone::Clone::clone"
+    )]
+    pub destructive_enabled: bool,
+
+    /// Whether tools with `open_world_hint = true` are allowed by default.
+    #[serde(
+        default = "default_enabled",
+        skip_serializing_if = "std::clone::Clone::clone"
+    )]
+    pub open_world_enabled: bool,
+}
+
+/// Per-tool settings for a single app tool.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default, JsonSchema)]
+#[schemars(deny_unknown_fields)]
+pub struct AppToolConfig {
+    /// Whether this tool is enabled. `Some(true)` explicitly allows this tool.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+
+    /// Approval mode for this tool.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approval_mode: Option<AppToolApproval>,
+}
+
+/// Tool settings for a single app.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default, JsonSchema)]
+#[schemars(deny_unknown_fields)]
+pub struct AppToolsConfig {
+    /// Per-tool overrides keyed by tool name (for example `repos/list`).
+    #[serde(default, flatten)]
+    pub tools: HashMap<String, AppToolConfig>,
 }
 
 /// Config values for a single app/connector.
@@ -449,15 +515,35 @@ pub struct AppConfig {
     #[serde(default = "default_enabled")]
     pub enabled: bool,
 
-    /// Reason this app was disabled.
+    /// Whether tools with `destructive_hint = true` are allowed for this app.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub disabled_reason: Option<AppDisabledReason>,
+    pub destructive_enabled: Option<bool>,
+
+    /// Whether tools with `open_world_hint = true` are allowed for this app.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub open_world_enabled: Option<bool>,
+
+    /// Approval mode for tools in this app unless a tool override exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_tools_approval_mode: Option<AppToolApproval>,
+
+    /// Whether tools are enabled by default for this app.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_tools_enabled: Option<bool>,
+
+    /// Per-tool settings for this app.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tools: Option<AppToolsConfig>,
 }
 
 /// App/connector settings loaded from `config.toml`.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 pub struct AppsConfigToml {
+    /// Default settings for all apps.
+    #[serde(default, rename = "_default", skip_serializing_if = "Option::is_none")]
+    pub default: Option<AppsDefaultConfig>,
+
     /// Per-app settings keyed by app ID (for example `[apps.google_drive]`).
     #[serde(default, flatten)]
     pub apps: HashMap<String, AppConfig>,
@@ -623,6 +709,13 @@ pub struct Tui {
     /// `current-dir`.
     #[serde(default)]
     pub status_line: Option<Vec<String>>,
+
+    /// Syntax highlighting theme name (kebab-case).
+    ///
+    /// When set, overrides automatic light/dark theme detection.
+    /// Use `/theme` in the TUI or see `$CODEX_HOME/themes` for custom themes.
+    #[serde(default)]
+    pub theme: Option<String>,
 }
 
 const fn default_true() -> bool {
@@ -1020,6 +1113,22 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_streamable_http_server_config_with_oauth_resource() {
+        let cfg: McpServerConfig = toml::from_str(
+            r#"
+            url = "https://example.com/mcp"
+            oauth_resource = "https://api.example.com"
+        "#,
+        )
+        .expect("should deserialize http config with oauth_resource");
+
+        assert_eq!(
+            cfg.oauth_resource,
+            Some("https://api.example.com".to_string())
+        );
+    }
+
+    #[test]
     fn deserialize_server_config_with_tool_filters() {
         let cfg: McpServerConfig = toml::from_str(
             r#"
@@ -1073,6 +1182,20 @@ mod tests {
         "#,
         )
         .expect_err("should reject env_http_headers for stdio transport");
+
+        let err = toml::from_str::<McpServerConfig>(
+            r#"
+            command = "echo"
+            oauth_resource = "https://api.example.com"
+        "#,
+        )
+        .expect_err("should reject oauth_resource for stdio transport");
+
+        assert!(
+            err.to_string()
+                .contains("oauth_resource is not supported for stdio"),
+            "unexpected error: {err}"
+        );
     }
 
     #[test]

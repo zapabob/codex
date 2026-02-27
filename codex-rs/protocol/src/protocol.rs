@@ -20,6 +20,7 @@ use crate::config_types::Personality;
 use crate::config_types::ReasoningSummary as ReasoningSummaryConfig;
 use crate::config_types::WindowsSandboxLevel;
 use crate::custom_prompts::CustomPrompt;
+use crate::dynamic_tools::DynamicToolCallOutputContentItem;
 use crate::dynamic_tools::DynamicToolCallRequest;
 use crate::dynamic_tools::DynamicToolResponse;
 use crate::dynamic_tools::DynamicToolSpec;
@@ -57,6 +58,8 @@ pub use crate::approvals::ExecApprovalRequestEvent;
 pub use crate::approvals::ExecPolicyAmendment;
 pub use crate::approvals::NetworkApprovalContext;
 pub use crate::approvals::NetworkApprovalProtocol;
+pub use crate::approvals::NetworkPolicyAmendment;
+pub use crate::approvals::NetworkPolicyRuleAction;
 pub use crate::request_user_input::RequestUserInputEvent;
 
 /// Open/close tags for special user-input blocks. Used across crates to avoid
@@ -85,6 +88,41 @@ pub struct McpServerRefreshConfig {
     pub mcp_oauth_credentials_store_mode: Value,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
+pub struct ConversationStartParams {
+    pub prompt: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+pub struct RealtimeAudioFrame {
+    pub data: String,
+    pub sample_rate: u32,
+    pub num_channels: u16,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub samples_per_channel: Option<u32>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+pub enum RealtimeEvent {
+    SessionCreated { session_id: String },
+    SessionUpdated { backend_prompt: Option<String> },
+    AudioOut(RealtimeAudioFrame),
+    ConversationItemAdded(Value),
+    Error(String),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
+pub struct ConversationAudioParams {
+    pub frame: RealtimeAudioFrame,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
+pub struct ConversationTextParams {
+    pub text: String,
+}
+
 /// Submission operation
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -97,6 +135,18 @@ pub enum Op {
 
     /// Terminate all running background terminal processes for this thread.
     CleanBackgroundTerminals,
+
+    /// Start a realtime conversation stream.
+    RealtimeConversationStart(ConversationStartParams),
+
+    /// Send audio input to the running realtime conversation stream.
+    RealtimeConversationAudio(ConversationAudioParams),
+
+    /// Send text input to the running realtime conversation stream.
+    RealtimeConversationText(ConversationTextParams),
+
+    /// Close the running realtime conversation stream.
+    RealtimeConversationClose,
 
     /// Legacy user input.
     ///
@@ -135,7 +185,11 @@ pub enum Op {
         effort: Option<ReasoningEffortConfig>,
 
         /// Will only be honored if the model is configured to use reasoning.
-        summary: ReasoningSummaryConfig,
+        ///
+        /// When omitted, the session keeps the current setting (which allows core to
+        /// fall back to the selected model's default on new sessions).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        summary: Option<ReasoningSummaryConfig>,
         // The JSON schema to use for the final assistant message
         final_output_json_schema: Option<Value>,
 
@@ -916,6 +970,15 @@ pub enum EventMsg {
     /// indicates the turn continued but the user should still be notified.
     Warning(WarningEvent),
 
+    /// Realtime conversation lifecycle start event.
+    RealtimeConversationStarted(RealtimeConversationStartedEvent),
+
+    /// Realtime conversation streaming payload event.
+    RealtimeConversationRealtime(RealtimeConversationRealtimeEvent),
+
+    /// Realtime conversation lifecycle close event.
+    RealtimeConversationClosed(RealtimeConversationClosedEvent),
+
     /// Model routing changed from the requested model to a different model.
     ModelReroute(ModelRerouteEvent),
 
@@ -1001,6 +1064,8 @@ pub enum EventMsg {
     RequestUserInput(RequestUserInputEvent),
 
     DynamicToolCallRequest(DynamicToolCallRequest),
+
+    DynamicToolCallResponse(DynamicToolCallResponseEvent),
 
     ElicitationRequest(ElicitationRequestEvent),
 
@@ -1093,6 +1158,22 @@ pub enum EventMsg {
     CollabResumeBegin(CollabResumeBeginEvent),
     /// Collab interaction: resume end.
     CollabResumeEnd(CollabResumeEndEvent),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
+pub struct RealtimeConversationStartedEvent {
+    pub session_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
+pub struct RealtimeConversationRealtimeEvent {
+    pub payload: RealtimeEvent,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
+pub struct RealtimeConversationClosedEvent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 impl From<CollabAgentSpawnBeginEvent> for EventMsg {
@@ -1717,6 +1798,27 @@ pub struct McpToolCallEndEvent {
     pub result: Result<CallToolResult, String>,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, TS, PartialEq)]
+pub struct DynamicToolCallResponseEvent {
+    /// Identifier for the corresponding DynamicToolCallRequest.
+    pub call_id: String,
+    /// Turn ID that this dynamic tool call belongs to.
+    pub turn_id: String,
+    /// Dynamic tool name.
+    pub tool: String,
+    /// Dynamic tool call arguments.
+    pub arguments: serde_json::Value,
+    /// Dynamic tool response content items.
+    pub content_items: Vec<DynamicToolCallOutputContentItem>,
+    /// Whether the tool call succeeded.
+    pub success: bool,
+    /// Optional error text when the tool call failed before producing a response.
+    pub error: Option<String>,
+    /// The duration of the dynamic tool call.
+    #[ts(type = "string")]
+    pub duration: Duration,
+}
+
 impl McpToolCallEndEvent {
     pub fn is_success(&self) -> bool {
         match &self.result {
@@ -1883,6 +1985,10 @@ pub enum SubAgentSource {
     ThreadSpawn {
         parent_thread_id: ThreadId,
         depth: i32,
+        #[serde(default)]
+        agent_nickname: Option<String>,
+        #[serde(default, alias = "agent_type")]
+        agent_role: Option<String>,
     },
     MemoryConsolidation,
     Other(String),
@@ -1901,6 +2007,32 @@ impl fmt::Display for SessionSource {
     }
 }
 
+impl SessionSource {
+    pub fn get_nickname(&self) -> Option<String> {
+        match self {
+            SessionSource::SubAgent(SubAgentSource::ThreadSpawn { agent_nickname, .. }) => {
+                agent_nickname.clone()
+            }
+            SessionSource::SubAgent(SubAgentSource::MemoryConsolidation) => {
+                Some("Morpheus".to_string())
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_agent_role(&self) -> Option<String> {
+        match self {
+            SessionSource::SubAgent(SubAgentSource::ThreadSpawn { agent_role, .. }) => {
+                agent_role.clone()
+            }
+            SessionSource::SubAgent(SubAgentSource::MemoryConsolidation) => {
+                Some("memory builder".to_string())
+            }
+            _ => None,
+        }
+    }
+}
+
 impl fmt::Display for SubAgentSource {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -1910,6 +2042,7 @@ impl fmt::Display for SubAgentSource {
             SubAgentSource::ThreadSpawn {
                 parent_thread_id,
                 depth,
+                ..
             } => {
                 write!(f, "thread_spawn_{parent_thread_id}_d{depth}")
             }
@@ -1934,6 +2067,12 @@ pub struct SessionMeta {
     pub cli_version: String,
     #[serde(default)]
     pub source: SessionSource,
+    /// Optional random unique nickname assigned to an AgentControl-spawned sub-agent.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_nickname: Option<String>,
+    /// Optional role (agent_role) assigned to an AgentControl-spawned sub-agent.
+    #[serde(default, alias = "agent_type", skip_serializing_if = "Option::is_none")]
+    pub agent_role: Option<String>,
     pub model_provider: Option<String>,
     /// base_instructions for the session. This *should* always be present when creating a new session,
     /// but may be missing for older sessions. If not present, fall back to rendering the base_instructions
@@ -1953,6 +2092,8 @@ impl Default for SessionMeta {
             originator: String::new(),
             cli_version: String::new(),
             source: SessionSource::default(),
+            agent_nickname: None,
+            agent_role: None,
             model_provider: None,
             base_instructions: None,
             dynamic_tools: None,
@@ -2005,11 +2146,19 @@ pub struct TurnContextNetworkItem {
     pub denied_domains: Vec<String>,
 }
 
+/// Persist only when the same turn also persists the corresponding
+/// model-visible context updates (diffs or full reinjection), so
+/// resume/fork does not use a `reference_context_item` whose context
+/// was never actually visible to the model.
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema, TS)]
 pub struct TurnContextItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub turn_id: Option<String>,
     pub cwd: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timezone: Option<String>,
     pub approval_policy: AskForApproval,
     pub sandbox_policy: SandboxPolicy,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2658,10 +2807,16 @@ pub enum ReviewDecision {
         proposed_execpolicy_amendment: ExecPolicyAmendment,
     },
 
-    /// User has approved this command and wants to automatically approve any
-    /// future identical instances (`command` and `cwd` match exactly) for the
+    /// User has approved this request and wants future prompts in the same
+    /// session-scoped approval cache to be automatically approved for the
     /// remainder of the session.
     ApprovedForSession,
+
+    /// User chose to persist a network policy rule (allow/deny) for future
+    /// requests to the same host.
+    NetworkPolicyAmendment {
+        network_policy_amendment: NetworkPolicyAmendment,
+    },
 
     /// User has denied this command and the agent should not execute it, but
     /// it should continue the session and try something else.
@@ -2681,6 +2836,12 @@ impl ReviewDecision {
             ReviewDecision::Approved => "approved",
             ReviewDecision::ApprovedExecpolicyAmendment { .. } => "approved_with_amendment",
             ReviewDecision::ApprovedForSession => "approved_for_session",
+            ReviewDecision::NetworkPolicyAmendment {
+                network_policy_amendment,
+            } => match network_policy_amendment.action {
+                NetworkPolicyRuleAction::Allow => "approved_with_network_policy_allow",
+                NetworkPolicyRuleAction::Deny => "denied_with_network_policy_deny",
+            },
             ReviewDecision::Denied => "denied",
             ReviewDecision::Abort => "abort",
         }
@@ -2736,6 +2897,32 @@ pub struct CollabAgentSpawnBeginEvent {
     pub prompt: String,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+pub struct CollabAgentRef {
+    /// Thread ID of the receiver/new agent.
+    pub thread_id: ThreadId,
+    /// Optional nickname assigned to an AgentControl-spawned sub-agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_nickname: Option<String>,
+    /// Optional role (agent_role) assigned to an AgentControl-spawned sub-agent.
+    #[serde(default, alias = "agent_type", skip_serializing_if = "Option::is_none")]
+    pub agent_role: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
+pub struct CollabAgentStatusEntry {
+    /// Thread ID of the receiver/new agent.
+    pub thread_id: ThreadId,
+    /// Optional nickname assigned to an AgentControl-spawned sub-agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_nickname: Option<String>,
+    /// Optional role (agent_role) assigned to an AgentControl-spawned sub-agent.
+    #[serde(default, alias = "agent_type", skip_serializing_if = "Option::is_none")]
+    pub agent_role: Option<String>,
+    /// Last known status of the agent.
+    pub status: AgentStatus,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
 pub struct CollabAgentSpawnEndEvent {
     /// Identifier for the collab tool call.
@@ -2744,6 +2931,12 @@ pub struct CollabAgentSpawnEndEvent {
     pub sender_thread_id: ThreadId,
     /// Thread ID of the newly spawned agent, if it was created.
     pub new_thread_id: Option<ThreadId>,
+    /// Optional nickname assigned to the new agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub new_agent_nickname: Option<String>,
+    /// Optional role assigned to the new agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub new_agent_role: Option<String>,
     /// Initial prompt sent to the agent. Can be empty to prevent CoT leaking at the
     /// beginning.
     pub prompt: String,
@@ -2772,6 +2965,12 @@ pub struct CollabAgentInteractionEndEvent {
     pub sender_thread_id: ThreadId,
     /// Thread ID of the receiver.
     pub receiver_thread_id: ThreadId,
+    /// Optional nickname assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_nickname: Option<String>,
+    /// Optional role assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_role: Option<String>,
     /// Prompt sent from the sender to the receiver. Can be empty to prevent CoT
     /// leaking at the beginning.
     pub prompt: String,
@@ -2785,6 +2984,9 @@ pub struct CollabWaitingBeginEvent {
     pub sender_thread_id: ThreadId,
     /// Thread ID of the receivers.
     pub receiver_thread_ids: Vec<ThreadId>,
+    /// Optional nicknames/roles for receivers.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub receiver_agents: Vec<CollabAgentRef>,
     /// ID of the waiting call.
     pub call_id: String,
 }
@@ -2795,6 +2997,9 @@ pub struct CollabWaitingEndEvent {
     pub sender_thread_id: ThreadId,
     /// ID of the waiting call.
     pub call_id: String,
+    /// Optional receiver metadata paired with final statuses.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub agent_statuses: Vec<CollabAgentStatusEntry>,
     /// Last known status of the receiver agents reported to the sender agent.
     pub statuses: HashMap<ThreadId, AgentStatus>,
 }
@@ -2817,6 +3022,12 @@ pub struct CollabCloseEndEvent {
     pub sender_thread_id: ThreadId,
     /// Thread ID of the receiver.
     pub receiver_thread_id: ThreadId,
+    /// Optional nickname assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_nickname: Option<String>,
+    /// Optional role assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_role: Option<String>,
     /// Last known status of the receiver agent reported to the sender agent before
     /// the close.
     pub status: AgentStatus,
@@ -2830,6 +3041,12 @@ pub struct CollabResumeBeginEvent {
     pub sender_thread_id: ThreadId,
     /// Thread ID of the receiver.
     pub receiver_thread_id: ThreadId,
+    /// Optional nickname assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_nickname: Option<String>,
+    /// Optional role assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_role: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, JsonSchema, TS)]
@@ -2840,6 +3057,12 @@ pub struct CollabResumeEndEvent {
     pub sender_thread_id: ThreadId,
     /// Thread ID of the receiver.
     pub receiver_thread_id: ThreadId,
+    /// Optional nickname assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_nickname: Option<String>,
+    /// Optional role assigned to the receiver agent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_agent_role: Option<String>,
     /// Last known status of the receiver agent reported to the sender agent after
     /// resume.
     pub status: AgentStatus,
@@ -2972,6 +3195,61 @@ mod tests {
             codex_error_info: Some(CodexErrorInfo::Other),
         };
         assert!(event.affects_turn_status());
+    }
+
+    #[test]
+    fn conversation_op_serializes_as_unnested_variants() {
+        let audio = Op::RealtimeConversationAudio(ConversationAudioParams {
+            frame: RealtimeAudioFrame {
+                data: "AQID".to_string(),
+                sample_rate: 24_000,
+                num_channels: 1,
+                samples_per_channel: Some(480),
+            },
+        });
+        let start = Op::RealtimeConversationStart(ConversationStartParams {
+            prompt: "be helpful".to_string(),
+            session_id: Some("conv_1".to_string()),
+        });
+        let text = Op::RealtimeConversationText(ConversationTextParams {
+            text: "hello".to_string(),
+        });
+        let close = Op::RealtimeConversationClose;
+
+        assert_eq!(
+            serde_json::to_value(&start).unwrap(),
+            json!({
+                "type": "realtime_conversation_start",
+                "prompt": "be helpful",
+                "session_id": "conv_1"
+            })
+        );
+        assert_eq!(
+            serde_json::to_value(&audio).unwrap(),
+            json!({
+                "type": "realtime_conversation_audio",
+                "frame": {
+                    "data": "AQID",
+                    "sample_rate": 24000,
+                    "num_channels": 1,
+                    "samples_per_channel": 480
+                }
+            })
+        );
+        assert_eq!(
+            serde_json::from_value::<Op>(serde_json::to_value(&text).unwrap()).unwrap(),
+            text
+        );
+        assert_eq!(
+            serde_json::to_value(&close).unwrap(),
+            json!({
+                "type": "realtime_conversation_close"
+            })
+        );
+        assert_eq!(
+            serde_json::from_value::<Op>(serde_json::to_value(&close).unwrap()).unwrap(),
+            close
+        );
     }
 
     #[test]
@@ -3109,6 +3387,8 @@ mod tests {
         let item = TurnContextItem {
             turn_id: None,
             cwd: PathBuf::from("/tmp"),
+            current_date: None,
+            timezone: None,
             approval_policy: AskForApproval::Never,
             sandbox_policy: SandboxPolicy::DangerFullAccess,
             network: Some(TurnContextNetworkItem {

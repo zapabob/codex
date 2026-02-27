@@ -17,17 +17,9 @@ jobs:
       codex: ${{ steps.detect.outputs.codex }}
       workflows: ${{ steps.detect.outputs.workflows }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Cache Cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ubuntu-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ubuntu-registry-
       - name: Detect changed paths (no external action)
         id: detect
         shell: bash
@@ -60,21 +52,18 @@ jobs:
   general:
     name: Format / etc
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
     needs: changed
     if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}
     defaults:
       run:
         working-directory: codex-rs
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@1.93.0
         with:
           components: rustfmt
       - name: cargo fmt
         run: cargo fmt -- --config imports_granularity=Item --check
-      - name: Verify codegen for mcp-types
-        run: python3 ./mcp-types/check_lib_rs.py
 
   cargo_shear:
     name: cargo shear
@@ -85,18 +74,20 @@ jobs:
       run:
         working-directory: codex-rs
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@1.93.0
       - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2
         with:
           tool: cargo-shear
+          version: 1.5.1
       - name: cargo shear
         run: cargo shear
 
-  # --- Fast incremental build and install job -----------------------------------
-  fast_build_install:
-    name: Fast Build & Install - Windows Latest (Avast Safe)
-    runs-on: windows-latest
+  # --- CI to validate on different os/targets --------------------------------
+  lint_build:
+    name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' && ' (release)' || '' }}
+    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    timeout-minutes: 30
     needs: changed
     # Keep job-level if to avoid spinning up runners when not needed
     if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}
@@ -115,53 +106,83 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-latest
+          - runner: macos-15-xlarge
             target: aarch64-apple-darwin
             profile: dev
-          - runner: macos-latest
+          - runner: macos-15-xlarge
             target: x86_64-apple-darwin
             profile: dev
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-musl
             profile: dev
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-x64
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             profile: dev
-          - runner: ubuntu-24.04
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-x64
+          - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
             profile: dev
-          - runner: ubuntu-24.04
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-arm64
+          - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
             profile: dev
-          - runner: windows-latest
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-arm64
+          - runner: windows-x64
             target: x86_64-pc-windows-msvc
             profile: dev
-          - runner: windows-latest
+            runs_on:
+              group: codex-runners
+              labels: codex-windows-x64
+          - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             profile: dev
+            runs_on:
+              group: codex-runners
+              labels: codex-windows-arm64
 
           # Also run representative release builds on Mac and Linux because
           # there could be release-only build errors we want to catch.
           # Hopefully this also pre-populates the build cache to speed up
           # releases.
-          - runner: macos-latest
+          - runner: macos-15-xlarge
             target: aarch64-apple-darwin
             profile: release
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-musl
             profile: release
-          - runner: ubuntu-24.04
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-x64
+          - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
             profile: release
-          - runner: windows-latest
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-arm64
+          - runner: windows-x64
             target: x86_64-pc-windows-msvc
             profile: release
-          - runner: windows-latest
+            runs_on:
+              group: codex-runners
+              labels: codex-windows-x64
+          - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             profile: release
+            runs_on:
+              group: codex-runners
+              labels: codex-windows-arm64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install Linux build dependencies
         if: ${{ runner.os == 'Linux' }}
         shell: bash
@@ -177,47 +198,174 @@ jobs:
           fi
       - uses: dtolnay/rust-toolchain@1.93.0
         with:
-          components: rustfmt
+          targets: ${{ matrix.target }}
+          components: clippy
 
-      - name: Cache Cargo incremental artifacts
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target/
-            codex-rs/target/
-          key: windows-fast-build-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
-          restore-keys: |
-            windows-fast-build-
-
-      - name: Install sccache for faster compilation
-        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532
-        with:
-          tool: sccache
-
-      - name: Configure incremental build (Avast Safe)
-        run: |
-          echo "CARGO_INCREMENTAL=1" >> $env:GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $env:GITHUB_ENV
-          echo "SCCACHE_CACHE_SIZE=5G" >> $env:GITHUB_ENV
-          echo "CARGO_BUILD_JOBS=8" >> $env:GITHUB_ENV
-          echo "RUST_BACKTRACE=1" >> $env:GITHUB_ENV
-          echo "RUSTFLAGS=-C target-cpu=native -C opt-level=2 -C link-args=/DEBUG:NONE" >> $env:GITHUB_ENV
-
-      - name: Setup Windows Defender exclusions
-        if: ${{ runner.os == 'Windows' }}
-        run: |
-          $exclusions = @("$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup", "$(pwd)", "C:\Program Files\Git")
-          foreach ($path in $exclusions) {
-            Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
-          }
-
-      - name: Configure compiler flags
-        if: ${{ runner.os != 'Windows' }}
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Use hermetic Cargo home (musl)
         shell: bash
         run: |
-          sanitize_flags() { echo "$1" | tr -s ' ' | sed 's/^ //;s/ $//'; }
+          set -euo pipefail
+          cargo_home="${GITHUB_WORKSPACE}/.cargo-home"
+          mkdir -p "${cargo_home}/bin"
+          echo "CARGO_HOME=${cargo_home}" >> "$GITHUB_ENV"
+          echo "${cargo_home}/bin" >> "$GITHUB_PATH"
+          : > "${cargo_home}/config.toml"
+
+      - name: Compute lockfile hash
+        id: lockhash
+        working-directory: codex-rs
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "hash=$(sha256sum Cargo.lock | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "toolchain_hash=$(sha256sum rust-toolchain.toml | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      # Explicit cache restore: split cargo home vs target, so we can
+      # avoid caching the large target dir on the gnu-dev job.
+      - name: Restore cargo home cache
+        id: cache_cargo_home_restore
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ${{ github.workspace }}/.cargo-home/bin/
+            ${{ github.workspace }}/.cargo-home/registry/index/
+            ${{ github.workspace }}/.cargo-home/registry/cache/
+            ${{ github.workspace }}/.cargo-home/git/db/
+          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}
+          restore-keys: |
+            cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-
+
+      # Install and restore sccache cache
+      - name: Install sccache
+        if: ${{ env.USE_SCCACHE == 'true' }}
+        uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2
+        with:
+          tool: sccache
+          version: 0.7.5
+
+      - name: Configure sccache backend
+        if: ${{ env.USE_SCCACHE == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${ACTIONS_CACHE_URL:-}" && -n "${ACTIONS_RUNTIME_TOKEN:-}" ]]; then
+            echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+            echo "Using sccache GitHub backend"
+          else
+            echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+            echo "SCCACHE_DIR=${{ github.workspace }}/.sccache" >> "$GITHUB_ENV"
+            echo "Using sccache local disk + actions/cache fallback"
+          fi
+
+      - name: Enable sccache wrapper
+        if: ${{ env.USE_SCCACHE == 'true' }}
+        shell: bash
+        run: echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+
+      - name: Restore sccache cache (fallback)
+        if: ${{ env.USE_SCCACHE == 'true' && env.SCCACHE_GHA_ENABLED != 'true' }}
+        id: cache_sccache_restore
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ github.workspace }}/.sccache/
+          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}
+          restore-keys: |
+            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-
+            sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Disable sccache wrapper (musl)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "RUSTC_WORKSPACE_WRAPPER=" >> "$GITHUB_ENV"
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Prepare APT cache directories (musl)
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo mkdir -p /var/cache/apt/archives /var/lib/apt/lists
+          sudo chown -R "$USER:$USER" /var/cache/apt /var/lib/apt/lists
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Restore APT cache (musl)
+        id: cache_apt_restore
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            /var/cache/apt
+          key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Install Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.0
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Install musl build tools
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          TARGET: ${{ matrix.target }}
+          APT_UPDATE_ARGS: -o Acquire::Retries=3
+          APT_INSTALL_ARGS: --no-install-recommends
+        shell: bash
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-musl-build-tools.sh"
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Configure rustc UBSan wrapper (musl host)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ubsan=""
+          if command -v ldconfig >/dev/null 2>&1; then
+            ubsan="$(ldconfig -p | grep -m1 'libubsan\.so\.1' | sed -E 's/.*=> (.*)$/\1/')"
+          fi
+          wrapper_root="${RUNNER_TEMP:-/tmp}"
+          wrapper="${wrapper_root}/rustc-ubsan-wrapper"
+          cat > "${wrapper}" <<EOF
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [[ -n "${ubsan}" ]]; then
+            export LD_PRELOAD="${ubsan}\${LD_PRELOAD:+:\${LD_PRELOAD}}"
+          fi
+          exec "\$1" "\${@:2}"
+          EOF
+          chmod +x "${wrapper}"
+          echo "RUSTC_WRAPPER=${wrapper}" >> "$GITHUB_ENV"
+          echo "RUSTC_WORKSPACE_WRAPPER=" >> "$GITHUB_ENV"
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl'}}
+        name: Clear sanitizer flags (musl)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Clear global Rust flags so host/proc-macro builds don't pull in UBSan.
+          echo "RUSTFLAGS=" >> "$GITHUB_ENV"
+          echo "CARGO_ENCODED_RUSTFLAGS=" >> "$GITHUB_ENV"
+          echo "RUSTDOCFLAGS=" >> "$GITHUB_ENV"
+          # Override any runner-level Cargo config rustflags as well.
+          echo "CARGO_BUILD_RUSTFLAGS=" >> "$GITHUB_ENV"
+          echo "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS=" >> "$GITHUB_ENV"
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS=" >> "$GITHUB_ENV"
+          echo "CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS=" >> "$GITHUB_ENV"
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_RUSTFLAGS=" >> "$GITHUB_ENV"
+
+          sanitize_flags() {
+            local input="$1"
+            input="${input//-fsanitize=undefined/}"
+            input="${input//-fno-sanitize-recover=undefined/}"
+            input="${input//-fno-sanitize-trap=undefined/}"
+            echo "$input"
+          }
+
           cflags="$(sanitize_flags "${CFLAGS-}")"
           cxxflags="$(sanitize_flags "${CXXFLAGS-}")"
           echo "CFLAGS=${cflags}" >> "$GITHUB_ENV"
@@ -244,7 +392,7 @@ jobs:
 
       - name: Upload Cargo timings (clippy)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cargo-timings-rust-ci-clippy-${{ matrix.target }}-${{ matrix.profile }}
           path: codex-rs/target/**/cargo-timings/cargo-timing.html
@@ -258,25 +406,40 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target/
-            codex-rs/target/
-          key: windows-fast-build-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ${{ github.workspace }}/.cargo-home/bin/
+            ${{ github.workspace }}/.cargo-home/registry/index/
+            ${{ github.workspace }}/.cargo-home/registry/cache/
+            ${{ github.workspace }}/.cargo-home/git/db/
+          key: cargo-home-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ steps.lockhash.outputs.toolchain_hash }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Save sccache cache (fallback)
+        if: always() && !cancelled() && env.USE_SCCACHE == 'true' && env.SCCACHE_GHA_ENABLED != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v5
         with:
-          node-version: "22"
-          cache: "npm"
+          path: ${{ github.workspace }}/.sccache/
+          key: sccache-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}-${{ steps.lockhash.outputs.hash }}-${{ github.run_id }}
 
-      - name: Kill existing codex processes
+      - name: sccache stats
+        if: always() && env.USE_SCCACHE == 'true'
+        continue-on-error: true
+        run: sccache --show-stats || true
+
+      - name: sccache summary
+        if: always() && env.USE_SCCACHE == 'true'
+        shell: bash
         run: |
-          $processes = Get-Process | Where-Object { $_.ProcessName -like "*codex*" }
-          if ($processes) {
-            $processes | Stop-Process -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 2
-          }
+          {
+            echo "### sccache stats — ${{ matrix.target }} (${{ matrix.profile }})";
+            echo;
+            echo '```';
+            sccache --show-stats || true;
+            echo '```';
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Save APT cache (musl)
         if: always() && !cancelled() && (matrix.target == 'x86_64-unknown-linux-musl' || matrix.target == 'aarch64-unknown-linux-musl') && steps.cache_apt_restore.outputs.cache-hit != 'true'
@@ -288,7 +451,7 @@ jobs:
           key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1
 
   tests:
-    name: Tests ${{ matrix.runner }} - ${{ matrix.target }}
+    name: Tests — ${{ matrix.runner }} - ${{ matrix.target }}
     runs-on: ${{ matrix.runs_on || matrix.runner }}
     timeout-minutes: 30
     needs: changed
@@ -306,24 +469,40 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-latest
+          - runner: macos-15-xlarge
             target: aarch64-apple-darwin
-            profile: dev
-          - runner: ubuntu-24.04
-            target: x86_64-unknown-linux-musl
             profile: dev
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             profile: dev
-          - runner: windows-latest
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-x64
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            profile: dev
+            runs_on:
+              group: codex-runners
+              labels: codex-linux-arm64
+          - runner: windows-x64
             target: x86_64-pc-windows-msvc
             profile: dev
-          - runner: windows-latest
+            runs_on:
+              group: codex-runners
+              labels: codex-windows-x64
+          - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             profile: dev
+            runs_on:
+              group: codex-runners
+              labels: codex-windows-arm64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - name: Set up Node.js for js_repl tests
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: codex-rs/node-version.txt
       - name: Install Linux build dependencies
         if: ${{ runner.os == 'Linux' }}
         shell: bash
@@ -426,7 +605,7 @@ jobs:
 
       - name: Upload Cargo timings (nextest)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cargo-timings-rust-ci-nextest-${{ matrix.target }}-${{ matrix.profile }}
           path: codex-rs/target/**/cargo-timings/cargo-timing.html
@@ -462,7 +641,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "### sccache stats ${{ matrix.target }} (tests)";
+            echo "### sccache stats — ${{ matrix.target }} (tests)";
             echo;
             echo '```';
             sccache --show-stats || true;
@@ -478,7 +657,7 @@ jobs:
   # --- Gatherer job that you mark as the ONLY required status -----------------
   results:
     name: CI results (required)
-    needs: [changed, general, cargo_shear, fast_build_install, tests]
+    needs: [changed, general, cargo_shear, lint_build, tests]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -487,7 +666,7 @@ jobs:
         run: |
           echo "general: ${{ needs.general.result }}"
           echo "shear  : ${{ needs.cargo_shear.result }}"
-          echo "lint   : ${{ needs.fast_build_install.result }}"
+          echo "lint   : ${{ needs.lint_build.result }}"
           echo "tests  : ${{ needs.tests.result }}"
 
           # If nothing relevant changed (PR touching only root README, etc.),
@@ -500,7 +679,7 @@ jobs:
           # Otherwise require the jobs to have succeeded
           [[ '${{ needs.general.result }}' == 'success' ]] || { echo 'general failed'; exit 1; }
           [[ '${{ needs.cargo_shear.result }}' == 'success' ]] || { echo 'cargo_shear failed'; exit 1; }
-          [[ '${{ needs.fast_build_install.result }}' == 'success' ]] || { echo 'fast_build_install failed'; exit 1; }
+          [[ '${{ needs.lint_build.result }}' == 'success' ]] || { echo 'lint_build failed'; exit 1; }
           [[ '${{ needs.tests.result }}' == 'success' ]] || { echo 'tests failed'; exit 1; }
 
       - name: sccache summary note

@@ -14,7 +14,7 @@ use codex_core::config::types::McpServerTransportConfig;
 use codex_core::mcp::auth::McpOAuthLoginSupport;
 use codex_core::mcp::auth::compute_auth_statuses;
 use codex_core::mcp::auth::oauth_login_support;
-use codex_core::protocol::McpAuthStatus;
+use codex_protocol::protocol::McpAuthStatus;
 use codex_rmcp_client::delete_oauth_tokens;
 use codex_rmcp_client::perform_oauth_login;
 use codex_utils_cli::CliConfigOverrides;
@@ -250,6 +250,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
         enabled_tools: None,
         disabled_tools: None,
         scopes: None,
+        oauth_resource: None,
     };
 
     servers.insert(name.clone(), new_entry);
@@ -272,6 +273,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
                 oauth_config.http_headers,
                 oauth_config.env_http_headers,
                 &Vec::new(),
+                None,
                 config.mcp_oauth_callback_port,
                 config.mcp_oauth_callback_url.as_deref(),
             )
@@ -356,6 +358,7 @@ async fn run_login(config_overrides: &CliConfigOverrides, login_args: LoginArgs)
         http_headers,
         env_http_headers,
         &scopes,
+        server.oauth_resource.as_deref(),
         config.mcp_oauth_callback_port,
         config.mcp_oauth_callback_url.as_deref(),
     )

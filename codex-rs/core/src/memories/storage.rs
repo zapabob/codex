@@ -82,11 +82,13 @@ async fn rebuild_raw_memories_file(
         )
         .map_err(raw_memories_format_error)?;
         writeln!(body, "cwd: {}", memory.cwd.display()).map_err(raw_memories_format_error)?;
-        writeln!(body).map_err(raw_memories_format_error)?;
+        writeln!(body, "rollout_path: {}", memory.rollout_path.display())
+            .map_err(raw_memories_format_error)?;
         let rollout_summary_file = format!("{}.md", rollout_summary_file_stem(memory));
-        let raw_memory =
-            replace_rollout_summary_file_in_raw_memory(&memory.raw_memory, &rollout_summary_file);
-        body.push_str(raw_memory.trim());
+        writeln!(body, "rollout_summary_file: {rollout_summary_file}")
+            .map_err(raw_memories_format_error)?;
+        writeln!(body).map_err(raw_memories_format_error)?;
+        body.push_str(memory.raw_memory.trim());
         body.push_str("\n\n");
     }
 
@@ -138,7 +140,12 @@ async fn write_rollout_summary_for_thread(
         memory.source_updated_at.to_rfc3339()
     )
     .map_err(rollout_summary_format_error)?;
+    writeln!(body, "rollout_path: {}", memory.rollout_path.display())
+        .map_err(rollout_summary_format_error)?;
     writeln!(body, "cwd: {}", memory.cwd.display()).map_err(rollout_summary_format_error)?;
+    if let Some(git_branch) = memory.git_branch.as_deref() {
+        writeln!(body, "git_branch: {git_branch}").map_err(rollout_summary_format_error)?;
+    }
     writeln!(body).map_err(rollout_summary_format_error)?;
     body.push_str(&memory.rollout_summary);
     body.push('\n');
@@ -159,26 +166,6 @@ fn raw_memories_format_error(err: std::fmt::Error) -> std::io::Error {
 
 fn rollout_summary_format_error(err: std::fmt::Error) -> std::io::Error {
     std::io::Error::other(format!("format rollout summary: {err}"))
-}
-
-fn replace_rollout_summary_file_in_raw_memory(
-    raw_memory: &str,
-    rollout_summary_file: &str,
-) -> String {
-    const ROLLOUT_SUMMARY_PREFIX: &str = "rollout_summary_file: ";
-
-    let replacement = format!("rollout_summary_file: {rollout_summary_file}");
-    raw_memory
-        .split('\n')
-        .map(|line| {
-            if line.starts_with(ROLLOUT_SUMMARY_PREFIX) {
-                replacement.as_str()
-            } else {
-                line
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
 }
 
 pub(crate) fn rollout_summary_file_stem(memory: &Stage1Output) -> String {
@@ -270,7 +257,6 @@ pub(super) fn rollout_summary_file_stem_from_parts(
 
 #[cfg(test)]
 mod tests {
-    use super::replace_rollout_summary_file_in_raw_memory;
     use super::rollout_summary_file_stem;
     use super::rollout_summary_file_stem_from_parts;
     use chrono::TimeZone;
@@ -288,7 +274,9 @@ mod tests {
             raw_memory: "raw memory".to_string(),
             rollout_summary: "summary".to_string(),
             rollout_slug: rollout_slug.map(ToString::to_string),
+            rollout_path: PathBuf::from("/tmp/rollout.jsonl"),
             cwd: PathBuf::from("/tmp/workspace"),
+            git_branch: None,
             generated_at: Utc.timestamp_opt(124, 0).single().expect("timestamp"),
         }
     }
@@ -338,72 +326,5 @@ mod tests {
         let memory = stage1_output_with_slug(thread_id, Some(""));
 
         assert_eq!(rollout_summary_file_stem(&memory), FIXED_PREFIX);
-    }
-
-    #[test]
-    fn replace_rollout_summary_file_in_raw_memory_replaces_existing_value() {
-        let raw_memory = "\
----
-rollout_summary_file: wrong.md
-description: demo
-keywords: one, two
----
-- body line";
-        let normalized = replace_rollout_summary_file_in_raw_memory(
-            raw_memory,
-            "2025-01-01T00-00-00-abcd-demo.md",
-        );
-
-        assert_eq!(
-            normalized,
-            "\
----
-rollout_summary_file: 2025-01-01T00-00-00-abcd-demo.md
-description: demo
-keywords: one, two
----
-- body line"
-        );
-    }
-
-    #[test]
-    fn replace_rollout_summary_file_in_raw_memory_replaces_placeholder() {
-        let raw_memory = "\
----
-rollout_summary_file: <system_populated_file.md>
-description: demo
-keywords: one, two
----
-- body line";
-        let normalized = replace_rollout_summary_file_in_raw_memory(
-            raw_memory,
-            "2025-01-01T00-00-00-abcd-demo.md",
-        );
-
-        assert_eq!(
-            normalized,
-            "\
----
-rollout_summary_file: 2025-01-01T00-00-00-abcd-demo.md
-description: demo
-keywords: one, two
----
-- body line"
-        );
-    }
-
-    #[test]
-    fn replace_rollout_summary_file_in_raw_memory_leaves_text_without_field_unchanged() {
-        let raw_memory = "\
----
-description: demo
-keywords: one, two
----
-- body line";
-        let normalized = replace_rollout_summary_file_in_raw_memory(
-            raw_memory,
-            "2025-01-01T00-00-00-abcd-demo.md",
-        );
-        assert_eq!(normalized, raw_memory);
     }
 }

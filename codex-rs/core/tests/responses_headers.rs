@@ -2,17 +2,18 @@ use std::process::Command;
 use std::sync::Arc;
 
 use codex_core::CodexAuth;
-use codex_core::ContentItem;
 use codex_core::ModelClient;
 use codex_core::ModelProviderInfo;
 use codex_core::Prompt;
 use codex_core::ResponseEvent;
-use codex_core::ResponseItem;
+use codex_core::ResponsesWebsocketVersion;
 use codex_core::WireApi;
 use codex_otel::OtelManager;
 use codex_otel::TelemetryAuthMode;
 use codex_protocol::ThreadId;
 use codex_protocol::config_types::ReasoningSummary;
+use codex_protocol::models::ContentItem;
+use codex_protocol::models::ResponseItem;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::SubAgentSource;
 use core_test_support::load_default_config_for_test;
@@ -91,8 +92,7 @@ async fn responses_stream_includes_subagent_header_on_review() {
         provider.clone(),
         session_source,
         config.model_verbosity,
-        false,
-        false,
+        None::<ResponsesWebsocketVersion>,
         false,
         false,
         None,
@@ -111,7 +111,14 @@ async fn responses_stream_includes_subagent_header_on_review() {
     }];
 
     let mut stream = client_session
-        .stream(&prompt, &model_info, &otel_manager, effort, summary, None)
+        .stream(
+            &prompt,
+            &model_info,
+            &otel_manager,
+            effort,
+            summary.unwrap_or(model_info.default_reasoning_summary),
+            None,
+        )
         .await
         .expect("stream failed");
     while let Some(event) = stream.next().await {
@@ -197,8 +204,7 @@ async fn responses_stream_includes_subagent_header_on_other() {
         provider.clone(),
         session_source,
         config.model_verbosity,
-        false,
-        false,
+        None::<ResponsesWebsocketVersion>,
         false,
         false,
         None,
@@ -217,7 +223,14 @@ async fn responses_stream_includes_subagent_header_on_other() {
     }];
 
     let mut stream = client_session
-        .stream(&prompt, &model_info, &otel_manager, effort, summary, None)
+        .stream(
+            &prompt,
+            &model_info,
+            &otel_manager,
+            effort,
+            summary.unwrap_or(model_info.default_reasoning_summary),
+            None,
+        )
         .await
         .expect("stream failed");
     while let Some(event) = stream.next().await {
@@ -268,7 +281,7 @@ async fn responses_respects_model_info_overrides_from_config() {
     config.model_provider_id = provider.name.clone();
     config.model_provider = provider.clone();
     config.model_supports_reasoning_summaries = Some(true);
-    config.model_reasoning_summary = ReasoningSummary::Detailed;
+    config.model_reasoning_summary = Some(ReasoningSummary::Detailed);
     let effort = config.model_reasoning_effort;
     let summary = config.model_reasoning_summary;
     let model = config.model.clone().expect("model configured");
@@ -302,8 +315,7 @@ async fn responses_respects_model_info_overrides_from_config() {
         provider.clone(),
         session_source,
         config.model_verbosity,
-        false,
-        false,
+        None::<ResponsesWebsocketVersion>,
         false,
         false,
         None,
@@ -322,7 +334,14 @@ async fn responses_respects_model_info_overrides_from_config() {
     }];
 
     let mut stream = client_session
-        .stream(&prompt, &model_info, &otel_manager, effort, summary, None)
+        .stream(
+            &prompt,
+            &model_info,
+            &otel_manager,
+            effort,
+            summary.unwrap_or(model_info.default_reasoning_summary),
+            None,
+        )
         .await
         .expect("stream failed");
     while let Some(event) = stream.next().await {

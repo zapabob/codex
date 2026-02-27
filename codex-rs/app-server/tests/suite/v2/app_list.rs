@@ -15,6 +15,7 @@ use axum::Router;
 use axum::extract::State;
 use axum::http::HeaderMap;
 use axum::http::StatusCode;
+use axum::http::Uri;
 use axum::http::header::AUTHORIZATION;
 use axum::routing::get;
 use codex_app_server_protocol::AppBranding;
@@ -995,6 +996,41 @@ async fn list_apps_force_refetch_patches_updates_from_cached_snapshots() -> Resu
         first_update.data,
         vec![
             AppInfo {
+                id: "beta".to_string(),
+                name: "Beta App".to_string(),
+                description: Some("Beta v1".to_string()),
+                logo_url: None,
+                logo_url_dark: None,
+                distribution_channel: None,
+                branding: None,
+                app_metadata: None,
+                labels: None,
+                install_url: Some("https://chatgpt.com/apps/beta-app/beta".to_string()),
+                is_accessible: true,
+                is_enabled: true,
+            },
+            AppInfo {
+                id: "alpha".to_string(),
+                name: "Alpha".to_string(),
+                description: Some("Alpha v1".to_string()),
+                logo_url: None,
+                logo_url_dark: None,
+                distribution_channel: None,
+                branding: None,
+                app_metadata: None,
+                labels: None,
+                install_url: Some("https://chatgpt.com/apps/alpha/alpha".to_string()),
+                is_accessible: false,
+                is_enabled: true,
+            },
+        ]
+    );
+
+    let second_update = read_app_list_updated_notification(&mut mcp).await?;
+    assert_eq!(
+        second_update.data,
+        vec![
+            AppInfo {
                 id: "alpha".to_string(),
                 name: "Alpha".to_string(),
                 description: Some("Alpha v1".to_string()),
@@ -1039,8 +1075,8 @@ async fn list_apps_force_refetch_patches_updates_from_cached_snapshots() -> Resu
         is_accessible: false,
         is_enabled: true,
     }];
-    let second_update = read_app_list_updated_notification(&mut mcp).await?;
-    assert_eq!(second_update.data, expected_final);
+    let third_update = read_app_list_updated_notification(&mut mcp).await?;
+    assert_eq!(third_update.data, expected_final);
 
     let refetch_response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
@@ -1215,6 +1251,7 @@ async fn start_apps_server_with_delays_and_control(
 async fn list_directory_connectors(
     State(state): State<Arc<AppsServerState>>,
     headers: HeaderMap,
+    uri: Uri,
 ) -> Result<impl axum::response::IntoResponse, StatusCode> {
     if state.directory_delay > Duration::ZERO {
         tokio::time::sleep(state.directory_delay).await;
@@ -1228,16 +1265,21 @@ async fn list_directory_connectors(
         .get("chatgpt-account-id")
         .and_then(|value| value.to_str().ok())
         .is_some_and(|value| value == state.expected_account_id);
+    let external_logos_ok = uri
+        .query()
+        .is_some_and(|query| query.split('&').any(|pair| pair == "external_logos=true"));
 
-    if bearer_ok && account_ok {
+    if !bearer_ok || !account_ok {
+        Err(StatusCode::UNAUTHORIZED)
+    } else if !external_logos_ok {
+        Err(StatusCode::BAD_REQUEST)
+    } else {
         let response = state
             .response
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .clone();
         Ok(Json(response))
-    } else {
-        Err(StatusCode::UNAUTHORIZED)
     }
 }
 
