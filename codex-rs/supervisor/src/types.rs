@@ -128,7 +128,7 @@ impl Default for SupervisorConfig {
             strategy: CoordinationStrategy::default(),
             style: ManagementStyle::default(),
             merge_strategy: MergeStrategy::default(),
-            max_parallel_agents: 5,
+            max_parallel_agents: 10,
         }
     }
 }

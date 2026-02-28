@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Card } from '../atoms/Card'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
@@ -13,7 +12,7 @@ interface QCProcessAutomationProps {
 }
 
 export function QCProcessAutomation({ processes, onProcessStart, onProcessStop }: QCProcessAutomationProps) {
-  // const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+  const isGeneratingReport = false
 
   const predefinedProcesses = [
     {

@@ -89,8 +89,9 @@ impl ModelFamily {
         if let Some(supports_reasoning_summaries) = config.model_supports_reasoning_summaries {
             self.supports_reasoning_summaries = supports_reasoning_summaries;
         }
-        // model_reasoning_summary is ReasoningSummary (not Option), so we can use it directly
-        self.reasoning_summary_format = config.model_reasoning_summary;
+        self.reasoning_summary_format = config
+            .model_reasoning_summary
+            .unwrap_or(ReasoningSummary::Auto);
         if let Some(context_window) = config.model_context_window {
             self.context_window = Some(context_window);
         }

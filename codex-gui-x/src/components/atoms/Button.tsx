@@ -1,11 +1,9 @@
 import React, { forwardRef } from 'react';
 import {
   Button as MuiButton,
-  ButtonProps as MuiButtonProps,
   CircularProgress,
-  SxProps,
-  Theme,
 } from '@mui/material';
+import type { ButtonProps as MuiButtonProps, SxProps, Theme } from '@mui/material';
 import { motion } from 'framer-motion';
 
 export interface ButtonProps extends Omit<MuiButtonProps, 'sx'> {
@@ -18,8 +16,6 @@ export interface ButtonProps extends Omit<MuiButtonProps, 'sx'> {
   color?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
   sx?: SxProps<Theme>;
 }
-
-const MotionButton = motion.create(MuiButton);
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -39,8 +35,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    const isDisabled = loading || disabled;
+
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (loading || disabled) return;
+      if (isDisabled) return;
       onClick?.(event);
     };
 
@@ -74,26 +72,33 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     if (animated) {
       return (
-        <MotionButton
-          ref={ref}
-          variant={variant}
-          size={size}
-          color={color}
-          disabled={loading || disabled}
-          fullWidth={fullWidth}
-          sx={buttonSx}
-          onClick={handleClick}
-          whileHover={{ scale: disabled ? 1 : 1.02 }}
-          whileTap={{ scale: disabled ? 1 : 0.98 }}
+        <motion.div
+          whileHover={{ scale: isDisabled ? 1 : 1.02 }}
+          whileTap={{ scale: isDisabled ? 1 : 0.98 }}
           transition={{
             type: 'spring',
             stiffness: 400,
             damping: 17,
           }}
-          {...props}
+          style={{
+            width: fullWidth ? '100%' : undefined,
+            display: fullWidth ? 'block' : 'inline-block',
+          }}
         >
-          {buttonContent}
-        </MotionButton>
+          <MuiButton
+            ref={ref}
+            variant={variant}
+            size={size}
+            color={color}
+            disabled={isDisabled}
+            fullWidth={fullWidth}
+            sx={buttonSx}
+            onClick={handleClick}
+            {...props}
+          >
+            {buttonContent}
+          </MuiButton>
+        </motion.div>
       );
     }
 
@@ -103,7 +108,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         variant={variant}
         size={size}
         color={color}
-        disabled={loading || disabled}
+        disabled={isDisabled}
         fullWidth={fullWidth}
         sx={buttonSx}
         onClick={handleClick}

@@ -1387,7 +1387,7 @@ impl HistoryCell for McpToolCallCell {
         let bullet = match status {
             Some(true) => "•".green().bold(),
             Some(false) => "•".red().bold(),
-            None => spinner(Some(self.start_time)),
+            None => spinner(Some(self.start_time), self.animations_enabled),
         };
         let header_text = if status.is_some() {
             "Called"
@@ -1502,6 +1502,7 @@ pub(crate) struct WebSearchCell {
     action: Option<WebSearchAction>,
     start_time: Instant,
     completed: bool,
+    animations_enabled: bool,
 }
 
 impl WebSearchCell {
@@ -1509,6 +1510,7 @@ impl WebSearchCell {
         call_id: String,
         query: String,
         action: Option<WebSearchAction>,
+        animations_enabled: bool,
     ) -> Self {
         Self {
             call_id,
@@ -1516,6 +1518,7 @@ impl WebSearchCell {
             action,
             start_time: Instant::now(),
             completed: false,
+            animations_enabled,
         }
     }
 
@@ -1538,7 +1541,7 @@ impl HistoryCell for WebSearchCell {
         let bullet = if self.completed {
             "•".dim()
         } else {
-            spinner(Some(self.start_time))
+            spinner(Some(self.start_time), self.animations_enabled)
         };
         let header = web_search_header(self.completed);
         let detail = web_search_detail(self.action.as_ref(), &self.query);
@@ -1551,8 +1554,12 @@ impl HistoryCell for WebSearchCell {
     }
 }
 
-pub(crate) fn new_active_web_search_call(call_id: String, query: String) -> WebSearchCell {
-    WebSearchCell::new(call_id, query, None)
+pub(crate) fn new_active_web_search_call(
+    call_id: String,
+    query: String,
+    animations_enabled: bool,
+) -> WebSearchCell {
+    WebSearchCell::new(call_id, query, None, animations_enabled)
 }
 
 pub(crate) fn new_web_search_call(
@@ -1560,7 +1567,7 @@ pub(crate) fn new_web_search_call(
     query: String,
     action: WebSearchAction,
 ) -> WebSearchCell {
-    let mut cell = WebSearchCell::new(call_id, query, Some(action));
+    let mut cell = WebSearchCell::new(call_id, query, Some(action), false);
     cell.complete();
     cell
 }
@@ -2014,12 +2021,10 @@ pub(crate) fn new_plan_update(update: UpdatePlanArgs) -> PlanUpdateCell {
     PlanUpdateCell { explanation, plan }
 }
 
-#[allow(dead_code)]
 pub(crate) fn new_proposed_plan(plan_markdown: String) -> ProposedPlanCell {
     ProposedPlanCell { plan_markdown }
 }
 
-#[allow(dead_code)]
 pub(crate) fn new_proposed_plan_stream(
     lines: Vec<Line<'static>>,
     is_stream_continuation: bool,
@@ -2031,13 +2036,11 @@ pub(crate) fn new_proposed_plan_stream(
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub(crate) struct ProposedPlanCell {
     plan_markdown: String,
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub(crate) struct ProposedPlanStreamCell {
     lines: Vec<Line<'static>>,
     is_stream_continuation: bool,

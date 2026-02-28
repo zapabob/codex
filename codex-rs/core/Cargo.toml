@@ -41,6 +41,7 @@ codex-git = { workspace = true }
 codex-hooks = { workspace = true }
 codex-keyring-store = { workspace = true }
 codex-network-proxy = { workspace = true }
+codex-deep-research = { workspace = true }
 codex-otel = { workspace = true }
 codex-protocol = { workspace = true }
 codex-rmcp-client = { workspace = true }
@@ -52,23 +53,31 @@ codex-utils-readiness = { workspace = true }
 codex-secrets = { workspace = true }
 codex-utils-string = { workspace = true }
 codex-utils-stream-parser = { workspace = true }
+codex-web-search = { workspace = true }
 codex-windows-sandbox = { package = "codex-windows-sandbox", path = "../windows-sandbox-rs" }
 csv = { workspace = true }
+dashmap = "6.1.0"
 dirs = { workspace = true }
 dunce = { workspace = true }
 encoding_rs = { workspace = true }
 env-flags = { workspace = true }
 eventsource-stream = { workspace = true }
 futures = { workspace = true }
+git2 = { workspace = true }
+hostname = "0.4"
 http = { workspace = true }
 iana-time-zone = { workspace = true }
+indoc = "2.0.6"
 indexmap = { workspace = true }
 keyring = { workspace = true, features = ["crypto-rust"] }
 libc = { workspace = true }
+lsp-types = "0.95.1"
+num_cpus = "1.17.0"
 notify = { workspace = true }
 once_cell = { workspace = true }
 os_info = { workspace = true }
 rand = { workspace = true }
+regex = { workspace = true }
 regex-lite = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 rmcp = { workspace = true, default-features = false, features = [
@@ -85,6 +94,8 @@ sha1 = { workspace = true }
 sha2 = { workspace = true }
 shlex = { workspace = true }
 similar = { workspace = true }
+sqlx = { workspace = true }
+sysinfo = "0.31"
 tempfile = { workspace = true }
 test-case = "3.3.1"
 test-log = { workspace = true }
@@ -109,6 +120,7 @@ toml_edit = { workspace = true }
 tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v4", "v5"] }
+walkdir = { workspace = true }
 which = { workspace = true }
 wildmatch = { workspace = true }
 zip = { workspace = true }
@@ -174,3 +186,23 @@ zstd = { workspace = true }
 
 [package.metadata.cargo-shear]
 ignored = ["openssl-sys"]
+
+[features]
+default = []
+custom-features = [
+    "a2a-comm",
+    "autonomous",
+    "skill-mcp",
+    "llmops",
+]
+git4d-base = []
+git4d-vr = ["git4d-base"]
+git4d-superior = ["git4d-base"]
+a2a-comm = []
+autonomous = []
+skill-mcp = []
+llmops = []
+cowork = []
+windows-ai = []
+agent_security = []
+cuda = []

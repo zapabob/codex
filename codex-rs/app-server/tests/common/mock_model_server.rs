@@ -1,35 +1,13 @@
-// Mock model server for testing
-#![allow(dead_code)]
-use std::net::SocketAddr;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering;
 
 use core_test_support::responses;
-use wiremock::matchers::{method, path_regex};
-use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
-
-pub struct MockModelServer {
-    addr: SocketAddr,
-}
-
-impl MockModelServer {
-    pub fn new() -> Self {
-        Self {
-            addr: SocketAddr::from(([127, 0, 0, 1], 0)),
-        }
-    }
-
-    pub fn addr(&self) -> SocketAddr {
-        self.addr
-    }
-}
-
-pub fn create_mock_chat_completions_server() -> MockModelServer {
-    MockModelServer::new()
-}
-
-pub fn create_mock_chat_completions_server_unchecked() -> MockModelServer {
-    MockModelServer::new()
-}
+use wiremock::Mock;
+use wiremock::MockServer;
+use wiremock::Respond;
+use wiremock::ResponseTemplate;
+use wiremock::matchers::method;
+use wiremock::matchers::path_regex;
 
 /// Create a mock server that will provide the responses, in order, for
 /// requests to the `/v1/responses` endpoint.

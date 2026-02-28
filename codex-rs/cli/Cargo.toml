@@ -72,7 +72,7 @@ codex_windows_sandbox = { package = "codex-windows-sandbox", path = "../windows-
 [features]
 default = []
 cuda = []
-custom-features = []
+custom-features = ["codex-core/custom-features"]
 
 [dev-dependencies]
 assert_cmd = { workspace = true }

@@ -460,8 +460,6 @@ pub(crate) enum FeedbackCategory {
     BadResult,
     GoodResult,
     Bug,
-    // SafetyCheck is constructed in feedback_selection_params (intentionally retained)
-    #[allow(dead_code)]
     SafetyCheck,
     Other,
 }

@@ -165,7 +165,6 @@ impl From<DiffSummary> for Box<dyn Renderable> {
     }
 }
 
-#[allow(dead_code)]
 pub(crate) fn create_diff_summary(
     changes: &HashMap<PathBuf, FileChange>,
     cwd: &Path,
@@ -223,7 +222,6 @@ fn render_line_count_summary(added: usize, removed: usize) -> Vec<RtSpan<'static
     spans
 }
 
-#[allow(dead_code)]
 fn render_changes_block(rows: Vec<Row>, wrap_cols: usize, cwd: &Path) -> Vec<RtLine<'static>> {
     let mut out: Vec<RtLine<'static>> = Vec::new();
 

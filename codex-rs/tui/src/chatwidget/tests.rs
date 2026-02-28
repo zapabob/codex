@@ -4053,6 +4053,7 @@ async fn unified_exec_wait_status_header_updates_on_late_command_display() {
         key: "proc-1".to_string(),
         call_id: "call-1".to_string(),
         command_display: "sleep 5".to_string(),
+        recent_chunks: Vec::new(),
     });
 
     chat.on_terminal_interaction(TerminalInteractionEvent {

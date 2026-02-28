@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { Box } from "@mui/material";
 import { AIToolOrchestrator } from "../components/ai-tools/AIToolOrchestrator";
@@ -13,7 +12,6 @@ import type {
 } from "../types/ai-tools";
 
 export const AIToolsPage: React.FC = () => {
-  const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<
     "orchestrator" | "distributor" | "integrator"
   >("orchestrator");

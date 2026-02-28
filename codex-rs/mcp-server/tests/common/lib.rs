@@ -1,4 +1,3 @@
-#![allow(unused)]
 mod mcp_process;
 mod mock_model_server;
 mod responses;

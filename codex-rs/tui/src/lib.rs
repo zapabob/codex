@@ -291,16 +291,7 @@ pub async fn run_main(mut cli: Cli, arg0_paths: Arg0DispatchPaths) -> std::io::R
     )
     .await
     {
-        Ok(config) => config,
-        Err(err) => {
-            eprintln!("Error loading config.toml as TOML: {err}");
-            std::process::exit(1);
-        }
-    };
-
-    #[allow(clippy::print_stderr)]
-    let _config = match Config::load_with_cli_overrides(cli_kv_overrides.clone()).await {
-        Ok(config) => config,
+        Ok(config_toml) => config_toml,
         Err(err) => {
             let config_error = err
                 .get_ref()
@@ -574,24 +565,11 @@ async fn run_ratatui_app(
                 UpdatePromptOutcome::Continue => {}
                 UpdatePromptOutcome::RunUpdate(action) => {
                     crate::tui::restore()?;
-                    // Map generic updates::UpdateAction to our AppExitInfo's update_action::UpdateAction
-                    let mapped_action = match action {
-                        crate::updates::UpdateAction::NpmGlobalLatest => {
-                            crate::update_action::UpdateAction::NpmGlobalLatest
-                        }
-                        crate::updates::UpdateAction::BunGlobalLatest => {
-                            crate::update_action::UpdateAction::BunGlobalLatest
-                        }
-                        crate::updates::UpdateAction::BrewUpgrade => {
-                            crate::update_action::UpdateAction::BrewUpgrade
-                        }
-                    };
-
                     return Ok(AppExitInfo {
                         token_usage: codex_protocol::protocol::TokenUsage::default(),
                         thread_id: None,
                         thread_name: None,
-                        update_action: Some(mapped_action),
+                        update_action: Some(action),
                         exit_reason: ExitReason::UserRequested,
                     });
                 }

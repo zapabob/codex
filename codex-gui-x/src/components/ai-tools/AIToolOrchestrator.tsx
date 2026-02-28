@@ -116,15 +116,13 @@ export function AIToolOrchestrator({
       // Use counters for unique IDs to avoid "impure function" lint errors
       taskCounter += 1;
       const taskId = `task_nl_${taskCounter}`
-      const timestamp = new Date().getTime()
-
       // Create a development task from natural language prompt
       const task: DevelopmentTask = {
         id: taskId,
         title: naturalLanguagePrompt.substring(0, 50) + (naturalLanguagePrompt.length > 50 ? '...' : ''),
         description: naturalLanguagePrompt,
         assignedTools: selectedTools,
-        subtasks: selectedTools.map((toolId, index) => {
+        subtasks: selectedTools.map((toolId) => {
           subtaskCounter += 1;
           return {
             id: `subtask_nl_${subtaskCounter}`,

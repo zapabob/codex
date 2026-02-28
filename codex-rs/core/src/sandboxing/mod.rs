@@ -26,6 +26,7 @@ use crate::spawn::CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use crate::tools::sandboxing::SandboxablePreference;
 use codex_network_proxy::NetworkProxy;
 use codex_protocol::config_types::WindowsSandboxLevel;
+use codex_protocol::models::PermissionProfile;
 pub use codex_protocol::models::SandboxPermissions;
 
 use std::collections::HashMap;
@@ -40,6 +41,7 @@ pub struct CommandSpec {
     pub env: HashMap<String, String>,
     pub expiration: ExecExpiration,
     pub sandbox_permissions: SandboxPermissions,
+    pub additional_permissions: Option<PermissionProfile>,
     pub justification: Option<String>,
 }
 
@@ -265,6 +267,30 @@ pub async fn execute_env(
     stdout_stream: Option<StdoutStream>,
 ) -> crate::error::Result<ExecToolCallOutput> {
     execute_exec_env(env, policy, stdout_stream).await
+}
+
+pub fn normalize_additional_permissions(
+    mut profile: PermissionProfile,
+    cwd: &Path,
+) -> Result<PermissionProfile, String> {
+    fn normalize_paths(paths: &mut Option<Vec<PathBuf>>, cwd: &Path) {
+        if let Some(entries) = paths.as_mut() {
+            for path in entries.iter_mut() {
+                if path.is_relative() {
+                    *path = cwd.join(&*path);
+                }
+            }
+            entries.sort();
+            entries.dedup();
+        }
+    }
+
+    if let Some(fs) = profile.file_system.as_mut() {
+        normalize_paths(&mut fs.read, cwd);
+        normalize_paths(&mut fs.write, cwd);
+    }
+
+    Ok(profile)
 }
 
 #[cfg(test)]

@@ -193,9 +193,9 @@ pub async fn process_exec_tool_call(
         justification,
         arg0: _,
     } = params;
-    let network_attempt_id = network_attempt_id.map(|attempt_id| attempt_id.to_string());
+    let _network_attempt_id = network_attempt_id.map(|attempt_id| attempt_id.to_string());
     if let Some(network) = network.as_ref() {
-        network.apply_to_env_for_attempt(&mut env, network_attempt_id.as_deref());
+        network.apply_to_env(&mut env);
     }
     let (program, args) = command.split_first().ok_or_else(|| {
         CodexErr::Io(io::Error::new(
@@ -211,6 +211,7 @@ pub async fn process_exec_tool_call(
         env,
         expiration,
         sandbox_permissions,
+        additional_permissions: None,
         justification,
     };
 
@@ -362,9 +363,9 @@ async fn exec_windows_sandbox(
         windows_sandbox_level,
         ..
     } = params;
-    let network_attempt_id = network_attempt_id.map(|attempt_id| attempt_id.to_string());
+    let _network_attempt_id = network_attempt_id.map(|attempt_id| attempt_id.to_string());
     if let Some(network) = network.as_ref() {
-        network.apply_to_env_for_attempt(&mut env, network_attempt_id.as_deref());
+        network.apply_to_env(&mut env);
     }
 
     // TODO(iceweasel-oai): run_windows_sandbox_capture should support all
@@ -726,10 +727,10 @@ async fn exec(
         windows_sandbox_level: _,
         ..
     } = params;
-    let network_attempt_id = network_attempt_id.map(|attempt_id| attempt_id.to_string());
+    let _network_attempt_id = network_attempt_id.map(|attempt_id| attempt_id.to_string());
 
     if let Some(network) = network.as_ref() {
-        network.apply_to_env_for_attempt(&mut env, network_attempt_id.as_deref());
+        network.apply_to_env(&mut env);
     }
 
     let (program, args) = command.split_first().ok_or_else(|| {

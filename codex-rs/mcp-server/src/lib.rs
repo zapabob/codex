@@ -17,67 +17,29 @@ use tokio::io::AsyncWriteExt;
 use tokio::io::BufReader;
 use tokio::io::{self};
 use tokio::sync::mpsc;
-
+use tracing::debug;
 use tracing::error;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
-#[allow(dead_code)]
-mod auto_orchestrator_tool;
-#[allow(dead_code)]
-mod auto_orchestrator_tool_handler;
 mod codex_tool_config;
 mod codex_tool_runner;
-mod codex_tools;
-mod custom_command_tool;
-mod custom_command_tool_handler;
-mod datetime_tool;
-mod datetime_tool_handler;
-mod deep_research_tool;
-mod deep_research_tool_handler;
 mod exec_approval;
-mod external_mcp_manager;
-mod external_mcp_tool;
-mod external_mcp_tool_handler;
-#[allow(dead_code)]
-mod hook_tool;
-#[allow(dead_code)]
-mod hook_tool_handler;
-#[allow(dead_code)]
-mod lsp_tool_handler;
 pub(crate) mod message_processor;
-#[allow(dead_code)]
-mod microsoft365_tool_handler;
 mod outgoing_message;
 mod patch_approval;
-#[allow(dead_code)]
-mod subagent_tool;
-#[allow(dead_code)]
-mod subagent_tool_handler;
-#[allow(dead_code)]
-mod supervisor_tool;
-#[allow(dead_code)]
-mod supervisor_tool_handler;
-mod system_tools;
-mod webhook_tool;
-mod webhook_tool_handler;
-mod windows_mcp_bridge;
 
 use crate::message_processor::MessageProcessor;
 use crate::outgoing_message::OutgoingJsonRpcMessage;
 use crate::outgoing_message::OutgoingMessage;
 use crate::outgoing_message::OutgoingMessageSender;
 
-pub use crate::auto_orchestrator_tool::AutoOrchestratorToolParam;
 pub use crate::codex_tool_config::CodexToolCallParam;
 pub use crate::codex_tool_config::CodexToolCallReplyParam;
-pub use crate::codex_tools::CodexMcpTool;
-pub use crate::deep_research_tool::DeepResearchToolParam;
 pub use crate::exec_approval::ExecApprovalElicitRequestParams;
 pub use crate::exec_approval::ExecApprovalResponse;
 pub use crate::patch_approval::PatchApprovalElicitRequestParams;
 pub use crate::patch_approval::PatchApprovalResponse;
-pub use crate::supervisor_tool::SupervisorToolParam;
 
 /// Size of the bounded channels used to communicate between tasks. The value
 /// is a balance between throughput and memory usage – 128 messages should be
@@ -119,6 +81,8 @@ pub async fn run_main(
                     Err(e) => error!("Failed to deserialize JSON-RPC message: {e}"),
                 }
             }
+
+            debug!("stdin reader finished (EOF)");
         }
     });
 

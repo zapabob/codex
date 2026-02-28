@@ -2359,7 +2359,7 @@ mod tests {
     async fn test_handle_turn_complete_emits_completed_without_error() -> Result<()> {
         let conversation_id = ThreadId::new();
         let event_turn_id = "complete1".to_string();
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2404,7 +2404,7 @@ mod tests {
             &thread_state,
         )
         .await;
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2448,7 +2448,7 @@ mod tests {
             &thread_state,
         )
         .await;
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2540,7 +2540,7 @@ mod tests {
     async fn test_handle_token_count_event_emits_usage_and_rate_limits() -> Result<()> {
         let conversation_id = ThreadId::new();
         let turn_id = "turn-123".to_string();
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2628,7 +2628,7 @@ mod tests {
     async fn test_handle_token_count_event_without_usage_info() -> Result<()> {
         let conversation_id = ThreadId::new();
         let turn_id = "turn-456".to_string();
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2699,7 +2699,7 @@ mod tests {
         let conversation_b = ThreadId::new();
         let thread_state = new_thread_state();
 
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,

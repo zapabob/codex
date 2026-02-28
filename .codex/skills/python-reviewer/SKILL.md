@@ -1,63 +1,23 @@
 ---
 name: python-reviewer
-description: Pythonå°ç¨ã³ã¼ãã¬ãã¥ã¼ã»åãã³ããEDjango/FastAPIãã¹ããEã©ã¯ãE£ã¹
+description: Python code review skill focused on quality, correctness, security, and framework best practices.
 ---
 
-# Python-Reviewer Agent Skill
+# Python Reviewer Skill
 
 ## Overview
 
-Pythonå°ç¨ã³ã¼ãã¬ãã¥ã¼ã»åãã³ããEDjango/FastAPIãã¹ããEã©ã¯ãE£ã¹
+Performs focused Python reviews for code quality, security, maintainability, and common framework usage (for example Django and FastAPI).
 
 ## Capabilities
 
-- Python-Reviewer-specific analysis and recommendations
-- Automated code review and improvements
-- Best practices enforcement
+- Static review for bugs and risky patterns
+- Security and input-validation checks
+- Python style and maintainability guidance
+- Framework-aware recommendations
 
-## Tools Required
+## Usage
 
-### MCP Tools
-- `code_indexer`
-- `ast_analyzer`
-- `python_language_server`
-### File System Access
-- **Read**: Full codebase access
-- **Write**: Limited to ./artifacts, ./review-comments
-### Shell Commands
-- `python`
-- `python3`
-- `pip`
-- `pylint`
-- `black`
-- `mypy`
-- `flake8`
-- `bandit`
-- `pytest`
-- `isort`
-- `git`
-
-## Usage Examples
-
-### Basic Usage
+```bash
+codex $python-reviewer "Review this Python module for bugs and security issues"
 ```
-codex $python-reviewer "Perform python-reviewer analysis on this codebase"
-```
-
-### Advanced Usage
-```
-codex $python-reviewer "Review and improve the python-reviewer implementation"
-```
-
-## Output Format
-
-The python-reviewer agent provides:
-- Detailed analysis reports
-- Code improvement suggestions
-- Best practices recommendations
-- Automated fixes where applicable
-
-## References
-
-- [OpenAI Codex Documentation](https://developers.openai.com/codex)
-- [Agent Skills Guide](https://developers.openai.com/codex/skills)

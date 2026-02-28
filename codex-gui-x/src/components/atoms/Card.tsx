@@ -4,10 +4,8 @@ import {
   CardContent,
   CardActions,
   CardHeader,
-  CardProps as MuiCardProps,
-  SxProps,
-  Theme,
 } from '@mui/material';
+import type { CardProps as MuiCardProps, SxProps, Theme } from '@mui/material';
 import { motion } from 'framer-motion';
 
 export interface CardProps extends Omit<MuiCardProps, 'sx'> {
@@ -17,8 +15,6 @@ export interface CardProps extends Omit<MuiCardProps, 'sx'> {
   actions?: React.ReactNode;
   sx?: SxProps<Theme>;
 }
-
-const MotionCard = motion.create(MuiCard);
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   (
@@ -61,10 +57,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
                 color: 'text.secondary',
               },
             }}
-            title={typeof header === 'string' ? header : undefined}
-          >
-            {typeof header !== 'string' && header}
-          </CardHeader>
+            title={header}
+          />
         )}
         <CardContent sx={{ pb: actions ? 1 : 2 }}>
           {children}
@@ -79,9 +73,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 
     if (animated) {
       return (
-        <MotionCard
-          ref={ref}
-          sx={cardSx}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
@@ -90,10 +82,11 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
             stiffness: 300,
             damping: 30,
           }}
-          {...props}
         >
-          {cardContent}
-        </MotionCard>
+          <MuiCard ref={ref} sx={cardSx} {...props}>
+            {cardContent}
+          </MuiCard>
+        </motion.div>
       );
     }
 

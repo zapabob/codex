@@ -155,12 +155,12 @@ pub(crate) async fn execute_user_shell_command(
             Some(session.conversation_id),
         ),
         network: turn_context.network.clone(),
+        network_attempt_id: None,
         // TODO(zhao-oai): Now that we have ExecExpiration::Cancellation, we
         // should use that instead of an "arbitrarily large" timeout here.
         expiration: USER_SHELL_TIMEOUT_MS.into(),
         sandbox: SandboxType::None,
         sandbox_permissions: SandboxPermissions::UseDefault,
-        sandbox_policy: sandbox_policy.clone(),
         justification: None,
         arg0: None,
     };

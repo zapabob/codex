@@ -13,15 +13,15 @@ use codex_core::CodexThread;
 use codex_core::NewThread;
 use codex_core::ThreadManager;
 use codex_core::config::Config as CodexConfig;
-use codex_core::protocol::AgentMessageEvent;
-use codex_core::protocol::ApplyPatchApprovalRequestEvent;
-use codex_core::protocol::Event;
-use codex_core::protocol::EventMsg;
-use codex_core::protocol::ExecApprovalRequestEvent;
-use codex_core::protocol::Op;
-use codex_core::protocol::Submission;
-use codex_core::protocol::TurnCompleteEvent;
 use codex_protocol::ThreadId;
+use codex_protocol::protocol::AgentMessageEvent;
+use codex_protocol::protocol::ApplyPatchApprovalRequestEvent;
+use codex_protocol::protocol::Event;
+use codex_protocol::protocol::EventMsg;
+use codex_protocol::protocol::ExecApprovalRequestEvent;
+use codex_protocol::protocol::Op;
+use codex_protocol::protocol::Submission;
+use codex_protocol::protocol::TurnCompleteEvent;
 use codex_protocol::user_input::UserInput;
 use rmcp::model::CallToolResult;
 use rmcp::model::Content;
@@ -56,7 +56,6 @@ pub(crate) fn create_call_tool_result_with_thread_id(
 ///
 /// On completion (success or error) the function sends the appropriate
 /// `tools/call` response so the LLM can continue the conversation.
-#[allow(clippy::too_many_arguments)]
 pub async fn run_codex_tool_session(
     id: RequestId,
     initial_prompt: String,
@@ -141,7 +140,6 @@ pub async fn run_codex_tool_session(
     .await;
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn run_codex_tool_session_reply(
     thread_id: ThreadId,
     thread: Arc<CodexThread>,
@@ -225,8 +223,11 @@ async fn run_codex_tool_session_inner(
                             approval_id: _,
                             reason: _,
                             proposed_execpolicy_amendment: _,
+                            proposed_network_policy_amendments: _,
                             parsed_cmd,
                             network_approval_context: _,
+                            additional_permissions: _,
+                            available_decisions: _,
                         } = ev;
                         handle_exec_approval_request(
                             command,
@@ -260,12 +261,16 @@ async fn run_codex_tool_session_inner(
                     EventMsg::Warning(_) => {
                         continue;
                     }
+                    EventMsg::ElicitationRequest(_) => {
+                        // TODO: forward elicitation requests to the client?
+                        continue;
+                    }
                     EventMsg::ApplyPatchApprovalRequest(ApplyPatchApprovalRequestEvent {
                         call_id,
+                        turn_id: _,
                         reason,
                         grant_root,
                         changes,
-                        ..
                     }) => {
                         handle_patch_approval_request(
                             call_id,
@@ -310,6 +315,9 @@ async fn run_codex_tool_session_inner(
                     EventMsg::AgentReasoningDelta(_) => {
                         // TODO: think how we want to support this in the MCP
                     }
+                    EventMsg::McpStartupUpdate(_) | EventMsg::McpStartupComplete(_) => {
+                        // Ignored in MCP tool runner.
+                    }
                     EventMsg::AgentMessage(AgentMessageEvent { .. }) => {
                         // TODO: think how we want to support this in the MCP
                     }
@@ -351,15 +359,13 @@ async fn run_codex_tool_session_inner(
                     | EventMsg::ReasoningContentDelta(_)
                     | EventMsg::ReasoningRawContentDelta(_)
                     | EventMsg::SkillsUpdateAvailable
-                    | EventMsg::ContextCompacted(_)
-                    | EventMsg::McpStartupUpdate(_)
-                    | EventMsg::McpStartupComplete(_)
-                    | EventMsg::ElicitationRequest(_)
                     | EventMsg::UndoStarted(_)
                     | EventMsg::UndoCompleted(_)
                     | EventMsg::ExitedReviewMode(_)
                     | EventMsg::RequestUserInput(_)
                     | EventMsg::DynamicToolCallRequest(_)
+                    | EventMsg::DynamicToolCallResponse(_)
+                    | EventMsg::ContextCompacted(_)
                     | EventMsg::ModelReroute(_)
                     | EventMsg::ThreadRolledBack(_)
                     | EventMsg::CollabAgentSpawnBegin(_)
@@ -372,6 +378,9 @@ async fn run_codex_tool_session_inner(
                     | EventMsg::CollabCloseEnd(_)
                     | EventMsg::CollabResumeBegin(_)
                     | EventMsg::CollabResumeEnd(_)
+                    | EventMsg::RealtimeConversationStarted(_)
+                    | EventMsg::RealtimeConversationRealtime(_)
+                    | EventMsg::RealtimeConversationClosed(_)
                     | EventMsg::DeprecationNotice(_) => {
                         // For now, we do not do anything extra for these
                         // events. Note that

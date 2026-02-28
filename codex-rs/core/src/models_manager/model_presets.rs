@@ -11,6 +11,7 @@ pub const HIDE_GPT_5_1_CODEX_MAX_MIGRATION_PROMPT_CONFIG: &str =
     "hide_gpt-5.1-codex-max_migration_prompt";
 pub const HIDE_GPT5_1_MIGRATION_PROMPT_CONFIG: &str = "hide_gpt5_1_migration_prompt";
 
+#[allow(dead_code)]
 pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
     vec![
         ModelPreset {
@@ -41,6 +42,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: true,
             upgrade: None,
             show_in_picker: true,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -72,6 +74,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: true,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -96,6 +99,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: true,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -127,6 +131,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: true,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -158,6 +163,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: None,
             show_in_picker: false,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -189,6 +195,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: None,
             show_in_picker: false,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -217,6 +224,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: false,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -240,6 +248,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: false,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -268,6 +277,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: false,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -299,6 +309,7 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: false,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
@@ -326,12 +337,14 @@ pub(crate) static PRESETS: Lazy<Vec<ModelPreset>> = Lazy::new(|| {
             is_default: false,
             upgrade: Some(gpt_52_codex_upgrade()),
             show_in_picker: false,
+            availability_nux: None,
             supported_in_api: true,
             input_modalities: default_input_modalities(),
         },
     ]
 });
 
+#[allow(dead_code)]
 fn gpt_52_codex_upgrade() -> ModelUpgrade {
     ModelUpgrade {
         id: "gpt-5.2-codex".to_string(),
@@ -355,6 +368,7 @@ fn gpt_52_codex_upgrade() -> ModelUpgrade {
     }
 }
 
+#[allow(dead_code)]
 pub(super) fn builtin_model_presets(_auth_mode: Option<AuthMode>) -> Vec<ModelPreset> {
     PRESETS.iter().cloned().collect()
 }

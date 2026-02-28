@@ -100,59 +100,59 @@ use rmcp::model::RequestId;
 
 
 
-/// ãµãã¨ã¼ã¸ã§ã³ãã©ã³ã¿ã¤ã 
+/// ﾃ｣ﾂつｵﾃ｣ﾂδ姪｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂδｩﾃ｣ﾂδｳﾃ｣ﾂつｿﾃ｣ﾂつ､ﾃ｣ﾂδ
 
 pub struct AgentRuntime {
 
-    /// ã¨ã¼ã¸ã§ã³ãã­ã¼ãã¼
+    /// ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂδｭﾃ｣ﾂδｼﾃ｣ﾂδﾃ｣ﾂδｼ
 
     loader: Arc<RwLock<AgentLoader>>,
 
-    /// ããEã¯ã³äºç®ç®¡çE
+    /// ﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂつｯﾃ｣ﾂδｳﾃ､ﾂｺﾂ暗ｧﾂｮﾂ療ｧﾂｮﾂ｡ﾃｧﾂ青・
     budgeter: Arc<TokenBudgeter>,
 
-    /// å®è¡ä¸­ã®ã¨ã¼ã¸ã§ã³ãE
+    /// ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古､ﾂｸﾂｭﾃ｣ﾂ・ｮﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ・
     running_agents: Arc<RwLock<HashMap<String, AgentStatus>>>,
 
-    /// ã¯ã¼ã¯ã¹ããEã¹ãE£ã¬ã¯ããª
+    /// ﾃ｣ﾂδｯﾃ｣ﾂδｼﾃ｣ﾂつｯﾃ｣ﾂつｹﾃ｣ﾂδ堙｣ﾂ・ﾃ｣ﾂつｹﾃ｣ﾂδ・ﾂつ｣ﾃ｣ﾂδｬﾃ｣ﾂつｯﾃ｣ﾂδ暗｣ﾂδｪ
 
     workspace_dir: PathBuf,
 
-    /// LLMè¨­å®E
+    /// LLMﾃｨﾂｨﾂｭﾃ･ﾂｮﾂ・
     config: Arc<Config>,
 
-    /// èªè¨¼ããã¼ã¸ã£ã¼
+    /// ﾃｨﾂｪﾂ催ｨﾂｨﾂｼﾃ｣ﾂδ榲｣ﾂδ催｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂδ｣ﾃ｣ﾂδｼ
 
     auth_manager: Option<Arc<AuthManager>>,
 
-    /// OpenTelemetry ã¤ãã³ããEããEã¸ã£ã¼
+    /// OpenTelemetry ﾃ｣ﾂつ､ﾃ｣ﾂδ凖｣ﾂδｳﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂδ催｣ﾂ・ﾃ｣ﾂつｸﾃ｣ﾂδ｣ﾃ｣ﾂδｼ
 
     otel_manager: OtelEventManager,
 
-    /// ã¢ãE«ãã­ãã¤ãã¼æE ±
+    /// ﾃ｣ﾂδ｢ﾃ｣ﾂδ・ﾂδｫﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδ静｣ﾂつ､ﾃ｣ﾂδﾃ｣ﾂδｼﾃｦﾂδ・ﾂﾂｱ
 
     provider: ModelProviderInfo,
 
-    /// ä¼è©±ID
+    /// ﾃ､ﾂｼﾂ堙ｨﾂｩﾂｱID
 
     conversation_id: ConversationId,
 
-    /// Codexãã¤ããªãã¹EECPçµ±åç¨EE
+    /// Codexﾃ｣ﾂδ静｣ﾂつ､ﾃ｣ﾂδ甘｣ﾂδｪﾃ｣ﾂδ妥｣ﾂつｹﾂ・ﾂ・CPﾃｧﾂｵﾂｱﾃ･ﾂ青暗ｧﾂ板ｨﾂ・ﾂ・
     codex_binary_path: Option<PathBuf>,
 
-    /// ãµãã¨ã¼ã¸ã§ã³ãéã®åèª¿ã¹ãã¢
+    /// ﾃ｣ﾂつｵﾃ｣ﾂδ姪｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗ｩﾂ鳴禿｣ﾂ・ｮﾃ･ﾂ債氾ｨﾂｪﾂｿﾃ｣ﾂつｹﾃ｣ﾂδ暗｣ﾂつ｢
 
     #[cfg(feature = "custom-features")]
 
     collaboration_store: Arc<CollaborationStore>,
 
-    /// Reasoning effortè¨­å®E
+    /// Reasoning effortﾃｨﾂｨﾂｭﾃ･ﾂｮﾂ・
     reasoning_effort: ReasoningEffort,
 
-    /// Reasoning summaryè¨­å®E
+    /// Reasoning summaryﾃｨﾂｨﾂｭﾃ･ﾂｮﾂ・
     reasoning_summary: ReasoningSummary,
 
-    /// Verbosityè¨­å®E
+    /// Verbosityﾃｨﾂｨﾂｭﾃ･ﾂｮﾂ・
     verbosity: Verbosity,
 
 }
@@ -161,7 +161,7 @@ pub struct AgentRuntime {
 
 impl AgentRuntime {
 
-    /// æ°ããã©ã³ã¿ã¤ã ãä½æE
+    /// ﾃｦﾂ鳴ｰﾃ｣ﾂ・療｣ﾂ・・｣ﾂδｩﾃ｣ﾂδｳﾃ｣ﾂつｿﾃ｣ﾂつ､ﾃ｣ﾂδﾃ｣ﾂつ津､ﾂｽﾂ愿ｦﾂ・
 
     pub fn new(
 
@@ -231,7 +231,7 @@ impl AgentRuntime {
 
 
 
-    /// è¤E°ã¨ã¼ã¸ã§ã³ããä¸¦åå®è¡E
+    /// ﾃｨﾂ､ﾂ・ﾂ閉ｰﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ津､ﾂｸﾂｦﾃ･ﾂ按療･ﾂｮﾂ淌ｨﾂ｡ﾂ・
     pub async fn delegate_parallel(
 
         &self,
@@ -246,7 +246,7 @@ impl AgentRuntime {
 
 
 
-        // åE¨ã¼ã¸ã§ã³ããtokio::spawnã§ä¸¦åèµ·åE
+        // ﾃ･ﾂ青・ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ稚okio::spawnﾃ｣ﾂ・ｧﾃ､ﾂｸﾂｦﾃ･ﾂ按療ｨﾂｵﾂｷﾃ･ﾂ仰・
         let mut handles = Vec::new();
 
 
@@ -277,7 +277,7 @@ impl AgentRuntime {
 
 
 
-        // å¨ã¨ã¼ã¸ã§ã³ããEå®äºEå¾E©E
+        // ﾃ･ﾂ・ｨﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂ・ﾃ･ﾂｮﾂ古､ﾂｺﾂ・ﾂつ津･ﾂｾﾂ・ﾂｩﾂ・
         let mut results = Vec::new();
 
         for (agent_name, handle) in handles {
@@ -296,7 +296,7 @@ impl AgentRuntime {
 
                     error!("Agent '{}' failed: {}", agent_name, e);
 
-                    // ã¨ã©ã¼ã§ãç¶è¡ãã¦ä»ãEã¨ã¼ã¸ã§ã³ããEçµæãåéE
+                    // ﾃ｣ﾂつｨﾃ｣ﾂδｩﾃ｣ﾂδｼﾃ｣ﾂ・ｧﾃ｣ﾂつづｧﾂｶﾂ堙ｨﾂ｡ﾂ古｣ﾂ・療｣ﾂ・ｦﾃ､ﾂｻﾂ姪｣ﾂ・ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂ・ﾃｧﾂｵﾂ静ｦﾂ楪愿｣ﾂつ津･ﾂ渉偲ｩﾂ崢・
                     results.push(AgentResult {
 
                         agent_name: agent_name.clone(),
@@ -367,7 +367,7 @@ impl AgentRuntime {
 
 
 
-    /// ãã­ã³ããããã«ã¹ã¿ã ã¨ã¼ã¸ã§ã³ããä½æEãã¦å®è¡E
+    /// ﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗｣ﾂ・凝｣ﾂつ嘉｣ﾂつｫﾃ｣ﾂつｹﾃ｣ﾂつｿﾃ｣ﾂδﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ津､ﾂｽﾂ愿ｦﾂ・ﾃ｣ﾂ・療｣ﾂ・ｦﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ・
     pub async fn create_and_run_custom_agent(
 
         &self,
@@ -382,7 +382,7 @@ impl AgentRuntime {
 
 
 
-        // LLMãä½¿ã£ã¦ãã­ã³ããããã¨ã¼ã¸ã§ã³ãå®ç¾©ãçæE
+        // LLMﾃ｣ﾂつ津､ﾂｽﾂｿﾃ｣ﾂ・｣ﾃ｣ﾂ・ｦﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗｣ﾂ・凝｣ﾂつ嘉｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗･ﾂｮﾂ堙ｧﾂｾﾂｩﾃ｣ﾂつ津ｧﾂ板淌ｦﾂ按・
         let agent_def = self.generate_agent_from_prompt(prompt).await?;
 
 
@@ -391,14 +391,14 @@ impl AgentRuntime {
 
 
 
-        // ã«ã¹ã¿ã ã¨ã¼ã¸ã§ã³ããã¡ã¢ãªä¸ã§å®è¡ï¼EAMLä¿å­ä¸è¦E¼E
+        // ﾃ｣ﾂつｫﾃ｣ﾂつｹﾃ｣ﾂつｿﾃ｣ﾂδﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ津｣ﾂδ｡ﾃ｣ﾂδ｢ﾃ｣ﾂδｪﾃ､ﾂｸﾂ甘｣ﾂ・ｧﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古ｯﾂｼﾂ・AMLﾃ､ﾂｿﾂ敕･ﾂｭﾂ佚､ﾂｸﾂ催ｨﾂｦﾂ・ﾂｼﾂ・
         self.execute_custom_agent_inline(agent_def, budget).await
 
     }
 
 
 
-    /// ãã­ã³ããããã¨ã¼ã¸ã§ã³ãå®ç¾©ãçæE
+    /// ﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗｣ﾂ・凝｣ﾂつ嘉｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗･ﾂｮﾂ堙ｧﾂｾﾂｩﾃ｣ﾂつ津ｧﾂ板淌ｦﾂ按・
     async fn generate_agent_from_prompt(&self, prompt: &str) -> Result<AgentDefinition> {
 
         let system_prompt = r#"You are an AI agent definition generator. 
@@ -521,7 +521,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // LLMå¼ã³åºãE
+        // LLMﾃ･ﾂ堕ｼﾃ｣ﾂ・ｳﾃ･ﾂ・ｺﾃ｣ﾂ・・
         let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
 
         let model_info = crate::models_manager::model_info::with_config_overrides(
@@ -543,19 +543,11 @@ Only output the JSON, no explanation."#;
             codex_protocol::protocol::SessionSource::Cli,
 
             self.config.model_verbosity,
-
-            self.config.features.enabled(Feature::ResponsesWebsockets),
-
-            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
-
+            crate::ws_version_from_features(&self.config),
             self.config
-
                 .features
-
                 .enabled(Feature::EnableRequestCompression),
-
             self.config.features.enabled(Feature::RuntimeMetrics),
-
             None,
 
         );
@@ -588,7 +580,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // ã¬ã¹ãã³ã¹ãåéE
+        // ﾃ｣ﾂδｬﾃ｣ﾂつｹﾃ｣ﾂδ敕｣ﾂδｳﾃ｣ﾂつｹﾃ｣ﾂつ津･ﾂ渉偲ｩﾂ崢・
         let mut full_response = String::new();
 
         while let Some(event) = response_stream.next().await {
@@ -611,7 +603,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // JSONãæ½åºEã³ã¼ããã­ãE¯åEEå¯è½æ§ãããããE¼E
+        // JSONﾃ｣ﾂつ津ｦﾂ環ｽﾃ･ﾂ・ｺﾂ・ﾂ暗｣ﾂつｳﾃ｣ﾂδｼﾃ｣ﾂδ嘉｣ﾂδ姪｣ﾂδｭﾃ｣ﾂδ・ﾂつｯﾃ･ﾂ・・ﾂ・ﾃ･ﾂ渉ｯﾃｨﾂδｽﾃｦﾂﾂｧﾃ｣ﾂ・古｣ﾂ・づ｣ﾂつ凝｣ﾂ・淌｣ﾂつ・ﾂｼﾂ・
         let json_str = if let Some(start) = full_response.find('{') {
 
             if let Some(end) = full_response.rfind('}') {
@@ -632,7 +624,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // JSONããã¼ã¹
+        // JSONﾃ｣ﾂつ津｣ﾂδ妥｣ﾂδｼﾃ｣ﾂつｹ
 
         let agent_def: AgentDefinition =
 
@@ -656,7 +648,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// ã«ã¹ã¿ã ã¨ã¼ã¸ã§ã³ããã¤ã³ã©ã¤ã³ã§å®è¡ï¼EAMLä¿å­ãªãï¼E
+    /// ﾃ｣ﾂつｫﾃ｣ﾂつｹﾃ｣ﾂつｿﾃ｣ﾂδﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ津｣ﾂつ､ﾃ｣ﾂδｳﾃ｣ﾂδｩﾃ｣ﾂつ､ﾃ｣ﾂδｳﾃ｣ﾂ・ｧﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古ｯﾂｼﾂ・AMLﾃ､ﾂｿﾂ敕･ﾂｭﾂ佚｣ﾂ・ｪﾃ｣ﾂ・療ｯﾂｼﾂ・
     async fn execute_custom_agent_inline(
 
         &self,
@@ -673,7 +665,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // äºç®è¨­å®E
+        // ﾃ､ﾂｺﾂ暗ｧﾂｮﾂ療ｨﾂｨﾂｭﾃ･ﾂｮﾂ・
         let effective_budget = budget.unwrap_or(agent_def.policies.context.max_tokens);
 
         self.budgeter
@@ -682,7 +674,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // å®è¡ã¹ãEEã¿ã¹æ´æ°
+        // ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古｣ﾂつｹﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂつｿﾃ｣ﾂつｹﾃｦﾂ崢ｴﾃｦﾂ鳴ｰ
 
         {
 
@@ -700,7 +692,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // ã¨ã¼ã¸ã§ã³ãå®è¡E
+        // ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗･ﾂｮﾂ淌ｨﾂ｡ﾂ・
         let result = match self
 
             .execute_agent(&agent_def, &agent_def.goal, HashMap::new(), None)
@@ -717,7 +709,7 @@ Only output the JSON, no explanation."#;
 
 
 
-                // ç£æ»ã­ã°: æå
+                // ﾃｧﾂ崢｣ﾃｦﾂ淞ｻﾃ｣ﾂδｭﾃ｣ﾂつｰ: ﾃｦﾂ按静･ﾂ環・
 
                 let _ = log_audit_event(AuditEvent::new(
 
@@ -781,7 +773,7 @@ Only output the JSON, no explanation."#;
 
 
 
-                // ç£æ»ã­ã°: å¤±æE
+                // ﾃｧﾂ崢｣ﾃｦﾂ淞ｻﾃ｣ﾂδｭﾃ｣ﾂつｰ: ﾃ･ﾂ､ﾂｱﾃｦﾂ閉・
                 let _ = log_audit_event(AuditEvent::new(
 
                     agent_name.to_string(),
@@ -836,7 +828,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // å®è¡ã¹ãEEã¿ã¹æ´æ°
+        // ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古｣ﾂつｹﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂつｿﾃ｣ﾂつｹﾃｦﾂ崢ｴﾃｦﾂ鳴ｰ
 
         {
 
@@ -848,7 +840,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // ã³ã©ãã¬ã¼ã·ã§ã³ã¹ãã¢ã«çµæãä¿å­E
+        // ﾃ｣ﾂつｳﾃ｣ﾂδｩﾃ｣ﾂδ愿｣ﾂδｬﾃ｣ﾂδｼﾃ｣ﾂつｷﾃ｣ﾂδｧﾃ｣ﾂδｳﾃ｣ﾂつｹﾃ｣ﾂδ暗｣ﾂつ｢ﾃ｣ﾂ・ｫﾃｧﾂｵﾂ静ｦﾂ楪愿｣ﾂつ津､ﾂｿﾂ敕･ﾂｭﾂ・
         #[cfg(feature = "custom-features")]
 
         {
@@ -867,7 +859,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// ä¸¦åå®è¡ç¨ã«ã¯ã­ã¼ã³
+    /// ﾃ､ﾂｸﾂｦﾃ･ﾂ按療･ﾂｮﾂ淌ｨﾂ｡ﾂ古ｧﾂ板ｨﾃ｣ﾂ・ｫﾃ｣ﾂつｯﾃ｣ﾂδｭﾃ｣ﾂδｼﾃ｣ﾂδｳ
 
     fn clone_for_parallel(&self) -> Self {
 
@@ -909,7 +901,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// ã¨ã¼ã¸ã§ã³ããå§ä»»å®è¡E
+    /// ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ津･ﾂｧﾂ氾､ﾂｻﾂｻﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ・
     pub async fn delegate(
 
         &self,
@@ -930,7 +922,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // ã¨ã¼ã¸ã§ã³ãå®ç¾©ãèª­ã¿è¾¼ã¿
+        // ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗･ﾂｮﾂ堙ｧﾂｾﾂｩﾃ｣ﾂつ津ｨﾂｪﾂｭﾃ｣ﾂ・ｿﾃｨﾂｾﾂｼﾃ｣ﾂ・ｿ
 
         let agent_def = {
 
@@ -946,7 +938,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // å±ææå ±ãåEåã¸åãè¾¼ã
+        // ﾃ･ﾂ・ｱﾃｦﾂ慊嘉ｦﾂδ・･ﾂﾂｱﾃ｣ﾂつ津･ﾂ・ﾃ･ﾂ環崚｣ﾂ・ｸﾃ･ﾂ渉姪｣ﾂつ甘ｨﾂｾﾂｼﾃ｣ﾂつ
 
         let inputs = inputs;
 
@@ -988,14 +980,14 @@ Only output the JSON, no explanation."#;
 
 
 
-        // äºç®ãè¨­å®E
+        // ﾃ､ﾂｺﾂ暗ｧﾂｮﾂ療｣ﾂつ津ｨﾂｨﾂｭﾃ･ﾂｮﾂ・
         if let Some(budget) = budget {
 
             self.budgeter.set_agent_limit(agent_name, budget)?;
 
         } else {
 
-            // ãEã©ã«ãäºç®ãEã³ã³ãE­ã¹ããEãªã·ã¼ããåå¾E
+            // ﾃ｣ﾂδ・ﾂδ陛｣ﾂつｩﾃ｣ﾂδｫﾃ｣ﾂδ暗､ﾂｺﾂ暗ｧﾂｮﾂ療｣ﾂ・ﾃ｣ﾂつｳﾃ｣ﾂδｳﾃ｣ﾂδ・ﾂつｭﾃ｣ﾂつｹﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂδｪﾃ｣ﾂつｷﾃ｣ﾂδｼﾃ｣ﾂ・凝｣ﾂつ嘉･ﾂ渉姪･ﾂｾﾂ・
             self.budgeter
 
                 .set_agent_limit(agent_name, agent_def.policies.context.max_tokens)?;
@@ -1004,7 +996,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // å®è¡ã¹ãEEã¿ã¹ãæ´æ°
+        // ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古｣ﾂつｹﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂつｿﾃ｣ﾂつｹﾃ｣ﾂつ津ｦﾂ崢ｴﾃｦﾂ鳴ｰ
 
         {
 
@@ -1016,14 +1008,14 @@ Only output the JSON, no explanation."#;
 
 
 
-        // å®è¡éå§E
+        // ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古ｩﾂ鳴凝･ﾂｧﾂ・
         let start_time = Instant::now();
 
         let start_timestamp = chrono::Utc::now().to_rfc3339();
 
 
 
-        // ç£æ»ã­ã°: ã¨ã¼ã¸ã§ã³ãéå§E
+        // ﾃｧﾂ崢｣ﾃｦﾂ淞ｻﾃ｣ﾂδｭﾃ｣ﾂつｰ: ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗ｩﾂ鳴凝･ﾂｧﾂ・
         let _ = log_audit_event(AuditEvent::new(
 
             agent_name.to_string(),
@@ -1076,7 +1068,7 @@ Only output the JSON, no explanation."#;
 
 
 
-                // ç£æ»ã­ã°: ã¨ã¼ã¸ã§ã³ãå®äºE
+                // ﾃｧﾂ崢｣ﾃｦﾂ淞ｻﾃ｣ﾂδｭﾃ｣ﾂつｰ: ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗･ﾂｮﾂ古､ﾂｺﾂ・
                 let _ = log_audit_event(AuditEvent::new(
 
                     agent_name.to_string(),
@@ -1139,7 +1131,7 @@ Only output the JSON, no explanation."#;
 
 
 
-                // ç£æ»ã­ã°: ã¨ã¼ã¸ã§ã³ãå¤±æE
+                // ﾃｧﾂ崢｣ﾃｦﾂ淞ｻﾃ｣ﾂδｭﾃ｣ﾂつｰ: ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗･ﾂ､ﾂｱﾃｦﾂ閉・
                 let _ = log_audit_event(AuditEvent::new(
 
                     agent_name.to_string(),
@@ -1194,7 +1186,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // å®è¡ã¹ãEEã¿ã¹ãæ´æ°
+        // ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古｣ﾂつｹﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂつｿﾃ｣ﾂつｹﾃ｣ﾂつ津ｦﾂ崢ｴﾃｦﾂ鳴ｰ
 
         {
 
@@ -1206,7 +1198,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // å®è¡çµæãåèª¿ã¹ãã¢ã«ä¿å­E
+        // ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古ｧﾂｵﾂ静ｦﾂ楪愿｣ﾂつ津･ﾂ債氾ｨﾂｪﾂｿﾃ｣ﾂつｹﾃ｣ﾂδ暗｣ﾂつ｢ﾃ｣ﾂ・ｫﾃ､ﾂｿﾂ敕･ﾂｭﾂ・
         #[cfg(feature = "custom-features")]
 
         {
@@ -1225,7 +1217,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// ã¨ã¼ã¸ã§ã³ããå®éã«å®è¡E
+    /// ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ津･ﾂｮﾂ淌ｩﾂ堋崚｣ﾂ・ｫﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ・
     async fn execute_agent(
 
         &self,
@@ -1244,12 +1236,12 @@ Only output the JSON, no explanation."#;
 
 
 
-        // 1. ã·ã¹ãE ãã­ã³ããæ§ç¯ï¼ã·ã³ãã«çï¼E
+        // 1. ﾃ｣ﾂつｷﾃ｣ﾂつｹﾃ｣ﾂδ・ﾂδﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗ｦﾂｧﾂ凝ｧﾂｯﾂ嘉ｯﾂｼﾂ暗｣ﾂつｷﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδｫﾃｧﾂ可暗ｯﾂｼﾂ・
         let _system_prompt = format!("You are a {} agent. {}", agent_def.name, agent_def.goal);
 
 
 
-        // 2. ã¦ã¼ã¶ã¼å¥åãæ§ç¯ï¼ã¿ã¹ã¯ã¨inputsãå«ãEE
+        // 2. ﾃ｣ﾂδｦﾃ｣ﾂδｼﾃ｣ﾂつｶﾃ｣ﾂδｼﾃ･ﾂ・･ﾃ･ﾂ環崚｣ﾂつ津ｦﾂｧﾂ凝ｧﾂｯﾂ嘉ｯﾂｼﾂ暗｣ﾂつｿﾃ｣ﾂつｹﾃ｣ﾂつｯﾃ｣ﾂ・ｨinputsﾃ｣ﾂつ津･ﾂ青ｫﾃ｣ﾂつﾂ・ﾂ・
         let inputs_text = if inputs.is_empty() {
 
             String::new()
@@ -1278,7 +1270,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // 3. ModelClientä½æE
+        // 3. ModelClientﾃ､ﾂｽﾂ愿ｦﾂ・
 
         let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
 
@@ -1301,26 +1293,18 @@ Only output the JSON, no explanation."#;
             codex_protocol::protocol::SessionSource::Cli,
 
             self.config.model_verbosity,
-
-            self.config.features.enabled(Feature::ResponsesWebsockets),
-
-            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
-
+            crate::ws_version_from_features(&self.config),
             self.config
-
                 .features
-
                 .enabled(Feature::EnableRequestCompression),
-
             self.config.features.enabled(Feature::RuntimeMetrics),
-
             None,
 
         );
 
 
 
-        // 4. ResponseItemæ§ç¯ï¼Eromptã«æ¸¡ãï¼E
+        // 4. ResponseItemﾃｦﾂｧﾂ凝ｧﾂｯﾂ嘉ｯﾂｼﾂ・romptﾃ｣ﾂ・ｫﾃｦﾂｸﾂ｡ﾃ｣ﾂ・凖ｯﾂｼﾂ・
         let _input_items = vec![ResponseItem::Message {
 
             id: None,
@@ -1341,7 +1325,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // 5. Promptæ§ç¯ï¼ã¨ã¼ã¸ã§ã³ãæ¨©éãããã¼ã«ãçæï¼E
+        // 5. Promptﾃｦﾂｧﾂ凝ｧﾂｯﾂ嘉ｯﾂｼﾂ暗｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗ｦﾂｨﾂｩﾃｩﾂ卍静｣ﾂ・凝｣ﾂつ嘉｣ﾂδ・｣ﾂδｼﾃ｣ﾂδｫﾃ｣ﾂつ津ｧﾂ板淌ｦﾂ按静ｯﾂｼﾂ・
         let tools = self.build_tools_for_agent(agent_def);
 
 
@@ -1356,7 +1340,7 @@ Only output the JSON, no explanation."#;
 
             base_instructions: BaseInstructions {
 
-                text: String::new(), // ãEã©ã«ããEããEã¹ã¤ã³ã¹ãã©ã¯ã·ã§ã³
+                text: String::new(), // ﾃ｣ﾂδ・ﾂδ陛｣ﾂつｩﾃ｣ﾂδｫﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂδ凖｣ﾂ・ﾃ｣ﾂつｹﾃ｣ﾂつ､ﾃ｣ﾂδｳﾃ｣ﾂつｹﾃ｣ﾂδ暗｣ﾂδｩﾃ｣ﾂつｯﾃ｣ﾂつｷﾃ｣ﾂδｧﾃ｣ﾂδｳ
 
             },
 
@@ -1368,7 +1352,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // ãEãE°: ã·ã¹ãE ãã­ã³ããã®åE®¹ãã­ã°åºåE
+        // ﾃ｣ﾂδ・ﾂδ静｣ﾂδ・ﾂつｰ: ﾃ｣ﾂつｷﾃ｣ﾂつｹﾃ｣ﾂδ・ﾂδﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗｣ﾂ・ｮﾃ･ﾂ・・ﾂｮﾂｹﾃ｣ﾂつ津｣ﾂδｭﾃ｣ﾂつｰﾃ･ﾂ・ｺﾃ･ﾂ環・
         debug!(
 
             "Agent '{}': Using default model instructions (base_instructions_override=None)",
@@ -1379,7 +1363,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // 6. LLMå¼ã³åºãE
+        // 6. LLMﾃ･ﾂ堕ｼﾃ｣ﾂ・ｳﾃ･ﾂ・ｺﾃ｣ﾂ・・
         let mut client_session = client.new_session();
 
         let mut stream = client_session
@@ -1478,7 +1462,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // 7. ããEã¯ã³äºç®ãã§ãE¯ã¨æ¶è²»
+        // 7. ﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂつｯﾃ｣ﾂδｳﾃ､ﾂｺﾂ暗ｧﾂｮﾂ療｣ﾂδ・｣ﾂつｧﾃ｣ﾂδ・ﾂつｯﾃ｣ﾂ・ｨﾃｦﾂｶﾂ暗ｨﾂｲﾂｻ
 
         if !self.budgeter.try_consume(&agent_def.name, total_tokens)? {
 
@@ -1498,7 +1482,7 @@ Only output the JSON, no explanation."#;
 
 
 
-        // 8. ã¢ã¼ãE£ãã¡ã¯ãçæE
+        // 8. ﾃ｣ﾂつ｢ﾃ｣ﾂδｼﾃ｣ﾂδ・ﾂつ｣ﾃ｣ﾂδ陛｣ﾂつ｡ﾃ｣ﾂつｯﾃ｣ﾂδ暗ｧﾂ板淌ｦﾂ按・
         let artifacts_dir = self.workspace_dir.join("artifacts");
 
         tokio::fs::create_dir_all(&artifacts_dir).await?;
@@ -1519,7 +1503,7 @@ Only output the JSON, no explanation."#;
 
 
 
-            // ã¢ã¼ãE£ãã¡ã¯ãåEå®¹ãçæE
+            // ﾃ｣ﾂつ｢ﾃ｣ﾂδｼﾃ｣ﾂδ・ﾂつ｣ﾃ｣ﾂδ陛｣ﾂつ｡ﾃ｣ﾂつｯﾃ｣ﾂδ暗･ﾂ・ﾃ･ﾂｮﾂｹﾃ｣ﾂつ津ｧﾂ板淌ｦﾂ按・
             let content = format!(
 
                 "# Agent: {}\n\n## Goal\n{}\n\n## Task\n{}\n\n## Inputs\n{}\n\n## Agent Response\n\n{}\n\n## Execution Summary\n\n- Tokens Used: {}\n- Success Criteria:\n{}\n",
@@ -1574,7 +1558,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// å©ç¨å¯è½ãªã¨ã¼ã¸ã§ã³ãä¸è¦§ãåå¾E
+    /// ﾃ･ﾂ按ｩﾃｧﾂ板ｨﾃ･ﾂ渉ｯﾃｨﾂδｽﾃ｣ﾂ・ｪﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗､ﾂｸﾂﾃｨﾂｦﾂｧﾃ｣ﾂつ津･ﾂ渉姪･ﾂｾﾂ・
     pub async fn list_agents(&self) -> Result<Vec<String>> {
 
         let loader = self.loader.read().await;
@@ -1585,7 +1569,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// å®è¡ä¸­ã®ã¨ã¼ã¸ã§ã³ãç¶æãåå¾E
+    /// ﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古､ﾂｸﾂｭﾃ｣ﾂ・ｮﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗ｧﾂ環ｶﾃｦﾂ・凝｣ﾂつ津･ﾂ渉姪･ﾂｾﾂ・
     pub async fn get_running_agents(&self) -> HashMap<String, AgentStatus> {
 
         self.running_agents.read().await.clone()
@@ -1594,7 +1578,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// ããEã¯ã³ä½¿ç¨ç¶æ³ãåå¾E
+    /// ﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂつｯﾃ｣ﾂδｳﾃ､ﾂｽﾂｿﾃｧﾂ板ｨﾃｧﾂ環ｶﾃｦﾂｳﾂ・｣ﾂつ津･ﾂ渉姪･ﾂｾﾂ・
     pub fn get_budget_status(&self) -> (usize, usize, f64) {
 
         let used = self.budgeter.get_used();
@@ -1609,7 +1593,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// è»½éçãã©ã¼ã«ããã¯ãå¿E¦ããã§ãE¯
+    /// ﾃｨﾂｻﾂｽﾃｩﾂ・湘ｧﾂ可暗｣ﾂδ陛｣ﾂつｩﾃ｣ﾂδｼﾃ｣ﾂδｫﾃ｣ﾂδ静｣ﾂδε｣ﾂつｯﾃ｣ﾂ・古･ﾂｿﾂ・ﾂｦﾂ・｣ﾂ・凝｣ﾂδ・｣ﾂつｧﾃ｣ﾂδ・ﾂつｯ
 
     pub fn should_use_lightweight(&self, threshold: f64) -> bool {
 
@@ -1619,7 +1603,7 @@ Only output the JSON, no explanation."#;
 
 
 
-    /// ã¨ã¼ã¸ã§ã³ãæ¨©éã«åºã¥ãE¦ãEEã«ä»æ§ãæ§ç¯E
+    /// ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗ｦﾂｨﾂｩﾃｩﾂ卍静｣ﾂ・ｫﾃ･ﾂ淞ｺﾃ｣ﾂ・･ﾃ｣ﾂ・・ﾂ・ｦﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ､ﾂｻﾂ陛ｦﾂｧﾂ佚｣ﾂつ津ｦﾂｧﾂ凝ｧﾂｯﾂ・
     fn build_tools_for_agent(
 
         &self,
@@ -1792,7 +1776,7 @@ policies:
 
 success_criteria:
 
-  - "åºæºE"
+  - "ﾃ･ﾂ淞ｺﾃｦﾂｺﾂ・"
 
 artifacts:
 
@@ -1806,7 +1790,7 @@ artifacts:
 
 
 
-        // ã¢ãE¯Configä½æE
+        // ﾃ｣ﾂδ｢ﾃ｣ﾂδ・ﾂつｯConfigﾃ､ﾂｽﾂ愿ｦﾂ・
 
         let codex_home = temp_dir.path().to_path_buf();
 
@@ -2094,7 +2078,7 @@ artifacts:
 
 impl AgentRuntime {
 
-    /// Codexãã¤ããªãã¹ãè¨­å®E
+    /// Codexﾃ｣ﾂδ静｣ﾂつ､ﾃ｣ﾂδ甘｣ﾂδｪﾃ｣ﾂδ妥｣ﾂつｹﾃ｣ﾂつ津ｨﾂｨﾂｭﾃ･ﾂｮﾂ・
     pub fn with_codex_binary_path(mut self, path: PathBuf) -> Self {
 
         self.codex_binary_path = Some(path);
@@ -2105,7 +2089,7 @@ impl AgentRuntime {
 
 
 
-    /// åèª¿ã¹ãã¢ã¸ã®åçEãåå¾E
+    /// ﾃ･ﾂ債氾ｨﾂｪﾂｿﾃ｣ﾂつｹﾃ｣ﾂδ暗｣ﾂつ｢ﾃ｣ﾂ・ｸﾃ｣ﾂ・ｮﾃ･ﾂ渉づｧﾂ・ﾃ｣ﾂつ津･ﾂ渉姪･ﾂｾﾂ・
     #[cfg(feature = "custom-features")]
 
     pub fn collaboration_store(&self) -> Arc<CollaborationStore> {
@@ -2116,7 +2100,7 @@ impl AgentRuntime {
 
 
 
-    /// Codex MCP Serverãstdio ã¢ã¼ãã§èµ·åE
+    /// Codex MCP Serverﾃ｣ﾂつ痴tdio ﾃ｣ﾂδ｢ﾃ｣ﾂδｼﾃ｣ﾂδ嘉｣ﾂ・ｧﾃｨﾂｵﾂｷﾃ･ﾂ仰・
     async fn spawn_codex_mcp_server(&self) -> Result<Arc<RmcpClient>> {
 
         let codex_path = self
@@ -2213,7 +2197,7 @@ impl AgentRuntime {
 
 
 
-    /// ã¨ã¼ã¸ã§ã³ãæ¨©éã«åºã¥ãE¦Codex MCP toolsããã£ã«ã¿ãªã³ã°
+    /// ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗ｦﾂｨﾂｩﾃｩﾂ卍静｣ﾂ・ｫﾃ･ﾂ淞ｺﾃ｣ﾂ・･ﾃ｣ﾂ・・ﾂ・ｦCodex MCP toolsﾃ｣ﾂつ津｣ﾂδ陛｣ﾂつ｣ﾃ｣ﾂδｫﾃ｣ﾂつｿﾃ｣ﾂδｪﾃ｣ﾂδｳﾃ｣ﾂつｰ
 
     fn filter_codex_mcp_tools(agent_def: &AgentDefinition) -> Vec<String> {
 
@@ -2245,7 +2229,7 @@ impl AgentRuntime {
 
 
 
-    /// Codex MCP toolsã®èª¬æãçæEEãEã­ã³ããç¨EE
+    /// Codex MCP toolsﾃ｣ﾂ・ｮﾃｨﾂｪﾂｬﾃｦﾂ伉偲｣ﾂつ津ｧﾂ板淌ｦﾂ・ﾂ・ﾂ暗｣ﾂ・ﾃ｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗ｧﾂ板ｨﾂ・ﾂ・
     fn build_codex_mcp_tools_description(allowed_tools: &[String]) -> String {
 
         let mut desc = String::from("Available Codex MCP Tools:\n\n");
@@ -2331,7 +2315,7 @@ impl AgentRuntime {
 
 
 
-    /// ã¨ã¼ã¸ã§ã³ããCodex MCPçµç±ã§å®è¡ï¼Ehase 3: å®åEå®è£E¼E
+    /// ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂつ辰odex MCPﾃｧﾂｵﾂ古ｧﾂ板ｱﾃ｣ﾂ・ｧﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ古ｯﾂｼﾂ・hase 3: ﾃ･ﾂｮﾂ古･ﾂ・ﾃ･ﾂｮﾂ淌ｨﾂ｣ﾂ・ﾂｼﾂ・
     pub async fn execute_agent_with_codex_mcp(
 
         &self,
@@ -2356,7 +2340,7 @@ impl AgentRuntime {
 
 
 
-        // 1. Codex MCP Serverãèµ·åE
+        // 1. Codex MCP Serverﾃ｣ﾂつ津ｨﾂｵﾂｷﾃ･ﾂ仰・
         let mcp_client = self
 
             .spawn_codex_mcp_server()
@@ -2367,7 +2351,7 @@ impl AgentRuntime {
 
 
 
-        // 2. ã¨ã¼ã¸ã§ã³ãæ¨©éã§ãEEã«ããã£ã«ã¿ãªã³ã°
+        // 2. ﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗ｦﾂｨﾂｩﾃｩﾂ卍静｣ﾂ・ｧﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ｣ﾂつ津｣ﾂδ陛｣ﾂつ｣ﾃ｣ﾂδｫﾃ｣ﾂつｿﾃ｣ﾂδｪﾃ｣ﾂδｳﾃ｣ﾂつｰ
 
         let allowed_tools = Self::filter_codex_mcp_tools(agent_def);
 
@@ -2387,7 +2371,7 @@ impl AgentRuntime {
 
 
 
-        // 3. ã·ã¹ãE ãã­ã³ããæ§ç¯ï¼ãã¼ã«èª¬æå«ãEE
+        // 3. ﾃ｣ﾂつｷﾃ｣ﾂつｹﾃ｣ﾂδ・ﾂδﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗ｦﾂｧﾂ凝ｧﾂｯﾂ嘉ｯﾂｼﾂ暗｣ﾂδ・｣ﾂδｼﾃ｣ﾂδｫﾃｨﾂｪﾂｬﾃｦﾂ伉偲･ﾂ青ｫﾃ｣ﾂつﾂ・ﾂ・
         let tools_description = Self::build_codex_mcp_tools_description(&allowed_tools);
 
 
@@ -2407,13 +2391,13 @@ impl AgentRuntime {
 
 
 
-        // 4. åæãã­ã³ãã
+        // 4. ﾃ･ﾂ按敕ｦﾂ慊淌｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ・
 
         let user_prompt = format!("Task: {goal}");
 
 
 
-        // 5. LLMå¯¾è©±ã«ã¼ãï¼æå¤§5åãEãEEã«å¼ã³åºãï¼E
+        // 5. LLMﾃ･ﾂｯﾂｾﾃｨﾂｩﾂｱﾃ｣ﾂδｫﾃ｣ﾂδｼﾃ｣ﾂδ療ｯﾂｼﾂ暗ｦﾂ慊ﾃ･ﾂ､ﾂｧ5ﾃ･ﾂ崢榲｣ﾂ・ﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ･ﾂ堕ｼﾃ｣ﾂ・ｳﾃ･ﾂ・ｺﾃ｣ﾂ・療ｯﾂｼﾂ・
         let max_iterations = 5;
 
         let mut conversation_history = vec![
@@ -2434,7 +2418,7 @@ impl AgentRuntime {
 
 
 
-            // LLMå¼ã³åºãE
+            // LLMﾃ･ﾂ堕ｼﾃ｣ﾂ・ｳﾃ･ﾂ・ｺﾃ｣ﾂ・・
             let llm_response = self
 
                 .call_llm_for_agent(&conversation_history)
@@ -2451,7 +2435,7 @@ impl AgentRuntime {
 
 
 
-            // ãEEã«ã³ã¼ã«æ¤åE
+            // ﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ｣ﾂつｳﾃ｣ﾂδｼﾃ｣ﾂδｫﾃｦﾂ､ﾂ愿･ﾂ・
 
             let tool_calls = self.detect_tool_calls(&llm_response);
 
@@ -2459,7 +2443,7 @@ impl AgentRuntime {
 
             if tool_calls.is_empty() {
 
-                // ãEEã«ã³ã¼ã«ããªãE ´åãEçµäºE
+                // ﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ｣ﾂつｳﾃ｣ﾂδｼﾃ｣ﾂδｫﾃ｣ﾂ・古｣ﾂ・ｪﾃ｣ﾂ・・ﾂﾂｴﾃ･ﾂ青暗｣ﾂ・ﾃｧﾂｵﾂづ､ﾂｺﾂ・
                 info!("No more tool calls detected. Agent task completed.");
 
                 break;
@@ -2468,7 +2452,7 @@ impl AgentRuntime {
 
 
 
-            // ãEEã«å®è¡E
+            // ﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ･ﾂｮﾂ淌ｨﾂ｡ﾂ・
             let mut tool_results = Vec::new();
 
             for (tool_name, tool_args) in tool_calls {
@@ -2527,7 +2511,7 @@ impl AgentRuntime {
 
 
 
-            // ãEEã«çµæãLLMã«ãã£ã¼ãããE¯
+            // ﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃｧﾂｵﾂ静ｦﾂ楪愿｣ﾂつ鱈LMﾃ｣ﾂ・ｫﾃ｣ﾂδ陛｣ﾂつ｣ﾃ｣ﾂδｼﾃ｣ﾂδ嘉｣ﾂδ静｣ﾂδ・ﾂつｯ
 
             let feedback = tool_results.join("\n\n");
 
@@ -2549,10 +2533,10 @@ impl AgentRuntime {
 
 
 
-    /// LLMãå¼ã³åºãã¦ã¨ã¼ã¸ã§ã³ããEå¿ç­ãåå¾E
+    /// LLMﾃ｣ﾂつ津･ﾂ堕ｼﾃ｣ﾂ・ｳﾃ･ﾂ・ｺﾃ｣ﾂ・療｣ﾂ・ｦﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ暗｣ﾂ・ﾃ･ﾂｿﾂ愿ｧﾂｭﾂ氾｣ﾂつ津･ﾂ渉姪･ﾂｾﾂ・
     async fn call_llm_for_agent(&self, conversation: &[(String, String)]) -> Result<String> {
 
-        // ãã­ã³ããæ§ç¯ï¼ææ°ã®ã¡ãE»ã¼ã¸ã®ã¿ãä½¿ç¨EE
+        // ﾃ｣ﾂδ療｣ﾂδｭﾃ｣ﾂδｳﾃ｣ﾂδ療｣ﾂδ暗ｦﾂｧﾂ凝ｧﾂｯﾂ嘉ｯﾂｼﾂ暗ｦﾂ慊ﾃｦﾂ鳴ｰﾃ｣ﾂ・ｮﾃ｣ﾂδ｡ﾃ｣ﾂδ・ﾂつｻﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂ・ｮﾃ｣ﾂ・ｿﾃ｣ﾂつ津､ﾂｽﾂｿﾃｧﾂ板ｨﾂ・ﾂ・
         let last_message = conversation
 
             .last()
@@ -2613,7 +2597,7 @@ impl AgentRuntime {
 
 
 
-        // ModelClientçµç±ã§LLMå¼ã³åºãE
+        // ModelClientﾃｧﾂｵﾂ古ｧﾂ板ｱﾃ｣ﾂ・ｧLLMﾃ･ﾂ堕ｼﾃ｣ﾂ・ｳﾃ･ﾂ・ｺﾃ｣ﾂ・・
         let model = self.config.model.as_deref().unwrap_or("gpt-5.2-codex");
 
         let model_info = crate::models_manager::model_info::with_config_overrides(
@@ -2635,19 +2619,11 @@ impl AgentRuntime {
             codex_protocol::protocol::SessionSource::Cli,
 
             self.config.model_verbosity,
-
-            self.config.features.enabled(Feature::ResponsesWebsockets),
-
-            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
-
+            crate::ws_version_from_features(&self.config),
             self.config
-
                 .features
-
                 .enabled(Feature::EnableRequestCompression),
-
             self.config.features.enabled(Feature::RuntimeMetrics),
-
             None,
 
         );
@@ -2680,7 +2656,7 @@ impl AgentRuntime {
 
 
 
-        // ã¬ã¹ãã³ã¹ãåéE
+        // ﾃ｣ﾂδｬﾃ｣ﾂつｹﾃ｣ﾂδ敕｣ﾂδｳﾃ｣ﾂつｹﾃ｣ﾂつ津･ﾂ渉偲ｩﾂ崢・
         let mut full_response = String::new();
 
         let mut _tokens_used = 0;
@@ -2693,7 +2669,7 @@ impl AgentRuntime {
 
                 ResponseEvent::OutputItemDone(ResponseItem::Message { content, .. }) => {
 
-                    // ResponseItemãããE­ã¹ããæ½åº
+                    // ResponseItemﾃ｣ﾂ・凝｣ﾂつ嘉｣ﾂδ・ﾂつｭﾃ｣ﾂつｹﾃ｣ﾂδ暗｣ﾂつ津ｦﾂ環ｽﾃ･ﾂ・ｺ
 
                     for content_item in content {
 
@@ -2712,7 +2688,7 @@ impl AgentRuntime {
                     token_usage,
                     can_append: _,
                 } => {
-                    // å®éã®ããEã¯ã³ä½¿ç¨éãã­ã£ããã£
+                    // ﾃ･ﾂｮﾂ淌ｩﾂ堋崚｣ﾂ・ｮﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂつｯﾃ｣ﾂδｳﾃ､ﾂｽﾂｿﾃｧﾂ板ｨﾃｩﾂ・湘｣ﾂつ津｣ﾂつｭﾃ｣ﾂδ｣ﾃ｣ﾂδ療｣ﾂδ・｣ﾂδ｣
 
                     if let Some(usage) = token_usage {
 
@@ -2726,11 +2702,11 @@ impl AgentRuntime {
 
                         );
 
-                        // Codexã¨ã¼ã¸ã§ã³ãE ããEã¯ã³ãã¸ã§ãEæ¶è²»ã®ã­ã¸ãE¯ãè¿½å ããå ´åãE
+                        // Codexﾃ｣ﾂつｨﾃ｣ﾂδｼﾃ｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδｳﾃ｣ﾂδ・ ﾃ｣ﾂδ暗｣ﾂ・ﾃ｣ﾂつｯﾃ｣ﾂδｳﾃ｣ﾂδ静｣ﾂつｸﾃ｣ﾂつｧﾃ｣ﾂδ・ﾂδ暗ｦﾂｶﾂ暗ｨﾂｲﾂｻﾃ｣ﾂ・ｮﾃ｣ﾂδｭﾃ｣ﾂつｸﾃ｣ﾂδ・ﾂつｯﾃ｣ﾂつ津ｨﾂｿﾂｽﾃ･ﾂ環ﾃ｣ﾂ・凖｣ﾂつ凝･ﾂﾂｴﾃ･ﾂ青暗｣ﾂ・
 
-                        // agent_nameç­ãEç®¡çE¸ããã®é¢æ°ã®å¼ã³åºãåEãAgentæ§é ä½ã§
+                        // agent_nameﾃｧﾂｭﾂ嘉｣ﾂ・ﾃｧﾂｮﾂ｡ﾃｧﾂ青・ﾂｸﾂ甘｣ﾂﾂ・｣ﾂ・禿｣ﾂ・ｮﾃｩﾂ鳴｢ﾃｦﾂ閉ｰﾃ｣ﾂ・ｮﾃ･ﾂ堕ｼﾃ｣ﾂ・ｳﾃ･ﾂ・ｺﾃ｣ﾂ・療･ﾂ・ﾃ｣ﾂつБgentﾃｦﾂｧﾂ凝ｩﾂﾂﾃ､ﾂｽﾂ禿｣ﾂ・ｧ
 
-                        // ã¢ã­ã±ã¼ã·ã§ã³å¦çEå®è£Eã¦ãã ããEEuntimeåç¬ã§ã¯æªå¯¾å¿ï¼ãE
+                        // ﾃ｣ﾂつ｢ﾃ｣ﾂδｭﾃ｣ﾂつｱﾃ｣ﾂδｼﾃ｣ﾂつｷﾃ｣ﾂδｧﾃ｣ﾂδｳﾃ･ﾂ・ｦﾃｧﾂ青・ﾂつ津･ﾂｮﾂ淌ｨﾂ｣ﾂ・ﾂ・療｣ﾂ・ｦﾃ｣ﾂ・湘｣ﾂ・ﾃ｣ﾂ・陛｣ﾂ・・・ﾂ・untimeﾃ･ﾂ債佚ｧﾂ仰ｬﾃ｣ﾂ・ｧﾃ｣ﾂ・ｯﾃｦﾂ慊ｪﾃ･ﾂｯﾂｾﾃ･ﾂｿﾂ愿ｯﾂｼﾂ嘉｣ﾂﾂ・
                     }
 
                 }
@@ -2749,7 +2725,7 @@ impl AgentRuntime {
 
 
 
-    /// LLMã¬ã¹ãã³ã¹ãããEEã«ã³ã¼ã«ãæ¤åE
+    /// LLMﾃ｣ﾂδｬﾃ｣ﾂつｹﾃ｣ﾂδ敕｣ﾂδｳﾃ｣ﾂつｹﾃ｣ﾂ・凝｣ﾂつ嘉｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ｣ﾂつｳﾃ｣ﾂδｼﾃ｣ﾂδｫﾃ｣ﾂつ津ｦﾂ､ﾂ愿･ﾂ・
 
     fn detect_tool_calls(&self, response: &str) -> Vec<(String, serde_json::Value)> {
 
@@ -2757,9 +2733,9 @@ impl AgentRuntime {
 
 
 
-        // ãã¿ã¼ã³: TOOL_CALL: tool_name(arg1="value1", arg2="value2")
+        // ﾃ｣ﾂδ妥｣ﾂつｿﾃ｣ﾂδｼﾃ｣ﾂδｳ: TOOL_CALL: tool_name(arg1="value1", arg2="value2")
 
-        // ç°¡æå®è£E JSONãã©ã¼ããããæ¤åE
+        // ﾃｧﾂｰﾂ｡ﾃｦﾂ伉禿･ﾂｮﾂ淌ｨﾂ｣ﾂ・ JSONﾃ｣ﾂδ陛｣ﾂつｩﾃ｣ﾂδｼﾃ｣ﾂδ榲｣ﾂδε｣ﾂδ暗｣ﾂつづｦﾂ､ﾂ愿･ﾂ・
 
         for line in response.lines() {
 
@@ -2783,7 +2759,7 @@ impl AgentRuntime {
 
 
 
-                // ç°¡æãã¼ã¹: key="value" å½¢å¼E
+                // ﾃｧﾂｰﾂ｡ﾃｦﾂ伉禿｣ﾂδ妥｣ﾂδｼﾃ｣ﾂつｹ: key="value" ﾃ･ﾂｽﾂ｢ﾃ･ﾂｼﾂ・
                 let mut args = serde_json::Map::new();
 
                 for part in args_str.split(',') {
@@ -2816,7 +2792,7 @@ impl AgentRuntime {
 
 
 
-    /// Codex MCPãEEã«ãå®è¡E
+    /// Codex MCPﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫﾃ｣ﾂつ津･ﾂｮﾂ淌ｨﾂ｡ﾂ・
     async fn execute_codex_mcp_tool(
 
         &self,
@@ -2857,7 +2833,7 @@ impl AgentRuntime {
 
 
 
-        // çµæããã­ã¹ãå½¢å¼ã«å¤æ
+        // ﾃｧﾂｵﾂ静ｦﾂ楪愿｣ﾂつ津｣ﾂδ・｣ﾂつｭﾃ｣ﾂつｹﾃ｣ﾂδ暗･ﾂｽﾂ｢ﾃ･ﾂｼﾂ湘｣ﾂ・ｫﾃ･ﾂ､ﾂ嘉ｦﾂ渉・
 
         let result_text =
 
@@ -2901,7 +2877,7 @@ async fn test_filter_codex_mcp_tools() {
 
                 "mcp__server__codex-deep-research".to_string(),
 
-                "some_other_tool".to_string(), // éCodexãEEã«
+                "some_other_tool".to_string(), // ﾃｩﾂ敖曚odexﾃ｣ﾂδ・ﾂ・ﾃ｣ﾂδｫ
 
             ],
 

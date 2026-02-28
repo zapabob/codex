@@ -14,7 +14,7 @@ const MainContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
 }));
 
-const ContentArea = styled(Box)(({ theme }) => ({
+const ContentArea = styled(Box)(() => ({
   flexGrow: 1,
   display: "flex",
   flexDirection: "column",

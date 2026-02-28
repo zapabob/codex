@@ -12,7 +12,6 @@ import {
   Box,
   Typography,
   Tooltip,
-  Chip,
   IconButton,
   styled,
 } from "@mui/material";
@@ -21,11 +20,8 @@ import {
   Home,
   Code,
   Settings,
-  FileText,
-  BarChart3,
   Users,
   Shield,
-  Zap,
   Search,
   Server,
   CheckSquare,
@@ -35,12 +31,13 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface NavigationItem {
   id: string;
   label: string;
   path: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   shortcut?: string;
 }
 
@@ -264,9 +261,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <ListItemText
                         primary={item.label}
                         primaryTypographyProps={{
-                          fontSize: "0.875rem",
-                          fontWeight: active ? 600 : 500,
-                          sx: { whiteSpace: "nowrap" },
+                          sx: {
+                            fontSize: "0.875rem",
+                            fontWeight: active ? 600 : 500,
+                            whiteSpace: "nowrap",
+                          },
                         }}
                       />
                     )}
@@ -315,9 +314,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <ListItemText
                         primary={item.label}
                         primaryTypographyProps={{
-                          fontSize: "0.875rem",
-                          fontWeight: active ? 600 : 500,
-                          sx: { whiteSpace: "nowrap" },
+                          sx: {
+                            fontSize: "0.875rem",
+                            fontWeight: active ? 600 : 500,
+                            whiteSpace: "nowrap",
+                          },
                         }}
                       />
                     )}

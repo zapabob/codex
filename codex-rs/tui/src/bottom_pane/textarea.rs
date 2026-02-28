@@ -267,13 +267,19 @@ impl TextArea {
         match event {
             // Some terminals (or configurations) send Control key chords as
             // C0 control characters without reporting the CONTROL modifier.
-            // Handle common fallbacks for Ctrl-B/Ctrl-F here so they don't get
+            // Handle common fallbacks for Ctrl-B/F/P/N here so they don't get
             // inserted as literal control bytes.
             KeyEvent { code: KeyCode::Char('\u{0002}'), modifiers: KeyModifiers::NONE, .. } /* ^B */ => {
                 self.move_cursor_left();
             }
             KeyEvent { code: KeyCode::Char('\u{0006}'), modifiers: KeyModifiers::NONE, .. } /* ^F */ => {
                 self.move_cursor_right();
+            }
+            KeyEvent { code: KeyCode::Char('\u{0010}'), modifiers: KeyModifiers::NONE, .. } /* ^P */ => {
+                self.move_cursor_up();
+            }
+            KeyEvent { code: KeyCode::Char('\u{000e}'), modifiers: KeyModifiers::NONE, .. } /* ^N */ => {
+                self.move_cursor_down();
             }
             KeyEvent {
                 code: KeyCode::Char(c),
@@ -313,10 +319,9 @@ impl TextArea {
             } => self.delete_backward_word(),
             KeyEvent {
                 code: KeyCode::Backspace,
-                modifiers,
                 ..
-            } if modifiers.is_empty() => self.delete_backward(1),
-            KeyEvent {
+            }
+            | KeyEvent {
                 code: KeyCode::Char('h'),
                 modifiers: KeyModifiers::CONTROL,
                 ..
@@ -333,10 +338,9 @@ impl TextArea {
             } => self.delete_forward_word(),
             KeyEvent {
                 code: KeyCode::Delete,
-                modifiers,
                 ..
-            } if modifiers.is_empty() => self.delete_forward(1),
-            KeyEvent {
+            }
+            | KeyEvent {
                 code: KeyCode::Char('d'),
                 modifiers: KeyModifiers::CONTROL,
                 ..
@@ -417,6 +421,20 @@ impl TextArea {
             } => {
                 self.move_cursor_right();
             }
+            KeyEvent {
+                code: KeyCode::Char('p'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                self.move_cursor_up();
+            }
+            KeyEvent {
+                code: KeyCode::Char('n'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                self.move_cursor_down();
+            }
             // Some terminals send Alt+Arrow for word-wise movement:
             // Option/Left -> Alt+Left (previous word start)
             // Option/Right -> Alt+Right (next word end)
@@ -457,13 +475,6 @@ impl TextArea {
             }
             KeyEvent {
                 code: KeyCode::Home,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                self.set_cursor(0);
-            }
-            KeyEvent {
-                code: KeyCode::Home,
                 ..
             } => {
                 self.move_cursor_to_beginning_of_line(false);
@@ -477,14 +488,6 @@ impl TextArea {
             }
 
             KeyEvent {
-                code: KeyCode::End,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                let len = self.text.len();
-                self.set_cursor(len);
-            }
-            KeyEvent {
                 code: KeyCode::End, ..
             } => {
                 self.move_cursor_to_end_of_line(false);
@@ -495,20 +498,6 @@ impl TextArea {
                 ..
             } => {
                 self.move_cursor_to_end_of_line(true);
-            }
-            KeyEvent {
-                code: KeyCode::Backspace,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                self.delete_backward_word();
-            }
-            KeyEvent {
-                code: KeyCode::Delete,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                self.delete_forward_word();
             }
             _o => {
                 #[cfg(feature = "debug-logs")]

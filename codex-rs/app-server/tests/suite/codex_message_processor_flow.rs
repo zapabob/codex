@@ -21,15 +21,15 @@ use codex_app_server_protocol::SendUserMessageResponse;
 use codex_app_server_protocol::SendUserTurnParams;
 use codex_app_server_protocol::SendUserTurnResponse;
 use codex_app_server_protocol::ServerRequest;
-use codex_core::protocol::AskForApproval;
-use codex_core::protocol::SandboxPolicy;
-use codex_core::protocol_config_types::ReasoningEffort;
-use codex_core::protocol_config_types::ReasoningSummary;
 use codex_core::spawn::CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR;
+use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::SandboxMode;
+use codex_protocol::openai_models::ReasoningEffort;
 use codex_protocol::parse_command::ParsedCommand;
+use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::Event;
 use codex_protocol::protocol::EventMsg;
+use codex_protocol::protocol::SandboxPolicy;
 use pretty_assertions::assert_eq;
 use std::env;
 use std::path::Path;
@@ -58,7 +58,7 @@ async fn test_codex_jsonrpc_conversation_flow() -> Result<()> {
     // Two turns are expected: initial session configure + one user message.
     let responses = vec![
         create_shell_command_sse_response(
-            format_with_current_shell("ls"),
+            vec!["ls".to_string()],
             Some(&working_directory),
             Some(5000),
             "call1234",
@@ -206,14 +206,22 @@ async fn test_send_user_turn_changes_approval_policy_behavior() -> Result<()> {
     // Mock server will request a python shell call for the first and second turn, then finish.
     let responses = vec![
         create_shell_command_sse_response(
-            format_with_current_shell(r#"python3 -c "print(42)""#),
+            vec![
+                "python3".to_string(),
+                "-c".to_string(),
+                "print(42)".to_string(),
+            ],
             Some(&working_directory),
             Some(5000),
             "call1",
         )?,
         create_final_assistant_message_sse_response("done 1")?,
         create_shell_command_sse_response(
-            format_with_current_shell(r#"python3 -c "print(42)""#),
+            vec![
+                "python3".to_string(),
+                "-c".to_string(),
+                "print(42)".to_string(),
+            ],
             Some(&working_directory),
             Some(5000),
             "call2",
@@ -304,7 +312,7 @@ async fn test_send_user_turn_changes_approval_policy_behavior() -> Result<()> {
     // Approve so the first turn can complete
     mcp.send_response(
         request_id,
-        serde_json::json!({ "decision": codex_core::protocol::ReviewDecision::Approved }),
+        serde_json::json!({ "decision": codex_protocol::protocol::ReviewDecision::Approved }),
     )
     .await?;
 
@@ -375,14 +383,14 @@ async fn test_send_user_turn_updates_sandbox_and_cwd_between_turns() -> Result<(
 
     let responses = vec![
         create_shell_command_sse_response(
-            format_with_current_shell("echo first turn"),
+            vec!["echo".to_string(), "first".to_string(), "turn".to_string()],
             None,
             Some(5000),
             "call-first",
         )?,
         create_final_assistant_message_sse_response("done first")?,
         create_shell_command_sse_response(
-            format_with_current_shell("echo second turn"),
+            vec!["echo".to_string(), "second".to_string(), "turn".to_string()],
             None,
             Some(5000),
             "call-second",
@@ -500,13 +508,9 @@ async fn test_send_user_turn_updates_sandbox_and_cwd_between_turns() -> Result<(
         exec_begin.cwd, second_cwd,
         "exec turn should run from updated cwd"
     );
+    let expected_command = format_with_current_shell("echo second turn");
     assert_eq!(
-        exec_begin.command,
-        vec![
-            "bash".to_string(),
-            "-lc".to_string(),
-            "echo second turn".to_string()
-        ],
+        exec_begin.command, expected_command,
         "exec turn should run expected command"
     );
 

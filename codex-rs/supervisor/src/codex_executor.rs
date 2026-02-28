@@ -5,6 +5,7 @@ use codex_core::AuthManager;
 use codex_core::CodexThread;
 use codex_core::ThreadManager;
 use codex_core::config::Config;
+use codex_core::models_manager::collaboration_mode_presets::CollaborationModesConfig;
 use codex_core::models_manager::manager::ModelsManager;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::Op;
@@ -58,6 +59,7 @@ impl CodexExecutor {
             config.codex_home.clone(),
             Arc::clone(&auth_manager),
             None, // no custom model catalog
+            CollaborationModesConfig::default(),
         ));
         let skills_manager = Arc::new(SkillsManager::new(config.codex_home.clone()));
         let thread_manager = ThreadManager::new(
@@ -65,6 +67,7 @@ impl CodexExecutor {
             Arc::clone(&auth_manager),
             SessionSource::Exec,
             None, // no custom model catalog
+            CollaborationModesConfig::default(),
         );
         Self {
             config: Arc::new(config),

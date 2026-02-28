@@ -73,7 +73,6 @@ export function TaskDistributor({ tasks, aiTools, onTaskCreate }: TaskDistributo
   const generateSubtasks = (taskData: typeof newTask, parentId: string): SubTask[] => {
     const subtasks: SubTask[] = []
     const subtaskCount = getSubtaskCount(taskData.complexity)
-    const timestamp = new Date().getTime()
 
     for (let i = 0; i < subtaskCount; i++) {
       subtaskDistributionCounter += 1;

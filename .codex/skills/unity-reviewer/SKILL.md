@@ -1,57 +1,23 @@
 ---
 name: unity-reviewer
-description: Unity C#å°ç¨ã³ã¼ãã¬ãã¥ã¼ã»ããã©ã¼ãã³ã¹æé©åãEUnityãã¹ããEã©ã¯ãE£ã¹
+description: Unity C# review skill for gameplay code, architecture, and performance best practices.
 ---
 
-# Unity-Reviewer Agent Skill
+# Unity Reviewer Skill
 
 ## Overview
 
-Unity C#å°ç¨ã³ã¼ãã¬ãã¥ã¼ã»ããã©ã¼ãã³ã¹æé©åãEUnityãã¹ããEã©ã¯ãE£ã¹
+Reviews Unity C# code with focus on runtime stability, architecture, and performance-sensitive patterns.
 
 ## Capabilities
 
-- Unity-Reviewer-specific analysis and recommendations
-- Automated code review and improvements
-- Best practices enforcement
+- Unity lifecycle and component design review
+- C# code quality and maintainability checks
+- Performance and allocation risk checks
+- Scene and gameplay logic validation guidance
 
-## Tools Required
+## Usage
 
-### MCP Tools
-- `code_indexer`
-- `ast_analyzer`
-- `csharp_language_server`
-- `unity_analyzer`
-### File System Access
-- **Read**: Full codebase access
-- **Write**: Limited to ./artifacts, ./review-comments, ./Assets
-### Shell Commands
-- `dotnet`
-- `msbuild`
-- `csc`
-- `git`
-
-## Usage Examples
-
-### Basic Usage
+```bash
+codex $unity-reviewer "Review this Unity gameplay system for performance and correctness"
 ```
-codex $unity-reviewer "Perform unity-reviewer analysis on this codebase"
-```
-
-### Advanced Usage
-```
-codex $unity-reviewer "Review and improve the unity-reviewer implementation"
-```
-
-## Output Format
-
-The unity-reviewer agent provides:
-- Detailed analysis reports
-- Code improvement suggestions
-- Best practices recommendations
-- Automated fixes where applicable
-
-## References
-
-- [OpenAI Codex Documentation](https://developers.openai.com/codex)
-- [Agent Skills Guide](https://developers.openai.com/codex/skills)

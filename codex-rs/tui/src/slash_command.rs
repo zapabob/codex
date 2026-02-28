@@ -22,8 +22,6 @@ pub enum SlashCommand {
     Experimental,
     Skills,
     Review,
-    Qc,
-    DevMode,
     Rename,
     New,
     Resume,
@@ -60,15 +58,6 @@ pub enum SlashCommand {
     MemoryDrop,
     #[strum(serialize = "debug-m-update")]
     MemoryUpdate,
-    Git4d,
-    Vr,
-    Ar,
-    VrChat,
-    Blender,
-    Yukkuri,
-    Yolo,
-    #[strum(serialize = "research")]
-    DeepResearch,
 }
 
 impl SlashCommand {
@@ -80,8 +69,6 @@ impl SlashCommand {
             SlashCommand::Init => "create an AGENTS.md file with instructions for Codex",
             SlashCommand::Compact => "summarize conversation to prevent hitting the context limit",
             SlashCommand::Review => "review my current changes and find issues",
-            SlashCommand::Qc => "run quality control analysis via the CLI",
-            SlashCommand::DevMode => "start dev-mode orchestration via the CLI",
             SlashCommand::Rename => "rename the current thread",
             SlashCommand::Resume => "resume a saved chat",
             SlashCommand::Clear => "clear the terminal and start a new chat",
@@ -119,14 +106,6 @@ impl SlashCommand {
             SlashCommand::Logout => "log out of Codex",
             SlashCommand::Rollout => "print the rollout file path",
             SlashCommand::TestApproval => "test approval request",
-            SlashCommand::Git4d => "launch Git 4D visualization with VR/AR support",
-            SlashCommand::Vr => "launch Git 4D visualization in VR mode",
-            SlashCommand::Ar => "launch Git 4D visualization in AR mode",
-            SlashCommand::VrChat => "VRChat world/avatar dev: UdonSharp, Modular Avatar, liltoon, SDK3",
-            SlashCommand::Blender => "Blender CAD: STEP import, Geometry Nodes, RTX rendering, FBX/glTF export",
-            SlashCommand::Yukkuri => "ゆっくりMovieMaker4: YMM4 project gen, VOICEVOX synthesis, timeline automation",
-            SlashCommand::Yolo => "enable YOLO mode for agent orchestration",
-            SlashCommand::DeepResearch => "deep web research: multi-source, quality-assessed, structured report",
         }
     }
 
@@ -183,22 +162,12 @@ impl SlashCommand {
             | SlashCommand::Feedback
             | SlashCommand::Quit
             | SlashCommand::Exit => true,
-            SlashCommand::Qc
-            | SlashCommand::DevMode
-            | SlashCommand::Git4d
-            | SlashCommand::Vr
-            | SlashCommand::Ar => false,
             SlashCommand::Rollout => true,
             SlashCommand::TestApproval => true,
             SlashCommand::Realtime => true,
             SlashCommand::Settings => true,
             SlashCommand::Collab => true,
             SlashCommand::Agent => true,
-            SlashCommand::VrChat
-            | SlashCommand::Blender
-            | SlashCommand::Yukkuri
-            | SlashCommand::Yolo
-            | SlashCommand::DeepResearch => false,
             SlashCommand::Statusline => false,
             SlashCommand::Theme => false,
         }

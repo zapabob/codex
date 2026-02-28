@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card } from '../atoms/Card'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
-import { QuarantineEntry } from '../../types/security'
+import type { QuarantineEntry } from '../../types/security'
 import {
   Shield,
   AlertTriangle,
@@ -18,8 +18,8 @@ interface QuarantineManagerProps {
   onFileDeleted: () => void
 }
 
-export function QuarantineManager({ onFileRestored, onFileDeleted }: QuarantineManagerProps) {
-  const [quarantinedFiles, setQuarantinedFiles] = useState<QuarantineEntry[]>(() => [
+export function QuarantineManager({ onFileRestored: _onFileRestored, onFileDeleted: _onFileDeleted }: QuarantineManagerProps) {
+  const [quarantinedFiles] = useState<QuarantineEntry[]>(() => [
     { id: 'q1', fileName: 'malicious_sig.exe', originalPath: 'C:\\Users\\Downloads', threatLevel: 'malicious', quarantineDate: new Date(), fileSize: 1024*240, canRestore: true },
     { id: 'q2', fileName: 'kernel_mod.dll', originalPath: 'C:\\Windows\\System32', threatLevel: 'critical', quarantineDate: new Date(), fileSize: 1024*180, canRestore: false }
   ])

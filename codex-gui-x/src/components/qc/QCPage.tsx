@@ -88,3 +88,5 @@ export function QCPage() {
     </div>
   )
 }
+
+export default QCPage

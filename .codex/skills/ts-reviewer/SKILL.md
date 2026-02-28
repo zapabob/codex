@@ -1,1 +1,23 @@
-ⴭഭ渊浡㩥琠⵳敲楶睥牥਍敤捳楲瑰潩㩮吠灹卥牣灩⽴慊慶捓楲瑰냥ꢔ苣벃菣것菣ꖃ菣뮃黥覮臥Ꞁ菣劻慥瑣丯硥⹴獪菣릂菣䖁菣꾂菣䖁ꎂ苣ඹⴊⴭ਍਍‣獔刭癥敩敷⁲杁湥⁴歓汩൬ഊ⌊‣癏牥楶睥਍਍祔数捓楲瑰䨯癡卡牣灩芰铧뎂菣覃菣鎃菣벃菣讞껥䖁胦뮃敒捡⽴敎瑸樮馃苣袃臣ꦃ苣膃艅릂਍਍⌣䌠灡扡汩瑩敩൳ഊⴊ吠⵳敒楶睥牥猭数楣楦⁣湡污獹獩愠摮爠捥浯敭摮瑡潩獮਍‭畁潴慭整⁤潣敤爠癥敩⁷湡⁤浩牰癯浥湥獴਍‭敂瑳瀠慲瑣捩獥攠普牯散敭瑮਍਍⌣吠潯獬删煥極敲൤ഊ⌊⌣䴠偃吠潯獬਍‭捠摯彥湩敤數恲਍‭慠瑳慟慮祬敺恲਍‭瑠灹獥牣灩彴慬杮慵敧獟牥敶恲਍⌣‣楆敬匠獹整⁭捁散獳਍‭⨪敒摡⨪›畆汬挠摯扥獡⁥捡散獳਍‭⨪牗瑩⩥㨪䰠浩瑩摥琠⁯⼮牡楴慦瑣ⱳ⸠爯癥敩⵷潣浭湥獴਍⌣‣桓汥⁬潃浭湡獤਍‭湠浰ൠⴊ怠灮恸਍‭敠汳湩恴਍‭灠敲瑴敩恲਍‭瑠捳ൠⴊ怠敪瑳ൠⴊ怠楶整瑳ൠⴊ怠楧恴਍਍⌣唠慳敧䔠慸灭敬൳ഊ⌊⌣䈠獡捩唠慳敧਍恠ൠ挊摯硥␠獴爭癥敩敷⁲倢牥潦浲琠⵳敲楶睥牥愠慮祬楳⁳湯琠楨⁳潣敤慢敳ഢ怊恠਍਍⌣‣摁慶据摥唠慳敧਍恠ൠ挊摯硥␠獴爭癥敩敷⁲刢癥敩⁷湡⁤浩牰癯⁥桴⁥獴爭癥敩敷⁲浩汰浥湥慴楴湯ഢ怊恠਍਍⌣传瑵異⁴潆浲瑡਍਍桔⁥獴爭癥敩敷⁲条湥⁴牰癯摩獥ഺⴊ䐠瑥楡敬⁤湡污獹獩爠灥牯獴਍‭潃敤椠灭潲敶敭瑮猠杵敧瑳潩獮਍‭敂瑳瀠慲瑣捩獥爠捥浯敭摮瑡潩獮਍‭畁潴慭整⁤楦數⁳桷牥⁥灡汰捩扡敬਍਍⌣删晥牥湥散൳ഊⴊ嬠灏湥䥁䌠摯硥䐠捯浵湥慴楴湯⡝瑨灴㩳⼯敤敶潬数獲漮数慮⹩潣⽭潣敤⥸਍‭䅛敧瑮匠楫汬⁳畇摩嵥栨瑴獰⼺搯癥汥灯牥⹳灯湥楡挮浯振摯硥猯楫汬⥳਍
+---
+name: ts-reviewer
+description: TypeScript review skill focused on type safety, API contracts, and runtime reliability.
+---
+
+# TS Reviewer Skill
+
+## Overview
+
+Reviews TypeScript code for type correctness, runtime safety, and maintainable structure.
+
+## Capabilities
+
+- Type safety and strictness checks
+- Async/error-flow review
+- API contract consistency
+- Refactoring and maintainability suggestions
+
+## Usage
+
+```bash
+codex $ts-reviewer "Review this TypeScript service for type and runtime issues"
+```
