@@ -211,13 +211,11 @@ impl<'a> ColumnRenderable<'a> {
     }
 }
 
-#[allow(dead_code)]
 pub struct FlexChild<'a> {
     flex: i32,
     child: RenderableItem<'a>,
 }
 
-#[allow(dead_code)]
 pub struct FlexRenderable<'a> {
     children: Vec<FlexChild<'a>>,
 }

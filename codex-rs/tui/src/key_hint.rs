@@ -50,10 +50,7 @@ pub(crate) const fn ctrl(key: KeyCode) -> KeyBinding {
 }
 
 pub(crate) const fn ctrl_alt(key: KeyCode) -> KeyBinding {
-    KeyBinding::new(
-        key,
-        KeyModifiers::from_bits_truncate(KeyModifiers::CONTROL.bits() | KeyModifiers::ALT.bits()),
-    )
+    KeyBinding::new(key, KeyModifiers::CONTROL.union(KeyModifiers::ALT))
 }
 
 fn modifiers_to_string(modifiers: KeyModifiers) -> String {
@@ -98,7 +95,6 @@ fn key_hint_style() -> Style {
     Style::default().dim()
 }
 
-#[allow(dead_code)]
 pub(crate) fn has_ctrl_or_alt(mods: KeyModifiers) -> bool {
     (mods.contains(KeyModifiers::CONTROL) || mods.contains(KeyModifiers::ALT)) && !is_altgr(mods)
 }

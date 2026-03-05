@@ -114,7 +114,6 @@ pub struct ModelProviderInfo {
 }
 
 impl ModelProviderInfo {
-    #[allow(clippy::result_large_err)]
     fn build_header_map(&self) -> crate::error::Result<HeaderMap> {
         let capacity = self.http_headers.as_ref().map_or(0, HashMap::len)
             + self.env_http_headers.as_ref().map_or(0, HashMap::len);
@@ -142,7 +141,6 @@ impl ModelProviderInfo {
         Ok(headers)
     }
 
-    #[allow(clippy::result_large_err)]
     pub(crate) fn to_api_provider(
         &self,
         auth_mode: Option<AuthMode>,
@@ -179,7 +177,6 @@ impl ModelProviderInfo {
     /// If `env_key` is Some, returns the API key for this provider if present
     /// (and non-empty) in the environment. If `env_key` is required but
     /// cannot be found, returns an error.
-    #[allow(clippy::result_large_err)]
     pub fn api_key(&self) -> crate::error::Result<Option<String>> {
         match &self.env_key {
             Some(env_key) => {

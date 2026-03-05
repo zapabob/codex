@@ -4,7 +4,7 @@ use crate::history_cell::HistoryCell;
 use chrono::Duration as ChronoDuration;
 use chrono::TimeZone;
 use chrono::Utc;
-use codex_core::auth::AuthManager;
+use codex_core::AuthManager;
 use codex_core::config::Config;
 use codex_core::config::ConfigBuilder;
 use codex_protocol::ThreadId;
@@ -110,8 +110,8 @@ async fn status_snapshot_includes_reasoning_details() {
         .expect("set sandbox policy");
 
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 1_200,
         cached_input_tokens: 200,
@@ -243,6 +243,7 @@ async fn status_snapshot_includes_forked_from() {
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.model_provider_id = "openai".to_string();
     config.cwd = PathBuf::from("/workspace/tests");
+
     let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 800,
@@ -296,8 +297,8 @@ async fn status_snapshot_includes_monthly_limit() {
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.model_provider_id = "openai".to_string();
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 800,
         cached_input_tokens: 0,
@@ -549,8 +550,8 @@ async fn status_card_token_usage_excludes_cached_tokens() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 1_200,
         cached_input_tokens: 200,
@@ -597,8 +598,8 @@ async fn status_snapshot_truncates_in_narrow_terminal() {
     config.model_provider_id = "openai".to_string();
     config.model_reasoning_summary = Some(ReasoningSummary::Detailed);
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 1_200,
         cached_input_tokens: 200,
@@ -660,8 +661,8 @@ async fn status_snapshot_shows_missing_limits_message() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 500,
         cached_input_tokens: 0,
@@ -708,8 +709,8 @@ async fn status_snapshot_includes_credits_and_limits() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 1_500,
         cached_input_tokens: 100,
@@ -777,8 +778,8 @@ async fn status_snapshot_shows_empty_limits_message() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 500,
         cached_input_tokens: 0,
@@ -834,8 +835,8 @@ async fn status_snapshot_shows_stale_limits_message() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 1_200,
         cached_input_tokens: 200,
@@ -900,8 +901,8 @@ async fn status_snapshot_cached_limits_hide_credits_without_flag() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex".to_string());
     config.cwd = PathBuf::from("/workspace/tests");
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let usage = TokenUsage {
         input_tokens: 900,
         cached_input_tokens: 200,
@@ -969,8 +970,8 @@ async fn status_context_window_uses_last_usage() {
     let temp_home = TempDir::new().expect("temp home");
     let mut config = test_config(&temp_home).await;
     config.model_context_window = Some(272_000);
-    let auth_manager = test_auth_manager(&config);
 
+    let auth_manager = test_auth_manager(&config);
     let total_usage = TokenUsage {
         input_tokens: 12_800,
         cached_input_tokens: 0,

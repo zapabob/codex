@@ -61,7 +61,6 @@ pub(crate) enum ToolEventFailure {
     Rejected(String),
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(crate) async fn emit_exec_command_begin(
     ctx: ToolEventCtx<'_>,
     command: &[String],
@@ -367,7 +366,6 @@ struct ExecCommandInput<'a> {
 }
 
 impl<'a> ExecCommandInput<'a> {
-    #[allow(clippy::too_many_arguments)]
     fn new(
         command: &'a [String],
         cwd: &'a Path,

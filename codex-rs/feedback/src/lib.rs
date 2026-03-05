@@ -20,6 +20,8 @@ use tracing_subscriber::filter::Targets;
 use tracing_subscriber::fmt::writer::MakeWriter;
 use tracing_subscriber::registry::LookupSpan;
 
+pub mod feedback_diagnostics;
+
 const DEFAULT_MAX_BYTES: usize = 4 * 1024 * 1024; // 4 MiB
 const SENTRY_DSN: &str =
     "https://ae32ed50620d7a7792c1ce5df38b3e3e@o33249.ingest.us.sentry.io/4510195390611458";
@@ -102,6 +104,7 @@ impl CodexFeedback {
             thread_id: session_id
                 .map(|id| id.to_string())
                 .unwrap_or("no-active-thread-".to_string() + &ThreadId::new().to_string()),
+            feedback_diagnostics: feedback_diagnostics::FeedbackDiagnostics::collect_from_env(),
         }
     }
 }
@@ -198,15 +201,41 @@ impl RingBuffer {
     }
 }
 
+#[derive(Clone)]
 pub struct CodexLogSnapshot {
     bytes: Vec<u8>,
     tags: BTreeMap<String, String>,
     pub thread_id: String,
+    feedback_diagnostics: feedback_diagnostics::FeedbackDiagnostics,
 }
+
+pub type FeedbackSnapshot = CodexLogSnapshot;
 
 impl CodexLogSnapshot {
     pub(crate) fn as_bytes(&self) -> &[u8] {
         &self.bytes
+    }
+
+    pub fn with_feedback_diagnostics(
+        mut self,
+        diagnostics: feedback_diagnostics::FeedbackDiagnostics,
+    ) -> Self {
+        self.feedback_diagnostics = diagnostics;
+        self
+    }
+
+    pub fn feedback_diagnostics(&self) -> &feedback_diagnostics::FeedbackDiagnostics {
+        &self.feedback_diagnostics
+    }
+
+    pub fn feedback_diagnostics_attachment_text(
+        &self,
+        include_connectivity_diagnostics_attachment: bool,
+    ) -> Option<String> {
+        if !include_connectivity_diagnostics_attachment {
+            return None;
+        }
+        self.feedback_diagnostics.attachment_text()
     }
 
     pub fn save_to_temp_file(&self) -> io::Result<PathBuf> {

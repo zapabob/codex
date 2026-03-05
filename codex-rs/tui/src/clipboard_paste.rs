@@ -2,7 +2,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use tempfile::Builder;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PasteImageError {
     ClipboardUnavailable(String),
     NoImage(String),
@@ -119,19 +119,113 @@ pub fn paste_image_as_png() -> Result<(Vec<u8>, PastedImageInfo), PasteImageErro
 /// Convenience: write to a temp file and return its path + info.
 #[cfg(not(target_os = "android"))]
 pub fn paste_image_to_temp_png() -> Result<(PathBuf, PastedImageInfo), PasteImageError> {
-    let (png, info) = paste_image_as_png()?;
-    // Create a unique temporary file with a .png suffix to avoid collisions.
-    let tmp = Builder::new()
-        .prefix("codex-clipboard-")
-        .suffix(".png")
-        .tempfile()
-        .map_err(|e| PasteImageError::IoError(e.to_string()))?;
-    std::fs::write(tmp.path(), &png).map_err(|e| PasteImageError::IoError(e.to_string()))?;
-    // Persist the file (so it remains after the handle is dropped) and return its PathBuf.
-    let (_file, path) = tmp
-        .keep()
-        .map_err(|e| PasteImageError::IoError(e.error.to_string()))?;
-    Ok((path, info))
+    // First attempt: read image from system clipboard via arboard (native paths or image data).
+    match paste_image_as_png() {
+        Ok((png, info)) => {
+            // Create a unique temporary file with a .png suffix to avoid collisions.
+            let tmp = Builder::new()
+                .prefix("codex-clipboard-")
+                .suffix(".png")
+                .tempfile()
+                .map_err(|e| PasteImageError::IoError(e.to_string()))?;
+            std::fs::write(tmp.path(), &png)
+                .map_err(|e| PasteImageError::IoError(e.to_string()))?;
+            // Persist the file (so it remains after the handle is dropped) and return its PathBuf.
+            let (_file, path) = tmp
+                .keep()
+                .map_err(|e| PasteImageError::IoError(e.error.to_string()))?;
+            Ok((path, info))
+        }
+        Err(e) => {
+            #[cfg(target_os = "linux")]
+            {
+                try_wsl_clipboard_fallback(&e).or(Err(e))
+            }
+            #[cfg(not(target_os = "linux"))]
+            {
+                Err(e)
+            }
+        }
+    }
+}
+
+/// Attempt WSL fallback for clipboard image paste.
+///
+/// If clipboard is unavailable (common under WSL because arboard cannot access
+/// the Windows clipboard), attempt a WSL fallback that calls PowerShell on the
+/// Windows side to write the clipboard image to a temporary file, then return
+/// the corresponding WSL path.
+#[cfg(target_os = "linux")]
+fn try_wsl_clipboard_fallback(
+    error: &PasteImageError,
+) -> Result<(PathBuf, PastedImageInfo), PasteImageError> {
+    use PasteImageError::ClipboardUnavailable;
+    use PasteImageError::NoImage;
+
+    if !is_probably_wsl() || !matches!(error, ClipboardUnavailable(_) | NoImage(_)) {
+        return Err(error.clone());
+    }
+
+    tracing::debug!("attempting Windows PowerShell clipboard fallback");
+    let Some(win_path) = try_dump_windows_clipboard_image() else {
+        return Err(error.clone());
+    };
+
+    tracing::debug!("powershell produced path: {}", win_path);
+    let Some(mapped_path) = convert_windows_path_to_wsl(&win_path) else {
+        return Err(error.clone());
+    };
+
+    let Ok((w, h)) = image::image_dimensions(&mapped_path) else {
+        return Err(error.clone());
+    };
+
+    // Return the mapped path directly without copying.
+    // The file will be read and base64-encoded during serialization.
+    Ok((
+        mapped_path,
+        PastedImageInfo {
+            width: w,
+            height: h,
+            encoded_format: EncodedImageFormat::Png,
+        },
+    ))
+}
+
+/// Try to call a Windows PowerShell command (several common names) to save the
+/// clipboard image to a temporary PNG and return the Windows path to that file.
+/// Returns None if no command succeeded or no image was present.
+#[cfg(target_os = "linux")]
+fn try_dump_windows_clipboard_image() -> Option<String> {
+    // Powershell script: save image from clipboard to a temp png and print the path.
+    // Force UTF-8 output to avoid encoding issues between powershell.exe (UTF-16LE default)
+    // and pwsh (UTF-8 default).
+    let script = r#"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $img = Get-Clipboard -Format Image; if ($img -ne $null) { $p=[System.IO.Path]::GetTempFileName(); $p = [System.IO.Path]::ChangeExtension($p,'png'); $img.Save($p,[System.Drawing.Imaging.ImageFormat]::Png); Write-Output $p } else { exit 1 }"#;
+
+    for cmd in ["powershell.exe", "pwsh", "powershell"] {
+        match std::process::Command::new(cmd)
+            .args(["-NoProfile", "-Command", script])
+            .output()
+        {
+            // Executing PowerShell command
+            Ok(output) => {
+                if output.status.success() {
+                    // Decode as UTF-8 (forced by the script above).
+                    let win_path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    if !win_path.is_empty() {
+                        tracing::debug!("{} saved clipboard image to {}", cmd, win_path);
+                        return Some(win_path);
+                    }
+                } else {
+                    tracing::debug!("{} returned non-zero status", cmd);
+                }
+            }
+            Err(err) => {
+                tracing::debug!("{} not executable: {}", cmd, err);
+            }
+        }
+    }
+    None
 }
 
 #[cfg(target_os = "android")]
@@ -169,24 +263,8 @@ pub fn normalize_pasted_path(pasted: &str) -> Option<PathBuf> {
     // Detect unquoted Windows paths and bypass POSIX shlex which
     // treats backslashes as escapes (e.g., C:\Users\Alice\file.png).
     // Also handles UNC paths (\\server\share\path).
-    let looks_like_windows_path = {
-        // Drive letter path: C:\ or C:/
-        let drive = pasted
-            .chars()
-            .next()
-            .map(|c| c.is_ascii_alphabetic())
-            .unwrap_or(false)
-            && pasted.get(1..2) == Some(":")
-            && pasted
-                .get(2..3)
-                .map(|s| s == "\\" || s == "/")
-                .unwrap_or(false);
-        // UNC path: \\server\share
-        let unc = pasted.starts_with("\\\\");
-        drive || unc
-    };
-    if looks_like_windows_path {
-        return Some(PathBuf::from(pasted));
+    if let Some(path) = normalize_windows_path(unquoted) {
+        return Some(path);
     }
 
     // shell-escaped single path → unescaped
@@ -202,50 +280,78 @@ pub fn normalize_pasted_path(pasted: &str) -> Option<PathBuf> {
     None
 }
 
-/// Start of new helper function
-fn normalize_windows_path(path_str: &str) -> Option<PathBuf> {
-    let path = PathBuf::from(path_str);
-    if path.exists() {
-        return Some(path);
+#[cfg(target_os = "linux")]
+pub(crate) fn is_probably_wsl() -> bool {
+    // Primary: Check /proc/version for "microsoft" or "WSL" (most reliable for standard WSL).
+    if let Ok(version) = std::fs::read_to_string("/proc/version") {
+        let version_lower = version.to_lowercase();
+        if version_lower.contains("microsoft") || version_lower.contains("wsl") {
+            return true;
+        }
     }
-    None
+
+    // Fallback: Check WSL environment variables. This handles edge cases like
+    // custom Linux kernels installed in WSL where /proc/version may not contain
+    // "microsoft" or "WSL".
+    std::env::var_os("WSL_DISTRO_NAME").is_some() || std::env::var_os("WSL_INTEROP").is_some()
 }
 
-/// Returns true if the process is running inside Windows Subsystem for Linux (WSL).
-///
-/// This is detected by checking whether `/proc/version` contains "Microsoft" or "WSL",
-/// which is the standard indicator set by the WSL kernel.
 #[cfg(target_os = "linux")]
-pub fn is_probably_wsl() -> bool {
-    std::fs::read_to_string("/proc/version")
-        .map(|v| {
-            let lower = v.to_lowercase();
-            lower.contains("microsoft") || lower.contains("wsl")
-        })
-        .unwrap_or(false)
-}
+fn convert_windows_path_to_wsl(input: &str) -> Option<PathBuf> {
+    if input.starts_with("\\\\") {
+        return None;
+    }
 
-/// Convert a Windows-style path (e.g. `C:\Users\Alice\file.txt`) to its WSL
-/// equivalent (e.g. `/mnt/c/Users/Alice/file.txt`).
-///
-/// Returns `None` if `path_str` does not look like a Windows drive-letter path.
-#[cfg(target_os = "linux")]
-pub fn convert_windows_path_to_wsl(path_str: &str) -> Option<PathBuf> {
-    let path_str = path_str.trim();
-    // Match drive letter paths: C:\ or C:/ or C:\\
-    let chars: Vec<char> = path_str.chars().collect();
-    if chars.len() >= 3
-        && chars[0].is_ascii_alphabetic()
-        && chars[1] == ':'
-        && (chars[2] == '\\' || chars[2] == '/')
+    let drive_letter = input.chars().next()?.to_ascii_lowercase();
+    if !drive_letter.is_ascii_lowercase() {
+        return None;
+    }
+
+    if input.get(1..2) != Some(":") {
+        return None;
+    }
+
+    let mut result = PathBuf::from(format!("/mnt/{drive_letter}"));
+    for component in input
+        .get(2..)?
+        .trim_start_matches(['\\', '/'])
+        .split(['\\', '/'])
+        .filter(|component| !component.is_empty())
     {
-        let drive = chars[0].to_ascii_lowercase();
-        let rest = &path_str[3..];
-        let linux_rest = rest.replace('\\', "/");
-        Some(PathBuf::from(format!("/mnt/{drive}/{linux_rest}")))
-    } else {
-        None
+        result.push(component);
     }
+
+    Some(result)
+}
+
+fn normalize_windows_path(input: &str) -> Option<PathBuf> {
+    // Drive letter path: C:\ or C:/
+    let drive = input
+        .chars()
+        .next()
+        .map(|c| c.is_ascii_alphabetic())
+        .unwrap_or(false)
+        && input.get(1..2) == Some(":")
+        && input
+            .get(2..3)
+            .map(|s| s == "\\" || s == "/")
+            .unwrap_or(false);
+    // UNC path: \\server\share
+    let unc = input.starts_with("\\\\");
+    if !drive && !unc {
+        return None;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        if is_probably_wsl()
+            && let Some(converted) = convert_windows_path_to_wsl(input)
+        {
+            return Some(converted);
+        }
+    }
+
+    Some(PathBuf::from(input))
 }
 
 /// Infer an image format for the provided path based on its extension.
@@ -278,7 +384,17 @@ mod pasted_paths_tests {
     fn normalize_file_url_windows() {
         let input = r"C:\Temp\example.png";
         let result = normalize_pasted_path(input).expect("should parse file URL");
-        assert_eq!(result, PathBuf::from(r"C:\Temp\example.png"));
+        #[cfg(target_os = "linux")]
+        let expected = if is_probably_wsl()
+            && let Some(converted) = convert_windows_path_to_wsl(input)
+        {
+            converted
+        } else {
+            PathBuf::from(r"C:\Temp\example.png")
+        };
+        #[cfg(not(target_os = "linux"))]
+        let expected = PathBuf::from(r"C:\Temp\example.png");
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -376,10 +492,17 @@ mod pasted_paths_tests {
     fn normalize_unquoted_windows_path_with_spaces() {
         let input = r"C:\\Users\\Alice\\My Pictures\\example image.png";
         let result = normalize_pasted_path(input).expect("should accept unquoted windows path");
-        assert_eq!(
-            result,
+        #[cfg(target_os = "linux")]
+        let expected = if is_probably_wsl()
+            && let Some(converted) = convert_windows_path_to_wsl(input)
+        {
+            converted
+        } else {
             PathBuf::from(r"C:\\Users\\Alice\\My Pictures\\example image.png")
-        );
+        };
+        #[cfg(not(target_os = "linux"))]
+        let expected = PathBuf::from(r"C:\\Users\\Alice\\My Pictures\\example image.png");
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -405,6 +528,22 @@ mod pasted_paths_tests {
         assert_eq!(
             pasted_image_format(Path::new(r"C:\\a\\b\\noext")),
             EncodedImageFormat::Other
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn normalize_windows_path_in_wsl() {
+        // This test only runs on actual WSL systems
+        if !is_probably_wsl() {
+            // Skip test if not on WSL
+            return;
+        }
+        let input = r"C:\\Users\\Alice\\Pictures\\example image.png";
+        let result = normalize_pasted_path(input).expect("should convert windows path on wsl");
+        assert_eq!(
+            result,
+            PathBuf::from("/mnt/c/Users/Alice/Pictures/example image.png")
         );
     }
 }

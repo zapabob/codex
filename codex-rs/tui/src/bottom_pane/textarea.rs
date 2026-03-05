@@ -1,3 +1,15 @@
+//! The textarea owns editable composer text, placeholder elements, cursor/wrap state, and a
+//! single-entry kill buffer.
+//!
+//! Whole-buffer replacement APIs intentionally rebuild only the visible draft state. They clear
+//! element ranges and derived cursor/wrapping caches, but they keep the kill buffer intact so a
+//! caller can clear or rewrite the draft and still allow `Ctrl+Y` to restore the user's most
+//! recent `Ctrl+K`. This is the contract higher-level composer flows rely on after submit,
+//! slash-command dispatch, and other synthetic clears.
+//!
+//! This module does not implement an Emacs-style multi-entry kill ring. It keeps only the most
+//! recent killed span.
+
 use crate::key_hint::is_altgr;
 use codex_protocol::user_input::ByteRange;
 use codex_protocol::user_input::TextElement as UserTextElement;
@@ -38,6 +50,14 @@ pub(crate) struct TextElementSnapshot {
     pub(crate) text: String,
 }
 
+/// `TextArea` is the editable buffer behind the TUI composer.
+///
+/// It owns the raw UTF-8 text, placeholder-like text elements that must move atomically with
+/// edits, cursor/wrapping state for rendering, and a single-entry kill buffer for `Ctrl+K` /
+/// `Ctrl+Y` style editing. Callers may replace the entire visible buffer through
+/// [`Self::set_text_clearing_elements`] or [`Self::set_text_with_elements`] without disturbing the
+/// kill buffer; if they incorrectly assume those methods fully reset editing state, a later yank
+/// will appear to restore stale text from the user's perspective.
 #[derive(Debug)]
 pub(crate) struct TextArea {
     text: String,
@@ -74,12 +94,21 @@ impl TextArea {
         }
     }
 
-    /// Replace the textarea text and clear any existing text elements.
+    /// Replace the visible textarea text and clear any existing text elements.
+    ///
+    /// This is the "fresh buffer" path for callers that want plain text with no placeholder
+    /// ranges. It intentionally preserves the current kill buffer, because higher-level flows such
+    /// as submit or slash-command dispatch clear the draft through this method and still want
+    /// `Ctrl+Y` to recover the user's most recent kill.
     pub fn set_text_clearing_elements(&mut self, text: &str) {
         self.set_text_inner(text, None);
     }
 
-    /// Replace the textarea text and set the provided text elements.
+    /// Replace the visible textarea text and rebuild the provided text elements.
+    ///
+    /// As with [`Self::set_text_clearing_elements`], this resets only state derived from the
+    /// visible buffer. The kill buffer survives so callers restoring drafts or external edits do
+    /// not silently discard a pending yank target.
     pub fn set_text_with_elements(&mut self, text: &str, elements: &[UserTextElement]) {
         self.set_text_inner(text, Some(elements));
     }
@@ -109,10 +138,11 @@ impl TextArea {
             self.elements.sort_by_key(|e| e.range.start);
         }
         // Stage 3: clamp the cursor and reset derived state tied to the prior content.
+        // The kill buffer is editing history rather than visible-buffer state, so full-buffer
+        // replacements intentionally leave it alone.
         self.cursor_pos = self.clamp_pos_to_nearest_boundary(self.cursor_pos);
         self.wrap_cache.replace(None);
         self.preferred_col = None;
-        self.kill_buffer.clear();
     }
 
     pub fn text(&self) -> &str {
@@ -267,13 +297,19 @@ impl TextArea {
         match event {
             // Some terminals (or configurations) send Control key chords as
             // C0 control characters without reporting the CONTROL modifier.
-            // Handle common fallbacks for Ctrl-B/Ctrl-F here so they don't get
+            // Handle common fallbacks for Ctrl-B/F/P/N here so they don't get
             // inserted as literal control bytes.
             KeyEvent { code: KeyCode::Char('\u{0002}'), modifiers: KeyModifiers::NONE, .. } /* ^B */ => {
                 self.move_cursor_left();
             }
             KeyEvent { code: KeyCode::Char('\u{0006}'), modifiers: KeyModifiers::NONE, .. } /* ^F */ => {
                 self.move_cursor_right();
+            }
+            KeyEvent { code: KeyCode::Char('\u{0010}'), modifiers: KeyModifiers::NONE, .. } /* ^P */ => {
+                self.move_cursor_up();
+            }
+            KeyEvent { code: KeyCode::Char('\u{000e}'), modifiers: KeyModifiers::NONE, .. } /* ^N */ => {
+                self.move_cursor_down();
             }
             KeyEvent {
                 code: KeyCode::Char(c),
@@ -313,10 +349,9 @@ impl TextArea {
             } => self.delete_backward_word(),
             KeyEvent {
                 code: KeyCode::Backspace,
-                modifiers,
                 ..
-            } if modifiers.is_empty() => self.delete_backward(1),
-            KeyEvent {
+            }
+            | KeyEvent {
                 code: KeyCode::Char('h'),
                 modifiers: KeyModifiers::CONTROL,
                 ..
@@ -333,10 +368,9 @@ impl TextArea {
             } => self.delete_forward_word(),
             KeyEvent {
                 code: KeyCode::Delete,
-                modifiers,
                 ..
-            } if modifiers.is_empty() => self.delete_forward(1),
-            KeyEvent {
+            }
+            | KeyEvent {
                 code: KeyCode::Char('d'),
                 modifiers: KeyModifiers::CONTROL,
                 ..
@@ -417,6 +451,20 @@ impl TextArea {
             } => {
                 self.move_cursor_right();
             }
+            KeyEvent {
+                code: KeyCode::Char('p'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                self.move_cursor_up();
+            }
+            KeyEvent {
+                code: KeyCode::Char('n'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => {
+                self.move_cursor_down();
+            }
             // Some terminals send Alt+Arrow for word-wise movement:
             // Option/Left -> Alt+Left (previous word start)
             // Option/Right -> Alt+Right (next word end)
@@ -457,13 +505,6 @@ impl TextArea {
             }
             KeyEvent {
                 code: KeyCode::Home,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                self.set_cursor(0);
-            }
-            KeyEvent {
-                code: KeyCode::Home,
                 ..
             } => {
                 self.move_cursor_to_beginning_of_line(false);
@@ -477,14 +518,6 @@ impl TextArea {
             }
 
             KeyEvent {
-                code: KeyCode::End,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                let len = self.text.len();
-                self.set_cursor(len);
-            }
-            KeyEvent {
                 code: KeyCode::End, ..
             } => {
                 self.move_cursor_to_end_of_line(false);
@@ -495,20 +528,6 @@ impl TextArea {
                 ..
             } => {
                 self.move_cursor_to_end_of_line(true);
-            }
-            KeyEvent {
-                code: KeyCode::Backspace,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                self.delete_backward_word();
-            }
-            KeyEvent {
-                code: KeyCode::Delete,
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                self.delete_forward_word();
             }
             _o => {
                 #[cfg(feature = "debug-logs")]
@@ -563,6 +582,12 @@ impl TextArea {
         }
     }
 
+    /// Kill from the cursor to the end of the current logical line.
+    ///
+    /// If the cursor is already at end-of-line and a trailing newline exists, this kills that
+    /// newline so repeated invocations continue making progress. The removed text becomes the next
+    /// yank target and remains available even if a caller later clears or rewrites the visible
+    /// buffer via `set_text_*`.
     pub fn kill_to_end_of_line(&mut self) {
         let eol = self.end_of_current_line();
         let range = if self.cursor_pos == eol {
@@ -593,6 +618,11 @@ impl TextArea {
         }
     }
 
+    /// Insert the most recently killed text at the cursor.
+    ///
+    /// This uses the textarea's single-entry kill buffer. Because whole-buffer replacement APIs do
+    /// not clear that buffer, `yank` can restore text after composer-level clears such as submit
+    /// and slash-command dispatch.
     pub fn yank(&mut self) {
         if self.kill_buffer.is_empty() {
             return;
@@ -1744,6 +1774,21 @@ mod tests {
         t.yank();
         assert_eq!(t.text(), "hello");
         assert_eq!(t.cursor(), 5);
+    }
+
+    #[test]
+    fn kill_buffer_persists_across_set_text() {
+        let mut t = ta_with("restore me");
+        t.set_cursor(0);
+        t.kill_to_end_of_line();
+        assert!(t.text().is_empty());
+
+        t.set_text_clearing_elements("/diff");
+        t.set_text_clearing_elements("");
+        t.yank();
+
+        assert_eq!(t.text(), "restore me");
+        assert_eq!(t.cursor(), "restore me".len());
     }
 
     #[test]

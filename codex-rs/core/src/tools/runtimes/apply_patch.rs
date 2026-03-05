@@ -46,7 +46,6 @@ impl ApplyPatchRuntime {
         Self
     }
 
-    #[allow(clippy::result_large_err)]
     fn build_command_spec(req: &ApplyPatchRequest) -> Result<CommandSpec, ToolError> {
         use std::env;
         let exe = if let Some(path) = &req.codex_exe {

@@ -1,5 +1,5 @@
-#![allow(clippy::disallowed_methods)]
 #![allow(unsafe_op_in_unsafe_fn)]
+#![allow(dead_code)]
 
 macro_rules! windows_modules {
     ($($name:ident),+ $(,)?) => {
@@ -14,6 +14,7 @@ windows_modules!(
     cap,
     dpapi,
     env,
+    helper_materialization,
     hide_users,
     identity,
     logging,
@@ -70,19 +71,17 @@ pub use identity::require_logon_sandbox_creds;
 #[cfg(target_os = "windows")]
 pub use identity::sandbox_setup_is_complete;
 #[cfg(target_os = "windows")]
-pub use logging::LOG_FILE_NAME;
-#[cfg(target_os = "windows")]
 pub use logging::log_note;
+#[cfg(target_os = "windows")]
+pub use logging::LOG_FILE_NAME;
 #[cfg(target_os = "windows")]
 pub use path_normalization::canonicalize_path;
 #[cfg(target_os = "windows")]
-pub use policy::SandboxPolicy;
-#[cfg(target_os = "windows")]
 pub use policy::parse_policy;
 #[cfg(target_os = "windows")]
-pub use process::create_process_as_user;
+pub use policy::SandboxPolicy;
 #[cfg(target_os = "windows")]
-pub use setup::SETUP_VERSION;
+pub use process::create_process_as_user;
 #[cfg(target_os = "windows")]
 pub use setup::run_elevated_setup;
 #[cfg(target_os = "windows")]
@@ -90,15 +89,13 @@ pub use setup::run_setup_refresh;
 #[cfg(target_os = "windows")]
 pub use setup::run_setup_refresh_with_extra_read_roots;
 #[cfg(target_os = "windows")]
+pub use setup::sandbox_bin_dir;
+#[cfg(target_os = "windows")]
 pub use setup::sandbox_dir;
 #[cfg(target_os = "windows")]
 pub use setup::sandbox_secrets_dir;
 #[cfg(target_os = "windows")]
-pub use setup_error::SetupErrorCode;
-#[cfg(target_os = "windows")]
-pub use setup_error::SetupErrorReport;
-#[cfg(target_os = "windows")]
-pub use setup_error::SetupFailure;
+pub use setup::SETUP_VERSION;
 #[cfg(target_os = "windows")]
 pub use setup_error::extract_failure as extract_setup_failure;
 #[cfg(target_os = "windows")]
@@ -107,6 +104,12 @@ pub use setup_error::sanitize_setup_metric_tag_value;
 pub use setup_error::setup_error_path;
 #[cfg(target_os = "windows")]
 pub use setup_error::write_setup_error_report;
+#[cfg(target_os = "windows")]
+pub use setup_error::SetupErrorCode;
+#[cfg(target_os = "windows")]
+pub use setup_error::SetupErrorReport;
+#[cfg(target_os = "windows")]
+pub use setup_error::SetupFailure;
 #[cfg(target_os = "windows")]
 pub use token::convert_string_sid_to_sid;
 #[cfg(target_os = "windows")]
@@ -118,11 +121,11 @@ pub use token::create_workspace_write_token_with_caps_from;
 #[cfg(target_os = "windows")]
 pub use token::get_current_token_for_restriction;
 #[cfg(target_os = "windows")]
-pub use windows_impl::CaptureResult;
-#[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_legacy_preflight;
+#[cfg(target_os = "windows")]
+pub use windows_impl::CaptureResult;
 #[cfg(target_os = "windows")]
 pub use winutil::string_from_sid_bytes;
 #[cfg(target_os = "windows")]
@@ -135,13 +138,13 @@ pub use workspace_acl::protect_workspace_agents_dir;
 pub use workspace_acl::protect_workspace_codex_dir;
 
 #[cfg(not(target_os = "windows"))]
-pub use stub::CaptureResult;
-#[cfg(not(target_os = "windows"))]
 pub use stub::apply_world_writable_scan_and_denies;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_capture;
 #[cfg(not(target_os = "windows"))]
 pub use stub::run_windows_sandbox_legacy_preflight;
+#[cfg(not(target_os = "windows"))]
+pub use stub::CaptureResult;
 
 #[cfg(target_os = "windows")]
 mod windows_impl {
@@ -149,8 +152,8 @@ mod windows_impl {
     use super::acl::add_deny_write_ace;
     use super::acl::allow_null_device;
     use super::acl::revoke_ace;
-    use super::allow::AllowDenyPaths;
     use super::allow::compute_allow_paths;
+    use super::allow::AllowDenyPaths;
     use super::cap::load_or_create_cap_sids;
     use super::cap::workspace_cap_sid_for_cwd;
     use super::env::apply_no_network_to_env;
@@ -161,8 +164,8 @@ mod windows_impl {
     use super::logging::log_start;
     use super::logging::log_success;
     use super::path_normalization::canonicalize_path;
-    use super::policy::SandboxPolicy;
     use super::policy::parse_policy;
+    use super::policy::SandboxPolicy;
     use super::process::make_env_block;
     use super::token::convert_string_sid_to_sid;
     use super::token::create_workspace_write_token_with_caps_from;
@@ -173,22 +176,26 @@ mod windows_impl {
     use super::workspace_acl::protect_workspace_agents_dir;
     use super::workspace_acl::protect_workspace_codex_dir;
     use anyhow::Result;
+    use std::collections::HashMap;
+    use std::ffi::c_void;
+    use std::io;
+    use std::path::Path;
     use std::path::PathBuf;
     use std::ptr;
     use windows_sys::Win32::Foundation::CloseHandle;
     use windows_sys::Win32::Foundation::GetLastError;
+    use windows_sys::Win32::Foundation::SetHandleInformation;
     use windows_sys::Win32::Foundation::HANDLE;
     use windows_sys::Win32::Foundation::HANDLE_FLAG_INHERIT;
-    use windows_sys::Win32::Foundation::SetHandleInformation;
     use windows_sys::Win32::System::Pipes::CreatePipe;
-    use windows_sys::Win32::System::Threading::CREATE_UNICODE_ENVIRONMENT;
     use windows_sys::Win32::System::Threading::CreateProcessAsUserW;
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
+    use windows_sys::Win32::System::Threading::WaitForSingleObject;
+    use windows_sys::Win32::System::Threading::CREATE_UNICODE_ENVIRONMENT;
     use windows_sys::Win32::System::Threading::INFINITE;
     use windows_sys::Win32::System::Threading::PROCESS_INFORMATION;
     use windows_sys::Win32::System::Threading::STARTF_USESTDHANDLES;
     use windows_sys::Win32::System::Threading::STARTUPINFOW;
-    use windows_sys::Win32::System::Threading::WaitForSingleObject;
 
     type PipeHandles = ((HANDLE, HANDLE), (HANDLE, HANDLE), (HANDLE, HANDLE));
 
@@ -196,71 +203,35 @@ mod windows_impl {
         !policy.has_full_network_access()
     }
 
-    fn ensure_codex_home_exists(p: &std::path::Path) -> Result<()> {
+    fn ensure_codex_home_exists(p: &Path) -> Result<()> {
         std::fs::create_dir_all(p)?;
         Ok(())
     }
 
-    unsafe fn setup_stdio_pipes() -> std::io::Result<PipeHandles> {
+    unsafe fn setup_stdio_pipes() -> io::Result<PipeHandles> {
         let mut in_r: HANDLE = 0;
         let mut in_w: HANDLE = 0;
         let mut out_r: HANDLE = 0;
         let mut out_w: HANDLE = 0;
         let mut err_r: HANDLE = 0;
         let mut err_w: HANDLE = 0;
-        if unsafe { CreatePipe(&mut in_r, &mut in_w, ptr::null_mut(), 0) } == 0 {
-            return Err(std::io::Error::from_raw_os_error(
-                unsafe { GetLastError() } as i32
-            ));
+        if CreatePipe(&mut in_r, &mut in_w, ptr::null_mut(), 0) == 0 {
+            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
         }
-        if unsafe { CreatePipe(&mut out_r, &mut out_w, ptr::null_mut(), 0) } == 0 {
-            unsafe { CloseHandle(in_r) };
-            unsafe { CloseHandle(in_w) };
-            return Err(std::io::Error::from_raw_os_error(
-                unsafe { GetLastError() } as i32
-            ));
+        if CreatePipe(&mut out_r, &mut out_w, ptr::null_mut(), 0) == 0 {
+            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
         }
-        if unsafe { CreatePipe(&mut err_r, &mut err_w, ptr::null_mut(), 0) } == 0 {
-            unsafe { CloseHandle(in_r) };
-            unsafe { CloseHandle(in_w) };
-            unsafe { CloseHandle(out_r) };
-            unsafe { CloseHandle(out_w) };
-            return Err(std::io::Error::from_raw_os_error(
-                unsafe { GetLastError() } as i32
-            ));
+        if CreatePipe(&mut err_r, &mut err_w, ptr::null_mut(), 0) == 0 {
+            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
         }
-        if unsafe { SetHandleInformation(in_r, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
-            unsafe { CloseHandle(in_r) };
-            unsafe { CloseHandle(in_w) };
-            unsafe { CloseHandle(out_r) };
-            unsafe { CloseHandle(out_w) };
-            unsafe { CloseHandle(err_r) };
-            unsafe { CloseHandle(err_w) };
-            return Err(std::io::Error::from_raw_os_error(
-                unsafe { GetLastError() } as i32
-            ));
+        if SetHandleInformation(in_r, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
+            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
         }
-        if unsafe { SetHandleInformation(out_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
-            unsafe { CloseHandle(in_r) };
-            unsafe { CloseHandle(in_w) };
-            unsafe { CloseHandle(out_r) };
-            unsafe { CloseHandle(out_w) };
-            unsafe { CloseHandle(err_r) };
-            unsafe { CloseHandle(err_w) };
-            return Err(std::io::Error::from_raw_os_error(
-                unsafe { GetLastError() } as i32
-            ));
+        if SetHandleInformation(out_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
+            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
         }
-        if unsafe { SetHandleInformation(err_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) } == 0 {
-            unsafe { CloseHandle(in_r) };
-            unsafe { CloseHandle(in_w) };
-            unsafe { CloseHandle(out_r) };
-            unsafe { CloseHandle(out_w) };
-            unsafe { CloseHandle(err_r) };
-            unsafe { CloseHandle(err_w) };
-            return Err(std::io::Error::from_raw_os_error(
-                unsafe { GetLastError() } as i32
-            ));
+        if SetHandleInformation(err_w, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) == 0 {
+            return Err(io::Error::from_raw_os_error(GetLastError() as i32));
         }
         Ok(((in_r, in_w), (out_r, out_w), (err_r, err_w)))
     }
@@ -272,16 +243,15 @@ mod windows_impl {
         pub timed_out: bool,
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn run_windows_sandbox_capture(
         policy_json_or_preset: &str,
-        sandbox_policy_cwd: &std::path::Path,
-        codex_home: &std::path::Path,
+        sandbox_policy_cwd: &Path,
+        codex_home: &Path,
         command: Vec<String>,
-        cwd: &std::path::Path,
-        mut env_map: std::collections::HashMap<String, String>,
+        cwd: &Path,
+        mut env_map: HashMap<String, String>,
         timeout_ms: Option<u64>,
-    ) -> anyhow::Result<CaptureResult> {
+    ) -> Result<CaptureResult> {
         let policy = parse_policy(policy_json_or_preset)?;
         let apply_network_block = should_apply_network_block(&policy);
         normalize_null_device_env(&mut env_map);
@@ -309,11 +279,7 @@ mod windows_impl {
             );
         }
         let caps = load_or_create_cap_sids(codex_home)?;
-        let (h_token, psid_generic, psid_workspace): (
-            HANDLE,
-            *mut std::ffi::c_void,
-            Option<*mut std::ffi::c_void>,
-        ) = unsafe {
+        let (h_token, psid_generic, psid_workspace): (HANDLE, *mut c_void, Option<*mut c_void>) = unsafe {
             match &policy {
                 SandboxPolicy::ReadOnly { .. } => {
                     let psid = convert_string_sid_to_sid(&caps.readonly).unwrap();
@@ -321,14 +287,9 @@ mod windows_impl {
                     (h, psid, None)
                 }
                 SandboxPolicy::WorkspaceWrite { .. } => {
-                    let psid_generic =
-                        convert_string_sid_to_sid(&caps.workspace).ok_or_else(|| {
-                            anyhow::anyhow!("convert_string_sid_to_sid failed for workspace")
-                        })?;
+                    let psid_generic = convert_string_sid_to_sid(&caps.workspace).unwrap();
                     let ws_sid = workspace_cap_sid_for_cwd(codex_home, cwd)?;
-                    let psid_workspace = convert_string_sid_to_sid(&ws_sid).ok_or_else(|| {
-                        anyhow::anyhow!("convert_string_sid_to_sid failed for workspace_cwd")
-                    })?;
+                    let psid_workspace = convert_string_sid_to_sid(&ws_sid).unwrap();
                     let base = super::token::get_current_token_for_restriction()?;
                     let h_res = create_workspace_write_token_with_caps_from(
                         base,
@@ -345,15 +306,15 @@ mod windows_impl {
         };
 
         unsafe {
-            if is_workspace_write
-                && let Ok(base) = super::token::get_current_token_for_restriction()
-            {
-                if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
-                    let mut tmp = bytes.clone();
-                    let psid2 = tmp.as_mut_ptr() as *mut std::ffi::c_void;
-                    allow_null_device(psid2);
+            if is_workspace_write {
+                if let Ok(base) = super::token::get_current_token_for_restriction() {
+                    if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
+                        let mut tmp = bytes.clone();
+                        let psid2 = tmp.as_mut_ptr() as *mut c_void;
+                        allow_null_device(psid2);
+                    }
+                    windows_sys::Win32::Foundation::CloseHandle(base);
                 }
-                CloseHandle(base);
             }
         }
 
@@ -361,7 +322,7 @@ mod windows_impl {
         let AllowDenyPaths { allow, deny } =
             compute_allow_paths(&policy, sandbox_policy_cwd, &current_dir, &env_map);
         let canonical_cwd = canonicalize_path(&current_dir);
-        let mut guards: Vec<(PathBuf, *mut std::ffi::c_void)> = Vec::new();
+        let mut guards: Vec<(PathBuf, *mut c_void)> = Vec::new();
         unsafe {
             for p in &allow {
                 let psid = if is_workspace_write && is_command_cwd_root(p, &canonical_cwd) {
@@ -369,39 +330,22 @@ mod windows_impl {
                 } else {
                     psid_generic
                 };
-                match add_allow_ace(p, psid) {
-                    Ok(added) => {
-                        if added {
-                            if persist_aces {
-                                if p.is_dir() {
-                                    // best-effort seeding omitted intentionally
-                                }
-                            } else {
-                                guards.push((p.clone(), psid));
+                if let Ok(added) = add_allow_ace(p, psid) {
+                    if added {
+                        if persist_aces {
+                            if p.is_dir() {
+                                // best-effort seeding omitted intentionally
                             }
+                        } else {
+                            guards.push((p.clone(), psid));
                         }
-                    }
-                    Err(e) => {
-                        // エラーを記録する。失敗した場合は特に落とさず進む
-                        debug_log(
-                            &format!("add_allow_ace failed for {}: {:?}", p.display(), e),
-                            logs_base_dir,
-                        );
                     }
                 }
             }
             for p in &deny {
-                match add_deny_write_ace(p, psid_generic) {
-                    Ok(added) => {
-                        if added && !persist_aces {
-                            guards.push((p.clone(), psid_generic));
-                        }
-                    }
-                    Err(e) => {
-                        debug_log(
-                            &format!("add_deny_write_ace failed for {}: {:?}", p.display(), e),
-                            logs_base_dir,
-                        );
+                if let Ok(added) = add_deny_write_ace(p, psid_generic) {
+                    if added && !persist_aces {
+                        guards.push((p.clone(), psid_generic));
                     }
                 }
             }
@@ -413,19 +357,7 @@ mod windows_impl {
             }
         }
 
-        // setup_stdio_pipesのunsafe呼び出しにエラー落ち。
-        let (stdin_pair, stdout_pair, stderr_pair) = match unsafe { setup_stdio_pipes() } {
-            Ok(res) => res,
-            Err(e) => {
-                log_failure(
-                    &command,
-                    &format!("Failed to setup stdio pipes: {}", e),
-                    logs_base_dir,
-                );
-                return Err(anyhow::anyhow!("Failed to setup stdio pipes: {}", e));
-            }
-        };
-
+        let (stdin_pair, stdout_pair, stderr_pair) = unsafe { setup_stdio_pipes()? };
         let ((in_r, in_w), (out_r, out_w), (err_r, err_w)) = (stdin_pair, stdout_pair, stderr_pair);
         let mut si: STARTUPINFOW = unsafe { std::mem::zeroed() };
         si.cb = std::mem::size_of::<STARTUPINFOW>() as u32;
@@ -441,7 +373,6 @@ mod windows_impl {
             .collect::<Vec<_>>()
             .join(" ");
         let mut cmdline: Vec<u16> = to_wide(&cmdline_str);
-
         let env_block = make_env_block(&env_map);
         let desktop = to_wide("Winsta0\\Default");
         si.lpDesktop = desktop.as_ptr() as *mut u16;
@@ -454,7 +385,7 @@ mod windows_impl {
                 ptr::null_mut(),
                 1,
                 CREATE_UNICODE_ENVIRONMENT,
-                env_block.as_ptr() as *mut std::ffi::c_void,
+                env_block.as_ptr() as *mut c_void,
                 to_wide(cwd).as_ptr(),
                 &si,
                 &mut pi,
@@ -484,9 +415,9 @@ mod windows_impl {
             return Err(anyhow::anyhow!("CreateProcessAsUserW failed: {}", err));
         }
 
-        // in_r, in_w, out_w, err_wはparentからclose。out_r, err_rはリーダーで使うので残す。
         unsafe {
             CloseHandle(in_r);
+            // Close the parent's stdin write end so the child sees EOF immediately.
             CloseHandle(in_w);
             CloseHandle(out_w);
             CloseHandle(err_w);
@@ -494,8 +425,6 @@ mod windows_impl {
 
         let (tx_out, rx_out) = std::sync::mpsc::channel::<Vec<u8>>();
         let (tx_err, rx_err) = std::sync::mpsc::channel::<Vec<u8>>();
-
-        // ここで安全にout_r, err_rをMoveするためにlet mutで明示。closeはthread終了後に自動で。
         let t_out = std::thread::spawn(move || {
             let mut buf = Vec::new();
             let mut tmp = [0u8; 8192];
@@ -514,9 +443,6 @@ mod windows_impl {
                     break;
                 }
                 buf.extend_from_slice(&tmp[..read_bytes as usize]);
-            }
-            unsafe {
-                CloseHandle(out_r);
             }
             let _ = tx_out.send(buf);
         });
@@ -538,9 +464,6 @@ mod windows_impl {
                     break;
                 }
                 buf.extend_from_slice(&tmp[..read_bytes as usize]);
-            }
-            unsafe {
-                CloseHandle(err_r);
             }
             let _ = tx_err.send(buf);
         });
@@ -588,7 +511,6 @@ mod windows_impl {
             unsafe {
                 for (p, sid) in guards {
                     revoke_ace(&p, sid);
-                    // revoke_ace no longer returns Result, simplified error handling
                 }
             }
         }
@@ -603,10 +525,10 @@ mod windows_impl {
 
     pub fn run_windows_sandbox_legacy_preflight(
         sandbox_policy: &SandboxPolicy,
-        sandbox_policy_cwd: &std::path::Path,
-        codex_home: &std::path::Path,
-        cwd: &std::path::Path,
-        env_map: &std::collections::HashMap<String, String>,
+        sandbox_policy_cwd: &Path,
+        codex_home: &Path,
+        cwd: &Path,
+        env_map: &HashMap<String, String>,
     ) -> Result<()> {
         let is_workspace_write = matches!(sandbox_policy, SandboxPolicy::WorkspaceWrite { .. });
         if !is_workspace_write {
@@ -682,8 +604,8 @@ mod windows_impl {
 
 #[cfg(not(target_os = "windows"))]
 mod stub {
-    use anyhow::Result;
     use anyhow::bail;
+    use anyhow::Result;
     use codex_protocol::protocol::SandboxPolicy;
     use std::collections::HashMap;
     use std::path::Path;

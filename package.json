@@ -1,6 +1,6 @@
 ﻿{
   "name": "codex-monorepo",
-  "version": "2.19.1",
+  "version": "3.0.0",
   "private": true,
   "description": "Codex - Next-generation AI Coding Assistant",
   "scripts": {

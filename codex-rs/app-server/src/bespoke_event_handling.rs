@@ -6,6 +6,8 @@ use crate::error_code::INTERNAL_ERROR_CODE;
 use crate::error_code::INVALID_REQUEST_ERROR_CODE;
 use crate::outgoing_message::ClientRequestResult;
 use crate::outgoing_message::ThreadScopedOutgoingMessageSender;
+use crate::server_request_error::is_turn_transition_server_request_error;
+use crate::thread_state::ThreadListenerCommand;
 use crate::thread_state::ThreadState;
 use crate::thread_state::TurnSummary;
 use crate::thread_status::ThreadWatchActiveGuard;
@@ -43,6 +45,9 @@ use codex_app_server_protocol::InterruptConversationResponse;
 use codex_app_server_protocol::ItemCompletedNotification;
 use codex_app_server_protocol::ItemStartedNotification;
 use codex_app_server_protocol::JSONRPCErrorError;
+use codex_app_server_protocol::McpServerElicitationAction;
+use codex_app_server_protocol::McpServerElicitationRequestParams;
+use codex_app_server_protocol::McpServerElicitationRequestResponse;
 use codex_app_server_protocol::McpToolCallError;
 use codex_app_server_protocol::McpToolCallResult;
 use codex_app_server_protocol::McpToolCallStatus;
@@ -56,8 +61,10 @@ use codex_app_server_protocol::RawResponseItemCompletedNotification;
 use codex_app_server_protocol::ReasoningSummaryPartAddedNotification;
 use codex_app_server_protocol::ReasoningSummaryTextDeltaNotification;
 use codex_app_server_protocol::ReasoningTextDeltaNotification;
+use codex_app_server_protocol::RequestId;
 use codex_app_server_protocol::ServerNotification;
 use codex_app_server_protocol::ServerRequestPayload;
+use codex_app_server_protocol::SkillsChangedNotification;
 use codex_app_server_protocol::TerminalInteractionNotification;
 use codex_app_server_protocol::ThreadItem;
 use codex_app_server_protocol::ThreadNameUpdatedNotification;
@@ -80,6 +87,7 @@ use codex_app_server_protocol::TurnError;
 use codex_app_server_protocol::TurnInterruptResponse;
 use codex_app_server_protocol::TurnPlanStep;
 use codex_app_server_protocol::TurnPlanUpdatedNotification;
+use codex_app_server_protocol::TurnStartedNotification;
 use codex_app_server_protocol::TurnStatus;
 use codex_app_server_protocol::build_turns_from_rollout_items;
 use codex_app_server_protocol::convert_patch_changes;
@@ -132,6 +140,38 @@ struct CommandExecutionCompletionItem {
     command_actions: Vec<V2ParsedCommand>,
 }
 
+async fn resolve_server_request_on_thread_listener(
+    thread_state: &Arc<Mutex<ThreadState>>,
+    request_id: RequestId,
+) {
+    let (completion_tx, completion_rx) = oneshot::channel();
+    let listener_command_tx = {
+        let state = thread_state.lock().await;
+        state.listener_command_tx()
+    };
+    let Some(listener_command_tx) = listener_command_tx else {
+        error!("failed to remove pending client request: thread listener is not running");
+        return;
+    };
+
+    if listener_command_tx
+        .send(ThreadListenerCommand::ResolveServerRequest {
+            request_id,
+            completion_tx,
+        })
+        .is_err()
+    {
+        error!(
+            "failed to remove pending client request: thread listener command channel is closed"
+        );
+        return;
+    }
+
+    if let Err(err) = completion_rx.await {
+        error!("failed to remove pending client request: {err}");
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn apply_bespoke_event_handling(
     event: Event,
@@ -150,17 +190,48 @@ pub(crate) async fn apply_bespoke_event_handling(
         msg,
     } = event;
     match msg {
-        EventMsg::TurnStarted(_) => {
+        EventMsg::TurnStarted(payload) => {
+            // While not technically necessary as it was already done on TurnComplete, be extra cautios and abort any pending server requests.
+            outgoing.abort_pending_server_requests().await;
             thread_watch_manager
                 .note_turn_started(&conversation_id.to_string())
                 .await;
+            if let ApiVersion::V2 = api_version {
+                let turn = {
+                    let state = thread_state.lock().await;
+                    state.active_turn_snapshot().unwrap_or_else(|| Turn {
+                        id: payload.turn_id.clone(),
+                        items: Vec::new(),
+                        error: None,
+                        status: TurnStatus::InProgress,
+                    })
+                };
+                let notification = TurnStartedNotification {
+                    thread_id: conversation_id.to_string(),
+                    turn,
+                };
+                outgoing
+                    .send_server_notification(ServerNotification::TurnStarted(notification))
+                    .await;
+            }
         }
         EventMsg::TurnComplete(_ev) => {
+            // All per-thread requests are bound to a turn, so abort them.
+            outgoing.abort_pending_server_requests().await;
             let turn_failed = thread_state.lock().await.turn_summary.last_error.is_some();
             thread_watch_manager
                 .note_turn_completed(&conversation_id.to_string(), turn_failed)
                 .await;
             handle_turn_complete(conversation_id, event_turn_id, &outgoing, &thread_state).await;
+        }
+        EventMsg::SkillsUpdateAvailable => {
+            if let ApiVersion::V2 = api_version {
+                outgoing
+                    .send_server_notification(ServerNotification::SkillsChanged(
+                        SkillsChangedNotification {},
+                    ))
+                    .await;
+            }
         }
         EventMsg::Warning(_warning_event) => {}
         EventMsg::ModelReroute(event) => {
@@ -193,7 +264,6 @@ pub(crate) async fn apply_bespoke_event_handling(
         EventMsg::RealtimeConversationRealtime(event) => {
             if let ApiVersion::V2 = api_version {
                 match event.payload {
-                    RealtimeEvent::SessionCreated { .. } => {}
                     RealtimeEvent::SessionUpdated { .. } => {}
                     RealtimeEvent::AudioOut(audio) => {
                         let notification = ThreadRealtimeOutputAudioDeltaNotification {
@@ -210,6 +280,24 @@ pub(crate) async fn apply_bespoke_event_handling(
                         let notification = ThreadRealtimeItemAddedNotification {
                             thread_id: conversation_id.to_string(),
                             item,
+                        };
+                        outgoing
+                            .send_server_notification(ServerNotification::ThreadRealtimeItemAdded(
+                                notification,
+                            ))
+                            .await;
+                    }
+                    RealtimeEvent::ConversationItemDone { .. } => {}
+                    RealtimeEvent::HandoffRequested(handoff) => {
+                        let notification = ThreadRealtimeItemAddedNotification {
+                            thread_id: conversation_id.to_string(),
+                            item: serde_json::json!({
+                                "type": "handoff_request",
+                                "handoff_id": handoff.handoff_id,
+                                "item_id": handoff.item_id,
+                                "input_transcript": handoff.input_transcript,
+                                "messages": handoff.messages,
+                            }),
                         };
                         outgoing
                             .send_server_notification(ServerNotification::ThreadRealtimeItemAdded(
@@ -263,7 +351,7 @@ pub(crate) async fn apply_bespoke_event_handling(
                         reason,
                         grant_root,
                     };
-                    let rx = outgoing
+                    let (_pending_request_id, rx) = outgoing
                         .send_request(ServerRequestPayload::ApplyPatchApproval(params))
                         .await;
                     tokio::spawn(async move {
@@ -307,7 +395,7 @@ pub(crate) async fn apply_bespoke_event_handling(
                         reason,
                         grant_root,
                     };
-                    let rx = outgoing
+                    let (pending_request_id, rx) = outgoing
                         .send_request(ServerRequestPayload::FileChangeRequestApproval(params))
                         .await;
                     tokio::spawn(async move {
@@ -316,6 +404,7 @@ pub(crate) async fn apply_bespoke_event_handling(
                             conversation_id,
                             item_id,
                             patch_changes,
+                            pending_request_id,
                             rx,
                             conversation,
                             outgoing,
@@ -362,7 +451,7 @@ pub(crate) async fn apply_bespoke_event_handling(
                         reason,
                         parsed_cmd,
                     };
-                    let rx = outgoing
+                    let (_pending_request_id, rx) = outgoing
                         .send_request(ServerRequestPayload::ExecCommandApproval(params))
                         .await;
                     tokio::spawn(async move {
@@ -435,7 +524,7 @@ pub(crate) async fn apply_bespoke_event_handling(
                         proposed_network_policy_amendments: proposed_network_policy_amendments_v2,
                         available_decisions: Some(available_decisions),
                     };
-                    let rx = outgoing
+                    let (pending_request_id, rx) = outgoing
                         .send_request(ServerRequestPayload::CommandExecutionRequestApproval(
                             params,
                         ))
@@ -447,6 +536,7 @@ pub(crate) async fn apply_bespoke_event_handling(
                             approval_id,
                             call_id,
                             completion_item,
+                            pending_request_id,
                             rx,
                             conversation,
                             outgoing,
@@ -489,14 +579,16 @@ pub(crate) async fn apply_bespoke_event_handling(
                     item_id: request.call_id,
                     questions,
                 };
-                let rx = outgoing
+                let (pending_request_id, rx) = outgoing
                     .send_request(ServerRequestPayload::ToolRequestUserInput(params))
                     .await;
                 tokio::spawn(async move {
                     on_request_user_input_response(
                         event_turn_id,
+                        pending_request_id,
                         rx,
                         conversation,
+                        thread_state,
                         user_input_guard,
                     )
                     .await;
@@ -518,6 +610,38 @@ pub(crate) async fn apply_bespoke_event_handling(
                 {
                     error!("failed to submit UserInputAnswer: {err}");
                 }
+            }
+        }
+        EventMsg::ElicitationRequest(request) => {
+            if matches!(api_version, ApiVersion::V2) {
+                let permission_guard = thread_watch_manager
+                    .note_permission_requested(&conversation_id.to_string())
+                    .await;
+                let turn_id = {
+                    let state = thread_state.lock().await;
+                    state.active_turn_snapshot().map(|turn| turn.id)
+                };
+                let params = McpServerElicitationRequestParams {
+                    thread_id: conversation_id.to_string(),
+                    turn_id,
+                    server_name: request.server_name.clone(),
+                    request: request.request.into(),
+                };
+                let (pending_request_id, rx) = outgoing
+                    .send_request(ServerRequestPayload::McpServerElicitationRequest(params))
+                    .await;
+                tokio::spawn(async move {
+                    on_mcp_server_elicitation_response(
+                        request.server_name,
+                        request.id,
+                        pending_request_id,
+                        rx,
+                        conversation,
+                        thread_state,
+                        permission_guard,
+                    )
+                    .await;
+                });
             }
         }
         EventMsg::DynamicToolCallRequest(request) => {
@@ -550,7 +674,7 @@ pub(crate) async fn apply_bespoke_event_handling(
                     tool: tool.clone(),
                     arguments: arguments.clone(),
                 };
-                let rx = outgoing
+                let (_pending_request_id, rx) = outgoing
                     .send_request(ServerRequestPayload::DynamicToolCall(params))
                     .await;
                 tokio::spawn(async move {
@@ -1136,6 +1260,7 @@ pub(crate) async fn apply_bespoke_event_handling(
             // Until we migrate the core to be aware of a first class FileChangeItem
             // and emit the corresponding EventMsg, we repurpose the call_id as the item_id.
             let item_id = patch_begin_event.call_id.clone();
+            let changes = convert_patch_changes(&patch_begin_event.changes);
 
             let first_start = {
                 let mut state = thread_state.lock().await;
@@ -1147,7 +1272,7 @@ pub(crate) async fn apply_bespoke_event_handling(
             if first_start {
                 let item = ThreadItem::FileChange {
                     id: item_id.clone(),
-                    changes: convert_patch_changes(&patch_begin_event.changes),
+                    changes,
                     status: PatchApplyStatus::InProgress,
                 };
                 let notification = ItemStartedNotification {
@@ -1329,6 +1454,8 @@ pub(crate) async fn apply_bespoke_event_handling(
         }
         // If this is a TurnAborted, reply to any pending interrupt requests.
         EventMsg::TurnAborted(turn_aborted_event) => {
+            // All per-thread requests are bound to a turn, so abort them.
+            outgoing.abort_pending_server_requests().await;
             let pending = {
                 let mut state = thread_state.lock().await;
                 std::mem::take(&mut state.pending_interrupts)
@@ -1725,6 +1852,7 @@ async fn on_patch_approval_response(
     let response = receiver.await;
     let value = match response {
         Ok(Ok(value)) => value,
+        Ok(Err(err)) if is_turn_transition_server_request_error(&err) => return,
         Ok(Err(err)) => {
             error!("request failed with client error: {err:?}");
             if let Err(submit_err) = codex
@@ -1781,6 +1909,7 @@ async fn on_exec_approval_response(
     let response = receiver.await;
     let value = match response {
         Ok(Ok(value)) => value,
+        Ok(Err(err)) if is_turn_transition_server_request_error(&err) => return,
         Ok(Err(err)) => {
             error!("request failed with client error: {err:?}");
             return;
@@ -1816,14 +1945,18 @@ async fn on_exec_approval_response(
 
 async fn on_request_user_input_response(
     event_turn_id: String,
+    pending_request_id: RequestId,
     receiver: oneshot::Receiver<ClientRequestResult>,
     conversation: Arc<CodexThread>,
+    thread_state: Arc<Mutex<ThreadState>>,
     user_input_guard: ThreadWatchActiveGuard,
 ) {
     let response = receiver.await;
+    resolve_server_request_on_thread_listener(&thread_state, pending_request_id).await;
     drop(user_input_guard);
     let value = match response {
         Ok(Ok(value)) => value,
+        Ok(Err(err)) if is_turn_transition_server_request_error(&err) => return,
         Ok(Err(err)) => {
             error!("request failed with client error: {err:?}");
             let empty = CoreRequestUserInputResponse {
@@ -1891,6 +2024,68 @@ async fn on_request_user_input_response(
     }
 }
 
+async fn on_mcp_server_elicitation_response(
+    server_name: String,
+    request_id: codex_protocol::mcp::RequestId,
+    pending_request_id: RequestId,
+    receiver: oneshot::Receiver<ClientRequestResult>,
+    conversation: Arc<CodexThread>,
+    thread_state: Arc<Mutex<ThreadState>>,
+    permission_guard: ThreadWatchActiveGuard,
+) {
+    let response = receiver.await;
+    resolve_server_request_on_thread_listener(&thread_state, pending_request_id).await;
+    drop(permission_guard);
+    let response = mcp_server_elicitation_response_from_client_result(response);
+
+    if let Err(err) = conversation
+        .submit(Op::ResolveElicitation {
+            server_name,
+            request_id,
+            decision: response.action.to_core(),
+            content: response.content,
+        })
+        .await
+    {
+        error!("failed to submit ResolveElicitation: {err}");
+    }
+}
+
+fn mcp_server_elicitation_response_from_client_result(
+    response: std::result::Result<ClientRequestResult, oneshot::error::RecvError>,
+) -> McpServerElicitationRequestResponse {
+    match response {
+        Ok(Ok(value)) => serde_json::from_value::<McpServerElicitationRequestResponse>(value)
+            .unwrap_or_else(|err| {
+                error!("failed to deserialize McpServerElicitationRequestResponse: {err}");
+                McpServerElicitationRequestResponse {
+                    action: McpServerElicitationAction::Decline,
+                    content: None,
+                }
+            }),
+        Ok(Err(err)) if is_turn_transition_server_request_error(&err) => {
+            McpServerElicitationRequestResponse {
+                action: McpServerElicitationAction::Cancel,
+                content: None,
+            }
+        }
+        Ok(Err(err)) => {
+            error!("request failed with client error: {err:?}");
+            McpServerElicitationRequestResponse {
+                action: McpServerElicitationAction::Decline,
+                content: None,
+            }
+        }
+        Err(err) => {
+            error!("request failed: {err:?}");
+            McpServerElicitationRequestResponse {
+                action: McpServerElicitationAction::Decline,
+                content: None,
+            }
+        }
+    }
+}
+
 const REVIEW_FALLBACK_MESSAGE: &str = "Reviewer failed to output a response.";
 
 fn render_review_output_text(output: &ReviewOutputEvent) -> String {
@@ -1934,6 +2129,7 @@ async fn on_file_change_request_approval_response(
     conversation_id: ThreadId,
     item_id: String,
     changes: Vec<FileUpdateChange>,
+    pending_request_id: RequestId,
     receiver: oneshot::Receiver<ClientRequestResult>,
     codex: Arc<CodexThread>,
     outgoing: ThreadScopedOutgoingMessageSender,
@@ -1941,6 +2137,7 @@ async fn on_file_change_request_approval_response(
     permission_guard: ThreadWatchActiveGuard,
 ) {
     let response = receiver.await;
+    resolve_server_request_on_thread_listener(&thread_state, pending_request_id).await;
     drop(permission_guard);
     let (decision, completion_status) = match response {
         Ok(Ok(value)) => {
@@ -1958,6 +2155,7 @@ async fn on_file_change_request_approval_response(
             // Only short-circuit on declines/cancels/failures.
             (decision, completion_status)
         }
+        Ok(Err(err)) if is_turn_transition_server_request_error(&err) => return,
         Ok(Err(err)) => {
             error!("request failed with client error: {err:?}");
             (ReviewDecision::Denied, Some(PatchApplyStatus::Failed))
@@ -1999,6 +2197,7 @@ async fn on_command_execution_request_approval_response(
     approval_id: Option<String>,
     item_id: String,
     completion_item: Option<CommandExecutionCompletionItem>,
+    pending_request_id: RequestId,
     receiver: oneshot::Receiver<ClientRequestResult>,
     conversation: Arc<CodexThread>,
     outgoing: ThreadScopedOutgoingMessageSender,
@@ -2006,6 +2205,7 @@ async fn on_command_execution_request_approval_response(
     permission_guard: ThreadWatchActiveGuard,
 ) {
     let response = receiver.await;
+    resolve_server_request_on_thread_listener(&thread_state, pending_request_id).await;
     drop(permission_guard);
     let (decision, completion_status) = match response {
         Ok(Ok(value)) => {
@@ -2057,6 +2257,7 @@ async fn on_command_execution_request_approval_response(
             };
             (decision, completion_status)
         }
+        Ok(Err(err)) if is_turn_transition_server_request_error(&err) => return,
         Ok(Err(err)) => {
             error!("request failed with client error: {err:?}");
             (ReviewDecision::Denied, Some(CommandExecutionStatus::Failed))
@@ -2230,6 +2431,7 @@ mod tests {
     use anyhow::Result;
     use anyhow::anyhow;
     use anyhow::bail;
+    use codex_app_server_protocol::JSONRPCErrorError;
     use codex_app_server_protocol::TurnPlanStepStatus;
     use codex_protocol::mcp::CallToolResult;
     use codex_protocol::plan_tool::PlanItemArg;
@@ -2272,6 +2474,25 @@ mod tests {
             map_file_change_approval_decision(FileChangeApprovalDecision::AcceptForSession);
         assert_eq!(decision, ReviewDecision::ApprovedForSession);
         assert_eq!(completion_status, None);
+    }
+
+    #[test]
+    fn mcp_server_elicitation_turn_transition_error_maps_to_cancel() {
+        let error = JSONRPCErrorError {
+            code: -1,
+            message: "client request resolved because the turn state was changed".to_string(),
+            data: Some(serde_json::json!({ "reason": "turnTransition" })),
+        };
+
+        let response = mcp_server_elicitation_response_from_client_result(Ok(Err(error)));
+
+        assert_eq!(
+            response,
+            McpServerElicitationRequestResponse {
+                action: McpServerElicitationAction::Cancel,
+                content: None,
+            }
+        );
     }
 
     #[test]
@@ -2359,7 +2580,7 @@ mod tests {
     async fn test_handle_turn_complete_emits_completed_without_error() -> Result<()> {
         let conversation_id = ThreadId::new();
         let event_turn_id = "complete1".to_string();
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2404,7 +2625,7 @@ mod tests {
             &thread_state,
         )
         .await;
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2448,7 +2669,7 @@ mod tests {
             &thread_state,
         )
         .await;
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2540,7 +2761,7 @@ mod tests {
     async fn test_handle_token_count_event_emits_usage_and_rate_limits() -> Result<()> {
         let conversation_id = ThreadId::new();
         let turn_id = "turn-123".to_string();
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2628,7 +2849,7 @@ mod tests {
     async fn test_handle_token_count_event_without_usage_info() -> Result<()> {
         let conversation_id = ThreadId::new();
         let turn_id = "turn-456".to_string();
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,
@@ -2699,7 +2920,7 @@ mod tests {
         let conversation_b = ThreadId::new();
         let thread_state = new_thread_state();
 
-        let (tx, mut rx) = mpsc::channel(crate::CHANNEL_CAPACITY);
+        let (tx, mut rx) = mpsc::channel(CHANNEL_CAPACITY);
         let outgoing = Arc::new(OutgoingMessageSender::new(tx));
         let outgoing = ThreadScopedOutgoingMessageSender::new(
             outgoing,

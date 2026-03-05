@@ -115,6 +115,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         auto_threshold,
         strategy,
         skills,
+        progress_cursor,
         mut config_overrides,
     } = cli;
 
@@ -274,7 +275,9 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         sandbox_mode,
         cwd: resolved_cwd,
         model_provider: model_provider.clone(),
+        service_tier: None,
         codex_linux_sandbox_exe,
+        main_execve_wrapper_exe: None,
         js_repl_node_path: None,
         js_repl_node_module_dirs: None,
         zsh_path: None,
@@ -343,6 +346,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         true => Box::new(EventProcessorWithJsonOutput::new(last_message_file.clone())),
         _ => Box::new(EventProcessorWithHumanOutput::create_with_ansi(
             stdout_with_ansi,
+            progress_cursor,
             &config,
             last_message_file.clone(),
         )),
@@ -398,6 +402,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
         auth_manager.clone(),
         SessionSource::Exec,
         config.model_catalog.clone(),
+        Default::default(),
     ));
     let default_model = thread_manager
         .get_models_manager()
@@ -557,6 +562,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
                     final_output_json_schema: output_schema,
                     collaboration_mode: None,
                     personality: None,
+                    service_tier: None,
                 })
                 .await?;
             info!("Sent prompt with event ID: {task_id}");
@@ -595,6 +601,7 @@ pub async fn run_main(cli: Cli, codex_linux_sandbox_exe: Option<PathBuf>) -> any
                     server_name: ev.server_name.clone(),
                     request_id: ev.id.clone(),
                     decision: ElicitationAction::Cancel,
+                    content: None,
                 })
                 .await?;
         }

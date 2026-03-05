@@ -35,7 +35,7 @@ fn main() -> anyhow::Result<()> {
             .raw_overrides
             .splice(0..0, top_cli.config_overrides.raw_overrides);
 
-        run_main(inner, arg0_paths).await?;
+        run_main(inner, arg0_paths.codex_linux_sandbox_exe).await?;
         Ok(())
     })
 }

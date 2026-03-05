@@ -6,7 +6,8 @@
 //! in a single aggregated map using the fully-qualified tool name
 //! `"<server><MCP_TOOL_NAME_DELIMITER><tool>"` as the key.
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::env;
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -25,6 +26,7 @@ use anyhow::anyhow;
 use async_channel::Sender;
 use codex_async_utils::OrCancelExt;
 use codex_config::Constrained;
+use codex_protocol::approvals::ElicitationRequest;
 use codex_protocol::approvals::ElicitationRequestEvent;
 use codex_protocol::mcp::CallToolResult;
 use codex_protocol::mcp::RequestId as ProtocolRequestId;
@@ -69,7 +71,6 @@ use tokio::sync::Mutex;
 use tokio::sync::oneshot;
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
-use tracing::info;
 use tracing::instrument;
 use tracing::warn;
 use url::Url;
@@ -293,6 +294,27 @@ impl ElicitationRequestManager {
                     });
                 }
 
+                let request = match elicitation {
+                    CreateElicitationRequestParams::FormElicitationParams {
+                        message,
+                        requested_schema,
+                        ..
+                    } => ElicitationRequest::Form {
+                        message,
+                        requested_schema: serde_json::to_value(requested_schema)
+                            .context("failed to serialize MCP elicitation schema")?,
+                    },
+                    CreateElicitationRequestParams::UrlElicitationParams {
+                        message,
+                        url,
+                        elicitation_id,
+                        ..
+                    } => ElicitationRequest::Url {
+                        message,
+                        url,
+                        elicitation_id,
+                    },
+                };
                 let (tx, rx) = oneshot::channel();
                 {
                     let mut lock = elicitation_requests.lock().await;
@@ -311,16 +333,7 @@ impl ElicitationRequestManager {
                                     ProtocolRequestId::Integer(value)
                                 }
                             },
-                            message: match elicitation {
-                                CreateElicitationRequestParams::FormElicitationParams {
-                                    message,
-                                    ..
-                                }
-                                | CreateElicitationRequestParams::UrlElicitationParams {
-                                    message,
-                                    ..
-                                } => message,
-                            },
+                            request,
                         }),
                     })
                     .await;
@@ -393,7 +406,6 @@ struct AsyncManagedClient {
 }
 
 impl AsyncManagedClient {
-    #[allow(clippy::too_many_arguments)]
     fn new(
         server_name: String,
         config: McpServerConfig,
@@ -1005,98 +1017,6 @@ impl McpConnectionManager {
             .map(|tool| (tool.server_name.clone(), tool.tool_name.clone()))
     }
 
-    /// Add a single MCP server dynamically (without reinitializing existing servers)
-    #[allow(clippy::too_many_arguments)]
-    pub(crate) async fn add_server_dynamic(
-        &mut self,
-        server_name: String,
-        config: McpServerConfig,
-        store_mode: OAuthCredentialsStoreMode,
-        auth_entry: Option<McpAuthStatusEntry>,
-        tx_event: Sender<Event>,
-        cancel_token: CancellationToken,
-        sandbox_state: SandboxState,
-    ) {
-        // Check if server already exists
-        if self.clients.contains_key(&server_name) {
-            warn!(
-                "MCP server '{}' already exists, skipping dynamic add",
-                server_name
-            );
-            return;
-        }
-
-        if !config.enabled {
-            return;
-        }
-
-        let cancel_token = cancel_token.child_token();
-        let _ = emit_update(
-            &tx_event,
-            McpStartupUpdateEvent {
-                server: server_name.clone(),
-                status: McpStartupStatus::Starting,
-            },
-        )
-        .await;
-
-        let async_managed_client = AsyncManagedClient::new(
-            server_name.clone(),
-            config,
-            store_mode,
-            cancel_token.clone(),
-            tx_event.clone(),
-            self.elicitation_requests.clone(),
-            None, // dynamic adds don't use apps tool cache
-        );
-        self.clients
-            .insert(server_name.clone(), async_managed_client.clone());
-
-        let tx_event = tx_event.clone();
-        let sandbox_state_clone = sandbox_state.clone();
-        tokio::spawn(async move {
-            let outcome = async_managed_client.client().await;
-            if cancel_token.is_cancelled() {
-                return;
-            }
-            let status = match &outcome {
-                Ok(_) => {
-                    // Send sandbox state notification immediately after Ready
-                    if let Err(e) = async_managed_client
-                        .notify_sandbox_state_change(&sandbox_state_clone)
-                        .await
-                    {
-                        warn!("Failed to notify sandbox state to MCP server {server_name}: {e:#}",);
-                    }
-                    McpStartupStatus::Ready
-                }
-                Err(error) => {
-                    let error_str =
-                        mcp_init_error_display(server_name.as_str(), auth_entry.as_ref(), error);
-                    McpStartupStatus::Failed { error: error_str }
-                }
-            };
-
-            let _ = emit_update(
-                &tx_event,
-                McpStartupUpdateEvent {
-                    server: server_name.clone(),
-                    status,
-                },
-            )
-            .await;
-        });
-    }
-
-    /// Remove a single MCP server dynamically
-    pub(crate) async fn remove_server_dynamic(&mut self, server_name: &str) {
-        if self.clients.remove(server_name).is_some() {
-            info!("Removed MCP server '{}' dynamically", server_name);
-        } else {
-            warn!("MCP server '{}' not found for removal", server_name);
-        }
-    }
-
     pub async fn notify_sandbox_state_change(&self, sandbox_state: &SandboxState) -> Result<()> {
         let mut join_set = JoinSet::new();
 
@@ -1143,8 +1063,8 @@ async fn emit_update(
 /// 2. The tool is not explicitly disabled.
 #[derive(Default, Clone)]
 pub(crate) struct ToolFilter {
-    enabled: Option<BTreeSet<String>>,
-    disabled: BTreeSet<String>,
+    enabled: Option<HashSet<String>>,
+    disabled: HashSet<String>,
 }
 
 impl ToolFilter {
@@ -1152,11 +1072,11 @@ impl ToolFilter {
         let enabled = cfg
             .enabled_tools
             .as_ref()
-            .map(|tools| tools.iter().cloned().collect::<BTreeSet<_>>());
+            .map(|tools| tools.iter().cloned().collect::<HashSet<_>>());
         let disabled = cfg
             .disabled_tools
             .as_ref()
-            .map(|tools| tools.iter().cloned().collect::<BTreeSet<_>>())
+            .map(|tools| tools.iter().cloned().collect::<HashSet<_>>())
             .unwrap_or_default();
 
         Self { enabled, disabled }
@@ -1679,7 +1599,7 @@ mod tests {
     use codex_protocol::protocol::McpAuthStatus;
     use codex_protocol::protocol::RejectConfig;
     use rmcp::model::JsonObject;
-    use std::collections::BTreeSet;
+    use std::collections::HashSet;
     use std::sync::Arc;
     use tempfile::tempdir;
 
@@ -1857,8 +1777,8 @@ mod tests {
     #[test]
     fn tool_filter_applies_enabled_list() {
         let filter = ToolFilter {
-            enabled: Some(BTreeSet::from(["allowed".to_string()])),
-            disabled: BTreeSet::new(),
+            enabled: Some(HashSet::from(["allowed".to_string()])),
+            disabled: HashSet::new(),
         };
 
         assert!(filter.allows("allowed"));
@@ -1869,7 +1789,7 @@ mod tests {
     fn tool_filter_applies_disabled_list() {
         let filter = ToolFilter {
             enabled: None,
-            disabled: BTreeSet::from(["blocked".to_string()]),
+            disabled: HashSet::from(["blocked".to_string()]),
         };
 
         assert!(!filter.allows("blocked"));
@@ -1879,8 +1799,8 @@ mod tests {
     #[test]
     fn tool_filter_applies_enabled_then_disabled() {
         let filter = ToolFilter {
-            enabled: Some(BTreeSet::from(["keep".to_string(), "remove".to_string()])),
-            disabled: BTreeSet::from(["remove".to_string()]),
+            enabled: Some(HashSet::from(["keep".to_string(), "remove".to_string()])),
+            disabled: HashSet::from(["remove".to_string()]),
         };
 
         assert!(filter.allows("keep"));
@@ -1896,12 +1816,12 @@ mod tests {
         ];
         let server2_tools = vec![create_test_tool("server2", "tool_a")];
         let server1_filter = ToolFilter {
-            enabled: Some(BTreeSet::from(["tool_a".to_string(), "tool_b".to_string()])),
-            disabled: BTreeSet::from(["tool_b".to_string()]),
+            enabled: Some(HashSet::from(["tool_a".to_string(), "tool_b".to_string()])),
+            disabled: HashSet::from(["tool_b".to_string()]),
         };
         let server2_filter = ToolFilter {
             enabled: None,
-            disabled: BTreeSet::from(["tool_a".to_string()]),
+            disabled: HashSet::from(["tool_a".to_string()]),
         };
 
         let filtered: Vec<_> = filter_tools(server1_tools, &server1_filter)

@@ -307,7 +307,6 @@ fn write_session_file(
     )
 }
 
-#[allow(clippy::too_many_arguments)]
 fn write_session_file_with_provider(
     root: &Path,
     ts_str: &str,
@@ -1110,6 +1109,7 @@ async fn test_updated_at_uses_file_mtime() -> Result<()> {
                 model_provider: Some("test-provider".into()),
                 base_instructions: None,
                 dynamic_tools: None,
+                memory_mode: None,
             },
             git: None,
         }),

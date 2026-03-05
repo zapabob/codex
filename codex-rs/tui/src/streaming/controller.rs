@@ -222,10 +222,9 @@ impl PlanStreamController {
             .collect::<Vec<_>>();
         out_lines.extend(plan_lines);
 
-        // TODO: new_proposed_plan_stream was removed in upstream; using AgentMessageCell as temporary replacement
-        Some(Box::new(history_cell::AgentMessageCell::new(
+        Some(Box::new(history_cell::new_proposed_plan_stream(
             out_lines,
-            !is_stream_continuation,
+            is_stream_continuation,
         )))
     }
 }
@@ -253,7 +252,7 @@ mod tests {
         let mut lines = Vec::new();
 
         // Exact deltas from the session log (section: Loose vs. tight list items)
-        let deltas = [
+        let deltas = vec![
             "\n\n",
             "Loose",
             " vs",

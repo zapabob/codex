@@ -1,13 +1,12 @@
 ---
 source: tui/src/diff_render.rs
-assertion_line: 442
 expression: terminal.backend()
 ---
-"• Edited ~\Desktop\codex-main\codex-rs\tui\abs_old.rs →                         "
-"~\Desktop\codex-main\codex-rs\tui\abs_new.rs (+1 -1)                            "
+"• Edited abs_old.rs → abs_new.rs (+1 -1)                                        "
 "    1 -X                                                                        "
 "    1 +X changed                                                                "
 "    2  Y                                                                        "
+"                                                                                "
 "                                                                                "
 "                                                                                "
 "                                                                                "

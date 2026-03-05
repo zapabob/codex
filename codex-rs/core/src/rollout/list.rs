@@ -298,8 +298,8 @@ impl From<codex_state::Anchor> for Cursor {
 
 /// Retrieve recorded thread file paths with token pagination. The returned `next_cursor`
 /// can be supplied on the next call to resume after the last returned item, resilient to
-/// concurrent new sessions being appended. Ordering is stable by timestamp desc, then UUID desc.
-#[allow(clippy::too_many_arguments)]
+/// concurrent new sessions being appended. Ordering is stable by the requested sort key
+/// (timestamp desc, then UUID desc).
 pub(crate) async fn get_threads(
     codex_home: &Path,
     page_size: usize,

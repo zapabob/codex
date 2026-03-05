@@ -1,4 +1,4 @@
-$ReleaseVer = "v2.12.1"
+$ReleaseVer = "v3.0.0"
 $SourceDir = "target\release"
 $OutputDir = "codex-release-win64"
 $ArchiveName = "codex-$ReleaseVer-windows-x86_64.tar.gz"

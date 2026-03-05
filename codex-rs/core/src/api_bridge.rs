@@ -236,7 +236,6 @@ fn extract_header(headers: Option<&HeaderMap>, name: &str) -> Option<String> {
     })
 }
 
-#[allow(clippy::result_large_err)]
 pub(crate) fn auth_provider_from_auth(
     auth: Option<CodexAuth>,
     provider: &ModelProviderInfo,

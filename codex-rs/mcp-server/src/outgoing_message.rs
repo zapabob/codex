@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::sync::atomic::AtomicI64;
 use std::sync::atomic::Ordering;
 
-use codex_core::protocol::Event;
 use codex_protocol::ThreadId;
+use codex_protocol::protocol::Event;
 use rmcp::model::CustomNotification;
 use rmcp::model::CustomRequest;
 use rmcp::model::ErrorData;
@@ -200,7 +200,7 @@ pub(crate) struct OutgoingNotificationParams {
     pub event: serde_json::Value,
 }
 
-// Additional mcp-specific data to be added to a [`codex_core::protocol::Event`] as notification.params._meta
+// Additional mcp-specific data to be added to a [`codex_protocol::protocol::Event`] as notification.params._meta
 // MCP Spec: https://modelcontextprotocol.io/specification/2025-06-18/basic#meta
 // Typescript Schema: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/0695a497eb50a804fc0e88c18a93a21a675d6b3e/schema/2025-06-18/schema.ts
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -228,17 +228,17 @@ pub(crate) struct OutgoingError {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use anyhow::Result;
-    use codex_core::protocol::EventMsg;
-    use codex_core::protocol::SessionConfiguredEvent;
     use codex_protocol::ThreadId;
     use codex_protocol::openai_models::ReasoningEffort;
     use codex_protocol::protocol::AskForApproval;
+    use codex_protocol::protocol::EventMsg;
     use codex_protocol::protocol::SandboxPolicy;
+    use codex_protocol::protocol::SessionConfiguredEvent;
     use pretty_assertions::assert_eq;
     use serde_json::json;
-    use std::path::Path;
-    use std::path::PathBuf;
     use tempfile::NamedTempFile;
 
     use super::*;
@@ -292,11 +292,6 @@ mod tests {
 
         let thread_id = ThreadId::new();
         let rollout_file = NamedTempFile::new()?;
-        let _cwd = rollout_file
-            .path()
-            .parent()
-            .unwrap_or_else(|| Path::new("."))
-            .to_path_buf();
         let event = Event {
             id: "1".to_string(),
             msg: EventMsg::SessionConfigured(SessionConfiguredEvent {
@@ -304,7 +299,8 @@ mod tests {
                 forked_from_id: None,
                 thread_name: None,
                 model: "gpt-4o".to_string(),
-                model_provider_id: "openai".to_string(),
+                model_provider_id: "test-provider".to_string(),
+                service_tier: None,
                 approval_policy: AskForApproval::Never,
                 sandbox_policy: SandboxPolicy::new_read_only_policy(),
                 cwd: PathBuf::from("/home/user/project"),
@@ -341,17 +337,13 @@ mod tests {
 
         let conversation_id = ThreadId::new();
         let rollout_file = NamedTempFile::new()?;
-        let _cwd = rollout_file
-            .path()
-            .parent()
-            .unwrap_or_else(|| Path::new("."))
-            .to_path_buf();
         let session_configured_event = SessionConfiguredEvent {
             session_id: conversation_id,
             forked_from_id: None,
             thread_name: None,
             model: "gpt-4o".to_string(),
-            model_provider_id: "openai".to_string(),
+            model_provider_id: "test-provider".to_string(),
+            service_tier: None,
             approval_policy: AskForApproval::Never,
             sandbox_policy: SandboxPolicy::new_read_only_policy(),
             cwd: PathBuf::from("/home/user/project"),
@@ -380,11 +372,27 @@ mod tests {
             panic!("expected Notification for first message");
         };
         assert_eq!(method, "codex/event");
-        let mut expected_params = serde_json::to_value(&event)?;
-        expected_params
-            .as_object_mut()
-            .expect("event params serialize to object")
-            .insert("_meta".to_string(), json!({ "requestId": "123" }));
+        let expected_params = json!({
+            "_meta": {
+                "requestId": "123",
+            },
+            "id": "1",
+            "msg": {
+                "type": "session_configured",
+                "session_id": session_configured_event.session_id,
+                "model": "gpt-4o",
+                "model_provider_id": "test-provider",
+                "approval_policy": "never",
+                "sandbox_policy": {
+                    "type": "read-only"
+                },
+                "cwd": "/home/user/project",
+                "reasoning_effort": session_configured_event.reasoning_effort,
+                "history_log_id": session_configured_event.history_log_id,
+                "history_entry_count": session_configured_event.history_entry_count,
+                "rollout_path": rollout_file.path().to_path_buf(),
+            }
+        });
         assert_eq!(params.unwrap(), expected_params);
         Ok(())
     }
@@ -402,6 +410,7 @@ mod tests {
             thread_name: None,
             model: "gpt-4o".to_string(),
             model_provider_id: "test-provider".to_string(),
+            service_tier: None,
             approval_policy: AskForApproval::Never,
             sandbox_policy: SandboxPolicy::new_read_only_policy(),
             cwd: PathBuf::from("/home/user/project"),

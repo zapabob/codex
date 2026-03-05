@@ -1,12 +1,5 @@
-#![allow(dead_code)]
-
 pub(crate) const INVALID_REQUEST_ERROR_CODE: i64 = -32600;
+pub const INVALID_PARAMS_ERROR_CODE: i64 = -32602;
 pub(crate) const INTERNAL_ERROR_CODE: i64 = -32603;
 pub(crate) const OVERLOADED_ERROR_CODE: i64 = -32001;
-
-// --- Fork custom additions ---
-pub type ErrorCode = i64;
-pub const ERROR_INVALID_REQUEST: ErrorCode = 400;
-pub const ERROR_NOT_FOUND: ErrorCode = 404;
-pub const ERROR_INTERNAL_ERROR: ErrorCode = 500;
-// --- End fork additions ---
+pub const INPUT_TOO_LARGE_ERROR_CODE: &str = "input_too_large";

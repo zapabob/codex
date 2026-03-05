@@ -165,7 +165,6 @@ impl<'a> ToolMentions<'a> {
         self.names.is_empty() && self.paths.is_empty()
     }
 
-    #[allow(dead_code)]
     pub(crate) fn plain_names(&self) -> impl Iterator<Item = &'a str> + '_ {
         self.plain_names.iter().copied()
     }
@@ -205,7 +204,6 @@ fn is_skill_filename(path: &str) -> bool {
     file_name.eq_ignore_ascii_case(SKILL_FILENAME)
 }
 
-#[allow(dead_code)]
 pub(crate) fn app_id_from_path(path: &str) -> Option<&str> {
     path.strip_prefix(APP_PATH_PREFIX)
         .filter(|value| !value.is_empty())
@@ -466,7 +464,7 @@ fn text_mentions_skill(text: &str, skill_name: &str) -> bool {
 }
 
 fn is_mention_name_char(byte: u8) -> bool {
-    matches!(byte, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'_' | b'-')
+    matches!(byte, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'_' | b'-' | b':')
 }
 
 #[cfg(test)]
@@ -485,7 +483,6 @@ mod tests {
             dependencies: None,
             policy: None,
             permission_profile: None,
-            permissions: None,
             path_to_skills_md: PathBuf::from(path),
             scope: codex_protocol::protocol::SkillScope::User,
         }
@@ -584,6 +581,15 @@ mod tests {
         assert_mentions(
             "use $alpha.skill and $beta_extra",
             &["alpha", "beta_extra"],
+            &[],
+        );
+    }
+
+    #[test]
+    fn extract_tool_mentions_keeps_plugin_skill_namespaces() {
+        assert_mentions(
+            "use $slack:search and $alpha",
+            &["alpha", "slack:search"],
             &[],
         );
     }

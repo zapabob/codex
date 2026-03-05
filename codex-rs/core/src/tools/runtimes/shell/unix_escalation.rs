@@ -6,9 +6,11 @@ use crate::exec::ExecToolCallOutput;
 use crate::exec::SandboxType;
 use crate::exec::is_likely_sandbox_denied;
 use crate::features::Feature;
+use crate::sandboxing::ExecRequest;
 use crate::sandboxing::SandboxPermissions;
 use crate::shell::ShellType;
 use crate::skills::SkillMetadata;
+use crate::skills::permissions::compile_permission_profile;
 use crate::tools::runtimes::ExecveSessionApproval;
 use crate::tools::runtimes::build_command_spec;
 use crate::tools::sandboxing::SandboxAttempt;
@@ -16,6 +18,8 @@ use crate::tools::sandboxing::SandboxablePreference;
 use crate::tools::sandboxing::ToolCtx;
 use crate::tools::sandboxing::ToolError;
 use codex_execpolicy::Decision;
+use codex_execpolicy::Evaluation;
+use codex_execpolicy::MatchOptions;
 use codex_execpolicy::Policy;
 use codex_execpolicy::RuleMatch;
 use codex_protocol::config_types::WindowsSandboxLevel;
@@ -33,6 +37,7 @@ use codex_shell_escalation::EscalationDecision;
 use codex_shell_escalation::EscalationExecution;
 use codex_shell_escalation::EscalationPermissions;
 use codex_shell_escalation::EscalationPolicy;
+use codex_shell_escalation::EscalationSession;
 use codex_shell_escalation::ExecParams;
 use codex_shell_escalation::ExecResult;
 use codex_shell_escalation::Permissions as EscalatedPermissions;
@@ -47,6 +52,11 @@ use std::time::Duration;
 use tokio::sync::RwLock;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
+
+pub(crate) struct PreparedUnifiedExecZshFork {
+    pub(crate) exec_request: ExecRequest,
+    pub(crate) escalation_session: EscalationSession,
+}
 
 pub(super) async fn try_run_zsh_fork(
     req: &ShellRequest,
@@ -92,7 +102,7 @@ pub(super) async fn try_run_zsh_fork(
         justification,
         arg0,
     } = sandbox_exec_request;
-    let ParsedShellCommand { script, login } = extract_shell_script(&command)?;
+    let ParsedShellCommand { script, login, .. } = extract_shell_script(&command)?;
     let effective_timeout = Duration::from_millis(
         req.timeout_ms
             .unwrap_or(crate::exec::DEFAULT_EXEC_COMMAND_TIMEOUT_MS),
@@ -169,6 +179,103 @@ pub(super) async fn try_run_zsh_fork(
     map_exec_result(attempt.sandbox, exec_result).map(Some)
 }
 
+pub(crate) async fn prepare_unified_exec_zsh_fork(
+    req: &crate::tools::runtimes::unified_exec::UnifiedExecRequest,
+    attempt: &SandboxAttempt<'_>,
+    ctx: &ToolCtx,
+    exec_request: ExecRequest,
+) -> Result<Option<PreparedUnifiedExecZshFork>, ToolError> {
+    let Some(shell_zsh_path) = ctx.session.services.shell_zsh_path.as_ref() else {
+        tracing::warn!("ZshFork backend specified, but shell_zsh_path is not configured.");
+        return Ok(None);
+    };
+    if !ctx.session.features().enabled(Feature::ShellZshFork) {
+        tracing::warn!("ZshFork backend specified, but ShellZshFork feature is not enabled.");
+        return Ok(None);
+    }
+    if !matches!(ctx.session.user_shell().shell_type, ShellType::Zsh) {
+        tracing::warn!("ZshFork backend specified, but user shell is not Zsh.");
+        return Ok(None);
+    }
+
+    let parsed = match extract_shell_script(&exec_request.command) {
+        Ok(parsed) => parsed,
+        Err(err) => {
+            tracing::warn!("ZshFork unified exec fallback: {err:?}");
+            return Ok(None);
+        }
+    };
+    if parsed.program != shell_zsh_path.to_string_lossy() {
+        tracing::warn!(
+            "ZshFork backend specified, but unified exec command targets `{}` instead of `{}`.",
+            parsed.program,
+            shell_zsh_path.display(),
+        );
+        return Ok(None);
+    }
+
+    let exec_policy = Arc::new(RwLock::new(
+        ctx.session.services.exec_policy.current().as_ref().clone(),
+    ));
+    let command_executor = CoreShellCommandExecutor {
+        command: exec_request.command.clone(),
+        cwd: exec_request.cwd.clone(),
+        sandbox_policy: exec_request.sandbox_policy.clone(),
+        sandbox: exec_request.sandbox,
+        env: exec_request.env.clone(),
+        network: exec_request.network.clone(),
+        windows_sandbox_level: exec_request.windows_sandbox_level,
+        sandbox_permissions: exec_request.sandbox_permissions,
+        justification: exec_request.justification.clone(),
+        arg0: exec_request.arg0.clone(),
+        sandbox_policy_cwd: ctx.turn.cwd.clone(),
+        macos_seatbelt_profile_extensions: ctx
+            .turn
+            .config
+            .permissions
+            .macos_seatbelt_profile_extensions
+            .clone(),
+        codex_linux_sandbox_exe: ctx.turn.codex_linux_sandbox_exe.clone(),
+        use_linux_sandbox_bwrap: ctx.turn.features.enabled(Feature::UseLinuxSandboxBwrap),
+    };
+    let main_execve_wrapper_exe = ctx
+        .session
+        .services
+        .main_execve_wrapper_exe
+        .clone()
+        .ok_or_else(|| {
+            ToolError::Rejected(
+                "zsh fork feature enabled, but execve wrapper is not configured".to_string(),
+            )
+        })?;
+    let escalation_policy = CoreShellActionProvider {
+        policy: Arc::clone(&exec_policy),
+        session: Arc::clone(&ctx.session),
+        turn: Arc::clone(&ctx.turn),
+        call_id: ctx.call_id.clone(),
+        approval_policy: ctx.turn.approval_policy.value(),
+        sandbox_policy: attempt.policy.clone(),
+        sandbox_permissions: req.sandbox_permissions,
+        prompt_permissions: req.additional_permissions.clone(),
+        stopwatch: Stopwatch::unlimited(),
+    };
+
+    let escalate_server = EscalateServer::new(
+        shell_zsh_path.clone(),
+        main_execve_wrapper_exe,
+        escalation_policy,
+    );
+    let escalation_session = escalate_server
+        .start_session(CancellationToken::new(), Arc::new(command_executor))
+        .map_err(|err| ToolError::Rejected(err.to_string()))?;
+    let mut exec_request = exec_request;
+    exec_request.env.extend(escalation_session.env().clone());
+    Ok(Some(PreparedUnifiedExecZshFork {
+        exec_request,
+        escalation_session,
+    }))
+}
+
 struct CoreShellActionProvider {
     policy: Arc<RwLock<Policy>>,
     session: Arc<crate::codex::Session>,
@@ -225,9 +332,7 @@ impl CoreShellActionProvider {
     }
 
     fn skill_escalation_execution(skill: &SkillMetadata) -> EscalationExecution {
-        skill
-            .permissions
-            .as_ref()
+        compile_permission_profile(skill.permission_profile.clone())
             .map(|permissions| {
                 EscalationExecution::Permissions(EscalationPermissions::Permissions(
                     EscalatedPermissions {
@@ -237,13 +342,6 @@ impl CoreShellActionProvider {
                             .clone(),
                     },
                 ))
-            })
-            .or_else(|| {
-                skill
-                    .permission_profile
-                    .clone()
-                    .map(EscalationPermissions::PermissionProfile)
-                    .map(EscalationExecution::Permissions)
             })
             .unwrap_or(EscalationExecution::TurnDefault)
     }
@@ -431,6 +529,12 @@ impl CoreShellActionProvider {
     }
 }
 
+// Shell-wrapper parsing is weaker than direct exec interception because it can
+// only see the script text, not the final resolved executable path. Keep it
+// disabled by default so path-sensitive rules rely on the later authoritative
+// execve interception.
+const ENABLE_INTERCEPTED_EXEC_POLICY_SHELL_WRAPPER_PARSING: bool = false;
+
 #[async_trait::async_trait]
 impl EscalationPolicy for CoreShellActionProvider {
     async fn determine_action(
@@ -493,28 +597,17 @@ impl EscalationPolicy for CoreShellActionProvider {
                 .await;
         }
 
-        let command = join_program_and_argv(program, argv);
-        let (commands, used_complex_parsing) =
-            if let Some(commands) = parse_shell_lc_plain_commands(&command) {
-                (commands, false)
-            } else if let Some(single_command) = parse_shell_lc_single_command_prefix(&command) {
-                (vec![single_command], true)
-            } else {
-                (vec![command.clone()], false)
-            };
-
-        let fallback = |cmd: &[String]| {
-            crate::exec_policy::render_decision_for_unmatched_command(
-                self.approval_policy,
-                &self.sandbox_policy,
-                cmd,
-                self.sandbox_permissions,
-                used_complex_parsing,
-            )
-        };
         let evaluation = {
             let policy = self.policy.read().await;
-            policy.check_multiple(commands.iter(), &fallback)
+            evaluate_intercepted_exec_policy(
+                &policy,
+                program,
+                argv,
+                self.approval_policy,
+                &self.sandbox_policy,
+                self.sandbox_permissions,
+                ENABLE_INTERCEPTED_EXEC_POLICY_SHELL_WRAPPER_PARSING,
+            )
         };
         // When true, means the Evaluation was due to *.rules, not the
         // fallback function.
@@ -528,16 +621,20 @@ impl EscalationPolicy for CoreShellActionProvider {
         } else {
             DecisionSource::UnmatchedCommandFallback
         };
-        let escalation_execution = Self::shell_request_escalation_execution(
-            self.sandbox_permissions,
-            &self.sandbox_policy,
-            self.prompt_permissions.as_ref(),
-            self.turn
-                .config
-                .permissions
-                .macos_seatbelt_profile_extensions
-                .as_ref(),
-        );
+        let escalation_execution = match decision_source {
+            DecisionSource::PrefixRule => EscalationExecution::Unsandboxed,
+            DecisionSource::UnmatchedCommandFallback => Self::shell_request_escalation_execution(
+                self.sandbox_permissions,
+                &self.sandbox_policy,
+                self.prompt_permissions.as_ref(),
+                self.turn
+                    .config
+                    .permissions
+                    .macos_seatbelt_profile_extensions
+                    .as_ref(),
+            ),
+            DecisionSource::SkillScript { .. } => unreachable!("handled above"),
+        };
         self.process_decision(
             evaluation.decision,
             needs_escalation,
@@ -549,6 +646,86 @@ impl EscalationPolicy for CoreShellActionProvider {
             decision_source,
         )
         .await
+    }
+}
+
+fn evaluate_intercepted_exec_policy(
+    policy: &Policy,
+    program: &AbsolutePathBuf,
+    argv: &[String],
+    approval_policy: AskForApproval,
+    sandbox_policy: &SandboxPolicy,
+    sandbox_permissions: SandboxPermissions,
+    enable_intercepted_exec_policy_shell_wrapper_parsing: bool,
+) -> Evaluation {
+    let CandidateCommands {
+        commands,
+        used_complex_parsing,
+    } = if enable_intercepted_exec_policy_shell_wrapper_parsing {
+        // In this codepath, the first argument in `commands` could be a bare
+        // name like `find` instead of an absolute path like `/usr/bin/find`.
+        // It could also be a shell built-in like `echo`.
+        commands_for_intercepted_exec_policy(program, argv)
+    } else {
+        // In this codepath, `commands` has a single entry where the program
+        // is always an absolute path.
+        CandidateCommands {
+            commands: vec![join_program_and_argv(program, argv)],
+            used_complex_parsing: false,
+        }
+    };
+
+    let fallback = |cmd: &[String]| {
+        crate::exec_policy::render_decision_for_unmatched_command(
+            approval_policy,
+            sandbox_policy,
+            cmd,
+            sandbox_permissions,
+            used_complex_parsing,
+        )
+    };
+
+    policy.check_multiple_with_options(
+        commands.iter(),
+        &fallback,
+        &MatchOptions {
+            resolve_host_executables: true,
+        },
+    )
+}
+
+struct CandidateCommands {
+    commands: Vec<Vec<String>>,
+    used_complex_parsing: bool,
+}
+
+fn commands_for_intercepted_exec_policy(
+    program: &AbsolutePathBuf,
+    argv: &[String],
+) -> CandidateCommands {
+    if let [_, flag, script] = argv {
+        let shell_command = [
+            program.to_string_lossy().to_string(),
+            flag.clone(),
+            script.clone(),
+        ];
+        if let Some(commands) = parse_shell_lc_plain_commands(&shell_command) {
+            return CandidateCommands {
+                commands,
+                used_complex_parsing: false,
+            };
+        }
+        if let Some(single_command) = parse_shell_lc_single_command_prefix(&shell_command) {
+            return CandidateCommands {
+                commands: vec![single_command],
+                used_complex_parsing: true,
+            };
+        }
+    }
+
+    CandidateCommands {
+        commands: vec![join_program_and_argv(program, argv)],
+        used_complex_parsing: false,
     }
 }
 
@@ -575,17 +752,20 @@ impl ShellCommandExecutor for CoreShellCommandExecutor {
         &self,
         _command: Vec<String>,
         _cwd: PathBuf,
-        env: HashMap<String, String>,
+        env_overlay: HashMap<String, String>,
         cancel_rx: CancellationToken,
+        after_spawn: Option<Box<dyn FnOnce() + Send>>,
     ) -> anyhow::Result<ExecResult> {
         let mut exec_env = self.env.clone();
+        // `env_overlay` comes from `EscalationSession::env()`, so merge only the
+        // wrapper/socket variables into the base shell environment.
         for var in ["CODEX_ESCALATE_SOCKET", "EXEC_WRAPPER", "BASH_EXEC_WRAPPER"] {
-            if let Some(value) = env.get(var) {
+            if let Some(value) = env_overlay.get(var) {
                 exec_env.insert(var.to_string(), value.clone());
             }
         }
 
-        let result = crate::sandboxing::execute_env(
+        let result = crate::sandboxing::execute_exec_request_with_after_spawn(
             crate::sandboxing::ExecRequest {
                 command: self.command.clone(),
                 cwd: self.cwd.clone(),
@@ -600,6 +780,7 @@ impl ShellCommandExecutor for CoreShellCommandExecutor {
                 arg0: self.arg0.clone(),
             },
             None,
+            after_spawn,
         )
         .await?;
 
@@ -736,6 +917,7 @@ impl CoreShellCommandExecutor {
 
 #[derive(Debug, Eq, PartialEq)]
 struct ParsedShellCommand {
+    program: String,
     script: String,
     login: bool,
 }
@@ -744,12 +926,20 @@ fn extract_shell_script(command: &[String]) -> Result<ParsedShellCommand, ToolEr
     // Commands reaching zsh-fork can be wrapped by environment/sandbox helpers, so
     // we search for the first `-c`/`-lc` triple anywhere in the argv rather
     // than assuming it is the first positional form.
-    if let Some((script, login)) = command.windows(3).find_map(|parts| match parts {
-        [_, flag, script] if flag == "-c" => Some((script.to_owned(), false)),
-        [_, flag, script] if flag == "-lc" => Some((script.to_owned(), true)),
+    if let Some((program, script, login)) = command.windows(3).find_map(|parts| match parts {
+        [program, flag, script] if flag == "-c" => {
+            Some((program.to_owned(), script.to_owned(), false))
+        }
+        [program, flag, script] if flag == "-lc" => {
+            Some((program.to_owned(), script.to_owned(), true))
+        }
         _ => None,
     }) {
-        return Ok(ParsedShellCommand { script, login });
+        return Ok(ParsedShellCommand {
+            program,
+            script,
+            login,
+        });
     }
 
     Err(ToolError::Rejected(

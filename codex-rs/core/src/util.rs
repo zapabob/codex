@@ -45,28 +45,26 @@ pub fn backoff(attempt: u64) -> Duration {
 }
 
 pub(crate) fn error_or_panic(message: impl std::string::ToString) {
-    use crate::security::mask_secrets;
-    let masked_message = mask_secrets(&message.to_string());
-    // Always log as error, never panic (even in debug mode)
-    // This prevents unexpected crashes in development environments
-    error!("{}", masked_message);
+    if cfg!(debug_assertions) {
+        panic!("{}", message.to_string());
+    } else {
+        error!("{}", message.to_string());
+    }
 }
 
 pub(crate) fn try_parse_error_message(text: &str) -> String {
-    use crate::security::mask_secrets;
-    let masked_text = mask_secrets(text);
-    debug!("Parsing server error response: {}", masked_text);
+    debug!("Parsing server error response: {}", text);
     let json = serde_json::from_str::<serde_json::Value>(text).unwrap_or_default();
     if let Some(error) = json.get("error")
         && let Some(message) = error.get("message")
         && let Some(message_str) = message.as_str()
     {
-        return mask_secrets(message_str);
+        return message_str.to_string();
     }
     if text.is_empty() {
         return "Unknown error".to_string();
     }
-    masked_text
+    text.to_string()
 }
 
 pub fn resolve_path(base: &Path, path: &PathBuf) -> PathBuf {

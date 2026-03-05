@@ -1,32 +1,17 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
-use std::sync::Arc;
 
-use crate::codex_tool_config::CodexToolCallParam;
-use crate::codex_tool_config::CodexToolCallReplyParam;
-use crate::codex_tool_config::create_tool_for_codex_tool_call_param;
-use crate::codex_tool_config::create_tool_for_codex_tool_call_reply_param;
-
-use crate::external_mcp_manager::ExternalMcpManager;
-use crate::external_mcp_tool_handler::ExternalMcpToolHandler;
-use crate::outgoing_message::OutgoingMessageSender;
-use crate::windows_mcp_bridge::{Windows25H2ToolParam, handle_windows_25h2_tool};
+use codex_arg0::Arg0DispatchPaths;
 use codex_core::AuthManager;
 use codex_core::ThreadManager;
 use codex_core::config::Config;
 use codex_core::default_client::USER_AGENT_SUFFIX;
 use codex_core::default_client::get_codex_user_agent;
-use codex_core::protocol::Submission;
+use codex_core::models_manager::collaboration_mode_presets::CollaborationModesConfig;
 use codex_protocol::ThreadId;
 use codex_protocol::protocol::SessionSource;
+use codex_protocol::protocol::Submission;
 use rmcp::model::CallToolRequestParams;
-
-// --- Fork custom additions ---
-use mcp_types::CallToolResult as McpCallToolResult;
-use mcp_types::ContentBlock;
-use mcp_types::ModelContextProtocolRequest;
-use mcp_types::TextContent;
-// --- End fork additions ---
+use rmcp::model::CallToolResult;
 use rmcp::model::ClientNotification;
 use rmcp::model::ClientRequest;
 use rmcp::model::ErrorCode;
@@ -41,16 +26,22 @@ use rmcp::model::RequestId;
 use rmcp::model::ServerCapabilities;
 use rmcp::model::ToolsCapability;
 use serde_json::json;
+use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::task;
+
+use crate::codex_tool_config::CodexToolCallParam;
+use crate::codex_tool_config::CodexToolCallReplyParam;
+use crate::codex_tool_config::create_tool_for_codex_tool_call_param;
+use crate::codex_tool_config::create_tool_for_codex_tool_call_reply_param;
+use crate::outgoing_message::OutgoingMessageSender;
 
 pub(crate) struct MessageProcessor {
     outgoing: Arc<OutgoingMessageSender>,
     initialized: bool,
-    codex_linux_sandbox_exe: Option<PathBuf>,
+    arg0_paths: Arg0DispatchPaths,
     thread_manager: Arc<ThreadManager>,
     running_requests_id_to_codex_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
-    external_mcp_handler: Arc<ExternalMcpToolHandler>,
 }
 
 impl MessageProcessor {
@@ -58,7 +49,7 @@ impl MessageProcessor {
     /// `Sender` so handlers can enqueue messages to be written to stdout.
     pub(crate) fn new(
         outgoing: OutgoingMessageSender,
-        codex_linux_sandbox_exe: Option<PathBuf>,
+        arg0_paths: Arg0DispatchPaths,
         config: Arc<Config>,
     ) -> Self {
         let outgoing = Arc::new(outgoing);
@@ -72,16 +63,18 @@ impl MessageProcessor {
             auth_manager,
             SessionSource::Mcp,
             config.model_catalog.clone(),
+            CollaborationModesConfig {
+                default_mode_request_user_input: config
+                    .features
+                    .enabled(codex_core::features::Feature::DefaultModeRequestUserInput),
+            },
         ));
         Self {
             outgoing,
             initialized: false,
-            codex_linux_sandbox_exe,
+            arg0_paths,
             thread_manager,
             running_requests_id_to_codex_uuid: Arc::new(Mutex::new(HashMap::new())),
-            external_mcp_handler: Arc::new(ExternalMcpToolHandler::new(Arc::new(
-                ExternalMcpManager::new(None),
-            ))),
         }
     }
 
@@ -322,23 +315,12 @@ impl MessageProcessor {
     ) {
         tracing::trace!("tools/list -> {params:?}");
         let result = rmcp::model::ListToolsResult {
+            meta: None,
             tools: vec![
                 create_tool_for_codex_tool_call_param(),
                 create_tool_for_codex_tool_call_reply_param(),
-                // Add external tools
-                to_rmcp_tool(crate::external_mcp_tool::create_external_mcp_list_servers_tool()),
-                to_rmcp_tool(
-                    crate::external_mcp_tool::create_external_mcp_get_server_status_tool(),
-                ),
-                to_rmcp_tool(crate::external_mcp_tool::create_external_mcp_start_server_tool()),
-                to_rmcp_tool(crate::external_mcp_tool::create_external_mcp_stop_server_tool()),
-                to_rmcp_tool(crate::external_mcp_tool::create_external_mcp_send_request_tool()),
-                to_rmcp_tool(
-                    crate::external_mcp_tool::create_external_mcp_get_server_config_tool(),
-                ),
             ],
             next_cursor: None,
-            meta: None,
         };
 
         self.outgoing.send_response(id, result).await;
@@ -356,55 +338,12 @@ impl MessageProcessor {
                 self.handle_tool_call_codex_session_reply(id, arguments)
                     .await
             }
-            "windows-25h2" => {
-                self.handle_tool_call_windows_25h2(id, arguments.map(serde_json::Value::Object))
-                    .await;
-            }
-            n if n.starts_with("external_mcp_") => {
-                if let Some(args) = arguments {
-                    if let Err(e) = self
-                        .external_mcp_handler
-                        .handle_tool_call(
-                            id.clone(),
-                            n,
-                            serde_json::Value::Object(args),
-                            self.outgoing.clone(),
-                        )
-                        .await
-                    {
-                        let result = McpCallToolResult {
-                            content: vec![ContentBlock::TextContent(TextContent {
-                                r#type: "text".to_string(),
-                                text: format!("External tool execution failed: {e}"),
-                                annotations: None,
-                            })],
-                            structured_content: None,
-                            is_error: Some(true),
-                        };
-                        self.outgoing.send_response(id, result).await;
-                    }
-                } else {
-                    let result = McpCallToolResult {
-                        content: vec![ContentBlock::TextContent(TextContent {
-                            r#type: "text".to_string(),
-                            text: "Missing arguments for external tool".to_string(),
-                            annotations: None,
-                        })],
-                        structured_content: None,
-                        is_error: Some(true),
-                    };
-                    self.outgoing.send_response(id, result).await;
-                }
-            }
             _ => {
-                let result = McpCallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!("Unknown tool '{name}'"),
-                        annotations: None,
-                    })],
+                let result = CallToolResult {
+                    content: vec![rmcp::model::Content::text(format!("Unknown tool '{name}'"))],
                     structured_content: None,
                     is_error: Some(true),
+                    meta: None,
                 };
                 self.outgoing.send_response(id, result).await;
             }
@@ -419,52 +358,42 @@ impl MessageProcessor {
         let arguments = arguments.map(serde_json::Value::Object);
         let (initial_prompt, config): (String, Config) = match arguments {
             Some(json_val) => match serde_json::from_value::<CodexToolCallParam>(json_val) {
-                Ok(tool_cfg) => match tool_cfg
-                    .into_config(self.codex_linux_sandbox_exe.clone())
-                    .await
-                {
+                Ok(tool_cfg) => match tool_cfg.into_config(self.arg0_paths.clone()).await {
                     Ok(cfg) => cfg,
                     Err(e) => {
-                        let result = McpCallToolResult {
-                            content: vec![ContentBlock::TextContent(TextContent {
-                                r#type: "text".to_string(),
-                                text: format!(
-                                    "Failed to load Codex configuration from overrides: {e}"
-                                ),
-                                annotations: None,
-                            })],
+                        let result = CallToolResult {
+                            content: vec![rmcp::model::Content::text(format!(
+                                "Failed to load Codex configuration from overrides: {e}"
+                            ))],
                             structured_content: None,
                             is_error: Some(true),
+                            meta: None,
                         };
                         self.outgoing.send_response(id, result).await;
                         return;
                     }
                 },
                 Err(e) => {
-                    let result = McpCallToolResult {
-                        content: vec![ContentBlock::TextContent(TextContent {
-                            r#type: "text".to_string(),
-                            text: format!("Failed to parse configuration for Codex tool: {e}"),
-                            annotations: None,
-                        })],
+                    let result = CallToolResult {
+                        content: vec![rmcp::model::Content::text(format!(
+                            "Failed to parse configuration for Codex tool: {e}"
+                        ))],
                         structured_content: None,
                         is_error: Some(true),
+                        meta: None,
                     };
                     self.outgoing.send_response(id, result).await;
                     return;
                 }
             },
             None => {
-                let result = McpCallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text:
-                            "Missing arguments for codex tool-call; the `prompt` field is required."
-                                .to_string(),
-                        annotations: None,
-                    })],
+                let result = CallToolResult {
+                    content: vec![rmcp::model::Content::text(
+                        "Missing arguments for codex tool-call; the `prompt` field is required.",
+                    )],
                     structured_content: None,
                     is_error: Some(true),
+                    meta: None,
                 };
                 self.outgoing.send_response(id, result).await;
                 return;
@@ -506,14 +435,13 @@ impl MessageProcessor {
                 Ok(params) => params,
                 Err(e) => {
                     tracing::error!("Failed to parse Codex tool call reply parameters: {e}");
-                    let result = McpCallToolResult {
-                        content: vec![ContentBlock::TextContent(TextContent {
-                            r#type: "text".to_string(),
-                            text: format!("Failed to parse configuration for Codex tool: {e}"),
-                            annotations: None,
-                        })],
+                    let result = CallToolResult {
+                        content: vec![rmcp::model::Content::text(format!(
+                            "Failed to parse configuration for Codex tool: {e}"
+                        ))],
                         structured_content: None,
                         is_error: Some(true),
+                        meta: None,
                     };
                     self.outgoing.send_response(request_id, result).await;
                     return;
@@ -523,14 +451,13 @@ impl MessageProcessor {
                 tracing::error!(
                     "Missing arguments for codex-reply tool-call; the `thread_id` and `prompt` fields are required."
                 );
-                let result = McpCallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: "Missing arguments for codex-reply tool-call; the `thread_id` and `prompt` fields are required.".to_string(),
-                        annotations: None,
-                    })],
+                let result = CallToolResult {
+                    content: vec![rmcp::model::Content::text(
+                        "Missing arguments for codex-reply tool-call; the `thread_id` and `prompt` fields are required.",
+                    )],
                     structured_content: None,
                     is_error: Some(true),
+                    meta: None,
                 };
                 self.outgoing.send_response(request_id, result).await;
                 return;
@@ -541,14 +468,13 @@ impl MessageProcessor {
             Ok(id) => id,
             Err(e) => {
                 tracing::error!("Failed to parse thread_id: {e}");
-                let result = McpCallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!("Failed to parse thread_id: {e}"),
-                        annotations: None,
-                    })],
+                let result = CallToolResult {
+                    content: vec![rmcp::model::Content::text(format!(
+                        "Failed to parse thread_id: {e}"
+                    ))],
                     structured_content: None,
                     is_error: Some(true),
+                    meta: None,
                 };
                 self.outgoing.send_response(request_id, result).await;
                 return;
@@ -649,7 +575,8 @@ impl MessageProcessor {
         if let Err(e) = codex_arc
             .submit_with_id(Submission {
                 id: request_id_string,
-                op: codex_core::protocol::Op::Interrupt,
+                op: codex_protocol::protocol::Op::Interrupt,
+                trace: None,
             })
             .await
         {
@@ -673,118 +600,5 @@ impl MessageProcessor {
 
     fn handle_initialized_notification(&self) {
         tracing::info!("notifications/initialized");
-    }
-
-    async fn handle_tool_call_windows_25h2(
-        &self,
-        id: RequestId,
-        arguments: Option<serde_json::Value>,
-    ) {
-        let param: Windows25H2ToolParam = match arguments {
-            Some(json_val) => match serde_json::from_value(json_val) {
-                Ok(p) => p,
-                Err(e) => {
-                    let result = McpCallToolResult {
-                        content: vec![ContentBlock::TextContent(TextContent {
-                            r#type: "text".to_string(),
-                            text: format!("Failed to parse Windows 25H2 tool parameters: {e}"),
-                            annotations: None,
-                        })],
-                        is_error: Some(true),
-                        structured_content: None,
-                    };
-                    self.send_response::<mcp_types::CallToolRequest>(id, result)
-                        .await;
-                    return;
-                }
-            },
-            None => {
-                let result = McpCallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: "Missing arguments for windows-25h2 tool".to_string(),
-                        annotations: None,
-                    })],
-                    is_error: Some(true),
-                    structured_content: None,
-                };
-                self.send_response::<mcp_types::CallToolRequest>(id, result)
-                    .await;
-                return;
-            }
-        };
-
-        match handle_windows_25h2_tool(param).await {
-            Ok(result) => {
-                let result_text = if result.success {
-                    format!(
-                        "{}\n\n{}",
-                        result.message.unwrap_or_default(),
-                        serde_json::to_string_pretty(&result.data).unwrap_or_default()
-                    )
-                } else {
-                    format!(
-                        "Error: {}\n\n{}",
-                        result
-                            .message
-                            .unwrap_or_else(|| "Unknown error".to_string()),
-                        serde_json::to_string_pretty(&result.data).unwrap_or_default()
-                    )
-                };
-
-                let call_result = McpCallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: result_text,
-                        annotations: None,
-                    })],
-                    is_error: Some(!result.success),
-                    structured_content: None,
-                };
-                self.send_response::<mcp_types::CallToolRequest>(id, call_result)
-                    .await;
-            }
-            Err(e) => {
-                let result = McpCallToolResult {
-                    content: vec![ContentBlock::TextContent(TextContent {
-                        r#type: "text".to_string(),
-                        text: format!("Windows 25H2 tool execution failed: {e}"),
-                        annotations: None,
-                    })],
-                    is_error: Some(true),
-                    structured_content: None,
-                };
-                self.send_response::<mcp_types::CallToolRequest>(id, result)
-                    .await;
-            }
-        }
-    }
-
-    async fn send_response<R>(&self, id: RequestId, result: R::Result)
-    where
-        R: ModelContextProtocolRequest,
-        R::Result: serde::Serialize,
-    {
-        self.outgoing.send_response(id, result).await;
-    }
-}
-
-fn to_rmcp_tool(tool: mcp_types::Tool) -> rmcp::model::Tool {
-    let schema_val = serde_json::to_value(tool.input_schema).unwrap();
-    let schema_obj = match schema_val {
-        serde_json::Value::Object(map) => map,
-        _ => panic!("Tool input schema must be an object"),
-    };
-
-    rmcp::model::Tool {
-        name: std::borrow::Cow::Owned(tool.name),
-        description: tool.description.map(std::borrow::Cow::Owned),
-        input_schema: std::sync::Arc::new(schema_obj),
-        title: None,
-        output_schema: None,
-        annotations: None,
-        icons: None,
-        execution: None,
-        meta: None,
     }
 }

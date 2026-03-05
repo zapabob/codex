@@ -114,11 +114,6 @@ impl Frame<'_> {
         widget.render_ref(area, self.buffer);
     }
 
-    /// Render a [`Widget`] to the current buffer using [`Widget::render`].
-    pub fn render_widget<W: ratatui::widgets::Widget>(&mut self, widget: W, area: Rect) {
-        widget.render(area, self.buffer);
-    }
-
     /// After drawing this frame, make the cursor visible and put it at the specified (x, y)
     /// coordinates. If this method is not called, the cursor will be hidden.
     ///

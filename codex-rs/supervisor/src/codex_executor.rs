@@ -6,6 +6,7 @@ use codex_core::CodexThread;
 use codex_core::ThreadManager;
 use codex_core::config::Config;
 use codex_core::models_manager::manager::ModelsManager;
+use codex_core::plugins::PluginsManager;
 use codex_core::protocol::EventMsg;
 use codex_core::protocol::Op;
 use codex_core::protocol::SessionSource;
@@ -58,13 +59,19 @@ impl CodexExecutor {
             config.codex_home.clone(),
             Arc::clone(&auth_manager),
             None, // no custom model catalog
+            Default::default(),
         ));
-        let skills_manager = Arc::new(SkillsManager::new(config.codex_home.clone()));
+        let plugins_manager = Arc::new(PluginsManager::new(config.codex_home.clone()));
+        let skills_manager = Arc::new(SkillsManager::new(
+            config.codex_home.clone(),
+            Arc::clone(&plugins_manager),
+        ));
         let thread_manager = ThreadManager::new(
             config.codex_home.clone(),
             Arc::clone(&auth_manager),
             SessionSource::Exec,
             None, // no custom model catalog
+            Default::default(),
         );
         Self {
             config: Arc::new(config),

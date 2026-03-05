@@ -10,12 +10,6 @@ pub mod api_bridge;
 mod apply_patch;
 mod apps;
 pub mod auth;
-
-// --- Fork custom additions ---
-pub mod audit_log;
-
-pub mod chrome;
-// --- End fork additions ---
 mod client;
 mod client_common;
 pub mod codex;
@@ -26,7 +20,6 @@ mod compact_remote;
 pub use codex_thread::CodexThread;
 pub use codex_thread::ThreadConfigSnapshot;
 mod agent;
-pub mod agent_interpreter;
 mod codex_delegate;
 mod command_canonicalization;
 mod commit_attribution;
@@ -48,10 +41,8 @@ mod file_watcher;
 mod flags;
 pub mod git_info;
 pub mod instructions;
-pub mod integrations;
 pub mod landlock;
-pub mod lock;
-pub mod lsp;
+pub mod implementation_log;
 pub mod mcp;
 mod mcp_connection_manager;
 pub mod models_manager;
@@ -60,20 +51,14 @@ pub mod network_proxy_loader;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;
 pub use mcp_connection_manager::SandboxState;
-pub mod git_repository_parser;
-pub mod mcp_dynamic_loader;
 mod mcp_tool_call;
 mod memories;
 mod mentions;
 mod message_history;
 mod model_provider_info;
-
-// --- Fork custom additions ---
-pub mod organizations;
-
-// --- End fork additions ---
 pub mod path_utils;
 pub mod personality_migration;
+pub mod plugins;
 mod sandbox_tags;
 pub mod sandboxing;
 mod session_prefix;
@@ -84,7 +69,6 @@ mod text_encoding;
 pub mod token_data;
 mod truncate;
 mod unified_exec;
-pub mod windows_ai_integration;
 pub mod windows_sandbox;
 pub use client::X_RESPONSESAPI_INCLUDE_TIMING_METRICS_HEADER;
 pub use model_provider_info::DEFAULT_LMSTUDIO_PORT;
@@ -95,7 +79,7 @@ pub use model_provider_info::OLLAMA_OSS_PROVIDER_ID;
 pub use model_provider_info::WireApi;
 pub use model_provider_info::built_in_model_providers;
 pub use model_provider_info::create_oss_provider_with_base_url;
-pub mod event_mapping;
+mod event_mapping;
 pub mod review_format;
 pub mod review_prompts;
 mod seatbelt_permissions;
@@ -118,7 +102,6 @@ pub mod project_doc;
 mod rollout;
 pub(crate) mod safety;
 pub mod seatbelt;
-
 pub mod shell;
 pub mod shell_snapshot;
 pub mod skills;
@@ -134,6 +117,7 @@ pub use rollout::RolloutRecorder;
 pub use rollout::RolloutRecorderParams;
 pub use rollout::SESSIONS_SUBDIR;
 pub use rollout::SessionMeta;
+pub use rollout::append_thread_name;
 pub use rollout::find_archived_thread_path_by_id_str;
 #[deprecated(note = "use find_thread_path_by_id_str")]
 pub use rollout::find_conversation_path_by_id_str;
@@ -151,13 +135,11 @@ pub use rollout::policy::EventPersistenceMode;
 pub use rollout::rollout_date_parts;
 pub use rollout::session_index::find_thread_names_by_ids;
 mod function_tool;
-pub mod implementation_log;
-pub mod security;
 mod state;
 mod tasks;
 mod user_shell_command;
 pub mod util;
-pub(crate) use codex_protocol::protocol;
+pub use codex_protocol::protocol;
 pub(crate) use codex_shell_command::bash;
 pub(crate) use codex_shell_command::is_dangerous_command;
 pub(crate) use codex_shell_command::is_safe_command;
@@ -166,7 +148,6 @@ pub(crate) use codex_shell_command::powershell;
 
 pub use client::ModelClient;
 pub use client::ModelClientSession;
-pub use client::ResponsesWebsocketVersion;
 pub use client::X_CODEX_TURN_METADATA_HEADER;
 pub use client::ws_version_from_features;
 pub use client_common::Prompt;
@@ -186,42 +167,3 @@ pub use turn_metadata::build_turn_metadata_header;
 pub mod compact;
 pub mod memory_trace;
 pub mod otel_init;
-
-// Re-export model_family for backward compatibility
-pub use models_manager::model_family;
-
-// === Custom Features: Production-Ready Feature Gates ===
-
-// --- Git4D Visualization Stack ---
-#[cfg(feature = "git4d-base")]
-pub mod git4d_accelerated;
-
-#[cfg(feature = "git4d-base")]
-pub mod cuda_accelerator;
-
-#[cfg(feature = "git4d-vr")]
-pub mod vr_ar_integration;
-
-#[cfg(feature = "git4d-superior")]
-pub mod superior_git4d_visualizer;
-
-// --- AI/Agent Communication Stack ---
-#[cfg(feature = "a2a-comm")]
-pub mod a2a_communication;
-
-#[cfg(feature = "autonomous")]
-pub mod autonomous_orchestration;
-
-// --- Enterprise Features ---
-pub mod agents;
-pub mod orchestration;
-pub mod plan;
-pub mod qc;
-
-pub mod cowork_integration;
-
-#[cfg(feature = "skill-mcp")]
-pub mod skill_mcp_integration;
-
-#[cfg(feature = "llmops")]
-pub mod llmops;
