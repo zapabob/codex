@@ -7,9 +7,16 @@ function Write-Status($msg) { Write-Host "[$(Get-Date -Format 'HH:mm:ss')] $msg"
 function Write-Success($msg) { Write-Host "[$(Get-Date -Format 'HH:mm:ss')] $msg" -ForegroundColor Green }
 
 # 1. Setup Environment
-$env:RUSTC_WRAPPER = "sccache"
+if ($env:USE_SCCACHE -eq "1" -and (Get-Command sccache -ErrorAction SilentlyContinue)) {
+    $env:RUSTC_WRAPPER = "sccache"
+    $cacheMode = "sccache"
+} else {
+    Remove-Item Env:RUSTC_WRAPPER -ErrorAction SilentlyContinue
+    $env:SCCACHE_DISABLE = "1"
+    $cacheMode = "rustc"
+}
 $env:RUSTFLAGS = "-D warnings"
-Write-Status "Environment configured: RUSTC_WRAPPER=sccache, Jobs=6"
+Write-Status "Environment configured: compiler=$cacheMode, Jobs=6"
 
 # 2. Kill Processes
 Write-Status "Killing existing processes..."

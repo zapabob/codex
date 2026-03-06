@@ -1,10 +1,11 @@
 {
   "name": "gui",
-  "version": "2.17.0",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
+    "build:raw": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "playwright test --project=chromium-cursor",
@@ -39,12 +40,12 @@
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.548.0",
     "mermaid": "^11.12.2",
-    "next": "^14.2.35",
+    "next": "^15.0.0",
     "next-themes": "^0.4.6",
-    "react": "latest",
+    "react": "18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "latest",
+    "react-dom": "18.3.1",
     "systeminformation": "^5.30.6",
     "tailwind-merge": "^3.3.1",
     "three": "^0.159.0",
@@ -56,11 +57,11 @@
   "devDependencies": {
     "@playwright/test": "^1.41.0",
     "@types/node": "^20",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "@types/three": "^0.181.0",
     "eslint": "^9",
-    "eslint-config-next": "^16.1.1",
+    "eslint-config-next": "^15.0.0",
     "eslint-plugin-react": "^7.37.5",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
@@ -68,8 +69,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/react": "latest",
-      "@types/react-dom": "latest",
+      "@types/react": "18.3.12",
+      "@types/react-dom": "18.3.1",
       "ws": "^8.19.0",
       "express": "^5.2.1"
     }

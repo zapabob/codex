@@ -1,6 +1,6 @@
 # Codex GUI - Unified Web Interface
 
-**Status**: Production Ready | **Version**: 2.7.0
+**Status**: Production Ready | **Version**: 3.0.0
 
 統合されたWebベースGUI。Plan管理、認証、3D/4D可視化、VR/AR機能を統合。
 
@@ -74,7 +74,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8787
 ## 🛠️ 技術仕様
 
 ### フロントエンド
-- **Framework**: React 19.2.4 + Next.js 14
+- **Framework**: React 19.2.4 + Next.js 15
 - **Styling**: Tailwind CSS + shadcn/ui
 - **State Management**: Zustand
 - **3D/VR**: Three.js + React Three Fiber + @react-three/xr

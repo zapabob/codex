@@ -6,10 +6,16 @@
 #![deny(clippy::print_stdout, clippy::print_stderr)]
 
 mod analytics_client;
+#[cfg(feature = "custom-features")]
+pub mod a2a_communication;
 pub mod api_bridge;
+pub mod agent_interpreter;
 mod apply_patch;
+pub mod agents;
 mod apps;
+pub mod audit_log;
 pub mod auth;
+pub mod chrome;
 mod client;
 mod client_common;
 pub mod codex;
@@ -48,6 +54,7 @@ mod mcp_connection_manager;
 pub mod models_manager;
 mod network_policy_decision;
 pub mod network_proxy_loader;
+pub mod orchestration;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_CAPABILITY;
 pub use mcp_connection_manager::MCP_SANDBOX_STATE_METHOD;
 pub use mcp_connection_manager::SandboxState;
@@ -80,9 +87,16 @@ pub use model_provider_info::WireApi;
 pub use model_provider_info::built_in_model_providers;
 pub use model_provider_info::create_oss_provider_with_base_url;
 mod event_mapping;
+pub mod integrations;
+#[cfg(feature = "custom-features")]
+pub mod llmops;
+pub mod lock;
+pub mod plan;
+pub mod qc;
 pub mod review_format;
 pub mod review_prompts;
 mod seatbelt_permissions;
+pub mod security;
 mod thread_manager;
 pub mod web_search;
 pub mod windows_sandbox_read_grants;
@@ -104,6 +118,8 @@ pub(crate) mod safety;
 pub mod seatbelt;
 pub mod shell;
 pub mod shell_snapshot;
+#[cfg(feature = "custom-features")]
+pub mod skill_mcp_integration;
 pub mod skills;
 pub mod spawn;
 pub mod state_db;
@@ -137,6 +153,8 @@ pub use rollout::session_index::find_thread_names_by_ids;
 mod function_tool;
 mod state;
 mod tasks;
+#[cfg(feature = "custom-features")]
+pub mod autonomous_orchestration;
 mod user_shell_command;
 pub mod util;
 pub use codex_protocol::protocol;

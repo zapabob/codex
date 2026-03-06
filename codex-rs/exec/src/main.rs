@@ -54,7 +54,7 @@ mod tests {
             "--last",
             "--json",
             "--model",
-            "gpt-5.2-codex",
+            "gpt-5.3-codex",
             "--config",
             "reasoning_level=xhigh",
             "--dangerously-bypass-approvals-and-sandbox",

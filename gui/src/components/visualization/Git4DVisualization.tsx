@@ -13,8 +13,6 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { GitBranch, Play, Pause, RotateCcw, Settings } from "lucide-react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { useVirtualDesktopOptimizer } from "../../utils/virtualdesktop-optimizer";
 import type { Git4DCommitData } from "../../lib/types/three";
@@ -49,7 +47,6 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer>();
   const cameraRef = useRef<THREE.PerspectiveCamera>();
   const animationFrameRef = useRef<number>();
-  const controlsRef = useRef<THREE.OrbitControls | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeScale, setTimeScale] = useState(1);
@@ -352,8 +349,8 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     });
   };
 
-  const generateMockCommits = () => {
-    const commits = [];
+  function generateMockCommits(): Git4DCommitData[] {
+    const commits: Git4DCommitData[] = [];
     const branches = ["main", "feature/auth", "feature/ui", "hotfix/security"];
 
     for (let i = 0; i < 100; i++) {
@@ -364,7 +361,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
           Math.floor(Math.random() * 4)
         ],
         timestamp: Date.now() - i * 24 * 60 * 60 * 1000, // One commit per day
-        branch: Math.floor(Math.random() * branches.length),
+        branch: branches[Math.floor(Math.random() * branches.length)],
         x: (Math.random() - 0.5) * 10,
         y: (Math.random() - 0.5) * 10,
         z: (Math.random() - 0.5) * 10,
@@ -376,7 +373,7 @@ export const Git4DVisualization: React.FC<Git4DVisualizationProps> = ({
     }
 
     return commits;
-  };
+  }
 
   const resetView = () => {
     if (cameraRef.current) {

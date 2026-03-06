@@ -371,7 +371,7 @@ if ($buildResult.Success) {
         if ($installSuccess) {
             Write-Host ""
             Write-Host "🎉 ビルドおよびインストールが完了しました！" -ForegroundColor Green
-            Write-Host "Codex v2.10.1 が利用可能です。" -ForegroundColor Cyan
+            Write-Host "Codex v3.0.0 が利用可能です。" -ForegroundColor Cyan
         } else {
             Write-Host "インストールに失敗しましたが、ビルドは成功しています。" -ForegroundColor Yellow
             exit 1

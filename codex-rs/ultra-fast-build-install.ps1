@@ -262,12 +262,14 @@ Write-Status "Install directory: $InstallDir"
 
 # Environment setup
 # Environment setup
-if ($env:USE_SCCACHE -eq "1" -or $env:RUSTC_WRAPPER -eq "sccache") {
+if ($env:USE_SCCACHE -eq "1" -and (Get-Command sccache -ErrorAction SilentlyContinue)) {
     $env:RUSTC_WRAPPER = "sccache"
     Write-Status "sccache enabled via RUSTC_WRAPPER"
 }
-elseif (-not $env:RUSTC_WRAPPER) {
-    $env:RUSTC_WRAPPER = ""
+else {
+    Remove-Item Env:RUSTC_WRAPPER -ErrorAction SilentlyContinue
+    $env:SCCACHE_DISABLE = "1"
+    Write-Status "sccache disabled for this build"
 }
 $env:RUSTFLAGS = "-D warnings"
 $env:CARGO_TERM_COLOR = "always"
@@ -336,6 +338,7 @@ if ($pkgsToBuild.Count -gt 0) {
     
     $pkgArgs = $pkgsToBuild | ForEach-Object { "-p $_" }
     $cargoCmd = "build --release $($pkgArgs -join ' ') -j $MaxParallelJobs --all-features"
+    $buildStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     
     # Combined build with corruption auto-recovery
     $attempts = 0
@@ -358,6 +361,7 @@ if ($pkgsToBuild.Count -gt 0) {
         Remove-Item $outputFile -Force -ErrorAction SilentlyContinue
         
         if ($buildExitCode -eq 0) {
+            $buildStopwatch.Stop()
             Write-Success "Build successful in $($buildStopwatch.Elapsed.TotalSeconds.ToString('F1'))s"
             break
         }
@@ -369,6 +373,7 @@ if ($pkgsToBuild.Count -gt 0) {
             continue # Retry build
         }
         else {
+            $buildStopwatch.Stop()
             Write-ErrorMsg "Build failed with exit code $buildExitCode"
             exit 1
         }

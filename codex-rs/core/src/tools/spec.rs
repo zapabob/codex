@@ -1117,7 +1117,7 @@ fn create_test_sync_tool() -> ToolSpec {
     })
 }
 
-fn create_grep_files_tool() -> ToolSpec {
+pub(crate) fn create_grep_files_tool() -> ToolSpec {
     let properties = BTreeMap::from([
         (
             "pattern".to_string(),
@@ -1208,7 +1208,7 @@ fn create_search_tool_bm25_tool(app_tools: &HashMap<String, ToolInfo>) -> ToolSp
     })
 }
 
-fn create_read_file_tool() -> ToolSpec {
+pub(crate) fn create_read_file_tool() -> ToolSpec {
     let indentation_properties = BTreeMap::from([
         (
             "anchor_line".to_string(),
@@ -1311,7 +1311,7 @@ fn create_read_file_tool() -> ToolSpec {
     })
 }
 
-fn create_list_dir_tool() -> ToolSpec {
+pub(crate) fn create_list_dir_tool() -> ToolSpec {
     let properties = BTreeMap::from([
         (
             "dir_path".to_string(),

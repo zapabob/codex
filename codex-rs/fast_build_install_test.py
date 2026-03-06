@@ -115,6 +115,11 @@ def build_with_progress(command, description="ビルド", total_estimated=100):
     
     tracker = BuildProgressTracker(total_estimated=total_estimated)
     
+    build_env = os.environ.copy()
+    build_env.pop('RUSTC_WRAPPER', None)
+    build_env['SCCACHE_DISABLE'] = '1'
+    build_env.setdefault('CARGO_INCREMENTAL', '1')
+
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -123,7 +128,8 @@ def build_with_progress(command, description="ビルド", total_estimated=100):
         bufsize=1,
         universal_newlines=True,
         encoding='utf-8',
-        errors='replace'
+        errors='replace',
+        env=build_env
     )
     
     errors = []

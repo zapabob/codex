@@ -135,7 +135,7 @@ fn load_source(path: &Path) -> Result<(String, String, usize)> {
     for entry in WalkDir::new(path)
         .max_depth(MAX_DEPTH)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
     {
         let entry_path = entry.path();
         if entry_path.is_dir() && is_ignored_dir(entry_path) {

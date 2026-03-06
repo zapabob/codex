@@ -1,7 +1,7 @@
 # Stable Release Preparation Script
-# Prepare v2.4.0 stable release
+# Prepare v3.0.0 stable release
 
-Write-Host "Preparing Codex v2.4.0 stable release..." -ForegroundColor Cyan
+Write-Host "Preparing Codex v3.0.0 stable release..." -ForegroundColor Cyan
 $currentDateTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 Write-Host "Start time: $currentDateTime" -ForegroundColor Gray
 
@@ -122,12 +122,12 @@ try {
 Write-Host "`nStep 6: Release Notes Generation" -ForegroundColor Yellow
 try {
     $releaseNotes = @"
-# Codex v2.4.0 Release Notes
+# Codex v3.0.0 Release Notes
 
 ## Overview
-Codex v2.4.0 "AI Orchestration & Testing Suite" introduces comprehensive AI orchestration capabilities and automated testing infrastructure.
+Codex v3.0.0 "AI Orchestration & Testing Suite" introduces comprehensive AI orchestration capabilities and automated testing infrastructure.
 
-## What's New in v2.4.0
+## What's New in v3.0.0
 
 ### 🤖 AI Orchestration Engine
 - Multi-layered research pipeline for intelligent code analysis
@@ -227,8 +227,8 @@ Released on: $(Get-Date -Format "yyyy-MM-dd")
 Codex Team
 "@
 
-    $releaseNotes | Out-File -FilePath "RELEASE_NOTES_v2.4.0.md" -Encoding UTF8
-    Write-ReleaseStep "Release Notes Generation" $true "RELEASE_NOTES_v2.4.0.md created"
+    $releaseNotes | Out-File -FilePath "RELEASE_NOTES_v3.0.0.md" -Encoding UTF8
+    Write-ReleaseStep "Release Notes Generation" $true "RELEASE_NOTES_v3.0.0.md created"
 } catch {
     Write-ReleaseStep "Release Notes Generation" $false "Error: $($_.Exception.Message)"
 }
@@ -263,7 +263,7 @@ try {
 }
 
 # Release Summary
-Write-Host "`nCodex v2.4.0 Release Preparation Complete" -ForegroundColor Green
+Write-Host "`nCodex v3.0.0 Release Preparation Complete" -ForegroundColor Green
 Write-Host "=" * 60 -ForegroundColor Green
 
 $endDateTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -273,10 +273,10 @@ Write-Host "Ready for stable release!" -ForegroundColor Green
 # Create final implementation log
 Write-Host "`nCreating final release implementation log..." -ForegroundColor Cyan
 $finalLog = @"
-# 安定版リリース準備完了 - Codex v2.4.0
+# 安定版リリース準備完了 - Codex v3.0.0
 
 **日時**: $endDateTime
-**バージョン**: v2.4.0 "AI Orchestration & Testing Suite"
+**バージョン**: v3.0.0 "AI Orchestration & Testing Suite"
 **ステータス**: リリース準備完了
 
 ## 完了した作業
@@ -284,14 +284,14 @@ $finalLog = @"
 ✅ **最終ビルドテスト**: リリースバイナリのビルド成功
 ✅ **GUIビルドテスト**: フロントエンドのビルド成功
 ✅ **ドキュメントチェック**: READMEと実装ログの確認完了
-✅ **バージョン整合性チェック**: 全コンポーネントでv2.4.0統一
+✅ **バージョン整合性チェック**: 全コンポーネントでv3.0.0統一
 ✅ **統合テスト検証**: テストスクリプトの存在確認
 ✅ **リリースノート生成**: 包括的なリリースノート作成
 ✅ **最終検証**: 重要ファイルの存在確認
 
 ## リリース内容
 
-### AI Orchestration & Testing Suite v2.4.0
+### AI Orchestration & Testing Suite v3.0.0
 
 - 🤖 AIオーケストレーションエンジン
 - 🧮 数学・量子最適化
@@ -338,5 +338,5 @@ $finalLog = @"
 **Codex Team**
 "@
 
-$finalLog | Out-File -FilePath "_docs/2025-11-27_安定版リリース準備完了_v2.4.0.md" -Encoding UTF8
-Write-Host "Final implementation log created: _docs/2025-11-27_安定版リリース準備完了_v2.4.0.md" -ForegroundColor Green
+$finalLog | Out-File -FilePath "_docs/2025-11-27_安定版リリース準備完了_v3.0.0.md" -Encoding UTF8
+Write-Host "Final implementation log created: _docs/2025-11-27_安定版リリース準備完了_v3.0.0.md" -ForegroundColor Green

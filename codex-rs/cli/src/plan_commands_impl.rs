@@ -57,7 +57,7 @@ pub async fn execute_Plan(Plan_id: &str, Plan_dir: &PathBuf) -> Result<()> {
         config.model_provider.clone(),
         conversation_id,
         config.model_reasoning_effort.unwrap_or_default(),
-        config.model_reasoning_summary,
+        config.model_reasoning_summary.unwrap_or_default(),
         config.model_verbosity.unwrap_or_default(),
     ));
 
@@ -169,7 +169,7 @@ pub async fn rollback_execution(execution_id: &str, Plan_dir: &PathBuf) -> Resul
         config.model_provider.clone(),
         conversation_id,
         config.model_reasoning_effort.unwrap_or_default(),
-        config.model_reasoning_summary,
+        config.model_reasoning_summary.unwrap_or_default(),
         config.model_verbosity.unwrap_or_default(),
     ));
 
@@ -215,7 +215,7 @@ pub async fn list_executions(
         config.model_provider.clone(),
         conversation_id,
         config.model_reasoning_effort.unwrap_or_default(),
-        config.model_reasoning_summary,
+        config.model_reasoning_summary.unwrap_or_default(),
         config.model_verbosity.unwrap_or_default(),
     ));
 

@@ -1,8 +1,8 @@
-﻿{
+{
   "name": "codex-monorepo",
   "version": "3.0.0",
   "private": true,
-  "description": "Codex - Next-generation AI Coding Assistant",
+  "description": "Codex - Enterprise AI engineering platform",
   "scripts": {
     "format": "prettier --check *.json *.md docs/*.md .github/workflows/*.yml **/*.js",
     "format:fix": "prettier --write *.json *.md docs/*.md .github/workflows/*.yml **/*.js",

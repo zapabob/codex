@@ -1,5 +1,5 @@
 # npm @zapabob/codex パッケージ更新スクリプト
-# ClaudeCode統合版 v2.11.0 公開用
+# Codex v3.0.0 公開用
 
 param(
     [switch]$DryRun,
@@ -35,7 +35,7 @@ if (-not $SkipLogin) {
 
 # バージョン確認
 $currentVersion = (Get-Content package.json | ConvertFrom-Json).version
-$expectedVersion = "2.11.0"
+$expectedVersion = "3.0.0"
 
 if ($currentVersion -ne $expectedVersion) {
     Write-Host "⚠️ Version mismatch!" -ForegroundColor Red
@@ -91,7 +91,7 @@ Write-Host "  • Package: @zapabob/codex" -ForegroundColor Cyan
 Write-Host "  • Version: $currentVersion" -ForegroundColor Cyan
 Write-Host "  • Tag: latest" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "🎯 新機能 (v2.11.0):" -ForegroundColor White
+Write-Host "🎯 新機能 (v3.0.0):" -ForegroundColor White
 Write-Host "  • ClaudeCode完全統合" -ForegroundColor Gray
 Write-Host "  • Cowork Productivity Suite" -ForegroundColor Gray
 Write-Host "  • プロンプトインジェクション対策" -ForegroundColor Gray
@@ -127,7 +127,7 @@ try {
         Write-Host "📊 npmページ:" -ForegroundColor White
         Write-Host "  https://www.npmjs.com/package/@zapabob/codex" -ForegroundColor Gray
         Write-Host ""
-        Write-Host "🎯 ClaudeCode統合版v2.11.0が利用可能になりました！" -ForegroundColor Green
+        Write-Host "🎯 Codex v3.0.0 が利用可能になりました！" -ForegroundColor Green
 
     } else {
         Write-Host ""
@@ -144,7 +144,7 @@ try {
 
 Write-Host ""
 Write-Host "💡 次のステップ:" -ForegroundColor Cyan
-Write-Host "  1. GitHub Releasesでv2.11.0タグを作成" -ForegroundColor White
+Write-Host "  1. GitHub Releasesでv3.0.0タグを作成" -ForegroundColor White
 Write-Host "  2. リリースノートを追加" -ForegroundColor White
 Write-Host "  3. Discord/Slackで告知" -ForegroundColor White
 Write-Host "  4. ブログ記事執筆" -ForegroundColor White

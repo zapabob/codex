@@ -18,7 +18,7 @@ pub async fn run_ask_command(
     let aliases = AgentAliases::load().unwrap_or_default();
 
     // Check if prompt starts with @mention
-    let (agent_name, task) = if AgentAliases::has_mention(&prompt) {
+    let (agent_name, task): (String, String) = if AgentAliases::has_mention(&prompt) {
         let (agent, rest) =
             AgentAliases::extract_mention(&prompt).context("Failed to parse @mention")?;
         let resolved = aliases.resolve(agent);

@@ -37,6 +37,10 @@ if (-not (Test-Path (Join-Path $scriptDir "Cargo.toml"))) {
 
 Set-Location $scriptDir
 
+# Avoid inheriting unstable shell-wide sccache settings for release verification.
+Remove-Item Env:RUSTC_WRAPPER -ErrorAction SilentlyContinue
+$env:SCCACHE_DISABLE = "1"
+
 Write-Host ""
 $separator = "=" * 70
 Write-Host $separator -ForegroundColor Cyan

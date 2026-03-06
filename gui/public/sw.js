@@ -8,9 +8,9 @@ const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/favicon.ico',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/apple-touch-icon.png',
+  '/icon-192x192.svg',
+  '/icon-512x512.svg',
+  '/apple-touch-icon.svg',
   '/offline.html',
   '/_next/static/css/',
   '/_next/static/js/',
@@ -182,8 +182,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
+    icon: '/icon-192x192.svg',
+    badge: '/icon-192x192.svg',
     vibrate: [100, 50, 100],
     data: data.data,
     actions: data.actions || [],

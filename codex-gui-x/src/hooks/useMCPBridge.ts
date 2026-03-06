@@ -30,7 +30,7 @@ export function useMCPBridge(options: UseMCPBridgeOptions = {}) {
   useEffect(() => {
     bridgeRef.current = getBridge({
       clientInfo: clientInfo
-        ? { name: clientInfo.name || 'codex-gui', version: clientInfo.version || '2.14.1' }
+        ? { name: clientInfo.name || 'codex-gui', version: clientInfo.version || '3.0.0' }
         : undefined,
     });
 

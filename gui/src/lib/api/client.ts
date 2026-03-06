@@ -139,7 +139,7 @@ export class CodexAPIClient {
   // WebSocket connection for real-time updates
   connectWebSocket(onMessage: (message: WebSocketMessage) => void): void {
     try {
-      this.wsConnection = new WebSocket(`ws://localhost:8787`);
+      this.wsConnection = new WebSocket(this.getBridgeWebSocketUrl('/'));
 
       this.wsConnection.onopen = () => {
         console.log('WebSocket connected');

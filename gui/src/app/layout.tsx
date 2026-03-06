@@ -17,6 +17,9 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Codex GUI - AI Assistant Platform",
   description: "Modern AI assistant platform with advanced sub-agents, deep research, and security features",

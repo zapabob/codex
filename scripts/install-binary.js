@@ -11,7 +11,7 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const pipeline = promisify(require('stream').pipeline);
 
-const VERSION = '2.8.0';
+const VERSION = '3.0.0';
 const GITHUB_REPO = 'zapabob/codex';
 // GitHub's certificate fingerprint for pinning (SHA256 of github.com's certificate)
 // This should be updated if GitHub changes their certificate
@@ -31,13 +31,13 @@ function getPlatformInfo() {
   const arch = process.arch;
   
   const platformMap = {
-    win32: { os: 'windows', ext: '.exe', archive: 'zip' },
+    win32: { os: 'windows', ext: '.exe', archive: 'tar.gz' },
     darwin: { os: 'macos', ext: '', archive: 'tar.gz' },
     linux: { os: 'linux', ext: '', archive: 'tar.gz' },
   };
   
   const archMap = {
-    x64: 'x64',
+    x64: 'x86_64',
     arm64: 'arm64',
   };
   
@@ -53,6 +53,28 @@ function getPlatformInfo() {
     ...platformMap[platform],
     archName: archMap[arch],
   };
+}
+
+function findFileRecursive(rootDir, fileName) {
+  const entries = fs.readdirSync(rootDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const entryPath = path.join(rootDir, entry.name);
+
+    if (entry.isDirectory()) {
+      const nestedMatch = findFileRecursive(entryPath, fileName);
+      if (nestedMatch) {
+        return nestedMatch;
+      }
+      continue;
+    }
+
+    if (entry.isFile() && entry.name === fileName) {
+      return entryPath;
+    }
+  }
+
+  return null;
 }
 
 // Download file from URL with redirect limit and host validation
@@ -226,9 +248,8 @@ async function main() {
     const platformInfo = getPlatformInfo();
     console.log(`🖥️  Platform: ${platformInfo.os}-${platformInfo.archName}`);
     
-    // Binary filename
-    const binaryName = `codex-${platformInfo.os}-${platformInfo.archName}${platformInfo.ext}`;
-    const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${binaryName}`;
+    const archiveName = `codex-v${VERSION}-${platformInfo.os}-${platformInfo.archName}.${platformInfo.archive}`;
+    const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${archiveName}`;
     
     console.log(`⬇️  Downloading: ${downloadUrl}`);
     
@@ -239,7 +260,8 @@ async function main() {
     }
     
     const binaryPath = path.join(binDir, 'codex' + platformInfo.ext);
-    const tempPath = path.join(binDir, 'codex.tmp');
+    const tempArchivePath = path.join(binDir, `codex-download.${platformInfo.archive}`);
+    const extractDir = path.join(binDir, 'codex-extract');
     const checksumUrl = `${downloadUrl}.sha256`;
     const checksumPath = path.join(binDir, 'codex.sha256.tmp');
     
@@ -259,15 +281,15 @@ async function main() {
       // Continue without checksum if not available
     }
     
-    // Download binary
-    await downloadFile(downloadUrl, tempPath);
+    // Download release archive
+    await downloadFile(downloadUrl, tempArchivePath);
     console.log('✅ Download complete');
     
     // Verify SHA256 checksum if available
     if (expectedHash) {
-      const isValid = await verifySHA256(tempPath, expectedHash);
+      const isValid = await verifySHA256(tempArchivePath, expectedHash);
       if (!isValid) {
-        fs.unlinkSync(tempPath);
+        fs.unlinkSync(tempArchivePath);
         throw new Error(`SHA256 checksum verification failed. Expected: ${expectedHash}`);
       }
       console.log('✅ SHA256 checksum verified');
@@ -275,8 +297,22 @@ async function main() {
       console.warn('⚠️  No checksum file available - skipping verification');
     }
     
-    // Move to final location
-    fs.renameSync(tempPath, binaryPath);
+    if (fs.existsSync(extractDir)) {
+      fs.rmSync(extractDir, { recursive: true, force: true });
+    }
+    fs.mkdirSync(extractDir, { recursive: true });
+
+    await extractArchive(tempArchivePath, extractDir);
+
+    const extractedBinaryPath = findFileRecursive(extractDir, 'codex' + platformInfo.ext);
+    if (!extractedBinaryPath) {
+      throw new Error(`Archive did not contain codex${platformInfo.ext}`);
+    }
+
+    fs.rmSync(binaryPath, { force: true });
+    fs.copyFileSync(extractedBinaryPath, binaryPath);
+    fs.unlinkSync(tempArchivePath);
+    fs.rmSync(extractDir, { recursive: true, force: true });
     
     // Make executable (Unix)
     if (platformInfo.os !== 'windows') {

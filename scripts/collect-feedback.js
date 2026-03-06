@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Codex Extended v2.11.0 Feedback Collection & Analysis Script
+ * Codex Extended v3.0.0 Feedback Collection & Analysis Script
  *
  * This script helps collect and analyze community feedback from various sources:
  * - GitHub Issues/PRs with feedback label
@@ -346,7 +346,7 @@ class FeedbackCollector {
     }
 
     generateMarkdownReport(analysis) {
-        const report = `# 📊 Codex Extended v2.11.0 Feedback Analysis Report
+        const report = `# 📊 Codex Extended v3.0.0 Feedback Analysis Report
 
 Generated on: ${new Date().toISOString()}
 

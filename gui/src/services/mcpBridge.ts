@@ -42,7 +42,7 @@ interface MCPBridgeConfig {
 
 const DEFAULT_CONFIG: MCPBridgeConfig = {
   endpoint: 'ws://localhost:8765',
-  clientInfo: { name: 'codex-gui', version: '2.14.1' },
+  clientInfo: { name: 'codex-gui', version: '3.0.0' },
   autoReconnect: true,
   reconnectIntervalMs: 3000,
   heartbeatIntervalMs: 30000,

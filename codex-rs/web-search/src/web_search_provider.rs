@@ -746,7 +746,7 @@ impl WebSearchProvider {
 
         // 実際のHTTP request実装（OpenAI/codex公式パターン）
         let client = reqwest::Client::builder()
-            .user_agent("Mozilla/5.0 Codex-WebSearch/2.8.0")
+            .user_agent("Mozilla/5.0 Codex-WebSearch/3.0.0")
             .timeout(std::time::Duration::from_secs(30))
             .build()?;
 

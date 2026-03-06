@@ -1,18 +1,28 @@
+#[cfg(feature = "custom-features")]
 pub mod agent_create_cmd;
+#[cfg(feature = "custom-features")]
 pub mod ask_cmd;
+#[cfg(feature = "custom-features")]
 pub mod chrome_cmd;
 pub mod debug_sandbox;
+#[cfg(feature = "custom-features")]
 pub mod delegate_cmd;
 mod exit_status;
 pub mod git_commands;
+#[cfg(feature = "custom-features")]
 pub mod lock_cmd;
 pub mod login;
 pub mod mcp_cmd;
 pub mod pair_program_cmd;
+#[cfg(feature = "custom-features")]
 pub mod parallel_delegate_cmd;
+#[cfg(feature = "custom-features")]
 pub mod plan_commands;
+#[cfg(feature = "custom-features")]
 pub mod qc_cmd;
+#[cfg(feature = "custom-features")]
 pub mod research_cmd;
+#[cfg(feature = "custom-features")]
 pub mod webhook_cmd;
 
 use clap::Parser;

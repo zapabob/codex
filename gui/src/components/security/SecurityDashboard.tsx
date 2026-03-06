@@ -16,6 +16,7 @@ import {
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/atoms/Button'
 import { SecurityMetrics, SecurityAlert, SecurityStatus } from '@/app/security/page'
 import {
   Shield,
@@ -430,28 +431,28 @@ export function SecurityDashboard({ metrics, alerts, status }: SecurityDashboard
         <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <Button variant="outline" className="w-full mb-2">
+            <Button variant="outlined" className="w-full mb-2">
               <Shield className="w-4 h-4 mr-2" />
               Quick Scan
             </Button>
             <p className="text-xs text-gray-600">Scan common locations</p>
           </div>
           <div className="text-center">
-            <Button variant="outline" className="w-full mb-2">
+            <Button variant="outlined" className="w-full mb-2">
               <TrendingUp className="w-4 h-4 mr-2" />
               Deep Scan
             </Button>
             <p className="text-xs text-gray-600">Comprehensive analysis</p>
           </div>
           <div className="text-center">
-            <Button variant="outline" className="w-full mb-2">
+            <Button variant="outlined" className="w-full mb-2">
               <Activity className="w-4 h-4 mr-2" />
               Update Signatures
             </Button>
             <p className="text-xs text-gray-600">Refresh threat database</p>
           </div>
           <div className="text-center">
-            <Button variant="outline" className="w-full mb-2">
+            <Button variant="outlined" className="w-full mb-2">
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>

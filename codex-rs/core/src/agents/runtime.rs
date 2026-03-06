@@ -544,9 +544,7 @@ Only output the JSON, no explanation."#;
 
             self.config.model_verbosity,
 
-            self.config.features.enabled(Feature::ResponsesWebsockets),
-
-            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
+            crate::client::ws_version_from_features(&self.config),
 
             self.config
 
@@ -577,6 +575,8 @@ Only output the JSON, no explanation."#;
                 Some(self.reasoning_effort),
 
                 self.reasoning_summary,
+
+                None,
 
                 None,
 
@@ -1302,9 +1302,7 @@ Only output the JSON, no explanation."#;
 
             self.config.model_verbosity,
 
-            self.config.features.enabled(Feature::ResponsesWebsockets),
-
-            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
+            crate::client::ws_version_from_features(&self.config),
 
             self.config
 
@@ -1398,6 +1396,8 @@ Only output the JSON, no explanation."#;
 
                 None,
 
+                None,
+
             )
 
             .await?;
@@ -1443,7 +1443,6 @@ Only output the JSON, no explanation."#;
                 ResponseEvent::Completed {
                     response_id: _,
                     token_usage: Some(usage),
-                    can_append: _,
                 } => {
                     debug!("Agent '{}': Response completed", agent_def.name);
 
@@ -1464,7 +1463,6 @@ Only output the JSON, no explanation."#;
                 ResponseEvent::Completed {
                     response_id: _,
                     token_usage: None,
-                    can_append: _,
                 } => {
                     debug!("Agent '{}': Response completed", agent_def.name);
 
@@ -2636,9 +2634,7 @@ impl AgentRuntime {
 
             self.config.model_verbosity,
 
-            self.config.features.enabled(Feature::ResponsesWebsockets),
-
-            self.config.features.enabled(Feature::ResponsesWebsocketsV2),
+            crate::client::ws_version_from_features(&self.config),
 
             self.config
 
@@ -2669,6 +2665,8 @@ impl AgentRuntime {
                 Some(self.reasoning_effort),
 
                 self.reasoning_summary,
+
+                None,
 
                 None,
 
@@ -2710,7 +2708,6 @@ impl AgentRuntime {
                 ResponseEvent::Completed {
                     response_id: _,
                     token_usage,
-                    can_append: _,
                 } => {
                     // å®éã®ããEã¯ã³ä½¿ç¨éãã­ã£ããã£
 

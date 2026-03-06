@@ -189,7 +189,7 @@ fn run_parse(args: ChromeParseArgs) -> Result<()> {
         }
     };
 
-    let response = match parse_nl_command(ChromeNlRequest {
+    let response: ChromeParseResponse = match parse_nl_command(ChromeNlRequest {
         utterance: request.utterance,
         origin: request.origin,
         constraints: request.constraints,

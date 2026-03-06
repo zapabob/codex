@@ -1,7 +1,12 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  cleanDistDir: false,
   typescript: {
     // Custom zapabob extensions have unused vars in development - ignore for builds
     // TODO: Fix remaining TS errors in custom components (CyberpunkShader, VirtualOS, etc.)
@@ -37,39 +42,7 @@ const nextConfig = {
         })
       );
     }
-    
-    // Code splitting optimization
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          default: false,
-          vendors: false,
-          // Vendor chunk
-          vendor: {
-            name: 'vendor',
-            chunks: 'all',
-            test: /node_modules/,
-            priority: 20,
-          },
-          // Three.js separate chunk
-          three: {
-            name: 'three',
-            test: /[\\/]node_modules[\\/](three|@react-three)[\\/]/,
-            priority: 30,
-          },
-          // Common chunk
-          common: {
-            name: 'common',
-            minChunks: 2,
-            priority: 10,
-            reuseExistingChunk: true,
-          },
-        },
-      },
-    };
-    
+
     return config;
   },
   
@@ -79,7 +52,7 @@ const nextConfig = {
   },
   
   // Output
-  output: 'standalone',
+  outputFileTracingRoot: repoRoot,
   
   // Security headers
   async headers() {
