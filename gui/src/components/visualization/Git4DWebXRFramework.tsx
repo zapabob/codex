@@ -132,7 +132,7 @@ export const Git4DWebXRFramework: React.FC = () => {
 
   // VR mode entry
   const enterVRMode = useCallback(async () => {
-    if (!xrManager || !vrSupported) return;
+    if (!vrSupported) return;
 
     try {
       setError(null);
@@ -144,21 +144,16 @@ export const Git4DWebXRFramework: React.FC = () => {
         document.documentElement.setAttribute('data-vd-mode', 'vr');
       }
       
-      const experience = await xrManager.enterVR();
-
-      if (experience) {
-        console.log('VR experience initialized:', experience);
-      } else {
-        setError('Failed to initialize VR experience');
-      }
+      await xrStore.enterVR();
+      setCurrentMode('vr');
     } catch (err) {
       setError(`VR mode entry failed: ${err}`);
     }
-  }, [xrManager, vrSupported, isVD]);
+  }, [vrSupported, isVD]);
 
   // AR mode entry
   const enterARMode = useCallback(async () => {
-    if (!xrManager || !arSupported) return;
+    if (!arSupported) return;
 
     try {
       setError(null);
@@ -170,28 +165,23 @@ export const Git4DWebXRFramework: React.FC = () => {
         document.documentElement.setAttribute('data-vd-mode', 'ar');
       }
       
-      const experience = await xrManager.enterAR();
-
-      if (experience) {
-        console.log('AR experience initialized:', experience);
-      } else {
-        setError('Failed to initialize AR experience');
-      }
+      await xrStore.enterAR();
+      setCurrentMode('ar');
     } catch (err) {
       setError(`AR mode entry failed: ${err}`);
     }
-  }, [xrManager, arSupported, isVD]);
+  }, [arSupported, isVD]);
 
   // Exit XR mode
   const exitXRMode = useCallback(() => {
-    if (xrManager) {
-      xrManager.exitXR();
-      setCurrentMode('desktop');
-      setHandTrackingEnabled(false);
-      // VirtualDesktopモード属性をクリア
-      document.documentElement.removeAttribute('data-vd-mode');
-    }
-  }, [xrManager]);
+    // Note: @react-three/xr v6 session end is handled via the store or browser UI
+    // For manual exit if needed:
+    // xrStore.exit() // if it exists or via session.end()
+    setCurrentMode('desktop');
+    setHandTrackingEnabled(false);
+    // VirtualDesktopモード属性をクリア
+    document.documentElement.removeAttribute('data-vd-mode');
+  }, []);
 
   // Toggle animation
   const toggleAnimation = useCallback(() => {
@@ -378,12 +368,12 @@ const Git4DScene: React.FC<Git4DSceneProps> = ({ mode, isPlaying, handTrackingEn
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0x404040, mode === 'ar' ? 0.8 : 0.4);
-      scene.add(ambientLight as unknown as THREE.Object3D);
+    scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, mode === 'ar' ? 1.0 : 0.8);
     directionalLight.position.set(10, 10, 5);
     directionalLight.castShadow = mode === 'desktop';
-      scene.add(directionalLight as unknown as THREE.Object3D);
+    scene.add(directionalLight);
 
     return () => {
       // Cleanup

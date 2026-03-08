@@ -9,6 +9,8 @@ pub mod debug_sandbox;
 pub mod delegate_cmd;
 mod exit_status;
 pub mod git_commands;
+#[cfg(feature = "cuda")]
+pub mod git_cuda;
 #[cfg(feature = "custom-features")]
 pub mod lock_cmd;
 pub mod login;

@@ -71,6 +71,8 @@ members = [
     "package-manager",
     "artifacts",
     "web-search",
+    "cuda-runtime",
+    "windows-ai",
 ]
 resolver = "2"
 
@@ -101,6 +103,7 @@ codex-chatgpt = { path = "chatgpt" }
 codex-cli = { path = "cli" }
 codex-client = { path = "codex-client" }
 codex-cloud-requirements = { path = "cloud-requirements" }
+codex-cuda-runtime = { path = "cuda-runtime" }
 codex-deep-research = { path = "deep-research" }
 codex-config = { path = "config" }
 codex-core = { path = "core" }
@@ -373,7 +376,7 @@ ignored = [
     "icu_provider",
     "openssl-sys",
     "codex-utils-readiness",
-    "codex-secrets"
+    "codex-secrets",
 ]
 
 [profile.release]
@@ -398,6 +401,10 @@ crossterm = { git = "https://github.com/nornagon/crossterm", branch = "nornagon/
 ratatui = { git = "https://github.com/nornagon/ratatui", branch = "nornagon-v0.29.0-patch" }
 tokio-tungstenite = { git = "https://github.com/openai-oss-forks/tokio-tungstenite", rev = "132f5b39c862e3a970f731d709608b3e6276d5f6" }
 tungstenite = { git = "https://github.com/openai-oss-forks/tungstenite-rs", rev = "9200079d3b54a1ff51072e24d81fd354f085156f" }
+icu_decimal_data = { path = "vendor/icu_decimal_data" }
+icu_locale_data = { path = "vendor/icu_locale_data" }
+icu_normalizer_data = { path = "vendor/icu_normalizer_data" }
+icu_properties_data = { path = "vendor/icu_properties_data" }
 
 # Uncomment to debug local changes.
 # rmcp = { path = "../../rust-sdk/crates/rmcp" }

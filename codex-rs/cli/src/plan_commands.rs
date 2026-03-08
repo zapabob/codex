@@ -633,24 +633,30 @@ async fn execute_plan(plan_id: &str, plan_dir: &PathBuf) -> Result<()> {
     }
 
     let content = std::fs::read_to_string(&plan_file)?;
-    let plan: codex_core::plan::PlanBlock = serde_json::from_str(&content)?;
+    let mut plan: codex_core::plan::PlanBlock = serde_json::from_str(&content)?;
 
     println!("🚀 Executing Plan: {}", plan.title);
     println!("📋 ID: {}", plan.id);
     println!("⏱️  Starting execution...");
     println!();
 
-    // Note: This is a simplified execution for CLI
-    // Full execution requires PlanOrchestrator which needs AgentRuntime
-    // For now, we just update the state and show a message
-
     if !plan.state.can_execute() {
         anyhow::bail!(
-            "Plan is not approved. Current state: {}. Please approve it first with: codex Plan approve {}",
+            "Plan is not approved. Current state: {}. Please approve it first with: codex plan approve {}",
             plan.state,
             plan_id
         );
     }
+
+    // Update state to Executing
+    plan.state = plan
+        .state
+        .clone()
+        .start_execution("simulation".to_string())
+        .context("Failed to start execution")?;
+    plan.updated_at = chrono::Utc::now();
+
+    std::fs::write(&plan_file, serde_json::to_string_pretty(&plan)?)?;
 
     println!("✅ Plan execution would be triggered here");
     println!("📝 Note: Full orchestrated execution requires agent runtime setup");

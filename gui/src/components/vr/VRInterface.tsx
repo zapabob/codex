@@ -55,8 +55,9 @@ export default function VRInterface({
   selectedCommit,
   
 }: VRInterfaceProps) {
-  const { isPresenting } = useXR()
-  const [timelineValue, setTimelineValue] = useState(0)
+  const { session } = useXR()
+  const isPresenting = session !== null
+  const [timelineValue] = useState(0)
 
   if (!isPresenting) return null
 

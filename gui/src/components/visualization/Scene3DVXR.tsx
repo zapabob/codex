@@ -30,7 +30,8 @@ interface Scene3DVXRProps {
 
 function CommitNodesVR({ commits, onCommitClick }: Scene3DVXRProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
-  const { isPresenting } = useXR()
+  const { session } = useXR()
+  const isPresenting = session !== null
   const { camera } = useThree()
 
   const leftController = useXRControllerState('left')
@@ -85,26 +86,27 @@ function CommitNodesVR({ commits, onCommitClick }: Scene3DVXRProps) {
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
     const intersects = raycaster.intersectObject(meshRef.current)
 
-    if (leftController?.controller && intersects.length > 0) {
+    if (leftController && intersects.length > 0) {
       const actuator = leftController.inputSource?.gamepad?.hapticActuators?.[0]
       if (actuator) {
         void actuator.pulse(0.5, 100)
       }
     }
 
-    if (rightController?.controller && intersects.length > 0 && intersects[0].instanceId !== undefined) {
+    if (rightController && intersects.length > 0 && intersects[0].instanceId !== undefined) {
       const index = intersects[0].instanceId
       const commit = commits[index]
       if (!commit) {
         return
       }
 
-      if (rightController.inputSource?.gamepad?.buttons[0]?.pressed) {
+      const inputSource = rightController.inputSource
+      if (inputSource?.gamepad?.buttons[0]?.pressed) {
         onCommitClick?.(commit)
 
-        const actuator = rightController.inputSource.gamepad.hapticActuators?.[0]
+        const actuator = inputSource.gamepad.hapticActuators?.[0]
         if (actuator) {
-          void actuator.pulse(1.0, 200)
+          void (actuator as any).pulse(1.0, 200)
         }
       }
     }

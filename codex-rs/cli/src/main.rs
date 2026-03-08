@@ -813,7 +813,8 @@ async fn run_debug_app_server_command(cmd: DebugAppServerCommand) -> anyhow::Res
     }
 }
 
-fn parse_csv_list(raw: &str) -> Vec<String> {
+#[warn(dead_code)]
+pub fn parse_csv_list(raw: &str) -> Vec<String> {
     raw.split(',')
         .map(str::trim)
         .filter(|item| !item.is_empty())
