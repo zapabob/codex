@@ -17,8 +17,8 @@ servers:
 
   # ArXiv - Academic paper search and analysis
   arxiv:
-    command: "python"
-    args: ["-m", "arxiv_mcp_server"]
+    command: "uvx"
+    args: ["arxiv-mcp-server"]
     env:
       ARXIV_MAX_RESULTS: "50"
       ARXIV_SORT_BY: "relevance"

@@ -131,8 +131,8 @@ impl McpIntegrationManager {
         servers.insert(
             "arxiv".to_string(),
             EnhancedMcpServer {
-                command: "python".to_string(),
-                args: vec!["-m".to_string(), "arxiv_mcp_server".to_string()],
+                command: "uvx".to_string(),
+                args: vec!["arxiv-mcp-server".to_string()],
                 env: {
                     let mut env = HashMap::new();
                     env.insert("ARXIV_MAX_RESULTS".to_string(), "50".to_string());
