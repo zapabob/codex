@@ -1,5 +1,7 @@
 set working-directory := "codex-rs"
 set positional-arguments
+python_cmd := if os_family() == "windows" { "py -3" } else { "python3" }
+build_script := "../scripts/fast_build.py"
 
 # Display help
 help:
@@ -85,3 +87,12 @@ write-app-server-schema *args:
 # Tail logs from the state SQLite database
 log *args:
     if [ "${1:-}" = "--" ]; then shift; fi; cargo run -p codex-state --bin logs_client -- "$@"
+
+fast-build *args:
+    {{python_cmd}} {{build_script}} fast-build --changed-only "$@"
+
+fast-build-install *args:
+    {{python_cmd}} {{build_script}} fast-build-install --changed-only "$@"
+
+upstream-sync *args:
+    {{python_cmd}} {{build_script}} upstream-sync "$@"

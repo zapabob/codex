@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "remotes": {
+    "origin": {
+      "name": "origin",
+      "url": "https://github.com/zapabob/codex.git",
+      "fetch": [
+        "+refs/heads/*:refs/remotes/origin/*",
+        "+refs/tags/*:refs/tags/*"
+      ]
+    },
+    "upstream": {
+      "name": "upstream",
+      "url": "https://github.com/openai/codex.git",
+      "tracked_branch": "main",
+      "fetch": [
+        "+refs/heads/main:refs/remotes/upstream/main",
+        "+refs/tags/rust-v*:refs/upstream-tags/rust-v*",
+        "+refs/tags/v*:refs/upstream-tags/v*"
+      ],
+      "release_tag_policy": {
+        "primary_pattern": "rust-v*",
+        "secondary_pattern": "v*",
+        "exact_tag_required_for_source_tag": true
+      }
+    }
+  },
+  "sync": {
+    "target_branch": "main",
+    "merge_strategy": "git merge --no-ff upstream/main",
+    "recorded_at": "2026-03-19T20:08:57Z",
+    "source": {
+      "repository": "https://github.com/openai/codex.git",
+      "branch": "main",
+      "commit": "668330acc12b8907ecd82bc15148e0a627246783",
+      "tag": null
+    },
+    "conflict_policy_document": "docs/repository-relationship.md"
+  }
+}

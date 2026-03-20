@@ -1,6 +1,6 @@
 {
   "name": "@openai/codex-sdk",
-  "version": "2.7.0",
+  "version": "3.0.0",
   "description": "TypeScript SDK for Codex APIs.",
   "repository": {
     "type": "git",
@@ -42,7 +42,8 @@
     "coverage": "jest --coverage",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "prepare": "echo 'Skipping build (no src)'"
+    "prepare": "echo 'Skipping build (no src)'",
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.24.0",

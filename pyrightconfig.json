@@ -1,0 +1,24 @@
+{
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "none",
+  "reportMissingTypeStubs": "none",
+  "include": [
+    "scripts/readme_toc.py",
+    "scripts/stage_npm_packages.py",
+    "codex-cli/scripts/build_npm_package.py",
+    "codex-cli/scripts/install_native_deps.py",
+    "codex-rs/mcp-types/check_lib_rs.py",
+    "codex-rs/mcp-types/generate_mcp_types.py"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/target"
+  ],
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "pythonVersion": "3.11"
+    }
+  ]
+}

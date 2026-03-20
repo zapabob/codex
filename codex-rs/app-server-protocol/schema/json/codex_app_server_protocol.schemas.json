@@ -8404,6 +8404,35 @@
           {
             "additionalProperties": false,
             "properties": {
+              "modelCap": {
+                "properties": {
+                  "model": {
+                    "type": "string"
+                  },
+                  "resetAfterSeconds": {
+                    "format": "uint64",
+                    "minimum": 0.0,
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "model"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "modelCap"
+            ],
+            "title": "ModelCapCodexErrorInfo",
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
               "httpConnectionFailed": {
                 "properties": {
                   "httpStatusCode": {
@@ -11183,21 +11212,15 @@
       "PluginInstallParams": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
-          "cwd": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "marketplaceName": {
-            "type": "string"
+          "marketplacePath": {
+            "$ref": "#/definitions/v2/AbsolutePathBuf"
           },
           "pluginName": {
             "type": "string"
           }
         },
         "required": [
-          "marketplaceName",
+          "marketplacePath",
           "pluginName"
         ],
         "title": "PluginInstallParams",

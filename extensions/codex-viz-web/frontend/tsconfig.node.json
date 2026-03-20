@@ -1,4 +1,5 @@
 {
+  "extends": "../../../tsconfig.strict.json",
   "compilerOptions": {
     "composite": true,
     "skipLibCheck": true,
@@ -6,6 +7,7 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "vite.config.ts"
+  ]
 }
-
