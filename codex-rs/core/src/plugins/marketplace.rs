@@ -57,18 +57,41 @@ impl MarketplaceError {
 // For now, marketplace discovery always reads from disk so installs see the latest
 // marketplace.json contents without any in-memory cache invalidation.
 pub fn resolve_marketplace_plugin(
-    cwd: &Path,
+    marketplace_path: &AbsolutePathBuf,
     plugin_name: &str,
-    marketplace_name: &str,
 ) -> Result<ResolvedMarketplacePlugin, MarketplaceError> {
-    resolve_marketplace_plugin_from_paths(
-        &discover_marketplace_paths(cwd),
-        plugin_name,
+    let marketplace = load_marketplace(marketplace_path.as_path())?;
+    let marketplace_name = marketplace.name.clone();
+    let mut matches = marketplace
+        .plugins
+        .into_iter()
+        .filter(|plugin| plugin.name == plugin_name)
+        .collect::<Vec<_>>();
+
+    if matches.len() > 1 {
+        return Err(MarketplaceError::DuplicatePlugin {
+            plugin_name: plugin_name.to_string(),
+            marketplace_name,
+        });
+    }
+
+    if let Some(plugin) = matches.pop() {
+        let plugin_id = PluginId::new(plugin.name, marketplace.name).map_err(|err| match err {
+            PluginIdError::Invalid(message) => MarketplaceError::InvalidPlugin(message),
+        })?;
+        return Ok(ResolvedMarketplacePlugin {
+            plugin_id,
+            source_path: resolve_plugin_source_path(marketplace_path.as_path(), plugin.source)?,
+        });
+    }
+
+    Err(MarketplaceError::PluginNotFound {
+        plugin_name: plugin_name.to_string(),
         marketplace_name,
-    )
+    })
 }
 
-fn resolve_marketplace_plugin_from_paths(
+pub fn resolve_marketplace_plugin_from_paths(
     marketplace_paths: &[PathBuf],
     plugin_name: &str,
     marketplace_name: &str,
@@ -112,7 +135,7 @@ fn resolve_marketplace_plugin_from_paths(
     })
 }
 
-fn discover_marketplace_paths(cwd: &Path) -> Vec<PathBuf> {
+pub fn discover_marketplace_paths(cwd: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     if let Some(repo_root) = get_git_repo_root(cwd) {
         let path = repo_root.join(MARKETPLACE_RELATIVE_PATH);
@@ -233,9 +256,9 @@ mod tests {
         )
         .unwrap();
 
-        let resolved =
-            resolve_marketplace_plugin(&repo_root.join("nested"), "local-plugin", "codex-curated")
-                .unwrap();
+        let marketplace_path =
+            AbsolutePathBuf::try_from(repo_root.join(".agents/plugins/marketplace.json")).unwrap();
+        let resolved = resolve_marketplace_plugin(&marketplace_path, "local-plugin").unwrap();
 
         assert_eq!(
             resolved,
@@ -260,7 +283,9 @@ mod tests {
         )
         .unwrap();
 
-        let err = resolve_marketplace_plugin(&repo_root, "missing", "codex-curated").unwrap_err();
+        let marketplace_path =
+            AbsolutePathBuf::try_from(repo_root.join(".agents/plugins/marketplace.json")).unwrap();
+        let err = resolve_marketplace_plugin(&marketplace_path, "missing").unwrap_err();
 
         assert_eq!(
             err.to_string(),
@@ -356,8 +381,9 @@ mod tests {
         )
         .unwrap();
 
-        let err =
-            resolve_marketplace_plugin(&repo_root, "local-plugin", "codex-curated").unwrap_err();
+        let marketplace_path =
+            AbsolutePathBuf::try_from(repo_root.join(".agents/plugins/marketplace.json")).unwrap();
+        let err = resolve_marketplace_plugin(&marketplace_path, "local-plugin").unwrap_err();
 
         assert_eq!(
             err.to_string(),

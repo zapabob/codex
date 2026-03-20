@@ -1,6 +1,8 @@
 use super::load_plugin_manifest;
 use super::marketplace::MarketplaceError;
+use super::marketplace::discover_marketplace_paths;
 use super::marketplace::resolve_marketplace_plugin;
+use super::marketplace::resolve_marketplace_plugin_from_paths;
 use super::plugin_manifest_name;
 use super::store::DEFAULT_PLUGIN_VERSION;
 use super::store::PluginId;
@@ -42,8 +44,7 @@ pub struct AppConnectorId(pub String);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PluginInstallRequest {
     pub plugin_name: String,
-    pub marketplace_name: String,
-    pub cwd: PathBuf,
+    pub marketplace_path: AbsolutePathBuf,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -239,11 +240,7 @@ impl PluginsManager {
         &self,
         request: PluginInstallRequest,
     ) -> Result<PluginInstallResult, PluginInstallError> {
-        let resolved = resolve_marketplace_plugin(
-            &request.cwd,
-            &request.plugin_name,
-            &request.marketplace_name,
-        )?;
+        let resolved = resolve_marketplace_plugin(&request.marketplace_path, &request.plugin_name)?;
         let store = self.store.clone();
         let result = tokio::task::spawn_blocking(move || {
             store.install(resolved.source_path.into_path_buf(), resolved.plugin_id)
@@ -1091,8 +1088,10 @@ mod tests {
         let result = PluginsManager::new(tmp.path().to_path_buf())
             .install_plugin(PluginInstallRequest {
                 plugin_name: "sample-plugin".to_string(),
-                marketplace_name: "debug".to_string(),
-                cwd: repo_root.clone(),
+                marketplace_path: AbsolutePathBuf::try_from(
+                    repo_root.join(".agents/plugins/marketplace.json"),
+                )
+                .unwrap(),
             })
             .await
             .unwrap();
@@ -1110,5 +1109,38 @@ mod tests {
         let config = fs::read_to_string(tmp.path().join("config.toml")).unwrap();
         assert!(config.contains(r#"[plugins."sample-plugin@debug"]"#));
         assert!(config.contains("enabled = true"));
+    }
+
+    #[test]
+    fn discovered_marketplace_paths_still_support_name_based_resolution() {
+        let tmp = tempfile::tempdir().unwrap();
+        let repo_root = tmp.path().join("repo");
+        fs::create_dir_all(repo_root.join(".git")).unwrap();
+        fs::create_dir_all(repo_root.join(".agents/plugins")).unwrap();
+        fs::write(
+            repo_root.join(".agents/plugins/marketplace.json"),
+            r#"{
+  "name": "debug",
+  "plugins": [
+    {
+      "name": "sample-plugin",
+      "source": {
+        "source": "local",
+        "path": "./sample-plugin"
+      }
+    }
+  ]
+}"#,
+        )
+        .unwrap();
+
+        let resolved = resolve_marketplace_plugin_from_paths(
+            &discover_marketplace_paths(&repo_root),
+            "sample-plugin",
+            "debug",
+        )
+        .unwrap();
+
+        assert_eq!(resolved.plugin_id.as_key(), "sample-plugin@debug");
     }
 }
