@@ -2,7 +2,7 @@
   "name": "codex-assistant",
   "displayName": "Codex AI Assistant",
   "description": "Autonomous AI coding assistant with sub-agent orchestration and deep research",
-  "version": "2.8.0",
+  "version": "3.0.0",
   "publisher": "zapabob",
   "engines": {
     "vscode": "^1.85.0"
@@ -140,7 +140,11 @@
         },
         "codex.orchestrator.transport": {
           "type": "string",
-          "enum": ["tcp", "uds", "named-pipe"],
+          "enum": [
+            "tcp",
+            "uds",
+            "named-pipe"
+          ],
           "default": "tcp",
           "description": "Transport protocol for Orchestrator RPC"
         },
@@ -161,7 +165,10 @@
         },
         "codex.gemini.authMethod": {
           "type": "string",
-          "enum": ["api-key", "oauth"],
+          "enum": [
+            "api-key",
+            "oauth"
+          ],
           "default": "oauth",
           "description": "Gemini authentication method"
         },
@@ -197,7 +204,11 @@
         },
         "codex.blueprint.mode": {
           "type": "string",
-          "enum": ["single", "orchestrated", "competition"],
+          "enum": [
+            "single",
+            "orchestrated",
+            "competition"
+          ],
           "default": "orchestrated",
           "description": "Default execution mode for blueprints"
         },
@@ -221,22 +232,22 @@
         "codex.competition.weights.tests": {
           "type": "number",
           "default": 0.5,
-          "minimum": 0.0,
-          "maximum": 1.0,
+          "minimum": 0,
+          "maximum": 1,
           "description": "Weight for test results in competition scoring"
         },
         "codex.competition.weights.performance": {
           "type": "number",
           "default": 0.3,
-          "minimum": 0.0,
-          "maximum": 1.0,
+          "minimum": 0,
+          "maximum": 1,
           "description": "Weight for performance in competition scoring"
         },
         "codex.competition.weights.simplicity": {
           "type": "number",
           "default": 0.2,
-          "minimum": 0.0,
-          "maximum": 1.0,
+          "minimum": 0,
+          "maximum": 1,
           "description": "Weight for code simplicity in competition scoring"
         },
         "codex.research.requireApproval": {
@@ -320,7 +331,8 @@
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
     "package": "vsce package",
-    "publish": "vsce publish"
+    "publish": "vsce publish",
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -333,7 +345,7 @@
     "@vscode/vsce": "^2.22.0"
   },
   "dependencies": {
-    "@zapabob/codex-protocol-client": "^2.8.0",
+    "@zapabob/codex-protocol-client": "file:../../packages/protocol-client",
     "ws": "^8.16.0"
   },
   "repository": {
@@ -342,5 +354,3 @@
   },
   "license": "Apache-2.0"
 }
-
-

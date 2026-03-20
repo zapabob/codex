@@ -2,7 +2,7 @@
   "name": "codex-windsurf",
   "displayName": "Codex Multi-Agent for Windsurf",
   "description": "Sub-Agents & Deep Research for Windsurf IDE",
-  "version": "2.7.0",
+  "version": "3.0.0",
   "publisher": "zapabob",
   "icon": "icon.png",
   "engines": {
@@ -101,7 +101,8 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -112,4 +113,3 @@
     "typescript": "^5.0.0"
   }
 }
-

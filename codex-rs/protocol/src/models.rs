@@ -523,6 +523,7 @@ impl DeveloperInstructions {
             })
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn from_permissions_with_network(
         sandbox_mode: SandboxMode,
         network_access: NetworkAccess,
