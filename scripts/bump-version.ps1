@@ -62,8 +62,6 @@ Set-Content -Path "VERSION" -Value $NewVersion -Encoding UTF8 -NoNewline
 Write-Host "✅ Version bumped: $CurrentVersion → $NewVersion" -ForegroundColor Green
 Write-Host ""
 Write-Host "次のステップ:" -ForegroundColor Cyan
-Write-Host "  1. CHANGELOG.md を更新" -ForegroundColor Yellow
-Write-Host "  2. codex-rs/Cargo.toml のバージョンを更新" -ForegroundColor Yellow
-Write-Host "  3. codex-cli/package.json のバージョンを更新" -ForegroundColor Yellow
-Write-Host "  4. git commit -m 'chore: bump version to $NewVersion'" -ForegroundColor Yellow
-
+Write-Host "  1. node scripts/sync-version.mjs を実行" -ForegroundColor Yellow
+Write-Host "  2. node scripts/sync-version.mjs --check で整合性確認" -ForegroundColor Yellow
+Write-Host "  3. git commit -m 'chore: bump version to $NewVersion'" -ForegroundColor Yellow

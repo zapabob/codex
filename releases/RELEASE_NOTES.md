@@ -1,31 +1,35 @@
-# v2.13.0 Release Notes
+# Codex v3.0.0 Release Notes
 
-## 🌟 Highlights
+> **Current release document** for the v3.0.0 line.
+> Legacy v2.x release notes are archived at `releases/legacy/v2.x/RELEASE_NOTES.md`.
 
-This release focuses on **GUI enhancements** and **System Integration**, bridging the gap between the web interface and the underlying specific command-line tools.
+## Canonical Versioning
 
-- **GUI Dashboard with Real-Time Metrics**: Monitor CPU, RAM, and GPU usage in real-time via the new Node.js backend (`gui/server.js`).
-- **Collapsible Sidebar**: Improved screen real estate management with a new collapsible sidebar component.
-- **CLI Bridge**: Execute CLI commands directly from the GUI, enabling a seamless workflow between visual and terminal operations.
-- **SSR Fixes**: Resolved Next.js Server-Side Rendering issues for a smoother user experience.
+- **Canonical source**: root `VERSION`
+- **Fork version**: `3.0.0`
+- **Upstream base**: `3.0.0`
+- **Release date**: 2026-03-19
 
-## 🇯🇵 日本語リリースノート
+## What changed in v3.0.0
 
-本リリースでは、GUIの強化とシステム統合に焦点を当てています。
+### Version governance
 
-- **リアルタイムメトリクス**: Node.jsバックエンドにより、CPU/メモリ/GPUの使用率をGUI上でリアルタイム監視可能になりました。
-- **サイドバー改善**: 折りたたみ可能なサイドバーを実装し、作業領域を広く使えるようになりました。
-- **CLI連携**: GUIから直接CLIコマンドを実行できるブリッジ機能を追加しました。
-- **SSR修正**: Next.jsのServer-Side Renderingに関する問題を修正し、安定性を向上させました。
+- Root `VERSION` is now the single source of truth for release-visible versioning.
+- `version-metadata.json` defines `fork_version` and `upstream_base` so tooling can distinguish fork releases from upstream alignment.
+- `scripts/sync-version.mjs` regenerates synced version displays and validates drift with `--check`.
 
-## 🛡️ Security
+### Repository docs and manifests
 
-- **Updated Dependencies**: Bumped `sysinfo`, `ws`, `cors` and other core dependencies.
-- **Pre-commit Checks**: Passed rigorous Clippy and Large File checks.
+- Synced the root `package.json`, Rust workspace version, and `packages/protocol-client/package.json` to v3.0.0.
+- Rebuilt the root changelog and release notes as **current release** documents for the v3.x line.
+- Archived the older v2.x release notes so the latest release is unambiguous.
 
-## 📦 Changes
+## Sync procedure
 
-- feat(gui): Implement collapsible sidebar, real metrics server, and CLI integration
-- fix(gui): Resolve window is not defined SSR error
-- chore: Update workspace versions to v2.13.0
-- doc: Rewrite README.md for better recruitment appeal (Bilingual)
+```bash
+# 1) edit VERSION (and version-metadata.json upstream_base if needed)
+node scripts/sync-version.mjs
+
+# 2) verify no drift remains
+node scripts/sync-version.mjs --check
+```
