@@ -953,21 +953,15 @@
     },
     "PluginInstallParams": {
       "properties": {
-        "cwd": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "marketplaceName": {
-          "type": "string"
+        "marketplacePath": {
+          "$ref": "#/definitions/AbsolutePathBuf"
         },
         "pluginName": {
           "type": "string"
         }
       },
       "required": [
-        "marketplaceName",
+        "marketplacePath",
         "pluginName"
       ],
       "type": "object"

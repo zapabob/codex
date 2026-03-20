@@ -2564,10 +2564,8 @@ pub struct SkillsConfigWriteResponse {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct PluginInstallParams {
-    pub marketplace_name: String,
+    pub marketplace_path: AbsolutePathBuf,
     pub plugin_name: String,
-    #[ts(optional = nullable)]
-    pub cwd: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -4857,6 +4855,29 @@ mod tests {
                         "extraUserRoots": ["/shared/skills", "/tmp/x"],
                     }
                 ],
+            }),
+        );
+    }
+
+    #[test]
+    fn plugin_install_params_serialization_uses_marketplace_path() {
+        let marketplace_path = if cfg!(windows) {
+            r"C:\repo\.agents\plugins\marketplace.json"
+        } else {
+            "/repo/.agents/plugins/marketplace.json"
+        };
+        let marketplace_path = AbsolutePathBuf::try_from(PathBuf::from(marketplace_path)).unwrap();
+        let marketplace_path_json = marketplace_path.as_path().display().to_string();
+
+        assert_eq!(
+            serde_json::to_value(PluginInstallParams {
+                marketplace_path,
+                plugin_name: "gmail".to_string(),
+            })
+            .unwrap(),
+            json!({
+                "marketplacePath": marketplace_path_json,
+                "pluginName": "gmail",
             }),
         );
     }
