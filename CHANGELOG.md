@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-03-19 - "Repository Sync Governance"
+
+### Added
+
+- Canonical remote definitions for `origin` (`https://github.com/zapabob/codex.git`) and `upstream` (`https://github.com/openai/codex.git`) are now fixed in the repository sync workflow.
+- Machine-readable upstream provenance is now recorded in `releases/upstream-sync.json`.
+- A reproducible `scripts/sync-upstream.sh` workflow and `just` tasks now define the equivalent of `git merge upstream/main`.
+
+### Changed
+
+- Release and repository documentation now express upstream intake using structured fields instead of free-form “officially synced” language.
+- Upstream tracking is fixed to `upstream/main`, with release tags tracked under the `rust-v*` primary rule and `v*` secondary compatibility rule.
+- Conflict handling is now documented for `codex-rs/deep-research/`, `codex-rs/supervisor/`, `.codex/skills/`, and Git4D / VR modules.
+
+### Upstream Intake Record
+
+- `source.repository`: `https://github.com/openai/codex.git`
+- `source.branch`: `main`
+- `source.commit`: `668330acc12b8907ecd82bc15148e0a627246783`
+- `source.tag`: `null` (no exact upstream tag on the imported commit)
+- `recorded_at`: `2026-03-19T20:08:57Z`
+
 ## [2.17.0] - 2026-02-20 - "Upstream Sync & API Refinements"
 
 ### 🚀 Major Features

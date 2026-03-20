@@ -1,31 +1,33 @@
-# v2.13.0 Release Notes
+# v3.0.1 Release Notes
 
-## 🌟 Highlights
+## Highlights
 
-This release focuses on **GUI enhancements** and **System Integration**, bridging the gap between the web interface and the underlying specific command-line tools.
+This release standardizes how the fork tracks and imports changes from `openai/codex`.
 
-- **GUI Dashboard with Real-Time Metrics**: Monitor CPU, RAM, and GPU usage in real-time via the new Node.js backend (`gui/server.js`).
-- **Collapsible Sidebar**: Improved screen real estate management with a new collapsible sidebar component.
-- **CLI Bridge**: Execute CLI commands directly from the GUI, enabling a seamless workflow between visual and terminal operations.
-- **SSR Fixes**: Resolved Next.js Server-Side Rendering issues for a smoother user experience.
+- `origin` is canonically defined as `https://github.com/zapabob/codex.git`.
+- `upstream` is canonically defined as `https://github.com/openai/codex.git`.
+- The tracked upstream branch is fixed to `upstream/main`.
+- The tracked upstream release tag conventions are fixed to `rust-v*` (primary) and `v*` (secondary compatibility).
+- The repository now keeps a machine-readable upstream intake record in `releases/upstream-sync.json`.
+- The reproducible sync entrypoint is `scripts/sync-upstream.sh` or `just sync-upstream`.
 
-## 🇯🇵 日本語リリースノート
+## Upstream Intake Record
 
-本リリースでは、GUIの強化とシステム統合に焦点を当てています。
+| Field | Value |
+| --- | --- |
+| `source.repository` | `https://github.com/openai/codex.git` |
+| `source.branch` | `main` |
+| `source.commit` | `668330acc12b8907ecd82bc15148e0a627246783` |
+| `source.tag` | `null` |
+| `recorded_at` | `2026-03-19T20:08:57Z` |
 
-- **リアルタイムメトリクス**: Node.jsバックエンドにより、CPU/メモリ/GPUの使用率をGUI上でリアルタイム監視可能になりました。
-- **サイドバー改善**: 折りたたみ可能なサイドバーを実装し、作業領域を広く使えるようになりました。
-- **CLI連携**: GUIから直接CLIコマンドを実行できるブリッジ機能を追加しました。
-- **SSR修正**: Next.jsのServer-Side Renderingに関する問題を修正し、安定性を向上させました。
+## Conflict Policy Summary
 
-## 🛡️ Security
+When upstream and custom code overlap, the repository now uses a documented policy:
 
-- **Updated Dependencies**: Bumped `sysinfo`, `ws`, `cors` and other core dependencies.
-- **Pre-commit Checks**: Passed rigorous Clippy and Large File checks.
+1. Adopt the official implementation when feature parity is sufficient.
+2. Re-inject only the demonstrated custom advantage in a follow-up commit.
+3. Preserve clearly custom-only areas until an official equivalent exists.
+4. Keep the provenance record updated whenever upstream is imported.
 
-## 📦 Changes
-
-- feat(gui): Implement collapsible sidebar, real metrics server, and CLI integration
-- fix(gui): Resolve window is not defined SSR error
-- chore: Update workspace versions to v2.13.0
-- doc: Rewrite README.md for better recruitment appeal (Bilingual)
+See `docs/repository-relationship.md` for the full policy and path-specific rules.

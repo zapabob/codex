@@ -85,3 +85,12 @@ write-app-server-schema *args:
 # Tail logs from the state SQLite database
 log *args:
     if [ "${1:-}" = "--" ]; then shift; fi; cargo run -p codex-state --bin logs_client -- "$@"
+
+
+[no-cd]
+configure-remotes:
+    ./scripts/sync-upstream.sh --configure-only
+
+[no-cd]
+sync-upstream *args:
+    ./scripts/sync-upstream.sh "$@"
