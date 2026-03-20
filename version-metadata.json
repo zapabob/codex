@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "canonical_source": "VERSION",
+  "fork_version": "3.0.0",
+  "upstream_base": "3.0.0",
+  "release_date": "2026-03-19",
+  "current_release_line": "3.x",
+  "legacy_release_line": "2.x",
+  "sync_targets": {
+    "cargo_workspace": "codex-rs/Cargo.toml",
+    "package_json": [
+      "package.json",
+      "gui/package.json",
+      "packages/protocol-client/package.json"
+    ],
+    "docs": [
+      "README.md",
+      "CHANGELOG.md",
+      "releases/RELEASE_NOTES.md"
+    ],
+    "archives": {
+      "changelog": "releases/legacy/v2.x/CHANGELOG.md",
+      "release_notes": "releases/legacy/v2.x/RELEASE_NOTES.md"
+    }
+  }
+}

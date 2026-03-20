@@ -1,33 +1,35 @@
-# v3.0.1 Release Notes
+# Codex v3.0.0 Release Notes
 
-## Highlights
+> **Current release document** for the v3.0.0 line.
+> Legacy v2.x release notes are archived at `releases/legacy/v2.x/RELEASE_NOTES.md`.
 
-This release standardizes how the fork tracks and imports changes from `openai/codex`.
+## Canonical Versioning
 
-- `origin` is canonically defined as `https://github.com/zapabob/codex.git`.
-- `upstream` is canonically defined as `https://github.com/openai/codex.git`.
-- The tracked upstream branch is fixed to `upstream/main`.
-- The tracked upstream release tag conventions are fixed to `rust-v*` (primary) and `v*` (secondary compatibility).
-- The repository now keeps a machine-readable upstream intake record in `releases/upstream-sync.json`.
-- The reproducible sync entrypoint is `scripts/sync-upstream.sh` or `just sync-upstream`.
+- **Canonical source**: root `VERSION`
+- **Fork version**: `3.0.0`
+- **Upstream base**: `3.0.0`
+- **Release date**: 2026-03-19
 
-## Upstream Intake Record
+## What changed in v3.0.0
 
-| Field | Value |
-| --- | --- |
-| `source.repository` | `https://github.com/openai/codex.git` |
-| `source.branch` | `main` |
-| `source.commit` | `668330acc12b8907ecd82bc15148e0a627246783` |
-| `source.tag` | `null` |
-| `recorded_at` | `2026-03-19T20:08:57Z` |
+### Version governance
 
-## Conflict Policy Summary
+- Root `VERSION` is now the single source of truth for release-visible versioning.
+- `version-metadata.json` defines `fork_version` and `upstream_base` so tooling can distinguish fork releases from upstream alignment.
+- `scripts/sync-version.mjs` regenerates synced version displays and validates drift with `--check`.
 
-When upstream and custom code overlap, the repository now uses a documented policy:
+### Repository docs and manifests
 
-1. Adopt the official implementation when feature parity is sufficient.
-2. Re-inject only the demonstrated custom advantage in a follow-up commit.
-3. Preserve clearly custom-only areas until an official equivalent exists.
-4. Keep the provenance record updated whenever upstream is imported.
+- Synced the root `package.json`, Rust workspace version, and `packages/protocol-client/package.json` to v3.0.0.
+- Rebuilt the root changelog and release notes as **current release** documents for the v3.x line.
+- Archived the older v2.x release notes so the latest release is unambiguous.
 
-See `docs/repository-relationship.md` for the full policy and path-specific rules.
+## Sync procedure
+
+```bash
+# 1) edit VERSION (and version-metadata.json upstream_base if needed)
+node scripts/sync-version.mjs
+
+# 2) verify no drift remains
+node scripts/sync-version.mjs --check
+```

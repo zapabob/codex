@@ -17,6 +17,11 @@
 
 </div>
 
+<!-- version-sync:start -->
+> **Current release:** v3.0.0 (2026-03-19) · canonical source `VERSION` · fork/upstream mapping in `version-metadata.json`.
+> Legacy v2.x release notes are archived under `releases/legacy/v2.x/RELEASE_NOTES.md`.
+<!-- version-sync:end -->
+
 ---
 
 ## 🇺🇸 English

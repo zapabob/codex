@@ -9,8 +9,8 @@
     "audit": "pnpm audit --level=high",
     "security:check": "pnpm exec npm audit --audit-level=high || true",
     "deps:update": "pnpm up --latest",
-    "type-check": "node ./scripts/run-type-check.mjs",
-    "type-check:versions": "node ./scripts/check-workspace-versions.mjs"
+    "version:sync": "node scripts/sync-version.mjs",
+    "version:check": "node scripts/sync-version.mjs --check"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
