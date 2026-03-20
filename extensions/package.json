@@ -2,7 +2,7 @@
   "name": "codex-subagents",
   "displayName": "Codex Sub-Agents & Deep Research",
   "description": "Multi-agent delegation and deep research for VS Code",
-  "version": "2.7.0",
+  "version": "3.0.0",
   "publisher": "zapabob",
   "engines": {
     "vscode": "^1.85.0"
@@ -92,7 +92,8 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^20.x",
@@ -106,4 +107,3 @@
     "yaml": "^2.3.4"
   }
 }
-

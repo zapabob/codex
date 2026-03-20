@@ -5,6 +5,90 @@ on:
   push: { branches: [main] }
 
 jobs:
+  type-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install root dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install TypeScript package dependencies
+        run: |
+          set -euo pipefail
+          npm ci --prefix gui
+          npm ci --prefix sdk
+          npm ci --prefix sdk/typescript
+          npm ci --prefix packages/protocol-client
+          npm ci --prefix shell-tool-mcp
+          npm ci --prefix extensions
+          npm install --prefix extensions/vscode-codex
+          npm ci --prefix extensions/windsurf-extension
+          npm install --legacy-peer-deps --prefix extensions/codex-viz-web/frontend
+          npm install --prefix extensions/codex-viz-web/desktop
+
+      - name: Run monorepo type-check
+        run: npm run type-check
+
+      - name: Check workspace package versions
+        run: npm run type-check:versions
+
+  schema-diff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check vendored app-server schema fixtures
+        working-directory: codex-rs
+        run: cargo test -p codex-app-server-protocol schema_fixtures_match_generated -- --exact
+
+  protocol-version:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check protocol version alignment
+        run: python3 ./scripts/check_protocol_versions.py
+
   build-test:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -216,7 +300,9 @@ jobs:
     name: GUI Integration Tests
     runs-on: windows-2022
     timeout-minutes: 25
-    needs: build-test
+    needs:
+      - build-test
+      - type-check
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.strict.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
@@ -7,18 +8,30 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "strict": true,
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
-    "lib": ["ES2022"],
-    "types": ["node", "jest"],
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "noImplicitAny": true,
     "outDir": "dist",
-    "stripInternal": true
+    "stripInternal": true,
+    "rootDir": "."
   },
-  "include": ["src", "tests", "tsup.config.ts", "samples"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src",
+    "tests",
+    "tsup.config.ts",
+    "samples"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

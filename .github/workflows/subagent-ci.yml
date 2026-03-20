@@ -244,6 +244,30 @@ jobs:
 
 
 
+      - name: Run Clippy (codex-app-server-protocol)
+
+        working-directory: codex-rs
+
+        run: cargo clippy -p codex-app-server-protocol --all-features -- -D warnings
+
+
+
+      - name: Run Clippy (codex-protocol)
+
+        working-directory: codex-rs
+
+        run: cargo clippy -p codex-protocol --all-features -- -D warnings
+
+
+
+      - name: Run Clippy (codex-cli)
+
+        working-directory: codex-rs
+
+        run: cargo clippy -p codex-cli --all-features -- -D warnings
+
+
+
   # ========== Rustfmt Format Check ==========
 
   rustfmt:
@@ -643,4 +667,3 @@ jobs:
           echo ""
 
           echo "Status: Production Ready 
-

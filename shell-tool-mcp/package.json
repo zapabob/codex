@@ -1,6 +1,6 @@
 {
   "name": "@openai/codex-shell-tool-mcp",
-  "version": "0.0.0-dev",
+  "version": "3.0.0",
   "description": "Patched Bash and Zsh binaries for Codex shell execution.",
   "license": "Apache-2.0",
   "engines": {
@@ -22,7 +22,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "format": "prettier --check .",
-    "format:fix": "prettier --write ."
+    "format:fix": "prettier --write .",
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

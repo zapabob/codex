@@ -1,6 +1,6 @@
 {
   "name": "codex-viz-desktop",
-  "version": "2.7.0",
+  "version": "3.0.0",
   "description": "Codex Repository Visualizer - Desktop Client",
   "main": "dist/main.js",
   "type": "module",
@@ -11,7 +11,8 @@
     "package": "electron-builder",
     "package:win": "electron-builder --win",
     "package:mac": "electron-builder --mac",
-    "package:linux": "electron-builder --linux"
+    "package:linux": "electron-builder --linux",
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "@electron/remote": "^2.1.2",
@@ -40,18 +41,26 @@
       "package.json"
     ],
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "resources/icon.ico"
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "resources/icon.icns"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "resources/icon.png",
       "category": "Development"
     }
   }
 }
-
