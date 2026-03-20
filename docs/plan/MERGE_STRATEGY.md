@@ -18,8 +18,8 @@ This document describes the strategy for merging upstream OpenAI Codex changes w
 
 - `zapabob/scripts/load-env.sh` - Environment loading script
 - `zapabob/scripts/setup-env-vars.ps1` - PowerShell environment setup
-- `merge_with_custom_features.py` - Custom merge tool
-- `advanced_merge_resolver.py` - Advanced merge conflict resolver
+- `scripts/upstream_sync.py` - Upstream merge orchestration entry point
+- `scripts/resolve_merge_conflicts.py` - Upstream-first merge conflict resolver
 
 ## Merge Strategy
 
@@ -28,7 +28,7 @@ This document describes the strategy for merging upstream OpenAI Codex changes w
 1. **Identify Custom Features**
 
    ```bash
-   python3 advanced_merge_resolver.py --identify
+   python3 scripts/resolve_merge_conflicts.py codex-rs/tui/src/slash_command.rs --rule "codex-rs/tui/src/slash_command.rs=upstream-reinject"
    ```
 
 2. **Backup Current State**
@@ -58,7 +58,7 @@ git diff --name-only --diff-filter=U
 #### Automatic Merge
 
 ```bash
-python3 advanced_merge_resolver.py
+python3 scripts/upstream_sync.py
 ```
 
 #### Manual Merge (if needed)
@@ -77,7 +77,8 @@ python3 advanced_merge_resolver.py
 
 ```bash
 # Check custom features preserved
-python3 advanced_merge_resolver.py --verify
+git diff --check
+python3 scripts/fast_build.py fast-build --changed-only codex-cli codex-tui
 
 # Run tests
 cd codex-rs && cargo test -p codex-tui
@@ -115,7 +116,7 @@ Custom cmd      Modified     → Merge, preserve custom
 **Solution**: Run the merge resolver
 
 ```bash
-python3 advanced_merge_resolver.py --file codex-rs/tui/src/slash_command.rs
+python3 scripts/resolve_merge_conflicts.py codex-rs/tui/src/slash_command.rs --rule "codex-rs/tui/src/slash_command.rs=upstream-reinject"
 ```
 
 #### 2. Custom Features Not Detected
@@ -124,10 +125,9 @@ python3 advanced_merge_resolver.py --file codex-rs/tui/src/slash_command.rs
 
 ```bash
 python3 -c "
-from advanced_merge_resolver import MergeConflictResolver
-resolver = MergeConflictResolver()
-features = resolver.identify_custom_features()
-print(features)
+from scripts.resolve_merge_conflicts import choose_strategy, load_rules
+rules = load_rules([])
+print(choose_strategy("codex-rs/tui/src/slash_command.rs", rules))
 "
 ```
 
@@ -163,12 +163,13 @@ if git merge upstream/main --no-edit; then
     echo "Merge successful!"
 else
     echo "Conflicts detected, running resolver..."
-    python3 advanced_merge_resolver.py
+    python3 scripts/upstream_sync.py
 fi
 
 # Step 4: Verify
 echo "[4/4] Verifying custom features..."
-python3 advanced_merge_resolver.py --verify
+git diff --check
+python3 scripts/fast_build.py fast-build --changed-only codex-cli codex-tui
 
 echo "=== Merge Complete ==="
 ```

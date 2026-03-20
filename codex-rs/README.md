@@ -62,12 +62,12 @@ Codex-RSは、依存関係の重い環境から脱却し、**単一のネイテ�
 **Built for speed.**
 
 - **sccache Support**: Optimized for 6-core parallel builds, drastically reducing compilation time.
-- **Atomic Updates**: Smart installation scripts (`fast_build.ps1`) ensuring zero-downtime updates during development.
+- **Atomic Updates**: `just fast-build-install` and `fast_build.ps1` wrap a shared Python pipeline for zero-downtime updates during development.
 
 **スピードを追求**
 
 - **sccacheサポート**: 6コア並列ビルドに最適化されており、コンパイル時間を大幅に短縮。
-- **アトミック更新**: スマートなインストールスクリプト（`fast_build.ps1`）により、開発中のゼロダウンタイム更新を実現。
+- **アトミック更新**: `just fast-build-install` と `fast_build.ps1` が共通Pythonパイプラインを呼び出し、開発中のゼロダウンタイム更新を実現。
 
 ---
 
@@ -100,9 +100,11 @@ For developers who value speed, utilize our optimized PowerShell workflow:
 スピードを重視する開発者向けに、最適化されたPowerShellワークフローを提供しています:
 
 ```powershell
-# Optimized for 6-core parallel processing
-# 6コア並列処理に最適化
-.\fast_build.ps1
+# Default: 6 parallel jobs (override with CODEX_FAST_BUILD_JOBS or --jobs)
+# 既定: 6並列（`CODEX_FAST_BUILD_JOBS` または `--jobs` で上書き）
+just fast-build-install codex-cli codex-tui
+# Windows wrapper
+.\fast_build.ps1 -Task fast-build-install -Targets codex-cli,codex-tui
 ```
 
 ### Standard Usage / 基本的な使い方

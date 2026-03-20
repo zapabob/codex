@@ -130,6 +130,9 @@ releases/*.tar.gz
 # Conversation history (contains potential secrets)
 *.txt
 *.py
+!scripts/fast_build.py
+!scripts/resolve_merge_conflicts.py
+!scripts/upstream_sync.py
 C:\Users\downl\Desktop\codex-main\.specstory\history\2026-01-16_05-43Z-未来のai開発と統合エコシステム.md
 codex-rs/build_error.txt
 codex-rs/build_error.txt
