@@ -5034,16 +5034,14 @@ impl CodexMessageProcessor {
 
     async fn plugin_install(&self, request_id: ConnectionRequestId, params: PluginInstallParams) {
         let PluginInstallParams {
-            marketplace_name,
+            marketplace_path,
             plugin_name,
-            cwd,
         } = params;
 
         let plugins_manager = self.thread_manager.plugins_manager();
         let request = PluginInstallRequest {
             plugin_name,
-            marketplace_name,
-            cwd: cwd.unwrap_or_else(|| self.config.cwd.clone()),
+            marketplace_path,
         };
 
         match plugins_manager.install_plugin(request).await {

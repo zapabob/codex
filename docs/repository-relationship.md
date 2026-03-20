@@ -1,224 +1,151 @@
-# zapabob/codex ↔ openai/codex リポジトリ関係図
+# Repository Relationship: `zapabob/codex` ↔ `openai/codex`
 
-**更新日**: 2025-11-06  
-**状態**: ✅ 同期可能
+## Purpose
 
----
+This repository is operated as a fork that continuously evaluates and selectively imports upstream changes from `openai/codex`. The goal is to make that relationship reproducible, auditable, and machine-readable.
 
-## 📊 リポジトリ構造
+## Canonical Remote Definitions
 
-```
-公式リポジトリ (upstream)
-├── openai/codex
-│   ├── main branch (9a10e80ab)
-│   ├── 600+ feature branches
-│   └── 30+ tags
-│
-│   ⬇️  fork & clean rebuild
-│
-zapabobリポジトリ (origin)
-└── zapabob/codex
-    ├── main branch (2a3ddfd0c)
-    │   ├── 2a3ddfd0c - docs: Git履歴クリーン化完了 & リモート設定完了ログ追加
-    │   ├── 538ef6d50 - chore: Windows kernel driver documentation & scripts update
-    │   └── 25c404686 - feat: Complete Codex implementation - Clean history
-    │
-    └── 独自拡張機能
-        ├── サブエージェント機構
-        ├── Deep Research統合
-        ├── 並列実行オーケストレーション
-        ├── Tauri GUI (3D/4D可視化)
-        └── Windows カーネルドライバー統合
-```
+The repository treats the following remotes as canonical:
 
----
+| Remote | URL | Purpose |
+| --- | --- | --- |
+| `origin` | `https://github.com/zapabob/codex.git` | Fork where custom integration work lands. |
+| `upstream` | `https://github.com/openai/codex.git` | Official source of upstream branch and release tags. |
 
-## 🔗 直線関係
+### Branch Tracking Rule
 
-### 現在の状態
+- The only tracked upstream branch for synchronization is `upstream/main`.
+- The integration target branch in this fork is `origin/main`.
+- Local `main` must track `origin/main`.
 
-```
-upstream/main (openai/codex)
-    9a10e80ab - Add modelReasoningEffort option to TypeScript SDK
-         │
-         ├─ (分岐点)
-         │
-origin/main (zapabob/codex)
-    25c404686 - feat: Complete Codex implementation - Clean history
-         ↓
-    538ef6d50 - chore: Windows kernel driver documentation & scripts update
-         ↓
-    2a3ddfd0c - docs: Git履歴クリーン化完了 & リモート設定完了ログ追加 (HEAD)
-```
+### Tag Tracking Rule
 
-**関係性**: 
-- zapabob/codexは**クリーンな履歴**で再構築
-- 公式リポジトリ(upstream/main)の**最新コミット**から派生
-- **直線的な履歴**（マージなし、コンフリクトなし）
+Upstream tags are tracked under two explicit patterns:
 
----
+1. **Primary release lineage**: `rust-v*`
+2. **Secondary compatibility lineage**: `v*`
 
-## 📈 コミット比較
+The primary lineage is the authoritative release stream for synchronization decisions. The secondary lineage is fetched for historical compatibility and documentation lookup.
 
-| リポジトリ | ブランチ | 最新コミット | コミット数 |
-|-----------|---------|-------------|----------|
-| **openai/codex** | main | 9a10e80ab | 数千+ |
-| **zapabob/codex** | main | 2a3ddfd0c | 3 |
+To avoid ambiguity with local release tags, upstream tags are fetched into `refs/upstream-tags/*`.
 
-**差分**: zapabobは公式から分岐した独自実装を含む
+## Machine-Readable Upstream Intake Record
 
----
+The authoritative intake record is stored in `releases/upstream-sync.json`.
 
-## 🚀 同期方法
+Required fields:
 
-### 1. 公式から最新を取得
+- `remotes.origin.url`
+- `remotes.upstream.url`
+- `remotes.upstream.tracked_branch`
+- `remotes.upstream.release_tag_policy`
+- `sync.target_branch`
+- `sync.merge_strategy`
+- `sync.recorded_at`
+- `sync.source.repository`
+- `sync.source.branch`
+- `sync.source.commit`
+- `sync.source.tag`
+
+### Current Recorded Intake
+
+| Field | Value |
+| --- | --- |
+| `sync.source.repository` | `https://github.com/openai/codex.git` |
+| `sync.source.branch` | `main` |
+| `sync.source.commit` | `668330acc12b8907ecd82bc15148e0a627246783` |
+| `sync.source.tag` | `null` |
+| `sync.recorded_at` | `2026-03-19T20:08:57Z` |
+
+`sync.source.tag` is `null` when the imported upstream commit does not have an exact upstream tag. In that case, the commit hash is the authoritative provenance record.
+
+## Reproducible Sync Workflow
+
+The supported workflow is `scripts/sync-upstream.sh`, with `just` wrappers for convenience.
+
+### Configure only
 
 ```bash
-# 公式リポジトリから最新情報を取得
-git fetch upstream
-
-# 現在の状態を確認
-git log --oneline --graph --decorate --all --max-count=20
+./scripts/sync-upstream.sh --configure-only
 ```
 
-### 2. 公式の変更をマージ
+This command:
+
+- sets or updates `origin` and `upstream`
+- fixes the remote fetch refspecs
+- ensures `main` tracks `origin/main`
+
+### Refresh metadata without merge
 
 ```bash
-# upstream/mainの変更をローカルmainにマージ
-git merge upstream/main
-
-# コンフリクトが発生した場合は解決
-git mergetool
-
-# マージ完了後コミット
-git commit
+./scripts/sync-upstream.sh --dry-run
 ```
 
-### 3. zapabobリポジトリへプッシュ
+This command:
+
+- fetches `origin` and `upstream`
+- refreshes `releases/upstream-sync.json`
+- does not modify the working tree with a merge commit
+
+### Import upstream into `main`
 
 ```bash
-# originにプッシュ
-git push origin main
+./scripts/sync-upstream.sh
 ```
 
----
-
-## ⚠️ 注意事項
-
-### マージ時のコンフリクト可能性
-
-zapabob/codexは独自拡張を多数含むため、以下のファイルでコンフリクトが発生する可能性：
-
-- `codex-rs/core/` - コアオーケストレーション機能
-- `codex-rs/cli/` - CLI拡張
-- `.codex/agents/` - サブエージェント定義
-- `docs/` - ドキュメント
-- `kernel-extensions/` - Windowsカーネルドライバー（公式には存在しない）
-
-**推奨**: 
-1. マージ前にバックアップブランチ作成
-2. 段階的マージ（ファイル単位）
-3. 独自機能は別ブランチで管理
-
----
-
-## 📦 独自拡張機能一覧
-
-zapabob/codexが公式に**追加**した機能：
-
-### 1. サブエージェント機構
-- `.codex/agents/researcher.yaml` - 深層研究エージェント
-- `.codex/agents/code-reviewer.yaml` - コードレビューエージェント
-- `.codex/agents/test-gen.yaml` - テスト生成エージェント
-- `.codex/agents/sec-audit.yaml` - セキュリティ監査エージェント
-
-### 2. オーケストレーション強化
-- `codex-rs/core/src/orchestration/parallel_execution.rs` - 並列実行
-- `codex-rs/core/src/orchestration/resource_manager.rs` - リソース管理
-- `codex-rs/core/src/orchestration/worktree_manager.rs` - Worktree管理
-
-### 3. GUI拡張
-- `codex-rs/tauri-gui/` - Tauri GUI完全実装
-- `gui/` - Next.js GUI
-- `prism-web/` - VR可視化
-
-### 4. Windows統合
-- `kernel-extensions/windows/` - Windowsカーネルドライバー
-- `kernel-extensions/windows/ai_driver/` - AIドライバー
-
-### 5. Deep Research
-- `codex-rs/core/src/research/` - 深層研究機能
-- DuckDuckGo/Brave/Google統合
-
----
-
-## 🔄 同期頻度推奨
-
-| 同期タイミング | 理由 |
-|--------------|-----|
-| **毎週月曜日** | 公式の週次更新を取り込む |
-| **重要な機能追加時** | 公式の新機能を確認 |
-| **セキュリティパッチ時** | 脆弱性修正を即座に適用 |
-
----
-
-## 📝 コマンドクイックリファレンス
+This command is the supported equivalent of:
 
 ```bash
-# リモート確認
-git remote -v
-
-# 公式取得
-git fetch upstream
-
-# 差分確認
-git log --oneline --graph --all --max-count=20
-
-# マージ
-git merge upstream/main
-
-# プッシュ
-git push origin main
-
-# 公式との差分ファイル一覧
-git diff --name-only upstream/main..main
-
-# 公式との差分統計
-git diff --stat upstream/main..main
+git fetch upstream --prune
+git merge --no-ff upstream/main
 ```
 
----
+In addition to the merge, it refreshes the machine-readable intake record.
 
-## 🎯 将来の統合計画
+## Conflict Policy for Custom Extensions
 
-### Phase 1: 公式へのPR準備
-- [ ] 独自機能を独立ブランチに分離
-- [ ] 公式互換性テスト
-- [ ] ドキュメント整備
+The repository maintains path-specific conflict handling rules for custom subsystems.
 
-### Phase 2: PR提出
-- [ ] サブエージェント機構のPR
-- [ ] オーケストレーション強化のPR
-- [ ] Windows統合のPR（オプション）
+| Area | Default decision | Reinjection rule |
+| --- | --- | --- |
+| `codex-rs/deep-research/` | Preserve custom implementation unless upstream ships equivalent research orchestration and provider abstraction. | Adopt upstream interfaces first, then re-inject provider breadth, ranking, or workflow features that remain uniquely valuable. |
+| `codex-rs/supervisor/` | Preserve custom supervision lifecycle logic until upstream provides equivalent orchestration controls. | Prefer upstream lifecycle primitives when equivalent, then re-add only missing resilience, observability, or policy hooks. |
+| `.codex/skills/` | Preserve custom skill catalog and workflow assets. | If upstream adds an equivalent skill or capability, adopt the official packaging/layout and re-inject only custom prompts, templates, or automation that still differentiate the workflow. |
+| Git4D / VR modules | Treat as fork-owned extensions by default because they are outside current upstream scope. | Re-inject only the extension-specific UX or hardware integration once an upstream base exists. |
 
-### Phase 3: 継続的同期
-- [ ] 自動同期CI/CDパイプライン構築
-- [ ] コンフリクト自動解決スクリプト
-- [ ] 定期マージ自動化
+### General Resolution Order
 
----
+1. **Security and correctness first**: upstream security fixes and correctness fixes are accepted before evaluating custom behavior.
+2. **Official base before custom layering**: when upstream offers a sufficient base implementation, land that implementation first.
+3. **Minimal reinjection**: re-apply only the custom delta that provides a verified advantage.
+4. **Preserve provenance**: update `releases/upstream-sync.json`, `CHANGELOG.md`, and release notes whenever upstream intake changes.
 
-## ✅ 現在の状態サマリー
+## Official-Equivalent Adoption Rule
 
-- ✅ リモート設定完了（origin & upstream）
-- ✅ クリーンな履歴構築完了
-- ✅ 大容量ファイル問題解決
-- ✅ 同期準備完了
-- ⏳ 初回マージ未実施（必要に応じて実行）
+The decision rule is:
 
----
+> If the official implementation is functionally equivalent for the supported use case, adopt the official implementation and re-inject only the advantage that the custom implementation uniquely provides.
 
-**最終更新**: 2025-11-06  
-**管理者**: zapabob  
-**ステータス**: 🟢 Active Development
+A change is considered **functionally equivalent** when all of the following are true:
 
+1. The upstream implementation covers the required user-visible behavior.
+2. The upstream implementation satisfies the repository's security and maintenance baseline.
+3. The remaining custom delta can be expressed as a small additive patch, adapter, configuration layer, or follow-up commit.
+
+A custom implementation should remain fork-specific only when at least one of the following is true:
+
+- upstream has no equivalent feature
+- upstream lacks a required integration surface
+- removing the custom implementation would regress a supported workflow
+- the custom feature is intentionally fork-scoped (for example Git4D or VR-specific modules)
+
+## Documentation Rule
+
+Do not describe the repository as merely “officially synced.” Instead, record synchronization using:
+
+- imported upstream tag (or `null`)
+- imported upstream commit hash
+- recorded intake date in UTC
+
+That data must match `releases/upstream-sync.json`.
