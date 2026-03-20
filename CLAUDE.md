@@ -19,6 +19,9 @@ just clippy                     # Lint all crates
 just fix -p <crate>             # Auto-fix clippy issues for a specific crate
 just test                       # Run all tests with cargo-nextest
 just install                    # Fetch dependencies, show active toolchain
+just fast-build [targets]       # Differential build via scripts/fast_build.py
+just fast-build-install         # Differential build + install via scripts/fast_build.py
+just upstream-sync              # Fetch/merge upstream and run resolver
 just codex                      # Run codex from source (cargo run --bin codex)
 just exec "prompt"              # Run codex exec mode
 
@@ -40,11 +43,12 @@ cargo shear                                 # Find unused dependencies
 cargo deny check                            # License/security audit
 ```
 
-### Windows fast-build scripts (from codex-rs/)
+### Cross-platform fast-build tasks
 
 ```powershell
-.\ultra-fast-build-install.ps1   # Fastest incremental build
-.\clean-build-install.ps1        # Clean rebuild
+just fast-build codex-cli codex-tui            # Differential build
+just fast-build-install codex-cli codex-tui    # Differential build + install
+.\fast_build.ps1 -Task fast-build-install     # Windows wrapper around scripts/fast_build.py
 ```
 
 ### Bazel (alternative build system)

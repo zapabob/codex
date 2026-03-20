@@ -106,19 +106,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✅ Added
 
-- **Fast Incremental Build System (`scripts/fast_build.py`)**
+- **Fast Incremental Build System (`scripts/fast_build.py` + `scripts/upstream_sync.py`)**
   - MD5 hash-based change detection for intelligent rebuilds
   - Cargo incremental compilation optimization
   - Parallel build processing with CPU core utilization
   - tqdm-powered progress visualization
-  - Build cache persistence (`.build_cache.pkl`)
+  - Build cache persistence (`.codex-fast-build-cache.json`)
 
-- **Hot Reload Installation System (`scripts/build_and_install.py`)**
+- **Hot Reload Installation System (`scripts/fast_build.py fast-build-install`)**
   - Cross-platform process detection and termination (psutil)
   - Atomic binary replacement with safety checks
   - Platform-specific installation (Windows/macOS/Linux)
   - Installation verification with version checking
-  - PowerShell integration for Windows deployment
+  - PowerShell wrapper (`codex-rs/fast_build.ps1`) plus `just fast-build*` entry points
 
 - **Integrated Release Packaging**
   - GitHub Actions workflow for cross-platform tgz packages
@@ -129,8 +129,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Development Tools Enhancement**
   - `just fast-build` - Quick incremental builds
-  - `just build-install` - Full pipeline execution
-  - `just install-kill` - Direct binary replacement
+  - `just fast-build-install` - Full pipeline execution
+  - `just upstream-sync` - Upstream merge + resolver orchestration
   - Process-safe deployment with zero-downtime updates
 
 ### 🎯 Performance Improvements

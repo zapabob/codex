@@ -1,5 +1,7 @@
 set positional-arguments
 
+python_cmd := if os_family() == "windows" { "py -3" } else { "python3" }
+build_script := "../scripts/fast_build.py"
 # Display help
 help:
     just -l
@@ -59,3 +61,12 @@ build-install-all:
     cargo build --release -p codex-cli -p codex-tui
     cargo install --path cli --force
     cargo install --path tui --force
+
+fast-build *args:
+    {{python_cmd}} {{build_script}} fast-build --changed-only "$@"
+
+fast-build-install *args:
+    {{python_cmd}} {{build_script}} fast-build-install --changed-only "$@"
+
+upstream-sync *args:
+    {{python_cmd}} {{build_script}} upstream-sync "$@"
