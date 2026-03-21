@@ -172,3 +172,6 @@ codex-rs/codex-rs/
 codex-rs/tui/build_errors.txt
 codex-rs/tui/check_output*.txt
 
+*.txt
+*.log
+*.tmp

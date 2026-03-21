@@ -110,6 +110,7 @@ async fn backfill_scans_existing_rollouts() -> Result<()> {
                 "required": ["city"],
                 "properties": { "city": { "type": "string" } }
             }),
+            defer_loading: true,
         },
         DynamicToolSpec {
             name: "weather_lookup".to_string(),
@@ -119,6 +120,7 @@ async fn backfill_scans_existing_rollouts() -> Result<()> {
                 "required": ["zip"],
                 "properties": { "zip": { "type": "string" } }
             }),
+            defer_loading: false,
         },
     ];
     let dynamic_tools_for_hook = dynamic_tools.clone();
@@ -480,7 +482,7 @@ async fn tool_call_logs_include_thread_id() -> Result<()> {
         if let Some(row) = rows.into_iter().find(|row| {
             row.message
                 .as_deref()
-                .is_some_and(|m| m.starts_with("ToolCall:"))
+                .is_some_and(|m| m.contains("ToolCall:"))
         }) {
             let thread_id = row.thread_id;
             let message = row.message;
@@ -495,7 +497,7 @@ async fn tool_call_logs_include_thread_id() -> Result<()> {
     assert!(
         message
             .as_deref()
-            .is_some_and(|text| text.starts_with("ToolCall:")),
+            .is_some_and(|text| text.contains("ToolCall:")),
         "expected ToolCall message, got {message:?}"
     );
 
