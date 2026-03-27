@@ -25,11 +25,18 @@
         },
         "name": {
           "type": "string"
+        },
+        "needsAuth": {
+          "type": "boolean"
+
         }
       },
       "required": [
         "id",
+        "name",
+        "needsAuth"
         "name"
+
       ],
       "type": "object"
     },

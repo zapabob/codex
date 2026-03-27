@@ -3,6 +3,8 @@ use std::path::Path;
 
 use pretty_assertions::assert_eq;
 
+use crate::SpawnedProcess;
+use crate::TerminalSize;
 use crate::combine_output_receivers;
 #[cfg(unix)]
 use crate::pipe::spawn_process_no_stdin_with_inherited_fds;
@@ -11,8 +13,6 @@ use crate::pty::spawn_process_with_inherited_fds;
 use crate::spawn_pipe_process;
 use crate::spawn_pipe_process_no_stdin;
 use crate::spawn_pty_process;
-use crate::SpawnedProcess;
-use crate::TerminalSize;
 
 fn find_python() -> Option<String> {
     for candidate in ["python3", "python"] {
@@ -855,8 +855,7 @@ async fn pty_spawn_with_inherited_fds_supports_resize() -> anyhow::Result<()> {
     let write_end = unsafe { std::fs::File::from_raw_fd(fds[1]) };
 
     let env_map: HashMap<String, String> = std::env::vars().collect();
-    let script =
-        "stty -echo; printf 'start:%s\\n' \"$(stty size)\"; IFS= read _line; printf 'after:%s\\n' \"$(stty size)\"";
+    let script = "stty -echo; printf 'start:%s\\n' \"$(stty size)\"; IFS= read _line; printf 'after:%s\\n' \"$(stty size)\"";
     let spawned = spawn_process_with_inherited_fds(
         "/bin/sh",
         &["-c".to_string(), script.to_string()],

@@ -67,7 +67,9 @@ impl ToolRouter {
             specs
                 .iter()
                 .filter_map(|configured_tool| {
+                    if !codex_code_mode::is_code_mode_nested_tool(configured_tool.spec.name()) {
                     if !is_code_mode_nested_tool(configured_tool.spec.name()) {
+
                         Some(configured_tool.spec.clone())
                     } else {
                         None

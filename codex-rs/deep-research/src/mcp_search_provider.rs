@@ -338,7 +338,7 @@ impl McpSearchProvider {
             });
 
             match client
-                .call_tool("googleSearch".to_string(), Some(arguments), None)
+                .call_tool("googleSearch".to_string(), Some(arguments), None, None)
                 .await
             {
                 Ok(result) => {
@@ -494,7 +494,7 @@ impl McpSearchProvider {
 
         // Call the MCP tool
         let result = client
-            .call_tool(tool_name.to_string(), Some(arguments), None)
+            .call_tool(tool_name.to_string(), Some(arguments), None, None)
             .await
             .context(format!("Failed to call MCP tool: {}", tool_name))?;
 
@@ -558,7 +558,7 @@ impl McpSearchProvider {
             let arguments = json!({ "url": url });
 
             match client
-                .call_tool("fetch_content".to_string(), Some(arguments), None)
+                .call_tool("fetch_content".to_string(), Some(arguments), None, None)
                 .await
             {
                 Ok(result) => {

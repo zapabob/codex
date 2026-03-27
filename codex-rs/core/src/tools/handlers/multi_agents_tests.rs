@@ -7,6 +7,7 @@ use crate::codex::make_session_and_context;
 use crate::config::DEFAULT_AGENT_MAX_DEPTH;
 use crate::config::types::ShellEnvironmentPolicy;
 use crate::features::Feature;
+
 use crate::function_tool::FunctionCallError;
 use crate::protocol::AskForApproval;
 use crate::protocol::FileSystemSandboxPolicy;
@@ -17,6 +18,7 @@ use crate::protocol::SessionSource;
 use crate::protocol::SubAgentSource;
 use crate::tools::context::ToolOutput;
 use crate::turn_diff_tracker::TurnDiffTracker;
+
 use codex_protocol::ThreadId;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::FunctionCallOutputBody;
@@ -56,6 +58,7 @@ fn function_payload(args: serde_json::Value) -> ToolPayload {
         arguments: args.to_string(),
     }
 }
+
 
 fn thread_manager() -> ThreadManager {
     ThreadManager::with_models_provider_for_tests(
@@ -196,6 +199,7 @@ async fn spawn_agent_uses_explorer_role_and_preserves_approval_policy() {
     let result: SpawnAgentResult =
         serde_json::from_str(&content).expect("spawn_agent result should be json");
     let agent_id = agent_id(&result.agent_id).expect("agent_id should be valid");
+
     assert!(
         result
             .nickname
@@ -213,6 +217,7 @@ async fn spawn_agent_uses_explorer_role_and_preserves_approval_policy() {
 }
 
 #[tokio::test]
+
 async fn spawn_agent_errors_when_manager_dropped() {
     let (session, turn) = make_session_and_context().await;
     let invocation = invocation(
@@ -231,6 +236,7 @@ async fn spawn_agent_errors_when_manager_dropped() {
 }
 
 #[tokio::test]
+
 async fn spawn_agent_reapplies_runtime_sandbox_after_role_config() {
     fn pick_allowed_sandbox_policy(
         constraint: &crate::config::Constrained<SandboxPolicy>,
@@ -294,6 +300,7 @@ async fn spawn_agent_reapplies_runtime_sandbox_after_role_config() {
     let result: SpawnAgentResult =
         serde_json::from_str(&content).expect("spawn_agent result should be json");
     let agent_id = agent_id(&result.agent_id).expect("agent_id should be valid");
+
     assert!(
         result
             .nickname
@@ -334,6 +341,7 @@ async fn spawn_agent_rejects_when_depth_limit_exceeded() {
     turn.session_source = SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
         parent_thread_id: session.conversation_id,
         depth: max_depth,
+
         agent_nickname: None,
         agent_role: None,
     });
@@ -373,6 +381,7 @@ async fn spawn_agent_allows_depth_up_to_configured_max_depth() {
     turn.session_source = SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
         parent_thread_id: session.conversation_id,
         depth: DEFAULT_AGENT_MAX_DEPTH,
+
         agent_nickname: None,
         agent_role: None,
     });
@@ -408,6 +417,7 @@ async fn send_input_rejects_empty_message() {
         Arc::new(turn),
         "send_input",
         function_payload(json!({"id": ThreadId::new().to_string(), "message": ""})),
+
     );
     let Err(err) = SendInputHandler.handle(invocation).await else {
         panic!("empty message should be rejected");
@@ -427,6 +437,7 @@ async fn send_input_rejects_when_message_and_items_are_both_set() {
         "send_input",
         function_payload(json!({
             "id": ThreadId::new().to_string(),
+
             "message": "hello",
             "items": [{"type": "mention", "name": "drive", "path": "app://drive"}]
         })),
@@ -450,6 +461,7 @@ async fn send_input_rejects_invalid_id() {
         Arc::new(turn),
         "send_input",
         function_payload(json!({"id": "not-a-uuid", "message": "hi"})),
+
     );
     let Err(err) = SendInputHandler.handle(invocation).await else {
         panic!("invalid id should be rejected");
@@ -458,6 +470,7 @@ async fn send_input_rejects_invalid_id() {
         panic!("expected respond-to-model error");
     };
     assert!(msg.starts_with("invalid agent id not-a-uuid:"));
+
 }
 
 #[tokio::test]
@@ -471,6 +484,7 @@ async fn send_input_reports_missing_agent() {
         Arc::new(turn),
         "send_input",
         function_payload(json!({"id": agent_id.to_string(), "message": "hi"})),
+
     );
     let Err(err) = SendInputHandler.handle(invocation).await else {
         panic!("missing agent should be reported");
@@ -495,6 +509,7 @@ async fn send_input_interrupts_before_prompt() {
         "send_input",
         function_payload(json!({
             "id": agent_id.to_string(),
+
             "message": "hi",
             "interrupt": true
         })),
@@ -534,6 +549,7 @@ async fn send_input_accepts_structured_items() {
         "send_input",
         function_payload(json!({
             "id": agent_id.to_string(),
+
             "items": [
                 {"type": "mention", "name": "drive", "path": "app://google_drive"},
                 {"type": "text", "text": "read the folder"}
@@ -704,6 +720,7 @@ async fn resume_agent_restores_closed_agent_and_accepts_send_input() {
         turn,
         "send_input",
         function_payload(json!({"id": agent_id.to_string(), "message": "hello"})),
+
     );
     let output = SendInputHandler
         .handle(send_invocation)
@@ -736,6 +753,7 @@ async fn resume_agent_rejects_when_depth_limit_exceeded() {
     turn.session_source = SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
         parent_thread_id: session.conversation_id,
         depth: max_depth,
+
         agent_nickname: None,
         agent_role: None,
     });
@@ -766,6 +784,7 @@ async fn wait_agent_rejects_non_positive_timeout() {
         "wait_agent",
         function_payload(json!({
             "ids": [ThreadId::new().to_string()],
+
             "timeout_ms": 0
         })),
     );
@@ -780,12 +799,14 @@ async fn wait_agent_rejects_non_positive_timeout() {
 
 #[tokio::test]
 async fn wait_agent_rejects_invalid_id() {
+
     let (session, turn) = make_session_and_context().await;
     let invocation = invocation(
         Arc::new(session),
         Arc::new(turn),
         "wait_agent",
         function_payload(json!({"ids": ["invalid"]})),
+
     );
     let Err(err) = WaitAgentHandler.handle(invocation).await else {
         panic!("invalid id should be rejected");
@@ -798,12 +819,14 @@ async fn wait_agent_rejects_invalid_id() {
 
 #[tokio::test]
 async fn wait_agent_rejects_empty_ids() {
+
     let (session, turn) = make_session_and_context().await;
     let invocation = invocation(
         Arc::new(session),
         Arc::new(turn),
         "wait_agent",
         function_payload(json!({"ids": []})),
+
     );
     let Err(err) = WaitAgentHandler.handle(invocation).await else {
         panic!("empty ids should be rejected");
@@ -811,10 +834,12 @@ async fn wait_agent_rejects_empty_ids() {
     assert_eq!(
         err,
         FunctionCallError::RespondToModel("ids must be non-empty".to_string())
+
     );
 }
 
 #[tokio::test]
+
 async fn wait_agent_returns_not_found_for_missing_agents() {
     let (mut session, turn) = make_session_and_context().await;
     let manager = thread_manager();
@@ -827,6 +852,7 @@ async fn wait_agent_returns_not_found_for_missing_agents() {
         "wait_agent",
         function_payload(json!({
             "ids": [id_a.to_string(), id_b.to_string()],
+
             "timeout_ms": 1000
         })),
     );
@@ -841,6 +867,7 @@ async fn wait_agent_returns_not_found_for_missing_agents() {
         result,
         wait::WaitAgentResult {
             status: HashMap::from([(id_a, AgentStatus::NotFound), (id_b, AgentStatus::NotFound),]),
+
             timed_out: false
         }
     );
@@ -861,6 +888,7 @@ async fn wait_agent_times_out_when_status_is_not_final() {
         "wait_agent",
         function_payload(json!({
             "ids": [agent_id.to_string()],
+
             "timeout_ms": MIN_WAIT_TIMEOUT_MS
         })),
     );
@@ -901,6 +929,7 @@ async fn wait_agent_clamps_short_timeouts_to_minimum() {
         "wait_agent",
         function_payload(json!({
             "ids": [agent_id.to_string()],
+
             "timeout_ms": 10
         })),
     );
@@ -951,6 +980,7 @@ async fn wait_agent_returns_final_status_without_timeout() {
         "wait_agent",
         function_payload(json!({
             "ids": [agent_id.to_string()],
+
             "timeout_ms": 1000
         })),
     );
@@ -965,6 +995,7 @@ async fn wait_agent_returns_final_status_without_timeout() {
         result,
         wait::WaitAgentResult {
             status: HashMap::from([(agent_id, AgentStatus::Shutdown)]),
+
             timed_out: false
         }
     );
@@ -972,6 +1003,7 @@ async fn wait_agent_returns_final_status_without_timeout() {
 }
 
 #[tokio::test]
+
 async fn close_agent_submits_shutdown_and_returns_previous_status() {
     let (mut session, turn) = make_session_and_context().await;
     let manager = thread_manager();
@@ -986,6 +1018,7 @@ async fn close_agent_submits_shutdown_and_returns_previous_status() {
         Arc::new(turn),
         "close_agent",
         function_payload(json!({"id": agent_id.to_string()})),
+
     );
     let output = CloseAgentHandler
         .handle(invocation)
@@ -1038,12 +1071,14 @@ async fn tool_handlers_cascade_close_and_resume_and_keep_explicitly_closed_subtr
     let child_result: serde_json::Value =
         serde_json::from_str(&child_content).expect("child spawn result should be json");
     let child_thread_id = agent_id(
+
         child_result
             .get("agent_id")
             .and_then(serde_json::Value::as_str)
             .expect("child spawn result should include agent_id"),
     )
     .expect("child agent_id should be valid");
+
     assert_eq!(child_success, Some(true));
 
     let child_thread = manager
@@ -1064,12 +1099,14 @@ async fn tool_handlers_cascade_close_and_resume_and_keep_explicitly_closed_subtr
     let grandchild_result: serde_json::Value =
         serde_json::from_str(&grandchild_content).expect("grandchild spawn result should be json");
     let grandchild_thread_id = agent_id(
+
         grandchild_result
             .get("agent_id")
             .and_then(serde_json::Value::as_str)
             .expect("grandchild spawn result should include agent_id"),
     )
     .expect("grandchild agent_id should be valid");
+
     assert_eq!(grandchild_success, Some(true));
 
     let close_output = CloseAgentHandler
@@ -1078,6 +1115,7 @@ async fn tool_handlers_cascade_close_and_resume_and_keep_explicitly_closed_subtr
             parent_session.new_default_turn().await,
             "close_agent",
             function_payload(json!({"id": child_thread_id.to_string()})),
+
         ))
         .await
         .expect("close_agent should close the child subtree");
@@ -1130,6 +1168,7 @@ async fn tool_handlers_cascade_close_and_resume_and_keep_explicitly_closed_subtr
             parent_session.new_default_turn().await,
             "close_agent",
             function_payload(json!({"id": child_thread_id.to_string()})),
+
         ))
         .await
         .expect("close_agent should be repeatable for the child subtree");

@@ -16,13 +16,14 @@ use crate::app_event::AppEvent;
 use crate::app_server_session::AppServerSession;
 use crate::app_server_session::app_server_rate_limit_snapshot_to_core;
 use crate::app_server_session::status_account_display_from_auth_mode;
-use crate::local_chatgpt_auth::load_local_chatgpt_auth;
 use codex_app_server_client::AppServerEvent;
 use codex_app_server_protocol::AuthMode;
-use codex_app_server_protocol::ChatgptAuthTokensRefreshParams;
 use codex_app_server_protocol::JSONRPCErrorError;
+use crate::local_chatgpt_auth::load_local_chatgpt_auth;
+use codex_app_server_protocol::ChatgptAuthTokensRefreshParams;
 use codex_app_server_protocol::JSONRPCNotification;
 use codex_app_server_protocol::RequestId;
+
 use codex_app_server_protocol::ServerNotification;
 use codex_app_server_protocol::ServerRequest;
 #[cfg(test)]
@@ -106,10 +107,9 @@ use codex_protocol::protocol::TurnAbortedEvent;
 use codex_protocol::protocol::TurnCompleteEvent;
 #[cfg(test)]
 use codex_protocol::protocol::TurnStartedEvent;
-use serde_json::Value;
 #[cfg(test)]
 use std::time::Duration;
-
+use serde_json::Value;
 #[derive(Debug, PartialEq, Eq)]
 enum LegacyThreadNotification {
     Warning(String),
@@ -133,6 +133,10 @@ impl App {
                 self.handle_server_notification_event(app_server_client, notification)
                     .await;
             }
+            AppServerEvent::LegacyNotification(_) => {
+                tracing::debug!("ignoring legacy app-server notification in tui_app_server");
+            }
+            AppServerEvent::ServerRequest(request) => {
             AppServerEvent::LegacyNotification(notification) => {
                 if let Some((thread_id, legacy_notification)) =
                     legacy_thread_notification(notification)
@@ -148,15 +152,9 @@ impl App {
                             }
                         }
                         LegacyThreadNotification::Rollback { num_turns } => {
-                            if self.primary_thread_id == Some(thread_id)
-                                || self.primary_thread_id.is_none()
-                            {
                                 self.enqueue_primary_thread_legacy_rollback(num_turns).await
-                            } else {
                                 self.enqueue_thread_legacy_rollback(thread_id, num_turns)
                                     .await
-                            }
-                        }
                     };
                     if let Err(err) = result {
                         tracing::warn!("failed to enqueue app-server legacy notification: {err}");
@@ -164,8 +162,6 @@ impl App {
                 } else {
                     tracing::debug!("ignoring legacy app-server notification in tui_app_server");
                 }
-            }
-            AppServerEvent::ServerRequest(request) => {
                 if let ServerRequest::ChatgptAuthTokensRefresh { request_id, params } = request {
                     self.handle_chatgpt_auth_tokens_refresh_request(
                         app_server_client,
@@ -174,7 +170,7 @@ impl App {
                     )
                     .await;
                     return;
-                }
+
                 self.handle_server_request_event(app_server_client, request)
                     .await;
             }
@@ -293,7 +289,6 @@ impl App {
             tracing::warn!("failed to enqueue app-server request: {err}");
         }
     }
-
     async fn handle_chatgpt_auth_tokens_refresh_request(
         &mut self,
         app_server_client: &AppServerSession,
@@ -310,7 +305,6 @@ impl App {
             )
         })
         .await;
-
         match result {
             Ok(Ok(response)) => {
                 let response = serde_json::to_value(response).map_err(|err| {
@@ -329,11 +323,7 @@ impl App {
                         self.chat_widget.add_error_message(err.clone());
                         if let Err(reject_err) = self
                             .reject_app_server_request(app_server_client, request_id, err)
-                            .await
-                        {
                             tracing::warn!("{reject_err}");
-                        }
-                    }
                 }
             }
             Ok(Err(err)) => {
@@ -343,18 +333,10 @@ impl App {
                     .await
                 {
                     tracing::warn!("{reject_err}");
-                }
-            }
             Err(err) => {
                 let message = format!("chatgpt auth refresh task failed: {err}");
                 self.chat_widget.add_error_message(message.clone());
-                if let Err(reject_err) = self
                     .reject_app_server_request(app_server_client, request_id, message)
-                    .await
-                {
-                    tracing::warn!("{reject_err}");
-                }
-            }
         }
     }
 
@@ -482,6 +464,10 @@ fn server_notification_thread_target(
         ServerNotification::ThreadRealtimeItemAdded(notification) => {
             Some(notification.thread_id.as_str())
         }
+        ServerNotification::ThreadRealtimeTranscriptUpdated(notification) => {
+            Some(notification.thread_id.as_str())
+        }
+
         ServerNotification::ThreadRealtimeOutputAudioDelta(notification) => {
             Some(notification.thread_id.as_str())
         }
@@ -492,6 +478,8 @@ fn server_notification_thread_target(
             Some(notification.thread_id.as_str())
         }
         ServerNotification::SkillsChanged(_)
+        | ServerNotification::McpServerStatusUpdated(_)
+
         | ServerNotification::McpServerOauthLoginCompleted(_)
         | ServerNotification::AccountUpdated(_)
         | ServerNotification::AccountRateLimitsUpdated(_)
@@ -570,7 +558,6 @@ fn legacy_thread_notification(
         .method
         .strip_prefix("codex/event/")
         .unwrap_or(&notification.method);
-
     let Value::Object(mut params) = notification.params? else {
         return None;
     };
@@ -579,7 +566,6 @@ fn legacy_thread_notification(
         .and_then(|value| serde_json::from_value::<String>(value).ok())
         .and_then(|value| ThreadId::from_string(&value).ok())?;
     let msg = params.get("msg").and_then(Value::as_object)?;
-
     match method {
         "warning" => {
             let message = msg
@@ -587,20 +573,16 @@ fn legacy_thread_notification(
                 .and_then(Value::as_str)
                 .zip(msg.get("message"))
                 .and_then(|(kind, message)| (kind == "warning").then_some(message))
-                .and_then(Value::as_str)
                 .map(ToOwned::to_owned)?;
             Some((thread_id, LegacyThreadNotification::Warning(message)))
         }
         "thread_rolled_back" => {
             let num_turns = msg
-                .get("type")
-                .and_then(Value::as_str)
                 .zip(msg.get("num_turns"))
                 .and_then(|(kind, num_turns)| (kind == "thread_rolled_back").then_some(num_turns))
                 .and_then(Value::as_u64)
                 .and_then(|num_turns| u32::try_from(num_turns).ok())?;
             Some((thread_id, LegacyThreadNotification::Rollback { num_turns }))
-        }
         _ => None,
     }
 }
@@ -994,12 +976,16 @@ fn thread_item_to_core(item: &ThreadItem) -> Option<TurnItem> {
             status,
             revised_prompt,
             result,
+            saved_path,
+
         } => Some(TurnItem::ImageGeneration(ImageGenerationItem {
             id: id.clone(),
             status: status.clone(),
             revised_prompt: revised_prompt.clone(),
             result: result.clone(),
+            saved_path: saved_path.clone(),
             saved_path: None,
+
         })),
         ThreadItem::ContextCompaction { id } => {
             Some(TurnItem::ContextCompaction(ContextCompactionItem {
@@ -1151,7 +1137,6 @@ fn split_command_string(command: &str) -> Vec<String> {
 #[cfg(test)]
 mod refresh_tests {
     use super::*;
-
     use base64::Engine;
     use chrono::Utc;
     use codex_app_server_protocol::AuthMode;
@@ -1163,14 +1148,12 @@ mod refresh_tests {
     use serde::Serialize;
     use serde_json::json;
     use tempfile::TempDir;
-
     fn fake_jwt(account_id: &str, plan_type: &str) -> String {
         #[derive(Serialize)]
         struct Header {
             alg: &'static str,
             typ: &'static str,
         }
-
         let header = Header {
             alg: "none",
             typ: "JWT",
@@ -1188,7 +1171,6 @@ mod refresh_tests {
         let signature_b64 = encode(b"sig");
         format!("{header_b64}.{payload_b64}.{signature_b64}")
     }
-
     fn write_chatgpt_auth(codex_home: &std::path::Path) {
         let id_token = fake_jwt("workspace-1", "business");
         let access_token = fake_jwt("workspace-1", "business");
@@ -1205,57 +1187,34 @@ mod refresh_tests {
                     account_id: Some("workspace-1".to_string()),
                 }),
                 last_refresh: Some(Utc::now()),
-            },
             AuthCredentialsStoreMode::File,
         )
         .expect("chatgpt auth should save");
-    }
-
     #[test]
     fn refresh_request_uses_local_chatgpt_auth() {
         let codex_home = TempDir::new().expect("tempdir");
         write_chatgpt_auth(codex_home.path());
-
         let response = resolve_chatgpt_auth_tokens_refresh_response(
             codex_home.path(),
-            AuthCredentialsStoreMode::File,
             Some("workspace-1"),
             &ChatgptAuthTokensRefreshParams {
                 reason: codex_app_server_protocol::ChatgptAuthTokensRefreshReason::Unauthorized,
                 previous_account_id: Some("workspace-1".to_string()),
-            },
-        )
         .expect("refresh response should resolve");
-
         assert_eq!(response.chatgpt_account_id, "workspace-1");
         assert_eq!(response.chatgpt_plan_type.as_deref(), Some("business"));
         assert!(!response.access_token.is_empty());
-    }
-
-    #[test]
     fn refresh_request_rejects_account_mismatch() {
-        let codex_home = TempDir::new().expect("tempdir");
-        write_chatgpt_auth(codex_home.path());
-
         let err = resolve_chatgpt_auth_tokens_refresh_response(
-            codex_home.path(),
-            AuthCredentialsStoreMode::File,
-            Some("workspace-1"),
-            &ChatgptAuthTokensRefreshParams {
-                reason: codex_app_server_protocol::ChatgptAuthTokensRefreshReason::Unauthorized,
                 previous_account_id: Some("workspace-2".to_string()),
-            },
-        )
         .expect_err("mismatched account should fail");
-
         assert_eq!(
             err,
             "local ChatGPT auth refresh account mismatch: expected `workspace-2`, got `workspace-1`"
         );
-    }
 }
-
 #[cfg(test)]
+
 fn app_server_web_search_action_to_core(
     action: codex_app_server_protocol::WebSearchAction,
 ) -> Option<codex_protocol::models::WebSearchAction> {
@@ -1284,9 +1243,10 @@ fn app_server_codex_error_info_to_core(
 
 #[cfg(test)]
 mod tests {
-    use super::LegacyThreadNotification;
     use super::command_execution_started_event;
+    use super::LegacyThreadNotification;
     use super::legacy_thread_notification;
+
     use super::server_notification_thread_events;
     use super::thread_snapshot_events;
     use super::turn_snapshot_events;
@@ -1299,6 +1259,7 @@ mod tests {
     use codex_app_server_protocol::ItemCompletedNotification;
     use codex_app_server_protocol::ItemStartedNotification;
     use codex_app_server_protocol::JSONRPCNotification;
+
     use codex_app_server_protocol::ReasoningSummaryTextDeltaNotification;
     use codex_app_server_protocol::ServerNotification;
     use codex_app_server_protocol::Thread;
@@ -1319,10 +1280,10 @@ mod tests {
     use codex_protocol::protocol::TurnAbortReason;
     use codex_protocol::protocol::TurnAbortedEvent;
     use pretty_assertions::assert_eq;
-    use serde_json::json;
     use std::path::PathBuf;
 
     #[test]
+    use serde_json::json;
     fn legacy_warning_notification_extracts_thread_id_and_message() {
         let thread_id = ThreadId::new();
         let warning = legacy_thread_notification(JSONRPCNotification {
@@ -1336,7 +1297,6 @@ mod tests {
                 },
             })),
         });
-
         assert_eq!(
             warning,
             Some((
@@ -1345,32 +1305,14 @@ mod tests {
             ))
         );
     }
-
-    #[test]
     fn legacy_thread_rollback_notification_extracts_thread_id_and_turn_count() {
-        let thread_id = ThreadId::new();
         let rollback = legacy_thread_notification(JSONRPCNotification {
             method: "codex/event/thread_rolled_back".to_string(),
-            params: Some(json!({
-                "conversationId": thread_id.to_string(),
-                "id": "event-1",
-                "msg": {
                     "type": "thread_rolled_back",
                     "num_turns": 2,
-                },
-            })),
-        });
-
-        assert_eq!(
             rollback,
-            Some((
-                thread_id,
                 LegacyThreadNotification::Rollback { num_turns: 2 }
-            ))
-        );
-    }
 
-    #[test]
     fn bridges_completed_agent_messages_from_server_notifications() {
         let thread_id = "019cee8c-b993-7e33-88c0-014d4e62612d".to_string();
         let turn_id = "019cee8c-b9b4-7f10-a1b0-38caa876a012".to_string();
@@ -1849,6 +1791,8 @@ mod tests {
                         status: "completed".to_string(),
                         revised_prompt: Some("diagram".to_string()),
                         result: "image.png".to_string(),
+                        saved_path: None,
+
                     },
                     ThreadItem::ContextCompaction {
                         id: "compact-1".to_string(),

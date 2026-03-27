@@ -1,4 +1,5 @@
 use crate::agent::AgentStatus;
+use crate::agent::guards::AgentMetadata;
 use crate::agent::guards::Guards;
 use crate::agent::role::DEFAULT_ROLE_NAME;
 use crate::agent::role::resolve_role_config;
@@ -7,6 +8,7 @@ use crate::codex_thread::ThreadConfigSnapshot;
 use crate::error::CodexErr;
 use crate::error::Result as CodexResult;
 use crate::features::Feature;
+
 use crate::find_archived_thread_path_by_id_str;
 use crate::find_thread_path_by_id_str;
 use crate::rollout::RolloutRecorder;
@@ -15,6 +17,8 @@ use crate::session_prefix::format_subagent_notification_message;
 use crate::shell_snapshot::ShellSnapshot;
 use crate::state_db;
 use crate::thread_manager::ThreadManagerState;
+use codex_features::Feature;
+use codex_protocol::AgentPath;
 use codex_protocol::ThreadId;
 use codex_protocol::models::FunctionCallOutputPayload;
 use codex_protocol::models::ResponseItem;
@@ -39,6 +43,13 @@ const FORKED_SPAWN_AGENT_OUTPUT_MESSAGE: &str = "You are the newly spawned agent
 #[derive(Clone, Debug, Default)]
 pub(crate) struct SpawnAgentOptions {
     pub(crate) fork_parent_spawn_call_id: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct LiveAgent {
+    pub(crate) thread_id: ThreadId,
+    pub(crate) metadata: AgentMetadata,
+    pub(crate) status: AgentStatus,
 }
 
 fn default_agent_nickname_list() -> Vec<&'static str> {
@@ -69,9 +80,9 @@ fn agent_nickname_candidates(
 /// Control-plane handle for multi-agent operations.
 /// `AgentControl` is held by each session (via `SessionServices`). It provides capability to
 /// spawn new agents and the inter-agent communication layer.
-/// An `AgentControl` instance is shared per "user session" which means the same `AgentControl`
-/// is used for every sub-agent spawned by Codex. By doing so, we make sure the guards are
-/// scoped to a user session.
+/// An `AgentControl` instance is intended to be created at most once per root thread/session
+/// tree. That same `AgentControl` is then shared with every sub-agent spawned from that root,
+/// which keeps the guards scoped to that root thread rather than the entire `ThreadManager`.
 #[derive(Clone, Default)]
 pub(crate) struct AgentControl {
     /// Weak handle back to the global thread registry/state.
@@ -97,17 +108,30 @@ impl AgentControl {
         items: Vec<UserInput>,
         session_source: Option<SessionSource>,
     ) -> CodexResult<ThreadId> {
-        self.spawn_agent_with_options(config, items, session_source, SpawnAgentOptions::default())
-            .await
+        Ok(self
+            .spawn_agent_internal(config, items, session_source, SpawnAgentOptions::default())
+            .await?
+            .thread_id)
     }
 
-    pub(crate) async fn spawn_agent_with_options(
+    pub(crate) async fn spawn_agent_with_metadata(
         &self,
         config: crate::config::Config,
         items: Vec<UserInput>,
         session_source: Option<SessionSource>,
         options: SpawnAgentOptions,
-    ) -> CodexResult<ThreadId> {
+    ) -> CodexResult<LiveAgent> {
+        self.spawn_agent_internal(config, items, session_source, options)
+            .await
+    }
+
+    async fn spawn_agent_internal(
+        &self,
+        config: crate::config::Config,
+        items: Vec<UserInput>,
+        session_source: Option<SessionSource>,
+        options: SpawnAgentOptions,
+    ) -> CodexResult<LiveAgent> {
         let state = self.upgrade()?;
         let mut reservation = self.state.reserve_spawn_slot(config.agent_max_threads)?;
         let inherited_shell_snapshot = self
@@ -117,24 +141,26 @@ impl AgentControl {
             .inherited_exec_policy_for_source(&state, session_source.as_ref(), &config)
             .await;
         let session_source = match session_source {
+
             Some(SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
                 parent_thread_id,
                 depth,
+                agent_path,
                 agent_role,
                 ..
             })) => {
-                let candidate_names = agent_nickname_candidates(&config, agent_role.as_deref());
-                let candidate_name_refs: Vec<&str> =
-                    candidate_names.iter().map(String::as_str).collect();
-                let agent_nickname = reservation.reserve_agent_nickname(&candidate_name_refs)?;
-                Some(SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
+                let (session_source, agent_metadata) = self.prepare_thread_spawn(
+                    &mut reservation,
+                    &config,
                     parent_thread_id,
                     depth,
-                    agent_nickname: Some(agent_nickname),
+                    agent_path,
                     agent_role,
-                }))
+                    /*preferred_agent_nickname*/ None,
+                )?;
+                (Some(session_source), agent_metadata)
             }
-            other => other,
+            other => (other, AgentMetadata::default()),
         };
         let notification_source = session_source.clone();
 
@@ -217,7 +243,8 @@ impl AgentControl {
             }
             None => state.spawn_new_thread(config, self.clone()).await?,
         };
-        reservation.commit(new_thread.thread_id);
+        agent_metadata.agent_id = Some(new_thread.thread_id);
+        reservation.commit(agent_metadata.clone());
 
         // Notify a new thread has been created. This notification will be processed by clients
         // to subscribe or drain this newly created thread.
@@ -234,7 +261,24 @@ impl AgentControl {
         self.send_input(new_thread.thread_id, items).await?;
         self.maybe_start_completion_watcher(new_thread.thread_id, notification_source);
 
-        Ok(new_thread.thread_id)
+
+        self.send_input(new_thread.thread_id, items).await?;
+        let child_reference = agent_metadata
+            .agent_path
+            .as_ref()
+            .map(ToString::to_string)
+            .unwrap_or_else(|| new_thread.thread_id.to_string());
+        self.maybe_start_completion_watcher(
+            new_thread.thread_id,
+            notification_source,
+            child_reference,
+        );
+
+        Ok(LiveAgent {
+            thread_id: new_thread.thread_id,
+            metadata: agent_metadata,
+            status: self.get_status(new_thread.thread_id).await,
+        })
     }
 
     /// Resume an existing agent thread from a recorded rollout file.
@@ -283,6 +327,7 @@ impl AgentControl {
                         SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
                             parent_thread_id,
                             depth: child_depth,
+
                             agent_nickname: None,
                             agent_role: None,
                         });
@@ -324,14 +369,14 @@ impl AgentControl {
         }
         let state = self.upgrade()?;
         let mut reservation = self.state.reserve_spawn_slot(config.agent_max_threads)?;
-        let session_source = match session_source {
+        let (session_source, agent_metadata) = match session_source {
             SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
                 parent_thread_id,
                 depth,
-                ..
+                agent_path,
+                agent_role: _,
+                agent_nickname: _,
             }) => {
-                // Collab resume callers rebuild a placeholder ThreadSpawn source. Rehydrate the
-                // stored nickname/role from sqlite when available; otherwise leave both unset.
                 let (resumed_agent_nickname, resumed_agent_role) =
                     if let Some(state_db_ctx) = state_db::get_state_db(&config).await {
                         match state_db_ctx.get_thread(thread_id).await {
@@ -341,27 +386,17 @@ impl AgentControl {
                     } else {
                         (None, None)
                     };
-                let reserved_agent_nickname = resumed_agent_nickname
-                    .as_deref()
-                    .map(|agent_nickname| {
-                        let candidate_names =
-                            agent_nickname_candidates(&config, resumed_agent_role.as_deref());
-                        let candidate_name_refs: Vec<&str> =
-                            candidate_names.iter().map(String::as_str).collect();
-                        reservation.reserve_agent_nickname_with_preference(
-                            &candidate_name_refs,
-                            Some(agent_nickname),
-                        )
-                    })
-                    .transpose()?;
-                SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
+                self.prepare_thread_spawn(
+                    &mut reservation,
+                    &config,
                     parent_thread_id,
                     depth,
-                    agent_nickname: reserved_agent_nickname,
-                    agent_role: resumed_agent_role,
-                })
+                    agent_path,
+                    resumed_agent_role,
+                    resumed_agent_nickname,
+                )?
             }
-            other => other,
+            other => (other, AgentMetadata::default()),
         };
         let notification_source = session_source.clone();
         let inherited_shell_snapshot = self
@@ -393,13 +428,16 @@ impl AgentControl {
                 inherited_exec_policy,
             )
             .await?;
-        reservation.commit(resumed_thread.thread_id);
+        let mut agent_metadata = agent_metadata;
+        agent_metadata.agent_id = Some(resumed_thread.thread_id);
+        reservation.commit(agent_metadata.clone());
         // Resumed threads are re-registered in-memory and need the same listener
         // attachment path as freshly spawned threads.
         state.notify_thread_created(resumed_thread.thread_id);
         self.maybe_start_completion_watcher(
             resumed_thread.thread_id,
             Some(notification_source.clone()),
+
         );
         self.persist_thread_spawn_edge_for_source(
             resumed_thread.thread.as_ref(),
@@ -500,21 +538,58 @@ impl AgentControl {
         thread.agent_status().await
     }
 
-    pub(crate) async fn get_agent_nickname_and_role(
+    pub(crate) fn register_session_root(
+        &self,
+        current_thread_id: ThreadId,
+        current_session_source: &SessionSource,
+    ) {
+        if thread_spawn_parent_thread_id(current_session_source).is_none() {
+            self.state.register_root_thread(current_thread_id);
+        }
+    }
+
+    pub(crate) fn get_agent_metadata(&self, agent_id: ThreadId) -> Option<AgentMetadata> {
+        self.state.agent_metadata_for_thread(agent_id)
+    }
+
+    pub(crate) async fn get_agent_config_snapshot(
         &self,
         agent_id: ThreadId,
-    ) -> Option<(Option<String>, Option<String>)> {
+    ) -> Option<ThreadConfigSnapshot> {
         let Ok(state) = self.upgrade() else {
             return None;
         };
         let Ok(thread) = state.get_thread(agent_id).await else {
             return None;
         };
-        let session_source = thread.config_snapshot().await.session_source;
-        Some((
-            session_source.get_nickname(),
-            session_source.get_agent_role(),
-        ))
+        Some(thread.config_snapshot().await)
+    }
+
+    pub(crate) async fn resolve_agent_reference(
+        &self,
+        _current_thread_id: ThreadId,
+        current_session_source: &SessionSource,
+        agent_reference: &str,
+    ) -> CodexResult<ThreadId> {
+        let current_agent_path = current_session_source
+            .get_agent_path()
+            .unwrap_or_else(AgentPath::root);
+        let agent_path = current_agent_path
+            .resolve(agent_reference)
+            .map_err(CodexErr::UnsupportedOperation)?;
+        if agent_path.is_root() {
+            return Err(CodexErr::UnsupportedOperation(
+                "root is not a spawned agent".to_string(),
+            ));
+        }
+
+        if let Some(thread_id) = self.state.agent_id_for_path(&agent_path) {
+            return Ok(thread_id);
+        }
+        Err(CodexErr::UnsupportedOperation(format!(
+            "live agent path `{}` not found",
+            agent_path.as_str()
+        )))
     }
 
     pub(crate) async fn get_agent_config_snapshot(
@@ -562,6 +637,7 @@ impl AgentControl {
             .into_iter()
             .map(|(thread_id, nickname)| {
                 format_subagent_context_line(&thread_id.to_string(), nickname.as_deref())
+
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -575,6 +651,7 @@ impl AgentControl {
         &self,
         child_thread_id: ThreadId,
         session_source: Option<SessionSource>,
+        child_reference: String,
     ) {
         let Some(SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
             parent_thread_id, ..
@@ -610,11 +687,50 @@ impl AgentControl {
             };
             parent_thread
                 .inject_user_message_without_turn(format_subagent_notification_message(
-                    &child_thread_id.to_string(),
+                    child_reference.as_str(),
                     &status,
                 ))
                 .await;
         });
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn prepare_thread_spawn(
+        &self,
+        reservation: &mut crate::agent::guards::SpawnReservation,
+        config: &crate::config::Config,
+        parent_thread_id: ThreadId,
+        depth: i32,
+        agent_path: Option<AgentPath>,
+        agent_role: Option<String>,
+        preferred_agent_nickname: Option<String>,
+    ) -> CodexResult<(SessionSource, AgentMetadata)> {
+        if depth == 1 {
+            self.state.register_root_thread(parent_thread_id);
+        }
+        if let Some(agent_path) = agent_path.as_ref() {
+            reservation.reserve_agent_path(agent_path)?;
+        }
+        let candidate_names = agent_nickname_candidates(config, agent_role.as_deref());
+        let candidate_name_refs: Vec<&str> = candidate_names.iter().map(String::as_str).collect();
+        let agent_nickname = Some(reservation.reserve_agent_nickname_with_preference(
+            &candidate_name_refs,
+            preferred_agent_nickname.as_deref(),
+        )?);
+        let session_source = SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
+            parent_thread_id,
+            depth,
+            agent_path: agent_path.clone(),
+            agent_nickname: agent_nickname.clone(),
+            agent_role: agent_role.clone(),
+        });
+        let agent_metadata = AgentMetadata {
+            agent_id: None,
+            agent_path,
+            agent_nickname,
+            agent_role,
+        };
+        Ok((session_source, agent_metadata))
     }
 
     fn upgrade(&self) -> CodexResult<Arc<ThreadManagerState>> {
@@ -667,6 +783,7 @@ impl AgentControl {
         &self,
         parent_thread_id: ThreadId,
     ) -> CodexResult<Vec<(ThreadId, Option<String>)>> {
+
         let mut children_by_parent = self.live_thread_spawn_children().await?;
         Ok(children_by_parent
             .remove(&parent_thread_id)
@@ -678,6 +795,7 @@ impl AgentControl {
     ) -> CodexResult<HashMap<ThreadId, Vec<(ThreadId, Option<String>)>>> {
         let state = self.upgrade()?;
         let mut children_by_parent = HashMap::<ThreadId, Vec<(ThreadId, Option<String>)>>::new();
+
 
         for thread_id in state.list_thread_ids().await {
             let Ok(thread) = state.get_thread(thread_id).await else {
@@ -696,6 +814,7 @@ impl AgentControl {
 
         for children in children_by_parent.values_mut() {
             children.sort_by(|left, right| left.0.to_string().cmp(&right.0.to_string()));
+
         }
 
         Ok(children_by_parent)

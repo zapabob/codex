@@ -53,6 +53,11 @@ use codex_app_server_protocol::ConfigLayerSource;
 use codex_app_server_protocol::ListMcpServerStatusParams;
 use codex_app_server_protocol::ListMcpServerStatusResponse;
 use codex_app_server_protocol::McpServerStatus;
+use codex_app_server_protocol::PluginListParams;
+use codex_app_server_protocol::PluginListResponse;
+use codex_app_server_protocol::PluginReadParams;
+use codex_app_server_protocol::PluginReadResponse;
+
 use codex_app_server_protocol::RequestId;
 use codex_app_server_protocol::ServerNotification;
 use codex_app_server_protocol::ServerRequest;
@@ -69,12 +74,15 @@ use codex_core::config::types::ApprovalsReviewer;
 use codex_core::config::types::ModelAvailabilityNuxConfig;
 use codex_core::config_loader::ConfigLayerStackOrdering;
 use codex_core::features::Feature;
+
 use codex_core::message_history;
 use codex_core::models_manager::collaboration_mode_presets::CollaborationModesConfig;
 use codex_core::models_manager::model_presets::HIDE_GPT_5_1_CODEX_MAX_MIGRATION_PROMPT_CONFIG;
 use codex_core::models_manager::model_presets::HIDE_GPT5_1_MIGRATION_PROMPT_CONFIG;
 #[cfg(target_os = "windows")]
 use codex_core::windows_sandbox::WindowsSandboxLevelExt;
+use codex_features::Feature;
+
 use codex_otel::SessionTelemetry;
 use codex_protocol::ThreadId;
 use codex_protocol::approvals::ExecApprovalRequestEvent;
@@ -96,6 +104,8 @@ use codex_protocol::protocol::SandboxPolicy;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::SkillErrorInfo;
 use codex_protocol::protocol::TokenUsage;
+use codex_terminal_detection::user_agent;
+
 use codex_utils_absolute_path::AbsolutePathBuf;
 use color_eyre::eyre::Result;
 use color_eyre::eyre::WrapErr;
@@ -461,6 +471,7 @@ enum ThreadBufferedEvent {
     HistoryEntryResponse(GetHistoryEntryResponseEvent),
     LegacyWarning(String),
     LegacyRollback { num_turns: u32 },
+
 }
 
 #[derive(Debug)]
@@ -470,6 +481,7 @@ struct ThreadEventStore {
     buffer: VecDeque<ThreadBufferedEvent>,
     pending_interactive_replay: PendingInteractiveReplayState,
     pending_local_legacy_rollbacks: VecDeque<u32>,
+
     active_turn_id: Option<String>,
     input_state: Option<ThreadInputState>,
     capacity: usize,
@@ -478,10 +490,12 @@ struct ThreadEventStore {
 
 impl ThreadEventStore {
     fn event_survives_session_refresh(event: &ThreadBufferedEvent) -> bool {
+        matches!(event, ThreadBufferedEvent::Request(_))
         matches!(
             event,
             ThreadBufferedEvent::Request(_) | ThreadBufferedEvent::LegacyWarning(_)
         )
+
     }
 
     fn new(capacity: usize) -> Self {
@@ -491,6 +505,7 @@ impl ThreadEventStore {
             buffer: VecDeque::new(),
             pending_interactive_replay: PendingInteractiveReplayState::default(),
             pending_local_legacy_rollbacks: VecDeque::new(),
+
             active_turn_id: None,
             input_state: None,
             capacity,
@@ -517,6 +532,7 @@ impl ThreadEventStore {
 
     fn set_turns(&mut self, turns: Vec<Turn>) {
         self.pending_local_legacy_rollbacks.clear();
+
         self.active_turn_id = turns
             .iter()
             .rev()
@@ -579,7 +595,6 @@ impl ThreadEventStore {
             self.pending_local_legacy_rollbacks.pop_front();
         }
     }
-
     fn consume_pending_local_legacy_rollback(&mut self, num_turns: u32) -> bool {
         match self.pending_local_legacy_rollbacks.front() {
             Some(pending_num_turns) if *pending_num_turns == num_turns => {
@@ -587,9 +602,6 @@ impl ThreadEventStore {
                 true
             }
             _ => false,
-        }
-    }
-
     fn apply_legacy_thread_rollback(&mut self, num_turns: u32) {
         let num_turns = usize::try_from(num_turns).unwrap_or(usize::MAX);
         if num_turns >= self.turns.len() {
@@ -597,12 +609,10 @@ impl ThreadEventStore {
         } else {
             self.turns
                 .truncate(self.turns.len().saturating_sub(num_turns));
-        }
         self.buffer.clear();
         self.pending_interactive_replay = PendingInteractiveReplayState::default();
         self.pending_local_legacy_rollbacks.clear();
         self.active_turn_id = None;
-    }
 
     fn snapshot(&self) -> ThreadEventSnapshot {
         ThreadEventSnapshot {
@@ -618,9 +628,11 @@ impl ThreadEventStore {
                         .pending_interactive_replay
                         .should_replay_snapshot_request(request),
                     ThreadBufferedEvent::Notification(_)
+                    | ThreadBufferedEvent::HistoryEntryResponse(_) => true,
                     | ThreadBufferedEvent::HistoryEntryResponse(_)
                     | ThreadBufferedEvent::LegacyWarning(_)
                     | ThreadBufferedEvent::LegacyRollback { .. } => true,
+
                 })
                 .cloned()
                 .collect(),
@@ -1362,18 +1374,20 @@ impl App {
                 let windows_sandbox_level = WindowsSandboxLevel::from_config(&self.config);
                 self.app_event_tx.send(AppEvent::CodexOp(
                     AppCommand::override_turn_context(
-                        None,
-                        None,
-                        None,
-                        None,
+                        /*cwd*/ None,
+                        /*approval_policy*/ None,
+                        /*approvals_reviewer*/ None,
+                        /*sandbox_policy*/ None,
                         #[cfg(target_os = "windows")]
                         Some(windows_sandbox_level),
+                        /*model*/ None,
+                        /*effort*/ None,
+                        /*summary*/ None,
+                        /*service_tier*/ None,
+                        /*collaboration_mode*/ None,
+                        /*personality*/ None,
                         None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
+
                     )
                     .into_core(),
                 ));
@@ -1825,6 +1839,34 @@ impl App {
         });
     }
 
+    fn fetch_plugins_list(&mut self, app_server: &AppServerSession, cwd: PathBuf) {
+        let request_handle = app_server.request_handle();
+        let app_event_tx = self.app_event_tx.clone();
+        tokio::spawn(async move {
+            let result = fetch_plugins_list(request_handle, cwd.clone())
+                .await
+                .map_err(|err| err.to_string());
+            app_event_tx.send(AppEvent::PluginsLoaded { cwd, result });
+        });
+    }
+
+    fn fetch_plugin_detail(
+        &mut self,
+        app_server: &AppServerSession,
+        cwd: PathBuf,
+        params: PluginReadParams,
+    ) {
+        let request_handle = app_server.request_handle();
+        let app_event_tx = self.app_event_tx.clone();
+        tokio::spawn(async move {
+            let result = fetch_plugin_detail(request_handle, params)
+                .await
+                .map_err(|err| err.to_string());
+            app_event_tx.send(AppEvent::PluginDetailLoaded { cwd, result });
+        });
+    }
+
+
     /// Process the completed MCP inventory fetch: clear the loading spinner, then
     /// render either the full tool/resource listing or an error into chat history.
     ///
@@ -2260,7 +2302,6 @@ impl App {
             let channel = self.ensure_thread_channel(thread_id);
             (channel.sender.clone(), Arc::clone(&channel.store))
         };
-
         let should_send = {
             let mut guard = store.lock().await;
             guard
@@ -2275,8 +2316,6 @@ impl App {
                     .note_evicted_server_request(request);
             }
             guard.active
-        };
-
         if should_send {
             match sender.try_send(ThreadBufferedEvent::LegacyWarning(message)) {
                 Ok(()) => {}
@@ -2289,8 +2328,6 @@ impl App {
                 }
                 Err(TrySendError::Closed(_)) => {
                     tracing::warn!("thread {thread_id} event channel closed");
-                }
-            }
         }
         Ok(())
     }
@@ -2348,7 +2385,6 @@ impl App {
             let channel = self.ensure_thread_channel(thread_id);
             (channel.sender.clone(), Arc::clone(&channel.store))
         };
-
         let should_send = {
             let mut guard = store.lock().await;
             if guard.consume_pending_local_legacy_rollback(num_turns) {
@@ -2357,8 +2393,6 @@ impl App {
                 guard.apply_legacy_thread_rollback(num_turns);
                 guard.active
             }
-        };
-
         if should_send {
             match sender.try_send(ThreadBufferedEvent::LegacyRollback { num_turns }) {
                 Ok(()) => {}
@@ -2371,31 +2405,19 @@ impl App {
                 }
                 Err(TrySendError::Closed(_)) => {
                     tracing::warn!("thread {thread_id} event channel closed");
-                }
-            }
         }
         Ok(())
     }
-
     async fn enqueue_primary_thread_legacy_warning(&mut self, message: String) -> Result<()> {
         if let Some(thread_id) = self.primary_thread_id {
             return self.enqueue_thread_legacy_warning(thread_id, message).await;
-        }
         self.pending_primary_events
             .push_back(ThreadBufferedEvent::LegacyWarning(message));
-        Ok(())
-    }
-
     async fn enqueue_primary_thread_legacy_rollback(&mut self, num_turns: u32) -> Result<()> {
-        if let Some(thread_id) = self.primary_thread_id {
             return self
                 .enqueue_thread_legacy_rollback(thread_id, num_turns)
                 .await;
-        }
-        self.pending_primary_events
             .push_back(ThreadBufferedEvent::LegacyRollback { num_turns });
-        Ok(())
-    }
 
     async fn enqueue_primary_thread_session(
         &mut self,
@@ -2440,8 +2462,7 @@ impl App {
                 }
                 ThreadBufferedEvent::LegacyRollback { num_turns } => {
                     self.enqueue_thread_legacy_rollback(thread_id, num_turns)
-                        .await?;
-                }
+
             }
         }
         self.chat_widget
@@ -2965,7 +2986,9 @@ impl App {
             auth_mode,
             codex_core::default_client::originator().value,
             config.otel.log_user_prompt,
+            user_agent(),
             codex_core::terminal::user_agent(),
+
             SessionSource::Cli,
         );
         if config
@@ -3647,6 +3670,25 @@ impl App {
             AppEvent::RefreshConnectors { force_refetch } => {
                 self.chat_widget.refresh_connectors(force_refetch);
             }
+            AppEvent::FetchPluginsList { cwd } => {
+                self.fetch_plugins_list(app_server, cwd);
+            }
+            AppEvent::OpenPluginDetailLoading {
+                plugin_display_name,
+            } => {
+                self.chat_widget
+                    .open_plugin_detail_loading_popup(&plugin_display_name);
+            }
+            AppEvent::PluginsLoaded { cwd, result } => {
+                self.chat_widget.on_plugins_loaded(cwd, result);
+            }
+            AppEvent::FetchPluginDetail { cwd, params } => {
+                self.fetch_plugin_detail(app_server, cwd, params);
+            }
+            AppEvent::PluginDetailLoaded { cwd, result } => {
+                self.chat_widget.on_plugin_detail_loaded(cwd, result);
+            }
+
             AppEvent::FetchMcpInventory => {
                 self.fetch_mcp_inventory(app_server);
             }
@@ -3784,7 +3826,9 @@ impl App {
                             Ok(()) => {
                                 session_telemetry.counter(
                                     "codex.windows_sandbox.elevated_setup_success",
+                                    /*inc*/ 1,
                                     1,
+
                                     &[],
                                 );
                                 AppEvent::EnableWindowsSandboxForAgentMode {
@@ -3814,7 +3858,9 @@ impl App {
                                     codex_core::windows_sandbox::elevated_setup_failure_metric_name(
                                         &err,
                                     ),
+                                    /*inc*/ 1,
                                     1,
+
                                     &tags,
                                 );
                                 tracing::error!(
@@ -3855,7 +3901,9 @@ impl App {
                         ) {
                             session_telemetry.counter(
                                 "codex.windows_sandbox.legacy_setup_preflight_failed",
+                                /*inc*/ 1,
                                 1,
+
                                 &[],
                             );
                             tracing::warn!(
@@ -3880,7 +3928,9 @@ impl App {
                     self.chat_widget
                         .add_to_history(history_cell::new_info_event(
                             format!("Granting sandbox read access to {path} ..."),
+                            /*hint*/ None,
                             None,
+
                         ));
 
                     let policy = self.config.permissions.sandbox_policy.get().clone();
@@ -3955,11 +4005,18 @@ impl App {
                     match builder.apply().await {
                         Ok(()) => {
                             if elevated_enabled {
+                                self.config.set_windows_sandbox_enabled(/*value*/ false);
+                                self.config
+                                    .set_windows_elevated_sandbox_enabled(/*value*/ true);
+                            } else {
+                                self.config.set_windows_sandbox_enabled(/*value*/ true);
+                                self.config
+                                    .set_windows_elevated_sandbox_enabled(/*value*/ false);
                                 self.config.set_windows_sandbox_enabled(false);
                                 self.config.set_windows_elevated_sandbox_enabled(true);
-                            } else {
                                 self.config.set_windows_sandbox_enabled(true);
                                 self.config.set_windows_elevated_sandbox_enabled(false);
+
                             }
                             self.chat_widget.set_windows_sandbox_mode(
                                 self.config.permissions.windows_sandbox_mode,
@@ -3971,18 +4028,20 @@ impl App {
                             {
                                 self.app_event_tx.send(AppEvent::CodexOp(
                                     AppCommand::override_turn_context(
-                                        None,
-                                        None,
-                                        None,
-                                        None,
+                                        /*cwd*/ None,
+                                        /*approval_policy*/ None,
+                                        /*approvals_reviewer*/ None,
+                                        /*sandbox_policy*/ None,
                                         #[cfg(target_os = "windows")]
                                         Some(windows_sandbox_level),
+                                        /*model*/ None,
+                                        /*effort*/ None,
+                                        /*summary*/ None,
+                                        /*service_tier*/ None,
+                                        /*collaboration_mode*/ None,
+                                        /*personality*/ None,
                                         None,
-                                        None,
-                                        None,
-                                        None,
-                                        None,
-                                        None,
+
                                     )
                                     .into(),
                                 ));
@@ -3997,18 +4056,22 @@ impl App {
                             } else {
                                 self.app_event_tx.send(AppEvent::CodexOp(
                                     AppCommand::override_turn_context(
+                                        /*cwd*/ None,
                                         None,
+
                                         Some(preset.approval),
                                         Some(self.config.approvals_reviewer),
                                         Some(preset.sandbox.clone()),
                                         #[cfg(target_os = "windows")]
                                         Some(windows_sandbox_level),
+                                        /*model*/ None,
+                                        /*effort*/ None,
+                                        /*summary*/ None,
+                                        /*service_tier*/ None,
+                                        /*collaboration_mode*/ None,
+                                        /*personality*/ None,
                                         None,
-                                        None,
-                                        None,
-                                        None,
-                                        None,
-                                        None,
+
                                     )
                                     .into(),
                                 ));
@@ -4718,6 +4781,7 @@ impl App {
             let mut store = channel.store.lock().await;
             store.apply_thread_rollback(response);
             store.note_local_thread_rollback(num_turns);
+
         }
         if self.active_thread_id == Some(thread_id)
             && let Some(mut rx) = self.active_thread_rx.take()
@@ -4768,7 +4832,7 @@ impl App {
             ThreadBufferedEvent::LegacyRollback { num_turns } => {
                 self.handle_backtrack_rollback_succeeded(num_turns);
                 self.chat_widget.handle_thread_rolled_back();
-            }
+
         }
         if needs_refresh {
             self.refresh_status_line();
@@ -4792,7 +4856,7 @@ impl App {
             ThreadBufferedEvent::LegacyRollback { num_turns } => {
                 self.handle_backtrack_rollback_succeeded(num_turns);
                 self.chat_widget.handle_thread_rolled_back();
-            }
+
         }
     }
 
@@ -5191,6 +5255,36 @@ async fn fetch_all_mcp_server_statuses(
     Ok(statuses)
 }
 
+async fn fetch_plugins_list(
+    request_handle: AppServerRequestHandle,
+    cwd: PathBuf,
+) -> Result<PluginListResponse> {
+    let cwd = AbsolutePathBuf::try_from(cwd).wrap_err("plugin list cwd must be absolute")?;
+    let request_id = RequestId::String(format!("plugin-list-{}", Uuid::new_v4()));
+    request_handle
+        .request_typed(ClientRequest::PluginList {
+            request_id,
+            params: PluginListParams {
+                cwds: Some(vec![cwd]),
+                force_remote_sync: false,
+            },
+        })
+        .await
+        .wrap_err("plugin/list failed in app-server TUI")
+}
+
+async fn fetch_plugin_detail(
+    request_handle: AppServerRequestHandle,
+    params: PluginReadParams,
+) -> Result<PluginReadResponse> {
+    let request_id = RequestId::String(format!("plugin-read-{}", Uuid::new_v4()));
+    request_handle
+        .request_typed(ClientRequest::PluginRead { request_id, params })
+        .await
+        .wrap_err("plugin/read failed in app-server TUI")
+}
+
+
 /// Convert flat `McpServerStatus` responses into the per-server maps used by the
 /// in-process MCP subsystem (tools keyed as `mcp__{server}__{tool}`, plus
 /// per-server resource/template/auth maps). Test-only because the app-server TUI
@@ -5254,6 +5348,8 @@ mod tests {
     use codex_app_server_protocol::AdditionalPermissionProfile;
     use codex_app_server_protocol::AgentMessageDeltaNotification;
     use codex_app_server_protocol::CommandExecutionRequestApprovalParams;
+    use codex_app_server_protocol::ConfigWarningNotification;
+
     use codex_app_server_protocol::NetworkApprovalContext as AppServerNetworkApprovalContext;
     use codex_app_server_protocol::NetworkApprovalProtocol as AppServerNetworkApprovalProtocol;
     use codex_app_server_protocol::NetworkPolicyAmendment as AppServerNetworkPolicyAmendment;
@@ -5857,7 +5953,6 @@ mod tests {
     #[tokio::test]
     async fn replay_thread_snapshot_replays_legacy_warning_history() {
         let (mut app, mut app_event_rx, _op_rx) = make_test_app_with_channels().await;
-
         app.replay_thread_snapshot(
             ThreadEventSnapshot {
                 session: None,
@@ -5869,7 +5964,6 @@ mod tests {
             },
             false,
         );
-
         let mut saw_warning = false;
         while let Ok(event) = app_event_rx.try_recv() {
             if let AppEvent::InsertHistoryCell(cell) = event {
@@ -5877,11 +5971,10 @@ mod tests {
                 saw_warning |= transcript.contains("legacy warning message");
             }
         }
-
         assert!(saw_warning, "expected replayed legacy warning history cell");
     }
-
     #[tokio::test]
+
     async fn replay_only_thread_keeps_restored_queue_visible() {
         let (mut app, _app_event_rx, _op_rx) = make_test_app_with_channels().await;
         let thread_id = ThreadId::new();
@@ -7243,10 +7336,8 @@ guardian_approval = true
             assert_eq!(store.has_pending_thread_approvals(), true);
         }
         app.thread_event_channels.insert(thread_id, channel);
-
         app.enqueue_thread_legacy_warning(thread_id, "legacy warning".to_string())
             .await?;
-
         let store = app
             .thread_event_channels
             .get(&thread_id)
@@ -7261,54 +7352,24 @@ guardian_approval = true
             snapshot.events.first(),
             Some(ThreadBufferedEvent::LegacyWarning(message)) if message == "legacy warning"
         ));
-
         Ok(())
     }
-
     #[tokio::test]
     async fn legacy_thread_rollback_trims_inactive_thread_snapshot_state() -> Result<()> {
-        let mut app = make_test_app().await;
-        let thread_id = ThreadId::new();
         let session = test_thread_session(thread_id, PathBuf::from("/tmp/project"));
         let turns = vec![
             test_turn("turn-1", TurnStatus::Completed, Vec::new()),
             test_turn("turn-2", TurnStatus::Completed, Vec::new()),
         ];
         let channel = ThreadEventChannel::new_with_session(4, session, turns);
-        {
-            let mut store = channel.store.lock().await;
-            store.push_request(exec_approval_request(
-                thread_id,
-                "turn-approval",
-                "call-approval",
-                None,
-            ));
-            assert_eq!(store.has_pending_thread_approvals(), true);
-        }
-        app.thread_event_channels.insert(thread_id, channel);
-
         app.enqueue_thread_legacy_rollback(thread_id, 1).await?;
-
-        let store = app
-            .thread_event_channels
-            .get(&thread_id)
-            .expect("thread store should exist")
-            .store
-            .lock()
-            .await;
         assert_eq!(
             store.turns,
             vec![test_turn("turn-1", TurnStatus::Completed, Vec::new())]
         );
-        assert_eq!(store.has_pending_thread_approvals(), false);
-        let snapshot = store.snapshot();
         assert_eq!(snapshot.turns, store.turns);
         assert!(snapshot.events.is_empty());
 
-        Ok(())
-    }
-
-    #[tokio::test]
     async fn inactive_thread_started_notification_initializes_replay_session() -> Result<()> {
         let mut app = make_test_app().await;
         let temp_dir = tempdir()?;
@@ -8031,7 +8092,6 @@ guardian_approval = true
     fn thread_event_store_consumes_matching_local_legacy_rollback_once() {
         let mut store = ThreadEventStore::new(8);
         store.note_local_thread_rollback(2);
-
         assert!(store.consume_pending_local_legacy_rollback(2));
         assert!(!store.consume_pending_local_legacy_rollback(2));
         assert!(!store.consume_pending_local_legacy_rollback(1));
@@ -8995,8 +9055,16 @@ guardian_approval = true
         let (tx, rx) = mpsc::channel(8);
         app.active_thread_id = Some(thread_id);
         app.active_thread_rx = Some(rx);
+        tx.send(ThreadBufferedEvent::Notification(
+            ServerNotification::ConfigWarning(ConfigWarningNotification {
+                summary: "stale warning".to_string(),
+                details: None,
+                path: None,
+                range: None,
+            }),
         tx.send(ThreadBufferedEvent::LegacyWarning(
             "stale warning".to_string(),
+
         ))
         .await
         .expect("event should queue");
@@ -9047,9 +9115,7 @@ guardian_approval = true
             thread_id,
             ThreadEventChannel::new_with_session(8, session, initial_turns),
         );
-
         app.handle_thread_rollback_response(
-            thread_id,
             1,
             &ThreadRollbackResponse {
                 thread: Thread {
@@ -9073,11 +9139,9 @@ guardian_approval = true
             },
         )
         .await;
-
         app.enqueue_thread_legacy_rollback(thread_id, 1)
             .await
             .expect("legacy rollback should not fail");
-
         let store = app
             .thread_event_channels
             .get(&thread_id)
@@ -9089,8 +9153,8 @@ guardian_approval = true
         assert_eq!(snapshot.turns.len(), 1);
         assert!(snapshot.events.is_empty());
     }
-
     #[tokio::test]
+
     async fn new_session_requests_shutdown_for_previous_conversation() {
         let (mut app, mut app_event_rx, mut op_rx) = make_test_app_with_channels().await;
 

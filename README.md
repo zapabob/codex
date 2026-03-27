@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-v3.0.0-blue)](https://github.com/zapabob/codex/releases/tag/v3.0.0)
+[![Version](https://img.shields.io/badge/version-v3.1.0-blue)](https://github.com/zapabob/codex/releases/tag/v3.1.0)
 [![Rust](https://img.shields.io/badge/rust-1.93.0%20%7C%202024%20edition-orange)](https://www.rust-lang.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-5.5-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/next.js-15-black)](https://nextjs.org/)
@@ -18,7 +18,7 @@
 </div>
 
 <!-- version-sync:start -->
-> **Current release:** v3.0.0 (2026-03-19) · canonical source `VERSION` · fork/upstream mapping in `version-metadata.json`.
+> **Current release:** v3.1.0 (2026-03-22) · canonical source `VERSION` · fork/upstream mapping in `version-metadata.json`.
 > Legacy v2.x release notes are archived under `releases/legacy/v2.x/RELEASE_NOTES.md`.
 <!-- version-sync:end -->
 
@@ -45,7 +45,7 @@ Codex is a **next-generation AI engineering platform** forked from [OpenAI/codex
 | **🎮 VR/AR Git**      | Three.js + WebXR · Meta Quest 2/3 hand tracking · Cyberpunk aesthetics  |
 | **🔬 Research**       | DuckDuckGo + Gemini + Brave multi-source deep research engine           |
 | **🛠 Slash Commands** | /VRChat · /Blender-CAD · /Yukkuri-Movie · /DeepResearch                 |
-| **📡 New in v3.0.0**  | Protocol v2 update, improved sub-agent parallelization, linking speed++ |
+| **📡 New in v3.1.0**  | Protocol v2 update, improved sub-agent parallelization, linking speed++ |
 
 ---
 
@@ -118,7 +118,7 @@ Codex is unique in operating as **both** an MCP consumer and provider:
 
 - **As a Client**: Connects to external MCP servers (filesystem, git, browser, etc.).
 - **As a Server**: Exposes its own coding capabilities to Claude, Cursor, and other AI agents.
-- **New in v3.0.0**: Protocol alignment with latest Model Context Protocol specs.
+- **New in v3.1.0**: Protocol alignment with latest Model Context Protocol specs.
 
 #### 🔬 Deep Research Engine
 
@@ -138,7 +138,7 @@ Experience your repository in immersive 3D:
 
 ---
 
-### What's New in v3.0.0
+### What's New in v3.1.0
 
 #### ✨ Upstream Integration & Final Release
 

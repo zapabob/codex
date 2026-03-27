@@ -9,22 +9,22 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
 
-use crate::allow::compute_allow_paths;
 use crate::allow::AllowDenyPaths;
+use crate::allow::compute_allow_paths;
 use crate::helper_materialization::helper_bin_dir;
 use crate::logging::log_note;
 use crate::path_normalization::canonical_path_key;
 use crate::policy::SandboxPolicy;
+use crate::setup_error::SetupErrorCode;
+use crate::setup_error::SetupFailure;
 use crate::setup_error::clear_setup_error_report;
 use crate::setup_error::failure;
 use crate::setup_error::read_setup_error_report;
-use crate::setup_error::SetupErrorCode;
-use crate::setup_error::SetupFailure;
-use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use anyhow::anyhow;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 
 use windows_sys::Win32::Foundation::CloseHandle;
 use windows_sys::Win32::Foundation::GetLastError;
@@ -91,8 +91,8 @@ pub fn run_setup_refresh(
         command_cwd,
         env_map,
         codex_home,
-        None,
-        None,
+        /*read_roots_override*/ None,
+        /*write_roots_override*/ None,
     )
 }
 
@@ -468,11 +468,11 @@ fn run_setup_exe(
     codex_home: &Path,
 ) -> Result<()> {
     use windows_sys::Win32::System::Threading::GetExitCodeProcess;
-    use windows_sys::Win32::System::Threading::WaitForSingleObject;
     use windows_sys::Win32::System::Threading::INFINITE;
-    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
+    use windows_sys::Win32::System::Threading::WaitForSingleObject;
     use windows_sys::Win32::UI::Shell::SEE_MASK_NOCLOSEPROCESS;
     use windows_sys::Win32::UI::Shell::SHELLEXECUTEINFOW;
+    use windows_sys::Win32::UI::Shell::ShellExecuteExW;
     let exe = find_setup_exe();
     let payload_json = serde_json::to_string(payload).map_err(|err| {
         failure(
@@ -671,10 +671,10 @@ fn filter_sensitive_write_roots(mut roots: Vec<PathBuf>, codex_home: &Path) -> V
 
 #[cfg(test)]
 mod tests {
+    use super::WINDOWS_PLATFORM_DEFAULT_READ_ROOTS;
     use super::gather_legacy_full_read_roots;
     use super::gather_read_roots;
     use super::profile_read_roots;
-    use super::WINDOWS_PLATFORM_DEFAULT_READ_ROOTS;
     use crate::helper_materialization::helper_bin_dir;
     use crate::policy::SandboxPolicy;
     use codex_protocol::protocol::ReadOnlyAccess;
@@ -749,8 +749,10 @@ mod tests {
         let policy = SandboxPolicy::ReadOnly {
             access: ReadOnlyAccess::Restricted {
                 include_platform_defaults: false,
-                readable_roots: vec![AbsolutePathBuf::from_absolute_path(&readable_root)
-                    .expect("absolute readable root")],
+                readable_roots: vec![
+                    AbsolutePathBuf::from_absolute_path(&readable_root)
+                        .expect("absolute readable root"),
+                ],
             },
             network_access: false,
         };
@@ -765,9 +767,11 @@ mod tests {
         assert!(roots.contains(&expected_helper));
         assert!(roots.contains(&expected_cwd));
         assert!(roots.contains(&expected_readable));
-        assert!(canonical_windows_platform_default_roots()
-            .into_iter()
-            .all(|path| !roots.contains(&path)));
+        assert!(
+            canonical_windows_platform_default_roots()
+                .into_iter()
+                .all(|path| !roots.contains(&path))
+        );
     }
 
     #[test]
@@ -786,9 +790,11 @@ mod tests {
 
         let roots = gather_read_roots(&command_cwd, &policy, &codex_home);
 
-        assert!(canonical_windows_platform_default_roots()
-            .into_iter()
-            .all(|path| roots.contains(&path)));
+        assert!(
+            canonical_windows_platform_default_roots()
+                .into_iter()
+                .all(|path| roots.contains(&path))
+        );
     }
 
     #[test]
@@ -800,8 +806,10 @@ mod tests {
         fs::create_dir_all(&command_cwd).expect("create workspace");
         fs::create_dir_all(&writable_root).expect("create writable root");
         let policy = SandboxPolicy::WorkspaceWrite {
-            writable_roots: vec![AbsolutePathBuf::from_absolute_path(&writable_root)
-                .expect("absolute writable root")],
+            writable_roots: vec![
+                AbsolutePathBuf::from_absolute_path(&writable_root)
+                    .expect("absolute writable root"),
+            ],
             read_only_access: ReadOnlyAccess::Restricted {
                 include_platform_defaults: false,
                 readable_roots: Vec::new(),
@@ -828,8 +836,10 @@ mod tests {
 
         let roots = gather_legacy_full_read_roots(&command_cwd, &policy, &codex_home);
 
-        assert!(canonical_windows_platform_default_roots()
-            .into_iter()
-            .all(|path| roots.contains(&path)));
+        assert!(
+            canonical_windows_platform_default_roots()
+                .into_iter()
+                .all(|path| roots.contains(&path))
+        );
     }
 }

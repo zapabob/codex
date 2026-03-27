@@ -628,6 +628,11 @@ async fn turn_start_jsonrpc_span_parents_core_turn_spans() -> Result<()> {
     assert_eq!(server_request_span.parent_span_id, remote_parent_span_id);
     assert!(server_request_span.parent_span_is_remote);
     assert_eq!(server_request_span.span_context.trace_id(), remote_trace_id);
+    assert_eq!(
+        span_attr(server_request_span, "turn.id"),
+        Some(turn_start_response.turn.id.as_str())
+    );
+
     assert_span_descends_from(&spans, core_turn_span, server_request_span);
     harness.shutdown().await;
 

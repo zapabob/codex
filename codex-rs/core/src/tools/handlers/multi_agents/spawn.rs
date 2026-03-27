@@ -78,6 +78,7 @@ impl ToolHandler for Handler {
             .services
             .agent_control
             .spawn_agent_with_options(
+
                 config,
                 input_items,
                 Some(thread_spawn_source(
@@ -85,6 +86,7 @@ impl ToolHandler for Handler {
                     child_depth,
                     role_name,
                 )),
+
                 SpawnAgentOptions {
                     fork_parent_spawn_call_id: args.fork_context.then(|| call_id.clone()),
                 },
@@ -97,6 +99,7 @@ impl ToolHandler for Handler {
                 session.services.agent_control.get_status(*thread_id).await,
             ),
             Err(_) => (None, AgentStatus::NotFound),
+
         };
         let agent_snapshot = match new_thread_id {
             Some(thread_id) => {
@@ -121,6 +124,7 @@ impl ToolHandler for Handler {
                 .unwrap_or((None, None)),
             (None, None) => (None, None),
         };
+
         let effective_model = agent_snapshot
             .as_ref()
             .map(|snapshot| snapshot.model.clone())
@@ -130,6 +134,7 @@ impl ToolHandler for Handler {
             .and_then(|snapshot| snapshot.reasoning_effort)
             .unwrap_or(args.reasoning_effort.unwrap_or_default());
         let nickname = new_agent_nickname.clone();
+
         session
             .send_event(
                 &turn,
@@ -148,6 +153,7 @@ impl ToolHandler for Handler {
             )
             .await;
         let new_thread_id = result?;
+
         let role_tag = role_name.unwrap_or(DEFAULT_ROLE_NAME);
         turn.session_telemetry.counter(
             "codex.multi_agent.spawn",
@@ -157,6 +163,7 @@ impl ToolHandler for Handler {
 
         Ok(SpawnAgentResult {
             agent_id: new_thread_id.to_string(),
+
             nickname,
         })
     }
@@ -166,6 +173,7 @@ impl ToolHandler for Handler {
 struct SpawnAgentArgs {
     message: Option<String>,
     items: Option<Vec<UserInput>>,
+
     agent_type: Option<String>,
     model: Option<String>,
     reasoning_effort: Option<ReasoningEffort>,
@@ -176,6 +184,7 @@ struct SpawnAgentArgs {
 #[derive(Debug, Serialize)]
 pub(crate) struct SpawnAgentResult {
     agent_id: String,
+
     nickname: Option<String>,
 }
 

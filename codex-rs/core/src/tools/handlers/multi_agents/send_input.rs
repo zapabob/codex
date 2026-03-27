@@ -33,6 +33,7 @@ impl ToolHandler for Handler {
             .get_agent_nickname_and_role(receiver_thread_id)
             .await
             .unwrap_or((None, None));
+
         if args.interrupt {
             session
                 .services
@@ -73,6 +74,7 @@ impl ToolHandler for Handler {
                     receiver_thread_id,
                     receiver_agent_nickname,
                     receiver_agent_role,
+
                     prompt,
                     status,
                 }
@@ -88,6 +90,7 @@ impl ToolHandler for Handler {
 #[derive(Debug, Deserialize)]
 struct SendInputArgs {
     id: String,
+
     message: Option<String>,
     items: Option<Vec<UserInput>>,
     #[serde(default)]

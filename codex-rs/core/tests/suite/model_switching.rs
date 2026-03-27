@@ -1,8 +1,8 @@
 use anyhow::Result;
 use codex_core::CodexAuth;
 use codex_core::config::types::Personality;
-use codex_core::features::Feature;
 use codex_core::models_manager::manager::RefreshStrategy;
+use codex_features::Feature;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::config_types::ServiceTier;
 use codex_protocol::openai_models::ConfigShellToolType;
@@ -32,7 +32,33 @@ use core_test_support::skip_if_no_network;
 use core_test_support::test_codex::test_codex;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
+use std::path::Path;
+use std::path::PathBuf;
 use wiremock::MockServer;
+
+fn image_generation_artifact_path(codex_home: &Path, session_id: &str, call_id: &str) -> PathBuf {
+    fn sanitize(value: &str) -> String {
+        let mut sanitized: String = value
+            .chars()
+            .map(|ch| {
+                if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
+                    ch
+                } else {
+                    '_'
+                }
+            })
+            .collect();
+        if sanitized.is_empty() {
+            sanitized = "generated_image".to_string();
+        }
+        sanitized
+    }
+
+    codex_home
+        .join("generated_images")
+        .join(sanitize(session_id))
+        .join(format!("{}.png", sanitize(call_id)))
+}
 
 fn test_model_info(
     slug: &str,
@@ -482,6 +508,12 @@ async fn generated_image_is_replayed_for_image_capable_models() -> Result<()> {
             config.model = Some(image_model_slug.to_string());
         });
     let test = builder.build(&server).await?;
+    let saved_path = image_generation_artifact_path(
+        test.codex_home_path(),
+        &test.session_configured.session_id.to_string(),
+        "ig_123",
+    );
+    let _ = std::fs::remove_file(&saved_path);
     let models_manager = test.thread_manager.get_models_manager();
     let _ = models_manager
         .list_models(RefreshStrategy::OnlineIfUncached)
@@ -609,6 +641,12 @@ async fn model_change_from_generated_image_to_text_preserves_prior_generated_ima
             config.model = Some(image_model_slug.to_string());
         });
     let test = builder.build(&server).await?;
+    let saved_path = image_generation_artifact_path(
+        test.codex_home_path(),
+        &test.session_configured.session_id.to_string(),
+        "ig_123",
+    );
+    let _ = std::fs::remove_file(&saved_path);
     let models_manager = test.thread_manager.get_models_manager();
     let _ = models_manager
         .list_models(RefreshStrategy::OnlineIfUncached)
@@ -738,6 +776,13 @@ async fn thread_rollback_after_generated_image_drops_entire_image_turn_history()
             config.model = Some(image_model_slug.to_string());
         });
     let test = builder.build(&server).await?;
+    let saved_path = image_generation_artifact_path(
+        test.codex_home_path(),
+        &test.session_configured.session_id.to_string(),
+        "ig_rollback",
+    );
+    let _ = std::fs::remove_file(&saved_path);
+
     let models_manager = test.thread_manager.get_models_manager();
     let _ = models_manager
         .list_models(RefreshStrategy::OnlineIfUncached)

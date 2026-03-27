@@ -3,7 +3,9 @@ use std::future::Future;
 use crate::Cli;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
+use codex_features::Feature;
 use codex_core::features::Feature;
+
 
 pub(crate) fn app_server_tui_config_inputs(
     cli: &Cli,

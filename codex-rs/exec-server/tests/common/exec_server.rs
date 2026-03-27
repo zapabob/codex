@@ -11,6 +11,9 @@ use codex_app_server_protocol::RequestId;
 use codex_utils_cargo_bin::cargo_bin;
 use futures::SinkExt;
 use futures::StreamExt;
+use tokio::io::AsyncBufReadExt;
+use tokio::io::BufReader;
+
 use tokio::process::Child;
 use tokio::process::Command;
 use tokio::time::Instant;
@@ -25,6 +28,8 @@ const EVENT_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub(crate) struct ExecServerHarness {
     child: Child,
+    websocket_url: String,
+
     websocket: tokio_tungstenite::WebSocketStream<
         tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
     >,
@@ -39,23 +44,34 @@ impl Drop for ExecServerHarness {
 
 pub(crate) async fn exec_server() -> anyhow::Result<ExecServerHarness> {
     let binary = cargo_bin("codex-exec-server")?;
-    let websocket_url = reserve_websocket_url()?;
     let mut child = Command::new(binary);
-    child.args(["--listen", &websocket_url]);
+    child.args(["--listen", "ws://127.0.0.1:0"]);
     child.stdin(Stdio::null());
-    child.stdout(Stdio::null());
+    child.stdout(Stdio::piped());
     child.stderr(Stdio::inherit());
-    let child = child.spawn()?;
+    let mut child = child.spawn()?;
 
+    let websocket_url = read_listen_url_from_stdout(&mut child).await?;
     let (websocket, _) = connect_websocket_when_ready(&websocket_url).await?;
     Ok(ExecServerHarness {
         child,
+        websocket_url,
+    let websocket_url = reserve_websocket_url()?;
+    child.args(["--listen", &websocket_url]);
+    child.stdout(Stdio::null());
+    let child = child.spawn()?;
+
         websocket,
         next_request_id: 1,
     })
 }
 
 impl ExecServerHarness {
+    pub(crate) fn websocket_url(&self) -> &str {
+        &self.websocket_url
+    }
+
+
     pub(crate) async fn send_request(
         &mut self,
         method: &str,
@@ -186,3 +202,31 @@ async fn connect_websocket_when_ready(
         }
     }
 }
+
+async fn read_listen_url_from_stdout(child: &mut Child) -> anyhow::Result<String> {
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| anyhow!("failed to capture exec-server stdout"))?;
+    let mut lines = BufReader::new(stdout).lines();
+    let deadline = Instant::now() + CONNECT_TIMEOUT;
+
+    loop {
+        let now = Instant::now();
+        if now >= deadline {
+            return Err(anyhow!(
+                "timed out waiting for exec-server listen URL on stdout after {CONNECT_TIMEOUT:?}"
+            ));
+        }
+        let remaining = deadline.duration_since(now);
+        let line = timeout(remaining, lines.next_line())
+            .await
+            .map_err(|_| anyhow!("timed out waiting for exec-server stdout"))??
+            .ok_or_else(|| anyhow!("exec-server stdout closed before emitting listen URL"))?;
+        let listen_url = line.trim();
+        if listen_url.starts_with("ws://") {
+            return Ok(listen_url.to_string());
+        }
+    }
+}
+

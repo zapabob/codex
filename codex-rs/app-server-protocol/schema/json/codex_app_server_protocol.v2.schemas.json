@@ -139,6 +139,10 @@
       "title": "AgentMessageDeltaNotification",
       "type": "object"
     },
+    "AgentPath": {
+      "type": "string"
+    },
+
     "AnalyticsConfig": {
       "additionalProperties": true,
       "properties": {
@@ -492,11 +496,18 @@
         },
         "name": {
           "type": "string"
+        },
+        "needsAuth": {
+          "type": "boolean"
+
         }
       },
       "required": [
         "id",
+        "name",
+        "needsAuth"
         "name"
+
       ],
       "type": "object"
     },
@@ -5383,6 +5394,15 @@
       "title": "McpServerRefreshResponse",
       "type": "object"
     },
+    "McpServerStartupState": {
+      "enum": [
+        "starting",
+        "ready",
+        "failed",
+        "cancelled"
+      ],
+      "type": "string"
+    },
     "McpServerStatus": {
       "properties": {
         "authStatus": {
@@ -5419,6 +5439,30 @@
       ],
       "type": "object"
     },
+    "McpServerStatusUpdatedNotification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/McpServerStartupState"
+        }
+      },
+      "required": [
+        "name",
+        "status"
+      ],
+      "title": "McpServerStatusUpdatedNotification",
+      "type": "object"
+    },
+
     "McpToolCallError": {
       "properties": {
         "message": {
@@ -5994,6 +6038,17 @@
     },
     "PluginDetail": {
       "properties": {
+        "apps": {
+          "items": {
+            "$ref": "#/definitions/AppSummary"
+          },
+          "type": "array"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
         "marketplacePath": {
           "$ref": "#/definitions/AbsolutePathBuf"
 // STASHED:         "apps": {
@@ -6007,9 +6062,35 @@
 // STASHED:             "string",
 // STASHED:             "null"
 // STASHED:           ]
-// STASHED:         },
 // STASHED:         "marketplaceName": {
 // STASHED:           "type": "string"
+        "mcpServers": {
+            "type": "string"
+        "skills": {
+            "$ref": "#/definitions/SkillSummary"
+        "summary": {
+          "$ref": "#/definitions/PluginSummary"
+        }
+      },
+      "required": [
+        "apps",
+        "marketplaceName",
+        "marketplacePath",
+        "mcpServers",
+        "skills",
+        "summary"
+      ],
+      "type": "object"
+    },
+    "PluginInstallParams": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+        "forceRemoteSync": {
+          "description": "When true, apply the remote plugin change before the local install flow.",
+          "type": "boolean"
+
+        },
+        "marketplacePath": {
+          "$ref": "#/definitions/AbsolutePathBuf"
         },
         "marketplacePath": {
           "$ref": "#/definitions/AbsolutePathBuf"
@@ -8404,6 +8485,26 @@
           "properties": {
             "method": {
               "enum": [
+                "mcpServer/startupStatus/updated"
+              ],
+              "title": "McpServer/startupStatus/updatedNotificationMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/McpServerStatusUpdatedNotification"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "title": "McpServer/startupStatus/updatedNotification",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "enum": [
                 "account/updated"
               ],
               "title": "Account/updatedNotificationMethod",
@@ -8679,6 +8780,26 @@
             "params"
           ],
           "title": "Thread/realtime/itemAddedNotification",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "enum": [
+                "thread/realtime/transcriptUpdated"
+              ],
+              "title": "Thread/realtime/transcriptUpdatedNotificationMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/ThreadRealtimeTranscriptUpdatedNotification"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "title": "Thread/realtime/transcriptUpdatedNotification",
           "type": "object"
         },
         {
@@ -9249,6 +9370,17 @@
                     "string",
                     "null"
                   ]
+                },
+                "agent_path": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/AgentPath"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
                 },
                 "agent_role": {
                   "default": null,
@@ -10275,6 +10407,12 @@
                 "null"
               ]
             },
+            "savedPath": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "status": {
               "type": "string"
             },
@@ -10755,6 +10893,28 @@
         "version"
       ],
       "title": "ThreadRealtimeStartedNotification",
+      "type": "object"
+    },
+    "ThreadRealtimeTranscriptUpdatedNotification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "EXPERIMENTAL - flat transcript delta emitted whenever realtime transcript text changes.",
+      "properties": {
+        "role": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "text",
+        "threadId"
+      ],
+      "title": "ThreadRealtimeTranscriptUpdatedNotification",
       "type": "object"
     },
     "ThreadResumeParams": {

@@ -3,25 +3,23 @@ use super::curated_plugins_repo_path;
 use super::load_plugin_manifest;
 use super::manifest::PluginManifestInterface;
 use super::marketplace::MarketplaceError;
-use super::marketplace::discover_marketplace_paths;
+use super::marketplace::MarketplaceInterface;
+use super::marketplace::MarketplacePluginAuthPolicy;
+use super::marketplace::MarketplacePluginPolicy;
+use super::marketplace::MarketplacePluginSource;
+use super::marketplace::ResolvedMarketplacePlugin;
+use super::marketplace::list_marketplaces;
+use super::marketplace::load_marketplace;
 use super::marketplace::resolve_marketplace_plugin;
-use super::marketplace::resolve_marketplace_plugin_from_paths;
-use super::plugin_manifest_name;
-// STASHED: use super::marketplace::MarketplaceInterface;
-// STASHED: use super::marketplace::MarketplacePluginAuthPolicy;
-// STASHED: use super::marketplace::MarketplacePluginPolicy;
-// STASHED: use super::marketplace::MarketplacePluginSource;
-// STASHED: use super::marketplace::ResolvedMarketplacePlugin;
-// STASHED: use super::marketplace::list_marketplaces;
-// STASHED: use super::marketplace::load_marketplace;
-// STASHED: use super::marketplace::resolve_marketplace_plugin;
-// STASHED: use super::read_curated_plugins_sha;
-// STASHED: use super::remote::RemotePluginFetchError;
-// STASHED: use super::remote::RemotePluginMutationError;
-// STASHED: use super::remote::enable_remote_plugin;
-// STASHED: use super::remote::fetch_remote_featured_plugin_ids;
-// STASHED: use super::remote::fetch_remote_plugin_status;
-// STASHED: use super::remote::uninstall_remote_plugin;
+use super::read_curated_plugins_sha;
+use super::remote::RemotePluginFetchError;
+use super::remote::RemotePluginMutationError;
+use super::remote::enable_remote_plugin;
+use super::remote::fetch_remote_featured_plugin_ids;
+use super::remote::fetch_remote_plugin_status;
+use super::remote::uninstall_remote_plugin;
+use super::startup_sync::start_startup_remote_plugin_sync_once;
+
 use super::store::DEFAULT_PLUGIN_VERSION;
 use super::store::PluginId;
 use super::store::PluginIdError;
@@ -40,12 +38,12 @@ use crate::config::edit::ConfigEditsBuilder;
 use crate::config::types::McpServerConfig;
 use crate::config::types::PluginConfig;
 use crate::config_loader::ConfigLayerStack;
-use crate::features::Feature;
 use crate::skills::SkillMetadata;
 use crate::skills::loader::SkillRoot;
 use crate::skills::loader::load_skills_from_roots;
 use codex_app_server_protocol::ConfigValueWriteParams;
 use codex_app_server_protocol::MergeStrategy;
+use codex_features::Feature;
 use codex_protocol::protocol::Product;
 use codex_protocol::protocol::SkillScope;
 use codex_utils_absolute_path::AbsolutePathBuf;
@@ -62,8 +60,8 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-use std::time::Duration;
 use std::time::Instant;
+use tokio::sync::Mutex;
 use toml_edit::value;
 use tracing::info;
 use tracing::warn;
@@ -74,7 +72,8 @@ const DEFAULT_APP_CONFIG_FILE: &str = ".app.json";
 pub const OPENAI_CURATED_MARKETPLACE_NAME: &str = "openai-curated";
 static CURATED_REPO_SYNC_STARTED: AtomicBool = AtomicBool::new(false);
 const MAX_CAPABILITY_SUMMARY_DESCRIPTION_LEN: usize = 1024;
-const FEATURED_PLUGIN_IDS_CACHE_TTL: Duration = Duration::from_secs(60 * 60 * 3);
+const FEATURED_PLUGIN_IDS_CACHE_TTL: std::time::Duration =
+    std::time::Duration::from_secs(60 * 60 * 3);
 
 #[derive(Clone, PartialEq, Eq)]
 struct FeaturedPluginIdsCacheKey {
@@ -120,63 +119,65 @@ pub struct AppConnectorId(pub String);
 pub struct PluginInstallRequest {
     pub plugin_name: String,
     pub marketplace_path: AbsolutePathBuf,
-// STASHED: }
-// STASHED: 
-// STASHED: #[derive(Debug, Clone, PartialEq, Eq)]
-// STASHED: pub struct PluginReadRequest {
-// STASHED:     pub plugin_name: String,
-// STASHED:     pub marketplace_path: AbsolutePathBuf,
-// STASHED: }
-// STASHED: 
-// STASHED: #[derive(Debug, Clone, PartialEq, Eq)]
-// STASHED: pub struct PluginInstallOutcome {
-// STASHED:     pub plugin_id: PluginId,
-// STASHED:     pub plugin_version: String,
-// STASHED:     pub installed_path: AbsolutePathBuf,
-// STASHED:     pub auth_policy: MarketplacePluginAuthPolicy,
-// STASHED: }
-// STASHED: 
-// STASHED: #[derive(Debug, Clone, PartialEq)]
-// STASHED: pub struct PluginReadOutcome {
-// STASHED:     pub marketplace_name: String,
-// STASHED:     pub marketplace_path: AbsolutePathBuf,
-// STASHED:     pub plugin: PluginDetail,
-// STASHED: }
-// STASHED: 
-// STASHED: #[derive(Debug, Clone, PartialEq)]
-// STASHED: pub struct PluginDetail {
-// STASHED:     pub id: String,
-// STASHED:     pub name: String,
-// STASHED:     pub description: Option<String>,
-// STASHED:     pub source: MarketplacePluginSource,
-// STASHED:     pub policy: MarketplacePluginPolicy,
-// STASHED:     pub interface: Option<PluginManifestInterface>,
-// STASHED:     pub installed: bool,
-// STASHED:     pub enabled: bool,
-// STASHED:     pub skills: Vec<SkillMetadata>,
-// STASHED:     pub apps: Vec<AppConnectorId>,
-// STASHED:     pub mcp_server_names: Vec<String>,
-// STASHED: }
-// STASHED: 
-// STASHED: #[derive(Debug, Clone, PartialEq, Eq)]
-// STASHED: pub struct ConfiguredMarketplace {
-// STASHED:     pub name: String,
-// STASHED:     pub path: AbsolutePathBuf,
-// STASHED:     pub interface: Option<MarketplaceInterface>,
-// STASHED:     pub plugins: Vec<ConfiguredMarketplacePlugin>,
-// STASHED: }
-// STASHED: 
-// STASHED: #[derive(Debug, Clone, PartialEq, Eq)]
-// STASHED: pub struct ConfiguredMarketplacePlugin {
-// STASHED:     pub id: String,
-// STASHED:     pub name: String,
-// STASHED:     pub source: MarketplacePluginSource,
-// STASHED:     pub policy: MarketplacePluginPolicy,
-// STASHED:     pub interface: Option<PluginManifestInterface>,
-// STASHED:     pub installed: bool,
-// STASHED:     pub enabled: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PluginReadRequest {
+    pub plugin_name: String,
+    pub marketplace_path: AbsolutePathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PluginInstallOutcome {
+    pub plugin_id: PluginId,
+    pub plugin_version: String,
+    pub installed_path: AbsolutePathBuf,
+    pub auth_policy: MarketplacePluginAuthPolicy,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PluginReadOutcome {
+    pub marketplace_name: String,
+    pub marketplace_path: AbsolutePathBuf,
+    pub plugin: PluginDetail,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PluginDetail {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub source: MarketplacePluginSource,
+    pub policy: MarketplacePluginPolicy,
+    pub interface: Option<PluginManifestInterface>,
+    pub installed: bool,
+    pub enabled: bool,
+    pub skills: Vec<SkillMetadata>,
+    pub apps: Vec<AppConnectorId>,
+    pub mcp_server_names: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConfiguredMarketplace {
+    pub name: String,
+    pub path: AbsolutePathBuf,
+    pub interface: Option<MarketplaceInterface>,
+    pub plugins: Vec<ConfiguredMarketplacePlugin>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConfiguredMarketplacePlugin {
+    pub id: String,
+    pub name: String,
+    pub source: MarketplacePluginSource,
+    pub policy: MarketplacePluginPolicy,
+    pub interface: Option<PluginManifestInterface>,
+    pub installed: bool,
+    pub enabled: bool,
+}
+// STASHED:     pub source: MarketplacePluginSource,
+// STASHED:     pub policy: MarketplacePluginPolicy,
+// STASHED:     pub interface: Option<PluginManifestInterface>,
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoadedPlugin {
     pub config_name: String,
@@ -466,6 +467,8 @@ pub struct PluginsManager {
     store: PluginStore,
     featured_plugin_ids_cache: RwLock<Option<CachedFeaturedPluginIds>>,
     cached_enabled_outcome: RwLock<Option<PluginLoadOutcome>>,
+    remote_sync_lock: Mutex<()>,
+
     restriction_product: Option<Product>,
     analytics_events_client: RwLock<Option<AnalyticsEventsClient>>,
 }
@@ -491,6 +494,7 @@ impl PluginsManager {
             store: PluginStore::new(codex_home),
             featured_plugin_ids_cache: RwLock::new(None),
             cached_enabled_outcome: RwLock::new(None),
+            remote_sync_lock: Mutex::new(()),
             restriction_product,
             analytics_events_client: RwLock::new(None),
         }
@@ -504,11 +508,14 @@ impl PluginsManager {
         *stored_client = Some(analytics_events_client);
     }
 
-    fn restriction_product_matches(&self, products: &[Product]) -> bool {
-        products.is_empty()
-            || self
+    fn restriction_product_matches(&self, products: Option<&[Product]>) -> bool {
+        match products {
+            None => true,
+            Some([]) => false,
+            Some(products) => self
                 .restriction_product
-                .is_some_and(|product| product.matches_product_restriction(products))
+                .is_some_and(|product| product.matches_product_restriction(products)),
+        }
     }
 
     pub fn plugins_for_config(&self, config: &Config) -> PluginLoadOutcome {
@@ -619,7 +626,8 @@ impl PluginsManager {
         if let Some(featured_plugin_ids) = self.cached_featured_plugin_ids(&cache_key) {
             return Ok(featured_plugin_ids);
         }
-        let featured_plugin_ids = fetch_remote_featured_plugin_ids(config, auth).await?;
+        let featured_plugin_ids =
+            fetch_remote_featured_plugin_ids(config, auth, self.restriction_product).await?;
         self.write_featured_plugin_ids_cache(cache_key, &featured_plugin_ids);
         Ok(featured_plugin_ids)
     }
@@ -627,55 +635,53 @@ impl PluginsManager {
     pub async fn install_plugin(
         &self,
         request: PluginInstallRequest,
-    ) -> Result<PluginInstallResult, PluginInstallError> {
-        let resolved = resolve_marketplace_plugin(&request.marketplace_path, &request.plugin_name)?;
-// STASHED:     ) -> Result<PluginInstallOutcome, PluginInstallError> {
-// STASHED:         let resolved = resolve_marketplace_plugin(
-// STASHED:             &request.marketplace_path,
-// STASHED:             &request.plugin_name,
-// STASHED:             self.restriction_product,
-// STASHED:         )?;
-// STASHED:         self.install_resolved_plugin(resolved).await
-// STASHED:     }
-// STASHED: 
-// STASHED:     pub async fn install_plugin_with_remote_sync(
-// STASHED:         &self,
-// STASHED:         config: &Config,
-// STASHED:         auth: Option<&CodexAuth>,
-// STASHED:         request: PluginInstallRequest,
-// STASHED:     ) -> Result<PluginInstallOutcome, PluginInstallError> {
-// STASHED:         let resolved = resolve_marketplace_plugin(
-// STASHED:             &request.marketplace_path,
-// STASHED:             &request.plugin_name,
-// STASHED:             self.restriction_product,
-// STASHED:         )?;
-// STASHED:         let plugin_id = resolved.plugin_id.as_key();
-// STASHED:         // This only forwards the backend mutation before the local install flow. We rely on
-// STASHED:         // `plugin/list(forceRemoteSync=true)` to sync local state rather than doing an extra
-// STASHED:         // reconcile pass here.
-// STASHED:         enable_remote_plugin(config, auth, &plugin_id)
-// STASHED:             .await
-// STASHED:             .map_err(PluginInstallError::from)?;
-// STASHED:         self.install_resolved_plugin(resolved).await
-// STASHED:     }
-// STASHED: 
-// STASHED:     async fn install_resolved_plugin(
-// STASHED:         &self,
-// STASHED:         resolved: ResolvedMarketplacePlugin,
-// STASHED:     ) -> Result<PluginInstallOutcome, PluginInstallError> {
-// STASHED:         let auth_policy = resolved.auth_policy;
-// STASHED:         let plugin_version =
-// STASHED:             if resolved.plugin_id.marketplace_name == OPENAI_CURATED_MARKETPLACE_NAME {
-// STASHED:                 Some(
-// STASHED:                     read_curated_plugins_sha(self.codex_home.as_path()).ok_or_else(|| {
-// STASHED:                         PluginStoreError::Invalid(
-// STASHED:                             "local curated marketplace sha is not available".to_string(),
-// STASHED:                         )
-// STASHED:                     })?,
-// STASHED:                 )
-// STASHED:             } else {
-// STASHED:                 None
-// STASHED:             };
+    ) -> Result<PluginInstallOutcome, PluginInstallError> {
+        let resolved = resolve_marketplace_plugin(
+            &request.marketplace_path,
+            &request.plugin_name,
+            self.restriction_product,
+        )?;
+        self.install_resolved_plugin(resolved).await
+    }
+
+    pub async fn install_plugin_with_remote_sync(
+        &self,
+        config: &Config,
+        auth: Option<&CodexAuth>,
+        request: PluginInstallRequest,
+    ) -> Result<PluginInstallOutcome, PluginInstallError> {
+        let resolved = resolve_marketplace_plugin(
+            &request.marketplace_path,
+            &request.plugin_name,
+            self.restriction_product,
+        )?;
+        let plugin_id = resolved.plugin_id.as_key();
+        // This only forwards the backend mutation before the local install flow. We rely on
+        // `plugin/list(forceRemoteSync=true)` to sync local state rather than doing an extra
+        // reconcile pass here.
+        enable_remote_plugin(config, auth, &plugin_id)
+            .await
+            .map_err(PluginInstallError::from)?;
+        self.install_resolved_plugin(resolved).await
+    }
+
+    async fn install_resolved_plugin(
+        &self,
+        resolved: ResolvedMarketplacePlugin,
+    ) -> Result<PluginInstallOutcome, PluginInstallError> {
+        let auth_policy = resolved.auth_policy;
+        let plugin_version =
+            if resolved.plugin_id.marketplace_name == OPENAI_CURATED_MARKETPLACE_NAME {
+                Some(
+                    read_curated_plugins_sha(self.codex_home.as_path()).ok_or_else(|| {
+                        PluginStoreError::Invalid(
+                            "local curated marketplace sha is not available".to_string(),
+                        )
+                    })?,
+                )
+            } else {
+                None
+            };
         let store = self.store.clone();
         let result: StorePluginInstallResult = tokio::task::spawn_blocking(move || {
             if let Some(plugin_version) = plugin_version {
@@ -777,7 +783,11 @@ impl PluginsManager {
         &self,
         config: &Config,
         auth: Option<&CodexAuth>,
+        additive_only: bool,
     ) -> Result<RemotePluginSyncResult, PluginRemoteSyncError> {
+        let _remote_sync_guard = self.remote_sync_lock.lock().await;
+
+
         if !config.features.enabled(Feature::Plugins) {
             return Ok(RemotePluginSyncResult::default());
         }
@@ -836,7 +846,8 @@ impl PluginsManager {
                 .get(&plugin_key)
                 .map(|plugin| plugin.enabled);
             let installed_version = self.store.active_plugin_version(&plugin_id);
-            let product_allowed = self.restriction_product_matches(&plugin.policy.products);
+            let product_allowed =
+                self.restriction_product_matches(plugin.policy.products.as_deref());
             local_plugins.push((
                 plugin_name,
                 plugin_id,
@@ -915,7 +926,7 @@ impl PluginsManager {
                         value: value(true),
                     });
                 }
-            } else {
+            } else if !additive_only {
                 if is_installed {
                     uninstalls.push(plugin_id);
                 }
@@ -997,7 +1008,7 @@ impl PluginsManager {
                         if !seen_plugin_keys.insert(plugin_key.clone()) {
                             return None;
                         }
-                        if !self.restriction_product_matches(&plugin.policy.products) {
+                        if !self.restriction_product_matches(plugin.policy.products.as_deref()) {
                             return None;
                         }
 
@@ -1047,7 +1058,7 @@ impl PluginsManager {
                 marketplace_name,
             });
         };
-        if !self.restriction_product_matches(&plugin.policy.products) {
+        if !self.restriction_product_matches(plugin.policy.products.as_deref()) {
             return Err(MarketplaceError::PluginNotFound {
                 plugin_name: request.plugin_name.clone(),
                 marketplace_name,
@@ -1155,6 +1166,22 @@ impl PluginsManager {
                     );
                 }
             });
+        }
+    }
+
+    pub fn maybe_start_plugin_startup_tasks_for_config(
+        self: &Arc<Self>,
+        config: &Config,
+        auth_manager: Arc<AuthManager>,
+    ) {
+        self.maybe_start_curated_repo_sync_for_config(config, auth_manager.clone());
+        if config.features.enabled(Feature::Plugins) {
+            start_startup_remote_plugin_sync_once(
+                Arc::clone(self),
+                self.codex_home.clone(),
+                config.clone(),
+                auth_manager,
+            );
         }
     }
 
@@ -1666,6 +1693,23 @@ pub fn plugin_telemetry_metadata_from_root(
     }
 }
 
+pub fn load_plugin_mcp_servers(plugin_root: &Path) -> HashMap<String, McpServerConfig> {
+    let Some(manifest) = load_plugin_manifest(plugin_root) else {
+        return HashMap::new();
+    };
+
+    let mut mcp_servers = HashMap::new();
+    for mcp_config_path in plugin_mcp_config_paths(plugin_root, &manifest.paths) {
+        let plugin_mcp = load_mcp_servers_from_file(plugin_root, &mcp_config_path);
+        for (name, config) in plugin_mcp.mcp_servers {
+            mcp_servers.entry(name).or_insert(config);
+        }
+    }
+
+    mcp_servers
+}
+
+
 pub fn installed_plugin_telemetry_metadata(
     codex_home: &Path,
     plugin_id: &PluginId,
@@ -1778,526 +1822,6 @@ struct PluginMcpDiscovery {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::CONFIG_TOML_FILE;
-    use crate::config::ConfigBuilder;
-    use crate::config::types::McpServerTransportConfig;
-    use pretty_assertions::assert_eq;
-    use std::fs;
-    use tempfile::TempDir;
-    use toml::Value;
+#[path = "manager_tests.rs"]
+mod tests;
 
-    fn write_file(path: &Path, contents: &str) {
-        fs::create_dir_all(path.parent().expect("file should have a parent")).unwrap();
-        fs::write(path, contents).unwrap();
-    }
-
-    fn write_plugin(root: &Path, dir_name: &str, manifest_name: &str) {
-        let plugin_root = root.join(dir_name);
-        fs::create_dir_all(plugin_root.join(".codex-plugin")).unwrap();
-        fs::create_dir_all(plugin_root.join("skills")).unwrap();
-        fs::write(
-            plugin_root.join(".codex-plugin/plugin.json"),
-            format!(r#"{{"name":"{manifest_name}"}}"#),
-        )
-        .unwrap();
-        fs::write(plugin_root.join("skills/SKILL.md"), "skill").unwrap();
-        fs::write(plugin_root.join(".mcp.json"), r#"{"mcpServers":{}}"#).unwrap();
-    }
-
-    fn plugin_config_toml(enabled: bool, plugins_feature_enabled: bool) -> String {
-        let mut root = toml::map::Map::new();
-
-        let mut features = toml::map::Map::new();
-        features.insert(
-            "plugins".to_string(),
-            Value::Boolean(plugins_feature_enabled),
-        );
-        root.insert("features".to_string(), Value::Table(features));
-
-        let mut plugin = toml::map::Map::new();
-        plugin.insert("enabled".to_string(), Value::Boolean(enabled));
-
-        let mut plugins = toml::map::Map::new();
-        plugins.insert("sample@test".to_string(), Value::Table(plugin));
-        root.insert("plugins".to_string(), Value::Table(plugins));
-
-        toml::to_string(&Value::Table(root)).expect("plugin test config should serialize")
-    }
-
-    async fn load_plugins_from_config(config_toml: &str, codex_home: &Path) -> PluginLoadOutcome {
-        write_file(&codex_home.join(CONFIG_TOML_FILE), config_toml);
-        let config = ConfigBuilder::default()
-            .codex_home(codex_home.to_path_buf())
-            .build()
-            .await
-            .expect("config should load");
-        PluginsManager::new(codex_home.to_path_buf()).plugins_for_config(&config)
-    }
-
-    #[tokio::test]
-    async fn load_plugins_loads_default_skills_and_mcp_servers() {
-        let codex_home = TempDir::new().unwrap();
-        let plugin_root = codex_home
-            .path()
-            .join("plugins/cache")
-            .join("test/sample/local");
-
-        write_file(
-            &plugin_root.join(".codex-plugin/plugin.json"),
-            r#"{"name":"sample"}"#,
-        );
-        write_file(
-            &plugin_root.join("skills/sample-search/SKILL.md"),
-            "---\nname: sample-search\ndescription: search sample data\n---\n",
-        );
-        write_file(
-            &plugin_root.join(".mcp.json"),
-            r#"{
-  "mcpServers": {
-    "sample": {
-      "type": "http",
-      "url": "https://sample.example/mcp",
-      "oauth": {
-        "clientId": "client-id",
-        "callbackPort": 3118
-      }
-    }
-  }
-}"#,
-        );
-        write_file(
-            &plugin_root.join(".app.json"),
-            r#"{
-  "apps": {
-    "example": {
-      "id": "connector_example"
-    }
-  }
-}"#,
-        );
-
-        let outcome =
-            load_plugins_from_config(&plugin_config_toml(true, true), codex_home.path()).await;
-
-        assert_eq!(
-            outcome.plugins,
-            vec![LoadedPlugin {
-                config_name: "sample@test".to_string(),
-                manifest_name: Some("sample".to_string()),
-                root: AbsolutePathBuf::try_from(plugin_root.clone()).unwrap(),
-                enabled: true,
-                skill_roots: vec![plugin_root.join("skills")],
-                mcp_servers: HashMap::from([(
-                    "sample".to_string(),
-                    McpServerConfig {
-                        transport: McpServerTransportConfig::StreamableHttp {
-                            url: "https://sample.example/mcp".to_string(),
-                            bearer_token_env_var: None,
-                            http_headers: None,
-                            env_http_headers: None,
-                        },
-                        enabled: true,
-                        required: false,
-                        disabled_reason: None,
-                        startup_timeout_sec: None,
-                        tool_timeout_sec: None,
-                        enabled_tools: None,
-                        disabled_tools: None,
-                        scopes: None,
-                        oauth_resource: None,
-                    },
-                )]),
-                apps: vec![AppConnectorId("connector_example".to_string())],
-                error: None,
-            }]
-        );
-        assert_eq!(
-            outcome.effective_skill_roots(),
-            vec![plugin_root.join("skills")]
-        );
-        assert_eq!(outcome.effective_mcp_servers().len(), 1);
-        assert_eq!(
-            outcome.effective_apps(),
-            vec![AppConnectorId("connector_example".to_string())]
-        );
-    }
-
-    #[tokio::test]
-    async fn load_plugins_preserves_disabled_plugins_without_effective_contributions() {
-        let codex_home = TempDir::new().unwrap();
-        let plugin_root = codex_home
-            .path()
-            .join("plugins/cache")
-            .join("test/sample/local");
-
-        write_file(
-            &plugin_root.join(".codex-plugin/plugin.json"),
-            r#"{"name":"sample"}"#,
-        );
-        write_file(
-            &plugin_root.join(".mcp.json"),
-            r#"{
-  "mcpServers": {
-    "sample": {
-      "type": "http",
-      "url": "https://sample.example/mcp"
-    }
-  }
-}"#,
-        );
-
-        let outcome =
-            load_plugins_from_config(&plugin_config_toml(false, true), codex_home.path()).await;
-
-        assert_eq!(
-            outcome.plugins,
-            vec![LoadedPlugin {
-                config_name: "sample@test".to_string(),
-                manifest_name: None,
-                root: AbsolutePathBuf::try_from(plugin_root).unwrap(),
-                enabled: false,
-                skill_roots: Vec::new(),
-                mcp_servers: HashMap::new(),
-                apps: Vec::new(),
-                error: None,
-            }]
-        );
-        assert!(outcome.effective_skill_roots().is_empty());
-        assert!(outcome.effective_mcp_servers().is_empty());
-    }
-
-    #[tokio::test]
-    async fn effective_apps_dedupes_connector_ids_across_plugins() {
-        let codex_home = TempDir::new().unwrap();
-        let plugin_a_root = codex_home
-            .path()
-            .join("plugins/cache")
-            .join("test/plugin-a/local");
-        let plugin_b_root = codex_home
-            .path()
-            .join("plugins/cache")
-            .join("test/plugin-b/local");
-
-        write_file(
-            &plugin_a_root.join(".codex-plugin/plugin.json"),
-            r#"{"name":"plugin-a"}"#,
-        );
-        write_file(
-            &plugin_a_root.join(".app.json"),
-            r#"{
-  "apps": {
-    "example": {
-      "id": "connector_example"
-    }
-  }
-}"#,
-        );
-        write_file(
-            &plugin_b_root.join(".codex-plugin/plugin.json"),
-            r#"{"name":"plugin-b"}"#,
-        );
-        write_file(
-            &plugin_b_root.join(".app.json"),
-            r#"{
-  "apps": {
-    "chat": {
-      "id": "connector_example"
-    },
-    "gmail": {
-      "id": "connector_gmail"
-    }
-  }
-}"#,
-        );
-
-        let mut root = toml::map::Map::new();
-        let mut features = toml::map::Map::new();
-        features.insert("plugins".to_string(), Value::Boolean(true));
-        root.insert("features".to_string(), Value::Table(features));
-
-        let mut plugins = toml::map::Map::new();
-
-        let mut plugin_a = toml::map::Map::new();
-        plugin_a.insert("enabled".to_string(), Value::Boolean(true));
-        plugins.insert("plugin-a@test".to_string(), Value::Table(plugin_a));
-
-        let mut plugin_b = toml::map::Map::new();
-        plugin_b.insert("enabled".to_string(), Value::Boolean(true));
-        plugins.insert("plugin-b@test".to_string(), Value::Table(plugin_b));
-
-        root.insert("plugins".to_string(), Value::Table(plugins));
-        let config_toml =
-            toml::to_string(&Value::Table(root)).expect("plugin test config should serialize");
-
-        let outcome = load_plugins_from_config(&config_toml, codex_home.path()).await;
-
-        assert_eq!(
-            outcome.effective_apps(),
-            vec![
-                AppConnectorId("connector_example".to_string()),
-                AppConnectorId("connector_gmail".to_string()),
-            ]
-        );
-    }
-
-    #[test]
-    fn capability_index_filters_inactive_and_zero_capability_plugins() {
-        let codex_home = TempDir::new().unwrap();
-        let connector = |id: &str| AppConnectorId(id.to_string());
-        let http_server = |url: &str| McpServerConfig {
-            transport: McpServerTransportConfig::StreamableHttp {
-                url: url.to_string(),
-                bearer_token_env_var: None,
-                http_headers: None,
-                env_http_headers: None,
-            },
-            enabled: true,
-            required: false,
-            disabled_reason: None,
-            startup_timeout_sec: None,
-            tool_timeout_sec: None,
-            enabled_tools: None,
-            disabled_tools: None,
-            scopes: None,
-            oauth_resource: None,
-        };
-        let plugin = |config_name: &str, dir_name: &str, manifest_name: &str| LoadedPlugin {
-            config_name: config_name.to_string(),
-            manifest_name: Some(manifest_name.to_string()),
-            root: AbsolutePathBuf::try_from(codex_home.path().join(dir_name)).unwrap(),
-            enabled: true,
-            skill_roots: Vec::new(),
-            mcp_servers: HashMap::new(),
-            apps: Vec::new(),
-            error: None,
-        };
-        let summary = |config_name: &str, display_name: &str| PluginCapabilitySummary {
-            config_name: config_name.to_string(),
-            display_name: display_name.to_string(),
-            ..PluginCapabilitySummary::default()
-        };
-        let outcome = PluginLoadOutcome::from_plugins(vec![
-            LoadedPlugin {
-                skill_roots: vec![codex_home.path().join("skills-plugin/skills")],
-                ..plugin("skills@test", "skills-plugin", "skills-plugin")
-            },
-            LoadedPlugin {
-                mcp_servers: HashMap::from([("alpha".to_string(), http_server("https://alpha"))]),
-                apps: vec![connector("connector_example")],
-                ..plugin("alpha@test", "alpha-plugin", "alpha-plugin")
-            },
-            LoadedPlugin {
-                mcp_servers: HashMap::from([("beta".to_string(), http_server("https://beta"))]),
-                apps: vec![connector("connector_example"), connector("connector_gmail")],
-                ..plugin("beta@test", "beta-plugin", "beta-plugin")
-            },
-            plugin("empty@test", "empty-plugin", "empty-plugin"),
-            LoadedPlugin {
-                enabled: false,
-                skill_roots: vec![codex_home.path().join("disabled-plugin/skills")],
-                apps: vec![connector("connector_hidden")],
-                ..plugin("disabled@test", "disabled-plugin", "disabled-plugin")
-            },
-            LoadedPlugin {
-                apps: vec![connector("connector_broken")],
-                error: Some("failed to load".to_string()),
-                ..plugin("broken@test", "broken-plugin", "broken-plugin")
-            },
-        ]);
-
-        assert_eq!(
-            outcome.capability_summaries(),
-            &[
-                PluginCapabilitySummary {
-                    has_skills: true,
-                    ..summary("skills@test", "skills-plugin")
-                },
-                PluginCapabilitySummary {
-                    mcp_server_names: vec!["alpha".to_string()],
-                    app_connector_ids: vec![connector("connector_example")],
-                    ..summary("alpha@test", "alpha-plugin")
-                },
-                PluginCapabilitySummary {
-                    mcp_server_names: vec!["beta".to_string()],
-                    app_connector_ids: vec![
-                        connector("connector_example"),
-                        connector("connector_gmail"),
-                    ],
-                    ..summary("beta@test", "beta-plugin")
-                },
-            ]
-        );
-    }
-
-    #[test]
-    fn plugin_namespace_for_skill_path_uses_manifest_name() {
-        let codex_home = TempDir::new().unwrap();
-        let plugin_root = codex_home.path().join("plugins/sample");
-        let skill_path = plugin_root.join("skills/search/SKILL.md");
-
-        write_file(
-            &plugin_root.join(".codex-plugin/plugin.json"),
-            r#"{"name":"sample"}"#,
-        );
-        write_file(&skill_path, "---\ndescription: search\n---\n");
-
-        assert_eq!(
-            plugin_namespace_for_skill_path(&skill_path),
-            Some("sample".to_string())
-        );
-    }
-
-    #[tokio::test]
-    async fn load_plugins_returns_empty_when_feature_disabled() {
-        let codex_home = TempDir::new().unwrap();
-        let plugin_root = codex_home
-            .path()
-            .join("plugins/cache")
-            .join("test/sample/local");
-
-        write_file(
-            &plugin_root.join(".codex-plugin/plugin.json"),
-            r#"{"name":"sample"}"#,
-        );
-        write_file(
-            &plugin_root.join("skills/sample-search/SKILL.md"),
-            "---\nname: sample-search\ndescription: search sample data\n---\n",
-        );
-
-        let outcome =
-            load_plugins_from_config(&plugin_config_toml(true, false), codex_home.path()).await;
-
-        assert_eq!(outcome, PluginLoadOutcome::default());
-    }
-
-    #[tokio::test]
-    async fn load_plugins_rejects_invalid_plugin_keys() {
-        let codex_home = TempDir::new().unwrap();
-        let plugin_root = codex_home
-            .path()
-            .join("plugins/cache")
-            .join("test/sample/local");
-
-        write_file(
-            &plugin_root.join(".codex-plugin/plugin.json"),
-            r#"{"name":"sample"}"#,
-        );
-
-        let mut root = toml::map::Map::new();
-        let mut features = toml::map::Map::new();
-        features.insert("plugins".to_string(), Value::Boolean(true));
-        root.insert("features".to_string(), Value::Table(features));
-
-        let mut plugin = toml::map::Map::new();
-        plugin.insert("enabled".to_string(), Value::Boolean(true));
-
-        let mut plugins = toml::map::Map::new();
-        plugins.insert("sample".to_string(), Value::Table(plugin));
-        root.insert("plugins".to_string(), Value::Table(plugins));
-
-        let outcome = load_plugins_from_config(
-            &toml::to_string(&Value::Table(root)).expect("plugin test config should serialize"),
-            codex_home.path(),
-        )
-        .await;
-
-        assert_eq!(outcome.plugins.len(), 1);
-        assert_eq!(
-            outcome.plugins[0].error.as_deref(),
-            Some("invalid plugin key `sample`; expected <plugin>@<marketplace>")
-        );
-        assert!(outcome.effective_skill_roots().is_empty());
-        assert!(outcome.effective_mcp_servers().is_empty());
-    }
-
-    #[tokio::test]
-    async fn install_plugin_updates_config_with_relative_path_and_plugin_key() {
-        let tmp = tempfile::tempdir().unwrap();
-        let repo_root = tmp.path().join("repo");
-        fs::create_dir_all(repo_root.join(".git")).unwrap();
-        fs::create_dir_all(repo_root.join(".agents/plugins")).unwrap();
-        write_plugin(
-            &repo_root.join(".agents/plugins"),
-            "sample-plugin",
-            "sample-plugin",
-        );
-        fs::write(
-            repo_root.join(".agents/plugins/marketplace.json"),
-            r#"{
-  "name": "debug",
-  "plugins": [
-    {
-      "name": "sample-plugin",
-      "source": {
-        "source": "local",
-        "path": "./sample-plugin"
-      }
-    }
-  ]
-}"#,
-        )
-        .unwrap();
-
-        let result = PluginsManager::new(tmp.path().to_path_buf())
-            .install_plugin(PluginInstallRequest {
-                plugin_name: "sample-plugin".to_string(),
-                marketplace_path: AbsolutePathBuf::try_from(
-                    repo_root.join(".agents/plugins/marketplace.json"),
-                )
-                .unwrap(),
-            })
-            .await
-            .unwrap();
-
-        let installed_path = tmp.path().join("plugins/cache/debug/sample-plugin/local");
-        assert_eq!(
-            result,
-            PluginInstallResult {
-                plugin_id: PluginId::new("sample-plugin".to_string(), "debug".to_string()).unwrap(),
-                plugin_version: "local".to_string(),
-                installed_path,
-            }
-        );
-
-        let config = fs::read_to_string(tmp.path().join("config.toml")).unwrap();
-        assert!(config.contains(r#"[plugins."sample-plugin@debug"]"#));
-        assert!(config.contains("enabled = true"));
-    }
-
-    #[test]
-    fn discovered_marketplace_paths_still_support_name_based_resolution() {
-        let tmp = tempfile::tempdir().unwrap();
-        let repo_root = tmp.path().join("repo");
-        fs::create_dir_all(repo_root.join(".git")).unwrap();
-        fs::create_dir_all(repo_root.join(".agents/plugins")).unwrap();
-        fs::write(
-            repo_root.join(".agents/plugins/marketplace.json"),
-            r#"{
-  "name": "debug",
-  "plugins": [
-    {
-      "name": "sample-plugin",
-      "source": {
-        "source": "local",
-        "path": "./sample-plugin"
-      }
-    }
-  ]
-}"#,
-        )
-        .unwrap();
-
-        let resolved = resolve_marketplace_plugin_from_paths(
-            &discover_marketplace_paths(&repo_root),
-            "sample-plugin",
-            "debug",
-        )
-        .unwrap();
-
-        assert_eq!(resolved.plugin_id.as_key(), "sample-plugin@debug");
-    }
-}
-// STASHED: #[path = "manager_tests.rs"]
-// STASHED: mod tests;

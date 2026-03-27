@@ -1253,10 +1253,15 @@
     },
     "PluginInstallParams": {
       "properties": {
+        "forceRemoteSync": {
+          "description": "When true, apply the remote plugin change before the local install flow.",
+          "type": "boolean"
+        },
 // STASHED:         "forceRemoteSync": {
 // STASHED:           "description": "When true, apply the remote plugin change before the local install flow.",
 // STASHED:           "type": "boolean"
 // STASHED:         },
+
         "marketplacePath": {
           "$ref": "#/definitions/AbsolutePathBuf"
         },

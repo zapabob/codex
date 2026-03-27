@@ -129,8 +129,12 @@ jobs:
         run: |
           set -euo pipefail
           # Use a rust-release version that includes all native binaries.
+<<<<<<< HEAD
           # Try to get the latest release version dynamically
           CODEX_VERSION=$(git describe --tags --match "v[0-9]*" --abbrev=0 2>/dev/null || echo "v3.0.0")
+=======
+          CODEX_VERSION=0.115.0
+>>>>>>> cf0223887fb84a9bd57986c21f3d7eadfce249a3
           OUTPUT_DIR="${RUNNER_TEMP}"
           # Skip if the version doesn't have a release workflow
           if ! gh run list --workflow=rust-release.yml --json headSha -q '.[0].headSha' 2>/dev/null | grep -q .; then

@@ -1,4 +1,4 @@
-﻿//! Parallel agent delegation command.
+//! Parallel agent delegation command.
 
 use anyhow::Context;
 use anyhow::Result;
@@ -243,4 +243,3 @@ pub async fn run_parallel_delegate_command(
 
     Ok(())
 }
-

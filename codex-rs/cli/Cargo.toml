@@ -32,6 +32,7 @@ codex-core = { workspace = true }
 codex-deep-research = { workspace = true }
 codex-exec = { workspace = true }
 codex-execpolicy = { workspace = true }
+codex-features = { workspace = true }
 codex-login = { workspace = true }
 codex-mcp-server = { workspace = true }
 codex-otel = { workspace = true }
@@ -41,7 +42,9 @@ codex-rmcp-client = { workspace = true }
 codex-state = { workspace = true }
 codex-stdio-to-uds = { workspace = true }
 codex-supervisor = { workspace = true }
+codex-terminal-detection = { workspace = true }
 codex-tui = { workspace = true }
+codex-tui-app-server = { workspace = true }
 codex-utils-cli = { workspace = true }
 codex-web-search = { workspace = true }
 dirs = { workspace = true }
@@ -65,6 +68,8 @@ tokio = { workspace = true, features = [
 ] }
 toml = { workspace = true }
 tracing = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-subscriber = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 walkdir = { workspace = true }
 

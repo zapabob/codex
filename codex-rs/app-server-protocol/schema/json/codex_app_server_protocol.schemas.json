@@ -3977,6 +3977,26 @@
           "properties": {
             "method": {
               "enum": [
+                "mcpServer/startupStatus/updated"
+              ],
+              "title": "McpServer/startupStatus/updatedNotificationMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/v2/McpServerStatusUpdatedNotification"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "title": "McpServer/startupStatus/updatedNotification",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "enum": [
                 "account/updated"
               ],
               "title": "Account/updatedNotificationMethod",
@@ -4252,6 +4272,26 @@
             "params"
           ],
           "title": "Thread/realtime/itemAddedNotification",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "enum": [
+                "thread/realtime/transcriptUpdated"
+              ],
+              "title": "Thread/realtime/transcriptUpdatedNotificationMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/v2/ThreadRealtimeTranscriptUpdatedNotification"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "title": "Thread/realtime/transcriptUpdatedNotification",
           "type": "object"
         },
         {
@@ -4879,6 +4919,9 @@
         "title": "AgentMessageDeltaNotification",
         "type": "object"
       },
+      "AgentPath": {
+        "type": "string"
+      },
       "AnalyticsConfig": {
         "additionalProperties": true,
         "properties": {
@@ -5232,11 +5275,18 @@
           },
           "name": {
             "type": "string"
+          },
+          "needsAuth": {
+            "type": "boolean"
+
           }
         },
         "required": [
           "id",
+          "name",
+          "needsAuth"
           "name"
+
         ],
         "type": "object"
       },
@@ -8595,6 +8645,15 @@
         "title": "McpServerRefreshResponse",
         "type": "object"
       },
+      "McpServerStartupState": {
+        "enum": [
+          "starting",
+          "ready",
+          "failed",
+          "cancelled"
+        ],
+        "type": "string"
+      },
       "McpServerStatus": {
         "properties": {
           "authStatus": {
@@ -8629,6 +8688,29 @@
           "resources",
           "tools"
         ],
+        "type": "object"
+      },
+      "McpServerStatusUpdatedNotification": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/definitions/v2/McpServerStartupState"
+          }
+        },
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "McpServerStatusUpdatedNotification",
         "type": "object"
       },
       "McpToolCallError": {
@@ -9206,6 +9288,17 @@
       },
       "PluginDetail": {
         "properties": {
+          "apps": {
+            "items": {
+              "$ref": "#/definitions/v2/AppSummary"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
           "marketplacePath": {
             "$ref": "#/definitions/v2/AbsolutePathBuf"
 // STASHED:           "apps": {
@@ -9219,9 +9312,35 @@
 // STASHED:               "string",
 // STASHED:               "null"
 // STASHED:             ]
-// STASHED:           },
 // STASHED:           "marketplaceName": {
 // STASHED:             "type": "string"
+          "mcpServers": {
+              "type": "string"
+          "skills": {
+              "$ref": "#/definitions/v2/SkillSummary"
+          "summary": {
+            "$ref": "#/definitions/v2/PluginSummary"
+          }
+        },
+        "required": [
+          "apps",
+          "marketplaceName",
+          "marketplacePath",
+          "mcpServers",
+          "skills",
+          "summary"
+        ],
+        "type": "object"
+      },
+      "PluginInstallParams": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+          "forceRemoteSync": {
+            "description": "When true, apply the remote plugin change before the local install flow.",
+            "type": "boolean"
+
+          },
+          "marketplacePath": {
+            "$ref": "#/definitions/v2/AbsolutePathBuf"
           },
           "marketplacePath": {
             "$ref": "#/definitions/v2/AbsolutePathBuf"
@@ -11490,6 +11609,17 @@
                       "null"
                     ]
                   },
+                  "agent_path": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/v2/AgentPath"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
                   "agent_role": {
                     "default": null,
                     "type": [
@@ -12515,6 +12645,12 @@
                   "null"
                 ]
               },
+              "savedPath": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "status": {
                 "type": "string"
               },
@@ -12995,6 +13131,28 @@
           "version"
         ],
         "title": "ThreadRealtimeStartedNotification",
+        "type": "object"
+      },
+      "ThreadRealtimeTranscriptUpdatedNotification": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "description": "EXPERIMENTAL - flat transcript delta emitted whenever realtime transcript text changes.",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "threadId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "text",
+          "threadId"
+        ],
+        "title": "ThreadRealtimeTranscriptUpdatedNotification",
         "type": "object"
       },
       "ThreadResumeParams": {

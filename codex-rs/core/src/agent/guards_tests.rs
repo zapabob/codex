@@ -2,6 +2,7 @@ use super::*;
 use pretty_assertions::assert_eq;
 use std::collections::HashSet;
 
+
 #[test]
 fn format_agent_nickname_adds_ordinals_after_reset() {
     assert_eq!(format_agent_nickname("Plato", 0), "Plato");
@@ -21,6 +22,7 @@ fn thread_spawn_depth_increments_and_enforces_limit() {
     let session_source = SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
         parent_thread_id: ThreadId::new(),
         depth: 1,
+
         agent_nickname: None,
         agent_role: None,
     });
@@ -54,6 +56,7 @@ fn commit_holds_slot_until_release() {
     let thread_id = ThreadId::new();
     reservation.commit(thread_id);
 
+
     let err = match guards.reserve_spawn_slot(Some(1)) {
         Ok(_) => panic!("limit should be enforced"),
         Err(err) => err,
@@ -76,6 +79,7 @@ fn release_ignores_unknown_thread_id() {
     let reservation = guards.reserve_spawn_slot(Some(1)).expect("reserve slot");
     let thread_id = ThreadId::new();
     reservation.commit(thread_id);
+
 
     guards.release_spawned_thread(ThreadId::new());
 
@@ -102,11 +106,13 @@ fn release_is_idempotent_for_registered_threads() {
     let first_id = ThreadId::new();
     reservation.commit(first_id);
 
+
     guards.release_spawned_thread(first_id);
 
     let reservation = guards.reserve_spawn_slot(Some(1)).expect("slot reused");
     let second_id = ThreadId::new();
     reservation.commit(second_id);
+
 
     guards.release_spawned_thread(first_id);
 
@@ -132,6 +138,7 @@ fn failed_spawn_keeps_nickname_marked_used() {
     let mut reservation = guards.reserve_spawn_slot(None).expect("reserve slot");
     let agent_nickname = reservation
         .reserve_agent_nickname(&["alpha"])
+
         .expect("reserve agent name");
     assert_eq!(agent_nickname, "alpha");
     drop(reservation);
@@ -139,6 +146,7 @@ fn failed_spawn_keeps_nickname_marked_used() {
     let mut reservation = guards.reserve_spawn_slot(None).expect("reserve slot");
     let agent_nickname = reservation
         .reserve_agent_nickname(&["alpha", "beta"])
+
         .expect("unused name should still be preferred");
     assert_eq!(agent_nickname, "beta");
 }
@@ -152,6 +160,7 @@ fn agent_nickname_resets_used_pool_when_exhausted() {
         .expect("reserve first agent name");
     let first_id = ThreadId::new();
     first.commit(first_id);
+
     assert_eq!(first_name, "alpha");
 
     let mut second = guards
@@ -159,6 +168,7 @@ fn agent_nickname_resets_used_pool_when_exhausted() {
         .expect("reserve second slot");
     let second_name = second
         .reserve_agent_nickname(&["alpha"])
+
         .expect("name should be reused after pool reset");
     assert_eq!(second_name, "alpha the 2nd");
     let active_agents = guards
@@ -178,6 +188,7 @@ fn released_nickname_stays_used_until_pool_reset() {
         .expect("reserve first agent name");
     let first_id = ThreadId::new();
     first.commit(first_id);
+
     assert_eq!(first_name, "alpha");
 
     guards.release_spawned_thread(first_id);
@@ -191,11 +202,13 @@ fn released_nickname_stays_used_until_pool_reset() {
     assert_eq!(second_name, "beta");
     let second_id = ThreadId::new();
     second.commit(second_id);
+
     guards.release_spawned_thread(second_id);
 
     let mut third = guards.reserve_spawn_slot(None).expect("reserve third slot");
     let third_name = third
         .reserve_agent_nickname(&["alpha", "beta"])
+
         .expect("pool reset should permit a duplicate");
     let expected_names = HashSet::from(["alpha the 2nd".to_string(), "beta the 2nd".to_string()]);
     assert!(expected_names.contains(&third_name));
@@ -216,6 +229,7 @@ fn repeated_resets_advance_the_ordinal_suffix() {
         .expect("reserve first agent name");
     let first_id = ThreadId::new();
     first.commit(first_id);
+
     assert_eq!(first_name, "Plato");
     guards.release_spawned_thread(first_id);
 
@@ -227,12 +241,14 @@ fn repeated_resets_advance_the_ordinal_suffix() {
         .expect("reserve second agent name");
     let second_id = ThreadId::new();
     second.commit(second_id);
+
     assert_eq!(second_name, "Plato the 2nd");
     guards.release_spawned_thread(second_id);
 
     let mut third = guards.reserve_spawn_slot(None).expect("reserve third slot");
     let third_name = third
         .reserve_agent_nickname(&["Plato"])
+
         .expect("reserve third agent name");
     assert_eq!(third_name, "Plato the 3rd");
     let active_agents = guards
@@ -241,3 +257,4 @@ fn repeated_resets_advance_the_ordinal_suffix() {
         .unwrap_or_else(std::sync::PoisonError::into_inner);
     assert_eq!(active_agents.nickname_reset_count, 2);
 }
+

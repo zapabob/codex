@@ -32,6 +32,7 @@ impl ToolHandler for Handler {
             .get_agent_nickname_and_role(receiver_thread_id)
             .await
             .unwrap_or((None, None));
+
         let child_depth = next_thread_spawn_depth(&turn.session_source);
         let max_depth = turn.config.agent_max_depth;
         if exceeds_thread_spawn_depth_limit(child_depth, max_depth) {
@@ -49,6 +50,7 @@ impl ToolHandler for Handler {
                     receiver_thread_id,
                     receiver_agent_nickname: receiver_agent_nickname.clone(),
                     receiver_agent_role: receiver_agent_role.clone(),
+
                 }
                 .into(),
             )
@@ -64,6 +66,7 @@ impl ToolHandler for Handler {
                 Ok(resumed_status) => {
                     status = resumed_status;
                     None
+
                 }
                 Err(err) => {
                     status = session
@@ -84,6 +87,7 @@ impl ToolHandler for Handler {
             .get_agent_nickname_and_role(receiver_thread_id)
             .await
             .unwrap_or((receiver_agent_nickname, receiver_agent_role));
+
         session
             .send_event(
                 &turn,
@@ -93,6 +97,7 @@ impl ToolHandler for Handler {
                     receiver_thread_id,
                     receiver_agent_nickname,
                     receiver_agent_role,
+
                     status: status.clone(),
                 }
                 .into(),
@@ -145,6 +150,7 @@ async fn try_resume_closed_agent(
 ) -> Result<AgentStatus, FunctionCallError> {
     let config = build_agent_resume_config(turn.as_ref(), child_depth)?;
     let resumed_thread_id = session
+
         .services
         .agent_control
         .resume_agent_from_rollout(
@@ -164,4 +170,5 @@ async fn try_resume_closed_agent(
         .agent_control
         .get_status(resumed_thread_id)
         .await)
+
 }

@@ -18,7 +18,6 @@ pub struct RemoteExecServerConnectArgs {
     pub connect_timeout: Duration,
     pub initialize_timeout: Duration,
 }
-
 /// Connection-level server events.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExecServerEvent {

@@ -8,13 +8,15 @@ use crate::tools::context::ToolPayload;
 use crate::tools::registry::ToolHandler;
 use crate::tools::registry::ToolKind;
 
-use super::CodeModeSessionProgress;
 use super::DEFAULT_WAIT_YIELD_TIME_MS;
 use super::ExecContext;
-use super::PUBLIC_TOOL_NAME;
 use super::WAIT_TOOL_NAME;
+use super::handle_runtime_response;
+use super::CodeModeSessionProgress;
+use super::PUBLIC_TOOL_NAME;
 use super::handle_node_message;
 use super::protocol::HostToNodeMessage;
+
 
 pub struct CodeModeWaitHandler;
 
@@ -63,13 +65,24 @@ impl ToolHandler for CodeModeWaitHandler {
             ToolPayload::Function { arguments } if tool_name == WAIT_TOOL_NAME => {
                 let args: ExecWaitArgs = parse_arguments(&arguments)?;
                 let exec = ExecContext { session, turn };
-                let request_id = exec
+                let started_at = std::time::Instant::now();
+                let response = exec
                     .session
                     .services
                     .code_mode_service
+                    .wait(codex_code_mode::WaitRequest {
+                        cell_id: args.cell_id,
+                        yield_time_ms: args.yield_time_ms,
+                        terminate: args.terminate,
+                    })
+                    .await
+                    .map_err(FunctionCallError::RespondToModel)?;
+                handle_runtime_response(&exec, response, args.max_tokens, started_at)
+                    .await
+                    .map_err(FunctionCallError::RespondToModel)
+                let request_id = exec
                     .allocate_request_id()
                     .await;
-                let started_at = std::time::Instant::now();
                 let message = if args.terminate {
                     HostToNodeMessage::Terminate {
                         request_id: request_id.clone(),
@@ -77,17 +90,9 @@ impl ToolHandler for CodeModeWaitHandler {
                     }
                 } else {
                     HostToNodeMessage::Poll {
-                        request_id: request_id.clone(),
-                        cell_id: args.cell_id.clone(),
-                        yield_time_ms: args.yield_time_ms,
-                    }
                 };
                 let process_slot = exec
-                    .session
-                    .services
-                    .code_mode_service
                     .ensure_started()
-                    .await
                     .map_err(|err| FunctionCallError::RespondToModel(err.to_string()))?;
                 let result = {
                     let mut process_slot = process_slot;
@@ -97,10 +102,6 @@ impl ToolHandler for CodeModeWaitHandler {
                         )));
                     };
                     if !matches!(process.has_exited(), Ok(false)) {
-                        return Err(FunctionCallError::RespondToModel(format!(
-                            "{PUBLIC_TOOL_NAME} runner failed to start"
-                        )));
-                    }
                     let message = process
                         .send(&request_id, &message)
                         .await
@@ -108,7 +109,6 @@ impl ToolHandler for CodeModeWaitHandler {
                     let message = match message {
                         Ok(message) => message,
                         Err(error) => return Err(FunctionCallError::RespondToModel(error)),
-                    };
                     handle_node_message(
                         &exec,
                         args.cell_id,
@@ -116,13 +116,12 @@ impl ToolHandler for CodeModeWaitHandler {
                         Some(args.max_tokens),
                         started_at,
                     )
-                    .await
-                };
                 match result {
                     Ok(CodeModeSessionProgress::Finished(output))
                     | Ok(CodeModeSessionProgress::Yielded { output }) => Ok(output),
                     Err(error) => Err(FunctionCallError::RespondToModel(error)),
                 }
+
             }
             _ => Err(FunctionCallError::RespondToModel(format!(
                 "{WAIT_TOOL_NAME} expects JSON arguments"

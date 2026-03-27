@@ -47,6 +47,8 @@ use codex_core::config::Config;
 use codex_core::config_loader::CloudRequirementsLoader;
 use codex_core::config_loader::LoaderOverrides;
 use codex_core::models_manager::collaboration_mode_presets::CollaborationModesConfig;
+use codex_features::Feature;
+
 use codex_feedback::CodexFeedback;
 use codex_protocol::protocol::SessionSource;
 use serde::de::DeserializeOwned;

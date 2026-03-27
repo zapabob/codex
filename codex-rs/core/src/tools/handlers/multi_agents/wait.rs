@@ -56,6 +56,7 @@ impl ToolHandler for Handler {
                 thread_id: *receiver_thread_id,
                 agent_nickname,
                 agent_role,
+
             });
         }
 
@@ -156,6 +157,7 @@ impl ToolHandler for Handler {
         let result = WaitAgentResult {
             status: statuses_map.clone(),
             timed_out: statuses.is_empty(),
+
         };
 
         session
@@ -166,6 +168,7 @@ impl ToolHandler for Handler {
                     call_id,
                     agent_statuses,
                     statuses: statuses_map,
+
                 }
                 .into(),
             )
@@ -178,12 +181,14 @@ impl ToolHandler for Handler {
 #[derive(Debug, Deserialize)]
 struct WaitArgs {
     ids: Vec<String>,
+
     timeout_ms: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub(crate) struct WaitAgentResult {
     pub(crate) status: HashMap<ThreadId, AgentStatus>,
+
     pub(crate) timed_out: bool,
 }
 

@@ -8,7 +8,9 @@ use super::PluginReadRequest;
 use super::PluginsManager;
 use crate::config::Config;
 use crate::config::types::ToolSuggestDiscoverableType;
+use codex_features::Feature;
 use crate::features::Feature;
+
 
 const TOOL_SUGGEST_DISCOVERABLE_PLUGIN_ALLOWLIST: &[&str] = &[
     "github@openai-curated",

@@ -31,6 +31,7 @@ impl ToolHandler for Handler {
             .get_agent_nickname_and_role(agent_id)
             .await
             .unwrap_or((None, None));
+
         session
             .send_event(
                 &turn,
@@ -60,6 +61,7 @@ impl ToolHandler for Handler {
                             receiver_thread_id: agent_id,
                             receiver_agent_nickname: receiver_agent_nickname.clone(),
                             receiver_agent_role: receiver_agent_role.clone(),
+
                             status,
                         }
                         .into(),
@@ -84,6 +86,7 @@ impl ToolHandler for Handler {
                     receiver_thread_id: agent_id,
                     receiver_agent_nickname,
                     receiver_agent_role,
+
                     status: status.clone(),
                 }
                 .into(),
@@ -119,3 +122,4 @@ impl ToolOutput for CloseAgentResult {
         tool_output_code_mode_result(self, "close_agent")
     }
 }
+
