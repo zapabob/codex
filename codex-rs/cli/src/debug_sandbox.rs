@@ -11,14 +11,14 @@ use codex_core::config::ConfigBuilder;
 use codex_core::config::ConfigOverrides;
 use codex_core::config::NetworkProxyAuditMetadata;
 use codex_core::exec_env::create_env;
-use codex_core::landlock::create_linux_sandbox_command_args_for_policies;
-#[cfg(target_os = "macos")]
-use codex_core::seatbelt::create_seatbelt_command_args_for_policies_with_extensions;
 #[cfg(target_os = "macos")]
 use codex_core::spawn::CODEX_SANDBOX_ENV_VAR;
 use codex_core::spawn::CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use codex_protocol::config_types::SandboxMode;
 use codex_protocol::permissions::NetworkSandboxPolicy;
+use codex_sandboxing::landlock::create_linux_sandbox_command_args_for_policies;
+#[cfg(target_os = "macos")]
+use codex_sandboxing::seatbelt::create_seatbelt_command_args_for_policies;
 use codex_utils_cli::CliConfigOverrides;
 use tokio::process::Child;
 use tokio::process::Command as TokioCommand;
@@ -164,6 +164,17 @@ async fn run_command_under_sandbox(
             let res = tokio::task::spawn_blocking(move || {
                 if use_elevated {
                     run_windows_sandbox_capture_elevated(
+                        codex_windows_sandbox::ElevatedSandboxCaptureRequest {
+                            policy_json_or_preset: policy_str.as_str(),
+                            sandbox_policy_cwd: &sandbox_cwd,
+                            codex_home: base_dir.as_path(),
+                            command: command_vec,
+                            cwd: &cwd_clone,
+                            env_map,
+                            timeout_ms: None,
+                            use_private_desktop: config.permissions.windows_sandbox_private_desktop,
+                            proxy_enforced: false,
+                        },
                         policy_str.as_str(),
                         &sandbox_cwd,
                         base_dir.as_path(),
@@ -172,6 +183,7 @@ async fn run_command_under_sandbox(
                         env_map,
                         None,
                         config.permissions.windows_sandbox_private_desktop,
+
                     )
                 } else {
                     run_windows_sandbox_capture(
@@ -246,7 +258,7 @@ async fn run_command_under_sandbox(
     let mut child = match sandbox_type {
         #[cfg(target_os = "macos")]
         SandboxType::Seatbelt => {
-            let args = create_seatbelt_command_args_for_policies_with_extensions(
+            let args = create_seatbelt_command_args_for_policies(
                 command,
                 &config.permissions.file_system_sandbox_policy,
                 config.permissions.network_sandbox_policy,
@@ -254,13 +266,17 @@ async fn run_command_under_sandbox(
                 false,
                 network.as_ref(),
                 None,
+
             );
             let network_policy = config.permissions.network_sandbox_policy;
             spawn_debug_sandbox_child(
                 PathBuf::from("/usr/bin/sandbox-exec"),
                 args,
+                /*arg0*/ None,
+                cwd.to_path_buf(),
                 None,
                 cwd,
+
                 network_policy,
                 env,
                 |env_map| {
@@ -293,7 +309,7 @@ async fn run_command_under_sandbox(
                 codex_linux_sandbox_exe,
                 args,
                 Some("codex-linux-sandbox"),
-                cwd,
+                cwd.to_path_buf(),
                 network_policy,
                 env,
                 |env_map| {

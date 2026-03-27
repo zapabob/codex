@@ -136,11 +136,7 @@ runs:
 
         for binary in codex codex-responses-api-proxy; do
           path="codex-rs/target/${TARGET}/release/${binary}"
-<<<<<<< HEAD
-          codesign --force --options runtime --timestamp --sign "$APPLE_CODESIGN_IDENTITY" "${keychain_args[@]}" "$path"
-=======
           codesign --force --options runtime --timestamp --entitlements "$entitlements_path" --sign "$APPLE_CODESIGN_IDENTITY" "${keychain_args[@]}" "$path"
->>>>>>> cf0223887fb84a9bd57986c21f3d7eadfce249a3
         done
 
     - name: Notarize macOS binaries

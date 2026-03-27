@@ -1,5 +1,6 @@
 use clap::Parser;
 use codex_app_server::AppServerTransport;
+use codex_app_server::AppServerWebsocketAuthArgs;
 use codex_app_server::run_main_with_transport;
 use codex_arg0::Arg0DispatchPaths;
 use codex_arg0::arg0_dispatch_or_else;
@@ -32,6 +33,9 @@ struct AppServerArgs {
         value_parser = SessionSource::from_startup_arg
     )]
     session_source: SessionSource,
+
+    #[command(flatten)]
+    auth: AppServerWebsocketAuthArgs,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -44,6 +48,7 @@ fn main() -> anyhow::Result<()> {
         };
         let transport = args.listen;
         let session_source = args.session_source;
+        let auth = args.auth.try_into_settings()?;
 
         run_main_with_transport(
             arg0_paths,
@@ -52,6 +57,7 @@ fn main() -> anyhow::Result<()> {
             /*default_analytics_enabled*/ false,
             transport,
             session_source,
+            auth,
         )
         .await?;
         Ok(())

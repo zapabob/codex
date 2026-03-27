@@ -24,7 +24,9 @@ impl ToolHandler for Handler {
         } = invocation;
         let arguments = function_arguments(payload)?;
         let args: SendInputArgs = parse_arguments(&arguments)?;
+        let receiver_thread_id = parse_agent_id_target(&args.target)?;
         let receiver_thread_id = agent_id(&args.id)?;
+
         let input_items = parse_collab_input(args.message, args.items)?;
         let prompt = input_preview(&input_items);
         let (receiver_agent_nickname, receiver_agent_role) = session
@@ -54,9 +56,8 @@ impl ToolHandler for Handler {
                 .into(),
             )
             .await;
-        let result = session
-            .services
-            .agent_control
+        let agent_control = session.services.agent_control.clone();
+        let result = agent_control
             .send_input(receiver_thread_id, input_items)
             .await
             .map_err(|err| collab_agent_error(receiver_thread_id, err));

@@ -160,7 +160,7 @@ impl FsApi {
     }
 }
 
-fn invalid_request(message: impl Into<String>) -> JSONRPCErrorError {
+pub(crate) fn invalid_request(message: impl Into<String>) -> JSONRPCErrorError {
     JSONRPCErrorError {
         code: INVALID_REQUEST_ERROR_CODE,
         message: message.into(),
@@ -168,7 +168,7 @@ fn invalid_request(message: impl Into<String>) -> JSONRPCErrorError {
     }
 }
 
-fn map_fs_error(err: io::Error) -> JSONRPCErrorError {
+pub(crate) fn map_fs_error(err: io::Error) -> JSONRPCErrorError {
     if err.kind() == io::ErrorKind::InvalidInput {
         invalid_request(err.to_string())
     } else {

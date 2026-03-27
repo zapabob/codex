@@ -1,0 +1,33 @@
+[package]
+name = "codex-git-utils"
+license = { workspace = true }
+
+version.workspace = true
+edition.workspace = true
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+codex-utils-absolute-path = { workspace = true }
+futures = { workspace = true, features = ["alloc"] }
+once_cell = { workspace = true }
+regex = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+sha2 = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["macros", "process", "rt", "time"] }
+ts-rs = { workspace = true, features = [
+    "uuid-impl",
+    "serde-json-impl",
+    "no-serde-warnings",
+] }
+walkdir = { workspace = true }
+
+[dev-dependencies]
+assert_matches = { workspace = true }
+pretty_assertions = { workspace = true }

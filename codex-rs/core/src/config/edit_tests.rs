@@ -1,4 +1,6 @@
 use super::*;
+use crate::config::types::AppToolApproval;
+use crate::config::types::McpServerToolConfig;
 use crate::config::types::McpServerTransportConfig;
 use codex_protocol::openai_models::ReasoningEffort;
 use pretty_assertions::assert_eq;
@@ -108,6 +110,27 @@ enabled = false
 
     let contents = std::fs::read_to_string(codex_home.join(CONFIG_TOML_FILE)).expect("read config");
     assert_eq!(contents, "");
+}
+
+#[test]
+fn set_skill_config_writes_name_selector_entry() {
+    let tmp = tempdir().expect("tmpdir");
+    let codex_home = tmp.path();
+
+    ConfigEditsBuilder::new(codex_home)
+        .with_edits([ConfigEdit::SetSkillConfigByName {
+            name: "github:yeet".to_string(),
+            enabled: false,
+        }])
+        .apply_blocking()
+        .expect("persist");
+
+    let contents = std::fs::read_to_string(codex_home.join(CONFIG_TOML_FILE)).expect("read config");
+    let expected = r#"[[skills.config]]
+name = "github:yeet"
+enabled = false
+"#;
+    assert_eq!(contents, expected);
 }
 
 #[test]
@@ -561,6 +584,7 @@ fn blocking_replace_mcp_servers_round_trips() {
             disabled_tools: None,
             scopes: None,
             oauth_resource: None,
+            tools: HashMap::new(),
         },
     );
 
@@ -586,6 +610,7 @@ fn blocking_replace_mcp_servers_round_trips() {
             disabled_tools: Some(vec!["forbidden".to_string()]),
             scopes: None,
             oauth_resource: Some("https://resource.example.com".to_string()),
+            tools: HashMap::new(),
         },
     );
 
@@ -623,6 +648,53 @@ B = \"2\"
 }
 
 #[test]
+fn blocking_replace_mcp_servers_serializes_tool_approval_overrides() {
+    let tmp = tempdir().expect("tmpdir");
+    let codex_home = tmp.path();
+
+    let mut servers = BTreeMap::new();
+    servers.insert(
+        "docs".to_string(),
+        McpServerConfig {
+            transport: McpServerTransportConfig::Stdio {
+                command: "docs-server".to_string(),
+                args: Vec::new(),
+                env: None,
+                env_vars: Vec::new(),
+                cwd: None,
+            },
+            enabled: true,
+            required: false,
+            disabled_reason: None,
+            startup_timeout_sec: None,
+            tool_timeout_sec: None,
+            enabled_tools: None,
+            disabled_tools: None,
+            scopes: None,
+            oauth_resource: None,
+            tools: HashMap::from([(
+                "search".to_string(),
+                McpServerToolConfig {
+                    approval_mode: Some(AppToolApproval::Approve),
+                },
+            )]),
+        },
+    );
+
+    apply_blocking(codex_home, None, &[ConfigEdit::ReplaceMcpServers(servers)]).expect("persist");
+
+    let raw = std::fs::read_to_string(codex_home.join(CONFIG_TOML_FILE)).expect("read config");
+    let expected = "\
+[mcp_servers.docs]
+command = \"docs-server\"
+
+[mcp_servers.docs.tools.search]
+approval_mode = \"approve\"
+";
+    assert_eq!(raw, expected);
+}
+
+#[test]
 fn blocking_replace_mcp_servers_preserves_inline_comments() {
     let tmp = tempdir().expect("tmpdir");
     let codex_home = tmp.path();
@@ -655,6 +727,7 @@ foo = { command = "cmd" }
             disabled_tools: None,
             scopes: None,
             oauth_resource: None,
+            tools: HashMap::new(),
         },
     );
 
@@ -700,6 +773,7 @@ foo = { command = "cmd" } # keep me
             disabled_tools: None,
             scopes: None,
             oauth_resource: None,
+            tools: HashMap::new(),
         },
     );
 
@@ -744,6 +818,7 @@ foo = { command = "cmd", args = ["--flag"] } # keep me
             disabled_tools: None,
             scopes: None,
             oauth_resource: None,
+            tools: HashMap::new(),
         },
     );
 
@@ -789,6 +864,7 @@ foo = { command = "cmd" }
             disabled_tools: None,
             scopes: None,
             oauth_resource: None,
+            tools: HashMap::new(),
         },
     );
 

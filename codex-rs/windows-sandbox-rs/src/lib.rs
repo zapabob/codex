@@ -1,5 +1,8 @@
+// Rust 2024 surfaces this lint across the crate; keep the edition bump separate
+// from the eventual unsafe cleanup.
 #![allow(unsafe_op_in_unsafe_fn)]
 #![allow(dead_code)]
+
 
 macro_rules! windows_modules {
     ($($name:ident),+ $(,)?) => {
@@ -73,6 +76,8 @@ pub use dpapi::protect as dpapi_protect;
 #[cfg(target_os = "windows")]
 pub use dpapi::unprotect as dpapi_unprotect;
 #[cfg(target_os = "windows")]
+pub use elevated_impl::ElevatedSandboxCaptureRequest;
+#[cfg(target_os = "windows")]
 pub use elevated_impl::run_windows_sandbox_capture as run_windows_sandbox_capture_elevated;
 #[cfg(target_os = "windows")]
 pub use helper_materialization::resolve_current_exe_for_launch;
@@ -108,6 +113,11 @@ pub use process::read_handle_loop;
 pub use process::spawn_process_with_pipes;
 #[cfg(target_os = "windows")]
 pub use setup::SETUP_VERSION;
+#[cfg(target_os = "windows")]
+pub use setup::SandboxSetupRequest;
+#[cfg(target_os = "windows")]
+pub use setup::SetupRootOverrides;
+
 #[cfg(target_os = "windows")]
 pub use setup::run_elevated_setup;
 #[cfg(target_os = "windows")]
@@ -149,8 +159,11 @@ pub use windows_impl::CaptureResult;
 #[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_capture;
 #[cfg(target_os = "windows")]
+pub use windows_impl::run_windows_sandbox_capture_with_extra_deny_write_paths;
+#[cfg(target_os = "windows")]
 pub use windows_impl::run_windows_sandbox_legacy_preflight;
 #[cfg(target_os = "windows")]
+
 pub use winutil::quote_windows_arg;
 #[cfg(target_os = "windows")]
 pub use winutil::string_from_sid_bytes;
@@ -267,8 +280,33 @@ mod windows_impl {
         codex_home: &Path,
         command: Vec<String>,
         cwd: &Path,
+        env_map: HashMap<String, String>,
+        timeout_ms: Option<u64>,
+        use_private_desktop: bool,
+    ) -> Result<CaptureResult> {
+        run_windows_sandbox_capture_with_extra_deny_write_paths(
+            policy_json_or_preset,
+            sandbox_policy_cwd,
+            codex_home,
+            command,
+            cwd,
+            env_map,
+            timeout_ms,
+            &[],
+            use_private_desktop,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn run_windows_sandbox_capture_with_extra_deny_write_paths(
+        policy_json_or_preset: &str,
+        sandbox_policy_cwd: &Path,
+        codex_home: &Path,
+        command: Vec<String>,
+        cwd: &Path,
         mut env_map: HashMap<String, String>,
         timeout_ms: Option<u64>,
+        additional_deny_write_paths: &[PathBuf],
         use_private_desktop: bool,
     ) -> Result<CaptureResult> {
         let policy = parse_policy(policy_json_or_preset)?;
@@ -325,21 +363,26 @@ mod windows_impl {
         };
 
         unsafe {
-            if is_workspace_write {
-                if let Ok(base) = super::token::get_current_token_for_restriction() {
-                    if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
-                        let mut tmp = bytes.clone();
-                        let psid2 = tmp.as_mut_ptr() as *mut c_void;
-                        allow_null_device(psid2);
-                    }
-                    windows_sys::Win32::Foundation::CloseHandle(base);
+            if is_workspace_write
+                && let Ok(base) = super::token::get_current_token_for_restriction()
+            {
+                if let Ok(bytes) = super::token::get_logon_sid_bytes(base) {
+                    let mut tmp = bytes.clone();
+                    let psid2 = tmp.as_mut_ptr() as *mut c_void;
+                    allow_null_device(psid2);
                 }
+                windows_sys::Win32::Foundation::CloseHandle(base);
             }
         }
 
         let persist_aces = is_workspace_write;
-        let AllowDenyPaths { allow, deny } =
+        let AllowDenyPaths { allow, mut deny } =
             compute_allow_paths(&policy, sandbox_policy_cwd, &current_dir, &env_map);
+        for path in additional_deny_write_paths {
+            if path.exists() {
+                deny.insert(path.clone());
+            }
+        }
         let canonical_cwd = canonicalize_path(&current_dir);
         let mut guards: Vec<(PathBuf, *mut c_void)> = Vec::new();
         unsafe {
@@ -349,23 +392,24 @@ mod windows_impl {
                 } else {
                     psid_generic
                 };
-                if let Ok(added) = add_allow_ace(p, psid) {
-                    if added {
-                        if persist_aces {
-                            if p.is_dir() {
-                                // best-effort seeding omitted intentionally
-                            }
-                        } else {
-                            guards.push((p.clone(), psid));
+                if let Ok(added) = add_allow_ace(p, psid)
+                    && added
+                {
+                    if persist_aces {
+                        if p.is_dir() {
+                            // best-effort seeding omitted intentionally
                         }
+                    } else {
+                        guards.push((p.clone(), psid));
                     }
                 }
             }
             for p in &deny {
-                if let Ok(added) = add_deny_write_ace(p, psid_generic) {
-                    if added && !persist_aces {
-                        guards.push((p.clone(), psid_generic));
-                    }
+                if let Ok(added) = add_deny_write_ace(p, psid_generic)
+                    && added
+                    && !persist_aces
+                {
+                    guards.push((p.clone(), psid_generic));
                 }
             }
             allow_null_device(psid_generic);

@@ -24,8 +24,11 @@ impl ToolHandler for Handler {
         } = invocation;
         let arguments = function_arguments(payload)?;
         let args: CloseAgentArgs = parse_arguments(&arguments)?;
+        let agent_id = parse_agent_id_target(&args.target)?;
+        let receiver_agent = session
         let agent_id = agent_id(&args.id)?;
         let (receiver_agent_nickname, receiver_agent_role) = session
+
             .services
             .agent_control
             .get_agent_nickname_and_role(agent_id)

@@ -1,9 +1,14 @@
+use crate::bottom_pane::FeedbackAudience;
+use crate::status::StatusAccountDisplay;
 use codex_app_server_client::AppServerClient;
 use codex_app_server_client::AppServerEvent;
 use codex_app_server_client::AppServerRequestHandle;
+use codex_app_server_client::TypedRequestError;
 use codex_app_server_protocol::Account;
 use codex_app_server_protocol::AuthMode;
 use codex_app_server_protocol::ClientRequest;
+use codex_app_server_protocol::ConfigBatchWriteParams;
+use codex_app_server_protocol::ConfigWriteResponse;
 use codex_app_server_protocol::GetAccountParams;
 use codex_app_server_protocol::GetAccountRateLimitsResponse;
 use codex_app_server_protocol::GetAccountResponse;
@@ -26,6 +31,8 @@ use codex_app_server_protocol::ThreadForkParams;
 use codex_app_server_protocol::ThreadForkResponse;
 use codex_app_server_protocol::ThreadListParams;
 use codex_app_server_protocol::ThreadListResponse;
+use codex_app_server_protocol::ThreadLoadedListParams;
+use codex_app_server_protocol::ThreadLoadedListResponse;
 use codex_app_server_protocol::ThreadReadParams;
 use codex_app_server_protocol::ThreadReadResponse;
 use codex_app_server_protocol::ThreadRealtimeAppendAudioParams;
@@ -79,9 +86,6 @@ use color_eyre::eyre::Result;
 use color_eyre::eyre::WrapErr;
 use std::collections::HashMap;
 use std::path::PathBuf;
-
-use crate::bottom_pane::FeedbackAudience;
-use crate::status::StatusAccountDisplay;
 
 pub(crate) struct AppServerBootstrap {
     pub(crate) account_auth_mode: Option<AuthMode>,
@@ -177,16 +181,6 @@ impl AppServerSession {
             })
             .await
             .wrap_err("model/list failed during TUI bootstrap")?;
-        let rate_limit_request_id = self.next_request_id();
-        let rate_limits: GetAccountRateLimitsResponse = self
-            .client
-            .request_typed(ClientRequest::GetAccountRateLimits {
-                request_id: rate_limit_request_id,
-                params: None,
-            })
-            .await
-            .wrap_err("account/rateLimits/read failed during TUI bootstrap")?;
-
         let available_models = models
             .data
             .into_iter()
@@ -251,6 +245,25 @@ impl AppServerSession {
                 false,
             ),
         };
+        let rate_limit_snapshots = if account.requires_openai_auth && has_chatgpt_account {
+            let rate_limit_request_id = self.next_request_id();
+            match self
+                .client
+                .request_typed(ClientRequest::GetAccountRateLimits {
+                    request_id: rate_limit_request_id,
+                    params: None,
+                })
+                .await
+            {
+                Ok(rate_limits) => app_server_rate_limit_snapshots_to_core(rate_limits),
+                Err(err) => {
+                    tracing::warn!("account/rateLimits/read failed during TUI bootstrap: {err}");
+                    Vec::new()
+                }
+            }
+        } else {
+            Vec::new()
+        };
 
         Ok(AppServerBootstrap {
             account_auth_mode,
@@ -262,7 +275,7 @@ impl AppServerSession {
             feedback_audience,
             has_chatgpt_account,
             available_models,
-            rate_limit_snapshots: app_server_rate_limit_snapshots_to_core(rate_limits),
+            rate_limit_snapshots,
         })
     }
 
@@ -341,6 +354,22 @@ impl AppServerSession {
             .request_typed(ClientRequest::ThreadList { request_id, params })
             .await
             .wrap_err("thread/list failed during TUI session lookup")
+    }
+
+    /// Lists thread ids that the app server currently holds in memory.
+    ///
+    /// Used by `App::backfill_loaded_subagent_threads` to discover subagent threads that were
+    /// spawned before the TUI connected. The caller then fetches full metadata per thread via
+    /// `thread_read` and walks the spawn tree.
+    pub(crate) async fn thread_loaded_list(
+        &mut self,
+        params: ThreadLoadedListParams,
+    ) -> Result<ThreadLoadedListResponse> {
+        let request_id = self.next_request_id();
+        self.client
+            .request_typed(ClientRequest::ThreadLoadedList { request_id, params })
+            .await
+            .wrap_err("failed to list loaded threads from app server")
     }
 
     pub(crate) async fn thread_read(
@@ -429,7 +458,7 @@ impl AppServerSession {
         thread_id: ThreadId,
         turn_id: String,
         items: Vec<codex_protocol::user_input::UserInput>,
-    ) -> Result<TurnSteerResponse> {
+    ) -> std::result::Result<TurnSteerResponse, TypedRequestError> {
         let request_id = self.next_request_id();
         self.client
             .request_typed(ClientRequest::TurnSteer {
@@ -441,7 +470,6 @@ impl AppServerSession {
                 },
             })
             .await
-            .wrap_err("turn/steer failed in app-server TUI")
     }
 
     pub(crate) async fn thread_set_name(
@@ -578,6 +606,24 @@ impl AppServerSession {
             .request_typed(ClientRequest::SkillsList { request_id, params })
             .await
             .wrap_err("skills/list failed in app-server TUI")
+    }
+
+    pub(crate) async fn reload_user_config(&mut self) -> Result<()> {
+        let request_id = self.next_request_id();
+        let _: ConfigWriteResponse = self
+            .client
+            .request_typed(ClientRequest::ConfigBatchWrite {
+                request_id,
+                params: ConfigBatchWriteParams {
+                    edits: Vec::new(),
+                    file_path: None,
+                    expected_version: None,
+                    reload_user_config: true,
+                },
+            })
+            .await
+            .wrap_err("config/batchWrite failed while reloading user config in app-server TUI")?;
+        Ok(())
     }
 
     pub(crate) async fn thread_realtime_start(

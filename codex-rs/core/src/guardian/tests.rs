@@ -11,6 +11,8 @@ use crate::config::test_config;
 use crate::config_loader::ConfigLayerStack;
 use crate::config_loader::FeatureRequirementsToml;
 use crate::config_loader::NetworkConstraints;
+use crate::config_loader::NetworkDomainPermissionToml;
+use crate::config_loader::NetworkDomainPermissionsToml;
 use crate::config_loader::RequirementSource;
 use crate::config_loader::Sourced;
 use crate::protocol::SandboxPolicy;
@@ -25,12 +27,14 @@ use codex_protocol::protocol::EventMsg;
 use codex_protocol::protocol::GuardianAssessmentStatus;
 use codex_protocol::protocol::GuardianRiskLevel;
 use codex_protocol::protocol::ReviewDecision;
-use codex_utils_absolute_path::AbsolutePathBuf;
+use core_test_support::PathBufExt;
+use core_test_support::TempDirExt;
 use core_test_support::context_snapshot;
 use core_test_support::context_snapshot::ContextSnapshotOptions;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_response_created;
+use core_test_support::responses::mount_response_once;
 use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
@@ -321,7 +325,7 @@ fn guardian_assessment_action_value_redacts_apply_patch_patch_text() {
         ("/tmp", "/tmp/guardian.txt")
     };
     let cwd = PathBuf::from(cwd);
-    let file = AbsolutePathBuf::try_from(file).expect("absolute path");
+    let file = PathBuf::from(file).abs();
     let action = GuardianApprovalRequest::ApplyPatch {
         id: "patch-1".to_string(),
         cwd: cwd.clone(),
@@ -355,7 +359,7 @@ fn guardian_request_turn_id_prefers_network_access_owner_turn() {
     let apply_patch = GuardianApprovalRequest::ApplyPatch {
         id: "patch-1".to_string(),
         cwd: PathBuf::from("/tmp"),
-        files: vec![AbsolutePathBuf::try_from("/tmp/guardian.txt").expect("absolute path")],
+        files: vec![PathBuf::from("/tmp/guardian.txt").abs()],
         change_count: 1usize,
         patch: "*** Begin Patch\n*** Update File: guardian.txt\n@@\n+hello\n*** End Patch"
             .to_string(),
@@ -383,7 +387,7 @@ async fn cancelled_guardian_review_emits_terminal_abort_without_warning() {
         GuardianApprovalRequest::ApplyPatch {
             id: "patch-1".to_string(),
             cwd: PathBuf::from("/tmp"),
-            files: vec![AbsolutePathBuf::try_from("/tmp/guardian.txt").expect("absolute path")],
+            files: vec![PathBuf::from("/tmp/guardian.txt").abs()],
             change_count: 1usize,
             patch: "*** Begin Patch\n*** Update File: guardian.txt\n@@\n+hello\n*** End Patch"
                 .to_string(),
@@ -511,7 +515,7 @@ async fn guardian_review_request_layout_matches_model_visible_request_snapshot()
     let (mut session, mut turn) = crate::codex::make_session_and_context().await;
     let temp_cwd = TempDir::new()?;
     let mut config = (*turn.config).clone();
-    config.cwd = temp_cwd.path().to_path_buf();
+    config.cwd = temp_cwd.abs();
     config.model_provider.base_url = Some(format!("{}/v1", server.uri()));
     let config = Arc::new(config);
     let models_manager = Arc::new(test_support::models_manager_with_provider(
@@ -718,6 +722,100 @@ async fn guardian_reuses_prompt_cache_key_and_appends_prior_reviews() -> anyhow:
     Ok(())
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn guardian_review_surfaces_responses_api_errors_in_rejection_reason() -> anyhow::Result<()> {
+    skip_if_no_network!(Ok(()));
+
+    let server = start_mock_server().await;
+    let error_message =
+        "Item 'rs_test' of type 'reasoning' was provided without its required following item.";
+    let _request_log = mount_response_once(
+        &server,
+        wiremock::ResponseTemplate::new(400).set_body_json(serde_json::json!({
+            "error": {
+                "message": error_message,
+                "type": "invalid_request_error",
+                "param": "input"
+            }
+        })),
+    )
+    .await;
+
+    let (mut session, mut turn, rx) = crate::codex::make_session_and_context_with_rx().await;
+    let mut config = (*turn.config).clone();
+    config.model_provider.base_url = Some(format!("{}/v1", server.uri()));
+    config.user_instructions = None;
+    let config = Arc::new(config);
+    let models_manager = Arc::new(test_support::models_manager_with_provider(
+        config.codex_home.clone(),
+        Arc::clone(&session.services.auth_manager),
+        config.model_provider.clone(),
+    ));
+    Arc::get_mut(&mut session)
+        .expect("session should be uniquely owned")
+        .services
+        .models_manager = models_manager;
+    let turn_mut = Arc::get_mut(&mut turn).expect("turn should be uniquely owned");
+    turn_mut.config = Arc::clone(&config);
+    turn_mut.provider = config.model_provider.clone();
+    turn_mut.user_instructions = None;
+
+    seed_guardian_parent_history(&session, &turn).await;
+
+    let decision = review_approval_request(
+        &session,
+        &turn,
+        GuardianApprovalRequest::Shell {
+            id: "shell-guardian-error".to_string(),
+            command: vec!["git".to_string(), "push".to_string()],
+            cwd: PathBuf::from("/repo/codex-rs/core"),
+            sandbox_permissions: crate::sandboxing::SandboxPermissions::UseDefault,
+            additional_permissions: None,
+            justification: Some("Need to push the reviewed docs fix.".to_string()),
+        },
+        None,
+    )
+    .await;
+
+    assert_eq!(decision, ReviewDecision::Denied);
+
+    let mut warnings = Vec::new();
+    let mut denial_rationales = Vec::new();
+    while let Ok(event) = rx.try_recv() {
+        match event.msg {
+            EventMsg::Warning(event) => warnings.push(event.message),
+            EventMsg::GuardianAssessment(event)
+                if event.status == GuardianAssessmentStatus::Denied =>
+            {
+                denial_rationales.push(event.rationale)
+            }
+            _ => {}
+        }
+    }
+
+    assert!(
+        warnings
+            .iter()
+            .any(|message| message.contains(error_message)),
+        "warning should include the underlying responses api error"
+    );
+    assert!(
+        denial_rationales
+            .iter()
+            .flatten()
+            .any(|message| message.contains(error_message)),
+        "denial rationale should include the underlying responses api error"
+    );
+    assert!(
+        denial_rationales.iter().flatten().all(|message| {
+            !message.contains("guardian review completed without an assessment payload")
+        }),
+        "denial rationale should not fall back to the generic missing payload error"
+    );
+
+    Ok(())
+}
+
 #[tokio::test(flavor = "current_thread")]
 async fn guardian_parallel_reviews_fork_from_last_committed_trunk_history() -> anyhow::Result<()> {
     let first_assessment = serde_json::json!({
@@ -876,7 +974,12 @@ fn guardian_review_session_config_preserves_parent_network_proxy() {
         NetworkProxyConfig::default(),
         Some(NetworkConstraints {
             enabled: Some(true),
-            allowed_domains: Some(vec!["github.com".to_string()]),
+            domains: Some(NetworkDomainPermissionsToml {
+                entries: std::collections::BTreeMap::from([(
+                    "github.com".to_string(),
+                    NetworkDomainPermissionToml::Allow,
+                )]),
+            }),
             ..Default::default()
         }),
         parent_config.permissions.sandbox_policy.get(),
@@ -932,7 +1035,9 @@ fn guardian_review_session_config_uses_live_network_proxy_state() {
     let mut parent_config = test_config();
     let mut parent_network = NetworkProxyConfig::default();
     parent_network.network.enabled = true;
-    parent_network.network.allowed_domains = vec!["parent.example".to_string()];
+    parent_network
+        .network
+        .set_allowed_domains(vec!["parent.example".to_string()]);
     parent_config.permissions.network = Some(
         NetworkProxySpec::from_config_and_constraints(
             parent_network,
@@ -944,7 +1049,9 @@ fn guardian_review_session_config_uses_live_network_proxy_state() {
 
     let mut live_network = NetworkProxyConfig::default();
     live_network.network.enabled = true;
-    live_network.network.allowed_domains = vec!["github.com".to_string()];
+    live_network
+        .network
+        .set_allowed_domains(vec!["github.com".to_string()]);
 
     let guardian_config = build_guardian_review_session_config_for_test(
         &parent_config,

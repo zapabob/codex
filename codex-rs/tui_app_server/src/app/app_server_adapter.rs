@@ -16,6 +16,8 @@ use crate::app_event::AppEvent;
 use crate::app_server_session::AppServerSession;
 use crate::app_server_session::app_server_rate_limit_snapshot_to_core;
 use crate::app_server_session::status_account_display_from_auth_mode;
+#[cfg(test)]
+use crate::exec_command::split_command_string;
 use codex_app_server_client::AppServerEvent;
 use codex_app_server_protocol::AuthMode;
 use codex_app_server_protocol::JSONRPCErrorError;
@@ -132,9 +134,6 @@ impl App {
             AppServerEvent::ServerNotification(notification) => {
                 self.handle_server_notification_event(app_server_client, notification)
                     .await;
-            }
-            AppServerEvent::LegacyNotification(_) => {
-                tracing::debug!("ignoring legacy app-server notification in tui_app_server");
             }
             AppServerEvent::ServerRequest(request) => {
             AppServerEvent::LegacyNotification(notification) => {
@@ -489,6 +488,7 @@ fn server_notification_thread_target(
         | ServerNotification::FuzzyFileSearchSessionUpdated(_)
         | ServerNotification::FuzzyFileSearchSessionCompleted(_)
         | ServerNotification::CommandExecOutputDelta(_)
+        | ServerNotification::FsChanged(_)
         | ServerNotification::WindowsWorldWritableWarning(_)
         | ServerNotification::WindowsSandboxSetupCompleted(_)
         | ServerNotification::AccountLoginCompleted(_) => None,
@@ -1133,7 +1133,6 @@ fn split_command_string(command: &str) -> Vec<String> {
         _ => vec![command.to_string()],
     }
 }
-
 #[cfg(test)]
 mod refresh_tests {
     use super::*;
@@ -1153,7 +1152,6 @@ mod refresh_tests {
         struct Header {
             alg: &'static str,
             typ: &'static str,
-        }
         let header = Header {
             alg: "none",
             typ: "JWT",
@@ -1170,7 +1168,6 @@ mod refresh_tests {
         let payload_b64 = encode(&serde_json::to_vec(&payload).expect("serialize payload"));
         let signature_b64 = encode(b"sig");
         format!("{header_b64}.{payload_b64}.{signature_b64}")
-    }
     fn write_chatgpt_auth(codex_home: &std::path::Path) {
         let id_token = fake_jwt("workspace-1", "business");
         let access_token = fake_jwt("workspace-1", "business");
@@ -1212,8 +1209,6 @@ mod refresh_tests {
             err,
             "local ChatGPT auth refresh account mismatch: expected `workspace-2`, got `workspace-1`"
         );
-}
-#[cfg(test)]
 
 fn app_server_web_search_action_to_core(
     action: codex_app_server_protocol::WebSearchAction,

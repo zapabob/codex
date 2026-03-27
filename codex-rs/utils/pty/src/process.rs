@@ -118,10 +118,10 @@ impl ProcessHandle {
 
     /// Returns a channel sender for writing raw bytes to the child stdin.
     pub fn writer_sender(&self) -> mpsc::Sender<Vec<u8>> {
-        if let Ok(writer_tx) = self.writer_tx.lock() {
-            if let Some(writer_tx) = writer_tx.as_ref() {
-                return writer_tx.clone();
-            }
+        if let Ok(writer_tx) = self.writer_tx.lock()
+            && let Some(writer_tx) = writer_tx.as_ref()
+        {
+            return writer_tx.clone();
         }
 
         let (writer_tx, writer_rx) = mpsc::channel(1);
@@ -165,10 +165,10 @@ impl ProcessHandle {
     /// Attempts to kill the child while leaving the reader/writer tasks alive
     /// so callers can still drain output until EOF.
     pub fn request_terminate(&self) {
-        if let Ok(mut killer_opt) = self.killer.lock() {
-            if let Some(mut killer) = killer_opt.take() {
-                let _ = killer.kill();
-            }
+        if let Ok(mut killer_opt) = self.killer.lock()
+            && let Some(mut killer) = killer_opt.take()
+        {
+            let _ = killer.kill();
         }
     }
 

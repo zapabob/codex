@@ -85,6 +85,8 @@ impl ToolHandler for Handler {
                     session.conversation_id,
                     child_depth,
                     role_name,
+                    /*task_name*/ None,
+                )?),
                 )),
 
                 SpawnAgentOptions {
@@ -111,6 +113,20 @@ impl ToolHandler for Handler {
             }
             None => None,
         };
+        let (_new_agent_path, new_agent_nickname, new_agent_role) =
+            match (&agent_snapshot, new_agent_metadata) {
+                (Some(snapshot), _) => (
+                    snapshot.session_source.get_agent_path().map(String::from),
+                    snapshot.session_source.get_nickname(),
+                    snapshot.session_source.get_agent_role(),
+                ),
+                (None, Some(metadata)) => (
+                    metadata.agent_path.map(String::from),
+                    metadata.agent_nickname,
+                    metadata.agent_role,
+                ),
+                (None, None) => (None, None, None),
+            };
         let (new_agent_nickname, new_agent_role) = match (&agent_snapshot, new_thread_id) {
             (Some(snapshot), _) => (
                 snapshot.session_source.get_nickname(),

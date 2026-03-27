@@ -8,6 +8,7 @@
 //! path spawns the child directly and does not use this runner.
 
 #![cfg(target_os = "windows")]
+#![allow(unsafe_op_in_unsafe_fn)]
 
 use anyhow::Context;
 use anyhow::Result;
@@ -333,13 +334,13 @@ fn spawn_output_reader(
                 },
             },
         };
-        if let Ok(mut guard) = writer.lock() {
-            if let Err(err) = write_frame(&mut *guard, &msg) {
-                log_note(
-                    &format!("runner output write failed: {err}"),
-                    log_dir.as_deref(),
-                );
-            }
+        if let Ok(mut guard) = writer.lock()
+            && let Err(err) = write_frame(&mut *guard, &msg)
+        {
+            log_note(
+                &format!("runner output write failed: {err}"),
+                log_dir.as_deref(),
+            );
         }
     })
 }
@@ -383,11 +384,11 @@ fn spawn_input_loop(
                     }
                 }
                 Message::Terminate { .. } => {
-                    if let Ok(guard) = process_handle.lock() {
-                        if let Some(handle) = guard.as_ref() {
-                            unsafe {
-                                let _ = TerminateProcess(*handle, 1);
-                            }
+                    if let Ok(guard) = process_handle.lock()
+                        && let Some(handle) = guard.as_ref()
+                    {
+                        unsafe {
+                            let _ = TerminateProcess(*handle, 1);
                         }
                     }
                 }
@@ -545,10 +546,10 @@ pub fn main() -> Result<()> {
             },
         },
     };
-    if let Ok(mut guard) = pipe_write.lock() {
-        if let Err(err) = write_frame(&mut *guard, &exit_msg) {
-            log_note(&format!("runner exit write failed: {err}"), log_dir);
-        }
+    if let Ok(mut guard) = pipe_write.lock()
+        && let Err(err) = write_frame(&mut *guard, &exit_msg)
+    {
+        log_note(&format!("runner exit write failed: {err}"), log_dir);
     }
 
     std::process::exit(exit_code);

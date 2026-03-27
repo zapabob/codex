@@ -91,19 +91,6 @@ jobs:
       - name: cargo shear
         run: cargo shear
 
-<<<<<<< HEAD
-  argument_comment_lint:
-    name: Argument comment lint
-    runs-on: ubuntu-24.04
-    needs: changed
-    if: ${{ needs.changed.outputs.argument_comment_lint == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install Linux sandbox build dependencies
-        run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends pkg-config libcap-dev
-=======
   argument_comment_lint_package:
     name: Argument comment lint package
     runs-on: ubuntu-24.04
@@ -111,7 +98,14 @@ jobs:
     if: ${{ needs.changed.outputs.argument_comment_lint_package == 'true' || github.event_name == 'push' }}
     steps:
       - uses: actions/checkout@v6
->>>>>>> cf0223887fb84a9bd57986c21f3d7eadfce249a3
+  argument_comment_lint:
+    name: Argument comment lint
+    if: ${{ needs.changed.outputs.argument_comment_lint == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}
+      - name: Install Linux sandbox build dependencies
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends pkg-config libcap-dev
+
       - uses: dtolnay/rust-toolchain@1.93.0
         with:
           toolchain: nightly-2025-09-18
@@ -130,16 +124,6 @@ jobs:
       - name: Install cargo-dylint tooling
         if: ${{ steps.cargo_dylint_cache.outputs.cache-hit != 'true' }}
         run: cargo install --locked cargo-dylint dylint-link
-<<<<<<< HEAD
-      - name: Test argument comment lint package
-        if: ${{ needs.changed.outputs.argument_comment_lint_package == 'true' || github.event_name == 'push' }}
-        working-directory: tools/argument-comment-lint
-        run: cargo test
-      - name: Run argument comment lint on codex-rs
-        run: |
-          bash -n tools/argument-comment-lint/run.sh
-          ./tools/argument-comment-lint/run.sh
-=======
       - name: Check source wrapper syntax
         run: bash -n tools/argument-comment-lint/run.sh
       - name: Test argument comment lint package
@@ -180,7 +164,10 @@ jobs:
       - name: Run argument comment lint on codex-rs
         shell: bash
         run: ./tools/argument-comment-lint/run-prebuilt-linter.sh
->>>>>>> cf0223887fb84a9bd57986c21f3d7eadfce249a3
+        if: ${{ needs.changed.outputs.argument_comment_lint_package == 'true' || github.event_name == 'push' }}
+          bash -n tools/argument-comment-lint/run.sh
+          ./tools/argument-comment-lint/run.sh
+
 
   # --- CI to validate on different os/targets --------------------------------
   lint_build:
@@ -572,7 +559,10 @@ jobs:
   tests:
     name: Tests — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.remote_env == 'true' && ' (remote)' || '' }}
     runs-on: ${{ matrix.runs_on || matrix.runner }}
-    timeout-minutes: 30
+    # Perhaps we can bring this back down to 30m once we finish the cutover
+    # from tui_app_server/ to tui/. Incidentally, windows-arm64 was the main
+    # offender for exceeding the timeout.
+    timeout-minutes: 45
     needs: changed
     if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' || github.event_name == 'push' }}
     defaults:
@@ -800,9 +790,6 @@ jobs:
   results:
     name: CI results (required)
     needs:
-<<<<<<< HEAD
-      [changed, general, cargo_shear, argument_comment_lint, lint_build, tests]
-=======
       [
         changed,
         general,
@@ -812,19 +799,18 @@ jobs:
         lint_build,
         tests,
       ]
->>>>>>> cf0223887fb84a9bd57986c21f3d7eadfce249a3
+      [changed, general, cargo_shear, argument_comment_lint, lint_build, tests]
+
     if: always()
     runs-on: ubuntu-24.04
     steps:
       - name: Summarize
         shell: bash
         run: |
-<<<<<<< HEAD
-          echo "arglint: ${{ needs.argument_comment_lint.result }}"
-=======
           echo "argpkg : ${{ needs.argument_comment_lint_package.result }}"
           echo "arglint: ${{ needs.argument_comment_lint_prebuilt.result }}"
->>>>>>> cf0223887fb84a9bd57986c21f3d7eadfce249a3
+          echo "arglint: ${{ needs.argument_comment_lint.result }}"
+
           echo "general: ${{ needs.general.result }}"
           echo "shear  : ${{ needs.cargo_shear.result }}"
           echo "lint   : ${{ needs.lint_build.result }}"
@@ -837,17 +823,14 @@ jobs:
             exit 0
           fi
 
-<<<<<<< HEAD
-          if [[ '${{ needs.changed.outputs.argument_comment_lint }}' == 'true' || '${{ needs.changed.outputs.workflows }}' == 'true' || '${{ github.event_name }}' == 'push' ]]; then
-            [[ '${{ needs.argument_comment_lint.result }}' == 'success' ]] || { echo 'argument_comment_lint failed'; exit 1; }
-=======
           if [[ '${{ needs.changed.outputs.argument_comment_lint_package }}' == 'true' || '${{ github.event_name }}' == 'push' ]]; then
             [[ '${{ needs.argument_comment_lint_package.result }}' == 'success' ]] || { echo 'argument_comment_lint_package failed'; exit 1; }
           fi
 
           if [[ '${{ needs.changed.outputs.argument_comment_lint }}' == 'true' || '${{ needs.changed.outputs.workflows }}' == 'true' || '${{ github.event_name }}' == 'push' ]]; then
             [[ '${{ needs.argument_comment_lint_prebuilt.result }}' == 'success' ]] || { echo 'argument_comment_lint_prebuilt failed'; exit 1; }
->>>>>>> cf0223887fb84a9bd57986c21f3d7eadfce249a3
+            [[ '${{ needs.argument_comment_lint.result }}' == 'success' ]] || { echo 'argument_comment_lint failed'; exit 1; }
+
           fi
 
           if [[ '${{ needs.changed.outputs.codex }}' == 'true' || '${{ needs.changed.outputs.workflows }}' == 'true' || '${{ github.event_name }}' == 'push' ]]; then

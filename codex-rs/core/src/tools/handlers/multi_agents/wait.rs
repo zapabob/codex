@@ -1,9 +1,11 @@
 use super::*;
 use crate::agent::status::is_final;
+use crate::error::CodexErr;
 use futures::FutureExt;
 use futures::StreamExt;
 use futures::stream::FuturesUnordered;
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::watch::Receiver;
 use tokio::time::Instant;
@@ -34,6 +36,7 @@ impl ToolHandler for Handler {
         } = invocation;
         let arguments = function_arguments(payload)?;
         let args: WaitArgs = parse_arguments(&arguments)?;
+        let receiver_thread_ids = parse_agent_id_targets(args.targets)?;
         if args.ids.is_empty() {
             return Err(FunctionCallError::RespondToModel(
                 "ids must be non-empty".to_owned(),
@@ -44,6 +47,7 @@ impl ToolHandler for Handler {
             .iter()
             .map(|id| agent_id(id))
             .collect::<Result<Vec<_>, _>>()?;
+
         let mut receiver_agents = Vec::with_capacity(receiver_thread_ids.len());
         for receiver_thread_id in &receiver_thread_ids {
             let (agent_nickname, agent_role) = session

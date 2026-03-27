@@ -209,6 +209,7 @@ async fn run_code_mode_turn_with_rmcp(
                     disabled_tools: None,
                     scopes: None,
                     oauth_resource: None,
+                    tools: HashMap::new(),
                 },
             );
             config
@@ -2337,6 +2338,7 @@ text(
             final_output_json_schema: None,
             cwd: test.cwd.path().to_path_buf(),
             approval_policy: AskForApproval::Never,
+            approvals_reviewer: None,
             sandbox_policy: SandboxPolicy::DangerFullAccess,
             model: test.session_configured.model.clone(),
             effort: None,

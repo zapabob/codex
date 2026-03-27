@@ -49,6 +49,7 @@ mod mcp_server_elicitation;
 mod multi_select_picker;
 mod request_user_input;
 mod status_line_setup;
+mod title_setup;
 pub(crate) use app_link_view::AppLinkElicitationTarget;
 pub(crate) use app_link_view::AppLinkSuggestionType;
 pub(crate) use app_link_view::AppLinkView;
@@ -102,6 +103,8 @@ pub(crate) use skills_toggle_view::SkillsToggleView;
 pub(crate) use status_line_setup::StatusLineItem;
 pub(crate) use status_line_setup::StatusLinePreviewData;
 pub(crate) use status_line_setup::StatusLineSetupView;
+pub(crate) use title_setup::TerminalTitleItem;
+pub(crate) use title_setup::TerminalTitleSetupView;
 mod paste_burst;
 mod pending_input_preview;
 mod pending_thread_approvals;
@@ -824,8 +827,10 @@ impl BottomPane {
         &mut self,
         queued: Vec<String>,
         pending_steers: Vec<String>,
+        rejected_steers: Vec<String>,
     ) {
         self.pending_input_preview.pending_steers = pending_steers;
+        self.pending_input_preview.rejected_steers = rejected_steers;
         self.pending_input_preview.queued_messages = queued;
         self.request_redraw();
     }
@@ -1146,7 +1151,8 @@ impl BottomPane {
             }
             let has_pending_thread_approvals = !self.pending_thread_approvals.is_empty();
             let has_pending_input = !self.pending_input_preview.queued_messages.is_empty()
-                || !self.pending_input_preview.pending_steers.is_empty();
+                || !self.pending_input_preview.pending_steers.is_empty()
+                || !self.pending_input_preview.rejected_steers.is_empty();
             let has_status_or_footer =
                 self.status.is_some() || !self.unified_exec_footer.is_empty();
             let has_inline_previews = has_pending_thread_approvals || has_pending_input;
@@ -1549,7 +1555,11 @@ mod tests {
             StatusDetailsCapitalization::CapitalizeFirst,
             STATUS_DETAILS_DEFAULT_MAX_LINES,
         );
-        pane.set_pending_input_preview(vec!["Queued follow-up question".to_string()], Vec::new());
+        pane.set_pending_input_preview(
+            vec!["Queued follow-up question".to_string()],
+            Vec::new(),
+            Vec::new(),
+        );
 
         let width = 48;
         let height = pane.desired_height(width);
@@ -1576,7 +1586,11 @@ mod tests {
         });
 
         pane.set_task_running(true);
-        pane.set_pending_input_preview(vec!["Queued follow-up question".to_string()], Vec::new());
+        pane.set_pending_input_preview(
+            vec!["Queued follow-up question".to_string()],
+            Vec::new(),
+            Vec::new(),
+        );
         pane.hide_status_indicator();
 
         let width = 48;
@@ -1604,7 +1618,11 @@ mod tests {
         });
 
         pane.set_task_running(true);
-        pane.set_pending_input_preview(vec!["Queued follow-up question".to_string()], Vec::new());
+        pane.set_pending_input_preview(
+            vec!["Queued follow-up question".to_string()],
+            Vec::new(),
+            Vec::new(),
+        );
 
         let width = 48;
         let height = pane.desired_height(width);
@@ -1686,8 +1704,6 @@ mod tests {
                 interface: None,
                 dependencies: None,
                 policy: None,
-                permission_profile: None,
-                managed_network_override: None,
                 path_to_skills_md: PathBuf::from("test-skill"),
                 scope: SkillScope::User,
             }]),

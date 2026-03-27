@@ -24,6 +24,7 @@ use codex_core::config::Config;
 use codex_core::config::ConfigBuilder;
 use codex_core::config_loader::CloudRequirementsLoader;
 use codex_core::config_loader::LoaderOverrides;
+use codex_exec_server::EnvironmentManager;
 use codex_feedback::CodexFeedback;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::W3cTraceContext;
@@ -236,11 +237,10 @@ fn build_test_processor(
         outgoing,
         arg0_paths: Arg0DispatchPaths::default(),
         config,
+        environment_manager: Arc::new(EnvironmentManager::new(/*exec_server_url*/ None)),
         cli_overrides: Vec::new(),
         loader_overrides: LoaderOverrides::default(),
         cloud_requirements: CloudRequirementsLoader::default(),
-        auth_manager: None,
-        thread_manager: None,
         feedback: CodexFeedback::new(),
         log_db: None,
         config_warnings: Vec::new(),
@@ -392,6 +392,7 @@ async fn read_response<T: serde::de::DeserializeOwned>(
         let crate::outgoing_message::OutgoingEnvelope::ToConnection {
             connection_id,
             message,
+            ..
         } = envelope
         else {
             continue;
@@ -422,6 +423,7 @@ async fn read_thread_started_notification(
             crate::outgoing_message::OutgoingEnvelope::ToConnection {
                 connection_id,
                 message,
+                ..
             } => {
                 if connection_id != TEST_CONNECTION_ID {
                     continue;

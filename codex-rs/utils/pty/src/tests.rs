@@ -19,10 +19,9 @@ fn find_python() -> Option<String> {
         if let Ok(output) = std::process::Command::new(candidate)
             .arg("--version")
             .output()
+            && output.status.success()
         {
-            if output.status.success() {
-                return Some(candidate.to_string());
-            }
+            return Some(candidate.to_string());
         }
     }
     None

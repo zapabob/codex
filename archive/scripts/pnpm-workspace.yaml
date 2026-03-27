@@ -6,6 +6,7 @@ packages:
   - packages/*
   - shell-tool-mcp
 
+
 ignoredBuiltDependencies:
   - esbuild
 
