@@ -13,7 +13,7 @@
     "version:check": "node scripts/sync-version.mjs --check"
   },
   "devDependencies": {
-    "prettier": "^3.5.3",
+    "prettier": "^3.8.2",
     "pyright": "^1.1.405"
   },
   "resolutions": {
