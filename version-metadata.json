@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "canonical_source": "VERSION",
-  "fork_version": "3.0.0",
-  "upstream_base": "3.0.0",
-  "release_date": "2026-03-19",
+  "fork_version": "3.1.0",
+  "upstream_base": "rust-v0.121.0",
+  "release_date": "2026-04-18",
   "current_release_line": "3.x",
   "legacy_release_line": "2.x",
   "sync_targets": {

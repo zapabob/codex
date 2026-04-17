@@ -1,35 +1,36 @@
-# Codex v3.0.0 Release Notes
+# Codex v3.1.0 Release Notes
 
-> **Current release document** for the v3.0.0 line.
+> Current release document for the v3.1.0 line.
 > Legacy v2.x release notes are archived at `releases/legacy/v2.x/RELEASE_NOTES.md`.
+
+## Release Channels
+
+- Stable channel: `v3.1.0-stable.0` from `release/3.1.0-stable`
+- Mainline channel: `v3.1.0` from `main`
+- Primary asset: Windows `tar.gz` bundle containing `codex.exe`, `README.md`, `LICENSE`, and `VERSION`
 
 ## Canonical Versioning
 
-- **Canonical source**: root `VERSION`
-- **Fork version**: `3.0.0`
-- **Upstream base**: `3.0.0`
-- **Release date**: 2026-03-19
+- Canonical source: root `VERSION`
+- Fork version: `3.1.0`
+- Upstream base: `rust-v0.121.0`
+- Release date: 2026-04-18
 
-## What changed in v3.0.0
+## What Changed In v3.1.0
 
-### Version governance
+### Product positioning
 
-- Root `VERSION` is now the single source of truth for release-visible versioning.
-- `version-metadata.json` defines `fork_version` and `upstream_base` so tooling can distinguish fork releases from upstream alignment.
-- `scripts/sync-version.mjs` regenerates synced version displays and validates drift with `--check`.
+- Rewrote the root README around a public-facing TL;DR, release-channel guidance, architecture snapshot, and migration status.
+- Clarified that the official Codex surfaces are the baseline product story for this fork: `codex`, `codex app`, `codex app-server`, and plugins.
+- Tightened the public explanation of what remains fork-specific and what is intentionally being retired or migrated.
 
-### Repository docs and manifests
+### Release alignment
 
-- Synced the root `package.json`, Rust workspace version, and `packages/protocol-client/package.json` to v3.0.0.
-- Rebuilt the root changelog and release notes as **current release** documents for the v3.x line.
-- Archived the older v2.x release notes so the latest release is unambiguous.
+- Aligned the root package manifests and release-visible metadata to `3.1.0`.
+- Published both a stable branch release and a mainline release for the same release line.
+- Standardized the Windows release bundle naming around the tag-specific `tar.gz` artifact.
 
-## Sync procedure
+### Upstream-first operations
 
-```bash
-# 1) edit VERSION (and version-metadata.json upstream_base if needed)
-node scripts/sync-version.mjs
-
-# 2) verify no drift remains
-node scripts/sync-version.mjs --check
-```
+- Kept `scripts/upstream_sync.py` as the authoritative sync and closeout driver.
+- Preserved the native Windows verification note that full `cargo test --workspace` can still be gated by the `v8` symlink privilege prerequisite.
