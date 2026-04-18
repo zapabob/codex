@@ -10,6 +10,8 @@ Use this skill when the user asks for the fork's old VR or AR capabilities and w
 Guidelines:
 
 - Present VR or AR as optional plugin-provided capability, not a first-party GUI requirement.
+- Prefer the app-server Git4D capability and session methods first.
+- Use the lightweight GUI bridge capability route only as a compatibility adapter when app-server is unavailable.
 - If WebXR, device access, or graphics support is unavailable, fall back to non-immersive descriptions and standard app-server flows.
 - Keep device-specific logic isolated from the main product story.
 - Route computer control and OS integration requests toward future official Codex App Windows support rather than reviving fork-only surfaces.

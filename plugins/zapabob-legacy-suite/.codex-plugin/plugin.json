@@ -1,13 +1,13 @@
 {
   "name": "zapabob-legacy-suite",
-  "description": "Migrates fork-only DeepResearch, Git4D, and VR or AR affordances onto the official Codex app and plugin seams.",
+  "description": "Bridges fork-only DeepResearch, Git4D, and VR or AR affordances onto the official Codex app, app-server, and plugin seams.",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "apps": "./.app.json",
   "interface": {
     "displayName": "Zapabob Legacy Suite",
-    "shortDescription": "Repo-local DeepResearch, Git4D, and VR or AR migration bundle.",
-    "longDescription": "Use this repo-local plugin to carry forward fork-only DeepResearch, Git4D, and VR or AR workflows while the official Codex app and app-server remain the authoritative GUI surface. Computer-control and virtual OS experiments are intentionally deprecated and are not reintroduced here.",
+    "shortDescription": "Repo-local DeepResearch, Git4D, and VR or AR bridge bundle.",
+    "longDescription": "Use this repo-local plugin to carry forward fork-only DeepResearch, Git4D, and VR or AR workflows while the official Codex app and app-server remain the authoritative GUI surface. The plugin can bridge into live Git4D launch, session, SSE, and capability endpoints when the lightweight GUI service is available, and it falls back to text-first summaries when it is not. Computer-control and virtual OS experiments are intentionally deprecated and are not reintroduced here.",
     "developerName": "zapabob",
     "category": "Research",
     "capabilities": [
@@ -18,7 +18,9 @@
     ],
     "defaultPrompt": [
       "Use this plugin when the user asks for DeepResearch, Git4D, or VR or AR capabilities that used to live in the legacy GUI.",
-      "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path."
+      "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path.",
+      "Prefer app-server Git4D methods such as git4d/capabilities/read, git4d/session/start, git4d/session/list, and git4d/session/watch before using the GUI compatibility adapter.",
+      "Use the lightweight Git4D GUI bridge only as a compatibility adapter before falling back to text-only summaries."
     ],
     "brandColor": "#1F6F5F"
   }

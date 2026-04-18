@@ -14,6 +14,7 @@ mod dynamic_tools;
 mod experimental_api;
 mod experimental_feature_list;
 mod fs;
+mod git4d;
 mod initialize;
 mod marketplace_add;
 mod mcp_resource;

@@ -5,6 +5,7 @@ use crate::JSONRPCRequest;
 use crate::RequestId;
 use crate::export::GeneratedSchema;
 use crate::export::write_json_schema;
+use crate::protocol::git4d;
 use crate::protocol::v1;
 use crate::protocol::v2;
 use codex_experimental_api_macros::ExperimentalApi;
@@ -347,6 +348,31 @@ client_request_definitions! {
     PluginRead => "plugin/read" {
         params: v2::PluginReadParams,
         response: v2::PluginReadResponse,
+    },
+    #[experimental("git4d/capabilities/read")]
+    Git4DCapabilitiesRead => "git4d/capabilities/read" {
+        params: git4d::Git4DCapabilitiesReadParams,
+        response: git4d::Git4DCapabilitiesResponse,
+    },
+    #[experimental("git4d/session/start")]
+    Git4DSessionStart => "git4d/session/start" {
+        params: git4d::Git4DSessionStartParams,
+        response: git4d::Git4DSessionStartResponse,
+    },
+    #[experimental("git4d/session/list")]
+    Git4DSessionList => "git4d/session/list" {
+        params: git4d::Git4DSessionListParams,
+        response: git4d::Git4DSessionListResponse,
+    },
+    #[experimental("git4d/session/watch")]
+    Git4DSessionWatch => "git4d/session/watch" {
+        params: git4d::Git4DSessionWatchParams,
+        response: git4d::Git4DSessionWatchResponse,
+    },
+    #[experimental("git4d/session/unwatch")]
+    Git4DSessionUnwatch => "git4d/session/unwatch" {
+        params: git4d::Git4DSessionUnwatchParams,
+        response: git4d::Git4DSessionUnwatchResponse,
     },
     AppsList => "app/list" {
         params: v2::AppsListParams,
@@ -1044,6 +1070,8 @@ server_notification_definitions! {
     ThreadRealtimeError => "thread/realtime/error" (v2::ThreadRealtimeErrorNotification),
     #[experimental("thread/realtime/closed")]
     ThreadRealtimeClosed => "thread/realtime/closed" (v2::ThreadRealtimeClosedNotification),
+    #[experimental("git4d/session/event")]
+    Git4DSessionEvent => "git4d/session/event" (git4d::Git4DSessionEventNotification),
 
     /// Notifies the user of world-writable directories on Windows, which cannot be protected by the sandbox.
     WindowsWorldWritableWarning => "windows/worldWritableWarning" (v2::WindowsWorldWritableWarningNotification),
@@ -2021,6 +2049,33 @@ mod tests {
         );
         let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&notification);
         assert_eq!(reason, Some("thread/realtime/outputAudio/delta"));
+    }
+
+    #[test]
+    fn git4d_session_start_is_marked_experimental() {
+        let request = ClientRequest::Git4DSessionStart {
+            request_id: RequestId::Integer(1),
+            params: git4d::Git4DSessionStartParams {
+                repository_path: None,
+                mode: git4d::Git4DMode::Desktop,
+            },
+        };
+        let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&request);
+        assert_eq!(reason, Some("git4d/session/start"));
+    }
+
+    #[test]
+    fn git4d_session_event_notification_is_marked_experimental() {
+        let notification =
+            ServerNotification::Git4DSessionEvent(git4d::Git4DSessionEventNotification {
+                session_id: "git4d_123".to_string(),
+                sequence: 1,
+                event: git4d::Git4DSessionEvent::SessionStatusChanged {
+                    status: git4d::Git4DSessionStatus::Active,
+                },
+            });
+        let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&notification);
+        assert_eq!(reason, Some("git4d/session/event"));
     }
 
     #[test]

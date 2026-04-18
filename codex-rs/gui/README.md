@@ -46,7 +46,10 @@ The front-end expects the backend at `http://localhost:8787` by default.
 ### Visualization
 - `POST /api/visualization/git4d` – Launch Git4D visualization
 - `GET /api/visualization/git4d/sessions` – List Git4D sessions
+- `GET /api/visualization/git4d/capabilities/{mode}` – Report whether `desktop`, `vr`, or `ar` can run natively and what fallback mode will be used
 - `GET /api/visualization/git4d/{session_id}/events` – Stream Git4D events (SSE)
+
+The GUI endpoints above are now a compatibility adapter. The canonical live bridge for Git4D and VR/AR capability is `codex app-server`; this HTTP surface preserves the legacy route names while reading shared core session metadata.
 
 ### System
 - `GET /api/system/metrics` – Get system metrics
